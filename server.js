@@ -5,23 +5,32 @@ const { OpenAI } = require('openai');
 const cors = require('cors');
 
 const app = express();
-const ALLOWED_ORIGINS = [
-    'https://primyo.io',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-  ];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-}));
+// Development CORS (more permissive)
+if (process.env.NODE_ENV === 'development') {
+  app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+  }));
+} else {
+  // Production CORS (strict)
+  app.use(cors({
+    origin: function (origin, callback) {
+      const ALLOWED_ORIGINS = [
+        'https://primyo.io',
+        'https://boostmind-b052c.web.app'
+      ];
+      
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+  }));
+}
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
@@ -34,7 +43,7 @@ const headers = { headers: { 'OpenAI-Beta': 'assistants=v2' } };
 // 🧠 In-memory conversation → threadId map
 const conversationThreads = new Map();
 
-app.post('/api/booking-assistant', async (req, res) => {
+app.post('/api/finance-assistant', async (req, res) => {
   const { message, conversationId } = req.body;
 
   if (!message || !conversationId) {
@@ -85,7 +94,7 @@ app.post('/api/booking-assistant', async (req, res) => {
     res.json({ reply });
   } catch (err) {
     console.error('❌ Error:', err.message);
-    res.status(500).json({ error: 'שגיאה בטיפול בבקשה 😢' });
+    res.status(500).json({ error: 'error handling message' + err.message });
   }
 });
 

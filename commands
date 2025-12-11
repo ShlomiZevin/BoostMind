@@ -1,0 +1,1 @@
+gcloud app deploy --no-promote --version finance-1

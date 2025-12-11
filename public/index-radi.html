@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Agents in Production – Radi Becker & Shlomi Zevin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="We design, architect and ship advanced AI agents that connect to your systems, automate workflows and deliver real business outcomes.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <div class="logo">
+      <span class="logo-mark">RS</span>
+      <span class="logo-text">AI Agent Studio</span>
+    </div>
+    <nav class="main-nav">
+      <a href="#services">Services</a>
+      <a href="#solutions">Use Cases</a>
+      <a href="#process">How We Work</a>
+      <a href="#founders">Founders</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact" class="nav-cta">Book a Call</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <h1>We Build AI Agents That Actually Do the Work.</h1>
+        <p class="hero-subtitle">
+          Not just Q&amp;A chatbots. We design and ship production-grade AI agents
+          that connect to your stack, make decisions, and automate real workflows.
+        </p>
+        <div class="hero-badges">
+          <span>25+ years in engineering leadership</span>
+          <span>CTO / VP R&amp;D experience</span>
+          <span>Advanced LLM &amp; ML systems</span>
+        </div>
+        <div class="hero-ctas">
+          <a href="#contact" class="btn primary">Schedule a 30-min discovery call</a>
+          <a href="#solutions" class="btn ghost">See what we can build</a>
+        </div>
+        <p class="hero-note">
+          Ideal for product, ops, data and innovation teams in <strong>startups, scale-ups and enterprises</strong>.
+        </p>
+      </div>
+      <div class="hero-card">
+        <h2>What if your agents could…</h2>
+        <ul>
+          <li>Handle multi-step customer workflows end-to-end</li>
+          <li>Call your internal APIs, CRMs and billing systems</li>
+          <li>Trigger real actions, not just text answers</li>
+          <li>Use your data safely, with guardrails</li>
+        </ul>
+        <div class="hero-card-footer">
+          <p>That’s what we build. From design to production.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF / FIT -->
+  <section class="section section-muted" id="fit">
+    <div class="container">
+      <div class="section-header">
+        <h2>Who We Work With</h2>
+        <p>We build agents for teams that need more than a demo.</p>
+      </div>
+      <div class="pill-grid">
+        <div class="pill-card">
+          <h3>Startups</h3>
+          <p>Turn your AI idea into a working MVP fast. We help you design the agent, architecture, and integrations – ready to show investors and early customers.</p>
+          <ul>
+            <li>Founding-stage tech partners</li>
+            <li>From zero to shipped in weeks</li>
+            <li>Prioritising impact over buzzwords</li>
+          </ul>
+        </div>
+        <div class="pill-card">
+          <h3>Scale-ups</h3>
+          <p>Layer agents on top of an existing product or operations. Reduce manual work, shorten response times and open new features for your customers.</p>
+          <ul>
+            <li>Deep system integration</li>
+            <li>Custom workflows per team</li>
+            <li>Measurable operational ROI</li>
+          </ul>
+        </div>
+        <div class="pill-card">
+          <h3>Enterprises</h3>
+          <p>Safely introduce AI into complex environments. We work with your security, architecture and data teams to build compliant, traceable agents at scale.</p>
+          <ul>
+            <li>Architecture &amp; governance first</li>
+            <li>On-prem / VPC-friendly patterns</li>
+            <li>Clear boundaries and guardrails</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-header">
+        <h2>What We Build</h2>
+        <p>End-to-end AI agent systems – from idea to running in production.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="service-card">
+          <h3>Operational AI Agents</h3>
+          <p>Agents that don’t just answer questions – they execute workflows.</p>
+          <ul>
+            <li>Multi-step decision flows</li>
+            <li>Tool-using agents (APIs, DB, internal services)</li>
+            <li>FinOps, collections, support and ops flows</li>
+            <li>Routing, enrichment and next-best-action logic</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <h3>Product-Integrated Agents</h3>
+          <p>Agents that live inside your product and enhance your core value.</p>
+          <ul>
+            <li>In-app copilots and assistants</li>
+            <li>Embedded agents in SaaS dashboards</li>
+            <li>Personalised user journeys and automation</li>
+            <li>White-label agents for your own customers</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <h3>Data-Aware &amp; RAG Systems</h3>
+          <p>Agents that can reliably use your internal knowledge and data.</p>
+          <ul>
+            <li>RAG and GraphRAG architectures</li>
+            <li>Vector stores &amp; document pipelines</li>
+            <li>Fine-grained retrieval &amp; access control</li>
+            <li>Evaluation and monitoring for hallucinations</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-3 mt-lg">
+        <div class="service-card">
+          <h3>Architecture &amp; Strategy</h3>
+          <p>Design the AI layer for your organisation or product.</p>
+          <ul>
+            <li>AI/agent architecture design</li>
+            <li>System diagrams &amp; integration plans</li>
+            <li>Vendor selection &amp; cost modelling</li>
+            <li>Security &amp; compliance alignment</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <h3>Custom Tooling &amp; SDKs</h3>
+          <p>Everything around the agent to make it manageable at scale.</p>
+          <ul>
+            <li>Internal tools for ops &amp; support teams</li>
+            <li>Playground / control interfaces</li>
+            <li>Logging, metrics, tracing &amp; evaluation</li>
+            <li>CI/CD integration for agent updates</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <h3>Advisory &amp; Reviews</h3>
+          <p>Already started with AI? We review, fix and harden what you have.</p>
+          <ul>
+            <li>Architecture &amp; code reviews</li>
+            <li>Failure-mode &amp; risk analysis</li>
+            <li>Performance &amp; cost optimisations</li>
+            <li>Roadmap for next iterations</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES / SOLUTIONS -->
+  <section class="section section-muted" id="solutions">
+    <div class="container">
+      <div class="section-header">
+        <h2>Example Solutions</h2>
+        <p>Typical agents we design and ship for different teams.</p>
+      </div>
+
+      <div class="solution-grid">
+        <div class="solution-card">
+          <h3>Collections &amp; Finance Agents</h3>
+          <p>Automate debt negotiations, payment plans and follow-ups while staying within your business rules.</p>
+          <ul>
+            <li>Negotiation flows with clear guardrails</li>
+            <li>Real-time connection to ledgers and balances</li>
+            <li>Payment plan creation via external APIs</li>
+            <li>Compliance-friendly conversations &amp; logs</li>
+          </ul>
+        </div>
+
+        <div class="solution-card">
+          <h3>Customer Ops Copilots</h3>
+          <p>Assist your customer support or ops teams in resolving tickets faster and with fewer escalations.</p>
+          <ul>
+            <li>Summarise cases and history</li>
+            <li>Suggest next actions with justification</li>
+            <li>Trigger internal workflows and automations</li>
+            <li>Integrated into CRM / helpdesk tools</li>
+          </ul>
+        </div>
+
+        <div class="solution-card">
+          <h3>Internal Knowledge Agents</h3>
+          <p>Make internal documentation and data actually usable.</p>
+          <ul>
+            <li>Search across docs, specs, runbooks and tickets</li>
+            <li>Context-aware answers, with sources</li>
+            <li>Role-aware access to data</li>
+            <li>Usage analytics and feedback loops</li>
+          </ul>
+        </div>
+
+        <div class="solution-card">
+          <h3>Product Intelligence Agents</h3>
+          <p>Let teams ask questions about users, events and revenue without writing SQL.</p>
+          <ul>
+            <li>Translate natural language to queries</li>
+            <li>Guardrails on allowed metrics and joins</li>
+            <li>Visual explanations &amp; narrative insights</li>
+            <li>Export to decks, docs or Slack</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="section" id="process">
+    <div class="container">
+      <div class="section-header">
+        <h2>How We Work</h2>
+        <p>A clear, low-friction process from idea to production.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-number">01</div>
+          <div class="timeline-body">
+            <h3>Discovery &amp; Fit (30–60 min)</h3>
+            <p>We understand your goals, constraints, systems and stakeholders. We’ll be honest if an agent is not the right tool.</p>
+            <ul>
+              <li>Clarify problem, users and success metrics</li>
+              <li>Map systems we need to integrate with</li>
+              <li>Decide if we start with MVP or deeper design</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-number">02</div>
+          <div class="timeline-body">
+            <h3>Design &amp; Architecture</h3>
+            <p>We design the agent’s responsibilities, tools, guardrails and data flows.</p>
+            <ul>
+              <li>Agent capabilities and non-goals</li>
+              <li>Prompts, tools, APIs, data sources</li>
+              <li>Security and governance boundaries</li>
+              <li>Implementation plan with milestones</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-number">03</div>
+          <div class="timeline-body">
+            <h3>Build &amp; Integrate</h3>
+            <p>We implement the full stack: agent logic, backend services, integrations and infrastructure.</p>
+            <ul>
+              <li>LLM flows and tool-calling logic</li>
+              <li>Backend services (Node.js, Python, etc.)</li>
+              <li>Integration with your CRMs, DBs, billing, etc.</li>
+              <li>CI/CD, logging and monitoring in place</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-number">04</div>
+          <div class="timeline-body">
+            <h3>Pilot &amp; Iterate</h3>
+            <p>We roll out to a limited group, measure impact and refine behaviour.</p>
+            <ul>
+              <li>Guardrail and failure-mode testing</li>
+              <li>Feedback collection from users and teams</li>
+              <li>Fine-tuning prompts &amp; flows based on real usage</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-number">05</div>
+          <div class="timeline-body">
+            <h3>Scale &amp; Handover</h3>
+            <p>We document, train your team and can stay involved as advisors.</p>
+            <ul>
+              <li>Documentation &amp; runbooks</li>
+              <li>Knowledge transfer to your engineers</li>
+              <li>Option for ongoing support and evolution</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>Engagement Models</h3>
+        <div class="callout-grid">
+          <div>
+            <h4>Fixed-scope projects</h4>
+            <p>Clear deliverables and timeline for well-defined agent projects.</p>
+          </div>
+          <div>
+            <h4>Fractional AI / Agent CTO</h4>
+            <p>We work alongside your leadership to define and deliver your AI roadmap.</p>
+          </div>
+          <div>
+            <h4>Advisory retainer</h4>
+            <p>For teams that want regular reviews, guidance and second opinions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDERS -->
+  <section class="section section-muted" id="founders">
+    <div class="container">
+      <div class="section-header">
+        <h2>Who’s Behind This</h2>
+        <p>Two hands-on builders, not a generic consultancy.</p>
+      </div>
+
+      <div class="founder-grid">
+        <article class="founder-card">
+          <h3>Radi Becker</h3>
+          <p class="founder-tagline">CTO-as-a-Service, system designer & AI-native execution leader.</p>
+
+          <p>
+            After ~15 years driving complex technology initiatives, designing large-scale systems,
+            and leading engineering teams across enterprises, government, and startups, Radi realised
+            what he enjoys most is the adrenaline of the beginning — transforming ambitious ideas
+            into working, intelligent systems.
+          </p>
+
+          <h4>Key Roles &amp; Experience</h4>
+          <ul class="founder-highlights">
+            <li>CTO &amp; Lead AI Architect – Ministry of Health (MOH) digital initiatives</li>
+            <li>Senior Architecture Consultant – large-scale government and healthcare systems</li>
+            <li>Founder &amp; Technical Advisor – multiple AI-driven startup concepts and internal innovation teams</li>
+            <li>R&amp;D and System Design Lead – multi-cloud platforms, data pipelines and AI agent systems</li>
+            <li>External CTO-as-a-Service – early-stage companies adopting AI, automation and LLM technologies</li>
+          </ul>
+
+          <h4>Industry Background</h4>
+          <p>
+            Radi has worked extensively with public healthcare, government digital services, SaaS startups,
+            enterprise platforms, automation systems, agent-based products, knowledge management, and
+            multi-cloud modernization.
+          </p>
+
+          <h4>AI, Automation &amp; Agent Stack</h4>
+          <p>Radi specialises in designing and building production-ready intelligent systems using:</p>
+          <ul class="founder-highlights">
+            <li>n8n – automation pipelines, agent workflows, multi-step reasoning flows</li>
+            <li>LangGraph / LangChain – agent graphs, memory, tool orchestration, stateful reasoning</li>
+            <li>OpenAI, AWS Bedrock, Vertex AI, Claude, Gemini – model selection, routing, guardrails, evaluation</li>
+            <li>OpenWebUI – custom AI portals, pipes, local/remote hybrid inference, org-wide chat systems</li>
+            <li>Vector DBs: Qdrant, Faiss – semantic search, hybrid retrieval, embeddings</li>
+            <li>RAG systems – full-stack enterprise knowledge indexing &amp; retrieval tuning</li>
+            <li>Ollama / Llama models – on-prem and edge inference for secure environments</li>
+          </ul>
+
+          <h4>Cloud, Backend &amp; System Engineering</h4>
+          <p>
+            Radi’s technical background combines cloud, data and application layers into cohesive, scalable architectures:
+          </p>
+          <ul class="founder-highlights">
+            <li>AWS &amp; GCP – Bedrock, Lambda, Cloud Run, Cloud Functions, containers, VPC, IAM</li>
+            <li>Backend – Python, Node.js, Java, microservices, async APIs</li>
+            <li>Data – PostgreSQL, MySQL, MongoDB, Redis, BigQuery</li>
+            <li>DevOps – Docker, Kubernetes, CI/CD, observability, secure deployments</li>
+          </ul>
+
+          <h4>Education &amp; Professional Foundations</h4>
+          <ul class="founder-highlights">
+            <li>BSc in Computer Science (with extensive AI specialisation through professional work)</li>
+            <li>Alumni of advanced architecture, AI and cloud engineering programmes</li>
+            <li>Advisor to public-sector leaders and startup founders on AI strategy &amp; execution</li>
+          </ul>
+
+          <h4>What Radi Specialises In</h4>
+          <ul class="founder-highlights">
+            <li>Designing AI agents &amp; multi-agent architectures</li>
+            <li>Building RAG knowledge systems for enterprises</li>
+            <li>Delivering production-grade AI automation</li>
+            <li>Architecting multi-cloud systems for scale and security</li>
+            <li>Transforming legacy platforms into AI-native products</li>
+            <li>Leading R&amp;D teams to real execution</li>
+          </ul>
+        </article>
+
+
+        <article class="founder-card">
+          <h3>Shlomi Zevin</h3>
+          <p class="founder-tagline">CTO-as-a-Service, systems architect & AI-driven product execution specialist.</p>
+
+          <p>
+            With over 15 years of hands-on experience across startups, scale-ups and enterprise
+            environments, Shlomi has built engineering teams, architected complex platforms,
+            and led products from zero-to-one through full production deployment.  
+            What drives him is turning vague ideas into fast, tangible execution — systems that
+            actually work, scale, and deliver measurable impact.
+          </p>
+
+          <h4>Key Roles &amp; Experience</h4>
+          <ul class="founder-highlights">
+            <li>Founder &amp; VP R&amp;D – <strong>Fantasy Advantage</strong></li>
+            <li>Founder &amp; CEO – <strong>Brokerim</strong></li>
+            <li>R&amp;D Group Manager – <strong>Panaya</strong></li>
+            <li>CTO-as-a-Service – multiple AI-focused startups</li>
+            <li>Lead architect for automation, agent systems &amp; cloud-native products</li>
+          </ul>
+
+          <h4>Product, Systems &amp; Architecture</h4>
+          <p>
+            Shlomi combines deep technical execution with product thinking — bridging business goals
+            with real-world engineering. His work focuses on building systems that require clear logic,
+            reliability, automation and cross-domain integration.
+          </p>
+          <ul class="founder-highlights">
+            <li>Designing agent-driven products and multi-step automation flows</li>
+            <li>Architecting cloud-native, event-driven and microservice platforms</li>
+            <li>Building high-clarity logic for finance, ops, support and workflow-heavy domains</li>
+            <li>Integrating AI with real APIs, backends and complex business rules</li>
+            <li>Leading engineering teams through delivery, not just planning</li>
+          </ul>
+
+          <h4>AI, Agents &amp; Automation</h4>
+          <p>Shlomi specialises in blending LLM capabilities with real-world system execution:</p>
+          <ul class="founder-highlights">
+            <li>LLM-powered agents connected to APIs, billing systems &amp; CRMs</li>
+            <li>RAG &amp; enterprise-grade retrieval systems for structured/unstructured data</li>
+            <li>Agent governance, evaluation, observability &amp; risk handling</li>
+            <li>Automation tooling: n8n, LangGraph, agent workflows, state machines</li>
+            <li>Designing negotiation, decision-making &amp; compliance-friendly flows</li>
+          </ul>
+
+          <h4>Cloud, Backend &amp; Engineering Stack</h4>
+          <p>Deep experience across cloud, backend, data and frontend systems:</p>
+          <ul class="founder-highlights">
+            <li>AWS, GCP – scalable deployments, serverless, containers, VPC design</li>
+            <li>Backend – Node.js, Python, Java, distributed systems</li>
+            <li>Frontend – Angular, React, modern SaaS interfaces</li>
+            <li>Data – PostgreSQL, MySQL, MongoDB, SQL Server, Redis</li>
+            <li>DevOps – CI/CD, Docker, orchestration, monitoring</li>
+          </ul>
+
+          <h4>Education &amp; Professional Background</h4>
+          <ul class="founder-highlights">
+            <li>BSc in Computer Science – Bar Ilan University</li>
+            <li>MBA – College of Management</li>
+            <li>Air Force Ofek Unit – advanced intelligence &amp; systems training</li>
+            <li>Advisor to founders and leadership teams on building AI-native products</li>
+          </ul>
+
+          <h4>What Shlomi Specialises In</h4>
+          <ul class="founder-highlights">
+            <li>Zero-to-one execution and MVP acceleration</li>
+            <li>Designing production-ready agent systems</li>
+            <li>Building automation for complex business logic</li>
+            <li>Transforming ideas into working, scalable systems fast</li>
+            <li>Clear communication between product, tech &amp; business stakeholders</li>
+            <li>Leading engineering teams toward predictable delivery</li>
+          </ul>
+        </article>
+
+      </div>
+
+      <div class="founders-note">
+        <p>
+          For the last two years, we’ve been deeply focused on LLMs and agent systems – combining
+          our ML/AI background with real-world engineering to build agents that interact with
+          complex codebases and systems, not just documents.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="section" id="stack">
+    <div class="container">
+      <div class="section-header">
+        <h2>Tech Stack &amp; Tools</h2>
+        <p>We work with the tools that make sense for your environment – not the buzzword of the month.</p>
+      </div>
+
+      <div class="stack-grid">
+        <div class="stack-column">
+          <h3>LLM &amp; Agent Platforms</h3>
+          <ul>
+            <li>OpenAI, Anthropic, and other major model providers</li>
+            <li>Tool-calling / function-calling patterns</li>
+            <li>Agent frameworks &amp; graph-based flows</li>
+            <li>RAG / GraphRAG architectures</li>
+          </ul>
+        </div>
+        <div class="stack-column">
+          <h3>Backend &amp; Services</h3>
+          <ul>
+            <li>Node.js, Python, Java</li>
+            <li>REST &amp; Webhook-based integrations</li>
+            <li>Microservices and serverless patterns</li>
+            <li>Event-driven architectures</li>
+          </ul>
+        </div>
+        <div class="stack-column">
+          <h3>Cloud &amp; Data</h3>
+          <ul>
+            <li>AWS, Google Cloud, Azure</li>
+            <li>Postgres, MySQL, SQL Server, MongoDB</li>
+            <li>Redis, queues and caching layers</li>
+            <li>Vector databases &amp; search engines</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section section-muted" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <h2>Frequently Asked Questions</h2>
+        <p>Some of the things teams usually ask us before we start.</p>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3>Do you only build chatbots?</h3>
+          <p>No. We focus on agents that can <strong>take actions</strong>: calling APIs, updating records, creating tickets, triggering workflows, scheduling payments and more. Conversation is just the interface.</p>
+        </div>
+        <div class="faq-item">
+          <h3>How do you handle security and compliance?</h3>
+          <p>We start from your constraints: data residency, PII, logging, access control, audit requirements. We design agents so they operate within strict boundaries and produce traceable logs for review.</p>
+        </div>
+        <div class="faq-item">
+          <h3>We already have engineers. Why involve you?</h3>
+          <p>Your team knows your product and domain best. We bring deep experience in agents, LLM patterns and integration design, so together we move faster, avoid common pitfalls and ship something reliable.</p>
+        </div>
+        <div class="faq-item">
+          <h3>What if we’re not sure where to start?</h3>
+          <p>That’s normal. We can start with a strategy + design engagement:
+            map opportunities, size the effort and recommend a concrete first agent with clear success metrics.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Do you work on small projects?</h3>
+          <p>We work with startups and small teams, but we aim for projects where the agent has a meaningful impact – not just a toy chatbot on a website. If the scope is too small, we’ll tell you honestly.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Where are you based? How do we collaborate?</h3>
+          <p>We’re based in Israel and work remotely with companies worldwide. We’re used to async work, clear documentation and regular check-ins to keep everyone aligned.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section" id="contact">
+    <div class="container contact-grid">
+      <div class="contact-copy">
+        <h2>Let’s Talk About Your Agent</h2>
+        <p>
+          Share a bit about your company and what you’re trying to achieve.
+          We’ll come back with honest feedback and concrete next steps – even if
+          the conclusion is “you don’t need us yet”.
+        </p>
+        <ul class="contact-points">
+          <li>Best for product, ops, data and innovation leaders</li>
+          <li>We can sign an NDA if needed</li>
+          <li>We prefer real problems over buzzwords</li>
+        </ul>
+        <p class="contact-email">
+          Prefer email? Reach us at: <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+        </p>
+      </div>
+
+      <form class="contact-form" action="#" method="post">
+        <div class="form-row">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-row">
+          <label for="company">Company</label>
+          <input type="text" id="company" name="company" placeholder="Company name" required>
+        </div>
+        <div class="form-row form-row-half">
+          <div>
+            <label for="role">Role</label>
+            <input type="text" id="role" name="role" placeholder="e.g. VP Product, CTO">
+          </div>
+          <div>
+            <label for="size">Company size</label>
+            <select id="size" name="size">
+              <option value="">Select</option>
+              <option value="1-20">1–20</option>
+              <option value="21-100">21–100</option>
+              <option value="101-500">101–500</option>
+              <option value="501-2000">501–2,000</option>
+              <option value="2000+">2,000+</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="email">Work email</label>
+          <input type="email" id="email" name="email" placeholder="you@company.com" required>
+        </div>
+        <div class="form-row">
+          <label for="goals">What would you like an agent to do?</label>
+          <textarea id="goals" name="goals" rows="4" placeholder="Give us 3–5 lines about your use case, team and systems."></textarea>
+        </div>
+        <div class="form-row">
+          <label for="timeline">Timeline</label>
+          <select id="timeline" name="timeline">
+            <option value="">Select</option>
+            <option value="exploring">Just exploring options</option>
+            <option value="1-3">Want to start within 1–3 months</option>
+            <option value="now">Looking for someone to start now</option>
+          </select>
+        </div>
+        <button type="submit" class="btn primary full-width">Submit &amp; Request a Call</button>
+        <p class="form-footnote">No spam, no mailing lists – just a direct reply from us.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-left">
+      <div class="logo">
+        <span class="logo-mark">RS</span>
+        <span class="logo-text">AI Agent Studio</span>
+      </div>
+      <p>We design, build and ship AI agents that integrate deeply with your systems and deliver measurable impact.</p>
+    </div>
+    <div class="footer-right">
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <a href="#services">Services</a>
+        <a href="#solutions">Use Cases</a>
+        <a href="#process">How We Work</a>
+        <a href="#founders">Founders</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+        <span>Remote • Working with teams worldwide</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <span>© <span id="year"></span> Radi Becker &amp; Shlomi Zevin. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Simple mobile nav toggle
+  const navToggle = document.querySelector('.nav-toggle');
+  const nav = document.querySelector('.main-nav');
+
+  if (navToggle && nav) {
+    navToggle.addEventListener('click', () => {
+      nav.classList.toggle('nav-open');
+      navToggle.classList.toggle('nav-open');
+    });
+  }
+
+  // Set current year in footer
+  const yearEl = document.getElementById('year');
+  if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+  }
+</script>
+<script>
+document.querySelector('.contact-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const data = Object.fromEntries(new FormData(this).entries());
+  console.log(data);
+
+  try {
+    await fetch("https://primary-production-c7a2.up.railway.app/webhook/80c9ab82-ce95-4a87-b9d7-ab53cd4af5f2", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(data)
+    });
+
+    alert("Thank you! We received your message.");
+  } catch (err) {
+    console.error("Webhook POST failed:", err);
+    alert("Something went wrong — please try again.");
+  }
+});
+</script>
+
+</body>
+</html>
