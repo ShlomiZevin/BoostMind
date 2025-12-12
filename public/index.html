@@ -20,9 +20,41 @@
             <p class="subtitle">AI-powered business intelligence at your fingertips</p>
           </div>
         </div>
-        <div class="status-indicator">
-          <span class="status-dot"></span>
-          <span class="status-text">Online</span>
+        <div class="header-right">
+          <div class="client-logo-section">
+            <div class="client-logo-container" id="client-logo-container">
+              <img src="zer4u-logo.png" alt="Client Logo" class="client-logo-img" id="client-logo-img" style="display: none;" />
+              <label for="logo-upload" class="upload-label">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Upload Logo</span>
+              </label>
+              <input type="file" id="logo-upload" accept="image/*" style="display: none;" />
+            </div>
+          </div>
+          <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Online</span>
+          </div>
         </div>
       </div>
     </header>
@@ -96,6 +128,19 @@
   --shadow: rgba(0, 0, 0, 0.3);
 }
 
+[data-theme="light"] {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success-color: #10b981;
+  --background: #f5f7fa;
+  --surface: #ffffff;
+  --surface-light: #f0f2f5;
+  --border: #e2e8f0;
+  --text-primary: #1a202c;
+  --text-secondary: #64748b;
+  --shadow: rgba(0, 0, 0, 0.1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -134,6 +179,13 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .logo-section {
@@ -158,6 +210,77 @@ header {
   height: 100%;
   object-fit: contain;
   padding: 8px;
+}
+
+.client-logo-section {
+  display: flex;
+  align-items: center;
+}
+
+.client-logo-container {
+  width: 120px;
+  height: 60px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-light);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.client-logo-container:hover {
+  border-color: var(--primary-color);
+  background: var(--surface);
+}
+
+.client-logo-img {
+  width: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 8px;
+  transition: color 0.3s ease;
+}
+
+.upload-label:hover {
+  color: var(--primary-color);
+}
+
+.upload-label svg {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-light);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--surface);
+  border-color: var(--primary-color);
+  transform: rotate(180deg);
 }
 
 .header-text h1 {
@@ -493,6 +616,33 @@ header {
     padding: 16px 20px;
   }
 
+  .header-content {
+    flex-wrap: wrap;
+  }
+
+  .header-right {
+    gap: 12px;
+  }
+
+  .client-logo-container {
+    width: 80px;
+    height: 40px;
+  }
+
+  .upload-label {
+    font-size: 10px;
+  }
+
+  .upload-label svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+  }
+
   .logo-icon {
     width: 48px;
     height: 48px;
@@ -566,6 +716,58 @@ localStorage.setItem('finance_conversation_id', conversationId);
 let loadingMessageEl = null;
 let hasStartedChat = false;
 
+// Theme toggle functionality
+const themeToggle = document.getElementById('theme-toggle');
+const sunIcon = document.querySelector('.sun-icon');
+const moonIcon = document.querySelector('.moon-icon');
+const htmlElement = document.documentElement;
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme') || 'dark';
+if (savedTheme === 'light') {
+  htmlElement.setAttribute('data-theme', 'light');
+  sunIcon.style.display = 'none';
+  moonIcon.style.display = 'block';
+}
+
+themeToggle.addEventListener('click', () => {
+  const currentTheme = htmlElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  htmlElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  if (newTheme === 'light') {
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'block';
+  } else {
+    sunIcon.style.display = 'block';
+    moonIcon.style.display = 'none';
+  }
+});
+
+// Logo upload functionality (mockup - always loads zer4u-logo.png)
+const logoUpload = document.getElementById('logo-upload');
+const clientLogoImg = document.getElementById('client-logo-img');
+const uploadLabel = document.querySelector('.upload-label');
+
+// Check if logo was previously uploaded
+const logoUploaded = localStorage.getItem('client_logo_uploaded');
+if (logoUploaded === 'true') {
+  clientLogoImg.style.display = 'block';
+  uploadLabel.style.display = 'none';
+}
+
+logoUpload.addEventListener('change', (e) => {
+  if (e.target.files && e.target.files[0]) {
+    // Mockup: Always show zer4u-logo.png regardless of selected file
+    clientLogoImg.src = 'zer4u-logo.png';
+    clientLogoImg.style.display = 'block';
+    uploadLabel.style.display = 'none';
+    localStorage.setItem('client_logo_uploaded', 'true');
+  }
+});
+
 // Format text with markdown-like styling
 const formatMessage = (text) => {
   // Convert **bold** to <strong>
@@ -607,9 +809,6 @@ const formatMessage = (text) => {
   
   // Convert numbered lists
   text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<div class="numbered-item"><span class="number">$1.</span><span>$2</span></div>');
-  
-  // Convert line breaks to <br> (but not if already in HTML tags)
-  //text = text.replace(/\n/g, '<br>');
   
   return text;
 };
