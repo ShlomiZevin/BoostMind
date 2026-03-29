@@ -111,6 +111,7 @@ export function Topbar() {
 
           {versionOpen && (
             <div className="vd-panel">
+              <div className="vd-title">גרסאות</div>
               {/* Live option */}
               <div
                 className={`vd-item vd-live ${!viewingVersion ? 'vd-active' : ''}`}

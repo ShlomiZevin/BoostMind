@@ -1134,6 +1134,15 @@ body {
   margin-right: 2px;
 }
 
+.vd-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
 .vd-panel {
   position: absolute;
   top: 100%;
@@ -2348,17 +2357,22 @@ body {
 
 @media (max-width: 768px) {
   .topbar-inner {
-    padding: 8px 12px;
+    padding: 8px 10px;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
   }
-  .topbar-inner h1 { font-size: 14px; }
+  .topbar-right { gap: 6px !important; flex: 1; min-width: 0; }
+  .topbar-inner h1 { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .topbar-inner .badge { display: none; }
-  .topbar-inner .review-badge { display: inline-flex; }
-  .topbar-user { font-size: 11px; }
-  .topbar-actions { gap: 4px; }
-  .topbar-actions .btn { padding: 5px 10px; font-size: 11px; }
-  .topbar-actions .btn-outline:nth-child(n+3) { display: none; }
+  .topbar-inner .review-badge { display: inline-flex; font-size: 9px; padding: 2px 6px; }
+  .topbar-user { font-size: 10px; }
+  .topbar-actions { gap: 3px; }
+  .topbar-actions .btn { padding: 4px 7px; font-size: 10px; }
+  .topbar-actions .btn-save { padding: 4px 10px; }
+  .topbar-identify-btn { font-size: 10px !important; padding: 3px 8px !important; }
+  .topbar-home { width: 26px; height: 26px; font-size: 14px; }
+  .save-status { font-size: 10px; }
+  .vd-count { font-size: 9px; }
 
   .scene-info { padding: 16px 18px; }
   .si-title { font-size: 17px; }
@@ -2406,10 +2420,12 @@ body {
   .ab-approvers { gap: 4px; }
   .ab-approver { font-size: 10px; padding: 1px 6px; }
 
-  /* Scene approval */
-  .scene-approve-btn { font-size: 10px; padding: 2px 8px; }
-  .scene-partial-badge { font-size: 9px; }
-  .scene-stats { gap: 4px; }
+  /* Scene header compact */
+  .scene-group-header { flex-wrap: wrap; gap: 6px; }
+  .scene-approve-btn { font-size: 10px; padding: 3px 10px; }
+  .scene-partial-badge { font-size: 9px; padding: 2px 6px; }
+  .scene-stats { gap: 4px; order: 10; width: 100%; }
+  .scene-approved-badge { font-size: 12px; }
 
   /* Selection bar compact */
   .selection-bar { padding: 6px 12px; gap: 8px; }
@@ -2433,4 +2449,19 @@ body {
 
   /* Stopwatch bar compact */
   .sw-bar { padding: 3px 10px; font-size: 11px; gap: 6px; }
+
+  /* Line speaker area compact */
+  .line-speaker-wrap { padding: 4px 2px; }
+  .line-speaker { font-size: 11px; gap: 2px; }
+  .line-speaker .dot { width: 5px; height: 5px; }
+  .timing-badge-wrap { gap: 2px; }
+  .timing-badge, .timing-badge-actual { font-size: 9px; padding: 0 3px; }
+  .timing-words { font-size: 8px; }
+
+  /* No tooltips on mobile */
+  .tooltip-bubble { display: none !important; }
+
+  /* Approval cell */
+  .lac-hint { font-size: 7px; }
+  .lac-check { font-size: 10px; }
 }
