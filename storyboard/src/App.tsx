@@ -5,6 +5,9 @@ import { SceneInfo } from './components/SceneInfo';
 import { SceneGroup } from './components/SceneGroup';
 import { SpeakerManager } from './components/SpeakerManager';
 import { ColumnManager } from './components/ColumnManager';
+import { ApproverManager } from './components/ApproverManager';
+import { ApprovalBar } from './components/ApprovalBar';
+import { ReviewerIdentity } from './components/ReviewerIdentity';
 import { TimingBar } from './components/TimingSettings';
 import { Dashboard } from './components/Dashboard';
 import './app.css';
@@ -19,13 +22,16 @@ function StoryboardContent() {
   return (
     <>
       <Topbar />
+      <ReviewerIdentity />
       <div className="layout">
         <div className="main-content">
           <SceneInfo />
           <div className="managers-row">
             <SpeakerManager />
             <ColumnManager />
+            <ApproverManager />
           </div>
+          <ApprovalBar />
           <TimingBar />
           {data.scenes.map((scene, i) => (
             <SceneGroup key={scene.id} scene={scene} index={i} speakers={data.speakers} totalScenes={data.scenes.length} />

@@ -40,6 +40,9 @@ export const defaultStoryboard: StoryboardConfig = {
   ],
   columns: [{ id: 'text', name: 'טקסט', width: '1fr' }],
   timing: { wordsPerSecond: 3, minDialogueSec: 1, minDirectionSec: 2 },
+  approvers: [],
+  approvals: {},
+  globalApprovals: [],
   scenes: [
     {
       id: 's1',

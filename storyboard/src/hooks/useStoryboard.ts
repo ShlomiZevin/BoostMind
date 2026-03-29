@@ -103,27 +103,30 @@ export function useStoryboard(storyboardId: string) {
 
   const insertLine = useCallback((sceneId: string, atIndex: number) => {
     const newLine = { id: `l_${generateId()}`, type: 'dialogue' as const, speaker: data.speakers[0]?.id, text: '' };
-    setData(prev => ({
+    setData(prev => clearLineApproval({
       ...prev,
       scenes: prev.scenes.map(s =>
         s.id === sceneId
           ? { ...s, lines: [...s.lines.slice(0, atIndex), newLine, ...s.lines.slice(atIndex)] }
           : s
       ),
-    }));
+    }, sceneId));
     setDirty(true);
     return newLine.id;
   }, [data.speakers]);
 
   const deleteLine = useCallback((sceneId: string, lineId: string) => {
-    setData(prev => ({
+    setData(prev => {
+      const updated = {
       ...prev,
       scenes: prev.scenes.map(s =>
         s.id === sceneId && s.lines.length > 1
           ? { ...s, lines: s.lines.filter(l => l.id !== lineId) }
           : s
       ),
-    }));
+    };
+      return clearLineApproval(updated, sceneId, lineId);
+    });
     setDirty(true);
   }, []);
 
@@ -235,8 +238,33 @@ export function useStoryboard(storyboardId: string) {
     setDirty(true);
   }, []);
 
+  // Helper: clear approvals for a scene when edited
+  function clearLineApproval(data: StoryboardConfig, sceneId: string, lineId?: string): StoryboardConfig {
+    const approvals = { ...data.approvals };
+    let changed = false;
+    // Clear the specific line approval
+    if (lineId && approvals[lineId]?.length) {
+      delete approvals[lineId];
+      changed = true;
+    }
+    // Clear scene-level approval (since a line changed, scene is no longer fully approved)
+    if (approvals[sceneId]?.length) {
+      delete approvals[sceneId];
+      changed = true;
+    }
+    if (changed) {
+      // Clear global approvals
+      const globalApprovals = (data.globalApprovals || []).filter(name =>
+        data.scenes.every(s => (approvals[s.id] || []).includes(name))
+      );
+      return { ...data, approvals, globalApprovals };
+    }
+    return data;
+  }
+
   const updateLineField = useCallback((sceneId: string, lineId: string, columnId: string, value: string) => {
-    setData(prev => ({
+    setData(prev => {
+      const updated = {
       ...prev,
       scenes: prev.scenes.map(s =>
         s.id === sceneId
@@ -250,7 +278,9 @@ export function useStoryboard(storyboardId: string) {
             }
           : s
       ),
-    }));
+    };
+      return clearLineApproval(updated, sceneId, lineId);
+    });
     setDirty(true);
   }, []);
 
@@ -314,6 +344,95 @@ export function useStoryboard(storyboardId: string) {
 
   const deleteComment = useCallback((commentId: string) => {
     setComments(prev => prev.filter(c => c.id !== commentId));
+    setDirty(true);
+  }, []);
+
+  // Approvals
+  const approve = useCallback((key: string, approverName: string) => {
+    setData(prev => {
+      const approvals = { ...prev.approvals };
+      const current = approvals[key] || [];
+      if (!current.includes(approverName)) {
+        approvals[key] = [...current, approverName];
+      }
+      // If approving a scene, also approve all its lines
+      for (const scene of prev.scenes) {
+        if (scene.id === key) {
+          for (const line of scene.lines) {
+            const lc = approvals[line.id] || [];
+            if (!lc.includes(approverName)) approvals[line.id] = [...lc, approverName];
+          }
+        }
+      }
+      // Auto-approve scene if all its lines are now approved by this approver
+      for (const scene of prev.scenes) {
+        const allLinesApproved = scene.lines.every(l => {
+          const la = approvals[l.id] || [];
+          return la.includes(approverName);
+        });
+        if (allLinesApproved) {
+          const sc = approvals[scene.id] || [];
+          if (!sc.includes(approverName)) {
+            approvals[scene.id] = [...sc, approverName];
+          }
+        }
+      }
+      // Auto global approve if all scenes approved
+      const allScenesApproved = prev.scenes.every(s => (approvals[s.id] || []).includes(approverName));
+      if (allScenesApproved) {
+        const ga = [...(prev.globalApprovals || [])];
+        if (!ga.includes(approverName)) ga.push(approverName);
+        return { ...prev, approvals, globalApprovals: ga };
+      }
+      return { ...prev, approvals };
+    });
+    setDirty(true);
+  }, []);
+
+  const unapprove = useCallback((key: string, approverName: string) => {
+    setData(prev => {
+      const approvals = { ...prev.approvals };
+      approvals[key] = (approvals[key] || []).filter(n => n !== approverName);
+      // If unapproving a line, also unapprove its parent scene and global
+      for (const scene of prev.scenes) {
+        if (scene.lines.some(l => l.id === key)) {
+          approvals[scene.id] = (approvals[scene.id] || []).filter(n => n !== approverName);
+        }
+      }
+      const globalApprovals = (prev.globalApprovals || []).filter(n => n !== approverName);
+      return { ...prev, approvals, globalApprovals };
+    });
+    setDirty(true);
+  }, []);
+
+  const approveAll = useCallback((approverName: string) => {
+    setData(prev => {
+      const globalApprovals = [...(prev.globalApprovals || [])];
+      if (!globalApprovals.includes(approverName)) globalApprovals.push(approverName);
+      const approvals = { ...prev.approvals };
+      // Approve all scenes and all lines
+      for (const scene of prev.scenes) {
+        const sc = approvals[scene.id] || [];
+        if (!sc.includes(approverName)) approvals[scene.id] = [...sc, approverName];
+        for (const line of scene.lines) {
+          const lc = approvals[line.id] || [];
+          if (!lc.includes(approverName)) approvals[line.id] = [...lc, approverName];
+        }
+      }
+      return { ...prev, approvals, globalApprovals };
+    });
+    setDirty(true);
+  }, []);
+
+  const unapproveAll = useCallback((approverName: string) => {
+    setData(prev => {
+      const globalApprovals = (prev.globalApprovals || []).filter(n => n !== approverName);
+      const approvals = { ...prev.approvals };
+      for (const key of Object.keys(approvals)) {
+        approvals[key] = (approvals[key] || []).filter(n => n !== approverName);
+      }
+      return { ...prev, approvals, globalApprovals };
+    });
     setDirty(true);
   }, []);
 
@@ -381,6 +500,10 @@ export function useStoryboard(storyboardId: string) {
     toggleSceneHighlight,
     addScene,
     deleteScene,
+    approve,
+    unapprove,
+    approveAll,
+    unapproveAll,
     addComment,
     resolveComment,
     deleteComment,

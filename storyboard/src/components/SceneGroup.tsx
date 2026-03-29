@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function SceneGroup({ scene, index, speakers, totalScenes }: Props) {
-  const { data, mode, insertLine, updateSceneTitle, toggleSceneHighlight, addScene, deleteScene, selectScene, selectedLines } = useCtx();
+  const { data, mode, insertLine, updateSceneTitle, toggleSceneHighlight, addScene, deleteScene, selectScene, selectedLines, reviewerName, approve, unapprove, save } = useCtx();
   const [deleteModal, setDeleteModal] = useState(false);
   const columns = data.columns || [{ id: 'text', name: 'טקסט', width: '1fr' }];
   const gridCols = `24px 85px ${columns.map(c => c.width || '1fr').join(' ')}`;
@@ -22,6 +22,11 @@ export function SceneGroup({ scene, index, speakers, totalScenes }: Props) {
   const sceneWords = getSceneWordCount(scene, data.columns);
   const sceneActual = scene.lines.reduce((sum, l) => sum + getLineActualOrPlanned(l, data.timing, data.columns), 0);
   const hasAnyActual = scene.lines.some(l => l.actualDuration != null);
+  const approvers = data.approvers || [];
+  const sceneApprovals = (data.approvals || {})[scene.id] || [];
+  const isApprover = approvers.includes(reviewerName);
+  const iApprovedScene = sceneApprovals.includes(reviewerName);
+  const sceneFullyApproved = approvers.length > 0 && approvers.every(a => sceneApprovals.includes(a));
 
   return (
     <>
@@ -71,6 +76,36 @@ export function SceneGroup({ scene, index, speakers, totalScenes }: Props) {
                   {formatDuration(sceneActual)}
                 </span>
               </Tooltip>
+            )}
+            {approvers.length > 0 && (
+              <>
+                {sceneFullyApproved && <span className="scene-approved-badge">✅</span>}
+                {!sceneFullyApproved && sceneApprovals.length > 0 && (
+                  <span className="scene-partial-badge">
+                    {sceneApprovals.map(n => <span key={n} className="spa-name">✓ {n}</span>)}
+                  </span>
+                )}
+                {isApprover && mode === 'review' && (
+                  <button
+                    className={`scene-approve-btn ${iApprovedScene ? 'approved' : ''}`}
+                    onClick={() => {
+                      if (iApprovedScene) {
+                        // Uncheck all lines + scene
+                        for (const line of scene.lines) {
+                          unapprove(line.id, reviewerName);
+                        }
+                        unapprove(scene.id, reviewerName);
+                      } else {
+                        // Check all lines + scene
+                        approve(scene.id, reviewerName);
+                      }
+                      setTimeout(() => save(), 300);
+                    }}
+                  >
+                    {iApprovedScene ? '✓ סצנה מאושרת' : 'אשר סצנה'}
+                  </button>
+                )}
+              </>
             )}
           </span>
         </div>

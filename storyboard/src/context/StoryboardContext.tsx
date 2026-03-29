@@ -30,6 +30,10 @@ interface StoryboardContextValue {
   toggleSceneHighlight: (sceneId: string) => void;
   addScene: (afterIndex: number) => void;
   deleteScene: (sceneId: string) => void;
+  approve: (key: string, approverName: string) => void;
+  unapprove: (key: string, approverName: string) => void;
+  approveAll: (approverName: string) => void;
+  unapproveAll: (approverName: string) => void;
   addComment: (lineId: string, sceneId: string, author: string, text: string) => Comment;
   resolveComment: (commentId: string) => void;
   deleteComment: (commentId: string) => void;

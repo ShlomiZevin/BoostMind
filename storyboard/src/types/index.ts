@@ -50,6 +50,9 @@ export interface StoryboardConfig {
   speakers: SpeakerConfig[];
   columns: ColumnConfig[];
   timing: TimingConfig;
+  approvers: string[];
+  approvals: ApprovalState; // sceneId -> approver names
+  globalApprovals: string[]; // approvers who approved the whole thing
   scenes: Scene[];
 }
 
@@ -59,6 +62,10 @@ export interface SpeakerConfig {
   color: string;
   bgColor: string;
   isDirection?: boolean;
+}
+
+export interface ApprovalState {
+  [key: string]: string[]; // sceneId or lineId -> array of approver names
 }
 
 export interface Version {

@@ -3,6 +3,7 @@ import { Line, SpeakerConfig } from '../types';
 import { useCtx } from '../context/StoryboardContext';
 import { InlineComments } from './InlineComments';
 import { TimingBadge } from './TimingBadge';
+import { Tooltip } from './Tooltip';
 import { Stopwatch } from './Stopwatch';
 
 interface Props {
@@ -17,7 +18,7 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
   const {
     data, mode, insertLine, deleteLine, cycleSpeaker, updateLineField,
     activeLineId, setActiveLineId, comments, showComments, timingMode,
-    selectedLines, toggleSelectLine,
+    selectedLines, toggleSelectLine, reviewerName, approve, unapprove, save,
   } = useCtx();
 
   const columns = data.columns || [{ id: 'text', name: 'טקסט', width: '1fr' }];
@@ -26,6 +27,10 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
   const lineComments = comments.filter(c => c.lineId === line.id && !c.resolved);
   const isActive = activeLineId === line.id;
   const isSelected = selectedLines.has(line.id);
+  const approvers = data.approvers || [];
+  const lineApprovals = (data.approvals || {})[line.id] || [];
+  const isApprover = approvers.includes(reviewerName);
+  const iApprovedLine = lineApprovals.includes(reviewerName);
 
   const speakerStyle = isDirection
     ? { color: '#E97316', background: '#FFF7ED' }
@@ -61,7 +66,30 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
             <div className="line-checkbox" onClick={e => { e.stopPropagation(); toggleSelectLine(line.id); }}>
               {isSelected ? '☑' : '☐'}
             </div>
-          ) : <div className="line-checkbox-placeholder" />}
+          ) : approvers.length > 0 ? (
+            <div className="line-approve-cell-wrap"><Tooltip text={lineApprovals.length > 0
+              ? approvers.map(n => `${lineApprovals.includes(n) ? '✓' : '○'} ${n}`).join('\n')
+              : isApprover ? 'לחץ לאישור' : ''}>
+              <div
+                className={`line-approve-cell ${iApprovedLine ? 'approved' : ''} ${lineApprovals.length > 0 && !iApprovedLine ? 'others-approved' : ''}`}
+                onClick={isApprover ? () => {
+                  if (iApprovedLine) unapprove(line.id, reviewerName);
+                  else approve(line.id, reviewerName);
+                  setTimeout(() => save(), 300);
+                } : undefined}
+              >
+                {iApprovedLine ? (
+                  <span className="lac-check">✓</span>
+                ) : isApprover ? (
+                  <span className="lac-hint">אשר</span>
+                ) : lineApprovals.length > 0 ? (
+                  <span className="lac-check others">✓</span>
+                ) : null}
+              </div>
+            </Tooltip></div>
+          ) : (
+            <div className="line-checkbox-placeholder" />
+          )}
           <div className="line-speaker-wrap" style={{ background: speakerStyle.background }}>
             <div
               className="line-speaker"

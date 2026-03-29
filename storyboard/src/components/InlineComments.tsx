@@ -9,7 +9,7 @@ interface Props {
 export function InlineComments({ lineId, sceneId }: Props) {
   const {
     activeLineId, comments, addComment, resolveComment, deleteComment,
-    reviewerName, setReviewerName, mode, save,
+    reviewerName, setReviewerName, mode, save, data,
   } = useCtx();
   const [input, setInput] = useState('');
   const [nameInput, setNameInput] = useState('');
@@ -92,13 +92,20 @@ export function InlineComments({ lineId, sceneId }: Props) {
       {needsName ? (
         <div className="ic-name-prompt">
           <span className="ic-name-label">מה השם שלך?</span>
+          {(data.approvers || []).length > 0 && (
+            <div className="ic-approver-buttons">
+              {data.approvers.map(a => (
+                <button key={a} className="ic-approver-btn" onClick={() => setReviewerName(a)}>{a}</button>
+              ))}
+            </div>
+          )}
           <div className="ic-name-row">
             <input
               ref={nameRef}
               type="text"
               value={nameInput}
               onChange={e => setNameInput(e.target.value)}
-              placeholder="שם..."
+              placeholder="או הקלד שם אחר..."
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   e.preventDefault();

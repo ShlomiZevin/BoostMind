@@ -74,11 +74,15 @@ export function Topbar() {
         <h1>{data.title}</h1>
         <span className="badge">{data.subtitle}</span>
         {mode === 'review' && <span className="badge review-badge">מצב תגובות</span>}
-        {reviewerName && (
+        {reviewerName ? (
           <span className="topbar-user">
             <span onClick={startEditName} title="לחץ לשנות שם">👤 {reviewerName} ✎</span>
             <button className="topbar-user-clear" onClick={() => setReviewerName('')} title="נתק שם">✕</button>
           </span>
+        ) : mode === 'review' && (
+          <button className="topbar-identify-btn" onClick={startEditName}>
+            👤 <span className="identify-full">הזדהו לתגובות ואישור</span><span className="identify-short">הזדהו</span>
+          </button>
         )}
       </div>
       <div className="topbar-actions">
@@ -188,13 +192,26 @@ export function Topbar() {
       {editingName && (
         <div className="modal-overlay" onClick={() => setEditingName(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>שנה שם</h3>
+            <h3>{reviewerName ? 'שנה שם' : 'בחר שם'}</h3>
+            {(data.approvers || []).length > 0 && (
+              <div className="modal-approver-picks">
+                {data.approvers.map(a => (
+                  <button
+                    key={a}
+                    className="modal-approver-btn"
+                    onClick={() => { setReviewerName(a); setEditingName(false); }}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            )}
             <input
               autoFocus
               type="text"
               value={nameDraft}
               onChange={e => setNameDraft(e.target.value)}
-              placeholder="שם..."
+              placeholder={(data.approvers || []).length > 0 ? 'או שם אחר...' : 'שם...'}
               onKeyDown={e => { if (e.key === 'Enter') confirmName(); }}
             />
             <div className="modal-buttons">
