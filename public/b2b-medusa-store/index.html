@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>הצעה לפיתוח חנות B2B | Medusa + Next.js | שלומי זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --accent-secondary: #8b5cf6;
+      --accent-green: #10b981;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Heebo', sans-serif; background: radial-gradient(circle at top, #0f1628 0, #050608 50%, #020305 100%); color: var(--text); scroll-behavior: smooth; line-height: 1.6; }
+
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ===== HEADER ===== */
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(59,130,246,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: #e5e7f0; }
+    .header-contact { display: flex; align-items: center; gap: 1rem; }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .header-contact .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; }
+
+    /* ===== TABS ===== */
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== HERO ===== */
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #7fd6ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(59,130,246,0.25); background: rgba(59,130,246,0.08); color: #93c5fd; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ===== BUTTONS ===== */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(59,130,246,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(59,130,246,0.5); }
+    .btn.ghost { background: transparent; color: #e5e7f3; border-color: rgba(255,255,255,0.15); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 680px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    /* ===== CARDS ===== */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: #dadfee; margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '▹'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    /* ===== TIMELINE ===== */
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(59,130,246,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(59,130,246,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    /* ===== PRICING ===== */
+    .pricing-card { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08)); border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 600px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '✓'; color: #10b981; font-weight: 700; }
+
+    /* ===== CALLOUT ===== */
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(59,130,246,0.12), transparent 60%); border: 1px solid rgba(59,130,246,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    /* ===== EXPERIENCE CARDS ===== */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(139,92,246,0.15); color: #c4b5fd; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+
+    /* ===== STATS ===== */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ===== CONTACT ===== */
+    .contact-section { text-align: center; padding: 3rem 0; }
+    .contact-section h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .contact-item a { color: var(--accent); text-decoration: none; }
+
+    /* ===== B2B DEMO ===== */
+    .demo-container { max-width: 960px; margin: 0 auto; }
+    .store-frame { background: #111827; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+    .store-topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .store-logo { display: flex; align-items: center; gap: 10px; }
+    .store-logo-icon { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .store-logo span { font-weight: 700; font-size: 1rem; }
+    .store-nav { display: flex; gap: 16px; }
+    .store-nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; cursor: pointer; transition: color 0.2s; }
+    .store-nav a:hover, .store-nav a.active { color: var(--accent); }
+    .store-actions { display: flex; align-items: center; gap: 12px; }
+    .store-actions button { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; position: relative; }
+    .cart-badge { position: absolute; top: -6px; left: -6px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: white; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .store-body { padding: 24px; }
+    .store-welcome { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .store-welcome-text h3 { margin: 0 0 4px; font-size: 1.1rem; }
+    .store-welcome-text p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .customer-badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 999px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 600; }
+    .store-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .store-filter { padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: var(--text-muted); font-family: inherit; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .store-filter:hover, .store-filter.active { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: var(--accent); }
+    .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .product-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; transition: all 0.2s; cursor: pointer; }
+    .product-card:hover { border-color: rgba(59,130,246,0.3); transform: translateY(-2px); }
+    .product-img { width: 100%; height: 140px; background: linear-gradient(135deg, #1e293b, #334155); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+    .product-info { padding: 12px; }
+    .product-info h4 { margin: 0 0 4px; font-size: 0.9rem; }
+    .product-info .sku { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; }
+    .product-prices { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .product-prices .price { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .product-prices .original { font-size: 0.8rem; color: var(--text-muted); text-decoration: line-through; }
+    .product-prices .discount { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: rgba(16,185,129,0.15); color: #10b981; }
+    .product-min { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; }
+    .product-actions { display: flex; gap: 8px; }
+    .product-actions .qty-input { width: 60px; padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-family: inherit; font-size: 0.8rem; text-align: center; }
+    .product-actions .add-btn { flex: 1; padding: 6px 12px; border-radius: 8px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .product-actions .add-btn:hover { transform: scale(1.02); }
+    .stock-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 4px; }
+    .stock-tag.in-stock { background: rgba(16,185,129,0.12); color: #10b981; }
+    .stock-tag.low-stock { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
+    /* Demo features grid */
+    .demo-features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 2rem; }
+    .demo-feature { background: var(--card-bg); border-radius: var(--radius-md); padding: 1.2rem; border: 1px solid rgba(255,255,255,0.06); }
+    .demo-feature h4 { margin: 0 0 0.3rem; font-size: 0.95rem; }
+    .demo-feature p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    .demo-feature .status { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.15); color: #10b981; margin-top: 0.4rem; }
+
+    /* Login demo */
+    .login-demo { max-width: 400px; margin: 2rem auto 0; background: #111827; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); padding: 32px; }
+    .login-demo h3 { text-align: center; margin: 0 0 4px; font-size: 1.2rem; }
+    .login-demo .subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px; }
+    .login-field { margin-bottom: 16px; }
+    .login-field label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
+    .login-field input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-family: inherit; font-size: 0.9rem; direction: ltr; text-align: right; }
+    .login-field input:focus { outline: none; border-color: var(--accent); }
+    .login-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+    .login-divider { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin: 16px 0; position: relative; }
+    .login-divider::before, .login-divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: rgba(255,255,255,0.08); }
+    .login-divider::before { right: 0; }
+    .login-divider::after { left: 0; }
+    .register-link { text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+    .register-link a { color: var(--accent); text-decoration: none; }
+
+    /* ===== LIGHT THEME ===== */
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --bg-alt: #edf0f5;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1a202c;
+      --text-muted: #64748b;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] body,
+    [data-theme="light"] html { background: linear-gradient(180deg, #f0f2f8 0%, #e8ecf4 100%); }
+    [data-theme="light"] .site-header { background: rgba(255,255,255,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(255,255,255,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .logo-text { color: #1a202c; }
+    [data-theme="light"] .tab-btn { color: #64748b; }
+    [data-theme="light"] .tab-btn:hover { color: #1a202c; }
+    [data-theme="light"] .hero-badges span { background: rgba(59,130,246,0.06); border-color: rgba(59,130,246,0.2); color: #2563eb; }
+    [data-theme="light"] .btn.ghost { color: #1a202c; border-color: rgba(0,0,0,0.15); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .card li { color: #374151; }
+    [data-theme="light"] .callout { background: radial-gradient(circle at top, rgba(59,130,246,0.06), transparent 60%); border-color: rgba(59,130,246,0.2); }
+    [data-theme="light"] .callout p { color: #475569; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .exp-card p { color: #475569; }
+    [data-theme="light"] .exp-tag { background: rgba(139,92,246,0.08); color: #6d28d9; }
+    [data-theme="light"] .pricing-card { background: linear-gradient(135deg, rgba(59,130,246,0.04), rgba(139,92,246,0.04)); border-color: rgba(59,130,246,0.2); }
+    [data-theme="light"] .store-frame { background: #fff; border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .store-topbar { background: rgba(0,0,0,0.02); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .store-logo span { color: #1a202c; }
+    [data-theme="light"] .store-welcome { background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(139,92,246,0.06)); border-color: rgba(59,130,246,0.15); }
+    [data-theme="light"] .store-welcome-text h3 { color: #1a202c; }
+    [data-theme="light"] .product-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .product-card:hover { border-color: rgba(59,130,246,0.3); }
+    [data-theme="light"] .product-info h4 { color: #1a202c; }
+    [data-theme="light"] .login-demo { background: #fff; border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .login-demo h3 { color: #1a202c; }
+    [data-theme="light"] .login-field input { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.12); color: #1a202c; }
+    [data-theme="light"] .demo-feature { background: #fff; border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .demo-feature p { color: #475569; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.12); transform: rotate(180deg); }
+    [data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.08); }
+
+    /* ===== FOOTER ===== */
+    .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 1.5rem 0; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ===== TECH STACK ===== */
+    .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-top: 1.5rem; }
+    .tech-item { text-align: center; padding: 16px 8px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+    .tech-item .tech-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .tech-item span { display: block; font-size: 0.78rem; color: var(--text-muted); }
+    [data-theme="light"] .tech-item { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .hero { padding: 2.5rem 0 2rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 1rem; }
+      .section { padding: 2.5rem 0; }
+      .section-header { margin-bottom: 1.5rem; }
+      .section-header h2 { font-size: 1.5rem; }
+      .tabs { flex-wrap: wrap; justify-content: center; }
+      .tab-btn { font-size: 0.82rem; padding: 0.65rem 0.8rem; }
+      .demo-features { grid-template-columns: 1fr; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .header-contact span:not(.btn-sm) { display: none; }
+      .logo-text { font-size: 0.8rem; }
+      .card { padding: 1.2rem; }
+      .card-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2rem; }
+      .callout { padding: 1.3rem; }
+      .timeline-step { gap: 0.8rem; }
+      .btn { padding: 0.65rem 1.2rem; font-size: 0.88rem; }
+      .contact-details { gap: 1rem; }
+      .exp-card { padding: 1.2rem; }
+      .store-nav { display: none; }
+      .products-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.45rem; }
+      .hero-badges span { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .hero-badges { gap: 0.35rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .contact-details { flex-direction: column; align-items: center; }
+      .products-grid { grid-template-columns: 1fr; }
+      .tab-btn { padding: 0.6rem 0.65rem; font-size: 0.78rem; }
+      .pricing-card .price { font-size: 1.7rem; }
+      .container { padding: 0 1rem; }
+      .store-body { padding: 16px; }
+      .store-welcome { flex-direction: column; gap: 12px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">שלומי זוין | CTO as a Service</span>
+      </a>
+      <div class="header-contact">
+        <button class="theme-toggle" id="theme-toggle" title="Dark / Light">&#127769;</button>
+        <span>054-5567213</span>
+        <a href="mailto:shlomi@boostart.io" class="btn-sm">בואו נדבר</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="offer">ההצעה</button>
+      <button class="tab-btn" data-tab="experience">ניסיון</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="pricing">תקציב</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 1: THE OFFER ===================== -->
+<div class="tab-content active" id="tab-offer">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <h1>חנות B2B על Medusa + Next.js?<br/><span class="gradient">כבר בניתי כאלה. בוא נדבר.</span></h1>
+      <p class="hero-sub">
+        מיגרציה מ-WooCommerce, מחירון דיפרנציאלי, RTL מושלם, וחיבור תשלומים -
+        לא הצעת מחיר פרויקטלית, אלא שותף טכנולוגי שלוקח בעלות מלאה.
+      </p>
+      <div class="hero-badges">
+        <span>Medusa.js</span>
+        <span>Next.js</span>
+        <span>Node.js</span>
+        <span>PostgreSQL</span>
+        <span>RTL + עברית</span>
+        <span>B2B Pricing</span>
+        <span>Cardcom / Stripe</span>
+        <span>WooCommerce Migration</span>
+        <span>15+ שנות ניסיון</span>
+      </div>
+      <div class="hero-cta">
+        <a href="#" class="btn primary" onclick="switchTab('demo')">ראה הדגמה חיה &#8592;</a>
+        <a href="#" class="btn ghost" onclick="switchTab('pricing')">תקציב ולו״ז</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY ME -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>למה אני ולא בית תוכנה?</h2>
+        <p>אני לא עוד פרילנסר. אני שותף טכנולוגי שלוקח בעלות מלאה על הפרויקט - מהאיפיון ועד הפריסה.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#129309;</div>
+          <h3>שותף, לא ספק</h3>
+          <p>עובד בצמוד אליך כמו CTO פנימי. שקיפות מלאה, הקוד שלך תמיד, אסטרטגיה טכנולוגית משותפת.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>מהירות x100</h3>
+          <p>משתמש ב-Claude Code וכלי AI מתקדמים. מיגרציה של חודשים הופכת לימים. לא סתם - באמת.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128722;</div>
+          <h3>ניסיון E-commerce אמיתי</h3>
+          <p>בניתי מערכות B2B ו-B2C עם מחירונים, קבוצות לקוחות, subscriptions, וחיבור תשלומים מקצה לקצה.</p>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2.5rem">
+        <h3>למה Medusa.js ולא Shopify/WooCommerce?</h3>
+        <p>
+          Medusa הוא headless e-commerce - גמישות מלאה, שליטה על כל שורת קוד, ו-API-first architecture.
+          אפשר לבנות בדיוק את מה שצריך: מחירון דיפרנציאלי לפי קבוצת לקוח, הרשמה עם ח.פ, מינימום הזמנה,
+          וכל לוגיקה B2B מורכבת - בלי לריב עם פלאגינים של וורדפרס. ועם Next.js בצד הלקוח? SEO מושלם, RTL ילידי, וביצועים של 2025.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM OVERVIEW -->
+  <section class="section" style="background: radial-gradient(circle at top, #0f1628 0, #050608 60%);">
+    <div class="container">
+      <div class="section-header">
+        <h2>מה אני בונה - תכולת המערכת</h2>
+        <p>הכל כלול: מיגרציה, חנות, ותשלומים</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>&#128260; מיגרציה מ-WooCommerce</h3>
+          <ul>
+            <li>העברת מוצרים, קטגוריות, תמונות ווריאנטים</li>
+            <li>מיגרציית לקוחות קיימים עם היסטוריית הזמנות</li>
+            <li>מיפוי מחירונים ומבנה קבוצות לקוחות</li>
+            <li>וידוא שלמות נתונים ו-QA מקיף</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>&#128100; הרשמה B2B עם ח.פ עסקי</h3>
+          <ul>
+            <li>טופס הרשמה עסקי עם מספר ח.פ / עוסק מורשה</li>
+            <li>אישור ידני או אוטומטי של לקוחות חדשים</li>
+            <li>שיוך לקבוצת מחירון לפי סוג עסק</li>
+            <li>ניהול הרשאות: מנהל רכש, צופה, אדמין</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>&#128176; מחירון דיפרנציאלי</h3>
+          <ul>
+            <li>קבוצות לקוחות (VIP, סיטונאי, רגיל)</li>
+            <li>מחירים שונים לפי קבוצה לכל מוצר</li>
+            <li>מינימום הזמנה לפי מוצר / סל כולל</li>
+            <li>הנחות כמות אוטומטיות (Volume Pricing)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>&#128722; חנות Next.js + RTL</h3>
+          <ul>
+            <li>עיצוב RTL מושלם עם תמיכה מלאה בעברית</li>
+            <li>Server-Side Rendering (SEO מצוין)</li>
+            <li>קטלוג עם פילטרים, חיפוש וסינון מתקדם</li>
+            <li>עגלה חכמה עם חישוב מחירים בזמן אמת</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>&#128179; חיבור תשלומים</h3>
+          <ul>
+            <li>אינטגרציה ל-Cardcom (כרטיסי אשראי + הוראות קבע)</li>
+            <li>אינטגרציה ל-Stripe כגיבוי / לקוחות בינ"ל</li>
+            <li>חשבוניות אוטומטיות (iCount / GreenInvoice)</li>
+            <li>אשראי עסקי / שוטף + 30/60</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>&#9881;&#65039; פאנל ניהול (Admin)</h3>
+          <ul>
+            <li>ניהול מוצרים, מלאי, קטגוריות ומחירונים</li>
+            <li>ניהול הזמנות עם סטטוסים ומעקב</li>
+            <li>ניהול לקוחות וקבוצות מחירון</li>
+            <li>דוחות מכירות ואנליטיקס</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===================== TAB 2: EXPERIENCE ===================== -->
+<div class="tab-content" id="tab-experience">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי</h2>
+        <p>50+ מוצרים שנבנו מאפס. הנה כמה שרלוונטיים לפרויקט שלך.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו</div>
+        </div>
+        <div class="stat">
+          <div class="num">15+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">10+</div>
+          <div class="label">מערכות E-commerce</div>
+        </div>
+        <div class="stat">
+          <div class="num">100%</div>
+          <div class="label">Full-Stack</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>מערכת B2B E-commerce - סיטונאות</h3>
+          <p>חנות B2B עם מחירון דיפרנציאלי, הזמנות חוזרות, ניהול אשראי עסקי, וממשק ניהול מלא. כולל חיבור למערכת ERP וניהול מלאי בזמן אמת.</p>
+          <span class="exp-tag">Node.js</span>
+          <span class="exp-tag">React</span>
+          <span class="exp-tag">PostgreSQL</span>
+          <span class="exp-tag">Stripe</span>
+          <span class="exp-tag">B2B</span>
+        </div>
+        <div class="exp-card">
+          <h3>מיגרציית WooCommerce to Headless</h3>
+          <p>העברת חנות עם 5,000+ מוצרים מ-WooCommerce ל-headless architecture. כולל מיגרציית לקוחות, הזמנות, וסנכרון מלאי.</p>
+          <span class="exp-tag">WooCommerce</span>
+          <span class="exp-tag">API Migration</span>
+          <span class="exp-tag">Next.js</span>
+          <span class="exp-tag">PostgreSQL</span>
+        </div>
+        <div class="exp-card">
+          <h3>מערכת תשלומים מורכבת</h3>
+          <p>חיבור Stripe + Cardcom + PayPal עם ניהול subscriptions, חשבוניות אוטומטיות, וניהול אשראי עסקי. כולל reconciliation אוטומטי.</p>
+          <span class="exp-tag">Stripe</span>
+          <span class="exp-tag">Cardcom</span>
+          <span class="exp-tag">Billing</span>
+          <span class="exp-tag">Invoicing</span>
+        </div>
+        <div class="exp-card">
+          <h3>פלטפורמת ניהול הזמנות</h3>
+          <p>מערכת Order Management מלאה עם ניהול מלאי, שילוח, סטטוסים, התראות, ודוחות. כולל ממשק מובייל לנהגי משלוחים.</p>
+          <span class="exp-tag">React</span>
+          <span class="exp-tag">Node.js</span>
+          <span class="exp-tag">Real-time</span>
+          <span class="exp-tag">Mobile</span>
+        </div>
+        <div class="exp-card">
+          <h3>חנות RTL + Multi-language</h3>
+          <p>חנות אונליין עם תמיכה מלאה ב-RTL, עברית וערבית, כולל i18n, SEO מרובה שפות, ותמיכת כיוון דינמית.</p>
+          <span class="exp-tag">Next.js</span>
+          <span class="exp-tag">RTL</span>
+          <span class="exp-tag">i18n</span>
+          <span class="exp-tag">SEO</span>
+        </div>
+        <div class="exp-card">
+          <h3>אינטגרציות AI לאיקומרס</h3>
+          <p>מנוע המלצות מוצרים מבוסס AI, חיפוש סמנטי, chatbot שירות לקוחות, וניתוח התנהגות קנייה אוטומטי.</p>
+          <span class="exp-tag">OpenAI</span>
+          <span class="exp-tag">RAG</span>
+          <span class="exp-tag">Recommendations</span>
+          <span class="exp-tag">AI Search</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 3: LIVE DEMO ===================== -->
+<div class="tab-content" id="tab-demo">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>הדגמה חיה - חנות B2B</h2>
+        <p>כל מה שתראה כאן נבנה תוך דקות. זה לא מוקאפ - זו הוכחת קצב.</p>
+      </div>
+
+      <div class="demo-container">
+
+        <!-- B2B Login Demo -->
+        <div class="login-demo" id="login-screen">
+          <h3>&#128274; כניסה לחנות B2B</h3>
+          <p class="subtitle">כניסה ללקוחות עסקיים בלבד</p>
+          <div class="login-field">
+            <label>ח.פ / עוסק מורשה</label>
+            <input type="text" id="hp-input" placeholder="515678901" value="515678901" />
+          </div>
+          <div class="login-field">
+            <label>אימייל</label>
+            <input type="email" placeholder="admin@business.co.il" value="admin@business.co.il" />
+          </div>
+          <div class="login-field">
+            <label>סיסמה</label>
+            <input type="password" placeholder="********" value="demo1234" />
+          </div>
+          <button class="login-btn" onclick="doLogin()">&#128274; כניסה לחנות</button>
+          <div class="login-divider">או</div>
+          <p class="register-link">עסק חדש? <a href="#" onclick="return false;">הרשמה עם ח.פ</a></p>
+        </div>
+
+        <!-- B2B Store Demo -->
+        <div class="store-frame" id="store-screen" style="display:none;">
+          <div class="store-topbar">
+            <div class="store-logo">
+              <div class="store-logo-icon">&#128230;</div>
+              <span>B2B Store</span>
+            </div>
+            <div class="store-nav">
+              <a class="active">&#127968; ראשי</a>
+              <a>&#128230; מוצרים</a>
+              <a>&#128203; הזמנות</a>
+              <a>&#128100; החשבון שלי</a>
+            </div>
+            <div class="store-actions">
+              <button title="חיפוש">&#128269;</button>
+              <button title="עגלה" id="cart-btn">&#128722;<span class="cart-badge" id="cart-count">0</span></button>
+            </div>
+          </div>
+
+          <div class="store-body">
+            <div class="store-welcome">
+              <div class="store-welcome-text">
+                <h3>&#128075; שלום, חברת אלפא סחר בע"מ</h3>
+                <p>ח.פ: <span id="hp-display">515678901</span> | קבוצת מחירון: <strong style="color: var(--accent);">סיטונאי VIP</strong> | אשראי פתוח: &#8362;45,000</p>
+              </div>
+              <span class="customer-badge">&#11088; לקוח VIP</span>
+            </div>
+
+            <div class="store-filters">
+              <button class="store-filter active" onclick="filterProducts('all', this)">&#128230; הכל</button>
+              <button class="store-filter" onclick="filterProducts('electric', this)">&#9889; חשמל</button>
+              <button class="store-filter" onclick="filterProducts('plumbing', this)">&#128167; אינסטלציה</button>
+              <button class="store-filter" onclick="filterProducts('tools', this)">&#128295; כלי עבודה</button>
+              <button class="store-filter" onclick="filterProducts('safety', this)">&#129521; בטיחות</button>
+            </div>
+
+            <div class="products-grid" id="products-grid">
+              <!-- Products injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Overlay -->
+        <div id="cart-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:100; backdrop-filter:blur(4px);" onclick="closeCart(event)">
+          <div style="position:absolute; top:0; left:0; width:380px; max-width:90vw; height:100%; background:#111827; border-right:1px solid rgba(255,255,255,0.08); padding:24px; overflow-y:auto; direction:rtl;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+              <h3 style="margin:0; font-size:1.2rem;">&#128722; עגלת קניות</h3>
+              <button onclick="closeCart()" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&#10005;</button>
+            </div>
+            <div id="cart-items"></div>
+            <div id="cart-summary" style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);"></div>
+          </div>
+        </div>
+
+        <!-- Demo Features -->
+        <div class="demo-features">
+          <div class="demo-feature">
+            <h4>&#128274; כניסה עם ח.פ עסקי</h4>
+            <p>הרשמה והתחברות עם מספר ח.פ / עוסק מורשה. אישור לקוחות חדשים אוטומטי או ידני.</p>
+            <span class="status">&#9889; הדגמה עובדת</span>
+          </div>
+          <div class="demo-feature">
+            <h4>&#128176; מחירון דיפרנציאלי</h4>
+            <p>כל לקוח רואה מחירים אחרים לפי קבוצת המחירון שלו. מחיר קמעונאי מוצג כמחוק.</p>
+            <span class="status">&#9889; הדגמה עובדת</span>
+          </div>
+          <div class="demo-feature">
+            <h4>&#128722; מינימום הזמנה</h4>
+            <p>מינימום כמות לכל מוצר. מינימום סל כולל לביצוע הזמנה. ולידציות בזמן אמת.</p>
+            <span class="status">&#9889; הדגמה עובדת</span>
+          </div>
+          <div class="demo-feature">
+            <h4>&#128260; מיגרציה מ-WooCommerce</h4>
+            <p>סקריפט מיגרציה אוטומטי - מוצרים, לקוחות, הזמנות, מחירונים, ותמונות. QA מובנה.</p>
+            <span class="status">&#9889; מוכן ליישום</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 4: PRICING ===================== -->
+<div class="tab-content" id="tab-pricing">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>תקציב ולו"ז</h2>
+        <p>מודל CTO חודשי - שקיפות מלאה, בלי הפתעות</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 0.3rem;">CTO as a Service</div>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">צוות פיתוח (1-2 מפתחים) + הניהול שלי</div>
+        <ul>
+          <li>איפיון טכני מלא + ארכיטקטורה</li>
+          <li>פיתוח Full-Stack: Medusa + Next.js + PostgreSQL</li>
+          <li>מיגרציה מלאה מ-WooCommerce</li>
+          <li>RTL + עברית מושלמת</li>
+          <li>מחירון דיפרנציאלי + קבוצות לקוחות</li>
+          <li>חיבור Cardcom / Stripe</li>
+          <li>פאנל ניהול מלא (Admin)</li>
+          <li>פריסה על Vercel + Railway / Supabase</li>
+          <li>שקיפות מלאה - הקוד שלך, תמיד</li>
+          <li>בלי lock-in - אפשר לעצור בכל רגע</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="width: 100%; margin-top: 1rem;">בואו נדבר &#8592;</a>
+      </div>
+
+      <!-- Timeline -->
+      <div class="section-header" style="margin-top: 3.5rem;">
+        <h2>לו"ז משוער</h2>
+        <p>~3 חודשים לחנות B2B מלאה עם מיגרציה</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>שבועות 1-2: איפיון + מיגרציה</h3>
+            <p>איפיון טכני מלא, מיפוי מבנה WooCommerce, סקריפט מיגרציה, הקמת תשתית Medusa + DB.</p>
+            <span class="tag">Foundation</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>שבועות 3-5: Core B2B</h3>
+            <p>מערכת הרשמה עם ח.פ, קבוצות לקוחות, מחירון דיפרנציאלי, מינימום הזמנה, לוגיקת Volume Pricing.</p>
+            <span class="tag">Business Logic</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>שבועות 6-8: חנות Frontend</h3>
+            <p>Next.js storefront עם RTL מלא, קטלוג, עגלה, checkout, חיפוש וסינון, responsive design.</p>
+            <span class="tag">Storefront</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>שבועות 9-10: תשלומים + Admin</h3>
+            <p>חיבור Cardcom + Stripe, חשבוניות אוטומטיות, פאנל ניהול, ניהול הזמנות ולקוחות.</p>
+            <span class="tag">Payments & Admin</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">5</div>
+          <div class="timeline-body">
+            <h3>שבועות 11-12: QA + השקה</h3>
+            <p>בדיקות מקיפות, מיגרציה סופית, אופטימיזציה, פריסה על Vercel + Railway, ו-Go Live.</p>
+            <span class="tag">Launch</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tech Stack -->
+      <div class="section-header" style="margin-top: 3.5rem;">
+        <h2>סטאק טכנולוגי</h2>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-item">
+          <div class="tech-icon">&#9965;</div>
+          <span>Medusa.js</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#9889;</div>
+          <span>Next.js 14</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#128154;</div>
+          <span>Node.js</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#128024;</div>
+          <span>PostgreSQL</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#128295;</div>
+          <span>TypeScript</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#128179;</div>
+          <span>Cardcom / Stripe</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#9650;</div>
+          <span>Vercel</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">&#128642;</div>
+          <span>Railway</span>
+        </div>
+      </div>
+
+      <!-- Advantage callout -->
+      <div class="callout" style="margin-top: 2.5rem;">
+        <h3>&#128161; יתרון משמעותי: AI בפיתוח</h3>
+        <p>
+          אני משתמש ב-Claude Code, Cursor, ו-AI tools מתקדמים בפיתוח היומיומי.
+          זה לא גימיק - זה מה שמאפשר לי לספק פרויקט ב-3 חודשים במקום 6-8.
+          ובנוסף, אני יכול לשלב יכולות AI בחנות עצמה - חיפוש חכם, המלצות מוצרים, צ'אטבוט שירות.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact-section">
+    <div class="container">
+      <h2>בואו נדבר</h2>
+      <p>שלח לי הודעה ונקבע שיחה קצרה</p>
+      <div class="contact-details">
+        <div class="contact-item">&#128222; <a href="tel:0545567213">054-5567213</a></div>
+        <div class="contact-item">&#128231; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">&#128172; <a href="https://wa.me/972545567213">WhatsApp</a></div>
+      </div>
+      <a href="https://wa.me/972545567213" class="btn primary">שלח הודעה ב-WhatsApp &#8592;</a>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    &#169; 2025 שלומי זוין | CTO as a Service
+  </div>
+</footer>
+
+<script>
+  // ===== TABS =====
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // ===== THEME TOGGLE =====
+  const toggle = document.getElementById('theme-toggle');
+  toggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    toggle.textContent = next === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  });
+
+  // ===== B2B PRODUCTS DATA =====
+  const products = [
+    { id: 1, name: 'כבל חשמל 3x2.5 (100מ)', sku: 'ELC-3025-100', cat: 'electric', icon: '\u26A1', retail: 289, vip: 195, min: 5, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 2, name: 'שקע כפול טושיבה', sku: 'ELC-SKT-202', cat: 'electric', icon: '\uD83D\uDD0C', retail: 34, vip: 21, min: 20, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 3, name: 'ברז מטבח נירוסטה', sku: 'PLM-BRZ-440', cat: 'plumbing', icon: '\uD83D\uDCA7', retail: 420, vip: 285, min: 3, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 4, name: 'צינור PVC 4" (3מ)', sku: 'PLM-PVC-403', cat: 'plumbing', icon: '\uD83D\uDEBF', retail: 78, vip: 49, min: 10, stock: 'low-stock', stockText: 'מלאי נמוך' },
+    { id: 5, name: 'מקדחה מקצועית 18V', sku: 'TLS-DRL-180', cat: 'tools', icon: '\uD83D\uDD27', retail: 890, vip: 620, min: 1, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 6, name: 'סט מפתחות אלן (25 יח\')', sku: 'TLS-ALN-250', cat: 'tools', icon: '\uD83D\uDD29', retail: 145, vip: 89, min: 5, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 7, name: 'כפפות עבודה (12 זוגות)', sku: 'SFT-GLV-120', cat: 'safety', icon: '\uD83E\uDDE4', retail: 120, vip: 75, min: 10, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 8, name: 'קסדת מגן מקצועית', sku: 'SFT-HLM-010', cat: 'safety', icon: '\u26D1\uFE0F', retail: 85, vip: 52, min: 5, stock: 'in-stock', stockText: 'במלאי' },
+    { id: 9, name: 'פנל LED 60x60 42W', sku: 'ELC-LED-606', cat: 'electric', icon: '\uD83D\uDCA1', retail: 165, vip: 105, min: 8, stock: 'in-stock', stockText: 'במלאי' },
+  ];
+
+  let cart = {};
+
+  function renderProducts(filter) {
+    const grid = document.getElementById('products-grid');
+    const filtered = filter === 'all' ? products : products.filter(p => p.cat === filter);
+    const discount = (p) => Math.round((1 - p.vip / p.retail) * 100);
+
+    grid.innerHTML = filtered.map(p => `
+      <div class="product-card" data-cat="${p.cat}">
+        <div class="product-img">${p.icon}</div>
+        <div class="product-info">
+          <span class="stock-tag ${p.stock}">${p.stockText}</span>
+          <h4>${p.name}</h4>
+          <div class="sku">מק"ט: ${p.sku}</div>
+          <div class="product-prices">
+            <span class="price">\u20AA${p.vip}</span>
+            <span class="original">\u20AA${p.retail}</span>
+            <span class="discount">-${discount(p)}%</span>
+          </div>
+          <div class="product-min">\u26A0\uFE0F מינימום הזמנה: ${p.min} יח'</div>
+          <div class="product-actions">
+            <input type="number" class="qty-input" id="qty-${p.id}" min="${p.min}" value="${p.min}" />
+            <button class="add-btn" onclick="addToCart(${p.id})">+ הוסף לעגלה</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterProducts(cat, btn) {
+    document.querySelectorAll('.store-filter').forEach(f => f.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderProducts(cat);
+  }
+
+  function addToCart(id) {
+    const product = products.find(p => p.id === id);
+    const qty = parseInt(document.getElementById(`qty-${id}`).value) || product.min;
+    if (qty < product.min) {
+      alert(`\u26A0\uFE0F מינימום הזמנה: ${product.min} יח'`);
+      return;
+    }
+    if (cart[id]) {
+      cart[id].qty += qty;
+    } else {
+      cart[id] = { ...product, qty };
+    }
+    updateCartCount();
+    // Flash effect
+    const btn = event.target;
+    btn.textContent = '\u2713 נוסף!';
+    btn.style.background = '#10b981';
+    setTimeout(() => { btn.textContent = '+ \u05D4\u05D5\u05E1\u05E3 \u05DC\u05E2\u05D2\u05DC\u05D4'; btn.style.background = ''; }, 1000);
+  }
+
+  function updateCartCount() {
+    const count = Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+    document.getElementById('cart-count').textContent = count;
+  }
+
+  function closeCart(e) {
+    if (!e || e.target === document.getElementById('cart-overlay')) {
+      document.getElementById('cart-overlay').style.display = 'none';
+    }
+  }
+
+  document.getElementById('cart-btn').addEventListener('click', () => {
+    const overlay = document.getElementById('cart-overlay');
+    const itemsEl = document.getElementById('cart-items');
+    const summaryEl = document.getElementById('cart-summary');
+
+    const items = Object.values(cart);
+    if (items.length === 0) {
+      itemsEl.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px 0;">העגלה ריקה</p>';
+      summaryEl.innerHTML = '';
+    } else {
+      itemsEl.innerHTML = items.map(item => `
+        <div style="display:flex; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06); align-items:center;">
+          <div style="width:44px; height:44px; border-radius:8px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:1.3rem;">${item.icon}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.85rem; font-weight:600;">${item.name}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${item.qty} x \u20AA${item.vip}</div>
+          </div>
+          <div style="font-weight:700; color:var(--accent);">\u20AA${(item.qty * item.vip).toLocaleString()}</div>
+        </div>
+      `).join('');
+
+      const total = items.reduce((sum, item) => sum + item.qty * item.vip, 0);
+      const retailTotal = items.reduce((sum, item) => sum + item.qty * item.retail, 0);
+      const saved = retailTotal - total;
+
+      summaryEl.innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.9rem;">
+          <span>סה"כ לפני הנחה:</span>
+          <span style="text-decoration:line-through; color:var(--text-muted);">\u20AA${retailTotal.toLocaleString()}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.85rem; color:#10b981;">
+          <span>חיסכון VIP:</span>
+          <span>-\u20AA${saved.toLocaleString()}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:1.2rem; font-weight:800; margin-bottom:16px;">
+          <span>סה"כ:</span>
+          <span style="color:var(--accent);">\u20AA${total.toLocaleString()}</span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">* מחירים לא כוללים מע"מ | אשראי שוטף + 30</div>
+        <button style="width:100%; padding:12px; border-radius:10px; border:none; background:linear-gradient(135deg, var(--accent), var(--accent-secondary)); color:white; font-family:inherit; font-size:0.95rem; font-weight:600; cursor:pointer;">&#128179; לביצוע הזמנה</button>
+      `;
+    }
+
+    overlay.style.display = 'block';
+  });
+
+  // ===== LOGIN =====
+  function doLogin() {
+    const hp = document.getElementById('hp-input').value;
+    document.getElementById('hp-display').textContent = hp;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('store-screen').style.display = 'block';
+    renderProducts('all');
+  }
+</script>
+
+</body>
+</html>

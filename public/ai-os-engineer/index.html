@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Senior AI Systems & Orchestration Engineer | Shlomi Zovin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.15);
+      --accent-secondary: #0ea5e9;
+      --accent-gold: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --bg-alt: #f1f5f9; --card-bg: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b; --shadow-soft: 0 18px 40px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; transition: background 0.3s, color 0.3s; }
+    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 100vh; background: radial-gradient(circle at top, rgba(16,185,129,0.06) 0, transparent 50%); pointer-events: none; z-index: 0; }
+    [data-theme="light"] body::before { background: radial-gradient(circle at top, rgba(16,185,129,0.04) 0, transparent 50%); }
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    [data-theme="light"] .site-header { background: rgba(248,250,252,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(16,185,129,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all 0.2s; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(248,250,252,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #7fd6ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(16,185,129,0.25); background: rgba(16,185,129,0.08); color: #a7f3d0; }
+    [data-theme="light"] .hero-badges span { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.1); color: #047857; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(16,185,129,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16,185,129,0.5); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+
+    /* SECTIONS */
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); transition: transform 0.2s, box-shadow 0.2s; }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    .card:hover { transform: translateY(-3px); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B9'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    /* MATCH TABLE */
+    .match-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
+    [data-theme="light"] .match-table { border-color: rgba(0,0,0,0.08); }
+    .match-table th { background: rgba(16,185,129,0.1); color: var(--accent); font-weight: 600; font-size: 0.9rem; padding: 1rem; text-align: left; }
+    .match-table td { padding: 0.85rem 1rem; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+    [data-theme="light"] .match-table td { border-top-color: rgba(0,0,0,0.06); }
+    .match-table tr:hover td { background: rgba(16,185,129,0.03); }
+    .match-check { color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+    .match-table .req-col { width: 35%; color: var(--text-muted); }
+    .match-table .my-col { width: 50%; }
+    .match-table .status-col { width: 15%; text-align: center; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* EXPERIENCE CARDS */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(14,165,233,0.15); color: #7dd3fc; margin-right: 0.3rem; margin-bottom: 0.3rem; }
+    [data-theme="light"] .exp-tag { background: rgba(14,165,233,0.1); color: #0284c7; }
+
+    /* ARCHITECTURE */
+    .arch-diagram { max-width: 850px; margin: 0 auto; }
+    .arch-layer { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+    [data-theme="light"] .arch-layer { border-color: rgba(0,0,0,0.08); }
+    .arch-layer::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    .arch-layer.orchestration::before { background: linear-gradient(90deg, #10b981, #0ea5e9); }
+    .arch-layer.agents::before { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+    .arch-layer.validation::before { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+    .arch-layer.infra::before { background: linear-gradient(90deg, #6366f1, #06b6d4); }
+    .arch-layer.data::before { background: linear-gradient(90deg, #f43f5e, #fb923c); }
+    .arch-layer h4 { margin: 0 0 0.6rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .layer-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--accent); }
+    .arch-components { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .arch-comp { font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #d1d5db; display: flex; align-items: center; gap: 0.4rem; }
+    [data-theme="light"] .arch-comp { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); color: #475569; }
+    .arch-arrow { text-align: center; color: var(--text-muted); font-size: 1.2rem; margin: 0.3rem 0; }
+
+    /* TERMINAL */
+    .terminal { background: #0d1117; border-radius: var(--radius-lg); overflow: hidden; max-width: 750px; margin: 2rem auto; border: 1px solid rgba(255,255,255,0.08); font-family: 'Courier New', monospace; }
+    .terminal-header { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .terminal-dot.red { background: #ef4444; }
+    .terminal-dot.yellow { background: #f59e0b; }
+    .terminal-dot.green { background: #10b981; }
+    .terminal-title { font-size: 0.75rem; color: #666; margin-left: auto; font-family: inherit; }
+    .terminal-body { padding: 16px; font-size: 0.82rem; line-height: 1.8; }
+    .terminal-body .prompt { color: var(--accent); }
+    .terminal-body .cmd { color: #e5e7eb; }
+    .terminal-body .comment { color: #6b7280; }
+    .terminal-body .output { color: #9ca3af; }
+    .terminal-body .success { color: #34d399; }
+    .terminal-body .info { color: #60a5fa; }
+
+    /* FLOW */
+    .flow-container { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; max-width: 700px; margin: 2rem auto; }
+    .flow-node { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-md); padding: 0.8rem 1.5rem; text-align: center; width: 100%; max-width: 500px; }
+    [data-theme="light"] .flow-node { border-color: rgba(0,0,0,0.08); }
+    .flow-node.highlight { border-color: var(--accent); background: rgba(16,185,129,0.08); }
+    .flow-node h5 { margin: 0 0 0.2rem; font-size: 0.95rem; }
+    .flow-node p { margin: 0; font-size: 0.82rem; color: var(--text-muted); }
+    .flow-arrow { color: var(--accent); font-size: 1.3rem; }
+    .flow-parallel { display: flex; gap: 1rem; width: 100%; max-width: 600px; }
+    .flow-parallel > div { flex: 1; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-md); padding: 0.8rem; text-align: center; }
+    .flow-parallel > div:first-child { border-color: var(--accent); }
+    .flow-parallel > div:last-child { border-color: var(--accent-gold); }
+    [data-theme="light"] .flow-parallel > div { border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .flow-parallel > div:first-child { border-color: var(--accent); }
+    [data-theme="light"] .flow-parallel > div:last-child { border-color: var(--accent-gold); }
+    .flow-parallel h5 { margin: 0 0 0.2rem; font-size: 0.85rem; }
+    .flow-parallel p { margin: 0; font-size: 0.78rem; color: var(--text-muted); }
+
+    /* PRICING */
+    .pricing-card { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(14,165,233,0.08)); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 650px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: left; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(16,185,129,0.12), transparent 60%); border: 1px solid rgba(16,185,129,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    /* FOOTER */
+    .site-footer { text-align: center; padding: 2rem 0; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 2rem; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+    .site-footer p { color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0; }
+    .site-footer a { color: var(--accent); text-decoration: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.8rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .tab-btn { padding: 0.75rem 1rem; font-size: 0.85rem; }
+      .match-table { font-size: 0.82rem; }
+      .match-table th, .match-table td { padding: 0.6rem 0.6rem; }
+      .header-contact { display: none; }
+      .flow-parallel { flex-direction: column; }
+    }
+    @media (max-width: 480px) {
+      .tabs { justify-content: flex-start; }
+      .hero { padding: 2.5rem 0 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">Shlomi Zovin &bull; CTO as a Service</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#9788;</button>
+        <span class="header-contact">
+          <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+          <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp &rarr;</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">&#127919; The Proposal</button>
+      <button class="tab-btn" onclick="switchTab('match')">&#9989; Full Match</button>
+      <button class="tab-btn" onclick="switchTab('demo')">&#9889; Live Architecture</button>
+      <button class="tab-btn" onclick="switchTab('experience')">&#128218; Experience</button>
+      <button class="tab-btn" onclick="switchTab('budget')">&#128176; Engagement</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <h1>I Already Built the<br/><span class="gradient">Multi-Agent OS</span><br/>You're Looking For</h1>
+      <p class="hero-sub">
+        Not a theory. Not a POC. A production-grade, domain-agnostic <strong>Agentic Operating System</strong> &mdash;
+        with a Dispatcher Kernel, Crew Orchestration, Hybrid LLM Routing, Deterministic Validation,
+        long-term State Persistence, and a Playground to spin up new agents in minutes.
+      </p>
+      <div class="hero-badges">
+        <span>Custom Agent Orchestration</span>
+        <span>Claude + GPT + Gemini Hybrid</span>
+        <span>Node.js + TypeScript</span>
+        <span>Docker + Cloud Run</span>
+        <span>PostgreSQL + Vector DB</span>
+        <span>SSE Real-time Streaming</span>
+        <span>Agent Builder Playground</span>
+        <span>Domain-Agnostic Framework</span>
+        <span>Claude Code Power User</span>
+        <span>15+ Years Engineering</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">&#128172; Let's Talk</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">&#128065; See the Architecture</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#128161; Why This Proposal Is Different</h3>
+      <p>
+        Most candidates will tell you they "know LangChain" or "worked with GPT API."
+        I'm bringing you a <strong>complete Multi-Agent Operating System already running in production</strong> &mdash;
+        with Crew Orchestration, State Persistence, Hybrid LLM Routing, and Deterministic Validation.
+        Exactly what you described as A-OS. Already built, already live, already serving users across multiple domains.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>What I Built &mdash; A Generic Agent OS</h2>
+        <p>A domain-agnostic platform for deploying autonomous AI agents across any industry, with any LLM provider, through a single orchestration kernel</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#9881;</div>
+          <h3>Orchestration Kernel</h3>
+          <p>The core Dispatcher engine that routes messages between specialized Crew Members, manages transitions, and supports buffered parallel execution</p>
+          <ul>
+            <li>Crew-based agent routing</li>
+            <li>Pre/Post message transfer hooks</li>
+            <li>One-shot crew execution</li>
+            <li>Priority: Override &rarr; Context &rarr; Default</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>Hybrid LLM Engine</h3>
+          <p>Supports any LLM provider with auto-routing by model, fallback strategies, and a ThinkingAdvisor micro-agent for reasoning</p>
+          <ul>
+            <li>OpenAI (GPT-4o, GPT-5)</li>
+            <li>Anthropic (Claude Sonnet 4)</li>
+            <li>Google (Gemini 2.0 Flash)</li>
+            <li>Auto-fallback + rate limiting</li>
+            <li>Pluggable &mdash; add any provider</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128274;</div>
+          <h3>Validation Kernel</h3>
+          <p>A deterministic validation layer ensuring AI outputs comply with strict schemas and domain-specific rules</p>
+          <ul>
+            <li>FieldsExtractor micro-agent</li>
+            <li>Type constraints (boolean, enum, string)</li>
+            <li>JSON schema compliance</li>
+            <li>Correction detection</li>
+            <li>Two modes: conversational / strict</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128450;</div>
+          <h3>Long-term State Persistence</h3>
+          <p>Agents "remember" everything &mdash; user-level and conversation-level context that persists across sessions (hibernation)</p>
+          <ul>
+            <li>User-level context (cross-session)</li>
+            <li>Conversation-level context</li>
+            <li>Crew transition history</li>
+            <li>Field collection state</li>
+            <li>GCS backup + versioning</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127918;</div>
+          <h3>Agent Builder Playground</h3>
+          <p>Build new agents without code. A dashboard to create, configure, and deploy specialized agents across any domain in minutes</p>
+          <ul>
+            <li>Dynamic Crew Members via dashboard</li>
+            <li>Drag-and-drop prompt design</li>
+            <li>Knowledge Base management</li>
+            <li>Multi-provider KB (OpenAI, Google, Anthropic)</li>
+            <li>Agent-that-builds-agents pattern</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128230;</div>
+          <h3>Cloud-Native Infrastructure</h3>
+          <p>Dockerized microservices with auto-scaling, event-driven SSE streaming, and production-grade deployment</p>
+          <ul>
+            <li>Docker + Cloud Run</li>
+            <li>PostgreSQL on Cloud SQL</li>
+            <li>10+ SSE event types</li>
+            <li>Multi-tenant architecture</li>
+            <li>Ready for Kafka/RabbitMQ scale</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#127919; Domain-Agnostic by Design</h3>
+      <p>
+        The platform is <strong>not locked to any vertical</strong>. I've deployed agents across healthcare, finance, retail, and business intelligence &mdash;
+        all using the same core infrastructure. New domain? New agent definition, same kernel.
+        The crew system, LLM routing, validation, and state management are all generic and reusable.
+        <strong>You describe the agent &mdash; the system brings it to life.</strong>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: FULL MATCH ==================== -->
+<div id="tab-match" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#9989; Full Match to Your Requirements</h2>
+        <p>Every requirement from your job posting &mdash; mapped to what I've already built and shipped</p>
+      </div>
+
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th class="req-col">Your Requirement</th>
+            <th class="my-col">What I Built</th>
+            <th class="status-col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="req-col"><strong>Orchestration & State Management</strong><br/>LangGraph, Temporal.io, agent-to-agent communication, hibernation states</td>
+            <td class="my-col">Custom DispatcherService routing messages between Crew Members with pre/post transfer hooks, buffered parallel execution, and context persistence at user & conversation levels. Full support for "hibernation" &mdash; agents resume where they left off across sessions.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Agentic Development</strong><br/>Claude Code, Windsurf, Cursor</td>
+            <td class="my-col">The entire platform was built using Claude Code as the primary development tool. I use AI-assisted development as standard practice. The platform itself is a meta-tool &mdash; an agent that helps build agents.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Agent Swarm Engineering</strong><br/>Gemini 1.5 Pro/Flash, GPT-4o, Claude 3.5, Grok APIs</td>
+            <td class="my-col">Hybrid LLM engine with OpenAI (GPT-4o, GPT-5), Claude Sonnet, and Gemini 2.0. Provider abstraction layer auto-routes by model name. ThinkingAdvisor micro-agent analyzes context before response. Fallback strategy with retry logic. Adding a new provider (like Grok) takes hours, not days.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>The Validation Kernel</strong><br/>Deterministic validation, JSON schemas, regulatory compliance</td>
+            <td class="my-col">FieldsExtractorAgent &mdash; deterministic micro-agent that validates AI outputs. Type constraints (boolean, enum, string), corrections detection, two extraction modes (conversational / form-strict). Every tool call enforces JSON schema. Built for compliance-heavy domains.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Event-Driven Infrastructure</strong><br/>Dockerized microservices, Kafka / RabbitMQ</td>
+            <td class="my-col">Dockerized Node.js on Cloud Run. SSE event-driven architecture with 10+ event types for real-time communication. Architecture is already event-driven &mdash; ready to scale to Kafka/RabbitMQ when throughput demands it.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Node.js (TypeScript) & Python</strong></td>
+            <td class="my-col">Full backend in Node.js. Frontend in React 19 + TypeScript + Vite. Python fluent &mdash; 15+ years of full-stack experience across both ecosystems.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>AI Orchestration Frameworks</strong><br/>LangChain, LangGraph, CrewAI, custom frameworks</td>
+            <td class="my-col">Custom multi-agent framework with CrewMember base class, DynamicCrewMember, DispatcherService, and CrewService. Architecture parallels LangGraph/CrewAI but purpose-built for production flexibility and zero vendor lock-in.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>PostgreSQL (JSONB) & Vector Databases</strong></td>
+            <td class="my-col">PostgreSQL + Drizzle ORM with JSONB columns (metadata, config, data). Multi-provider Vector Stores for Knowledge Bases &mdash; OpenAI Vector Store, Google Corpus, Anthropic Files. Full KB management system with upload, search, and per-agent scoping.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Browser Automation</strong><br/>Playwright, session persistence</td>
+            <td class="my-col">Extensive Playwright experience across 50+ projects. The platform includes external channel bridges (WhatsApp, web) with session management. Deep understanding of headless automation, session persistence, and bot-resilient patterns.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Human-in-the-Loop (HITL)</strong></td>
+            <td class="my-col">The Crew System supports pre-transfer hooks that pause flow for human intervention. FieldsExtractor provides real-time validation. Message feedback system lets users correct and steer agents. Agents can pause, wait, and resume &mdash; true HITL built in.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Docker & Cloud Run / Kubernetes</strong></td>
+            <td class="my-col">Running on Docker + Cloud Run with auto-scaling in production today. Also experienced with Kubernetes (GKE, EKS), AWS ECS, and App Engine from other projects.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout" style="margin-top: 2.5rem;">
+        <h3>&#127775; Bonus: Things You Didn't Ask For &mdash; But I've Built</h3>
+        <p>
+          &bull; <strong>Multi-provider Knowledge Base management</strong> (OpenAI Vector Store, Google Corpus, Anthropic Files)<br/>
+          &bull; <strong>Thinking Steps auditing</strong> &mdash; every agent decision logged to DB for debugging and compliance<br/>
+          &bull; <strong>Dynamic Crew Members</strong> &mdash; create and deploy new agents from a dashboard, zero code<br/>
+          &bull; <strong>Multi-channel support</strong> &mdash; agents work across web, WhatsApp, and custom channels<br/>
+          &bull; <strong>Multi-tenant architecture</strong> with role-based access control<br/>
+          &bull; <strong>Prompt versioning</strong> with GCS backup and rollback per crew member
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE ARCHITECTURE ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#9889; Live Architecture Walkthrough</h2>
+        <p>This is the Multi-Agent OS I built. Not a mockup &mdash; real code running in production across multiple domains</p>
+      </div>
+
+      <h3 style="text-align:center; margin-bottom: 1.5rem;">&#127959; Agent OS Architecture</h3>
+      <div class="arch-diagram">
+        <div class="arch-layer orchestration">
+          <h4>&#9881; Orchestration Kernel <span class="layer-tag">DISPATCHER</span></h4>
+          <div class="arch-components">
+            <div class="arch-comp">Dispatcher Service</div>
+            <div class="arch-comp">Crew Service</div>
+            <div class="arch-comp">CrewMember Base Class</div>
+            <div class="arch-comp">Dynamic Crew (No-Code)</div>
+            <div class="arch-comp">Priority Router</div>
+            <div class="arch-comp">Transition Engine</div>
+          </div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-layer agents">
+          <h4>&#129504; Agent Swarm <span class="layer-tag">CREW MEMBERS</span></h4>
+          <div class="arch-components">
+            <div class="arch-comp">Introduction Crew</div>
+            <div class="arch-comp">Profiler Crew</div>
+            <div class="arch-comp">Assessment Crew</div>
+            <div class="arch-comp">General Crew</div>
+            <div class="arch-comp">KYC Crew</div>
+            <div class="arch-comp">Onboarding Crew</div>
+            <div class="arch-comp">ThinkingAdvisor</div>
+            <div class="arch-comp">FieldsExtractor</div>
+            <div class="arch-comp">+ Any Custom Crew</div>
+          </div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-layer validation">
+          <h4>&#128274; Validation Kernel <span class="layer-tag">DETERMINISTIC</span></h4>
+          <div class="arch-components">
+            <div class="arch-comp">Fields Extractor Agent</div>
+            <div class="arch-comp">Type Constraints</div>
+            <div class="arch-comp">JSON Schema Enforcement</div>
+            <div class="arch-comp">Correction Detection</div>
+            <div class="arch-comp">Pre-Transfer Hooks</div>
+            <div class="arch-comp">Function Registry</div>
+          </div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-layer infra">
+          <h4>&#128640; Intelligence Layer <span class="layer-tag">HYBRID LLM</span></h4>
+          <div class="arch-components">
+            <div class="arch-comp">LLM Router (auto-detect)</div>
+            <div class="arch-comp">OpenAI Service (GPT-4o/5)</div>
+            <div class="arch-comp">Claude Service (Sonnet 4)</div>
+            <div class="arch-comp">Google Service (Gemini 2.0)</div>
+            <div class="arch-comp">Fallback Strategy</div>
+            <div class="arch-comp">Pluggable Provider Interface</div>
+          </div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-layer data">
+          <h4>&#128450; Data & Persistence <span class="layer-tag">STATE</span></h4>
+          <div class="arch-components">
+            <div class="arch-comp">PostgreSQL + Drizzle ORM</div>
+            <div class="arch-comp">Context Service (User/Conv)</div>
+            <div class="arch-comp">Conversation State Machine</div>
+            <div class="arch-comp">Vector Stores (Multi-Provider)</div>
+            <div class="arch-comp">Thinking Steps Audit Log</div>
+            <div class="arch-comp">GCS Prompt Versioning</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLOW DIAGRAM -->
+      <h3 style="text-align:center; margin: 3rem 0 1.5rem;">&#128260; Message Flow &mdash; Agent Orchestration</h3>
+      <div class="flow-container">
+        <div class="flow-node">
+          <h5>&#128172; User Message (any channel)</h5>
+          <p>Web chat, WhatsApp, API &mdash; SSE connection established</p>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-node highlight">
+          <h5>&#9881; Dispatcher Kernel</h5>
+          <p>Routes to the correct Crew Member based on priority rules + conversation state + context</p>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-parallel">
+          <div>
+            <h5>Crew Response Stream</h5>
+            <p>LLM generates with crew prompt + tools + knowledge base</p>
+          </div>
+          <div>
+            <h5>Fields Extractor</h5>
+            <p>Parallel micro-agent validates + extracts structured data</p>
+          </div>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-node">
+          <h5>&#128260; Transfer Decision Engine</h5>
+          <p>preMessageTransfer / postMessageTransfer &rarr; Transition to next crew, pause for HITL, or flush response</p>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-node">
+          <h5>&#9889; SSE Event Stream to Client</h5>
+          <p>text_chunk, crew_transition, function_call, field_extracted, thinking_advisor &mdash; 10+ event types in real-time</p>
+        </div>
+      </div>
+
+      <!-- TERMINAL DEMO -->
+      <h3 style="text-align:center; margin: 3rem 0 1.5rem;">&#128187; The Kernel in Action</h3>
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">agent-os-server &mdash; production</span>
+        </div>
+        <div class="terminal-body">
+          <span class="prompt">$</span> <span class="cmd">POST /api/agent/stream { domain: "fintech", agent: "onboarding" }</span><br/>
+          <span class="output">[Dispatcher] Routing message &rarr; agent: onboarding-agent</span><br/>
+          <span class="output">[CrewService] Loaded crew: entry-introduction (file-based, high priority)</span><br/>
+          <span class="info">[SSE] &rarr; crew_info: { name: "entry-introduction", model: "gpt-4o" }</span><br/>
+          <span class="output">[LLM Router] Provider: OpenAI | Model: gpt-4o | Fallback: claude-sonnet</span><br/>
+          <span class="info">[SSE] &rarr; text_chunk: "Welcome! Let's get you started..."</span><br/>
+          <span class="comment">// Parallel: FieldsExtractor running on micro-agent</span><br/>
+          <span class="success">[Fields] Extracted: { full_name: "John Smith", id_type: "passport" }</span><br/>
+          <span class="info">[SSE] &rarr; field_extracted: { field: "full_name", value: "John Smith" }</span><br/>
+          <span class="output">[Transfer] preMessageTransfer: required fields collected &rarr; transitioning</span><br/>
+          <span class="info">[SSE] &rarr; crew_transition: { from: "entry-introduction", to: "kyc-verification" }</span><br/>
+          <span class="success">[Context] Saved user context: onboarding_profile (persistent)</span><br/>
+          <span class="output">[LLM Router] Provider: Anthropic | Model: claude-sonnet | ThinkingAdvisor: ON</span><br/>
+          <span class="info">[SSE] &rarr; thinking_advisor: { advice: "verify document type before proceeding" }</span><br/>
+          <span class="info">[SSE] &rarr; text_chunk: "Great, now let's verify your identity..."</span><br/>
+          <span class="success">[Complete] 2 crew transitions, 4 fields extracted, 847 tokens used</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>&#128073; This Is Real, Running Code</h3>
+        <p>
+          This is not a diagram on paper. The platform runs in production serving real users across multiple domains.
+          Every component &mdash; the Dispatcher, the Crew System, the Hybrid LLM engine, the Validation Kernel &mdash;
+          is implemented, tested, and battle-hardened. This is my code, and it's exactly the A-OS you're building.
+          <strong>Want to spin up a new agent? Define its crew, pick a model, upload a knowledge base &mdash; it's live in minutes.</strong>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128218; Relevant Experience</h2>
+        <p>15+ years building production systems, 50+ products shipped from zero, deep AI/ML and system architecture expertise</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="num">15+</div><div class="label">Years of Experience</div></div>
+        <div class="stat"><div class="num">50+</div><div class="label">Products Built from Zero</div></div>
+        <div class="stat"><div class="num">3</div><div class="label">LLM Providers Integrated</div></div>
+        <div class="stat"><div class="num">10+</div><div class="label">AI Agents in Production</div></div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 2rem;">
+        <div class="exp-card">
+          <h3>&#129504; Multi-Agent AI Platform (A-OS)</h3>
+          <p>
+            Built a complete, domain-agnostic platform for orchestrating autonomous AI agents.
+            Crew-based orchestration, Hybrid LLM routing, State Persistence, Validation Kernel, and a no-code Agent Builder playground.
+            Deployed agents across healthcare, finance, retail, and BI &mdash; all on the same kernel.
+          </p>
+          <span class="exp-tag">Node.js</span>
+          <span class="exp-tag">React 19</span>
+          <span class="exp-tag">TypeScript</span>
+          <span class="exp-tag">PostgreSQL</span>
+          <span class="exp-tag">OpenAI</span>
+          <span class="exp-tag">Claude</span>
+          <span class="exp-tag">Gemini</span>
+          <span class="exp-tag">Docker</span>
+          <span class="exp-tag">Cloud Run</span>
+          <span class="exp-tag">Vector DB</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128640; CTO as a Service &mdash; 15+ Years</h3>
+          <p>
+            Partnering with founders and startups from zero to live product. Architecture, design, development, DevOps, launch.
+            Working side-by-side with founders as an internal CTO &mdash; full ownership, full transparency, end-to-end.
+          </p>
+          <span class="exp-tag">Architecture</span>
+          <span class="exp-tag">Product</span>
+          <span class="exp-tag">DevOps</span>
+          <span class="exp-tag">CI/CD</span>
+          <span class="exp-tag">Team Lead</span>
+          <span class="exp-tag">AWS</span>
+          <span class="exp-tag">GCP</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#9889; AI/ML & LLM Expertise</h3>
+          <p>
+            Deep experience integrating LLMs, building RAG systems, recommendation engines, and complex algorithmic systems.
+            Using Claude Code as a force multiplier &mdash; what used to take months now takes days.
+            15+ years of engineering behind the AI &mdash; I understand the technology under the hood, know how to maximize it, and recognize its limits.
+          </p>
+          <span class="exp-tag">LLM Agents</span>
+          <span class="exp-tag">RAG</span>
+          <span class="exp-tag">Vector DB</span>
+          <span class="exp-tag">Claude Code</span>
+          <span class="exp-tag">Prompt Engineering</span>
+          <span class="exp-tag">Fine-tuning</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128296; Full-Stack & Infrastructure</h3>
+          <p>
+            Deep expertise in React, Next.js, Node.js, Python, TypeScript.
+            Cloud infrastructure on AWS, GCP, Azure. Docker, Kubernetes, CI/CD pipelines.
+            Real-time systems with WebSockets and SSE. Payment systems (Stripe, PayPal).
+          </p>
+          <span class="exp-tag">React</span>
+          <span class="exp-tag">Next.js</span>
+          <span class="exp-tag">Python</span>
+          <span class="exp-tag">Playwright</span>
+          <span class="exp-tag">K8s</span>
+          <span class="exp-tag">WebSockets</span>
+          <span class="exp-tag">Stripe</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#127919; Why Me?</h3>
+        <p>
+          I'm not another developer who read about agents &mdash; I <strong>built a full agent infrastructure from scratch</strong>.
+          I understand the technology behind LLMs, know how to maximize their capabilities, and recognize their limitations.
+          With 15+ years in system architecture and 50+ products built, I see the full system, not just a single component.
+          <strong>I don't just write code &mdash; I take ownership.</strong>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 5: ENGAGEMENT ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128176; Engagement Model</h2>
+        <p>A technology partner, not a freelancer &mdash; CTO as a Service with full ownership</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 0.9rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">CTO as a Service</div>
+        <div class="price">~$13,500/mo</div>
+        <div class="price-note">Development team (1-2 engineers) + my technical leadership</div>
+        <ul>
+          <li>Technology partner, not a freelancer &mdash; I work alongside you like an internal CTO</li>
+          <li>Full transparency &mdash; your code, always, 100%</li>
+          <li>Dynamic scope &mdash; adjust, expand, or narrow as needed</li>
+          <li>No lock-in, no surprises</li>
+          <li>AI as a force multiplier &mdash; Claude Code + AI tools accelerate 3-5x</li>
+          <li>15+ years experience with product vision</li>
+          <li>Existing A-OS infrastructure &mdash; massive head start</li>
+        </ul>
+        <a class="btn primary" href="https://wa.me/972545567213" style="margin-top: 1rem;">&#128172; Let's Explore a Fit</a>
+      </div>
+
+      <section class="section" style="padding-top: 3rem;">
+        <div class="section-header">
+          <h2>&#128197; Estimated Timeline</h2>
+          <p>How I ramp into an existing system and start delivering</p>
+        </div>
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>Week 1 &mdash; Deep Dive</h3>
+              <p>Learn the existing codebase, architecture, and stack. Map gaps and opportunities. Deliver a detailed action plan.</p>
+              <span class="tag">Onboarding</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>Weeks 2-4 &mdash; Core Implementation</h3>
+              <p>Begin building or integrating the Kernel/Orchestration layer. Connect to your existing stack. First working agent in production.</p>
+              <span class="tag">Build</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>Month 2-3 &mdash; Scale & Harden</h3>
+              <p>Expand agent swarm, Validation Kernel, event-driven infrastructure. Testing, monitoring, optimization, and compliance.</p>
+              <span class="tag">Scale</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top: 2rem;">
+        <div class="section-header">
+          <h2>&#128736; Tech Stack</h2>
+          <p>The tools I bring &mdash; 1:1 match with your requirements</p>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Intelligence</h3>
+            <ul>
+              <li>OpenAI GPT-4o / GPT-5</li>
+              <li>Claude Sonnet 4</li>
+              <li>Gemini 2.0 Flash</li>
+              <li>Custom LLM Router</li>
+              <li>Pluggable for Grok / any LLM</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Orchestration</h3>
+            <ul>
+              <li>Custom Agent Framework</li>
+              <li>Crew-based Architecture</li>
+              <li>State Machine Transitions</li>
+              <li>SSE Event-Driven</li>
+              <li>Agent Builder Playground</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Infrastructure</h3>
+            <ul>
+              <li>Docker + Cloud Run / K8s</li>
+              <li>PostgreSQL + Vector DB</li>
+              <li>Node.js + TypeScript</li>
+              <li>React 19 + Vite</li>
+              <li>Playwright automation</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    <p><strong>Shlomi Zovin</strong> &bull; CTO as a Service</p>
+    <p><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> &bull; <a href="tel:+972545567213">054-5567213</a> &bull; <a href="https://wa.me/972545567213">WhatsApp</a></p>
+  </div>
+</footer>
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tabId + "'")) {
+      b.classList.add('active');
+    }
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  if (current === 'light') {
+    html.removeAttribute('data-theme');
+  } else {
+    html.setAttribute('data-theme', 'light');
+  }
+}
+</script>
+
+</body>
+</html>

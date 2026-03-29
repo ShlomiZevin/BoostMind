@@ -3,7 +3,20 @@
     "allow": [
       "Bash(npx firebase:*)",
       "Bash(npm install:*)",
-      "Bash(firebase deploy:*)"
+      "Bash(firebase deploy:*)",
+      "Bash(npm cache:*)",
+      "Bash(rmdir /s /q storyboard)",
+      "Bash(npx create-vite@latest storyboard --template react-ts)",
+      "Bash(npm --version)",
+      "Bash(npx create-vite@5 storyboard --template react-ts)",
+      "Bash(rm -rf src/App.css src/index.css src/assets src/App.tsx src/main.tsx)",
+      "Bash(mkdir -p src/components src/hooks src/config src/types src/context)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(taskkill //f //im node.exe)",
+      "Bash(node /tmp/add-version.js)",
+      "Bash(cp /tmp/add-version.mjs c:/workspace/BoostMind/storyboard/add-version.mjs)",
+      "Bash(node add-version.mjs)"
     ]
   }
 }

@@ -5,6 +5,15 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/storyboard/**",
+        "destination": "/storyboard/index.html"
+      }
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
   }
 }

@@ -50,6 +50,14 @@
 4. העמוד עולה ל-Firebase (`boostmind-b052c`)
 5. אני שולח ללקוח הודעה קצרה עם לינק
 
+### מבנה URL
+כל הצעה יושבת בתיקייה משלה תחת `public/`:
+- `public/index.html` - ההצעה הראשונה (אתר היכרויות) → `boostmind-b052c.web.app/`
+- `public/privacy-platform/index.html` → `boostmind-b052c.web.app/privacy-platform`
+- `public/<project-name>/index.html` → `boostmind-b052c.web.app/<project-name>`
+
+כשיוצרים הצעה חדשה: ליצור תיקייה חדשה תחת `public/` עם `index.html` בפנים.
+
 ### הסטאק
 - Frontend: Vanilla HTML/CSS/JS (single page, inline styles)
 - Hosting: Firebase (`boostmind-b052c`)

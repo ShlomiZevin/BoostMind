@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הצעת מחיר — שלומי זוין × Wolt Benefits</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #00CCBC;
+            --primary-dark: #009E91;
+            --dark: #1a1a2e;
+            --text: #2c2c3a;
+            --text-light: #6b6b80;
+            --bg: #ffffff;
+            --bg-soft: #f8f9fb;
+            --border: #e8e8ef;
+            --accent: #FF6B6B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .page {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 50px 40px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 45px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-right h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .header-right .subtitle {
+            font-size: 16px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .header-left {
+            text-align: left;
+            direction: ltr;
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .header-left .name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .meta-row span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-row strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 36px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .section p {
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        /* Concept box */
+        .concept-box {
+            background: linear-gradient(135deg, #f0fffe 0%, #f8f9fb 100%);
+            border: 1px solid #d4f0ed;
+            border-radius: 10px;
+            padding: 22px 26px;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .concept-box strong {
+            color: var(--primary-dark);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        table thead th {
+            background: var(--dark);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 10px 16px;
+            text-align: right;
+        }
+
+        table thead th:first-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        table thead th:last-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        table tbody td {
+            padding: 11px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tbody td:first-child {
+            font-weight: 600;
+            color: var(--dark);
+            width: 160px;
+        }
+
+        /* Deliverables table */
+        .deliverables-table tbody td:first-child {
+            width: 180px;
+        }
+
+        /* Revisions */
+        .revisions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .revision-card {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+
+        .revision-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .revision-card p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .revision-card .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        /* Warning note */
+        .note {
+            background: #fff9f0;
+            border: 1px solid #f0dcc0;
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: #8a6d3b;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        .note strong {
+            color: #6b4f28;
+        }
+
+        /* Pricing */
+        .pricing-box {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 28px 30px;
+            color: white;
+            margin-top: 8px;
+        }
+
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pricing-row:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-row .label {
+            font-size: 15px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .pricing-row .label small {
+            display: block;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+        }
+
+        .pricing-row .amount {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .pricing-row .amount small {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .payment-terms {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .payment-terms strong {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Timeline */
+        .timeline-note {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 8px;
+        }
+
+        .timeline-note .speed {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .timeline-note div p {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .timeline-note div p strong {
+            color: var(--primary-dark);
+        }
+
+        .timeline-note div p.sub {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* Sound note */
+        .sound-note {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 24px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-right {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .footer-right .validity {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .footer-left {
+            text-align: left;
+            direction: ltr;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid var(--border);
+            width: 200px;
+            height: 60px;
+            margin-bottom: 6px;
+        }
+
+        .footer-left .sig-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Wolt requirement callout */
+        .wolt-requirement {
+            background: linear-gradient(135deg, #00CCBC15 0%, #00CCBC08 100%);
+            border: 1px solid #00CCBC40;
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-top: 12px;
+        }
+
+        .wolt-requirement h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+        }
+
+        .wolt-requirement p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                font-size: 14px;
+            }
+            .page {
+                padding: 30px 20px;
+                max-width: 100%;
+            }
+            .section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .concept-box,
+            .pricing-box,
+            .revisions-grid,
+            .revision-card,
+            .timeline-note,
+            .note,
+            .sound-note,
+            .wolt-requirement,
+            .footer {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            table {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .pricing-box {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            table thead th {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-right">
+                <h1>הצעת מחיר</h1>
+                <div class="subtitle">סדרת תוכן Wolt Benefits × דמות ההייטקיסט</div>
+            </div>
+            <div class="header-left">
+                <div class="name">Shlomi Zevin | שלומי זוין</div>
+                יוצר תוכן<br>
+                054-5567213<br>
+                shlomi@boostart.io
+            </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="meta-row">
+            <span><strong>תאריך:</strong> 24.03.2026</span>
+            <span><strong>עבור:</strong> Wolt Israel</span>
+            <span><strong>תוקף:</strong> 14 ימים</span>
+        </div>
+
+        <!-- Concept -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">🎯</div>
+                הקונספט
+            </div>
+            <div class="concept-box">
+                הפקת <strong>3 סרטוני תוכן מקוריים</strong> המבוססים על דמות ה"הייטקיסט" הפופולרית מהערוץ שלי.
+                הסרטונים יציגו בצורה הומוריסטית ואותנטית את היתרונות של <strong>Wolt Benefits</strong> —
+                תקציב הסעדה, נוחות ההזמנה, חיסכון — בתוך עולם הניואנסים של הסטארט-אפים וההייטק הישראלי.
+            </div>
+        </div>
+
+        <!-- What's included -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">🎬</div>
+                מה כלול בחבילה (End-to-End)
+            </div>
+            <table class="deliverables-table">
+                <thead>
+                    <tr>
+                        <th>שלב</th>
+                        <th>פירוט</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>קריאייטיב ותסריט</td>
+                        <td>פיתוח רעיונות וכתיבת תסריטים על בסיס בריף המוצר מצד Wolt</td>
+                    </tr>
+                    <tr>
+                        <td>הפקה</td>
+                        <td>צילום מלא, עריכה דינמית, כתוביות</td>
+                    </tr>
+                    <tr>
+                        <td>סאונד</td>
+                        <td>עיצוב סאונד (מוזיקת Royalty-Free עליי — ראו הערה למטה)</td>
+                    </tr>
+                    <tr>
+                        <td>הפצה</td>
+                        <td>העלאה בערוצים שלי — TikTok, Instagram, Facebook</td>
+                    </tr>
+                    <tr>
+                        <td>זכויות שימוש</td>
+                        <td>רשות שימוש ל-Wolt (אורגני + ממומן) למשך <strong>12 חודשים</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="wolt-requirement">
+                <h4>מה נדרש מצד Wolt?</h4>
+                <p>בריף מוצר בלבד — מסרים מרכזיים, מה לקדם, do's & don'ts. כל השאר עליי.</p>
+            </div>
+        </div>
+
+        <!-- Revisions -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">⚙️</div>
+                תהליך עבודה וסבבי תיקונים
+            </div>
+            <div class="revisions-grid">
+                <div class="revision-card">
+                    <div class="badge">לפני צילום</div>
+                    <h4>תסריט</h4>
+                    <p>עד <strong>2 סבבי תיקונים</strong> על כל תסריט לפני אישור סופי וכניסה לצילום.</p>
+                </div>
+                <div class="revision-card">
+                    <div class="badge">אחרי צילום</div>
+                    <h4>עריכה</h4>
+                    <p>עד <strong>2 סבבי תיקונים</strong> על העריכה (חיתוכים, קצב, כתוביות, סאונד).</p>
+                </div>
+            </div>
+            <div class="note">
+                <strong>⚠️ דגש חשוב:</strong> מרגע אישור התסריט והצילום, תיקוני העריכה אינם כוללים צילום מחדש של סצנות.
+            </div>
+            <div class="sound-note">
+                <strong>🎵 סאונד וזכויות מוזיקה:</strong> שימוש במוזיקת Royalty-Free — באחריותי.
+                במידה ו-Wolt מבקשת טראק ספציפי — באחריות Wolt לוודא זכויות שימוש וזכויות יוצרים.
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">⚡</div>
+                לו״ז ואספקה
+            </div>
+            <div class="timeline-note">
+                <div class="speed">🚀</div>
+                <div>
+                    <p>יכולת אספקת סרטון מוגמר תוך <strong>יום עבודה אחד</strong> מרגע אישור תסריט.</p>
+                    <p class="sub">הלו"ז הכולל מותנה במהירות קבלת הבריף והאישורים מצד Wolt.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">💰</div>
+                תקציב
+            </div>
+            <div class="pricing-box">
+                <div class="pricing-row">
+                    <div class="label">
+                        סדרת סרטוני דמות — Wolt Benefits
+                        <small>3 סרטונים | קריאייטיב, הפקה, עריכה, הפצה, זכויות שימוש</small>
+                    </div>
+                    <div class="amount">
+                        ₪30,000
+                        <small>+ מע"מ</small>
+                    </div>
+                </div>
+                <div class="payment-terms">
+                    <strong>תנאי תשלום:</strong> 33% (₪10,000 + מע"מ) כנגד חשבונית עם אישור כל סרטון מוגמר.
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-right">
+                שלומי זוין | יוצר תוכן
+                <div class="validity">הצעה תקפה עד 07.04.2026</div>
+            </div>
+            <div class="footer-left">
+                <div class="signature-line"></div>
+                <div class="sig-label">חתימה לאישור</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

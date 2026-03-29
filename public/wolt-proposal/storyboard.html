@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סטוריבורד — Wolt Benefits × דמות ההייטק גיק — "שיחת הגיוס"</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #00CCBC;
+            --primary-dark: #009E91;
+            --dark: #1a1a2e;
+            --text: #2c2c3a;
+            --text-light: #6b6b80;
+            --bg: #ffffff;
+            --bg-soft: #f7f7fa;
+            --border: #e4e4ec;
+            --asnat: #7C3AED;
+            --asnat-bg: #F5F0FF;
+            --direction-bg: #FFF7ED;
+            --direction: #E97316;
+            --note-bg: #FFFBEB;
+            --note-border: #FDE68A;
+            --wolt: #00CCBC;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            color: var(--text);
+            background: var(--bg-soft);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* Top bar */
+        .topbar {
+            background: var(--dark);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .topbar h1 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .topbar .badge {
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 4px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 7px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Heebo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-save:hover { background: var(--primary-dark); }
+
+        .btn-save.saving {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .save-status {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-left: 8px;
+        }
+
+        .save-status.saved { color: var(--primary); }
+
+        /* Container */
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 28px 20px 60px;
+        }
+
+        /* Scene card header info */
+        .scene-info {
+            background: var(--dark);
+            color: white;
+            border-radius: 12px;
+            padding: 22px 26px;
+            margin-bottom: 28px;
+        }
+
+        .scene-info h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .scene-info .tagline {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .scene-info .setup {
+            font-size: 13px;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.8;
+        }
+
+        .scene-info .setup strong {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Scene group */
+        .scene-group {
+            margin-bottom: 24px;
+        }
+
+        .scene-group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .scene-group-number {
+            background: var(--dark);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .scene-group-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .scene-group.wolt .scene-group-number {
+            background: var(--wolt);
+        }
+
+        /* Lines container */
+        .lines {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+
+        .scene-group.wolt .lines {
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 204, 188, 0.08);
+        }
+
+        /* Single line */
+        .line {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        .line:last-child { border-bottom: none; }
+
+        .line-main {
+            display: grid;
+            grid-template-columns: 90px 1fr auto;
+            min-height: 48px;
+        }
+
+        .line-speaker {
+            padding: 12px 12px;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--asnat);
+            background: var(--asnat-bg);
+            border-left: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .line-speaker .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--asnat);
+            margin-top: 7px;
+            flex-shrink: 0;
+        }
+
+        .line.direction .line-speaker {
+            color: var(--direction);
+            background: var(--direction-bg);
+        }
+
+        .line.direction .line-speaker .dot {
+            background: var(--direction);
+        }
+
+        .line-text {
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.75;
+            cursor: text;
+            outline: none;
+            min-height: 48px;
+            transition: background 0.15s;
+        }
+
+        .line-text:focus {
+            background: #FEFCE8;
+        }
+
+        .line.direction .line-text {
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        .line-actions {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px 8px;
+            gap: 4px;
+            border-right: 1px solid var(--border);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .line:hover .line-actions { opacity: 1; }
+
+        .line-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            transition: all 0.1s;
+        }
+
+        .line-btn:hover {
+            background: var(--bg-soft);
+            color: var(--text);
+        }
+
+        .line-btn.has-note {
+            color: #D97706;
+        }
+
+        /* Notes */
+        .line-note {
+            background: var(--note-bg);
+            border-top: 1px dashed var(--note-border);
+            padding: 8px 16px 8px 16px;
+            margin-right: 90px;
+            display: none;
+        }
+
+        .line-note.visible { display: block; }
+
+        .line-note textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: 'Heebo', sans-serif;
+            font-size: 13px;
+            color: #92400E;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            min-height: 32px;
+        }
+
+        .line-note textarea::placeholder {
+            color: #D4A054;
+        }
+
+        .line-note-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #D97706;
+            margin-bottom: 2px;
+        }
+
+        /* Insert line between */
+        .insert-between {
+            height: 0;
+            position: relative;
+            overflow: visible;
+        }
+
+        .insert-between-btn {
+            position: absolute;
+            top: -11px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-light);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 5;
+            line-height: 1;
+        }
+
+        .line:hover + .insert-between .insert-between-btn,
+        .insert-between:hover .insert-between-btn {
+            opacity: 1;
+        }
+
+        .insert-between-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Add line button */
+        .add-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-top: 1px dashed var(--border);
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 13px;
+            gap: 6px;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .add-line:hover {
+            background: var(--bg-soft);
+            color: var(--text);
+        }
+
+        /* Print */
+        @media print {
+            .topbar { display: none; }
+            body { background: white; }
+            .container { padding: 10px 0; }
+            .line-actions { display: none !important; }
+            .add-line { display: none !important; }
+            .insert-between { display: none !important; }
+            .line-note { margin-right: 90px; }
+            .scene-info, .scene-group-number {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .scene-group { break-inside: avoid; page-break-inside: avoid; }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--dark);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            z-index: 200;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <div class="topbar-right">
+            <h1>סטוריבורד</h1>
+            <span class="badge">Wolt Benefits × דמות ההייטק גיק</span>
+        </div>
+        <div class="topbar-actions">
+            <span class="save-status" id="saveStatus"></span>
+            <button class="btn btn-outline" onclick="exportPrint()">🖨️ הדפסה</button>
+            <button class="btn btn-save" id="saveBtn" onclick="saveToFirestore()">💾 שמירה</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="scene-info">
+            <h2>שיחת הגיוס</h2>
+            <div class="tagline">HR-יות בסוף העולם</div>
+            <div class="setup">
+                <strong>סצנה:</strong> אסנת, מגייסת הייטק, יושבת בעמדת העבודה שלה. מאחוריה — סוף העולם: טילים נופלים על תל אביב, יירוטים ברקע. מסביבה שקיות Wolt. היא מדי פעם מושיטה יד ומכרסמת משהו. צחוק מזויף שמשולב באופן טבעי בשיחה, בעיקר אחרי "תגובות" מיותם (שלא נשמע — מגולם דרך התגובות שלה).
+            </div>
+        </div>
+
+        <div id="storyboard"></div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase init
+        firebase.initializeApp({
+            apiKey: "AIzaSyDummyKeyForPublicAccess",
+            authDomain: "boostmind-b052c.firebaseapp.com",
+            projectId: "boostmind-b052c"
+        });
+        const db = firebase.firestore();
+        const DOC_ID = "wolt-storyboard-1";
+        const COLLECTION = "storyboards";
+
+        // Initial data
+        const DEFAULT_DATA = {
+            title: "שיחת הגיוס",
+            tagline: "HR-יות בסוף העולם",
+            scenes: [
+                {
+                    id: "s1",
+                    title: "הפתיחה — אסנת מתקשרת",
+                    wolt: false,
+                    lines: [
+                        { id: "l1", type: "asnat", text: "יותם! היי! אני אסנת מטקי-טק. תקשיב, ככה, עברתי על הקו\"ח שלך ועל הלינקדאין ומאוד מאוד התרשמתי. נראה שאתה עושה דברים ממש חשובים. אז רציתי ככה להתקשר ולהבין קצת יותר מה ככה אתה מחפש.", note: "" }
+                    ]
+                },
+                {
+                    id: "s2",
+                    title: "ה-Division החדש",
+                    wolt: false,
+                    lines: [
+                        { id: "l2", type: "direction", text: "(צחוק מזויף, מהנהנת)", note: "" },
+                        { id: "l3", type: "asnat", text: "מעניין. כן כן. תראה, אנחנו ממש עכשיו מקימים פה Agentic LLM Division. לא סתם AI כסיסמה, ממש משהו שאף אחד בשוק לא עושה כרגע.", note: "" },
+                        { id: "l4", type: "direction", text: "(צחוק מזויף)", note: "" },
+                        { id: "l5", type: "asnat", text: "כן, נכון, יש כבר יותר בוני אייג׳נטים כרגע מבוני אתרים בוורדפרס לפני שני עשורים. אבל אנחנו תוקפים את זה מזווית ככה מעט שונה. אני לא בדיוק הדמות המוסמכת לפרט אבל כשתדבר עם הצוות תבין.", note: "" }
+                    ]
+                },
+                {
+                    id: "s3",
+                    title: "תיאור התפקיד — \"חצי חצי חצי חצי\"",
+                    wolt: false,
+                    lines: [
+                        { id: "l6", type: "asnat", text: "אז התפקיד הוא Autonomous LLM Product Orchestrator. זה תפקיד רוחבי, חוצה ארגון, שהוא חצי פרודקט, חצי ריסרץ׳, חצי פיתוח, וחצי BI. אתה יושב בין ה\u200DData Science לפיתוח ל\u200DBusiness וללקוח ולוקח End to End ownership על הכול. והכי יפה? כל ה\u200DAI הזה ממש מקל על החיים — אז אתה בעצם יכול לעשות את כל זה לבד.", note: "" }
+                    ]
+                },
+                {
+                    id: "s4",
+                    title: "\"אתה לא בורג\"",
+                    wolt: false,
+                    lines: [
+                        { id: "l7", type: "asnat", text: "אנחנו מחפשים מישהו שפורח תחת לחץ, שיודע לעשות Context Switching בלי למצמץ, ושיש לו Bias for Action כי פה אף אחד לא מחכה לאישורים. אתה לא בורג במערכת. אתה ככה… עמוד השדרה שלה.", note: "" },
+                        { id: "l8", type: "direction", text: "(צחוק מזויף קצר — תגובה ל\"זה נשמע בסדר\" של יותם)", note: "" },
+                        { id: "l9", type: "asnat", text: "זה לא \"בסדר\", זה אתגר אמיתי. זה ה\u200DA Team שלנו.", note: "" }
+                    ]
+                },
+                {
+                    id: "s5",
+                    title: "ההיררכיה והצוות",
+                    wolt: false,
+                    lines: [
+                        { id: "l10", type: "asnat", text: "מדווח? אתה מדווח לרועי — Team Lead שגייסנו לפני חודשיים. אבל אין פה היררכיה, הדלת של ה\u200DCEO תמיד פתוחה. הוא יושב בניו יורק, אבל מגיב מקסימום עד שני ימי עסקים בסלאק.", note: "" },
+                        { id: "l11", type: "direction", text: "(מכרסמת משהו מהשקית)", note: "" },
+                        { id: "l12", type: "asnat", text: "החברה היום שלוש מאות איש. אבל אתה מגיע לצוות קטן — זה כמו סטארטאפ בתוך סטארטאפ. אתה תראה.", note: "" }
+                    ]
+                },
+                {
+                    id: "s6",
+                    title: "ההטבות — Wolt Benefits",
+                    wolt: true,
+                    lines: [
+                        { id: "l13", type: "asnat", text: "ומבחינת הטבות — התחלנו עכשיו עם Wolt Benefits. אתה מכיר את Wolt נכון? אז זה בעצם פתרון חדש שאנחנו נותנים לכל העובדים. אותו וולט, רק עם עוד הטבות ובעיקר תקציב אוכל שאפשר להשתמש בו בכל מקום — מסעדות, אפילו סופרים, דראגסטורים, מה שבא לך. זה הכי מהיר, הכי מדויק, הכי מגוון בשוק.", note: "" }
+                    ]
+                },
+                {
+                    id: "s7",
+                    title: "הפאנצ׳ והסיום — \"DALL‑E vs ננו-בננה\"",
+                    wolt: true,
+                    lines: [
+                        { id: "l14", type: "direction", text: "(צחוק מזויף — תגובה ל\"אז זה כזה כמו כרטיס אוכל אחר?\")", note: "" },
+                        { id: "l15", type: "asnat", text: "לא לא! זה ממש לא כמו כל כרטיס אוכל אחר. זה כמו להשוות בין DALL\u200DE לנאנו\u200Dבננה — בשניהם אתה מזמין תמונה, אבל הראשון מיושן, מתעכב, מקרטע, ולרוב זה בכלל לא מה שהזמנת.", note: "" },
+                        { id: "l16", type: "asnat", text: "אז תשמע — אצלנו לא רק בונים Agents, גם עובדים Agents. החברה לא רק מממנת לך Claude ו\u200DCursor כדי לעשות הכול, היא מממנת לך גם Wolt כדי לאכול הכול. וזה אחד הדברים שהעובדים הכי מעריכים, במיוחד עכשיו עם כל האכילה הרגשית. למרות שאני באופן אישי משתדלת לא לגעת...", note: "" },
+                        { id: "l17", type: "direction", text: "(תוך כדי — נוגסת ביס גדול מאוכל Wolt)", note: "" },
+                        { id: "l18", type: "asnat", text: "אנחנו קוראים לזה Wolt Vibe Balance.", note: "" },
+                        { id: "l19", type: "direction", text: "(שתיקה. ביט.)", note: "" },
+                        { id: "l20", type: "asnat", text: "לא חשבתי על זה ככה... באמת זה קצת נשמע שכל מה שעושים פה זה או לאכול או לעבוד.", note: "" }
+                    ]
+                }
+            ]
+        };
+
+        let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        let lineIdCounter = 100;
+        let dirty = false;
+
+        // ---- Render ----
+        function render() {
+            const container = document.getElementById('storyboard');
+            container.innerHTML = '';
+
+            data.scenes.forEach((scene, si) => {
+                const group = document.createElement('div');
+                group.className = `scene-group${scene.wolt ? ' wolt' : ''}`;
+                group.innerHTML = `
+                    <div class="scene-group-header">
+                        <div class="scene-group-number">${si + 1}</div>
+                        <div class="scene-group-title">${escHtml(scene.title)}</div>
+                    </div>
+                    <div class="lines" id="lines-${scene.id}">
+                        ${scene.lines.map((line, li) => {
+                            let html = renderLine(scene.id, line, li);
+                            if (li < scene.lines.length - 1) {
+                                html += `<div class="insert-between"><button class="insert-between-btn" onclick="insertLineAt('${scene.id}', ${li + 1})" title="הוסף שורה כאן">+</button></div>`;
+                            }
+                            return html;
+                        }).join('')}
+                        <div class="add-line" onclick="addLine('${scene.id}')">+ הוסף שורה</div>
+                    </div>
+                `;
+                container.appendChild(group);
+            });
+
+            // Re-attach events
+            document.querySelectorAll('.line-text[contenteditable]').forEach(el => {
+                el.addEventListener('blur', onTextEdit);
+                el.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        el.blur();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.line-note textarea').forEach(el => {
+                el.addEventListener('input', onNoteEdit);
+                autoResizeTextarea(el);
+            });
+        }
+
+        function renderLine(sceneId, line, index) {
+            const speakerLabel = line.type === 'asnat' ? 'אסנת' : 'בימוי';
+            const hasNote = line.note && line.note.trim().length > 0;
+
+            return `
+                <div class="line ${line.type}" data-scene="${sceneId}" data-line="${line.id}">
+                    <div class="line-main">
+                        <div class="line-speaker"><div class="dot"></div>${speakerLabel}</div>
+                        <div class="line-text" contenteditable="true" data-scene="${sceneId}" data-line="${line.id}">${escHtml(line.text)}</div>
+                        <div class="line-actions">
+                            <button class="line-btn ${hasNote ? 'has-note' : ''}" onclick="toggleNote('${sceneId}', '${line.id}')" title="הערה">📝</button>
+                            <button class="line-btn" onclick="toggleType('${sceneId}', '${line.id}')" title="החלף סוג">🔄</button>
+                            <button class="line-btn" onclick="deleteLine('${sceneId}', '${line.id}')" title="מחק">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="line-note ${hasNote ? 'visible' : ''}" id="note-${line.id}">
+                        <div class="line-note-label">📝 הערה</div>
+                        <textarea placeholder="הוסף הערה..." data-scene="${sceneId}" data-line="${line.id}">${escHtml(line.note || '')}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ---- Actions ----
+        function onTextEdit(e) {
+            const sceneId = e.target.dataset.scene;
+            const lineId = e.target.dataset.line;
+            const scene = data.scenes.find(s => s.id === sceneId);
+            if (!scene) return;
+            const line = scene.lines.find(l => l.id === lineId);
+            if (!line) return;
+            const newText = e.target.innerText.trim();
+            if (newText !== line.text) {
+                line.text = newText;
+                markDirty();
+            }
+        }
+
+        function onNoteEdit(e) {
+            const sceneId = e.target.dataset.scene;
+            const lineId = e.target.dataset.line;
+            const scene = data.scenes.find(s => s.id === sceneId);
+            if (!scene) return;
+            const line = scene.lines.find(l => l.id === lineId);
+            if (!line) return;
+            line.note = e.target.value;
+            autoResizeTextarea(e.target);
+            markDirty();
+
+            // Update note icon
+            const btn = e.target.closest('.line').querySelector('.line-btn');
+            if (btn) btn.className = `line-btn ${line.note.trim() ? 'has-note' : ''}`;
+        }
+
+        function toggleNote(sceneId, lineId) {
+            const noteEl = document.getElementById(`note-${lineId}`);
+            if (!noteEl) return;
+            noteEl.classList.toggle('visible');
+            if (noteEl.classList.contains('visible')) {
+                const ta = noteEl.querySelector('textarea');
+                if (ta) { ta.focus(); autoResizeTextarea(ta); }
+            }
+        }
+
+        function toggleType(sceneId, lineId) {
+            const scene = data.scenes.find(s => s.id === sceneId);
+            if (!scene) return;
+            const line = scene.lines.find(l => l.id === lineId);
+            if (!line) return;
+            line.type = line.type === 'asnat' ? 'direction' : 'asnat';
+            markDirty();
+            render();
+        }
+
+        function deleteLine(sceneId, lineId) {
+            const scene = data.scenes.find(s => s.id === sceneId);
+            if (!scene) return;
+            if (scene.lines.length <= 1) return; // keep at least one
+            scene.lines = scene.lines.filter(l => l.id !== lineId);
+            markDirty();
+            render();
+        }
+
+        function insertLineAt(sceneId, index) {
+            const scene = data.scenes.find(s => s.id === sceneId);
+            if (!scene) return;
+            lineIdCounter++;
+            const newLine = { id: `l_new_${lineIdCounter}`, type: 'asnat', text: '', note: '' };
+            scene.lines.splice(index, 0, newLine);
+            markDirty();
+            render();
+
+            // Focus the inserted line
+            const linesEl = document.getElementById(`lines-${sceneId}`);
+            const allTexts = linesEl.querySelectorAll('.line-text[contenteditable]');
+            if (allTexts[index]) allTexts[index].focus();
+        }
+
+        function addLine(sceneId) {
+            const scene = data.scenes.find(s => s.id === sceneId);
+            if (!scene) return;
+            lineIdCounter++;
+            scene.lines.push({
+                id: `l_new_${lineIdCounter}`,
+                type: 'asnat',
+                text: '',
+                note: ''
+            });
+            markDirty();
+            render();
+
+            // Focus the new line
+            const linesEl = document.getElementById(`lines-${sceneId}`);
+            const allTexts = linesEl.querySelectorAll('.line-text[contenteditable]');
+            if (allTexts.length) allTexts[allTexts.length - 1].focus();
+        }
+
+        // ---- Firestore ----
+        async function saveToFirestore() {
+            const btn = document.getElementById('saveBtn');
+            const status = document.getElementById('saveStatus');
+            btn.classList.add('saving');
+            btn.innerHTML = '⏳ שומר...';
+
+            try {
+                await db.collection(COLLECTION).doc(DOC_ID).set({
+                    ...data,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                dirty = false;
+                status.textContent = '✓ נשמר';
+                status.className = 'save-status saved';
+                showToast('נשמר בהצלחה');
+                setTimeout(() => { status.textContent = ''; }, 3000);
+            } catch (err) {
+                console.error('Save error:', err);
+                showToast('שגיאה בשמירה — בדוק קונסול');
+            }
+
+            btn.classList.remove('saving');
+            btn.innerHTML = '💾 שמירה';
+        }
+
+        async function loadFromFirestore() {
+            try {
+                const doc = await db.collection(COLLECTION).doc(DOC_ID).get();
+                if (doc.exists) {
+                    const loaded = doc.data();
+                    if (loaded.scenes) {
+                        data = loaded;
+                        render();
+                        showToast('נטען מ-Firestore');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Load error (using defaults):', err);
+            }
+            render();
+        }
+
+        // ---- Helpers ----
+        function markDirty() {
+            dirty = true;
+            const status = document.getElementById('saveStatus');
+            status.textContent = '● שינויים לא שמורים';
+            status.className = 'save-status';
+        }
+
+        function escHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function exportPrint() {
+            window.print();
+        }
+
+        // Warn on leave with unsaved changes
+        window.addEventListener('beforeunload', e => {
+            if (dirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Ctrl+S to save
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveToFirestore();
+            }
+        });
+
+        // Init
+        loadFromFirestore();
+    </script>
+
+</body>
+</html>
