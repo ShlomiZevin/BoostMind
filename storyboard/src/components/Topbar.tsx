@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useCtx } from '../context/StoryboardContext';
 import { SelectionBar } from './SelectionBar';
 
-export function Topbar() {
+export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
   const {
     data, mode, dirty, saving, save, showComments, setShowComments,
     reviewerName, setReviewerName, versions, saveVersion, restoreVersion, setViewingLive, deleteVersion,
@@ -94,6 +94,9 @@ export function Topbar() {
           💬 {showComments ? 'הסתר' : 'הצג'}
         </button>
         <button className="btn btn-outline" onClick={() => window.print()}>🖨️</button>
+        {onOpenPrompter && (
+          <button className="btn btn-outline" onClick={onOpenPrompter}>📺 פרומפטר</button>
+        )}
         {mode === 'edit' && (
           <button className="btn btn-outline" onClick={copyReviewLink}>
             {linkCopied ? '✓ הועתק' : '🔗 לינק'}

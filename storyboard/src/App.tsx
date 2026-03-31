@@ -10,10 +10,12 @@ import { ApprovalBar } from './components/ApprovalBar';
 import { ReviewerIdentity } from './components/ReviewerIdentity';
 import { TimingBar } from './components/TimingSettings';
 import { Dashboard } from './components/Dashboard';
+import { Prompter } from './components/Prompter';
 import './app.css';
 
 function StoryboardContent() {
   const { data, loaded } = useCtx();
+  const [prompterOpen, setPrompterOpen] = useState(false);
 
   if (!loaded) {
     return <div className="loading">טוען...</div>;
@@ -21,7 +23,8 @@ function StoryboardContent() {
 
   return (
     <>
-      <Topbar />
+      {prompterOpen && <Prompter onClose={() => setPrompterOpen(false)} />}
+      <Topbar onOpenPrompter={() => setPrompterOpen(true)} />
       <ReviewerIdentity />
       <div className="layout">
         <div className="main-content">

@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import { Line, SpeakerConfig } from '../types';
 import { useCtx } from '../context/StoryboardContext';
 import { InlineComments } from './InlineComments';
@@ -27,6 +27,7 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
   const lineComments = comments.filter(c => c.lineId === line.id && !c.resolved);
   const isActive = activeLineId === line.id;
   const isSelected = selectedLines.has(line.id);
+  const [deleteModal, setDeleteModal] = useState(false);
   const approvers = data.approvers || [];
   const lineApprovals = (data.approvals || {})[line.id] || [];
   const isApprover = approvers.includes(reviewerName);
@@ -118,35 +119,45 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
             />
           ))}
 
-          {/* Always-visible comment counter */}
+          {/* Comment counter - always visible */}
           {showComments && lineComments.length > 0 && (
             <button
               className="line-comment-badge"
               onClick={(e) => { e.stopPropagation(); setActiveLineId(isActive ? null : line.id); }}
-              title="תגובות"
             >
               💬 {lineComments.length}
             </button>
           )}
 
           <div className="line-actions">
-            {mode === 'edit' && totalLines > 1 && (
-              <button className="line-btn" onClick={() => deleteLine(sceneId, line.id)} title="מחק">🗑️</button>
-            )}
             {showComments && (
               <button
                 className={`line-btn ${lineComments.length > 0 ? 'has-comments' : ''}`}
                 onClick={(e) => { e.stopPropagation(); setActiveLineId(isActive ? null : line.id); }}
-                title="תגובות"
               >
                 💬
               </button>
+            )}
+            {mode === 'edit' && totalLines > 1 && (
+              <button className="line-btn" onClick={() => setDeleteModal(true)}>🗑️</button>
             )}
           </div>
         </div>
         {timingMode && <Stopwatch line={line} sceneId={sceneId} />}
         {showComments && <InlineComments lineId={line.id} sceneId={sceneId} />}
       </div>
+      {deleteModal && (
+        <div className="modal-overlay" onClick={() => setDeleteModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>מחיקת שורה</h3>
+            <p>למחוק את השורה?</p>
+            <div className="modal-buttons">
+              <button className="btn btn-danger" onClick={() => { deleteLine(sceneId, line.id); setDeleteModal(false); }}>🗑️ מחק</button>
+              <button className="btn btn-outline modal-cancel" onClick={() => setDeleteModal(false)}>ביטול</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

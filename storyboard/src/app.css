@@ -881,38 +881,40 @@ body {
 
 .line-actions {
   position: absolute;
-  left: 4px;
-  top: 4px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   opacity: 0;
   transition: opacity 0.15s;
   z-index: 3;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.95);
 }
 
 .line:hover .line-actions:not(:empty) { opacity: 1; }
 
 .line-comment-badge {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
-  z-index: 2;
+  left: 0;
+  bottom: 2px;
+  width: 24px;
+  z-index: 4;
   background: #FEF3C7;
-  border: 1px solid #FDE68A;
   color: #92400E;
   font-family: 'Heebo', sans-serif;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 1px 0;
+  border-radius: 0 4px 4px 0;
   cursor: pointer;
   transition: background 0.12s;
+  text-align: center;
+  border: none;
 }
 
 .line-comment-badge:hover {
@@ -920,8 +922,8 @@ body {
 }
 
 .line-btn {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border: none;
   background: transparent;
   border-radius: 4px;
@@ -2304,6 +2306,171 @@ body {
 }
 
 .sb-btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+/* ===== PROMPTER ===== */
+.prompter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Heebo', sans-serif;
+}
+
+.prompter-text {
+  flex: 1;
+  overflow-y: scroll;
+  padding: 0 10%;
+  line-height: 1.6;
+  cursor: pointer;
+  direction: rtl;
+}
+
+.prompter-text.is-running {
+  overflow-y: hidden;
+}
+
+.prompter-spacer { height: 50vh; }
+
+.prompter-scene { margin-bottom: 1em; }
+
+.prompter-scene-title {
+  text-align: center;
+  margin-bottom: 0.3em;
+  font-weight: 300;
+}
+
+.prompter-line { margin-bottom: 0.4em; }
+
+.prompter-direction { text-align: center; }
+
+/* Prompter settings */
+.prompter-settings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: rgba(30,30,40,0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 24px 30px;
+  min-width: 320px;
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+.prompter-settings h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.ps-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ps-row label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+}
+
+.ps-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ps-control button {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.ps-control button:hover { background: rgba(255,255,255,0.2); }
+
+.ps-control span {
+  font-size: 14px;
+  min-width: 60px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.ps-toggle-group {
+  display: flex;
+  gap: 4px;
+}
+
+.ps-toggle-group button {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Heebo', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ps-toggle-group button.active {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border-color: rgba(255,255,255,0.4);
+}
+
+.ps-hint {
+  font-size: 11px;
+  text-align: center;
+  margin-top: 16px;
+  line-height: 1.8;
+}
+
+/* Prompter controls */
+.prompter-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+}
+
+.pc-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pc-btn:hover { background: rgba(255,255,255,0.2); }
+
+.pc-play {
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.pc-play:hover { background: var(--primary-dark); }
+
+.pc-speed { font-size: 12px; }
 
 /* ===== PRINT ===== */
 @media print {
