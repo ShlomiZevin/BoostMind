@@ -2474,12 +2474,31 @@ body {
 
 /* ===== PRINT ===== */
 @media print {
-  .topbar-sticky, .line-actions, .add-line, .insert-between, .inline-comments, .selection-bar, .line-checkbox, .col-header-check { display: none !important; }
+  .topbar-sticky, .selection-bar, .reviewer-identity,
+  .managers-row, .approval-bar, .timing-bar,
+  .line-actions, .add-line, .insert-between, .inline-comments,
+  .line-checkbox, .line-checkbox-placeholder, .col-header-check,
+  .line-approve-cell, .line-approve-cell-wrap,
+  .line-comment-badge, .add-scene,
+  .sw-bar, .scene-approve-btn, .scene-header-actions,
+  .tooltip-bubble { display: none !important; }
+
   body { background: white; }
-  .layout { padding: 10px 0; grid-template-columns: 1fr !important; }
-  .scene-info, .scene-group-number { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .layout { padding: 10px 0; }
+
+  /* Remove the checkbox/approval column from grid */
+  .line-main { grid-template-columns: 85px 1fr !important; column-gap: 0 !important; background: none !important; }
+  .col-headers { grid-template-columns: 85px 1fr !important; column-gap: 0 !important; background: none !important; }
+  .col-headers span { background: #f5f5f5 !important; }
+  .line-main > * { background: white !important; }
+
+  .scene-info, .scene-group-number, .line-speaker-wrap {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .scene-group { break-inside: avoid; page-break-inside: avoid; }
   .line.active { box-shadow: none; }
+  .line.selected .line-field { background: white !important; }
 }
 
 /* ===== RESPONSIVE ===== */
