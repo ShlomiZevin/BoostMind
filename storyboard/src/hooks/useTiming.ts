@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Line, Scene, TimingConfig, ColumnConfig } from '../types';
+import { Line, Scene, TimingConfig, ColumnConfig, SpeakerConfig } from '../types';
 
 const DEFAULT_TIMING: TimingConfig = {
   wordsPerSecond: 3,
@@ -13,9 +13,13 @@ export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function getLineWordCount(line: Line, columns?: ColumnConfig[]): number {
-  // Direction lines don't count words
+export function getLineWordCount(line: Line, columns?: ColumnConfig[], speakers?: SpeakerConfig[]): number {
+  // Direction and silent lines don't count words
   if (line.type === 'direction') return 0;
+  if (speakers) {
+    const speaker = speakers.find(s => s.id === line.speaker);
+    if (speaker?.isSilent) return 0;
+  }
 
   const cols = columns || [{ id: 'text', name: 'טקסט', width: '1fr' }];
   const texts: string[] = [];
@@ -29,18 +33,26 @@ export function getLineWordCount(line: Line, columns?: ColumnConfig[]): number {
   return countWords(texts.join(' '));
 }
 
-export function getSceneWordCount(scene: Scene, columns?: ColumnConfig[]): number {
-  return scene.lines.reduce((sum, line) => sum + getLineWordCount(line, columns), 0);
+export function getSceneWordCount(scene: Scene, columns?: ColumnConfig[], speakers?: SpeakerConfig[]): number {
+  return scene.lines.reduce((sum, line) => sum + getLineWordCount(line, columns, speakers), 0);
 }
 
 // For actual time: direction lines without actual timing use their planned time
-export function getLineActualOrPlanned(line: Line, config?: TimingConfig, columns?: ColumnConfig[]): number {
+export function getLineActualOrPlanned(line: Line, config?: TimingConfig, columns?: ColumnConfig[], speakers?: SpeakerConfig[]): number {
+  if (speakers) {
+    const speaker = speakers.find(s => s.id === line.speaker);
+    if (speaker?.isSilent) return 0;
+  }
   if (line.actualDuration != null) return line.actualDuration;
-  if (line.type === 'direction') return estimateLineDuration(line, config, columns);
-  return 0; // dialogue without actual = not timed yet
+  if (line.type === 'direction') return estimateLineDuration(line, config, columns, speakers);
+  return 0;
 }
 
-export function estimateLineDuration(line: Line, config?: TimingConfig, columns?: ColumnConfig[]): number {
+export function estimateLineDuration(line: Line, config?: TimingConfig, columns?: ColumnConfig[], speakers?: SpeakerConfig[]): number {
+  if (speakers) {
+    const speaker = speakers.find(s => s.id === line.speaker);
+    if (speaker?.isSilent) return 0;
+  }
   if (line.durationOverride != null) return line.durationOverride;
 
   const t = config || DEFAULT_TIMING;
@@ -68,8 +80,8 @@ export function estimateLineDuration(line: Line, config?: TimingConfig, columns?
   return Math.max(t.minDialogueSec, Math.ceil(words / t.wordsPerSecond));
 }
 
-export function getSceneDuration(scene: Scene, config?: TimingConfig, columns?: ColumnConfig[]): number {
-  return scene.lines.reduce((sum, line) => sum + estimateLineDuration(line, config, columns), 0);
+export function getSceneDuration(scene: Scene, config?: TimingConfig, columns?: ColumnConfig[], speakers?: SpeakerConfig[]): number {
+  return scene.lines.reduce((sum, line) => sum + estimateLineDuration(line, config, columns, speakers), 0);
 }
 
 export function formatDuration(seconds: number): string {
@@ -79,16 +91,16 @@ export function formatDuration(seconds: number): string {
   return s > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${m}:00`;
 }
 
-export function useTiming(scenes: Scene[], config?: TimingConfig, columns?: ColumnConfig[]) {
+export function useTiming(scenes: Scene[], config?: TimingConfig, columns?: ColumnConfig[], speakers?: SpeakerConfig[]) {
   return useMemo(() => {
     const c = config || DEFAULT_TIMING;
     const cols = columns || DEFAULT_COLUMNS;
     const sceneTimings = scenes.map(scene => ({
       id: scene.id,
-      duration: getSceneDuration(scene, c, cols),
+      duration: getSceneDuration(scene, c, cols, speakers),
     }));
     const total = sceneTimings.reduce((sum, s) => sum + s.duration, 0);
-    const totalWords = scenes.reduce((sum, s) => sum + getSceneWordCount(s, cols), 0);
+    const totalWords = scenes.reduce((sum, s) => sum + getSceneWordCount(s, cols, speakers), 0);
     return { sceneTimings, total, totalWords };
-  }, [scenes, config, columns]);
+  }, [scenes, config, columns, speakers]);
 }

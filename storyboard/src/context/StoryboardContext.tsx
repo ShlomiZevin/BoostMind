@@ -25,6 +25,7 @@ interface StoryboardContextValue {
   cycleSpeaker: (sceneId: string, lineId: string) => void;
   addSpeaker: (name: string, color: string, bgColor: string) => void;
   toggleSpeakerDirection: (speakerId: string) => void;
+  toggleSpeakerSilent: (speakerId: string) => void;
   removeSpeaker: (speakerId: string) => void;
   updateSceneTitle: (sceneId: string, title: string) => void;
   toggleSceneHighlight: (sceneId: string) => void;

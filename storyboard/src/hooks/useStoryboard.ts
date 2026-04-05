@@ -191,6 +191,16 @@ export function useStoryboard(storyboardId: string) {
     setDirty(true);
   }, []);
 
+  const toggleSpeakerSilent = useCallback((speakerId: string) => {
+    setData(prev => ({
+      ...prev,
+      speakers: prev.speakers.map(s =>
+        s.id === speakerId ? { ...s, isSilent: !s.isSilent } : s
+      ),
+    }));
+    setDirty(true);
+  }, []);
+
   // Remove a speaker
   const removeSpeaker = useCallback((speakerId: string) => {
     setData(prev => ({
@@ -495,6 +505,7 @@ export function useStoryboard(storyboardId: string) {
     cycleSpeaker,
     addSpeaker,
     toggleSpeakerDirection,
+    toggleSpeakerSilent,
     removeSpeaker,
     updateSceneTitle,
     toggleSceneHighlight,

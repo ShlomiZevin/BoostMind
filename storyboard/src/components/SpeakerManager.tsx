@@ -14,7 +14,7 @@ const PRESET_COLORS = [
 ];
 
 export function SpeakerManager() {
-  const { data, mode, addSpeaker, toggleSpeakerDirection, removeSpeaker } = useCtx();
+  const { data, mode, addSpeaker, toggleSpeakerDirection, toggleSpeakerSilent, removeSpeaker } = useCtx();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState(0);
@@ -38,9 +38,16 @@ export function SpeakerManager() {
                 <button
                   className={`sm-direction-toggle ${s.isDirection ? 'active' : ''}`}
                   onClick={() => toggleSpeakerDirection(s.id)}
-                  title={s.isDirection ? 'סומן כבימוי (ללא ספירת מילים)' : 'סמן כבימוי'}
+                  title={s.isDirection ? 'סומן כבימוי' : 'סמן כבימוי'}
                 >
                   🎬
+                </button>
+                <button
+                  className={`sm-direction-toggle ${s.isSilent ? 'active' : ''}`}
+                  onClick={() => toggleSpeakerSilent(s.id)}
+                  title={s.isSilent ? 'סומן כשקט (לא נשמע)' : 'סמן כשקט (ייחוס בלבד)'}
+                >
+                  🔇
                 </button>
                 {data.speakers.length > 1 && (
                   <button className="sm-remove" onClick={() => removeSpeaker(s.id)}>✕</button>

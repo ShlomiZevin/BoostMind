@@ -855,6 +855,16 @@ body {
   pointer-events: none;
 }
 
+/* Silent speaker lines */
+.line.silent .line-field {
+  opacity: 0.45;
+  border-right-style: dashed;
+}
+
+.line.silent .line-speaker-wrap {
+  opacity: 0.5;
+}
+
 .line-field.direction-text {
   font-style: italic;
   color: var(--text-light);
@@ -2559,6 +2569,15 @@ body {
   .topbar-home { width: 26px; height: 26px; font-size: 14px; }
   .save-status { font-size: 10px; }
   .vd-count { font-size: 9px; }
+
+  /* Hide print and prompter on mobile */
+  .btn-print { display: none !important; }
+  .btn-prompter { display: none !important; }
+
+  .btn-text-desktop { display: none; }
+
+  /* Review mode mobile — even more compact */
+  .review-mode .topbar-actions .btn-outline { font-size: 9px; padding: 3px 6px; }
 
   .scene-info { padding: 16px 18px; }
   .si-title { font-size: 17px; }

@@ -15,7 +15,7 @@ export function Stopwatch({ line, sceneId }: Props) {
   const intervalRef = useRef<number | null>(null);
   const startRef = useRef(0);
 
-  const planned = estimateLineDuration(line, data.timing, data.columns);
+  const planned = estimateLineDuration(line, data.timing, data.columns, data.speakers);
   const actual = line.actualDuration;
   const hasActual = actual != null;
 

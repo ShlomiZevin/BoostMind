@@ -18,9 +18,9 @@ export function SceneGroup({ scene, index, speakers, totalScenes }: Props) {
   const columns = data.columns || [{ id: 'text', name: 'טקסט', width: '1fr' }];
   const gridCols = `24px 85px ${columns.map(c => c.width || '1fr').join(' ')}`;
   const allSceneSelected = scene.lines.length > 0 && scene.lines.every(l => selectedLines.has(l.id));
-  const sceneDuration = getSceneDuration(scene, data.timing, data.columns);
-  const sceneWords = getSceneWordCount(scene, data.columns);
-  const sceneActual = scene.lines.reduce((sum, l) => sum + getLineActualOrPlanned(l, data.timing, data.columns), 0);
+  const sceneDuration = getSceneDuration(scene, data.timing, data.columns, data.speakers);
+  const sceneWords = getSceneWordCount(scene, data.columns, data.speakers);
+  const sceneActual = scene.lines.reduce((sum, l) => sum + getLineActualOrPlanned(l, data.timing, data.columns, data.speakers), 0);
   const hasAnyActual = scene.lines.some(l => l.actualDuration != null);
   const approvers = data.approvers || [];
   const sceneApprovals = (data.approvals || {})[scene.id] || [];

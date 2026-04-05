@@ -5,7 +5,7 @@ import { Tooltip } from './Tooltip';
 
 export function TimingBar() {
   const { data, mode, updateMeta, timingMode, setTimingMode } = useCtx();
-  const { total, totalWords } = useTiming(data.scenes, data.timing, data.columns);
+  const { total, totalWords } = useTiming(data.scenes, data.timing, data.columns, data.speakers);
   const [open, setOpen] = useState(false);
   const timing = data.timing || { wordsPerSecond: 3, minDialogueSec: 1, minDirectionSec: 2 };
 
@@ -19,10 +19,10 @@ export function TimingBar() {
     let hasAnyTimed = false;
     for (const scene of data.scenes) {
       for (const line of scene.lines) {
-        const actual = getLineActualOrPlanned(line, data.timing, data.columns);
+        const actual = getLineActualOrPlanned(line, data.timing, data.columns, data.speakers);
         if (actual > 0) {
           actualSum += actual;
-          plannedForTimedSum += estimateLineDuration(line, data.timing, data.columns);
+          plannedForTimedSum += estimateLineDuration(line, data.timing, data.columns, data.speakers);
           timedCount++;
           if (line.actualDuration != null) hasAnyTimed = true;
         }

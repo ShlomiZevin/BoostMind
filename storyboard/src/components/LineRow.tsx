@@ -24,6 +24,7 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
   const columns = data.columns || [{ id: 'text', name: 'טקסט', width: '1fr' }];
   const isDirection = line.type === 'direction';
   const speaker = speakers.find(s => s.id === line.speaker) || speakers.find(s => s.id === 'direction');
+  const isSilent = speaker?.isSilent || false;
   const lineComments = comments.filter(c => c.lineId === line.id && !c.resolved);
   const isActive = activeLineId === line.id;
   const isSelected = selectedLines.has(line.id);
@@ -59,7 +60,7 @@ export function LineRow({ line, sceneId, index, speakers, totalLines }: Props) {
       )}
 
       <div
-        className={`line ${isDirection ? 'direction' : ''} ${isActive ? 'active' : ''} ${isSelected ? 'selected' : ''}`}
+        className={`line ${isDirection ? 'direction' : ''} ${isActive ? 'active' : ''} ${isSelected ? 'selected' : ''} ${isSilent ? 'silent' : ''}`}
         data-line-id={line.id}
       >
         <div className="line-main" style={{ gridTemplateColumns: gridCols }}>

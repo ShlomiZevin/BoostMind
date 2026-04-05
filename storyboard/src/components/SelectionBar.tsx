@@ -17,16 +17,19 @@ export function SelectionBar() {
     for (const scene of data.scenes) {
       for (const line of scene.lines) {
         if (!selectedLines.has(line.id)) continue;
-        words += getLineWordCount(line, data.columns);
-        planned += estimateLineDuration(line, data.timing, data.columns);
+        words += getLineWordCount(line, data.columns, data.speakers);
+        planned += estimateLineDuration(line, data.timing, data.columns, data.speakers);
         if (line.actualDuration != null) {
           actual += line.actualDuration;
           hasActual = true;
         }
-        // Collect text for copy
+        // Collect text for copy with speaker name
         const allText = [line.text, ...Object.values(line.fields || {})]
           .filter(Boolean).join(' ').trim();
-        if (allText) texts.push(allText);
+        if (allText) {
+          const speakerName = data.speakers.find(s => s.id === line.speaker)?.name || '';
+          texts.push(speakerName ? `${speakerName}: ${allText}` : allText);
+        }
       }
     }
 
@@ -47,7 +50,10 @@ export function SelectionBar() {
       for (const line of scene.lines) {
         const text = [line.text, ...Object.values(line.fields || {})]
           .filter(Boolean).join(' ').trim();
-        if (text) allTexts.push(text);
+        if (text) {
+          const speakerName = data.speakers.find(s => s.id === line.speaker)?.name || '';
+          allTexts.push(speakerName ? `${speakerName}: ${text}` : text);
+        }
       }
       allTexts.push('');
     }

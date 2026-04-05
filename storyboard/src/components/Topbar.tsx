@@ -67,7 +67,7 @@ export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
   const versionLabel = viewingVersion ? `📋 ${viewingVersion}` : '🟢 Live';
 
   return (
-    <div className="topbar-sticky">
+    <div className={`topbar-sticky ${mode === 'review' ? 'review-mode' : ''}`}>
     <div className="topbar-inner">
       <div className="topbar-right">
         {mode === 'edit' && <button className="topbar-home" onClick={onGoHome} title="חזרה לרשימה">←</button>}
@@ -91,15 +91,15 @@ export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
           className={`btn btn-outline ${showComments ? 'btn-active' : ''}`}
           onClick={() => setShowComments(!showComments)}
         >
-          💬 {showComments ? 'הסתר' : 'הצג'}
+          💬 <span className="btn-text-desktop">{showComments ? 'הסתר' : 'הצג'}</span>
         </button>
-        <button className="btn btn-outline" onClick={() => window.print()}>🖨️</button>
-        {onOpenPrompter && (
-          <button className="btn btn-outline" onClick={onOpenPrompter}>📺 פרומפטר</button>
+        <button className="btn btn-outline btn-print" onClick={() => window.print()}>🖨️</button>
+        {onOpenPrompter && mode === 'edit' && (
+          <button className="btn btn-outline btn-prompter" onClick={onOpenPrompter}>📺 פרומפטר</button>
         )}
         {mode === 'edit' && (
           <button className="btn btn-outline" onClick={copyReviewLink}>
-            {linkCopied ? '✓ הועתק' : '🔗 לינק'}
+            {linkCopied ? '✓' : '🔗'}<span className="btn-text-desktop">{linkCopied ? ' הועתק' : ' לינק'}</span>
           </button>
         )}
 

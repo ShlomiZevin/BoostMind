@@ -15,7 +15,7 @@ export function TimingBadge({ line, sceneId }: Props) {
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const duration = estimateLineDuration(line, data.timing, data.columns);
+  const duration = estimateLineDuration(line, data.timing, data.columns, data.speakers);
   const isOverridden = line.durationOverride != null;
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export function TimingBadge({ line, sceneId }: Props) {
     ? (diff > 2 ? 'over' : diff < -2 ? 'under' : 'ok')
     : '';
 
-  const words = getLineWordCount(line, data.columns);
+  const words = getLineWordCount(line, data.columns, data.speakers);
 
   const plannedTooltip = isOverridden
     ? `זמן מתוכנן (ידני): ${duration} שניות`

@@ -62,6 +62,7 @@ export interface SpeakerConfig {
   color: string;
   bgColor: string;
   isDirection?: boolean;
+  isSilent?: boolean; // reference only, not spoken/heard
 }
 
 export interface ApprovalState {
