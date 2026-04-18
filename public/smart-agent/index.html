@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>סוכן חכם לאתר שלך | שלומי זוין - CTO as a Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #8b5cf6;
+      --accent-soft: rgba(139, 92, 246, 0.15);
+      --accent-secondary: #06b6d4;
+      --accent-gold: #f59e0b;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Heebo', sans-serif; background: radial-gradient(circle at top, #0a0a1a 0, #050608 50%, #020305 100%); color: var(--text); scroll-behavior: smooth; line-height: 1.6; }
+
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ===== HEADER ===== */
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(139,92,246,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: #e5e7f0; }
+    .header-contact { display: flex; align-items: center; gap: 1rem; }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .header-contact .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; }
+
+    /* ===== TABS ===== */
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== HERO ===== */
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #7fd6ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 750px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(139,92,246,0.25); background: rgba(139,92,246,0.08); color: #c4b5fd; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ===== BUTTONS ===== */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(139,92,246,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(139,92,246,0.5); }
+    .btn.ghost { background: transparent; color: #e5e7f3; border-color: rgba(255,255,255,0.15); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 680px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    /* ===== CARDS ===== */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: #dadfee; margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: ''; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    /* ===== TIMELINE ===== */
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(139,92,246,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(139,92,246,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    /* ===== PRICING ===== */
+    .pricing-card { background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(6,182,212,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 650px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: ''; color: var(--accent); font-weight: 700; }
+
+    /* ===== CALLOUT ===== */
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(139,92,246,0.12), transparent 60%); border: 1px solid rgba(139,92,246,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    /* ===== EXPERIENCE CARDS ===== */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(6,182,212,0.15); color: #67e8f9; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+
+    /* ===== STATS ===== */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ===== CHAT DEMO ===== */
+    .chat-demo-container { max-width: 500px; margin: 0 auto; }
+    .chat-window { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.08); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .chat-header { display: flex; align-items: center; gap: 0.7rem; padding: 1rem 1.2rem; background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.1)); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .chat-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .chat-header-info h4 { margin: 0; font-size: 0.95rem; }
+    .chat-header-info span { font-size: 0.75rem; color: #34d399; display: flex; align-items: center; gap: 0.3rem; }
+    .chat-header-info span::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #34d399; }
+    .chat-messages { height: 380px; overflow-y: auto; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; scroll-behavior: smooth; }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .chat-msg { max-width: 85%; padding: 0.7rem 1rem; border-radius: 16px; font-size: 0.9rem; line-height: 1.5; animation: msgIn 0.3s ease; }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-msg.bot { background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.2); align-self: flex-start; border-bottom-right-radius: 6px; }
+    .chat-msg.user { background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.2); align-self: flex-end; border-bottom-left-radius: 6px; }
+    .chat-msg.bot .msg-label { font-size: 0.7rem; color: var(--accent); margin-bottom: 0.2rem; font-weight: 600; }
+    .chat-msg.user .msg-label { font-size: 0.7rem; color: var(--accent-secondary); margin-bottom: 0.2rem; font-weight: 600; text-align: left; }
+    .chat-input-area { display: flex; gap: 0.5rem; padding: 0.8rem 1rem; border-top: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); }
+    .chat-input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 0.6rem 1rem; color: var(--text); font-family: inherit; font-size: 0.88rem; outline: none; direction: rtl; }
+    .chat-input::placeholder { color: var(--text-muted); }
+    .chat-input:focus { border-color: rgba(139,92,246,0.4); }
+    .chat-send { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: transform 0.15s; }
+    .chat-send:hover { transform: scale(1.08); }
+    .quick-replies { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    .quick-reply { font-size: 0.78rem; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid rgba(139,92,246,0.3); background: rgba(139,92,246,0.08); color: #c4b5fd; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .quick-reply:hover { background: rgba(139,92,246,0.2); }
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 0.5rem 0; }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingBounce 1.4s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+    /* ===== CONTACT ===== */
+    .contact-section { text-align: center; padding: 3rem 0; }
+    .contact-section h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .contact-item a { color: var(--accent); text-decoration: none; }
+
+    /* ===== LIGHT THEME ===== */
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --bg-alt: #edf0f5;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1a202c;
+      --text-muted: #64748b;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] body,
+    [data-theme="light"] html { background: linear-gradient(180deg, #f0f2f8 0%, #e8ecf4 100%); }
+    [data-theme="light"] .site-header { background: rgba(255,255,255,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(255,255,255,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .logo-text { color: #1a202c; }
+    [data-theme="light"] .tab-btn { color: #64748b; }
+    [data-theme="light"] .tab-btn:hover { color: #1a202c; }
+    [data-theme="light"] .hero-badges span { background: rgba(139,92,246,0.06); border-color: rgba(139,92,246,0.2); color: #6d28d9; }
+    [data-theme="light"] .btn.ghost { color: #1a202c; border-color: rgba(0,0,0,0.15); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .card li { color: #374151; }
+    [data-theme="light"] .callout { background: radial-gradient(circle at top, rgba(139,92,246,0.06), transparent 60%); border-color: rgba(139,92,246,0.2); }
+    [data-theme="light"] .callout p { color: #475569; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .exp-card p { color: #475569; }
+    [data-theme="light"] .exp-tag { background: rgba(6,182,212,0.08); color: #0e7490; }
+    [data-theme="light"] .pricing-card { background: linear-gradient(135deg, rgba(139,92,246,0.04), rgba(6,182,212,0.04)); border-color: rgba(139,92,246,0.2); }
+    [data-theme="light"] .chat-window { border-color: rgba(0,0,0,0.1); }
+    [data-theme="light"] .chat-header { background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(6,182,212,0.05)); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .chat-msg.bot { background: rgba(139,92,246,0.06); border-color: rgba(139,92,246,0.12); }
+    [data-theme="light"] .chat-msg.user { background: rgba(6,182,212,0.06); border-color: rgba(6,182,212,0.12); }
+    [data-theme="light"] .chat-input-area { background: rgba(0,0,0,0.02); border-top-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .chat-input { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #1a202c; }
+    [data-theme="light"] .quick-reply { background: rgba(139,92,246,0.05); border-color: rgba(139,92,246,0.2); color: #6d28d9; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.12); transform: rotate(180deg); }
+    [data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.08); }
+
+    /* ===== FOOTER ===== */
+    .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 1.5rem 0; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ===== FEATURE FLOW ===== */
+    .feature-flow { display: flex; flex-direction: column; gap: 1rem; max-width: 700px; margin: 0 auto; }
+    .feature-item { display: flex; align-items: flex-start; gap: 1rem; background: var(--card-bg); border-radius: var(--radius-md); padding: 1.2rem 1.5rem; border: 1px solid rgba(255,255,255,0.06); }
+    .feature-icon { font-size: 1.5rem; flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.1); display: flex; align-items: center; justify-content: center; }
+    .feature-text h4 { margin: 0 0 0.2rem; font-size: 1rem; }
+    .feature-text p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .hero { padding: 2.5rem 0 2rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 1rem; }
+      .section { padding: 2.5rem 0; }
+      .section-header { margin-bottom: 1.5rem; }
+      .section-header h2 { font-size: 1.5rem; }
+      .tabs { flex-wrap: wrap; justify-content: center; }
+      .tab-btn { font-size: 0.82rem; padding: 0.65rem 0.8rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .header-contact span:not(.btn-sm) { display: none; }
+      .logo-text { font-size: 0.8rem; }
+      .card { padding: 1.2rem; }
+      .card-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2rem; }
+      .callout { padding: 1.3rem; }
+      .timeline-step { gap: 0.8rem; }
+      .btn { padding: 0.65rem 1.2rem; font-size: 0.88rem; }
+      .contact-details { gap: 1rem; }
+      .exp-card { padding: 1.2rem; }
+      .chat-messages { height: 320px; }
+      .feature-item { flex-direction: column; gap: 0.6rem; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.45rem; }
+      .hero-badges span { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .hero-badges { gap: 0.35rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .contact-details { flex-direction: column; align-items: center; }
+      .tab-btn { padding: 0.6rem 0.65rem; font-size: 0.78rem; }
+      .pricing-card .price { font-size: 1.7rem; }
+      .container { padding: 0 1rem; }
+      .chat-messages { height: 280px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">שלומי זוין | CTO as a Service</span>
+      </a>
+      <div class="header-contact">
+        <button class="theme-toggle" id="theme-toggle" title="Dark / Light">&#127769;</button>
+        <span>054-5567213</span>
+        <a href="mailto:shlomi@boostart.io" class="btn-sm">בואו נדבר</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="offer">ההצעה</button>
+      <button class="tab-btn" data-tab="experience">ניסיון</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="pricing">תקציב</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 1: THE OFFER ===================== -->
+<div class="tab-content active" id="tab-offer">
+  <section class="hero">
+    <div class="container">
+      <h1>סוכן חכם לאתר?<br/><span class="gradient">בדיוק מה שאני בונה כל יום.</span></h1>
+      <p class="hero-sub">
+        אני שלומי, CTO as a Service עם 15+ שנות ניסיון. מתמחה ב-AI agents, LLMs, ומערכות שיחה חכמות.
+        סוכן שעונה על שאלות, מתאם פגישות ושולח הודעות - זה בדיוק הסוג של דבר שאני בונה במהירות ובדיוק.
+      </p>
+      <div class="hero-badges">
+        <span>AI / LLM Agents</span>
+        <span>ChatGPT / Claude API</span>
+        <span>NLP בעברית</span>
+        <span>תיאום פגישות אוטומטי</span>
+        <span>אינטגרציות WhatsApp / Email</span>
+        <span>15+ שנות ניסיון</span>
+        <span>50+ מוצרים שנבנו</span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">דברו איתי בוואטסאפ</a>
+        <button class="btn ghost" onclick="switchTab('demo')">ראו את הדמו החי &#8592;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY ME -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>למה דווקא אני?</h2>
+        <p>לא סתם עוד מפתח - שותף טכנולוגי שמבין AI לעומק</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#129302;</div>
+          <h3>מומחה AI Agents</h3>
+          <p>לא רק "מחבר API" - מבין מודלים, prompt engineering, RAG, ואיך לגרום לסוכן לתת תשובות מדויקות ולא הזיות.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>קצב מטורף</h3>
+          <p>הדמו שתראה בטאב "הדגמה חיה"? נבנה תוך דקות. ככה אני עובד - AI כמכפיל כוח בפיתוח עצמו.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128273;</div>
+          <h3>לא בורג - שותף</h3>
+          <p>לא עוד פרילנסר שמקבל spec ומחזיר קוד. אני רואה מערכת שלמה, מציע פתרונות, ולוקח בעלות מלאה.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT I'LL BUILD -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>מה אני אבנה לך</h2>
+        <p>סוכן חכם שעובד בשבילך 24/7 - מותאם בדיוק לעסק שלך</p>
+      </div>
+      <div class="feature-flow">
+        <div class="feature-item">
+          <div class="feature-icon">&#128172;</div>
+          <div class="feature-text">
+            <h4>מענה אוטומטי על שאלות</h4>
+            <p>הסוכן ילמד את התוכן של האתר שלך ויענה על שאלות נפוצות בצורה טבעית ומדויקת - גם בעברית מלאה.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#128197;</div>
+          <div class="feature-text">
+            <h4>תיאום פגישות חכם</h4>
+            <p>חיבור ליומן שלך (Google Calendar / Calendly). הסוכן בודק זמינות, מציע שעות, ומתאם - בלי שתצטרך להיות מעורב.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#128232;</div>
+          <div class="feature-text">
+            <h4>שליחת הודעות והתראות</h4>
+            <p>כשהסוכן לא יודע לענות או שצריך התערבות - הוא שולח לך הודעה (WhatsApp / Email / Telegram) עם כל הפרטים.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#127891;</div>
+          <div class="feature-text">
+            <h4>למידה והשתפרות</h4>
+            <p>הסוכן לומד מכל שיחה, משתפר עם הזמן, ואפשר לאמן אותו על תשובות ספציפיות דרך ממשק ניהול פשוט.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">&#127912;</div>
+          <div class="feature-text">
+            <h4>עיצוב מותאם לאתר שלך</h4>
+            <p>הצ'אט ווידג'ט יתאים בדיוק לעיצוב של האתר - צבעים, פונט, מיקום. כאילו זה חלק מהאתר מהיום הראשון.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="callout">
+        <h3>&#128161; למה לא פתרון מדף?</h3>
+        <p>
+          פתרונות כמו Intercom, Drift או צ'אטבוטים גנריים לא באמת מבינים את העסק שלך.
+          הם מחזירים תשובות שטחיות ולא באמת יכולים לבצע פעולות (כמו לתאם פגישה או לשלוח הודעה).
+          סוכן מותאם אישית עם LLM הוא רמה אחרת לגמרי - מבין הקשר, מדבר טבעי, ובאמת פועל.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 2: EXPERIENCE ===================== -->
+<div class="tab-content" id="tab-experience">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי</h2>
+        <p>AI agents, מערכות שיחה, ואינטגרציות - זה מה שאני עושה</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">15+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">20+</div>
+          <div class="label">פרויקטי AI/ML</div>
+        </div>
+        <div class="stat">
+          <div class="num">24/7</div>
+          <div class="label">סוכנים שרצים בפרודקשן</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#129302; AI Agents & Chatbots</h3>
+          <p>בניית סוכני AI מבוססי LLM שעובדים בפרודקשן - כולל מענה ללקוחות, ניתוב שיחות, ותיאום פגישות אוטומטי.</p>
+          <span class="exp-tag">OpenAI</span>
+          <span class="exp-tag">Claude API</span>
+          <span class="exp-tag">LangChain</span>
+          <span class="exp-tag">RAG</span>
+          <span class="exp-tag">Prompt Engineering</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128268; אינטגרציות ו-APIs</h3>
+          <p>חיבור מערכות לצד שלישי - Google Calendar, WhatsApp Business API, Telegram, Email, CRM ועוד. הכל אוטומטי, הכל זורם.</p>
+          <span class="exp-tag">Google APIs</span>
+          <span class="exp-tag">WhatsApp API</span>
+          <span class="exp-tag">Webhooks</span>
+          <span class="exp-tag">Zapier / n8n</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128483;&#65039; NLP ועיבוד שפה טבעית</h3>
+          <p>ניסיון עשיר בעיבוד טקסט בעברית ובאנגלית - הבנת כוונות משתמש, חילוץ ישויות, וניתוח סנטימנט.</p>
+          <span class="exp-tag">NLP</span>
+          <span class="exp-tag">Hebrew NLU</span>
+          <span class="exp-tag">Intent Detection</span>
+          <span class="exp-tag">Entity Extraction</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128640; מערכות Real-time</h3>
+          <p>צ'אט חי, push notifications, ועדכונים בזמן אמת. WebSockets, Socket.io, ומערכות messaging בסקייל.</p>
+          <span class="exp-tag">WebSockets</span>
+          <span class="exp-tag">Socket.io</span>
+          <span class="exp-tag">Real-time</span>
+          <span class="exp-tag">Push Notifications</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 3: LIVE DEMO ===================== -->
+<div class="tab-content" id="tab-demo">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>הדגמה חיה - סוכן חכם</h2>
+        <p>זה מה שאני יכול לבנות לך. תנסה לשאול אותו שאלות - הוא עובד!</p>
+      </div>
+
+      <div class="chat-demo-container">
+        <div class="chat-window">
+          <div class="chat-header">
+            <div class="chat-avatar">&#129302;</div>
+            <div class="chat-header-info">
+              <h4>הסוכן החכם של העסק שלך</h4>
+              <span>מחובר ופעיל</span>
+            </div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg bot">
+              <div class="msg-label">סוכן חכם</div>
+              היי! &#128075; אני הסוכן החכם של העסק. אני יכול לעזור לך עם שאלות, לתאם פגישה, או להעביר הודעה לצוות. במה אוכל לעזור?
+              <div class="quick-replies">
+                <button class="quick-reply" onclick="sendQuickReply('מה השירותים שלכם?')">מה השירותים שלכם?</button>
+                <button class="quick-reply" onclick="sendQuickReply('רוצה לתאם פגישה')">רוצה לתאם פגישה</button>
+                <button class="quick-reply" onclick="sendQuickReply('מה המחירים?')">מה המחירים?</button>
+                <button class="quick-reply" onclick="sendQuickReply('רוצה להשאיר הודעה')">רוצה להשאיר הודעה</button>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="כתבו הודעה..." />
+            <button class="chat-send" id="chat-send" onclick="sendMessage()">&#10148;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2.5rem;">
+        <h3>&#9889; הדגמת קצב פיתוח</h3>
+        <p>
+          כל מה שאתם רואים כאן - הצ'אט, הלוגיקה, העיצוב - נבנה תוך דקות.
+          זו לא מוקאפ, זה עובד. זה הקצב שבו אני בונה מוצרים.
+          עם AI כמכפיל כוח, דברים שלוקחים חודשים הופכים לימים.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 4: PRICING ===================== -->
+<div class="tab-content" id="tab-pricing">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>תקציב ולו"ז</h2>
+        <p>מודל CTO חודשי - שקיפות מלאה, גמישות מרבית</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">CTO as a Service</div>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">צוות פיתוח (1-2 מפתחים) + ניהול טכנולוגי</div>
+        <ul>
+          <li>אפיון מלא של הסוכן - flows, תשובות, אינטגרציות</li>
+          <li>פיתוח הסוכן עם LLM (OpenAI/Claude) + RAG</li>
+          <li>חיבור ליומן, WhatsApp, Email, CRM</li>
+          <li>ווידג'ט צ'אט מותאם לעיצוב האתר</li>
+          <li>ממשק ניהול לאימון ועדכון תשובות</li>
+          <li>דשבורד אנליטיקס - מה שואלים, מה עובד</li>
+          <li>תחזוקה, שיפור מתמיד, ותמיכה</li>
+          <li>שקיפות מלאה - הקוד שלך, תמיד</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="margin-top: 1rem; width: 100%;">בואו נדבר על זה</a>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>Timeline משוער</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>אפיון ותכנון</h3>
+            <p>מבינים את העסק, מגדירים flows, בוחרים את ה-LLM הנכון, מתכננים אינטגרציות</p>
+            <span class="tag">שבוע 1</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>MVP - סוכן בסיסי</h3>
+            <p>סוכן שעונה על שאלות מבוסס תוכן האתר + ווידג'ט צ'אט באתר</p>
+            <span class="tag">שבוע 2-3</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>אינטגרציות ופעולות</h3>
+            <p>חיבור ליומן, שליחת הודעות, ניתוב לנציג אנושי כשצריך</p>
+            <span class="tag">שבוע 3-4</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>אופטימיזציה ולמידה</h3>
+            <p>ממשק ניהול, אנליטיקס, שיפור תשובות, fine-tuning</p>
+            <span class="tag">חודש 2+</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TECH STACK -->
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>סטאק טכנולוגי</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>AI Engine</h3>
+          <ul>
+            <li>OpenAI GPT-4 / Claude API</li>
+            <li>RAG - מבוסס תוכן האתר</li>
+            <li>Prompt Engineering מדויק</li>
+            <li>Vector DB (Pinecone/Weaviate)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9881;&#65039;</div>
+          <h3>Backend</h3>
+          <ul>
+            <li>Node.js / Python</li>
+            <li>API endpoints מאובטחים</li>
+            <li>WebSocket לזמן אמת</li>
+            <li>Rate limiting & caching</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128268;</div>
+          <h3>אינטגרציות</h3>
+          <ul>
+            <li>Google Calendar API</li>
+            <li>WhatsApp Business / Telegram</li>
+            <li>Email (SendGrid/Resend)</li>
+            <li>Webhook לכל CRM</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact-section">
+    <div class="container">
+      <h2>בואו נדבר</h2>
+      <p>אשמח לשמוע עוד על האתר ועל מה בדיוק הסוכן צריך לעשות</p>
+      <div class="contact-details">
+        <div class="contact-item">&#128222; <a href="tel:054-5567213">054-5567213</a></div>
+        <div class="contact-item">&#128231; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">&#128172; <a href="https://wa.me/972545567213">WhatsApp</a></div>
+      </div>
+      <a href="https://wa.me/972545567213" class="btn primary">שלחו הודעה עכשיו</a>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    שלומי זוין | CTO as a Service | shlomi@boostart.io | 054-5567213
+  </div>
+</footer>
+
+<script>
+  // ===== TABS =====
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // ===== THEME TOGGLE =====
+  const themeToggle = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  });
+
+  // ===== CHAT DEMO =====
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+
+  const responses = {
+    'services': {
+      pattern: /שירות|מה אתם עושים|מה אתם מציע|השירותים/,
+      reply: 'אנחנו מציעים מגוון שירותים:\n\n\u2705 ייעוץ אישי מותאם\n\u2705 ליווי מקצועי צמוד\n\u2705 תוכניות מותאמות אישית\n\u2705 תמיכה שוטפת 24/7\n\nרוצה לשמוע עוד על שירות ספציפי?'
+    },
+    'meeting': {
+      pattern: /פגישה|לתאם|להיפגש|זמין|appointment|פנוי/,
+      reply: '\u{1F4C5} אשמח לתאם! הנה הזמנים הפנויים השבוע:\n\n\u{1F7E2} יום שלישי 10:00-12:00\n\u{1F7E2} יום רביעי 14:00-16:00\n\u{1F7E2} יום חמישי 09:00-11:00\n\nאיזה יום מתאים לך? (בגרסה האמיתית - זה יהיה מחובר ליומן שלך בזמן אמת!)'
+    },
+    'price': {
+      pattern: /מחיר|עלות|כמה עולה|תקציב|pricing/,
+      reply: '\u{1F4B0} המחירים שלנו מותאמים אישית לפי הצרכים:\n\n\u{1F4E6} חבילה בסיסית - החל מ-X\u20AA/חודש\n\u{1F4E6} חבילה מתקדמת - החל מ-Y\u20AA/חודש\n\u{1F4E6} חבילה עסקית - בואו נדבר\n\nרוצה שאעביר לך הצעת מחיר מפורטת?'
+    },
+    'message': {
+      pattern: /הודעה|להשאיר|ליצור קשר|message|לדבר עם/,
+      reply: '\u{1F4DD} בטח! אשמח להעביר הודעה.\n\nמה שמך? ומה ההודעה שתרצה להשאיר?\n\n(אעביר את זה ישר לצוות ב-WhatsApp \u{1F4F2})'
+    },
+    'hours': {
+      pattern: /שעות|פתוח|סגור|עובד|זמני/,
+      reply: '\u{1F552} שעות הפעילות שלנו:\n\n\u{1F4C5} ימים א\'-ה\': 09:00-18:00\n\u{1F4C5} יום ו\': 09:00-13:00\n\u2764\uFE0F שבת: סגור\n\nאבל אני (הסוכן) זמין 24/7! \u{1F60A}'
+    },
+    'hello': {
+      pattern: /היי|שלום|הי|בוקר|ערב|מה קורה|hello|hi/,
+      reply: 'היי! \u{1F44B} שמח שפנית אלינו! אני הסוכן החכם של העסק.\n\nאני יכול לעזור לך עם:\n\u{1F4AC} מידע על השירותים שלנו\n\u{1F4C5} תיאום פגישות\n\u{1F4DD} השארת הודעה\n\nבמה אוכל לעזור?'
+    },
+    'thanks': {
+      pattern: /תודה|thanks|אחלה|מעולה|סבבה/,
+      reply: 'בשמחה! \u{1F60A} אם יש עוד משהו - אני כאן.\nיום מעולה! \u{2728}'
+    }
+  };
+
+  function getResponse(text) {
+    const lower = text.toLowerCase();
+    for (const key in responses) {
+      if (responses[key].pattern.test(lower)) {
+        return responses[key].reply;
+      }
+    }
+    return '\u{1F914} שאלה מעניינת! בגרסה המלאה הייתי מחפש את התשובה במאגר המידע של העסק.\n\nבינתיים, אני יכול לעזור עם:\n\u2022 מידע על שירותים\n\u2022 תיאום פגישה\n\u2022 השארת הודעה\n\nמה מעניין אותך?';
+  }
+
+  function addMessage(text, isUser) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${isUser ? 'user' : 'bot'}`;
+    const label = document.createElement('div');
+    label.className = 'msg-label';
+    label.textContent = isUser ? 'אתה' : 'סוכן חכם';
+    msgDiv.appendChild(label);
+    const content = document.createTextNode(text);
+    msgDiv.appendChild(content);
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return msgDiv;
+  }
+
+  function showTyping() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-msg bot';
+    typingDiv.id = 'typing-indicator';
+    typingDiv.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function removeTyping() {
+    const typing = document.getElementById('typing-indicator');
+    if (typing) typing.remove();
+  }
+
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addMessage(text, true);
+    chatInput.value = '';
+    showTyping();
+    const delay = 800 + Math.random() * 700;
+    setTimeout(() => {
+      removeTyping();
+      addMessage(getResponse(text), false);
+    }, delay);
+  }
+
+  function sendQuickReply(text) {
+    chatInput.value = text;
+    sendMessage();
+  }
+
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+</script>
+
+</body>
+</html>

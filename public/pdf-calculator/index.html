@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>מערכת מחשוב מבוססת קריאת נתונים — שלומי זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #0ea5e9;
+      --accent-soft: rgba(14, 165, 233, 0.15);
+      --accent-secondary: #6366f1;
+      --accent-green: #10b981;
+      --accent-gold: #f59e0b;
+      --accent-red: #ef4444;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --bg-alt: #f1f5f9; --card-bg: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b; --shadow-soft: 0 18px 40px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.7; transition: background 0.3s, color 0.3s; }
+    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 100vh; background: radial-gradient(circle at top, rgba(14,165,233,0.06) 0, transparent 50%); pointer-events: none; z-index: 0; }
+    [data-theme="light"] body::before { background: radial-gradient(circle at top, rgba(14,165,233,0.04) 0, transparent 50%); }
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    [data-theme="light"] .site-header { background: rgba(248,250,252,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(14,165,233,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); direction: ltr; }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all 0.2s; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 0.5rem; }
+
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(248,250,252,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.3; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 2rem; line-height: 1.8; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(14,165,233,0.25); background: rgba(14,165,233,0.08); color: #7dd3fc; }
+    [data-theme="light"] .hero-badges span { border-color: rgba(14,165,233,0.35); background: rgba(14,165,233,0.1); color: #0369a1; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(14,165,233,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(14,165,233,0.5); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); transition: transform 0.2s; }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    .card:hover { transform: translateY(-3px); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B9'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(14,165,233,0.15); color: #7dd3fc; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+    [data-theme="light"] .exp-tag { background: rgba(14,165,233,0.1); color: #0284c7; }
+
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(14,165,233,0.12), transparent 60%); border: 1px solid rgba(14,165,233,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+
+    .pricing-card { background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(99,102,241,0.08)); border: 1px solid rgba(14,165,233,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 700px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent-green); font-weight: 700; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(14,165,233,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(14,165,233,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    /* DEMO */
+    .demo-container { max-width: 800px; margin: 0 auto; }
+    .demo-app { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+    [data-theme="light"] .demo-app { border-color: rgba(0,0,0,0.08); }
+    .demo-app-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; background: rgba(14,165,233,0.05); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .demo-app-header h3 { font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .demo-status { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; background: rgba(16,185,129,0.15); color: #34d399; }
+    .demo-app-body { padding: 1.5rem; }
+
+    .upload-zone { border: 2px dashed rgba(14,165,233,0.3); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 1.5rem; }
+    .upload-zone:hover { border-color: var(--accent); background: rgba(14,165,233,0.03); }
+    .upload-zone.loaded { border-color: var(--accent-green); border-style: solid; background: rgba(16,185,129,0.05); }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .upload-text { color: var(--text-muted); font-size: 0.9rem; }
+    .upload-text strong { color: var(--accent); }
+
+    .extracted-data { display: none; animation: fadeIn 0.5s ease; }
+    .extracted-data.show { display: block; }
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: var(--radius-md); overflow: hidden; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 1rem; }
+    [data-theme="light"] .data-table { border-color: rgba(0,0,0,0.08); }
+    .data-table th { background: rgba(14,165,233,0.1); color: var(--accent); font-weight: 600; font-size: 0.8rem; padding: 0.7rem 1rem; text-align: right; }
+    .data-table td { padding: 0.6rem 1rem; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.04); }
+    [data-theme="light"] .data-table td { border-top-color: rgba(0,0,0,0.06); }
+    .data-table tr:hover td { background: rgba(14,165,233,0.03); }
+
+    .calc-section { background: rgba(14,165,233,0.03); border: 1px solid rgba(14,165,233,0.15); border-radius: var(--radius-md); padding: 1.2rem; margin-top: 1rem; display: none; animation: fadeIn 0.5s ease; }
+    .calc-section.show { display: block; }
+    .calc-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+    .calc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .calc-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1rem; text-align: center; }
+    [data-theme="light"] .calc-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+    .calc-card .calc-value { font-size: 1.5rem; font-weight: 800; }
+    .calc-card .calc-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .calc-card.blue .calc-value { color: var(--accent); }
+    .calc-card.green .calc-value { color: var(--accent-green); }
+    .calc-card.gold .calc-value { color: var(--accent-gold); }
+    .calc-card.red .calc-value { color: var(--accent-red); }
+    .calc-card.purple .calc-value { color: var(--accent-secondary); }
+
+    .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 999px; margin: 1rem 0 0.5rem; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); transition: width 1s ease; }
+    .progress-text { font-size: 0.75rem; color: var(--text-muted); text-align: center; }
+
+    .stack-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; }
+    .stack-tag { font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: var(--text-muted); }
+    [data-theme="light"] .stack-tag { border-color: rgba(0,0,0,0.08); background: rgba(0,0,0,0.03); }
+
+    .site-footer { text-align: center; padding: 2rem 0; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 2rem; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+    .site-footer p { color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0; }
+    .site-footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.8rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .tab-btn { padding: 0.75rem 1rem; font-size: 0.85rem; }
+      .header-contact { display: none; }
+      .calc-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2rem; }
+    }
+    @media (max-width: 480px) {
+      .tabs { justify-content: flex-start; }
+      .hero { padding: 2.5rem 0 2rem; }
+      .calc-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">Shlomi Zovin &bull; CTO as a Service</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#9788;</button>
+        <span class="header-contact">
+          <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+          <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp &larr;</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">&#127919; ההצעה</button>
+      <button class="tab-btn" onclick="switchTab('experience')">&#128218; ניסיון רלוונטי</button>
+      <button class="tab-btn" onclick="switchTab('demo')">&#9889; הדגמה חיה</button>
+      <button class="tab-btn" onclick="switchTab('budget')">&#128176; תקציב</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <h1>מערכת <span class="gradient">מחשוב חכמה</span><br/>קריאת PDF, שליפת נתונים, ומחשבונים</h1>
+      <p class="hero-sub">
+        בדיוק מה שאני עושה &mdash; בניית מערכות שלוקחות מידע גולמי (PDF, דאטה, מסמכים),
+        שולפות ממנו את מה שרלוונטי, ומייצרות חישובים ותובנות אוטומטיות.
+        <br/><br/>
+        <strong>50+ מוצרים שנבנו מאפס</strong>, כולל מערכות פרסור מסמכים, מחשבונים מורכבים,
+        ו-data pipelines. אני לא רק כותב קוד &mdash; אני מבין את הלוגיקה העסקית שמאחורי המספרים.
+      </p>
+      <div class="hero-badges">
+        <span>PDF Parsing & OCR</span>
+        <span>Data Extraction</span>
+        <span>Custom Calculators</span>
+        <span>Python + Node.js</span>
+        <span>React / Next.js</span>
+        <span>Database & Analytics</span>
+        <span>AI-Powered Processing</span>
+        <span>API Integrations</span>
+        <span>50+ מוצרים מאפס</span>
+        <span>15+ שנות ניסיון</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">&#128172; בוא נדבר</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">&#128065; ראה הדגמה חיה</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#128161; למה ההצעה הזאת שונה</h3>
+      <p>
+        רוב המפתחים יגידו לך "אני יודע Python". אני מביא ניסיון מעשי בבניית מערכות
+        שקוראות מסמכים, שולפות נתונים, ומחשבות תוצאות &mdash; <strong>כבר בפרודקשן</strong>.
+        אני לא רק מפתח &mdash; אני <strong>CTO as a Service</strong>. לוקח בעלות מלאה מקצה לקצה:
+        מהבנת הלוגיקה העסקית, דרך פיתוח, ועד UI מושלם ו-deploy לפרודקשן.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>מה אני מביא לפרויקט</h2>
+        <p>בדיוק הכישורים לבניית מערכת מחשוב מבוססת נתונים</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#128196;</div>
+          <h3>קריאת PDF ומסמכים</h3>
+          <p>פרסור מתקדם של קבצי PDF כולל OCR לסרוקים, טבלאות, ומבנים מורכבים</p>
+          <ul>
+            <li>PDF Parsing (PyPDF2, pdfplumber)</li>
+            <li>OCR (Tesseract, Google Vision)</li>
+            <li>Table Extraction</li>
+            <li>Multi-format Support</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128202;</div>
+          <h3>שליפת נתונים ודאטה</h3>
+          <p>חילוץ מידע מובנה ממסמכים, בסיסי נתונים, ו-APIs חיצוניים</p>
+          <ul>
+            <li>Data Extraction & Parsing</li>
+            <li>Regex & NLP</li>
+            <li>Database Queries</li>
+            <li>API Integration</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#129518;</div>
+          <h3>מחשבונים ולוגיקה</h3>
+          <p>בניית מחשבונים מותאמים עם לוגיקה עסקית מורכבת ותוצאות מדויקות</p>
+          <ul>
+            <li>Custom Business Logic</li>
+            <li>Financial Calculations</li>
+            <li>Real-time Computation</li>
+            <li>Formula Engine</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>AI לעיבוד מסמכים</h3>
+          <p>שימוש ב-AI להבנת מסמכים, סיווג אוטומטי, ושליפה חכמה של שדות</p>
+          <ul>
+            <li>OpenAI / Claude APIs</li>
+            <li>Document Understanding</li>
+            <li>Auto-classification</li>
+            <li>Smart Field Extraction</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127912;</div>
+          <h3>UI/UX ודשבורדים</h3>
+          <p>ממשקים מודרניים להצגת נתונים, תוצאות חישובים, ודוחות אינטראקטיביים</p>
+          <ul>
+            <li>React / Next.js</li>
+            <li>Data Visualization</li>
+            <li>Interactive Dashboards</li>
+            <li>Export (Excel, PDF, CSV)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128274;</div>
+          <h3>תשתית ואבטחה</h3>
+          <p>שרתים מאובטחים, עיבוד מסמכים בענן, ואבטחת מידע רגיש</p>
+          <ul>
+            <li>AWS / GCP Cloud</li>
+            <li>Encrypted Storage</li>
+            <li>Auth & Permissions</li>
+            <li>GDPR Compliance</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128218; ניסיון רלוונטי</h2>
+        <p>מתוך 50+ מוצרים &mdash; הנה הכי רלוונטיים לעיבוד מסמכים ומחשבונים</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">15+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">Data</div>
+          <div class="label">מומחיות עמוקה</div>
+        </div>
+        <div class="stat">
+          <div class="num">E2E</div>
+          <div class="label">מקצה לקצה</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#128196; מערכת פרסור מסמכים פיננסיים</h3>
+          <p>מערכת שקוראת דוחות כספיים (PDF), שולפת נתונים מטבלאות מורכבות, ומחשבת יחסים פיננסיים אוטומטית. כולל OCR למסמכים סרוקים.</p>
+          <span class="exp-tag">PDF Parsing</span>
+          <span class="exp-tag">OCR</span>
+          <span class="exp-tag">Python</span>
+          <span class="exp-tag">Financial Logic</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129518; מחשבון תמחור מורכב</h3>
+          <p>מחשבון עסקי עם עשרות פרמטרים, נוסחאות דינמיות, ותלויות בין שדות. ממשק drag-and-drop ליצירת נוסחאות חדשות ללא קוד.</p>
+          <span class="exp-tag">React</span>
+          <span class="exp-tag">Formula Engine</span>
+          <span class="exp-tag">Node.js</span>
+          <span class="exp-tag">Real-time Calc</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128202; פלטפורמת אנליטיקה ודוחות</h3>
+          <p>דשבורד שמושך נתונים ממקורות מרובים (DB, APIs, files), מעבד ומחשב KPIs, ומייצר דוחות אינטראקטיביים עם אפשרות export.</p>
+          <span class="exp-tag">Data Visualization</span>
+          <span class="exp-tag">PostgreSQL</span>
+          <span class="exp-tag">API Integration</span>
+          <span class="exp-tag">Export</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129504; AI Document Processing</h3>
+          <p>שימוש ב-LLMs לקריאת מסמכים לא מובנים, הבנת הקשר, ושליפת שדות ספציפיים. סיווג אוטומטי של סוגי מסמכים.</p>
+          <span class="exp-tag">OpenAI</span>
+          <span class="exp-tag">Claude</span>
+          <span class="exp-tag">NLP</span>
+          <span class="exp-tag">Document AI</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128176; מערכת billing ותשלומים</h3>
+          <p>מערכת חיוב עם חישובי מע"מ, הנחות, subscriptions, ודוחות הכנסות. אינטגרציה עם Stripe ו-PayPal.</p>
+          <span class="exp-tag">Stripe</span>
+          <span class="exp-tag">Financial Calc</span>
+          <span class="exp-tag">Invoicing</span>
+          <span class="exp-tag">Reports</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128640; Data Pipeline & ETL</h3>
+          <p>בניית pipelines לעיבוד נתונים בקנה מידה גדול &mdash; קריאה, טרנספורמציה, חישובים, וטעינה לבסיס נתונים.</p>
+          <span class="exp-tag">Python</span>
+          <span class="exp-tag">ETL</span>
+          <span class="exp-tag">AWS Lambda</span>
+          <span class="exp-tag">Batch Processing</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE DEMO ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#9889; הדגמה חיה &mdash; PDF &#8594; Data &#8594; Calculator</h2>
+        <p>ככה זה עובד: מעלים PDF, המערכת שולפת נתונים, ומחשבת תוצאות. נבנה תוך דקות.</p>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-app">
+          <div class="demo-app-header">
+            <h3>&#128196; DataCalc &mdash; מערכת מחשוב חכמה</h3>
+            <span class="demo-status">&#9679; Live</span>
+          </div>
+          <div class="demo-app-body">
+            <!-- Upload Zone -->
+            <div class="upload-zone" id="upload-zone" onclick="simulateUpload()">
+              <div class="upload-icon" id="upload-icon">&#128196;</div>
+              <div class="upload-text" id="upload-text">
+                <strong>לחץ כאן להעלאת PDF</strong><br/>
+                (סימולציה &mdash; לחיצה תטען נתונים לדוגמה)
+              </div>
+            </div>
+
+            <!-- Progress -->
+            <div id="progress-section" style="display:none;">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 0%"></div></div>
+              <div class="progress-text" id="progress-text">קורא את הקובץ...</div>
+            </div>
+
+            <!-- Extracted Data -->
+            <div class="extracted-data" id="extracted-data">
+              <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem;">&#9989; נתונים שנשלפו מהקובץ: <span style="color: var(--accent);">financial_report_Q4_2025.pdf</span></h4>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>שדה</th>
+                    <th>ערך</th>
+                    <th>מקור (עמוד)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>הכנסות</strong></td><td style="direction:ltr; text-align:right;">$2,450,000</td><td>עמוד 3</td></tr>
+                  <tr><td><strong>הוצאות תפעול</strong></td><td style="direction:ltr; text-align:right;">$1,680,000</td><td>עמוד 4</td></tr>
+                  <tr><td><strong>עלות עובדים</strong></td><td style="direction:ltr; text-align:right;">$890,000</td><td>עמוד 4</td></tr>
+                  <tr><td><strong>הוצאות שיווק</strong></td><td style="direction:ltr; text-align:right;">$320,000</td><td>עמוד 5</td></tr>
+                  <tr><td><strong>הוצאות תשתית</strong></td><td style="direction:ltr; text-align:right;">$470,000</td><td>עמוד 5</td></tr>
+                  <tr><td><strong>מספר עובדים</strong></td><td>42</td><td>עמוד 2</td></tr>
+                  <tr><td><strong>רבעון</strong></td><td>Q4 2025</td><td>עמוד 1</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Calculator Results -->
+            <div class="calc-section" id="calc-section">
+              <div class="calc-title">&#129518; תוצאות מחשבון</div>
+              <div class="calc-grid">
+                <div class="calc-card green">
+                  <div class="calc-value">$770K</div>
+                  <div class="calc-label">רווח גולמי</div>
+                </div>
+                <div class="calc-card blue">
+                  <div class="calc-value">31.4%</div>
+                  <div class="calc-label">שיעור רווחיות</div>
+                </div>
+                <div class="calc-card gold">
+                  <div class="calc-value">$21.2K</div>
+                  <div class="calc-label">עלות ממוצעת לעובד</div>
+                </div>
+                <div class="calc-card purple">
+                  <div class="calc-value">$58.3K</div>
+                  <div class="calc-label">הכנסה לעובד</div>
+                </div>
+                <div class="calc-card red">
+                  <div class="calc-value">13.1%</div>
+                  <div class="calc-label">שיעור הוצאות שיווק</div>
+                </div>
+                <div class="calc-card blue">
+                  <div class="calc-value">2.69</div>
+                  <div class="calc-label">יחס הכנסות/עובדים (x10K)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128161; מה מוצג כאן?</h3>
+        <p>
+          סימולציה של הזרימה המלאה: <strong>העלאת PDF &#8594; שליפת נתונים &#8594; חישובים אוטומטיים</strong>.
+          המערכת קוראת את הקובץ, מזהה שדות רלוונטיים (הכנסות, הוצאות, מספר עובדים),
+          ומחשבת תוצאות (רווחיות, עלות לעובד, יחסים פיננסיים).
+          <br/><br/>
+          <strong>כל זה נבנה תוך דקות</strong> &mdash; זו הדגמת קצב עבודה.
+          במערכת האמיתית: PDF parsing אמיתי, OCR, לוגיקה עסקית מותאמת, ודשבורד מלא.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: BUDGET ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128176; מודל עבודה ותקציב</h2>
+        <p>שותף טכנולוגי חודשי &mdash; לא הצעת מחיר פרויקטלית</p>
+      </div>
+
+      <div class="pricing-card">
+        <h3>CTO as a Service</h3>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">צוות פיתוח (1-2 מפתחים) + ניהול טכנולוגי מלא</div>
+        <ul>
+          <li>איפיון לוגיקה עסקית ונוסחאות חישוב</li>
+          <li>מנוע קריאת PDF ושליפת נתונים</li>
+          <li>OCR למסמכים סרוקים</li>
+          <li>מחשבונים מותאמים אישית</li>
+          <li>UI/UX &mdash; דשבורד ודוחות</li>
+          <li>שרתים, אבטחה, DevOps</li>
+          <li>שקיפות מלאה &mdash; הקוד שלך, תמיד</li>
+          <li>בלי lock-in, בלי הפתעות</li>
+        </ul>
+      </div>
+
+      <section class="section" style="padding-top: 2.5rem;">
+        <div class="section-header">
+          <h2>&#128197; Timeline משוער</h2>
+          <p>~2-3 חודשים עד מערכת חיה, תלוי בסקופ</p>
+        </div>
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>שבועות 1-2: איפיון ולוגיקה</h3>
+              <p>הבנת סוגי ה-PDF, מיפוי שדות לשליפה, הגדרת נוסחאות חישוב, ועיצוב ממשק. POC ראשוני.</p>
+              <span class="tag">Foundation</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>שבועות 3-6: פיתוח Core</h3>
+              <p>מנוע PDF parsing, שליפת נתונים, מחשבונים, ודשבורד. MVP עובד לבדיקה עם נתונים אמיתיים.</p>
+              <span class="tag">Core Development</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>שבועות 7-10: אופטימיזציה והשקה</h3>
+              <p>טיפול ב-edge cases, שיפור דיוק, export לפורמטים שונים, אבטחה, ו-deploy לפרודקשן.</p>
+              <span class="tag">Polish & Launch</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style="margin-top: 2rem;">
+        <div class="section-header">
+          <h2>&#128736; סטאק טכנולוגי מוצע</h2>
+        </div>
+        <div class="stack-grid">
+          <span class="stack-tag">Python</span>
+          <span class="stack-tag">pdfplumber / PyPDF2</span>
+          <span class="stack-tag">Tesseract OCR</span>
+          <span class="stack-tag">OpenAI API</span>
+          <span class="stack-tag">React / Next.js</span>
+          <span class="stack-tag">Node.js</span>
+          <span class="stack-tag">TypeScript</span>
+          <span class="stack-tag">PostgreSQL</span>
+          <span class="stack-tag">Redis</span>
+          <span class="stack-tag">AWS S3</span>
+          <span class="stack-tag">Docker</span>
+          <span class="stack-tag">CI/CD</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128293; מה עכשיו?</h3>
+        <p>
+          שלח לי דוגמה ל-PDF שצריך לעבד &mdash; ואני אראה לך תוך שעות איך המערכת שולפת ממנו נתונים ומחשבת.
+          <br/><br/>
+          <strong>שלומי זוין</strong><br/>
+          <a href="mailto:shlomi@boostart.io" style="color: var(--accent);">shlomi@boostart.io</a> |
+          <a href="tel:054-5567213" style="color: var(--accent);">054-5567213</a> |
+          <a href="https://wa.me/972545567213" style="color: var(--accent);">WhatsApp</a>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Shlomi Zovin &bull; CTO as a Service &bull; 15+ Years Building Products</p>
+  <p><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> &bull; <a href="https://wa.me/972545567213">054-5567213</a></p>
+</footer>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    if (current === 'light') html.removeAttribute('data-theme');
+    else html.setAttribute('data-theme', 'light');
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    const tabs = ['proposal', 'experience', 'demo', 'budget'];
+    const idx = tabs.indexOf(tabId);
+    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  let uploaded = false;
+
+  function simulateUpload() {
+    if (uploaded) return;
+    uploaded = true;
+
+    const zone = document.getElementById('upload-zone');
+    const progress = document.getElementById('progress-section');
+
+    zone.classList.add('loaded');
+    document.getElementById('upload-icon').innerHTML = '&#9989;';
+    document.getElementById('upload-text').innerHTML = '<strong>financial_report_Q4_2025.pdf</strong><br/>2.3 MB &mdash; הועלה בהצלחה';
+
+    progress.style.display = 'block';
+    const fill = document.getElementById('progress-fill');
+    const text = document.getElementById('progress-text');
+
+    // Step 1: Reading
+    setTimeout(() => { fill.style.width = '25%'; text.textContent = 'קורא את הקובץ... (7 עמודים)'; }, 300);
+
+    // Step 2: Extracting
+    setTimeout(() => { fill.style.width = '50%'; text.textContent = 'שולף נתונים מטבלאות...'; }, 1200);
+
+    // Step 3: Parsing
+    setTimeout(() => { fill.style.width = '75%'; text.textContent = 'מזהה שדות: הכנסות, הוצאות, עובדים...'; }, 2200);
+
+    // Step 4: Done
+    setTimeout(() => {
+      fill.style.width = '100%';
+      text.textContent = '&#9989; שליפה הושלמה &mdash; 7 שדות נמצאו';
+      text.innerHTML = '&#9989; שליפה הושלמה &mdash; 7 שדות נמצאו';
+
+      // Show extracted data
+      document.getElementById('extracted-data').classList.add('show');
+    }, 3000);
+
+    // Step 5: Show calculator
+    setTimeout(() => {
+      document.getElementById('calc-section').classList.add('show');
+    }, 4000);
+  }
+</script>
+
+</body>
+</html>

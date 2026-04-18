@@ -4,5 +4,8 @@ service cloud.firestore {
     match /storyboards/{docId} {
       allow read, write: if true;
     }
+    match /users/{userId}/{document=**} {
+      allow read, write: if true;
+    }
   }
 }

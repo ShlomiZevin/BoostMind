@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CTO למיזם חינוך | שלומי זוין - CTO as a Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #f59e0b;
+      --accent-soft: rgba(245, 158, 11, 0.15);
+      --accent-secondary: #ec4899;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Heebo', sans-serif; background: radial-gradient(circle at top, #1a0f05 0, #050608 50%, #020305 100%); color: var(--text); scroll-behavior: smooth; line-height: 1.6; }
+
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(245,158,11,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: #e5e7f0; }
+    .header-contact { display: flex; align-items: center; gap: 1rem; }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .header-contact .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; }
+
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 750px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(245,158,11,0.25); background: rgba(245,158,11,0.08); color: #fcd34d; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(245,158,11,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(245,158,11,0.5); }
+    .btn.ghost { background: transparent; color: #e5e7f3; border-color: rgba(255,255,255,0.15); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 680px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: #dadfee; margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(245,158,11,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(245,158,11,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    .pricing-card { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(236,72,153,0.08)); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 650px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; }
+
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(245,158,11,0.12), transparent 60%); border: 1px solid rgba(245,158,11,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(236,72,153,0.15); color: #f9a8d4; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* AUDIT CHECKLIST */
+    .audit-list { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.8rem; }
+    .audit-item { display: flex; align-items: flex-start; gap: 1rem; background: var(--card-bg); border-radius: var(--radius-md); padding: 1rem 1.3rem; border: 1px solid rgba(255,255,255,0.06); border-right: 3px solid var(--accent); }
+    .audit-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .audit-text h4 { margin: 0 0 0.2rem; font-size: 0.98rem; }
+    .audit-text p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+
+    .contact-section { text-align: center; padding: 3rem 0; }
+    .contact-section h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .contact-item a { color: var(--accent); text-decoration: none; }
+
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #1a202c;
+      --text-muted: #64748b;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] body,
+    [data-theme="light"] html { background: linear-gradient(180deg, #fff8ed 0%, #fce8e8 100%); }
+    [data-theme="light"] .site-header { background: rgba(255,255,255,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(255,255,255,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .logo-text { color: #1a202c; }
+    [data-theme="light"] .tab-btn { color: #64748b; }
+    [data-theme="light"] .tab-btn:hover { color: #1a202c; }
+    [data-theme="light"] .hero-badges span { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.2); color: #b45309; }
+    [data-theme="light"] .btn.ghost { color: #1a202c; border-color: rgba(0,0,0,0.15); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .card li { color: #374151; }
+    [data-theme="light"] .callout { background: radial-gradient(circle at top, rgba(245,158,11,0.06), transparent 60%); border-color: rgba(245,158,11,0.2); }
+    [data-theme="light"] .callout p { color: #475569; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .exp-card p { color: #475569; }
+    [data-theme="light"] .exp-tag { background: rgba(236,72,153,0.08); color: #be185d; }
+    [data-theme="light"] .pricing-card { background: linear-gradient(135deg, rgba(245,158,11,0.04), rgba(236,72,153,0.04)); border-color: rgba(245,158,11,0.2); }
+    [data-theme="light"] .audit-item { border-color: rgba(0,0,0,0.06); border-right-color: var(--accent); }
+    [data-theme="light"] .audit-text p { color: #475569; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.12); transform: rotate(180deg); }
+    [data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.08); }
+
+    .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 1.5rem 0; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .hero { padding: 2.5rem 0 2rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 1rem; }
+      .section { padding: 2.5rem 0; }
+      .section-header { margin-bottom: 1.5rem; }
+      .section-header h2 { font-size: 1.5rem; }
+      .tabs { flex-wrap: wrap; justify-content: center; }
+      .tab-btn { font-size: 0.82rem; padding: 0.65rem 0.8rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .header-contact span:not(.btn-sm) { display: none; }
+      .logo-text { font-size: 0.8rem; }
+      .card { padding: 1.2rem; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2rem; }
+      .callout { padding: 1.3rem; }
+      .btn { padding: 0.65rem 1.2rem; font-size: 0.88rem; }
+      .contact-details { gap: 1rem; }
+      .exp-card { padding: 1.2rem; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.45rem; }
+      .hero-badges span { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .contact-details { flex-direction: column; align-items: center; }
+      .tab-btn { padding: 0.6rem 0.65rem; font-size: 0.78rem; }
+      .container { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">שלומי זוין | CTO as a Service</span>
+      </a>
+      <div class="header-contact">
+        <button class="theme-toggle" id="theme-toggle" title="Dark / Light">&#127769;</button>
+        <span>054-5567213</span>
+        <a href="mailto:shlomi@boostart.io" class="btn-sm">בואו נדבר</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="offer">ההצעה</button>
+      <button class="tab-btn" data-tab="approach">איך אני עובד</button>
+      <button class="tab-btn" data-tab="experience">ניסיון</button>
+      <button class="tab-btn" data-tab="pricing">תקציב</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: OFFER -->
+<div class="tab-content active" id="tab-offer">
+  <section class="hero">
+    <div class="container">
+      <h1>CTO למיזם חינוך?<br/><span class="gradient">בדיוק בול בשבילי.</span></h1>
+      <p class="hero-sub">
+        אני שלומי, CTO as a Service עם 15+ שנות ניסיון. בדיוק הדבר שאתם מחפשים -
+        לקחת אפליקציה קיימת, להבין אותה לעומק, לשפר ביצועים ו-UX, ולהוביל את הפיתוח קדימה.
+        גמיש, זמין, ולוקח בעלות מלאה - לא סתם עוד פרילנסר.
+      </p>
+      <div class="hero-badges">
+        <span>Mobile + Web</span>
+        <span>React Native / Flutter</span>
+        <span>React / Next.js</span>
+        <span>Node.js / Python</span>
+        <span>Performance Optimization</span>
+        <span>UX / Product</span>
+        <span>15+ שנות ניסיון</span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">דברו איתי בוואטסאפ</a>
+        <button class="btn ghost" onclick="switchTab('approach')">איך אני ניגש לזה &#8592;</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>מה אתם צריכים - ומה אני נותן</h2>
+        <p>התאמה מדויקת לדרישות שלכם</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">&#128269;</div>
+          <h3>בדיקה והובלה של אפליקציה קיימת</h3>
+          <p>נכנס לקוד הקיים, מבצע audit מקיף - ארכיטקטורה, ביצועים, אבטחה, תחזוקתיות. מחזיר לכם תמונה ברורה של המצב, והמלצות קונקרטיות.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>שיפור ביצועים וחווית משתמש</h3>
+          <p>מדד, אופטימיזציה, ושיפור ברמת הקוד, ה-UX וה-infrastructure. Load time, responsiveness, smooth animations - הדברים שמשפיעים על retention.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128640;</div>
+          <h3>ליווי, פיתוח והתרחבות</h3>
+          <p>לא רק "תקן באג" - שותף אסטרטגי לטווח ארוך. תכנון roadmap, החלטות טכנולוגיות, גיוס צוות כשצריך, הכל ביחד איתכם.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127891;</div>
+          <h3>ניסיון בתחום החינוך</h3>
+          <p>בניתי מערכות edtech - פלטפורמות למידה, מערכות תוכן אינטראקטיבי, gamification, ומנועי המלצה ללומדים. מבין את הדומיין.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="callout">
+        <h3>&#128161; למה זה חשוב לכם?</h3>
+        <p>
+          בשלב שבו המיזם נמצא - יש לכם אפליקציה, יש משתמשים, ועכשיו צריך לקחת אותה לשלב הבא.
+          זה בדיוק הרגע שבו בחירה לא נכונה של פרילנסר עולה כסף, זמן, ולפעמים את המוצר עצמו.
+          CTO שרואה את המערכת הרחבה, לא רק tickets בג'ירה, זה ההבדל בין מיזם שצומח למיזם שנתקע.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 2: APPROACH -->
+<div class="tab-content" id="tab-approach">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>איך אני ניגש לאפליקציה קיימת</h2>
+        <p>מתודולוגיה ברורה - שבועיים ראשונים, ומשם קדימה</p>
+      </div>
+
+      <div class="section-header" style="margin-top: 2rem;">
+        <h3 style="font-size: 1.3rem;">שלב 1 - Audit ראשוני (שבוע 1-2)</h3>
+      </div>
+      <div class="audit-list">
+        <div class="audit-item">
+          <div class="audit-icon">&#128187;</div>
+          <div class="audit-text">
+            <h4>סקירת ארכיטקטורה וקוד</h4>
+            <p>מבנה הפרויקט, dependencies, patterns, tech debt. מה שווה לשמור, מה צריך להחליף.</p>
+          </div>
+        </div>
+        <div class="audit-item">
+          <div class="audit-icon">&#9889;</div>
+          <div class="audit-text">
+            <h4>ניתוח ביצועים</h4>
+            <p>Load time, bundle size, API response times, DB queries איטיים, memory leaks. נתונים מדידים.</p>
+          </div>
+        </div>
+        <div class="audit-item">
+          <div class="audit-icon">&#127912;</div>
+          <div class="audit-text">
+            <h4>UX Review</h4>
+            <p>מעבר על flows מרכזיים, זיהוי friction points, הצעות לשיפור בהתבסס על data אמיתי של משתמשים.</p>
+          </div>
+        </div>
+        <div class="audit-item">
+          <div class="audit-icon">&#128274;</div>
+          <div class="audit-text">
+            <h4>אבטחה ו-compliance</h4>
+            <p>במיוחד חשוב ב-edtech - הגנה על נתוני תלמידים, GDPR, permissions, authentication.</p>
+          </div>
+        </div>
+        <div class="audit-item">
+          <div class="audit-icon">&#128200;</div>
+          <div class="audit-text">
+            <h4>Scalability</h4>
+            <p>מה יקרה כשיהיו פי 10 משתמשים? פי 100? איפה הצווארי בקבוק, ומתי לטפל בהם.</p>
+          </div>
+        </div>
+        <div class="audit-item">
+          <div class="audit-icon">&#128295;</div>
+          <div class="audit-text">
+            <h4>DevOps & CI/CD</h4>
+            <p>איך deployments קורים היום? יש tests? monitoring? alerts? - מה צריך לסדר כדי שנוכל לעבוד במהירות בלי לשבור.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h3 style="font-size: 1.3rem;">שלב 2 - Quick Wins (שבוע 3-4)</h3>
+      </div>
+      <div class="container" style="max-width: 800px;">
+        <p style="color: var(--text-muted); text-align: center;">
+          תיקון ה-bottlenecks הכואבים ביותר - הדברים שישפרו ביצועים ו-UX מיידית.
+          בדרך כלל 2-3 שיפורים שנותנים 80% מהערך.
+        </p>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h3 style="font-size: 1.3rem;">שלב 3 - פיתוח והתרחבות (מחודש 2+)</h3>
+      </div>
+      <div class="container" style="max-width: 800px;">
+        <p style="color: var(--text-muted); text-align: center;">
+          בניית roadmap בשיתוף איתכם, פיתוח פיצ'רים חדשים, refactoring מדוד,
+          ובניית התשתית שתאפשר צמיחה. בליווי צמוד, בשקיפות מלאה.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 3: EXPERIENCE -->
+<div class="tab-content" id="tab-experience">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי</h2>
+        <p>15+ שנות ניסיון בהובלת מוצרים - כולל edtech ואפליקציות mobile/web</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">15+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">10+</div>
+          <div class="label">אפליקציות Mobile בפרודקשן</div>
+        </div>
+        <div class="stat">
+          <div class="num">CTO</div>
+          <div class="label">תפקיד של המייסדים שלי</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#127891; פלטפורמות חינוך ולמידה</h3>
+          <p>ניסיון בבניית מערכות edtech - תוכן אינטראקטיבי, מעקב התקדמות, gamification, מנועי המלצה ללומדים, ומערכות אדמין למורים.</p>
+          <span class="exp-tag">EdTech</span>
+          <span class="exp-tag">Interactive Learning</span>
+          <span class="exp-tag">Gamification</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128241; אפליקציות Mobile & Web</h3>
+          <p>React Native, Flutter, iOS, Android. גם web - React, Next.js. מהאיפיון, דרך הפיתוח, ועד להעלאה ל-stores ותחזוקה ארוכת טווח.</p>
+          <span class="exp-tag">React Native</span>
+          <span class="exp-tag">Flutter</span>
+          <span class="exp-tag">React</span>
+          <span class="exp-tag">Next.js</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128736;&#65039; הובלת מוצר קיים</h3>
+          <p>נכנסתי לא פעם למוצר קיים של מיזם, עשיתי audit, זיהיתי חובות טכניים, והובלתי את המעבר לארכיטקטורה חדשה - בלי לשבור את מה שעובד.</p>
+          <span class="exp-tag">Legacy Migration</span>
+          <span class="exp-tag">Refactoring</span>
+          <span class="exp-tag">Tech Debt</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#9889; Performance & UX</h3>
+          <p>אופטימיזציה של אפליקציות כבדות - bundle splitting, caching, DB optimization, CDN, lazy loading. החוויה שמשפיעה על retention.</p>
+          <span class="exp-tag">Performance</span>
+          <span class="exp-tag">UX</span>
+          <span class="exp-tag">Optimization</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128161; מה שמייחד אותי</h3>
+        <p>
+          לא בורג בצוות - רואה מערכת שלמה. משתמש ב-AI כמכפיל כוח בפיתוח עצמו
+          (Claude Code ו-AI tools), דברים של חודשים הופכים לימים.
+          20+ שנות ניסיון מאחורי ה-AI - מבין את הטכנולוגיה שמאחורי LLMs, יודע למקסם ולהכיר מגבלות.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 4: PRICING -->
+<div class="tab-content" id="tab-pricing">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>תקציב ולו"ז</h2>
+        <p>מודל CTO חודשי - גמיש בדיוק כמו שאתם מחפשים</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">CTO as a Service</div>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">צוות פיתוח (1-2 מפתחים) + ניהול טכנולוגי שלי</div>
+        <ul>
+          <li>Audit מקיף של האפליקציה הקיימת</li>
+          <li>תוכנית שיפור ביצועים ו-UX מדויקת</li>
+          <li>פיתוח והובלת הפיצ'רים הבאים</li>
+          <li>מעבר על תהליכי DevOps ו-CI/CD</li>
+          <li>monitoring, alerts, ותשתית לצמיחה</li>
+          <li>שיחה שבועית קבועה + זמינות שוטפת</li>
+          <li>גמישות - scope יכול להשתנות לפי הצורך</li>
+          <li>שקיפות מלאה - הקוד שלכם, תמיד</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="margin-top: 1rem; width: 100%;">בואו נדבר על זה</a>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>Timeline מוצע</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>היכרות + Audit ראשוני</h3>
+            <p>צלילה לקוד, לארכיטקטורה, ולמוצר. תוצר - דוח audit מפורט + תוכנית פעולה.</p>
+            <span class="tag">שבוע 1-2</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>Quick Wins</h3>
+            <p>תיקון bottlenecks, שיפורי ביצועים מיידיים, UX fixes - הדברים שמרגישים מיד.</p>
+            <span class="tag">שבוע 3-4</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>פיתוח פיצ'רים חדשים</h3>
+            <p>בניית ה-roadmap ביחד, תעדוף, פיתוח. סטנדרטים, tests, CI/CD מסודר.</p>
+            <span class="tag">חודש 2+</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>התרחבות וצמיחה</h3>
+            <p>ליווי ארוך טווח - scale, אופטימיזציה, גיוס צוות כשצריך, החלטות אסטרטגיות.</p>
+            <span class="tag">לטווח ארוך</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-section">
+    <div class="container">
+      <h2>בואו נדבר</h2>
+      <p>אשמח לשמוע עוד על המיזם ועל האפליקציה הקיימת</p>
+      <div class="contact-details">
+        <div class="contact-item">&#128222; <a href="tel:054-5567213">054-5567213</a></div>
+        <div class="contact-item">&#128231; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">&#128172; <a href="https://wa.me/972545567213">WhatsApp</a></div>
+      </div>
+      <a href="https://wa.me/972545567213" class="btn primary">שלחו הודעה עכשיו</a>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    שלומי זוין | CTO as a Service | shlomi@boostart.io | 054-5567213
+  </div>
+</footer>
+
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  const themeToggle = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>חיבור משפחתי חכם ב-TV — שלומי זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #8b5cf6;
+      --accent-soft: rgba(139, 92, 246, 0.15);
+      --accent-secondary: #ec4899;
+      --accent-blue: #0ea5e9;
+      --accent-green: #10b981;
+      --accent-gold: #f59e0b;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --bg-alt: #f1f5f9; --card-bg: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b; --shadow-soft: 0 18px 40px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.7; transition: background 0.3s, color 0.3s; }
+    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 100vh; background: radial-gradient(circle at top, rgba(139,92,246,0.06) 0, transparent 50%); pointer-events: none; z-index: 0; }
+    [data-theme="light"] body::before { background: radial-gradient(circle at top, rgba(139,92,246,0.04) 0, transparent 50%); }
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    [data-theme="light"] .site-header { background: rgba(248,250,252,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(139,92,246,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); direction: ltr; }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all 0.2s; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 0.5rem; }
+
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(248,250,252,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.3; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 2rem; line-height: 1.8; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(139,92,246,0.25); background: rgba(139,92,246,0.08); color: #c4b5fd; }
+    [data-theme="light"] .hero-badges span { border-color: rgba(139,92,246,0.35); background: rgba(139,92,246,0.1); color: #6d28d9; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(139,92,246,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(139,92,246,0.5); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); transition: transform 0.2s, box-shadow 0.2s; }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    .card:hover { transform: translateY(-3px); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B9'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(14,165,233,0.15); color: #7dd3fc; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+    [data-theme="light"] .exp-tag { background: rgba(14,165,233,0.1); color: #0284c7; }
+
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(139,92,246,0.12), transparent 60%); border: 1px solid rgba(139,92,246,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+
+    .pricing-card { background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 700px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent-green); font-weight: 700; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(139,92,246,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(139,92,246,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    /* DEMO */
+    .demo-container { max-width: 500px; margin: 0 auto; }
+    .tv-frame { background: #1a1a2e; border-radius: 20px; padding: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative; }
+    .tv-screen { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; position: relative; display: flex; align-items: center; justify-content: center; }
+    .tv-stand { width: 120px; height: 8px; background: #1a1a2e; border-radius: 0 0 8px 8px; margin: 0 auto; }
+    .tv-content { text-align: center; padding: 2rem; width: 100%; }
+    .tv-content .family-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1rem; }
+    .family-member { text-align: center; }
+    .family-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 4px; border: 2px solid transparent; transition: all 0.3s; }
+    .family-avatar.online { border-color: var(--accent-green); box-shadow: 0 0 15px rgba(16,185,129,0.4); }
+    .family-avatar.offline { opacity: 0.5; }
+    .family-name { font-size: 0.65rem; color: rgba(255,255,255,0.7); }
+    .family-status { font-size: 0.55rem; }
+    .status-online { color: #34d399; }
+    .status-offline { color: #6b7280; }
+    .tv-title { font-size: 0.85rem; color: rgba(255,255,255,0.9); font-weight: 700; margin-bottom: 0.75rem; }
+    .tv-subtitle { font-size: 0.6rem; color: rgba(255,255,255,0.4); }
+    .smart-btn-container { margin-top: 2rem; text-align: center; }
+    .smart-btn { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); border: none; cursor: pointer; font-size: 2rem; color: white; box-shadow: 0 8px 30px rgba(139,92,246,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
+    .smart-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(139,92,246,0.7); }
+    .smart-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%,-50%); transition: all 0.5s; }
+    .smart-btn.active::after { width: 200%; height: 200%; }
+    .smart-btn-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+    .call-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; border-radius: 12px; z-index: 10; animation: fadeIn 0.3s ease; }
+    .call-overlay.show { display: flex; }
+    .call-avatar-big { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 3px solid var(--accent-green); box-shadow: 0 0 30px rgba(16,185,129,0.4); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 20px rgba(16,185,129,0.3); } 50% { box-shadow: 0 0 40px rgba(16,185,129,0.6); } }
+    .call-text { color: white; font-size: 1rem; font-weight: 600; }
+    .call-sub { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
+    .call-actions { display: flex; gap: 1.5rem; margin-top: 0.5rem; }
+    .call-btn { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.3rem; color: white; transition: transform 0.2s; }
+    .call-btn:hover { transform: scale(1.1); }
+    .call-btn.accept { background: var(--accent-green); }
+    .call-btn.decline { background: #ef4444; }
+
+    .notification-bar { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-top: 1rem; display: none; align-items: center; gap: 0.5rem; font-size: 0.85rem; animation: fadeIn 0.3s ease; }
+    .notification-bar.show { display: flex; }
+    .notification-bar .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); flex-shrink: 0; }
+
+    .stack-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; }
+    .stack-tag { font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: var(--text-muted); }
+    [data-theme="light"] .stack-tag { border-color: rgba(0,0,0,0.08); background: rgba(0,0,0,0.03); }
+
+    /* PROCESS */
+    .process-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(139,92,246,0.2); padding: 2rem; max-width: 700px; margin: 0 auto; }
+    .process-step { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .process-step:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .process-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(139,92,246,0.12); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .process-text h4 { font-size: 1rem; margin: 0 0 0.3rem; }
+    .process-text p { font-size: 0.88rem; color: var(--text-muted); margin: 0; line-height: 1.6; }
+
+    .site-footer { text-align: center; padding: 2rem 0; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 2rem; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+    .site-footer p { color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0; }
+    .site-footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.8rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .tab-btn { padding: 0.75rem 1rem; font-size: 0.85rem; }
+      .header-contact { display: none; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2rem; }
+      .demo-container { max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .tabs { justify-content: flex-start; }
+      .hero { padding: 2.5rem 0 2rem; }
+      .family-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">Shlomi Zovin &bull; CTO as a Service</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#9788;</button>
+        <span class="header-contact">
+          <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+          <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp &larr;</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">&#127919; ההצעה</button>
+      <button class="tab-btn" onclick="switchTab('experience')">&#128218; ניסיון רלוונטי</button>
+      <button class="tab-btn" onclick="switchTab('demo')">&#9889; הדגמה חיה</button>
+      <button class="tab-btn" onclick="switchTab('budget')">&#128176; תהליך ותקציב</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <h1><span class="gradient">חיבור משפחתי חכם</span><br/>לחיצה אחת על הכפתור &mdash; והמשפחה על המסך</h1>
+      <p class="hero-sub">
+        קראתי את המודעה ומיד התחברתי לרעיון. אני מביא שילוב נדיר &mdash;
+        <strong>ניסיון עמוק ב-Android TV ו-Web Full Stack</strong>, יחד עם יכולת לבנות מערכות real-time
+        לחיבור בין מכשירים ומשתמשים. כבר בניתי 50+ מוצרים מאפס &mdash; כולל מערכות תקשורת בזמן אמת.
+        <br/><br/>
+        אני מוכן לתהליך "הוכחת יכולת" שלכם. למעשה &mdash; <strong>כבר התחלתי</strong>.
+        תגללו להדגמה החיה.
+      </p>
+      <div class="hero-badges">
+        <span>Android TV</span>
+        <span>Web Full Stack</span>
+        <span>WebRTC / Real-time</span>
+        <span>React + Node.js</span>
+        <span>WebSockets</span>
+        <span>Push Notifications</span>
+        <span>IoT & Smart Devices</span>
+        <span>UI/UX Design</span>
+        <span>50+ מוצרים מאפס</span>
+        <span>15+ שנות ניסיון</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">&#128172; בוא נדבר</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">&#128065; ראה הדגמה חיה</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#128161; למה ההצעה הזאת שונה</h3>
+      <p>
+        אתם מחפשים מישהו שמוכיח יכולת בשטח, לא בתיאוריה. מצוין &mdash; ככה בדיוק אני עובד.
+        <br/><br/>
+        ההדגמה שתראו בטאב "הדגמה חיה" <strong>נבנתה תוך דקות</strong> &mdash; סימולציה של הכפתור החכם,
+        מסך TV עם רשת משפחתית, וחיבור מידי. זו לא סתם פיגמה, זה עובד.
+        אני משתמש ב-AI כמכפיל כוח בפיתוח &mdash; דברים שלוקחים חודשים הופכים לימים.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>מה אני מביא למשימה</h2>
+        <p>בדיוק הכישורים שדרושים לבניית "חיבור מידי ידידותי וקבוע"</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#128250;</div>
+          <h3>Android TV</h3>
+          <p>ניסיון בפיתוח אפליקציות ל-Android TV עם ממשק D-Pad friendly, Leanback Library, ו-TV-optimized UX</p>
+          <ul>
+            <li>Android TV Leanback</li>
+            <li>Kotlin / Java</li>
+            <li>TV Input Framework</li>
+            <li>Remote Control UX</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128260;</div>
+          <h3>Real-time Communication</h3>
+          <p>בניתי מערכות צ׳אט, וידאו, ו-push notifications בזמן אמת &mdash; בדיוק מה שצריך לחיבור משפחתי</p>
+          <ul>
+            <li>WebRTC (וידאו/אודיו)</li>
+            <li>WebSockets / Socket.io</li>
+            <li>Push Notifications</li>
+            <li>Firebase Cloud Messaging</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127760;</div>
+          <h3>Web Full Stack</h3>
+          <p>React, Next.js, Node.js, TypeScript &mdash; הכל. 15+ שנות ניסיון. אפליקציות web ו-mobile-web מקצה לקצה</p>
+          <ul>
+            <li>React / Next.js</li>
+            <li>Node.js / Express</li>
+            <li>TypeScript</li>
+            <li>Progressive Web Apps</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128274;</div>
+          <h3>IoT & Smart Devices</h3>
+          <p>ניסיון בחיבור מכשירים חכמים, כפתורים פיזיים, ואינטגרציה בין מכשירים שונים</p>
+          <ul>
+            <li>BLE / Bluetooth</li>
+            <li>Smart Home Protocols</li>
+            <li>Device Pairing</li>
+            <li>MQTT / Event-driven</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127912;</div>
+          <h3>UI/UX לקהל מבוגר</h3>
+          <p>עיצוב ממשקים פשוטים, ידידותיים, ונגישים &mdash; קריטי לקהל יעד משפחתי שכולל סבים וסבתות</p>
+          <ul>
+            <li>Large UI Elements</li>
+            <li>High Contrast Design</li>
+            <li>Minimal Interaction Steps</li>
+            <li>Accessibility (A11y)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128736;</div>
+          <h3>שרתים ותשתית</h3>
+          <p>תשתית cloud עם signaling server, media relay, ואבטחת תקשורת מקצה לקצה</p>
+          <ul>
+            <li>AWS / GCP / Firebase</li>
+            <li>Docker + CI/CD</li>
+            <li>TURN/STUN Servers</li>
+            <li>End-to-end Encryption</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#129309; לגבי תהליך "הוכחת יכולת"</h3>
+      <p>
+        אני אוהב את הגישה הזאת. במקום שעות של ראיונות &mdash; תוצאות בשטח.
+        ככה בדיוק אני עובד עם כל הלקוחות שלי.
+        <br/><br/>
+        אני מוכן לבנות את הרכיב הראשוני, להוכיח יכולת בלו"ז קצר, ולתחזק את 3 משפחות הפיילוט.
+        <strong>אם זה עובד &mdash; ממשיכים יחד. אם לא &mdash; שילמתם, קיבלתם, אין hard feelings.</strong>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128218; ניסיון רלוונטי</h2>
+        <p>מתוך 50+ מוצרים שנבנו &mdash; הנה הכי רלוונטיים לחיבור משפחתי ב-TV</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">15+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">Real-time</div>
+          <div class="label">מומחיות עמוקה</div>
+        </div>
+        <div class="stat">
+          <div class="num">E2E</div>
+          <div class="label">מקצה לקצה</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#128250; אפליקציית Smart TV</h3>
+          <p>פיתוח אפליקציה ל-Android TV עם ממשק מותאם שלט, ניווט D-Pad, ואינטגרציה עם מכשירים חכמים בבית. ממשק ידידותי שעובד לכל הגילאים.</p>
+          <span class="exp-tag">Android TV</span>
+          <span class="exp-tag">Kotlin</span>
+          <span class="exp-tag">Leanback</span>
+          <span class="exp-tag">Smart Home</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128172; מערכת צ׳אט ווידאו בזמן אמת</h3>
+          <p>פלטפורמת תקשורת מלאה עם שיחות וידאו, צ׳אט טקסטואלי, ו-push notifications. WebRTC עם fallback, signaling server, ותמיכה ב-NAT traversal.</p>
+          <span class="exp-tag">WebRTC</span>
+          <span class="exp-tag">Socket.io</span>
+          <span class="exp-tag">Node.js</span>
+          <span class="exp-tag">Real-time</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129504; מערכת AI Agents</h3>
+          <p>פלטפורמה מלאה של AI agents אוטונומיים עם multi-LLM routing, state persistence, ו-real-time streaming. כולל WhatsApp integration.</p>
+          <span class="exp-tag">AI Agents</span>
+          <span class="exp-tag">OpenAI</span>
+          <span class="exp-tag">Claude</span>
+          <span class="exp-tag">SSE Streaming</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128241; אפליקציית IoT & Smart Button</h3>
+          <p>מערכת לחיבור כפתורים חכמים (BLE) לאפליקציית מובייל. לחיצה אחת מפעילה פעולה &mdash; הודעה, שיחה, או trigger אחר. בדיוק הקונספט שלכם.</p>
+          <span class="exp-tag">BLE / Bluetooth</span>
+          <span class="exp-tag">React Native</span>
+          <span class="exp-tag">Push Notifications</span>
+          <span class="exp-tag">IoT</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#127968; פלטפורמת משפחה / קהילה</h3>
+          <p>אפליקציה לניהול קהילה משפחתית עם שיתוף תמונות, לוח אירועים משותף, צ׳אט קבוצתי, ומעקב בריאות לבני משפחה מבוגרים.</p>
+          <span class="exp-tag">React</span>
+          <span class="exp-tag">Firebase</span>
+          <span class="exp-tag">Family UX</span>
+          <span class="exp-tag">Notifications</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128640; DevOps & Infrastructure</h3>
+          <p>תשתיות cloud מאובטחות עם CI/CD, monitoring, ו-auto-scaling. Docker, Kubernetes, AWS/GCP. מוכן לפרודקשן מיום ראשון.</p>
+          <span class="exp-tag">AWS</span>
+          <span class="exp-tag">Docker</span>
+          <span class="exp-tag">CI/CD</span>
+          <span class="exp-tag">Monitoring</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE DEMO ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#9889; הדגמה חיה &mdash; הכפתור החכם</h2>
+        <p>ככה זה נראה: לחיצה אחת על הכפתור &mdash; והמשפחה על מסך הטלוויזיה. נבנה תוך דקות.</p>
+      </div>
+
+      <div class="demo-container">
+        <!-- TV Screen -->
+        <div class="tv-frame">
+          <div class="tv-screen" id="tv-screen">
+            <div class="tv-content" id="tv-home">
+              <div class="tv-title">&#128150; המשפחה שלי</div>
+              <div class="family-grid">
+                <div class="family-member">
+                  <div class="family-avatar online" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">&#128105;</div>
+                  <div class="family-name">אמא</div>
+                  <div class="family-status status-online">&#9679; מחוברת</div>
+                </div>
+                <div class="family-member">
+                  <div class="family-avatar online" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4);">&#128104;</div>
+                  <div class="family-name">אבא</div>
+                  <div class="family-status status-online">&#9679; מחובר</div>
+                </div>
+                <div class="family-member">
+                  <div class="family-avatar offline" style="background: linear-gradient(135deg, #f59e0b, #eab308);">&#128102;</div>
+                  <div class="family-name">דני (ת״א)</div>
+                  <div class="family-status status-offline">&#9679; לא מחובר</div>
+                </div>
+                <div class="family-member">
+                  <div class="family-avatar online" style="background: linear-gradient(135deg, #ec4899, #f472b6);">&#128103;</div>
+                  <div class="family-name">מיכל (ניו יורק)</div>
+                  <div class="family-status status-online">&#9679; מחוברת</div>
+                </div>
+                <div class="family-member">
+                  <div class="family-avatar online" style="background: linear-gradient(135deg, #10b981, #34d399);">&#128116;</div>
+                  <div class="family-name">סבתא רחל</div>
+                  <div class="family-status status-online">&#9679; מחוברת</div>
+                </div>
+                <div class="family-member">
+                  <div class="family-avatar offline" style="background: linear-gradient(135deg, #6366f1, #818cf8);">&#128117;</div>
+                  <div class="family-name">סבא יעקב</div>
+                  <div class="family-status status-offline">&#9679; לא מחובר</div>
+                </div>
+              </div>
+              <div class="tv-subtitle">לחץ על הכפתור החכם למטה כדי להתחבר</div>
+            </div>
+            <!-- Call Overlay -->
+            <div class="call-overlay" id="call-overlay">
+              <div class="call-avatar-big" style="background: linear-gradient(135deg, #ec4899, #f472b6);">&#128103;</div>
+              <div class="call-text">מיכל מתחברת מניו יורק...</div>
+              <div class="call-sub" id="call-status">מתחבר...</div>
+              <div class="call-actions" id="call-actions" style="display:none;">
+                <button class="call-btn accept" onclick="acceptCall()">&#128222;</button>
+                <button class="call-btn decline" onclick="endCall()">&#128148;</button>
+              </div>
+            </div>
+          </div>
+          <div class="tv-stand"></div>
+        </div>
+
+        <!-- Smart Button -->
+        <div class="smart-btn-container">
+          <button class="smart-btn" id="smart-btn" onclick="pressSmartButton()">&#128150;</button>
+          <div class="smart-btn-label">&#8593; לחץ על הכפתור החכם</div>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification-bar" id="notification">
+          <span class="notif-dot"></span>
+          <span id="notif-text"></span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2.5rem;">
+        <h3>&#128161; מה מוצג כאן?</h3>
+        <p>
+          סימולציה של הקונספט: <strong>כפתור חכם</strong> שבלחיצה אחת מפעיל את מסך הטלוויזיה,
+          מציג את בני המשפחה המחוברים (כולל בחו״ל), ומאפשר חיבור מידי.
+          <br/><br/>
+          <strong>כל זה נבנה תוך דקות</strong> &mdash; זו הדגמת קצב עבודה, לא מוצר מוגמר.
+          בפיילוט האמיתי זה יעבוד עם WebRTC לוידאו/אודיו, Android TV app, ו-Smart Button אמיתי.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: PROCESS & BUDGET ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128176; תהליך העבודה</h2>
+        <p>מתאים לתהליך "הוכחת יכולת" שלכם &mdash; עם האיכות של CTO as a Service</p>
+      </div>
+
+      <!-- Process matching their requirements -->
+      <div class="process-card">
+        <div class="process-step">
+          <div class="process-icon">&#9312;</div>
+          <div class="process-text">
+            <h4>שלב ראשון: הוכחת יכולת (משימה חד-פעמית)</h4>
+            <p>בניית הרכיב הראשוני &mdash; "כפתור חכם" עובד שמתחבר למסך TV ומציג את בני המשפחה. Functional prototype שמראה את כל הקונספט בפעולה. תשלום עבור המשימה ללא קשר להמשך.</p>
+          </div>
+        </div>
+        <div class="process-step">
+          <div class="process-icon">&#9313;</div>
+          <div class="process-text">
+            <h4>שלב שני: פיילוט עם 3 משפחות (~4 חודשים)</h4>
+            <p>התקנה ותחזוקה של המערכת ב-3 משפחות באזור גוש דן והמרכז. איסוף פידבק, שיפורים שוטפים, ומעקב אחרי שימוש אמיתי.</p>
+          </div>
+        </div>
+        <div class="process-step">
+          <div class="process-icon">&#9314;</div>
+          <div class="process-text">
+            <h4>שלב שלישי: Scale & Product</h4>
+            <p>לאחר הוכחת הקונספט בפיילוט &mdash; בניית המוצר המלא, אופטימיזציה, ומוכנות להפצה רחבה. כאן הפוטנציאל העסקי מתממש.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 3rem;">
+        <div class="section-header">
+          <h2>&#128176; תקציב</h2>
+          <p>מודל CTO as a Service &mdash; שותף טכנולוגי, לא פרילנסר</p>
+        </div>
+
+        <div class="pricing-card">
+          <h3>CTO as a Service</h3>
+          <div class="price">~50,000 &#8362;/חודש</div>
+          <div class="price-note">צוות פיתוח (1-2 מפתחים) + ניהול טכנולוגי מלא</div>
+          <ul>
+            <li>בניית רכיב ראשוני (הוכחת יכולת) בלו"ז קצר</li>
+            <li>תחזוקת 3 משפחות פיילוט לאורך 4 חודשים</li>
+            <li>Android TV app + Web companion app</li>
+            <li>Smart Button integration (BLE/WiFi)</li>
+            <li>WebRTC video/audio infrastructure</li>
+            <li>UI/UX מותאם לקהל משפחתי (כולל מבוגרים)</li>
+            <li>שרתים, אבטחה, DevOps</li>
+            <li>שקיפות מלאה &mdash; הקוד שלכם, תמיד</li>
+          </ul>
+        </div>
+      </div>
+
+      <section class="section" style="padding-top: 2.5rem;">
+        <div class="section-header">
+          <h2>&#128197; Timeline</h2>
+        </div>
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>שבוע 1-2: הוכחת יכולת</h3>
+              <p>בניית הרכיב הראשוני &mdash; כפתור חכם &#8594; חיבור ל-TV &#8594; תצוגת משפחה &#8594; שיחה. Prototype עובד שמוכיח את הקונספט.</p>
+              <span class="tag">Proof of Concept</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>שבוע 3-4: התקנת פיילוט</h3>
+              <p>התקנה פיזית ב-3 משפחות. הגדרת חשבונות, pairing מכשירים, הדרכה ראשונית. ודא שהכל עובד חלק.</p>
+              <span class="tag">Pilot Setup</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>חודש 2-4: תחזוקה ושיפורים</h3>
+              <p>מעקב שוטף, תיקון באגים, שיפורים על בסיס פידבק אמיתי. analytics לשימוש, דוחות שבועיים.</p>
+              <span class="tag">Pilot Maintenance</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">4</div>
+            <div class="timeline-body">
+              <h3>סוף חודש 4: סיכום והחלטה</h3>
+              <p>דוח מסכם עם תוצאות הפיילוט, תובנות, ומפת דרכים למוצר מלא. החלטה על המשך שיתוף פעולה.</p>
+              <span class="tag">Decision Point</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style="margin-top: 2rem;">
+        <div class="section-header">
+          <h2>&#128736; סטאק טכנולוגי מוצע</h2>
+        </div>
+        <div class="stack-grid">
+          <span class="stack-tag">Android TV (Kotlin)</span>
+          <span class="stack-tag">Leanback Library</span>
+          <span class="stack-tag">React / Next.js</span>
+          <span class="stack-tag">Node.js</span>
+          <span class="stack-tag">TypeScript</span>
+          <span class="stack-tag">WebRTC</span>
+          <span class="stack-tag">Socket.io</span>
+          <span class="stack-tag">Firebase (Auth + FCM)</span>
+          <span class="stack-tag">PostgreSQL</span>
+          <span class="stack-tag">BLE / WiFi IoT</span>
+          <span class="stack-tag">Docker</span>
+          <span class="stack-tag">AWS / GCP</span>
+          <span class="stack-tag">TURN/STUN Server</span>
+          <span class="stack-tag">CI/CD</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128293; מה עכשיו?</h3>
+        <p>
+          אני מוכן להתחיל את תהליך הוכחת היכולת מחר.
+          בוא נדבר 15 דקות, נבין בדיוק מה הרכיב הראשוני שצריך &mdash; ואני מתחיל לבנות.
+          <br/><br/>
+          <strong>שלומי זוין</strong><br/>
+          <a href="mailto:shlomi@boostart.io" style="color: var(--accent);">shlomi@boostart.io</a> |
+          <a href="tel:054-5567213" style="color: var(--accent);">054-5567213</a> |
+          <a href="https://wa.me/972545567213" style="color: var(--accent);">WhatsApp</a>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Shlomi Zovin &bull; CTO as a Service &bull; 15+ Years Building Products</p>
+  <p><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> &bull; <a href="https://wa.me/972545567213">054-5567213</a></p>
+</footer>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    if (current === 'light') html.removeAttribute('data-theme');
+    else html.setAttribute('data-theme', 'light');
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    const tabs = ['proposal', 'experience', 'demo', 'budget'];
+    const idx = tabs.indexOf(tabId);
+    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  let callState = 'idle';
+
+  function pressSmartButton() {
+    if (callState !== 'idle') return;
+    callState = 'connecting';
+
+    const btn = document.getElementById('smart-btn');
+    btn.classList.add('active');
+
+    // Show notification
+    showNotif('&#128276; הכפתור החכם הופעל! מתחבר לטלוויזיה...');
+
+    setTimeout(() => {
+      // Show call overlay
+      const overlay = document.getElementById('call-overlay');
+      overlay.classList.add('show');
+      document.getElementById('call-status').textContent = 'מתחבר...';
+
+      showNotif('&#128250; הטלוויזיה נדלקה! מחפש בני משפחה מחוברים...');
+
+      setTimeout(() => {
+        document.getElementById('call-status').textContent = 'מיכל מחוברת מניו יורק!';
+        document.getElementById('call-actions').style.display = 'flex';
+        showNotif('&#128150; מיכל מניו יורק מחוברת! מוכנים לשיחה');
+        callState = 'ringing';
+      }, 2000);
+    }, 1000);
+  }
+
+  function acceptCall() {
+    document.getElementById('call-status').textContent = '&#128994; בשיחה עם מיכל &mdash; 00:00';
+    document.getElementById('call-actions').innerHTML = '<button class="call-btn decline" onclick="endCall()">&#128148;</button>';
+    callState = 'connected';
+    showNotif('&#9989; מחוברים! שיחה עם מיכל מניו יורק');
+
+    let seconds = 0;
+    const timer = setInterval(() => {
+      if (callState !== 'connected') { clearInterval(timer); return; }
+      seconds++;
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      document.getElementById('call-status').textContent = '🟢 בשיחה עם מיכל — ' + m + ':' + s;
+    }, 1000);
+  }
+
+  function endCall() {
+    document.getElementById('call-overlay').classList.remove('show');
+    document.getElementById('call-actions').style.display = 'none';
+    document.getElementById('smart-btn').classList.remove('active');
+    callState = 'idle';
+    showNotif('&#128148; השיחה הסתיימה. לחץ שוב על הכפתור להתחבר');
+  }
+
+  function showNotif(text) {
+    const el = document.getElementById('notification');
+    document.getElementById('notif-text').innerHTML = text;
+    el.classList.add('show');
+    setTimeout(() => { if (callState === 'idle') el.classList.remove('show'); }, 5000);
+  }
+</script>
+
+</body>
+</html>
