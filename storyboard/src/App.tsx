@@ -8,6 +8,7 @@ import { ColumnManager } from './components/ColumnManager';
 import { ApproverManager } from './components/ApproverManager';
 import { ApprovalBar } from './components/ApprovalBar';
 import { ReviewerIdentity } from './components/ReviewerIdentity';
+import { ScriptPrint } from './components/ScriptPrint';
 import { TimingBar } from './components/TimingSettings';
 import { Dashboard } from './components/Dashboard';
 import { Prompter } from './components/Prompter';
@@ -41,6 +42,7 @@ function StoryboardContent() {
           ))}
         </div>
       </div>
+      <ScriptPrint />
     </>
   );
 }

@@ -2519,6 +2519,147 @@ body {
   .scene-group { break-inside: avoid; page-break-inside: avoid; }
   .line.active { box-shadow: none; }
   .line.selected .line-field { background: white !important; }
+
+  /* Script print mode */
+  body.script-print-mode .layout,
+  body.script-print-mode .scene-info { display: none !important; }
+  body.script-print-mode .script-print { display: block !important; }
+}
+
+/* ===== SCRIPT PRINT VIEW ===== */
+.script-print {
+  display: none;
+  direction: rtl;
+  font-family: 'Heebo', sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sp-header {
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #333;
+}
+
+.sp-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.sp-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.sp-description {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.sp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.sp-table thead th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  padding: 4px 10px;
+  border-bottom: 1px solid #ccc;
+  text-align: right;
+}
+
+.sp-col-speaker { width: 80px; }
+.sp-col-text { }
+
+
+.sp-line td {
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.sp-even td { background: #fff; }
+.sp-odd td { background: #f5f5f5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+.sp-speaker {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sp-scene-row td {
+  padding: 4px 0 !important;
+  border: none !important;
+}
+
+.sp-text {
+  font-size: 17px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.sp-direction td {
+  font-style: italic;
+}
+
+.sp-direction .sp-text {
+  color: #888;
+  font-size: 15px;
+}
+
+/* Print dropdown */
+.print-dropdown {
+  position: relative;
+}
+
+.print-dropdown-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 200;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.print-dropdown-panel button {
+  display: block;
+  width: 100%;
+  text-align: right;
+  padding: 8px 14px;
+  border: none;
+  background: white;
+  font-family: 'Heebo', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--dark);
+}
+
+.print-dropdown-panel button:hover {
+  background: #f5f5f5;
+}
+
+.print-dropdown-panel button + button {
+  border-top: 1px solid var(--border);
 }
 
 /* ===== RESPONSIVE ===== */

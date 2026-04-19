@@ -15,6 +15,7 @@ export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
   const [versionNaming, setVersionNaming] = useState(false);
   const [versionNameInput, setVersionNameInput] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
   const [viewingVersion, setViewingVersion] = useState<string | null>(null);
   const versionRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +94,19 @@ export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
         >
           💬 <span className="btn-text-desktop">{showComments ? 'הסתר' : 'הצג'}</span>
         </button>
-        <button className="btn btn-outline btn-print" onClick={() => window.print()}>🖨️</button>
+        <div className="print-dropdown btn-print">
+          <button className="btn btn-outline" onClick={() => setPrintOpen(!printOpen)}>🖨️</button>
+          {printOpen && (
+            <div className="print-dropdown-panel">
+              <button onClick={() => { setPrintOpen(false); document.body.classList.remove('script-print-mode'); setTimeout(() => window.print(), 100); }}>
+                🖨️ הדפסה רגילה
+              </button>
+              <button onClick={() => { setPrintOpen(false); document.body.classList.add('script-print-mode'); setTimeout(() => { window.print(); document.body.classList.remove('script-print-mode'); }, 100); }}>
+                📄 תסריט לקריאה
+              </button>
+            </div>
+          )}
+        </div>
         {onOpenPrompter && mode === 'edit' && (
           <button className="btn btn-outline btn-prompter" onClick={onOpenPrompter}>📺 פרומפטר</button>
         )}

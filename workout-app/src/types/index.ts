@@ -11,6 +11,7 @@ export type Exercise = {
   isTimeBased: boolean;
   startWeakSide: boolean;
   notes?: string;
+  imageUrl?: string;
 };
 
 export type Day = {

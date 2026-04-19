@@ -6,9 +6,15 @@ import { useFirestore } from '../hooks/useFirestore';
 import { useTimer } from '../hooks/useTimer';
 import { setActiveSession, clearActiveSession } from '../hooks/useActiveSession';
 import { searchExercises, MUSCLE_CATEGORIES, EXERCISE_LIBRARY, type LibraryExercise } from '../data/exerciseLibrary';
+
+function findLibraryImage(name: string): string | undefined {
+  const match = EXERCISE_LIBRARY.find(e => e.name.toLowerCase() === name.toLowerCase());
+  return match?.imageUrl;
+}
 import { usePhotos, type ExercisePhoto } from '../hooks/usePhotos';
 import { RestTimer } from './RestTimer';
 import { PhotoPanel } from './PhotoPanel';
+import { ExerciseImage } from './ExerciseImage';
 
 type Props = {
   uid: string;
@@ -489,13 +495,7 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
               <p className="text-sm text-muted" dir="rtl">{currentExercise.nameHe}</p>
             )}
           </div>
-          <a
-            href={`https://www.google.com/search?q=${encodeURIComponent(currentExercise.name + ' exercise form')}&tbm=isch`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 w-8 h-8 flex items-center justify-center btn-icon text-sm"
-            title="How to do this exercise"
-          >?</a>
+          <ExerciseImage imageUrl={currentExercise.imageUrl || findLibraryImage(currentExercise.name)} name={currentExercise.name} />
         </div>
         {currentExercise.muscle && (
           <p className="text-xs text-emerald-600 mb-2">
@@ -866,6 +866,7 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
   const [customReps, setCustomReps] = useState('12');
   const [customIsUni, setCustomIsUni] = useState(false);
   const [customIsTime, setCustomIsTime] = useState(false);
+  const [customImageUrl, setCustomImageUrl] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -888,6 +889,7 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
     setCustomMuscleHe(lib.muscleHe);
     setCustomIsUni(lib.isUnilateral);
     setCustomIsTime(lib.isTimeBased);
+    setCustomImageUrl(lib.imageUrl || '');
     setSearchQuery('');
     setSearchResults([]);
     setSelectedCategory(null);
@@ -907,6 +909,7 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
       isUnilateral: customIsUni,
       isTimeBased: customIsTime,
       startWeakSide: customIsUni,
+      imageUrl: customImageUrl || undefined,
     };
     if (mode === 'edit') {
       onEditExercise(ex);
@@ -927,12 +930,13 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
     setCustomReps(String(ex.isTimeBased ? (ex.durationSeconds || 30) : (ex.reps || 12)));
     setCustomIsUni(ex.isUnilateral);
     setCustomIsTime(ex.isTimeBased);
+    setCustomImageUrl(ex.imageUrl || '');
     setMode('edit');
   }
 
   function resetForm() {
     setCustomName(''); setCustomNameHe(''); setCustomMuscle(''); setCustomMuscleHe('');
-    setCustomSets('3'); setCustomReps('12'); setCustomIsUni(false); setCustomIsTime(false);
+    setCustomSets('3'); setCustomReps('12'); setCustomIsUni(false); setCustomIsTime(false); setCustomImageUrl('');
     setSearchQuery(''); setSearchResults([]); setSelectedCategory(null);
   }
 
@@ -1122,13 +1126,9 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
                     {ex.sets}×{ex.isTimeBased ? `${ex.durationSeconds}s` : ex.reps}
                   </div>
                   {ex.isUnilateral && <span className="badge bg-blue-900 text-blue-300 text-[10px]">UNI</span>}
-                  <a
-                    href={`https://www.google.com/search?q=${encodeURIComponent(ex.name + ' exercise form')}&tbm=isch`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-6 h-6 flex items-center justify-center btn-icon text-[10px]"
-                    onClick={e => e.stopPropagation()}
-                  >?</a>
+                  <div onClick={e => e.stopPropagation()}>
+                    <ExerciseImage imageUrl={ex.imageUrl || findLibraryImage(ex.name)} name={ex.name} />
+                  </div>
                 </div>
               </div>
               {/* Actions: edit, delete, restart */}
