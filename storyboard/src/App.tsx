@@ -17,6 +17,7 @@ import './app.css';
 function StoryboardContent() {
   const { data, loaded } = useCtx();
   const [prompterOpen, setPrompterOpen] = useState(false);
+  const [scriptPrintMode, setScriptPrintMode] = useState<'all' | 'by-speaker'>('all');
 
   if (!loaded) {
     return <div className="loading">טוען...</div>;
@@ -25,7 +26,7 @@ function StoryboardContent() {
   return (
     <>
       {prompterOpen && <Prompter onClose={() => setPrompterOpen(false)} />}
-      <Topbar onOpenPrompter={() => setPrompterOpen(true)} />
+      <Topbar onOpenPrompter={() => setPrompterOpen(true)} onScriptPrint={(mode) => setScriptPrintMode(mode)} />
       <ReviewerIdentity />
       <div className="layout">
         <div className="main-content">
@@ -42,7 +43,7 @@ function StoryboardContent() {
           ))}
         </div>
       </div>
-      <ScriptPrint />
+      <ScriptPrint mode={scriptPrintMode} />
     </>
   );
 }

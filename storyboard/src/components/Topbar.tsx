@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useCtx } from '../context/StoryboardContext';
 import { SelectionBar } from './SelectionBar';
 
-export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
+export function Topbar({ onOpenPrompter, onScriptPrint }: { onOpenPrompter?: () => void; onScriptPrint?: (mode: 'all' | 'by-speaker') => void }) {
   const {
     data, mode, dirty, saving, save, showComments, setShowComments,
     reviewerName, setReviewerName, versions, saveVersion, restoreVersion, setViewingLive, deleteVersion,
@@ -101,8 +101,11 @@ export function Topbar({ onOpenPrompter }: { onOpenPrompter?: () => void }) {
               <button onClick={() => { setPrintOpen(false); document.body.classList.remove('script-print-mode'); setTimeout(() => window.print(), 100); }}>
                 🖨️ הדפסה רגילה
               </button>
-              <button onClick={() => { setPrintOpen(false); document.body.classList.add('script-print-mode'); setTimeout(() => { window.print(); document.body.classList.remove('script-print-mode'); }, 100); }}>
+              <button onClick={() => { setPrintOpen(false); onScriptPrint?.('all'); document.body.classList.add('script-print-mode'); setTimeout(() => { window.print(); document.body.classList.remove('script-print-mode'); }, 100); }}>
                 📄 תסריט לקריאה
+              </button>
+              <button onClick={() => { setPrintOpen(false); onScriptPrint?.('by-speaker'); document.body.classList.add('script-print-mode'); setTimeout(() => { window.print(); document.body.classList.remove('script-print-mode'); }, 100); }}>
+                👤 תסריט לפי דובר
               </button>
             </div>
           )}

@@ -2596,7 +2596,7 @@ body {
 
 .sp-speaker {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 18px;
   white-space: nowrap;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -2608,8 +2608,8 @@ body {
 }
 
 .sp-text {
-  font-size: 17px;
-  line-height: 1.8;
+  font-size: 22px;
+  line-height: 1.9;
   white-space: pre-wrap;
 }
 
@@ -2620,6 +2620,19 @@ body {
 .sp-direction .sp-text {
   color: #888;
   font-size: 15px;
+}
+
+.sp-speaker-section { }
+.sp-page-break { page-break-before: always; break-before: page; }
+
+.sp-speaker-header {
+  font-size: 26px;
+  font-weight: 800;
+  padding: 10px 10px 8px;
+  border-bottom: 2px solid currentColor;
+  margin-bottom: 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 /* Print dropdown */
