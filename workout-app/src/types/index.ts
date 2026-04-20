@@ -57,6 +57,7 @@ export type Session = {
   phase: 1 | 2 | 3;
   programName: string;
   completed: boolean;
+  partial?: boolean;
   sets: SetLog[];
 };
 

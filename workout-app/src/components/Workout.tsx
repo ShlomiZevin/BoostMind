@@ -48,6 +48,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
   const [lastSessionSets, setLastSessionSets] = useState<Record<string, SetLog[]>>({});
   const [exercisePhotos, setExercisePhotos] = useState<Record<string, ExercisePhoto[]>>({});
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [sessionPartial, setSessionPartial] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   // Input state — string so empty field stays empty (not "0")
@@ -95,6 +96,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
           resumePositionWithExercises(existing.sets, allEx);
           if (existing.completed) {
             setSessionComplete(true);
+            setSessionPartial(!!existing.partial);
           }
         }
         setSessionId(existingSessionId);
@@ -375,7 +377,11 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => navigate({ page: 'home', week: weekNumber })} className="text-muted text-2xl">←</button>
           <div className="text-center">
-            <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">Session Complete ✓</span>
+            {sessionPartial ? (
+              <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">Partial ~ not all exercises</span>
+            ) : (
+              <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">Session Complete ✓</span>
+            )}
           </div>
           <div />
         </div>
@@ -418,16 +424,22 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
           </button>
           <button
             onClick={async () => {
-              if (sessionId) {
-                await firestore.restartExercise(sessionId, ''); // dummy - we'll delete whole session
+              // Save current sets as "last session" for prev reference
+              if (loggedSets.length > 0) {
+                const grouped: Record<string, SetLog[]> = {};
+                for (const s of loggedSets) {
+                  if (!grouped[s.exerciseId]) grouped[s.exerciseId] = [];
+                  grouped[s.exerciseId].push(s);
+                }
+                setLastSessionSets(grouped);
               }
-              // Delete entire session and start fresh
+              // Delete entire session
               if (sessionId) {
                 const { doc: fdoc, deleteDoc } = await import('firebase/firestore');
                 const { db } = await import('../config/firebase');
                 await deleteDoc(fdoc(db, 'users', uid, 'sessions', sessionId));
               }
-                    setSessionId(null);
+              setSessionId(null);
               setLoggedSets([]);
               setSessionComplete(false);
               setExerciseIndex(0);
@@ -792,6 +804,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
                     if (sessionId) {
                       await firestore.completeSession(sessionId, true);
                       setSessionComplete(true);
+                      setSessionPartial(true);
                     }
                     setShowFinishEarly(false);
                   }}

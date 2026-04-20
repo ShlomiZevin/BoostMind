@@ -29,6 +29,7 @@ function toSession(id: string, data: any): Session {
     phase: data.phase,
     programName: data.programName,
     completed: data.completed,
+    partial: data.partial || false,
     sets: data.sets || [],
   };
 }

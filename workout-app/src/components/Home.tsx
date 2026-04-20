@@ -16,15 +16,16 @@ export function Home({ uid, navigate, initialWeek }: Props) {
   const { getSessions, resetProgram } = useFirestore(uid);
   const [showReset, setShowReset] = useState(false);
   const [dayHistory, setDayHistory] = useState<Record<string, string[]>>({}); // "day_week" -> dates
-  const [allDayDates, setAllDayDates] = useState<Record<number, string[]>>({}); // day -> all dates ever
+  const [dayWeekDates, setDayWeekDates] = useState<Record<string, string[]>>({}); // "day_week" -> dates (same as dayHistory)
   const [todayCompleted, setTodayCompleted] = useState<Record<number, string>>({});
+  const [partialDays, setPartialDays] = useState<Record<string, boolean>>({});
   const [lastCompletedId, setLastCompletedId] = useState<Record<string, string>>({});
   const [incompleteDays, setIncompleteDays] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
       const history: Record<string, string[]> = {};
-      const allDates: Record<number, string[]> = {};
+      const partialWeeks: Record<string, boolean> = {}; // "day_week" -> true if partial
       const todayDone: Record<number, string> = {};
       const weekCompleted: Record<string, string> = {};
       const incomplete: Record<string, string> = {};
@@ -43,9 +44,8 @@ export function Home({ uid, navigate, initialWeek }: Props) {
             const hKey = `${d}_${s.weekNumber}`;
             if (!history[hKey]) history[hKey] = [];
             if (!history[hKey].includes(dateStr)) history[hKey].push(dateStr);
-            // All-time history per day
-            if (!allDates[d]) allDates[d] = [];
-            if (!allDates[d].includes(dateStr)) allDates[d].push(dateStr);
+            // Track partial
+            if (s.partial) partialWeeks[`${d}_${s.weekNumber}`] = true;
             // Track per week
             weekCompleted[`${d}_${s.weekNumber}`] = s.id;
             // Track if completed today
@@ -64,8 +64,9 @@ export function Home({ uid, navigate, initialWeek }: Props) {
       }
 
       setDayHistory(history);
-      setAllDayDates(allDates);
+      setDayWeekDates(history); // same data, used for prev computation
       setTodayCompleted(todayDone);
+      setPartialDays(partialWeeks);
       setLastCompletedId(weekCompleted);
       setIncompleteDays(incomplete);
     })();
@@ -173,9 +174,15 @@ export function Home({ uid, navigate, initialWeek }: Props) {
                 {incompleteDays[`${day.day}_${weekNumber}`] ? (
                   <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-[10px]">RESUME</span>
                 ) : lastCompletedId[`${day.day}_${weekNumber}`] ? (
-                  <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px]">
-                    ✓ DONE
-                  </span>
+                  partialDays[`${day.day}_${weekNumber}`] ? (
+                    <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-[10px]">
+                      ~ PARTIAL
+                    </span>
+                  ) : (
+                    <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px]">
+                      ✓ DONE
+                    </span>
+                  )
                 ) : null}
               </div>
               <div className="text-sm font-medium">{day.title}</div>
@@ -186,15 +193,24 @@ export function Home({ uid, navigate, initialWeek }: Props) {
             <div className="text-right shrink-0 ml-3 max-w-[130px]">
               {(() => {
                 const thisWeekDates = dayHistory[`${day.day}_${weekNumber}`] || [];
-                const allDates = allDayDates[day.day] || [];
-                const prevDates = allDates.filter(d => !thisWeekDates.includes(d));
+                const isPartial = partialDays[`${day.day}_${weekNumber}`];
+                // Prev = dates from weeks BEFORE selected week only
+                const prevDates: string[] = [];
+                for (let w = 1; w < weekNumber; w++) {
+                  const wd = dayWeekDates[`${day.day}_${w}`];
+                  if (wd) prevDates.push(...wd);
+                }
                 return (
                   <div>
                     {thisWeekDates.length > 0 && (
                       <div className="flex flex-wrap gap-1 justify-end">
                         {thisWeekDates.map((d, i) => (
-                          <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 whitespace-nowrap">
-                            {d}
+                          <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap ${
+                            isPartial
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'
+                              : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300'
+                          }`}>
+                            {d}{isPartial ? ' ~' : ''}
                           </span>
                         ))}
                       </div>
