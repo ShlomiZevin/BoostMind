@@ -20,6 +20,9 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
+// Request notification permission (needs user gesture on iOS)
+// Will be requested on first rest timer start instead
+
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

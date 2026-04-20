@@ -4,7 +4,6 @@ import { PROGRAM } from '../data/program';
 import { useProgram } from '../hooks/useProgram';
 import { useFirestore } from '../hooks/useFirestore';
 import { useTimer } from '../hooks/useTimer';
-import { setActiveSession, clearActiveSession } from '../hooks/useActiveSession';
 import { searchExercises, MUSCLE_CATEGORIES, EXERCISE_LIBRARY, type LibraryExercise } from '../data/exerciseLibrary';
 
 function findLibraryImage(name: string): string | undefined {
@@ -20,11 +19,12 @@ type Props = {
   uid: string;
   day: 1 | 2 | 3 | 4 | 5;
   existingSessionId?: string;
+  weekOverride?: number;
   navigate: (route: Route) => void;
 };
 
-export function Workout({ uid, day, existingSessionId, navigate }: Props) {
-  const { weekNumber, phase } = useProgram();
+export function Workout({ uid, day, existingSessionId, weekOverride, navigate }: Props) {
+  const { weekNumber, phase } = useProgram(weekOverride);
   const firestore = useFirestore(uid);
   const photos = usePhotos(uid);
   const timer = useTimer();
@@ -45,6 +45,7 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
   const [currentSet, setCurrentSet] = useState(1);
   const [loggedSets, setLoggedSets] = useState<SetLog[]>([]);
   const [stats, setStats] = useState<Record<string, ExerciseStats | null>>({});
+  const [lastSessionSets, setLastSessionSets] = useState<Record<string, SetLog[]>>({});
   const [exercisePhotos, setExercisePhotos] = useState<Record<string, ExercisePhoto[]>>({});
   const [sessionComplete, setSessionComplete] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -61,7 +62,8 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
   const [durationRight, setDurationRight] = useState('');
 
   const [showExerciseList, setShowExerciseList] = useState(false);
-  const [splitSides, setSplitSides] = useState(false); // false = same for both hands
+  const [splitSides, setSplitSides] = useState(false);
+  const [showFinishEarly, setShowFinishEarly] = useState(false); // false = same for both hands
 
   // Swipe state
   const touchStartX = useRef(0);
@@ -89,17 +91,27 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
         const existing = await firestore.getSession(existingSessionId);
         if (existing) {
           setLoggedSets(existing.sets);
-          // Need to use merged exercises for resume
           const allEx = [...dayConfig.exercises, ...custom];
           resumePositionWithExercises(existing.sets, allEx);
+          if (existing.completed) {
+            setSessionComplete(true);
+          }
         }
         setSessionId(existingSessionId);
-        setActiveSession(day, existingSessionId);
-      } else {
-        const id = await firestore.createSession(day, weekNumber, phase.phase as 1 | 2 | 3);
-        setSessionId(id);
-        setActiveSession(day, id);
       }
+      // Don't create session here — wait until first "Did it"
+
+      // Load last completed session for this day (for "prev sets" display)
+      const lastCompleted = await firestore.getLastCompletedSessionForDay(day);
+      if (lastCompleted && lastCompleted.id !== existingSessionId) {
+        const grouped: Record<string, SetLog[]> = {};
+        for (const s of lastCompleted.sets) {
+          if (!grouped[s.exerciseId]) grouped[s.exerciseId] = [];
+          grouped[s.exerciseId].push(s);
+        }
+        setLastSessionSets(grouped);
+      }
+
       setInitialized(true);
     })();
   }, []);
@@ -267,7 +279,7 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
   }
 
   const handleDidIt = useCallback(async () => {
-    if (!sessionId || !currentExercise) return;
+    if (!currentExercise) return;
     const ex = currentExercise;
     const setsForEx = loggedSets.filter(s => s.exerciseId === ex.id);
     const setNum = setsForEx.length + 1;
@@ -309,13 +321,20 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
   }, [sessionId, currentExercise, loggedSets, weightLeft, repsLeft, weightRight, repsRight, weight, reps, duration, durationLeft, durationRight, showWarn]);
 
   const commitSet = async (setLog: SetLog) => {
-    if (!sessionId) return;
     setShowWarn(false);
     pendingSetRef.current = null;
 
+    // Create session on first set if needed
+    let sid = sessionId;
+    if (!sid) {
+      sid = await firestore.createSession(day, weekNumber, phase.phase as 1 | 2 | 3);
+      setSessionId(sid);
+
+    }
+
     // Save to Firestore
-    await firestore.logSet(sessionId, setLog);
-    await firestore.updateExerciseStats(currentExercise.id, setLog, sessionId);
+    await firestore.logSet(sid, setLog);
+    await firestore.updateExerciseStats(currentExercise.id, setLog, sid);
 
     const newLoggedSets = [...loggedSets, setLog];
     setLoggedSets(newLoggedSets);
@@ -330,8 +349,7 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
         return eSets.length >= e.sets;
       });
       if (allDone) {
-        await firestore.completeSession(sessionId);
-        clearActiveSession(day);
+        await firestore.completeSession(sid);
         setSessionComplete(true);
         return;
       }
@@ -353,14 +371,73 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
 
   if (sessionComplete) {
     return (
-      <div className="page-bg flex flex-col items-center justify-center p-4">
-        <div className="text-6xl mb-4">💪</div>
-        <h1 className="text-2xl font-bold text-emerald-500 dark:text-emerald-400 mb-2">Session Complete!</h1>
-        <p className="text-muted mb-2">Day {day} — {dayConfig.title}</p>
-        <p className="text-muted-more text-sm mb-8">{loggedSets.length} sets logged</p>
-        <button onClick={() => navigate({ page: 'home' })} className="btn-primary">
-          Back to Home
-        </button>
+      <div className="page-bg p-4 pb-20 max-w-lg mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => navigate({ page: 'home', week: weekNumber })} className="text-muted text-2xl">←</button>
+          <div className="text-center">
+            <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">Session Complete ✓</span>
+          </div>
+          <div />
+        </div>
+        <h2 className="text-lg font-bold mb-1">Day {day} — {dayConfig.title}</h2>
+        <p className="text-muted text-sm mb-4">{loggedSets.length} sets logged</p>
+
+        {exercises.map(ex => {
+          const sets = loggedSets.filter(s => s.exerciseId === ex.id);
+          if (sets.length === 0) return null;
+          return (
+            <div key={ex.id} className="card mb-3">
+              <h3 className="font-semibold text-sm mb-2">{ex.name}</h3>
+              {ex.nameHe && <p className="text-xs text-muted mb-2" dir="rtl">{ex.nameHe}</p>}
+              <div className="space-y-1">
+                {sets.map((s, i) => (
+                  <div key={i} className="flex justify-between text-xs text-muted font-mono bg-subtle rounded px-3 py-1.5">
+                    <span>Set {s.setNumber}</span>
+                    {ex.isUnilateral && !ex.isTimeBased && (
+                      <span>L {s.repsLeft}×{s.weightLeft}kg · R {s.repsRight}×{s.weightRight}kg</span>
+                    )}
+                    {!ex.isUnilateral && !ex.isTimeBased && (
+                      <span>{s.reps}×{s.weight}kg</span>
+                    )}
+                    {ex.isTimeBased && ex.isUnilateral && (
+                      <span>L {s.durationLeftSeconds}s · R {s.durationRightSeconds}s</span>
+                    )}
+                    {ex.isTimeBased && !ex.isUnilateral && (
+                      <span>{s.durationSeconds}s</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="flex gap-3 mt-4">
+          <button onClick={() => navigate({ page: 'home', week: weekNumber })} className="btn-secondary flex-1">
+            Home
+          </button>
+          <button
+            onClick={async () => {
+              if (sessionId) {
+                await firestore.restartExercise(sessionId, ''); // dummy - we'll delete whole session
+              }
+              // Delete entire session and start fresh
+              if (sessionId) {
+                const { doc: fdoc, deleteDoc } = await import('firebase/firestore');
+                const { db } = await import('../config/firebase');
+                await deleteDoc(fdoc(db, 'users', uid, 'sessions', sessionId));
+              }
+                    setSessionId(null);
+              setLoggedSets([]);
+              setSessionComplete(false);
+              setExerciseIndex(0);
+              setCurrentSet(1);
+            }}
+            className="btn-secondary flex-1 text-amber-500"
+          >
+            Restart Day
+          </button>
+        </div>
       </div>
     );
   }
@@ -454,7 +531,7 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => navigate({ page: 'home' })} className="text-muted text-2xl">←</button>
+        <button onClick={() => navigate({ page: 'home', week: weekNumber })} className="text-muted text-2xl">←</button>
         <div className="text-center">
           <span className="text-xs text-muted">Day {day}</span>
           <span className="text-xs text-muted-most mx-2">·</span>
@@ -521,9 +598,13 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
         {/* Stats inline */}
         {exerciseStats && (
           <div className="mt-3 pt-3 border-t border-subtle text-xs">
-            <StatsPanel stats={exerciseStats} isUnilateral={currentExercise.isUnilateral} />
+            <StatsPanel stats={exerciseStats} isUnilateral={currentExercise.isUnilateral} lastSets={lastSessionSets[currentExercise.id]} />
           </div>
         )}
+        {/* User note */}
+        <ExerciseNote exerciseId={currentExercise.id} firestore={firestore} />
+        {/* Difficulty rating */}
+        <DifficultyRating exerciseId={currentExercise.id} sessionId={sessionId} isDone={exerciseDone} firestore={firestore} />
       </div>
 
       {/* ── Current Set ── */}
@@ -548,9 +629,24 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
               >Restart exercise</button>
             </div>
           ) : (
-            <span className="text-xs text-muted font-medium">
-              Set {setsForExercise.length + 1} of {currentExercise.sets}
-            </span>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xs text-muted font-medium">
+                Set {setsForExercise.length + 1} of {currentExercise.sets}
+              </span>
+              {setsForExercise.length > 0 && (
+                <button
+                  onClick={async () => {
+                    if (!sessionId) return;
+                    const newSets = await firestore.restartExercise(sessionId, currentExercise.id);
+                    if (newSets) {
+                      setLoggedSets(newSets);
+                      setCurrentSet(1);
+                    }
+                  }}
+                  className="text-[10px] text-amber-500 hover:text-amber-300"
+                >Restart exercise</button>
+              )}
+            </div>
           )}
         </div>
 
@@ -683,9 +779,33 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
         />
       </div>
 
-      {/* Swipe hint */}
+      {/* Swipe hint + finish early */}
       <div className="text-center text-[10px] text-muted-most mb-4">
         ← swipe to navigate exercises →
+        {loggedSets.length > 0 && !sessionComplete && (
+          <div className="mt-2">
+            {showFinishEarly ? (
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-amber-500">Finish without completing all?</span>
+                <button
+                  onClick={async () => {
+                    if (sessionId) {
+                      await firestore.completeSession(sessionId, true);
+                      setSessionComplete(true);
+                    }
+                    setShowFinishEarly(false);
+                  }}
+                  className="text-red-500 font-bold"
+                >Yes</button>
+                <button onClick={() => setShowFinishEarly(false)} className="text-muted">No</button>
+              </div>
+            ) : (
+              <button onClick={() => setShowFinishEarly(true)} className="text-amber-600 dark:text-amber-500">
+                Finish early
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* DID IT button - fixed bottom */}
@@ -705,8 +825,7 @@ export function Workout({ uid, day, existingSessionId, navigate }: Props) {
                   onClick={async () => {
                     if (sessionId) {
                       await firestore.completeSession(sessionId);
-                      clearActiveSession(day);
-                      setSessionComplete(true);
+                                    setSessionComplete(true);
                     }
                   }}
                   className="btn-primary w-full text-xl py-5"
@@ -763,13 +882,15 @@ function InputRow({ label, highlight, fields }: { label?: string; highlight?: bo
           <div key={i}>
             <label className="block text-[10px] text-muted mb-1">{f.label}</label>
             <input
-              type="number"
+              type="text"
               value={f.value}
-              onChange={e => f.onChange(e.target.value)}
+              onChange={e => {
+                const v = e.target.value;
+                if (v === '' || /^[0-9]*\.?[0-9]*$/.test(v)) f.onChange(v);
+              }}
               placeholder={f.placeholder}
               className={`input-field ${highlight ? '!border-blue-700 focus:!ring-blue-500' : ''}`}
               inputMode={f.inputMode}
-              step={f.step}
             />
           </div>
         ))}
@@ -778,7 +899,104 @@ function InputRow({ label, highlight, fields }: { label?: string; highlight?: bo
   );
 }
 
-function StatsPanel({ stats, isUnilateral }: { stats: ExerciseStats; isUnilateral: boolean }) {
+function DifficultyRating({ exerciseId, sessionId, isDone, firestore }: { exerciseId: string; sessionId: string | null; isDone: boolean; firestore: ReturnType<typeof useFirestore> }) {
+  const [lastRating, setLastRating] = useState<{ difficulty: string; addWeight: boolean } | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setSaved(false);
+    firestore.getExerciseDifficulty(exerciseId).then(setLastRating);
+  }, [exerciseId]);
+
+  async function rate(difficulty: 'easy' | 'ok' | 'hard', addWeight: boolean) {
+    if (!sessionId) return;
+    await firestore.saveExerciseDifficulty(exerciseId, sessionId, difficulty, addWeight);
+    setLastRating({ difficulty, addWeight });
+    setSaved(true);
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-subtle">
+      {lastRating && !saved && (
+        <div className="text-[10px] text-muted mb-2">
+          Last: <span className={lastRating.difficulty === 'easy' ? 'text-emerald-500' : lastRating.difficulty === 'hard' ? 'text-red-500' : 'text-amber-500'}>{lastRating.difficulty}</span>
+          {lastRating.addWeight && <span className="text-blue-500 ml-1">↑ add weight</span>}
+        </div>
+      )}
+      {isDone && !saved && (
+        <div>
+          <div className="text-[10px] text-muted mb-1.5">How was it?</div>
+          <div className="flex gap-2 mb-2">
+            <button onClick={() => rate('easy', false)} className="flex-1 text-xs py-1.5 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Easy</button>
+            <button onClick={() => rate('ok', false)} className="flex-1 text-xs py-1.5 rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">OK</button>
+            <button onClick={() => rate('hard', false)} className="flex-1 text-xs py-1.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300">Hard</button>
+          </div>
+          <button onClick={() => rate('easy', true)} className="w-full text-[10px] text-blue-500 dark:text-blue-400">
+            ↑ Add weight next time
+          </button>
+        </div>
+      )}
+      {saved && (
+        <div className="text-[10px] text-emerald-500">Saved ✓</div>
+      )}
+    </div>
+  );
+}
+
+function ExerciseNote({ exerciseId, firestore }: { exerciseId: string; firestore: ReturnType<typeof useFirestore> }) {
+  const [note, setNote] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const saveTimeout = useRef<number | null>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    setEditing(false);
+    firestore.getExerciseNote(exerciseId).then(n => {
+      setNote(n);
+      setLoaded(true);
+    });
+  }, [exerciseId]);
+
+  function handleChange(val: string) {
+    setNote(val);
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = window.setTimeout(() => {
+      firestore.saveExerciseNote(exerciseId, val);
+    }, 1000);
+  }
+
+  if (!loaded) return null;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-subtle">
+      {editing ? (
+        <div>
+          <textarea
+            value={note}
+            onChange={e => handleChange(e.target.value)}
+            placeholder="Add a note..."
+            className="input-field !text-left !text-xs !py-2 !px-3 !text-sm min-h-[60px] resize-none"
+            autoFocus
+            onBlur={() => { if (!note.trim()) setEditing(false); }}
+          />
+          <button onClick={() => setEditing(false)} className="text-[10px] text-muted mt-1">Done</button>
+        </div>
+      ) : note ? (
+        <button onClick={() => setEditing(true)} className="text-left w-full">
+          <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Note</div>
+          <div className="text-xs text-muted-more whitespace-pre-wrap">{note}</div>
+        </button>
+      ) : (
+        <button onClick={() => setEditing(true)} className="text-[10px] text-muted">
+          + Add note
+        </button>
+      )}
+    </div>
+  );
+}
+
+function StatsPanel({ stats, isUnilateral, lastSets }: { stats: ExerciseStats; isUnilateral: boolean; lastSets?: SetLog[] }) {
   if (isUnilateral) {
     const s = stats as any;
     const last = s.last;
@@ -810,6 +1028,7 @@ function StatsPanel({ stats, isUnilateral }: { stats: ExerciseStats; isUnilatera
             </span>
           </div>
         )}
+        <LastSetsDisplay sets={lastSets} isUnilateral={true} />
       </div>
     );
   }
@@ -833,6 +1052,33 @@ function StatsPanel({ stats, isUnilateral }: { stats: ExerciseStats; isUnilatera
         <div className="flex justify-between">
           <span className="text-muted">Avg</span>
           <span className="font-mono text-muted">{s.avg.weight.toFixed(1)}kg</span>
+        </div>
+      )}
+      <LastSetsDisplay sets={lastSets} isUnilateral={false} />
+    </div>
+  );
+}
+
+function LastSetsDisplay({ sets, isUnilateral }: { sets?: SetLog[]; isUnilateral: boolean }) {
+  const [show, setShow] = useState(false);
+  if (!sets || sets.length === 0) return null;
+  return (
+    <div className="mt-1.5 pt-1.5 border-t border-subtle">
+      <button onClick={() => setShow(!show)} className="text-[10px] text-muted">
+        Last session sets {show ? '▲' : '▼'}
+      </button>
+      {show && (
+        <div className="mt-1 space-y-0.5">
+          {sets.map((s, i) => (
+            <div key={i} className="flex justify-between font-mono text-muted-more">
+              <span>S{s.setNumber}</span>
+              {isUnilateral ? (
+                <span>L {s.repsLeft}×{s.weightLeft}kg · R {s.repsRight}×{s.weightRight}kg</span>
+              ) : (
+                <span>{s.reps}×{s.weight}kg</span>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -1090,7 +1336,7 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overlay-solid/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex flex-col overlay-solid">
       <div className="flex items-center justify-between p-4 border-b border-subtle">
         <h2 className="font-bold text-lg">Day {day} — Exercises</h2>
         <button onClick={onClose} className="text-muted text-2xl">×</button>

@@ -2,60 +2,94 @@ import { useEffect, useState } from 'react';
 import type { Route } from '../types';
 import { useProgram, getAutoWeek } from '../hooks/useProgram';
 import { useFirestore } from '../hooks/useFirestore';
-import { getActiveSession, clearActiveSession } from '../hooks/useActiveSession';
 
 type Props = {
   uid: string;
   navigate: (route: Route) => void;
+  initialWeek?: number;
 };
 
-export function Home({ uid, navigate }: Props) {
+export function Home({ uid, navigate, initialWeek }: Props) {
   const autoWeek = getAutoWeek();
-  const [selectedWeek, setSelectedWeek] = useState(autoWeek);
+  const [selectedWeek, setSelectedWeek] = useState(initialWeek || autoWeek);
   const { program, weekNumber, phase, totalWeeks } = useProgram(selectedWeek);
-  const { getLastSessionForDay, getIncompleteSession, resetProgram } = useFirestore(uid);
+  const { getSessions, resetProgram } = useFirestore(uid);
   const [showReset, setShowReset] = useState(false);
-  const [lastDates, setLastDates] = useState<Record<number, string>>({});
-  const [incompleteDays, setIncompleteDays] = useState<Record<number, string>>({});
+  const [dayHistory, setDayHistory] = useState<Record<string, string[]>>({}); // "day_week" -> dates
+  const [allDayDates, setAllDayDates] = useState<Record<number, string[]>>({}); // day -> all dates ever
+  const [todayCompleted, setTodayCompleted] = useState<Record<number, string>>({});
+  const [lastCompletedId, setLastCompletedId] = useState<Record<string, string>>({});
+  const [incompleteDays, setIncompleteDays] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const localIncomplete: Record<number, string> = {};
-    for (const day of program.days) {
-      const localId = getActiveSession(day.day);
-      if (localId) {
-        localIncomplete[day.day] = localId;
-      }
-    }
-    setIncompleteDays(localIncomplete);
-
     (async () => {
-      const dates: Record<number, string> = {};
-      const incomplete: Record<number, string> = { ...localIncomplete };
-      for (const day of program.days) {
-        try {
-          if (!incomplete[day.day]) {
-            const inc = await getIncompleteSession(day.day);
-            if (inc) {
-              incomplete[day.day] = inc.id;
+      const history: Record<string, string[]> = {};
+      const allDates: Record<number, string[]> = {};
+      const todayDone: Record<number, string> = {};
+      const weekCompleted: Record<string, string> = {};
+      const incomplete: Record<string, string> = {};
+      const today = new Date().toDateString();
+
+      try {
+        const allSessions = await getSessions();
+        for (const s of allSessions) {
+          const d = s.day;
+          // Use completedAt if available, fallback to date
+          const displayDate = s.completed && s.completedAt ? s.completedAt : s.date;
+          const dateStr = (() => { const _d = new Date(displayDate); return `${_d.getDate()}/${_d.getMonth()+1}`; })();
+
+          if (s.completed) {
+            // Per-week history
+            const hKey = `${d}_${s.weekNumber}`;
+            if (!history[hKey]) history[hKey] = [];
+            if (!history[hKey].includes(dateStr)) history[hKey].push(dateStr);
+            // All-time history per day
+            if (!allDates[d]) allDates[d] = [];
+            if (!allDates[d].includes(dateStr)) allDates[d].push(dateStr);
+            // Track per week
+            weekCompleted[`${d}_${s.weekNumber}`] = s.id;
+            // Track if completed today
+            if (new Date(displayDate).toDateString() === today) {
+              todayDone[d] = s.id;
+            }
+          } else {
+            const key = `${d}_${s.weekNumber}`;
+            if (s.sets.length > 0 && !incomplete[key]) {
+              incomplete[key] = s.id;
             }
           }
-          const last = await getLastSessionForDay(day.day);
-          if (last) {
-            dates[day.day] = new Date(last.date).toLocaleDateString('he-IL', {
-              day: 'numeric', month: 'short',
-            });
-          }
-        } catch (e) {
-          console.warn('Failed to load session for day', day.day, e);
         }
+      } catch (e) {
+        console.warn('Failed to load sessions', e);
       }
-      setLastDates(dates);
+
+      setDayHistory(history);
+      setAllDayDates(allDates);
+      setTodayCompleted(todayDone);
+      setLastCompletedId(weekCompleted);
       setIncompleteDays(incomplete);
     })();
   }, []);
 
   const progressPct = Math.round((weekNumber / totalWeeks) * 100);
   const isCurrentWeek = selectedWeek === autoWeek;
+
+  // Week date range from schedule
+  const formatShort = (d: Date) => `${d.getDate()}/${d.getMonth()+1}`;
+  const programStart = new Date(program.startDate);
+  const scheduleStart = new Date(programStart.getTime() + (weekNumber - 1) * 7 * 24 * 60 * 60 * 1000);
+  const scheduleEnd = new Date(scheduleStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+  // Collect all dates from the green boxes for this week to show actual range
+  const allWeekDates: string[] = [];
+  for (const day of program.days) {
+    const hist = dayHistory[`${day.day}_${weekNumber}`];
+    if (hist) allWeekDates.push(...hist);
+  }
+  // Dedupe
+  const uniqueDates = [...new Set(allWeekDates)];
+  const weekRange = uniqueDates.length > 0
+    ? (uniqueDates.length === 1 ? uniqueDates[0] : `${uniqueDates[uniqueDates.length - 1]} – ${uniqueDates[0]}`)
+    : `${formatShort(scheduleStart)} – ${formatShort(scheduleEnd)}`;
 
   return (
     <div className="page-bg p-4 pb-20 max-w-lg mx-auto">
@@ -81,6 +115,7 @@ export function Home({ uid, navigate }: Props) {
             <div className="text-center">
               <span className="text-3xl font-bold text-emerald-500 dark:text-emerald-400">Week {weekNumber}</span>
               <span className="text-muted text-lg"> / {totalWeeks}</span>
+              <div className="text-[10px] text-muted mt-0.5">{weekRange}</div>
               {!isCurrentWeek && (
                 <button
                   onClick={() => setSelectedWeek(autoWeek)}
@@ -121,10 +156,13 @@ export function Home({ uid, navigate }: Props) {
           <button
             key={day.day}
             onClick={() => {
-              if (incompleteDays[day.day]) {
-                navigate({ page: 'workout', day: day.day, sessionId: incompleteDays[day.day] });
+              const weekSessionId = lastCompletedId[`${day.day}_${weekNumber}`];
+              if (incompleteDays[`${day.day}_${weekNumber}`]) {
+                navigate({ page: 'workout', day: day.day, sessionId: incompleteDays[`${day.day}_${weekNumber}`], week: weekNumber });
+              } else if (weekSessionId) {
+                navigate({ page: 'workout', day: day.day, sessionId: weekSessionId, week: weekNumber });
               } else {
-                navigate({ page: 'workout', day: day.day });
+                navigate({ page: 'workout', day: day.day, week: weekNumber });
               }
             }}
             className="w-full card dark:hover:bg-slate-800 hover:bg-slate-50 active:opacity-80 transition-colors text-left flex items-center justify-between"
@@ -132,22 +170,53 @@ export function Home({ uid, navigate }: Props) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-emerald-500 dark:text-emerald-400 font-bold text-lg">Day {day.day}</span>
-                {incompleteDays[day.day] && (
+                {incompleteDays[`${day.day}_${weekNumber}`] ? (
                   <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-[10px]">RESUME</span>
-                )}
+                ) : lastCompletedId[`${day.day}_${weekNumber}`] ? (
+                  <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px]">
+                    ✓ DONE
+                  </span>
+                ) : null}
               </div>
               <div className="text-sm font-medium">{day.title}</div>
               {day.titleHe && (
                 <div className="text-xs text-muted" dir="rtl">{day.titleHe}</div>
               )}
             </div>
-            <div className="text-right shrink-0 ml-3">
-              {lastDates[day.day] ? (
-                <span className="text-xs text-muted">{lastDates[day.day]}</span>
-              ) : (
-                <span className="text-xs text-muted-most">—</span>
-              )}
-              <div className="text-muted-most text-xl mt-1">›</div>
+            <div className="text-right shrink-0 ml-3 max-w-[130px]">
+              {(() => {
+                const thisWeekDates = dayHistory[`${day.day}_${weekNumber}`] || [];
+                const allDates = allDayDates[day.day] || [];
+                const prevDates = allDates.filter(d => !thisWeekDates.includes(d));
+                return (
+                  <div>
+                    {thisWeekDates.length > 0 && (
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        {thisWeekDates.map((d, i) => (
+                          <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 whitespace-nowrap">
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {prevDates.length > 0 && (
+                      <div className="mt-1">
+                        <div className="text-[8px] text-muted-most">Prev</div>
+                        <div className="flex flex-wrap gap-0.5 justify-end">
+                          {prevDates.map((d, i) => (
+                            <span key={i} className="text-[8px] px-1 py-0.5 rounded bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500 whitespace-nowrap">
+                              {d}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {thisWeekDates.length === 0 && prevDates.length === 0 && (
+                      <span className="text-xs text-muted-most">—</span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </button>
         ))}
@@ -180,9 +249,8 @@ export function Home({ uid, navigate }: Props) {
               <button
                 onClick={async () => {
                   await resetProgram();
-                  for (let d = 1; d <= 5; d++) clearActiveSession(d);
                   setShowReset(false);
-                  setLastDates({});
+                  setLastCompletedId({});
                   setIncompleteDays({});
                 }}
                 className="btn-primary flex-1 !bg-red-600 hover:!bg-red-500"

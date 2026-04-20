@@ -62,9 +62,7 @@ export function History({ uid, navigate }: Props) {
               </div>
               <div className="text-right shrink-0">
                 <div className="text-xs text-muted">
-                  {new Date(session.date).toLocaleDateString('he-IL', {
-                    day: 'numeric', month: 'short', year: 'numeric',
-                  })}
+                  {(() => { const _d = new Date(session.date); return `${_d.getDate()}/${_d.getMonth()+1}/${_d.getFullYear()}`; })()}
                 </div>
                 <div className="text-xs text-muted-most mt-0.5">
                   {session.sets.length} sets

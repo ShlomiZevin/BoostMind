@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הצעת מחיר — שלומי זוין × Island</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #3730A3;
+            --primary-light: #6366F1;
+            --dark: #1a1a2e;
+            --text: #2c2c3a;
+            --text-light: #6b6b80;
+            --bg: #ffffff;
+            --bg-soft: #f8f9fb;
+            --border: #e8e8ef;
+            --accent: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .page {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 36px 40px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-right h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .header-right .subtitle {
+            font-size: 16px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .header-left {
+            text-align: left;
+            direction: ltr;
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .header-left .name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 26px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .meta-row span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-row strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .section p {
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        /* Concept box */
+        .concept-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #f8f9fb 100%);
+            border: 1px solid #c7d2fe;
+            border-radius: 10px;
+            padding: 16px 22px;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .concept-box strong {
+            color: var(--primary-dark);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        table thead th {
+            background: var(--dark);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 10px 16px;
+            text-align: right;
+        }
+
+        table thead th:first-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        table thead th:last-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        table tbody td {
+            padding: 11px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tbody td:first-child {
+            font-weight: 600;
+            color: var(--dark);
+            width: 160px;
+        }
+
+        /* Deliverables table */
+        .deliverables-table tbody td:first-child {
+            width: 180px;
+        }
+
+        /* Discovery meeting highlight */
+        .discovery-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+            border: 1px solid #fcd34d;
+            border-radius: 10px;
+            padding: 16px 22px;
+            margin-top: 10px;
+        }
+
+        .discovery-box h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .discovery-box p {
+            font-size: 14px;
+            color: #78350f;
+            line-height: 1.7;
+        }
+
+        .discovery-box ul {
+            margin-top: 10px;
+            padding-right: 18px;
+            font-size: 13px;
+            color: #78350f;
+            line-height: 2;
+        }
+
+        /* Revisions */
+        .revisions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .revision-card {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .revision-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .revision-card p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .revision-card .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        /* Warning note */
+        .note {
+            background: #fff9f0;
+            border: 1px solid #f0dcc0;
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: #8a6d3b;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        .note strong {
+            color: #6b4f28;
+        }
+
+        /* Pricing */
+        .pricing-box {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 18px 22px;
+            color: white;
+            margin-top: 8px;
+        }
+
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pricing-row:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-row .label {
+            font-size: 15px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .pricing-row .label small {
+            display: block;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+        }
+
+        .pricing-row .amount {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-light);
+        }
+
+        .pricing-row .amount small {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .payment-terms {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .payment-terms strong {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Timeline */
+        .timeline-steps {
+            margin-top: 8px;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .timeline-step:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-step .step-num {
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .timeline-step .step-content h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .timeline-step .step-content p {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Timeline note */
+        .timeline-note {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 6px;
+        }
+
+        .timeline-note .speed {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .timeline-note div p {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .timeline-note div p strong {
+            color: var(--primary-dark);
+        }
+
+        .timeline-note div p.sub {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* Sound note */
+        .sound-note {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        /* Why this works */
+        .value-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .value-card {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .value-card .emoji {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .value-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .value-card p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Island requirement */
+        .island-requirement {
+            background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+            border: 1px solid #a5b4fc;
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-top: 12px;
+        }
+
+        .island-requirement h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+        }
+
+        .island-requirement p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 10px;
+            padding-top: 14px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-right {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .footer-right .validity {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .footer-left {
+            text-align: left;
+            direction: ltr;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid var(--border);
+            width: 200px;
+            height: 36px;
+            margin-bottom: 6px;
+        }
+
+        .footer-left .sig-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                font-size: 13px;
+            }
+            .page {
+                padding: 20px 20px;
+                max-width: 100%;
+            }
+            .section {
+                margin-bottom: 14px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .header {
+                margin-bottom: 20px;
+                padding-bottom: 14px;
+            }
+            .meta-row {
+                margin-bottom: 16px;
+            }
+            .concept-box,
+            .pricing-box,
+            .revisions-grid,
+            .revision-card,
+            .timeline-steps,
+            .note,
+            .sound-note,
+            .discovery-box,
+            .island-requirement,
+            .value-grid {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .pricing-and-footer {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .footer {
+                break-before: avoid;
+                page-break-before: avoid;
+                margin-top: 10px;
+            }
+            table {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .pricing-box {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            table thead th {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .value-card {
+                padding: 10px 12px;
+            }
+            .discovery-box {
+                padding: 12px 18px;
+            }
+            .revision-card {
+                padding: 10px 12px;
+            }
+            .signature-line {
+                height: 30px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .page {
+                padding: 30px 20px;
+            }
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .header-left {
+                text-align: right;
+                direction: rtl;
+            }
+            .meta-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .revisions-grid,
+            .value-grid {
+                grid-template-columns: 1fr;
+            }
+            .pricing-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .footer {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-right">
+                <h1>הצעת מחיר</h1>
+                <div class="subtitle">סדרת סרטוני דמויות מותאמת — Island Edition</div>
+            </div>
+            <div class="header-left">
+                <div class="name">Shlomi Zevin | שלומי זוין</div>
+                יוצר תוכן | דמויות הייטק<br>
+                054-5567213<br>
+                shlomi@boostart.io
+            </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="meta-row">
+            <span><strong>תאריך:</strong> 19.04.2026</span>
+            <span><strong>עבור:</strong> Island</span>
+            <span><strong>תוקף:</strong> 14 ימים</span>
+        </div>
+
+        <!-- Concept -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">🎯</div>
+                הקונספט
+            </div>
+            <div class="concept-box">
+                הפקת <strong>4 סרטוני תוכן מקוריים</strong> עם דמויות שההייטק הישראלי כבר מכיר ואוהב — <strong>צמד הגיקים, אסנת ה-HR-ית, וובה העובד הוותיק, האיש סיקיוריטי השבור, האיש עם הקורקינט מהמטבח</strong> ועוד — הפעם, מותאמות ספציפית לעולם של <strong>Island</strong>.
+                <br><br>
+                הסרטונים לא יהיו "סרטוני הייטק גנריים" — הם יהיו מבוססים על <strong>הווי החברה, הדמויות האמיתיות, הג'ויס הפנימיים, הציניות, והמציאות היומיומית</strong> של עובדי Island.
+                <br><br>
+                התוצאה: סרטונים על <strong>האנשים, ההווי, והרגעים</strong> שכולם ב-Island מכירים — הדברים שגורמים לכולם לצחוק במסדרון, רק שהפעם זה גם על המסך.
+            </div>
+        </div>
+
+        <!-- Why this works -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">🔥</div>
+                למה זה עובד
+            </div>
+            <div class="value-grid">
+                <div class="value-card">
+                    <div class="emoji">🎭</div>
+                    <h4>דמויות שמכירים</h4>
+                    <p>צמד הגיקים, אסנת, וובה — כבר מוכרים בהייטק. כשהם מדברים על Island — זה נוחת אחרת.</p>
+                </div>
+                <div class="value-card">
+                    <div class="emoji">🏢</div>
+                    <h4>ספציפי, לא גנרי</h4>
+                    <p>לא "חברת הייטק כלשהי" — אלא Island. עם המנכ"ל, ה-C-Level, הג'ויס, ההווי — הכל.</p>
+                </div>
+                <div class="value-card">
+                    <div class="emoji">😂</div>
+                    <h4>הומור אותנטי</h4>
+                    <p>ציניות חכמה שעובדים ממורמרים ומנהלים כאחד אוהבים — כי היא אמיתית.</p>
+                </div>
+                <div class="value-card">
+                    <div class="emoji">📱</div>
+                    <h4>ערך פנימי + חיצוני</h4>
+                    <p>מחזק תרבות ארגונית מבפנים, ומשמש כלי Employer Branding מבחוץ.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discovery Meeting -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">🧠</div>
+                פגישת היכרות — הלב של הפרויקט
+            </div>
+            <div class="discovery-box">
+                <h4>מפגש Deep Dive — שעתיים עם טובי המוחות של Island</h4>
+                <p>
+                    כדי שהסרטונים יהיו באמת ספציפיים ולא "עוד סרטון הייטק", אני צריך להכיר את Island מבפנים.
+                    הפגישה הזו היא מה שהופך סרטון גנרי לסרטון שגורם לאנשים לשלוח בקבוצת WhatsApp של החברה.
+                </p>
+                <ul>
+                    <li>מי הדמויות המפתח? מנכ"ל, C-Level, מנהלים שכולם מכירים</li>
+                    <li>מה הג'ויס? המשפטים שחוזרים, הקטעים שכולם מגלגלים עיניים</li>
+                    <li>מה הווי החברה? ה-vibe, הדינמיקה, מה שונה ב-Island מכל מקום אחר</li>
+                    <li>מה מרגיז? מה מצחיק? מה כולם חושבים אבל לא אומרים?</li>
+                    <li>ביטויים, טקסים, מיתוסים פנימיים — כל מה שהופך את Island ל-Island</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- What's included -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">🎬</div>
+                מה כלול בחבילה (End-to-End)
+            </div>
+            <table class="deliverables-table">
+                <thead>
+                    <tr>
+                        <th>שלב</th>
+                        <th>פירוט</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>פגישת היכרות</td>
+                        <td>מפגש Deep Dive של <strong>שעתיים</strong> — הכרת החברה, הדמויות, ההווי, הג'ויס</td>
+                    </tr>
+                    <tr>
+                        <td>קריאייטיב ותסריט</td>
+                        <td>פיתוח רעיונות וכתיבת 4 תסריטים מבוססי Island — על סמך חומר מהפגישה</td>
+                    </tr>
+                    <tr>
+                        <td>הפקה</td>
+                        <td>צילום מלא, עריכה דינמית, כתוביות</td>
+                    </tr>
+                    <tr>
+                        <td>סאונד</td>
+                        <td>עיצוב סאונד (מוזיקת Royalty-Free עליי — ראו הערה למטה)</td>
+                    </tr>
+                    <tr>
+                        <td>הפצה</td>
+                        <td>העלאה בערוצים שלי — TikTok, Instagram, Facebook</td>
+                    </tr>
+                    <tr>
+                        <td>זכויות שימוש</td>
+                        <td>רשות שימוש מלאה ל-Island (אורגני + ממומן) — ללא הגבלת זמן</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="island-requirement">
+                <h4>מה נדרש מצד Island?</h4>
+                <p>שעתיים של זמן עם 3-5 אנשים שמכירים את החברה הכי טוב — ומוכנים לספר הכל. כל השאר עליי.</p>
+            </div>
+        </div>
+
+        <!-- Revisions -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">⚙️</div>
+                תהליך עבודה וסבבי תיקונים
+            </div>
+            <div class="revisions-grid">
+                <div class="revision-card">
+                    <div class="badge">לפני צילום</div>
+                    <h4>תסריט</h4>
+                    <p>עד <strong>2 סבבי תיקונים</strong> על כל תסריט לפני אישור סופי וכניסה לצילום.</p>
+                </div>
+                <div class="revision-card">
+                    <div class="badge">אחרי צילום</div>
+                    <h4>עריכה</h4>
+                    <p>עד <strong>2 סבבי תיקונים</strong> על העריכה (חיתוכים, קצב, כתוביות, סאונד).</p>
+                </div>
+            </div>
+            <div class="note">
+                <strong>⚠️ דגש חשוב:</strong> מרגע אישור התסריט והצילום, תיקוני העריכה אינם כוללים צילום מחדש של סצנות.
+            </div>
+            <div class="sound-note">
+                <strong>🎵 סאונד וזכויות מוזיקה:</strong> שימוש במוזיקת Royalty-Free — באחריותי.
+                במידה ו-Island מבקשת טראק ספציפי — באחריות Island לוודא זכויות שימוש וזכויות יוצרים.
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">⚡</div>
+                לו״ז ותהליך
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>שלב</th>
+                        <th>פירוט</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>פגישת Deep Dive</td>
+                        <td>שעתיים — היכרות עם החברה, הדמויות, ההווי</td>
+                    </tr>
+                    <tr>
+                        <td>תסריטים</td>
+                        <td>כתיבת 4 תסריטים + סבבי אישור</td>
+                    </tr>
+                    <tr>
+                        <td>צילום והפקה</td>
+                        <td>צילום, עריכה, כתוביות, סאונד</td>
+                    </tr>
+                    <tr>
+                        <td>אישור סופי</td>
+                        <td>סבבי תיקונים ואישור — ועולים לאוויר</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="timeline-note">
+                <div class="speed">🚀</div>
+                <div>
+                    <p>יכולת אספקת סרטון מוגמר תוך <strong>יום עבודה אחד</strong> מרגע אישור תסריט.</p>
+                    <p class="sub">הלו"ז הכולל מותנה במהירות שיתוף הפעולה — ככל שהאישורים מגיעים מהר, הסרטונים יוצאים מהר.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing + Footer (keep together for print) -->
+        <div class="pricing-and-footer">
+        <div class="section">
+            <div class="section-title">
+                <div class="icon">💰</div>
+                תקציב
+            </div>
+            <div class="pricing-box">
+                <div class="pricing-row">
+                    <div class="label">
+                        סדרת סרטוני דמויות — Island Edition
+                        <small>4 סרטונים | פגישת היכרות, קריאייטיב, הפקה, עריכה, הפצה, זכויות שימוש ללא הגבלה</small>
+                    </div>
+                    <div class="amount">
+                        ₪60,000
+                        <small>+ מע"מ</small>
+                    </div>
+                </div>
+                <div class="payment-terms">
+                    <strong>תנאי תשלום:</strong> 10% (₪6,000 + מע"מ) לפני תחילת עבודה, ולאחר מכן ₪13,500 + מע"מ כנגד חשבונית עם אישור כל סרטון מוגמר.
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-right">
+                שלומי זוין | יוצר תוכן
+                <div class="validity">הצעה תקפה עד 03.05.2026</div>
+            </div>
+            <div class="footer-left">
+                <div class="signature-line"></div>
+                <div class="sig-label">חתימה לאישור</div>
+            </div>
+        </div>
+        </div><!-- /pricing-and-footer -->
+
+    </div>
+</body>
+</html>

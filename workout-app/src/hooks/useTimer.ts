@@ -12,6 +12,10 @@ export function useTimer() {
     setRemaining(durationSeconds);
     setIsRunning(true);
     hasAlerted.current = false;
+    // Request notification permission on first timer use (needs user gesture for iOS)
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   }, []);
 
   const skip = useCallback(() => {
@@ -61,6 +65,11 @@ export function useTimer() {
         // Vibrate
         if (navigator.vibrate) {
           navigator.vibrate([500, 200, 500]);
+        }
+
+        // Push notification (works when phone locked / app backgrounded)
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Rest Over!', { body: 'Time for the next set', icon: '/workout-app/icon-192.svg', tag: 'rest-timer' });
         }
 
         setIsRunning(false);

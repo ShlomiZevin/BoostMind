@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90",
@@ -14,12 +14,41 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// Simple device-based ID
-export function getDeviceId(): string {
-  let id = localStorage.getItem('workout-device-id');
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem('workout-device-id', id);
+// Passcode-based user ID
+export function getPasscode(): string | null {
+  return localStorage.getItem('workout-passcode');
+}
+
+export function setPasscode(passcode: string) {
+  localStorage.setItem('workout-passcode', `user_${passcode}`);
+}
+
+export function getUserId(): string | null {
+  const passcode = localStorage.getItem('workout-passcode');
+  return passcode;
+}
+
+export function logout() {
+  localStorage.removeItem('workout-passcode');
+}
+
+// Migrate data from old device ID to new passcode-based ID
+export async function migrateFromDeviceId(newUserId: string) {
+  const oldId = localStorage.getItem('workout-device-id');
+  if (!oldId || oldId === newUserId) return;
+
+  const subcollections = ['sessions', 'exerciseStats', 'exercisePhotos', 'customExercises', 'hiddenExercises'];
+
+  for (const sub of subcollections) {
+    const oldCol = collection(db, 'users', oldId, sub);
+    const snap = await getDocs(oldCol);
+    for (const d of snap.docs) {
+      const newRef = doc(db, 'users', newUserId, sub, d.id);
+      await setDoc(newRef, d.data());
+      await deleteDoc(doc(db, 'users', oldId, sub, d.id));
+    }
   }
-  return id;
+
+  // Clean up old device ID
+  localStorage.removeItem('workout-device-id');
 }

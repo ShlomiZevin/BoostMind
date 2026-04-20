@@ -50,7 +50,8 @@ export type SetLog = {
 
 export type Session = {
   id: string;
-  date: number; // timestamp
+  date: number; // timestamp (start)
+  completedAt?: number | null; // timestamp (end)
   day: 1 | 2 | 3 | 4 | 5;
   weekNumber: number;
   phase: 1 | 2 | 3;
@@ -76,9 +77,9 @@ export type ExerciseStats = {
 
 // Route types
 export type Route =
-  | { page: 'home' }
+  | { page: 'home'; week?: number }
   | { page: 'program-info' }
-  | { page: 'workout'; day: 1 | 2 | 3 | 4 | 5; sessionId?: string }
+  | { page: 'workout'; day: 1 | 2 | 3 | 4 | 5; sessionId?: string; week?: number }
   | { page: 'history' }
   | { page: 'session-detail'; sessionId: string }
   | { page: 'settings' };

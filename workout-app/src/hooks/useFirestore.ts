@@ -23,6 +23,7 @@ function toSession(id: string, data: any): Session {
   return {
     id,
     date: data.date?.toMillis?.() || data.date,
+    completedAt: data.completedAt?.toMillis?.() || data.completedAt || null,
     day: data.day,
     weekNumber: data.weekNumber,
     phase: data.phase,
@@ -88,10 +89,10 @@ export function useFirestore(uid: string | null) {
     return filteredSets;
   }, [uid]);
 
-  const completeSession = useCallback(async (sessionId: string) => {
+  const completeSession = useCallback(async (sessionId: string, partial?: boolean) => {
     if (!uid) return;
     const ref = doc(sessionsCol(uid), sessionId);
-    await updateDoc(ref, { completed: true });
+    await updateDoc(ref, { completed: true, completedAt: Timestamp.now(), ...(partial ? { partial: true } : {}) });
   }, [uid]);
 
   const updateExerciseStats = useCallback(async (exerciseId: string, setLog: SetLog, sessionId: string) => {
@@ -192,6 +193,12 @@ export function useFirestore(uid: string | null) {
     return all.find(s => s.day === day && !s.completed) || null;
   }, [uid]);
 
+  const getLastCompletedSessionForDay = useCallback(async (day: 1 | 2 | 3 | 4 | 5): Promise<Session | null> => {
+    if (!uid) return null;
+    const all = await fetchAllSessions(uid);
+    return all.find(s => s.day === day && s.completed) || null;
+  }, [uid]);
+
   const resetProgram = useCallback(async () => {
     if (!uid) return;
     const sessSnap = await getDocs(sessionsCol(uid));
@@ -207,7 +214,10 @@ export function useFirestore(uid: string | null) {
   const addCustomExercise = useCallback(async (day: 1 | 2 | 3 | 4 | 5, exercise: Exercise) => {
     if (!uid) return;
     const ref = doc(customExercisesCol(uid), exercise.id);
-    await setDoc(ref, { ...exercise, day, programName: PROGRAM.name });
+    // Strip undefined values — Firestore rejects them
+    const data: any = { ...exercise, day, programName: PROGRAM.name };
+    Object.keys(data).forEach(k => { if (data[k] === undefined) delete data[k]; });
+    await setDoc(ref, data);
   }, [uid]);
 
   const getCustomExercises = useCallback(async (day: 1 | 2 | 3 | 4 | 5): Promise<Exercise[]> => {
@@ -264,6 +274,36 @@ export function useFirestore(uid: string | null) {
     return snap.exists() ? snap.data().ids || [] : [];
   }, [uid]);
 
+  const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, difficulty: 'easy' | 'ok' | 'hard', addWeight: boolean) => {
+    if (!uid) return;
+    const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
+    await setDoc(ref, { exerciseId, sessionId, difficulty, addWeight, timestamp: Date.now() });
+  }, [uid]);
+
+  const getExerciseDifficulty = useCallback(async (exerciseId: string): Promise<{ difficulty: string; addWeight: boolean } | null> => {
+    if (!uid) return null;
+    // Get most recent difficulty rating for this exercise
+    const snap = await getDocs(collection(db, 'users', uid, 'exerciseDifficulty'));
+    const ratings = snap.docs
+      .map(d => d.data())
+      .filter(d => d.exerciseId === exerciseId)
+      .sort((a, b) => b.timestamp - a.timestamp);
+    return ratings[0] ? { difficulty: ratings[0].difficulty, addWeight: ratings[0].addWeight } : null;
+  }, [uid]);
+
+  const saveExerciseNote = useCallback(async (exerciseId: string, note: string) => {
+    if (!uid) return;
+    const ref = doc(db, 'users', uid, 'exerciseNotes', exerciseId);
+    await setDoc(ref, { note, updatedAt: Date.now() });
+  }, [uid]);
+
+  const getExerciseNote = useCallback(async (exerciseId: string): Promise<string> => {
+    if (!uid) return '';
+    const ref = doc(db, 'users', uid, 'exerciseNotes', exerciseId);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data().note || '' : '';
+  }, [uid]);
+
   return {
     createSession,
     getSession,
@@ -273,6 +313,7 @@ export function useFirestore(uid: string | null) {
     getExerciseStats,
     getSessions,
     getLastSessionForDay,
+    getLastCompletedSessionForDay,
     getIncompleteSession,
     resetProgram,
     addCustomExercise,
@@ -282,5 +323,9 @@ export function useFirestore(uid: string | null) {
     hideExercise,
     unhideExercise,
     getHiddenExercises,
+    saveExerciseNote,
+    getExerciseNote,
+    saveExerciseDifficulty,
+    getExerciseDifficulty,
   };
 }

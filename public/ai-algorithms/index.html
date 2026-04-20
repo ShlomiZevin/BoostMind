@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>מומחה AI ואלגוריתמים | שלומי זוין - CTO as a Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.15);
+      --accent-secondary: #6366f1;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Heebo', sans-serif; background: radial-gradient(circle at top, #050f1a 0, #050608 50%, #020305 100%); color: var(--text); scroll-behavior: smooth; line-height: 1.6; }
+
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(16,185,129,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: #e5e7f0; }
+    .header-contact { display: flex; align-items: center; gap: 1rem; }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .header-contact .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; }
+
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 800px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(16,185,129,0.25); background: rgba(16,185,129,0.08); color: #a7f3d0; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(16,185,129,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16,185,129,0.5); }
+    .btn.ghost { background: transparent; color: #e5e7f3; border-color: rgba(255,255,255,0.15); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 680px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: #dadfee; margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    .pricing-card { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(99,102,241,0.08)); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 650px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; }
+
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(16,185,129,0.12), transparent 60%); border: 1px solid rgba(16,185,129,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(99,102,241,0.15); color: #a5b4fc; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* DEMO: Genetic Algorithm TSP */
+    .ga-demo { max-width: 750px; margin: 0 auto; }
+    .ga-canvas-wrap { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.08); padding: 1.5rem; }
+    canvas#ga-canvas { width: 100%; height: 400px; border-radius: var(--radius-md); cursor: crosshair; }
+    .ga-controls { display: flex; gap: 0.6rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; align-items: center; }
+    .ga-btn { font-size: 0.82rem; padding: 0.45rem 1rem; border-radius: 999px; border: 1px solid rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); color: #a7f3d0; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .ga-btn:hover { background: rgba(16,185,129,0.2); }
+    .ga-btn.running { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+    .ga-stats { display: flex; gap: 2rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+    .ga-stat { text-align: center; }
+    .ga-stat .val { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+    .ga-stat .lbl { font-size: 0.75rem; color: var(--text-muted); }
+    .ga-info { margin-top: 0.8rem; font-size: 0.82rem; color: var(--text-muted); text-align: center; }
+    [data-theme="light"] .ga-canvas-wrap { border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .ga-btn { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); color: #047857; }
+    [data-theme="light"] .ga-btn.running { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); color: #dc2626; }
+
+    .contact-section { text-align: center; padding: 3rem 0; }
+    .contact-section h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .contact-item a { color: var(--accent); text-decoration: none; }
+
+    /* LIGHT THEME */
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #1a202c;
+      --text-muted: #64748b;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] body,
+    [data-theme="light"] html { background: linear-gradient(180deg, #f0f2f8 0%, #e8ecf4 100%); }
+    [data-theme="light"] .site-header { background: rgba(255,255,255,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(255,255,255,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .logo-text { color: #1a202c; }
+    [data-theme="light"] .tab-btn { color: #64748b; }
+    [data-theme="light"] .tab-btn:hover { color: #1a202c; }
+    [data-theme="light"] .hero-badges span { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.2); color: #047857; }
+    [data-theme="light"] .btn.ghost { color: #1a202c; border-color: rgba(0,0,0,0.15); }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .card li { color: #374151; }
+    [data-theme="light"] .callout { background: radial-gradient(circle at top, rgba(16,185,129,0.06), transparent 60%); border-color: rgba(16,185,129,0.2); }
+    [data-theme="light"] .callout p { color: #475569; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .exp-card p { color: #475569; }
+    [data-theme="light"] .exp-tag { background: rgba(99,102,241,0.08); color: #4338ca; }
+    [data-theme="light"] .pricing-card { background: linear-gradient(135deg, rgba(16,185,129,0.04), rgba(99,102,241,0.04)); border-color: rgba(16,185,129,0.2); }
+    /* light theme demo overrides handled inline above */
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.12); transform: rotate(180deg); }
+    [data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+
+    .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 1.5rem 0; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+    @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .hero { padding: 2.5rem 0 2rem; } .hero h1 { font-size: 1.7rem; } .hero-sub { font-size: 1rem; }
+      .section { padding: 2.5rem 0; } .section-header { margin-bottom: 1.5rem; } .section-header h2 { font-size: 1.5rem; }
+      .tabs { flex-wrap: wrap; justify-content: center; } .tab-btn { font-size: 0.82rem; padding: 0.65rem 0.8rem; }
+      .stats-row { gap: 1.5rem; } .stat .num { font-size: 2rem; }
+      .header-contact span:not(.btn-sm) { display: none; } .logo-text { font-size: 0.8rem; }
+      .card { padding: 1.2rem; } .pricing-card { padding: 1.5rem; } .pricing-card .price { font-size: 2rem; }
+      .callout { padding: 1.3rem; } .btn { padding: 0.65rem 1.2rem; font-size: 0.88rem; }
+      .contact-details { gap: 1rem; } .exp-card { padding: 1.2rem; }
+      canvas#ga-canvas { height: 300px; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.45rem; } .hero-badges span { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .contact-details { flex-direction: column; align-items: center; }
+      .tab-btn { padding: 0.6rem 0.65rem; font-size: 0.78rem; } .container { padding: 0 1rem; }
+      canvas#ga-canvas { height: 250px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">שלומי זוין | CTO as a Service</span>
+      </a>
+      <div class="header-contact">
+        <button class="theme-toggle" id="theme-toggle" title="Dark / Light">&#127769;</button>
+        <span>054-5567213</span>
+        <a href="mailto:shlomi@boostart.io" class="btn-sm">בואו נדבר</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="offer">ההצעה</button>
+      <button class="tab-btn" data-tab="experience">ניסיון</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="pricing">תקציב</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 1: OFFER ===================== -->
+<div class="tab-content active" id="tab-offer">
+  <section class="hero">
+    <div class="container">
+      <h1>אלגוריתמים, AI, והנדסת פרומפטים?<br/><span class="gradient">זה בדיוק מה שאני עושה כל יום.</span></h1>
+      <p class="hero-sub">
+        אני שלומי, CTO as a Service עם 20+ שנות ניסיון. לא רק "עובד עם AI" - בניתי רשתות נוירונים, אימנתי מודלים, עשיתי אלגו-טריידינג עם ML, ובניתי אלגוריתמים גנטיים לאופטימיזציה.
+        היום, עם 2+ שנות ניסיון עמוק ב-AI agents, אני בונה סוכנים חכמים בקצב שלא ניתן להשוואה.
+      </p>
+      <div class="hero-badges">
+        <span>Neural Networks</span>
+        <span>Prompt Engineering</span>
+        <span>LLM Agents</span>
+        <span>Node.js</span>
+        <span>Python</span>
+        <span>Genetic Algorithms</span>
+        <span>RAG</span>
+        <span>OpenAI / Claude API</span>
+        <span>ניהול צוותי פיתוח</span>
+        <span>20+ שנות ניסיון</span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">דברו איתי בוואטסאפ</a>
+        <button class="btn ghost" onclick="switchTab('demo')">ראו את הדמו החי &#8592;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY ME -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>למה אני מתאים בול</h2>
+        <p>כל דרישה שפרסמתם - יש לי ניסיון ישיר בה</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>פיתוח וייעול אלגוריתמים מורכבים</h3>
+          <p>בניתי אלגוריתמים גנטיים לאופטימיזציית מסלולים (לוגיסטיקה), מודלים לחיזוי תוצאות (ספורט), מנועי המלצה, ואלגוריתמי מסחר אוטומטי. לא תיאוריה - פרודקשן עם כסף אמיתי.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#129302;</div>
+          <h3>AI מתקדם + הנדסת פרומפטים</h3>
+          <p>2+ שנים של עבודה יומיומית עם LLMs. בניתי multi-agent architectures, RAG pipelines, chain-of-thought systems. הנדסת פרומפטים זה לא "לכתוב prompt טוב" - זה ארכיטקטורה שלמה.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128101;</div>
+          <h3>ניהול טכני של צוות מפתחים</h3>
+          <p>הובלתי צוותים בסטארטאפים שנים. אבל היום? אני מנהל AI שמבצע הכל מהר ובדיוק. 3 מפתחים לנהל? זה הלחם והחמאה שלי.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128187;</div>
+          <h3>Node.js + Full-Stack</h3>
+          <p>Node.js זה הסטאק המרכזי שלי. Express, WebSockets, microservices, APIs. גם Python כשצריך ML/data. גם React/Next.js בפרונט.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="callout">
+        <h3>&#128161; מה שמייחד אותי מכל השאר</h3>
+        <p>
+          בניתי רשתות נוירונים, אימנתי מודלים, דיבגתי למה הם מחזירים מה שהם מחזירים.
+          הרקע המחקרי הזה הוא מה שמאפשר לי להבין את הליבה של LLMs - לא רק "להשתמש" בהם, אלא למקסם את היכולות שלהם ולהכיר את המגבלות.
+          ככה נבנים agents מדויקים - לא agents שהוזים.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 2: EXPERIENCE ===================== -->
+<div class="tab-content" id="tab-experience">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>ניסיון ישיר באלגוריתמים ו-AI</h2>
+        <p>לא קורסים - פרויקטים אמיתיים עם תוצאות אמיתיות</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">20+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">2+</div>
+          <div class="label">שנים עמוק ב-AI Agents</div>
+        </div>
+        <div class="stat">
+          <div class="num">ML</div>
+          <div class="label">רקע מחקרי אמיתי</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#128200; Algo Trading & ML Research</h3>
+          <p>פרויקט אלגו-טריידינג אישי בקריפטו ומניות. התחלתי עם decision trees, התקדמתי לרשתות נוירונים. בניתי מודלים, אימנתי, הערכתי ביצועים, וסחרתי עם כסף אמיתי. מכאן מגיעה ההבנה העמוקה של איך רשתות נוירונים באמת עובדות.</p>
+          <span class="exp-tag">Neural Networks</span>
+          <span class="exp-tag">Decision Trees</span>
+          <span class="exp-tag">Model Evaluation</span>
+          <span class="exp-tag">Trading</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129302; AI Agents - Multi-Crew Architecture</h3>
+          <p>בניית ארכיטקטורות של סוכנים מרובים עם chain reactions, triggered context, ומערכות זיכרון. מ-Mystic AI (אחד מאפליקציות ה-AI הצרכניות הראשונות) ועד agents ארגוניים מורכבים.</p>
+          <span class="exp-tag">LLM Agents</span>
+          <span class="exp-tag">RAG</span>
+          <span class="exp-tag">Prompt Engineering</span>
+          <span class="exp-tag">Multi-Agent</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#9917; ספורט - Octopol & Sidelines</h3>
+          <p><strong>Octopol</strong> - אלגוריתם חיזוי תוצאות ספורט. <strong>Sidelines</strong> - אופטימיזציית קבוצות פנטזי עם אלגוריתמים גנטיים. המוצר נמכר ל-NI.</p>
+          <span class="exp-tag">Genetic Algorithms</span>
+          <span class="exp-tag">Prediction Models</span>
+          <span class="exp-tag">Optimization</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128666; לוגיסטיקה - אופטימיזציית מסלולים</h3>
+          <p>אלגוריתם אבולוציוני לאופטימיזציית מסלולי משלוחים same-day. מאות נקודות חלוקה, שיפור דור אחרי דור. כמו אלגוריתם גנטי - כל דור משתפר.</p>
+          <span class="exp-tag">Evolutionary Algorithm</span>
+          <span class="exp-tag">Route Optimization</span>
+          <span class="exp-tag">Logistics</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128154; בריאות - Doing App</h3>
+          <p>פלטפורמה AI-driven לילדים אוטיסטים: ניתוח התנהגות עם AI, ניהול טיפולים, לוחות תקשורת חזותיים, וייעוץ מבוסס AI. כל המערכת מונעת בינה מלאכותית.</p>
+          <span class="exp-tag">AI Analysis</span>
+          <span class="exp-tag">Health Tech</span>
+          <span class="exp-tag">Recommendations Engine</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#127891; EdTech - אופטימיזציית קמפיינים</h3>
+          <p>ML-powered campaign optimization - חיזוי אילו קמפיינים ממירים והקצאת תקציב אוטומטית. פיתוח פלטפורמה מקצה לקצה.</p>
+          <span class="exp-tag">ML</span>
+          <span class="exp-tag">Campaign Optimization</span>
+          <span class="exp-tag">Prediction</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 3: LIVE DEMO ===================== -->
+<div class="tab-content" id="tab-demo">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>הדגמה חיה - אלגוריתם גנטי</h2>
+        <p>אופטימיזציית מסלולים (Travelling Salesman) בזמן אמת. בדיוק מהסוג שבניתי ללוגיסטיקה ולפנטזי</p>
+      </div>
+
+      <div class="ga-demo">
+        <div class="ga-canvas-wrap">
+          <canvas id="ga-canvas"></canvas>
+          <div class="ga-controls">
+            <button class="ga-btn" id="ga-start" onclick="gaStart()">&#9654; הפעל אלגוריתם</button>
+            <button class="ga-btn" onclick="gaReset()">&#8634; נקודות חדשות</button>
+            <button class="ga-btn" onclick="gaAddPreset(15)">15 נקודות</button>
+            <button class="ga-btn" onclick="gaAddPreset(25)">25 נקודות</button>
+            <button class="ga-btn" onclick="gaAddPreset(40)">40 נקודות</button>
+          </div>
+          <div class="ga-stats">
+            <div class="ga-stat"><div class="val" id="ga-gen">0</div><div class="lbl">דור</div></div>
+            <div class="ga-stat"><div class="val" id="ga-dist">-</div><div class="lbl">מרחק נוכחי</div></div>
+            <div class="ga-stat"><div class="val" id="ga-best">-</div><div class="lbl">שיא</div></div>
+            <div class="ga-stat"><div class="val" id="ga-improve">-</div><div class="lbl">שיפור %</div></div>
+          </div>
+          <div class="ga-info">לחצו על הקנבס להוספת נקודות, או בחרו preset. ואז הפעילו את האלגוריתם וצפו בו משפר את המסלול דור אחרי דור.</div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2.5rem;">
+        <h3>&#129504; מה קורה כאן?</h3>
+        <p>
+          האלגוריתם מייצר אוכלוסייה של מסלולים אקראיים, מדרג אותם לפי מרחק כולל,
+          ואז - כמו בטבע - המסלולים הטובים ביותר "מתרבים" (crossover), עוברים מוטציות קטנות,
+          והדור הבא משתפר. זה בדיוק העיקרון שהשתמשתי בו באופטימיזציית מסלולי משלוחים ובאופטימיזציית קבוצות פנטזי.
+        </p>
+      </div>
+
+      <div class="callout">
+        <h3>&#9889; הדגמת קצב פיתוח</h3>
+        <p>
+          כל מה שאתם רואים כאן - אלגוריתם גנטי עובד בזמן אמת, ויזואליזציה, כל העמוד - נבנה תוך דקות.
+          זה לא מוקאפ, זה אלגוריתם אמיתי שרץ. עם AI כמכפיל כוח, דברים של חודשים הופכים לימים.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== TAB 4: PRICING ===================== -->
+<div class="tab-content" id="tab-pricing">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>תקציב ולו"ז</h2>
+        <p>מודל CTO חודשי - מתאים בול לניהול צוות של 3 מפתחים + הובלה טכנולוגית</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">CTO as a Service</div>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">הובלה טכנולוגית + ניהול צוות הפיתוח שלכם</div>
+        <ul>
+          <li>הובלת הארכיטקטורה האלגוריתמית והטכנולוגית</li>
+          <li>ניהול 3 מפתחים - code review, תכנון, mentoring</li>
+          <li>פיתוח hands-on באלגוריתמים ו-AI</li>
+          <li>הנדסת פרומפטים ואינטגרציית LLMs</li>
+          <li>הגדרת סטנדרטים, CI/CD, ותהליכי עבודה</li>
+          <li>שיחה שבועית קבועה + זמינות שוטפת</li>
+          <li>גמישות מלאה - scope משתנה לפי הצורך</li>
+          <li>שקיפות מלאה - הקוד שלכם, תמיד</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="margin-top: 1rem; width: 100%;">בואו נדבר על זה</a>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>Timeline</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>היכרות והבנת הפרויקט</h3>
+            <p>צלילה לקוד הקיים, הבנת האלגוריתמים, מיפוי gaps, היכרות עם הצוות</p>
+            <span class="tag">שבוע 1</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>אסטרטגיה + Quick Wins</h3>
+            <p>תוכנית פעולה, תעדוף משימות, הגדרת תהליכי עבודה, תיקונים מיידיים</p>
+            <span class="tag">שבוע 2-3</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>פיתוח + ניהול שוטף</h3>
+            <p>הובלת הפיתוח, ניהול הצוות, פיתוח אלגוריתמים ואינטגרציות AI, code reviews</p>
+            <span class="tag">חודש 2+</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>סטאק טכנולוגי</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>AI & Algorithms</h3>
+          <ul>
+            <li>Neural Networks / ML</li>
+            <li>LLM Agents (OpenAI, Claude)</li>
+            <li>RAG / Prompt Engineering</li>
+            <li>Genetic / Evolutionary Algorithms</li>
+            <li>Prediction Models</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9881;&#65039;</div>
+          <h3>Backend & Infra</h3>
+          <ul>
+            <li>Node.js / Express</li>
+            <li>Python</li>
+            <li>PostgreSQL / MongoDB / Redis</li>
+            <li>Docker / Kubernetes / CI/CD</li>
+            <li>AWS / GCP</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128187;</div>
+          <h3>Frontend & Product</h3>
+          <ul>
+            <li>React / Next.js / TypeScript</li>
+            <li>Real-time UI (WebSockets)</li>
+            <li>UX / Product Design</li>
+            <li>Responsive / Mobile</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-section">
+    <div class="container">
+      <h2>בואו נדבר</h2>
+      <p>אשמח לשמוע עוד על הפרויקט ועל הצוות</p>
+      <div class="contact-details">
+        <div class="contact-item">&#128222; <a href="tel:054-5567213">054-5567213</a></div>
+        <div class="contact-item">&#128231; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">&#128172; <a href="https://wa.me/972545567213">WhatsApp</a></div>
+      </div>
+      <a href="https://wa.me/972545567213" class="btn primary">שלחו הודעה עכשיו</a>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    שלומי זוין | CTO as a Service | shlomi@boostart.io | 054-5567213
+  </div>
+</footer>
+
+<script>
+  // ===== TABS =====
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // ===== THEME TOGGLE =====
+  const themeToggle = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  });
+
+  // ===== GENETIC ALGORITHM - TSP SOLVER =====
+  const gaCanvas = document.getElementById('ga-canvas');
+  const gaCtx = gaCanvas.getContext('2d');
+  let cities = [];
+  let population = [];
+  let bestRoute = null;
+  let bestDist = Infinity;
+  let initialDist = 0;
+  let generation = 0;
+  let gaRunning = false;
+  let gaInterval = null;
+  const POP_SIZE = 100;
+  const MUTATION_RATE = 0.15;
+  const ELITE_COUNT = 10;
+
+  function initGaCanvas() {
+    const rect = gaCanvas.getBoundingClientRect();
+    gaCanvas.width = rect.width * window.devicePixelRatio;
+    gaCanvas.height = rect.height * window.devicePixelRatio;
+    gaCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+  }
+
+  function dist(a, b) {
+    return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+  }
+
+  function routeDist(route) {
+    let d = 0;
+    for (let i = 0; i < route.length; i++) {
+      d += dist(cities[route[i]], cities[route[(i + 1) % route.length]]);
+    }
+    return d;
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function crossover(a, b) {
+    const n = a.length;
+    const start = Math.floor(Math.random() * n);
+    const end = start + Math.floor(Math.random() * (n - start));
+    const child = new Array(n).fill(-1);
+    for (let i = start; i <= end; i++) child[i] = a[i];
+    let idx = 0;
+    for (let i = 0; i < n; i++) {
+      if (!child.includes(b[i])) {
+        while (child[idx] !== -1) idx++;
+        child[idx] = b[i];
+      }
+    }
+    return child;
+  }
+
+  function mutate(route) {
+    const r = [...route];
+    if (Math.random() < MUTATION_RATE) {
+      // 2-opt style mutation
+      const i = Math.floor(Math.random() * r.length);
+      const j = Math.floor(Math.random() * r.length);
+      const [lo, hi] = i < j ? [i, j] : [j, i];
+      const segment = r.slice(lo, hi + 1).reverse();
+      r.splice(lo, hi - lo + 1, ...segment);
+    }
+    if (Math.random() < 0.05) {
+      // swap mutation
+      const i = Math.floor(Math.random() * r.length);
+      const j = Math.floor(Math.random() * r.length);
+      [r[i], r[j]] = [r[j], r[i]];
+    }
+    return r;
+  }
+
+  function initPopulation() {
+    const base = cities.map((_, i) => i);
+    population = [];
+    for (let i = 0; i < POP_SIZE; i++) {
+      population.push(shuffle(base));
+    }
+    bestDist = Infinity;
+    bestRoute = null;
+    generation = 0;
+    initialDist = 0;
+  }
+
+  function evolve() {
+    // Sort by fitness
+    population.sort((a, b) => routeDist(a) - routeDist(b));
+    const currentBest = routeDist(population[0]);
+    if (generation === 0) initialDist = currentBest;
+    if (currentBest < bestDist) {
+      bestDist = currentBest;
+      bestRoute = [...population[0]];
+    }
+
+    // New generation
+    const newPop = [];
+    // Elitism
+    for (let i = 0; i < ELITE_COUNT; i++) newPop.push([...population[i]]);
+    // Breed
+    while (newPop.length < POP_SIZE) {
+      const parentA = population[Math.floor(Math.random() * Math.floor(POP_SIZE * 0.3))];
+      const parentB = population[Math.floor(Math.random() * Math.floor(POP_SIZE * 0.5))];
+      let child = crossover(parentA, parentB);
+      child = mutate(child);
+      newPop.push(child);
+    }
+    population = newPop;
+    generation++;
+
+    // Update stats
+    document.getElementById('ga-gen').textContent = generation;
+    document.getElementById('ga-dist').textContent = Math.round(currentBest);
+    document.getElementById('ga-best').textContent = Math.round(bestDist);
+    const improvement = initialDist > 0 ? Math.round((1 - bestDist / initialDist) * 100) : 0;
+    document.getElementById('ga-improve').textContent = improvement + '%';
+  }
+
+  function drawGA() {
+    const w = gaCanvas.getBoundingClientRect().width;
+    const h = gaCanvas.getBoundingClientRect().height;
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    gaCtx.clearRect(0, 0, w, h);
+
+    if (cities.length === 0) {
+      gaCtx.fillStyle = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+      gaCtx.font = '16px Heebo';
+      gaCtx.textAlign = 'center';
+      gaCtx.fillText('לחצו כאן להוספת נקודות, או בחרו preset למטה', w / 2, h / 2);
+      return;
+    }
+
+    // Draw current best route
+    if (bestRoute && bestRoute.length > 1) {
+      // Draw all routes faintly (top 5)
+      for (let r = 1; r < Math.min(5, population.length); r++) {
+        gaCtx.beginPath();
+        const route = population[r];
+        if (!route) continue;
+        gaCtx.moveTo(cities[route[0]].x * w, cities[route[0]].y * h);
+        for (let i = 1; i < route.length; i++) {
+          gaCtx.lineTo(cities[route[i]].x * w, cities[route[i]].y * h);
+        }
+        gaCtx.closePath();
+        gaCtx.strokeStyle = isDark ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.1)';
+        gaCtx.lineWidth = 1;
+        gaCtx.stroke();
+      }
+
+      // Draw best route
+      gaCtx.beginPath();
+      gaCtx.moveTo(cities[bestRoute[0]].x * w, cities[bestRoute[0]].y * h);
+      for (let i = 1; i < bestRoute.length; i++) {
+        gaCtx.lineTo(cities[bestRoute[i]].x * w, cities[bestRoute[i]].y * h);
+      }
+      gaCtx.closePath();
+      gaCtx.strokeStyle = '#10b981';
+      gaCtx.lineWidth = 2.5;
+      gaCtx.shadowColor = 'rgba(16,185,129,0.4)';
+      gaCtx.shadowBlur = 8;
+      gaCtx.stroke();
+      gaCtx.shadowBlur = 0;
+
+      // Animated dot along route
+      if (gaRunning) {
+        const t = (Date.now() % 3000) / 3000;
+        const totalIdx = t * bestRoute.length;
+        const segIdx = Math.floor(totalIdx);
+        const segT = totalIdx - segIdx;
+        const fromCity = cities[bestRoute[segIdx % bestRoute.length]];
+        const toCity = cities[bestRoute[(segIdx + 1) % bestRoute.length]];
+        const dotX = fromCity.x + (toCity.x - fromCity.x) * segT;
+        const dotY = fromCity.y + (toCity.y - fromCity.y) * segT;
+        const grd = gaCtx.createRadialGradient(dotX * w, dotY * h, 0, dotX * w, dotY * h, 14);
+        grd.addColorStop(0, 'rgba(99,102,241,0.9)');
+        grd.addColorStop(1, 'rgba(99,102,241,0)');
+        gaCtx.beginPath();
+        gaCtx.arc(dotX * w, dotY * h, 14, 0, Math.PI * 2);
+        gaCtx.fillStyle = grd;
+        gaCtx.fill();
+      }
+    }
+
+    // Draw cities
+    cities.forEach((c, i) => {
+      const grd = gaCtx.createRadialGradient(c.x * w, c.y * h, 0, c.x * w, c.y * h, 12);
+      grd.addColorStop(0, '#6366f1');
+      grd.addColorStop(1, 'rgba(99,102,241,0)');
+      gaCtx.beginPath();
+      gaCtx.arc(c.x * w, c.y * h, 12, 0, Math.PI * 2);
+      gaCtx.fillStyle = grd;
+      gaCtx.fill();
+
+      gaCtx.beginPath();
+      gaCtx.arc(c.x * w, c.y * h, 5, 0, Math.PI * 2);
+      gaCtx.fillStyle = isDark ? '#e5e7eb' : '#1f2937';
+      gaCtx.fill();
+    });
+  }
+
+  function gaAnimLoop() {
+    if (gaRunning) {
+      for (let i = 0; i < 5; i++) evolve(); // 5 generations per frame
+    }
+    drawGA();
+    requestAnimationFrame(gaAnimLoop);
+  }
+
+  function gaStart() {
+    if (cities.length < 3) return;
+    const btn = document.getElementById('ga-start');
+    if (gaRunning) {
+      gaRunning = false;
+      btn.textContent = '\u25B6 המשך';
+      btn.classList.remove('running');
+    } else {
+      if (population.length === 0 || generation === 0) initPopulation();
+      gaRunning = true;
+      btn.textContent = '\u23F8 עצור';
+      btn.classList.add('running');
+    }
+  }
+
+  function gaReset() {
+    gaRunning = false;
+    const btn = document.getElementById('ga-start');
+    btn.textContent = '\u25B6 הפעל אלגוריתם';
+    btn.classList.remove('running');
+    cities = [];
+    population = [];
+    bestRoute = null;
+    bestDist = Infinity;
+    generation = 0;
+    document.getElementById('ga-gen').textContent = '0';
+    document.getElementById('ga-dist').textContent = '-';
+    document.getElementById('ga-best').textContent = '-';
+    document.getElementById('ga-improve').textContent = '-';
+    drawGA();
+  }
+
+  function gaAddPreset(n) {
+    gaRunning = false;
+    const btn = document.getElementById('ga-start');
+    btn.textContent = '\u25B6 הפעל אלגוריתם';
+    btn.classList.remove('running');
+    cities = [];
+    population = [];
+    bestRoute = null;
+    bestDist = Infinity;
+    generation = 0;
+    const pad = 0.06;
+    for (let i = 0; i < n; i++) {
+      cities.push({ x: pad + Math.random() * (1 - 2 * pad), y: pad + Math.random() * (1 - 2 * pad) });
+    }
+    document.getElementById('ga-gen').textContent = '0';
+    document.getElementById('ga-dist').textContent = '-';
+    document.getElementById('ga-best').textContent = '-';
+    document.getElementById('ga-improve').textContent = '-';
+    drawGA();
+  }
+
+  gaCanvas.addEventListener('click', (e) => {
+    if (gaRunning) return;
+    const rect = gaCanvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    cities.push({ x, y });
+    population = [];
+    bestRoute = null;
+    bestDist = Infinity;
+    generation = 0;
+    document.getElementById('ga-gen').textContent = '0';
+    document.getElementById('ga-dist').textContent = '-';
+    document.getElementById('ga-best').textContent = '-';
+    document.getElementById('ga-improve').textContent = '-';
+    drawGA();
+  });
+
+  window.addEventListener('resize', () => { initGaCanvas(); drawGA(); });
+  initGaCanvas();
+  gaAnimLoop();
+  // Start with a preset so the demo isn't empty
+  gaAddPreset(20);
+</script>
+
+</body>
+</html>

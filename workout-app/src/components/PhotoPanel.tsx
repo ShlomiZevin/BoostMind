@@ -67,7 +67,7 @@ export function PhotoPanel({ photos, onCapture, onDelete }: Props) {
                 />
                 {/* Date label */}
                 <div className={`text-[8px] text-muted-most text-center mt-0.5 ${expanded === p.id ? '' : 'w-14'}`}>
-                  {new Date(p.timestamp).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}
+                  {(() => { const _d = new Date(p.timestamp); return `${_d.getDate()}/${_d.getMonth()+1}`; })()}
                 </div>
                 {/* Delete on expanded */}
                 {expanded === p.id && (

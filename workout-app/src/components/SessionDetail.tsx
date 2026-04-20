@@ -39,9 +39,7 @@ export function SessionDetail({ uid, sessionId, navigate }: Props) {
         <div>
           <h1 className="text-xl font-bold">Day {session.day} — W{session.weekNumber}</h1>
           <p className="text-xs text-muted">
-            {new Date(session.date).toLocaleDateString('he-IL', {
-              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-            })}
+            {(() => { const _d = new Date(session.date); return `${_d.getDate()}/${_d.getMonth()+1}/${_d.getFullYear()}`; })()}
           </p>
         </div>
       </div>
