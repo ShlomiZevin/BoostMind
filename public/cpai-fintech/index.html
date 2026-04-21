@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CP.AI — שדרוג פלטפורמת פינטק | שלומי זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-alt: #0d1015;
+      --card-bg: #151924;
+      --accent: #3ecf8e;
+      --accent-soft: rgba(62, 207, 142, 0.15);
+      --accent-secondary: #6366f1;
+      --accent-blue: #0ea5e9;
+      --accent-green: #10b981;
+      --accent-gold: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --border: #262b36;
+      --text: #f9fafb;
+      --text-muted: #a3a8b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --bg-alt: #f1f5f9; --card-bg: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #64748b; --shadow-soft: 0 18px 40px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.7; transition: background 0.3s, color 0.3s; unicode-bidi: embed; }
+    .en { direction: ltr; display: inline-block; unicode-bidi: embed; }
+    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 100vh; background: radial-gradient(circle at top, rgba(62,207,142,0.06) 0, transparent 50%); pointer-events: none; z-index: 0; }
+    [data-theme="light"] body::before { background: radial-gradient(circle at top, rgba(62,207,142,0.04) 0, transparent 50%); }
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(5,6,8,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    [data-theme="light"] .site-header { background: rgba(248,250,252,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(62,207,142,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); direction: ltr; }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all 0.2s; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 0.5rem; }
+
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(5,6,8,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(248,250,252,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.3; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 800px; margin: 0 auto 2rem; line-height: 1.8; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(62,207,142,0.25); background: rgba(62,207,142,0.08); color: #86efac; }
+    [data-theme="light"] .hero-badges span { border-color: rgba(62,207,142,0.35); background: rgba(62,207,142,0.1); color: #166534; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(62,207,142,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(62,207,142,0.5); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); transition: transform 0.2s; }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    .card:hover { transform: translateY(-3px); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    .card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B9'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 0.5rem; line-height: 1.6; }
+    .exp-tag { display: inline-block; font-size: 0.73rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(14,165,233,0.15); color: #7dd3fc; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+    [data-theme="light"] .exp-tag { background: rgba(14,165,233,0.1); color: #0284c7; }
+
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(62,207,142,0.12), transparent 60%); border: 1px solid rgba(62,207,142,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+
+    .match-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
+    [data-theme="light"] .match-table { border-color: rgba(0,0,0,0.08); }
+    .match-table th { background: rgba(62,207,142,0.1); color: var(--accent); font-weight: 600; font-size: 0.85rem; padding: 0.85rem 1rem; text-align: right; }
+    .match-table td { padding: 0.75rem 1rem; font-size: 0.88rem; border-top: 1px solid rgba(255,255,255,0.04); vertical-align: top; line-height: 1.6; }
+    [data-theme="light"] .match-table td { border-top-color: rgba(0,0,0,0.06); }
+    .match-table tr:hover td { background: rgba(62,207,142,0.03); }
+    .match-check { color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+    .match-table .req-col { width: 30%; color: var(--text-muted); }
+    .match-table .my-col { width: 55%; }
+    .match-table .status-col { width: 15%; text-align: center; }
+
+    .pricing-card { background: linear-gradient(135deg, rgba(62,207,142,0.08), rgba(99,102,241,0.08)); border: 1px solid rgba(62,207,142,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 700px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(62,207,142,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(62,207,142,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    /* DEMO */
+    .demo-container { max-width: 850px; margin: 0 auto; }
+    .demo-app { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+    [data-theme="light"] .demo-app { border-color: rgba(0,0,0,0.08); }
+    .demo-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.5rem; background: rgba(62,207,142,0.05); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .demo-header h3 { font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
+    .demo-status { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; background: rgba(62,207,142,0.15); color: var(--accent); }
+    .demo-body { padding: 1.5rem; }
+
+    .demo-sidebar-layout { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; }
+    .demo-sidebar { display: flex; flex-direction: column; gap: 0.25rem; }
+    .sidebar-item { padding: 0.6rem 0.8rem; border-radius: var(--radius-md); font-size: 0.82rem; cursor: pointer; transition: all 0.2s; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    .sidebar-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .sidebar-item.active { background: rgba(62,207,142,0.1); color: var(--accent); font-weight: 600; }
+    .demo-main { min-height: 400px; }
+
+    /* Audit Panel */
+    .audit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+    .audit-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 0.85rem; }
+    [data-theme="light"] .audit-card { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.06); }
+    .audit-card h4 { font-size: 0.82rem; margin: 0 0 0.3rem; display: flex; align-items: center; gap: 0.4rem; }
+    .audit-card .score { font-size: 1.6rem; font-weight: 800; }
+    .audit-card .score.good { color: var(--accent); }
+    .audit-card .score.warn { color: var(--accent-gold); }
+    .audit-card .score.bad { color: var(--accent-red); }
+    .audit-card .detail { font-size: 0.75rem; color: var(--text-muted); }
+
+    .rls-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .rls-table th { text-align: right; padding: 0.5rem 0.6rem; color: var(--accent); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.75rem; }
+    .rls-table td { padding: 0.45rem 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .rls-status { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; }
+    .rls-status.secure { background: rgba(62,207,142,0.15); color: var(--accent); }
+    .rls-status.warning { background: rgba(245,158,11,0.15); color: var(--accent-gold); }
+    .rls-status.critical { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+    /* Invoice Demo */
+    .invoice-preview { background: white; color: #1a1a2e; border-radius: var(--radius-md); padding: 1.5rem; direction: rtl; font-size: 0.82rem; }
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--accent); }
+    .invoice-title { font-size: 1.2rem; font-weight: 800; color: #1a1a2e; }
+    .invoice-meta { font-size: 0.75rem; color: #6b7280; text-align: left; direction: ltr; }
+    .invoice-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
+    .invoice-table th { background: #f1f5f9; padding: 0.5rem; font-size: 0.75rem; font-weight: 600; text-align: right; }
+    .invoice-table td { padding: 0.45rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.78rem; }
+    .invoice-total { text-align: left; direction: ltr; margin-top: 0.5rem; }
+    .invoice-total .line { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.8rem; }
+    .invoice-total .line.total { font-weight: 800; font-size: 1rem; color: #1a1a2e; border-top: 2px solid #1a1a2e; padding-top: 0.4rem; margin-top: 0.2rem; }
+
+    /* OCR Demo */
+    .ocr-demo { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .ocr-source { background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 1rem; text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .ocr-source .ocr-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .ocr-result { background: rgba(62,207,142,0.03); border: 1px solid rgba(62,207,142,0.15); border-radius: var(--radius-md); padding: 1rem; font-size: 0.82rem; }
+    .ocr-field { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .ocr-field:last-child { border-bottom: none; }
+    .ocr-field .label { color: var(--text-muted); }
+    .ocr-field .value { font-weight: 600; direction: ltr; }
+    .confidence { font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 999px; margin-right: 0.3rem; }
+    .confidence.high { background: rgba(62,207,142,0.15); color: var(--accent); }
+    .confidence.med { background: rgba(245,158,11,0.15); color: var(--accent-gold); }
+
+    .stack-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; }
+    .stack-tag { font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: var(--text-muted); }
+    [data-theme="light"] .stack-tag { border-color: rgba(0,0,0,0.08); background: rgba(0,0,0,0.03); }
+
+    .site-footer { text-align: center; padding: 2rem 0; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 2rem; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+    .site-footer p { color: var(--text-muted); font-size: 0.85rem; margin: 0.3rem 0; }
+    .site-footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.7rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .tab-btn { padding: 0.75rem 0.9rem; font-size: 0.82rem; }
+      .header-contact { display: none; }
+      .match-table { font-size: 0.8rem; }
+      .match-table th, .match-table td { padding: 0.5rem; }
+      .demo-sidebar-layout { grid-template-columns: 1fr; }
+      .demo-sidebar { flex-direction: row; overflow-x: auto; }
+      .audit-grid { grid-template-columns: 1fr; }
+      .ocr-demo { grid-template-columns: 1fr; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2rem; }
+    }
+    @media (max-width: 480px) {
+      .tabs { justify-content: flex-start; }
+      .hero { padding: 2.5rem 0 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">Shlomi Zovin &bull; CTO as a Service</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#9788;</button>
+        <span class="header-contact">
+          <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+          <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp &larr;</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">&#127919; ההצעה</button>
+      <button class="tab-btn" onclick="switchTab('experience')">&#128218; ניסיון רלוונטי</button>
+      <button class="tab-btn" onclick="switchTab('demo')">&#9889; המחשה</button>
+      <button class="tab-btn" onclick="switchTab('budget')">&#128176; תקציב</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <h1>את <span class="en">CP.AI</span> צריך לקחת<br/><span class="gradient">מ-<span class="en">MVP</span> ל-<span class="en">Production</span></span><br/>בדיוק מה שאני עושה</h1>
+      <p class="hero-sub">
+        <span class="en">Supabase</span> עם <span class="en">RLS</span> מורכב, <span class="en">Edge Functions</span>, הפקת <span class="en">PDF</span> בעברית, ו-<span class="en">OCR</span> מבוסס <span class="en">AI</span> &mdash;
+        זה בדיוק עולם התוכן שלי. אני <strong><span class="en">CTO as a Service</span></strong> עם 15+ שנות ניסיון,
+        כולל מערכות פיננסיות, <span class="en">SaaS</span>, ו-<span class="en">Supabase</span> בפרודקשן.
+        <br/><br/>
+        כבר בניתי 50+ מוצרים מאפס. אני יודע בדיוק איך לקחת <span class="en">MVP</span> שעובד &mdash;
+        ולהפוך אותו למוצר ברמת פרודקשן עם אבטחה, ביצועים, וחוויית משתמש ברמה גבוהה.
+      </p>
+      <div class="hero-badges">
+        <span dir="ltr">Supabase (RLS + Edge Functions)</span>
+        <span dir="ltr">React + TypeScript</span>
+        <span dir="ltr">Tailwind CSS</span>
+        <span dir="ltr">PostgreSQL</span>
+        <span dir="ltr">Security Audit</span>
+        <span dir="ltr">OCR + AI</span>
+        <span dir="ltr">PDF Generation</span>
+        <span dir="ltr">Financial Systems</span>
+        <span>50+ מוצרים מאפס</span>
+        <span>15+ שנות ניסיון</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">&#128172; בוא נדבר</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">&#128065; ראה המחשה</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#128161; למה אני? בגלל השילוב הנדיר</h3>
+      <p>
+        רוב המפתחים שמכירים <span class="en">Supabase</span> לא מבינים פיננסים.
+        רוב מי שמבין חשבונאות לא יודע לכתוב <span class="en">RLS policies</span>.
+        אני מביא את <strong>שני העולמות</strong> &mdash; ניסיון טכני עמוק עם <span class="en">Supabase</span> ו-<span class="en">PostgreSQL</span>,
+        יחד עם ניסיון מעשי בבניית מערכות פיננסיות, חיובים, חשבוניות, ודוחות.
+        <br/><br/>
+        ובנוסף &mdash; אני משתמש ב-<span class="en">AI</span> כמכפיל כוח בפיתוח.
+        בדיקת אבטחה שלוקחת ימים? אני עושה את זה בשעות. עם דיוק של סניור.
+      </p>
+    </div>
+
+    <!-- Requirements Match -->
+    <section class="section">
+      <div class="section-header">
+        <h2>&#9989; התאמה מלאה לדרישות</h2>
+        <p>כל דרישה מהמודעה &mdash; ומה בדיוק אני מביא</p>
+      </div>
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th class="req-col">הדרישה שלכם</th>
+            <th class="my-col">מה שאני מביא</th>
+            <th class="status-col">&#10003;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="req-col"><strong><span class="en">Supabase</span> עמוק</strong><br/><span class="en">RLS + Edge Functions</span></td>
+            <td class="my-col">עובד עם <span class="en">Supabase</span> בפרודקשן. כתבתי <span class="en">RLS policies</span> מורכבות עם הפרדת נתונים בין לקוחות, הרשאות לפי תפקיד, ובעלות על שורות. <span class="en">Edge Functions</span> ב-<span class="en">Deno</span> עם טיפול בשגיאות והגבלת קצב. מבין את הארכיטקטורה מבפנים.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong><span class="en">React + TypeScript + Tailwind</span></strong></td>
+            <td class="my-col">זה הסטאק היומיומי שלי. 50+ מוצרים ב-<span class="en">React</span>. עבודה ב-<span class="en">TypeScript strict mode</span>. <span class="en">Tailwind</span> עם ספריית קומפוננטות מותאמת. אופטימיזציית ביצועים, טעינה עצלה, פיצול קוד.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong><span class="en">Security Audit</span></strong><br/>תיקוף <span class="en">RLS</span></td>
+            <td class="my-col">ביצעתי בדיקות אבטחה למערכות <span class="en">SaaS</span>. מבין <span class="en">OWASP Top 10</span>, מניעת <span class="en">SQL injection</span> ו-<span class="en">XSS</span>. יודע לזהות פרצות ב-<span class="en">RLS</span>, הסלמת הרשאות, ודליפת נתונים בין לקוחות. כותב בדיקות אוטומטיות לוולידציית מדיניות.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong><span class="en">PostgreSQL</span> מורכב</strong></td>
+            <td class="my-col">+15 שנים עם <span class="en">Postgres</span>. אופטימיזציית שאילתות, אינדקסים, <span class="en">materialized views</span>, טריגרים, ופרוצדורות. ניסיון עם <span class="en">JSONB</span>, חיפוש טקסט מלא, ופרטישנינג.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong><span class="en">OCR + AI</span></strong><br/>עיבוד מסמכים אוטומטי</td>
+            <td class="my-col">בניתי מערכות <span class="en">OCR</span> עם <span class="en">Tesseract</span>, <span class="en">Google Vision</span>, ו-<span class="en">AI</span> לפרסור מסמכים. ניסיון ספציפי בחשבוניות, קבלות, ודוחות כספיים. הבנת מבנה מסמך, טבלאות, ועברית.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>הפקת <span class="en">PDF</span></strong><br/>מסמכים פיננסיים</td>
+            <td class="my-col">ניסיון עם <span class="en">Puppeteer</span>, <span class="en">jsPDF</span>, ו-<span class="en">react-pdf</span> ליצירת חשבוניות, דוחות, וקבלות. תמיכה מלאה בעברית, לוגואים, טבלאות, וחתימות דיגיטליות.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>מערכות פיננסיות</strong><br/>הנהלת חשבונות</td>
+            <td class="my-col">בניתי מערכות חיוב, חשבוניות, ודוחות כספיים. מבין הנהלת חשבונות כפולה, מע"מ, ניכוי מס במקור, ודוחות מס. ניסיון עם <span class="en">Stripe</span>, <span class="en">PayPal</span>, וסליקה ישראלית.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>ממשק בעברית</strong></td>
+            <td class="my-col">מעצב ומפתח ממשקים מימין לשמאל מושלמים. מבין את האתגרים הייחודיים של עברית &mdash; טקסט מעורב, מספרים, טבלאות, וטפסים. נגישות מלאה.</td>
+            <td class="status-col"><span class="match-check">&#10003;</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128736; מה בדיוק אני אעשה</h2>
+        <p>תוכנית פעולה ברורה לשדרוג <span class="en">CP.AI</span></p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">&#128274;</div>
+          <h3>בדיקת אבטחה והרשאות</h3>
+          <p>סריקה מלאה של כל מדיניות ההרשאות, זיהוי חוסרים, כתיבת בדיקות אוטומטיות</p>
+          <ul>
+            <li>מיפוי כל מדיניות ה-<span class="en">RLS</span> הקיימות</li>
+            <li>בדיקת הסלמת הרשאות</li>
+            <li>בדיקת דליפת נתונים בין לקוחות</li>
+            <li>כתיבת בדיקות <span class="en">pgTAP</span> לולידציה</li>
+            <li>תיקון ודיווח מפורט</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>ביצועים ופונקציות שרת</h3>
+          <p>אופטימיזציה של ביצועים, שיפור קוד, וטיפול בשגיאות</p>
+          <ul>
+            <li>פרופיילינג ואיתור צווארי בקבוק</li>
+            <li>אופטימיזציית שאילתות ואינדקסים</li>
+            <li>שיפור <span class="en">Edge Functions</span></li>
+            <li>הגבלת קצב ו-<span class="en">caching</span></li>
+            <li>ניטור ולוגים</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127912;</div>
+          <h3>ממשק משתמש ומסמכים</h3>
+          <p>שיפור חוויית המשתמש ודיוק הפקת מסמכים</p>
+          <ul>
+            <li>סקירת חוויית משתמש ושיפורים</li>
+            <li>רספונסיבי ועברית מושלמת</li>
+            <li>תבניות <span class="en">PDF</span> מדויקות</li>
+            <li>חשבוניות, קבלות, דוחות</li>
+            <li>אופטימיזציית ביצועים</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>שכלול זיהוי מסמכים</h3>
+          <p>שיפור דיוק זיהוי מסמכים ועיבוד אוטומטי</p>
+          <ul>
+            <li>כיוונון פרומפטים לדיוק גבוה</li>
+            <li>גיבוי בין מודלים שונים</li>
+            <li>זיהוי סוג מסמך אוטומטי</li>
+            <li>שליפת שדות מטבלאות</li>
+            <li>ציון ביטחון וולידציה</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>&#128200; לגבי מודל העבודה</h3>
+      <p>
+        ראיתי שאתם מתחילים על בסיס שעתי לבחינת התאמה &mdash; מעולה.
+        אני מוכן להתחיל ככה, להוכיח ערך מהיום הראשון, ולהתקדם למודל ארוך טווח
+        כמפתח המוביל של הפרויקט. <strong>זה בדיוק מה שאני עושה &mdash; לוקח בעלות מלאה.</strong>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128218; ניסיון רלוונטי</h2>
+        <p>מתוך 50+ מוצרים &mdash; הכי רלוונטיים לשדרוג CP.AI</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">15+</div>
+          <div class="label">שנות ניסיון</div>
+        </div>
+        <div class="stat">
+          <div class="num">SaaS</div>
+          <div class="label">מומחיות עמוקה</div>
+        </div>
+        <div class="stat">
+          <div class="num">Fintech</div>
+          <div class="label">ניסיון מעשי</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#128274; פלטפורמת <span class="en">SaaS</span> על <span class="en">Supabase</span></h3>
+          <p>מערכת <span class="en">SaaS</span> רב-לקוחות מלאה על <span class="en">Supabase</span>. מדיניות הרשאות מורכבת עם היררכיית תפקידים, פונקציות שרת ב-<span class="en">Deno</span>, ועדכונים בזמן אמת. כולל אינטגרציית חיובים.</p>
+          <span class="exp-tag" dir="ltr">Supabase</span>
+          <span class="exp-tag" dir="ltr">RLS</span>
+          <span class="exp-tag" dir="ltr">Edge Functions</span>
+          <span class="exp-tag" dir="ltr">Multi-tenant</span>
+          <span class="exp-tag" dir="ltr">React</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128176; מערכת חשבוניות וחיובים</h3>
+          <p>מערכת חשבוניות וקבלות מלאה בעברית. הפקת <span class="en">PDF</span> עם עברית מושלמת, חישובי מע"מ, ניכוי מס במקור, ודוחות חודשיים ושנתיים. אינטגרציה עם <span class="en">Stripe</span> ו-<span class="en">PayPal</span>.</p>
+          <span class="exp-tag" dir="ltr">PDF Generation</span>
+          <span class="exp-tag">עברית מלאה</span>
+          <span class="exp-tag" dir="ltr">Stripe</span>
+          <span class="exp-tag">דוחות כספיים</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129504; זיהוי מסמכים אוטומטי</h3>
+          <p>פרסור אוטומטי של חשבוניות וקבלות. זיהוי <span class="en">OCR</span> עם <span class="en">Google Vision</span> ו-<span class="en">AI</span> לשליפת שדות: ספק, סכום, מע"מ, תאריך. ציון ביטחון וולידציה אוטומטית.</p>
+          <span class="exp-tag" dir="ltr">OCR</span>
+          <span class="exp-tag" dir="ltr">OpenAI API</span>
+          <span class="exp-tag" dir="ltr">Document AI</span>
+          <span class="exp-tag" dir="ltr">Python</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128200; דשבורד אנליטיקה פיננסי</h3>
+          <p>דשבורד עם דוח רווח והפסד, תזרים מזומנים, יתרות, ודוחות מותאמים. גרפים אינטראקטיביים, ייצוא לאקסל ו-<span class="en">PDF</span>, וצלילה לרמת טרנזקציה.</p>
+          <span class="exp-tag" dir="ltr">React</span>
+          <span class="exp-tag">גרפים</span>
+          <span class="exp-tag" dir="ltr">PostgreSQL</span>
+          <span class="exp-tag">מדדים פיננסיים</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128274; בדיקת אבטחה למערכת <span class="en">SaaS</span></h3>
+          <p>ביצוע בדיקת אבטחה מלאה: חוסרי <span class="en">RLS</span>, וקטורי הזרקת <span class="en">SQL</span>, וזרימות אימות. כתיבת בדיקות אוטומטיות ודוח מפורט עם רמות חומרה.</p>
+          <span class="exp-tag" dir="ltr">Security</span>
+          <span class="exp-tag" dir="ltr">OWASP</span>
+          <span class="exp-tag">בדיקות חדירה</span>
+          <span class="exp-tag" dir="ltr">RLS Testing</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129504; פלטפורמת סוכני <span class="en">AI</span></h3>
+          <p>פלטפורמה מלאה של סוכני <span class="en">AI</span> אוטונומיים עם ניתוב בין מודלים (<span class="en">OpenAI</span>, <span class="en">Claude</span>, <span class="en">Gemini</span>), שמירת מצב, ולידציה, וסטרימינג בזמן אמת. ברמת פרודקשן.</p>
+          <span class="exp-tag" dir="ltr">AI Agents</span>
+          <span class="exp-tag" dir="ltr">Multi-LLM</span>
+          <span class="exp-tag" dir="ltr">Node.js</span>
+          <span class="exp-tag">פרודקשן</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE DEMO ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#9889; המחשה &mdash; <span class="en">CP.AI</span></h2>
+        <p>דוגמאות לכיוון שאני רואה למוצר: בדיקת אבטחה, חשבונית, וזיהוי מסמכים</p>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-app">
+          <div class="demo-header">
+            <h3>&#128202; CP.AI &mdash; Production Dashboard</h3>
+            <span class="demo-status">&#9679; Demo</span>
+          </div>
+          <div class="demo-body">
+            <div class="demo-sidebar-layout">
+              <div class="demo-sidebar">
+                <div class="sidebar-item active" onclick="showPanel('audit')">&#128274; בדיקת אבטחה</div>
+                <div class="sidebar-item" onclick="showPanel('invoice')">&#128196; חשבונית</div>
+                <div class="sidebar-item" onclick="showPanel('ocr')">&#129504; זיהוי מסמכים</div>
+              </div>
+              <div class="demo-main">
+
+                <!-- AUDIT PANEL -->
+                <div class="demo-panel" id="panel-audit">
+                  <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem;">&#128274; תוצאות בדיקת אבטחה</h4>
+                  <div class="audit-grid">
+                    <div class="audit-card">
+                      <h4>&#128737; כיסוי הרשאות</h4>
+                      <div class="score warn">78%</div>
+                      <div class="detail">17 מתוך 22 טבלאות מוגנות</div>
+                    </div>
+                    <div class="audit-card">
+                      <h4>&#9888; ממצאים קריטיים</h4>
+                      <div class="score bad">3</div>
+                      <div class="detail">טבלאות חשופות ללא מדיניות</div>
+                    </div>
+                    <div class="audit-card">
+                      <h4>&#9889; פונקציות שרת</h4>
+                      <div class="score warn">12</div>
+                      <div class="detail">5 דורשות תיקון טיפול בשגיאות</div>
+                    </div>
+                    <div class="audit-card">
+                      <h4>&#128200; ביצועי שאילתות</h4>
+                      <div class="score good">B+</div>
+                      <div class="detail">3 שאילתות איטיות אותרו</div>
+                    </div>
+                  </div>
+
+                  <h4 style="margin: 0.75rem 0 0.5rem; font-size: 0.85rem;">&#128269; סריקת מדיניות הרשאות</h4>
+                  <table class="rls-table">
+                    <thead>
+                      <tr><th>טבלה</th><th dir="ltr">SELECT</th><th dir="ltr">INSERT</th><th dir="ltr">UPDATE</th><th dir="ltr">DELETE</th><th>סטטוס</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td dir="ltr"><strong>invoices</strong></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td>
+                        <td><span class="rls-status secure">&#128994; מוגן</span></td>
+                      </tr>
+                      <tr>
+                        <td dir="ltr"><strong>transactions</strong></td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td>
+                        <td><span class="rls-status warning">&#128992; חלקי</span></td>
+                      </tr>
+                      <tr>
+                        <td dir="ltr"><strong>documents</strong></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td>
+                        <td><span class="rls-status secure">&#128994; מוגן</span></td>
+                      </tr>
+                      <tr>
+                        <td dir="ltr"><strong>user_settings</strong></td><td>&#10007;</td><td>&#10007;</td><td>&#10007;</td><td>&#10007;</td>
+                        <td><span class="rls-status critical">&#128308; חשוף!</span></td>
+                      </tr>
+                      <tr>
+                        <td dir="ltr"><strong>reports</strong></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td>
+                        <td><span class="rls-status warning">&#128992; חלקי</span></td>
+                      </tr>
+                      <tr>
+                        <td dir="ltr"><strong>audit_log</strong></td><td>&#10007;</td><td>&#10007;</td><td>&#10007;</td><td>&#10007;</td>
+                        <td><span class="rls-status critical">&#128308; חשוף!</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- INVOICE PANEL -->
+                <div class="demo-panel" id="panel-invoice" style="display:none;">
+                  <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem;">&#128196; הפקת חשבונית מס/קבלה</h4>
+                  <div class="invoice-preview">
+                    <div class="invoice-header">
+                      <div>
+                        <div class="invoice-title">חשבונית מס / קבלה</div>
+                        <div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.2rem;">מס' 10247</div>
+                      </div>
+                      <div class="invoice-meta">
+                        <strong>CP.AI Ltd.</strong><br/>
+                        ח.פ. 516789234<br/>
+                        רחוב הרצל 42, תל אביב<br/>
+                        21/04/2026
+                      </div>
+                    </div>
+
+                    <div style="margin-bottom: 0.75rem;">
+                      <div style="font-size: 0.8rem; font-weight: 600;">לכבוד:</div>
+                      <div style="font-size: 0.85rem;">אלפא טכנולוגיות בע"מ | ח.פ. 514523678</div>
+                    </div>
+
+                    <table class="invoice-table">
+                      <thead>
+                        <tr><th>#</th><th>תיאור</th><th>כמות</th><th>מחיר יחידה</th><th>סה"כ</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>1</td><td>שירותי הנהלת חשבונות &mdash; אפריל 2026</td><td>1</td><td>&#8362;4,500</td><td>&#8362;4,500</td></tr>
+                        <tr><td>2</td><td>עיבוד מסמכים אוטומטי (247 מסמכים)</td><td>247</td><td>&#8362;3.50</td><td>&#8362;864.50</td></tr>
+                        <tr><td>3</td><td>הפקת דוחות חודשיים</td><td>3</td><td>&#8362;250</td><td>&#8362;750</td></tr>
+                      </tbody>
+                    </table>
+
+                    <div class="invoice-total" style="direction: rtl; text-align: left;">
+                      <div class="line"><span>סה"כ לפני מע"מ</span><span>&#8362;6,114.50</span></div>
+                      <div class="line"><span>מע"מ (17%)</span><span>&#8362;1,039.47</span></div>
+                      <div class="line total"><span>סה"כ לתשלום</span><span>&#8362;7,153.97</span></div>
+                    </div>
+                  </div>
+                  <div style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--accent);">חשבונית מדויקת עם עברית מושלמת, חישובי מע"מ, וטבלאות</div>
+                </div>
+
+                <!-- OCR PANEL -->
+                <div class="demo-panel" id="panel-ocr" style="display:none;">
+                  <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem;">&#129504; זיהוי חשבונית אוטומטי</h4>
+                  <div class="ocr-demo">
+                    <div class="ocr-source">
+                      <div class="ocr-icon">&#128196;</div>
+                      <div style="font-size: 0.85rem; font-weight: 600;" dir="ltr">invoice_scan_0482.pdf</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">חשבונית סרוקה &mdash; עמוד אחד</div>
+                      <div style="margin-top: 0.5rem; font-size: 0.7rem; padding: 0.3rem 0.7rem; border-radius: 999px; background: rgba(62,207,142,0.15); color: var(--accent); display: inline-block;">&#9889; העיבוד הושלם</div>
+                    </div>
+                    <div class="ocr-result">
+                      <div style="font-size: 0.82rem; font-weight: 600; margin-bottom: 0.5rem;">&#9989; שדות שזוהו:</div>
+                      <div class="ocr-field"><span class="label">סוג מסמך</span><span class="value"><span class="confidence high">99%</span>חשבונית מס</span></div>
+                      <div class="ocr-field"><span class="label">שם ספק</span><span class="value"><span class="confidence high">97%</span>בזק בינלאומי בע"מ</span></div>
+                      <div class="ocr-field"><span class="label">ח.פ.</span><span class="value"><span class="confidence high">98%</span>520032080</span></div>
+                      <div class="ocr-field"><span class="label">מספר חשבונית</span><span class="value"><span class="confidence high">96%</span>INV-2026-8834</span></div>
+                      <div class="ocr-field"><span class="label">תאריך</span><span class="value"><span class="confidence high">99%</span>15/04/2026</span></div>
+                      <div class="ocr-field"><span class="label">סכום לפני מע"מ</span><span class="value"><span class="confidence high">95%</span>&#8362;2,340.00</span></div>
+                      <div class="ocr-field"><span class="label">מע"מ</span><span class="value"><span class="confidence med">89%</span>&#8362;397.80</span></div>
+                      <div class="ocr-field"><span class="label">סה"כ</span><span class="value"><span class="confidence high">94%</span>&#8362;2,737.80</span></div>
+                      <div class="ocr-field"><span class="label">קטגוריה (AI)</span><span class="value"><span class="confidence high">92%</span>תקשורת</span></div>
+                    </div>
+                  </div>
+                  <div style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--accent);">זיהוי חכם עם ציון ביטחון &mdash; חשבוניות, קבלות, דוחות בנק</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128161; מה רואים כאן?</h3>
+        <p>
+          דוגמה לשלוש יכולות שרלוונטיות ל-<span class="en">CP.AI</span>:
+          בדיקת אבטחה שמראה כיסוי <span class="en">RLS</span> ומזהה חוסרים,
+          חשבונית בעברית עם חישובי מע"מ,
+          וזיהוי שדות מחשבונית סרוקה.
+          <br/><br/>
+          זו המחשה ויזואלית של הכיוון &mdash; לא מוצר מוגמר.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: BUDGET ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>&#128176; מודל עבודה ותקציב</h2>
+        <p>מתחילים שעתי לבחינת התאמה &mdash; ממשיכים כשותף טכנולוגי ארוך טווח</p>
+      </div>
+
+      <div class="pricing-card">
+        <h3>CTO as a Service</h3>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">צוות פיתוח (1-2 מפתחים) + ניהול טכנולוגי מלא</div>
+        <ul>
+          <li>בדיקת אבטחה מלאה ותיקונים</li>
+          <li>אופטימיזציית פונקציות שרת ושאילתות</li>
+          <li>שיפור ממשק משתמש והפקת מסמכים</li>
+          <li>שכלול מנגנוני זיהוי מסמכים</li>
+          <li>בדיקות אוטומטיות ובקרת איכות</li>
+          <li>תשתיות, ניטור, והתראות</li>
+          <li>שקיפות מלאה &mdash; הקוד שלכם, תמיד</li>
+          <li>אפשרות לעבודה שעתית לתקופת בחינה</li>
+        </ul>
+      </div>
+
+      <section class="section" style="padding-top: 2.5rem;">
+        <div class="section-header">
+          <h2>&#128197; תוכנית עבודה</h2>
+          <p>מבדיקת אבטחה ועד פרודקשן &mdash; שלב אחרי שלב</p>
+        </div>
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>שבוע 1-2: בדיקת אבטחה והיכרות</h3>
+              <p>סריקת הרשאות מלאה, זיהוי חוסרים, בדיקת פונקציות שרת, מיפוי שאילתות איטיות. דוח מפורט עם רמות חומרה ותוכנית תיקון.</p>
+              <span class="tag">בדיקה והערכה</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>שבוע 3-4: תיקוני אבטחה וביצועים</h3>
+              <p>תיקון כל הממצאים הקריטיים, כתיבת מדיניות הרשאות חסרה, אופטימיזציית שאילתות, שיפור פונקציות שרת.</p>
+              <span class="tag">אבטחה וביצועים</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>חודש 2: ממשק ומסמכים</h3>
+              <p>שיפור ממשק המשתמש, דיוק הפקת מסמכים, שיפור חוויה במובייל, ונגישות.</p>
+              <span class="tag">ממשק ומסמכים</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">4</div>
+            <div class="timeline-body">
+              <h3>חודש 3: זיהוי מסמכים ופרודקשן</h3>
+              <p>שכלול מנגנוני זיהוי, שיפור דיוק, בדיקות אוטומטיות, ניטור, ומוכנות מלאה לפרודקשן.</p>
+              <span class="tag">זיהוי ופרודקשן</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style="margin-top: 2rem;">
+        <div class="section-header">
+          <h2>&#128736; הסטאק של <span class="en">CP.AI</span> (כפי שאני מבין)</h2>
+        </div>
+        <div class="stack-grid">
+          <span class="stack-tag" dir="ltr">Supabase</span>
+          <span class="stack-tag" dir="ltr">PostgreSQL + RLS</span>
+          <span class="stack-tag" dir="ltr">Edge Functions (Deno)</span>
+          <span class="stack-tag" dir="ltr">React</span>
+          <span class="stack-tag" dir="ltr">TypeScript</span>
+          <span class="stack-tag" dir="ltr">Tailwind CSS</span>
+          <span class="stack-tag" dir="ltr">Lovable</span>
+          <span class="stack-tag" dir="ltr">OCR (AI-based)</span>
+          <span class="stack-tag" dir="ltr">OpenAI / Claude API</span>
+          <span class="stack-tag" dir="ltr">PDF Generation</span>
+          <span class="stack-tag">עברית מלאה</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128293; מה עכשיו?</h3>
+        <p>
+          אני יכול להתחיל מבדיקת אבטחה כבר השבוע &mdash; תנו לי גישה לדשבורד
+          ואני מחזיר דוח מפורט תוך ימים. ככה תראו בדיוק מה אני שווה.
+          <br/><br/>
+          <strong>שלומי זוין</strong><br/>
+          <a href="mailto:shlomi@boostart.io" style="color: var(--accent);">shlomi@boostart.io</a> |
+          <a href="tel:054-5567213" style="color: var(--accent);">054-5567213</a> |
+          <a href="https://wa.me/972545567213" style="color: var(--accent);">WhatsApp</a>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Shlomi Zovin &bull; CTO as a Service &bull; 15+ Years Building Products</p>
+  <p><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> &bull; <a href="https://wa.me/972545567213">054-5567213</a></p>
+</footer>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    if (current === 'light') html.removeAttribute('data-theme');
+    else html.setAttribute('data-theme', 'light');
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    const tabs = ['proposal', 'experience', 'demo', 'budget'];
+    const idx = tabs.indexOf(tabId);
+    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showPanel(panel) {
+    document.querySelectorAll('.demo-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    document.getElementById('panel-' + panel).style.display = 'block';
+    event.target.closest('.sidebar-item').classList.add('active');
+  }
+</script>
+
+</body>
+</html>

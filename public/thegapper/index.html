@@ -69,7 +69,7 @@
 
         .logo-mark {
             width: 36px; height: 36px;
-            background: var(--gradient);
+            background: var(--text);
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -108,7 +108,7 @@
 
         .nav-cta {
             padding: 9px 22px;
-            background: var(--gradient);
+            background: var(--text);
             color: white;
             border: none;
             border-radius: 10px;
@@ -120,7 +120,7 @@
             transition: all 0.25s;
         }
 
-        .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108, 60, 224, 0.25); }
+        .nav-cta:hover { opacity: 0.8; }
 
         .mobile-toggle {
             display: none;
@@ -190,21 +190,21 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 14px;
-            background: var(--teal-bg);
-            border: 1px solid rgba(13,148,136,0.15);
+            padding: 5px 14px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
             border-radius: 100px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--teal);
+            color: var(--text-2);
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 24px;
         }
 
         .hero-label .pulse {
-            width: 8px; height: 8px;
-            background: var(--teal);
+            width: 7px; height: 7px;
+            background: #22C55E;
             border-radius: 50%;
             animation: pulse 2s ease-in-out infinite;
         }
@@ -224,10 +224,7 @@
         }
 
         .hero h1 .accent {
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--teal);
         }
 
         .hero .subtitle {
@@ -248,30 +245,29 @@
         }
 
         .btn-dark {
-            padding: 14px 30px;
+            padding: 13px 28px;
             background: var(--text);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.25s;
+            transition: all 0.2s;
             text-decoration: none;
         }
 
         .btn-dark:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            opacity: 0.85;
         }
 
         .btn-outline {
-            padding: 14px 30px;
+            padding: 13px 28px;
             background: transparent;
-            color: var(--text);
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
+            color: var(--text-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             font-family: 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 600;
@@ -291,30 +287,30 @@
             max-width: 100%;
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            box-shadow: var(--shadow-lg);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
         .nora-header {
-            padding: 20px 24px;
-            background: linear-gradient(135deg, #F0FDFA 0%, #F5F3FF 100%);
+            padding: 18px 22px;
+            background: var(--bg-card);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .nora-avatar {
-            width: 44px; height: 44px;
-            background: var(--nora-gradient);
-            border-radius: 14px;
+            width: 40px; height: 40px;
+            background: var(--teal);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: white;
             position: relative;
@@ -337,8 +333,8 @@
 
         .nora-role {
             font-size: 12px;
-            color: var(--teal);
-            font-weight: 600;
+            color: var(--text-3);
+            font-weight: 500;
         }
 
         .nora-chat {
@@ -370,7 +366,7 @@
         }
 
         .msg-nora {
-            background: var(--teal-bg);
+            background: var(--bg-2);
             color: var(--text);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
@@ -385,8 +381,8 @@
 
         .msg-nora .nora-tag {
             font-size: 11px;
-            font-weight: 700;
-            color: var(--teal);
+            font-weight: 600;
+            color: var(--text-3);
             margin-bottom: 4px;
             display: flex;
             align-items: center;
@@ -439,20 +435,21 @@
         .nora-input::placeholder { color: var(--text-3); }
 
         .nora-send {
-            width: 40px; height: 40px;
-            background: var(--nora-gradient);
+            width: 38px; height: 38px;
+            background: var(--teal);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
-        .nora-send:hover { transform: scale(1.05); }
+        .nora-send:hover { opacity: 0.85; }
 
         /* Quick reply chips */
         .quick-replies {
@@ -498,8 +495,8 @@
 
         .section-label {
             font-size: 12px;
-            font-weight: 700;
-            color: var(--teal);
+            font-weight: 600;
+            color: var(--text-3);
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 10px;
@@ -559,8 +556,8 @@
             margin-bottom: 18px;
         }
 
-        .svc-icon-purple { background: var(--purple-bg); }
-        .svc-icon-teal { background: var(--teal-bg); }
+        .svc-icon-purple { background: var(--bg-2); }
+        .svc-icon-teal { background: var(--bg-2); }
 
         .svc-card h3 {
             font-size: 17px;
@@ -776,8 +773,8 @@
             margin-bottom: 16px;
         }
 
-        .t-avatar-human { background: var(--gradient); }
-        .t-avatar-ai { background: var(--nora-gradient); }
+        .t-avatar-human { background: var(--text); }
+        .t-avatar-ai { background: var(--teal); }
 
         .team-card h3 {
             font-size: 20px;
@@ -788,8 +785,8 @@
 
         .team-card .role {
             font-size: 12px;
-            font-weight: 600;
-            color: var(--teal);
+            font-weight: 500;
+            color: var(--text-3);
             margin-bottom: 14px;
             letter-spacing: 0.5px;
         }
