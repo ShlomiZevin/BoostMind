@@ -988,7 +988,7 @@ function ExerciseNote({ exerciseId, firestore }: { exerciseId: string; firestore
           <textarea
             value={note}
             onChange={e => handleChange(e.target.value)}
-            placeholder="...הוסף הערה"
+            placeholder="הוסף הערה..."
             className="input-field !text-right !text-xs !py-2 !px-3 !text-sm min-h-[60px] resize-none"
             dir="rtl"
             autoFocus
@@ -998,7 +998,7 @@ function ExerciseNote({ exerciseId, firestore }: { exerciseId: string; firestore
         </div>
       ) : note ? (
         <button onClick={() => setEditing(true)} className="text-right w-full" dir="rtl">
-          <div className="text-[10px] text-muted uppercase tracking-wider mb-1">Note</div>
+          <div className="text-[10px] text-muted font-semibold mb-1">הערות</div>
           <div className="text-xs text-muted-more whitespace-pre-wrap">{note}</div>
         </button>
       ) : (
