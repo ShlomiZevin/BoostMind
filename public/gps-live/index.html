@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Live GPS Location</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  header {
+    text-align: center;
+    padding: 10px 0 20px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #64748b;
+  }
+  .dot.live {
+    background: #22c55e;
+    box-shadow: 0 0 0 0 rgba(34,197,94,0.7);
+    animation: pulse 2s infinite;
+  }
+  .dot.error { background: #ef4444; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 16px 18px;
+  }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+  .value {
+    font-size: 20px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    word-break: break-all;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .grid .value { font-size: 16px; }
+  button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: auto;
+  }
+  button:active { transform: scale(0.98); }
+  button.stop { background: #ef4444; }
+  .map-link {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background: rgba(59,130,246,0.15);
+    color: #60a5fa;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .error-msg {
+    color: #f87171;
+    font-size: 14px;
+    text-align: center;
+    padding: 12px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Live GPS Location</h1>
+    <div class="subtitle">Updates in real time as you move</div>
+    <div class="status" id="status">
+      <span class="dot" id="dot"></span>
+      <span id="statusText">Waiting to start…</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="label">Latitude</div>
+      <div class="value" id="lat">—</div>
+    </div>
+    <div class="card">
+      <div class="label">Longitude</div>
+      <div class="value" id="lon">—</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="label">Accuracy</div>
+        <div class="value" id="acc">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Altitude</div>
+        <div class="value" id="alt">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Speed</div>
+        <div class="value" id="speed">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Heading</div>
+        <div class="value" id="heading">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Last Update</div>
+      <div class="value" id="time" style="font-size:15px;">—</div>
+    </div>
+
+    <a class="map-link" id="mapLink" href="#" target="_blank" style="display:none;">Open in Google Maps →</a>
+
+    <div class="error-msg" id="errorMsg" style="display:none;"></div>
+
+    <button id="toggleBtn">Start Tracking</button>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let watchId = null;
+
+  function fmt(n, d = 6) {
+    return (n === null || n === undefined || Number.isNaN(n)) ? '—' : Number(n).toFixed(d);
+  }
+
+  function setStatus(text, state) {
+    $('statusText').textContent = text;
+    const dot = $('dot');
+    dot.classList.remove('live', 'error');
+    if (state) dot.classList.add(state);
+  }
+
+  function onPosition(pos) {
+    const c = pos.coords;
+    $('lat').textContent = fmt(c.latitude);
+    $('lon').textContent = fmt(c.longitude);
+    $('acc').textContent = c.accuracy != null ? `±${c.accuracy.toFixed(1)} m` : '—';
+    $('alt').textContent = c.altitude != null ? `${c.altitude.toFixed(1)} m` : '—';
+    $('speed').textContent = c.speed != null ? `${(c.speed * 3.6).toFixed(1)} km/h` : '—';
+    $('heading').textContent = c.heading != null && !Number.isNaN(c.heading) ? `${c.heading.toFixed(0)}°` : '—';
+    $('time').textContent = new Date(pos.timestamp).toLocaleTimeString();
+
+    const link = $('mapLink');
+    link.href = `https://www.google.com/maps?q=${c.latitude},${c.longitude}`;
+    link.style.display = 'block';
+
+    $('errorMsg').style.display = 'none';
+    setStatus('Live tracking', 'live');
+  }
+
+  function onError(err) {
+    const messages = {
+      1: 'Permission denied. Enable location access in your browser settings.',
+      2: 'Position unavailable. Check your GPS signal.',
+      3: 'Timed out waiting for location.'
+    };
+    const msg = messages[err.code] || err.message || 'Unknown error';
+    $('errorMsg').textContent = msg;
+    $('errorMsg').style.display = 'block';
+    setStatus('Error', 'error');
+  }
+
+  function start() {
+    if (!('geolocation' in navigator)) {
+      $('errorMsg').textContent = 'Geolocation is not supported in this browser.';
+      $('errorMsg').style.display = 'block';
+      return;
+    }
+    setStatus('Acquiring GPS…');
+    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 20000
+    });
+    const btn = $('toggleBtn');
+    btn.textContent = 'Stop Tracking';
+    btn.classList.add('stop');
+  }
+
+  function stop() {
+    if (watchId != null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    setStatus('Stopped');
+    const btn = $('toggleBtn');
+    btn.textContent = 'Start Tracking';
+    btn.classList.remove('stop');
+  }
+
+  $('toggleBtn').addEventListener('click', () => {
+    if (watchId == null) start(); else stop();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>מערכת להכנת שיעורי תורה | נועם זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --bg-alt: #111726;
+      --card-bg: #171e2e;
+      --accent: #d4a574;
+      --accent-soft: rgba(212, 165, 116, 0.15);
+      --accent-secondary: #60a5fa;
+      --border: #252c3e;
+      --text: #f5f5f4;
+      --text-muted: #a1a1aa;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Heebo', sans-serif; background: radial-gradient(circle at top, #1a1f35 0, #0a0e1a 50%, #050711 100%); color: var(--text); scroll-behavior: smooth; line-height: 1.6; }
+    .hebrew-serif { font-family: 'Frank Ruhl Libre', serif; }
+
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(10,14,26,0.92); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: #0a0e1a; box-shadow: 0 0 25px rgba(212,165,116,0.4); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: #e5e7f0; }
+    .logo-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; display: block; }
+    .header-contact { display: flex; align-items: center; gap: 1rem; }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .header-contact .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: #0a0e1a; font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer; text-decoration: none; }
+
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: rgba(10,14,26,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.85rem 1.5rem; cursor: pointer; position: relative; transition: color 0.2s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { padding: 4rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 750px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(212,165,116,0.25); background: rgba(212,165,116,0.08); color: #fcd9a8; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: #0a0e1a; font-weight: 700; box-shadow: 0 8px 24px rgba(212,165,116,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(212,165,116,0.5); }
+    .btn.ghost { background: transparent; color: #e5e7f3; border-color: rgba(255,255,255,0.15); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+
+    .section { padding: 3.5rem 0; }
+    .section-header { text-align: center; max-width: 680px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: #dadfee; margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+    .timeline { display: flex; flex-direction: column; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: flex-start; }
+    .timeline-num { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(212,165,116,0.12); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(212,165,116,0.15); color: var(--accent); margin-top: 0.3rem; }
+
+    .pricing-card { background: linear-gradient(135deg, rgba(212,165,116,0.08), rgba(96,165,250,0.08)); border: 1px solid rgba(212,165,116,0.3); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 650px; margin: 0 auto; }
+    .pricing-card .price { font-size: 2.8rem; font-weight: 800; margin: 0.5rem 0; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; }
+
+    .callout { border-radius: var(--radius-lg); padding: 1.8rem; background: radial-gradient(circle at top, rgba(212,165,116,0.12), transparent 60%); border: 1px solid rgba(212,165,116,0.3); margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; position: relative; overflow: hidden; }
+    .exp-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(96,165,250,0.15); color: #93c5fd; margin-left: 0.3rem; margin-bottom: 0.3rem; }
+
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2.5rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* DEMO STYLES */
+    .demo-wrap { max-width: 960px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.08); padding: 1.5rem; box-shadow: var(--shadow-soft); }
+    .demo-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+    .demo-toolbar h3 { margin: 0; font-size: 1.05rem; }
+    .demo-select { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 0.5rem 0.8rem; font-family: inherit; font-size: 0.9rem; cursor: pointer; }
+    .demo-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.2rem; }
+    .demo-sources { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem; max-height: 520px; overflow-y: auto; }
+    .demo-search { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--text); border-radius: 8px; padding: 0.55rem 0.8rem; font-family: inherit; font-size: 0.88rem; margin-bottom: 0.8rem; }
+    .demo-source-group { margin-bottom: 0.8rem; }
+    .demo-source-group-title { font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .demo-source-item { padding: 0.55rem 0.7rem; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 0.35rem; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .demo-source-item:hover { background: rgba(212,165,116,0.08); border-color: rgba(212,165,116,0.25); }
+    .demo-source-item .plus { color: var(--accent); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+    .demo-source-item .src-text { font-family: 'Frank Ruhl Libre', serif; line-height: 1.4; }
+    .demo-lesson { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.2rem; min-height: 520px; }
+    .demo-lesson-title { background: transparent; border: none; border-bottom: 1px dashed rgba(212,165,116,0.3); color: var(--text); font-family: 'Frank Ruhl Libre', serif; font-size: 1.35rem; font-weight: 700; width: 100%; padding: 0.3rem 0; margin-bottom: 0.8rem; outline: none; }
+    .demo-section { border-right: 2px solid var(--accent); padding-right: 0.9rem; margin-bottom: 1.1rem; }
+    .demo-section-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .demo-section-title { background: transparent; border: none; color: var(--accent); font-size: 0.95rem; font-weight: 700; font-family: inherit; width: 100%; outline: none; padding: 0.15rem 0; }
+    .demo-section-del { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; opacity: 0.5; transition: all 0.15s; }
+    .demo-section-del:hover { opacity: 1; color: #f87171; }
+    .demo-section-sources { list-style: none; padding: 0; margin: 0 0 0.4rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .demo-section-sources li { font-family: 'Frank Ruhl Libre', serif; font-size: 0.92rem; color: #dadfee; background: rgba(212,165,116,0.06); border-radius: 6px; padding: 0.35rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .demo-section-sources li span.txt { flex: 1; line-height: 1.45; }
+    .demo-section-sources li button { background: transparent; border: none; color: var(--text-muted); cursor: pointer; opacity: 0.4; }
+    .demo-section-sources li button:hover { opacity: 1; color: #f87171; }
+    .demo-section-note { width: 100%; background: transparent; border: 1px dashed rgba(255,255,255,0.1); color: var(--text-muted); border-radius: 6px; padding: 0.45rem 0.6rem; font-family: inherit; font-size: 0.85rem; resize: vertical; min-height: 50px; outline: none; }
+    .demo-section-note:focus { border-color: rgba(212,165,116,0.3); color: var(--text); }
+    .demo-add-section { background: rgba(212,165,116,0.08); border: 1px dashed rgba(212,165,116,0.3); color: var(--accent); border-radius: 8px; padding: 0.6rem; font-family: inherit; font-size: 0.88rem; cursor: pointer; width: 100%; font-weight: 600; transition: all 0.15s; }
+    .demo-add-section:hover { background: rgba(212,165,116,0.15); }
+    .demo-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+    .demo-hint { background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.2); border-radius: 10px; padding: 0.8rem 1rem; color: #93c5fd; font-size: 0.85rem; margin-bottom: 1.2rem; }
+
+    .contact-section { text-align: center; padding: 3rem 0; }
+    .contact-section h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .contact-item a { color: var(--accent); text-decoration: none; }
+
+    [data-theme="light"] {
+      --bg: #faf7f0;
+      --card-bg: #ffffff;
+      --text: #1c1917;
+      --text-muted: #57534e;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] body,
+    [data-theme="light"] html { background: linear-gradient(180deg, #fdf8ec 0%, #f3e9d2 100%); }
+    [data-theme="light"] .site-header { background: rgba(255,255,255,0.92); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .tabs-container { background: rgba(255,255,255,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .logo-text { color: #1c1917; }
+    [data-theme="light"] .tab-btn { color: #57534e; }
+    [data-theme="light"] .tab-btn:hover { color: #1c1917; }
+    [data-theme="light"] .hero-badges span { background: rgba(212,165,116,0.1); border-color: rgba(212,165,116,0.3); color: #92400e; }
+    [data-theme="light"] .btn.ghost { color: #1c1917; border-color: rgba(0,0,0,0.15); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .card li { color: #374151; }
+    [data-theme="light"] .callout { background: radial-gradient(circle at top, rgba(212,165,116,0.08), transparent 60%); border-color: rgba(212,165,116,0.25); }
+    [data-theme="light"] .callout p { color: #475569; }
+    [data-theme="light"] .exp-card { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .exp-card p { color: #475569; }
+    [data-theme="light"] .exp-tag { background: rgba(96,165,250,0.1); color: #1d4ed8; }
+    [data-theme="light"] .pricing-card { background: linear-gradient(135deg, rgba(212,165,116,0.06), rgba(96,165,250,0.06)); border-color: rgba(212,165,116,0.25); }
+    [data-theme="light"] .demo-wrap { border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .demo-sources, [data-theme="light"] .demo-lesson { background: #faf7f0; border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .demo-search, [data-theme="light"] .demo-select { background: #fff; border-color: rgba(0,0,0,0.1); color: #1c1917; }
+    [data-theme="light"] .demo-source-item { background: #fff; border-color: rgba(0,0,0,0.05); color: #1c1917; }
+    [data-theme="light"] .demo-section-note { color: #57534e; }
+    [data-theme="light"] .demo-section-note:focus { color: #1c1917; }
+    [data-theme="light"] .demo-lesson-title { color: #1c1917; }
+    [data-theme="light"] .demo-section-sources li { color: #1c1917; }
+    [data-theme="light"] .site-footer { border-top-color: rgba(0,0,0,0.06); }
+
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.12); transform: rotate(180deg); }
+    [data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.08); }
+
+    .site-footer { border-top: 1px solid rgba(255,255,255,0.04); padding: 1.5rem 0; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .demo-layout { grid-template-columns: 1fr; }
+      .demo-sources { max-height: 300px; }
+    }
+    @media (max-width: 768px) {
+      .hero { padding: 2.5rem 0 2rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 1rem; }
+      .section { padding: 2.5rem 0; }
+      .section-header { margin-bottom: 1.5rem; }
+      .section-header h2 { font-size: 1.5rem; }
+      .tab-btn { font-size: 0.82rem; padding: 0.65rem 0.9rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .header-contact span:not(.btn-sm) { display: none; }
+      .logo-text { font-size: 0.8rem; }
+      .logo-sub { display: none; }
+      .card { padding: 1.2rem; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2.2rem; }
+      .callout { padding: 1.3rem; }
+      .btn { padding: 0.65rem 1.2rem; font-size: 0.88rem; }
+      .contact-details { gap: 1rem; }
+      .exp-card { padding: 1.2rem; }
+      .demo-wrap { padding: 1rem; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.45rem; }
+      .hero-badges span { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .contact-details { flex-direction: column; align-items: center; }
+      .tab-btn { padding: 0.6rem 0.75rem; font-size: 0.78rem; }
+      .container { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">נז</span>
+        <span>
+          <span class="logo-text">נועם זוין</span>
+          <span class="logo-sub">פיתוח אתרים &amp; מערכות</span>
+        </span>
+      </a>
+      <div class="header-contact">
+        <button class="theme-toggle" id="theme-toggle" title="Dark / Light">&#127769;</button>
+        <span>054-5567213</span>
+        <a href="mailto:shlomi@boostart.io" class="btn-sm">בואו נדבר</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="offer">ההצעה</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="about">למה אני</button>
+      <button class="tab-btn" data-tab="pricing">מחיר ולו"ז</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: OFFER -->
+<div class="tab-content active" id="tab-offer">
+  <section class="hero">
+    <div class="container">
+      <h1>אתר לעזרה בהכנת שיעורי תורה?<br/><span class="gradient">הפרויקט הזה קרוב לליבי.</span></h1>
+      <p class="hero-sub">
+        יש לכם סקיצת HTML - נהדר, יש ממה להתחיל. אני לוקח את זה, בונה Frontend ו-Backend מלא,
+        מחבר בסיס נתונים, ומכין מערכת ניהול תוכן נוחה - כדי שתוכלו לפרסם שיעורים, לעדכן מקורות,
+        ולנהל הכל לבד בלי מפתח צמוד.
+      </p>
+      <div class="hero-badges">
+        <span>Frontend + Backend</span>
+        <span>CMS (ניהול תוכן)</span>
+        <span>Database</span>
+        <span>Mobile Friendly</span>
+        <span>עברית &amp; RTL</span>
+        <span>מחיר פיקס, בלי הפתעות</span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">בואו נדבר בוואטסאפ</a>
+        <button class="btn ghost" onclick="switchTab('demo')">תסתכלו על הדגמה חיה &#8592;</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>מה נכלל בפרויקט</h2>
+        <p>הכל בתוך המחיר. בלי תוספות מפתיעות.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">&#128221;</div>
+          <h3>Frontend על בסיס הסקיצה שלכם</h3>
+          <p>לוקח את סקיצת ה-HTML הקיימת, הופך אותה לאתר חי - רספונסיבי, נגיש, מהיר. שומר על הסגנון שבחרתם.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9881;&#65039;</div>
+          <h3>Backend + API</h3>
+          <p>שרת Node.js עם API מסודר - שליפת שיעורים, חיפוש, סינון לפי פרשה / נושא / מועד. מבנה נקי שיהיה קל להרחיב בעתיד.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128190;</div>
+          <h3>בסיס נתונים</h3>
+          <p>PostgreSQL או MongoDB (מה שמתאים יותר). שיעורים, מקורות, פרשיות, תגיות, משתמשים - הכל מסודר ומגובה.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128100;</div>
+          <h3>מערכת ניהול תוכן</h3>
+          <p>פאנל אדמין פשוט - מוסיפים שיעור, מעלים מקורות, מעדכנים פרשה, מפרסמים. בעברית, נוח, בלי צורך בידע טכני.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128241;</div>
+          <h3>מותאם לנייד</h3>
+          <p>רוב הרבנים, מורים ותלמידים ניגשים מהנייד. העיצוב יתנהג מעולה גם במסך קטן, גם בטלפון ישן.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128640;</div>
+          <h3>העלאה לאוויר</h3>
+          <p>רוכש דומיין, מעלה לשרת, מחבר SSL, ומגדיר הכל. נותן לכם מערכת שעובדת - לא רק קוד בגיטהאב.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="callout">
+        <h3>&#128172; רגע של כנות</h3>
+        <p>
+          אני נועם, מפתח צעיר. עובד מתחת לליווי של אבא שלי - שלומי זוין, CTO עם 20+ שנות ניסיון שמוביל סטארטאפים
+          וליווה עשרות מוצרים מאפס. אתם מקבלים את הקצב והמחיר של מפתח צעיר - עם רשת ביטחון מקצועית מאחור.
+          אני מתחייב למחיר פיקס של 10,000 ש"ח לכל הפרויקט - אין הפתעות, אין "אה, גם זה בתוספת".
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 2: DEMO -->
+<div class="tab-content" id="tab-demo">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>הדגמה חיה - בונה שיעור</h2>
+        <p>כדי להראות את הכיוון - הכנתי מראש דוגמה אינטראקטיבית למערכת. שחקו עם זה.</p>
+      </div>
+
+      <div class="demo-hint">
+        &#128161; הכל למטה עובד באמת - בחרו פרשה, הוסיפו מקורות לשיעור, ערכו מקטעים והוסיפו הערות.
+        זו המחשה של מה שיבנה במלואו - עם בסיס נתונים, משתמשים ופרסום.
+      </div>
+
+      <div class="demo-wrap">
+        <div class="demo-toolbar">
+          <h3>&#128214; בניית שיעור</h3>
+          <select id="parasha-select" class="demo-select"></select>
+        </div>
+
+        <div class="demo-layout">
+          <aside class="demo-sources">
+            <input type="text" id="src-search" class="demo-search" placeholder="&#128269; חיפוש מקור..." />
+            <div id="sources-list"></div>
+          </aside>
+
+          <main class="demo-lesson">
+            <input type="text" class="demo-lesson-title" id="lesson-title" value="שיעור על פרשת בראשית" />
+            <div id="sections-container"></div>
+            <button class="demo-add-section" id="add-section">+ הוסף מקטע חדש</button>
+            <div class="demo-actions">
+              <button class="btn ghost" onclick="previewLesson()">&#128065; תצוגה מקדימה</button>
+              <button class="btn primary" onclick="saveLesson()">&#128190; שמור שיעור</button>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#9889; נבנה במהירות - בכוונה</h3>
+        <p>
+          ההדגמה הזו נבנתה תוך שעות ספורות, לא ימים. בשביל להראות לכם שני דברים:
+          1) אני עובד מהר ועם כלי AI חדישים - Claude Code וחברים. 2) זו רק המחשה - המוצר האמיתי יהיה יפה, עמוק ומדויק יותר,
+          עם חיבור לבסיס הנתונים האמיתי, מערכת משתמשים, ופאנל ניהול מלא.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 3: ABOUT -->
+<div class="tab-content" id="tab-about">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>למה דווקא אני</h2>
+        <p>מפתח צעיר - עם ליווי מקצועי שנותן רשת ביטחון</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">10K</div>
+          <div class="label">מחיר פיקס לכל הפרויקט</div>
+        </div>
+        <div class="stat">
+          <div class="num">3-4</div>
+          <div class="label">שבועות לסיום</div>
+        </div>
+        <div class="stat">
+          <div class="num">100%</div>
+          <div class="label">הקוד שלכם, תמיד</div>
+        </div>
+        <div class="stat">
+          <div class="num">CTO</div>
+          <div class="label">ליווי של אבא (20+ שנות ניסיון)</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#128170; מפתח צעיר, רעב</h3>
+          <p>רגע נכנסתי לתחום - ויש לי את הרעב ואת הזמן להשקיע בכל פרויקט כמו שצריך. אני לא "בית תוכנה עסוק" -
+          אתם תקבלו תשומת לב ישירה.</p>
+          <span class="exp-tag">זמין</span>
+          <span class="exp-tag">רעב להצליח</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128104;&#8205;&#128188; שלומי זוין מלווה מאחור</h3>
+          <p>אבא שלי, שלומי זוין - CTO עם 20+ שנות ניסיון, בנה 50+ מוצרים מאפס, מלווה סטארטאפים. כל החלטה ארכיטקטונית
+          עוברת ביקורת שלו - אתם מקבלים איכות של אולם גדול במחיר של מפתח צעיר.</p>
+          <span class="exp-tag">Mentorship</span>
+          <span class="exp-tag">Code Review</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129302; עובד עם AI מהדור החדש</h3>
+          <p>Claude Code, כלי AI לפיתוח, automation. הדור שלי גדל על הכלים האלה - וזה מה שמאפשר לי לתת פרויקט מלא
+          ב-10 אלף ש"ח. מה שעד לא מזמן דרש חודשים, נבנה היום בשבועות.</p>
+          <span class="exp-tag">Claude Code</span>
+          <span class="exp-tag">AI-first</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#10024; מתחבר לתחום</h3>
+          <p>פרויקט של עזרה בהכנת שיעורי תורה - זה לא רק עוד אתר. אני מבין את החומר, אני מכיר את הרבנים / המורים /
+          אבות הבית שישתמשו בזה. זה משנה איך בונים את המוצר.</p>
+          <span class="exp-tag">הבנת הדומיין</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128161; ההבדל ביני לבין "פרילנסר זול"</h3>
+        <p>
+          פרילנסר זול ייעלם אחרי שתעבירו תשלום - ולא תצליחו לתפוס אותו כשמשהו ישבר. אצלי יש כתובת קבועה,
+          אימייל אמיתי, טלפון שעונה, וגב מקצועי שלא ייעלם. המחיר נמוך כי אני צעיר - לא כי אני לא אכפתי.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 4: PRICING -->
+<div class="tab-content" id="tab-pricing">
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>מחיר, לו"ז ותכולה</h2>
+        <p>מחיר פיקס, תכולה ברורה, בלי הפתעות</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">פרויקט מלא</div>
+        <div class="price">10,000 &#8362;</div>
+        <div class="price-note">מחיר פיקס - פיתוח מלא מקצה לקצה</div>
+        <ul>
+          <li>Frontend מלא על בסיס סקיצת ה-HTML שלכם</li>
+          <li>Backend + API</li>
+          <li>בסיס נתונים (PostgreSQL / MongoDB)</li>
+          <li>מערכת ניהול תוכן (CMS) בעברית</li>
+          <li>מותאם לנייד ולטאבלט</li>
+          <li>התקנה על שרת + דומיין + SSL</li>
+          <li>הדרכה קצרה איך לנהל את המערכת</li>
+          <li>חודש תחזוקה ותיקוני באגים כלולים</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="margin-top: 1rem; width: 100%;">בואו נתחיל</a>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>Timeline</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>היכרות ואיפיון קצר</h3>
+            <p>שיחה קצרה - לעבור על הסקיצה, להבין מה חשוב לכם, להגדיר את פאנל הניהול. מוצא לא יותר מכמה ימים.</p>
+            <span class="tag">שבוע 1</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>פיתוח Frontend + Backend</h3>
+            <p>הופך את הסקיצה לאתר חי, בונה את הAPI, מחבר לבסיס נתונים. מראה לכם גרסה ביניים להערות.</p>
+            <span class="tag">שבוע 2-3</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>CMS, תיקונים והעלאה</h3>
+            <p>פאנל ניהול, העלאה לשרת, SSL, בדיקות. מגיע למסירה מלאה.</p>
+            <span class="tag">שבוע 4</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>חודש תמיכה</h3>
+            <p>אחרי ההעלאה - חודש מלא שבו אני כאן לכל באג, לכל שאלה, לכל שינוי קטן שצריך.</p>
+            <span class="tag">אחרי ההשקה</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 3rem;">
+        <h3>&#128178; תנאי תשלום</h3>
+        <p>
+          50% בהתחלה (5,000 ש"ח) - כדי להתחיל לעבוד. 50% במסירה (5,000 ש"ח) - רק כשהמערכת באוויר ואתם מרוצים.
+          בלי מקדמה, בלי risks - אתם לא משלמים את המלא עד שרואים מוצר שעובד.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-section">
+    <div class="container">
+      <h2>בואו נתחיל</h2>
+      <p>פרויקט כזה - הכי טוב מתחיל משיחה קצרה</p>
+      <div class="contact-details">
+        <div class="contact-item">&#128222; <a href="tel:054-5567213">054-5567213</a></div>
+        <div class="contact-item">&#128231; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">&#128172; <a href="https://wa.me/972545567213">WhatsApp</a></div>
+      </div>
+      <a href="https://wa.me/972545567213" class="btn primary">שלחו הודעה עכשיו</a>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    נועם זוין | פיתוח אתרים &amp; מערכות | בליווי שלומי זוין - CTO as a Service | shlomi@boostart.io | 054-5567213
+  </div>
+</footer>
+
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  const themeToggle = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'light' ? '☀️' : '🌙';
+  });
+
+  // DEMO DATA
+  const parashot = {
+    'bereshit': {
+      name: 'בראשית',
+      sources: {
+        'תורה': [
+          'בראשית א, א - בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ',
+          'בראשית א, כו - וַיֹּאמֶר אֱלֹהִים נַעֲשֶׂה אָדָם בְּצַלְמֵנוּ כִּדְמוּתֵנוּ',
+          'בראשית ב, ז - וַיִּיצֶר ה\' אֱלֹהִים אֶת־הָאָדָם עָפָר מִן־הָאֲדָמָה',
+          'בראשית ג, יט - בְּזֵעַת אַפֶּיךָ תֹּאכַל לֶחֶם',
+        ],
+        'רש"י': [
+          'רש"י על בראשית א, א - "לא היה צריך להתחיל התורה אלא מהחודש הזה לכם"',
+          'רש"י על בראשית א, כו - נעשה אדם - ענוותנותו של הקב"ה למדנו מכאן',
+        ],
+        'גמרא': [
+          'סנהדרין ל"ח ע"א - מפני מה נברא אדם יחידי?',
+          'חגיגה י"ב ע"א - בעשרה דברים נברא העולם',
+          'שבת ל"ג ע"ב - אדם הראשון מסוף העולם ועד סופו היה',
+        ],
+        'מדרש': [
+          'בראשית רבה א, א - בזכות התורה נברא העולם',
+          'בראשית רבה ח, ה - אמר רבי סימון: אמרו מלאכי השרת',
+        ],
+      }
+    },
+    'noach': {
+      name: 'נח',
+      sources: {
+        'תורה': [
+          'בראשית ו, ט - אֵלֶּה תּוֹלְדֹת נֹחַ נֹחַ אִישׁ צַדִּיק תָּמִים',
+          'בראשית ו, יג - קֵץ כָּל־בָּשָׂר בָּא לְפָנַי',
+          'בראשית ט, ו - שֹׁפֵךְ דַּם הָאָדָם בָּאָדָם דָּמוֹ יִשָּׁפֵךְ',
+        ],
+        'רש"י': [
+          'רש"י על בראשית ו, ט - "צדיק תמים" - יש דורשין לשבח ויש דורשין לגנאי',
+          'רש"י על בראשית ז, כג - וישאר אך נח - נאנח וגנח על מיתתם',
+        ],
+        'גמרא': [
+          'סנהדרין ק"ח ע"א - בני אדם חטאו - בהמה מה חטאה?',
+          'בבא מציעא פ"ז ע"א - שבע מצוות בני נח',
+        ],
+        'מדרש': [
+          'בראשית רבה ל, ט - נח היה צדיק בדורותיו',
+        ],
+      }
+    },
+    'lech-lecha': {
+      name: 'לך לך',
+      sources: {
+        'תורה': [
+          'בראשית יב, א - לֶךְ־לְךָ מֵאַרְצְךָ וּמִמּוֹלַדְתְּךָ',
+          'בראשית יב, ג - וְנִבְרְכוּ בְךָ כֹּל מִשְׁפְּחֹת הָאֲדָמָה',
+          'בראשית טו, ו - וְהֶאֱמִן בַּה\' וַיַּחְשְׁבֶהָ לּוֹ צְדָקָה',
+        ],
+        'רש"י': [
+          'רש"י על בראשית יב, א - לך לך - להנאתך ולטובתך',
+          'רש"י על בראשית יג, יד - אחרי היפרד לוט - כל זמן שהרשע היה עמו',
+        ],
+        'גמרא': [
+          'נדרים ל"ב ע"א - עשרה ניסיונות נתנסה אברהם אבינו',
+          'חולין צ"א ע"ב - אברהם תיקן תפילת שחרית',
+        ],
+        'מדרש': [
+          'בראשית רבה לט, א - ויאמר ה\' אל אברם - משל לאחד שהיה עובר ממקום למקום',
+        ],
+      }
+    },
+  };
+
+  let currentParasha = 'bereshit';
+  let sections = [
+    { title: 'פתיחה', sources: [], note: '' },
+    { title: 'עיון מרכזי', sources: [], note: '' },
+    { title: 'סיכום', sources: [], note: '' },
+  ];
+  let activeSectionIdx = 1;
+
+  const parashaSelect = document.getElementById('parasha-select');
+  const srcSearch = document.getElementById('src-search');
+  const sourcesList = document.getElementById('sources-list');
+  const sectionsContainer = document.getElementById('sections-container');
+  const lessonTitleInput = document.getElementById('lesson-title');
+
+  Object.keys(parashot).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = 'פרשת ' + parashot[k].name;
+    parashaSelect.appendChild(opt);
+  });
+
+  parashaSelect.addEventListener('change', e => {
+    currentParasha = e.target.value;
+    lessonTitleInput.value = 'שיעור על פרשת ' + parashot[currentParasha].name;
+    renderSources();
+  });
+
+  srcSearch.addEventListener('input', renderSources);
+
+  function renderSources() {
+    const data = parashot[currentParasha].sources;
+    const q = srcSearch.value.trim();
+    sourcesList.innerHTML = '';
+    Object.keys(data).forEach(group => {
+      const items = data[group].filter(s => !q || s.includes(q));
+      if (!items.length) return;
+      const g = document.createElement('div');
+      g.className = 'demo-source-group';
+      g.innerHTML = `<div class="demo-source-group-title">${group}</div>`;
+      items.forEach(src => {
+        const el = document.createElement('div');
+        el.className = 'demo-source-item';
+        el.innerHTML = `<span class="src-text">${src}</span><span class="plus">+</span>`;
+        el.addEventListener('click', () => addSource(src));
+        g.appendChild(el);
+      });
+      sourcesList.appendChild(g);
+    });
+  }
+
+  function addSource(src) {
+    if (!sections[activeSectionIdx]) return;
+    if (sections[activeSectionIdx].sources.includes(src)) return;
+    sections[activeSectionIdx].sources.push(src);
+    renderSections();
+  }
+
+  function removeSource(sIdx, srcIdx) {
+    sections[sIdx].sources.splice(srcIdx, 1);
+    renderSections();
+  }
+
+  function deleteSection(idx) {
+    if (sections.length <= 1) return;
+    sections.splice(idx, 1);
+    if (activeSectionIdx >= sections.length) activeSectionIdx = sections.length - 1;
+    renderSections();
+  }
+
+  function addSection() {
+    sections.push({ title: 'מקטע חדש', sources: [], note: '' });
+    activeSectionIdx = sections.length - 1;
+    renderSections();
+  }
+
+  function renderSections() {
+    sectionsContainer.innerHTML = '';
+    sections.forEach((sec, idx) => {
+      const el = document.createElement('div');
+      el.className = 'demo-section';
+      el.style.borderRightColor = idx === activeSectionIdx ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
+      el.innerHTML = `
+        <div class="demo-section-head">
+          <input class="demo-section-title" value="${sec.title.replace(/"/g, '&quot;')}" data-idx="${idx}" />
+          <button class="demo-section-del" data-del="${idx}" title="מחק מקטע">&#128465;</button>
+        </div>
+        <ul class="demo-section-sources">
+          ${sec.sources.map((s, i) => `<li><span class="txt">${s}</span><button data-rm="${idx}:${i}" title="הסר">&times;</button></li>`).join('') || '<li style="background:transparent;border:1px dashed rgba(255,255,255,0.1);color:var(--text-muted);justify-content:center;">בחרו מקטע זה ולחצו על מקורות משמאל כדי להוסיף</li>'}
+        </ul>
+        <textarea class="demo-section-note" placeholder="הערה / נקודת דיון למקטע..." data-note="${idx}">${sec.note}</textarea>
+      `;
+      el.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        activeSectionIdx = idx;
+        renderSections();
+      });
+      sectionsContainer.appendChild(el);
+    });
+
+    sectionsContainer.querySelectorAll('.demo-section-title').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const i = parseInt(e.target.dataset.idx);
+        sections[i].title = e.target.value;
+      });
+      inp.addEventListener('focus', e => {
+        activeSectionIdx = parseInt(e.target.dataset.idx);
+        renderSections();
+      });
+    });
+    sectionsContainer.querySelectorAll('.demo-section-note').forEach(ta => {
+      ta.addEventListener('input', e => {
+        const i = parseInt(e.target.dataset.note);
+        sections[i].note = e.target.value;
+      });
+      ta.addEventListener('focus', e => {
+        activeSectionIdx = parseInt(e.target.dataset.note);
+      });
+    });
+    sectionsContainer.querySelectorAll('[data-del]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteSection(parseInt(b.dataset.del));
+      });
+    });
+    sectionsContainer.querySelectorAll('[data-rm]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const [si, ri] = b.dataset.rm.split(':').map(Number);
+        removeSource(si, ri);
+      });
+    });
+  }
+
+  document.getElementById('add-section').addEventListener('click', addSection);
+
+  function previewLesson() {
+    const title = lessonTitleInput.value;
+    let txt = `📖 ${title}\n\n`;
+    sections.forEach(s => {
+      txt += `== ${s.title} ==\n`;
+      s.sources.forEach(src => txt += `• ${src}\n`);
+      if (s.note) txt += `\nהערה: ${s.note}\n`;
+      txt += '\n';
+    });
+    alert(txt);
+  }
+
+  function saveLesson() {
+    alert('✅ במערכת האמיתית - שיעור יישמר לבסיס נתונים, יפורסם לתלמידים, וניתן יהיה לייצא PDF / לשלוח במייל.\n\nההדגמה הזו רק ממחישה את הזרימה.');
+  }
+
+  renderSources();
+  renderSections();
+</script>
+
+</body>
+</html>

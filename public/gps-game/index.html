@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>GPS Game POC</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e1a; color: #e2e8f0; user-select: none; -webkit-user-select: none; }
+
+  #map { position: absolute; inset: 0; background: #0a0e1a; }
+  .leaflet-container { background: #0a0e1a; }
+
+  /* Light theme overrides */
+  body.light { background: #e2e8f0; color: #0f172a; }
+  body.light #map, body.light .leaflet-container { background: #e2e8f0; }
+  body.light .hud-top { background: linear-gradient(180deg, rgba(241,245,249,0.9) 0%, rgba(241,245,249,0) 100%); }
+  body.light .hud-badge { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); color: #0f172a; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  body.light .hud-badge .label { color: #475569; }
+  body.light .compass-dial { border-color: rgba(0,0,0,0.15); }
+  body.light .controls { background: linear-gradient(0deg, rgba(241,245,249,0.95) 0%, rgba(241,245,249,0) 100%); }
+  body.light .theme-toggle { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); color: #0f172a; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  /* Theme toggle button */
+  .theme-toggle {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 500;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(15,23,42,0.85); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.1s;
+  }
+  .theme-toggle:active { transform: translateX(-50%) scale(0.92); }
+
+  /* Top HUD */
+  .hud-top {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 500;
+    padding: 12px 14px;
+    background: linear-gradient(180deg, rgba(10,14,26,0.9) 0%, rgba(10,14,26,0) 100%);
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none;
+  }
+  .hud-badge {
+    background: rgba(15,23,42,0.85); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 8px 12px;
+    font-size: 12px; line-height: 1.4;
+    pointer-events: auto;
+  }
+  .hud-badge .label { color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .hud-badge .val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .score { color: #fbbf24; font-size: 18px; }
+
+  /* Bottom controls */
+  .controls {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 500;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, rgba(10,14,26,0.95) 0%, rgba(10,14,26,0) 100%);
+    display: flex; gap: 8px; justify-content: center;
+  }
+  button.btn {
+    flex: 1; max-width: 120px;
+    background: rgba(30,41,59,0.9); backdrop-filter: blur(10px);
+    color: white; border: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 10px; border-radius: 14px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: transform 0.1s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  button.btn:active { transform: scale(0.95); }
+  button.btn .emoji { font-size: 22px; }
+  button.fire { background: linear-gradient(135deg, #ef4444, #dc2626); border-color: rgba(239,68,68,0.5); }
+  button.coin { background: linear-gradient(135deg, #f59e0b, #d97706); border-color: rgba(245,158,11,0.5); }
+  button.mine { background: linear-gradient(135deg, #64748b, #475569); border-color: rgba(100,116,139,0.5); }
+
+  /* Player marker */
+  .player-dot {
+    width: 36px; height: 36px; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .player-dot .body {
+    position: absolute; inset: 8px;
+    background: #3b82f6; border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 20px rgba(59,130,246,0.8), 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .player-dot .arrow {
+    position: absolute; top: -4px; left: 50%;
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid #60a5fa;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 0 4px rgba(96,165,250,0.8));
+  }
+  .player-rotate { transform-origin: center; transition: transform 0.2s ease-out; }
+
+  /* Accuracy ring */
+  .accuracy-ring {
+    border: 1px solid rgba(59,130,246,0.4);
+    background: rgba(59,130,246,0.1);
+    border-radius: 50%;
+  }
+
+  /* Item markers */
+  .item-marker {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    animation: float 2.5s ease-in-out infinite;
+    transition: opacity 0.3s;
+  }
+  .item-marker.pending {
+    opacity: 0.4;
+    animation: pending-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pending-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.55; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  /* Start overlay */
+  .overlay {
+    position: absolute; inset: 0; z-index: 1000;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  .overlay h1 { font-size: 28px; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .overlay .emoji-big { font-size: 48px; margin-bottom: 16px; }
+  .overlay p { color: #94a3b8; font-size: 14px; line-height: 1.6; max-width: 340px; margin-bottom: 10px; }
+  .overlay .start-btn {
+    margin-top: 24px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white; border: none;
+    padding: 16px 40px; border-radius: 14px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(59,130,246,0.4);
+  }
+  .overlay .start-btn:active { transform: scale(0.97); }
+  .overlay .hint { color: #64748b; font-size: 12px; margin-top: 14px; }
+
+  /* Toast */
+  .toast {
+    position: absolute; top: 72px; left: 50%; transform: translateX(-50%);
+    z-index: 600;
+    background: rgba(15,23,42,0.95); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 10px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.good { border-color: rgba(34,197,94,0.5); color: #86efac; }
+  .toast.bad { border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+
+  /* Aim beam — amber line extending from the player in the direction faced.
+     Length scales with projectile range via --aim-len (set from JS). */
+  .aim-beam {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 5px;
+    height: var(--aim-len, 50px);
+    margin-left: -2.5px;
+    transform-origin: top center;
+    transform: translateY(calc(-1 * var(--aim-len, 50px)));
+    background: linear-gradient(to top, rgba(251,191,36,0.9) 0%, rgba(251,191,36,0) 100%);
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(251,191,36,0.6);
+    pointer-events: none;
+    transition: height 0.15s ease-out;
+  }
+
+  /* Projectile */
+  .projectile {
+    width: 14px; height: 14px;
+    background: radial-gradient(circle, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 12px #fbbf24, 0 0 4px white;
+  }
+
+  /* Explosion */
+  .explosion {
+    width: 40px; height: 40px;
+    background: radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(239,68,68,0.6) 50%, transparent 100%);
+    border-radius: 50%;
+    animation: boom 0.6s ease-out forwards;
+  }
+  @keyframes boom {
+    0% { transform: scale(0.3); opacity: 1; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  /* Compass visual */
+  .compass {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .compass-dial {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    position: relative; flex-shrink: 0;
+  }
+  .compass-needle {
+    position: absolute; top: 50%; left: 50%;
+    width: 2px; height: 12px;
+    background: #ef4444;
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotate(0deg);
+    transition: transform 0.2s ease-out;
+  }
+  .compass-needle::before {
+    content: ''; position: absolute; top: -3px; left: -2px;
+    width: 0; height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-bottom: 4px solid #ef4444;
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="emoji-big">🎯</div>
+  <h1>GPS Game POC</h1>
+  <p>A real-world location game. Walk to move your character. Drop items at GPS points. Aim by pointing your phone — tilt up to throw farther.</p>
+  <p style="color: #fbbf24; font-weight: 500;">⚠️ Go outdoors for GPS accuracy.</p>
+  <button class="start-btn" id="startBtn">Start Game</button>
+  <div class="hint">Requires location & motion permissions</div>
+</div>
+
+<div id="map"></div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">☀️</button>
+
+<div class="hud-top">
+  <div class="hud-badge">
+    <div class="label">Score</div>
+    <div class="val score" id="score">0</div>
+  </div>
+  <div class="hud-badge">
+    <div class="label">Heading</div>
+    <div class="compass">
+      <div class="compass-dial"><div class="compass-needle" id="needle"></div></div>
+      <div class="val"><span id="heading">—</span>°</div>
+    </div>
+    <div class="label" style="margin-top:4px;">Tilt <span class="val" id="tilt">—</span>°</div>
+    <div class="label">GPS ±<span class="val" id="acc">—</span>m</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn coin" id="dropCoin"><span class="emoji">💰</span><span>Drop Coin</span></button>
+  <button class="btn mine" id="dropMine"><span class="emoji">💣</span><span>Drop Mine</span></button>
+  <button class="btn fire" id="fireBtn"><span class="emoji">🚀</span><span>Fire</span></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'gps-game-items-v1';
+  const THEME_KEY = 'gps-game-theme';
+  const PICKUP_RADIUS = 5;   // meters
+  const MINE_RADIUS = 3;     // meters
+  const BLAST_RADIUS = 6;    // meters
+  const ARM_BUFFER = 2;      // extra meters beyond trigger radius before arming
+  const PROJECTILE_V = 18;   // m/s initial velocity
+  const G = 9.81;
+
+  // Smoothing / prediction
+  const SMOOTH_TAU = 0.3;        // seconds — exponential smoothing time constant
+  const MAX_EXTRAP_SEC = 1.0;    // max seconds to extrapolate past last GPS fix
+  const VELOCITY_DECAY_TAU = 2.0;// seconds — velocity decays to 0 if no fresh fix
+  const TELEPORT_M = 50;         // meters — above this = snap, not ease
+  const MAX_ACCURACY = 50;       // meters — drop fixes worse than this
+
+  const TILES = {
+    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+  };
+
+  const state = {
+    position: null,               // displayed (smoothed) position {lat, lon, acc}
+    target: null,                 // latest GPS fix {lat, lon, acc, t}
+    velocity: { vN: 0, vE: 0 },   // m/s, north and east components
+    heading: 0,
+    tilt: 30,
+    score: 0,
+    items: [],
+    hasCentered: false,
+    theme: localStorage.getItem(THEME_KEY) || 'dark'
+  };
+
+  let map, tileLayer, playerMarker, accuracyCircle;
+  const itemMarkers = new Map();
+  const pendingItems = new Set(); // items just dropped — must leave trigger zone before they activate
+
+  /* ---------- Geo helpers ---------- */
+  const EARTH_R = 6378137;
+
+  function offsetLatLon(lat, lon, bearingDeg, distMeters) {
+    const brng = bearingDeg * Math.PI / 180;
+    const lat1 = lat * Math.PI / 180;
+    const lon1 = lon * Math.PI / 180;
+    const dR = distMeters / EARTH_R;
+    const lat2 = Math.asin(Math.sin(lat1)*Math.cos(dR) + Math.cos(lat1)*Math.sin(dR)*Math.cos(brng));
+    const lon2 = lon1 + Math.atan2(
+      Math.sin(brng)*Math.sin(dR)*Math.cos(lat1),
+      Math.cos(dR) - Math.sin(lat1)*Math.sin(lat2)
+    );
+    return { lat: lat2 * 180 / Math.PI, lon: ((lon2 * 180 / Math.PI) + 540) % 360 - 180 };
+  }
+
+  function distMeters(a, b) {
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLon = (b.lon - a.lon) * Math.PI / 180;
+    const la1 = a.lat * Math.PI / 180;
+    const la2 = b.lat * Math.PI / 180;
+    const h = Math.sin(dLat/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+    return 2 * EARTH_R * Math.asin(Math.sqrt(h));
+  }
+
+  function mToLat(m) { return m / 111320; }
+  function mToLon(m, lat) { return m / (111320 * Math.cos(lat * Math.PI / 180)); }
+
+  /* ---------- Persistence ---------- */
+  function loadItems() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      // Filter out anything that doesn't match the current schema — protects against
+      // stale items written by earlier versions of the code with a different shape.
+      state.items = Array.isArray(parsed)
+        ? parsed.filter(i =>
+            i && typeof i === 'object' &&
+            typeof i.lat === 'number' && Number.isFinite(i.lat) &&
+            typeof i.lon === 'number' && Number.isFinite(i.lon) &&
+            typeof i.id === 'string' &&
+            typeof i.type === 'string'
+          )
+        : [];
+    } catch(_) { state.items = []; }
+  }
+  function saveItems() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items)); } catch(_) {}
+  }
+
+  /* ---------- Toast ---------- */
+  let toastTimer;
+  function toast(msg, kind = '') {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + kind;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  /* ---------- Map & markers ---------- */
+  function initMap() {
+    map = L.map('map', { zoomControl: false, attributionControl: false }).setView([0,0], 19);
+    applyTheme(state.theme);
+
+    const playerIcon = L.divIcon({
+      className: '',
+      html: '<div class="player-dot">' +
+              '<div class="player-rotate" id="playerRotate">' +
+                '<div class="aim-beam"></div>' +
+                '<div class="arrow"></div>' +
+              '</div>' +
+              '<div class="body"></div>' +
+            '</div>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+    playerMarker = L.marker([0,0], { icon: playerIcon, interactive: false }).addTo(map);
+    accuracyCircle = L.circle([0,0], { radius: 0, className: 'accuracy-ring', color: '#3b82f6', weight: 1, fillOpacity: 0.1 }).addTo(map);
+  }
+
+  function itemIcon(type, pending) {
+    const emoji = type === 'coin' ? '💰' : type === 'mine' ? '💣' : '🚩';
+    return L.divIcon({
+      className: '',
+      html: `<div class="item-marker${pending ? ' pending' : ''}">${emoji}</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+  }
+
+  function addItemMarker(item, pending = false) {
+    if (!item || !Number.isFinite(item.lat) || !Number.isFinite(item.lon)) return;
+    const m = L.marker([item.lat, item.lon], { icon: itemIcon(item.type, pending), interactive: false }).addTo(map);
+    itemMarkers.set(item.id, m);
+  }
+
+  function armItem(itemId) {
+    pendingItems.delete(itemId);
+    const item = state.items.find(i => i.id === itemId);
+    const m = itemMarkers.get(itemId);
+    if (item && m) m.setIcon(itemIcon(item.type, false));
+    if (item) toast(item.type === 'mine' ? '💣 Mine armed' : '💰 Coin active', 'good');
+  }
+
+  /* ---------- Theme ---------- */
+  function applyTheme(theme) {
+    state.theme = theme;
+    document.body.classList.toggle('light', theme === 'light');
+    // Tile swap only runs if map already exists — lets the toggle work before the user hits Start
+    if (map) {
+      if (tileLayer) map.removeLayer(tileLayer);
+      tileLayer = L.tileLayer(TILES[theme], { maxZoom: 20, subdomains: 'abcd' }).addTo(map);
+    }
+    const tb = $('themeToggle');
+    if (tb) tb.textContent = theme === 'light' ? '🌙' : '☀️';
+    try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
+  }
+
+  function removeItem(id) {
+    const m = itemMarkers.get(id);
+    if (m) { map.removeLayer(m); itemMarkers.delete(id); }
+    state.items = state.items.filter(i => i.id !== id);
+    saveItems();
+  }
+
+  /* ---------- Player update ---------- */
+  function updatePlayer() {
+    if (!state.position) return;
+    const { lat, lon, acc } = state.position;
+    playerMarker.setLatLng([lat, lon]);
+    accuracyCircle.setLatLng([lat, lon]).setRadius(Math.min(acc || 20, 50));
+    if (!state.hasCentered) {
+      map.setView([lat, lon], 19);
+      state.hasCentered = true;
+    } else {
+      map.panTo([lat, lon], { animate: false });
+    }
+    $('acc').textContent = (acc || 0).toFixed(0);
+  }
+
+  /* ---------- Render loop (60fps smoothing + prediction) ---------- */
+  let lastFrame = 0;
+  let lastCollisionCheck = 0;
+
+  function renderLoop() {
+    try {
+      renderFrame();
+    } catch (e) {
+      // Don't let a single bad frame break the RAF chain
+      console.error('renderFrame error', e);
+    }
+    requestAnimationFrame(renderLoop);
+  }
+
+  function renderFrame() {
+    // Use Date.now() so we share a time base with pos.timestamp (which is also wall-clock ms)
+    const now = Date.now();
+    const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 0.016;
+    lastFrame = now;
+
+    if (state.target && state.position) {
+      // Decay velocity over time since last fix (prevents stale velocity from flying off)
+      const ageSec = Math.max(0, (now - state.target.t) / 1000);
+      const decay = Math.exp(-ageSec / VELOCITY_DECAY_TAU);
+      const vN = state.velocity.vN * decay;
+      const vE = state.velocity.vE * decay;
+
+      // Extrapolate target forward using velocity, capped
+      const extrapT = Math.min(MAX_EXTRAP_SEC, ageSec);
+      const extrapLat = state.target.lat + mToLat(vN * extrapT);
+      const extrapLon = state.target.lon + mToLon(vE * extrapT, state.target.lat);
+
+      // Exponential smoothing toward extrapolated target
+      const alpha = 1 - Math.exp(-dt / SMOOTH_TAU);
+      state.position.lat += (extrapLat - state.position.lat) * alpha;
+      state.position.lon += (extrapLon - state.position.lon) * alpha;
+      state.position.acc = state.target.acc;
+
+      // NaN guard — if anything above goes sideways, recover to last known fix
+      if (!Number.isFinite(state.position.lat) || !Number.isFinite(state.position.lon)) {
+        state.position = { lat: state.target.lat, lon: state.target.lon, acc: state.target.acc };
+      }
+
+      updatePlayer();
+
+      // Collision check at ~6-7 Hz — plenty, no need to do it every frame
+      if (now - lastCollisionCheck > 150) {
+        checkCollisions();
+        lastCollisionCheck = now;
+      }
+    }
+  }
+
+  function updateHeadingUI() {
+    const h = Math.round(state.heading);
+    $('heading').textContent = h;
+    $('needle').style.transform = `translate(-50%, -100%) rotate(${h}deg)`;
+    $('tilt').textContent = Math.round(state.tilt);
+    const rot = document.getElementById('playerRotate');
+    if (rot) {
+      rot.style.transform = `rotate(${h}deg)`;
+      // Aim beam length reflects projectile range at current tilt
+      const tiltDeg = Math.max(5, Math.min(85, state.tilt || 30));
+      const theta = tiltDeg * Math.PI / 180;
+      const range = (PROJECTILE_V * PROJECTILE_V * Math.sin(2 * theta)) / G; // meters, 0..~33
+      const beamPx = Math.round(20 + (range / 33) * 70); // 20..90px
+      rot.style.setProperty('--aim-len', beamPx + 'px');
+    }
+  }
+
+  /* ---------- Collision detection ---------- */
+  function checkCollisions() {
+    if (!state.position) return;
+    for (const item of [...state.items]) {
+      const d = distMeters(state.position, item);
+      const triggerR = item.type === 'mine' ? MINE_RADIUS : PICKUP_RADIUS;
+
+      // Pending items (just dropped): arm only when player has walked out of trigger zone
+      if (pendingItems.has(item.id)) {
+        if (d > triggerR + ARM_BUFFER) armItem(item.id);
+        continue;
+      }
+
+      if (item.type === 'coin' && d <= PICKUP_RADIUS) {
+        state.score += 10;
+        $('score').textContent = state.score;
+        toast('💰 +10 coins picked up!', 'good');
+        removeItem(item.id);
+      } else if (item.type === 'mine' && d <= MINE_RADIUS) {
+        state.score = Math.max(0, state.score - 20);
+        $('score').textContent = state.score;
+        toast('💥 Mine! −20', 'bad');
+        spawnExplosion(item.lat, item.lon);
+        removeItem(item.id);
+      }
+    }
+  }
+
+  /* ---------- Fire projectile ---------- */
+  function fire() {
+    if (!state.position) { toast('Waiting for GPS…'); return; }
+    // Range from physics: R = v² sin(2θ) / g  (θ = launch angle above horizon)
+    const tiltDeg = Math.max(5, Math.min(85, state.tilt));
+    const theta = tiltDeg * Math.PI / 180;
+    const range = (PROJECTILE_V * PROJECTILE_V * Math.sin(2 * theta)) / G;
+    const start = { lat: state.position.lat, lon: state.position.lon };
+    const end = offsetLatLon(start.lat, start.lon, state.heading, range);
+    animateProjectile(start, end, range, () => {
+      spawnExplosion(end.lat, end.lon);
+      destroyItemsNear(end, BLAST_RADIUS);
+    });
+    toast(`🚀 Fired ${range.toFixed(1)}m`);
+  }
+
+  function animateProjectile(start, end, range, done) {
+    const icon = L.divIcon({ className: '', html: '<div class="projectile"></div>', iconSize: [14,14], iconAnchor: [7,7] });
+    const proj = L.marker([start.lat, start.lon], { icon, interactive: false }).addTo(map);
+    const trail = L.polyline([[start.lat, start.lon]], { color: '#fbbf24', weight: 2, opacity: 0.6, dashArray: '4 4' }).addTo(map);
+
+    const duration = Math.max(400, Math.min(1500, range * 40));
+    const t0 = performance.now();
+
+    function step(now) {
+      const t = Math.min(1, (now - t0) / duration);
+      const lat = start.lat + (end.lat - start.lat) * t;
+      const lon = start.lon + (end.lon - start.lon) * t;
+      proj.setLatLng([lat, lon]);
+      trail.addLatLng([lat, lon]);
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        map.removeLayer(proj);
+        setTimeout(() => map.removeLayer(trail), 400);
+        done && done();
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function spawnExplosion(lat, lon) {
+    const icon = L.divIcon({ className: '', html: '<div class="explosion"></div>', iconSize: [40,40], iconAnchor: [20,20] });
+    const m = L.marker([lat, lon], { icon, interactive: false }).addTo(map);
+    setTimeout(() => map.removeLayer(m), 700);
+  }
+
+  function destroyItemsNear(point, radius) {
+    let hit = 0;
+    for (const item of [...state.items]) {
+      if (distMeters(point, item) <= radius) {
+        hit++;
+        if (item.type === 'coin') state.score += 5;
+        spawnExplosion(item.lat, item.lon);
+        removeItem(item.id);
+      }
+    }
+    if (hit > 0) {
+      $('score').textContent = state.score;
+      toast(`💥 ${hit} hit${hit>1?'s':''}!`, 'good');
+    }
+  }
+
+  /* ---------- Drop items ---------- */
+  function dropItem(type) {
+    if (!state.position) { toast('Waiting for GPS…'); return; }
+    const item = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      type,
+      lat: state.position.lat,
+      lon: state.position.lon
+    };
+    state.items.push(item);
+    pendingItems.add(item.id);
+    saveItems();
+    addItemMarker(item, true);
+    toast(type === 'coin' ? '💰 Coin dropped — walk away to collect' : '💣 Mine placed — walk away to arm');
+  }
+
+  /* ---------- Sensors ---------- */
+  function onPosition(pos) {
+    const c = pos.coords;
+    // Drop unusable fixes — keeps the low-quality indoor spam from yanking the dot around
+    if (c.accuracy != null && c.accuracy > MAX_ACCURACY) {
+      $('acc').textContent = c.accuracy.toFixed(0) + '?';
+      return;
+    }
+
+    const now = pos.timestamp || Date.now();
+    const newTarget = { lat: c.latitude, lon: c.longitude, acc: c.accuracy || 10, t: now };
+
+    // --- Velocity estimation ---
+    if (c.speed != null && !Number.isNaN(c.speed)) {
+      if (c.speed < 0.3) {
+        state.velocity = { vN: 0, vE: 0 };
+      } else if (c.heading != null && !Number.isNaN(c.heading)) {
+        const rad = c.heading * Math.PI / 180;
+        state.velocity = {
+          vN: c.speed * Math.cos(rad),
+          vE: c.speed * Math.sin(rad)
+        };
+      }
+    } else if (state.target) {
+      // Browser didn't give us speed/heading — derive from position delta
+      const dt = (now - state.target.t) / 1000;
+      const d = distMeters(state.target, newTarget);
+      const jitterFloor = Math.max(newTarget.acc, 3);
+      if (d < jitterFloor) {
+        state.velocity = { vN: 0, vE: 0 };
+      } else if (dt > 0.1 && dt < 5) {
+        const vN = (newTarget.lat - state.target.lat) * 111320 / dt;
+        const vE = (newTarget.lon - state.target.lon) * 111320 *
+                   Math.cos(newTarget.lat * Math.PI / 180) / dt;
+        // Low-pass filter to suppress jitter
+        state.velocity = {
+          vN: state.velocity.vN * 0.3 + vN * 0.7,
+          vE: state.velocity.vE * 0.3 + vE * 0.7
+        };
+      }
+    }
+
+    // --- Position target + teleport/snap handling ---
+    if (!state.position) {
+      // First fix — place the dot here immediately
+      state.position = { lat: newTarget.lat, lon: newTarget.lon, acc: newTarget.acc };
+    } else if (distMeters(state.position, newTarget) > TELEPORT_M) {
+      // Huge jump (tab was backgrounded, GPS recovered far away, etc.) — snap, don't ease
+      state.position = { lat: newTarget.lat, lon: newTarget.lon, acc: newTarget.acc };
+      state.velocity = { vN: 0, vE: 0 };
+    }
+
+    state.target = newTarget;
+
+    // GPS-derived heading as fallback for devices without a compass
+    if (c.heading != null && !Number.isNaN(c.heading) && c.speed != null && c.speed > 0.8) {
+      state.heading = c.heading;
+      updateHeadingUI();
+    }
+  }
+
+  function onPositionError(err) {
+    toast('GPS error: ' + (err.message || err.code), 'bad');
+  }
+
+  function onOrientation(e) {
+    // iOS compass: webkitCompassHeading (already 0-360, clockwise from north)
+    let heading = null;
+    if (e.webkitCompassHeading != null) heading = e.webkitCompassHeading;
+    else if (e.alpha != null) heading = (360 - e.alpha + 360) % 360;
+    if (heading != null) state.heading = heading;
+    if (e.beta != null) state.tilt = e.beta; // front-back tilt
+    updateHeadingUI();
+  }
+
+  async function requestPermissions() {
+    // iOS 13+ DeviceOrientation permission
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') toast('Motion access denied — aiming disabled', 'bad');
+      } catch { /* ignore */ }
+    }
+    window.addEventListener('deviceorientation', onOrientation, true);
+
+    if (!('geolocation' in navigator)) {
+      toast('Geolocation not supported', 'bad');
+      return;
+    }
+    navigator.geolocation.watchPosition(onPosition, onPositionError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 20000
+    });
+  }
+
+  /* ---------- Init ---------- */
+  // Surface any script-level error visibly — Safari iOS has no accessible console without a Mac.
+  // Without this, a silent throw during init leaves the user with an unresponsive Start button.
+  window.addEventListener('error', (ev) => {
+    const msg = 'Error: ' + (ev.message || ev.error || 'unknown') + (ev.filename ? ' @ ' + ev.filename + ':' + ev.lineno : '');
+    try {
+      const el = $('toast');
+      if (el) { el.textContent = msg; el.className = 'toast show bad'; }
+      else alert(msg);
+    } catch(_) { alert(msg); }
+  });
+  window.addEventListener('unhandledrejection', (ev) => {
+    alert('Async error: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason));
+  });
+
+  function init() {
+    // 1. Attach button listeners FIRST — no map or Leaflet code can block these.
+    //    That way the Start button always responds, even if initMap later throws.
+    $('dropCoin').addEventListener('click', () => dropItem('coin'));
+    $('dropMine').addEventListener('click', () => dropItem('mine'));
+    $('fireBtn').addEventListener('click', fire);
+    $('themeToggle').addEventListener('click', () => applyTheme(state.theme === 'dark' ? 'light' : 'dark'));
+
+    $('startBtn').addEventListener('click', async () => {
+      try {
+        $('overlay').style.display = 'none';
+        if (!map) {
+          initMap();
+          loadItems();
+          state.items.forEach(i => addItemMarker(i, false));
+        }
+        await requestPermissions();
+        requestAnimationFrame(renderLoop);
+      } catch (err) {
+        alert('Start failed: ' + (err && err.message ? err.message : err));
+        // Re-show the overlay so the user can retry
+        $('overlay').style.display = '';
+      }
+    });
+
+    // 2. Apply saved theme class to body now (so light mode visually applies before the map loads).
+    //    The tile-swap inside applyTheme is a no-op until map exists.
+    applyTheme(state.theme);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
