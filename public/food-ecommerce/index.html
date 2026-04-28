@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>חנות מקוונת לרשת מזון | Custom E-Commerce | נועם זוין</title>
+  <meta name="description" content="חנות אונליין לרשת מזון - 500 מוצרים, 6 מחלקות, סנכרון מלאי, סליקה, משלוחים. בלי וורדפרס, מותאם, בליווי שלומי זוין." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --bg-alt: #0f131a;
+      --card: #131820;
+      --card-hover: #181e28;
+      --border: #1f2630;
+      --border-strong: #2a323e;
+      --text: #f4f6fa;
+      --text-muted: #8a93a3;
+      --text-dim: #5b6373;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.12);
+      --accent-strong: #059669;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --bg-alt: #f0f2f6;
+      --card: #ffffff;
+      --card-hover: #f7f8fa;
+      --border: #e6e8ec;
+      --border-strong: #d4d7dd;
+      --text: #0a0d12;
+      --text-muted: #5b6373;
+      --text-dim: #8a93a3;
+      --accent-soft: rgba(16, 185, 129, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 60; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; gap: 1rem; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 8px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; color: #04140e; }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.55rem; }
+    .theme-toggle { background: transparent; border: 1px solid var(--border); border-radius: 999px; width: 36px; height: 36px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-cta { padding: 0.5rem 1rem; border-radius: 999px; background: var(--accent); color: #04140e; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .header-cta:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-bar { position: sticky; top: 60px; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: flex-start; padding: 0; white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.92rem; font-weight: 500; padding: 0.95rem 1.3rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 2.5rem; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; color: var(--accent); padding: 0.35rem 0.85rem; border: 1px solid var(--accent-soft); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.5rem; letter-spacing: 0.02em; }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .hero h1 { font-size: clamp(1.85rem, 4.5vw, 3.1rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.25rem; letter-spacing: -0.02em; max-width: 880px; }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 720px; margin-bottom: 2rem; line-height: 1.7; }
+    .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: #04140e; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-head { margin-bottom: 2.5rem; }
+    .section-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .section-head p { color: var(--text-muted); max-width: 680px; font-size: 1rem; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+
+    /* GRID */
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s, background 0.15s; }
+    .card:hover { border-color: var(--border-strong); background: var(--card-hover); }
+    .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; line-height: 1.6; }
+    .card-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.85rem; }
+    .card ul { list-style: none; margin-top: 0.85rem; padding: 0; }
+    .card li { font-size: 0.9rem; color: var(--text-muted); padding: 0.3rem 0; padding-right: 1.1rem; position: relative; }
+    .card li::before { content: ''; position: absolute; right: 0; top: 0.85rem; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+    /* WHY (vs WordPress) */
+    .vs-wrap { margin: 2rem 0; }
+    .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .vs-col { padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    .vs-col.bad { background: var(--card); }
+    .vs-col.good { background: var(--accent-soft); border-color: var(--accent); }
+    .vs-col h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .vs-col.bad h4 { color: var(--text-muted); }
+    .vs-col.good h4 { color: var(--accent); }
+    .vs-col ul { list-style: none; padding: 0; margin: 0; }
+    .vs-col li { font-size: 0.93rem; padding: 0.45rem 0; padding-right: 1.6rem; position: relative; color: var(--text); line-height: 1.5; }
+    .vs-col.bad li { color: var(--text-muted); }
+    .vs-col li::before { content: ''; position: absolute; right: 0; top: 0.75rem; width: 14px; height: 14px; border-radius: 50%; }
+    .vs-col.bad li::before { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); }
+    .vs-col.good li::before { background: var(--accent); }
+    .vs-col.good li::after { content: '✓'; position: absolute; right: 2px; top: 0.45rem; font-size: 0.75rem; font-weight: 800; color: #04140e; }
+
+    /* FEATURES BIG */
+    .feat-list { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-top: 1.5rem; }
+    .feat-item { display: flex; gap: 1rem; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); align-items: flex-start; }
+    .feat-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem; }
+    .feat-body h4 { font-size: 0.98rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .feat-body p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0; }
+    .stat { padding: 1.5rem 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); text-align: right; }
+    .stat-num { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); line-height: 1; margin-bottom: 0.5rem; }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* EXPERIENCE */
+    .exp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .exp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--accent); }
+    .exp-tag { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+    .exp-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .exp-card p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
+    .exp-stack { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 1rem; }
+    .exp-stack span { font-size: 0.72rem; padding: 0.22rem 0.6rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); }
+
+    /* CALLOUT */
+    .callout { background: var(--card); border: 1px solid var(--border); border-right: 3px solid var(--accent); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin: 2rem 0; }
+    .callout h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--accent); }
+    .callout p { color: var(--text); font-size: 0.95rem; line-height: 1.6; }
+
+    /* DEMO */
+    .demo-frame { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .demo-header { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--bg-alt); }
+    .demo-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .demo-dots { display: flex; gap: 0.35rem; }
+    .demo-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--border-strong); }
+    .demo-url { font-size: 0.78rem; color: var(--text-muted); padding: 0.3rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-family: 'SF Mono', Menlo, monospace; }
+    .demo-label { font-size: 0.7rem; color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .demo-body { background: var(--card); min-height: 600px; }
+
+    /* SHOP DEMO INTERNALS */
+    .shop { font-family: 'Heebo', sans-serif; }
+    .shop-top { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
+    .shop-brand { display: flex; align-items: center; gap: 0.6rem; }
+    .shop-brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: #04140e; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.05rem; }
+    .shop-brand-text { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em; }
+    .shop-brand-sub { font-size: 0.7rem; color: var(--text-muted); }
+    .shop-search { flex: 1; max-width: 420px; min-width: 200px; position: relative; }
+    .shop-search input { width: 100%; padding: 0.65rem 2.5rem 0.65rem 1rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: inherit; font-size: 0.9rem; }
+    .shop-search input::placeholder { color: var(--text-dim); }
+    .shop-search input:focus { outline: none; border-color: var(--accent); }
+    .shop-search-icon { position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .shop-cart-btn { position: relative; padding: 0.55rem 1rem; background: var(--accent); color: #04140e; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+    .shop-cart-btn:hover { background: var(--accent-strong); }
+    .shop-cart-badge { position: absolute; top: -6px; left: -6px; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 800; min-width: 18px; height: 18px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; border: 2px solid var(--card); }
+
+    .shop-categories { display: flex; gap: 0.5rem; padding: 0.85rem 1.2rem; overflow-x: auto; border-bottom: 1px solid var(--border); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .shop-categories::-webkit-scrollbar { display: none; }
+    .cat-chip { flex-shrink: 0; padding: 0.5rem 1rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 999px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .cat-chip:hover { color: var(--text); border-color: var(--border-strong); }
+    .cat-chip.active { background: var(--accent); color: #04140e; border-color: var(--accent); font-weight: 600; }
+    .cat-chip-emoji { font-size: 1rem; }
+
+    .shop-promo { padding: 1rem 1.2rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .shop-promo-text { color: var(--text); font-weight: 600; font-size: 0.92rem; }
+    .shop-promo-text strong { color: var(--accent); }
+    .shop-promo-meta { font-size: 0.78rem; color: var(--text-muted); }
+
+    .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.85rem; padding: 1.2rem; }
+
+    .product { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.15s; cursor: pointer; display: flex; flex-direction: column; }
+    .product:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .product-image { aspect-ratio: 1; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; }
+    .product-tag { position: absolute; top: 8px; right: 8px; font-size: 0.65rem; font-weight: 700; padding: 0.18rem 0.5rem; border-radius: 999px; background: var(--accent); color: #04140e; letter-spacing: 0.04em; }
+    .product-tag.sale { background: #ef4444; color: white; }
+    .product-tag.new { background: #3b82f6; color: white; }
+    .product-info { padding: 0.75rem 0.85rem 0.85rem; flex: 1; display: flex; flex-direction: column; }
+    .product-cat { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.2rem; }
+    .product-name { font-size: 0.9rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.3rem; }
+    .product-meta { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .product-bottom { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: auto; }
+    .product-price { display: flex; flex-direction: column; }
+    .product-price-now { font-size: 1.05rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+    .product-price-was { font-size: 0.75rem; color: var(--text-dim); text-decoration: line-through; }
+    .add-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: #04140e; border: none; cursor: pointer; font-size: 1.2rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; line-height: 1; }
+    .add-btn:hover { background: var(--accent-strong); transform: scale(1.05); }
+    .add-btn.added { background: var(--accent-strong); }
+    .qty-control { display: inline-flex; align-items: center; background: var(--accent); color: #04140e; border-radius: 8px; }
+    .qty-control button { width: 28px; height: 32px; border: none; background: transparent; color: #04140e; font-size: 1rem; cursor: pointer; font-weight: 800; }
+    .qty-control span { font-weight: 700; min-width: 24px; text-align: center; font-size: 0.9rem; }
+
+    /* CART DRAWER */
+    .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 100; }
+    .cart-overlay.open { opacity: 1; pointer-events: auto; }
+    .cart-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: min(420px, 100vw); background: var(--card); border-left: 1px solid var(--border); transform: translateX(-100%); transition: transform 0.25s ease; z-index: 101; display: flex; flex-direction: column; }
+    .cart-drawer.open { transform: translateX(0); }
+    .cart-head { padding: 1.2rem 1.4rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .cart-head h3 { font-size: 1.1rem; font-weight: 700; }
+    .cart-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0.3rem; }
+    .cart-close:hover { color: var(--text); }
+    .cart-items { flex: 1; overflow-y: auto; padding: 0.5rem 1rem; }
+    .cart-empty { padding: 3rem 1rem; text-align: center; color: var(--text-muted); }
+    .cart-empty-icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.5; }
+    .cart-item { display: flex; gap: 0.85rem; padding: 0.85rem 0.5rem; border-bottom: 1px solid var(--border); }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item-img { width: 56px; height: 56px; border-radius: 8px; background: var(--bg-alt); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+    .cart-item-info { flex: 1; min-width: 0; }
+    .cart-item-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .cart-item-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .cart-item-bottom { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .cart-item-price { font-weight: 800; font-size: 0.95rem; color: var(--accent); letter-spacing: -0.01em; }
+    .cart-mini-qty { display: inline-flex; align-items: center; gap: 0; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 7px; }
+    .cart-mini-qty button { width: 26px; height: 28px; border: none; background: transparent; color: var(--text); cursor: pointer; font-size: 0.95rem; font-weight: 700; }
+    .cart-mini-qty button:hover { color: var(--accent); }
+    .cart-mini-qty span { font-size: 0.85rem; min-width: 22px; text-align: center; font-weight: 600; }
+    .cart-foot { padding: 1rem 1.4rem 1.2rem; border-top: 1px solid var(--border); }
+    .cart-row { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.92rem; color: var(--text-muted); }
+    .cart-row.total { font-size: 1.1rem; font-weight: 800; color: var(--text); padding-top: 0.65rem; margin-top: 0.4rem; border-top: 1px dashed var(--border); }
+    .cart-checkout { width: 100%; margin-top: 1rem; padding: 0.95rem; background: var(--accent); color: #04140e; border: none; border-radius: 10px; font-weight: 700; font-size: 0.98rem; cursor: pointer; transition: background 0.15s; }
+    .cart-checkout:hover { background: var(--accent-strong); }
+
+    /* CHECKOUT MODAL */
+    .checkout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 200; padding: 1rem; }
+    .checkout-modal.open { display: flex; }
+    .checkout-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; max-width: 420px; width: 100%; text-align: center; }
+    .checkout-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem; }
+    .checkout-box h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .checkout-box p { color: var(--text-muted); font-size: 0.92rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    .checkout-box button { padding: 0.7rem 1.5rem; background: var(--accent); color: #04140e; border: none; border-radius: 999px; font-weight: 600; cursor: pointer; }
+    .checkout-box button:hover { background: var(--accent-strong); }
+
+    /* MOBILE TOGGLE */
+    .demo-toggles { display: flex; gap: 0.5rem; padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border); background: var(--bg-alt); align-items: center; flex-wrap: wrap; }
+    .demo-toggles-label { font-size: 0.8rem; color: var(--text-muted); margin-left: auto; }
+    .view-toggle { display: inline-flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .view-toggle button { padding: 0.4rem 0.85rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.15s; }
+    .view-toggle button.active { background: var(--accent); color: #04140e; font-weight: 600; }
+
+    .shop-wrap.mobile-view { max-width: 400px; margin: 1rem auto; border: 1px solid var(--border); border-radius: 24px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .shop-wrap.mobile-view .shop-grid { grid-template-columns: repeat(2, 1fr); padding: 0.75rem; gap: 0.6rem; }
+    .shop-wrap.mobile-view .shop-search { display: none; }
+    .shop-wrap.mobile-view .shop-top { padding: 0.85rem 1rem; }
+    .shop-wrap.mobile-view .product-image { font-size: 2.4rem; }
+
+    /* TIMELINE */
+    .timeline { position: relative; padding-right: 2rem; }
+    .timeline::before { content: ''; position: absolute; right: 8px; top: 12px; bottom: 12px; width: 2px; background: var(--border); }
+    .timeline-item { position: relative; padding-bottom: 1.75rem; padding-right: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; right: -19px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-week { font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .timeline-item h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+    .timeline-item p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; }
+
+    /* PRICE CARD */
+    .price-card { background: var(--card); border: 1px solid var(--accent); border-radius: 18px; padding: 2rem; max-width: 540px; }
+    .price-tag { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .price-num { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .price-num strong { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .price-num span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+    .price-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    .price-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+    .price-list li { padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.93rem; padding-right: 1.6rem; position: relative; }
+    .price-list li:last-child { border-bottom: none; }
+    .price-list li::before { content: '✓'; position: absolute; right: 0; top: 0.55rem; color: var(--accent); font-weight: 800; }
+
+    /* STACK */
+    .stack-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
+    .stack-item { padding: 0.85rem 1rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .stack-item h5 { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stack-item p { font-size: 0.92rem; color: var(--text); font-weight: 500; }
+
+    /* FOOTER */
+    .footer { padding: 2.5rem 0 3rem; border-top: 1px solid var(--border); margin-top: 3rem; text-align: center; }
+    .footer-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .footer-meta { color: var(--text-muted); font-size: 0.85rem; }
+    .footer-meta a { color: var(--accent); text-decoration: none; }
+
+    /* FAB CART (mobile) */
+    .fab-cart { display: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .container { padding: 0 1.1rem; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .vs-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .exp-grid { grid-template-columns: 1fr; }
+      .hero { padding: 2.5rem 0 2rem; }
+      .section { padding: 2rem 0; }
+      .tab-btn { padding: 0.85rem 0.95rem; font-size: 0.88rem; }
+      .demo-toggles { display: none; }
+      .shop-grid { grid-template-columns: repeat(2, 1fr); padding: 0.85rem; gap: 0.6rem; }
+      .shop-search { order: 3; flex: 1 0 100%; max-width: 100%; }
+      .shop-cart-btn span:not(.shop-cart-badge) { display: none; }
+      .price-num strong { font-size: 2.5rem; }
+      .price-card { padding: 1.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .shop-grid { grid-template-columns: repeat(2, 1fr); }
+      .product-image { font-size: 2.2rem; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">NZ</span>
+      <span>
+        <span class="logo-text">נועם זוין</span>
+        <span class="logo-sub">מפתח אתרים · בונה מהר עם AI</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">🌙</button>
+      <a href="https://wa.me/972545567213" class="header-cta" target="_blank">דבר איתי</a>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <div class="container">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="proposal">ההצעה</button>
+      <button class="tab-btn" data-tab="experience">ניסיון רלוונטי</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="budget">תקציב ולו"ז</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ============ TAB: PROPOSAL ============ -->
+<section class="tab-content active" data-content="proposal">
+
+  <div class="container hero">
+    <div class="hero-eyebrow"><span class="dot"></span>הצעה לחנות מקוונת — רשת מזון</div>
+    <h1>חנות מותאמת אישית, לא <em>WordPress</em>. 10,000 ש"ח לחודש. בליווי שלומי זוין.</h1>
+    <p class="hero-sub">
+      אני נועם, מפתח אתרים מוסמך, ואני עובד עם Claude Code (כלי AI מהדור החדש) בליווי של שלומי, אבא שלי, שיש לו 20+ שנות ניסיון בהייטק. <strong>מחיר של מפתח צעיר, איכות של בכיר.</strong> 500 מוצרים, 6 מחלקות, סנכרון אקסל, סליקה, חשבוניות, משלוחים — הכל מותאם, בלי תוספים שיישברו, בתמחור חודשי שקוף.
+    </p>
+    <div class="hero-cta">
+      <button class="btn primary" onclick="goTab('demo')">↓ דמו חי, מובייל-first</button>
+      <button class="btn ghost" onclick="goTab('budget')">לראות תקציב ולו"ז</button>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">למה לא וורדפרס</div>
+      <h2>המודעה שלך אומרת "WordPress + WooCommerce". אני רוצה לעצור אותך לרגע.</h2>
+      <p>זו ברירת מחדל סבירה — לפני 5 שנים. ב-2026 עם Claude Code, חנות מותאמת אישית עולה דומה, רצה פי 3 מהר יותר, ושום תוסף שיתעדכן לא ישבור לך את החיים. הינה ההפרדה החדה:</p>
+    </div>
+
+    <div class="vs-grid">
+      <div class="vs-col bad">
+        <h4>WordPress + WooCommerce</h4>
+        <ul>
+          <li>30+ תוספים שצריך לעדכן ולתחזק. כל עדכון = סיכון.</li>
+          <li>ביצועים בינוניים. עמוד מוצר ב-3-5 שניות זה הסטנדרט.</li>
+          <li>מובייל = "responsive" של 2015. לא חוויית אפליקציה.</li>
+          <li>סנכרון מאקסל = עוד תוסף, עוד שכבה, עוד דבר שנשבר.</li>
+          <li>UI מוגבל לתבנית. כל שינוי קצת חורג = פיתוח מסובך.</li>
+          <li>תלות בקהילת תוספים. ספק נסגר → אתה תקוע.</li>
+        </ul>
+      </div>
+      <div class="vs-col good">
+        <h4>Custom build (מה שאני בונה לך)</h4>
+        <ul>
+          <li>Next.js + Node.js + Postgres. סטאק אחד, כולו שלך.</li>
+          <li>טעינה ב-1.2 שניות. אנימציות חלקות. SEO מובנה.</li>
+          <li>מובייל-first אמיתי. נראה ומרגיש כמו אפליקציה.</li>
+          <li>סנכרון אקסל = endpoint אחד. 50 שורות קוד, אפס תוספים.</li>
+          <li>כל פיצ'ר שתחלום עליו — ניתן לבנייה. אין תקרה.</li>
+          <li>קוד פתוח אצלך. כל מפתח בעולם יכול להמשיך.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h4>איך אני מצליח לתת את זה ב-10K לחודש?</h4>
+      <p>אני לא בית תוכנה עם תקורה ושכבות ניהול. אני מפתח צעיר שעובד עם Claude Code (כלי AI שמאיץ פיתוח), ובליווי של אבא שלי שלומי — שיש לו 20+ שנות ניסיון, מלמד אותי לפני, מבקר את העבודה, ועוצר אותי מטעויות.</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">תכולת המערכת</div>
+      <h2>מה כלול בחנות שלך</h2>
+      <p>הכל מותאם אישית. הכל מתועד. הכל שלך מהיום הראשון.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">🛒</div>
+        <h3>קטלוג מוצרים</h3>
+        <p>500 מוצרים, 6 מחלקות, היררכיית קטגוריות מלאה. תמונות, מחירים, מבצעים, תיאורים, וריאנטים (גודל/משקל), זמינות במלאי.</p>
+        <ul>
+          <li>חיפוש חכם עם autocomplete</li>
+          <li>פילטרים מהירים לפי מחלקה</li>
+          <li>תגיות: חדש, מבצע, פופולרי</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>סנכרון מלאי מאקסל</h3>
+        <p>מעלה קובץ אקסל → המערכת מעדכנת מחירים, מלאי, מוצרים חדשים, מוסרת מוצרים שירדו. אוטומטי, יומי, או ידני — אתה בוחר.</p>
+        <ul>
+          <li>תמיכה ב-XLSX, CSV</li>
+          <li>שמירת היסטוריית עדכונים</li>
+          <li>התראות על שגיאות</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <h3>סליקה ותשלומים</h3>
+        <p>חיבור לסולק ישראלי (Tranzila / Cardcom / Pelecard). תשלום חד-פעמי, חיוב מאובטח, החזרים. PCI compliant.</p>
+        <ul>
+          <li>אשראי, Bit, Apple Pay, Google Pay</li>
+          <li>טוקניזציה מלאה</li>
+          <li>דוחות עסקה</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚚</div>
+        <h3>משלוחים</h3>
+        <p>אזורי משלוח, מחירים דינמיים, חלונות זמן, איסוף עצמי. שילוב עם חברות שליחויות (Hashlach, GettDelivery).</p>
+        <ul>
+          <li>חישוב מחיר בזמן אמת</li>
+          <li>מעקב הזמנה ללקוח</li>
+          <li>SMS וטלגרם לעדכון סטטוס</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📄</div>
+        <h3>חשבוניות</h3>
+        <p>הפקה אוטומטית של חשבונית מס/קבלה (Greeninvoice / Icount / Hashavshevet). שליחה במייל ללקוח, הוצאת דוחות.</p>
+        <ul>
+          <li>חיבור API לכל ספקי החשבוניות</li>
+          <li>תיוג לפי מע"מ ואזור</li>
+          <li>ייצוא להנהלת חשבונות</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>חוויית מובייל</h3>
+        <p>זה הלב של הסיפור. נראה ומרגיש כמו אפליקציה — לא אתר. PWA, מצב לא מקוון בסיסי, אנימציות חלקות, מהירות מטורפת.</p>
+        <ul>
+          <li>תמיכה ב-Add to Home Screen</li>
+          <li>חוויית רכישה ב-3 קליקים</li>
+          <li>Lighthouse score 95+</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">ובנוסף</div>
+      <h2>הניהול שלך מאחורי הקלעים</h2>
+    </div>
+
+    <div class="feat-list">
+      <div class="feat-item">
+        <span class="feat-num">1</span>
+        <div class="feat-body">
+          <h4>פאנל ניהול נקי לבעלים</h4>
+          <p>הזמנות, מלאי, לקוחות, דוחות מכירות, ניהול קופונים. כל מה שצריך, שום דבר שלא. עברית מלאה, נפתח גם מהפלאפון.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">2</span>
+        <div class="feat-body">
+          <h4>ניתוח התנהגות לקוחות</h4>
+          <p>מי קונה מה, מתי, באיזו תדירות. גרפים, חתכים, המלצות. בסיס לקמפיינים ממוקדים — בלי לשלם 1500 ש"ח לחודש לכלי חיצוני.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">3</span>
+        <div class="feat-body">
+          <h4>קופונים, מבצעים, מועדון לקוחות</h4>
+          <p>קופון לפי קוד, הנחה אוטומטית מסכום מסוים, מבצעי 1+1. מועדון לקוחות עם ניקוד וצבירה. כל מה שצריך כדי להחזיר אנשים.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">4</span>
+        <div class="feat-body">
+          <h4>SEO והופעה בגוגל</h4>
+          <p>Schema.org, sitemap, מטה-תיוג מוצרים, טעינה מהירה. הדפים שלך אינדוקס אוטומטי, ומופיעים עם תמונות ומחירים בתוצאות החיפוש.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">5</span>
+        <div class="feat-body">
+          <h4>WhatsApp Bot להזמנה (אופציונלי)</h4>
+          <p>פיצ'ר שאני אוהב. לקוחות שמעדיפים לדבר במקום לגלול. אומרים "אני רוצה חלב, לחם, ביצים" → הבוט בונה עגלה, מאשר, סוגר. זה בערך עבודה של שבועיים נוספים.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: EXPERIENCE ============ -->
+<section class="tab-content" data-content="experience">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">מי אני</div>
+      <h2>אני נועם זוין. מפתח אתרים מוסמך. צעיר, אבל לא חובבן.</h2>
+      <p>לא הולך לרמות אותך — אין לי 20 שנות ניסיון. יש לי משהו אחר: אני מהדור החדש שגדל עם כלי AI מהיום הראשון, אני בונה מהר, ויש לי גיבוי אמיתי של מי שיש לו את ה-20 שנים האלה — שלומי זוין, אבא שלי, שמלווה אותי בכל פרויקט כ-CTO פנימי.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">10K</div>
+        <div class="stat-label">ש"ח לחודש. שקוף וגמיש</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">~1</div>
+        <div class="stat-label">חודש בהערכה לעלייה לאוויר</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">100×</div>
+        <div class="stat-label">מהירות עם Claude Code</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">20+</div>
+        <div class="stat-label">שנות ניסיון של שלומי מאחורי</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2rem;">
+      <h4>הסיפור הכי חשוב כאן: plaxzy.com</h4>
+      <p><a href="https://plaxzy.com" target="_blank" style="color:var(--accent);text-decoration:underline;font-weight:600;">plaxzy.com</a> זה פורטל משחקים שלם שבניתי מאפס — לבד. עיצוב, קוד, פריסה, אינטגרציות, השקה לאוויר. תיכנס ותראה — זה לא "אתר תדמית". זה פלטפורמה חיה עם משתמשים אמיתיים. אם בניתי פורטל משחקים מלא, חנות מקוונת לרשת מזון זה תוך הגזרה שלי.</p>
+    </div>
+
+    <div class="section-head" style="margin-top: 3rem;">
+      <h2>למה החיבור הזה עובד</h2>
+      <p>3 רגליים. כל אחת חיונית. ביחד — נותנות פתרון שלא תמצא בשום מקום אחר במחיר הזה.</p>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-tag">רגל ראשונה</div>
+        <h4>נועם — מפתח אתרים מוסמך</h4>
+        <p>בונה אתרים מוסמך, גם הוכחתי בייצור: <strong>plaxzy.com</strong> — פורטל משחקים פעיל. יודע HTML/CSS/JS, React, Next.js, וכל הסטאק שצריך לחנות מקוונת מודרנית.</p>
+        <div class="exp-stack">
+          <span>Next.js</span><span>React</span><span>Node.js</span><span>plaxzy.com</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">רגל שנייה</div>
+        <h4>Claude Code — כלי AI מהדור החדש</h4>
+        <p>אני AI-native. לא "למדתי" Claude Code — זה איך שאני חושב על פיתוח. דברים של חודשים הופכים לימים. דברים של ימים הופכים לדקות. זה למה 10K עובד.</p>
+        <div class="exp-stack">
+          <span>Claude Code</span><span>AI-native</span><span>פלט×100</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">רגל שלישית</div>
+        <h4>שלומי זוין — CTO ומנטור</h4>
+        <p>אבא שלי, 20+ שנים בהייטק, 50+ מוצרים בנה, מומחה ל-e-commerce, סליקה, אינטגרציות, ארכיטקטורה. מלווה כל פרויקט — מתכנן איתי, בודק, עוצר טעויות. <em>זו רשת הביטחון.</em></p>
+        <div class="exp-stack">
+          <span>20+ שנים</span><span>50+ מוצרים</span><span>e-commerce</span><span>ליווי</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 3rem;">
+      <h2>מה ספציפית בשרשרת המקצועית שלנו רלוונטי לחנות שלך</h2>
+      <p>אנחנו לא מתחילים מאפס. כל פיסה ברלוונטית כבר נבנתה אצלנו פעם.</p>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-tag">קטלוג ופלטפורמה</div>
+        <h4>plaxzy.com — קטלוג של מאות פריטים</h4>
+        <p>plaxzy.com מכיל מאות משחקים, מסונן לקטגוריות, חיפוש מהיר, תצוגות שונות, מובייל-first. אותם עקרונות בדיוק שמיישמים בחנות מקוונת — רק עם מוצרי מזון במקום משחקים.</p>
+        <div class="exp-stack">
+          <span>Next.js</span><span>קטלוג חי</span><span>חיפוש</span><span>מובייל</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">e-commerce של שלומי</div>
+        <h4>חנות B2B עם Medusa</h4>
+        <p>שלומי בנה חנות B2B מותאמת — 1000+ מוצרים, סליקה, חשבוניות אוטומטיות, אזורי תמחור לפי לקוח, סנכרון ERP. הניסיון הזה זמין לי בכל פגישת ליווי.</p>
+        <div class="exp-stack">
+          <span>Medusa</span><span>Next.js</span><span>PostgreSQL</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">משלוחים</div>
+        <h4>אופטימיזציית משלוחים</h4>
+        <p>שלומי בנה מערכת ניתוב משלוחים — אלגוריתם אבולוציוני שמייצר מסלולים אופטימליים על מאות נקודות. אצלנו זה אומר חישוב משלוח מדויק לכל אזור.</p>
+        <div class="exp-stack">
+          <span>Maps API</span><span>אלגוריתמיקה</span><span>אזורי משלוח</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">תשלומים</div>
+        <h4>חיבור לסולק ולחשבוניות</h4>
+        <p>שלומי בנה עשרות מערכות חיוב — Stripe, PayPal, Tranzila, חשבוניות. כשנגיע לחיבור הסולק שלך, יש מי שכבר עשה את זה. אני לא לומד מאפס — אני מיישם דפוסים שעובדים.</p>
+        <div class="exp-stack">
+          <span>Tranzila</span><span>Cardcom</span><span>Greeninvoice</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">אינטגרציות</div>
+        <h4>סנכרון אקסל למלאי</h4>
+        <p>שלומי כתב מאות אינטגרציות בין מערכות — קבצי אקסל, ERP, מערכות הנהלת חשבונות. חיבור אקסל-לחנות הוא דבר שעשינו פעמים רבות.</p>
+        <div class="exp-stack">
+          <span>Excel/CSV</span><span>Webhooks</span><span>Cron</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">UX מובייל</div>
+        <h4>אפליקציות וחוויית מובייל</h4>
+        <p>שלומי בנה PWAs ואפליקציות native-feel — היכרויות, GPS games, מנועי המלצה. אני יודע איך מובייל אמיתי נראה ב-2026. הדמו בטאב הבא הוא הוכחה.</p>
+        <div class="exp-stack">
+          <span>PWA</span><span>React</span><span>Performance</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ============ TAB: DEMO ============ -->
+<section class="tab-content" data-content="demo">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">דמו חי — לא מוקאפ</div>
+      <h2>חנות שעובדת. מובייל-first. נבנתה תוך דקות עם Claude Code.</h2>
+      <p>תקטלג, תוסיף לעגלה, תעבור בין מחלקות, תחפש. הכל אינטראקטיבי. זה לא תמונת מסך — זה קוד שרץ. כשאני אומר "ככה אני בונה" — זה מה שאני מתכוון.</p>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-header">
+        <div class="demo-header-left">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <div class="demo-url">freshmarket.shop / חנות</div>
+        </div>
+        <div class="demo-label">● דמו חי</div>
+      </div>
+
+      <div class="demo-toggles">
+        <span style="font-size:0.85rem;color:var(--text-muted);">תצוגה:</span>
+        <div class="view-toggle">
+          <button class="active" data-view="desktop">🖥️ דסקטופ</button>
+          <button data-view="mobile">📱 מובייל</button>
+        </div>
+        <span class="demo-toggles-label">נסה גם להחליף ל-light theme בכפתור הירח 🌙</span>
+      </div>
+
+      <div class="demo-body">
+        <div class="shop-wrap" id="shopWrap">
+          <div class="shop">
+            <div class="shop-top">
+              <div class="shop-brand">
+                <span class="shop-brand-mark">🥬</span>
+                <div>
+                  <div class="shop-brand-text">FreshMarket</div>
+                  <div class="shop-brand-sub">רשת מזון, אונליין</div>
+                </div>
+              </div>
+              <div class="shop-search">
+                <input type="text" id="shopSearch" placeholder="חפש מוצר... (לדוגמה: עגבניה, חלב, יין)" />
+                <span class="shop-search-icon">🔍</span>
+              </div>
+              <button class="shop-cart-btn" id="cartBtn">
+                <span>🛒</span>
+                <span>עגלה</span>
+                <span class="shop-cart-badge" id="cartBadge" style="display:none;">0</span>
+              </button>
+            </div>
+
+            <div class="shop-categories" id="shopCategories"></div>
+
+            <div class="shop-promo">
+              <div class="shop-promo-text">🎁 מבצע השבוע: <strong>15% הנחה</strong> על קנייה ראשונה — קופון <strong>FRESH15</strong></div>
+              <div class="shop-promo-meta">משלוח חינם מעל 200 ש"ח</div>
+            </div>
+
+            <div class="shop-grid" id="shopGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <div class="card">
+        <h3 style="color:var(--accent);">⚡ זמן בנייה: דקות, לא שבועות</h3>
+        <p>הדמו הזה — קטלוג, חיפוש, פילטרים, עגלה, תצוגת מובייל, dark/light — נבנה תוך דקות. אצלך יקבל UI מקצועי, אינטגרציות אמיתיות, וגרסת ייצור (זה חודש של עבודה אמיתית, לא דקות 😉).</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent);">🎨 100% מותאם</h3>
+        <p>אין כאן תבנית. אין תוסף. הכל פוקס — צבעים, פונטים, הזרימה, ההתנהגות. ככה כל פרט יראה ויעבוד בדיוק כמו שאתה רוצה.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent);">📱 מובייל אמיתי</h3>
+        <p>תלחץ על "מובייל" למעלה — תראה איך זה נראה על iPhone. גודל אצבעות, מרווחים, מהירות. זה לא "responsive" — זה תכנון מובייל-first.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: BUDGET ============ -->
+<section class="tab-content" data-content="budget">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">תקציב ולוח זמנים</div>
+      <h2>10,000 ש"ח לחודש. שקוף, גמיש, בלי הפתעות.</h2>
+      <p>בהערכה — עם זרימה טובה, הפרויקט יכול לעלות לאוויר תוך פחות מחודש. אבל אני עובד <strong>תמיד בתמחור חודשי</strong> ולא פיקס — כי בפרויקטים כאלה תמיד יש שינויים בדרך, וכך אנחנו לא נכנסים לסיכוני סקופ ו"תוספות".</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 2.5rem; align-items: start;">
+      <div class="price-card">
+        <div class="price-tag">המודל — חודשי</div>
+        <div class="price-num">
+          <strong>10,000</strong>
+          <span>ש"ח / חודש</span>
+        </div>
+        <p class="price-desc">עבודה חודשית גמישה. הערכה מציאותית: <strong>~1 חודש לעלייה לאוויר</strong> עם זרימה רגילה. אם מתארך מסיבות לגיטימיות — ממשיכים חודש שני, באותו תעריף.</p>
+        <ul class="price-list">
+          <li>איפיון, עיצוב, ובניית הסטאק</li>
+          <li>קטלוג של 500 מוצרים ב-6 מחלקות</li>
+          <li>חיפוש, סינון, עגלה, צ'קאאוט</li>
+          <li>חיבור סליקה (Tranzila / Cardcom)</li>
+          <li>חיבור חשבוניות (Greeninvoice / Icount)</li>
+          <li>חיבור משלוחים</li>
+          <li>סנכרון אקסל למלאי</li>
+          <li>פאנל ניהול לבעלים</li>
+          <li>SEO, אופטימיזציה, מובייל-first</li>
+          <li>גמישות מלאה בסקופ — שינויים בדרך בלי תוספת</li>
+          <li>הקוד שלך, ב-Git שלך, מהיום הראשון</li>
+        </ul>
+        <button class="btn primary" style="width:100%; padding:0.95rem;" onclick="window.open('https://wa.me/972545567213?text=' + encodeURIComponent('היי שלומי, ראיתי את ההצעה של נועם לחנות המקוונת — בא לי לדבר.'), '_blank')">📱 בוא נדבר ב-WhatsApp</button>
+        <p style="font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:0.85rem;">ההתקשרות נעשית דרך שלומי זוין · 054-5567213</p>
+      </div>
+
+      <div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem;">לוח זמנים מוערך</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 1</div>
+            <h4>איפיון, עיצוב, ארכיטקטורה</h4>
+            <p>פגישות איתך + שלומי לבנות את המוצר. עיצוב המסכים העיקריים, אישור איתך, בחירת ספקי הסליקה והחשבוניות, ארכיטקטורה טכנית.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 2</div>
+            <h4>הליבה — קטלוג, חיפוש, עגלה, מובייל</h4>
+            <p>בניית הקטלוג, מערכת מחלקות, חיפוש וסינון, עגלת קניות, צ'קאאוט בסיסי. תצוגה מלאה במובייל. סוף השבוע יש דמו פנימי איתך.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 3</div>
+            <h4>אינטגרציות — סליקה, חשבוניות, משלוחים</h4>
+            <p>חיבור סולק, חיבור חשבוניות אוטומטיות, חיבור חברת שליחויות, סנכרון אקסל למלאי, פאנל ניהול לבעלים.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 4</div>
+            <h4>בדיקות, SEO, עלייה לאוויר</h4>
+            <p>טסטים, אופטימיזציית מהירות, SEO, Google Search Console, פריסה לייצור, מעבר ראשוני. <strong>החנות שלך באוויר.</strong></p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">אחרי</div>
+            <h4>אם רוצים להמשיך — באותו תעריף</h4>
+            <p>אם תרצה להמשיך עם פיצ'רים נוספים, עדכונים, התאמות — ממשיכים באותו מודל חודשי. בלי lock-in. אפשר לעצור בכל רגע.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2.5rem;">
+      <h4>למה חודשי ולא פיקס?</h4>
+      <p>פשוט: בפרויקטים כאלה תמיד יש שינויים בדרך — דרישה שצצה, פיצ'ר שמתעדכן, אינטגרציה שמסתבכת. בתמחור פיקס זה הופך ל"תוספות" ומשא ומתן. בתמחור חודשי — אנחנו פשוט עובדים, גמישים, ללא חיכוך. זה גם מה שמאפשר לי לתת מחיר נמוך מההתחלה — בלי לתמחר "באפר" של סיכוני סקופ.</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">הסטאק</div>
+      <h2>הטכנולוגיות שאני משתמש בהן</h2>
+      <p>סטאק מודרני, יציב, גמיש. בחירות נכונות שיחזיקו לעשור הקרוב. שום "תוסף" שיכול להיעלם.</p>
+    </div>
+
+    <div class="stack-list">
+      <div class="stack-item"><h5>Frontend</h5><p>Next.js 15 + React</p></div>
+      <div class="stack-item"><h5>Backend</h5><p>Node.js + Express</p></div>
+      <div class="stack-item"><h5>Database</h5><p>PostgreSQL</p></div>
+      <div class="stack-item"><h5>Hosting</h5><p>Vercel / Cloud Run</p></div>
+      <div class="stack-item"><h5>Storage</h5><p>Cloudflare R2 / S3</p></div>
+      <div class="stack-item"><h5>סליקה</h5><p>Tranzila / Cardcom</p></div>
+      <div class="stack-item"><h5>חשבוניות</h5><p>Greeninvoice / Icount API</p></div>
+      <div class="stack-item"><h5>משלוחים</h5><p>Hashlach / Maps API</p></div>
+      <div class="stack-item"><h5>Analytics</h5><p>GA4 + PostHog</p></div>
+      <div class="stack-item"><h5>CI/CD</h5><p>GitHub Actions</p></div>
+      <div class="stack-item"><h5>Monitoring</h5><p>Sentry</p></div>
+      <div class="stack-item"><h5>AI Dev</h5><p>Claude Code</p></div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <h2>מה אם זה לא יעבוד?</h2>
+      <p>שאלה לגיטימית. הנה ההתחייבות שלנו:</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h3>שקיפות מלאה</h3>
+        <p>אתה רואה את הקוד, את ה-Git, את ההתקדמות, מהיום הראשון. כל שבוע — דמו ועדכון. שלומי משתתף בכל פגישה משמעותית.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔓</div>
+        <h3>בלי lock-in</h3>
+        <p>הקוד שלך מהיום הראשון. כל מפתח אחר יוכל להמשיך מאיפה שעצרנו. שום תלות בי, שום ספק חיצוני, שום תוסף סגור.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <h3>רשת ביטחון של שלומי</h3>
+        <p>שלומי מלווה את הפרויקט מהיום הראשון. אם משהו דורש עומק טכני שאני לא בטוח בו — שלומי קופץ. זו הערבות האמיתית שלך.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>העגלה שלי</h3>
+    <button class="cart-close" id="cartClose">×</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot" id="cartFoot" style="display:none;">
+    <div class="cart-row"><span>סכום ביניים</span><span id="cartSubtotal">0 ש"ח</span></div>
+    <div class="cart-row"><span>משלוח</span><span id="cartShipping">חינם</span></div>
+    <div class="cart-row total"><span>סה"כ</span><span id="cartTotal">0 ש"ח</span></div>
+    <button class="cart-checkout" id="checkoutBtn">המשך לתשלום ←</button>
+  </div>
+</aside>
+
+<!-- CHECKOUT MODAL -->
+<div class="checkout-modal" id="checkoutModal">
+  <div class="checkout-box">
+    <div class="checkout-icon">✓</div>
+    <h3>זה היה דמו</h3>
+    <p>אבל אצל לקוחות אמיתיים — כאן הייתה נפתחת מערכת תשלום אבטחית מלאה (Tranzila / Cardcom), עם כל אמצעי תשלום, חישוב משלוח אמיתי, והפקת חשבונית אוטומטית.</p>
+    <button id="closeCheckout">הבנתי, חזרה</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-cta">
+      <a href="https://wa.me/972545567213" class="btn primary" target="_blank">WhatsApp</a>
+      <a href="mailto:shlomi@boostart.io" class="btn ghost">shlomi@boostart.io</a>
+      <a href="tel:0545567213" class="btn ghost">054-5567213</a>
+    </div>
+    <div class="footer-meta">
+      <strong>נועם זוין</strong> · מפתח אתרים · בליווי ובאחריות שלומי זוין (CTO as a Service · <a href="https://boostart.io">boostart.io</a>)<br />
+      ההתקשרות, החתימה והאחריות — דרך שלומי. דוגמה לעבודה של נועם: <a href="https://plaxzy.com" target="_blank">plaxzy.com</a><br />
+      <span style="opacity:0.7;">בנוי עם Claude Code, כמובן. הקוד מותאם, פתוח, ויהיה שלך.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // THEME
+  const themeBtn = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeBtn.textContent = '☀️';
+  }
+  themeBtn.addEventListener('click', () => {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      themeBtn.textContent = '🌙';
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeBtn.textContent = '☀️';
+      localStorage.setItem('theme', 'light');
+    }
+  });
+
+  // TABS
+  function goTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.dataset.content === name));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+
+  // CATEGORIES + PRODUCTS
+  const CATS = [
+    { id: 'all', name: 'הכל', emoji: '🛒' },
+    { id: 'fruits', name: 'פירות וירקות', emoji: '🥬' },
+    { id: 'dairy', name: 'חלב וביצים', emoji: '🥛' },
+    { id: 'meat', name: 'בשר ועוף', emoji: '🍗' },
+    { id: 'bakery', name: 'מאפיה', emoji: '🥖' },
+    { id: 'wine', name: 'יין ואלכוהול', emoji: '🍷' },
+    { id: 'snacks', name: 'חטיפים ומשקאות', emoji: '🍿' }
+  ];
+
+  const PRODUCTS = [
+    // FRUITS
+    { id: 1, cat: 'fruits', name: 'עגבניות שרי', img: '🍅', price: 12.90, was: null, meta: '500 גרם · ישראל', tag: null },
+    { id: 2, cat: 'fruits', name: 'מלפפון בלדי', img: '🥒', price: 6.90, was: null, meta: '500 גרם · אורגני', tag: null },
+    { id: 3, cat: 'fruits', name: 'אבוקדו האס', img: '🥑', price: 14.90, was: 18.90, meta: '2 יח׳ · בשל', tag: 'sale' },
+    { id: 4, cat: 'fruits', name: 'תפוחי גלה', img: '🍎', price: 9.90, was: null, meta: '1 ק״ג · קלוי', tag: null },
+    { id: 5, cat: 'fruits', name: 'בננות', img: '🍌', price: 7.90, was: null, meta: '1 ק״ג · אקוודור', tag: null },
+    { id: 6, cat: 'fruits', name: 'גמבה צבעונית', img: '🫑', price: 11.90, was: null, meta: '500 גרם · 3 צבעים', tag: 'new' },
+    { id: 7, cat: 'fruits', name: 'תפוח אדמה', img: '🥔', price: 5.90, was: null, meta: '2 ק״ג · גליל', tag: null },
+    { id: 8, cat: 'fruits', name: 'בצל יבש', img: '🧅', price: 4.90, was: null, meta: '1 ק״ג · רשת', tag: null },
+    // DAIRY
+    { id: 11, cat: 'dairy', name: 'חלב טרה 3%', img: '🥛', price: 6.50, was: null, meta: '1 ליטר · קרטון', tag: null },
+    { id: 12, cat: 'dairy', name: 'גבינה לבנה 5%', img: '🧀', price: 8.90, was: null, meta: '250 גרם · תנובה', tag: null },
+    { id: 13, cat: 'dairy', name: 'ביצים L', img: '🥚', price: 18.90, was: 22.90, meta: '12 יח׳ · חופש', tag: 'sale' },
+    { id: 14, cat: 'dairy', name: 'יוגורט יווני', img: '🍶', price: 9.90, was: null, meta: '500 גרם · יוטוודיל', tag: null },
+    { id: 15, cat: 'dairy', name: 'חמאה', img: '🧈', price: 11.90, was: null, meta: '200 גרם · טרה', tag: null },
+    { id: 16, cat: 'dairy', name: 'גבינת פטה', img: '🧀', price: 16.90, was: null, meta: '200 גרם · יוון', tag: 'new' },
+    // MEAT
+    { id: 21, cat: 'meat', name: 'חזה עוף טרי', img: '🍗', price: 49.90, was: null, meta: '1 ק״ג · ללא עור', tag: null },
+    { id: 22, cat: 'meat', name: 'אנטריקוט בקר', img: '🥩', price: 189, was: 219, meta: '500 גרם · מיושן', tag: 'sale' },
+    { id: 23, cat: 'meat', name: 'כתף טלה', img: '🐑', price: 129, was: null, meta: '1 ק״ג · טרי', tag: null },
+    { id: 24, cat: 'meat', name: 'נקניקיות עוף', img: '🌭', price: 32.90, was: null, meta: '500 גרם · זוגלובק', tag: null },
+    { id: 25, cat: 'meat', name: 'סלמון נורווגי', img: '🐟', price: 89, was: null, meta: '300 גרם · פילה', tag: 'new' },
+    { id: 26, cat: 'meat', name: 'כבד עוף', img: '🍖', price: 24.90, was: null, meta: '500 גרם · נקי', tag: null },
+    // BAKERY
+    { id: 31, cat: 'bakery', name: 'לחם פרוס', img: '🍞', price: 8.90, was: null, meta: 'אחיד · 750 גרם', tag: null },
+    { id: 32, cat: 'bakery', name: 'בייגלה ירושלמי', img: '🥨', price: 12.90, was: null, meta: '4 יח׳ · טרי בוקר', tag: 'new' },
+    { id: 33, cat: 'bakery', name: 'חלה מתוקה', img: '🥯', price: 14.90, was: null, meta: '500 גרם · שישי', tag: null },
+    { id: 34, cat: 'bakery', name: 'קרואסון חמאה', img: '🥐', price: 6.90, was: null, meta: 'יחידה · צרפתי', tag: null },
+    { id: 35, cat: 'bakery', name: 'פיתות', img: '🫓', price: 6.90, was: 8.90, meta: '6 יח׳ · אנג׳ל', tag: 'sale' },
+    { id: 36, cat: 'bakery', name: 'עוגיות שוקולד', img: '🍪', price: 18.90, was: null, meta: '300 גרם · ביתי', tag: null },
+    // WINE
+    { id: 41, cat: 'wine', name: 'יין אדום קברנה', img: '🍷', price: 79, was: null, meta: '750 מ״ל · רמת הגולן', tag: null },
+    { id: 42, cat: 'wine', name: 'יין לבן שרדונה', img: '🥂', price: 69, was: 89, meta: '750 מ״ל · ברקן', tag: 'sale' },
+    { id: 43, cat: 'wine', name: 'בירה לאגר', img: '🍺', price: 6.90, was: null, meta: '330 מ״ל · גולדסטאר', tag: null },
+    { id: 44, cat: 'wine', name: 'וודקה איכותית', img: '🍸', price: 119, was: null, meta: '700 מ״ל · אבסולוט', tag: null },
+    { id: 45, cat: 'wine', name: 'ויסקי 12 שנה', img: '🥃', price: 249, was: null, meta: '700 מ״ל · ג׳ק דניאלס', tag: 'new' },
+    { id: 46, cat: 'wine', name: 'משקה אנרגיה', img: '🥤', price: 9.90, was: null, meta: '250 מ״ל · רד בול', tag: null },
+    // SNACKS
+    { id: 51, cat: 'snacks', name: 'במבה', img: '🥜', price: 4.90, was: null, meta: '80 גרם · אוסם', tag: null },
+    { id: 52, cat: 'snacks', name: 'תפוצ׳יפס', img: '🍟', price: 7.90, was: null, meta: '150 גרם · אוסם', tag: null },
+    { id: 53, cat: 'snacks', name: 'שוקולד פרה', img: '🍫', price: 6.90, was: 8.90, meta: '100 גרם · עלית', tag: 'sale' },
+    { id: 54, cat: 'snacks', name: 'גלידה ואניל', img: '🍦', price: 24.90, was: null, meta: '500 מ״ל · בן אנד ג׳ריס', tag: 'new' },
+    { id: 55, cat: 'snacks', name: 'קוקה קולה', img: '🥤', price: 8.90, was: null, meta: '1.5 ליטר · בקבוק', tag: null },
+    { id: 56, cat: 'snacks', name: 'מים מינרלים', img: '💧', price: 5.90, was: null, meta: '6 × 1.5 ליטר · נביעות', tag: null },
+    { id: 57, cat: 'snacks', name: 'מיץ תפוזים', img: '🧃', price: 11.90, was: null, meta: '1 ליטר · פרי הגליל', tag: null },
+    { id: 58, cat: 'snacks', name: 'פיצוחים', img: '🌰', price: 22.90, was: null, meta: '300 גרם · מעורב', tag: null }
+  ];
+
+  // STATE
+  let activeCat = 'all';
+  let searchTerm = '';
+  const cart = new Map(); // id -> qty
+
+  // RENDER CATEGORIES
+  function renderCategories() {
+    const el = document.getElementById('shopCategories');
+    el.innerHTML = '';
+    CATS.forEach(c => {
+      const count = c.id === 'all' ? PRODUCTS.length : PRODUCTS.filter(p => p.cat === c.id).length;
+      const btn = document.createElement('button');
+      btn.className = 'cat-chip' + (activeCat === c.id ? ' active' : '');
+      btn.innerHTML = `<span class="cat-chip-emoji">${c.emoji}</span> ${c.name} <span style="opacity:0.6;font-size:0.78rem;">(${count})</span>`;
+      btn.onclick = () => {
+        activeCat = c.id;
+        renderCategories();
+        renderProducts();
+      };
+      el.appendChild(btn);
+    });
+  }
+
+  // RENDER PRODUCTS
+  function renderProducts() {
+    const el = document.getElementById('shopGrid');
+    let list = PRODUCTS;
+    if (activeCat !== 'all') list = list.filter(p => p.cat === activeCat);
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q) || (CATS.find(c => c.id === p.cat) || {}).name.toLowerCase().includes(q));
+    }
+    el.innerHTML = '';
+    if (list.length === 0) {
+      el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--text-muted);">לא נמצאו מוצרים. נסה חיפוש אחר.</div>';
+      return;
+    }
+    list.forEach(p => {
+      const inCart = cart.get(p.id) || 0;
+      const tag = p.tag ? `<div class="product-tag ${p.tag}">${p.tag === 'sale' ? 'מבצע' : p.tag === 'new' ? 'חדש' : ''}</div>` : '';
+      const catName = (CATS.find(c => c.id === p.cat) || {}).name || '';
+      const wasHtml = p.was ? `<div class="product-price-was">${p.was.toFixed(2)} ש"ח</div>` : '';
+      const ctrl = inCart > 0
+        ? `<div class="qty-control">
+             <button data-act="dec" data-id="${p.id}">−</button>
+             <span>${inCart}</span>
+             <button data-act="inc" data-id="${p.id}">+</button>
+           </div>`
+        : `<button class="add-btn" data-act="add" data-id="${p.id}">+</button>`;
+      const card = document.createElement('div');
+      card.className = 'product';
+      card.innerHTML = `
+        <div class="product-image">${p.img}${tag}</div>
+        <div class="product-info">
+          <div class="product-cat">${catName}</div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-meta">${p.meta}</div>
+          <div class="product-bottom">
+            <div class="product-price">
+              <div class="product-price-now">${p.price.toFixed(2)} ש"ח</div>
+              ${wasHtml}
+            </div>
+            ${ctrl}
+          </div>
+        </div>
+      `;
+      el.appendChild(card);
+    });
+  }
+
+  // CART OPS
+  function addToCart(id) {
+    cart.set(id, (cart.get(id) || 0) + 1);
+    renderProducts();
+    renderCart();
+    flashCart();
+  }
+  function decFromCart(id) {
+    const q = cart.get(id) || 0;
+    if (q <= 1) cart.delete(id);
+    else cart.set(id, q - 1);
+    renderProducts();
+    renderCart();
+  }
+
+  function flashCart() {
+    const btn = document.getElementById('cartBtn');
+    btn.style.transform = 'scale(1.06)';
+    setTimeout(() => { btn.style.transform = ''; }, 150);
+  }
+
+  function renderCart() {
+    const items = document.getElementById('cartItems');
+    const foot = document.getElementById('cartFoot');
+    const badge = document.getElementById('cartBadge');
+    const totalQty = Array.from(cart.values()).reduce((a, b) => a + b, 0);
+
+    if (totalQty === 0) {
+      badge.style.display = 'none';
+      foot.style.display = 'none';
+      items.innerHTML = `
+        <div class="cart-empty">
+          <div class="cart-empty-icon">🛒</div>
+          <p>העגלה ריקה. סמן מוצרים כדי להתחיל.</p>
+        </div>
+      `;
+      return;
+    }
+
+    badge.style.display = 'inline-flex';
+    badge.textContent = totalQty;
+    foot.style.display = 'block';
+
+    items.innerHTML = '';
+    let subtotal = 0;
+    cart.forEach((qty, id) => {
+      const p = PRODUCTS.find(x => x.id === id);
+      if (!p) return;
+      const lineTotal = p.price * qty;
+      subtotal += lineTotal;
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-img">${p.img}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${p.name}</div>
+          <div class="cart-item-meta">${p.meta}</div>
+          <div class="cart-item-bottom">
+            <div class="cart-item-price">${lineTotal.toFixed(2)} ש"ח</div>
+            <div class="cart-mini-qty">
+              <button data-act="dec-mini" data-id="${p.id}">−</button>
+              <span>${qty}</span>
+              <button data-act="inc-mini" data-id="${p.id}">+</button>
+            </div>
+          </div>
+        </div>
+      `;
+      items.appendChild(row);
+    });
+
+    const shipping = subtotal >= 200 ? 0 : 24.90;
+    const total = subtotal + shipping;
+    document.getElementById('cartSubtotal').textContent = subtotal.toFixed(2) + ' ש"ח';
+    document.getElementById('cartShipping').textContent = shipping === 0 ? 'חינם 🎉' : shipping.toFixed(2) + ' ש"ח';
+    document.getElementById('cartTotal').textContent = total.toFixed(2) + ' ש"ח';
+  }
+
+  // EVENTS
+  document.getElementById('shopGrid').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    if (btn.dataset.act === 'add' || btn.dataset.act === 'inc') addToCart(id);
+    else if (btn.dataset.act === 'dec') decFromCart(id);
+  });
+
+  document.getElementById('cartItems').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    if (btn.dataset.act === 'inc-mini') addToCart(id);
+    else if (btn.dataset.act === 'dec-mini') decFromCart(id);
+  });
+
+  document.getElementById('shopSearch').addEventListener('input', e => {
+    searchTerm = e.target.value;
+    renderProducts();
+  });
+
+  // CART DRAWER
+  const cartDrawer = document.getElementById('cartDrawer');
+  const cartOverlay = document.getElementById('cartOverlay');
+  document.getElementById('cartBtn').addEventListener('click', () => {
+    cartDrawer.classList.add('open');
+    cartOverlay.classList.add('open');
+  });
+  document.getElementById('cartClose').addEventListener('click', closeCart);
+  cartOverlay.addEventListener('click', closeCart);
+  function closeCart() {
+    cartDrawer.classList.remove('open');
+    cartOverlay.classList.remove('open');
+  }
+
+  // CHECKOUT
+  document.getElementById('checkoutBtn').addEventListener('click', () => {
+    document.getElementById('checkoutModal').classList.add('open');
+  });
+  document.getElementById('closeCheckout').addEventListener('click', () => {
+    document.getElementById('checkoutModal').classList.remove('open');
+  });
+
+  // VIEW TOGGLE (desktop / mobile)
+  document.querySelectorAll('[data-view]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-view]').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const wrap = document.getElementById('shopWrap');
+      if (b.dataset.view === 'mobile') wrap.classList.add('mobile-view');
+      else wrap.classList.remove('mobile-view');
+    });
+  });
+
+  // INIT
+  renderCategories();
+  renderProducts();
+  renderCart();
+</script>
+
+</body>
+</html>

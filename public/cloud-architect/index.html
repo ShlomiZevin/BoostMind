@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Cloud Infrastructure Architect | Shlomi Zovin - CTO as a Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060810;
+      --bg-alt: #0c111c;
+      --card-bg: #141a27;
+      --card-hover: #1a2030;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --accent-secondary: #a78bfa;
+      --accent-gold: #fbbf24;
+      --accent-green: #34d399;
+      --border: #222a3a;
+      --text: #f5f7fb;
+      --text-muted: #9aa3b5;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+    [data-theme="light"] {
+      --bg: #f7fafc; --bg-alt: #eef2f7; --card-bg: #ffffff; --card-hover: #fafbfd; --border: #dde4ef;
+      --text: #0f172a; --text-muted: #52627a; --shadow-soft: 0 18px 40px rgba(15,23,42,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.65; transition: background 0.3s, color 0.3s; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at top, rgba(56,189,248,0.07) 0, transparent 55%), radial-gradient(ellipse at bottom right, rgba(167,139,250,0.05) 0, transparent 50%); pointer-events: none; z-index: 0; }
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: rgba(6,8,16,0.9); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    [data-theme="light"] .site-header { background: rgba(247,250,252,0.9); border-bottom-color: rgba(0,0,0,0.06); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; color: white; box-shadow: 0 0 25px rgba(56,189,248,0.35); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .header-actions { display: flex; align-items: center; gap: 0.9rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); transition: all 0.2s; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-contact { display: flex; align-items: center; gap: 0.75rem; }
+    .header-contact a { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    .btn-sm { padding: 0.4rem 1rem; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 52px; z-index: 40; background: rgba(6,8,16,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    [data-theme="light"] .tabs-container { background: rgba(247,250,252,0.95); border-bottom-color: rgba(0,0,0,0.06); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.9rem 1.4rem; cursor: pointer; position: relative; transition: color 0.2s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 2.5rem; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-secondary), #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 2rem; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.8rem; padding: 0.35rem 0.85rem; border-radius: 999px; border: 1px solid rgba(56,189,248,0.28); background: rgba(56,189,248,0.08); color: #bae6fd; }
+    [data-theme="light"] .hero-badges span { border-color: rgba(56,189,248,0.4); background: rgba(56,189,248,0.1); color: #0369a1; }
+    .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.6rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; box-shadow: 0 8px 24px rgba(56,189,248,0.35); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(56,189,248,0.5); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { background: rgba(255,255,255,0.04); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0,0,0,0.04); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .section-header p { color: var(--text-muted); }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow-soft); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+    .card:hover { transform: translateY(-3px); border-color: rgba(56,189,248,0.3); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '▸'; color: var(--accent); flex-shrink: 0; }
+    .card-icon { font-size: 1.8rem; margin-bottom: 0.6rem; }
+
+    /* CALLOUT */
+    .callout { background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(167,139,250,0.05)); border-left: 3px solid var(--accent); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin: 2rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1.05rem; color: var(--accent); }
+    .callout p { margin: 0; color: var(--text); font-size: 0.95rem; }
+
+    /* MATCH TABLE */
+    .match-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+    .match-table th { background: rgba(56,189,248,0.1); color: var(--accent); font-weight: 600; font-size: 0.9rem; padding: 1rem; text-align: left; }
+    .match-table td { padding: 0.95rem 1rem; border-top: 1px solid var(--border); font-size: 0.92rem; vertical-align: top; }
+    .match-table tr:first-child td { border-top: none; }
+    .match-check { display: inline-flex; width: 26px; height: 26px; border-radius: 50%; background: rgba(52,211,153,0.2); color: var(--accent-green); align-items: center; justify-content: center; font-weight: 700; }
+    .req-col { width: 32%; color: var(--text); font-weight: 500; }
+    .my-col { color: var(--text-muted); }
+    .status-col { width: 60px; text-align: center; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; margin: 2rem 0; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    /* EXPERIENCE CARDS */
+    .exp-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: border-color 0.2s; }
+    .exp-card:hover { border-color: rgba(56,189,248,0.35); }
+    .exp-card h3 { margin: 0 0 0.6rem; font-size: 1.1rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 1rem; }
+    .exp-tag { display: inline-block; font-size: 0.75rem; padding: 0.25rem 0.7rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-right: 0.35rem; margin-bottom: 0.35rem; border: 1px solid rgba(56,189,248,0.25); }
+
+    /* PRICING */
+    .pricing-card { background: linear-gradient(135deg, var(--card-bg), var(--bg-alt)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 580px; margin: 0 auto; box-shadow: var(--shadow-soft); }
+    .pricing-card .price { font-size: 2.2rem; font-weight: 800; margin: 0.5rem 0; color: var(--accent); }
+    .pricing-card .price-note { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 0; text-align: left; }
+    .pricing-card li { padding: 0.45rem 0; color: var(--text-muted); font-size: 0.92rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .pricing-card li::before { content: '✓'; color: var(--accent-green); font-weight: 700; flex-shrink: 0; }
+
+    .engage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-top: 2rem; }
+    .engage-option { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; }
+    .engage-option h4 { margin: 0 0 0.35rem; font-size: 1rem; color: var(--accent); }
+    .engage-option p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* TIMELINE */
+    .timeline { max-width: 760px; margin: 0 auto; }
+    .timeline-step { display: flex; gap: 1.25rem; margin-bottom: 1.5rem; }
+    .timeline-num { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .timeline-body h3 { margin: 0 0 0.3rem; font-size: 1.05rem; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-top: 0.5rem; }
+
+    /* ARCHITECTURE BUILDER */
+    .arch-builder { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-soft); margin-bottom: 1.5rem; }
+    .arch-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .arch-chip { padding: 0.45rem 0.95rem; border-radius: 999px; background: var(--bg-alt); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .arch-chip:hover { color: var(--text); border-color: var(--accent); }
+    .arch-chip.active { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); color: white; border-color: transparent; }
+
+    .arch-canvas { position: relative; min-height: 520px; padding: 1.25rem; background: linear-gradient(180deg, rgba(56,189,248,0.03), rgba(167,139,250,0.02)); border-radius: var(--radius-md); border: 1px dashed var(--border); }
+    .arch-zone { position: relative; background: rgba(20,26,39,0.6); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.9rem 1rem; margin-bottom: 0.85rem; transition: all 0.25s; }
+    [data-theme="light"] .arch-zone { background: rgba(255,255,255,0.85); }
+    .arch-zone.clickable { cursor: pointer; }
+    .arch-zone.clickable:hover { border-color: var(--accent); box-shadow: 0 6px 20px rgba(56,189,248,0.15); transform: translateY(-2px); }
+    .arch-zone.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56,189,248,0.25); }
+    .arch-zone-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; gap: 0.5rem; }
+    .arch-zone-title { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .arch-zone-tag { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+    .tag-cloud { background: rgba(56,189,248,0.15); color: var(--accent); }
+    .tag-onprem { background: rgba(251,191,36,0.15); color: var(--accent-gold); }
+    .tag-security { background: rgba(167,139,250,0.15); color: var(--accent-secondary); }
+    .tag-edge { background: rgba(52,211,153,0.15); color: var(--accent-green); }
+    .arch-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .arch-item { font-size: 0.78rem; padding: 0.25rem 0.6rem; border-radius: 6px; background: var(--bg-alt); color: var(--text-muted); border: 1px solid var(--border); }
+    .arch-connector { text-align: center; color: var(--accent); font-size: 1.3rem; margin: 0.1rem 0; font-weight: 700; opacity: 0.6; }
+
+    .arch-detail { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-top: 1rem; display: none; animation: fadeIn 0.3s ease; }
+    .arch-detail.active { display: block; }
+    .arch-detail h4 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem; }
+    .arch-detail p { margin: 0 0 0.5rem; font-size: 0.88rem; color: var(--text-muted); }
+    .arch-detail ul { margin: 0.5rem 0 0; padding-left: 1.1rem; color: var(--text-muted); font-size: 0.87rem; }
+    .arch-detail li { margin-bottom: 0.2rem; }
+
+    /* TERMINAL */
+    .terminal { background: #0a0e16; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; font-family: 'Courier New', monospace; margin-top: 1.25rem; }
+    .terminal-header { background: #151a24; padding: 0.5rem 0.9rem; display: flex; align-items: center; gap: 0.4rem; border-bottom: 1px solid var(--border); }
+    .terminal-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .terminal-dot.red { background: #ef4444; } .terminal-dot.yellow { background: #f59e0b; } .terminal-dot.green { background: #10b981; }
+    .terminal-title { margin-left: 0.6rem; font-size: 0.8rem; color: var(--text-muted); }
+    .terminal-body { padding: 1rem 1.1rem; font-size: 0.82rem; line-height: 1.7; color: #e2e8f0; max-height: 360px; overflow-y: auto; }
+    .terminal-body .prompt { color: var(--accent-green); }
+    .terminal-body .cmd { color: #e2e8f0; }
+    .terminal-body .output { color: #cbd5e1; }
+    .terminal-body .info { color: var(--accent); }
+    .terminal-body .success { color: var(--accent-green); }
+    .terminal-body .comment { color: var(--text-muted); font-style: italic; }
+    .terminal-body .warn { color: var(--accent-gold); }
+
+    /* FOOTER */
+    .site-footer { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: 3rem; }
+    .site-footer a { color: var(--accent); text-decoration: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .engage-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.85rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 2rem; }
+      .tab-btn { padding: 0.75rem 1rem; font-size: 0.85rem; }
+      .match-table { font-size: 0.82rem; }
+      .match-table th, .match-table td { padding: 0.65rem; }
+      .header-contact a:not(.btn-sm) { display: none; }
+      .arch-controls { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; }
+    }
+    @media (max-width: 480px) {
+      .tabs { justify-content: flex-start; }
+      .hero { padding: 2.5rem 0 1.5rem; }
+      .arch-items { gap: 0.25rem; }
+      .arch-item { font-size: 0.72rem; padding: 0.2rem 0.45rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">Shlomi Zovin &bull; CTO as a Service</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">☀</button>
+        <span class="header-contact">
+          <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+          <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp →</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">🎯 The Proposal</button>
+      <button class="tab-btn" onclick="switchTab('match')">✅ Full Match</button>
+      <button class="tab-btn" onclick="switchTab('demo')">⚡ Live Architecture</button>
+      <button class="tab-btn" onclick="switchTab('experience')">📚 Experience</button>
+      <button class="tab-btn" onclick="switchTab('budget')">💰 Engagement</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <h1>A Cloud Infrastructure Architect<br/><span class="gradient">Who Sees the Whole System</span></h1>
+      <p class="hero-sub">
+        Not "a DevOps who helps out." A hands-on architect with 20+ years across AWS, GCP, and Azure —
+        designing Landing Zones, hybrid networking, IAM models and HA at production scale —
+        for startups, public-sector projects, and enterprises with heavy privacy and compliance requirements.
+      </p>
+      <div class="hero-badges">
+        <span>AWS · GCP · Azure</span>
+        <span>VPC · VPN · DNS · Routing</span>
+        <span>IAM · Segmentation · Zero-Trust</span>
+        <span>Terraform · IaC · CI/CD</span>
+        <span>Hybrid Cloud ↔ On-Prem</span>
+        <span>Kubernetes · Docker</span>
+        <span>HA / DR / Multi-Region</span>
+        <span>Privacy &amp; Compliance</span>
+        <span>Landing Zone Design</span>
+        <span>20+ Years in Tech</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">💬 Let's Talk</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">👁 See the Architecture</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>💡 Why This Proposal Is Different</h3>
+      <p>
+        You said you need someone who can adapt across startups, public-sector, and enterprise —
+        with different stakeholders and delivery models. That's my actual DNA:
+        <strong>50+ products shipped to production</strong>, several inside regulated or enterprise environments
+        with GDPR and compliance constraints, all with real infrastructure decisions — HA, security, cost,
+        networking, on-prem integration. I'm not an "architect in Word." I open the CLI when it's needed.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>What I Bring to the Role</h2>
+        <p>The six core capabilities this role requires — and where mine come from</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">☁️</div>
+          <h3>Multi-Cloud in Practice</h3>
+          <p>Not "I've seen it" — I've designed and operated production on AWS, GCP and Azure in parallel, and I know when each one fits</p>
+          <ul>
+            <li>AWS: VPC, EKS, RDS, IAM, Direct Connect</li>
+            <li>GCP: VPC, GKE, Cloud SQL, Cloud Run</li>
+            <li>Azure: VNet, AKS, Entra ID</li>
+            <li>Landing Zone &amp; multi-account design</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h3>Deep Networking</h3>
+          <p>Networking is not a black box. VPCs, VPNs, subnetting, DNS, routing and peering — designed and debugged across complex environments</p>
+          <ul>
+            <li>VPC design (public / private / transit)</li>
+            <li>Site-to-Site VPN · Direct Connect</li>
+            <li>DNS (Route53 / Cloud DNS) · CDN</li>
+            <li>Firewalls, Security Groups, WAF</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔐</div>
+          <h3>Security &amp; Privacy</h3>
+          <p>Deep background in privacy tech and compliance — GDPR, encryption, segmentation, IAM. Can validate an architecture from a security and privacy lens</p>
+          <ul>
+            <li>IAM · RBAC · least-privilege</li>
+            <li>Network segmentation / zero-trust</li>
+            <li>Secrets management (KMS / Vault)</li>
+            <li>Data residency &amp; encryption</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3>Hybrid Cloud ↔ On-Prem</h3>
+          <p>The real world is hybrid. Connecting cloud workloads to enterprise systems, on-prem databases and external SaaS</p>
+          <ul>
+            <li>VPN / Direct Connect / ExpressRoute</li>
+            <li>Hybrid identity (SSO, SAML, AD)</li>
+            <li>Legacy system integration patterns</li>
+            <li>Data sync &amp; migration strategies</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏗️</div>
+          <h3>IaC · Terraform · GitOps</h3>
+          <p>Zero patience for ClickOps. Every infrastructure I design lives in code — versioned, reviewable, deployed automatically</p>
+          <ul>
+            <li>Terraform modules · remote state</li>
+            <li>CI/CD pipelines (GH Actions, GitLab)</li>
+            <li>Docker · Kubernetes · Helm</li>
+            <li>Policy as code (OPA, Sentinel)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <h3>HA · Scale · Cost</h3>
+          <p>Good architecture is balance — availability, cost, complexity. I right-size: not over-engineered, not under</p>
+          <ul>
+            <li>Multi-AZ / Multi-Region patterns</li>
+            <li>Auto-scaling · load balancing</li>
+            <li>DR strategies (RTO / RPO planning)</li>
+            <li>FinOps &amp; cost optimization</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>🎯 Working Across Startups, Public Sector, and Enterprise</h3>
+      <p>
+        The job spec mentions moving between startups, public sector and enterprise — with different stakeholders
+        and delivery models. That's exactly my comfort zone. With startups I make fast, right-sized decisions with zero over-engineering.
+        With enterprises I work closely with internal IT, security, compliance and operations teams, respecting the context,
+        processes and constraints. I come with a collaborative, non-dogmatic approach — architecture serves the organization,
+        not the other way around.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: FULL MATCH ==================== -->
+<div id="tab-match" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>✅ Full Match to the Role</h2>
+        <p>Every line from the job spec — mapped to what stands behind it on my end</p>
+      </div>
+
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th class="req-col">Requirement</th>
+            <th class="my-col">What I Bring</th>
+            <th class="status-col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="req-col"><strong>5+ years in Cloud Infrastructure / DevOps / Architecture</strong></td>
+            <td class="my-col">20+ years in tech, 10+ of them in production cloud architecture and DevOps. Designed and maintained infrastructure for 50+ products that went live.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Strong experience in at least one cloud (AWS / GCP / Azure)</strong></td>
+            <td class="my-col">Production work on all three. AWS is the deepest home base (VPC, EKS, RDS, IAM, CloudFront). GCP — many startups (GKE, Cloud Run, Cloud SQL). Azure — enterprise projects.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Networking (VPC, routing, VPN, firewalls, DNS)</strong></td>
+            <td class="my-col">Full VPC designs: public/private subnets, NAT gateways, route tables, Site-to-Site VPN, DNS hierarchies (Route53 / Cloud DNS), security groups and WAF rules. Not googled — lived with in production.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Security &amp; Identity (IAM, segmentation)</strong></td>
+            <td class="my-col">IAM models with least-privilege, role-based access, cross-account trust. Network segmentation with zero-trust patterns. Full background in privacy tech with GDPR and enterprise-grade compliance.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>High Availability &amp; Resilience</strong></td>
+            <td class="my-col">Multi-AZ and Multi-Region deployments. RTO / RPO planning aligned to business needs. DR playbooks, health checks, auto-failover. I know when full HA is justified and when it's over-engineering.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Hybrid environments (cloud ↔ on-prem / enterprise)</strong></td>
+            <td class="my-col">Connected cloud workloads to Active Directory, on-prem databases, enterprise ERP / CRM, and external SaaS. VPN, SAML SSO, Direct Connect. Understand hybrid deeply.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Terraform / IaC</strong></td>
+            <td class="my-col">Everything I design goes to Terraform (or CloudFormation / Pulumi depending on the environment). Remote state, modules, workspaces, CI/CD integration. Policy-as-code with OPA when needed.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Scalability, Reliability, Cost decisions</strong></td>
+            <td class="my-col">Right-sizing is my DNA — 20 years of systems thinking. I make sharp trade-offs between cost, availability and complexity, and present options with real numbers.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Working with customer Engineering / DevOps / IT</strong></td>
+            <td class="my-col">15+ years working closely with founders, CTOs, DevOps teams and internal IT. I translate architecture into the right language for each stakeholder. Full transparency, shared decisions.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Hands-on when needed / guide delivery teams</strong></td>
+            <td class="my-col">I've been hands-on my entire career. I can open the terminal, write Terraform, debug the network — and at the same time guide full teams. Not a "remote architect."</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Network / System / Enterprise Security</strong><br/>validate solutions from security &amp; privacy perspective</td>
+            <td class="my-col">Built an enterprise-grade privacy compliance platform (GDPR). I do threat modeling, data flow mapping, privacy impact assessments. Security &amp; privacy are part of the design, not an afterthought.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>IT / Networking Architecture experience</strong></td>
+            <td class="my-col">Classic IT architecture: Active Directory, SSO, file servers, networking layers, hybrid identity, firewall rules. Worked alongside enterprise IT teams in real organizations.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Nice to Have: Multi-cloud</strong></td>
+            <td class="my-col">AWS + GCP + Azure — not just a claim, actual production work.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Nice to Have: Regulated / enterprise environments</strong></td>
+            <td class="my-col">Privacy tech with GDPR, products with heavy compliance requirements, fintech and healthtech startups.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Nice to Have: Kubernetes / Containers</strong></td>
+            <td class="my-col">Docker and K8s (EKS, GKE, AKS) in production. Helm, service mesh (Istio / Linkerd when it fits), horizontal scaling.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col"><strong>Nice to Have: Cloud migrations / Landing zone design</strong></td>
+            <td class="my-col">Migration projects — lift-and-shift and re-architect. Landing Zone design: multi-account, OU hierarchies, SCPs, shared services accounts, guardrails.</td>
+            <td class="status-col"><span class="match-check">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout" style="margin-top: 2.5rem;">
+        <h3>⭐ Bonuses You Didn't Ask For — But Help</h3>
+        <p>
+          &bull; <strong>Claude Code as a force multiplier</strong> — things that used to take weeks compress into days. Spec docs, diagrams, Terraform, runbooks — produced faster and at higher quality<br/>
+          &bull; <strong>Full-stack background</strong> — I see the application and the infrastructure as one system. A cloud architect who doesn't understand the code makes bad decisions<br/>
+          &bull; <strong>FinOps mindset</strong> — I read cost reports, find waste, build realistic budgets<br/>
+          &bull; <strong>Real documentation</strong> — runbooks, architecture decision records, diagrams someone can actually pick up and continue from
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE ARCHITECTURE ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>⚡ Live Hybrid Architecture</h2>
+        <p>An architect doesn't ship a PDF — they show how they think. Pick a pattern and watch it break down. Click any layer for details.</p>
+      </div>
+
+      <div class="arch-builder">
+        <div class="arch-controls">
+          <button class="arch-chip active" onclick="setPattern('hybrid')">🔄 Hybrid Landing Zone</button>
+          <button class="arch-chip" onclick="setPattern('multiregion')">🌍 Multi-Region HA</button>
+          <button class="arch-chip" onclick="setPattern('regulated')">🔐 Regulated Enterprise</button>
+          <button class="arch-chip" onclick="setPattern('startup')">🚀 Startup Right-Sized</button>
+        </div>
+
+        <div id="pattern-desc" style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 1rem; padding: 0 0.25rem;">
+          <strong style="color: var(--text);">Hybrid Landing Zone:</strong>
+          A controlled connection between an on-prem data center, a primary cloud account, and secondary accounts
+          (prod / staging / dev). Shared services, a VPN tunnel, centralized IAM and VPC-level segmentation.
+          The classic pattern for enterprises entering the cloud.
+        </div>
+
+        <div class="arch-canvas" id="arch-canvas">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="arch-detail" id="arch-detail">
+          <h4 id="detail-title">🔍 Details</h4>
+          <p id="detail-desc"></p>
+          <ul id="detail-list"></ul>
+        </div>
+      </div>
+
+      <h3 style="text-align:center; margin: 2.5rem 0 1rem;">💻 What It Looks Like in Terraform</h3>
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">terraform apply — hybrid-landing-zone/prod</span>
+        </div>
+        <div class="terminal-body">
+          <span class="prompt">$</span> <span class="cmd">terraform plan -var-file=prod.tfvars</span><br/>
+          <span class="comment"># Initializing modules from hybrid-landing-zone/</span><br/>
+          <span class="output">module.landing_zone.aws_organizations_organizational_unit.prod</span><br/>
+          <span class="output">module.landing_zone.aws_organizations_policy.baseline_scp</span><br/>
+          <span class="info">  + guardrail: deny_root_user_access</span><br/>
+          <span class="info">  + guardrail: require_encryption_at_rest</span><br/>
+          <span class="info">  + guardrail: deny_public_s3</span><br/>
+          <span class="output">module.network.aws_vpc.main</span><br/>
+          <span class="info">  + cidr_block: 10.40.0.0/16 (prod)</span><br/>
+          <span class="info">  + enable_flow_logs: true → CloudWatch</span><br/>
+          <span class="output">module.network.aws_subnet.private["eu-west-1a"]</span> <span class="comment">// AZ-a private</span><br/>
+          <span class="output">module.network.aws_subnet.private["eu-west-1b"]</span> <span class="comment">// AZ-b private</span><br/>
+          <span class="output">module.network.aws_subnet.public["eu-west-1a"]</span>  <span class="comment">// NAT-backed egress</span><br/>
+          <span class="output">module.network.aws_vpn_connection.to_datacenter</span><br/>
+          <span class="info">  + customer_gateway: dc-fw-01.internal (1.2.3.4)</span><br/>
+          <span class="info">  + static_routes: [10.0.0.0/8 → on-prem]</span><br/>
+          <span class="output">module.security.aws_iam_role.workload["app"]</span><br/>
+          <span class="info">  + assume_role_policy: workload_identity</span><br/>
+          <span class="info">  + managed_policy: least_privilege_app</span><br/>
+          <span class="output">module.security.aws_kms_key.data</span> <span class="comment">// encryption at rest</span><br/>
+          <span class="output">module.dns.aws_route53_zone.private</span><br/>
+          <span class="info">  + vpc_associations: [shared, prod, staging]</span><br/>
+          <span class="output">module.eks.aws_eks_cluster.main</span><br/>
+          <span class="info">  + version: 1.30 · private endpoint · OIDC provider</span><br/>
+          <br/>
+          <span class="warn">Plan: 47 to add, 0 to change, 0 to destroy.</span><br/>
+          <span class="success">No drift. Policy checks passed (OPA). Applying...</span><br/>
+          <span class="success">✓ Landing zone operational. Hybrid tunnel up. Workloads can deploy.</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>👉 Not a mockup — this is how I think</h3>
+        <p>
+          The interactive architecture above is interactive because that's how I reason about infrastructure:
+          clear layers, trade-offs on display, choices explained. Every decision is anchored to business value.
+          This page itself — template to logic — was built in a few hours using Claude Code.
+          <strong>That's the pace you get.</strong>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>📚 Relevant Experience</h2>
+        <p>20+ years in tech, 50+ products shipped to production, infrastructure across diverse environments</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="num">20+</div><div class="label">Years in Tech</div></div>
+        <div class="stat"><div class="num">50+</div><div class="label">Products in Production</div></div>
+        <div class="stat"><div class="num">3</div><div class="label">Cloud Providers in Practice</div></div>
+        <div class="stat"><div class="num">∞</div><div class="label">CI/CD Deployments</div></div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 2rem;">
+        <div class="exp-card">
+          <h3>🔐 Privacy / Compliance Platform</h3>
+          <p>
+            Designed and built an enterprise-grade compliance platform for GDPR and regulatory requirements.
+            Full cloud infrastructure design with segmentation, encryption at rest &amp; in transit, detailed IAM,
+            data residency, audit logs, and threat modeling — ready for enterprise deployment.
+          </p>
+          <span class="exp-tag">GDPR</span>
+          <span class="exp-tag">IAM</span>
+          <span class="exp-tag">Encryption</span>
+          <span class="exp-tag">Audit</span>
+          <span class="exp-tag">Data Residency</span>
+          <span class="exp-tag">Enterprise</span>
+        </div>
+        <div class="exp-card">
+          <h3>☁️ Multi-Cloud Production Infrastructure</h3>
+          <p>
+            Production infrastructure running on AWS, GCP and Azure. VPC design, EKS / GKE clusters,
+            CI/CD pipelines, Terraform modules, auto-scaling, multi-AZ HA.
+            Cloud Run, Cloud SQL, RDS, Firebase — chosen per project's real needs.
+          </p>
+          <span class="exp-tag">AWS</span>
+          <span class="exp-tag">GCP</span>
+          <span class="exp-tag">Azure</span>
+          <span class="exp-tag">EKS / GKE</span>
+          <span class="exp-tag">Terraform</span>
+          <span class="exp-tag">CI/CD</span>
+        </div>
+        <div class="exp-card">
+          <h3>🏢 Hybrid &amp; Enterprise Integration</h3>
+          <p>
+            Connecting cloud systems to organizations with Active Directory, on-prem ERP / CRM, internal databases.
+            VPN tunnels, SSO (SAML / OIDC), hybrid identity, data-sync solutions.
+            Worked with internal IT and security teams in real organizations — knew how to navigate.
+          </p>
+          <span class="exp-tag">Hybrid Cloud</span>
+          <span class="exp-tag">AD / SSO</span>
+          <span class="exp-tag">VPN / Direct Connect</span>
+          <span class="exp-tag">Legacy Integration</span>
+          <span class="exp-tag">IT Alignment</span>
+        </div>
+        <div class="exp-card">
+          <h3>🚀 Startup Infrastructure (50+ products)</h3>
+          <p>
+            CTO at several startups from zero to production. Right-sized infrastructure per stage —
+            no over-engineering for an MVP, no under-engineering for a product that's scaling.
+            Cloud choices, costs, DevOps, observability, security — all part of the responsibility.
+          </p>
+          <span class="exp-tag">Founding CTO</span>
+          <span class="exp-tag">Right-Sizing</span>
+          <span class="exp-tag">FinOps</span>
+          <span class="exp-tag">Observability</span>
+          <span class="exp-tag">Scale</span>
+        </div>
+        <div class="exp-card">
+          <h3>🧠 AI / ML Infrastructure</h3>
+          <p>
+            Production infrastructure for AI systems — LLM agents, RAG pipelines, vector databases.
+            Integration with OpenAI, Claude and Gemini, multi-provider routing, state persistence.
+            Deep understanding of cost-vs-quality trade-offs with LLMs in production.
+          </p>
+          <span class="exp-tag">LLM Ops</span>
+          <span class="exp-tag">Vector DB</span>
+          <span class="exp-tag">Claude Code</span>
+          <span class="exp-tag">Cost Control</span>
+          <span class="exp-tag">Agents</span>
+        </div>
+        <div class="exp-card">
+          <h3>🛠 Full-Stack Architecture</h3>
+          <p>
+            Not "just infra." 20 years of Node.js, Python, React, TypeScript, PostgreSQL, Redis, MongoDB.
+            A cloud architect who understands the code makes the right calls — knows where an index is missing,
+            where an N+1 is hiding, where a cache will help and where it will blow the budget.
+          </p>
+          <span class="exp-tag">Node / Python</span>
+          <span class="exp-tag">React / Next</span>
+          <span class="exp-tag">PostgreSQL</span>
+          <span class="exp-tag">Redis</span>
+          <span class="exp-tag">WebSockets</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>🎯 Why This Matters for This Role</h3>
+        <p>
+          You're looking for someone who can move between startups, public sector and enterprise — with different
+          delivery models and stakeholders. That's exactly what I bring, with insights from real work, not diagrams.
+          I have the scars from 20 years of 2AM infrastructure incidents — and the wisdom that prevents them next time.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 5: ENGAGEMENT ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>💰 Engagement Model</h2>
+        <p>The spec says Freelance / Contract — flexible. Perfect. Here are the shapes that work.</p>
+      </div>
+
+      <div class="pricing-card">
+        <div style="font-size: 0.9rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem;">CTO as a Service</div>
+        <div class="price">~$13,500 / month</div>
+        <div class="price-note">Full technology partnership — architecture + leadership + hands-on (1-2 engineers + my management)</div>
+        <ul>
+          <li>Technology partner, not a freelancer — I work alongside you like an internal CTO</li>
+          <li>Full transparency — your code, always, 100%</li>
+          <li>Dynamic scope — expand, narrow or pivot as needed</li>
+          <li>No lock-in, no surprises</li>
+          <li>AI as a force multiplier — Claude Code accelerates 3-5x</li>
+          <li>20+ years of experience behind every decision</li>
+        </ul>
+        <a class="btn primary" href="https://wa.me/972545567213" style="margin-top: 1rem;">💬 Let's Check the Fit</a>
+      </div>
+
+      <div class="engage-grid">
+        <div class="engage-option">
+          <h4>🎯 Architect-Only</h4>
+          <p>If you just need architect-level thinking — design reviews, Landing Zone design, networking &amp; security definition, guidance to your delivery team. Daily / weekly model, flexible.</p>
+        </div>
+        <div class="engage-option">
+          <h4>🤝 Architect + Delivery</h4>
+          <p>I design and execute — or guide a small team of mine that does. Shift-left model: architecture, IaC, pipelines, observability, clean handover.</p>
+        </div>
+        <div class="engage-option">
+          <h4>🏗 Landing Zone Project</h4>
+          <p>A scoped project to design and deploy a full Landing Zone — multi-account, networking, IAM, guardrails, monitoring. Clear scope, timeline, deliverables.</p>
+        </div>
+        <div class="engage-option">
+          <h4>🔄 Fractional / Retainer</h4>
+          <p>A few hours a week, predictable. Available for architecture questions, code / infra reviews, and escalations. For teams that need "an architect on call" without the full cost.</p>
+        </div>
+      </div>
+
+      <section class="section" style="padding-top: 3rem;">
+        <div class="section-header">
+          <h2>📅 Estimated Timeline</h2>
+          <p>What the first three months typically look like</p>
+        </div>
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>Week 1 — Deep Dive &amp; Discovery</h3>
+              <p>Learn the existing environment, stakeholders, constraints, enterprise systems, security &amp; privacy policies. Requires access to review cloud accounts and current infrastructure.</p>
+              <span class="tag">Discovery</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>Weeks 2-4 — Architecture Design</h3>
+              <p>Full design: network topology, Landing Zone, IAM model, security boundaries, HA / DR strategy, hybrid connections. Architecture Decision Records, diagrams, stakeholder review.</p>
+              <span class="tag">Design</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>Month 2 — Implementation &amp; IaC</h3>
+              <p>Terraform modules, CI/CD pipelines, Landing Zone rollout, guardrails, observability. Guiding the delivery team or executing directly depending on the chosen model.</p>
+              <span class="tag">Build</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">4</div>
+            <div class="timeline-body">
+              <h3>Month 3 — Validation &amp; Handover</h3>
+              <p>HA tests, DR drills, security review, cost baseline, runbooks, documentation. Clean handover — the internal team can continue without me.</p>
+              <span class="tag">Handover</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" style="padding-top: 2rem;">
+        <div class="section-header">
+          <h2>🧰 Tech Stack</h2>
+          <p>The tools I bring — 1:1 with your requirements</p>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Cloud</h3>
+            <ul>
+              <li>AWS (Organizations, VPC, EKS, RDS)</li>
+              <li>GCP (VPC, GKE, Cloud SQL, Run)</li>
+              <li>Azure (VNet, AKS, Entra ID)</li>
+              <li>Landing Zones · multi-account</li>
+              <li>Direct Connect / ExpressRoute</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>IaC &amp; Automation</h3>
+            <ul>
+              <li>Terraform · modules · remote state</li>
+              <li>GitHub Actions · GitLab CI</li>
+              <li>Docker · Helm · Kubernetes</li>
+              <li>OPA · Sentinel (policy as code)</li>
+              <li>Ansible where it fits</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Security &amp; Observability</h3>
+            <ul>
+              <li>IAM · SAML · OIDC · SSO</li>
+              <li>KMS · Secrets Manager · Vault</li>
+              <li>WAF · Security Groups · NACLs</li>
+              <li>CloudWatch · Datadog · Grafana</li>
+              <li>Prometheus · OpenTelemetry</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>💡 How to Start</h3>
+        <p>
+          A 30-minute intro call. We'll understand who you are, what the project / clients look like, what constraints exist,
+          and what environments sit on the organization side. If there's a fit — we move to a detailed proposal with scope,
+          timeline and cost. If not — I'll say so directly. I don't push myself into roles that don't match.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    <p><strong>Shlomi Zovin</strong> &bull; CTO as a Service</p>
+    <p><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> &bull; <a href="tel:+972545567213">+972-54-5567213</a> &bull; <a href="https://wa.me/972545567213">WhatsApp</a></p>
+  </div>
+</footer>
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tabId + "'")) {
+      b.classList.add('active');
+    }
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  if (current === 'light') {
+    html.removeAttribute('data-theme');
+  } else {
+    html.setAttribute('data-theme', 'light');
+  }
+}
+
+/* ======= Architecture Builder ======= */
+const PATTERNS = {
+  hybrid: {
+    desc: '<strong style="color: var(--text);">Hybrid Landing Zone:</strong> A controlled connection between an on-prem data center, a primary cloud account, and secondary accounts (prod / staging / dev). Shared services, a VPN tunnel, centralized IAM and VPC-level segmentation. The classic pattern for enterprises entering the cloud.',
+    zones: [
+      { id: 'dc', title: '🏢 On-Prem Data Center', tag: 'On-Prem', tagClass: 'tag-onprem', items: ['Active Directory', 'ERP / Core DB', 'Internal APIs', 'File Servers'], detail: { title: '🏢 Data Center / On-Prem', desc: 'The classic in-house systems that stay on-prem — usually for regulatory, cost, or specialized-hardware reasons.', list: ['Active Directory as the primary identity provider', 'Core databases that will not migrate', 'Critical ERP / CRM systems', 'Connected to the cloud via VPN or Direct Connect'] } },
+      { id: 'connect', title: '🔗 Hybrid Connectivity', tag: 'Network', tagClass: 'tag-security', items: ['Site-to-Site VPN', 'Direct Connect', 'Transit Gateway', 'BGP routing'], detail: { title: '🔗 Hybrid Connectivity', desc: 'The layer connecting the two worlds. VPN for tight budgets, Direct Connect / ExpressRoute for enterprise. BGP for dynamic routing.', list: ['IPsec VPN (IKEv2) — always-available backup', 'Direct Connect / ExpressRoute for high bandwidth and consistency', 'Transit Gateway for multi-VPC setups', 'Static or BGP routing per case'] } },
+      { id: 'shared', title: '🛠 Shared Services Account', tag: 'Cloud', tagClass: 'tag-cloud', items: ['Central DNS', 'Logging &amp; Audit', 'Artifact Registry', 'Shared VPC'], detail: { title: '🛠 Shared Services', desc: 'The central account serving all others — DNS, logs, CI/CD artifacts, monitoring. Built once, serves everyone.', list: ['Route53 / Cloud DNS as a hub', 'CloudWatch / Log Archive account for audit trail', 'Container Registry (ECR / GAR)', 'Shared VPC or Transit Gateway'] } },
+      { id: 'workloads', title: '☁️ Workload Accounts (prod / staging / dev)', tag: 'Cloud', tagClass: 'tag-cloud', items: ['EKS / GKE', 'RDS / Cloud SQL', 'Auto Scaling', 'Per-env VPC'], detail: { title: '☁️ Workload Accounts', desc: 'Full separation between environments — each in its own account, with its own VPC, scoped IAM, and guardrails preventing mistakes.', list: ['Account-per-environment (prod, staging, dev)', 'VPC with a unique CIDR per environment', 'IAM roles based on workload identity', 'SCPs blocking destructive actions'] } },
+      { id: 'security', title: '🔐 Identity &amp; Security Layer', tag: 'Security', tagClass: 'tag-security', items: ['IAM + SSO', 'SAML / OIDC', 'KMS / Secrets', 'GuardDuty'], detail: { title: '🔐 Identity &amp; Security', desc: 'Identity and secrets — the keys to the kingdom. SSO via AD, KMS for encryption, Secrets Manager, continuous monitoring.', list: ['SSO from Active Directory (SAML / OIDC)', 'IAM roles with least-privilege', 'KMS on every sensitive resource', 'GuardDuty / Security Command Center'] } }
+    ]
+  },
+  multiregion: {
+    desc: '<strong style="color: var(--text);">Multi-Region HA:</strong> A high-availability architecture spreading workloads across two regions — Active-Active or Active-Passive. RTO / RPO planning, data replication, and controlled failover for DR events.',
+    zones: [
+      { id: 'edge', title: '🌐 Global Edge Layer', tag: 'Edge', tagClass: 'tag-edge', items: ['CloudFront / Cloud CDN', 'Route53 / Cloud DNS', 'Global Accelerator', 'WAF'], detail: { title: '🌐 Global Edge', desc: 'The global entry layer — CDN, DNS and smart routing that sends users to the closest / active region.', list: ['CDN for static content and API caching', 'DNS with health checks — automatic failover', 'Global Accelerator / Cloud Armor', 'WAF with live rules'] } },
+      { id: 'region-a', title: '🏗 Primary Region (eu-west-1)', tag: 'Cloud', tagClass: 'tag-cloud', items: ['Multi-AZ EKS', 'RDS Primary (Multi-AZ)', 'Redis cluster', 'ALB'], detail: { title: '🏗 Primary Region', desc: 'The primary region with full workloads — Multi-AZ internally, primary databases, all active services.', list: ['Multi-AZ Kubernetes cluster', 'RDS primary with synchronous replica', 'ElastiCache Redis in HA', 'Application Load Balancer cross-AZ'] } },
+      { id: 'replication', title: '🔄 Cross-Region Replication', tag: 'Network', tagClass: 'tag-security', items: ['DB replication (async)', 'S3 CRR', 'VPC peering', 'Backup sync'], detail: { title: '🔄 Replication Layer', desc: 'Moving state across regions — databases, storage, configs. RPO planning (how much data can be lost) is critical.', list: ['Async DB replication (cross-region read replica)', 'S3 Cross-Region Replication', 'VPC peering / Transit Gateway', 'Backup vault replication'] } },
+      { id: 'region-b', title: '🏗 DR Region (us-east-1)', tag: 'Cloud', tagClass: 'tag-cloud', items: ['Warm standby EKS', 'RDS read replica', 'Scaled-down services', 'Ready to promote'], detail: { title: '🏗 DR Region', desc: 'The DR region — pilot light / warm standby / active, depending on budget and RTO. Ready to take traffic.', list: ['Warm standby EKS cluster (scaled down)', 'RDS read replica ready to promote', 'Services ready to scale in an emergency', 'Identical Terraform — zero drift'] } },
+      { id: 'ops', title: '📊 Centralized Ops &amp; Monitoring', tag: 'Security', tagClass: 'tag-security', items: ['CloudWatch / Datadog', 'Multi-region dashboards', 'Runbooks automation', 'DR drills'], detail: { title: '📊 Ops &amp; Monitoring', desc: 'A unified observability system covering both regions. Clear failover runbooks, periodic DR drills.', list: ['Cross-region metrics aggregation', 'Automated health checks + paging', 'Documented, practiced runbooks', 'Quarterly DR drill minimum'] } }
+    ]
+  },
+  regulated: {
+    desc: '<strong style="color: var(--text);">Regulated Enterprise:</strong> An environment with heavy compliance requirements — GDPR, data residency, audit trails, sharp segmentation and encryption at every layer. Fits public sector, financial, healthcare.',
+    zones: [
+      { id: 'perimeter', title: '🛡 Perimeter &amp; Gateway', tag: 'Security', tagClass: 'tag-security', items: ['WAF + Bot mitigation', 'DDoS protection', 'Private API Gateway', 'mTLS at edge'], detail: { title: '🛡 Perimeter', desc: 'First line of defense — everything must pass through. Nothing touches the workloads directly from the internet.', list: ['WAF with managed + custom rules', 'DDoS protection (Shield / Armor)', 'Private API Gateway, not directly exposed', 'mTLS between perimeter and internal'] } },
+      { id: 'data-zone', title: '🔒 Segmented Data Zone', tag: 'Security', tagClass: 'tag-security', items: ['Private subnets only', 'Dedicated VPC', 'No public IPs', 'Egress via proxy'], detail: { title: '🔒 Data Zone Segmentation', desc: 'Sensitive data lives in a separate VPC, without direct internet access, with egress controlled via a proxy.', list: ['Separate VPC for sensitive workloads', 'Private subnets only — no public IPs', 'Egress to SaaS only via forward proxy', 'NetworkFirewall / Cloud NGFW at egress'] } },
+      { id: 'encryption', title: '🔐 Encryption Everywhere', tag: 'Security', tagClass: 'tag-security', items: ['KMS with CMK', 'TLS 1.3 in transit', 'Field-level encryption', 'Tokenization'], detail: { title: '🔐 Encryption', desc: 'Encryption at every layer. Customer Managed Keys, rotation, audit. For the most sensitive spots — field-level encryption or tokenization.', list: ['KMS with Customer Managed Keys', 'Automatic key rotation', 'TLS 1.3 on all traffic', 'Field-level encryption for PII'] } },
+      { id: 'audit', title: '📜 Audit &amp; Compliance', tag: 'Security', tagClass: 'tag-security', items: ['CloudTrail / Audit Logs', 'Config / SCC', 'Immutable log archive', 'SIEM integration'], detail: { title: '📜 Audit &amp; Compliance', desc: 'Every action is logged, cannot be deleted, is searchable. The basis for proving compliance to a regulator or auditor.', list: ['CloudTrail → S3 with Object Lock', 'Config rules enforcing compliance', 'Log aggregation into SIEM (Splunk / ELK)', 'Immutable audit trail — legal hold'] } },
+      { id: 'identity', title: '👤 Identity &amp; Access Governance', tag: 'Security', tagClass: 'tag-security', items: ['SSO + MFA enforced', 'Just-in-time access', 'Privileged Access Mgmt', 'Access reviews'], detail: { title: '👤 Identity Governance', desc: 'Identity is the new perimeter. MFA is mandatory, access is just-in-time (JIT), and reviews are periodic.', list: ['SSO + MFA for every user, no exceptions', 'Just-in-time elevated access', 'PAM for admin operations', 'Automated quarterly access reviews'] } }
+    ]
+  },
+  startup: {
+    desc: '<strong style="color: var(--text);">Startup Right-Sized:</strong> A simple, cheap architecture — but ready to grow. Managed services wherever possible, minimal DevOps overhead, and infra that won\'t need a refactor in 6 months.',
+    zones: [
+      { id: 'front', title: '🌐 Front Door (Managed)', tag: 'Edge', tagClass: 'tag-edge', items: ['Cloudflare / CDN', 'Managed DNS', 'Vercel / Netlify (FE)', 'WAF free tier'], detail: { title: '🌐 Front Door', desc: 'Managed CDN and DNS. The frontend lives on Vercel / Netlify or equivalent — no nginx to manage.', list: ['Cloudflare or the cloud provider\'s CDN', 'Managed DNS with automated certs', 'Frontend on serverless (Vercel / Netlify)', 'WAF on the free tier — fine for 99% of cases'] } },
+      { id: 'app', title: '⚙️ Application Layer (Serverless-ish)', tag: 'Cloud', tagClass: 'tag-cloud', items: ['Cloud Run / Fargate', 'Single-VPC design', 'Auto-scaling', 'No K8s yet'], detail: { title: '⚙️ Application Layer', desc: 'Containers on Cloud Run / Fargate / App Runner — scale-to-zero, no nodes to manage. Kubernetes only when there\'s a real reason.', list: ['Cloud Run / Fargate / App Runner', 'Single VPC with basic subnets', 'Auto-scaling built-in', 'K8s only when complexity justifies it'] } },
+      { id: 'data', title: '💾 Data Layer (Managed)', tag: 'Cloud', tagClass: 'tag-cloud', items: ['Managed Postgres', 'Managed Redis', 'S3 / GCS', 'Automatic backups'], detail: { title: '💾 Data Layer', desc: 'Managed services everywhere. No DBA, no manual backups, no nighttime scaling.', list: ['RDS / Cloud SQL / Neon — managed Postgres', 'ElastiCache / Upstash / Memorystore', 'S3 / GCS for objects', 'Automatic point-in-time recovery'] } },
+      { id: 'devops', title: '🚀 DevOps (Minimal)', tag: 'Cloud', tagClass: 'tag-cloud', items: ['GitHub Actions', 'Terraform (light)', 'Sentry + Datadog / Grafana', 'Feature flags'], detail: { title: '🚀 DevOps Minimal', desc: 'CI/CD that\'s simple but right. Terraform minimalist — only for what matters. Observability chosen by actual pain, not textbook best practice.', list: ['GitHub Actions for CI/CD', 'Terraform for what matters (networking, DBs)', 'Sentry for errors, Datadog / Grafana for metrics', 'Feature flags for safe rollouts'] } },
+      { id: 'future', title: '📈 Built to Grow (not overbuilt)', tag: 'Edge', tagClass: 'tag-edge', items: ['Clear upgrade paths', 'No premature K8s', 'No premature microservices', 'Scale when proven'], detail: { title: '📈 Growth Readiness', desc: 'The secret sauce — not over-engineering today, but also not leaving gaps that will sting in 6 months.', list: ['Terraform from day one — easy migration to another cloud', 'Container-based — easy move to K8s when needed', 'Separated data layer — scale independently', 'Observability set up early'] } }
+    ]
+  }
+};
+
+let currentPattern = 'hybrid';
+
+function renderPattern(key) {
+  const p = PATTERNS[key];
+  const canvas = document.getElementById('arch-canvas');
+  const desc = document.getElementById('pattern-desc');
+  desc.innerHTML = p.desc;
+
+  let html = '';
+  p.zones.forEach((z, i) => {
+    html += `<div class="arch-zone clickable" data-zone="${key}:${z.id}" onclick="showDetail('${key}', '${z.id}')">
+      <div class="arch-zone-header">
+        <div class="arch-zone-title">${z.title}</div>
+        <span class="arch-zone-tag ${z.tagClass}">${z.tag}</span>
+      </div>
+      <div class="arch-items">
+        ${z.items.map(it => `<span class="arch-item">${it}</span>`).join('')}
+      </div>
+    </div>`;
+    if (i < p.zones.length - 1) {
+      html += `<div class="arch-connector">↓</div>`;
+    }
+  });
+  canvas.innerHTML = html;
+  document.getElementById('arch-detail').classList.remove('active');
+}
+
+function setPattern(key) {
+  currentPattern = key;
+  document.querySelectorAll('.arch-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  renderPattern(key);
+}
+
+function showDetail(patternKey, zoneId) {
+  const p = PATTERNS[patternKey];
+  const zone = p.zones.find(z => z.id === zoneId);
+  if (!zone) return;
+
+  document.querySelectorAll('.arch-zone').forEach(z => z.classList.remove('active'));
+  const el = document.querySelector(`[data-zone="${patternKey}:${zoneId}"]`);
+  if (el) el.classList.add('active');
+
+  const detail = document.getElementById('arch-detail');
+  document.getElementById('detail-title').innerHTML = zone.detail.title;
+  document.getElementById('detail-desc').textContent = zone.detail.desc;
+  const list = document.getElementById('detail-list');
+  list.innerHTML = zone.detail.list.map(li => `<li>${li}</li>`).join('');
+  detail.classList.add('active');
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Initial render
+renderPattern('hybrid');
+</script>
+
+</body>
+</html>

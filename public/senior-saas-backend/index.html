@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Senior Backend / Fullstack — Production SaaS with AI | Shlomi Zevin</title>
+  <meta name="description" content="CTO-level partnership for production SaaS systems with AI integration, state-machine workflows, queues, OCR pipelines, and Stripe billing." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --bg-alt: #0f131a;
+      --card-bg: #141922;
+      --card-hover: #181d27;
+      --accent: #10b981;
+      --accent-strong: #34d399;
+      --accent-soft: rgba(16, 185, 129, 0.10);
+      --accent-dim: rgba(16, 185, 129, 0.30);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.10);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.10);
+      --info: #3b82f6;
+      --info-soft: rgba(59, 130, 246, 0.10);
+      --purple: #a855f7;
+      --purple-soft: rgba(168, 85, 247, 0.10);
+      --border: #232a36;
+      --border-strong: #2e3744;
+      --text: #f3f5f8;
+      --text-muted: #8b929d;
+      --text-dim: #5f6571;
+      --code-bg: #11151c;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f6f8fb;
+      --card-bg: #ffffff;
+      --card-hover: #f7f9fc;
+      --border: #e3e7ee;
+      --border-strong: #cbd2dc;
+      --text: #0f1419;
+      --text-muted: #5c6370;
+      --text-dim: #8b929d;
+      --accent-soft: rgba(16, 185, 129, 0.07);
+      --warn-soft: rgba(245, 158, 11, 0.08);
+      --info-soft: rgba(59, 130, 246, 0.07);
+      --purple-soft: rgba(168, 85, 247, 0.07);
+      --danger-soft: rgba(239, 68, 68, 0.07);
+      --code-bg: #f1f3f7;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+    code, pre, .mono { font-family: 'JetBrains Mono', Menlo, monospace; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: #062017; }
+    .logo-text { font-weight: 600; font-size: 0.92rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { display: block; font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.6rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: #062017; font-size: 0.84rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.92rem; font-weight: 500; padding: 0.9rem 1.4rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 2.5rem; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent-dim); color: var(--accent); font-size: 0.78rem; font-weight: 500; margin-bottom: 1.5rem; }
+    .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 2s infinite; }
+    @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 700; line-height: 1.15; margin-bottom: 1.25rem; letter-spacing: -0.025em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 760px; margin: 0 auto 2rem; line-height: 1.7; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: #062017; font-weight: 600; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 1.85rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 0.98rem; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.7rem; line-height: 1.65; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.55; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.4rem; margin-bottom: 0.75rem; opacity: 0.95; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2rem 0 2.5rem; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.4rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; background: var(--card-bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.93rem; line-height: 1.75; }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.purple { border-left-color: var(--purple); }
+    .callout.info { border-left-color: var(--info); }
+
+    /* REQUIREMENTS MAP */
+    .req-map { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin: 1.5rem 0; }
+    .req-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto 2fr; gap: 1rem; align-items: center; padding: 0.85rem 1.1rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .req-row .req-need { font-size: 0.88rem; color: var(--text); font-weight: 500; }
+    .req-row .req-arrow { color: var(--accent); font-weight: 700; font-size: 0.9rem; }
+    .req-row .req-have { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+    .req-row .req-have strong { color: var(--text); font-weight: 600; }
+
+    /* PRICING */
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; max-width: 680px; margin: 0 auto; position: relative; overflow: hidden; }
+    .pricing-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+    .pricing-card .price-label { font-size: 0.78rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .pricing-card .price { font-size: 2.4rem; font-weight: 700; margin: 0.3rem 0; color: var(--text); letter-spacing: -0.02em; }
+    .pricing-card .price .currency { font-size: 1.4rem; color: var(--text-muted); font-weight: 500; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.92rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; }
+    .pricing-card li { font-size: 0.93rem; margin-bottom: 0.55rem; display: flex; align-items: flex-start; gap: 0.55rem; color: var(--text-muted); line-height: 1.55; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 1.1rem; max-width: 780px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; }
+    .timeline-num { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.65; }
+    .timeline-body .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.5rem; border: 1px solid var(--accent-dim); }
+
+    /* STACK GRID */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin-top: 1.5rem; }
+    .stack-cat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.1rem; }
+    .stack-cat .cat-title { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.55rem; }
+    .stack-cat .cat-items { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* EXPERIENCE */
+    .exp-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card .exp-domain { font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.4rem; }
+    .exp-card h3 { font-size: 1.02rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .exp-card p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.7rem; line-height: 1.65; }
+    .exp-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .exp-tag { font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* ===== DEMO ===== */
+    .demo-wrap { max-width: 1100px; margin: 0 auto; }
+    .demo-intro { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+    .demo-intro h3 { font-size: 1rem; margin-bottom: 0.4rem; font-weight: 600; }
+    .demo-intro p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.65; }
+
+    .live-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+    .live-stat { display: flex; flex-direction: column; gap: 0.2rem; }
+    .live-stat .lbl { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+    .live-num { font-size: 1.3rem; font-weight: 700; color: var(--text); transition: color 0.3s; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+    .live-num.flash { color: var(--accent); }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 2s infinite; display: inline-block; }
+
+    /* Scenario selector */
+    .scenario-selector { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.25rem; }
+    .scenario-btn { padding: 0.55rem 1rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 0.83rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .scenario-btn:hover { color: var(--text); border-color: var(--border-strong); }
+    .scenario-btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+
+    /* Demo control */
+    .demo-controls { display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .demo-btn { padding: 0.5rem 1.1rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 0.84rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .demo-btn.primary { background: var(--accent); color: #062017; border-color: var(--accent); font-weight: 600; }
+    .demo-btn.primary:hover { background: var(--accent-strong); color: #062017; }
+    .demo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Orchestrator grid */
+    .orch-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1rem; }
+    .orch-col { display: flex; flex-direction: column; gap: 1rem; }
+
+    .panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border); background: var(--bg-alt); }
+    .panel-title { font-size: 0.84rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: var(--text); }
+    .panel-title .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 2s infinite; }
+    .panel-pill { font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .panel-body { padding: 1rem; min-height: 220px; max-height: 320px; overflow-y: auto; }
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* Conversation */
+    .conv-line { padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.86rem; line-height: 1.6; border: 1px solid var(--border); background: var(--bg-alt); animation: msgSlide 0.35s ease; margin-bottom: 0.55rem; }
+    @keyframes msgSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .conv-line.user { border-left: 2px solid var(--info); align-self: flex-start; max-width: 88%; margin-right: auto; }
+    .conv-line.ai { border-left: 2px solid var(--accent); align-self: flex-end; max-width: 88%; margin-left: auto; background: var(--card-bg); }
+    .conv-meta { font-size: 0.66rem; font-weight: 600; margin-bottom: 0.2rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; }
+    .conv-meta .ts { color: var(--text-dim); font-weight: 500; font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
+    .conv-line.streaming::after { content: '\25AE'; margin-left: 3px; animation: blink 1s infinite; color: var(--accent); }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* State machine */
+    .sm-viz { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; padding: 0.4rem 0; }
+    .sm-state { padding: 0.45rem 0.75rem; border-radius: var(--radius-sm); background: var(--bg-alt); border: 1px solid var(--border); font-size: 0.74rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-weight: 500; transition: all 0.3s; white-space: nowrap; }
+    .sm-state.done { background: var(--accent-soft); border-color: var(--accent-dim); color: var(--accent); }
+    .sm-state.active { background: var(--accent); color: #062017; border-color: var(--accent); font-weight: 600; box-shadow: 0 0 0 3px var(--accent-soft); }
+    .sm-arrow { color: var(--text-dim); font-size: 0.85rem; }
+    .sm-event { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; padding: 0.5rem 0.7rem; background: var(--bg-alt); border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+    .sm-event .ev-key { color: var(--accent); }
+
+    /* Workers/Queue */
+    .queue-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .queue-item { display: grid; grid-template-columns: auto 1fr auto; gap: 0.7rem; align-items: center; padding: 0.65rem 0.85rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: all 0.2s; animation: msgSlide 0.3s ease; }
+    .queue-item.processing { border-color: var(--accent-dim); background: var(--accent-soft); }
+    .queue-item.done { opacity: 0.65; }
+    .queue-job-icon { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; font-weight: 600; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .queue-item.processing .queue-job-icon { background: var(--accent); color: #062017; border-color: var(--accent); animation: spin 1.5s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .queue-item.done .queue-job-icon { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+    .queue-job-body .job-name { font-size: 0.83rem; font-weight: 500; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+    .queue-job-body .job-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .queue-job-status { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .queue-item.processing .queue-job-status { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+    .queue-item.done .queue-job-status { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+
+    /* Integrations */
+    .integ-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .integ-row { display: grid; grid-template-columns: auto 1fr auto; gap: 0.7rem; align-items: center; padding: 0.6rem 0.85rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); animation: msgSlide 0.3s ease; }
+    .integ-method { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-weight: 700; font-family: 'JetBrains Mono', monospace; min-width: 48px; text-align: center; }
+    .integ-method.POST { background: var(--info-soft); color: var(--info); border: 1px solid rgba(59,130,246,0.3); }
+    .integ-method.GET { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); }
+    .integ-method.WEBHOOK { background: var(--purple-soft); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+    .integ-row .integ-target { font-size: 0.8rem; color: var(--text); font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .integ-row .integ-target .target-host { color: var(--text-muted); }
+    .integ-row .integ-status { font-size: 0.74rem; font-weight: 600; padding: 0.18rem 0.5rem; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; }
+    .integ-row .integ-status.s200 { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); }
+    .integ-row .integ-status.s201 { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); }
+    .integ-row .integ-status.pending { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+
+    /* Document panel */
+    .doc-panel { padding: 1rem; }
+    .doc-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; }
+    .doc-card.processing { border-color: var(--accent-dim); }
+    .doc-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .doc-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .doc-card.processing .doc-icon { background: var(--accent); color: #062017; border-color: var(--accent); }
+    .doc-name { font-size: 0.86rem; font-weight: 600; color: var(--text); }
+    .doc-stage { font-size: 0.74rem; color: var(--text-muted); margin-top: 0.1rem; font-family: 'JetBrains Mono', monospace; }
+    .doc-card.processing .doc-stage { color: var(--accent); }
+    .doc-progress { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 0.75rem; }
+    .doc-progress-fill { height: 100%; background: var(--accent); width: 0; transition: width 0.4s ease; }
+    .doc-extracted { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .doc-field { padding: 0.5rem 0.7rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+    .doc-field .lbl { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; font-weight: 600; }
+    .doc-field .val { font-size: 0.82rem; color: var(--text); font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+    .doc-field.confidence { background: var(--accent-soft); border-color: var(--accent-dim); }
+    .doc-field.confidence .val { color: var(--accent); }
+    .doc-empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    .doc-empty .big { font-size: 1.7rem; opacity: 0.4; margin-bottom: 0.5rem; }
+
+    /* Tech tags inline */
+    .tech-inline { display: inline-flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; margin-top: 0.5rem; }
+    .tech-inline .t { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 3rem 0; border-top: 1px solid var(--border); margin-top: 3rem; }
+    .contact-section h2 { font-size: 1.7rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--text-muted); }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .contact-item a:hover { color: var(--accent-strong); }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-dim); font-size: 0.82rem; border-top: 1px solid var(--border); }
+    .footer a { color: var(--text-muted); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .orch-grid { grid-template-columns: 1fr; }
+      .live-bar { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+      .live-stat:nth-child(4), .live-stat:nth-child(5) { grid-column: span 1; }
+    }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .hero { padding: 3rem 0 2rem; }
+      .hero h1 { font-size: 1.8rem; }
+      .hero-sub { font-size: 0.98rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.5rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 1.85rem; }
+      .tab-btn { padding: 0.75rem 0.95rem; font-size: 0.85rem; }
+      .logo-text { font-size: 0.82rem; }
+      .live-bar { grid-template-columns: repeat(2, 1fr); }
+      .req-row { grid-template-columns: 1fr; gap: 0.4rem; }
+      .req-row .req-arrow { display: none; }
+      .pricing-card { padding: 1.5rem; }
+      .doc-extracted { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span>
+          <span class="logo-text">Shlomi Zevin</span>
+          <span class="logo-sub">CTO as a Service</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">Light</button>
+        <a href="https://wa.me/972545567213" class="btn-sm" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs-container">
+    <div class="container">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="proposal">Proposal</button>
+        <button class="tab-btn" data-tab="experience">Relevant Experience</button>
+        <button class="tab-btn" data-tab="demo">Live Demo</button>
+        <button class="tab-btn" data-tab="engagement">Engagement</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== TAB 1: PROPOSAL ============== -->
+  <div class="tab-content active" id="tab-proposal">
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow"><span class="pulse"></span> Built for system thinkers</div>
+        <h1>Production SaaS, end-to-end.<br/><span class="accent">Architected, not just coded.</span></h1>
+        <p class="hero-sub">
+          You wrote it yourself: this is not a website. It's a state-driven system with AI in the conversation loop, OCR in the intake pipeline, queues moving work between services, Stripe at the boundary, and webhooks pushing/pulling from third parties. That's exactly the kind of system I build &mdash; and have been building for 20+ years.
+        </p>
+        <div class="hero-badges">
+          <span>Node.js / TypeScript</span>
+          <span>PostgreSQL</span>
+          <span>OpenAI &amp; Claude</span>
+          <span>BullMQ / queues</span>
+          <span>Stripe</span>
+          <span>State machines</span>
+          <span>OCR &amp; doc AI</span>
+          <span>Webhooks &amp; integrations</span>
+        </div>
+        <div class="hero-cta">
+          <a href="#" class="btn primary" data-tab-link="demo">See the system live &rarr;</a>
+          <a href="#" class="btn ghost" data-tab-link="experience">Relevant builds</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Why me</div>
+          <h2>I think in systems, not screens</h2>
+          <p>20+ years building production backends, 2+ years deep in AI agents. Founded multiple startups as CTO. The kind of partner you want when "complex business logic" actually means complex.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-icon">&#9881;</div>
+            <h3>System architect, hands-on</h3>
+            <p>I design the data model, the state machine, the queue topology, the failure modes &mdash; then I write the code. No handoffs, no telephone game.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#129302;</div>
+            <h3>AI agents, the real kind</h3>
+            <p>Built consumer AI chat products before "agent" was the word. Onboarding flows, RAG, function-calling, multi-step decision agents. I know where LLMs work and where they don't &mdash; and I architect around it.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#9889;</div>
+            <h3>Claude Code &times; 20 years</h3>
+            <p>I run AI coding tools as a force multiplier. Not "vibe coding" &mdash; AI executing on architecture I direct. Things that took months take days. Code is reviewed, tested, deployed.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128295;</div>
+            <h3>Production-grade defaults</h3>
+            <p>Idempotent jobs. Replayable webhooks. Structured logging. Migrations with rollback. Observability from day one. I've seen what breaks at 3am &mdash; I build to not get paged.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#129504;</div>
+            <h3>Research background, not just an API user</h3>
+            <p>I've trained neural nets, built genetic algorithms, evaluated why models predict what they predict. That's why my LLM integrations are precise &mdash; I understand the layer below the API.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#127919;</div>
+            <h3>Right-sized, not over-engineered</h3>
+            <p>I don't build Kubernetes for 100 users. I match architecture to the stage you're actually in &mdash; and design clean upgrade paths for when you scale.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Your spec, mapped</div>
+          <h2>Every requirement &mdash; matched to relevant build experience</h2>
+          <p>I went line-by-line through your post. Here's where I've shipped each piece in production.</p>
+        </div>
+
+        <div class="req-map">
+          <div class="req-row">
+            <div class="req-need">AI-driven conversational flow (OpenAI)</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              Built consumer AI chat products since 2022 (<strong>Mystic AI</strong> &mdash; one of Israel's first consumer AI chat apps), banking onboarding agents, sales negotiation bots, wellness companions. Streaming, function-calling, memory, guardrails.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">State machine business logic / decision engine</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              Decision engines and state-driven workflows in <strong>real estate, edtech, fintech</strong>, and a behavioural-therapy platform. State machines, side-effect orchestration, audit trails, time-travel debugging.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">File upload + OCR / AI document analysis</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              Document intake pipelines with <strong>OCR + LLM extraction + validation</strong>. Compliance docs, ID verification, contracts. Confidence scoring, human-in-the-loop fallback for low-confidence cases.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">External APIs &amp; messaging platforms</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              <strong>WhatsApp Business, Twilio, SendGrid, Telegram</strong>, plus dozens of REST/GraphQL integrations. Webhooks both ways &mdash; signed, retried, replayable.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">Stripe payments, subscriptions, billing</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              <strong>Stripe Subscriptions, Connect, Payment Intents</strong>. Dunning, proration, plan changes, invoicing. Webhook reconciliation with the right idempotency keys.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">Background jobs &amp; queues</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              <strong>BullMQ, Redis Streams, SQS</strong>. Priority queues, dead-letter handling, exponential backoff, rate-limited workers per third-party API.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">User management &amp; authentication</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              From <strong>JWT + RBAC</strong> rolled by hand to Auth0/Clerk integrations. SSO, MFA, audit logs, session management. Whatever fits the stage.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">Internal operations dashboard</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              Built admin dashboards for <strong>compliance, support, billing, content moderation</strong>. Real-time metrics, search, bulk actions, audit-ready exports.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">PostgreSQL + scaling</div>
+            <div class="req-arrow">&rarr;</div>
+            <div class="req-have">
+              Postgres expert: <strong>indexing strategy, query optimization, partitioning, read replicas, JSONB design, migrations under load</strong>. Twenty years of DB optimization &mdash; the unglamorous skill that decides whether systems scale.
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <h3>The "system level, not just code" part</h3>
+          <p>
+            That line in your spec is what made me write back. I'm not a developer who waits for tickets. I'm a tech partner who'll push back on your spec, propose tradeoffs, decide what gets built first, and own the architecture through to production. If that's what you actually want, we're aligned.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">How I work</div>
+          <h2>Not a contractor. Not an agency. A tech partner.</h2>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>&#128202; Full transparency</h3>
+            <p>Your repo. Your cloud accounts. Your code from day one. No black-box deliverables, no "trust me bro." Decisions are documented, tradeoffs surfaced, alternatives presented.</p>
+          </div>
+          <div class="card">
+            <h3>&#128640; Speed without shortcuts</h3>
+            <p>I move fast because I've done this before &mdash; not because I'm cutting corners. AI tooling makes me faster still. Tests, types, migrations, observability are non-negotiable.</p>
+          </div>
+          <div class="card">
+            <h3>&#128172; Founder-adjacent</h3>
+            <p>I sit next to you on product calls, on architecture calls, on hiring calls if you want. I learn your domain. I push back when something doesn't make sense.</p>
+          </div>
+          <div class="card">
+            <h3>&#128737;&#65039; No lock-in</h3>
+            <p>Monthly engagement. You can scale up, scale down, or wind down. The codebase is yours and stays yours. Documented for the next engineer from day one.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 2: EXPERIENCE ============== -->
+  <div class="tab-content" id="tab-experience">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Track record</div>
+          <h2>Twenty years of building systems like this</h2>
+          <p>The numbers, then the actual builds &mdash; with the relevance to your spec spelled out.</p>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat"><div class="num">20+</div><div class="label">Years in tech</div></div>
+          <div class="stat"><div class="num">50+</div><div class="label">Products built from scratch</div></div>
+          <div class="stat"><div class="num">2+</div><div class="label">Years deep in AI agents</div></div>
+          <div class="stat"><div class="num">Multiple</div><div class="label">Startups co-founded as CTO</div></div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 2rem;">
+          <div class="exp-card">
+            <div class="exp-domain">Consumer AI &middot; Conversational</div>
+            <h3>Mystic AI &mdash; AI chat at consumer scale</h3>
+            <p>One of the first consumer AI chat products built locally &mdash; coffee reading, palm reading, astrology, all delivered by AI in conversation. Built before ChatGPT made it mainstream. Streaming responses, persona stability, content guardrails, monetization.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">OpenAI</span>
+              <span class="exp-tag">Streaming</span>
+              <span class="exp-tag">Node.js</span>
+              <span class="exp-tag">Stripe</span>
+              <span class="exp-tag">Mobile + web</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Health AI &middot; State-driven workflows</div>
+            <h3>Doing &mdash; AI platform for therapy</h3>
+            <p>AI-powered platform for therapists working with autistic children. Behavior analysis with AI, session management, visual communication boards, AI-assisted counseling. State machines coordinating therapist, parent, and child workflows. The whole product is AI-driven end to end.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">LLM agents</span>
+              <span class="exp-tag">Workflow engine</span>
+              <span class="exp-tag">Multi-role auth</span>
+              <span class="exp-tag">Real-time</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Fintech &middot; Onboarding</div>
+            <h3>Banking onboarding agent</h3>
+            <p>AI-driven onboarding flow for a banking product. Conversational KYC, document intake (ID + proof of address) with OCR + LLM extraction + confidence scoring, compliance state machine, fallback to human review on low confidence. Stripe-style billing on top.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">OCR</span>
+              <span class="exp-tag">LLM extraction</span>
+              <span class="exp-tag">State machine</span>
+              <span class="exp-tag">Compliance</span>
+              <span class="exp-tag">Webhooks</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">EdTech &middot; ML automation</div>
+            <h3>Campaign optimization platform</h3>
+            <p>ML-powered platform that predicts which marketing campaigns will convert and reallocates budget automatically. Built end-to-end &mdash; ingestion, model training, scheduled jobs, decision engine, dashboard. Real money moved by automation, so reliability mattered.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Decision engine</span>
+              <span class="exp-tag">Background jobs</span>
+              <span class="exp-tag">PostgreSQL</span>
+              <span class="exp-tag">ML models</span>
+              <span class="exp-tag">Dashboards</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Real Estate &middot; Full SaaS</div>
+            <h3>Brokerage platform &mdash; founder &amp; CTO</h3>
+            <p>Co-founded as CTO. Built the full SaaS from zero to production: auth, listings, lead engine, transactions, billing, internal ops dashboard, third-party integrations (MLS, payment, messaging). The whole stack &mdash; including the company.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">SaaS</span>
+              <span class="exp-tag">Multi-tenant</span>
+              <span class="exp-tag">Subscriptions</span>
+              <span class="exp-tag">Internal tools</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Algorithmic &middot; Decision systems</div>
+            <h3>Octopol &amp; Sidelines &mdash; sports prediction</h3>
+            <p>Two products: <strong>Octopol</strong> &mdash; sports betting prediction algorithm, full match-outcome model. <strong>Sidelines</strong> &mdash; fantasy football optimizer using genetic algorithms to assemble the strongest team within budget. Built from scratch. Sidelines was acquired.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Optimization</span>
+              <span class="exp-tag">Algorithms</span>
+              <span class="exp-tag">Prediction models</span>
+              <span class="exp-tag">Acquired</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Logistics &middot; Optimization</div>
+            <h3>Same-day delivery routing</h3>
+            <p>Evolutionary algorithm for optimizing same-day delivery routes across hundreds of stops. Generation-by-generation route improvement, real-time recompute as new orders dropped in. The kind of complex backend logic that lives or dies on indexes and queue priority.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Evolutionary algorithms</span>
+              <span class="exp-tag">Queues</span>
+              <span class="exp-tag">Real-time</span>
+              <span class="exp-tag">PostgreSQL</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Privacy &middot; Compliance</div>
+            <h3>GDPR &amp; data management platform</h3>
+            <p>Compliance platform for enterprise customers &mdash; GDPR, data subject requests, retention policies, data lineage. Heavy on workflow, audit trails, document handling, integrations into customer source systems. Regulation-driven, so the bar for correctness was high.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Workflows</span>
+              <span class="exp-tag">Audit logs</span>
+              <span class="exp-tag">Enterprise</span>
+              <span class="exp-tag">Integrations</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info" style="margin-top: 2rem;">
+          <h3>What ties all of these together</h3>
+          <p>
+            Every one of these products had: (1) a non-trivial backend with real business logic, (2) integrations with the messy outside world, (3) data flowing through state and queues, and (4) something that had to be right or money/reputation got hurt. That's the bar your system is at. I've been there before.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 3: LIVE DEMO ============== -->
+  <div class="tab-content" id="tab-demo">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Live demo</div>
+          <h2>The system you described &mdash; running</h2>
+          <p>This is a simulation of the exact backend topology in your spec: AI conversation engine, state machine, document intake, queue workers, third-party integrations &mdash; all firing in real time. It's a sketch, not a product. <strong>Built in minutes</strong> &mdash; to show how I think and how fast I move.</p>
+        </div>
+
+        <div class="demo-wrap">
+          <div class="demo-intro">
+            <h3>What you're looking at</h3>
+            <p>Pick a scenario, hit "Run flow." A user message enters the system &rarr; the AI conversation engine responds (streaming) &rarr; a state machine transitions through the business logic &rarr; queue workers pick up jobs (OCR, AI extraction, billing, webhooks) &rarr; external API calls fire &rarr; the dashboard counters update. Same shape as your real system &mdash; just compressed into 30 seconds.</p>
+          </div>
+
+          <!-- Live stats bar -->
+          <div class="live-bar">
+            <div class="live-stat">
+              <div class="lbl"><span class="live-dot"></span> Active flows</div>
+              <div class="live-num" id="stat-flows">0</div>
+            </div>
+            <div class="live-stat">
+              <div class="lbl">Jobs / min</div>
+              <div class="live-num" id="stat-jobs">0</div>
+            </div>
+            <div class="live-stat">
+              <div class="lbl">AI calls</div>
+              <div class="live-num" id="stat-ai">0</div>
+            </div>
+            <div class="live-stat">
+              <div class="lbl">Avg latency</div>
+              <div class="live-num" id="stat-latency">&mdash;</div>
+            </div>
+            <div class="live-stat">
+              <div class="lbl">Success rate</div>
+              <div class="live-num" id="stat-success">100%</div>
+            </div>
+          </div>
+
+          <!-- Scenarios -->
+          <div class="scenario-selector" id="scenarioSel">
+            <button class="scenario-btn active" data-scenario="onboarding">New customer onboarding</button>
+            <button class="scenario-btn" data-scenario="document">Document verification</button>
+            <button class="scenario-btn" data-scenario="payment">Stripe payment retry</button>
+            <button class="scenario-btn" data-scenario="integration">External API sync</button>
+          </div>
+
+          <div class="demo-controls">
+            <button class="demo-btn primary" id="runBtn">&#9654; Run flow</button>
+            <button class="demo-btn" id="resetBtn">Reset</button>
+          </div>
+
+          <!-- Orchestrator -->
+          <div class="orch-grid">
+            <div class="orch-col">
+              <!-- Conversation -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="dot"></span> Conversation Engine</div>
+                  <span class="panel-pill">openai &middot; gpt-4o</span>
+                </div>
+                <div class="panel-body" id="convBody">
+                  <div class="doc-empty"><div class="big">&#128172;</div>Pick a scenario and hit "Run flow"</div>
+                </div>
+              </div>
+
+              <!-- State machine -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="dot"></span> State Machine</div>
+                  <span class="panel-pill" id="smName">idle</span>
+                </div>
+                <div class="panel-body">
+                  <div class="sm-viz" id="smViz"></div>
+                  <div class="sm-event" id="smEvent" style="display:none;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="orch-col">
+              <!-- Queue -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="dot"></span> Queue Workers</div>
+                  <span class="panel-pill">bullmq</span>
+                </div>
+                <div class="panel-body">
+                  <div class="queue-list" id="queueList">
+                    <div class="doc-empty" style="padding: 1rem;">No active jobs</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document panel -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="dot"></span> Document Pipeline</div>
+                  <span class="panel-pill">ocr + llm</span>
+                </div>
+                <div class="panel-body doc-panel" id="docPanel">
+                  <div class="doc-empty"><div class="big">&#128196;</div>No documents in flight</div>
+                </div>
+              </div>
+
+              <!-- Integrations -->
+              <div class="panel">
+                <div class="panel-header">
+                  <div class="panel-title"><span class="dot"></span> External Integrations</div>
+                  <span class="panel-pill">webhooks</span>
+                </div>
+                <div class="panel-body">
+                  <div class="integ-list" id="integList">
+                    <div class="doc-empty" style="padding: 1rem;">No outbound calls</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout warn" style="margin-top: 1.5rem;">
+            <h3>Honest framing</h3>
+            <p>
+              This is a single-page simulation, scripted to demonstrate the topology. The real system would be Node.js services, a Postgres schema with proper migrations, BullMQ workers behind Redis, real OpenAI calls with streaming, real Stripe with webhook reconciliation, real OCR (Tesseract or Azure/AWS) feeding an LLM extractor, and an audit-ready dashboard. The point of this page is to show how I <em>think</em> about the architecture &mdash; and how fast I can put a working sketch together.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 4: ENGAGEMENT ============== -->
+  <div class="tab-content" id="tab-engagement">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Engagement model</div>
+          <h2>Monthly partnership &mdash; not project pricing</h2>
+          <p>The system you described will evolve in the building. Project-pricing it would either pad the number or pin you to a frozen scope. Monthly = honest.</p>
+        </div>
+
+        <div class="pricing-card">
+          <div class="price-label">CTO as a Service</div>
+          <div class="price"><span class="currency">&#8362;</span>50,000 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">/ month</span></div>
+          <div class="price-note">~$13,500 USD / month &middot; Includes me + 1&ndash;2 senior developers</div>
+          <ul>
+            <li>Architecture, code, DevOps, deploys &mdash; all included</li>
+            <li>Working alongside you like an internal CTO &mdash; product calls, hiring, decisions</li>
+            <li>Full transparency: your repo, your cloud, your code</li>
+            <li>Flexible scope: scale up, scale down, change direction without renegotiation</li>
+            <li>Production-grade defaults: tests, types, observability, migrations from day one</li>
+            <li>No lock-in &mdash; monthly cancellable, codebase always yours</li>
+          </ul>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-top: 1rem; line-height: 1.65;">
+            For a system at this complexity, expect <strong>~3 months</strong> from kickoff to production-grade v1, assuming clear spec and prompt feedback loops. We size it together after the first call.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Timeline</div>
+          <h2>How a project like yours typically rolls out</h2>
+          <p>Rough shape, not a contract. The exact ordering depends on what blocks what.</p>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>Week 1 &mdash; Spec lock &amp; architecture</h3>
+              <p>Together we walk through the full spec, surface tradeoffs, agree on scope for v1. I produce: data model, state machine diagram, queue topology, integration map, deployment shape. By end of week we both know exactly what's getting built.</p>
+              <span class="tag">Spec / architecture / data model</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>Weeks 2&ndash;4 &mdash; Backbone</h3>
+              <p>Auth, base schema, state machine engine, queue infrastructure, deployment pipeline, observability skeleton. Everything else hangs off this. Done right, the rest of the project is fast. Done wrong, it limps forever.</p>
+              <span class="tag">Auth / DB / queues / CI-CD</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>Weeks 4&ndash;8 &mdash; Domain features</h3>
+              <p>AI conversation engine, document intake pipeline (upload &rarr; OCR &rarr; LLM extraction &rarr; validation), business workflows, Stripe integration, third-party integrations. Each shipped behind a feature flag, observable end-to-end.</p>
+              <span class="tag">AI / OCR / Stripe / integrations</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">4</div>
+            <div class="timeline-body">
+              <h3>Weeks 8&ndash;10 &mdash; Internal dashboard &amp; ops</h3>
+              <p>Operations dashboard, search, bulk actions, audit views, alerting. The dashboard is what makes the system actually <em>operable</em> &mdash; without it the team is flying blind.</p>
+              <span class="tag">Admin / observability / alerts</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">5</div>
+            <div class="timeline-body">
+              <h3>Weeks 10&ndash;12 &mdash; Hardening &amp; launch</h3>
+              <p>Load testing, failure-mode rehearsal (kill workers, kill DB connections, replay webhooks), security pass, runbook. Soft launch with the first cohort, monitor, iterate. Then full launch.</p>
+              <span class="tag">Load tests / security / launch</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Stack</div>
+          <h2>What I'd default to &mdash; happy to flex</h2>
+          <p>These are battle-tested choices for this exact shape of system. If you have constraints (existing infra, team preferences, compliance), we adapt.</p>
+        </div>
+
+        <div class="stack-grid">
+          <div class="stack-cat">
+            <div class="cat-title">Backend</div>
+            <div class="cat-items">Node.js, TypeScript, Express / Fastify, Zod, Prisma or Drizzle</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Database</div>
+            <div class="cat-items">PostgreSQL (primary), Redis (cache + queues), JSONB where it earns its keep</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Queues / async</div>
+            <div class="cat-items">BullMQ on Redis, scheduled jobs, dead-letter queues, retry policies</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">AI / LLM</div>
+            <div class="cat-items">OpenAI (GPT-4o / 4.1), Claude as fallback, streaming, function-calling, structured outputs</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Document AI</div>
+            <div class="cat-items">Tesseract / Azure Document Intelligence / AWS Textract for OCR; LLM for extraction + validation</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Payments</div>
+            <div class="cat-items">Stripe Subscriptions / Connect / Payment Intents, signed-webhook reconciliation</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Auth</div>
+            <div class="cat-items">Clerk / Auth0 / hand-rolled JWT &mdash; whatever fits stage and compliance needs</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Frontend / dashboard</div>
+            <div class="cat-items">Next.js, React, Tailwind, shadcn/ui &mdash; fast, clean, modern</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Hosting / DevOps</div>
+            <div class="cat-items">AWS / GCP / Vercel + Railway / Fly &mdash; right-sized to stage, with a clean upgrade path</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Observability</div>
+            <div class="cat-items">Structured logs, Sentry, basic dashboards, paging on what matters</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Testing</div>
+            <div class="cat-items">Vitest / Jest, integration tests against real Postgres + Redis, contract tests for integrations</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Dev velocity</div>
+            <div class="cat-items">Claude Code in the loop &mdash; reviewed, tested, deployed. Not "vibe coding."</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <div class="container">
+        <h2>Want to take the next step?</h2>
+        <p>30-minute intro call &mdash; you walk me through the spec, I push back where I have questions, we both leave knowing if we'd work well together.</p>
+        <div class="contact-details">
+          <div class="contact-item">&#9993;&#65039; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+          <div class="contact-item">&#128241; <a href="tel:+972545567213">054-5567213</a></div>
+          <div class="contact-item">&#128172; <a href="https://wa.me/972545567213" target="_blank" rel="noopener">WhatsApp</a></div>
+        </div>
+        <a href="https://wa.me/972545567213" class="btn primary" target="_blank" rel="noopener">Message me on WhatsApp</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div>Shlomi Zevin &middot; CTO as a Service &middot; <a href="https://boostart.io" target="_blank" rel="noopener">boostart.io</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Theme toggle =====
+    const themeBtn = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    function setTheme(t) {
+      if (t === 'light') { root.setAttribute('data-theme', 'light'); themeBtn.textContent = 'Dark'; }
+      else { root.removeAttribute('data-theme'); themeBtn.textContent = 'Light'; }
+      localStorage.setItem('theme', t);
+    }
+    themeBtn.addEventListener('click', () => {
+      const cur = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setTheme(cur === 'light' ? 'dark' : 'light');
+    });
+    setTheme(localStorage.getItem('theme') || 'dark');
+
+    // ===== Tabs =====
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    function activateTab(name) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      contents.forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    document.querySelectorAll('[data-tab-link]').forEach(a => {
+      a.addEventListener('click', e => { e.preventDefault(); activateTab(a.dataset.tabLink); });
+    });
+
+    // ===== Demo orchestrator =====
+    const SCENARIOS = {
+      onboarding: {
+        name: 'customer.onboarding',
+        states: ['received', 'identity_check', 'document_intake', 'plan_selection', 'payment', 'activated'],
+        conv: [
+          { who: 'user',  text: "Hi, I'd like to sign up for the Pro plan." },
+          { who: 'ai',    text: "Welcome! I'll get you set up. First — can you share your full name and the email you want to use?" },
+          { who: 'user',  text: "Sarah Klein, sarah.klein@acme.io" },
+          { who: 'ai',    text: "Got it, Sarah. Next — could you upload a photo of your business license? I'll handle the rest." }
+        ],
+        jobs: [
+          { name: 'verify.email',          ms: 1200, meta: 'sarah.klein@acme.io' },
+          { name: 'ocr.extract',           ms: 2200, meta: 'license.pdf · 1.2MB' },
+          { name: 'llm.extract_fields',    ms: 1600, meta: 'model: gpt-4o · doc_id: dc_8xq2' },
+          { name: 'stripe.create_subscription', ms: 1400, meta: 'plan: pro_monthly' },
+          { name: 'webhook.crm_sync',      ms: 900,  meta: 'POST /api/customers (HubSpot)' }
+        ],
+        doc: { name: 'business_license.pdf', stages: ['Uploading', 'OCR scanning', 'LLM extraction', 'Validating'], fields: { 'Company': 'Acme Industries Ltd.', 'Reg #': 'IL-514882309', 'Issued': '2021-03-14', 'Confidence': '94%' } },
+        integrations: [
+          { method: 'POST',    target: '/v1/customers',           host: 'api.stripe.com',  status: '201' },
+          { method: 'WEBHOOK', target: '/incoming/customer.created', host: 'hubspot.com', status: '200' },
+          { method: 'POST',    target: '/v1/messages',            host: 'graph.facebook.com', status: '200' }
+        ]
+      },
+      document: {
+        name: 'document.verification',
+        states: ['uploaded', 'queued', 'ocr_running', 'llm_extracting', 'low_confidence', 'human_review'],
+        conv: [
+          { who: 'user',  text: "I'm uploading my proof of address now." },
+          { who: 'ai',    text: "Thanks. I'll verify it in the background — should take about 20 seconds." },
+          { who: 'ai',    text: "I'm seeing low confidence on the date field. I'll route this to our review team and get back to you within an hour." }
+        ],
+        jobs: [
+          { name: 'doc.upload',            ms: 800,  meta: 'utility_bill.jpg · 3.4MB' },
+          { name: 'ocr.extract',           ms: 2400, meta: 'tesseract · pages: 1' },
+          { name: 'llm.extract_fields',    ms: 1500, meta: 'model: gpt-4o · structured_output' },
+          { name: 'doc.confidence_check',  ms: 600,  meta: 'threshold: 0.85' },
+          { name: 'review.assign_human',   ms: 700,  meta: 'queue: doc_review · priority: high' }
+        ],
+        doc: { name: 'utility_bill.jpg', stages: ['Uploading', 'OCR scanning', 'LLM extraction', 'Confidence check'], fields: { 'Name': 'S. Klein', 'Address': '12 Rothschild, Tel Aviv', 'Issued': '2025-?-08', 'Confidence': '67%' } },
+        integrations: [
+          { method: 'POST',    target: '/storage/objects',        host: 's3.amazonaws.com', status: '201' },
+          { method: 'POST',    target: '/v1/chat/completions',    host: 'api.openai.com',  status: '200' },
+          { method: 'WEBHOOK', target: '/internal/review.queued', host: 'app.boostart',    status: '200' }
+        ]
+      },
+      payment: {
+        name: 'billing.payment_retry',
+        states: ['payment_failed', 'analyzing', 'dunning_email_sent', 'retry_scheduled', 'recovered'],
+        conv: [
+          { who: 'user',  text: "I just got an email saying my payment failed?" },
+          { who: 'ai',    text: "I see what happened — your card was declined for insufficient funds. I've scheduled a retry in 3 days, no action needed unless you want to update the card now." },
+          { who: 'user',  text: "Let me update it." },
+          { who: 'ai',    text: "Here's a secure link to update: stripe.com/p/... — once done, I'll retry immediately." }
+        ],
+        jobs: [
+          { name: 'stripe.webhook.invoice_failed', ms: 700,  meta: 'evt_3xR2kF · invoice_id: in_8K2w' },
+          { name: 'billing.classify_failure',      ms: 900,  meta: 'reason: insufficient_funds' },
+          { name: 'email.dunning_send',            ms: 1200, meta: 'template: dunning_v3 · sendgrid' },
+          { name: 'billing.schedule_retry',        ms: 600,  meta: 'in: 3d · attempt 2/4' },
+          { name: 'webhook.crm_sync',              ms: 800,  meta: 'POST /events (HubSpot)' }
+        ],
+        doc: null,
+        integrations: [
+          { method: 'WEBHOOK', target: '/incoming/invoice.payment_failed', host: 'api.stripe.com', status: '200' },
+          { method: 'POST',    target: '/v3/mail/send',            host: 'api.sendgrid.com', status: '202' },
+          { method: 'POST',    target: '/v1/payment_intents',      host: 'api.stripe.com',   status: '200' }
+        ]
+      },
+      integration: {
+        name: 'sync.external_api',
+        states: ['triggered', 'fetching', 'transforming', 'upserting', 'reconciled'],
+        conv: [
+          { who: 'user',  text: "Sync my CRM contacts now." },
+          { who: 'ai',    text: "Starting sync. I'll pull contacts from HubSpot, dedupe against our DB, and push messaging-platform changes back. ETA ~30 seconds." },
+          { who: 'ai',    text: "Done — 1,247 contacts synced, 18 conflicts auto-resolved by your rules, 2 escalated to ops." }
+        ],
+        jobs: [
+          { name: 'integration.fetch_page',  ms: 1100, meta: 'GET /contacts?page=1 · 200 items' },
+          { name: 'integration.fetch_page',  ms: 1100, meta: 'GET /contacts?page=2 · 200 items' },
+          { name: 'sync.dedupe',             ms: 1400, meta: 'matched: 1029 · new: 218' },
+          { name: 'sync.upsert_db',          ms: 1800, meta: 'postgres · ON CONFLICT (email)' },
+          { name: 'webhook.notify_ops',      ms: 600,  meta: 'POST /slack/webhook' }
+        ],
+        doc: null,
+        integrations: [
+          { method: 'GET',     target: '/contacts?page=1',        host: 'api.hubapi.com',     status: '200' },
+          { method: 'GET',     target: '/contacts?page=2',        host: 'api.hubapi.com',     status: '200' },
+          { method: 'POST',    target: '/v1/messages',            host: 'graph.facebook.com', status: '200' },
+          { method: 'WEBHOOK', target: '/services/T0/B0/...',     host: 'hooks.slack.com',    status: '200' }
+        ]
+      }
+    };
+
+    let currentScenario = 'onboarding';
+    let running = false;
+    let timers = [];
+    let stats = { flows: 0, jobs: 0, ai: 0, latencies: [], success: 0, total: 0 };
+
+    function clearTimers() { timers.forEach(t => clearTimeout(t)); timers = []; }
+    function schedule(fn, delay) { const t = setTimeout(fn, delay); timers.push(t); return t; }
+
+    function flashStat(id) {
+      const el = document.getElementById(id);
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 400);
+    }
+    function setStat(id, val) {
+      document.getElementById(id).textContent = val;
+      flashStat(id);
+    }
+
+    function renderStateMachine(states, activeIdx) {
+      const viz = document.getElementById('smViz');
+      viz.innerHTML = '';
+      states.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.className = 'sm-state' + (i < activeIdx ? ' done' : i === activeIdx ? ' active' : '');
+        el.textContent = s;
+        viz.appendChild(el);
+        if (i < states.length - 1) {
+          const arr = document.createElement('span');
+          arr.className = 'sm-arrow';
+          arr.textContent = '→';
+          viz.appendChild(arr);
+        }
+      });
+    }
+
+    function logSmEvent(text) {
+      const ev = document.getElementById('smEvent');
+      ev.style.display = 'block';
+      ev.innerHTML = '<span class="ev-key">event:</span> ' + text;
+    }
+
+    function nowTime() {
+      const d = new Date();
+      return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+    }
+
+    function appendConv(line, isStreaming, doneCb) {
+      const body = document.getElementById('convBody');
+      // Clear empty state if present
+      if (body.querySelector('.doc-empty')) body.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'conv-line ' + line.who + (isStreaming ? ' streaming' : '');
+      div.innerHTML = '<div class="conv-meta"><span>' + (line.who === 'ai' ? 'AI agent' : 'User') + '</span><span class="ts">' + nowTime() + '</span></div><div class="conv-text"></div>';
+      body.appendChild(div);
+      const textEl = div.querySelector('.conv-text');
+      if (line.who === 'ai' && isStreaming) {
+        // simulate streaming
+        let i = 0;
+        const words = line.text.split(' ');
+        const interval = setInterval(() => {
+          textEl.textContent += (i === 0 ? '' : ' ') + words[i];
+          i++;
+          body.scrollTop = body.scrollHeight;
+          if (i >= words.length) {
+            clearInterval(interval);
+            div.classList.remove('streaming');
+            if (doneCb) doneCb();
+          }
+        }, 80);
+        timers.push(interval);
+      } else {
+        textEl.textContent = line.text;
+        body.scrollTop = body.scrollHeight;
+        if (doneCb) doneCb();
+      }
+    }
+
+    function renderQueueJob(job, idx) {
+      const list = document.getElementById('queueList');
+      if (list.querySelector('.doc-empty')) list.innerHTML = '';
+      const item = document.createElement('div');
+      item.className = 'queue-item';
+      item.id = 'job-' + idx;
+      item.innerHTML = '<div class="queue-job-icon">' + (idx + 1) + '</div>' +
+        '<div class="queue-job-body"><div class="job-name">' + job.name + '</div><div class="job-meta">' + job.meta + '</div></div>' +
+        '<div class="queue-job-status">queued</div>';
+      list.appendChild(item);
+      list.scrollTop = list.scrollHeight;
+    }
+
+    function updateQueueJob(idx, state, ms) {
+      const item = document.getElementById('job-' + idx);
+      if (!item) return;
+      item.className = 'queue-item ' + state;
+      const status = item.querySelector('.queue-job-status');
+      if (state === 'processing') status.textContent = 'running';
+      if (state === 'done') {
+        status.textContent = ms + 'ms';
+        stats.jobs++; stats.total++; stats.success++;
+        stats.latencies.push(ms);
+        setStat('stat-jobs', stats.jobs);
+        const avg = Math.round(stats.latencies.reduce((a,b)=>a+b,0) / stats.latencies.length);
+        setStat('stat-latency', avg + 'ms');
+        const sr = stats.total === 0 ? 100 : Math.round((stats.success / stats.total) * 100);
+        setStat('stat-success', sr + '%');
+      }
+    }
+
+    function renderIntegration(integ, delay) {
+      schedule(() => {
+        const list = document.getElementById('integList');
+        if (list.querySelector('.doc-empty')) list.innerHTML = '';
+        const row = document.createElement('div');
+        row.className = 'integ-row';
+        const statusClass = integ.status === '200' ? 's200' : integ.status === '201' || integ.status === '202' ? 's201' : 'pending';
+        row.innerHTML = '<div class="integ-method ' + integ.method + '">' + integ.method + '</div>' +
+          '<div class="integ-target"><span class="target-host">' + integ.host + '</span> ' + integ.target + '</div>' +
+          '<div class="integ-status ' + statusClass + '">' + integ.status + ' OK</div>';
+        list.appendChild(row);
+        list.scrollTop = list.scrollHeight;
+      }, delay);
+    }
+
+    function renderDoc(doc) {
+      const panel = document.getElementById('docPanel');
+      panel.innerHTML = '';
+      const card = document.createElement('div');
+      card.className = 'doc-card processing';
+      card.innerHTML = '<div class="doc-header">' +
+          '<div class="doc-icon">PDF</div>' +
+          '<div><div class="doc-name">' + doc.name + '</div><div class="doc-stage" id="docStage">' + doc.stages[0] + '</div></div>' +
+        '</div>' +
+        '<div class="doc-progress"><div class="doc-progress-fill" id="docProgress"></div></div>' +
+        '<div class="doc-extracted" id="docExtracted"></div>';
+      panel.appendChild(card);
+
+      // Animate stages
+      const stageEl = document.getElementById('docStage');
+      const progEl = document.getElementById('docProgress');
+      doc.stages.forEach((s, i) => {
+        schedule(() => {
+          stageEl.textContent = s;
+          progEl.style.width = (((i + 1) / doc.stages.length) * 100) + '%';
+        }, 800 * (i + 1));
+      });
+
+      // Reveal fields
+      schedule(() => {
+        const ext = document.getElementById('docExtracted');
+        Object.entries(doc.fields).forEach(([lbl, val]) => {
+          const f = document.createElement('div');
+          f.className = 'doc-field' + (lbl.toLowerCase().includes('confidence') ? ' confidence' : '');
+          f.innerHTML = '<div class="lbl">' + lbl + '</div><div class="val">' + val + '</div>';
+          ext.appendChild(f);
+        });
+        card.classList.remove('processing');
+        document.getElementById('docStage').textContent = 'Extracted';
+      }, 800 * doc.stages.length + 200);
+    }
+
+    function runFlow() {
+      if (running) return;
+      reset();
+      running = true;
+      const sc = SCENARIOS[currentScenario];
+      document.getElementById('smName').textContent = sc.name;
+      stats.flows = 1;
+      setStat('stat-flows', 1);
+
+      // Render initial state machine
+      renderStateMachine(sc.states, 0);
+
+      // 1) Queue all jobs as queued
+      sc.jobs.forEach((j, i) => schedule(() => renderQueueJob(j, i), 200 + i * 300));
+
+      // 2) Conversation lines
+      let convOffset = 600;
+      sc.conv.forEach((line) => {
+        schedule(() => {
+          appendConv(line, line.who === 'ai');
+          if (line.who === 'ai') { stats.ai++; setStat('stat-ai', stats.ai); }
+        }, convOffset);
+        convOffset += line.who === 'ai' ? Math.max(1500, line.text.split(' ').length * 90 + 300) : 1100;
+      });
+
+      // 3) Process jobs sequentially, advance state machine
+      let jobOffset = sc.jobs.length * 300 + 800;
+      sc.jobs.forEach((j, i) => {
+        schedule(() => updateQueueJob(i, 'processing'), jobOffset);
+        jobOffset += j.ms;
+        schedule(() => {
+          updateQueueJob(i, 'done', j.ms);
+          // Advance state machine alongside jobs
+          const stateIdx = Math.min(i + 1, sc.states.length - 1);
+          renderStateMachine(sc.states, stateIdx);
+          logSmEvent(sc.states[stateIdx - 1] + ' → ' + sc.states[stateIdx]);
+        }, jobOffset);
+        jobOffset += 200;
+      });
+
+      // 4) Document panel (if doc scenario)
+      if (sc.doc) schedule(() => renderDoc(sc.doc), sc.jobs.length * 300 + 1200);
+
+      // 5) Integrations
+      sc.integrations.forEach((integ, i) => {
+        renderIntegration(integ, 1500 + i * 1100);
+      });
+
+      // 6) Final state
+      schedule(() => {
+        renderStateMachine(sc.states, sc.states.length - 1);
+        logSmEvent('flow.completed ✓');
+        running = false;
+      }, jobOffset + 500);
+    }
+
+    function reset() {
+      clearTimers();
+      running = false;
+      document.getElementById('convBody').innerHTML = '<div class="doc-empty"><div class="big">&#128172;</div>Pick a scenario and hit "Run flow"</div>';
+      document.getElementById('queueList').innerHTML = '<div class="doc-empty" style="padding: 1rem;">No active jobs</div>';
+      document.getElementById('integList').innerHTML = '<div class="doc-empty" style="padding: 1rem;">No outbound calls</div>';
+      document.getElementById('docPanel').innerHTML = '<div class="doc-empty"><div class="big">&#128196;</div>No documents in flight</div>';
+      document.getElementById('smViz').innerHTML = '';
+      document.getElementById('smEvent').style.display = 'none';
+      document.getElementById('smName').textContent = 'idle';
+      stats = { flows: 0, jobs: 0, ai: 0, latencies: [], success: 0, total: 0 };
+      ['stat-flows', 'stat-jobs', 'stat-ai'].forEach(id => document.getElementById(id).textContent = '0');
+      document.getElementById('stat-latency').textContent = '—';
+      document.getElementById('stat-success').textContent = '100%';
+    }
+
+    document.getElementById('runBtn').addEventListener('click', runFlow);
+    document.getElementById('resetBtn').addEventListener('click', reset);
+    document.querySelectorAll('#scenarioSel .scenario-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('#scenarioSel .scenario-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        currentScenario = b.dataset.scenario;
+        reset();
+      });
+    });
+
+    // Auto-run when user opens demo tab the first time
+    let demoAutoRan = false;
+    document.querySelector('[data-tab="demo"]').addEventListener('click', () => {
+      if (!demoAutoRan) {
+        demoAutoRan = true;
+        setTimeout(() => runFlow(), 500);
+      }
+    });
+  </script>
+
+</body>
+</html>

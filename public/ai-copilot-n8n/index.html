@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>AI Copilot לשירות לקוחות | n8n + 3CX | שלומי זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --bg-alt: #10141c;
+      --card-bg: #151a24;
+      --card-hover: #1a202b;
+      --accent: #06b6d4;
+      --accent-alt: #3b82f6;
+      --accent-soft: rgba(6, 182, 212, 0.12);
+      --accent-dim: rgba(6, 182, 212, 0.35);
+      --purple: #8b5cf6;
+      --purple-soft: rgba(139, 92, 246, 0.12);
+      --success: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: #232a36;
+      --border-strong: #2e3644;
+      --text: #f5f7fa;
+      --text-muted: #8b929d;
+      --text-dim: #5f6570;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff; --bg-alt: #f5f7fa; --card-bg: #ffffff; --card-hover: #f7f9fc;
+      --border: #e2e6ec; --border-strong: #ccd1d9;
+      --text: #0f1419; --text-muted: #5c6370; --text-dim: #8b929d;
+      --accent-soft: rgba(6, 182, 212, 0.08);
+      --purple-soft: rgba(139, 92, 246, 0.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent), var(--accent-alt)); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; }
+    .logo-text { font-weight: 600; font-size: 0.92rem; color: var(--text); letter-spacing: -0.01em; }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: white; font-size: 0.84rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: #0891b2; }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.92rem; font-weight: 500; padding: 0.9rem 1.5rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 2.5rem; text-align: center; }
+    .hero h1 { font-size: clamp(1.85rem, 4vw, 2.9rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--accent-alt)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 820px; margin: 0 auto 2rem; line-height: 1.7; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { background: #0891b2; }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 0.98rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.02rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.55rem; margin-bottom: 0.75rem; opacity: 0.95; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2rem 0 2.5rem; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.3rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; background: linear-gradient(135deg, var(--accent), var(--accent-alt)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* EXPERIENCE CARDS */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.87rem; margin: 0 0 0.6rem; line-height: 1.6; }
+    .exp-tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); margin-left: 0.25rem; margin-bottom: 0.25rem; border: 1px solid var(--border); }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1.02rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.92rem; line-height: 1.75; }
+    .callout.purple { border-right-color: var(--purple); }
+
+    /* AI INSIGHT */
+    .ai-insight { border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--purple); margin: 1.5rem 0; }
+    .ai-insight h4 { color: var(--text); margin: 0 0 0.5rem; font-size: 0.98rem; font-weight: 600; }
+    .ai-insight p { color: var(--text-muted); font-size: 0.9rem; margin: 0; line-height: 1.75; }
+    .ai-insight strong { color: var(--text); }
+
+    /* PRICING */
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; text-align: center; max-width: 700px; margin: 0 auto; position: relative; overflow: hidden; }
+    .pricing-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-alt)); }
+    .pricing-card .price-label { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 0.5rem; }
+    .pricing-card .price { font-size: 2.4rem; font-weight: 700; margin: 0.3rem 0; color: var(--text); letter-spacing: -0.02em; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.9rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; text-align: right; }
+    .pricing-card li { font-size: 0.93rem; margin-bottom: 0.55rem; display: flex; align-items: center; gap: 0.55rem; color: var(--text-muted); }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 1.1rem; max-width: 780px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; }
+    .timeline-num { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.4rem; border: 1px solid var(--accent-dim); }
+
+    /* ========== DEMO ========== */
+    .demo-wrap { max-width: 1080px; margin: 0 auto; }
+
+    .live-bar { display: flex; justify-content: space-between; gap: 1rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+    .live-stat { display: flex; flex-direction: column; gap: 0.15rem; min-width: 90px; }
+    .live-stat .lbl { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+    .live-num { font-size: 1.35rem; font-weight: 700; color: var(--text); transition: color 0.3s; letter-spacing: -0.01em; }
+    .live-num.flash { color: var(--accent); }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: livePulse 2s infinite; display: inline-block; margin-left: 0.4rem; }
+    @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+
+    .demo-app { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+    .demo-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.25rem; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem; }
+    .demo-header h3 { font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+    .demo-header h3::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: livePulse 2s infinite; }
+    .demo-controls { display: flex; gap: 0.5rem; align-items: center; }
+    .demo-btn { padding: 0.4rem 0.9rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .demo-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .demo-btn.primary:hover { background: #0891b2; color: white; }
+    .demo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .copilot-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; padding: 1.25rem; }
+
+    /* CALL PANEL */
+    .call-panel { background: var(--bg-alt); border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; min-height: 520px; }
+    .call-panel-header { padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .caller-info { display: flex; align-items: center; gap: 0.7rem; }
+    .caller-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-alt)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.82rem; font-weight: 700; }
+    .caller-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .caller-meta { font-size: 0.72rem; color: var(--text-muted); direction: ltr; }
+    .call-timer { font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; direction: ltr; }
+    .call-timer::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); animation: livePulse 1.5s infinite; }
+
+    .transcript { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; max-height: 420px; min-height: 420px; }
+    .transcript::-webkit-scrollbar { width: 4px; }
+    .transcript::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .tr-line { padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.88rem; line-height: 1.6; border: 1px solid var(--border); background: var(--card-bg); animation: msgSlide 0.35s ease; position: relative; }
+    @keyframes msgSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .tr-line.customer { border-right: 2px solid var(--accent); align-self: flex-start; max-width: 88%; }
+    .tr-line.agent { border-right: 2px solid var(--success); align-self: flex-end; max-width: 88%; background: var(--bg); }
+    .tr-line .speaker { font-size: 0.68rem; font-weight: 600; margin-bottom: 0.2rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: flex; justify-content: space-between; }
+    .tr-line .speaker .ts { color: var(--text-dim); font-weight: 500; font-variant-numeric: tabular-nums; direction: ltr; }
+    .tr-line.streaming::after { content: '\25AE'; margin-right: 3px; animation: blink 1s infinite; color: var(--accent); }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* COPILOT PANEL */
+    .copilot-panel { background: var(--bg-alt); border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; min-height: 520px; max-height: 520px; }
+    .copilot-header { padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .copilot-title { font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .copilot-title .ai-icon { width: 24px; height: 24px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--purple), var(--accent-alt)); display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; color: white; }
+    .status-pill { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); font-weight: 500; }
+
+    .copilot-body { flex: 1; overflow-y: auto; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.7rem; }
+    .copilot-body::-webkit-scrollbar { width: 4px; }
+    .copilot-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .insight-box { padding: 0.85rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); animation: slideIn 0.35s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+    .insight-box .insight-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted); }
+    .insight-box .insight-label .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .insight-box.intent .insight-label { color: var(--accent); }
+    .insight-box.intent .dot { background: var(--accent); }
+    .insight-box.sentiment .insight-label { color: var(--warn); }
+    .insight-box.sentiment .dot { background: var(--warn); }
+    .insight-box.customer .insight-label { color: var(--purple); }
+    .insight-box.customer .dot { background: var(--purple); }
+    .insight-box.kb .insight-label { color: var(--success); }
+    .insight-box.kb .dot { background: var(--success); }
+    .insight-box .insight-value { font-size: 0.88rem; color: var(--text); font-weight: 500; }
+    .insight-box .insight-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.55; }
+
+    .customer-card-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-top: 0.5rem; }
+    .customer-field { font-size: 0.78rem; }
+    .customer-field .fl { color: var(--text-muted); font-size: 0.72rem; }
+    .customer-field .fv { color: var(--text); font-weight: 500; }
+
+    .kb-match { padding: 0.7rem 0.85rem; border-radius: var(--radius-sm); background: var(--bg); border: 1px solid var(--border); margin-top: 0.5rem; cursor: pointer; transition: all 0.15s; }
+    .kb-match:hover { border-color: var(--success); transform: translateX(-2px); }
+    .kb-match-title { font-size: 0.82rem; font-weight: 600; color: var(--text); display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+    .confidence { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 600; }
+    .kb-match-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.55; }
+    .kb-match-src { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.3rem; font-family: 'SF Mono', Monaco, monospace; direction: ltr; }
+
+    .suggestion { padding: 0.75rem 0.9rem; border-radius: var(--radius-sm); background: var(--accent-soft); border: 1px solid var(--accent-dim); cursor: pointer; transition: all 0.15s; font-size: 0.86rem; line-height: 1.55; color: var(--text); animation: slideIn 0.35s ease; }
+    .suggestion:hover { background: rgba(6,182,212,0.18); transform: translateX(-3px); }
+    .suggestion .sug-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.3rem; }
+
+    .copilot-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    .copilot-empty .big { font-size: 2rem; opacity: 0.4; margin-bottom: 0.5rem; }
+
+    /* N8N WORKFLOW VIZ */
+    .workflow-viz { margin-top: 1rem; background: var(--bg-alt); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 1rem 0.75rem; overflow-x: auto; }
+    .workflow-title { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem; padding: 0 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .workflow-title .wf-badge { font-size: 0.68rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); background: var(--purple-soft); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); font-weight: 600; direction: ltr; }
+    .workflow-nodes { display: flex; align-items: center; gap: 0.4rem; min-width: max-content; padding: 0 0.25rem; }
+    .wf-node { padding: 0.55rem 0.8rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; display: flex; align-items: center; gap: 0.35rem; transition: all 0.3s; min-width: 0; }
+    .wf-node .wf-icon { font-size: 0.9rem; }
+    .wf-node.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
+    .wf-node.done { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.3); color: var(--success); }
+    .wf-arrow { color: var(--text-dim); font-size: 0.95rem; }
+    .wf-node.active .wf-icon { animation: spin 1.2s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* SCENARIO SELECTOR */
+    .scenario-selector { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; margin: 0.5rem 0 1.25rem; }
+    .scenario-btn { padding: 0.55rem 1rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .scenario-btn:hover { color: var(--text); border-color: var(--border-strong); }
+    .scenario-btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+
+    /* CHANNEL BADGES */
+    .channel-badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); border: 1px solid var(--border); }
+    .channel-badge.phone { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-soft); }
+    .channel-badge.whatsapp { color: #25d366; border-color: rgba(37,211,102,0.3); background: rgba(37,211,102,0.08); }
+    .channel-badge.email { color: var(--purple); border-color: rgba(139,92,246,0.3); background: var(--purple-soft); }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+    .footer a { color: var(--text); text-decoration: none; }
+    .footer a:hover { color: var(--accent); }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 3rem 0; }
+    .contact-section h2 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--text-muted); }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .contact-item a:hover { color: var(--accent-alt); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .copilot-grid { grid-template-columns: 1fr; }
+      .copilot-panel { min-height: 380px; max-height: 440px; }
+      .call-panel { min-height: 400px; }
+      .transcript { min-height: 340px; max-height: 340px; }
+    }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .hero { padding: 3rem 0 2rem; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-sub { font-size: 1rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.5rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 1.85rem; }
+      .tab-btn { padding: 0.75rem 1rem; font-size: 0.86rem; }
+      .logo-text { font-size: 0.82rem; }
+      .live-bar { padding: 0.85rem 1rem; gap: 0.5rem; }
+      .live-stat { min-width: 72px; }
+      .live-num { font-size: 1.05rem; }
+      .live-stat .lbl { font-size: 0.62rem; }
+      .copilot-grid { padding: 0.85rem; gap: 0.75rem; }
+      .workflow-nodes { gap: 0.25rem; }
+      .wf-node { padding: 0.4rem 0.55rem; font-size: 0.68rem; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 1.85rem; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.5rem; }
+      .hero-badges span { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .scenario-btn { font-size: 0.75rem; padding: 0.45rem 0.75rem; }
+      .demo-btn { font-size: 0.72rem; padding: 0.35rem 0.7rem; }
+      .container { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">שלומי זוין | CTO as a Service</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Dark / Light">&#9790; / &#9788;</button>
+        <a href="https://wa.me/972545567213" class="btn-sm">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="proposal" onclick="switchTab('proposal')">ההצעה</button>
+      <button class="tab-btn" data-tab="experience" onclick="switchTab('experience')">ניסיון רלוונטי</button>
+      <button class="tab-btn" data-tab="demo" onclick="switchTab('demo')">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="budget" onclick="switchTab('budget')">תקציב ולו&quot;ז</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: PROPOSAL -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+
+    <div class="hero">
+      <h1><span class="gradient">AI Copilot</span> לנציגי שירות<br>על n8n + 3CX</h1>
+      <p class="hero-sub">
+        מערכת שמנתחת כל פנייה בזמן אמת - טלפון, וואטסאפ, מייל - ומזינה לנציג את התשובה הנכונה מתוך בסיס הידע, לפני שהוא בכלל סיים להקשיב. לא עוד נציג שמחפש במסמכים, לא עוד לקוח שמחכה על הקו.
+      </p>
+      <div class="hero-badges">
+        <span>n8n Workflows</span>
+        <span>3CX API + Webhooks</span>
+        <span>OpenAI / Claude</span>
+        <span>RAG + Vector DB</span>
+        <span>Real-time WebSockets</span>
+        <span>Hebrew NLP</span>
+        <span>Multi-channel</span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">בואו נדבר</a>
+        <button class="btn ghost" onclick="switchTab('demo')">ראו את הדמו &#8592;</button>
+      </div>
+    </div>
+
+    <div class="ai-insight">
+      <h4>&#129302; למה זה שונה מעוד "אינטגרציית AI"?</h4>
+      <p>
+        כולם מחברים היום OpenAI ל-n8n. הבעיה היא שזה <strong>לא עובד ברצינות</strong> - הסוכן ממציא תשובות, בסיס הידע לא מתעדכן, ההמלצות מגיעות באיחור של 8 שניות אחרי שהלקוח כבר סיים לדבר.
+        המערכת שאני בונה היא <strong>מנוע אמיתי</strong>: streaming transcription בזמן אמת, RAG מדויק עם ציון confidence, תשובות בתת-שנייה, ובקרה רצופה על איכות.
+      </p>
+    </div>
+
+    <!-- WHAT I'M BUILDING -->
+    <div class="section">
+      <div class="section-header">
+        <h2>מה בדיוק אני בונה</h2>
+        <p>מערכת שלמה שמחברת בין הנציג, הלקוח ובסיס הידע - בזמן אמת</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">&#128225;</div>
+          <h3>אינטגרציה עמוקה ל-3CX</h3>
+          <p>לא רק "לשלוח אירוע" - חיבור מלא לפלטפורמה</p>
+          <ul>
+            <li>3CX Call Control API + CRM Integration</li>
+            <li>Real-time call events (ring / answer / hangup)</li>
+            <li>שליפת מטאדאטה - מספר, סוכן, תור, משך</li>
+            <li>Live call recording stream ל-Speech-to-Text</li>
+            <li>Click-to-dial חזרה מה-Copilot</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>מנוע n8n עם Sub-workflows</h3>
+          <p>לא "workflow אחד ענק" - ארכיטקטורה נקייה</p>
+          <ul>
+            <li>Orchestrator workflow ראשי לניתוב</li>
+            <li>Sub-workflows לכל ערוץ (טלפון/WA/מייל)</li>
+            <li>Error handling, retries, DLQ</li>
+            <li>Queue management - Redis/BullMQ</li>
+            <li>ניטור ותחזוקה - alerts על workflows שנופלים</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">&#128218;</div>
+          <h3>Knowledge Base אמיתי</h3>
+          <p>RAG מדויק - לא hallucinations</p>
+          <ul>
+            <li>Ingestion pipeline ממסמכים, CRM, Confluence</li>
+            <li>Vector DB (Qdrant/Pinecone) + chunking חכם</li>
+            <li>Re-ranking + hybrid search (semantic + keyword)</li>
+            <li>Citations - כל תשובה עם מקור</li>
+            <li>Confidence threshold - מתי לא לענות</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">&#129302;</div>
+          <h3>Copilot UI לנציג</h3>
+          <p>ממשק בזמן אמת שלא מפריע לעבודה</p>
+          <ul>
+            <li>פאנל דוק-אבל שמופיע במסך הנציג</li>
+            <li>WebSocket push - אין refresh, אין delays</li>
+            <li>Intent + sentiment detection חי</li>
+            <li>כרטיס לקוח מלא מתוך ה-CRM</li>
+            <li>הצעות תשובה לחיצות - הנציג בוחר</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">&#128233;</div>
+          <h3>Multi-channel אמיתי</h3>
+          <p>אותה חוויה בכל נקודת מגע</p>
+          <ul>
+            <li>שיחות טלפון - transcription חי</li>
+            <li>WhatsApp Business API - ניתוח הודעות</li>
+            <li>Email inbound - ניתוח וסיווג אוטומטי</li>
+            <li>Unified conversation thread - הכל במקום אחד</li>
+            <li>Context handoff בין ערוצים</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">&#128200;</div>
+          <h3>Quality & Analytics</h3>
+          <p>מודדים, משפרים, חוזרים</p>
+          <ul>
+            <li>Dashboard לתרחישים - מה שואלים, מה עובד</li>
+            <li>Auto QA - ניתוח שיחות אחרי סיום</li>
+            <li>זיהוי פערים בבסיס הידע</li>
+            <li>A/B על גרסאות של תשובות</li>
+            <li>רגולציה + הקלטות + תיעוד GDPR</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout purple">
+      <h3>&#128161; ה-Thinking vs Speaking Split</h3>
+      <p>
+        בכל סוכן שאני בונה אני מפריד בין <strong>מודל חושב</strong> (Claude Opus/GPT-5 - מנתח שיחה, מבין כוונה, מחפש בידע) לבין <strong>מודל מדבר</strong> (Haiku/GPT-4o-mini - מנסח את ההצעה בזמן אמת). ככה מקבלים דיוק של מודל כבד + latency של מודל קל + עלות סבירה. זה ההבדל בין Copilot שעובד לבין דמו שנראה יפה במצגת.
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h2>מה הסקופ באמת דורש</h2>
+        <p>חמש נקודות שיעשו את ההבדל בין "פרויקט שעובד" ל"פרויקט שהצוות התפעולי יאהב"</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">&#128269;</div>
+          <h3>Latency מתחת לשנייה</h3>
+          <p>Streaming transcription + streaming LLM = הצעות שמתחילות להופיע תוך כ-600ms מהרגע שהלקוח דיבר. כל דבר יותר איטי - הנציג מתעלם מהמערכת.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127941;</div>
+          <h3>Fallback חכם</h3>
+          <p>כשה-AI לא בטוח - הוא לא מנחש. המערכת מזהה, מציעה השלמה מהמפקח או מבסיס הידע המקור, ומנטרת את הפער כדי להוסיף ידע חסר.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128100;</div>
+          <h3>עבודה עם הצוות התפעולי</h3>
+          <p>יושב עם המפקחים ומגדירים יחד 10-15 תרחישים מרכזיים. בונים אותם ב-workflows ברורים, לא "LLM יחליט". זה מה שגורם לצוות לסמוך.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128737;</div>
+          <h3>Admin Panel לתפעול</h3>
+          <p>לא כל עדכון ידע דורש מפתח. ממשק נקי שבו המפקח יכול לעדכן תשובות, להוסיף תרחיש חדש, להעלות מסמך - וזה עובר אוטומטית ל-Vector DB.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB 2: EXPERIENCE -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי</h2>
+        <p>AI Agents בפרודקשן, n8n, מערכות שיחה, וידע</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">20+</div>
+          <div class="label">שנות ניסיון בהייטק</div>
+        </div>
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים שנבנו מאפס</div>
+        </div>
+        <div class="stat">
+          <div class="num">2+</div>
+          <div class="label">שנים עמוק ב-AI Agents</div>
+        </div>
+        <div class="stat">
+          <div class="num">24/7</div>
+          <div class="label">סוכנים שרצים בפרודקשן</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>&#129302; AI Agents אמיתיים ב-Production</h3>
+          <p>בניתי agents לפני ש"agent" היה מילה - Mystic AI (קריאת קפה/אסטרולוגיה), Onboarding לבנק, מו"מ מכירות, ו-wellness companions. היום - multi-crew architectures עם chain reactions וזיכרון. תמיד מחבר AI לערך עסקי אמיתי.</p>
+          <span class="exp-tag">OpenAI</span>
+          <span class="exp-tag">Claude</span>
+          <span class="exp-tag">Gemini</span>
+          <span class="exp-tag">RAG</span>
+          <span class="exp-tag">Multi-agent</span>
+          <span class="exp-tag">Memory systems</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#128268; n8n, Webhooks ו-Orchestration</h3>
+          <p>עובד עם n8n (ולפניו Zapier, Make, Airflow) שנים. מכיר את המלכודות - sub-workflows, error handling, queue management, ו-scale. בניתי orchestration מורכבים עם מאות workflows מחוברים.</p>
+          <span class="exp-tag">n8n</span>
+          <span class="exp-tag">Webhooks</span>
+          <span class="exp-tag">Redis/BullMQ</span>
+          <span class="exp-tag">Sub-workflows</span>
+          <span class="exp-tag">Event-driven</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#128222; מערכות VoIP וטלפוניה</h3>
+          <p>עבדתי עם Twilio, Vonage, Asterisk-based systems ומערכות CTI אחרות. מכיר את ה-call-flow, את ה-SIP signaling, את ההבדל בין recording sync ל-streaming. 3CX - אותה פילוסופיה, API דומה.</p>
+          <span class="exp-tag">Twilio</span>
+          <span class="exp-tag">Asterisk/FreePBX</span>
+          <span class="exp-tag">CTI</span>
+          <span class="exp-tag">Call events</span>
+          <span class="exp-tag">STT streaming</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#128483;&#65039; NLP עברית + Hebrew ASR</h3>
+          <p>רוב הסוכנים שבניתי מדברים עברית. מכיר את האתגרים - morphology, dialectal variations, dir=rtl, Whisper vs Google STT, מודלים מיוחדים כמו AlephBERT. יודע איפה LLM יפול ואיפה הוא יציל את היום.</p>
+          <span class="exp-tag">Hebrew NLP</span>
+          <span class="exp-tag">Whisper</span>
+          <span class="exp-tag">Google STT</span>
+          <span class="exp-tag">Intent Detection</span>
+          <span class="exp-tag">Entity Extraction</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#128200; Real-time Systems</h3>
+          <p>WebSockets, Socket.io, SSE streaming - זה היום של הפיתוח שלי. צ'אטים חיים, push notifications, live updates. Copilot UI כמו שאני בונה הוא מערכת real-time מושלמת - בדיוק המקום שלי.</p>
+          <span class="exp-tag">WebSockets</span>
+          <span class="exp-tag">Socket.io</span>
+          <span class="exp-tag">SSE</span>
+          <span class="exp-tag">Redis Pub/Sub</span>
+          <span class="exp-tag">Live sync</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#128218; RAG ו-Vector Databases</h3>
+          <p>רקע מחקרי אמיתי - בניתי ואימנתי רשתות נוירונים, תכננתי אלגוריתמים אבולוציוניים, עשיתי algo-trading. זה למה אני יודע מתי RAG יעבוד ומתי הוא יפול. chunking, re-ranking, hybrid search - הפרטים שעושים את ההבדל בין 40% ל-92% דיוק.</p>
+          <span class="exp-tag">Qdrant</span>
+          <span class="exp-tag">Pinecone</span>
+          <span class="exp-tag">Weaviate</span>
+          <span class="exp-tag">Hybrid Search</span>
+          <span class="exp-tag">Re-ranking</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#127963; מערכות לשירות לקוחות בפועל</h3>
+          <p>בניתי פלטפורמות CRM + AI לחברות ביטוח, פלטפורמת Doing App לטיפוליסטים של ילדים אוטיסטים (AI-driven מקצה לקצה), onboarding בנקאי מבוסס chat - אני מכיר את תרחיש "נציג ולקוח" מבפנים.</p>
+          <span class="exp-tag">CRM Integration</span>
+          <span class="exp-tag">Case Management</span>
+          <span class="exp-tag">Agent Assist</span>
+          <span class="exp-tag">Ticketing</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>&#127919; Cloud, DevOps ו-Scale</h3>
+          <p>AWS, GCP, Azure. Docker, Kubernetes, CI/CD. n8n self-hosted או n8n.cloud - שניהם עם מלכודות משלהם. יודע לבחור מה שנכון לסקייל שלכם ולתחזק לאורך זמן בלי ש"מישהו יישן ליד השרת".</p>
+          <span class="exp-tag">AWS</span>
+          <span class="exp-tag">Docker</span>
+          <span class="exp-tag">Kubernetes</span>
+          <span class="exp-tag">CI/CD</span>
+          <span class="exp-tag">Monitoring</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>&#128128; לא עוד "בורג בצוות"</h3>
+        <p>
+          יש היום עשרות פרילנסרים ש"מכירים n8n" ויודעים לחבר OpenAI ל-Webhook. אני מציע משהו אחר: 20+ שנות ניסיון עם רקע מחקרי ב-ML, הבנה עמוקה של LLMs והמגבלות שלהם, וניסיון אמיתי בבניית agents שעובדים בפרודקשן ולא קורסים אחרי שבועיים. במקום להצליב עם "המערכת עובדת מוזר" - נבין ביחד למה, ונתקן ברמת הארכיטקטורה.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: LIVE DEMO -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>הדגמה חיה - AI Copilot במצב אמיתי</h2>
+        <p>שיחה חיה נכנסת, ה-Copilot מנתח בזמן אמת. בחרו תרחיש ולחצו Play.</p>
+      </div>
+
+      <div class="demo-wrap">
+        <!-- LIVE BAR -->
+        <div class="live-bar">
+          <div class="live-stat">
+            <span class="lbl">&#128225; שיחות פעילות</span>
+            <span class="live-num" id="stat-calls">3</span>
+          </div>
+          <div class="live-stat">
+            <span class="lbl">&#129302; המלצות ששלחנו היום</span>
+            <span class="live-num" id="stat-suggestions">247</span>
+          </div>
+          <div class="live-stat">
+            <span class="lbl">&#9889; Avg Latency</span>
+            <span class="live-num" id="stat-latency">612ms</span>
+          </div>
+          <div class="live-stat">
+            <span class="lbl">&#127919; שיעור שימוש בהמלצות</span>
+            <span class="live-num" id="stat-rate">84%</span>
+          </div>
+          <div class="live-stat">
+            <span class="lbl">&#128218; פריטי ידע</span>
+            <span class="live-num" id="stat-kb">1,284</span>
+          </div>
+        </div>
+
+        <!-- SCENARIO SELECTOR -->
+        <div class="scenario-selector">
+          <button class="scenario-btn active" data-scenario="billing" onclick="selectScenario('billing')">&#128179; תקלת חיוב</button>
+          <button class="scenario-btn" data-scenario="tech" onclick="selectScenario('tech')">&#128295; תקלה טכנית</button>
+          <button class="scenario-btn" data-scenario="upgrade" onclick="selectScenario('upgrade')">&#128640; שדרוג חבילה</button>
+          <button class="scenario-btn" data-scenario="cancel" onclick="selectScenario('cancel')">&#128683; ביטול שירות</button>
+        </div>
+
+        <!-- MAIN DEMO -->
+        <div class="demo-app">
+          <div class="demo-header">
+            <h3>AI Copilot - Live Call</h3>
+            <div class="demo-controls">
+              <span class="channel-badge phone" id="channel-indicator">&#128222; 3CX Call</span>
+              <button class="demo-btn primary" id="play-btn" onclick="playScenario()">&#9654; Play Scenario</button>
+              <button class="demo-btn" onclick="resetDemo()">&#8634; Reset</button>
+            </div>
+          </div>
+
+          <div class="copilot-grid">
+
+            <!-- CALL PANEL -->
+            <div class="call-panel">
+              <div class="call-panel-header">
+                <div class="caller-info">
+                  <div class="caller-avatar" id="caller-avatar">LT</div>
+                  <div>
+                    <div class="caller-name" id="caller-name">לקוח - ממתין</div>
+                    <div class="caller-meta" id="caller-meta">+972 50-000-0000</div>
+                  </div>
+                </div>
+                <div class="call-timer" id="call-timer">00:00</div>
+              </div>
+              <div class="transcript" id="transcript">
+                <div class="copilot-empty">
+                  <div class="big">&#128222;</div>
+                  <div>בחרו תרחיש ולחצו Play כדי להתחיל</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- COPILOT PANEL -->
+            <div class="copilot-panel">
+              <div class="copilot-header">
+                <div class="copilot-title">
+                  <span class="ai-icon">AI</span>
+                  <span>Copilot Insights</span>
+                </div>
+                <span class="status-pill" id="copilot-status">ממתין<span class="live-dot"></span></span>
+              </div>
+              <div class="copilot-body" id="copilot-body">
+                <div class="copilot-empty">
+                  <div class="big">&#129504;</div>
+                  <div>הצעות, תשובות ותובנות יופיעו כאן כשהשיחה תתחיל</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- WORKFLOW VIZ -->
+          <div style="padding: 0 1.25rem 1.25rem;">
+            <div class="workflow-viz">
+              <div class="workflow-title">
+                <span>n8n Pipeline</span>
+                <span class="wf-badge">main-copilot-orchestrator</span>
+              </div>
+              <div class="workflow-nodes" id="workflow-nodes">
+                <div class="wf-node" data-node="trigger"><span class="wf-icon">&#128225;</span> 3CX Trigger</div>
+                <span class="wf-arrow">&#8592;</span>
+                <div class="wf-node" data-node="stt"><span class="wf-icon">&#127911;</span> STT Stream</div>
+                <span class="wf-arrow">&#8592;</span>
+                <div class="wf-node" data-node="intent"><span class="wf-icon">&#127919;</span> Intent + Sentiment</div>
+                <span class="wf-arrow">&#8592;</span>
+                <div class="wf-node" data-node="customer"><span class="wf-icon">&#128100;</span> CRM Lookup</div>
+                <span class="wf-arrow">&#8592;</span>
+                <div class="wf-node" data-node="rag"><span class="wf-icon">&#128218;</span> RAG Search</div>
+                <span class="wf-arrow">&#8592;</span>
+                <div class="wf-node" data-node="llm"><span class="wf-icon">&#129302;</span> LLM Compose</div>
+                <span class="wf-arrow">&#8592;</span>
+                <div class="wf-node" data-node="push"><span class="wf-icon">&#9889;</span> WS Push</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top: 2.5rem;">
+          <h3>&#9889; הדגמת קצב - מה שראיתם נבנה בשעות</h3>
+          <p>
+            כל מה שאתם רואים כאן - הלוגיקה, ה-streaming, ה-UI, ההדמייה של ה-workflow - נבנה בשעות ספורות עם Claude Code. זו לא מוקאפ - הזרימה, הטיימינג, ה-states - הכל עובד. בפרודקשן אני עוטף את אותה לוגיקה ב-n8n workflows אמיתיים ומחבר לרכיבי פרודקשן. זה הקצב שבו אני בונה - וזה בדיוק מה שאעשה עבורכם.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: BUDGET -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>תקציב ולו&quot;ז</h2>
+        <p>מודל CTO חודשי - שקיפות מלאה, גמישות מרבית, בלי lock-in</p>
+      </div>
+
+      <div class="pricing-card">
+        <div class="price-label">CTO as a Service</div>
+        <div class="price">~50,000 &#8362;/חודש</div>
+        <div class="price-note">צוות פיתוח (1-2 מפתחים) + ניהול טכנולוגי צמוד שלי</div>
+        <ul>
+          <li>אפיון מלא של הסוכן מול הצוות התפעולי</li>
+          <li>בניית n8n workflows + sub-workflows מודולריים</li>
+          <li>אינטגרציה מלאה ל-3CX (Call Control API + Webhooks)</li>
+          <li>פיתוח Knowledge Base + RAG + Vector DB</li>
+          <li>Copilot UI לנציג - real-time, low latency</li>
+          <li>חיבור WhatsApp Business + Email inbound</li>
+          <li>Admin Panel לתפעול - עדכון ידע, תרחישים, ניטור</li>
+          <li>Dashboards + Analytics + QA אוטומטי</li>
+          <li>Deploy, monitoring, on-call, שיפור מתמיד</li>
+          <li>שקיפות מלאה - הקוד שלכם, תמיד, בלי lock-in</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="margin-top: 1rem; width: 100%;">בואו נדבר על זה</a>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>Timeline משוער</h2>
+        <p>3 חודשים ל-MVP בפרודקשן עם צוות אחד, 2 חודשים אם רוצים להאיץ</p>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>אפיון ותכנון ארכיטקטורה</h3>
+            <p>ישיבות עם הצוות התפעולי, מיפוי 10-15 תרחישים ראשיים, בחירת LLM לכל תפקיד (thinking/speaking), תכנון schema ל-Vector DB, איפיון ה-Copilot UI.</p>
+            <span class="tag">שבוע 1-2</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>MVP - ערוץ ראשון (טלפון)</h3>
+            <p>חיבור 3CX, streaming STT, n8n orchestrator, RAG בסיסי, Copilot UI פשוט. נציג אחד, תרחיש אחד - end-to-end עובד.</p>
+            <span class="tag">שבוע 3-5</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>הרחבה לערוצים נוספים</h3>
+            <p>WhatsApp + Email, Unified conversation thread, context handoff בין ערוצים, CRM integration עמוק יותר.</p>
+            <span class="tag">שבוע 6-8</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>פיילוט עם צוות אמיתי</h3>
+            <p>5-10 נציגים בשטח, מדידה, feedback loop, תיקונים מהירים, הוספת תרחישים, שיפור ה-KB.</p>
+            <span class="tag">שבוע 9-10</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">5</div>
+          <div class="timeline-body">
+            <h3>Admin Panel + Analytics + Scale</h3>
+            <p>ממשק תפעולי למפקחים, dashboards לניהול, auto-QA, A/B infrastructure, מעבר לצוות מלא.</p>
+            <span class="tag">שבוע 11-12</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TECH STACK -->
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>סטאק טכנולוגי</h2>
+        <p>בחירות שקולות - לא טכנולוגיה בגלל טרנד</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>Orchestration</h3>
+          <ul>
+            <li>n8n (self-hosted על Docker)</li>
+            <li>Redis + BullMQ ל-queues</li>
+            <li>PostgreSQL ל-state</li>
+            <li>Webhook handler עצמאי ב-Node.js</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#129504;</div>
+          <h3>AI Layer</h3>
+          <ul>
+            <li>OpenAI (GPT-5 + GPT-5-mini)</li>
+            <li>Claude (Opus לניתוח עמוק)</li>
+            <li>Qdrant או Pinecone - Vector DB</li>
+            <li>Whisper / Google STT - streaming</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128225;</div>
+          <h3>Telephony</h3>
+          <ul>
+            <li>3CX Call Control API</li>
+            <li>3CX CRM Integration Plugin</li>
+            <li>Live recording stream</li>
+            <li>Click-to-dial callbacks</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128233;</div>
+          <h3>Multi-channel</h3>
+          <ul>
+            <li>WhatsApp Business Cloud API</li>
+            <li>Email (IMAP + SMTP)</li>
+            <li>Unified thread - כל ערוץ, לקוח אחד</li>
+            <li>Context handoff</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128187;</div>
+          <h3>Frontend</h3>
+          <ul>
+            <li>React + TypeScript</li>
+            <li>WebSocket real-time (Socket.io)</li>
+            <li>Widget הטמעה למערכת הנציג</li>
+            <li>Admin Panel עצמאי</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128737;</div>
+          <h3>Ops & Security</h3>
+          <ul>
+            <li>Docker + Kubernetes/Cloud Run</li>
+            <li>CI/CD - GitHub Actions</li>
+            <li>Monitoring - Grafana + Sentry</li>
+            <li>GDPR compliant - הקלטות, logging</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 3rem;">
+        <h3>&#128176; מה זה אומר ב-ROI</h3>
+        <p>
+          נציג שירות ממוצע עולה לכם ~15-20K ש"ח חודש עם כל העלויות הנלוות. אם ה-Copilot מעלה את התפוקה של כל נציג ב-20-30% (מה שרואים בשטח במערכות כאלה) - זו חסכון של נציג שלם על כל 4-5 נציגים. המערכת מחזירה את עצמה תוך 3-6 חודשים. ואנחנו עוד לא דיברנו על ירידה ב-AHT, בזמן הכשרה לנציגים חדשים, ובאיכות השיחה.
+        </p>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <section class="contact-section">
+      <h2>בואו נדבר</h2>
+      <p>אשמח להיכנס לעומק - מי הלקוחות שלכם, איך נראה קובץ הידע, מה המבנה של הצוות. שיחה של 30 דקות מספיקה להבין אם זה חיבור נכון.</p>
+      <div class="contact-details">
+        <div class="contact-item">&#128222; <a href="tel:054-5567213">054-5567213</a></div>
+        <div class="contact-item">&#128231; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">&#128172; <a href="https://wa.me/972545567213">WhatsApp</a></div>
+      </div>
+      <a href="https://wa.me/972545567213" class="btn primary">שלחו הודעה עכשיו</a>
+    </section>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    שלומי זוין | CTO as a Service | <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> | 054-5567213
+  </div>
+</footer>
+
+<script>
+  // ===== TABS =====
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (btn) btn.classList.add('active');
+    const content = document.getElementById('tab-' + tabId);
+    if (content) content.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ===== THEME =====
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const nxt = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', nxt);
+    localStorage.setItem('theme', nxt);
+  }
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+  // ===== LIVE STATS =====
+  setInterval(() => {
+    const calls = document.getElementById('stat-calls');
+    const rate = document.getElementById('stat-rate');
+    const lat = document.getElementById('stat-latency');
+    const sug = document.getElementById('stat-suggestions');
+    if (!calls) return;
+    if (Math.random() > 0.6) {
+      const v = 2 + Math.floor(Math.random() * 4);
+      calls.textContent = v;
+      calls.classList.add('flash');
+      setTimeout(() => calls.classList.remove('flash'), 400);
+    }
+    if (Math.random() > 0.5) {
+      const v = 82 + Math.floor(Math.random() * 8);
+      rate.textContent = v + '%';
+    }
+    if (Math.random() > 0.4) {
+      const v = 540 + Math.floor(Math.random() * 220);
+      lat.textContent = v + 'ms';
+    }
+    if (Math.random() > 0.5) {
+      const cur = parseInt(sug.textContent);
+      sug.textContent = cur + 1;
+      sug.classList.add('flash');
+      setTimeout(() => sug.classList.remove('flash'), 400);
+    }
+  }, 2500);
+
+  // ===== DEMO SCENARIOS =====
+  const scenarios = {
+    billing: {
+      caller: { name: 'רותי לוי', initials: 'RL', phone: '+972 54-823-6671' },
+      lines: [
+        { t: 800, speaker: 'customer', text: 'שלום, התקשרתי כי עשיתי חיוב השבוע ועדיין לא קיבלתי את השירות.' },
+        { t: 2400, speaker: 'agent', text: 'שלום רותי, אני אשמח לעזור. רגע אני בודק במערכת.' },
+        { t: 4800, speaker: 'customer', text: 'זה חיוב של 349 שקלים משלושה ימים. לא הגיע שום אישור, שום לינק, כלום.' },
+        { t: 7500, speaker: 'customer', text: 'אני מאוד מעצבנת כי זו הפעם השנייה שזה קורה החודש.' },
+        { t: 10200, speaker: 'agent', text: 'אני מבין לגמרי, זה מאוד מתסכל. תני לי לבדוק את העסקה הספציפית.' },
+      ],
+      copilot: [
+        { t: 3000, type: 'customer', title: 'לקוחה מזוהה', value: 'רותי לוי', sub: 'לקוחה 2.5 שנים · Premium · סך רכישות: 4,320&#8362;', extra: {'סטטוס': 'פעיל', 'תיק פתוח': '#4821', 'חיובים': '14', 'בעיות השנה': '2'} },
+        { t: 5500, type: 'intent', title: 'Intent זוהה', value: 'Billing Dispute - Payment Issue', sub: 'ביטחון: 94% · תרחיש: BILL-003' },
+        { t: 8000, type: 'sentiment', title: 'Sentiment', value: 'Frustrated &uarr; (הולך להחריף)', sub: 'מילות מפתח: "מעצבנת", "הפעם השנייה". מומלץ לאמפתיה מיידית.' },
+        { t: 11000, type: 'kb', title: 'תשובות מבסיס הידע', kb: [
+          { title: 'פתרון לחיוב ללא מסירה', conf: 98, desc: 'בדיקת transaction ID ב-Stripe → טריגר ידני ל-fulfillment → התנצלות + הטבת 15%', src: 'KB/billing/missing-delivery.md' },
+          { title: 'Escalation ללקוח חוזר', conf: 91, desc: 'אחרי בעיה שנייה ב-30 יום - חובה לתייג חיסרון חוזר ולעדכן CRM', src: 'KB/escalation/repeat-issues.md' }
+        ]},
+        { t: 13500, type: 'suggestion', title: 'הצעת תשובה', text: 'רותי, ראיתי את החיוב - התשלום נקלט אבל הייתה תקלה ב-fulfillment שלא נשלח הלינק. אני מטפל בזה עכשיו בזמן השיחה. בנוסף, בגלל שזו הפעם השנייה - אני מעניק לך הטבה של 15% על הרכישה הבאה.' }
+      ]
+    },
+    tech: {
+      caller: { name: 'משה כהן', initials: 'MK', phone: '+972 52-445-9183' },
+      lines: [
+        { t: 700, speaker: 'customer', text: 'אני מנסה להתחבר לאפליקציה מאתמול וזה לא עובד.' },
+        { t: 2800, speaker: 'agent', text: 'שלום משה, איזו הודעה אתה רואה בדיוק?' },
+        { t: 4600, speaker: 'customer', text: 'כתוב Error 4011, הזנתי את הסיסמה נכון, ניסיתי גם לאפס. כלום.' },
+        { t: 7800, speaker: 'customer', text: 'אני בטוח שזה לא הסיסמה, הכל היה בסדר עד שעידכנתי את האפליקציה אתמול.' },
+      ],
+      copilot: [
+        { t: 2800, type: 'customer', title: 'לקוח מזוהה', value: 'משה כהן', sub: 'Basic · לקוח 11 חודשים · גרסת אפליקציה: 3.4.2 (אחרונה)', extra: {'סטטוס': 'פעיל', 'תיקים': '1', 'מכשיר': 'iPhone 14', 'OS': 'iOS 17.3'} },
+        { t: 5000, type: 'intent', title: 'Intent זוהה', value: 'Technical Issue - Login Failure', sub: 'ביטחון: 97% · תרחיש: TECH-012' },
+        { t: 8500, type: 'kb', title: 'תשובה מדויקת מבסיס הידע', kb: [
+          { title: 'Error 4011 - Token Refresh Bug v3.4.2', conf: 99, desc: 'באג ידוע בגרסה 3.4.2. פתרון: מחיקת cache → logout מלא → התקנת patch 3.4.3 (זמין במט חנות). הלקוח לא צריך לאפס סיסמה.', src: 'KB/tech/known-issues/err-4011.md' },
+          { title: 'הנחיית טיפול - באג ידוע', conf: 95, desc: 'חובה לציין שזו בעיה מצד החברה ולהתנצל. לעדכן בגיליון "Bug 4011 reports" - נכון ל-23/04: 42 דיווחים.', src: 'KB/ops/bug-tracking.md' }
+        ]},
+        { t: 11000, type: 'suggestion', title: 'הצעת תשובה', text: 'משה, זה לא הסיסמה. זה באג ידוע בגרסה 3.4.2 שעידכנת - כבר יצא patch 3.4.3 במט חנות, רק להעדכן. אני מעביר לך בוואטסאפ קישור עם הוראות ב-30 שניות. מתנצל על הבלגן.' }
+      ]
+    },
+    upgrade: {
+      caller: { name: 'דניאל אברהמי', initials: 'DA', phone: '+972 50-774-2018' },
+      lines: [
+        { t: 800, speaker: 'customer', text: 'רציתי לבדוק לגבי שדרוג התוכנית שלי. אני עכשיו ב-Basic.' },
+        { t: 2800, speaker: 'agent', text: 'בטח דניאל, שמח לעזור. מה השימוש העיקרי שלך?' },
+        { t: 5200, speaker: 'customer', text: 'אני משתמש בזה כל יום, בעיקר לדוחות, ואני מתחיל להיתקל במגבלות של Basic.' },
+        { t: 8500, speaker: 'customer', text: 'צריך בעיקר יותר משתמשים והיכולת של ייצוא מתקדם. אני עדיין בודק תקציב.' },
+      ],
+      copilot: [
+        { t: 2800, type: 'customer', title: 'לקוח מזוהה', value: 'דניאל אברהמי', sub: 'Basic · לקוח 6 חודשים · 312 דוחות החודש (גבוה!)', extra: {'תוכנית': 'Basic 89&#8362;', 'שימוש': '92%', 'תשלום': 'תקין', 'NPS': '9'} },
+        { t: 5400, type: 'intent', title: 'Intent זוהה', value: 'Upsell Opportunity - High Usage', sub: 'ביטחון: 96% · הלקוח קרוב למגבלה - מצב אידיאלי לשדרוג' },
+        { t: 7000, type: 'sentiment', title: 'Sentiment', value: 'Positive, Exploratory', sub: 'הלקוח מוכן, צריך ערך ברור ומענה לשאלת התקציב.' },
+        { t: 9500, type: 'kb', title: 'הטבות ופיצ\'רים רלוונטיים', kb: [
+          { title: 'Pro Plan - מה כלול', conf: 97, desc: 'עד 25 משתמשים, ייצוא PDF/Excel מתקדם, API, דוחות תזמון. 289&#8362;/חודש.', src: 'KB/sales/plans/pro.md' },
+          { title: 'הטבת שדרוג מ-Basic', conf: 93, desc: '3 חודשים ראשונים ב-20% הנחה (231&#8362;/חודש) + חודש ראשון חינם בשדרוג שנתי.', src: 'KB/sales/upgrade-offers.md' }
+        ]},
+        { t: 12500, type: 'suggestion', title: 'הצעת תשובה', text: 'דניאל, אתה כבר ב-92% שימוש על Basic - זה הזמן המושלם לשדרוג. Pro יתן לך בדיוק מה שחיפשת - יותר משתמשים וייצוא מתקדם. ויש לי הטבה - 3 חודשים ראשונים ב-231&#8362; במקום 289&#8362;, וחודש ראשון חינם אם תבחר שנתי. רוצה שאשלח לך פירוט?' }
+      ]
+    },
+    cancel: {
+      caller: { name: 'יעל שטרן', initials: 'YS', phone: '+972 53-112-8890' },
+      lines: [
+        { t: 800, speaker: 'customer', text: 'שלום, אני רוצה לבטל את המנוי שלי.' },
+        { t: 2400, speaker: 'agent', text: 'יעל, מצטער לשמוע. אפשר לשאול מה הסיבה?' },
+        { t: 4800, speaker: 'customer', text: 'אני משתמשת בפועל רק בכמה פיצ\'רים ומרגישה שאני משלמת על משהו שאני לא צריכה.' },
+        { t: 8000, speaker: 'customer', text: 'וגם, ראיתי מתחרה שעולה חצי מהמחיר.' },
+      ],
+      copilot: [
+        { t: 2600, type: 'customer', title: 'לקוחה מזוהה', value: 'יעל שטרן', sub: 'Pro · לקוחה 14 חודשים · LTV: 4,046&#8362; · שימוש: 34% (יורד)', extra: {'תוכנית': 'Pro 289&#8362;', 'שימוש': '34%', 'מגמה': 'יורד 3 חודשים', 'NPS': '6'} },
+        { t: 5000, type: 'intent', title: 'Intent זוהה', value: 'Cancellation - Value/Price', sub: 'ביטחון: 98% · סיבות: underuse + תחרות מחיר' },
+        { t: 6800, type: 'sentiment', title: 'Sentiment', value: 'Neutral - Decisive', sub: 'הלקוחה רגועה, ברורה. רוב הסיכויים שהחלטה כבר התקבלה.' },
+        { t: 9000, type: 'kb', title: 'אופציות Retention', kb: [
+          { title: 'Downgrade ל-Basic (89&#8362;)', conf: 96, desc: 'בהתחשב בשימוש של 34% - Basic יספק לה את הפיצ\'רים שהיא משתמשת בהם. חסכון של 200&#8362;/חודש.', src: 'KB/retention/downgrade-options.md' },
+          { title: 'הטבת שימור - Pro בהנחה', conf: 89, desc: 'זכאית ל-30% הנחה קבועה (203&#8362;) אם נשארת. תקף רק ב-LTV > 3000&#8362;.', src: 'KB/retention/loyalty-discount.md' },
+          { title: 'מול תחרות - הבדלים עיקריים', conf: 87, desc: 'המתחרה חסר 4 פיצ\'רים קריטיים שהיא כן השתמשה בהם השנה (ייצוא API, אוטומציות, וכו\').', src: 'KB/sales/competitor-comparison.md' }
+        ]},
+        { t: 13000, type: 'suggestion', title: 'הצעת תשובה', text: 'יעל, אני מבין לגמרי. שתי אפשרויות: אפשר לעבור ל-Basic (89&#8362;/חודש) שיש בו את הפיצ\'רים שאת באמת משתמשת בהם - חסכון של 200&#8362;. או שאתן לך 30% הנחה קבועה על Pro - 203&#8362;/חודש, פחות מהמתחרה. מה מרגיש לך יותר נכון?' }
+      ]
+    }
+  };
+
+  let currentScenario = 'billing';
+  let scenarioTimeouts = [];
+  let callTimer = null;
+  let callSeconds = 0;
+
+  function selectScenario(key) {
+    if (scenarioTimeouts.length > 0) return; // ignore while playing
+    currentScenario = key;
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.scenario-btn[data-scenario="${key}"]`).classList.add('active');
+    resetDemo();
+  }
+
+  function resetDemo() {
+    scenarioTimeouts.forEach(t => clearTimeout(t));
+    scenarioTimeouts = [];
+    if (callTimer) { clearInterval(callTimer); callTimer = null; }
+    callSeconds = 0;
+    document.getElementById('call-timer').textContent = '00:00';
+    document.getElementById('play-btn').disabled = false;
+    document.getElementById('play-btn').innerHTML = '&#9654; Play Scenario';
+    document.getElementById('copilot-status').innerHTML = 'ממתין<span class="live-dot"></span>';
+    document.getElementById('caller-name').textContent = 'לקוח - ממתין';
+    document.getElementById('caller-meta').textContent = '+972 50-000-0000';
+    document.getElementById('caller-avatar').textContent = 'LT';
+    document.getElementById('transcript').innerHTML = '<div class="copilot-empty"><div class="big">&#128222;</div><div>בחרו תרחיש ולחצו Play כדי להתחיל</div></div>';
+    document.getElementById('copilot-body').innerHTML = '<div class="copilot-empty"><div class="big">&#129504;</div><div>הצעות, תשובות ותובנות יופיעו כאן כשהשיחה תתחיל</div></div>';
+    document.querySelectorAll('.wf-node').forEach(n => { n.classList.remove('active'); n.classList.remove('done'); });
+  }
+
+  function playScenario() {
+    resetDemo();
+    const sc = scenarios[currentScenario];
+    const btn = document.getElementById('play-btn');
+    btn.disabled = true;
+    btn.innerHTML = '&#9209; Playing...';
+
+    // Caller info
+    document.getElementById('caller-name').textContent = sc.caller.name;
+    document.getElementById('caller-meta').textContent = sc.caller.phone;
+    document.getElementById('caller-avatar').textContent = sc.caller.initials;
+
+    // Reset panels
+    document.getElementById('transcript').innerHTML = '';
+    document.getElementById('copilot-body').innerHTML = '';
+
+    // Call timer
+    callSeconds = 0;
+    callTimer = setInterval(() => {
+      callSeconds++;
+      const m = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+      const s = String(callSeconds % 60).padStart(2, '0');
+      document.getElementById('call-timer').textContent = `${m}:${s}`;
+    }, 1000);
+
+    // Workflow nodes
+    const nodes = ['trigger', 'stt', 'intent', 'customer', 'rag', 'llm', 'push'];
+    nodes.forEach((n, i) => {
+      scenarioTimeouts.push(setTimeout(() => activateNode(n), i * 450));
+    });
+
+    // Transcript lines
+    sc.lines.forEach(line => {
+      scenarioTimeouts.push(setTimeout(() => addTranscriptLine(line), line.t));
+    });
+
+    // Copilot insights
+    sc.copilot.forEach(item => {
+      scenarioTimeouts.push(setTimeout(() => addCopilotInsight(item), item.t));
+    });
+
+    // Finish
+    const maxT = Math.max(
+      ...sc.lines.map(l => l.t),
+      ...sc.copilot.map(c => c.t)
+    );
+    scenarioTimeouts.push(setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '&#8634; Play Again';
+      if (callTimer) { clearInterval(callTimer); callTimer = null; }
+      scenarioTimeouts = [];
+      document.getElementById('copilot-status').innerHTML = 'שיחה הסתיימה';
+    }, maxT + 2000));
+  }
+
+  function activateNode(name) {
+    document.querySelectorAll('.wf-node').forEach(n => n.classList.remove('active'));
+    const node = document.querySelector(`.wf-node[data-node="${name}"]`);
+    if (!node) return;
+    node.classList.add('active');
+    setTimeout(() => {
+      node.classList.remove('active');
+      node.classList.add('done');
+    }, 900);
+  }
+
+  function addTranscriptLine(line) {
+    const tr = document.getElementById('transcript');
+    const div = document.createElement('div');
+    div.className = `tr-line ${line.speaker}`;
+    const speaker = line.speaker === 'customer' ? 'לקוח' : 'נציג';
+    const ts = formatTs(line.t);
+    div.innerHTML = `<div class="speaker"><span>${speaker}</span><span class="ts">${ts}</span></div>${line.text}`;
+    tr.appendChild(div);
+    tr.scrollTop = tr.scrollHeight;
+
+    // Update status
+    document.getElementById('copilot-status').innerHTML = 'מעבד<span class="live-dot"></span>';
+  }
+
+  function addCopilotInsight(item) {
+    const cb = document.getElementById('copilot-body');
+    const box = document.createElement('div');
+
+    if (item.type === 'suggestion') {
+      box.className = 'suggestion';
+      box.innerHTML = `
+        <div class="sug-label">&#10148; ${item.title}</div>
+        ${item.text}
+      `;
+    } else if (item.type === 'kb') {
+      box.className = 'insight-box kb';
+      let kbHtml = `
+        <div class="insight-label"><span class="dot"></span>${item.title}</div>
+      `;
+      item.kb.forEach(k => {
+        kbHtml += `
+          <div class="kb-match">
+            <div class="kb-match-title">${k.title} <span class="confidence">${k.conf}%</span></div>
+            <div class="kb-match-desc">${k.desc}</div>
+            <div class="kb-match-src">&#128220; ${k.src}</div>
+          </div>
+        `;
+      });
+      box.innerHTML = kbHtml;
+    } else if (item.type === 'customer') {
+      box.className = 'insight-box customer';
+      let extraHtml = '';
+      if (item.extra) {
+        extraHtml = '<div class="customer-card-info">';
+        Object.entries(item.extra).forEach(([k, v]) => {
+          extraHtml += `<div class="customer-field"><div class="fl">${k}</div><div class="fv">${v}</div></div>`;
+        });
+        extraHtml += '</div>';
+      }
+      box.innerHTML = `
+        <div class="insight-label"><span class="dot"></span>${item.title}</div>
+        <div class="insight-value">${item.value}</div>
+        <div class="insight-sub">${item.sub}</div>
+        ${extraHtml}
+      `;
+    } else {
+      box.className = `insight-box ${item.type}`;
+      box.innerHTML = `
+        <div class="insight-label"><span class="dot"></span>${item.title}</div>
+        <div class="insight-value">${item.value}</div>
+        <div class="insight-sub">${item.sub}</div>
+      `;
+    }
+
+    cb.appendChild(box);
+    cb.scrollTop = cb.scrollHeight;
+  }
+
+  function formatTs(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return `${m}:${ss}`;
+  }
+</script>
+
+</body>
+</html>

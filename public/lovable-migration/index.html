@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Lovable → מסחרי | אודיט, מעבר ותמיכה | שלומי זוין</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --bg-alt: #10141c;
+      --card-bg: #151a24;
+      --card-hover: #1a202b;
+      --accent: #06b6d4;
+      --accent-hover: #0891b2;
+      --accent-soft: rgba(6, 182, 212, 0.10);
+      --accent-dim: rgba(6, 182, 212, 0.30);
+      --purple: #8b5cf6;
+      --purple-soft: rgba(139, 92, 246, 0.10);
+      --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.10);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.10);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.10);
+      --border: #232a36;
+      --border-strong: #2e3644;
+      --text: #f5f7fa;
+      --text-muted: #8b929d;
+      --text-dim: #5f6570;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f7f8fa;
+      --card-bg: #ffffff;
+      --card-hover: #fafbfc;
+      --border: #e4e7ec;
+      --border-strong: #cdd2db;
+      --text: #0f1419;
+      --text-muted: #5c6370;
+      --text-dim: #8b929d;
+      --accent-soft: rgba(6, 182, 212, 0.07);
+      --purple-soft: rgba(139, 92, 246, 0.06);
+      --success-soft: rgba(16, 185, 129, 0.07);
+      --warn-soft: rgba(245, 158, 11, 0.08);
+      --danger-soft: rgba(239, 68, 68, 0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; }
+    .logo-text { font-weight: 600; font-size: 0.92rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { font-weight: 400; font-size: 0.78rem; color: var(--text-muted); }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: white; font-size: 0.84rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: var(--accent-hover); }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.92rem; font-weight: 500; padding: 0.9rem 1.4rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 2.5rem; text-align: center; }
+    .hero-eyebrow { display: inline-block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); padding: 0.3rem 0.8rem; border: 1px solid var(--accent-dim); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.2rem; }
+    .hero h1 { font-size: clamp(1.85rem, 4.2vw, 2.95rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.1rem; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 760px; margin: 0 auto 1.8rem; line-height: 1.7; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 1.8rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 2.75rem 0; }
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 2.25rem; }
+    .section-header h2 { font-size: 1.7rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 0.98rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.4rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.02rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.5rem; margin-bottom: 0.65rem; }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.4rem 1.6rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.92rem; line-height: 1.75; }
+    .callout.purple { border-right-color: var(--purple); }
+    .callout.warn { border-right-color: var(--warn); }
+
+    /* MATCH TABLE */
+    .match-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+    .match-table th { background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 0.88rem; padding: 0.95rem 1rem; text-align: right; }
+    .match-table td { padding: 0.95rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; vertical-align: top; }
+    .req-col { width: 33%; color: var(--text); font-weight: 500; }
+    .my-col { color: var(--text-muted); line-height: 1.7; }
+    .status-col { width: 70px; text-align: center; }
+    .status-yes { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--success-soft); color: var(--success); border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: 0.85rem; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.5rem 0 2.5rem; }
+    .stat { text-align: center; padding: 1.2rem 0.8rem; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    .stat .num { font-size: 1.85rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* EXPERIENCE */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 0.7rem; line-height: 1.6; }
+    .exp-tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); margin-left: 0.25rem; margin-bottom: 0.25rem; border: 1px solid var(--border); }
+
+    /* PRICING */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 1080px; margin: 0 auto; }
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.6rem; position: relative; }
+    .pricing-card.featured { border-color: var(--accent); }
+    .pricing-card.featured .featured-tag { position: absolute; top: -10px; right: 1.4rem; background: var(--accent); color: white; font-size: 0.7rem; padding: 0.2rem 0.65rem; border-radius: var(--radius-sm); font-weight: 600; }
+    .pricing-card .ptype { font-size: 0.78rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .pricing-card .pname { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .pricing-card .pdesc { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.55; }
+    .pricing-card .price { font-size: 1.85rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; letter-spacing: -0.02em; }
+    .pricing-card .price small { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
+    .pricing-card .price-note { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.1rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1rem 0 0; }
+    .pricing-card li { font-size: 0.88rem; margin-bottom: 0.45rem; display: flex; align-items: flex-start; gap: 0.45rem; color: var(--text-muted); }
+    .pricing-card li::before { content: '\2713'; color: var(--success); font-weight: 700; flex-shrink: 0; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 0.9rem; max-width: 780px; margin: 2rem auto 0; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; }
+    .timeline-num { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 0.98rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.4rem; border: 1px solid var(--accent-dim); margin-left: 0.3rem; }
+
+    /* ============ DEMO: AUDIT CONSOLE ============ */
+    .demo-wrap { max-width: 1080px; margin: 0 auto; }
+    .demo-intro { text-align: center; max-width: 720px; margin: 0 auto 1.5rem; color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+
+    .scenario-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.25rem; }
+    .scenario-btn { padding: 0.55rem 1.1rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .scenario-btn:hover { color: var(--text); border-color: var(--border-strong); }
+    .scenario-btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+
+    .audit-app { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+    .audit-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.2rem; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem; }
+    .audit-title { font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; gap: 0.55rem; }
+    .audit-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .audit-target { font-size: 0.78rem; color: var(--text-muted); font-family: 'SF Mono', Monaco, monospace; direction: ltr; }
+    .audit-controls { display: flex; gap: 0.5rem; }
+    .audit-btn { padding: 0.45rem 0.95rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .audit-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .audit-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .audit-btn.primary:hover { background: var(--accent-hover); }
+    .audit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .audit-grid { display: grid; grid-template-columns: 280px 1fr; gap: 0; min-height: 540px; }
+    .audit-sidebar { padding: 1rem; border-left: 1px solid var(--border); background: var(--bg-alt); display: flex; flex-direction: column; gap: 0.45rem; }
+    .check-row { padding: 0.7rem 0.85rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; transition: all 0.2s; cursor: default; }
+    .check-row .check-name { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; }
+    .check-row .check-icon { font-size: 0.95rem; flex-shrink: 0; }
+    .check-row .check-status { font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); font-weight: 600; flex-shrink: 0; }
+    .check-row .check-status.pending { background: var(--bg); color: var(--text-dim); border: 1px solid var(--border); }
+    .check-row .check-status.running { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); }
+    .check-row .check-status.done { background: var(--success-soft); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+    .check-row .check-status.warn { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+    .check-row .check-status.crit { background: var(--danger-soft); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+    .check-row.active { border-color: var(--accent); }
+
+    .audit-main { padding: 1rem 1.2rem; overflow-y: auto; max-height: 540px; }
+    .audit-main::-webkit-scrollbar { width: 4px; }
+    .audit-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .progress-bar-wrap { margin-bottom: 1rem; }
+    .progress-bar { width: 100%; height: 6px; background: var(--bg-alt); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+    .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; border-radius: 999px; }
+    .progress-meta { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.45rem; direction: ltr; }
+
+    .findings-list { display: flex; flex-direction: column; gap: 0.7rem; }
+    .finding { padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: var(--bg-alt); border: 1px solid var(--border); animation: slideIn 0.35s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .finding.crit { border-right: 3px solid var(--danger); }
+    .finding.warn { border-right: 3px solid var(--warn); }
+    .finding.ok { border-right: 3px solid var(--success); }
+    .finding-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; gap: 0.5rem; flex-wrap: wrap; }
+    .finding-title { font-size: 0.92rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0.4rem; }
+    .finding-sev { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); text-transform: uppercase; letter-spacing: 0.04em; }
+    .finding-sev.crit { background: var(--danger-soft); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+    .finding-sev.warn { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+    .finding-sev.ok { background: var(--success-soft); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+    .finding-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 0.45rem; }
+    .finding-fix { font-size: 0.83rem; color: var(--text); padding: 0.55rem 0.75rem; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border); border-right: 2px solid var(--accent); }
+    .finding-fix b { color: var(--accent); font-weight: 600; }
+
+    .audit-empty { text-align: center; padding: 3.5rem 1rem; color: var(--text-muted); }
+    .audit-empty .big { font-size: 2.4rem; opacity: 0.4; margin-bottom: 0.6rem; }
+    .audit-empty p { font-size: 0.9rem; }
+
+    /* SUMMARY BOX */
+    .summary-box { margin-top: 1.5rem; padding: 1rem 1.2rem; background: var(--bg-alt); border-radius: var(--radius-md); border: 1px solid var(--border); display: none; }
+    .summary-box.show { display: block; animation: slideIn 0.4s ease; }
+    .summary-box h4 { margin: 0 0 0.6rem; font-size: 0.95rem; font-weight: 600; color: var(--accent); }
+    .summary-box p { font-size: 0.88rem; color: var(--text-muted); margin: 0 0 0.7rem; line-height: 1.65; }
+    .summary-stats { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .sum-stat { font-size: 0.82rem; color: var(--text); }
+    .sum-stat b { color: var(--accent); font-weight: 700; font-size: 1rem; }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 2.5rem 0; }
+    .contact-section h2 { font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.45rem; font-size: 0.95rem; color: var(--text-muted); }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .audit-grid { grid-template-columns: 1fr; }
+      .audit-sidebar { border-left: none; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; gap: 0.4rem; }
+      .check-row { min-width: 220px; }
+      .audit-main { max-height: none; }
+    }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .pricing-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 2.8rem 0 1.8rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 0.98rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.45rem; }
+      .tab-btn { padding: 0.75rem 0.95rem; font-size: 0.86rem; }
+      .logo-sub { display: none; }
+      .audit-grid { min-height: auto; }
+      .match-table th, .match-table td { padding: 0.7rem; font-size: 0.83rem; }
+      .req-col { width: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span>
+          <span class="logo-text">שלומי זוין</span>
+          <span class="logo-sub"> · CTO as a Service</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp ←</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">ההצעה</button>
+      <button class="tab-btn" onclick="switchTab('match')">איך אני עונה לכל דרישה</button>
+      <button class="tab-btn" onclick="switchTab('demo')">⚡ הדגמה חיה</button>
+      <button class="tab-btn" onclick="switchTab('experience')">ניסיון רלוונטי</button>
+      <button class="tab-btn" onclick="switchTab('budget')">תקציב ומסלולים</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <span class="hero-eyebrow">Lovable → Production</span>
+      <h1>בנית ב-Lovable. עכשיו צריך<br/><span class="accent">שיחזיק משתמשים אמיתיים.</span></h1>
+      <p class="hero-sub">
+        אודיט אבטחה וסקייל לאתר שלך ב-Lovable, המלצות ברורות אם להישאר או לעבור,
+        מעבר חלק כשצריך, ותמיכה זמינה - שעה, קריאה, או רטיינר. כולל גם App Store ו-Google Play.
+      </p>
+      <div class="hero-badges">
+        <span>אודיט אבטחה</span>
+        <span>בדיקת סקייל</span>
+        <span>Lovable / GitHub / Supabase</span>
+        <span>React · Next.js · Node</span>
+        <span>Capacitor · PWA · App Store</span>
+        <span>תמיכה לפי שעה / רטיינר</span>
+        <span>זמינות מיידית</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">💬 בוא נדבר</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">⚡ ראה הדגמה חיה</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>🎯 מי אני בקצרה</h3>
+      <p>
+        שלומי זוין, CTO as a Service. 20+ שנה בתעשייה, 50+ מוצרים שנבנו מאפס ועד פרודקשן -
+        סטארטאפים, מערכות B2B, אפליקציות מובייל. אני לא בית תוכנה ולא פרילנסר רגיל - אני
+        <b>שותף טכנולוגי</b> שיודע לקחת אחריות על כל הסטאק: מהקוד שיוצא מ-Lovable, דרך
+        Supabase / DB / Auth, עד דחיפה ל-App Store. זמין מיידית, עובד בשקיפות מלאה.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>מה אני מציע לך - בדיוק</h2>
+        <p>פירקתי את מה שביקשת ל-4 חבילות שאפשר לקחת בנפרד או יחד</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <h3>1. אודיט מקיף לאתר ה-Lovable שלך</h3>
+          <p>בודק את האתר הנוכחי בכל המישורים - אבטחה, סקייל, ארכיטקטורה, חוויית משתמש - ומחזיר דוח ברור.</p>
+          <ul>
+            <li>אבטחה: XSS, CSRF, RLS ב-Supabase, secrets, CORS</li>
+            <li>סקייל: עומס DB, queries, caching, bottlenecks</li>
+            <li>קוד: איכות, dependencies, vulnerabilities</li>
+            <li>UX: ביצועים, Core Web Vitals, mobile</li>
+            <li>דוח כתוב + שיחה לעבור עליו ביחד</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🧭</div>
+          <h3>2. המלצות למסחרי - בלי להזיז כלום בחינם</h3>
+          <p>בסוף האודיט: המלצה כנה אם להישאר ב-Lovable או לצאת. עם פירוט סיכונים, עלויות וזמנים.</p>
+          <ul>
+            <li>"להישאר ב-Lovable" - איך לעשות את זה נכון</li>
+            <li>"לצאת חלקית" - איזה חלקים להוציא ולמה</li>
+            <li>"לעבור לגמרי" - לאן, איך, וכמה זה עולה</li>
+            <li>אני לא מוכר לך מעבר רק כי אני יודע לעשות אותו</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <h3>3. מעבר ממסחרי - אם וכשצריך</h3>
+          <p>היציאה מ-Lovable זה לא דרמה. הקוד יושב לך ב-GitHub. אני יודע לקחת אותו ולהריץ אותו על תשתית אמיתית.</p>
+          <ul>
+            <li>החזקה ב-GitHub + CI/CD מסודר</li>
+            <li>הוסטינג: Vercel / Netlify / AWS / GCP</li>
+            <li>Supabase → Postgres self-managed (אם צריך)</li>
+            <li>גמישות מלאה בהעלאת גרסאות (staging, prod)</li>
+            <li>מעבר ב-zero downtime</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🛟</div>
+          <h3>4. תמיכה זמינה - גם ב-Lovable וגם אחרי</h3>
+          <p>כשהפלטפורמה נופלת, כשיש באג בלייב, כשצריך פיצ'ר חדש - יש כתובת. גמיש לפי הצורך שלך.</p>
+          <ul>
+            <li>שעה / קריאה - לתחילת עבודה</li>
+            <li>בנק שעות חודשי - למי שצריך זמינות</li>
+            <li>רטיינר - למי שצריך שותף טכנולוגי קבוע</li>
+            <li>SLA תגובה: עד 4 שעות בשעות עבודה</li>
+            <li>גם תמיכה ב-Lovable עצמה כשהיא נופלת</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="callout purple">
+      <h3>📱 ויש גם App Store ו-Google Play</h3>
+      <p>
+        כתבת שאתה צריך מישהו שיודע גם לעשות את זה. אני יודע. עבדתי על Capacitor (עוטף אפליקציית React קיימת
+        לאפליקציית מובייל native), על PWA, ועל React Native. גם הגשתי כבר אפליקציות ל-Apple App Store
+        ול-Google Play Console - מהבנייה דרך הביקורת ועד פרסום בפועל. זה לא מסע פרסום, זה שלב טכני שצריך
+        מישהו שעבר אותו כמה פעמים.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>למה אני, ולא בית תוכנה</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>זמינות מיידית</h3>
+          <p>אני זמין להתחיל היום. לא "נחזור אליך עוד שבוע". שיחה ראשונה היום, אודיט יכול להתחיל מחר.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>20+ שנות ניסיון, לא בורג</h3>
+          <p>אני רואה את כל המערכת. לא "מפתח שעוזר", אלא CTO שמלווה אותך - גם אם בכובע של תמיכה לפי שעה.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔬</div>
+          <h3>מבין גם את ה-AI מאחורי Lovable</h3>
+          <p>Lovable בונה עם LLM. אני יודע מה ה-LLM עושה טוב, איפה הוא טועה, ומה צריך לבדוק אחריו. רקע מחקרי ב-AI מ-2 שנים אחרונות.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💎</div>
+          <h3>שקיפות מלאה</h3>
+          <p>אתה רואה הכל - הקוד, השעות, מה נעשה ולמה. בלי קופסאות שחורות, בלי הפתעות בחשבון.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>Right-Sized</h3>
+          <p>לא בונה ל-100 משתמשים תשתית של 100 מיליון. מתאים את הפתרון לשלב שאתה בו - לא יותר, לא פחות.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛠️</div>
+          <h3>הכל מקצה לקצה</h3>
+          <p>Frontend, Backend, DB, DevOps, Mobile, Security - אותו אדם. לא פינג-פונג בין 4 ספקים.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: MATCH ==================== -->
+<div id="tab-match" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>איך אני עונה לכל דרישה במודעה</h2>
+        <p>עברתי על המודעה שלך מילה במילה. הנה ההתאמה.</p>
+      </div>
+
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th class="req-col">הדרישה שלך</th>
+            <th>מה אני מביא</th>
+            <th class="status-col">התאמה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="req-col">בחינה של האתר הנוכחי - סקייל ואבטחה</td>
+            <td class="my-col">אודיט מקצועי על Lovable + הסטאק שמתחתיו (לרוב Supabase, React, Vite). בודק RLS, secrets, queries, bottlenecks, dependencies, OWASP Top 10. דוח כתוב + שיחת ממצאים.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">המלצות למסחרי</td>
+            <td class="my-col">המלצה כנה אחרי האודיט - להישאר, לצאת חלקית, או לצאת לגמרי. עם נימוק עסקי וטכני, לא דחיפה למעבר רק כי אני יודע לעשות אותו.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">העברה במידת הצורך</td>
+            <td class="my-col">הקוד של Lovable יושב לך ב-GitHub - מכאן זה רגיל. הוסטינג ל-Vercel/Netlify/AWS/GCP, CI/CD, env vars, DB migration אם צריך. zero-downtime cutover.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">תמיכה במקרה כשל בפלטפורמת Lovable</td>
+            <td class="my-col">כשיש באג, כשהבילד שובר, כשה-AI של Lovable לא מבין - יש מי שיתערב ידנית. כולל edit ישיר ב-GitHub אם הפלטפורמה תקועה.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">שירות תמיכה קבוע - שעה / קריאה</td>
+            <td class="my-col">מודל חודשי שקוף: 30K בשלב הפעיל (אודיט + מעבר + מובייל), 20K במצב תמיכה אחרי שהכל יציב. SLA תגובה עד שעתיים, זמין גם בערב לתקלות קריטיות. אין lock-in.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">זמינות מיידית</td>
+            <td class="my-col">זמין להתחיל היום. שיחה ראשונה תוך 24 שעות, אודיט יכול לרוץ תוך שבוע.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">ידע מוכח + תיק עבודות רלוונטי</td>
+            <td class="my-col">50+ מוצרים בפרודקשן. ראה טאב "ניסיון רלוונטי" - דוגמאות ספציפיות של מעבר POC→Production, אפליקציות שיצאו ל-App Store ו-Play, מערכות תחת עומס.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">ניסיון בפיתוח והעברה מ-GitHub למסחרי</td>
+            <td class="my-col">זה היומיום שלי. כל פרויקט שבניתי 15 שנה אחרונות עבר את המסע GitHub → CI/CD → Production. Vercel, Netlify, AWS ECS, GCP Cloud Run, Firebase, Kubernetes.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">ניסיון בתמיכה במוצר חי</td>
+            <td class="my-col">מערכות פרודקשן בלייב שתחזקתי שנים: סטארטאפ נדל"ן (כ-CTO), Mystic AI, Sidelines, פלטפורמת Doing לטיפול. כולל oncall, monitoring, hotfixes.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">העדפה - להישאר ב-Lovable ככל שניתן</td>
+            <td class="my-col">מבין ומכבד. יש דברים שאפשר לעשות בתוך Lovable טוב מאוד. רק בשבירות שבאמת מצדיקות את זה - אמליץ על מעבר. אחרת: לחזק את מה שיש.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">גמישות בתהליך העלאת גרסאות</td>
+            <td class="my-col">CI/CD מודרני: branch לכל פיצ'ר, preview deploy אוטומטי, staging, production. rollback בלחיצה. אפשר גם feature flags לשליטה עדינה.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">ניסיון בהעברה והתאמה לאפליקציות App Store + Google Play</td>
+            <td class="my-col">Capacitor (עוטף React לאפליקציה native), PWA, React Native. הגשות בפועל ל-Apple App Store ו-Google Play Console - כולל ICONS, splash, permissions, tracking, ASO בסיסי.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>💡 שורה תחתונה</h3>
+        <p>
+          11 דרישות במודעה. כל אחת מהן - יש לי כיסוי מלא, לא תיאורטי. לא ענייתי "כן" איפה שאין לי -
+          אם הייתי חסר במשהו, הייתי כותב את זה. <b>אין כאן הפתעות.</b>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE DEMO ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>⚡ הדגמה חיה: אודיט אוטומטי לאתר Lovable</h2>
+        <p>זה לא מוקאפ. זה הסימולציה של מה שאני עושה כשמגיע אלי אתר Lovable לבדיקה.</p>
+      </div>
+
+      <div class="demo-wrap">
+        <p class="demo-intro">
+          בחר תרחיש (אתר eCommerce, SaaS, או אפליקציית קהילה), לחץ Run Audit ותראה איך מתבצע
+          אודיט אמיתי - כל קטגוריה רצה בתורה, ממצאים מופיעים בזמן אמת, וכל ממצא מגיע עם המלצת תיקון.
+          <br/><br/>
+          <b style="color: var(--text);">כל הדמו הזה נבנה בדקות עם Claude Code.</b> זה הסיבה שאני מהיר.
+        </p>
+
+        <div class="scenario-tabs">
+          <button class="scenario-btn active" onclick="setScenario('ecommerce')">🛒 חנות eCommerce</button>
+          <button class="scenario-btn" onclick="setScenario('saas')">💼 SaaS B2B</button>
+          <button class="scenario-btn" onclick="setScenario('community')">👥 אפליקציית קהילה</button>
+        </div>
+
+        <div class="audit-app">
+          <div class="audit-header">
+            <div class="audit-title">
+              <span>Lovable Production Readiness Audit</span>
+            </div>
+            <div class="audit-target" id="audit-target">target: shop-mvp.lovable.app</div>
+            <div class="audit-controls">
+              <button class="audit-btn" id="reset-btn" onclick="resetAudit()">↺ Reset</button>
+              <button class="audit-btn primary" id="run-btn" onclick="runAudit()">▶ Run Audit</button>
+            </div>
+          </div>
+
+          <div class="audit-grid">
+            <div class="audit-sidebar" id="checks-list"></div>
+
+            <div class="audit-main">
+              <div class="progress-bar-wrap">
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                <div class="progress-meta">
+                  <span id="progress-text">Idle - press Run Audit</span>
+                  <span id="progress-pct">0%</span>
+                </div>
+              </div>
+
+              <div class="findings-list" id="findings-list">
+                <div class="audit-empty">
+                  <div class="big">🔍</div>
+                  <p>בחר תרחיש למעלה ולחץ Run Audit כדי להפעיל את הסריקה</p>
+                </div>
+              </div>
+
+              <div class="summary-box" id="summary-box">
+                <h4>✓ Audit Complete</h4>
+                <p id="summary-text"></p>
+                <div class="summary-stats" id="summary-stats"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top: 1.5rem;">
+          <h3>🤔 מה זה אומר עליך</h3>
+          <p>
+            הדמו מראה גישה - לא הבטחה כללית. כשאני בא לבדוק לך את האתר, אני יודע
+            <b>בדיוק איפה לחפש</b>: RLS ב-Supabase, חשיפת secrets, העדר rate limiting, queries
+            שלא מסתמכות על indexים, exposure של מפתחות API ב-bundle, ועוד. כל ממצא מגיע עם
+            המלצת פעולה - לא רק "יש כאן בעיה".
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי לפרויקט הזה</h2>
+        <p>לא רשימת באזוורדס. דברים ספציפיים שעשיתי שמתחברים לפרויקט שלך.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון</div></div>
+        <div class="stat"><div class="num">50+</div><div class="label">מוצרים בפרודקשן</div></div>
+        <div class="stat"><div class="num">15+</div><div class="label">מעברים POC→Prod</div></div>
+        <div class="stat"><div class="num">2+</div><div class="label">שנים עם AI agents</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>🚚 מעבר POC → Production - שגרתי אצלי</h3>
+          <p>
+            כל פרויקט שליוויתי 15 שנה אחרונות עבר את המסע הזה: מ-prototype/MVP על תשתית פשוטה,
+            דרך אופטימיזציה, ועד מערכת שמחזיקה משתמשים אמיתיים. Lovable הוא רק עוד נקודת מוצא -
+            קצת פחות גמישה מ-Cursor או Claude Code, אבל שם המשחק זהה: הקוד יוצא, ואני יודע מה
+            לעשות איתו.
+          </p>
+          <span class="exp-tag">Vercel / Netlify</span>
+          <span class="exp-tag">AWS / GCP / Azure</span>
+          <span class="exp-tag">Supabase / Firebase</span>
+          <span class="exp-tag">CI/CD</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>📱 אפליקציות שעלו ל-App Store ו-Google Play</h3>
+          <p>
+            הגשות בפועל - לא תיאוריה. כולל את כל הכאב: Apple Developer, Google Play Console,
+            ICONS, splash screens, permissions, tracking transparency, privacy nutrition labels,
+            ביקורת של אפל. Capacitor (עוטף React) הוא הדרך הזריזה ביותר היום - שומר על קוד אחד
+            לאתר ולמובייל.
+          </p>
+          <span class="exp-tag">Capacitor</span>
+          <span class="exp-tag">PWA</span>
+          <span class="exp-tag">React Native</span>
+          <span class="exp-tag">App Store</span>
+          <span class="exp-tag">Play Console</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🔐 אבטחה במערכות פרודקשן</h3>
+          <p>
+            רקע עמוק ב-Privacy Tech - בניתי מערכות compliance תחת GDPR, ניהלתי הצפנה,
+            segmentation, RLS, IAM. בודק אבטחה מהזווית של "איך תוקף יחפש את הפתח" - לא רק
+            "האם הקוד נראה תקין". כולל בדיקה של Supabase RLS policies, secrets ב-bundle, exposed
+            endpoints, ועוד.
+          </p>
+          <span class="exp-tag">Privacy Tech</span>
+          <span class="exp-tag">GDPR</span>
+          <span class="exp-tag">Supabase RLS</span>
+          <span class="exp-tag">OWASP</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🛟 תמיכה במוצרים חיים - שנים</h3>
+          <p>
+            מערכות שתחזקתי בלייב לאורך שנים: סטארטאפ נדל"ן שייסדתי כ-CTO, פלטפורמת Doing לטיפול
+            בילדים אוטיסטים, Mystic AI (אחת הראשונות מהז'אנר), Sidelines (נמכרה). כולל oncall,
+            hotfixes, monitoring, פתרון תקלות בפרודקשן באמצע הלילה כשצריך.
+          </p>
+          <span class="exp-tag">24/7 oncall</span>
+          <span class="exp-tag">Monitoring</span>
+          <span class="exp-tag">Hotfixes</span>
+          <span class="exp-tag">SLA</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>⚡ Scale - מ-100 ל-100k משתמשים</h3>
+          <p>
+            כיוונון DB, caching layers, query optimization, CDN, load balancing, auto-scaling.
+            יודע לזהות bottleneck לפני שהוא נופל - ולא לבזבז כסף על over-engineering לפני שצריך.
+            <b>Right-sized architecture</b> זה לא קלישאה אצלי - זה הגישה שמבדילה ביני לבין מי
+            שזורק עליך Kubernetes כי "ככה עושים".
+          </p>
+          <span class="exp-tag">Postgres tuning</span>
+          <span class="exp-tag">Redis</span>
+          <span class="exp-tag">CDN</span>
+          <span class="exp-tag">Load testing</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🤖 מבין מה ש-Lovable עושה (וגם לא עושה)</h3>
+          <p>
+            2+ שנים בבניית AI agents. עובד יום-יום עם Claude Code, מכיר את היתרונות והמגבלות
+            של LLMs בכתיבת קוד. יודע איפה Lovable נוטה לשגות (UI שטחי שלא מטפל ב-edge cases,
+            queries לא מאופטמים, אבטחה מינימלית) - ובדיוק איפה צריך אדם לסגור פערים.
+          </p>
+          <span class="exp-tag">Claude Code</span>
+          <span class="exp-tag">LLM agents</span>
+          <span class="exp-tag">RAG</span>
+          <span class="exp-tag">AI infrastructure</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 5: BUDGET ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>תקציב ומודל עבודה</h2>
+        <p>שותפות חודשית, לא פרויקט סגור. שני שלבים - פעיל, ואחר כך תמיכה.</p>
+      </div>
+
+      <div class="pricing-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 820px;">
+        <div class="pricing-card featured">
+          <div class="featured-tag">שלב 1 · חודשים ראשונים</div>
+          <div class="ptype">מצב פעיל</div>
+          <div class="pname">אודיט · המלצות · מעבר</div>
+          <div class="pdesc">השלב שמשנה את המצב - בודקים, ממליצים, ובמידת הצורך מעבירים. כולל גם את המובייל אם תרצה.</div>
+          <div class="price">30,000<small> ש"ח / חודש</small></div>
+          <div class="price-note">בדרך כלל 2-3 חודשים, לפי הצרכים</div>
+          <ul>
+            <li>אודיט מלא בשבוע הראשון</li>
+            <li>דוח ממצאים + המלצות ברורות</li>
+            <li>מעבר ממסחרי (אם זו ההמלצה)</li>
+            <li>הקמת CI/CD, staging, monitoring</li>
+            <li>הקמת App Store + Google Play (אופציונלי)</li>
+            <li>זמינות מלאה - שיחות יומיות אם צריך</li>
+            <li>ביצוע בפועל, לא רק ייעוץ</li>
+          </ul>
+        </div>
+
+        <div class="pricing-card">
+          <div class="ptype">שלב 2 · אחרי שהמצב יציב</div>
+          <div class="pname">מצב תמיכה</div>
+          <div class="pdesc">המערכת רצה. אני נשאר זמין לתחזוקה, פיצ'רים קטנים, ופתרון בעיות. הכל ללא הפתעות.</div>
+          <div class="price">20,000<small> ש"ח / חודש</small></div>
+          <div class="price-note">חודשי · אפשר להפסיק בכל זמן</div>
+          <ul>
+            <li>תמיכה שוטפת ב-Lovable + הסטאק</li>
+            <li>פיתוח פיצ'רים קטנים-בינוניים</li>
+            <li>תיקוני באגים, hotfixes</li>
+            <li>SLA תגובה: עד שעתיים בשעות עבודה</li>
+            <li>זמין לתקלות קריטיות גם בערב</li>
+            <li>שיחה שבועית קבועה</li>
+            <li>שקיפות מלאה - אתה רואה כמה זמן הולך לאן</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>💡 איך זה עובד בפועל</h3>
+        <p>
+          מתחילים ב-<b>30K/חודש</b> כל עוד יש עבודה אקטיבית - אודיט, מעבר, הקמת תשתיות, מובייל.
+          ברגע שהמערכת יציבה ועובדת, עוברים אוטומטית ל-<b>20K/חודש</b> במצב תמיכה. בלי משא ומתן,
+          בלי דרמה. <b>אין lock-in</b> - אפשר להפסיק בכל זמן בהודעה של חודש מראש. <b>אין הפתעות</b> -
+          המחיר הוא המחיר, גם אם החודש דרש יותר עבודה.
+        </p>
+      </div>
+
+      <div class="callout purple" style="margin-top: 1rem;">
+        <h3>🤝 למה מודל חודשי ולא פרויקטלי</h3>
+        <p>
+          כי אתה לא יודע בוודאות מה יהיה. אולי האודיט יראה שלא צריך מעבר בכלל. אולי דווקא יראה
+          שצריך גם מובייל. אולי תרצה להוסיף פיצ'ר בדרך. במודל חודשי - <b>אנחנו זזים יחד עם המציאות</b>,
+          לא נצמדים להגדרת סקופ שכתבנו לפני שידענו את האמת. אתה משלם רק על מה שאתה צריך, מתי שאתה
+          צריך, ויודע בכל רגע איפה אנחנו עומדים.
+        </p>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>איך מתחילים</h2>
+        <p>מסלול ברור מההיכרות הראשונה ועד דוח על השולחן שלך</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>שיחת היכרות (חינם, 30 דקות)</h3>
+            <p>מבינים מה האתר, מה דחוף, מה הכאב. בודקים אם יש כימיה.</p>
+            <span class="tag">היום-מחר</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>גישה ל-GitHub + Lovable</h3>
+            <p>נותן לי read-only access ל-GitHub repo + הסבר קצר על האתר. מתחיל אודיט.</p>
+            <span class="tag">יום 2</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>אודיט מלא + דוח</h3>
+            <p>סורק קוד, ארכיטקטורה, אבטחה, סקייל, UX. כותב דוח עם ממצאים והמלצות.</p>
+            <span class="tag">3-5 ימי עבודה</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>שיחת ממצאים</h3>
+            <p>עוברים על הדוח ביחד. עונה על שאלות. מציג אופציות: להישאר, לצאת חלקית, לצאת לגמרי.</p>
+            <span class="tag">שבוע 1-2</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">5</div>
+          <div class="timeline-body">
+            <h3>החלטה משותפת + המשך</h3>
+            <p>אתה מחליט. אני נשאר בכל אופציה - בנק שעות, מעבר, או רק זמין לקריאות.</p>
+            <span class="tag">משם והלאה</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <h2>בא לדבר?</h2>
+      <p>שיחת היכרות חינם, 30 דקות. אם זה לא מתחבר - לא מתחיל.</p>
+      <div class="contact-details">
+        <div class="contact-item">📧 <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">📱 <a href="tel:+972545567213">054-5567213</a></div>
+        <div class="contact-item">💬 <a href="https://wa.me/972545567213" target="_blank">WhatsApp</a></div>
+      </div>
+      <a class="btn primary" href="https://wa.me/972545567213" target="_blank">דבר איתי עכשיו ב-WhatsApp</a>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    שלומי זוין · CTO as a Service · <a href="mailto:shlomi@boostart.io" style="color: var(--accent);">shlomi@boostart.io</a> · <a href="tel:+972545567213" style="color: var(--accent);">054-5567213</a>
+  </div>
+</footer>
+
+<script>
+  // THEME
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'light' ? '' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    document.querySelector('.theme-toggle').textContent = next === 'light' ? '☀' : '🌙';
+    try { localStorage.setItem('theme', next); } catch(e) {}
+  }
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.querySelector('.theme-toggle').textContent = '☀';
+    }
+  } catch(e) {}
+
+  // TABS
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    event && event.target && event.target.classList.add('active');
+    if (!event || !event.target.classList.contains('tab-btn')) {
+      const idx = ['proposal','match','demo','experience','budget'].indexOf(name);
+      if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    }
+    document.getElementById('tab-' + name).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============ AUDIT DEMO ============
+  const SCENARIOS = {
+    ecommerce: {
+      target: 'shop-mvp.lovable.app',
+      checks: [
+        { id: 'sec', name: 'Security & Auth', icon: '🔐' },
+        { id: 'db', name: 'Database & RLS', icon: '🗄️' },
+        { id: 'perf', name: 'Performance & Scale', icon: '⚡' },
+        { id: 'code', name: 'Code Quality', icon: '📋' },
+        { id: 'mobile', name: 'Mobile Readiness', icon: '📱' },
+        { id: 'mig', name: 'Migration Readiness', icon: '🚀' }
+      ],
+      findings: {
+        sec: [
+          { sev: 'crit', title: 'Stripe secret key חשוף ב-bundle', desc: 'מצאתי את STRIPE_SECRET_KEY בקובץ JS שמשרת את הדפדפן. כל לקוח יכול לקרוא אותו ולחייב את החשבון שלך.', fix: 'להעביר לפונקציית Edge / Backend, להחזיק רק את Publishable Key בצד לקוח, ולסבב את המפתח שדלף.' },
+          { sev: 'warn', title: 'אין rate limiting על endpoint התשלום', desc: 'אפשר לשלוח אלפי בקשות לדקה. סיכון לחיובים כפולים ולעלויות מוגזמות.', fix: 'rate limit ב-Supabase Edge Function או Cloudflare מול endpoint /checkout.' },
+          { sev: 'ok', title: 'Auth מוגדר כמו שצריך', desc: 'Supabase Auth עם email + Google OAuth. session tokens מנוהלים נכון.', fix: 'אין צורך בשינוי. ✓' }
+        ],
+        db: [
+          { sev: 'crit', title: 'טבלת orders חשופה לכל משתמש מאומת', desc: 'RLS policy של orders היא "authenticated users can read all rows". כל לקוח רואה הזמנות של כולם, כולל פרטי משלוח.', fix: 'policy חדש: USING (user_id = auth.uid()). אני יכול לכתוב לך את זה ב-15 דקות.' },
+          { sev: 'warn', title: 'שאילתות ללא indexים', desc: 'orders.created_at, products.category - שאילתות נפוצות שירוצו slow על 10k+ שורות.', fix: 'CREATE INDEX על העמודות. שיפור צפוי: x40 בזמן תגובה.' },
+          { sev: 'ok', title: 'Backups מוגדרים אוטומטית', desc: 'Supabase מבצע backup יומי. RPO = 24 שעות.', fix: 'מספיק לשלב הנוכחי. בעתיד: PITR ב-tier הבא.' }
+        ],
+        perf: [
+          { sev: 'warn', title: 'Bundle JS גדול מדי (1.4MB)', desc: 'דף ראשי טוען 1.4MB JavaScript. על 3G: 8 שניות. Core Web Vitals יסבול.', fix: 'code splitting + lazy loading של routes. ירידה ל-~400KB ראשוני.' },
+          { sev: 'warn', title: 'תמונות לא מאופטמות', desc: 'תמונות מוצרים נטענות בגודל מקורי (avg 850KB). ירידה ב-LCP.', fix: 'CDN עם resize on-the-fly (Cloudinary / Imgix / Vercel Image).' },
+          { sev: 'ok', title: 'Static assets cached נכון', desc: 'Headers של cache-control נראים תקינים. CDN של Lovable עובד.', fix: 'אין שינוי דרוש.' }
+        ],
+        code: [
+          { sev: 'warn', title: '12 dependencies מיושנים', desc: 'כולל 3 עם CVEs ידועים. lodash@4.17.15 (CVE-2021-23337) ועוד.', fix: 'npm audit fix + upgrade ידני ל-3 שלא נפתרים אוטומטית.' },
+          { sev: 'warn', title: 'אין error boundaries ב-React', desc: 'באג ב-component אחד שובר את כל הדף. חוויה רעה למשתמש.', fix: 'הוספת ErrorBoundary ל-3 routes ראשיים + Sentry לדיווח.' },
+          { sev: 'ok', title: 'TypeScript מוגדר עם strict mode', desc: 'tsconfig strict + noImplicitAny פעילים. type safety טוב.', fix: 'אין שינוי.' }
+        ],
+        mobile: [
+          { sev: 'warn', title: 'אין PWA manifest', desc: 'לא ניתן להתקין כאפליקציה במובייל. פספוס engagement.', fix: 'הוספת manifest.json + service worker. צעד ראשון לפני App Store.' },
+          { sev: 'crit', title: 'לא responsive בחלק מהמסכים', desc: 'דף checkout שובר ב-iPhone SE (375px). כפתור ה"שלם" יוצא מהמסך.', fix: 'media query + flex layout. תיקון של חצי שעה.' },
+          { sev: 'ok', title: 'מוכן ל-Capacitor wrap', desc: 'הסטאק (React + Vite) מתאים מצוין ל-Capacitor. ניתן לעטוף ל-iOS/Android.', fix: 'אם תרצה - תהליך של 1-2 שבועות לפרסום.' }
+        ],
+        mig: [
+          { sev: 'ok', title: 'הקוד יושב נקי ב-GitHub', desc: 'lovable-projects/shop-mvp - structure סטנדרטי, build script עובד.', fix: 'מוכן לדפלוי על Vercel/Netlify ב-30 דקות.' },
+          { sev: 'ok', title: 'Supabase ניתן ל-self-host או להישאר managed', desc: 'אין vendor lock-in מיוחד. אפשר להמשיך managed או לעבור לפי הצורך.', fix: 'להמשיך managed לבינתיים. החלטה שאפשר לדחות.' },
+          { sev: 'warn', title: 'אין CI/CD מוגדר', desc: 'כרגע: push ל-main = deploy ישר ל-prod. מסוכן.', fix: 'GitHub Actions: PR → preview, merge → staging, tag → prod. סטנדרט שעובד.' }
+        ]
+      }
+    },
+    saas: {
+      target: 'crm-startup.lovable.app',
+      checks: [
+        { id: 'sec', name: 'Security & Auth', icon: '🔐' },
+        { id: 'db', name: 'Database & RLS', icon: '🗄️' },
+        { id: 'perf', name: 'Performance & Scale', icon: '⚡' },
+        { id: 'code', name: 'Code Quality', icon: '📋' },
+        { id: 'mobile', name: 'Mobile Readiness', icon: '📱' },
+        { id: 'mig', name: 'Migration Readiness', icon: '🚀' }
+      ],
+      findings: {
+        sec: [
+          { sev: 'crit', title: 'Multi-tenancy שבור', desc: 'משתמש מ-tenant A יכול לקבל נתונים של tenant B דרך פרמטר ב-URL. אין בידוק tenant_id בצד שרת.', fix: 'RLS policy של tenant_id = auth.jwt() ->> tenant_id על כל הטבלאות. קריטי לפני כל עליית גרסה.' },
+          { sev: 'warn', title: 'Reset password token תקף לעולם', desc: 'token ל-reset password לא מקבל TTL. שלוחה במייל = פתוח לתמיד.', fix: 'TTL של 30 דקות. one-time use.' },
+          { sev: 'ok', title: 'HTTPS + HSTS פעילים', desc: 'תעבורה מוצפנת, HSTS preload בתוקף.', fix: 'אין שינוי.' }
+        ],
+        db: [
+          { sev: 'warn', title: 'N+1 queries בדף ה-Dashboard', desc: 'דף הראשי טוען לכל לקוח את ה-deals שלו ב-loop. 200 לקוחות = 200 שאילתות.', fix: 'JOIN אחד עם aggregation. ירידה מ-200 שאילתות ל-1.' },
+          { sev: 'crit', title: 'אין שום constraint על email uniqueness', desc: 'שני משתמשים יכולים להירשם עם אותו אימייל באותו tenant. שובר את כל ה-flow.', fix: 'UNIQUE INDEX על (tenant_id, email). + cleanup של דופליקטים קיימים.' },
+          { sev: 'ok', title: 'Migrations מנוהלים ב-Git', desc: 'Supabase migrations יושבים בקוד, version controlled.', fix: 'מצוין.' }
+        ],
+        perf: [
+          { sev: 'warn', title: 'אין pagination ברשימת contacts', desc: 'דף contacts טוען את כל הרשומות. על 10k+ זה ייפול.', fix: 'cursor-based pagination + virtual scrolling. סטנדרט שאני מטמיע ב-2 שעות.' },
+          { sev: 'ok', title: 'Realtime subscriptions מוגדרים בחוכמה', desc: 'subscriptions רק על מה שגלוי במסך, מתנתקים נכון.', fix: 'אין שינוי.' },
+          { sev: 'warn', title: 'Cold start איטי ב-Edge Functions', desc: 'פונקציה ראשונה לוקחת 2.3 שניות. UX רע למשתמשים שנכנסים לראשונה.', fix: 'keep-warm cron + הפחתת bundle size של הפונקציות.' }
+        ],
+        code: [
+          { sev: 'ok', title: 'TypeScript types מהוקפדים', desc: 'אין any כמעט בקוד. types מתורגמים מ-Supabase schema.', fix: 'אין שינוי.' },
+          { sev: 'warn', title: 'אין tests', desc: 'אפס בדיקות אוטומטיות. כל deployment הוא הימור.', fix: 'הוספת Vitest + 5 בדיקות E2E ב-Playwright לתסריטי zorra. ROI גבוה.' },
+          { sev: 'warn', title: 'Logic מוטמע ב-components', desc: 'business logic מעורבב עם UI. קשה לבדוק וקשה להחליף UI אחר כך.', fix: 'הוצאה ל-hooks/services. תהליך הדרגתי, לא דחוף.' }
+        ],
+        mobile: [
+          { sev: 'warn', title: 'נראה רע ב-tablet', desc: 'breakpoints חסרים בטווח 768-1024px. dashboard "תקוע" בתצוגה לא נכונה.', fix: 'הוספת breakpoint למידלוורד.' },
+          { sev: 'ok', title: 'מוכן ל-PWA', desc: 'service worker + manifest קיימים, נתמך offline בסיסי.', fix: 'אין שינוי.' },
+          { sev: 'ok', title: 'מוכן ל-Capacitor wrap', desc: 'אם תרצה אפליקציה native - הקוד מוכן לעטיפה.', fix: 'תהליך אופציונלי של 1-2 שבועות.' }
+        ],
+        mig: [
+          { sev: 'warn', title: 'תלות בפיצ\'רים ספציפיים של Lovable', desc: '3 components משתמשים ב-Lovable AI helper שלא קיים מחוץ לפלטפורמה.', fix: 'החלפה ב-API ישיר ל-OpenAI/Claude. שבוע עבודה.' },
+          { sev: 'ok', title: 'Repo מאורגן היטב', desc: 'מבנה תיקיות ברור, README קיים, env.example מתועד.', fix: 'מוכן למעבר.' },
+          { sev: 'crit', title: 'אין staging env', desc: 'כל שינוי הולך ישר ל-prod. סיכון רציני בכל deployment.', fix: 'הקמת staging זהה ל-prod + CI/CD שמדפלוי לשם קודם.' }
+        ]
+      }
+    },
+    community: {
+      target: 'community-app.lovable.app',
+      checks: [
+        { id: 'sec', name: 'Security & Auth', icon: '🔐' },
+        { id: 'db', name: 'Database & RLS', icon: '🗄️' },
+        { id: 'perf', name: 'Performance & Scale', icon: '⚡' },
+        { id: 'code', name: 'Code Quality', icon: '📋' },
+        { id: 'mobile', name: 'Mobile Readiness', icon: '📱' },
+        { id: 'mig', name: 'Migration Readiness', icon: '🚀' }
+      ],
+      findings: {
+        sec: [
+          { sev: 'crit', title: 'XSS בתוכן משתמשים', desc: 'פוסטים מציגים HTML גולמי. משתמש זדוני יכול להזריק <script> שירוץ אצל כל מי שרואה את הפוסט.', fix: 'sanitize ב-DOMPurify לפני render. תיקון של 30 דקות שיכול למנוע גניבת חשבונות.' },
+          { sev: 'warn', title: 'אין spam/abuse protection', desc: 'אין rate limit על יצירת פוסטים. בוט יכול להציף את הפיד.', fix: 'rate limit + captcha לפעולות רגישות.' },
+          { sev: 'ok', title: 'OAuth לוגין דרך Google מוגדר נכון', desc: 'redirect URIs נעולים ל-domain שלך. אין open redirect.', fix: 'אין שינוי.' }
+        ],
+        db: [
+          { sev: 'warn', title: 'Likes table יגדל ענק', desc: 'כל like זה רשומה. על 100k משתמשים פעילים: גידול של מיליונים בחודש.', fix: 'partitioning by month + archival של likes ישנים. או counter cache על posts.' },
+          { sev: 'crit', title: 'משתמש יכול למחוק פוסטים של אחרים', desc: 'RLS DELETE policy חסר בדיקת user_id. אסון בפוטנציה.', fix: 'USING (user_id = auth.uid()) על DELETE. תיקון קריטי לפני שזה קורה.' },
+          { sev: 'ok', title: 'Foreign keys מוגדרים', desc: 'integrity של הנתונים מוגן ברמת DB.', fix: 'אין שינוי.' }
+        ],
+        perf: [
+          { sev: 'crit', title: 'Feed טוען את כל הפוסטים בכל refresh', desc: 'אין pagination, אין infinite scroll. על 1000+ פוסטים זה קורס.', fix: 'cursor pagination + react-virtuoso לרינדור efficient. תהליך של יום עבודה.' },
+          { sev: 'warn', title: 'תמונות פרופיל לא מאופטמות', desc: 'avatars נטענים בגודל מקורי. avg 600KB.', fix: 'thumbnails ב-Supabase Storage transformations.' },
+          { sev: 'ok', title: 'ServiceWorker עושה cache לא רע', desc: 'אסטים סטטיים נשמרים, חזרה לאתר מהירה.', fix: 'אין שינוי.' }
+        ],
+        code: [
+          { sev: 'ok', title: 'Components נקיים וקריאים', desc: 'הפרדה בין presentation ל-logic, hooks משוחזרים.', fix: 'אין שינוי.' },
+          { sev: 'warn', title: 'אין monitoring/error tracking', desc: 'באגים בפרודקשן עוברים מתחת לרדאר עד שמשתמש מתלונן.', fix: 'Sentry integration - 20 דקות עבודה, ROI ענק.' },
+          { sev: 'warn', title: 'הרבה console.log בפרודקשן', desc: '40+ קריאות log פתוחות. דליפת מידע פוטנציאלית + ביצועים.', fix: 'eslint rule + Vite plugin לחיתוך אוטומטי בבילד.' }
+        ],
+        mobile: [
+          { sev: 'crit', title: 'PWA מוגדר אבל לא רשום', desc: 'יש manifest אבל אין SW רשום נכון. installable = false.', fix: 'תיקון רישום ה-Service Worker. שעה של עבודה.' },
+          { sev: 'ok', title: 'Mobile-first design', desc: 'נראה מצוין במובייל. Touch targets בגודל נכון.', fix: 'אין שינוי.' },
+          { sev: 'warn', title: 'Push notifications לא מוטמע', desc: 'אפליקציית קהילה ללא הודעות = פספוס engagement עצום.', fix: 'הטמעת Web Push + Capacitor Push למובייל. שבוע עבודה.' }
+        ],
+        mig: [
+          { sev: 'ok', title: 'Supabase Storage כבר בשימוש', desc: 'תמונות יושבות ב-Storage עם URLs יציבים. מעבר = החלפת domain בלבד.', fix: 'אין שינוי.' },
+          { sev: 'warn', title: 'אין backup אוטומטי של media', desc: 'תמונות יושבות רק ב-Supabase. אם משהו קורה - אבדן.', fix: 'cron יומי לסנכרון ל-S3/R2. עלות זניחה.' },
+          { sev: 'ok', title: 'Realtime ב-Supabase = פיצ\'ר חזק להישאר', desc: 'אם תצא, תצטרך להחליף ב-Pusher/Ably. שיקול לטובת הישארות.', fix: 'המלצה: להישאר ב-Supabase. לא להזיז בלי סיבה.' }
+        ]
+      }
+    }
+  };
+
+  let currentScenario = 'ecommerce';
+  let isRunning = false;
+
+  function setScenario(name) {
+    if (isRunning) return;
+    currentScenario = name;
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('audit-target').textContent = 'target: ' + SCENARIOS[name].target;
+    resetAudit();
+  }
+
+  function renderChecks() {
+    const data = SCENARIOS[currentScenario];
+    const html = data.checks.map(c => `
+      <div class="check-row" id="check-${c.id}">
+        <div class="check-name">
+          <span class="check-icon">${c.icon}</span>
+          <span>${c.name}</span>
+        </div>
+        <span class="check-status pending" id="status-${c.id}">Pending</span>
+      </div>
+    `).join('');
+    document.getElementById('checks-list').innerHTML = html;
+  }
+
+  function resetAudit() {
+    isRunning = false;
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = 'Idle - press Run Audit';
+    document.getElementById('progress-pct').textContent = '0%';
+    document.getElementById('summary-box').classList.remove('show');
+    document.getElementById('findings-list').innerHTML = `
+      <div class="audit-empty">
+        <div class="big">🔍</div>
+        <p>בחר תרחיש למעלה ולחץ Run Audit כדי להפעיל את הסריקה</p>
+      </div>`;
+    document.getElementById('run-btn').disabled = false;
+    renderChecks();
+  }
+
+  async function runAudit() {
+    if (isRunning) return;
+    isRunning = true;
+    document.getElementById('run-btn').disabled = true;
+    document.getElementById('summary-box').classList.remove('show');
+    document.getElementById('findings-list').innerHTML = '';
+
+    const data = SCENARIOS[currentScenario];
+    const total = data.checks.length;
+    let counts = { crit: 0, warn: 0, ok: 0 };
+
+    for (let i = 0; i < total; i++) {
+      const check = data.checks[i];
+      const statusEl = document.getElementById('status-' + check.id);
+      const rowEl = document.getElementById('check-' + check.id);
+      statusEl.textContent = 'Running';
+      statusEl.className = 'check-status running';
+      rowEl.classList.add('active');
+      document.getElementById('progress-text').textContent = 'Running: ' + check.name;
+
+      const findings = data.findings[check.id] || [];
+      let worst = 'ok';
+      for (const f of findings) {
+        await sleep(380);
+        addFinding(f, check.icon + ' ' + check.name);
+        counts[f.sev]++;
+        if (f.sev === 'crit') worst = 'crit';
+        else if (f.sev === 'warn' && worst !== 'crit') worst = 'warn';
+      }
+
+      statusEl.textContent = worst === 'ok' ? 'Pass' : (worst === 'warn' ? 'Warn' : 'Critical');
+      statusEl.className = 'check-status ' + worst;
+      rowEl.classList.remove('active');
+
+      const pct = Math.round(((i + 1) / total) * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent = pct + '%';
+      await sleep(220);
+    }
+
+    document.getElementById('progress-text').textContent = 'Audit complete';
+    showSummary(counts);
+    isRunning = false;
+    document.getElementById('run-btn').disabled = false;
+  }
+
+  function addFinding(f, sourceLabel) {
+    const list = document.getElementById('findings-list');
+    if (list.querySelector('.audit-empty')) list.innerHTML = '';
+    const sevLabel = f.sev === 'crit' ? 'CRITICAL' : f.sev === 'warn' ? 'WARNING' : 'OK';
+    const div = document.createElement('div');
+    div.className = 'finding ' + f.sev;
+    div.innerHTML = `
+      <div class="finding-head">
+        <div class="finding-title">${f.title}</div>
+        <span class="finding-sev ${f.sev}">${sevLabel}</span>
+      </div>
+      <div class="finding-desc"><b style="color:var(--text-muted)">[${sourceLabel}]</b> ${f.desc}</div>
+      <div class="finding-fix"><b>איך לתקן:</b> ${f.fix}</div>
+    `;
+    list.appendChild(div);
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function showSummary(counts) {
+    const text = counts.crit > 0
+      ? `נמצאו ${counts.crit} ממצאים קריטיים שדורשים טיפול לפני העלאה לעומס. בנוסף ${counts.warn} אזהרות ו-${counts.ok} בדיקות שעברו. כל ממצא מגיע עם המלצת תיקון מדויקת.`
+      : `אתר נקי יחסית - ${counts.warn} אזהרות לטיפול ו-${counts.ok} בדיקות שעברו. ניתן להמשיך כך עם תיקונים סדורים.`;
+    document.getElementById('summary-text').textContent = text;
+    document.getElementById('summary-stats').innerHTML = `
+      <div class="sum-stat"><b style="color: var(--danger)">${counts.crit}</b> קריטי</div>
+      <div class="sum-stat"><b style="color: var(--warn)">${counts.warn}</b> אזהרה</div>
+      <div class="sum-stat"><b style="color: var(--success)">${counts.ok}</b> תקין</div>
+    `;
+    document.getElementById('summary-box').classList.add('show');
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  renderChecks();
+</script>
+
+</body>
+</html>

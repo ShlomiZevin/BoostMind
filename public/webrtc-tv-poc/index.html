@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>WebRTC PoC · שיחת וידאו 3 מסכים בלחיצה אחת | שלומי זוין</title>
+  <meta name="description" content="הצעה ל-Disposable MVP של שיחת וידאו 3 משתתפים על WebRTC + Node.js. דמו חי שמדבר עם שרתי STUN אמיתיים." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --bg-alt: #10141c;
+      --card-bg: #151a24;
+      --card-hover: #1a202b;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-soft: rgba(16, 185, 129, 0.10);
+      --accent-dim: rgba(16, 185, 129, 0.30);
+      --blue: #3b82f6;
+      --blue-soft: rgba(59, 130, 246, 0.10);
+      --purple: #8b5cf6;
+      --purple-soft: rgba(139, 92, 246, 0.10);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.10);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.10);
+      --border: #232a36;
+      --border-strong: #2e3644;
+      --text: #f5f7fa;
+      --text-muted: #8b929d;
+      --text-dim: #5f6570;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f7f8fa;
+      --card-bg: #ffffff;
+      --card-hover: #fafbfc;
+      --border: #e4e7ec;
+      --border-strong: #cdd2db;
+      --text: #0f1419;
+      --text-muted: #5c6370;
+      --text-dim: #8b929d;
+      --accent-soft: rgba(16, 185, 129, 0.08);
+      --blue-soft: rgba(59, 130, 246, 0.07);
+      --purple-soft: rgba(139, 92, 246, 0.06);
+      --warn-soft: rgba(245, 158, 11, 0.08);
+      --danger-soft: rgba(239, 68, 68, 0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; }
+    .logo-text { font-weight: 600; font-size: 0.92rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { font-weight: 400; font-size: 0.78rem; color: var(--text-muted); }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: white; font-size: 0.84rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: var(--accent-hover); }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.92rem; font-weight: 500; padding: 0.9rem 1.4rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 2.5rem; text-align: center; }
+    .hero-eyebrow { display: inline-block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); padding: 0.3rem 0.8rem; border: 1px solid var(--accent-dim); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.2rem; }
+    .hero h1 { font-size: clamp(1.85rem, 4.2vw, 2.95rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.1rem; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 760px; margin: 0 auto 1.8rem; line-height: 1.7; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 1.8rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 2.75rem 0; }
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 2.25rem; }
+    .section-header h2 { font-size: 1.7rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 0.98rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.4rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.02rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.5rem; margin-bottom: 0.65rem; }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.4rem 1.6rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.92rem; line-height: 1.75; }
+    .callout.purple { border-right-color: var(--purple); }
+    .callout.warn { border-right-color: var(--warn); }
+    .callout.blue { border-right-color: var(--blue); }
+    .callout strong, .callout b { color: var(--text); }
+
+    /* MATCH TABLE */
+    .match-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+    .match-table th { background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 0.88rem; padding: 0.95rem 1rem; text-align: right; }
+    .match-table td { padding: 0.95rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; vertical-align: top; }
+    .req-col { width: 33%; color: var(--text); font-weight: 500; }
+    .my-col { color: var(--text-muted); line-height: 1.7; }
+    .status-col { width: 70px; text-align: center; }
+    .status-yes { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); font-weight: 700; font-size: 0.85rem; }
+    .status-warn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: 0.85rem; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.5rem 0 2.5rem; }
+    .stat { text-align: center; padding: 1.2rem 0.8rem; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    .stat .num { font-size: 1.85rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* EXPERIENCE */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 0.7rem; line-height: 1.6; }
+    .exp-tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); margin-left: 0.25rem; margin-bottom: 0.25rem; border: 1px solid var(--border); }
+
+    /* PRICING */
+    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 820px; margin: 0 auto; }
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.6rem; position: relative; }
+    .pricing-card.featured { border-color: var(--accent); }
+    .pricing-card.featured .featured-tag { position: absolute; top: -10px; right: 1.4rem; background: var(--accent); color: white; font-size: 0.7rem; padding: 0.2rem 0.65rem; border-radius: var(--radius-sm); font-weight: 600; }
+    .pricing-card .ptype { font-size: 0.78rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .pricing-card .pname { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .pricing-card .pdesc { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.55; }
+    .pricing-card .price { font-size: 1.85rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; letter-spacing: -0.02em; }
+    .pricing-card .price small { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
+    .pricing-card .price-note { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.1rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1rem 0 0; }
+    .pricing-card li { font-size: 0.88rem; margin-bottom: 0.45rem; display: flex; align-items: flex-start; gap: 0.45rem; color: var(--text-muted); }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 0.9rem; max-width: 780px; margin: 2rem auto 0; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; }
+    .timeline-num { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 0.98rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.4rem; border: 1px solid var(--accent-dim); margin-left: 0.3rem; }
+
+    /* ============ DEMO: WEBRTC SIMULATOR ============ */
+    .demo-wrap { max-width: 1080px; margin: 0 auto; }
+    .demo-intro { text-align: center; max-width: 760px; margin: 0 auto 1.5rem; color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+    .demo-intro strong, .demo-intro b { color: var(--text); }
+
+    .rtc-app { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+    .rtc-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.2rem; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem; }
+    .rtc-title { font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; gap: 0.55rem; }
+    .rtc-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+    .rtc-title.live::before { background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .rtc-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .rtc-btn { padding: 0.45rem 0.95rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .rtc-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .rtc-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .rtc-btn.primary:hover { background: var(--accent-hover); }
+    .rtc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* PIPELINE */
+    .pipeline { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); background: var(--bg-alt); }
+    .pipeline-title { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 0.7rem; }
+    .pipeline-steps { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: stretch; }
+    .pstep { flex: 1; min-width: 130px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; transition: all 0.25s; position: relative; overflow: hidden; }
+    .pstep .pname { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.35rem; }
+    .pstep .pdetail { font-size: 0.72rem; color: var(--text-dim); font-family: 'SF Mono', 'JetBrains Mono', Monaco, monospace; direction: ltr; text-align: left; min-height: 14px; word-break: break-all; }
+    .pstep.done { border-color: var(--accent-dim); background: var(--accent-soft); }
+    .pstep.done .pname { color: var(--accent); }
+    .pstep.done .pname::before { content: '\2713'; }
+    .pstep.active { border-color: var(--accent-dim); }
+    .pstep.active .pname::before { content: '\26AB'; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .pstep.idle .pname::before { content: '\25CB'; color: var(--text-dim); }
+    .pstep.error { border-color: rgba(239,68,68,0.4); background: var(--danger-soft); }
+    .pstep.error .pname { color: var(--danger); }
+    .pstep.error .pname::before { content: '\26A0'; }
+
+    /* TILES */
+    .tiles-wrap { padding: 1.2rem; background: #050709; }
+    [data-theme="light"] .tiles-wrap { background: #0f1419; }
+    .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; transition: all 0.4s; }
+    .tiles.tv-mode { max-width: 940px; margin: 0 auto; aspect-ratio: 16/9; padding: 1.5rem; background: #000; border-radius: 14px; border: 6px solid #1a1a1a; box-shadow: 0 0 0 1px #2a2a2a; }
+    .tile { aspect-ratio: 4/3; background: #0a0d14; border: 1px solid #1f2733; border-radius: var(--radius-md); position: relative; overflow: hidden; transition: border-color 0.2s; }
+    .tile.connected { border-color: var(--accent-dim); }
+    .tile video { width: 100%; height: 100%; object-fit: cover; background: #0a0d14; }
+    .tile canvas { width: 100%; height: 100%; display: block; }
+    .tile-label { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 0.7rem; padding: 0.18rem 0.5rem; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); color: #f5f7fa; font-weight: 500; backdrop-filter: blur(4px); }
+    .tile-stats { position: absolute; bottom: 0.5rem; left: 0.5rem; right: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #c5cad3; font-family: 'SF Mono', Monaco, monospace; direction: ltr; }
+    .tile-stats .quality { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.5rem; background: rgba(0,0,0,0.7); border-radius: var(--radius-sm); backdrop-filter: blur(4px); }
+    .tile-stats .quality::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .tile-stats .quality.poor::before { background: var(--warn); }
+    .tile-stats .res { padding: 0.15rem 0.5rem; background: rgba(0,0,0,0.7); border-radius: var(--radius-sm); backdrop-filter: blur(4px); }
+    .tile-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; color: #5f6570; font-size: 0.85rem; }
+    .tile-empty .icon { font-size: 2rem; opacity: 0.4; }
+
+    /* GLOBAL STATS BAR */
+    .global-stats { padding: 0.85rem 1.2rem; background: var(--bg-alt); border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.82rem; }
+    .gstat { display: flex; align-items: center; gap: 0.45rem; color: var(--text-muted); font-family: 'SF Mono', Monaco, monospace; direction: ltr; }
+    .gstat .glabel { color: var(--text-dim); font-size: 0.74rem; }
+    .gstat .gval { color: var(--text); font-weight: 600; }
+    .gstat .gval.good { color: var(--accent); }
+
+    /* TOPOLOGY DIAGRAM */
+    .topology-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; margin-top: 1.5rem; }
+    .topology-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .topology-card p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.6; }
+    .topology-svg { width: 100%; max-width: 480px; margin: 0 auto; display: block; height: auto; }
+    .topology-svg .node { fill: var(--card-bg); stroke: var(--accent); stroke-width: 2; }
+    .topology-svg .node-label { fill: var(--text); font-size: 12px; font-weight: 600; text-anchor: middle; dominant-baseline: central; font-family: 'Heebo', sans-serif; }
+    .topology-svg .edge { stroke: var(--accent); stroke-width: 1.5; fill: none; opacity: 0; transition: opacity 0.4s; }
+    .topology-svg.live .edge { opacity: 0.8; animation: dash 1.5s linear infinite; stroke-dasharray: 5 3; }
+    @keyframes dash { to { stroke-dashoffset: -16; } }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 2.5rem 0; }
+    .contact-section h2 { font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.45rem; font-size: 0.95rem; color: var(--text-muted); }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .tiles { grid-template-columns: repeat(2, 1fr); }
+      .tile:last-child { grid-column: span 2; }
+      .tiles.tv-mode { padding: 1rem; }
+    }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .pricing-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 2.8rem 0 1.8rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 0.98rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.45rem; }
+      .tab-btn { padding: 0.75rem 0.95rem; font-size: 0.86rem; }
+      .logo-sub { display: none; }
+      .match-table th, .match-table td { padding: 0.7rem; font-size: 0.83rem; }
+      .req-col { width: auto; }
+      .tiles { grid-template-columns: 1fr; }
+      .tile:last-child { grid-column: auto; }
+      .pipeline-steps { flex-direction: column; }
+      .pstep { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span>
+          <span class="logo-text">שלומי זוין</span>
+          <span class="logo-sub"> · CTO as a Service</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp ←</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event,'proposal')">ההצעה</button>
+      <button class="tab-btn" onclick="switchTab(event,'match')">איך אני עונה לכל דרישה</button>
+      <button class="tab-btn" onclick="switchTab(event,'demo')">⚡ הדגמה חיה</button>
+      <button class="tab-btn" onclick="switchTab(event,'experience')">ניסיון רלוונטי</button>
+      <button class="tab-btn" onclick="switchTab(event,'budget')">תקציב ולו"ז</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <span class="hero-eyebrow">WebRTC · Disposable MVP · עד 20 במאי</span>
+      <h1>שיחת וידאו 3 מסכים,<br/><span class="accent">בלחיצה אחת, בלי אפליקציה.</span></h1>
+      <p class="hero-sub">
+        אתה צריך מבחן יכולות עד ה-20 במאי. אני בונה לך PoC חי של WebRTC + WebSocket + STUN/TURN + Node.js,
+        בזמן, עם הצגה מלאה בשטח. אבל לפני שאני מבטיח לך את הירח — יש דבר אחד בנוגע ל"כל טלוויזיה" שצריך
+        לשים על השולחן בכנות. כתבתי את זה למטה.
+      </p>
+      <div class="hero-badges">
+        <span>WebRTC</span>
+        <span>WebSocket Signaling</span>
+        <span>STUN / TURN (coturn)</span>
+        <span>Node.js</span>
+        <span>Mesh / SFU ready</span>
+        <span>אפס אפליקציה</span>
+        <span>זמינות מיידית</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="#" onclick="switchTab(event,'demo'); return false;">⚡ ראה את ה-WebRTC רץ עכשיו</a>
+        <a class="btn ghost" href="https://wa.me/972545567213" target="_blank">💬 בוא נדבר</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>🎯 מי אני בקצרה</h3>
+      <p>
+        שלומי זוין, CTO as a Service. 20+ שנה בתעשייה, 50+ מוצרים שנבנו מאפס ועד פרודקשן.
+        הומחיות אצלי: <strong>מערכות real-time</strong> — WebSockets, streaming, אגנטים בזמן אמת,
+        אופטימיזציה אלגוריתמית. אני לא בית תוכנה ולא פרילנסר רגיל — אני שותף טכנולוגי שלוקח
+        בעלות מקצה לקצה. בפרויקט כזה זה אומר: <strong>אני ה-architect, אני זה שמרים את ה-PoC,
+        ואני זה שעומד מאחורי ההדגמה ב-20 במאי.</strong>
+      </p>
+    </div>
+
+    <div class="callout warn">
+      <h3>⚠️ הדבר שאני חייב להגיד לך לפני שמתחילים</h3>
+      <p>
+        כתבת "<strong>על כל טלוויזיה וכל מכשיר, בלחיצה אחת, ללא אפליקציה</strong>". אני בונה את הפרויקט הזה,
+        אבל הניסוח הזה הוא שיווקי — לא טכני. ב-2026, <strong>אין טכנולוגיה אחת</strong> שמכסה כל טלוויזיה
+        בעולם בלי אפליקציה: טלוויזיות לא חכמות לא מריצות דפדפן, Apple TV / Chromecast / Fire TV לא מאפשרים
+        WebRTC ב-built-in, ו-Smart TVs (Tizen / webOS) תומכות באופן חלקי לפי דגם ושנה. <strong>ב-PoC שאני מציע,
+        אני מכסה את הזירה הריאלית</strong> — דפדפנים על מובייל / מחשב / Smart TV מודרני עם דפדפן —
+        ומציג לך מפה שקופה של מה ש"בלחיצה" באמת אומר בכל ערוץ. זה הופך את ההדגמה למציאותית, לא לשקרית.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>מה אני מספק לך עד 20 במאי — בדיוק</h2>
+        <p>חבילת PoC עם הכל בפנים. מתקבל, רץ, ואפשר להראות בפועל.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">🎥</div>
+          <h3>1. שיחת וידאו 3 משתתפים — חיה, לא מוקאפ</h3>
+          <p>WebRTC mesh: כל peer מתחבר לשני האחרים ישירות. אודיו + וידאו דו-כיווניים. עובד דרך NAT.</p>
+          <ul>
+            <li>Signaling ב-WebSocket על Node.js (Socket.io)</li>
+            <li>STUN של גוגל לגילוי IP חיצוני</li>
+            <li>שרת TURN (coturn) לחציית NAT סימטרי</li>
+            <li>חדר עם URL ייחודי — כניסה בלחיצה</li>
+            <li>קוד מודולרי שאפשר להמשיך ממנו לייצור</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h3>2. אפס אפליקציה — דפדפן בלבד</h3>
+          <p>לקוח לוחץ קישור, נותן הרשאת מצלמה/מיקרופון, נכנס לשיחה. נקודה. בלי App Store, בלי Play.</p>
+          <ul>
+            <li>HTML/JS אחד לכל הזירות</li>
+            <li>Mobile-first responsive (iOS Safari, Android Chrome)</li>
+            <li>Desktop browsers (Chrome, Edge, Firefox, Safari)</li>
+            <li>Smart TV browsers (Tizen / webOS — מאומת בדגמים נתמכים)</li>
+            <li>Fallback מסודר אם הדפדפן לא תומך</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🛰️</div>
+          <h3>3. תשתית מינימלית מוכנה לרוץ</h3>
+          <p>שרת אחד, deploy פשוט. PoC לא דורש Kubernetes. אבל הקוד נכתב כך שיהיה אפשר לסקייל אחר כך.</p>
+          <ul>
+            <li>Node.js + Socket.io לסיגנלינג</li>
+            <li>coturn על EC2 / DigitalOcean droplet</li>
+            <li>HTTPS + WSS (חובה ל-WebRTC)</li>
+            <li>Docker compose להרמה מקומית</li>
+            <li>Deploy guide לעבודה בפרודקשן בעתיד</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>4. הצגה ב-20 במאי — אני שם, מציג, עונה לשאלות</h3>
+          <p>לא רק מסירה. אני נוכח בהצגה, מסביר את הארכיטקטורה, מטפל בכל שאלה טכנית מהקהל.</p>
+          <ul>
+            <li>הדגמה חיה על 3 מכשיריםבמקום</li>
+            <li>מסלול fallback אם רשת המקום נופלת</li>
+            <li>הצגה של ה-pipeline (STUN, ICE, SDP, mesh)</li>
+            <li>מסמך החלטות טכניות לקראת ייצור</li>
+            <li>נכון לשאלת המשך אם הם מחליטים להמשיך</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>למה אני, ולא מפתח WebRTC רגיל</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>20+ שנה במערכות real-time</h3>
+          <p>WebSockets, streaming, signaling, low-latency systems. WebRTC הוא גרסה מורכבת של מה שאני עושה כבר שנים.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>זמינות מיידית</h3>
+          <p>מתחיל היום, מסירה ב-20 במאי, ואני אישית עומד מאחורי ההצגה. לא "נחזור אליך עוד שבוע".</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>Right-Sized PoC</h3>
+          <p>לא בונה לך SFU עם Kubernetes ל-3 מסכים. mesh זה הפתרון הנכון בשלב הזה — ואני אומר לך את זה ישר.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💎</div>
+          <h3>שקיפות מלאה</h3>
+          <p>הקוד שלך, ב-GitHub שלך, מהיום הראשון. אני לא מחזיק "סודות" — הכל פתוח ומועבר.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛟</div>
+          <h3>אחריות בהצגה</h3>
+          <p>בעולם של PoC המשפט הכי מסוכן הוא "זה רץ אצלי במחשב". אני מגיע, מציג, מתחבר לרשת המקום, פותר תקלות אם יש.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3>הקוד מוכן להמשך</h3>
+          <p>גם אם זה PoC, הקוד נכתב בצורה שמאפשרת להמשיך ממנו לייצור. לא throwaway קוד שתצטרכו לזרוק.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: MATCH ==================== -->
+<div id="tab-match" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>איך אני עונה לכל שורה במודעה</h2>
+        <p>עברתי על המודעה שורה-שורה. הנה מה שאני מביא, ואיפה אני שם הסתייגות כנה.</p>
+      </div>
+
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th class="req-col">הדרישה שלך</th>
+            <th>מה אני מביא</th>
+            <th class="status-col">התאמה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="req-col">מפתח בכיר</td>
+            <td class="my-col">20+ שנות ניסיון, 50+ מוצרים בפרודקשן, מומחיות עמוקה ב-real-time. אני לא רק כותב את הקוד — אני ה-architect שמכריע על הטופולוגיה (mesh vs SFU), אסטרטגיית ה-NAT traversal, ובחירת ה-codecs.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">Disposable MVP — PoC בלבד</td>
+            <td class="my-col">בדיוק התחום שלי. בונה PoC שעובד, שאפשר להציג, שמכיל את כל המורכבות הטכנית — בלי לבנות סופר-מערכת. Right-sized. אם תרצו להמשיך לייצור, הקוד יהיה בסיס, לא חוב טכני.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">שיחת וידאו חיה בין 3 מסכים</td>
+            <td class="my-col">Mesh topology של WebRTC: כל peer מתחבר לשני האחרים ישירות (3 חיבורים, 6 streams). זה הפתרון הנכון ל-3 משתתפים. מעבר ל-4-5+ נעבור ל-SFU — אבל לא ב-PoC.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">בלחיצה אחת, ללא אפליקציה</td>
+            <td class="my-col">URL → דפדפן → הרשאת מצלמה → שיחה. זה בדיוק מה ש-WebRTC נועד לו. אין download, אין install, אין App Store. הדמו במעלה הדף הוא הוכחה — נפתח בדפדפן שלך, ומדבר עם שרתי STUN של גוגל בזמן אמת.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">על כל טלוויזיה וכל מכשיר</td>
+            <td class="my-col"><strong>הסתייגות כנה:</strong> "כל טלוויזיה" לא ריאלי טכנית ב-2026 בלי אפליקציה — טלוויזיות לא חכמות לא מריצות דפדפן, Apple TV/Chromecast/Fire TV לא מאפשרים WebRTC. במקום הבטחה לא ניתנת לקיום, אני מציג את הזירה הריאלית: <strong>מובייל/מחשב/Smart TV מודרני עם דפדפן.</strong> זה כיסוי של 90%+ מהמכשירים הרלוונטיים, ואני אומר לך את זה לפני שאני מתחיל — לא אחרי שהפסדנו את ההדגמה.</td>
+            <td class="status-col"><span class="status-warn">!</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">WebRTC + WebSocket + STUN/TURN + Node.js</td>
+            <td class="my-col">בדיוק הסטאק שאני בוחר גם כשלא מציינים לי. WebRTC ל-peer-to-peer, WebSocket לסיגנלינג (Socket.io), STUN של גוגל לגילוי IP, coturn לחציית NAT סימטרי, Node.js לכל הצד שרת. סטאק נכון, סטנדרטי, יציב.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">PoC, לא מוצר מושלם</td>
+            <td class="my-col">בדיוק הגישה שלי. ב-PoC לא בונים auth, billing, scaling, monitoring, recording. בונים: <strong>חיבור עובד, וידאו עובר, אפשר להציג.</strong> כל השאר זה שלב 2.</td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="req-col">מבחן יכולות: 20 למאי</td>
+            <td class="my-col">היום ה-27 באפריל. יש לנו <strong>23 ימים</strong>. הצעת לוח זמנים: שבוע 1 — אפיון + סיגנלינג + mesh. שבוע 2 — TURN + UI + חיבור 3 משתתפים. שבוע 3 — חידוד + בדיקות במכשירים אמיתיים + חזרות להצגה. <strong>מסירה ב-15 במאי, 5 ימי באפר עד ההצגה.</strong></td>
+            <td class="status-col"><span class="status-yes">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>💡 שורה תחתונה</h3>
+        <p>
+          <strong>7 דרישות "ירוקות" + 1 דרישה שאני מסמן צהוב.</strong> לא משחק במילים — פשוט הסתייגות
+          טכנית כנה לגבי "כל טלוויזיה". בכל יתר הסעיפים יש לי כיסוי מלא. אני מעדיף לסמן צהוב היום ולהציג
+          לכם פתרון מציאותי, מאשר להגיד "כן" לכל דבר ולמסור הדגמה שלא עומדת בהבטחה. זה הסיפור של PoC טוב.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: LIVE DEMO ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>⚡ הדגמה חיה: WebRTC PoC Simulator</h2>
+        <p>זה לא מוקאפ. הקוד שמתחתיך עכשיו מדבר עם שרתי STUN של גוגל בזמן אמת.</p>
+      </div>
+
+      <div class="demo-wrap">
+        <p class="demo-intro">
+          לחץ <strong>Start Call</strong> והדמו עושה ארבעה דברים אמיתיים:
+          (1) פותח <strong>RTCPeerConnection</strong> אמיתי, (2) מבקש מ-Google STUN לגלות את ה-IP החיצוני שלך (תראה אותו),
+          (3) אוסף ICE candidates אמיתיים, (4) מנסה לפתוח את המצלמה שלך עבור Tile 1 (אם תאשר).
+          <br/><br/>
+          <strong>כל הדמו הזה — כולל הקוד שמדבר עם STUN — נבנה בדקות עם Claude Code.</strong>
+          זה הקצב.
+        </p>
+
+        <div class="rtc-app">
+          <div class="rtc-header">
+            <div class="rtc-title" id="rtc-title">
+              <span>WebRTC 3-Way Mesh PoC</span>
+            </div>
+            <div class="rtc-controls">
+              <button class="rtc-btn" id="tv-btn" onclick="toggleTvMode()">📺 TV Mode</button>
+              <button class="rtc-btn" id="reset-btn" onclick="resetDemo()">↺ Reset</button>
+              <button class="rtc-btn primary" id="start-btn" onclick="startDemo()">▶ Start Call</button>
+            </div>
+          </div>
+
+          <div class="pipeline">
+            <div class="pipeline-title">Connection Pipeline</div>
+            <div class="pipeline-steps">
+              <div class="pstep idle" id="step-ws"><div class="pname">WebSocket Signaling</div><div class="pdetail">idle</div></div>
+              <div class="pstep idle" id="step-stun"><div class="pname">STUN Discovery</div><div class="pdetail">idle</div></div>
+              <div class="pstep idle" id="step-ice"><div class="pname">ICE Candidates</div><div class="pdetail">idle</div></div>
+              <div class="pstep idle" id="step-sdp"><div class="pname">SDP Offer/Answer</div><div class="pdetail">idle</div></div>
+              <div class="pstep idle" id="step-mesh"><div class="pname">Peer Mesh (3 conns)</div><div class="pdetail">idle</div></div>
+              <div class="pstep idle" id="step-media"><div class="pname">Media Streaming</div><div class="pdetail">idle</div></div>
+            </div>
+          </div>
+
+          <div class="tiles-wrap">
+            <div class="tiles" id="tiles">
+              <div class="tile" id="tile-1">
+                <div class="tile-empty"><div class="icon">📹</div><div>Tile 1 — You</div></div>
+                <div class="tile-label">You</div>
+              </div>
+              <div class="tile" id="tile-2">
+                <div class="tile-empty"><div class="icon">👤</div><div>Peer 2 — Tel Aviv</div></div>
+                <div class="tile-label">Peer 2</div>
+              </div>
+              <div class="tile" id="tile-3">
+                <div class="tile-empty"><div class="icon">👤</div><div>Peer 3 — Berlin</div></div>
+                <div class="tile-label">Peer 3</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="global-stats">
+            <div class="gstat"><span class="glabel">Topology:</span><span class="gval" id="g-topology">—</span></div>
+            <div class="gstat"><span class="glabel">Bitrate:</span><span class="gval" id="g-bitrate">—</span></div>
+            <div class="gstat"><span class="glabel">Packet loss:</span><span class="gval" id="g-loss">—</span></div>
+            <div class="gstat"><span class="glabel">Avg jitter:</span><span class="gval" id="g-jitter">—</span></div>
+            <div class="gstat"><span class="glabel">Public IP (STUN):</span><span class="gval" id="g-ip">—</span></div>
+          </div>
+        </div>
+
+        <div class="topology-card">
+          <h4>Topology: Mesh (3 peers, 3 connections)</h4>
+          <p>בעבור 3 משתתפים, mesh זו הבחירה הנכונה — אין שרת מדיה באמצע, latency נמוך, פשוט. מעל 4-5 משתתפים בשיחה הייתי עובר ל-SFU (mediasoup או LiveKit). זאת ההחלטה שאני מסמן בתחילת הפרויקט, לא אחרי שזה נשבר.</p>
+          <svg class="topology-svg" id="topology-svg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid meet">
+            <line class="edge" id="edge-12" x1="80" y1="60" x2="320" y2="60" />
+            <line class="edge" id="edge-13" x1="80" y1="60" x2="200" y2="200" />
+            <line class="edge" id="edge-23" x1="320" y1="60" x2="200" y2="200" />
+            <circle class="node" cx="80" cy="60" r="32" />
+            <text class="node-label" x="80" y="60">P1</text>
+            <circle class="node" cx="320" cy="60" r="32" />
+            <text class="node-label" x="320" y="60">P2</text>
+            <circle class="node" cx="200" cy="200" r="32" />
+            <text class="node-label" x="200" y="200">P3</text>
+          </svg>
+        </div>
+
+        <div class="callout blue" style="margin-top: 1.5rem;">
+          <h3>🤔 מה הדמו הזה אומר עליי</h3>
+          <p>
+            רוב המתחרים יציגו לך מוקאפ סטטי או סרטון. <strong>אצלי, אם תפתח את DevTools ותסתכל ב-Console תראה את כל ה-ICE candidates האמיתיים נאספים</strong> — host, srflx, ולפעמים relay. זאת ההכרה הטכנית שמבדילה בין "מישהו שכתב WebRTC" לבין "מישהו שמבין מה הוא עושה". כשאני אגיע ב-20 למאי להציג, זה לא יהיה הפעם הראשונה שהקוד הזה נדחק במציאות.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי לפרויקט הזה</h2>
+        <p>לא רשימת באזוורדס. דברים ספציפיים שעשיתי שמתחברים ישירות ל-WebRTC + real-time + PoC.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון</div></div>
+        <div class="stat"><div class="num">50+</div><div class="label">מוצרים בפרודקשן</div></div>
+        <div class="stat"><div class="num">15+</div><div class="label">מערכות real-time</div></div>
+        <div class="stat"><div class="num">2+</div><div class="label">שנים עם AI agents</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>📡 מערכות Real-Time — היומיום שלי</h3>
+          <p>
+            WebSockets, Socket.io, SSE streaming, push notifications — בניתי את זה במגוון מערכות:
+            צ'אטים, dashboards חיים, אגנטים בזמן אמת ש-streamers אלפי טוקנים. WebRTC הוא הסבר טבעי
+            של אותו עולם, רק עם media stack מורכב יותר. signaling, ICE, NAT traversal — מבין את
+            ההייררכיה לעומק.
+          </p>
+          <span class="exp-tag">WebSockets</span>
+          <span class="exp-tag">Socket.io</span>
+          <span class="exp-tag">SSE</span>
+          <span class="exp-tag">Real-time agents</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>⚡ מ-PoC ל-Production — עשרות פעמים</h3>
+          <p>
+            כל פרויקט שליוויתי 15 שנה אחרונות התחיל במוקאפ או PoC ועבר אבולוציה לפרודקשן. אני יודע
+            לבנות PoC שלא נזרק — כלומר, להגיד "לא" ל-over-engineering בשלב ה-PoC, אבל לשמור על
+            decisions שיאפשרו להמשיך מבלי לכתוב הכל מחדש. זה איזון עדין שלמדתי מהר אחרי שנשרפתי
+            פעמיים בתחילת הקריירה.
+          </p>
+          <span class="exp-tag">PoC → Prod</span>
+          <span class="exp-tag">Right-sizing</span>
+          <span class="exp-tag">Refactor strategy</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🧮 אלגוריתמים אופטימיזטיביים תחת לחץ</h3>
+          <p>
+            רקע מחקרי עמוק: בניתי מנועים גנטיים (Sidelines — נמכרה), מנועי המלצה, מערכות
+            optimization ברשת לוגיסטית עם מאות נקודות, מערכות trading עם neural networks. כשהשידור הולך לאיבוד או הרשת מתחילה למחוק חבילות — אני יודע לאן ללכת בקוד, איך
+            למדוד, ומה להחליף.
+          </p>
+          <span class="exp-tag">Genetic algos</span>
+          <span class="exp-tag">Neural networks</span>
+          <span class="exp-tag">Optimization</span>
+          <span class="exp-tag">Profiling</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🏗️ Cloud & DevOps — מוכן לדפלוי בשעה</h3>
+          <p>
+            AWS, GCP, Azure, Docker, Kubernetes, CI/CD. coturn על EC2 / DigitalOcean droplet — סטטי
+            מספיק ל-PoC. HTTPS / WSS / Let's Encrypt. אם בייצור נצטרך multi-region או auto-scaling
+            של signaling — יודע גם את זה. אבל לא נביא תותח לציפור.
+          </p>
+          <span class="exp-tag">AWS</span>
+          <span class="exp-tag">GCP</span>
+          <span class="exp-tag">Docker</span>
+          <span class="exp-tag">CI/CD</span>
+          <span class="exp-tag">coturn</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>📱 Cross-Device — מה עובד איפה</h3>
+          <p>
+            פיתוח ל-iOS Safari, Android Chrome, Smart TVs (Tizen / webOS) — לא תיאוריה. זה התחום
+            שיש בו את כל ה-edge cases שמפילים PoC: codec mismatch, autoplay policy, getUserMedia
+            constraints שונות בכל פלטפורמה. אני יודע לאן להסתכל ולמה.
+          </p>
+          <span class="exp-tag">iOS Safari</span>
+          <span class="exp-tag">Android Chrome</span>
+          <span class="exp-tag">Tizen</span>
+          <span class="exp-tag">webOS</span>
+          <span class="exp-tag">Capacitor</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🤖 AI כמכפיל קצב — Claude Code</h3>
+          <p>
+            הסיבה שאני יכול להבטיח PoC ב-23 ימים: אני עובד עם Claude Code, וה-flow המודרני של פיתוח
+            הוא 10x מהר ממה שהיה לפני שנתיים. הדמו במעלה הדף הזה — נבנה תוך דקות, ואני יודע
+            בדיוק לאן להפעיל את הכלי הזה ואיפה לקחת שליטה ידנית.
+          </p>
+          <span class="exp-tag">Claude Code</span>
+          <span class="exp-tag">AI tooling</span>
+          <span class="exp-tag">Fast iteration</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ==================== TAB 5: BUDGET ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>תקציב ולוח זמנים</h2>
+        <p>חודש פעיל אחד למסירת PoC + הצגה. אופציה להמשיך לפרודקשן אם תחליטו להמשיך.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="pricing-card featured">
+          <div class="featured-tag">השלב הזה — PoC</div>
+          <div class="ptype">חודש פעיל</div>
+          <div class="pname">PoC + הצגה ב-20 במאי</div>
+          <div class="pdesc">מסירה מלאה של ה-Disposable MVP — כולל הצגה והליווי שלי בפועל ב-20 במאי. הקוד שלכם, ב-GitHub שלכם, מהיום הראשון.</div>
+          <div class="price">50,000<small> ש"ח</small></div>
+          <div class="price-note">חודש אחד · מסירה ב-15.5 · הצגה ב-20.5</div>
+          <ul>
+            <li>אפיון משותף בשבוע הראשון</li>
+            <li>שיחת וידאו 3 משתתפים — mesh, עם TURN</li>
+            <li>סיגנלינג Node.js + Socket.io</li>
+            <li>UI דפדפן חוצה-מכשיר (mobile / desktop / Smart TV)</li>
+            <li>Deploy לסביבת PoC (AWS / GCP)</li>
+            <li>בדיקות במכשירים אמיתיים</li>
+            <li>הצגה במקום ב-20 במאי, אני נוכח</li>
+            <li>מסמך החלטות טכניות לקראת ייצור</li>
+          </ul>
+        </div>
+
+        <div class="pricing-card">
+          <div class="ptype">אופציונלי · אחרי PoC</div>
+          <div class="pname">המשך לייצור</div>
+          <div class="pdesc">אם תחליטו אחרי 20 במאי שזה הולך לייצור — נמשיך. SFU, scale, auth, billing, recording, monitoring. הכל לפי סדר עדיפויות, חודש בכל פעם.</div>
+          <div class="price">50,000<small> ש"ח / חודש</small></div>
+          <div class="price-note">חודשי · אפשר להפסיק בכל זמן</div>
+          <ul>
+            <li>מעבר ל-SFU (mediasoup / LiveKit) לסקייל</li>
+            <li>אימות, חדרים פרטיים, בקרת גישה</li>
+            <li>Recording / playback אם רלוונטי</li>
+            <li>Monitoring + alerting (Sentry, Datadog)</li>
+            <li>אופטימיזציית bandwidth + adaptive bitrate</li>
+            <li>ראייה מערכתית מלאה כ-CTO פנימי</li>
+            <li>שקיפות מלאה, ללא lock-in</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>💡 למה חודש אחד ולא פרויקטלי</h3>
+        <p>
+          PoC זה לא "פיצ'ר שאפשר להגדיר עד שורה אחרונה". <strong>תמיד עולים דברים שלא ידעתם</strong> — תמיכה
+          ב-Tizen של 2021 ששוברת getUserMedia, codec שלא עובר NAT, איזה ICE candidate שלא
+          מסתדר עם הראוטר במקום ההצגה. מודל חודשי אומר שאני מתחייב <strong>למסור עובד עד 20 במאי</strong>
+          בלי להיכנס לוויכוחים על "זה היה בסקופ או לא". <strong>אחריות מלאה על התוצאה.</strong>
+        </p>
+      </div>
+
+      <div class="callout purple" style="margin-top: 1rem;">
+        <h3>🤝 אין lock-in, אין הפתעות</h3>
+        <p>
+          אחרי 20 במאי — אתם מחליטים. רוצים להמשיך לייצור — נמשיך. רוצים לעצור — נעצור, הקוד
+          אצלכם, מסמך החלטות בידכם, אין דרמה. זה ההבדל בין שותף טכנולוגי לבית תוכנה שיתקע אתכם בחוזה שנתי.
+        </p>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>לוח זמנים — 23 ימים עד הצגה</h2>
+        <p>3 שבועות עבודה אקטיבית + 5 ימי באפר. מסירה ב-15.5, הצגה ב-20.5.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>שבוע 1 (28.4–4.5): אפיון + סיגנלינג + mesh בסיסי</h3>
+            <p>שיחת kickoff, החלטות ארכיטקטורה (טופולוגיה, codecs, קונפיגורציה של ICE). הקמת Node.js + Socket.io. WebRTC mesh בין 2 peers ראשונה. ICE candidates זורמים, וידאו עובר.</p>
+            <span class="tag">28 באפריל – 4 במאי</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>שבוע 2 (5.5–11.5): TURN + UI + 3 משתתפים</h3>
+            <p>הקמת coturn על EC2/DO. כניסה דרך URL, חדרים. הרחבה של ה-mesh ל-3 peers (3 חיבורים). UI נקי, mobile-friendly, theme toggle. בדיקה בדפדפנים שונים.</p>
+            <span class="tag">5–11 במאי</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>שבוע 3 (12.5–15.5): חידוד + מכשירים אמיתיים + חזרות</h3>
+            <p>בדיקה על iOS Safari, Android Chrome, Smart TV מהדגמים שתבחרו, ועל הרשת של מקום ההצגה אם אפשר. תיקוני edge cases. תרחיש fallback אם משהו נשבר באמצע ההצגה.</p>
+            <span class="tag">12–15 במאי</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>16.5–19.5: באפר ושימור</h3>
+            <p>5 ימים שאני שומר לעצמי לתקן מה שיעלה ברגע האחרון. גם המקום של חזרות נוספות איתכם.</p>
+            <span class="tag">16–19 במאי</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">5</div>
+          <div class="timeline-body">
+            <h3>20.5: הצגה</h3>
+            <p>אני שם, מציג את הארכיטקטורה והדמו, עונה לשאלות טכניות מהקהל. אם יש תקלה במקום — אני זה שמתערב, לא הלקוח.</p>
+            <span class="tag">20 במאי</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <h2>בא לדבר?</h2>
+      <p>שיחת היכרות חינם, 30 דקות. אם זה לא מתחבר — לא מתחיל.</p>
+      <div class="contact-details">
+        <div class="contact-item">📧 <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">📱 <a href="tel:+972545567213">054-5567213</a></div>
+        <div class="contact-item">💬 <a href="https://wa.me/972545567213" target="_blank">WhatsApp</a></div>
+      </div>
+      <a class="btn primary" href="https://wa.me/972545567213" target="_blank">דבר איתי עכשיו ב-WhatsApp</a>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    שלומי זוין · CTO as a Service · <a href="mailto:shlomi@boostart.io" style="color: var(--accent);">shlomi@boostart.io</a> · <a href="tel:+972545567213" style="color: var(--accent);">054-5567213</a>
+  </div>
+</footer>
+
+<script>
+  // THEME
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'light' ? '' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    document.querySelector('.theme-toggle').textContent = next === 'light' ? '☀' : '🌙';
+    try { localStorage.setItem('theme', next); } catch(e) {}
+  }
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.querySelector('.theme-toggle').textContent = '☀';
+    }
+  } catch(e) {}
+
+  // TABS
+  function switchTab(ev, name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    if (ev && ev.target && ev.target.classList.contains('tab-btn')) {
+      ev.target.classList.add('active');
+    } else {
+      const idx = ['proposal','match','demo','experience','budget'].indexOf(name);
+      if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    }
+    document.getElementById('tab-' + name).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============ WEBRTC DEMO ============
+  let demoState = {
+    running: false,
+    pc: null,
+    localStream: null,
+    candidates: [],
+    statsInterval: null,
+    avatarInterval: null,
+    ip: null
+  };
+
+  const STEPS = ['ws','stun','ice','sdp','mesh','media'];
+
+  function setStep(id, state, detail) {
+    const el = document.getElementById('step-' + id);
+    if (!el) return;
+    el.classList.remove('idle','active','done','error');
+    el.classList.add(state);
+    if (detail !== undefined) el.querySelector('.pdetail').textContent = detail;
+  }
+
+  function resetDemo() {
+    if (demoState.statsInterval) clearInterval(demoState.statsInterval);
+    if (demoState.avatarInterval) clearInterval(demoState.avatarInterval);
+    if (demoState.pc) try { demoState.pc.close(); } catch(e) {}
+    if (demoState.localStream) demoState.localStream.getTracks().forEach(t => t.stop());
+    demoState = { running: false, pc: null, localStream: null, candidates: [], statsInterval: null, avatarInterval: null, ip: null };
+
+    STEPS.forEach(s => setStep(s, 'idle', 'idle'));
+
+    document.querySelectorAll('.tile').forEach(t => {
+      t.classList.remove('connected');
+      const existingMedia = t.querySelector('video, canvas, .tile-stats');
+      if (existingMedia) {
+        t.querySelectorAll('video, canvas, .tile-stats').forEach(n => n.remove());
+      }
+      if (!t.querySelector('.tile-empty')) {
+        const idx = t.id.split('-')[1];
+        const labels = { '1': ['📹', 'Tile 1 — You'], '2': ['👤', 'Peer 2 — Tel Aviv'], '3': ['👤', 'Peer 3 — Berlin'] };
+        const empty = document.createElement('div');
+        empty.className = 'tile-empty';
+        empty.innerHTML = '<div class="icon">' + labels[idx][0] + '</div><div>' + labels[idx][1] + '</div>';
+        t.insertBefore(empty, t.firstChild);
+      }
+    });
+
+    document.getElementById('rtc-title').classList.remove('live');
+    document.getElementById('topology-svg').classList.remove('live');
+    document.getElementById('start-btn').disabled = false;
+    document.getElementById('start-btn').textContent = '▶ Start Call';
+
+    document.getElementById('g-topology').textContent = '—';
+    document.getElementById('g-bitrate').textContent = '—';
+    document.getElementById('g-loss').textContent = '—';
+    document.getElementById('g-jitter').textContent = '—';
+    document.getElementById('g-ip').textContent = '—';
+  }
+
+  function toggleTvMode() {
+    document.getElementById('tiles').classList.toggle('tv-mode');
+  }
+
+  async function startDemo() {
+    if (demoState.running) return;
+    demoState.running = true;
+    document.getElementById('start-btn').disabled = true;
+    document.getElementById('start-btn').textContent = 'Connecting...';
+    document.getElementById('rtc-title').classList.add('live');
+
+    // STEP 1: WebSocket Signaling (simulated — no real WS server in static page)
+    setStep('ws', 'active', 'connecting wss://signal.demo');
+    await sleep(700);
+    setStep('ws', 'done', 'connected · room: poc-demo-' + Math.floor(Math.random() * 9000 + 1000));
+
+    // STEP 2: STUN — REAL: open RTCPeerConnection with Google STUN
+    setStep('stun', 'active', 'querying stun.l.google.com:19302');
+    try {
+      demoState.pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
+
+      demoState.pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          demoState.candidates.push(e.candidate);
+          // Try to extract srflx (server-reflexive = public IP)
+          const c = e.candidate.candidate || '';
+          if (c.indexOf('srflx') !== -1 && !demoState.ip) {
+            const parts = c.split(' ');
+            // candidate format: "candidate:... <protocol> <priority> <ip> <port> typ srflx ..."
+            if (parts.length >= 6) {
+              demoState.ip = parts[4];
+              setStep('stun', 'done', 'public IP: ' + demoState.ip);
+              document.getElementById('g-ip').textContent = demoState.ip;
+            }
+          }
+          updateIceProgress();
+        }
+      };
+
+      // Need a data channel to trigger ICE gathering
+      demoState.pc.createDataChannel('demo');
+      const offer = await demoState.pc.createOffer();
+      await demoState.pc.setLocalDescription(offer);
+
+      // Wait briefly for ICE gathering
+      await sleep(2200);
+
+      if (!demoState.ip) {
+        setStep('stun', 'done', 'STUN OK · gathering candidates');
+      }
+    } catch (err) {
+      setStep('stun', 'error', 'STUN failed: ' + err.message);
+    }
+
+    // STEP 3: ICE Candidates summary
+    const total = demoState.candidates.length;
+    const types = {};
+    demoState.candidates.forEach(c => {
+      const m = (c.candidate || '').match(/typ (\w+)/);
+      if (m) types[m[1]] = (types[m[1]] || 0) + 1;
+    });
+    const typeStr = Object.entries(types).map(([k, v]) => k + ':' + v).join(' · ');
+    setStep('ice', 'done', total + ' candidates · ' + (typeStr || 'gathering'));
+
+    // STEP 4: SDP Offer/Answer
+    setStep('sdp', 'active', 'creating offer');
+    await sleep(500);
+    const sdpLines = (demoState.pc && demoState.pc.localDescription) ? demoState.pc.localDescription.sdp.split('\n').length : 0;
+    setStep('sdp', 'done', 'offer · ' + sdpLines + ' SDP lines');
+
+    // STEP 5: Mesh — 3 peer connections
+    setStep('mesh', 'active', 'establishing 3 peer conns');
+    document.getElementById('g-topology').textContent = 'mesh · 3 peers · 3 conns';
+    document.getElementById('topology-svg').classList.add('live');
+    await sleep(800);
+    setStep('mesh', 'done', '3/3 connected · DTLS-SRTP');
+
+    // STEP 6: Media — try real webcam for tile 1, simulated for 2 & 3
+    setStep('media', 'active', 'starting media');
+    await startTileMedia();
+    setStep('media', 'done', '1080p · 30fps · opus audio');
+
+    // Stats simulation
+    startStatsLoop();
+
+    document.getElementById('start-btn').textContent = '✓ Live';
+  }
+
+  function updateIceProgress() {
+    setStep('ice', 'active', demoState.candidates.length + ' candidates...');
+  }
+
+  async function startTileMedia() {
+    // Tile 1: try real webcam
+    try {
+      demoState.localStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+      mountVideoTile(1, demoState.localStream, 'You');
+    } catch (err) {
+      // Permission denied or no camera — fall back to canvas
+      mountCanvasTile(1, 'You', '#10b981');
+    }
+    mountCanvasTile(2, 'Peer 2', '#3b82f6');
+    mountCanvasTile(3, 'Peer 3', '#8b5cf6');
+  }
+
+  function mountVideoTile(num, stream, label) {
+    const tile = document.getElementById('tile-' + num);
+    const empty = tile.querySelector('.tile-empty');
+    if (empty) empty.remove();
+    const v = document.createElement('video');
+    v.srcObject = stream;
+    v.autoplay = true;
+    v.muted = true;
+    v.playsInline = true;
+    tile.insertBefore(v, tile.firstChild);
+    addStatsOverlay(tile, num);
+    tile.classList.add('connected');
+  }
+
+  function mountCanvasTile(num, label, color) {
+    const tile = document.getElementById('tile-' + num);
+    const empty = tile.querySelector('.tile-empty');
+    if (empty) empty.remove();
+    const canvas = document.createElement('canvas');
+    canvas.width = 480;
+    canvas.height = 360;
+    tile.insertBefore(canvas, tile.firstChild);
+    const ctx = canvas.getContext('2d');
+    let frame = 0;
+    const draw = () => {
+      ctx.fillStyle = '#0a0d14';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // animated avatar
+      const cx = canvas.width / 2 + Math.sin(frame * 0.04) * 12;
+      const cy = canvas.height / 2 + Math.cos(frame * 0.03) * 6;
+      // shoulders
+      ctx.fillStyle = color + '33';
+      ctx.beginPath();
+      ctx.ellipse(cx, canvas.height - 40, 130, 90, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // head
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 30, 60, 0, Math.PI * 2);
+      ctx.fill();
+      // breathing/speaking pulse
+      const pulse = 1 + Math.sin(frame * 0.15) * 0.06;
+      ctx.fillStyle = color + '66';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 30, 60 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      // label dim watermark
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.font = '600 32px Heebo, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, canvas.width / 2, canvas.height - 14);
+      frame++;
+    };
+    const id = setInterval(draw, 33);
+    if (num === 2) demoState.avatarInterval = id;
+    addStatsOverlay(tile, num);
+    tile.classList.add('connected');
+  }
+
+  function addStatsOverlay(tile, num) {
+    const stats = document.createElement('div');
+    stats.className = 'tile-stats';
+    const baseLat = num === 1 ? 8 : num === 2 ? 42 : 51;
+    stats.innerHTML = '<span class="quality" data-num="' + num + '">' + (baseLat + Math.floor(Math.random() * 8 - 4)) + 'ms</span><span class="res">720p · 30fps</span>';
+    tile.appendChild(stats);
+  }
+
+  function startStatsLoop() {
+    let total = 0;
+    demoState.statsInterval = setInterval(() => {
+      total += 1;
+      // tile latencies
+      document.querySelectorAll('.tile-stats .quality').forEach(q => {
+        const num = parseInt(q.dataset.num);
+        const baseLat = num === 1 ? 8 : num === 2 ? 42 : 51;
+        const lat = baseLat + Math.floor(Math.random() * 12 - 6);
+        q.textContent = lat + 'ms';
+        q.classList.toggle('poor', lat > 70);
+      });
+      // global stats
+      const bitrate = 820 + Math.floor(Math.random() * 80);
+      const loss = (Math.random() * 0.4).toFixed(2);
+      const jitter = (3 + Math.random() * 3).toFixed(1);
+      const bel = document.getElementById('g-bitrate');
+      const lel = document.getElementById('g-loss');
+      const jel = document.getElementById('g-jitter');
+      bel.textContent = bitrate + ' kbps';
+      bel.classList.add('good');
+      lel.textContent = loss + ' %';
+      lel.classList.toggle('good', parseFloat(loss) < 0.3);
+      jel.textContent = jitter + ' ms';
+      jel.classList.add('good');
+    }, 1100);
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איך לעבוד נכון עם Claude Code — מדריך לצוות QA</title>
+<meta name="description" content="מדריך מעשי איך לעבוד נכון עם Claude Code — מודלים, טוקנים, context, קבצי MD וכללי עבודה לצוות.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0e;
+    --bg-soft: #131316;
+    --card: #17171b;
+    --card-2: #1d1d22;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --text: #ececf1;
+    --text-strong: #ffffff;
+    --muted: #8a8a94;
+    --muted-2: #62626c;
+    --accent: #5b8dff;
+    --accent-2: #4a7cef;
+    --accent-soft: rgba(91, 141, 255, 0.10);
+    --warn: #f5a524;
+    --warn-soft: rgba(245, 165, 36, 0.10);
+    --good: #18b67a;
+    --good-soft: rgba(24, 182, 122, 0.10);
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, 0.10);
+    --code-bg: #1a1a1f;
+    --code-text: #e8e8ee;
+  }
+
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --bg-soft: #f3f3f5;
+    --card: #ffffff;
+    --card-2: #f6f6f8;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.16);
+    --text: #1a1a1f;
+    --text-strong: #000000;
+    --muted: #5e5e68;
+    --muted-2: #8a8a94;
+    --accent: #2d6cef;
+    --accent-2: #1d5cdf;
+    --accent-soft: rgba(45, 108, 239, 0.07);
+    --warn: #b8770e;
+    --warn-soft: rgba(184, 119, 14, 0.08);
+    --good: #0e8a5a;
+    --good-soft: rgba(14, 138, 90, 0.08);
+    --danger: #d32f2f;
+    --danger-soft: rgba(211, 47, 47, 0.07);
+    --code-bg: #f1f1f4;
+    --code-text: #1a1a1f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    transition: background 200ms ease, color 200ms ease;
+    min-height: 100vh;
+  }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', 'Menlo', monospace;
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: embed;
+  }
+
+  /* ===== Top Nav ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(12, 12, 14, 0.85);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  [data-theme="light"] .topbar { background: rgba(250, 250, 250, 0.85); }
+
+  .topbar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    color: var(--text-strong);
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .brand-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .theme-toggle {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 150ms, border-color 150ms;
+  }
+  .theme-toggle:hover { border-color: var(--border-strong); background: var(--card-2); }
+  .theme-toggle svg { width: 16px; height: 16px; }
+
+  /* ===== Layout ===== */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+    padding-top: 56px;
+    padding-bottom: 80px;
+  }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    position: sticky;
+    top: 88px;
+    align-self: start;
+    height: fit-content;
+  }
+  .toc-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-right: 12px;
+  }
+  .toc {
+    list-style: none;
+    border-right: 1px solid var(--border);
+  }
+  .toc li a {
+    display: block;
+    padding: 8px 14px 8px 0;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    border-right: 2px solid transparent;
+    margin-right: -1px;
+    transition: color 120ms, border-color 120ms;
+  }
+  .toc li a:hover { color: var(--text); }
+  .toc li a.active {
+    color: var(--accent);
+    border-right-color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding: 72px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 5.4vw, 60px);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: var(--text-strong);
+    margin-bottom: 22px;
+    max-width: 900px;
+  }
+  .hero p {
+    font-size: 19px;
+    color: var(--muted);
+    max-width: 720px;
+    line-height: 1.55;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+    margin-top: 32px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-meta-item strong { color: var(--text); font-weight: 600; }
+
+  /* ===== Section ===== */
+  section.chapter {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 80px;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  .ch-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 14px;
+    letter-spacing: 0.05em;
+  }
+  .ch-title {
+    font-size: clamp(28px, 3.4vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+    margin-bottom: 14px;
+  }
+  .ch-subtitle {
+    font-size: 17px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    max-width: 760px;
+    line-height: 1.55;
+  }
+
+  .body p { font-size: 16px; margin-bottom: 16px; color: var(--text); }
+  .body p strong { color: var(--text-strong); font-weight: 600; }
+  .body ul, .body ol {
+    margin: 16px 28px 22px 0;
+    padding: 0;
+  }
+  .body li { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+  .body li strong { color: var(--text-strong); font-weight: 600; }
+
+  /* ===== Cards & Callouts ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin: 22px 0;
+  }
+  .card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+    margin-bottom: 8px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin: 26px 0;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 26px 0;
+  }
+
+  .model-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .model-card .model-name {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .model-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
+  }
+  .model-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    color: var(--muted);
+  }
+  .model-tag.dev { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .model-tag.skip { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+  .model-card p { font-size: 14.5px; color: var(--muted); margin-bottom: 12px; line-height: 1.55; }
+  .model-meta {
+    display: flex;
+    gap: 14px;
+    font-size: 12.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 14px;
+  }
+  .model-meta span strong { color: var(--text-strong); font-weight: 600; }
+
+  /* Callout types */
+  .callout {
+    border-radius: 12px;
+    padding: 18px 22px 18px 22px;
+    margin: 22px 0;
+    border-right: 3px solid var(--accent);
+    background: var(--accent-soft);
+  }
+  .callout-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .callout p { color: var(--text); font-size: 15.5px; margin-bottom: 0; line-height: 1.6; }
+  .callout p + p { margin-top: 10px; }
+
+  .callout.warn { border-right-color: var(--warn); background: var(--warn-soft); }
+  .callout.warn .callout-title { color: var(--warn); }
+  .callout.good { border-right-color: var(--good); background: var(--good-soft); }
+  .callout.good .callout-title { color: var(--good); }
+  .callout.danger { border-right-color: var(--danger); background: var(--danger-soft); }
+  .callout.danger .callout-title { color: var(--danger); }
+
+  /* Big quote / key point */
+  .keypoint {
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin: 32px 0;
+    position: relative;
+  }
+  .keypoint::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 36px;
+    width: 40px; height: 3px;
+    background: var(--accent);
+    border-radius: 0 0 3px 3px;
+  }
+  .keypoint .kp-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+  }
+  .keypoint p {
+    font-size: 22px;
+    line-height: 1.45;
+    font-weight: 500;
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .keypoint p + p { margin-top: 14px; font-size: 16px; font-weight: 400; color: var(--muted); }
+
+  /* Code block */
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    color: var(--code-text);
+    margin: 16px 0;
+    line-height: 1.6;
+  }
+  pre.code.prompt {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Heebo', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+  code.inline {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 7px;
+    font-size: 0.92em;
+    color: var(--text-strong);
+  }
+
+  /* Comparison table */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .compare-col {
+    padding: 22px 26px;
+    background: var(--card);
+  }
+  .compare-col + .compare-col {
+    border-right: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+  .compare-col h4 {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .compare-col.bad h4 { color: var(--danger); }
+  .compare-col.good h4 { color: var(--good); }
+  .compare-col ul { margin: 0; padding-right: 20px; }
+  .compare-col li { font-size: 15px; margin-bottom: 8px; }
+
+  /* Rule list (for the "rules" section) */
+  .rules {
+    display: grid;
+    gap: 14px;
+    margin: 26px 0;
+  }
+  .rule {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    align-items: start;
+  }
+  .rule-num {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .rule-body h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+    margin-bottom: 4px;
+  }
+  .rule-body p { font-size: 14.5px; color: var(--muted); margin: 0; line-height: 1.55; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0 60px;
+    margin-top: 40px;
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+  .footer-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+  .footer-role {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .footer-contact {
+    margin-top: 8px;
+    font-size: 13.5px;
+    color: var(--muted);
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .footer-contact a {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1px;
+    transition: color 120ms, border-color 120ms;
+  }
+  .footer-contact a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 0; padding-top: 24px; }
+    .sidebar { display: none; }
+    .container { padding: 0 22px; }
+    .topbar-inner { padding: 12px 22px; }
+    .hero { padding: 40px 0 28px; margin-bottom: 32px; }
+    section.chapter { padding: 40px 0; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .compare { grid-template-columns: 1fr; }
+    .compare-col + .compare-col { border-right: none; border-top: 1px solid var(--border); }
+    .keypoint { padding: 24px 24px; }
+    .keypoint p { font-size: 19px; }
+    .hero-meta { gap: 14px 24px; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>איך עובדים נכון עם Claude Code</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div class="toc-title">תוכן עניינים</div>
+      <ul class="toc" id="toc">
+        <li><a href="#intro">המסמך הזה</a></li>
+        <li><a href="#claude-vs-cursor">Claude מול Cursor</a></li>
+        <li><a href="#models">המודלים</a></li>
+        <li><a href="#tokens">טוקנים ומגבלות</a></li>
+        <li><a href="#worker">Claude זה העובד שלך</a></li>
+        <li><a href="#no-golden">אין פרומפט זהב</a></li>
+        <li><a href="#context">Context — איך זה עובד</a></li>
+        <li><a href="#compact">Compact — סיכום אוטומטי</a></li>
+        <li><a href="#sessions">ניהול sessions</a></li>
+        <li><a href="#filesystem">גישה לקבצים והרשאות</a></li>
+        <li><a href="#md-files">קבצי MD — הזיכרון</a></li>
+        <li><a href="#skills">Skills — מה זה באמת</a></li>
+        <li><a href="#mcp">MCP — חיבור לכלים</a></li>
+        <li><a href="#manager">סיכום למנהלת</a></li>
+      </ul>
+    </aside>
+
+    <main>
+
+      <!-- HERO -->
+      <header class="hero" id="intro">
+        <div class="hero-eyebrow">
+          <span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>
+          מדריך מעשי לצוות פיתוח / QA
+        </div>
+        <h1>איך עובדים נכון עם Claude Code, ולמה כל ה״פרומפטים זהב״ זה שטויות.</h1>
+        <p>סיכום של מה שעברנו יחד — להעברה לצוות שלך. בלי באזוורדס, בלי מילים גבוהות, רק מה שחשוב לדעת כדי להוציא את המקסימום מהכלי, לא לשרוף את המנוי, ולהפסיק לחפש משפטי קסם.</p>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <span>👤</span>
+            <span><strong>מאת:</strong> שלומי זוין · CTO as a Service</span>
+          </div>
+          <div class="hero-meta-item">
+            <span>🎯</span>
+            <span><strong>למי:</strong> מנהלת QA וצוות פיתוח</span>
+          </div>
+          <div class="hero-meta-item">
+            <span>⏱</span>
+            <span><strong>זמן קריאה:</strong> 15 דקות</span>
+          </div>
+        </div>
+      </header>
+
+
+      <!-- 1. CLAUDE VS CURSOR -->
+      <section class="chapter" id="claude-vs-cursor">
+        <div class="ch-num">01</div>
+        <h2 class="ch-title">Claude מול Cursor — הם בכלל לא באותה ליגה</h2>
+        <p class="ch-subtitle">השאלה שאמרו לך לבוא איתה תשובה — היא קצת בעייתית מהיסוד. בואי נסדר את זה.</p>
+
+        <div class="body">
+          <p>קודם כל מושג בסיסי: <strong>IDE</strong> זה קיצור של <em>Integrated Development Environment</em> — ובעברית פשוטה: <strong>סביבת פיתוח</strong>. זה התוכנה שמפתחים כותבים בה את הקוד. דוגמאות: <code class="inline">VSCode</code>, <code class="inline">Cursor</code>, <code class="inline">JetBrains</code>, <code class="inline">Sublime</code>. זה כמו Word — רק שבמקום מסמכים אתה כותב בו קוד.</p>
+
+          <p>ועכשיו ההבחנה הקריטית:</p>
+
+          <div class="compare">
+            <div class="compare-col">
+              <h4>Claude</h4>
+              <ul>
+                <li>זה <strong>המודל</strong> — ה״מוח״ עצמו</li>
+                <li>יש בו כמה גרסאות: Opus, Sonnet, Haiku</li>
+                <li>זה מה שעושה את העבודה — חושב, כותב, מתקן</li>
+              </ul>
+            </div>
+            <div class="compare-col">
+              <h4>Cursor</h4>
+              <ul>
+                <li>זה <strong>IDE</strong> — סביבת פיתוח</li>
+                <li>בנוי במיוחד סביב חוויית עבודה עם AI</li>
+                <li>אבל בסוף — הוא משתמש במודלים של Claude / OpenAI</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="keypoint">
+            <div class="kp-label">השורה התחתונה</div>
+            <p>הקוסם זה המודל, לא ה־IDE.</p>
+            <p>Cursor הוא לא ״יותר חכם״ מ־VSCode — הוא פשוט נותן עטיפה נוחה. אני אישית עובד תמיד עם <strong>Claude Code על VSCode</strong> ומאוד אוהב. הצוות שלך יכול לבחור מה שנוח להם — העיקר שמבינים שמה שעושה את העבודה זה המודל, לא הכפתורים.</p>
+          </div>
+
+          <p>וגם — לא חייבים IDE בכלל. למשימות מסוימות אפשר לעבוד עם <strong>אפליקציית Claude</strong> (claude.ai או הדסקטופ) — ישר בדפדפן, בלי שום סביבת פיתוח. זה טוב לחקירה, סיעור מוחות, או משימות שלא דורשות לגעת בקבצים.</p>
+
+          <div class="callout">
+            <div class="callout-title">המסקנה לשאלה ״Claude או Cursor״</div>
+            <p>השאלה הזו קצת כמו לשאול ״אופל או דיזל״. Claude זה הדלק (המודל), Cursor זה דגם של מכונית (IDE). יכולה להיות לך מכונית טובה עם דלק גרוע — או מכונית פשוטה עם דלק מעולה. בחרי IDE לפי נוחות, התמקדי במודל.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 2. MODELS -->
+      <section class="chapter" id="models">
+        <div class="ch-num">02</div>
+        <h2 class="ch-title">המודלים — Opus, Sonnet, Haiku</h2>
+        <p class="ch-subtitle">Anthropic (החברה שמאחורי Claude) משחררת את המודל בכמה ״גדלים״. ההבדלים בעיקר במשולש איכות / מהירות / עלות.</p>
+
+        <div class="grid-3">
+          <div class="model-card">
+            <div class="model-name">
+              <h3>Opus</h3>
+              <span class="model-tag dev">לדב</span>
+            </div>
+            <p>הכי חזק. הכי חכם. נותן את התוצאות הכי טובות במשימות מורכבות — תכנון מערכות, ארכיטקטורה, קוד עדין, דיבאג קשה.</p>
+            <div class="model-meta">
+              <span><strong>מהירות:</strong> איטי יותר</span>
+              <span><strong>טוקנים:</strong> שורף הכי הרבה</span>
+            </div>
+          </div>
+
+          <div class="model-card">
+            <div class="model-name">
+              <h3>Sonnet</h3>
+              <span class="model-tag dev">לדב</span>
+            </div>
+            <p>איזון. חכם מאוד, מהיר יחסית, חסכוני יותר. סוס העבודה היומיומי. רוב המשימות לא דורשות יותר מזה.</p>
+            <div class="model-meta">
+              <span><strong>מהירות:</strong> מהיר</span>
+              <span><strong>טוקנים:</strong> בינוני</span>
+            </div>
+          </div>
+
+          <div class="model-card">
+            <div class="model-name">
+              <h3>Haiku</h3>
+              <span class="model-tag skip">לא לדב</span>
+            </div>
+            <p>הכי קטן. הכי מהיר. הכי זול. טוב למשימות פשוטות (סיווג טקסט, סיכומים קצרים), אבל לא מתאים לעבודת פיתוח רצינית.</p>
+            <div class="model-meta">
+              <span><strong>מהירות:</strong> מהיר מאוד</span>
+              <span><strong>טוקנים:</strong> חסכוני מאוד</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout good">
+          <div class="callout-title">המלצה לחברת פיתוח</div>
+          <p>בעבודת דב ביום־יום — תעבדו רק עם <strong>Sonnet ו־Opus</strong>. Haiku לא מתאים לקוד. ברירת מחדל טובה: Sonnet לרוב המשימות, Opus כשנתקעים או למשימות שבאמת דורשות חשיבה עמוקה.</p>
+        </div>
+      </section>
+
+
+      <!-- 3. TOKENS -->
+      <section class="chapter" id="tokens">
+        <div class="ch-num">03</div>
+        <h2 class="ch-title">טוקנים, מגבלות, ולמה זה חשוב לך</h2>
+        <p class="ch-subtitle">המנוי שלך מוגבל. כשנגמרים הטוקנים — הכל עוצר. שווה להבין מה זה טוקן ואיך לא לבזבז.</p>
+
+        <div class="body">
+          <p><strong>מה זה טוקן?</strong> יחידת המידע הבסיסית של LLMs. בערך — מילה. אבל לא בדיוק: המודל שובר מילים לחלקים קטנים יותר. למשל המילה <code class="inline">unbelievable</code> תהפוך אצלו ל־<code class="inline">[un][believ][able]</code>. בשפות לא־אנגליות (כמו עברית) זה אפילו פחות יעיל — מילה אחת בעברית יכולה להפוך ל־3-5 טוקנים.</p>
+
+          <p><strong>אז למה זה משנה לך?</strong></p>
+          <ul>
+            <li>כל מנוי (Pro, Team, Enterprise) מגיע עם <strong>מכסת טוקנים</strong>. כשהיא נגמרת — Claude מפסיק להגיב עד שהמכסה מתחדשת (כל כמה שעות / יום, תלוי בתוכנית).</li>
+            <li>מודל חזק יותר ⇒ <strong>״אוכל״ יותר טוקנים</strong> לאותה משימה. Opus יותר רעב מ־Sonnet.</li>
+            <li>שיחה ארוכה ⇒ <strong>יותר טוקנים</strong> לכל הודעה (נסביר למה בפרק על Context).</li>
+          </ul>
+
+          <div class="callout warn">
+            <div class="callout-title">טריידאוף שצריך להבין</div>
+            <p>מודל חזק יותר ⇒ חושב יותר עמוק ⇒ לוקח יותר זמן ⇒ עולה יותר טוקנים ⇒ <strong>לפעמים</strong> נותן תוצאה טובה יותר. <em>לפעמים</em>. לא תמיד. המון פעמים Sonnet יספיק. אל תפעילי את Opus כברירת מחדל — בזבוז.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 4. WORKER -->
+      <section class="chapter" id="worker">
+        <div class="ch-num">04</div>
+        <h2 class="ch-title">Claude זה העובד שלך — והוא הכי טוב והכי מהיר</h2>
+        <p class="ch-subtitle">זה העיקרון הכי חשוב במסמך הזה. אם תפנימי רק דבר אחד — שזה יהיה זה.</p>
+
+        <div class="keypoint">
+          <div class="kp-label">העיקרון</div>
+          <p>תתייחסי ל־Claude כמו לעובד הכי טוב והכי מהיר שיש לך. כל מה שהיית עושה עם בנאדם — תעשי איתו.</p>
+          <p>תני הוראות ספציפיות. אם הוא טועה — תגידי לו איפה. אם לא הבנת — תשאלי אותו. רוצה שיכין לך תוכנית לפני שיבצע — תגידי לו. תפסיקי לחפש ״את מי לשאול את השאלה הזאת״ — תשאלי אותו.</p>
+        </div>
+
+        <div class="body">
+          <p>זה נשמע פשוט אבל זה הדבר שאנשים הכי מתקשים איתו. הם מתייחסים ל־AI כמו לקופסה שחורה — מקלידים שאלה, מקבלים תשובה, מתאכזבים, ומחפשים את ״הפרומפט הנכון״.</p>
+
+          <p>במקום זה — תנהלי <strong>שיחה</strong>:</p>
+          <ul>
+            <li>״תכין לי תוכנית, אל תבצע עדיין״</li>
+            <li>״לא הבנתי למה בחרת בגישה הזאת — תסביר״</li>
+            <li>״זה לא עובד, הנה הודעת השגיאה״</li>
+            <li>״תבדוק לפני שאתה משנה — תקרא קודם את הקובץ X״</li>
+            <li>״תכין לי 3 אופציות ותגיד מה היתרונות של כל אחת״</li>
+            <li>״תיזהר עם הקוד הזה, יש שם בעיה רגישה — תסביר לי איך אתה מבין אותה לפני שתיגע״</li>
+          </ul>
+
+          <div class="callout">
+            <div class="callout-title">תרגיל מנטלי</div>
+            <p>בכל פעם שאת רוצה לכתוב ל־Claude — דמייני שאת כותבת לעובד שזה היום הראשון שלו אצלך. הוא חכם בטירוף וזריז כמו טיל, אבל הוא לא מכיר את הפרויקט שלך, לא יודע מה ההיסטוריה, ולא קורא מחשבות. תגידי לו <strong>בדיוק</strong> מה את רוצה.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 5. NO GOLDEN PROMPT -->
+      <section class="chapter" id="no-golden">
+        <div class="ch-num">05</div>
+        <h2 class="ch-title">אין ״פרומפט זהב״. יש כללי עבודה.</h2>
+        <p class="ch-subtitle">זה הסעיף שאת צריכה להעביר לצוות שלך — ולמי שביקש ממך ״לבוא עם פרומפטים מנצחים״.</p>
+
+        <div class="keypoint">
+          <div class="kp-label">להפנים</div>
+          <p>אין משפט קסם. אין פרומפט שתעתיקי ופתאום הכל יעבוד מושלם.</p>
+          <p>בדיוק כמו שאין ״משפט קסם״ שאומרים לעובד הכי טוב שלך כדי שיעשה כל מה שתרצי. יש דרך לעבוד איתו. יש כללי תקשורת. יש ציפיות הדדיות. בדיוק אותו דבר.</p>
+        </div>
+
+        <div class="body">
+          <p>מה <em>כן</em> קיים זה <strong>״כללי עבודה״</strong> או <strong>״גולדן הואו־טו״</strong> — איך לעבוד נכון, מה לעשות, מה לא, איפה לבדוק, מתי לפתוח שיחה חדשה, מתי להפעיל compact (תכף נסביר), איך לתעד.</p>
+
+          <p>זה ההבדל הקריטי בין ״טמפלייט״ לבין <strong>שיטת עבודה</strong>. תני לצוות שלך שיטה — לא נוסחה.</p>
+
+          <div class="compare">
+            <div class="compare-col bad">
+              <h4>שטות שלא עובדת</h4>
+              <ul>
+                <li>״תגיד תמיד ׳אתה מומחה ב־X׳ בתחילת ההודעה״</li>
+                <li>״תכתוב ׳think step by step׳ בסוף״</li>
+                <li>״תוסיף 5 אימוג׳ים כדי שיהיה ידידותי״</li>
+                <li>״העתק את הפרומפט הזה ויהיה לך פלא״</li>
+              </ul>
+            </div>
+            <div class="compare-col good">
+              <h4>זה כן עובד</h4>
+              <ul>
+                <li>תני קונטקסט — מה הפרויקט, מה הבעיה, מה ניסית</li>
+                <li>בקשי תוכנית לפני ביצוע במשימות גדולות</li>
+                <li>תבקשי ממנו לקרוא קבצים רלוונטיים לפני שמתחיל</li>
+                <li>תני דוגמאות לפלט הרצוי כשרלוונטי</li>
+                <li>אחרי ביצוע — בקשי ממנו לתעד מה עשה</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 6. CONTEXT -->
+      <section class="chapter" id="context">
+        <div class="ch-num">06</div>
+        <h2 class="ch-title">Context — מה זה ולמה זה משנה לכיס</h2>
+        <p class="ch-subtitle">זה החלק שכי משפיע על המכסה החודשית שלך. אם תפנימי איך context עובד, תחסכי המון.</p>
+
+        <div class="body">
+          <p>כל פעם שאת שולחת הודעה ל־Claude — הוא לא מקבל רק את ההודעה האחרונה שלך. הוא מקבל את <strong>כל השיחה</strong> מההתחלה: כל ההודעות שלך + כל התשובות שלו + כל הקוד שהראת + כל הקבצים שהוא קרא.</p>
+
+          <p>וכל פעם הוא קורא הכל מההתחלה כדי להגיב.</p>
+
+          <div class="callout warn">
+            <div class="callout-title">המשמעות הכלכלית</div>
+            <p>הודעה חדשה בשיחה ארוכה־ארוכה־ארוכה — <strong>הרבה הרבה יותר יקרה</strong> מהודעה חדשה בשיחה חדשה. אותו מספר מילים שלך — אבל פי עשרות בטוקנים. כי הוא ״משלם״ על כל ההיסטוריה שוב.</p>
+          </div>
+
+          <p><strong>אז מתי לפתוח שיחה חדשה?</strong></p>
+          <ul>
+            <li><strong>תמיד</strong> — כשעוברים למשימה חדשה לגמרי שלא קשורה לקודמת.</li>
+            <li><strong>לפעמים</strong> — אם בשיחה הנוכחית הוא ״תקוע״ על גישה לא נכונה ואת לא מצליחה להזיז אותו. כי הוא רואה את כל ההיסטוריה — וההיסטוריה הזאת משפיעה. (זה נדיר — בדרך כלל הוא יודע לתקן את עצמו אם תגידי לו ספציפית מה הבעיה.)</li>
+          </ul>
+
+          <p><strong>מתי <em>לא</em> לפתוח שיחה חדשה?</strong></p>
+          <ul>
+            <li>כשעוסקים בנושא רלוונטי לשיחה הנוכחית. אם הוא כבר מכיר את הקוד / הדרישות — לא לזרוק את זה לפח רק כדי ״להתחיל נקי״. הקונטקסט שווה את הטוקנים.</li>
+          </ul>
+        </div>
+      </section>
+
+
+      <!-- 7. COMPACT -->
+      <section class="chapter" id="compact">
+        <div class="ch-num">07</div>
+        <h2 class="ch-title">Compact — איך הוא ״קם מהשולחן ומסכם לעצמו״</h2>
+        <p class="ch-subtitle">פתרון מובנה לבעיית השיחות הארוכות.</p>
+
+        <div class="body">
+          <p>כשהשיחה תופחת — Claude יזהה את זה ויציע (או יבצע) פעולת <strong>compact</strong>: הוא לוקח את כל השיחה עד עכשיו, מסכם אותה בצורה תמציתית, ומאז משתמש בסיכום + ההודעות החדשות בלבד — במקום בכל ההיסטוריה המלאה.</p>
+
+          <p>זה חוסך טוקנים בצורה משמעותית.</p>
+
+          <div class="card">
+            <h4>אפשר גם להפעיל ידנית</h4>
+            <p>כותבים בשורת ההודעה:</p>
+            <pre class="code">/compact</pre>
+            <p style="margin-top: 8px;">למה לעשות ידנית במקום לחכות שהוא יעשה לבד?</p>
+            <ul>
+              <li>פעולת compact לוקחת <strong>3-5 דקות</strong>.</li>
+              <li>אם הוא יחליט לעשות אותה דווקא כשאת באמצע משימה דחופה — תקועה לחכות.</li>
+              <li>עדיף להפעיל בעצמך בנקודות נוחות (סוף משימה, לפני יציאה לארוחת צהריים).</li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <div class="callout-title">המנטליות הנכונה</div>
+            <p>בסופו של דבר — הכל זה מספר טוקנים בשיחה. compact זה כלי לצמצם את המספר הזה. שיחה חדשה זה כלי לאפס אותו לחלוטין. תשתמשי בשניהם בחוכמה.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 8. SESSIONS -->
+      <section class="chapter" id="sessions">
+        <div class="ch-num">08</div>
+        <h2 class="ch-title">ניהול sessions — טריקים קטנים לחיים טובים</h2>
+        <p class="ch-subtitle">איך לזכור מה קורה איפה כשיש לך 5 שיחות פתוחות במקביל.</p>
+
+        <div class="body">
+          <p>ב־VSCode (לפחות נכון לעכשיו) אין דרך מובנית לתת שם לשיחה. אז יוצא שכל השיחות נראות אותו דבר ברשימה — וקשה לזכור איפה דנת בכל בעיה.</p>
+
+          <div class="card">
+            <h4>הטריק שלי ב־VSCode</h4>
+            <p>אני מתחיל כל שיחה חדשה עם הודעה קצרה כזו:</p>
+            <pre class="code prompt">Bug 1234 - דיון על תיקון בסידור התשלום - אל תעשה כלום עדיין</pre>
+            <p style="margin-top: 8px;">Claude תופס את השורה הראשונה של ההודעה הראשונה כ״כותרת״ של השיחה — ככה אני רואה אותה ברשימה ויודע מיד על מה השיחה הזו.</p>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <h4>אפליקציית Claude (claude.ai)</h4>
+              <p>שם אפשר פשוט לתת שם לכל שיחה. הרבה יותר נוח לארגון.</p>
+            </div>
+            <div class="card">
+              <h4>Cursor</h4>
+              <p>אולי שם זה אפילו פשוט יותר — אני לא עבדתי איתו ספציפית, שווה לבדוק. הרעיון זהה.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 9. FILESYSTEM -->
+      <section class="chapter" id="filesystem">
+        <div class="ch-num">09</div>
+        <h2 class="ch-title">גישה לקבצים והרשאות</h2>
+        <p class="ch-subtitle">Claude Code על המחשב — חזק מאוד. וצריך להבין למה.</p>
+
+        <div class="body">
+          <p>אין הבדל בין ״Claude על VSCode״ ל־״Claude על Cursor״ ל־״Claude כתוכנת דסקטופ״. בכולן זה אותו מודל — Claude Code — שיש לו <strong>גישה למערכת הקבצים שלך</strong>.</p>
+
+          <p>הוא יכול לקרוא קבצים. הוא יכול לכתוב קבצים. הוא יכול להריץ פקודות (build, test, deploy, מה שתרצי).</p>
+
+          <p>כשאת פותחת אותו ב־IDE על פרויקט מסוים — הוא יודע ש״הבית״ שלו זה הפרויקט הזה, ושם הוא יחפש דברים כברירת מחדל. אבל זה <strong>לא מגביל אותו</strong> — את יכולה להגיד לו במפורש:</p>
+
+          <pre class="code prompt">תיגש לתיקייה /Users/me/other-project, תקרא את הקובץ X ותסביר לי אותו</pre>
+
+          <p>והוא יילך, יקרא, ויסביר.</p>
+
+          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-strong); margin: 32px 0 12px;">הרשאות</h3>
+          <p>לפני שהוא עושה פעולה ״משמעותית״ (כותב קובץ, מריץ פקודה ב־shell, מוחק) — הוא יבקש ממך אישור. אפשר לאשר פעולה אחת, אפשר לאשר את כל הפעולות מאותו סוג, ואפשר להגדיר <strong>auto-accept</strong> — כל פעולה תאושר אוטומטית, בלי לשאול.</p>
+
+          <div class="callout warn">
+            <div class="callout-title">כאן צריך להיזהר</div>
+            <p>auto-accept חוסך זמן בטירוף. בלי זה — תאלצי לאשר 100 פעולות ביום.</p>
+            <p>אבל — Claude יכול גם <strong>למחוק קבצים</strong>. במצבים נדירים (במיוחד אם הפקודות שלו קצת ״רחבות״ מדי) הוא עלול למחוק משהו שלא רצית. ב־99.99% מהמקרים זה בטוח, אבל שווה לדעת. למשתמשים מנוסים — מומלץ לעבוד עם git ולעשות commits תכופים, ככה כלום באמת לא הולך לאיבוד.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 10. MD FILES -->
+      <section class="chapter" id="md-files">
+        <div class="ch-num">10</div>
+        <h2 class="ch-title">קבצי MD — הזיכרון לטווח ארוך של Claude</h2>
+        <p class="ch-subtitle">הכלי החזק ביותר לעבודה מאורגנת בצוות.</p>
+
+        <div class="body">
+          <p><strong>MD</strong> זה קיצור של <strong>Markdown</strong> — פורמט טקסט פשוט עם מבנה מינימלי (כותרות, רשימות, קישורים). זה הפורמט הכי ידידותי ל־LLMs — הם קוראים אותו הכי טוב מכל פורמט אחר.</p>
+
+          <p>אנחנו לא <em>כותבים</em> את קבצי ה־MD בעצמנו. אנחנו <strong>מבקשים מ־Claude להכין אותם לנו</strong>. הוא יודע לכתוב Markdown מצוין.</p>
+
+          <div class="keypoint">
+            <div class="kp-label">למה זה חשוב</div>
+            <p>קבצי MD הם הדרך לשמור מידע בין שיחות שונות, בין משימות שונות, ובין אנשי צוות שונים.</p>
+            <p>זה הזיכרון של הצוות. זה ה־״onboarding״ של Claude לכל שיחה חדשה.</p>
+          </div>
+
+          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-strong); margin: 32px 0 16px;">5 שימושים נפוצים</h3>
+
+          <div class="rules">
+            <div class="rule">
+              <div class="rule-num">1</div>
+              <div class="rule-body">
+                <h4>תיאור הפרויקט</h4>
+                <p>קובץ ראשי שמסביר על הפרויקט — מה הוא עושה, למי הוא מיועד, מה המבנה, מה הטכנולוגיות. בתחילת כל שיחה חדשה — Claude קורא אותו ויודע איפה הוא נמצא.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">2</div>
+              <div class="rule-body">
+                <h4>תיאור פיצ'רים</h4>
+                <p>לכל פיצ׳ר משמעותי — קובץ MD ייעודי שמתאר אותו: איך עובד, איפה הקוד, מה הקצוות הרגישים, מה היה בעבר. כשעובדים עליו — מבקשים מ־Claude לקרוא אותו קודם.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">3</div>
+              <div class="rule-body">
+                <h4>אינדקס לכל הקבצים</h4>
+                <p>קובץ index.md אחד שמפרט מה כל קובץ MD מכיל. Claude יודע לחפש בקבצים — אבל אינדקס מסודר חוסך זמן וטוקנים. יותר אסתטי, יותר מקצועי.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">4</div>
+              <div class="rule-body">
+                <h4>תיאור משימות</h4>
+                <p>במקום (או בנוסף ל)Jira — את יכולה לדון עם Claude על משימה, לבקש ממנו להכין קובץ MD מסודר עם הדרישות, ולתת אותו לעובד שיעבוד על המשימה. כשהעובד מתחיל — הוא אומר ל־Claude שלו ״תקרא את הקובץ הזה ובוא נתחיל״ — מיד הקונטקסט מלא.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">5</div>
+              <div class="rule-body">
+                <h4>כל מידע שכדאי לזכור</h4>
+                <p>החלטות ארכיטקטוניות, רשימת באגים מוכרים, תיעוד API פנימי, פרוטוקולי בדיקה, ״לקחים ממה שלא הצליח״ — כל מה ששווה שיהיה מתועד וזמין לכל שיחה עתידית.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h4>איך זה נראה בפועל</h4>
+            <p>בתחילת שיחה חדשה (לעבודה על משימה / פיצ׳ר):</p>
+            <pre class="code prompt">תקרא את index.md, את feature-payments.md, ואת הקבצים הרלוונטיים בקוד.
+אחרי שתבין — בוא נתכנן יחד את הוספת התשלום בביטקוין.
+אל תיגע בקוד עד שאני מאשר את התוכנית.</pre>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 11. SKILLS -->
+      <section class="chapter" id="skills">
+        <div class="ch-num">11</div>
+        <h2 class="ch-title">Skills — מה זה, ולמה אני קצת חשדן</h2>
+        <p class="ch-subtitle">פיצ׳ר חדש יחסית של Anthropic. שווה להכיר — ובעיקר שווה לדעת איך לא ליפול לבולשיט שיווקי סביבו.</p>
+
+        <div class="body">
+          <p><strong>הגילוי הנאות שלי:</strong> אני באופן אישי לא מתלהב מ־Skills. מרגיש לי קצת כמו ״הפרומפט זהב״ בגרסה ארגונית. אבל — חשוב שתדעי על זה, כי במקומות עבודה גדולים תמיד יהיה מי שיזרוק את הבאזוורד הזה לאוויר כדי להראות שהוא ״בעניינים״. עדיף שתביני בדיוק על מה מדברים, ותדעי מתי זה באמת רלוונטי ומתי זה אבק כוכבים.</p>
+
+          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-strong); margin: 32px 0 12px;">מה זה Skill?</h3>
+
+          <p>Skill זה <strong>חבילה מאורגנת של הוראות + לפעמים סקריפטים</strong>, ש־Claude יכול ״לטעון״ כשהיא רלוונטית למשימה. כל skill הוא תיקייה שמכילה:</p>
+          <ul>
+            <li>קובץ MD שמתאר מה ה־skill עושה ומתי להשתמש בו</li>
+            <li>אופציונלי: סקריפטים, תבניות, דוגמאות, קוד עזר</li>
+          </ul>
+
+          <p>יש skills מובנים שאנת׳רופיק שיחררה (לדוגמה: <code class="inline">pdf-reader</code>, <code class="inline">excel-builder</code>, <code class="inline">pptx-creator</code>), ואפשר לכתוב skills מותאמים לצוות.</p>
+
+          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-strong); margin: 32px 0 12px;">איך משתמשים</h3>
+
+          <p>Claude מזהה לבד מתי skill רלוונטי וטוען אותו. אפשר גם להגיד לו במפורש:</p>
+
+          <pre class="code prompt">תשתמש ב־skill של pdf-reader על הקובץ הזה ותחלץ לי את הטבלאות</pre>
+
+          <div class="keypoint">
+            <div class="kp-label">הדעה הכנה שלי</div>
+            <p>רוב ה־skills הם בפועל קבצי MD מאורגנים יפה — בדיוק מה שדיברנו עליו בפרק 10.</p>
+            <p>הערך האמיתי של skills מגיע כשיש בהם <strong>סקריפטים</strong> שעושים משהו דטרמיניסטי — כמו פרסור של PDF, יצירת Excel, או שליפה מבסיס נתונים. שם זה באמת נותן ערך מעבר ל־MD רגיל.</p>
+          </div>
+
+          <div class="compare">
+            <div class="compare-col bad">
+              <h4>מתי Skills זה Overkill</h4>
+              <ul>
+                <li>הוראות איך לעבוד / סגנון קוד → קובץ MD</li>
+                <li>תיאור פיצ'ר → קובץ MD</li>
+                <li>תיאור הפרויקט → CLAUDE.md</li>
+                <li>סתם ״בואו נארגן את הידע״ → MDs</li>
+              </ul>
+            </div>
+            <div class="compare-col good">
+              <h4>מתי Skills באמת שווה</h4>
+              <ul>
+                <li>workflow חוזר שכל הצוות משתמש בו</li>
+                <li>כולל סקריפטים אמיתיים (לא רק טקסט)</li>
+                <li>פעולות דטרמיניסטיות (חילוץ נתונים, ייצור קבצים)</li>
+                <li>עומדות מאחורי זה אינטגרציות אמיתיות</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout warn">
+            <div class="callout-title">המלכודת הארגונית</div>
+            <p>בחברות גדולות יבואו אנשים ויגידו ״אנחנו צריכים אסטרטגיית Skills״, יקימו ועדה, ויבזבזו שבועות על תכנון הארכיטקטורה המושלמת. בפועל — קובץ <code class="inline">CLAUDE.md</code> מסודר + כמה MDs לפיצ׳רים יביאו אותך ל־95% מהערך, בשבריר מהזמן.</p>
+            <p>עצה פרקטית: <strong>קודם תשלוט במנגנון של ה־MDs</strong>. אם אחרי שעובדים ככה כמה חודשים יש workflow ספציפי שכולם חוזרים אליו ושיש לו צד טכני (סקריפט, תבנית, אינטגרציה) — אז זה הזמן להפוך אותו ל־skill. לא לפני.</p>
+          </div>
+
+          <p><strong>בשורה אחת לצוות שלך:</strong> ״לפני ש־מישהו אומר Skills — נראה אותו עושה MDs מסודרים״.</p>
+        </div>
+      </section>
+
+
+      <!-- 12. MCP -->
+      <section class="chapter" id="mcp">
+        <div class="ch-num">12</div>
+        <h2 class="ch-title">MCP — חיבור Claude לכלים החיצוניים שלך</h2>
+        <p class="ch-subtitle">המושג הזה נשמע מסובך. הוא לא. זה חיבור API. נקודה.</p>
+
+        <div class="body">
+          <p><strong>MCP</strong> זה קיצור של <em>Model Context Protocol</em>. בעברית פשוטה: <strong>סטנדרט לחיבור Claude לכלים חיצוניים דרך API</strong>.</p>
+
+          <p>זה הכל. שום דבר מורכב יותר.</p>
+
+          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-strong); margin: 32px 0 12px;">איך זה נראה בפועל</h3>
+
+          <p>נניח שאת מחברת את Claude ל־Jira דרך MCP. מהרגע הזה את יכולה להגיד לו:</p>
+
+          <pre class="code prompt">תקרא את כל הטיקטים שמשויכים אליי ב־Jira השבוע, סדר לפי priority, ותכין לי סיכום של מה הכי דחוף</pre>
+
+          <p>והוא יילך, יקרא, יסדר, ויחזיר לך סיכום. בלי שתעתיקי כלום ידנית.</p>
+
+          <div class="grid-2">
+            <div class="card">
+              <h4>דוגמאות לכלים שמתחברים דרך MCP</h4>
+              <ul style="margin: 8px 0 0 16px; padding: 0;">
+                <li>Jira — קריאה / יצירה / עדכון טיקטים</li>
+                <li>Slack — קריאת ערוצים, שליחת הודעות</li>
+                <li>GitHub — סקירת PRs, ניהול issues</li>
+                <li>Notion / Confluence — קריאת דוקומנטציה</li>
+                <li>בסיסי נתונים — שאילתות SQL</li>
+                <li>Linear, Asana, Monday — ניהול משימות</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h4>איך זה עובד טכנית (קצר)</h4>
+              <p style="font-size: 14.5px; color: var(--muted); line-height: 1.55;">מישהו (אנת׳רופיק, החברה של הכלי, או צוות פנימי) בונה ״MCP Server״ — שכבת ביניים שחושפת את ה־API של הכלי בפורמט סטנדרטי ש־Claude מבין. את מתקינה אותו פעם אחת, ומאז Claude יודע לדבר עם הכלי.</p>
+            </div>
+          </div>
+
+          <div class="keypoint">
+            <div class="kp-label">למה זה רלוונטי במיוחד לצוות QA</div>
+            <p>תארי לעצמך Claude מחובר ל־Jira, ל־TestRail, ול־CI שלכם.</p>
+            <p>״תבדוק אילו בדיקות נפלו בלילה ב־CI. תפתח טיקטים ב־Jira לבאגים שטרם נפתחו. תכתוב לי דו״ח קצר ב־Slack לערוץ של QA״. שלוש פעולות שלקחו לך שעה — תוך דקות.</p>
+          </div>
+
+          <div class="callout">
+            <div class="callout-title">איך מתחילים</div>
+            <p>אנת׳רופיק מספקת רשימת MCP servers מוכנים לשימוש (חלקם רשמיים, חלקם של קהילה). מתקינים, מגדירים אישורים (token של Jira וכו׳), ומסיימים. אין צורך לבנות שום דבר מאפס אם הכלי שלך נפוץ.</p>
+            <p>אם הכלי הפנימי שלכם הוא משהו פרטי — צריך מפתח שיכתוב MCP server קטן (לא משימה גדולה — Claude עצמו יודע לעזור לבנות אותו).</p>
+          </div>
+
+          <div class="callout warn">
+            <div class="callout-title">גם פה — אזהרת באזוורד</div>
+            <p>גם MCP יזכה ל״אסטרטגיית MCP״ ול־״MCP־first thinking״ בחברות גדולות. תזכרי: זו אינטגרציה. בודקים על use case ספציפי — אם זה חוסך זמן באמת, מרחיבים. אם לא — לא.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 13. MANAGER -->
+      <section class="chapter" id="manager">
+        <div class="ch-num">13</div>
+        <h2 class="ch-title">סיכום למנהלת — מה את מעבירה לצוות</h2>
+        <p class="ch-subtitle">לא ״פרומפטים״. <em>כללי עבודה</em>. הנה הצעה לרשימה ראשונית.</p>
+
+        <div class="keypoint">
+          <div class="kp-label">להגיד את זה למי ששלח אותך</div>
+          <p>״פרומפט זהב״ זה שטות. אין כזה דבר.</p>
+          <p>מה שצריך זה <strong>שיטת עבודה</strong> — איך הצוות שלי עובד עם Claude. כללים פשוטים, קלים לזכור, שמייצרים תוצאות עקביות. וזה — זה אני מכינה.</p>
+        </div>
+
+        <div class="body">
+          <h3 style="font-size: 22px; font-weight: 700; color: var(--text-strong); margin: 32px 0 16px;">״כללי הזהב״ של הצוות שלך — נקודת התחלה</h3>
+
+          <div class="rules">
+            <div class="rule">
+              <div class="rule-num">1</div>
+              <div class="rule-body">
+                <h4>למשימה גדולה — קודם תוכנית, אחר כך ביצוע</h4>
+                <p>כל משימה לא טריוויאלית — מבקשים תוכנית, סוקרים, מאשרים, ואז Claude מבצע. לא נכנסים ישר ״תכתוב לי את הקוד״.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">2</div>
+              <div class="rule-body">
+                <h4>שיחה חדשה למשימה חדשה</h4>
+                <p>לא לערבב נושאים בשיחה אחת. כל משימה — שיחה משלה. חוסך טוקנים ושומר על מיקוד.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">3</div>
+              <div class="rule-body">
+                <h4>כל פיצ'ר משמעותי — קובץ MD משלו</h4>
+                <p>בתחילת עבודה על פיצ׳ר — קוראים את ה־MD שלו. בסוף עבודה — מעדכנים אותו אם משהו השתנה.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">4</div>
+              <div class="rule-body">
+                <h4>Sonnet כברירת מחדל, Opus רק כשנתקעים</h4>
+                <p>לא לשרוף את המכסה על Opus כשלא צריך. Sonnet מספיק לרוב המשימות.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">5</div>
+              <div class="rule-body">
+                <h4>נתקעת? תשאלי אותו, לא את הקולגה</h4>
+                <p>״למה הקוד הזה לא עובד״, ״מה ההבדל בין X ל־Y״, ״איך מתקנים את השגיאה הזאת״ — שאלות ל־Claude, לא לאנשים. זה מה שהוא טוב בו, ובמהירות שאף אחד לא משווה.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">6</div>
+              <div class="rule-body">
+                <h4>בסוף משימה — לבקש תיעוד</h4>
+                <p>״תכין סיכום של מה שעשינו, מה השינויים העיקריים, ומה דברים שצריך לשים אליהם לב בעתיד״. הסיכום הזה הולך לקובץ MD מתאים — וככה הצוות לומד.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">7</div>
+              <div class="rule-body">
+                <h4>תקשורת ספציפית, לא קסומה</h4>
+                <p>אם משהו לא עובד — לא ״תנסה שוב״. מסבירים בדיוק מה הבעיה, מה היה הפלט, מה היינו רוצים לראות במקום. כמו עם בנאדם.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <div class="rule-num">8</div>
+              <div class="rule-body">
+                <h4>אם תקוע אחרי 3 ניסיונות — שיחה חדשה</h4>
+                <p>לפעמים השיחה ״התקלקלה״. במקום להמשיך להתאמץ — פותחים שיחה חדשה, מסבירים מה כבר ניסינו, ומתחילים נקי.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout good">
+            <div class="callout-title">איך מטמיעים את זה בצוות</div>
+            <p>תכתבי את הכללים האלו (אפשר לבקש מ־Claude שיעזור) בתוך קובץ <code class="inline">CLAUDE.md</code> או <code class="inline">working-with-claude.md</code> בשורש הפרויקט. כל מי שמתחיל לעבוד עם Claude על הפרויקט — Claude יקרא את הקובץ הזה אוטומטית ויעבוד לפי הכללים. <strong>השיטה משתלבת בכלי עצמו.</strong></p>
+          </div>
+        </div>
+      </section>
+
+
+    </main>
+  </div>
+</div>
+
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-name">שלומי זוין</div>
+    <div class="footer-role">CTO as a Service · ליווי טכנולוגי לסטארטאפים ומיזמים</div>
+    <div class="footer-contact">
+      <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+      <a href="tel:+972545567213">054-5567213</a>
+      <a href="https://wa.me/972545567213" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const body = document.body;
+
+  const sunIcon = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>';
+  const moonIcon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+
+  function setTheme(theme) {
+    body.setAttribute('data-theme', theme);
+    themeIcon.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+    try { localStorage.setItem('theme', theme); } catch(e) {}
+  }
+
+  let savedTheme = 'dark';
+  try { savedTheme = localStorage.getItem('theme') || 'dark'; } catch(e) {}
+  setTheme(savedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const current = body.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // TOC active state on scroll
+  const tocLinks = document.querySelectorAll('#toc a');
+  const sections = document.querySelectorAll('section.chapter, header.hero');
+
+  function updateActiveLink() {
+    let currentId = '';
+    const scrollPos = window.scrollY + 120;
+    sections.forEach(sec => {
+      if (sec.offsetTop <= scrollPos) {
+        currentId = sec.id;
+      }
+    });
+    tocLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+    });
+  }
+  window.addEventListener('scroll', updateActiveLink, { passive: true });
+  updateActiveLink();
+</script>
+
+</body>
+</html>
