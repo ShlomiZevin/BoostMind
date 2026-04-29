@@ -31,6 +31,7 @@ function toSession(id: string, data: any): Session {
     completed: data.completed,
     partial: data.partial || false,
     sets: data.sets || [],
+    skippedExerciseIds: data.skippedExerciseIds || [],
   };
 }
 
@@ -80,6 +81,25 @@ export function useFirestore(uid: string | null) {
     });
   }, [uid]);
 
+  const skipExercise = useCallback(async (sessionId: string, exerciseId: string) => {
+    if (!uid) return;
+    const session = await getSession(sessionId);
+    if (!session) return;
+    const skipped = new Set(session.skippedExerciseIds || []);
+    skipped.add(exerciseId);
+    await updateDoc(doc(sessionsCol(uid), sessionId), { skippedExerciseIds: [...skipped] });
+    return [...skipped];
+  }, [uid]);
+
+  const unskipExercise = useCallback(async (sessionId: string, exerciseId: string) => {
+    if (!uid) return;
+    const session = await getSession(sessionId);
+    if (!session) return;
+    const skipped = (session.skippedExerciseIds || []).filter(id => id !== exerciseId);
+    await updateDoc(doc(sessionsCol(uid), sessionId), { skippedExerciseIds: skipped });
+    return skipped;
+  }, [uid]);
+
   const restartExercise = useCallback(async (sessionId: string, exerciseId: string) => {
     if (!uid) return;
     const session = await getSession(sessionId);
@@ -94,6 +114,16 @@ export function useFirestore(uid: string | null) {
     if (!uid) return;
     const ref = doc(sessionsCol(uid), sessionId);
     await updateDoc(ref, { completed: true, completedAt: Timestamp.now(), ...(partial ? { partial: true } : {}) });
+  }, [uid]);
+
+  const updateSessionDates = useCallback(async (sessionId: string, opts: { date?: number; completedAt?: number }) => {
+    if (!uid) return;
+    const ref = doc(sessionsCol(uid), sessionId);
+    const update: any = {};
+    if (opts.date != null) update.date = Timestamp.fromMillis(opts.date);
+    if (opts.completedAt != null) update.completedAt = Timestamp.fromMillis(opts.completedAt);
+    if (Object.keys(update).length === 0) return;
+    await updateDoc(ref, update);
   }, [uid]);
 
   const updateExerciseStats = useCallback(async (exerciseId: string, setLog: SetLog, sessionId: string) => {
@@ -240,6 +270,8 @@ export function useFirestore(uid: string | null) {
         isTimeBased: e.isTimeBased,
         startWeakSide: e.startWeakSide,
         notes: e.notes,
+        imageUrl: e.imageUrl,
+        tag: e.tag,
       }));
   }, [uid]);
 
@@ -310,6 +342,7 @@ export function useFirestore(uid: string | null) {
     getSession,
     logSet,
     completeSession,
+    updateSessionDates,
     updateExerciseStats,
     getExerciseStats,
     getSessions,
@@ -321,6 +354,8 @@ export function useFirestore(uid: string | null) {
     getCustomExercises,
     deleteCustomExercise,
     restartExercise,
+    skipExercise,
+    unskipExercise,
     hideExercise,
     unhideExercise,
     getHiddenExercises,

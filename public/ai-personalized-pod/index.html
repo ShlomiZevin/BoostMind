@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>מערכת AI ליצירת מוצרים מותאמים + POD | שלומי זוין</title>
+  <meta name="description" content="מערכת end-to-end ליצירת מוצרים מותאמים אישית עם AI - טקסט, תמונות, וידאו - כולל אינטגרציה מלאה ל-POD (Lulu/BookVault). שלומי זוין, CTO as a Service." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c12;
+      --bg-alt: #0f121a;
+      --card: #141821;
+      --card-hover: #181d28;
+      --border: #1f2530;
+      --border-strong: #2a313d;
+      --text: #f3f5f9;
+      --text-muted: #8b93a3;
+      --text-dim: #5a6271;
+      --accent: #6366f1;
+      --accent-strong: #4f46e5;
+      --accent-soft: rgba(99, 102, 241, 0.12);
+      --accent-2: #06b6d4;
+      --accent-2-soft: rgba(6, 182, 212, 0.12);
+      --good: #10b981;
+      --good-soft: rgba(16, 185, 129, 0.12);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f6f7fa;
+      --card: #ffffff;
+      --card-hover: #f9fafc;
+      --border: #e6e8ee;
+      --border-strong: #d2d6df;
+      --text: #0a0c12;
+      --text-muted: #545b6a;
+      --text-dim: #8b93a3;
+      --accent-soft: rgba(99, 102, 241, 0.08);
+      --accent-2-soft: rgba(6, 182, 212, 0.08);
+      --good-soft: rgba(16, 185, 129, 0.08);
+      --warn-soft: rgba(245, 158, 11, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+    body[dir="ltr"] { font-family: 'Inter', sans-serif; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .mono { font-family: 'JetBrains Mono', 'Menlo', monospace; direction: ltr; unicode-bidi: embed; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 60; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; gap: 1rem; }
+    .logo { display: inline-flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+    .logo-mark { width: 36px; height: 36px; border-radius: 9px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; color: white; letter-spacing: -0.02em; }
+    .logo-text { font-weight: 700; font-size: 0.97rem; color: var(--text); letter-spacing: -0.01em; display: block; }
+    .logo-sub { font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.55rem; }
+    .theme-toggle { background: transparent; border: 1px solid var(--border); border-radius: 999px; width: 36px; height: 36px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-cta { padding: 0.5rem 1rem; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .header-cta:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-bar { position: sticky; top: 60px; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; padding: 0; white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.92rem; font-weight: 500; padding: 0.95rem 1.3rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 2.5rem; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; color: var(--accent); padding: 0.35rem 0.85rem; border: 1px solid var(--border); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.5rem; letter-spacing: 0.02em; }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .hero h1 { font-size: clamp(1.85rem, 4.5vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.25rem; letter-spacing: -0.02em; max-width: 920px; }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 780px; margin-bottom: 2rem; line-height: 1.7; }
+    .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: all 0.15s; font-family: inherit; }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-head { margin-bottom: 2.5rem; }
+    .section-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .section-head p { color: var(--text-muted); max-width: 720px; font-size: 1rem; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+
+    /* GRID */
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s, background 0.15s; }
+    .card:hover { border-color: var(--border-strong); background: var(--card-hover); }
+    .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .card p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; }
+    .card-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.85rem; font-weight: 700; }
+    .card-icon.cyan { background: var(--accent-2-soft); color: var(--accent-2); }
+    .card-icon.green { background: var(--good-soft); color: var(--good); }
+    .card-icon.warn { background: var(--warn-soft); color: var(--warn); }
+    .card ul { list-style: none; margin-top: 0.85rem; padding: 0; }
+    .card li { font-size: 0.88rem; color: var(--text-muted); padding: 0.3rem 0; padding-right: 1.1rem; position: relative; }
+    .card li::before { content: ''; position: absolute; right: 0; top: 0.85rem; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+    /* MATCH TABLE */
+    .req-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--card); }
+    .req-table th { background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 0.88rem; padding: 0.85rem 1rem; text-align: right; border-bottom: 1px solid var(--border); }
+    .req-table td { padding: 0.95rem 1rem; border-top: 1px solid var(--border); font-size: 0.91rem; vertical-align: top; }
+    .req-table tr:first-child td { border-top: none; }
+    .req-col { width: 35%; color: var(--text); font-weight: 500; }
+    .my-col { color: var(--text-muted); }
+    .check-col { width: 50px; text-align: center; }
+    .check-yes { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--good-soft); color: var(--good); align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+
+    /* CALLOUT */
+    .callout { background: var(--card); border: 1px solid var(--border); border-right: 3px solid var(--accent); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin: 2rem 0; }
+    .callout h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--accent); }
+    .callout p { color: var(--text); font-size: 0.95rem; line-height: 1.65; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0; }
+    .stat { padding: 1.5rem 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); text-align: right; }
+    .stat-num { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); line-height: 1; margin-bottom: 0.5rem; }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* EXPERIENCE */
+    .exp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .exp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--accent); }
+    .exp-tag { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+    .exp-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .exp-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+    .exp-stack { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 1rem; }
+    .exp-stack span { font-size: 0.72rem; padding: 0.22rem 0.6rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); }
+
+    /* FLOW DIAGRAM */
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin: 2rem 0; align-items: stretch; }
+    .flow-step { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 0.85rem; text-align: center; position: relative; }
+    .flow-step .num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .flow-step h5 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .flow-step p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; }
+    .flow-arrow { position: absolute; left: -16px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 1rem; pointer-events: none; }
+    .flow-step:first-child .flow-arrow { display: none; }
+
+    /* DEMO FRAME */
+    .demo-frame { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .demo-header { padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--bg-alt); }
+    .demo-dots { display: flex; gap: 0.35rem; }
+    .demo-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--border-strong); }
+    .demo-url { font-size: 0.78rem; color: var(--text-muted); padding: 0.3rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-family: 'JetBrains Mono', monospace; direction: ltr; }
+    .demo-label { font-size: 0.7rem; color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .demo-body { background: var(--card); padding: 1.5rem; min-height: 560px; }
+
+    /* WIZARD */
+    .wiz { max-width: 760px; margin: 0 auto; }
+    .wiz-progress { display: flex; gap: 0.4rem; margin-bottom: 2rem; }
+    .wiz-progress span { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+    .wiz-progress span.done { background: var(--good); }
+    .wiz-progress span.active { background: var(--accent); }
+    .wiz-step { display: none; animation: fadeIn 0.3s ease; }
+    .wiz-step.active { display: block; }
+    .wiz-step h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .wiz-step .sub { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+    .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+    .lang-toggle button { padding: 0.4rem 0.95rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.15s; font-family: inherit; }
+    .lang-toggle button.active { background: var(--accent); color: #fff; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem; }
+    .form-field { display: block; }
+    .form-field label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text); }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; padding: 0.65rem 0.85rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.92rem; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--accent); }
+    .form-field textarea { min-height: 70px; resize: vertical; }
+
+    .upload-box { border: 2px dashed var(--border-strong); border-radius: 10px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg-alt); }
+    .upload-box:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .upload-box .icon { font-size: 1.6rem; margin-bottom: 0.4rem; opacity: 0.7; }
+    .upload-box .label { font-size: 0.88rem; color: var(--text); font-weight: 600; }
+    .upload-box .hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .upload-box.has-file { border-color: var(--good); background: var(--good-soft); border-style: solid; }
+    .upload-box .preview { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; margin-bottom: 0.5rem; display: none; }
+    .upload-box.has-file .preview { display: inline-block; }
+    .upload-box.has-file .icon { display: none; }
+
+    .wiz-actions { display: flex; justify-content: space-between; gap: 0.75rem; margin-top: 1.75rem; }
+    .wiz-actions .spacer { flex: 1; }
+
+    /* GENERATION VIEW */
+    .gen-pipeline { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; }
+    .gen-step { display: flex; align-items: center; gap: 0.85rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .gen-step:last-child { border-bottom: none; }
+    .gen-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; transition: all 0.3s; position: relative; }
+    .gen-step.done .gen-icon { background: var(--good); border-color: var(--good); color: #fff; }
+    .gen-step.active .gen-icon { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .gen-step.active .gen-icon::after { content: ''; position: absolute; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); animation: ping 1.2s infinite; }
+    @keyframes ping { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.7); opacity: 0; } }
+    .gen-info { flex: 1; min-width: 0; }
+    .gen-title { font-size: 0.92rem; font-weight: 600; }
+    .gen-sub { font-size: 0.78rem; color: var(--text-muted); }
+    .gen-status { font-size: 0.75rem; color: var(--text-dim); white-space: nowrap; }
+    .gen-step.done .gen-status { color: var(--good); }
+    .gen-step.active .gen-status { color: var(--accent); }
+
+    .gen-output { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; min-height: 240px; }
+    .gen-output h5 { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.85rem; }
+    .typing-text { font-size: 0.94rem; line-height: 1.7; color: var(--text); white-space: pre-wrap; min-height: 80px; }
+    .typing-text::after { content: '▋'; color: var(--accent); animation: blink 1s infinite; }
+    .typing-text.done::after { content: ''; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 0.85rem; }
+    .img-tile { aspect-ratio: 1; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); position: relative; overflow: hidden; }
+    .img-tile.loading { background: var(--card-hover); }
+    .img-tile.loading::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--accent-soft), transparent); animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .img-tile.ready { background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+
+    /* BOOK PREVIEW */
+    .book-wrap { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; }
+    .book { width: 100%; max-width: 380px; margin: 0 auto; aspect-ratio: 0.72; background: var(--card); border-radius: 6px 14px 14px 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); position: relative; overflow: hidden; border: 1px solid var(--border); }
+    [data-theme="light"] .book { box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .book-page { position: absolute; inset: 0; padding: 1.5rem; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.4s; }
+    .book-page.active { opacity: 1; }
+    .book-page h4 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--accent); letter-spacing: -0.01em; }
+    .book-page .ill { flex: 1; background: var(--accent-soft); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin-bottom: 0.85rem; }
+    .book-page p { font-size: 0.85rem; color: var(--text); line-height: 1.55; }
+    .book-page-num { position: absolute; bottom: 0.85rem; left: 0; right: 0; text-align: center; font-size: 0.72rem; color: var(--text-dim); }
+    .book-controls { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+    .book-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; }
+    .book-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .book-page-indicator { font-size: 0.82rem; color: var(--text-muted); padding: 0 0.85rem; }
+
+    /* POD TIMELINE */
+    .pod-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; }
+    .pod-route-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.5rem; }
+    .pod-route { padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); cursor: pointer; transition: all 0.15s; }
+    .pod-route.active { border-color: var(--accent); background: var(--accent-soft); }
+    .pod-route h5 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pod-route p { font-size: 0.82rem; color: var(--text-muted); }
+    .pod-timeline { position: relative; padding-right: 1.85rem; }
+    .pod-timeline::before { content: ''; position: absolute; right: 8px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+    .pod-event { position: relative; padding-bottom: 1.2rem; }
+    .pod-event:last-child { padding-bottom: 0; }
+    .pod-event::before { content: ''; position: absolute; right: -19px; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 2px solid var(--border); transition: all 0.3s; }
+    .pod-event.done::before { background: var(--good); border-color: var(--good); }
+    .pod-event.active::before { background: var(--accent); border-color: var(--accent); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.5); } 50% { box-shadow: 0 0 0 6px rgba(99,102,241,0); } }
+    .pod-event h6 { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .pod-event p { font-size: 0.8rem; color: var(--text-muted); }
+    .pod-event .time { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.15rem; display: block; }
+
+    /* ADMIN PANEL */
+    .admin { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .admin-head { padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .admin-head h5 { font-size: 0.95rem; font-weight: 700; }
+    .admin-tabs { display: flex; gap: 0.4rem; }
+    .admin-tab { font-size: 0.78rem; padding: 0.3rem 0.75rem; border-radius: 6px; background: var(--card); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-family: inherit; }
+    .admin-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .admin-table th { background: var(--card); color: var(--text-muted); font-weight: 600; padding: 0.65rem 1rem; text-align: right; font-size: 0.8rem; border-bottom: 1px solid var(--border); }
+    .admin-table td { padding: 0.7rem 1rem; border-top: 1px solid var(--border); }
+    .admin-table tr:hover td { background: var(--card-hover); }
+    .pill { display: inline-block; padding: 0.18rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+    .pill.print { background: var(--accent-soft); color: var(--accent); }
+    .pill.digital { background: var(--accent-2-soft); color: var(--accent-2); }
+    .pill.shipped { background: var(--good-soft); color: var(--good); }
+    .pill.production { background: var(--warn-soft); color: var(--warn); }
+    .pill.delivered { background: var(--good-soft); color: var(--good); }
+
+    /* TIMELINE - PROJECT */
+    .timeline { position: relative; padding-right: 2rem; }
+    .timeline::before { content: ''; position: absolute; right: 8px; top: 12px; bottom: 12px; width: 2px; background: var(--border); }
+    .timeline-item { position: relative; padding-bottom: 1.75rem; padding-right: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; right: -19px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-week { font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .timeline-item h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+    .timeline-item p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; }
+
+    /* PRICE CARD */
+    .price-card { background: var(--card); border: 1px solid var(--accent); border-radius: 18px; padding: 2rem; max-width: 600px; }
+    .price-tag { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .price-num { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .price-num strong { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .price-num span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+    .price-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    .price-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+    .price-list li { padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; padding-right: 1.6rem; position: relative; }
+    .price-list li:last-child { border-bottom: none; }
+    .price-list li::before { content: '✓'; position: absolute; right: 0; top: 0.55rem; color: var(--accent); font-weight: 800; }
+
+    /* STACK */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
+    .stack-item { padding: 0.95rem 1rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .stack-item h5 { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stack-item p { font-size: 0.92rem; color: var(--text); font-weight: 500; }
+
+    /* FIXED PRICE NOTE */
+    .fp-note { background: var(--warn-soft); border: 1px solid var(--warn); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; }
+    .fp-note h4 { color: var(--warn); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .fp-note p { color: var(--text); font-size: 0.92rem; line-height: 1.65; }
+    .fp-note p + p { margin-top: 0.55rem; }
+
+    /* FOOTER */
+    .footer { padding: 2.5rem 0 3rem; border-top: 1px solid var(--border); margin-top: 3rem; text-align: center; }
+    .footer-cta { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .footer-meta { color: var(--text-muted); font-size: 0.85rem; line-height: 1.7; }
+    .footer-meta a { color: var(--accent); text-decoration: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .container { padding: 0 1.1rem; }
+      .grid-2, .grid-3, .grid-4, .exp-grid, .pod-route-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .flow { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .img-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+      .hero { padding: 2.5rem 0 2rem; }
+      .section { padding: 2rem 0; }
+      .tab-btn { padding: 0.85rem 0.95rem; font-size: 0.88rem; }
+      .price-num strong { font-size: 2.2rem; }
+      .price-card { padding: 1.5rem; }
+      .demo-body { padding: 1rem; min-height: 480px; }
+      .admin-table { font-size: 0.78rem; }
+      .admin-table th, .admin-table td { padding: 0.55rem 0.7rem; }
+      .admin-table .hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">SZ</span>
+      <span>
+        <span class="logo-text">שלומי זוין</span>
+        <span class="logo-sub">CTO as a Service · 15+ שנים בהייטק</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">🌙</button>
+      <a href="https://wa.me/972545567213" class="header-cta" target="_blank">דבר איתי</a>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <div class="container">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="proposal">ההצעה</button>
+      <button class="tab-btn" data-tab="experience">ניסיון רלוונטי</button>
+      <button class="tab-btn" data-tab="demo">דמו חי</button>
+      <button class="tab-btn" data-tab="budget">תקציב ולו"ז</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ============ TAB: PROPOSAL ============ -->
+<section class="tab-content active" data-content="proposal">
+
+  <div class="container hero">
+    <div class="hero-eyebrow"><span class="dot"></span>הצעה — מערכת AI ליצירת מוצרים מותאמים + POD</div>
+    <h1>מערכת end-to-end. הזמנה → AI → קובץ → <em>POD</em>. בלי קשרי דבק, בלי שכבות שבירות.</h1>
+    <p class="hero-sub">
+      קראתי את המודעה לעומק. זו לא "אתר תדמית" — זו תזמורת בין הרבה מערכות זרות שצריכה לעבוד מהיום הראשון: AI לטקסט, AI לתמונות, אוטומציות, חיבור POD, ניתוב לפי סוג מוצר. אני בונה בדיוק מערכות כאלה כשירות חודשי — לוקח בעלות על האדריכלות, על האינטגרציות, ועל הזרימה המלאה. בהצעה הזו תראה את המבנה המלא, ניסיון ספציפי שעוזר כאן, ודמו עובד שתוכל לקליק כבר עכשיו.
+    </p>
+    <div class="hero-cta">
+      <button class="btn primary" onclick="goTab('demo')">לדמו החי ←</button>
+      <button class="btn ghost" onclick="goTab('budget')">תקציב ולו"ז</button>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">הזרימה המלאה</div>
+      <h2>איך המערכת עובדת — מקצה לקצה</h2>
+      <p>חמישה שלבים, אחד מכל מודול. מותאם בדיוק לסקופ של המודעה: יצירת תוכן AI, ניתוב POD, מעקב סטטוסים.</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h5>הזמנה</h5>
+        <p>טופס דו-לשוני, שם/גיל/העלאת תמונה, תשלום</p>
+      </div>
+      <div class="flow-step">
+        <span class="flow-arrow">←</span>
+        <div class="num">2</div>
+        <h5>יצירת תוכן AI</h5>
+        <p>GPT-4 לטקסט, Leonardo/SDXL לאיורים, ElevenLabs לקול</p>
+      </div>
+      <div class="flow-step">
+        <span class="flow-arrow">←</span>
+        <div class="num">3</div>
+        <h5>הרכבת קובץ</h5>
+        <p>PDF מוכן להדפסה (300dpi, bleeds), או MP4 לדיגיטלי</p>
+      </div>
+      <div class="flow-step">
+        <span class="flow-arrow">←</span>
+        <div class="num">4</div>
+        <h5>ניתוב</h5>
+        <p>דיגיטלי ← מייל/הורדה. מודפס ← POD API</p>
+      </div>
+      <div class="flow-step">
+        <span class="flow-arrow">←</span>
+        <div class="num">5</div>
+        <h5>מעקב</h5>
+        <p>Webhook מספק POD → סטטוס בזמן אמת ללקוח</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">דרישות → תכולה</div>
+      <h2>כל דרישה במודעה — מתורגמת לטכנולוגיה ספציפית</h2>
+      <p>בלי "נראה תוך כדי", בלי הפתעות. מה שכתבת במודעה, מה שאני בונה, ואיפה זה כבר עבד אצלי בעבר.</p>
+    </div>
+
+    <table class="req-table">
+      <thead>
+        <tr>
+          <th class="req-col">הדרישה במודעה</th>
+          <th>מה אני בונה ובאיזה כלי</th>
+          <th class="check-col">✓</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>אתר רספונסיבי דו-לשוני (עברית + אנגלית, RTL)</td>
+          <td class="my-col">Next.js + next-intl. שתי שפות מלאות, RTL נכון, החלפה דינמית. כיסיתי את זה ב-3 פלטפורמות אחרונות.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>טפסים להזנת נתונים + העלאת תמונות</td>
+          <td class="my-col">React Hook Form + Zod ולידציה, S3/Cloudinary להעלאה, תמונות עם crop ועיבוד אוטומטי לפני שליחה ל-AI.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>API ליצירת טקסט (ChatGPT וכד')</td>
+          <td class="my-col">OpenAI GPT-4o + structured outputs. תבניות פרומפט מותאמות לפי גיל/נושא, בקרת אורך, בטיחות תוכן לילדים.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>API ליצירת תמונות (Leonardo / Midjourney)</td>
+          <td class="my-col">Leonardo SDK ראשי, SDXL/Replicate fallback, IP-Adapter על תמונת ההתייחסות לעקביות דמות לאורך הספר.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>אופציונלי: וידאו / קול</td>
+          <td class="my-col">ElevenLabs לקול (קריינות בעברית/אנגלית), Runway/Pika לווידאו. מודולים מנותקים — מדליקים כשרוצים.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>אוטומציות Make / Zapier</td>
+          <td class="my-col">Make לאוטומציות "רכות" (מיילים, התראות, חיבורים פשוטים), קוד backend לזרימות הקריטיות. הגיבוי שלא נשבר.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>יצירת קבצים אוטומטית (PDF, מדיה)</td>
+          <td class="my-col">Puppeteer + PDFKit להפקת PDF להדפסה (300dpi, bleeds, CMYK). FFmpeg לווידאו. תבניות מוכנות לכל סוג מוצר.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>ניהול תהליך מלא: הזמנה → תוכן → הפקה → מסירה</td>
+          <td class="my-col">Job queue (BullMQ/Inngest) עם retry/backoff. כל שלב נכשל → מתוקן ללא איבוד הזמנה. שליטה מלאה ב-state.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>אינטגרציה ל-POD (Lulu / BookVault / וכד')</td>
+          <td class="my-col">חיבור REST API + webhooks. שליחת קובץ + פרטי הזמנה (SKU, כתובת), קבלת סטטוסים בזמן אמת. Lulu API מוכר אצלי.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>ניתוב אוטומטי: דיגיטלי → לקוח, מודפס → POD</td>
+          <td class="my-col">SKU-based routing במנוע ההזמנות. אם דיגיטלי — שליחת מייל עם לינק/קובץ. אם מודפס — POD API + מעקב.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>סטטוסים מהספק (ייצור/משלוח) ועדכון במערכת</td>
+          <td class="my-col">Webhook listener מאומת חתימה, עדכון DB, push ללקוח (מייל + WhatsApp/SMS אופציונלי).</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>אזור ניהול בסיסי להזמנות</td>
+          <td class="my-col">Admin panel נקי — הזמנות, סטטוסים, תוכן AI שנוצר, אפשרות ל-retry ידני, אקספורט. קוד פתוח אצלך.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td>תיעוד קצר</td>
+          <td class="my-col">README טכני + מדריך תפעולי קצר (PDF/Notion). איך מוסיפים ספק POD חדש, איך משנים פרומפט, איך מטפלים בשגיאה.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <h4>הדבר היחיד שלא יהיה במודעה — ושצריך להיות</h4>
+      <p>המודעה לא מזכירה <strong>בקרת איכות AI</strong>. זה הדבר שישבור את המערכת בעולם האמיתי: GPT יחזיר טקסט פוגעני, Leonardo יחזיר תמונה לא-מתאימה, ולקוח יקבל ספר שאי אפשר להראות לילד. אני בונה שכבת moderation אוטומטית (OpenAI Moderation + classifier מותאם) + ממשק human-in-the-loop למקרים גבוליים. זה אחד הדברים שמבחינים בין "אתר שעובד בדמו" ל"מערכת שבטוחה בהפעלה".</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">המודולים</div>
+      <h2>9 מודולים — כל אחד אחראי על שלב אחד</h2>
+      <p>אדריכלות מודולרית. כל מודול אפשר להחליף, לשדרג, או להחליף ספק (למשל Leonardo → Midjourney) בלי לפרק את המערכת.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3>אתר ציבורי דו-לשוני</h3>
+        <p>Next.js, RTL/LTR, SEO, מובייל-first, PWA. דפי מוצר, סל קניות, checkout.</p>
+        <ul>
+          <li>i18n מלא (he/en)</li>
+          <li>תמונות מאופטמות (WebP, lazy)</li>
+          <li>Lighthouse 95+</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>טפסי הזמנה דינמיים</h3>
+        <p>טופס לכל מוצר עם שדות מותאמים (שם, גיל, מין, נושא, תמונות). ולידציה, שמירה אוטומטית, preview חי.</p>
+        <ul>
+          <li>העלאת מספר תמונות</li>
+          <li>preview של תמונת התייחסות</li>
+          <li>שמירת טיוטה</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>AI Orchestrator</h3>
+        <p>מנוע פנימי שיודע איזה AI להפעיל מתי. לוקח טופס → בונה זרם של API calls → אוסף את התוצאה. עם retries, fallbacks, וקאשינג.</p>
+        <ul>
+          <li>פרומפטים מתוחזקים בקובץ</li>
+          <li>תמיכה במספר ספקים</li>
+          <li>מעקב עלות לכל הזמנה</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon cyan">🎨</div>
+        <h3>Image Generation Module</h3>
+        <p>Leonardo/SDXL/Midjourney. IP-Adapter לעקביות דמות לאורך כל הספר (אותה ילדה — 12 איורים שונים, כולם נראים אותה ילדה).</p>
+        <ul>
+          <li>Style presets לפי נושא</li>
+          <li>upscale ל-300dpi להדפסה</li>
+          <li>Moderation אוטומטי</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon cyan">📄</div>
+        <h3>File Builder</h3>
+        <p>Puppeteer + תבניות HTML → PDF מוכן להדפסה (CMYK, bleeds, 300dpi). תבנית לכל מוצר — ספר, קליפ, פוסטר.</p>
+        <ul>
+          <li>תבניות פרמטריות</li>
+          <li>preflight check</li>
+          <li>גרסה דיגיטלית + הדפסה</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon green">🖨️</div>
+        <h3>POD Adapter</h3>
+        <p>שכבה אחידה מעל ספקי POD. היום Lulu, מחר BookVault, ואפשר להוסיף ספק שלישי בשבוע. סטטוסים, מעקב, חישוב משלוח.</p>
+        <ul>
+          <li>Lulu API מוכר ויציב</li>
+          <li>BookVault דרך REST</li>
+          <li>fallback אוטומטי בין ספקים</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon green">📦</div>
+        <h3>Order Router</h3>
+        <p>המוח של הניתוב. לקוח שילם → המוח מחליט: דיגיטלי? → אימייל. מודפס? → POD. מורכב? → מספר ערוצים במקביל.</p>
+        <ul>
+          <li>SKU-based logic</li>
+          <li>סטטוסים מקצה לקצה</li>
+          <li>retry על כשל</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">⚙️</div>
+        <h3>Make / Zapier Bridge</h3>
+        <p>אוטומציות "רכות" שיכולות להשתנות — מיילים, sheets, התראות. שינוי לא דורש דיפלוי. הקריטי בקוד, הגמיש ב-Make.</p>
+        <ul>
+          <li>Webhooks דו-כיווניים</li>
+          <li>תיעוד תרחיש לכל זרימה</li>
+          <li>גיבוי אוטומטי</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">🛡️</div>
+        <h3>Admin & Analytics</h3>
+        <p>פאנל ניהול: הזמנות, סטטוסים, תוכן שנוצר, אפשרות ל-retry, מעקב עלות AI לכל הזמנה. דשבורד פשוט, לא משימה.</p>
+        <ul>
+          <li>סינון לפי סטטוס/תאריך</li>
+          <li>Re-generation ידני</li>
+          <li>אקספורט CSV</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">אזהרה הוגנת</div>
+      <h2>הסיכונים בפרויקט הזה — ואיך אני מטפל בהם</h2>
+      <p>כן, יש סיכונים. אני לא מסתיר אותם. הינה הקטסטרופות הנפוצות בפרויקטי AI+POD ואיך אני שם להן רשת ביטחון מהיום הראשון.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-icon warn">⚡</div>
+        <h3>עלויות AI שיוצאות משליטה</h3>
+        <p>פרויקט אחד יכול לבעור 500$ ביום ב-OpenAI אם לא שמים לב. אני בונה מטר עלות לכל הזמנה, תקרת שימוש, וקאשינג חכם של פרומפטים שחוזרים על עצמם.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">🎭</div>
+        <h3>חוסר עקביות בדמות</h3>
+        <p>הקושי הכי גדול ביצירת ספרי ילדים מותאמים: שהילד ייראה כמו אותו ילד ב-12 דפים שונים. IP-Adapter + reference images + style locking — הסטנדרט המקצועי.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">🏭</div>
+        <h3>ספק POD נופל</h3>
+        <p>Lulu לא מגיב? המערכת בנויה עם adapter pattern — מחליפים ספק POD בקובץ קונפיגורציה אחד, בלי לשנות שורת קוד באלגוריתם הראשי.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">🚨</div>
+        <h3>תוכן AI לא ראוי</h3>
+        <p>גם ל-GPT-4 יש גלישות. שכבת moderation לפני יצירת PDF, התראה ידנית למקרים גבוליים, ו-quality gate שלא מאפשר ללקוח לקבל מוצר שלא עבר אישור.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">לגבי "מחיר פיקס"</div>
+      <h2>על תנאי "Fixed Price" — למה במודל החודשי שלי דווקא טוב לך</h2>
+    </div>
+
+    <div class="fp-note">
+      <h4>הקוץ באליה — ולמה זה מועיל לך</h4>
+      <p>המודעה אומרת "מחיר פיקס". אני לא נותן הצעת מחיר פרויקטלית — אני שותף טכנולוגי במודל חודשי. למה זה דווקא טוב לך בפרויקט הזה?</p>
+      <p><strong>פרויקט עם 5+ ספקים חיצוניים (OpenAI, Leonardo, Make, Lulu, Stripe) הוא הימור.</strong> כל ספק יכול לשנות API, מחירים, פיצ'רים — ולשבור לך את הסקופ. בפיקס אתה מקבל אחת משתיים: או שאתה משלם פרימיה ענקית על הסיכון, או שהמפתח חותך פינות.</p>
+      <p><strong>במודל חודשי:</strong> אתה רואה הכל יום-יום, אפשר לשנות סקופ, אפשר לעצור בכל יום, ויש לך שותף שעוצר את עצמו לפני שהוא חורג. אם תרצה הערכה — בערך 3 חודשי עבודה לעלייה לאוויר עם POD מלא ו-AI עובד. הינה הפירוט המלא בלשונית <a href="#" onclick="goTab('budget');return false;" style="color:var(--accent);">תקציב ולו"ז</a>.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: EXPERIENCE ============ -->
+<section class="tab-content" data-content="experience">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">מי אני</div>
+      <h2>שלומי זוין — CTO as a Service. 15+ שנים בהייטק. AI-native מהיום הראשון.</h2>
+      <p>לא בית תוכנה ולא פרילנסר רגיל. שותף טכנולוגי שלוקח בעלות מלאה — איפיון, אדריכלות, פיתוח, אינטגרציות, השקה. מתמחה במערכות מורכבות עם הרבה ספקים חיצוניים — בדיוק כמו זה.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">50+</div>
+        <div class="stat-label">מוצרים מאפס לאוויר</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">15+</div>
+        <div class="stat-label">שנות ניסיון בהייטק</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">100×</div>
+        <div class="stat-label">מהירות פיתוח עם Claude Code</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3-4</div>
+        <div class="stat-label">חודשים אופייניים מ-0 ל-launch</div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 3rem;">
+      <h2>פרויקטים ספציפיים שמתחברים לסקופ הזה</h2>
+      <p>לא ניסיון "בערך". כל פיסה במודעה — יש לי לה דוגמה אמיתית מתוך 50+ פרויקטים שנבניתי.</p>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-tag">AI agents · LLM</div>
+        <h4>סוכני AI לשירות לקוחות (n8n + 3CX)</h4>
+        <p>מערכת שלמה של AI copilot לשירות לקוחות — RAG, classification, transcription, escalation. מנהל זרימות עם n8n + קוד שמטפל במקרים שצריכים בקרה. אותו דפוס בדיוק שדרוש כאן.</p>
+        <div class="exp-stack">
+          <span>OpenAI</span><span>Claude</span><span>n8n</span><span>RAG</span><span>Webhooks</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Image Generation</div>
+        <h4>מנוע יצירת תמונות מותאמות</h4>
+        <p>בנו אצלי מנועי תמונות עם SDXL/Leonardo + IP-Adapter, כולל אופטימיזציה ל-batch generation, upscale, ו-style consistency. הבעיה של "אותו ילד ב-12 דפים" — פתרתי אותה.</p>
+        <div class="exp-stack">
+          <span>Leonardo API</span><span>SDXL</span><span>Replicate</span><span>IP-Adapter</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">e-Commerce</div>
+        <h4>חנות B2B עם Medusa + הפקת קבצים</h4>
+        <p>חנות מותאמת — 1000+ מוצרים, סליקה, חשבוניות, קטלוג מותאם, ויצירת קבצי הזמנה PDF להעברה לספק. בדיוק הדפוס של "הזמנה → הפקת קובץ → ספק חיצוני".</p>
+        <div class="exp-stack">
+          <span>Medusa</span><span>Next.js</span><span>PostgreSQL</span><span>Stripe</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">PDF / Print</div>
+        <h4>מערכת חישובי PDF מורכבים</h4>
+        <p>מחולל PDF פרמטרי שלוקח קלט גמיש ומוציא קובץ מוכן להדפסה — 300dpi, layouts מורכבים, fonts מובנים, bleeds. בדיוק מה שצריך כדי לשלוח ל-Lulu.</p>
+        <div class="exp-stack">
+          <span>Puppeteer</span><span>PDFKit</span><span>HTML→PDF</span><span>CMYK</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Multi-Language</div>
+        <h4>פלטפורמות דו/רב-לשוניות RTL</h4>
+        <p>בניתי פלטפורמות עברית/אנגלית/ערבית עם RTL מלא, החלפת שפה דינמית, content management דו-לשוני. לא "תרגום של טקסטים" — i18n אמיתי.</p>
+        <div class="exp-stack">
+          <span>next-intl</span><span>i18next</span><span>RTL</span><span>locale routing</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Automation</div>
+        <h4>אוטומציות מערכתיות (Make/Zapier/n8n)</h4>
+        <p>חיברתי עשרות זרימות עסקיות — Make ל-CRM, Zapier למשפכי שיווק, n8n לתהליכי backend. יודע מתי להשתמש בכל אחד, ומתי לכתוב קוד במקום.</p>
+        <div class="exp-stack">
+          <span>Make</span><span>Zapier</span><span>n8n</span><span>Custom code</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Job Queues</div>
+        <h4>תזמורת תהליכים אסינכרוניים</h4>
+        <p>מערכות עם BullMQ/Inngest/Temporal — job queues עם retry, scheduling, observability. בלי זה, מערכת כזו תיפול בהזמנה השלישית. עם זה — עובדת על אוטופיילוט.</p>
+        <div class="exp-stack">
+          <span>BullMQ</span><span>Inngest</span><span>Redis</span><span>Temporal</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Payment & Billing</div>
+        <h4>חיבורי סליקה וחיוב</h4>
+        <p>Stripe, PayPal, Tranzila, Cardcom, חשבוניות אוטומטיות (Greeninvoice/Icount). בנייה של תהליכי checkout, refunds, subscriptions. הקצב המקצועי לכל פרויקט מסחרי.</p>
+        <div class="exp-stack">
+          <span>Stripe</span><span>PayPal</span><span>Tranzila</span><span>Greeninvoice</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">DevOps & Cloud</div>
+        <h4>תשתית ענן וניטור</h4>
+        <p>AWS, GCP, Vercel, Docker, CI/CD. בונה תשתית שעובדת ב-3am בלי לעורר אותך. כולל logging, alerting, ו-error tracking (Sentry) שמאתר בעיות לפני שלקוחות.</p>
+        <div class="exp-stack">
+          <span>AWS</span><span>Vercel</span><span>Docker</span><span>Sentry</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2.5rem;">
+      <h4>מה מייחד אותי בפרויקט הזה</h4>
+      <p>פרויקט AI+POD נראה פשוט בשרטוט — 5 קופסאות, חצים בין כל אחת. אבל הוא נופל בדרך כלל בתפר בין הקופסאות: מה קורה כשהתשלום עבר אבל ה-AI לא ענה? מה קורה כש-Lulu אמרה "קיבלתי" ואז שתקה לשבוע? איך מטפלים ב-100 הזמנות בערב חג בלי שיתפוצץ ה-rate limit? <strong>אני בנייתי מערכות אמיתיות עם המלכודות האלה. הקוד השני שאני כותב כאן הוא תמיד את שכבת "מה אם זה ייכשל".</strong></p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: DEMO ============ -->
+<section class="tab-content" data-content="demo">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">דמו אינטראקטיבי</div>
+      <h2>הזרימה המלאה — לחיצה אחת בכל פעם</h2>
+      <p>לא וידאו, לא mockup. דמו עובד בדפדפן שמראה איך המערכת תעבוד אצלך — מילוי טופס → יצירת תוכן AI → הרכבת ספר → שליחה ל-POD → מעקב. הכל נבנה תוך דקות עם Claude Code. זה לא "כבר בנוי" — זו הוכחת קצב.</p>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-header">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <span class="demo-url">app.yourbrand.io/order/new</span>
+        </div>
+        <span class="demo-label">live demo</span>
+      </div>
+      <div class="demo-body">
+        <div class="wiz">
+          <div class="wiz-progress">
+            <span class="active" id="prog-1"></span>
+            <span id="prog-2"></span>
+            <span id="prog-3"></span>
+            <span id="prog-4"></span>
+            <span id="prog-5"></span>
+          </div>
+
+          <!-- STEP 1: ORDER FORM -->
+          <div class="wiz-step active" data-step="1">
+            <h3>שלב 1 — הזמנה ופרטי הילד/ה</h3>
+            <p class="sub">טופס דו-לשוני, ולידציה חיה, העלאת תמונת התייחסות. כל שדה ייכנס לפרומפט שיוצר את הסיפור.</p>
+
+            <div class="lang-toggle">
+              <button class="active" data-lang="he" onclick="setLang('he')">עברית</button>
+              <button data-lang="en" onclick="setLang('en')">English</button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label data-i18n="name">שם הילד/ה</label>
+                <input type="text" id="kidName" placeholder="לדוגמה: שירה" value="שירה" />
+              </div>
+              <div class="form-field">
+                <label data-i18n="age">גיל</label>
+                <select id="kidAge">
+                  <option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label data-i18n="theme">נושא הספר</label>
+                <select id="theme">
+                  <option selected>הרפתקה בחלל</option>
+                  <option>היער הקסום</option>
+                  <option>מתחת למים</option>
+                  <option>טירה במעננים</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label data-i18n="format">פורמט</label>
+                <select id="format">
+                  <option value="print" selected>ספר מודפס (POD)</option>
+                  <option value="digital">PDF דיגיטלי</option>
+                  <option value="both">שניהם</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field" style="margin-top: 0.5rem;">
+              <label data-i18n="photo">תמונת התייחסות (לעקביות הדמות)</label>
+              <div class="upload-box" id="uploadBox" onclick="simulateUpload()">
+                <img class="preview" id="uploadPreview" alt="" />
+                <div class="icon">📸</div>
+                <div class="label" id="uploadLabel">העלה תמונה של הילד/ה</div>
+                <div class="hint" id="uploadHint">JPG/PNG, עד 5MB · התמונה לא נשמרת אצל ספק AI</div>
+              </div>
+            </div>
+
+            <div class="wiz-actions">
+              <div class="spacer"></div>
+              <button class="btn primary" onclick="goStep(2)">המשך ליצירה ←</button>
+            </div>
+          </div>
+
+          <!-- STEP 2: AI GENERATION -->
+          <div class="wiz-step" data-step="2">
+            <h3>שלב 2 — יצירת תוכן AI</h3>
+            <p class="sub">המנוע מפעיל ברקע: GPT-4 לטקסט, Leonardo לאיורים. מותאם לגיל, לנושא, ולתמונת ההתייחסות.</p>
+
+            <div class="gen-pipeline">
+              <div class="gen-step" id="gp-1">
+                <div class="gen-icon">📝</div>
+                <div class="gen-info">
+                  <div class="gen-title">GPT-4 · יצירת סיפור</div>
+                  <div class="gen-sub">פרומפט מותאם לגיל 5 + נושא חלל</div>
+                </div>
+                <div class="gen-status">ממתין</div>
+              </div>
+              <div class="gen-step" id="gp-2">
+                <div class="gen-icon">🎨</div>
+                <div class="gen-info">
+                  <div class="gen-title">Leonardo · יצירת איורים</div>
+                  <div class="gen-sub">6 איורים · IP-Adapter על תמונת התייחסות</div>
+                </div>
+                <div class="gen-status">ממתין</div>
+              </div>
+              <div class="gen-step" id="gp-3">
+                <div class="gen-icon">🛡️</div>
+                <div class="gen-info">
+                  <div class="gen-title">Moderation · בקרת תוכן</div>
+                  <div class="gen-sub">בדיקת התאמה לגיל, סינון בעייתי</div>
+                </div>
+                <div class="gen-status">ממתין</div>
+              </div>
+              <div class="gen-step" id="gp-4">
+                <div class="gen-icon">⬆️</div>
+                <div class="gen-info">
+                  <div class="gen-title">Upscale · 300dpi להדפסה</div>
+                  <div class="gen-sub">המרה ל-CMYK, הוספת bleeds</div>
+                </div>
+                <div class="gen-status">ממתין</div>
+              </div>
+            </div>
+
+            <div class="gen-output">
+              <h5>פלט חי</h5>
+              <div class="typing-text" id="storyOut"></div>
+              <div class="img-grid" id="imgGrid">
+                <div class="img-tile"></div>
+                <div class="img-tile"></div>
+                <div class="img-tile"></div>
+                <div class="img-tile"></div>
+                <div class="img-tile"></div>
+                <div class="img-tile"></div>
+              </div>
+            </div>
+
+            <div class="wiz-actions">
+              <button class="btn ghost" onclick="goStep(1)">→ חזור</button>
+              <div class="spacer"></div>
+              <button class="btn primary" id="goStep3" onclick="goStep(3)" disabled>הצג preview ←</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: BOOK PREVIEW -->
+          <div class="wiz-step" data-step="3">
+            <h3>שלב 3 — preview של הספר המוכן</h3>
+            <p class="sub">PDF assembled. CMYK, 300dpi, bleeds. מוכן להישלח ל-POD או להורדה דיגיטלית.</p>
+
+            <div class="book-wrap">
+              <div class="book" id="book">
+                <div class="book-page active" data-page="1">
+                  <h4>שירה והכוכב הנוצץ</h4>
+                  <div class="ill">⭐</div>
+                  <p>בלילה אחד, כשהירח הסתתר מאחורי ענן, שירה הביטה דרך החלון וראתה כוכב מנצנץ בצורה מוזרה...</p>
+                  <div class="book-page-num">— עמוד 1 —</div>
+                </div>
+                <div class="book-page" data-page="2">
+                  <h4>ההמראה</h4>
+                  <div class="ill">🚀</div>
+                  <p>שירה לבשה את חליפת החלל הסגולה שלה ונכנסה לחללית הקטנה שחיכתה לה בגינה. ספירה לאחור: 3, 2, 1...</p>
+                  <div class="book-page-num">— עמוד 2 —</div>
+                </div>
+                <div class="book-page" data-page="3">
+                  <h4>פגישה במאדים</h4>
+                  <div class="ill">👽</div>
+                  <p>על פני מאדים, פגשה שירה יצור ירוק וחביב בשם זוקלי. הוא רצה להראות לה את הר האולימפוס מבפנים...</p>
+                  <div class="book-page-num">— עמוד 3 —</div>
+                </div>
+                <div class="book-page" data-page="4">
+                  <h4>הדרך הביתה</h4>
+                  <div class="ill">🌍</div>
+                  <p>אחרי הרפתקה ארוכה, שירה חזרה לכדור הארץ עם זיכרון מקסים — והבטחה לבקר שוב את חברה החדש זוקלי.</p>
+                  <div class="book-page-num">— עמוד 4 —</div>
+                </div>
+              </div>
+              <div class="book-controls">
+                <button class="book-btn" onclick="bookPage(-1)">◀</button>
+                <span class="book-page-indicator" id="pageInd">עמוד 1 / 4</span>
+                <button class="book-btn" onclick="bookPage(1)">▶</button>
+              </div>
+            </div>
+
+            <div class="wiz-actions">
+              <button class="btn ghost" onclick="goStep(2)">→ חזור</button>
+              <div class="spacer"></div>
+              <button class="btn primary" onclick="goStep(4)">שלח ל-POD ←</button>
+            </div>
+          </div>
+
+          <!-- STEP 4: POD ROUTING -->
+          <div class="wiz-step" data-step="4">
+            <h3>שלב 4 — ניתוב והפקה</h3>
+            <p class="sub">מנוע הניתוב מזהה אם זה דיגיטלי או מודפס, ושולח לערוץ הנכון. במקרה הזה — ספר מודפס דרך Lulu API.</p>
+
+            <div class="pod-route-grid">
+              <div class="pod-route" id="route-print">
+                <h5>🖨️ מודפס · POD</h5>
+                <p>SKU: BOOK-PRINT-A4 → Lulu API. הדפסה, כריכה, משלוח לכתובת הלקוח.</p>
+              </div>
+              <div class="pod-route" id="route-digital">
+                <h5>💌 דיגיטלי · מייל</h5>
+                <p>SKU: BOOK-PDF-DIGITAL → Email + secure download link. תוקף 30 יום.</p>
+              </div>
+            </div>
+
+            <div class="pod-card">
+              <h5 style="margin-bottom:1rem;font-weight:700;font-size:0.95rem;">🟢 מעקב הזמנה — Lulu API</h5>
+              <div class="pod-timeline" id="podTimeline">
+                <div class="pod-event" id="pe-1">
+                  <h6>הזמנה התקבלה</h6>
+                  <p>POST /v1/print-jobs · ID: prj_8a3f29</p>
+                  <span class="time">לפני 0 שניות</span>
+                </div>
+                <div class="pod-event" id="pe-2">
+                  <h6>בייצור</h6>
+                  <p>הדפסה והרכבת כריכה</p>
+                  <span class="time">בעוד ~24 שעות</span>
+                </div>
+                <div class="pod-event" id="pe-3">
+                  <h6>נמסר לחברת משלוחים</h6>
+                  <p>Tracking: 1Z999AA10123456784</p>
+                  <span class="time">בעוד ~48 שעות</span>
+                </div>
+                <div class="pod-event" id="pe-4">
+                  <h6>נמסר ללקוח</h6>
+                  <p>חתימה דיגיטלית</p>
+                  <span class="time">בעוד ~5 ימי עסקים</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="wiz-actions">
+              <button class="btn ghost" onclick="goStep(3)">→ חזור</button>
+              <div class="spacer"></div>
+              <button class="btn primary" onclick="goStep(5)">פאנל ניהול ←</button>
+            </div>
+          </div>
+
+          <!-- STEP 5: ADMIN PANEL -->
+          <div class="wiz-step" data-step="5">
+            <h3>שלב 5 — פאנל ניהול לבעלים</h3>
+            <p class="sub">פאנל פנימי לניהול הזמנות. סטטוסים בזמן אמת, retry ידני, אקספורט, מעקב עלות AI לכל הזמנה.</p>
+
+            <div class="admin">
+              <div class="admin-head">
+                <h5>הזמנות אחרונות</h5>
+                <div class="admin-tabs">
+                  <button class="admin-tab active">הכל</button>
+                  <button class="admin-tab">בייצור</button>
+                  <button class="admin-tab">בדרך</button>
+                </div>
+              </div>
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>הזמנה</th>
+                    <th>לקוח</th>
+                    <th class="hide-mobile">סוג</th>
+                    <th>סטטוס</th>
+                    <th class="hide-mobile">עלות AI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="mono">#10428</span></td>
+                    <td>שירה כהן</td>
+                    <td class="hide-mobile"><span class="pill print">מודפס</span></td>
+                    <td><span class="pill production">בייצור</span></td>
+                    <td class="hide-mobile">$1.84</td>
+                  </tr>
+                  <tr>
+                    <td><span class="mono">#10427</span></td>
+                    <td>נועם לוי</td>
+                    <td class="hide-mobile"><span class="pill digital">דיגיטלי</span></td>
+                    <td><span class="pill delivered">נמסר</span></td>
+                    <td class="hide-mobile">$0.92</td>
+                  </tr>
+                  <tr>
+                    <td><span class="mono">#10426</span></td>
+                    <td>Sarah M.</td>
+                    <td class="hide-mobile"><span class="pill print">מודפס</span></td>
+                    <td><span class="pill shipped">בדרך</span></td>
+                    <td class="hide-mobile">$1.92</td>
+                  </tr>
+                  <tr>
+                    <td><span class="mono">#10425</span></td>
+                    <td>דניאל ד.</td>
+                    <td class="hide-mobile"><span class="pill print">מודפס+דיגיטלי</span></td>
+                    <td><span class="pill delivered">נמסר</span></td>
+                    <td class="hide-mobile">$2.10</td>
+                  </tr>
+                  <tr>
+                    <td><span class="mono">#10424</span></td>
+                    <td>מיכל ש.</td>
+                    <td class="hide-mobile"><span class="pill digital">דיגיטלי</span></td>
+                    <td><span class="pill delivered">נמסר</span></td>
+                    <td class="hide-mobile">$0.88</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout" style="margin-top: 1.5rem;">
+              <h4>זה הזרימה המלאה. שאלות?</h4>
+              <p>חשוב — כל מה שראית כאן נבנה בדמו תוך דקות עם Claude Code. בייצור זה הופך למערכת אמיתית עם DB, אימות, אבטחה, ובדיקות. ההצעה המלאה כוללת את כל זה — לפרטי תקציב ולו"ז, <a href="#" onclick="goTab('budget');return false;" style="color:var(--accent);font-weight:600;">לחץ כאן</a>.</p>
+            </div>
+
+            <div class="wiz-actions">
+              <button class="btn ghost" onclick="goStep(1)">↺ הפעל שוב</button>
+              <div class="spacer"></div>
+              <a class="btn primary" href="https://wa.me/972545567213" target="_blank">דבר איתי בוואטסאפ ←</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: BUDGET ============ -->
+<section class="tab-content" data-content="budget">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">לוח זמנים</div>
+      <h2>איך הפרויקט נראה ב-3 חודשי עבודה</h2>
+      <p>פירוק ריאלי. בכל שבוע יש מטרה ברורה ופלט בדיק. אתה רואה הכל — קוד, התקדמות, החלטות.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-week">שבוע 1-2 · אדריכלות והקמה</div>
+        <h4>שלב הגילוי וההקמה</h4>
+        <p>איפיון מעמיק של זרימת המוצרים, בחירת ספק POD ראשי (Lulu / BookVault), הקמת תשתית ענן (Vercel + Postgres + S3), CI/CD, מאגר Git. שיחה איתך כל יום, החלטות אדריכלות מתועדות.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-week">שבוע 3-4 · אתר ותשתית AI</div>
+        <h4>אתר דו-לשוני + AI Orchestrator ראשון</h4>
+        <p>אתר Next.js פעיל עם RTL/LTR, טפסי הזמנה, חיבור ראשון ל-OpenAI ול-Leonardo. דמו פנימי שמייצר טקסט+תמונה לפי טופס. עדיין בלי תשלום וב-POD.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-week">שבוע 5-6 · File Builder + תשלומים</div>
+        <h4>הרכבת PDF + סליקה</h4>
+        <p>תבנית PDF מוכנה להדפסה (300dpi, CMYK, bleeds), מנוע הרכבה, חיבור Stripe לתשלומים. קצה לקצה דיגיטלי: הזמנה → תשלום → PDF במייל.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-week">שבוע 7-8 · POD Integration</div>
+        <h4>חיבור Lulu API + ניתוב</h4>
+        <p>שלב המפתח. חיבור REST + webhooks לספק POD, שליחת קובץ, מעקב סטטוסים, עדכון לקוח. בדיקות אמיתיות עם הזמנת test products.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-week">שבוע 9-10 · אוטומציות + אדמין</div>
+        <h4>Make/Zapier + פאנל ניהול</h4>
+        <p>זרימות Make לאירועים "רכים" (מיילים, התראות), פאנל אדמין מלא, retry ידני, אקספורט, ניטור עלויות AI. בקרת איכות אוטומטית.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-week">שבוע 11-12 · QA וההשקה</div>
+        <h4>בדיקות עומסים + go-live</h4>
+        <p>בדיקות end-to-end, עומסים, edge cases (ספק POD נופל, AI לא עונה, תשלום נכשל באמצע), תיעוד תפעולי, השקה רכה עם 5-10 הזמנות אמת.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">תקציב</div>
+      <h2>מודל חודשי — ~50,000 ש"ח/חודש</h2>
+      <p>צוות פיתוח (1-2 מפתחים סניור) + ניהול שלי. לא הצעת מחיר פיקס. גמיש, שקוף, אפשר לעצור בכל יום.</p>
+    </div>
+
+    <div class="price-card">
+      <div class="price-tag">CTO as a Service</div>
+      <div class="price-num">
+        <strong>50,000</strong>
+        <span>ש"ח לחודש (לא כולל מע"מ)</span>
+      </div>
+      <p class="price-desc">צוות פיתוח (1-2 מפתחים) + ניהול ואדריכלות שלי. בערך 3 חודשי עבודה לעלייה לאוויר עם POD מלא, AI עובד, ופאנל ניהול. סה"כ הערכה: ~150,000 ש"ח לפרויקט שלם.</p>
+      <ul class="price-list">
+        <li>שותפות מלאה — אדריכלות, פיתוח, אינטגרציות, השקה</li>
+        <li>שקיפות מוחלטת — קוד אצלך, ניהול אצלך, החלטות יחד</li>
+        <li>גמישות סקופ — אפשר לשנות, להוסיף, להוריד בכל שבוע</li>
+        <li>בלי lock-in — אפשר לעצור בסוף כל חודש, מקבלים את הקוד המלא</li>
+        <li>ספקי AI/POD — חשבונות שלך, אתה משלם להם ישירות</li>
+        <li>תיעוד תפעולי + טכני — מדריך מסירה מלא</li>
+      </ul>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <a href="https://wa.me/972545567213" target="_blank" class="btn primary">דבר איתי בוואטסאפ</a>
+        <a href="mailto:shlomi@boostart.io" class="btn ghost">שלח מייל</a>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2rem;">
+      <h4>על ספקי AI/POD — מודל העלות</h4>
+      <p>ספקי AI (OpenAI, Leonardo) ו-POD (Lulu) מחייבים אותך ישירות. אני בונה לך גם דשבורד עלות לכל הזמנה כך שתדע בדיוק איפה אתה: לפי הניסיון שלי, ספר ילדים מותאם עם איורים = $1.50–$2.50 ב-AI cost לכל הזמנה. POD עצמו תלוי בספק (Lulu בערך $8–15 לספר A5 רך). הכל שקוף, ניתן למדידה, וניתן לאופטימיזציה לאחר ההשקה.</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">סטאק טכנולוגי</div>
+      <h2>הטכנולוגיה — כל החלטה מנומקת</h2>
+      <p>בחירות מתועדות, לא "מה שהמפתח אוהב". כל פיסה — למה דווקא היא.</p>
+    </div>
+
+    <div class="stack-grid">
+      <div class="stack-item"><h5>Frontend</h5><p>Next.js 15 + React</p></div>
+      <div class="stack-item"><h5>Backend</h5><p>Node.js + tRPC</p></div>
+      <div class="stack-item"><h5>DB</h5><p>PostgreSQL + Prisma</p></div>
+      <div class="stack-item"><h5>i18n</h5><p>next-intl (he/en/RTL)</p></div>
+      <div class="stack-item"><h5>AI · Text</h5><p>OpenAI GPT-4o</p></div>
+      <div class="stack-item"><h5>AI · Image</h5><p>Leonardo + SDXL</p></div>
+      <div class="stack-item"><h5>AI · Voice</h5><p>ElevenLabs</p></div>
+      <div class="stack-item"><h5>AI · Video</h5><p>Runway / Pika</p></div>
+      <div class="stack-item"><h5>Moderation</h5><p>OpenAI Moderation</p></div>
+      <div class="stack-item"><h5>Job Queue</h5><p>BullMQ + Redis</p></div>
+      <div class="stack-item"><h5>PDF Builder</h5><p>Puppeteer + PDFKit</p></div>
+      <div class="stack-item"><h5>POD</h5><p>Lulu API · BookVault</p></div>
+      <div class="stack-item"><h5>Automation</h5><p>Make + Webhooks</p></div>
+      <div class="stack-item"><h5>Files / CDN</h5><p>S3 + CloudFront</p></div>
+      <div class="stack-item"><h5>Payments</h5><p>Stripe + Tranzila</p></div>
+      <div class="stack-item"><h5>Hosting</h5><p>Vercel + AWS</p></div>
+      <div class="stack-item"><h5>Monitoring</h5><p>Sentry + Better Stack</p></div>
+      <div class="stack-item"><h5>Analytics</h5><p>PostHog</p></div>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-cta">
+      <a href="https://wa.me/972545567213" target="_blank" class="btn primary">דבר איתי בוואטסאפ</a>
+      <a href="mailto:shlomi@boostart.io" class="btn ghost">shlomi@boostart.io</a>
+    </div>
+    <div class="footer-meta">
+      <strong>שלומי זוין</strong> · CTO as a Service<br />
+      054-5567213 · <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // THEME TOGGLE
+  const themeToggle = document.getElementById('themeToggle');
+  const stored = localStorage.getItem('theme-pod') || 'dark';
+  if (stored === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  themeToggle.textContent = stored === 'light' ? '☀️' : '🌙';
+  themeToggle.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    if (cur === 'light') {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme-pod', 'dark');
+      themeToggle.textContent = '🌙';
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('theme-pod', 'light');
+      themeToggle.textContent = '☀️';
+    }
+  });
+
+  // TABS
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  function goTab(name) {
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    tabContents.forEach(c => c.classList.toggle('active', c.dataset.content === name));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  tabBtns.forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+
+  // LANGUAGE TOGGLE
+  const i18n = {
+    he: { name: 'שם הילד/ה', age: 'גיל', theme: 'נושא הספר', format: 'פורמט', photo: 'תמונת התייחסות (לעקביות הדמות)' },
+    en: { name: "Child's name", age: 'Age', theme: 'Book theme', format: 'Format', photo: 'Reference photo (for character consistency)' }
+  };
+  function setLang(lang) {
+    document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    const root = document.querySelector('.wiz');
+    root.setAttribute('dir', lang === 'en' ? 'ltr' : 'rtl');
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (i18n[lang][key]) el.textContent = i18n[lang][key];
+    });
+    if (lang === 'en') {
+      document.getElementById('uploadLabel').textContent = 'Upload a photo';
+      document.getElementById('uploadHint').textContent = 'JPG/PNG, up to 5MB · Photo not stored at AI provider';
+    } else {
+      document.getElementById('uploadLabel').textContent = 'העלה תמונה של הילד/ה';
+      document.getElementById('uploadHint').textContent = 'JPG/PNG, עד 5MB · התמונה לא נשמרת אצל ספק AI';
+    }
+  }
+
+  // SIMULATE PHOTO UPLOAD
+  function simulateUpload() {
+    const box = document.getElementById('uploadBox');
+    box.classList.add('has-file');
+    document.getElementById('uploadLabel').textContent = '✓ photo_kid_5y.jpg · 1.2MB';
+    document.getElementById('uploadHint').textContent = 'מעובדת · מוכנה ליצירת איורים';
+    const preview = document.getElementById('uploadPreview');
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><rect width='60' height='60' fill='%236366f1'/><circle cx='30' cy='24' r='10' fill='white' opacity='0.85'/><ellipse cx='30' cy='52' rx='20' ry='12' fill='white' opacity='0.85'/></svg>`;
+    preview.src = 'data:image/svg+xml;utf8,' + svg;
+  }
+
+  // WIZARD STEPS
+  let curStep = 1;
+  function setProgress(step) {
+    for (let i = 1; i <= 5; i++) {
+      const el = document.getElementById('prog-' + i);
+      el.classList.remove('active', 'done');
+      if (i < step) el.classList.add('done');
+      else if (i === step) el.classList.add('active');
+    }
+  }
+  function goStep(n) {
+    document.querySelectorAll('.wiz-step').forEach(s => s.classList.remove('active'));
+    const target = document.querySelector(`.wiz-step[data-step="${n}"]`);
+    target.classList.add('active');
+    curStep = n;
+    setProgress(n);
+    if (n === 2) startGeneration();
+    if (n === 4) startPodTimeline();
+  }
+
+  // GENERATION ANIMATION
+  let genStarted = false;
+  function startGeneration() {
+    if (genStarted) return;
+    genStarted = true;
+
+    const story = `שירה היתה ילדה בת 5 עם דמיון גדול כמו החלל עצמו. ערב אחד, היא הביטה דרך החלון וראתה כוכב מנצנץ באופן מוזר — כאילו הוא קורץ אליה. שירה לבשה את חליפת החלל שלה, נכנסה לחללית הקטנה בגינה, ויצאה למסע שינווט אותה הרחק מעבר לירח...`;
+    const storyEl = document.getElementById('storyOut');
+    let i = 0;
+    setStepActive(1);
+    const typer = setInterval(() => {
+      storyEl.textContent = story.slice(0, i);
+      i += 2;
+      if (i > story.length) {
+        clearInterval(typer);
+        storyEl.classList.add('done');
+        storyEl.textContent = story;
+        setStepDone(1);
+        setTimeout(generateImages, 350);
+      }
+    }, 25);
+  }
+  function setStepActive(n) {
+    const el = document.getElementById('gp-' + n);
+    el.classList.add('active');
+    el.querySelector('.gen-status').textContent = 'מעבד...';
+  }
+  function setStepDone(n) {
+    const el = document.getElementById('gp-' + n);
+    el.classList.remove('active');
+    el.classList.add('done');
+    el.querySelector('.gen-status').textContent = '✓ הושלם';
+  }
+  function generateImages() {
+    setStepActive(2);
+    const tiles = document.querySelectorAll('#imgGrid .img-tile');
+    const emojis = ['🌙', '🚀', '👽', '🪐', '⭐', '🌍'];
+    let idx = 0;
+    tiles.forEach(t => t.classList.add('loading'));
+    const interval = setInterval(() => {
+      if (idx >= tiles.length) {
+        clearInterval(interval);
+        setStepDone(2);
+        setTimeout(runModeration, 250);
+        return;
+      }
+      const t = tiles[idx];
+      t.classList.remove('loading');
+      t.classList.add('ready');
+      t.textContent = emojis[idx];
+      idx++;
+    }, 320);
+  }
+  function runModeration() {
+    setStepActive(3);
+    setTimeout(() => {
+      setStepDone(3);
+      setStepActive(4);
+      setTimeout(() => {
+        setStepDone(4);
+        document.getElementById('goStep3').disabled = false;
+      }, 700);
+    }, 600);
+  }
+
+  // BOOK PAGES
+  let bookCurPage = 1;
+  const totalBookPages = 4;
+  function bookPage(delta) {
+    let next = bookCurPage + delta;
+    if (next < 1) next = totalBookPages;
+    if (next > totalBookPages) next = 1;
+    document.querySelectorAll('.book-page').forEach(p => p.classList.remove('active'));
+    document.querySelector(`.book-page[data-page="${next}"]`).classList.add('active');
+    document.getElementById('pageInd').textContent = `עמוד ${next} / ${totalBookPages}`;
+    bookCurPage = next;
+  }
+
+  // POD TIMELINE
+  let podStarted = false;
+  function startPodTimeline() {
+    document.getElementById('route-print').classList.add('active');
+    if (podStarted) return;
+    podStarted = true;
+    const events = ['pe-1', 'pe-2', 'pe-3', 'pe-4'];
+    let cur = 0;
+    const advance = () => {
+      if (cur >= events.length) return;
+      if (cur > 0) {
+        document.getElementById(events[cur - 1]).classList.remove('active');
+        document.getElementById(events[cur - 1]).classList.add('done');
+      }
+      document.getElementById(events[cur]).classList.add('active');
+      cur++;
+      if (cur < events.length) setTimeout(advance, 1100);
+      else {
+        setTimeout(() => {
+          document.getElementById(events[events.length - 1]).classList.remove('active');
+          document.getElementById(events[events.length - 1]).classList.add('done');
+        }, 800);
+      }
+    };
+    advance();
+  }
+</script>
+
+</body>
+</html>

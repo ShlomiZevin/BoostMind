@@ -12,6 +12,7 @@ export type Exercise = {
   startWeakSide: boolean;
   notes?: string;
   imageUrl?: string;
+  tag?: string; // optional free-text label, e.g. "alt", "pair-A"
 };
 
 export type Day = {
@@ -45,6 +46,7 @@ export type SetLog = {
   durationSeconds?: number;
   durationLeftSeconds?: number;
   durationRightSeconds?: number;
+  unit?: string; // measurement unit for weight; defaults to "kg" if absent
   timestamp: number;
 };
 
@@ -59,6 +61,7 @@ export type Session = {
   completed: boolean;
   partial?: boolean;
   sets: SetLog[];
+  skippedExerciseIds?: string[];
 };
 
 export type SideStat = {

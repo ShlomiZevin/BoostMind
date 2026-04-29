@@ -10,7 +10,7 @@ type Props = {
 };
 
 export function SessionDetail({ uid, sessionId, navigate }: Props) {
-  const { getSession } = useFirestore(uid);
+  const { getSession, updateSessionDates } = useFirestore(uid);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,6 +20,28 @@ export function SessionDetail({ uid, sessionId, navigate }: Props) {
       setLoading(false);
     });
   }, [sessionId]);
+
+  function toDateInput(ts: number): string {
+    const d = new Date(ts);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function fromDateInput(value: string, hour: number, min: number): number {
+    const [yyyy, mm, dd] = value.split('-').map(Number);
+    return new Date(yyyy, mm - 1, dd, hour, min).getTime();
+  }
+
+  async function handleDateChange(field: 'date' | 'completedAt', newDateValue: string) {
+    if (!session) return;
+    const old = field === 'date' ? session.date : session.completedAt;
+    const oldDate = old ? new Date(old) : new Date();
+    const newTs = fromDateInput(newDateValue, oldDate.getHours(), oldDate.getMinutes());
+    await updateSessionDates(session.id, { [field]: newTs });
+    setSession({ ...session, [field]: newTs });
+  }
 
   if (loading) return <div className="page-bg flex items-center justify-center text-muted">Loading...</div>;
   if (!session) return <div className="page-bg flex items-center justify-center text-muted">Session not found</div>;
@@ -34,32 +56,67 @@ export function SessionDetail({ uid, sessionId, navigate }: Props) {
 
   return (
     <div className="page-bg p-4 pb-20 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         <button onClick={() => navigate({ page: 'history' })} className="text-muted text-2xl">←</button>
         <div>
           <h1 className="text-xl font-bold">Day {session.day} — W{session.weekNumber}</h1>
-          <p className="text-xs text-muted">
-            {(() => { const _d = new Date(session.date); return `${_d.getDate()}/${_d.getMonth()+1}/${_d.getFullYear()}`; })()}
-          </p>
         </div>
+      </div>
+
+      <div className="card mb-4 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[10px] text-muted uppercase tracking-wider">Started</span>
+          <input
+            type="date"
+            value={toDateInput(session.date)}
+            onChange={e => handleDateChange('date', e.target.value)}
+            className="input-field !text-xs !py-1 !px-2 !w-auto"
+          />
+        </div>
+        {session.completedAt && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[10px] text-muted uppercase tracking-wider">Completed</span>
+            <input
+              type="date"
+              value={toDateInput(session.completedAt)}
+              onChange={e => handleDateChange('completedAt', e.target.value)}
+              className="input-field !text-xs !py-1 !px-2 !w-auto"
+            />
+          </div>
+        )}
       </div>
 
       {dayConfig?.exercises.map(ex => {
         const sets = grouped[ex.id] || [];
-        if (sets.length === 0) return null;
+        const isSkipped = (session.skippedExerciseIds || []).includes(ex.id);
+        if (sets.length === 0 && !isSkipped) return null;
+
+        if (sets.length === 0 && isSkipped) {
+          return (
+            <div key={ex.id} className="card mb-3 opacity-60">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-sm">{ex.name}</h3>
+                <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-[10px]">⊘ SKIPPED</span>
+              </div>
+            </div>
+          );
+        }
 
         return (
           <div key={ex.id} className="card mb-3">
-            <h3 className="font-semibold text-sm mb-2">{ex.name}</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-semibold text-sm">{ex.name}</h3>
+              {isSkipped && <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-[10px]">⊘ SKIPPED</span>}
+            </div>
             <div className="space-y-1">
               {sets.map((s, i) => (
                 <div key={i} className="flex justify-between text-xs text-muted font-mono">
                   <span>Set {s.setNumber}</span>
                   {ex.isUnilateral && !ex.isTimeBased && (
-                    <span>L {s.repsLeft}×{s.weightLeft}kg · R {s.repsRight}×{s.weightRight}kg</span>
+                    <span>L {s.repsLeft}×{s.weightLeft}{s.unit || 'kg'} · R {s.repsRight}×{s.weightRight}{s.unit || 'kg'}</span>
                   )}
                   {!ex.isUnilateral && !ex.isTimeBased && (
-                    <span>{s.reps}×{s.weight}kg</span>
+                    <span>{s.reps}×{s.weight}{s.unit || 'kg'}</span>
                   )}
                   {ex.isTimeBased && ex.isUnilateral && (
                     <span>L {s.durationLeftSeconds}s · R {s.durationRightSeconds}s</span>

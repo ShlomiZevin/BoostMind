@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Route, Exercise, SetLog, ExerciseStats } from '../types';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import type { Route, Exercise, SetLog, ExerciseStats, Session } from '../types';
 import { PROGRAM } from '../data/program';
 import { useProgram } from '../hooks/useProgram';
 import { useFirestore } from '../hooks/useFirestore';
@@ -50,6 +50,9 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
   const [sessionComplete, setSessionComplete] = useState(false);
   const [sessionPartial, setSessionPartial] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
+  const [allSessions, setAllSessions] = useState<Session[] | null>(null);
+  const [unitByExercise, setUnitByExercise] = useState<Record<string, string>>({});
 
   // Input state — string so empty field stays empty (not "0")
   const [repsLeft, setRepsLeft] = useState('');
@@ -65,6 +68,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
   const [showExerciseList, setShowExerciseList] = useState(false);
   const [splitSides, setSplitSides] = useState(false);
   const [showFinishEarly, setShowFinishEarly] = useState(false); // false = same for both hands
+  const [confirmSkip, setConfirmSkip] = useState(false);
 
   // Swipe state
   const touchStartX = useRef(0);
@@ -76,6 +80,49 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
   const pendingSetRef = useRef<SetLog | null>(null);
 
   const currentExercise = exercises[exerciseIndex];
+
+  // History across all sessions for the current exercise (newest first)
+  const exerciseHistory = useMemo(() => {
+    if (!allSessions || !currentExercise) return [] as { set: SetLog; sessionDate: number; sessionId: string }[];
+    const out: { set: SetLog; sessionDate: number; sessionId: string }[] = [];
+    for (const sess of allSessions) {
+      if (sess.id === sessionId) continue; // exclude current in-progress session
+      const dt = sess.completedAt || sess.date;
+      for (const s of sess.sets) {
+        if (s.exerciseId === currentExercise.id) {
+          out.push({ set: s, sessionDate: dt, sessionId: sess.id });
+        }
+      }
+    }
+    out.sort((a, b) => b.sessionDate - a.sessionDate);
+    return out;
+  }, [allSessions, currentExercise, sessionId]);
+
+  const unitsUsed = useMemo(() => {
+    const set = new Set<string>();
+    for (const h of exerciseHistory) set.add(h.set.unit || 'kg');
+    // also include any unit in the current session for this exercise
+    for (const s of loggedSets) if (s.exerciseId === currentExercise?.id) set.add(s.unit || 'kg');
+    return [...set];
+  }, [exerciseHistory, loggedSets, currentExercise]);
+
+  // Currently selected unit for this exercise (defaults to last-used unit, or "kg")
+  const currentUnit: string = (currentExercise && unitByExercise[currentExercise.id])
+    || exerciseHistory[0]?.set.unit
+    || 'kg';
+
+  // History filtered to currently-selected unit
+  const filteredHistory = useMemo(
+    () => exerciseHistory.filter(h => (h.set.unit || 'kg') === currentUnit),
+    [exerciseHistory, currentUnit]
+  );
+
+  // Most recent session's sets for current exercise + unit
+  const lastSessionSetsForUnit = useMemo(() => {
+    const top = filteredHistory[0];
+    if (!top) return [] as SetLog[];
+    return filteredHistory.filter(h => h.sessionId === top.sessionId).map(h => h.set);
+  }, [filteredHistory]);
 
   // Init session + load custom exercises
   useEffect(() => {
@@ -92,8 +139,9 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
         const existing = await firestore.getSession(existingSessionId);
         if (existing) {
           setLoggedSets(existing.sets);
+          setSkipped(new Set(existing.skippedExerciseIds || []));
           const allEx = [...dayConfig.exercises, ...custom];
-          resumePositionWithExercises(existing.sets, allEx);
+          resumePositionWithExercises(existing.sets, allEx, new Set(existing.skippedExerciseIds || []));
           if (existing.completed) {
             setSessionComplete(true);
             setSessionPartial(!!existing.partial);
@@ -103,9 +151,13 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
       }
       // Don't create session here — wait until first "Did it"
 
+      // Load all sessions once — used for unit-aware history lookup
+      const sessions = await firestore.getSessions();
+      setAllSessions(sessions);
+
       // Load last completed session for this day (for "prev sets" display)
-      const lastCompleted = await firestore.getLastCompletedSessionForDay(day);
-      if (lastCompleted && lastCompleted.id !== existingSessionId) {
+      const lastCompleted = sessions.find(s => s.day === day && s.completed && s.id !== existingSessionId);
+      if (lastCompleted) {
         const grouped: Record<string, SetLog[]> = {};
         for (const s of lastCompleted.sets) {
           if (!grouped[s.exerciseId]) grouped[s.exerciseId] = [];
@@ -118,11 +170,11 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     })();
   }, []);
 
-  function resumePositionWithExercises(sets: SetLog[], exList: Exercise[]) {
-    if (sets.length === 0) return;
+  function resumePositionWithExercises(sets: SetLog[], exList: Exercise[], skippedSet: Set<string> = new Set()) {
+    if (sets.length === 0 && skippedSet.size === 0) return;
 
     const allDone = exList.every(e =>
-      sets.filter(s => s.exerciseId === e.id).length >= e.sets
+      skippedSet.has(e.id) || sets.filter(s => s.exerciseId === e.id).length >= e.sets
     );
     if (allDone) {
       setSessionComplete(true);
@@ -130,7 +182,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     }
 
     const firstUndoneIdx = exList.findIndex(e =>
-      sets.filter(s => s.exerciseId === e.id).length < e.sets
+      !skippedSet.has(e.id) && sets.filter(s => s.exerciseId === e.id).length < e.sets
     );
     if (firstUndoneIdx >= 0) {
       setExerciseIndex(firstUndoneIdx);
@@ -139,43 +191,37 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     }
   }
 
-  // Prefill inputs immediately from loggedSets (sync, no flicker)
+  // Prefill inputs whenever exercise or selected unit changes
   useEffect(() => {
     if (!currentExercise || !initialized) return;
-    // Prefill from today's logged sets first (instant)
-    prefillInputs(currentExercise, stats[currentExercise.id] || null);
-    // Then load stats from Firestore (may update prefill if no today data)
-    if (!stats[currentExercise.id]) {
-      (async () => {
-        const s = await firestore.getExerciseStats(currentExercise.id);
-        setStats(prev => ({ ...prev, [currentExercise.id]: s }));
-        // Only re-prefill if no today sets (don't override user's current input)
-        const todaySets = loggedSets.filter(l => l.exerciseId === currentExercise.id);
-        if (todaySets.length === 0 && s) {
-          prefillInputs(currentExercise, s);
-        }
-      })();
-    }
+    const lastInUnit = filteredHistory[0]?.set || null;
+    prefillInputs(currentExercise, lastInUnit);
     // Load photos for this exercise
     if (!exercisePhotos[currentExercise.id]) {
       photos.getPhotos(currentExercise.id).then(p => {
         setExercisePhotos(prev => ({ ...prev, [currentExercise.id]: p }));
       });
     }
-  }, [exerciseIndex, initialized]);
+    // Keep stats doc loaded for any consumers (passed to StatsPanel below)
+    if (!stats[currentExercise.id]) {
+      firestore.getExerciseStats(currentExercise.id).then(s => {
+        setStats(prev => ({ ...prev, [currentExercise.id]: s }));
+      });
+    }
+  }, [exerciseIndex, initialized, currentUnit]);
 
-  function prefillInputs(ex: Exercise, s: ExerciseStats | null) {
-    // First check if we already logged sets for this exercise today
+  function prefillInputs(ex: Exercise, lastRef: SetLog | null) {
     const todaySets = loggedSets.filter(l => l.exerciseId === ex.id);
     const lastTodaySet = todaySets.length > 0 ? todaySets[todaySets.length - 1] : null;
 
     if (ex.isTimeBased) {
       const dur = String(ex.durationSeconds || 30);
+      const ref = lastTodaySet || lastRef;
       if (ex.isUnilateral) {
-        setDurationLeft(lastTodaySet?.durationLeftSeconds != null ? String(lastTodaySet.durationLeftSeconds) : dur);
-        setDurationRight(lastTodaySet?.durationRightSeconds != null ? String(lastTodaySet.durationRightSeconds) : dur);
+        setDurationLeft(ref?.durationLeftSeconds != null ? String(ref.durationLeftSeconds) : dur);
+        setDurationRight(ref?.durationRightSeconds != null ? String(ref.durationRightSeconds) : dur);
       } else {
-        setDuration(lastTodaySet?.durationSeconds != null ? String(lastTodaySet.durationSeconds) : dur);
+        setDuration(ref?.durationSeconds != null ? String(ref.durationSeconds) : dur);
       }
       setReps(''); setWeight(''); setRepsLeft(''); setWeightLeft(''); setRepsRight(''); setWeightRight('');
       return;
@@ -183,38 +229,21 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
 
     setDuration(''); setDurationLeft(''); setDurationRight('');
 
+    const ref = lastTodaySet || lastRef;
     if (ex.isUnilateral) {
-      if (lastTodaySet) {
-        setRepsLeft(String(lastTodaySet.repsLeft ?? ''));
-        setWeightLeft(String(lastTodaySet.weightLeft ?? ''));
-        setRepsRight(String(lastTodaySet.repsRight ?? ''));
-        setWeightRight(String(lastTodaySet.weightRight ?? ''));
-      } else if (s) {
-        const last = s.last as any;
-        if (last?.left) {
-          setWeightLeft(String(last.left.weight || ''));
-          setRepsLeft(String(last.left.reps || ''));
-          setWeightRight(String(last.right?.weight || ''));
-          setRepsRight(String(last.right?.reps || ''));
-        } else {
-          setRepsLeft(''); setWeightLeft(''); setRepsRight(''); setWeightRight('');
-        }
+      if (ref) {
+        setRepsLeft(String(ref.repsLeft ?? ''));
+        setWeightLeft(String(ref.weightLeft ?? ''));
+        setRepsRight(String(ref.repsRight ?? ''));
+        setWeightRight(String(ref.weightRight ?? ''));
       } else {
         setRepsLeft(''); setWeightLeft(''); setRepsRight(''); setWeightRight('');
       }
       setReps(''); setWeight('');
     } else {
-      if (lastTodaySet) {
-        setReps(String(lastTodaySet.reps ?? ''));
-        setWeight(String(lastTodaySet.weight ?? ''));
-      } else if (s) {
-        const last = s.last as any;
-        if (last?.weight != null) {
-          setWeight(String(last.weight || ''));
-          setReps(String(last.reps || ''));
-        } else {
-          setReps(''); setWeight('');
-        }
+      if (ref) {
+        setReps(String(ref.reps ?? ''));
+        setWeight(String(ref.weight ?? ''));
       } else {
         setReps(''); setWeight('');
       }
@@ -249,6 +278,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     const setsForEx = loggedSets.filter(s => s.exerciseId === ex.id);
     setCurrentSet(Math.min(setsForEx.length + 1, ex.sets + 1));
     setSplitSides(false);
+    setConfirmSkip(false);
     window.scrollTo({ top: 0 });
   }
 
@@ -294,6 +324,9 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
       setNumber: setNum,
       timestamp: Date.now(),
     };
+    if (!ex.isTimeBased) {
+      setLog.unit = currentUnit;
+    }
 
     if (ex.isTimeBased) {
       if (ex.isUnilateral) {
@@ -320,7 +353,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     }
 
     await commitSet(setLog);
-  }, [sessionId, currentExercise, loggedSets, weightLeft, repsLeft, weightRight, repsRight, weight, reps, duration, durationLeft, durationRight, showWarn]);
+  }, [sessionId, currentExercise, loggedSets, weightLeft, repsLeft, weightRight, repsRight, weight, reps, duration, durationLeft, durationRight, showWarn, currentUnit]);
 
   const commitSet = async (setLog: SetLog) => {
     setShowWarn(false);
@@ -347,6 +380,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     if (setsForEx.length >= ex.sets) {
       // All sets done for this exercise
       const allDone = exercises.every(e => {
+        if (skipped.has(e.id)) return true;
         const eSets = newLoggedSets.filter(s => s.exerciseId === e.id);
         return eSets.length >= e.sets;
       });
@@ -371,6 +405,40 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     }
   };
 
+  const handleSkipCurrent = async () => {
+    if (!currentExercise) return;
+    let sid = sessionId;
+    if (!sid) {
+      sid = await firestore.createSession(day, weekNumber, phase.phase as 1 | 2 | 3);
+      setSessionId(sid);
+    }
+    await firestore.skipExercise(sid, currentExercise.id);
+    const newSkipped = new Set(skipped);
+    newSkipped.add(currentExercise.id);
+    setSkipped(newSkipped);
+
+    const allDone = exercises.every(e =>
+      newSkipped.has(e.id) || loggedSets.filter(s => s.exerciseId === e.id).length >= e.sets
+    );
+    if (allDone) {
+      await firestore.completeSession(sid);
+      setSessionComplete(true);
+      return;
+    }
+    const nextIdx = exercises.findIndex(e =>
+      !newSkipped.has(e.id) && loggedSets.filter(s => s.exerciseId === e.id).length < e.sets
+    );
+    if (nextIdx >= 0) goToExercise(nextIdx);
+  };
+
+  const handleUnskipCurrent = async () => {
+    if (!currentExercise || !sessionId) return;
+    await firestore.unskipExercise(sessionId, currentExercise.id);
+    const newSkipped = new Set(skipped);
+    newSkipped.delete(currentExercise.id);
+    setSkipped(newSkipped);
+  };
+
   if (sessionComplete) {
     return (
       <div className="page-bg p-4 pb-20 max-w-lg mx-auto">
@@ -390,20 +458,34 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
 
         {exercises.map(ex => {
           const sets = loggedSets.filter(s => s.exerciseId === ex.id);
-          if (sets.length === 0) return null;
+          const isSkipped = skipped.has(ex.id);
+          if (sets.length === 0 && !isSkipped) return null;
+          if (sets.length === 0 && isSkipped) {
+            return (
+              <div key={ex.id} className="card mb-3 opacity-60">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm">{ex.name}</h3>
+                  <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-[10px]">⊘ SKIPPED</span>
+                </div>
+              </div>
+            );
+          }
           return (
             <div key={ex.id} className="card mb-3">
-              <h3 className="font-semibold text-sm mb-2">{ex.name}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-sm">{ex.name}</h3>
+                {isSkipped && <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-[10px]">⊘ SKIPPED</span>}
+              </div>
               {ex.nameHe && <p className="text-xs text-muted mb-2" dir="rtl">{ex.nameHe}</p>}
               <div className="space-y-1">
                 {sets.map((s, i) => (
                   <div key={i} className="flex justify-between text-xs text-muted font-mono bg-subtle rounded px-3 py-1.5">
                     <span>Set {s.setNumber}</span>
                     {ex.isUnilateral && !ex.isTimeBased && (
-                      <span>L {s.repsLeft}×{s.weightLeft}kg · R {s.repsRight}×{s.weightRight}kg</span>
+                      <span>L {s.repsLeft}×{s.weightLeft}{s.unit || 'kg'} · R {s.repsRight}×{s.weightRight}{s.unit || 'kg'}</span>
                     )}
                     {!ex.isUnilateral && !ex.isTimeBased && (
-                      <span>{s.reps}×{s.weight}kg</span>
+                      <span>{s.reps}×{s.weight}{s.unit || 'kg'}</span>
                     )}
                     {ex.isTimeBased && ex.isUnilateral && (
                       <span>L {s.durationLeftSeconds}s · R {s.durationRightSeconds}s</span>
@@ -538,6 +620,25 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
             const newSets = await firestore.restartExercise(sessionId, exerciseId);
             if (newSets) setLoggedSets(newSets);
           }}
+          skipped={skipped}
+          onSkipExercise={async (exerciseId) => {
+            let sid = sessionId;
+            if (!sid) {
+              sid = await firestore.createSession(day, weekNumber, phase.phase as 1 | 2 | 3);
+              setSessionId(sid);
+            }
+            await firestore.skipExercise(sid, exerciseId);
+            setSkipped(prev => new Set(prev).add(exerciseId));
+          }}
+          onUnskipExercise={async (exerciseId) => {
+            if (!sessionId) return;
+            await firestore.unskipExercise(sessionId, exerciseId);
+            setSkipped(prev => {
+              const next = new Set(prev);
+              next.delete(exerciseId);
+              return next;
+            });
+          }}
         />
       )}
 
@@ -561,15 +662,18 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
       <div className="flex gap-1 mb-6">
         {exercises.map((ex, i) => {
           const done = loggedSets.filter(s => s.exerciseId === ex.id).length >= ex.sets;
+          const isSkipped = skipped.has(ex.id);
+          let cls: string;
+          if (i === exerciseIndex) {
+            cls = isSkipped ? 'bg-slate-500 h-3' : (done ? 'bg-emerald-500 h-3' : 'bg-blue-500 h-3');
+          } else {
+            cls = isSkipped ? 'bg-slate-400 dark:bg-slate-600 h-2' : (done ? 'bg-emerald-500 h-2' : 'dark:bg-slate-800 bg-slate-200 h-2');
+          }
           return (
             <button
               key={i}
               onClick={() => goToExercise(i)}
-              className={`flex-1 rounded-full transition-all ${
-                i === exerciseIndex
-                  ? (done ? 'bg-emerald-500 h-3' : 'bg-blue-500 h-3')
-                  : done ? 'bg-emerald-500 h-2' : 'dark:bg-slate-800 bg-slate-200 h-2'
-              }`}
+              className={`flex-1 rounded-full transition-all ${cls}`}
             />
           );
         })}
@@ -591,7 +695,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
             {currentExercise.muscle}{currentExercise.muscleHe ? ` · ${currentExercise.muscleHe}` : ''}
           </p>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-mono text-main text-sm">
             {currentExercise.sets}×{currentExercise.isTimeBased ? `${currentExercise.durationSeconds}s` : currentExercise.reps}
           </span>
@@ -601,6 +705,12 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
           {currentExercise.startWeakSide && (
             <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">START LEFT</span>
           )}
+          {currentExercise.tag && (
+            <span className="badge bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">{currentExercise.tag}</span>
+          )}
+          {skipped.has(currentExercise.id) && (
+            <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">SKIPPED</span>
+          )}
         </div>
         {currentExercise.notes && (
           <div className="text-xs text-amber-600 dark:text-amber-500 mt-2 dark:bg-amber-950/30 bg-amber-50 rounded-lg px-3 py-2">
@@ -608,9 +718,14 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
           </div>
         )}
         {/* Stats inline */}
-        {exerciseStats && (
+        {!currentExercise.isTimeBased && filteredHistory.length > 0 && (
           <div className="mt-3 pt-3 border-t border-subtle text-xs">
-            <StatsPanel stats={exerciseStats} isUnilateral={currentExercise.isUnilateral} lastSets={lastSessionSets[currentExercise.id]} />
+            <StatsPanel
+              history={filteredHistory.map(h => h.set)}
+              isUnilateral={currentExercise.isUnilateral}
+              unit={currentUnit}
+              lastSessionSets={lastSessionSetsForUnit}
+            />
           </div>
         )}
         {/* User note */}
@@ -623,7 +738,17 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
       <div className="card mb-4">
         {/* Set label */}
         <div className="text-center mb-3">
-          {exerciseDone ? (
+          {skipped.has(currentExercise.id) ? (
+            <div className="flex flex-col items-center gap-2">
+              <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-sm px-4 py-1">
+                ⊘ Skipped
+              </span>
+              <button
+                onClick={handleUnskipCurrent}
+                className="text-xs text-blue-500 hover:text-blue-400"
+              >Unskip</button>
+            </div>
+          ) : exerciseDone ? (
             <div className="flex flex-col items-center gap-2">
               <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-sm px-4 py-1">
                 ✓ All {currentExercise.sets} sets done
@@ -645,25 +770,45 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
               <span className="text-xs text-muted font-medium">
                 Set {setsForExercise.length + 1} of {currentExercise.sets}
               </span>
-              {setsForExercise.length > 0 && (
-                <button
-                  onClick={async () => {
-                    if (!sessionId) return;
-                    const newSets = await firestore.restartExercise(sessionId, currentExercise.id);
-                    if (newSets) {
-                      setLoggedSets(newSets);
-                      setCurrentSet(1);
-                    }
-                  }}
-                  className="text-[10px] text-amber-500 hover:text-amber-300"
-                >Restart exercise</button>
-              )}
+              <div className="flex gap-4 items-center">
+                {setsForExercise.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      if (!sessionId) return;
+                      const newSets = await firestore.restartExercise(sessionId, currentExercise.id);
+                      if (newSets) {
+                        setLoggedSets(newSets);
+                        setCurrentSet(1);
+                      }
+                    }}
+                    className="text-[10px] text-amber-500 hover:text-amber-300"
+                  >Restart exercise</button>
+                )}
+                {confirmSkip ? (
+                  <span className="flex items-center gap-2">
+                    <span className="text-[10px] text-amber-500">Skip this exercise?</span>
+                    <button
+                      onClick={async () => { setConfirmSkip(false); await handleSkipCurrent(); }}
+                      className="text-[10px] text-amber-500 font-bold hover:text-amber-300"
+                    >Yes</button>
+                    <button
+                      onClick={() => setConfirmSkip(false)}
+                      className="text-[10px] text-muted hover:text-main"
+                    >No</button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setConfirmSkip(true)}
+                    className="text-[10px] text-slate-500 hover:text-slate-400"
+                  >Skip exercise</button>
+                )}
+              </div>
             </div>
           )}
         </div>
 
         {/* Input row */}
-        {!exerciseDone && (
+        {!exerciseDone && !skipped.has(currentExercise.id) && (
           <div>
           {currentExercise.isTimeBased ? (
             currentExercise.isUnilateral ? (
@@ -698,14 +843,14 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
                     highlight
                     fields={[
                       { label: 'Reps', value: repsLeft, placeholder: String(currentExercise.reps || ''), onChange: handleRepsLeftChange, inputMode: 'numeric' },
-                      { label: 'kg', value: weightLeft, placeholder: '0', onChange: handleWeightLeftChange, inputMode: 'decimal', step: '0.5' },
+                      { label: currentUnit, value: weightLeft, placeholder: '0', onChange: handleWeightLeftChange, inputMode: 'decimal', step: '0.5' },
                     ]}
                   />
                   <InputRow
                     label="RIGHT"
                     fields={[
                       { label: 'Reps', value: repsRight, placeholder: String(currentExercise.reps || ''), onChange: setRepsRight, inputMode: 'numeric' },
-                      { label: 'kg', value: weightRight, placeholder: '0', onChange: setWeightRight, inputMode: 'decimal', step: '0.5' },
+                      { label: currentUnit, value: weightRight, placeholder: '0', onChange: setWeightRight, inputMode: 'decimal', step: '0.5' },
                     ]}
                   />
                 </>
@@ -715,7 +860,7 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
                   highlight
                   fields={[
                     { label: 'Reps', value: repsLeft, placeholder: String(currentExercise.reps || ''), onChange: handleRepsLeftChange, inputMode: 'numeric' },
-                    { label: 'kg', value: weightLeft, placeholder: '0', onChange: handleWeightLeftChange, inputMode: 'decimal', step: '0.5' },
+                    { label: currentUnit, value: weightLeft, placeholder: '0', onChange: handleWeightLeftChange, inputMode: 'decimal', step: '0.5' },
                   ]}
                 />
               )}
@@ -737,9 +882,18 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
             <InputRow
               fields={[
                 { label: 'Reps', value: reps, placeholder: String(currentExercise.reps || ''), onChange: setReps, inputMode: 'numeric' },
-                { label: 'kg', value: weight, placeholder: '0', onChange: setWeight, inputMode: 'decimal', step: '0.5' },
+                { label: currentUnit, value: weight, placeholder: '0', onChange: setWeight, inputMode: 'decimal', step: '0.5' },
               ]}
             />
+          )}
+          {!currentExercise.isTimeBased && (
+            <div className="mt-3 pt-3 border-t border-subtle">
+              <UnitPicker
+                current={currentUnit}
+                options={unitsUsed}
+                onChange={(u) => setUnitByExercise(prev => ({ ...prev, [currentExercise.id]: u }))}
+              />
+            </div>
           )}
         </div>
       )}
@@ -753,10 +907,10 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
                 <div key={i} className="flex justify-between text-xs text-muted font-mono bg-subtle rounded px-3 py-1.5">
                   <span>Set {s.setNumber}</span>
                   {currentExercise.isUnilateral && !currentExercise.isTimeBased && (
-                    <span>L {s.repsLeft}×{s.weightLeft}kg · R {s.repsRight}×{s.weightRight}kg</span>
+                    <span>L {s.repsLeft}×{s.weightLeft}{s.unit || 'kg'} · R {s.repsRight}×{s.weightRight}{s.unit || 'kg'}</span>
                   )}
                   {!currentExercise.isUnilateral && !currentExercise.isTimeBased && (
-                    <span>{s.reps}×{s.weight}kg</span>
+                    <span>{s.reps}×{s.weight}{s.unit || 'kg'}</span>
                   )}
                   {currentExercise.isTimeBased && currentExercise.isUnilateral && (
                     <span>L {s.durationLeftSeconds}s · R {s.durationRightSeconds}s</span>
@@ -826,10 +980,10 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
         <div className="max-w-lg mx-auto">
           {(() => {
             const allExercisesDone = exercises.every(e =>
-              loggedSets.filter(s => s.exerciseId === e.id).length >= e.sets
+              skipped.has(e.id) || loggedSets.filter(s => s.exerciseId === e.id).length >= e.sets
             );
             const nextUndoneIdx = exercises.findIndex(e =>
-              loggedSets.filter(s => s.exerciseId === e.id).length < e.sets
+              !skipped.has(e.id) && loggedSets.filter(s => s.exerciseId === e.id).length < e.sets
             );
 
             if (allExercisesDone) {
@@ -1010,72 +1164,138 @@ function ExerciseNote({ exerciseId, firestore }: { exerciseId: string; firestore
   );
 }
 
-function StatsPanel({ stats, isUnilateral, lastSets }: { stats: ExerciseStats; isUnilateral: boolean; lastSets?: SetLog[] }) {
+function StatsPanel({ history, isUnilateral, unit, lastSessionSets }: { history: SetLog[]; isUnilateral: boolean; unit: string; lastSessionSets: SetLog[] }) {
+  if (history.length === 0) return null;
+
   if (isUnilateral) {
-    const s = stats as any;
-    const last = s.last;
-    const max = s.max;
-    const avg = s.avg;
+    const last = history[0];
+    let maxLW = 0, maxLR = 0, maxRW = 0, maxRR = 0;
+    let sumL = 0, sumR = 0;
+    for (const s of history) {
+      const lw = s.weightLeft ?? 0; const lr = s.repsLeft ?? 0;
+      const rw = s.weightRight ?? 0; const rr = s.repsRight ?? 0;
+      if (lw > maxLW || (lw === maxLW && lr > maxLR)) { maxLW = lw; maxLR = lr; }
+      if (rw > maxRW || (rw === maxRW && rr > maxRR)) { maxRW = rw; maxRR = rr; }
+      sumL += lw; sumR += rw;
+    }
+    const avgL = sumL / history.length;
+    const avgR = sumR / history.length;
     return (
       <div className="space-y-1.5">
-        {last?.left && (
-          <div className="flex justify-between">
-            <span className="text-muted">Prev</span>
-            <span className="font-mono text-main">
-              L {last.left.reps}×{last.left.weight}kg · R {last.right?.reps}×{last.right?.weight}kg
-            </span>
-          </div>
-        )}
-        {max?.left && (
-          <div className="flex justify-between">
-            <span className="text-muted">Max</span>
-            <span className="font-mono text-emerald-400">
-              L {max.left.reps}×{max.left.weight}kg · R {max.right?.reps}×{max.right?.weight}kg
-            </span>
-          </div>
-        )}
-        {avg?.left && (
-          <div className="flex justify-between">
-            <span className="text-muted">Avg</span>
-            <span className="font-mono text-muted">
-              L {avg.left.weight.toFixed(1)}kg · R {avg.right?.weight.toFixed(1)}kg
-            </span>
-          </div>
-        )}
-        <LastSetsDisplay sets={lastSets} isUnilateral={true} />
+        <div className="flex justify-between">
+          <span className="text-muted">Prev</span>
+          <span className="font-mono text-main">
+            L {last.repsLeft}×{last.weightLeft}{unit} · R {last.repsRight}×{last.weightRight}{unit}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Max</span>
+          <span className="font-mono text-emerald-400">
+            L {maxLR}×{maxLW}{unit} · R {maxRR}×{maxRW}{unit}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Avg</span>
+          <span className="font-mono text-muted">
+            L {avgL.toFixed(1)}{unit} · R {avgR.toFixed(1)}{unit}
+          </span>
+        </div>
+        <LastSetsDisplay sets={lastSessionSets} isUnilateral={true} unit={unit} />
       </div>
     );
   }
 
-  const s = stats as any;
+  const last = history[0];
+  let maxW = 0, maxR = 0, sum = 0;
+  for (const s of history) {
+    const w = s.weight ?? 0; const r = s.reps ?? 0;
+    if (w > maxW || (w === maxW && r > maxR)) { maxW = w; maxR = r; }
+    sum += w;
+  }
+  const avg = sum / history.length;
   return (
     <div className="space-y-1.5">
-      {s.last?.weight != null && (
-        <div className="flex justify-between">
-          <span className="text-muted">Prev</span>
-          <span className="font-mono text-main">{s.last.reps}×{s.last.weight}kg</span>
-        </div>
-      )}
-      {s.max?.weight != null && (
-        <div className="flex justify-between">
-          <span className="text-muted">Max</span>
-          <span className="font-mono text-emerald-400">{s.max.reps}×{s.max.weight}kg</span>
-        </div>
-      )}
-      {s.avg?.weight != null && (
-        <div className="flex justify-between">
-          <span className="text-muted">Avg</span>
-          <span className="font-mono text-muted">{s.avg.weight.toFixed(1)}kg</span>
-        </div>
-      )}
-      <LastSetsDisplay sets={lastSets} isUnilateral={false} />
+      <div className="flex justify-between">
+        <span className="text-muted">Prev</span>
+        <span className="font-mono text-main">{last.reps}×{last.weight}{unit}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted">Max</span>
+        <span className="font-mono text-emerald-400">{maxR}×{maxW}{unit}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted">Avg</span>
+        <span className="font-mono text-muted">{avg.toFixed(1)}{unit}</span>
+      </div>
+      <LastSetsDisplay sets={lastSessionSets} isUnilateral={false} unit={unit} />
     </div>
   );
 }
 
-function LastSetsDisplay({ sets, isUnilateral }: { sets?: SetLog[]; isUnilateral: boolean }) {
+function UnitPicker({ current, options, onChange }: { current: string; options: string[]; onChange: (u: string) => void }) {
+  const [adding, setAdding] = useState(false);
+  const [text, setText] = useState('');
+
+  const all = Array.from(new Set([...options, 'kg', current]));
+
+  // Compact view when only kg is in play and user hasn't asked to change
+  if (all.length === 1 && all[0] === 'kg' && !adding) {
+    return (
+      <div className="flex items-center gap-2 text-[10px]">
+        <span className="text-muted">Unit:</span>
+        <span className="text-main">kg</span>
+        <button onClick={() => setAdding(true)} className="text-muted-most underline">change</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span className="text-[10px] text-muted mr-1">Unit:</span>
+      {all.map(u => (
+        <button
+          key={u}
+          onClick={() => onChange(u)}
+          className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
+            u === current
+              ? 'bg-blue-500 text-white'
+              : 'dark:bg-slate-800 dark:text-slate-300 bg-slate-200 text-slate-600 hover:bg-slate-300 dark:hover:bg-slate-700'
+          }`}
+        >{u}</button>
+      ))}
+      {adding ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const v = text.trim();
+            if (v) onChange(v);
+            setText(''); setAdding(false);
+          }}
+          className="flex items-center gap-1"
+        >
+          <input
+            autoFocus
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="lb, L5..."
+            className="input-field !text-[10px] !py-0.5 !px-2"
+            style={{ width: '70px' }}
+          />
+          <button type="submit" className="text-[10px] text-blue-500 px-1">✓</button>
+          <button type="button" onClick={() => { setAdding(false); setText(''); }} className="text-[10px] text-muted px-1">×</button>
+        </form>
+      ) : (
+        <button onClick={() => setAdding(true)} className="text-[10px] text-muted-most">+ other</button>
+      )}
+    </div>
+  );
+}
+
+function LastSetsDisplay({ sets, isUnilateral, unit }: { sets?: SetLog[]; isUnilateral: boolean; unit?: string }) {
   const [show, setShow] = useState(false);
   if (!sets || sets.length === 0) return null;
+  const u = (s: SetLog) => s.unit || unit || 'kg';
   return (
     <div className="mt-1.5 pt-1.5 border-t border-subtle">
       <button onClick={() => setShow(!show)} className="text-[10px] text-muted">
@@ -1087,9 +1307,9 @@ function LastSetsDisplay({ sets, isUnilateral }: { sets?: SetLog[]; isUnilateral
             <div key={i} className="flex justify-between font-mono text-muted-more">
               <span>S{s.setNumber}</span>
               {isUnilateral ? (
-                <span>L {s.repsLeft}×{s.weightLeft}kg · R {s.repsRight}×{s.weightRight}kg</span>
+                <span>L {s.repsLeft}×{s.weightLeft}{u(s)} · R {s.repsRight}×{s.weightRight}{u(s)}</span>
               ) : (
-                <span>{s.reps}×{s.weight}kg</span>
+                <span>{s.reps}×{s.weight}{u(s)}</span>
               )}
             </div>
           ))}
@@ -1101,7 +1321,7 @@ function LastSetsDisplay({ sets, isUnilateral }: { sets?: SetLog[]; isUnilateral
 
 // === Exercise List Panel with Add Exercise ===
 
-function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAddExercise, onDeleteExercise, onEditExercise, onRestartExercise, programExerciseCount }: {
+function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAddExercise, onDeleteExercise, onEditExercise, onRestartExercise, programExerciseCount, skipped, onSkipExercise, onUnskipExercise }: {
   day: 1 | 2 | 3 | 4 | 5;
   exercises: Exercise[];
   loggedSets: SetLog[];
@@ -1112,6 +1332,9 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
   onEditExercise: (ex: Exercise) => void;
   onRestartExercise: (exerciseId: string) => void;
   programExerciseCount: number;
+  skipped: Set<string>;
+  onSkipExercise: (id: string) => void;
+  onUnskipExercise: (id: string) => void;
 }) {
   const [mode, setMode] = useState<'list' | 'add' | 'edit'>('list');
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -1127,7 +1350,9 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
   const [customIsUni, setCustomIsUni] = useState(false);
   const [customIsTime, setCustomIsTime] = useState(false);
   const [customImageUrl, setCustomImageUrl] = useState('');
+  const [customTag, setCustomTag] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmSkipId, setConfirmSkipId] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchQuery.length >= 3) {
@@ -1170,6 +1395,7 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
       isTimeBased: customIsTime,
       startWeakSide: customIsUni,
       imageUrl: customImageUrl || undefined,
+      tag: customTag.trim() || undefined,
     };
     if (mode === 'edit') {
       onEditExercise(ex);
@@ -1191,12 +1417,14 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
     setCustomIsUni(ex.isUnilateral);
     setCustomIsTime(ex.isTimeBased);
     setCustomImageUrl(ex.imageUrl || '');
+    setCustomTag(ex.tag || '');
     setMode('edit');
   }
 
   function resetForm() {
     setCustomName(''); setCustomNameHe(''); setCustomMuscle(''); setCustomMuscleHe('');
     setCustomSets('3'); setCustomReps('12'); setCustomIsUni(false); setCustomIsTime(false); setCustomImageUrl('');
+    setCustomTag('');
     setSearchQuery(''); setSearchResults([]); setSelectedCategory(null);
   }
 
@@ -1330,6 +1558,10 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
                 Time-based
               </label>
             </div>
+            <div>
+              <label className="block text-[10px] text-muted mb-1">Tag (optional · e.g. "alt", "pair-A")</label>
+              <input type="text" value={customTag} onChange={e => setCustomTag(e.target.value)} placeholder="alternate / pair label" className="input-field !text-left !text-sm" />
+            </div>
           </div>
         </div>
 
@@ -1359,20 +1591,24 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
         {exercises.map((ex, i) => {
           const done = loggedSets.filter(s => s.exerciseId === ex.id).length >= ex.sets;
           const isCustom = i >= programExerciseCount;
+          const isSkipped = skipped.has(ex.id);
           return (
             <div
               key={ex.id}
               className={`rounded-xl p-3 transition-colors ${
-                done ? 'dark:bg-emerald-950/40 bg-emerald-50 border dark:border-emerald-800/50 border-emerald-200' : 'card !rounded-xl'
+                isSkipped ? 'dark:bg-slate-900/60 bg-slate-100 border dark:border-slate-700/50 border-slate-200 opacity-70'
+                : done ? 'dark:bg-emerald-950/40 bg-emerald-50 border dark:border-emerald-800/50 border-emerald-200' : 'card !rounded-xl'
               }`}
             >
               <div className="flex items-start gap-2" onClick={() => onSelect(i)}>
                 <div className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-muted-most font-mono text-xs">{i + 1}.</span>
                     <span className="font-medium text-sm">{ex.name}</span>
-                    {done && <span className="text-emerald-500 text-xs">✓</span>}
+                    {done && !isSkipped && <span className="text-emerald-500 text-xs">✓</span>}
+                    {isSkipped && <span className="badge bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-[10px]">⊘ SKIPPED</span>}
                     {isCustom && <span className="badge bg-purple-900 text-purple-300 text-[10px]">CUSTOM</span>}
+                    {ex.tag && <span className="badge bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 text-[10px]">{ex.tag}</span>}
                   </div>
                   {ex.nameHe && <div className="text-xs text-muted mt-0.5 ml-5" dir="rtl">{ex.nameHe}</div>}
                   {ex.muscle && (
@@ -1409,11 +1645,30 @@ function ExerciseListPanel({ day, exercises, loggedSets, onSelect, onClose, onAd
                     className="text-[10px] text-red-600 hover:text-red-400"
                   >Delete</button>
                 )}
-                {done && (
+                {done && !isSkipped && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onRestartExercise(ex.id); }}
                     className="text-[10px] text-amber-500 hover:text-amber-300"
                   >Restart</button>
+                )}
+                {isSkipped ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onUnskipExercise(ex.id); }}
+                    className="text-[10px] text-blue-500 hover:text-blue-400"
+                  >Unskip</button>
+                ) : !done && (
+                  confirmSkipId === ex.id ? (
+                    <span className="flex gap-1 items-center" onClick={e => e.stopPropagation()}>
+                      <span className="text-[10px] text-amber-500">Skip?</span>
+                      <button onClick={() => { onSkipExercise(ex.id); setConfirmSkipId(null); }} className="text-[10px] text-amber-500 font-bold hover:text-amber-300">Yes</button>
+                      <button onClick={() => setConfirmSkipId(null)} className="text-[10px] text-muted hover:text-main">No</button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setConfirmSkipId(ex.id); }}
+                      className="text-[10px] text-slate-500 hover:text-slate-400"
+                    >Skip</button>
+                  )
                 )}
               </div>
             </div>
