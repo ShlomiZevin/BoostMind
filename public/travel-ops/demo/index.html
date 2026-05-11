@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyon — Corporate Travel Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #131318;
+    --surface-2: #1a1a21;
+    --surface-3: #22222a;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.16);
+    --text: #ececf1;
+    --text-muted: #9a9aa3;
+    --text-dim: #5a5a63;
+    --accent: #4ade80;
+    --accent-hover: #6ee79c;
+    --accent-dim: rgba(74,222,128,0.12);
+  }
+
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f6;
+    --surface-3: #ececef;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #18181b;
+    --text-muted: #4f4f57;
+    --text-dim: #8b8b95;
+    --accent: #16a34a;
+    --accent-hover: #15803d;
+    --accent-dim: rgba(22,163,74,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Heebo', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* Top notice */
+  .notice {
+    background: var(--accent);
+    color: #0a0a0c;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,12,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  [data-theme="light"] nav { background: rgba(250,250,250,0.85); }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; max-width: 1200px; margin: 0 auto;
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 19px;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand-mark {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #0a0a0c;
+    font-weight: 900;
+  }
+  .nav-links {
+    display: flex; gap: 6px;
+  }
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14.5px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.15s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--surface); }
+  .nav-actions {
+    display: flex; align-items: center; gap: 8px;
+  }
+  @media (max-width: 768px) { .nav-links { display: none; } }
+
+  .theme-btn {
+    width: 38px; height: 38px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-btn:hover { background: var(--surface); border-color: var(--border-strong); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px;
+    border-radius: 9px;
+    font-family: inherit; font-size: 14.5px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: #0a0a0c; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface); border-color: var(--border-strong); }
+  .btn-lg { padding: 14px 26px; font-size: 16px; }
+
+  /* Hero */
+  .hero {
+    padding: 100px 0 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  @media (max-width: 900px) {
+    .hero { padding: 70px 0 50px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 100px;
+    color: var(--accent);
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 22px;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p.lead {
+    font-size: 19px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    max-width: 540px;
+  }
+  .hero-cta {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px;
+  }
+  .hero-trust {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .hero-trust-avatars {
+    display: flex;
+  }
+  .hero-trust-avatars div {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    margin-right: -8px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    color: #0a0a0c;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Hero visual / dashboard preview */
+  .hero-visual {
+    position: relative;
+  }
+  .dashboard-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .dash-top {
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .dash-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-3); }
+  .dash-tab {
+    flex: 1;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: 'Inter', monospace;
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .dash-body {
+    padding: 24px;
+  }
+  .dash-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .dash-num {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .dash-trend {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .dash-chart {
+    height: 110px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-bars {
+    display: flex; align-items: flex-end; gap: 8px;
+    height: 100%;
+  }
+  .chart-bar {
+    flex: 1;
+    background: var(--accent);
+    border-radius: 3px;
+    opacity: 0.5;
+  }
+  .chart-bar:nth-child(1) { height: 30%; }
+  .chart-bar:nth-child(2) { height: 50%; }
+  .chart-bar:nth-child(3) { height: 40%; }
+  .chart-bar:nth-child(4) { height: 65%; }
+  .chart-bar:nth-child(5) { height: 55%; }
+  .chart-bar:nth-child(6) { height: 80%; }
+  .chart-bar:nth-child(7) { height: 90%; opacity: 1; }
+  .chart-bar:nth-child(8) { height: 75%; opacity: 1; }
+
+  .dash-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .dash-mini {
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .dash-mini .l { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .dash-mini .v { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+  /* Logos */
+  .logos {
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .logos-title {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .logos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    align-items: center;
+  }
+  .logo-item {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 18px;
+    opacity: 0.6;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .logo-item.italic { font-style: italic; }
+  .logo-item.serif { font-family: Georgia, serif; }
+
+  /* Section */
+  section { padding: 100px 0; }
+  @media (max-width: 768px) { section { padding: 70px 0; } }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .section-eyebrow {
+    color: var(--accent);
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4.5vw, 44px);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 18px;
+    line-height: 1.15;
+  }
+  .section-lead {
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Features grid */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .features { grid-template-columns: 1fr; } }
+
+  .feature {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.15s;
+  }
+  .feature:hover { border-color: var(--border-strong); }
+  .feature-icon {
+    width: 44px; height: 44px;
+    background: var(--accent-dim);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  .feature h3 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feature p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+
+  /* Services - bento layout */
+  .bento {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 16px;
+  }
+  @media (max-width: 900px) { .bento { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { .bento { grid-template-columns: 1fr; } }
+
+  .bento-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bento-card.large { grid-column: span 1; grid-row: span 2; min-height: 360px; }
+  @media (max-width: 900px) { .bento-card.large { grid-column: span 2; grid-row: span 1; } }
+  @media (max-width: 600px) { .bento-card.large { grid-column: span 1; } }
+
+  .bento-card .b-eyebrow {
+    color: var(--accent);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .bento-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .bento-card.large h3 { font-size: 26px; }
+  .bento-card p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .bento-visual {
+    margin-top: 22px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'Inter', monospace;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .bento-visual .row {
+    display: flex; justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .bento-visual .row:last-child { border-bottom: none; }
+  .bento-visual .row .val { color: var(--accent); font-weight: 700; }
+
+  /* Stats counter */
+  .stats {
+    padding: 60px 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    text-align: center;
+  }
+  @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-num {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Testimonials */
+  .testimonials {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .testimonials { grid-template-columns: 1fr; } }
+
+  .testimonial {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .testimonial-quote {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .testimonial-author {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .testimonial-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0a0a0c;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .testimonial-name {
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .testimonial-role {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* Pricing */
+  .pricing {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .pricing { grid-template-columns: 1fr; } }
+
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+  }
+  .price-card.featured {
+    border-color: var(--accent);
+  }
+  .price-badge {
+    position: absolute;
+    top: -12px; right: 24px;
+    background: var(--accent);
+    color: #0a0a0c;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .price-name {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .price-tag {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .price-tag-suffix {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+  .price-features {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+  .price-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0;
+    color: var(--text);
+    font-size: 14.5px;
+  }
+  .price-features li svg {
+    flex-shrink: 0;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  /* CTA */
+  .cta-section {
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 80px 24px;
+  }
+  .cta-section h2 {
+    font-size: clamp(28px, 4.5vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 16px;
+  }
+  .cta-section p {
+    color: var(--text-muted);
+    font-size: 18px;
+    margin-bottom: 32px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-buttons {
+    display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 60px 0 30px;
+    margin-top: 80px;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; } }
+
+  .footer-about {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 16px;
+    max-width: 340px;
+  }
+  .footer-col h4 {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col ul li { padding: 5px 0; }
+  .footer-col ul li a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.15s;
+  }
+  .footer-col ul li a:hover { color: var(--accent); }
+
+  .footer-bottom {
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="notice">דמו — נבנה תוך דקות באמצעות Claude Code. האתר שלכם יקבל מיתוג ותוכן ספציפיים.</div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-brand-mark">V</div>
+      <span>Voyon</span>
+    </div>
+    <div class="nav-links">
+      <a href="#services">שירותים</a>
+      <a href="#platform">פלטפורמה</a>
+      <a href="#customers">לקוחות</a>
+      <a href="#pricing">תמחור</a>
+      <a href="#contact">צור קשר</a>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-btn" id="themeToggle" aria-label="theme">
+        <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="#contact" class="btn btn-primary">תיאום שיחה</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+          פלטפורמת ניהול נסיעות תאגידיות
+        </div>
+        <h1>Corporate Travel<br>שעובד <span class="accent">בשבילכם.</span></h1>
+        <p class="lead">פלטפורמה אחת לניהול כל נסיעות העובדים — booking חכם, אופטימיזציה של הוצאות, דיווחים אוטומטיים, ושליטה מלאה. חוסכים זמן, חוסכים כסף, חוסכים כאב ראש.</p>
+        <div class="hero-cta">
+          <a href="#contact" class="btn btn-primary btn-lg">תיאום הדגמה ←</a>
+          <a href="#platform" class="btn btn-ghost btn-lg">לראות איך זה עובד</a>
+        </div>
+        <div class="hero-trust">
+          <div class="hero-trust-avatars">
+            <div>AS</div>
+            <div>MK</div>
+            <div>RL</div>
+            <div>+</div>
+          </div>
+          <div>200+ חברות מנהלות איתנו אלפי נסיעות בחודש</div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="dashboard-card">
+          <div class="dash-top">
+            <div class="dash-dot"></div>
+            <div class="dash-dot"></div>
+            <div class="dash-dot"></div>
+            <div class="dash-tab">app.voyon.io / dashboard</div>
+          </div>
+          <div class="dash-body">
+            <div class="dash-title">הוצאות נסיעות החודש</div>
+            <div class="dash-num">₪284,560</div>
+            <div class="dash-trend">↓ 18% מהחודש שעבר</div>
+            <div class="dash-chart">
+              <div class="chart-bars">
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+                <div class="chart-bar"></div>
+              </div>
+            </div>
+            <div class="dash-row">
+              <div class="dash-mini">
+                <div class="l">נסיעות פעילות</div>
+                <div class="v">47</div>
+              </div>
+              <div class="dash-mini">
+                <div class="l">חיסכון ממוצע</div>
+                <div class="v">23%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<section class="logos" style="padding: 40px 0;">
+  <div class="container">
+    <div class="logos-title">לקוחות שסומכים עלינו</div>
+    <div class="logos-grid">
+      <div class="logo-item">Northwind</div>
+      <div class="logo-item italic">Acme Co.</div>
+      <div class="logo-item serif">Lumen Group</div>
+      <div class="logo-item">Vertex AI</div>
+      <div class="logo-item italic">Cobalt</div>
+      <div class="logo-item serif">Atlas Capital</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="services">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">שירותים</div>
+      <h2 class="section-title">כל מה שאתם צריכים, במקום אחד</h2>
+      <p class="section-lead">פלטפורמה מלאה לניהול נסיעות תאגידיות — מהזמנה ראשונה ועד דוח רבעוני. בלי 5 מערכות, בלי קבצי אקסל.</p>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        </div>
+        <h3>הזמנת טיסות חכמה</h3>
+        <p>חיפוש בכל ספקיות הטיסות, השוואת מחירים בזמן אמת, ואופטימיזציה אוטומטית של המסלול. ההזמנה הטובה ביותר — תמיד.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+        </div>
+        <h3>מלונות ושכירויות</h3>
+        <p>מאגר רחב של מלונות עסקיים ב-tariffs תאגידיים. הסכמי שותפות עם רשתות מובילות שמורידים את העלויות בעשרות אחוזים.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3>ניהול הוצאות</h3>
+        <p>כל הוצאה מתועדת אוטומטית, מחולקת לפי קטגוריות, ומשולמת בכרטיס תאגידי. דוחות מלאים לרואי החשבון בלחיצה.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>Policy & Approval</h3>
+        <p>הגדירו את מדיניות הנסיעות של החברה. בקשות עוברות אוטומטית במסלול אישור — בלי מיילים, בלי חיכוכים.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3>תמיכה 24/7</h3>
+        <p>אם משהו השתבש באמצע נסיעה — צוות תמיכה זמין סביב השעון. שינוי טיסות, מלון אלטרנטיבי, חירום — מטופל מיידית.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+        </div>
+        <h3>BI ואנליטיקה</h3>
+        <p>דשבורד מלא: לאן נוסעים, כמה זה עולה, מי מבזבז יותר, מה ניתן לחסוך. החלטות מבוססות נתונים, לא תחושות בטן.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORM / BENTO -->
+<section id="platform" style="background: var(--surface-2);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">פלטפורמה</div>
+      <h2 class="section-title">מבנה אחיד, אינסוף אפשרויות</h2>
+      <p class="section-lead">בנינו את Voyon כך שתוכלו לחבר אותה לכל מערכת קיימת אצלכם — ERP, HR, חשבונות, calendar. הכל מסונכרן.</p>
+    </div>
+
+    <div class="bento">
+      <div class="bento-card large">
+        <div class="b-eyebrow">Core</div>
+        <h3>API פתוח לכל הצרכים</h3>
+        <p>חבר את Voyon ל-Workday, SAP, NetSuite, Salesforce — או כל מערכת תאגידית אחרת. REST + GraphQL, תיעוד מלא, SDKs לכל שפה.</p>
+        <div class="bento-visual">
+          <div class="row"><span>POST /api/trips</span><span class="val">200 OK</span></div>
+          <div class="row"><span>GET /api/policy</span><span class="val">200 OK</span></div>
+          <div class="row"><span>POST /webhook</span><span class="val">200 OK</span></div>
+          <div class="row"><span>GET /reports</span><span class="val">200 OK</span></div>
+        </div>
+      </div>
+
+      <div class="bento-card">
+        <div class="b-eyebrow">אבטחה</div>
+        <h3>SOC 2 + ISO 27001</h3>
+        <p>הנתונים שלכם מוצפנים, מבוקרים, ומוגנים ברמה תאגידית.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="b-eyebrow">Mobile</div>
+        <h3>אפליקציה ב-iOS / Android</h3>
+        <p>כל פלטפורמה זמינה בכיס. הזמנה בדרך, אישור בלחיצה.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="b-eyebrow">AI</div>
+        <h3>המלצות חכמות</h3>
+        <p>מודל AI שלומד את ההעדפות שלכם ומציע את האופטימום: מחיר × נוחות × מדיניות.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="b-eyebrow">Compliance</div>
+        <h3>דיווחי GDPR + מס</h3>
+        <p>כל הדיווחים הרגולטוריים מוגדרים ומופקים אוטומטית — לכל מדינה.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div>
+        <div class="stat-num">23%</div>
+        <div class="stat-label">חיסכון ממוצע ללקוח</div>
+      </div>
+      <div>
+        <div class="stat-num">200+</div>
+        <div class="stat-label">חברות פעילות</div>
+      </div>
+      <div>
+        <div class="stat-num">50K+</div>
+        <div class="stat-label">נסיעות בחודש</div>
+      </div>
+      <div>
+        <div class="stat-num">24/7</div>
+        <div class="stat-label">תמיכה אנושית</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="customers">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">לקוחות</div>
+      <h2 class="section-title">מה הלקוחות אומרים</h2>
+    </div>
+
+    <div class="testimonials">
+      <div class="testimonial">
+        <p class="testimonial-quote">"חסכנו 28% מתקציב הנסיעות בחצי שנה. צוות הכספים מודה לי כל חודש על Voyon."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">ר.ל</div>
+          <div>
+            <div class="testimonial-name">רוני לוי</div>
+            <div class="testimonial-role">CFO, Northwind</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial">
+        <p class="testimonial-quote">"לפני Voyon ניהלנו נסיעות באקסל. עכשיו זה רץ אוטומטית — והעובדים מאושרים מהאפליקציה."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">מ.כ</div>
+          <div>
+            <div class="testimonial-name">מיה כהן</div>
+            <div class="testimonial-role">VP Ops, Lumen Group</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial">
+        <p class="testimonial-quote">"החלפנו את הסוכן הוותיק שלנו ב-Voyon. אותם מחירים — אבל עם שליטה, נתונים ו-API. שווה כל שקל."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">א.ס</div>
+          <div>
+            <div class="testimonial-name">אופיר סלע</div>
+            <div class="testimonial-role">COO, Vertex AI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="background: var(--surface-2);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">תמחור</div>
+      <h2 class="section-title">תוכניות שצומחות איתכם</h2>
+      <p class="section-lead">בלי setup fees. בלי commitment ארוך. בחרו את התוכנית שמתאימה לכם — שדרגו או הורידו מתי שתרצו.</p>
+    </div>
+
+    <div class="pricing">
+      <div class="price-card">
+        <div class="price-name">Starter</div>
+        <div class="price-tag">₪990<span style="font-size: 18px; color: var(--text-muted); font-weight: 600;"> / חודש</span></div>
+        <div class="price-tag-suffix">לחברות עד 20 עובדים</div>
+        <ul class="price-features">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> הזמנת טיסות ומלונות</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> ניהול הוצאות בסיסי</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> תמיכה בשעות עבודה</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> דיווחים חודשיים</li>
+        </ul>
+        <a href="#contact" class="btn btn-ghost" style="width: 100%; justify-content: center;">התחילו</a>
+      </div>
+
+      <div class="price-card featured">
+        <span class="price-badge">הכי פופולרי</span>
+        <div class="price-name">Business</div>
+        <div class="price-tag">₪2,990<span style="font-size: 18px; color: var(--text-muted); font-weight: 600;"> / חודש</span></div>
+        <div class="price-tag-suffix">לחברות עד 100 עובדים</div>
+        <ul class="price-features">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> כל מה שב-Starter</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Policy + Approval Engine</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Dashboard BI מתקדם</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> אינטגרציות API</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> תמיכה 24/7</li>
+        </ul>
+        <a href="#contact" class="btn btn-primary" style="width: 100%; justify-content: center;">תיאום הדגמה</a>
+      </div>
+
+      <div class="price-card">
+        <div class="price-name">Enterprise</div>
+        <div class="price-tag">Custom</div>
+        <div class="price-tag-suffix">לחברות עם 100+ עובדים</div>
+        <ul class="price-features">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> כל מה שב-Business</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Customer Success Manager</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> אינטגרציות מותאמות</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> SLA מותאם</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> SSO / SAML</li>
+        </ul>
+        <a href="#contact" class="btn btn-ghost" style="width: 100%; justify-content: center;">לדבר עם מומחה</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="contact">
+  <div class="container">
+    <div class="cta-section">
+      <h2>מוכנים לחסוך 20%+ בנסיעות?</h2>
+      <p>הדגמה של 30 דקות, ואנחנו מראים לכם בדיוק כמה תחסכו עם Voyon. בלי התחייבות, בלי לחץ.</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn btn-primary btn-lg">תיאום הדגמה ←</a>
+        <a href="#" class="btn btn-ghost btn-lg">דברו איתנו</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="nav-brand">
+          <div class="nav-brand-mark">V</div>
+          <span>Voyon</span>
+        </div>
+        <p class="footer-about">פלטפורמה לניהול נסיעות תאגידיות מהדור הבא. חוסכים זמן, חוסכים כסף, מקבלים שליטה.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>מוצר</h4>
+        <ul>
+          <li><a href="#">פלטפורמה</a></li>
+          <li><a href="#">תמחור</a></li>
+          <li><a href="#">אינטגרציות</a></li>
+          <li><a href="#">API</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>חברה</h4>
+        <ul>
+          <li><a href="#">אודות</a></li>
+          <li><a href="#">לקוחות</a></li>
+          <li><a href="#">קריירה</a></li>
+          <li><a href="#">בלוג</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>תמיכה</h4>
+        <ul>
+          <li><a href="#">מרכז עזרה</a></li>
+          <li><a href="#">צור קשר</a></li>
+          <li><a href="#">סטטוס</a></li>
+          <li><a href="#">פרטיות</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 Voyon Corporate Travel. (דמו — אתר אמיתי שנבנה תוך דקות.)</div>
+      <div>נבנה על ידי שלומי זוין · Boostart</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const body = document.body;
+
+  function setTheme(theme) {
+    body.setAttribute('data-theme', theme);
+    iconSun.style.display = theme === 'light' ? 'block' : 'none';
+    iconMoon.style.display = theme === 'light' ? 'none' : 'block';
+    try { localStorage.setItem('voyon-theme', theme); } catch(e) {}
+  }
+
+  try {
+    const saved = localStorage.getItem('voyon-theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+
+  themeToggle.addEventListener('click', () => {
+    const current = body.getAttribute('data-theme');
+    setTheme(current === 'light' ? 'dark' : 'light');
+  });
+</script>
+
+</body>
+</html>

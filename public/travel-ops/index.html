@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הצעה — אתר תאגידי לחברת Corporate Travel Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #131318;
+    --surface-2: #1a1a21;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #ececf1;
+    --text-muted: #8b8b94;
+    --text-dim: #5a5a63;
+    --accent: #5b8dff;
+    --accent-hover: #7aa3ff;
+    --accent-dim: rgba(91,141,255,0.12);
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --danger: #f87171;
+  }
+
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f6;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #18181b;
+    --text-muted: #56565e;
+    --text-dim: #9090a0;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-dim: rgba(37,99,235,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,12,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  [data-theme="light"] header { background: rgba(250,250,250,0.85); }
+
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; max-width: 1200px; margin: 0 auto;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 18px;
+  }
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800;
+  }
+
+  .header-actions {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .theme-toggle {
+    width: 38px; height: 38px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .theme-toggle:hover { border-color: var(--border-strong); background: var(--surface); }
+
+  /* Tabs */
+  .tabs-wrap {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky; top: 73px; z-index: 90;
+  }
+  .tabs {
+    display: flex; gap: 4px;
+    max-width: 1200px; margin: 0 auto; padding: 0 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    background: transparent; border: none;
+    color: var(--text-muted);
+    font-family: inherit; font-size: 15px; font-weight: 500;
+    padding: 16px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Sections */
+  section { padding: 80px 0; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* Hero */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 100px;
+    color: var(--accent);
+    font-size: 13px; font-weight: 500;
+    margin-bottom: 24px;
+  }
+  .hero-eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p.lead {
+    font-size: clamp(17px, 2vw, 20px);
+    color: var(--text-muted);
+    max-width: 720px;
+    margin: 0 auto 36px;
+  }
+  .hero-cta {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 22px;
+    border-radius: 10px;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--border-strong); background: var(--surface-2); }
+
+  /* Section headers */
+  .section-eyebrow {
+    color: var(--accent);
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  .section-lead {
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 720px;
+    margin-bottom: 48px;
+  }
+
+  /* Comparison */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 60px;
+  }
+  @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+
+  .comp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .comp-card.highlighted {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  .comp-card h3 {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .comp-card .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .comp-card.highlighted .tag {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+  .comp-list { list-style: none; }
+  .comp-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0;
+    color: var(--text-muted);
+    font-size: 15px;
+  }
+  .comp-list li .check { color: var(--success); flex-shrink: 0; margin-top: 4px; }
+  .comp-list li .x { color: var(--danger); flex-shrink: 0; margin-top: 4px; }
+  .comp-card.highlighted .comp-list li { color: var(--text); }
+
+  /* Why me / Value props grid */
+  .value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .value-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    transition: border-color 0.15s;
+  }
+  .value-card:hover { border-color: var(--border-strong); }
+  .value-card .icon-wrap {
+    width: 40px; height: 40px;
+    background: var(--accent-dim);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .value-card h4 {
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .value-card p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin: 40px 0;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+  .stat .num {
+    font-size: 40px; font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .stat .label {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Experience cards */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .exp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .exp-card .domain {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    background: var(--surface-2);
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .exp-card h4 {
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .exp-card p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+  }
+
+  /* Demo section */
+  .demo-frame-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px;
+    margin-top: 20px;
+  }
+  .demo-toolbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .demo-dots { display: flex; gap: 6px; }
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-2); }
+  .demo-dot.r { background: #ff5f57; }
+  .demo-dot.y { background: #febc2e; }
+  .demo-dot.g { background: #28c840; }
+  .demo-url {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .demo-iframe {
+    width: 100%;
+    height: 700px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    margin-top: 12px;
+    display: block;
+  }
+  .demo-actions {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .demo-note {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+  }
+
+  /* Budget cards */
+  .budget-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 40px;
+  }
+  @media (max-width: 768px) { .budget-grid { grid-template-columns: 1fr; } }
+
+  .budget-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 32px;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .budget-card.recommended {
+    border-color: var(--accent);
+  }
+  .badge-recommended {
+    position: absolute;
+    top: -12px; right: 24px;
+    padding: 5px 12px;
+    background: var(--accent);
+    color: white;
+    border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+  }
+  .budget-card .who {
+    color: var(--text-muted);
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .budget-card h3 {
+    font-size: 26px; font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .budget-card .tagline {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+    min-height: 44px;
+  }
+  .budget-card .price-wrap {
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .budget-card .price {
+    font-size: 42px; font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .budget-card .price-suffix {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-top: 6px;
+  }
+  .budget-features {
+    list-style: none;
+    margin-bottom: 28px;
+    flex: 1;
+  }
+  .budget-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0;
+    color: var(--text);
+    font-size: 14.5px;
+  }
+  .budget-features li svg { flex-shrink: 0; color: var(--accent); margin-top: 3px; }
+
+  /* Timeline */
+  .timeline {
+    margin-top: 50px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .timeline h3 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 24px;
+  }
+  .timeline-step {
+    border-right: 2px solid var(--accent);
+    padding-right: 16px;
+  }
+  .timeline-step .step-num {
+    color: var(--accent);
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .timeline-step .step-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .timeline-step .step-desc {
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+
+  /* Stack */
+  .stack-wrap { margin-top: 40px; }
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .stack-card .stack-label {
+    color: var(--text-muted);
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .stack-card .stack-items {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  /* CTA section */
+  .final-cta {
+    text-align: center;
+    padding: 80px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    margin: 40px 0;
+  }
+  .final-cta h2 {
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 17px;
+    margin-bottom: 28px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    margin-top: 40px;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  .footer-contact {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .footer-contact a { color: var(--text-muted); text-decoration: none; }
+  .footer-contact a:hover { color: var(--accent); }
+  .footer-brand {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Code highlight */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92em;
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    section { padding: 56px 0; }
+    .hero { padding: 56px 0 40px; }
+    .stats { padding: 20px; }
+    .stat .num { font-size: 32px; }
+    .demo-iframe { height: 500px; }
+    .budget-card { padding: 24px; }
+    .timeline-step { border-right: none; border-bottom: 2px solid var(--accent); padding-right: 0; padding-bottom: 12px; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">ש</div>
+      <span>שלומי זוין · CTO as a Service</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">
+        <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="proposal">ההצעה</button>
+    <button class="tab" data-tab="why">למה לא Lovable</button>
+    <button class="tab" data-tab="experience">ניסיון רלוונטי</button>
+    <button class="tab" data-tab="demo">הדגמה חיה</button>
+    <button class="tab" data-tab="budget">תקציב ולו"ז</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero container">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    הצעה לבניית אתר ל-Corporate Travel Operations
+  </div>
+  <h1>אתר תאגידי שנבנה בקצב של no-code,<br><span class="accent">בקוד אמיתי שלכם.</span></h1>
+  <p class="lead">ביקשתם Lovable / Framer / Webflow. אני מציע את אותה המהירות — אבל ב-Claude Code, עם 20+ שנות ניסיון מאחור. התוצאה: קוד שלכם, בלי vendor lock-in, מוכן למוצרים דיגיטליים, אוטומציות וסוכני AI שתרצו בהמשך.</p>
+  <div class="hero-cta">
+    <a href="demo/" target="_blank" class="btn btn-primary">
+      צפו בדמו של האתר ←
+    </a>
+    <a href="#budget-section" class="btn btn-secondary" onclick="document.querySelector('[data-tab=budget]').click(); return false;">
+      תקציב ולו"ז
+    </a>
+  </div>
+</section>
+
+<!-- TAB: PROPOSAL -->
+<section class="tab-section active container" id="proposal">
+  <div class="section-eyebrow">ההצעה</div>
+  <h2 class="section-title">אתר תאגידי מקצועי, מוכן לצמיחה</h2>
+  <p class="section-lead">בניית אתר חדש לחברת Corporate Travel Operations — positioning מקצועי, דפי שירותים, landing pages, ותשתית מוכנה למוצרים דיגיטליים, אוטומציות וסוכני AI שיגיעו בהמשך.</p>
+
+  <div class="value-grid">
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <h4>אותה המהירות, איכות אחרת</h4>
+      <p>עם Claude Code אני בונה באותו קצב של no-code — אבל מספק קוד אמיתי, נקי, שלכם. בלי תקרה.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h4>Production ready מהיום הראשון</h4>
+      <p>Next.js, TypeScript, Tailwind — סטאק שהוכיח את עצמו במאות מערכות בייצור. לא mvp שיישבר ביום חמישי.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <h4>תשתית לסוכני AI מוכנה</h4>
+      <p>יש לי infrastructure לבניית סוכני AI מהירה. כשתרצו chat agent, automations, funnels או GPT workflows — הכל מתחבר. בלי לבנות מאפס.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6v6H9z"/></svg>
+      </div>
+      <h4>הקוד שלכם, נקודה.</h4>
+      <p>Git repo פרטי שלכם, פריסה בענן שלכם, בלי חודשי הצטרכות לפלטפורמה. כשתרצו לעבור — תיקחו את הקוד.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+      </div>
+      <h4>גמישות אינסופית</h4>
+      <p>landing page חדש? בלוג? אזור הורדות? פאנל? הכל בלי "תקרה של הפלטפורמה". המגבלה היא הדמיון, לא הכלי.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <h4>SEO, ביצועים, אינטגרציות</h4>
+      <p>SSR, schema markup, מהירויות 95+ ב-Lighthouse, חיבור ל-Make / n8n / Stripe / כל ה-API שתרצו.</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון בפיתוח</div></div>
+    <div class="stat"><div class="num">50+</div><div class="label">מוצרים שנבנו מאפס</div></div>
+    <div class="stat"><div class="num">2+</div><div class="label">שנים עמוקות בסוכני AI</div></div>
+    <div class="stat"><div class="num">100×</div><div class="label">מכפיל מהירות עם Claude Code</div></div>
+  </div>
+
+  <h3 style="margin-top: 60px; margin-bottom: 16px; font-size: 24px; font-weight: 700;">מה כלול</h3>
+  <div class="value-grid">
+    <div class="value-card">
+      <h4>אתר תאגידי מלא</h4>
+      <p>דף בית, אודות, שירותים, צוות, צור קשר — Positioning חד וברור לקהל יעד B2B.</p>
+    </div>
+    <div class="value-card">
+      <h4>דפי שירותים</h4>
+      <p>דף לכל שירות עם hierarchy ברור, CTAs ממוקדים, ו-conversion paths אופטימליים.</p>
+    </div>
+    <div class="value-card">
+      <h4>Landing Pages</h4>
+      <p>תבנית גמישה לבניית LPs חדשים בקלות — לקמפיינים, מוצרים, כנסים.</p>
+    </div>
+    <div class="value-card">
+      <h4>אזור הורדות / Lead Magnets</h4>
+      <p>תשתית לחומרים מקצועיים, אישור מייל, שילוב עם המערכת השיווקית שלכם.</p>
+    </div>
+    <div class="value-card">
+      <h4>תשתית לקורסים / תוכן</h4>
+      <p>CMS פשוט לעריכת תוכן, blog ready, תשתית לאזור חברים בהמשך.</p>
+    </div>
+    <div class="value-card">
+      <h4>אינטגרציות</h4>
+      <p>Make, n8n, HubSpot/Salesforce, Stripe, GPT workflows — חיבור לכל מה שצריך.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB: WHY NOT LOVABLE -->
+<section class="tab-section container" id="why">
+  <div class="section-eyebrow">למה לא Lovable</div>
+  <h2 class="section-title">Lovable, Framer, Webflow — מצוינים. עד שלא.</h2>
+  <p class="section-lead">הכלים האלה פתחו עידן חדש של מהירות. הם הוכיחו שאפשר לבנות מהר. אבל הם מתאימים לרגע אחד בלבד — וכשעוברים אותו, מתחילים לשלם את המחיר. הנה ההשוואה הכנה:</p>
+
+  <div class="comparison">
+    <div class="comp-card">
+      <h3>Lovable / Framer / Webflow</h3>
+      <span class="tag">No-code platforms</span>
+      <ul class="comp-list">
+        <li><span class="check">✓</span> מהיר להתחלה</li>
+        <li><span class="check">✓</span> אפשר לראות תוצאות מהר</li>
+        <li><span class="check">✓</span> לא דורש מפתח לעריכות פשוטות</li>
+        <li><span class="x">✕</span> Vendor lock-in — תלות בפלטפורמה</li>
+        <li><span class="x">✕</span> מגבלות עיצוב ופונקציונליות (שמרגישות רק כשמגיעים אליהן)</li>
+        <li><span class="x">✕</span> אינטגרציות מורכבות = workarounds מוזרים</li>
+        <li><span class="x">✕</span> מחיר חודשי לכל החיים</li>
+        <li><span class="x">✕</span> סוכני AI / automations מורכבות = לא ריאלי</li>
+        <li><span class="x">✕</span> ה-code לא באמת שלכם</li>
+      </ul>
+    </div>
+
+    <div class="comp-card highlighted">
+      <h3>קוד אמיתי + Claude Code</h3>
+      <span class="tag">הגישה שלי</span>
+      <ul class="comp-list">
+        <li><span class="check">✓</span> אותה מהירות בניה — לפעמים אפילו יותר</li>
+        <li><span class="check">✓</span> קוד נקי, סטנדרטי, מתועד</li>
+        <li><span class="check">✓</span> Git repo שלכם, hosting שלכם</li>
+        <li><span class="check">✓</span> אפס תלות בפלטפורמה — קוד פתוח</li>
+        <li><span class="check">✓</span> אפס מגבלות עיצוב / פונקציה</li>
+        <li><span class="check">✓</span> אינטגרציות מורכבות = native, לא workaround</li>
+        <li><span class="check">✓</span> תשלום חודשי גמיש, עוצרים מתי שרוצים</li>
+        <li><span class="check">✓</span> סוכני AI ו-automations — קל וזריז</li>
+        <li><span class="check">✓</span> שיתוף שלי כ-CTO, לא רק "ביצוע"</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px;">"רגע, אם זה כל כך מהיר — איך?"</h3>
+  <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 16px;">בגלל ש-Claude Code היא פריצת דרך אמיתית. זה לא עוד copilot. זה סביבת עבודה מלאה של AI שמבצעת את הדברים בעצמה — תחת הניהול שלי. <code>20+ שנות ניסיון</code> שיודעות בדיוק מה להגיד ל-AI, מתי לעצור, מתי לבדוק, ומתי להחליט אחרת. זה לא "מי שיודע AI" — זה "מי שיודע פיתוח ומשתמש ב-AI כמכפיל".</p>
+
+  <div class="value-grid" style="margin-top: 0;">
+    <div class="value-card">
+      <h4>מה Claude Code עושה אצלי</h4>
+      <p>כותב את הקוד, בודק, מתקן, רץ טסטים — תחת ביקורת שלי. מה שלקח שבועות, לוקח שעות. בלי "כן בערך" — בקוד אמיתי, נקי, של production.</p>
+    </div>
+    <div class="value-card">
+      <h4>מה אני עושה</h4>
+      <p>ארכיטקטורה, החלטות מוצריות, code review בכל שלב, איכות, אבטחה, ביצועים. הניסיון שלי מבטיח שהקוד לא רק "עובד" אלא "נכון".</p>
+    </div>
+    <div class="value-card">
+      <h4>למה זה משנה לכם</h4>
+      <p>מהירות של no-code, איכות של senior dev shop. מחיר נמוך מבית תוכנה רגיל, תוצאה גבוהה יותר. <strong>הקיר של no-code לא קיים פה.</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB: EXPERIENCE -->
+<section class="tab-section container" id="experience">
+  <div class="section-eyebrow">ניסיון רלוונטי</div>
+  <h2 class="section-title">מה כבר נבנה</h2>
+  <p class="section-lead">לא מתאר את עצמי — מתאר מה כבר עשיתי. הניסיון הזה רלוונטי ישירות למה שביקשתם: אתרים תאגידיים, פלטפורמות B2B SaaS, מערכות תוכן, ובהמשך — סוכני AI ואוטומציות.</p>
+
+  <div class="exp-grid">
+    <div class="exp-card">
+      <span class="domain">Real Estate</span>
+      <h4>פלטפורמת B2B מאפס לפרודקשן</h4>
+      <p>הקמתי כ-CTO סטארטאפ ברוקראז' בנדל"ן — מערכת מלאה מ-0, כולל אתר תאגידי, אזורי לקוח, מערכות backend ואינטגרציות. דוגמה מצוינת ל-positioning מקצועי + תשתית מוצרית.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">B2B SaaS</span>
+      <h4>פלטפורמות storyboard לצוותים יצירתיים</h4>
+      <p>מערכות B2B SaaS לתכנון ויזואלי, שמשמשות צוותים יצירתיים. אתר תדמית + אזור משתמשים + billing — בדיוק הסטאק שאתם צריכים.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">EdTech</span>
+      <h4>פלטפורמת קורסים + ML</h4>
+      <p>בניית platform מלא לתחום החינוך — landing pages, אזור משתמשים, ניהול תוכן, ובנוסף מנוע ML לאופטימיזציה. רלוונטי ל"תשתיות קורסים ומערכות תוכן" שאתם מזכירים.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">AI Agents</span>
+      <h4>2+ שנים בסוכני AI בייצור</h4>
+      <p>בניתי סוכני AI לפני ש"agent" היה מילה — Mystic AI, banking onboarding, sales negotiation. עכשיו: multi-crew agents עם memory וטריגרים. תשתית מוכנה לחיבור.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">Travel / Logistics</span>
+      <h4>אופטימיזציית מסלולי משלוחים</h4>
+      <p>אלגוריתם evolutionary לאופטימיזציה של מאות נקודות משלוח בו-זמנית. רלוונטי לדומיין של corporate travel — operations, logistics, optimization.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">Compliance</span>
+      <h4>פלטפורמות פרטיות ו-GDPR</h4>
+      <p>מערכות enterprise-grade, regulation-driven — חשוב לחברות B2B שעובדות עם תאגידים גדולים. תשתיות חזקות, אבטחה, ניהול נתונים.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">Automations</span>
+      <h4>n8n / Make / GPT workflows</h4>
+      <p>אינטגרציות אוטומציה מתקדמות בייצור. הדרישה שלכם ל"GPT workflows / Make / n8n" — לא יתרון אצלי, אלא ליבה.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">ERP / Operations</span>
+      <h4>ניסיון בניתוח מערכות ERP</h4>
+      <p>עבדתי בחברה שניתחה מערכות ERP — מבין operations מורכבים, integrations עם מערכות תאגידיות, ותהליכים עסקיים B2B עמוקים.</p>
+    </div>
+
+    <div class="exp-card">
+      <span class="domain">Payments</span>
+      <h4>Stripe, Subscriptions, Billing</h4>
+      <p>תשתיות תשלום מלאות — מערכות subscriptions, billing, חשבוניות. רלוונטי לכל מוצר דיגיטלי שתרצו להגדיר.</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 60px; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;">
+    <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 14px;">מי אני בקצרה</h3>
+    <p style="color: var(--text-muted); margin-bottom: 14px;">20+ שנות ניסיון בהייטק, 50+ מוצרים שנבנו מאפס, מספר סטארטאפים שהובלתי כ-CTO (כולל אקזיטים). לא בית תוכנה, לא פרילנסר רגיל — שותף טכנולוגי שלוקח בעלות מלאה, עובד בצמוד אליכם כמו CTO פנימי, בשקיפות מלאה.</p>
+    <p style="color: var(--text-muted);">המייחד אותי: רואה מערכת שלמה. לא רק "בונה אתר" אלא חושב 3 צעדים קדימה — מה יקרה כשתרצו להוסיף מוצר דיגיטלי? כשתרצו chat agent? כשתרצו לתת BI dashboard ללקוח? הכל מתחבר אצלי כי הכל מאותו ראש.</p>
+  </div>
+</section>
+
+<!-- TAB: DEMO -->
+<section class="tab-section container" id="demo">
+  <div class="section-eyebrow">הדגמה חיה</div>
+  <h2 class="section-title">דוגמה: אתר תאגידי שנבנה תוך דקות</h2>
+  <p class="section-lead">בניתי לכם דוגמה לאתר תאגידי מלא ב-Corporate Travel Operations. מה שאתם רואים זה לא מוקאפ — זה אתר אמיתי, שעולה ל-production עכשיו, באותה התשתית שתקבלו. נבנה תוך דקות (כן, דקות). לחצו כדי לפתוח במסך מלא, או גללו לראות כאן.</p>
+
+  <div class="demo-actions">
+    <a href="demo/" target="_blank" class="btn btn-primary">
+      פתחו את הדמו במסך מלא ←
+    </a>
+    <a href="demo/" target="_blank" class="btn btn-secondary">
+      העתיקו לינק לדמו
+    </a>
+  </div>
+
+  <div class="demo-note">
+    <strong>הערה:</strong> זה דמו ניטרלי. האתר האמיתי שלכם יקבל את המיתוג, התוכן, ה-positioning והשירותים הספציפיים שלכם — בדיוק כמו שתרצו. הדמו פה כדי להראות איכות, ויזואל, ביצועים וקצב.
+  </div>
+
+  <div class="demo-frame-wrap">
+    <div class="demo-toolbar">
+      <div class="demo-dots">
+        <div class="demo-dot r"></div>
+        <div class="demo-dot y"></div>
+        <div class="demo-dot g"></div>
+      </div>
+      <div class="demo-url">boostmind-b052c.web.app/travel-ops/demo/</div>
+    </div>
+    <iframe class="demo-iframe" src="demo/" title="דמו אתר תאגידי" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- TAB: BUDGET -->
+<section class="tab-section container" id="budget">
+  <div class="section-eyebrow">תקציב ולו"ז</div>
+  <h2 class="section-title">שתי דרכים לעבוד יחד</h2>
+  <p class="section-lead">אני מציע שתי אפשרויות עבודה לפרויקט הזה — שתיהן רלוונטיות. הבחירה תלויה ברמת הליווי שתרצו, בעומק האסטרטגי, ובתקציב. בשתי האפשרויות: קוד אמיתי, שלכם, באותה איכות.</p>
+
+  <div class="budget-grid">
+
+    <!-- NOAM OPTION -->
+    <div class="budget-card">
+      <span class="who">מסלול נועם</span>
+      <h3>נועם זוין — בליווי שלומי</h3>
+      <p class="tagline">מפתח צעיר ו-AI-native, שלומי כ-CTO מאחורה. "מחיר של צעיר, איכות של בכיר".</p>
+      <div class="price-wrap">
+        <div class="price">₪10,000<span style="font-size: 18px; color: var(--text-muted); font-weight: 600;"> / חודש</span></div>
+        <div class="price-suffix">חודשי. בלי פיקס, בלי הפתעות.</div>
+      </div>
+      <ul class="budget-features">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> נועם בונה — מפתח אתרים מוסמך, AI-native</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> שלומי מלווה מאחור כ-CTO / mentor</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> כל מה שכלול במסלול שלומי, רק עם פחות שעות שלי באופן אישי</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> זמן בניה משוער: פחות מחודש</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> מתאים: אתר תאגידי + LPs + תשתית בסיסית למוצרים דיגיטליים</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> דוגמת עבודה של נועם: <a href="https://plaxzy.com/" target="_blank" style="color: var(--accent);">plaxzy.com</a> (פורטל משחקים מלא שבנה)</li>
+      </ul>
+      <a href="#" onclick="contactShlomi(); return false;" class="btn btn-secondary" style="width: 100%; justify-content: center;">לדבר על מסלול נועם</a>
+    </div>
+
+    <!-- SHLOMI OPTION -->
+    <div class="budget-card recommended">
+      <span class="badge-recommended">מסלול מומלץ לחזון מלא</span>
+      <span class="who">מסלול שלומי</span>
+      <h3>שלומי זוין — CTO as a Service</h3>
+      <p class="tagline">אני אישית מוביל את הפרויקט מקצה לקצה. עם הסקופ המלא — אתר + מוצרים דיגיטליים + AI agents.</p>
+      <div class="price-wrap">
+        <div class="price">₪30,000<span style="font-size: 18px; color: var(--text-muted); font-weight: 600;"> / חודש</span></div>
+        <div class="price-suffix">מחיר מותאם לסקופ הזה. חודשי, גמיש.</div>
+      </div>
+      <ul class="budget-features">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> שלומי באופן אישי — לא צוות, לא מתווך</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> אתר תאגידי מלא + LPs + תשתית מתקדמת</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> תשתית מתקדמת למוצרים דיגיטליים — מקורסים ועד agents</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> אוטומציות, funnels, GPT workflows — כלולים</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> ארכיטקטורה ו-vision של 20+ שנים</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> שותפות CTO — לא ביצוע בלבד</li>
+      </ul>
+      <a href="#" onclick="contactShlomi(); return false;" class="btn btn-primary" style="width: 100%; justify-content: center;">לדבר על מסלול שלומי</a>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <h3>איך זה זז</h3>
+    <div class="timeline-grid">
+      <div class="timeline-step">
+        <div class="step-num">שלב 1</div>
+        <div class="step-name">שיחת אפיון</div>
+        <div class="step-desc">~שעה. מבינים את ה-positioning, השירותים, הקהל, ה-vision למוצרים.</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-num">שלב 2</div>
+        <div class="step-name">עיצוב + structure</div>
+        <div class="step-desc">~3-5 ימים. moodboard, wireframes, אישור כיוון לפני קוד.</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-num">שלב 3</div>
+        <div class="step-name">בניה</div>
+        <div class="step-desc">~שבועיים. אתר חי שאתם רואים גדל יום-יום, feedback רץ.</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-num">שלב 4</div>
+        <div class="step-name">פוליש + עליה</div>
+        <div class="step-desc">~שבוע. ביצועים, SEO, integrations, פריסה.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack-wrap">
+    <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 20px;">הסטאק</h3>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <div class="stack-label">Frontend</div>
+        <div class="stack-items">Next.js · React · TypeScript · Tailwind</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">CMS / Content</div>
+        <div class="stack-items">Sanity / Payload / MDX (לפי צורך)</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Hosting</div>
+        <div class="stack-items">Vercel / Cloudflare / AWS</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Automations</div>
+        <div class="stack-items">n8n · Make · Zapier · GPT workflows</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Payments</div>
+        <div class="stack-items">Stripe · PayPal · subscriptions</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">AI</div>
+        <div class="stack-items">Claude · OpenAI · multi-agent infra</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="final-cta">
+    <h2>מוכנים לדבר?</h2>
+    <p>פגישת היכרות של 20 דקות. נבין מה אתם מחפשים, אני אגיד לכם בכנות אם זה מתאים, ונחליט יחד מה הצעד הבא.</p>
+    <div class="hero-cta">
+      <a href="https://wa.me/972545567213" target="_blank" class="btn btn-primary">WhatsApp ←</a>
+      <a href="mailto:shlomi@boostart.io" class="btn btn-secondary">shlomi@boostart.io</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">© שלומי זוין · Boostart</div>
+      <div class="footer-contact">
+        <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+        <a href="tel:+972545567213">054-5567213</a>
+        <a href="https://wa.me/972545567213" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const body = document.body;
+
+  function setTheme(theme) {
+    body.setAttribute('data-theme', theme);
+    iconSun.style.display = theme === 'light' ? 'block' : 'none';
+    iconMoon.style.display = theme === 'light' ? 'none' : 'block';
+    try { localStorage.setItem('theme', theme); } catch(e) {}
+  }
+
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+
+  themeToggle.addEventListener('click', () => {
+    const current = body.getAttribute('data-theme');
+    setTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.tab-section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      sections.forEach(s => {
+        s.classList.toggle('active', s.id === target);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  function contactShlomi() {
+    window.open('https://wa.me/972545567213', '_blank');
+  }
+</script>
+
+</body>
+</html>

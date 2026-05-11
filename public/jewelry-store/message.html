@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>הודעה ללקוח · חנות תכשיטים</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0d0b;
+      --surface: #1c1814;
+      --surface-2: #25201b;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.16);
+      --text: #f0ebe3;
+      --text-muted: #8f8478;
+      --accent: #d4a574;
+      --success: #5fbd7a;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      padding: 2rem 1rem;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 0 0 0.3rem;
+      letter-spacing: -0.01em;
+    }
+    .sub {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.7rem 1.2rem;
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 0.93rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .btn.primary { background: var(--accent); color: #1a1410; }
+    .btn.primary:hover { transform: translateY(-1px); }
+    .btn.primary.copied { background: var(--success); color: #0c2913; }
+    .btn.ghost {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+    .btn.ghost:hover { background: var(--surface-2); }
+
+    .message-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
+      font-size: 1.02rem;
+      white-space: pre-wrap;
+      color: var(--text);
+      direction: rtl;
+      user-select: text;
+    }
+
+    .footer-hint {
+      margin-top: 1.2rem;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+    .footer-hint a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 480px) {
+      .message-box { padding: 1.2rem 1.3rem; font-size: 0.96rem; }
+      h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>הודעה ללקוחה · חנות תכשיטים</h1>
+    <p class="sub">לחץ "העתק" → הדבק בוואטסאפ/מייל.</p>
+
+    <div class="toolbar">
+      <button class="btn primary" id="copy-btn">📋 העתק את ההודעה</button>
+      <a class="btn ghost" href="https://wa.me/?text=" id="wa-btn" target="_blank">💬 פתח בוואטסאפ</a>
+      <a class="btn ghost" href="index.html">↩ חזרה להצעה</a>
+    </div>
+
+    <div class="message-box" id="message">היי,
+
+יש לי ניסיון עשיר מאוד בבניית חנויות e-commerce — קטלוגים, וריאציות מוצר, סליקה, ניהול מלאי.
+
+אני מביא איתי ניסיון בפיתוח קוד סטנדרטי, והיום עם הכלים לוקח את הידע הזה לניהול של Claude וכלי AI — מה שמביא אותי למכפלות של קצב עד פי 10.
+אני עובד זריז ויעיל. בטוח שאוכל לסייע.
+
+בנוסף הכנתי לך דף עם הצעה ודמו לצפייה. מוזמנת ללחוץ על הלינק:
+https://boostmind-b052c.web.app/jewelry-store
+
+שלומי
+shlomi@boostart.io | 054-5567213</div>
+
+    <p class="footer-hint">העמוד הזה פרטי — לא מקושר מההצעה. רק לך.</p>
+  </div>
+
+  <script>
+    const copyBtn = document.getElementById('copy-btn');
+    const messageEl = document.getElementById('message');
+    const waBtn = document.getElementById('wa-btn');
+
+    const text = messageEl.textContent;
+    waBtn.href = 'https://wa.me/?text=' + encodeURIComponent(text);
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        const range = document.createRange();
+        range.selectNode(messageEl);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+      }
+      copyBtn.textContent = '✓ הועתק!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = '📋 העתק את ההודעה';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
