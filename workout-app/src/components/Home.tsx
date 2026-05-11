@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Route } from '../types';
-import { useProgram, getAutoWeek } from '../hooks/useProgram';
+import { useProgram, getAutoWeek, useProgramStart } from '../hooks/useProgram';
 import { useFirestore } from '../hooks/useFirestore';
 
 type Props = {
@@ -10,9 +10,18 @@ type Props = {
 };
 
 export function Home({ uid, navigate, initialWeek }: Props) {
-  const autoWeek = getAutoWeek();
-  const [selectedWeek, setSelectedWeek] = useState(initialWeek || autoWeek);
-  const { program, weekNumber, phase, totalWeeks } = useProgram(selectedWeek);
+  const programStart = useProgramStart(uid);
+  const autoWeek = getAutoWeek(programStart);
+  const [userSelected, setUserSelected] = useState<number | null>(initialWeek ?? null);
+  const selectedWeek = userSelected ?? autoWeek;
+  const setSelectedWeek = (v: number | ((prev: number) => number)) => {
+    setUserSelected(prev => {
+      const cur = prev ?? autoWeek;
+      const next = typeof v === 'function' ? v(cur) : v;
+      return next === autoWeek ? null : next;
+    });
+  };
+  const { program, weekNumber, phase, totalWeeks } = useProgram(selectedWeek, programStart);
   const { getSessions, resetProgram } = useFirestore(uid);
   const [showReset, setShowReset] = useState(false);
   const [dayHistory, setDayHistory] = useState<Record<string, string[]>>({}); // "day_week" -> dates

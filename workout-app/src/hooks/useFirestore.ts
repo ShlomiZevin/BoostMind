@@ -324,6 +324,21 @@ export function useFirestore(uid: string | null) {
     return ratings[0] ? { difficulty: ratings[0].difficulty, addWeight: ratings[0].addWeight } : null;
   }, [uid]);
 
+  const getProgramStartOverride = useCallback(async (): Promise<string | null> => {
+    if (!uid) return null;
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const v = snap.data().programStartOverride;
+    return typeof v === 'string' && v ? v : null;
+  }, [uid]);
+
+  const setProgramStartOverride = useCallback(async (iso: string | null) => {
+    if (!uid) return;
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    await setDoc(ref, { programStartOverride: iso || null }, { merge: true });
+  }, [uid]);
+
   const saveExerciseNote = useCallback(async (exerciseId: string, note: string) => {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'exerciseNotes', exerciseId);
@@ -363,5 +378,7 @@ export function useFirestore(uid: string | null) {
     getExerciseNote,
     saveExerciseDifficulty,
     getExerciseDifficulty,
+    getProgramStartOverride,
+    setProgramStartOverride,
   };
 }

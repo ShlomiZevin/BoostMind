@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול שוטף של מערכת AI להכרויות — שלומי זוין</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --bg-elev: #131316;
+    --bg-elev-2: #1a1a1f;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #f4f4f5;
+    --text-dim: #a1a1aa;
+    --text-faint: #71717a;
+    --accent: #4ade80;
+    --accent-soft: rgba(74, 222, 128, 0.1);
+    --danger: #f87171;
+    --warning: #fbbf24;
+  }
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --bg-elev: #ffffff;
+    --bg-elev-2: #f4f4f5;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+    --text: #0a0a0b;
+    --text-dim: #52525b;
+    --text-faint: #71717a;
+    --accent: #16a34a;
+    --accent-soft: rgba(22, 163, 74, 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Heebo', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+    transition: background 0.2s, color 0.2s;
+    min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(8px);
+  }
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; max-width: 1100px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--accent); color: #0a0a0b;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+  }
+  .brand-name { font-weight: 700; font-size: 16px; }
+  .brand-sub { font-size: 12px; color: var(--text-dim); }
+  .theme-toggle {
+    background: var(--bg-elev); color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 38px; height: 38px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .theme-toggle:hover { border-color: var(--border-strong); }
+
+  /* Hero */
+  .hero { padding: 80px 0 60px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid var(--accent);
+    margin-bottom: 24px;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--text-dim);
+    max-width: 720px;
+    line-height: 1.6;
+  }
+  .hero-cta {
+    display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 10px;
+    font-weight: 600; font-size: 15px;
+    text-decoration: none; cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: #0a0a0b; }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-ghost {
+    background: var(--bg-elev); color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--border-strong); }
+
+  /* Tabs */
+  .tabs-wrap {
+    border-bottom: 1px solid var(--border);
+    margin-top: 40px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+  .tabs {
+    display: flex; gap: 4px;
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+  }
+  .tab {
+    background: none; border: none;
+    color: var(--text-dim);
+    padding: 14px 18px;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Sections */
+  section.panel { padding: 56px 0; display: none; }
+  section.panel.active { display: block; }
+  .section-title {
+    font-size: 28px; font-weight: 700;
+    letter-spacing: -0.01em; margin-bottom: 8px;
+  }
+  .section-lead {
+    color: var(--text-dim); font-size: 16px;
+    max-width: 720px; margin-bottom: 36px;
+  }
+
+  /* Grid cards */
+  .grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .card:hover { border-color: var(--border-strong); }
+  .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .card h3 {
+    font-size: 17px; font-weight: 600; margin-bottom: 8px;
+  }
+  .card p {
+    font-size: 14px; color: var(--text-dim); line-height: 1.6;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-bottom: 36px;
+  }
+  .stat {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .stat-num {
+    font-size: 36px; font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label { font-size: 13px; color: var(--text-dim); }
+
+  /* List */
+  .checklist {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .check-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .check-icon {
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Demo */
+  .demo-box {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .demo-row {
+    display: grid; gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 640px) {
+    .demo-row { grid-template-columns: 1fr; }
+  }
+  .profile-card {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .profile-title {
+    font-size: 13px; color: var(--text-dim);
+    margin-bottom: 10px; font-weight: 500;
+  }
+  .field-label {
+    font-size: 12px; color: var(--text-faint);
+    margin-bottom: 4px; display: block;
+  }
+  .field {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-family: inherit; font-size: 14px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  textarea.field { resize: vertical; min-height: 70px; }
+  .demo-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .agent-output {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    min-height: 200px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .agent-output.empty {
+    color: var(--text-faint);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .agent-line { display: flex; align-items: center; gap: 10px; }
+  .agent-tag {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .score-bar {
+    width: 100%; height: 8px;
+    background: var(--bg-elev-2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 8px 0 16px;
+  }
+  .score-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.8s ease;
+  }
+  .score-big {
+    font-size: 42px; font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .agent-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .agent-section h4 {
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .agent-section h4::before {
+    content: '';
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .agent-section ul { list-style: none; padding-right: 0; }
+  .agent-section li {
+    padding: 6px 0; color: var(--text-dim);
+    font-size: 13.5px;
+  }
+  .typing::after {
+    content: '▊';
+    animation: blink 1s infinite;
+    color: var(--accent);
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Budget */
+  .price-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+  .price-top {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 4px;
+  }
+  .price-num {
+    font-size: 48px; font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .price-unit { color: var(--text-dim); font-size: 16px; }
+  .price-label { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; }
+  .price-features {
+    list-style: none; padding: 0;
+    display: grid; gap: 10px;
+  }
+  .price-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14.5px;
+    padding: 6px 0;
+  }
+  .price-features li::before {
+    content: '✓';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .info-box {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .info-box strong { color: var(--text); }
+
+  /* Stack */
+  .stack-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .stack-chip {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+
+  /* Timeline */
+  .timeline {
+    display: grid; gap: 12px;
+    margin-bottom: 30px;
+  }
+  .tl-item {
+    display: grid; grid-template-columns: 100px 1fr;
+    gap: 16px; align-items: start;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .tl-week {
+    font-weight: 700; color: var(--accent);
+    font-size: 13.5px;
+  }
+  .tl-content { font-size: 14px; }
+  .tl-content strong { display: block; margin-bottom: 4px; }
+  .tl-content span { color: var(--text-dim); font-size: 13.5px; }
+  @media (max-width: 540px) {
+    .tl-item { grid-template-columns: 1fr; gap: 6px; }
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    margin-top: 40px;
+  }
+  .footer-content {
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 16px;
+  }
+  .footer-contact {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    font-size: 14px;
+  }
+  .footer-contact a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-contact a:hover { color: var(--accent); }
+  .footer-brand { font-size: 13px; color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand">
+      <div class="brand-mark">SZ</div>
+      <div>
+        <div class="brand-name">שלומי זוין</div>
+        <div class="brand-sub">CTO as a Service</div>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">
+      <span id="themeIcon">☀</span>
+    </button>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <div class="badge"><span class="badge-dot"></span>זמין לשותפות חודשית · ניהול שוטף</div>
+    <h1>ניהול שוטף של מערכת AI להכרויות.<br>בלי להתחיל מאפס כל חודש.</h1>
+    <p class="hero-sub">
+      מערכת בנויה ב-AI היא רק ההתחלה — תחזוקה, אופטימיזציה, אינטגרציות, אוטומציות, ושיפור מתמשך של סוכני ה-AI זה הסיפור האמיתי. אני נכנס פנימה, מבין את הקוד תוך ימים, ולוקח אחריות שוטפת על המוצר.
+    </p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-primary" data-tab="demo">🚀 לדמו חי</a>
+      <a href="#" class="btn btn-ghost" data-tab="budget">💰 מודל ותקציב</a>
+    </div>
+  </section>
+
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab active" data-tab="offer">ההצעה</button>
+      <button class="tab" data-tab="experience">ניסיון רלוונטי</button>
+      <button class="tab" data-tab="demo">הדגמה חיה</button>
+      <button class="tab" data-tab="budget">מודל ותקציב</button>
+    </div>
+  </div>
+
+  <!-- ההצעה -->
+  <section class="panel active" id="panel-offer">
+    <h2 class="section-title">מה אתה מקבל</h2>
+    <p class="section-lead">
+      ניהול שוטף של מערכת AI להכרויות זה לא רק "לתקן באגים" — זה לאחד תחת מומחה אחד את כל מה שמערכת AI חיה צריכה: בקרה על האייג'נטים, אוטומציות חכמות, אינטגרציות עם שירותים חיצוניים, ופיתוח פיצ'רים חדשים שמתחברים בלי לשבור.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>תחזוקת סוכני AI</h3>
+        <p>כתבתי תשתית סוכני AI משלי. אני יודע איפה LLM נשבר, איך לחבר אותו לקונטקסט נכון, ואיך לבנות אגנטים מדויקים במקום הלוצינטיביים.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>אוטומציות ואינטגרציות</h3>
+        <p>חיבור בין מערכות — תשלומים, התראות, CRM, ניהול תוכן, מדדים. כל מה שמערכת הכרויות צריכה כדי לרוץ בלי ידיים על ההגה כל היום.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <h3>פיתוח פיצ'רים חדשים</h3>
+        <p>פיצ'רים שמשתלבים בארכיטקטורה הקיימת — לא הוספות שיוצרות חוב טכני. עם Claude Code, מה שלקח שבועות לוקח ימים.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>אנליטיקס ואופטימיזציה</h3>
+        <p>הבנה מה עובד ומה לא במערכת — funnel matching, retention, conversation quality. שיפור איטרטיבי על בסיס נתונים, לא ניחושים.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <h3>מודרציה ובטיחות</h3>
+        <p>מערכת הכרויות חייבת מודרציה — אייג'נטים שמזהים בוטים, קטפישינג, התנהגות בעייתית. אני בונה את זה כחלק מהמערכת, לא כתוסף.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚀</div>
+        <h3>DevOps וסקיילינג</h3>
+        <p>הוסטינג, ניטור, גיבויים, ביצועים. כשהמערכת גדלה — להבטיח שהיא עומדת. AWS, GCP, Azure, Firebase — איפה שצריך.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 56px;">למה זה עובד</h2>
+    <p class="section-lead">המודל החודשי שלי נבנה במיוחד לעבודה רציפה — בלי "תוספות", בלי "זה לא בסקופ", בלי ויכוחים על שעות.</p>
+
+    <div class="checklist">
+      <div class="check-item"><span class="check-icon">→</span><span><strong>מודל חודשי קבוע</strong> — אתה יודע מה אתה משלם, אני יודע מה אני מספק.</span></div>
+      <div class="check-item"><span class="check-icon">→</span><span><strong>שקיפות מלאה</strong> — הקוד שלך, ה-Git שלך, אין שום נעילות.</span></div>
+      <div class="check-item"><span class="check-icon">→</span><span><strong>גמישות סקופ</strong> — מתחילים בא', צץ ב' חשוב יותר — מעבירים פוקוס בלי דרמה.</span></div>
+      <div class="check-item"><span class="check-icon">→</span><span><strong>בלי lock-in</strong> — חודש בחודשו, אם זה לא עובד — מסיימים בלי קנסות.</span></div>
+      <div class="check-item"><span class="check-icon">→</span><span><strong>לא בורג בצוות</strong> — רואה מערכת שלמה, לוקח בעלות.</span></div>
+      <div class="check-item"><span class="check-icon">→</span><span><strong>זמינות אמיתית</strong> — לא מענה אחת ל-3 ימים. בקשר רציף.</span></div>
+    </div>
+  </section>
+
+  <!-- ניסיון -->
+  <section class="panel" id="panel-experience">
+    <h2 class="section-title">ניסיון שמתחבר ישר לפרויקט הזה</h2>
+    <p class="section-lead">לא רק "ניסיון כללי" — דברים ספציפיים שעשיתי, שמתורגמים ישר למה שהמערכת שלך צריכה.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-num">20+</div><div class="stat-label">שנים בהייטק</div></div>
+      <div class="stat"><div class="stat-num">50+</div><div class="stat-label">מוצרים שנבנו מאפס</div></div>
+      <div class="stat"><div class="stat-num">2+</div><div class="stat-label">שנים עמוק ב-AI agents</div></div>
+      <div class="stat"><div class="stat-num">100×</div><div class="stat-label">מכפיל מהירות עם Claude Code</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>Mystic AI — chat agent לפני שזה היה ChatGPT</h3>
+        <p>אחת הראשונות באפליקציות AI לצרכן. קריאת קפה, אסטרולוגיה, קריאה בכף יד — הכל דרך chat agent. בנייה לפני שהיו כלים מוכנים, מה שאומר הבנה עמוקה איך LLM באמת עובד.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤝</div>
+        <h3>סוכני שיחה למשא ומתן ו-onboarding בנקאי</h3>
+        <p>אגנטים ל-sales negotiation, wellness companions, ו-onboarding לבנק. בדיוק הסוג של אגנטים שמערכת הכרויות צריכה — שיחה ארוכה, קונטקסט עמוק, החלטות.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h3>תשתית multi-crew agents</h3>
+        <p>היום אני בונה ארכיטקטורות multi-crew agent עם chain reactions, triggered context, ו-memory systems. בדיוק מה שאתה צריך כדי לעבור מ"AI גנרי" ל"AI שיודע מי המשתמש שלך".</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏗️</div>
+        <h3>מערכות חיות עם משתמשים אמיתיים</h3>
+        <p>נדל"ן, EdTech, לוגיסטיקה, ספורט, פסיכותרפיה — לכל תחום בניתי מערכת מאפס שעובדת בייצור. מערכות חיות זה לא תיאוריה אצלי.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔬</div>
+        <h3>רקע מחקרי — neural networks ו-ML</h3>
+        <p>בניתי, אימנתי, והערכתי neural networks בעצמי. זה למה אני יודע מתי LLM יעבוד ומתי לא — ולמה האייג'נטים שלי מדויקים יותר מהממוצע.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Claude Code = מכפיל כוח אמיתי</h3>
+        <p>אני לא מנהל מפתחים, אני מנהל AI שמבצע — תוך הבנה, ביקורת והכוונה. דברים של חודשים הופכים לימים. זה למה 10K/חודש משמעותי אצלי.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 56px;">סטאק טכנולוגי</h2>
+    <p class="section-lead">תלוי מה כבר יש במערכת — נכנס לכל מה שצריך:</p>
+    <div class="stack-row">
+      <span class="stack-chip">OpenAI</span>
+      <span class="stack-chip">Claude API</span>
+      <span class="stack-chip">Gemini</span>
+      <span class="stack-chip">LangChain</span>
+      <span class="stack-chip">RAG</span>
+      <span class="stack-chip">Vector DBs</span>
+      <span class="stack-chip">Node.js</span>
+      <span class="stack-chip">Python</span>
+      <span class="stack-chip">TypeScript</span>
+      <span class="stack-chip">React / Next.js</span>
+      <span class="stack-chip">PostgreSQL</span>
+      <span class="stack-chip">MongoDB</span>
+      <span class="stack-chip">Redis</span>
+      <span class="stack-chip">Firebase</span>
+      <span class="stack-chip">AWS / GCP / Azure</span>
+      <span class="stack-chip">Stripe</span>
+      <span class="stack-chip">WebSockets</span>
+      <span class="stack-chip">Socket.io</span>
+      <span class="stack-chip">Docker</span>
+      <span class="stack-chip">CI/CD</span>
+    </div>
+  </section>
+
+  <!-- דמו -->
+  <section class="panel" id="panel-demo">
+    <h2 class="section-title">Live AI Match Agent</h2>
+    <p class="section-lead">
+      דוגמה קטנה לסוג האייג'נטים שאני בונה. הזן שני פרופילים — האייג'נט מחזיר ציון תאימות, ניתוח לפי קטגוריות, ופותחי שיחה. <strong>נבנה תוך דקות, רץ בדפדפן שלך עכשיו.</strong>
+    </p>
+
+    <div class="demo-box">
+      <div class="demo-row">
+        <div class="profile-card">
+          <div class="profile-title">פרופיל א'</div>
+          <label class="field-label">גיל</label>
+          <input class="field" id="p1-age" type="number" value="32" min="18" max="99">
+          <label class="field-label">תחומי עניין</label>
+          <input class="field" id="p1-interests" type="text" value="טיולים, אוכל, ספרים">
+          <label class="field-label">תיאור עצמי</label>
+          <textarea class="field" id="p1-bio">אוהב להכיר אנשים חדשים, אסטרטג בדמ"כ, מתעניין באמנות וברכיבה על אופניים. מחפש משהו אמיתי.</textarea>
+          <label class="field-label">מחפש</label>
+          <input class="field" id="p1-looking" type="text" value="קשר רציני">
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-title">פרופיל ב'</div>
+          <label class="field-label">גיל</label>
+          <input class="field" id="p2-age" type="number" value="29" min="18" max="99">
+          <label class="field-label">תחומי עניין</label>
+          <input class="field" id="p2-interests" type="text" value="ספרים, יוגה, טיולים">
+          <label class="field-label">תיאור עצמי</label>
+          <textarea class="field" id="p2-bio">חיה בקצב שלי. אוהבת ספרים, קפה טוב, ושיחות עומק. מאמינה ביצירת קשר אמיתי, לא בריצה אחרי טרנדים.</textarea>
+          <label class="field-label">מחפש</label>
+          <input class="field" id="p2-looking" type="text" value="קשר רציני">
+        </div>
+      </div>
+
+      <div class="demo-actions">
+        <button class="btn btn-primary" id="run-agent">▶ הפעל את האייג'נט</button>
+        <button class="btn btn-ghost" id="randomize">🎲 דוגמה אקראית</button>
+      </div>
+
+      <div class="agent-output empty" id="agent-output">
+        <div>
+          <div style="font-size: 32px; margin-bottom: 8px;">🤖</div>
+          האייג'נט מוכן. מלא פרופילים ולחץ "הפעל".
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>חשוב להבין:</strong> זה דמו פשוט שבנוי על לוגיקה דטרמיניסטית בדפדפן — לא LLM אמיתי. בייצור, אותו אייג'נט רץ דרך מודל LLM עם prompt engineering ייעודי, RAG לפרופילים דומים, ו-memory layer לזיכרון על משתמשים. הוא מתאים את עצמו על בסיס interactions אמיתיות. <strong>הסיפור פה זה הקצב</strong> — הדמו הזה נבנה תוך דקות בודדות.
+    </div>
+  </section>
+
+  <!-- תקציב -->
+  <section class="panel" id="panel-budget">
+    <h2 class="section-title">מודל ותקציב</h2>
+    <p class="section-lead">חודשי, שקוף, ללא הפתעות. אתה משלם על תוצאות, לא על שעות.</p>
+
+    <div class="price-card">
+      <div class="price-top">
+        <span class="price-num">10,000</span>
+        <span class="price-unit">₪ / חודש</span>
+      </div>
+      <div class="price-label">+ מע"מ · הסכם חודשי · ללא lock-in</div>
+
+      <ul class="price-features">
+        <li>ניהול שוטף של מערכת ה-AI להכרויות — קוד, אינפרא, אגנטים</li>
+        <li>תחזוקה ושיפור מתמשך של סוכני ה-AI בהתבסס על נתוני שימוש</li>
+        <li>פיתוח פיצ'רים חדשים לפי סדר עדיפויות שמתואם איתך</li>
+        <li>אינטגרציות עם שירותים חיצוניים (תשלומים, התראות, אנליטיקס)</li>
+        <li>אוטומציות פנימיות לחיסכון בזמן ולשיפור ה-funnel</li>
+        <li>תיעוד שוטף — אם נפרדים, מערכת מוכנה למפתח הבא</li>
+        <li>ישיבת סטטוס שבועית + זמינות שוטפת בערוץ שתבחר</li>
+      </ul>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 40px;">איך עובדים — חודש ראשון</h2>
+    <p class="section-lead">צריך להבין את המערכת לפני שמתחילים לגעת. החודש הראשון בנוי מסביב למיפוי מהיר ולתחילת ערך מהיר.</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-week">שבוע 1</div>
+        <div class="tl-content">
+          <strong>Onboarding טכני</strong>
+          <span>גישות, קוד, ארכיטקטורה, מיפוי האייג'נטים הקיימים, זיהוי "אזורי סיכון" וחוב טכני. שיחת התאמת ציפיות.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-week">שבוע 2</div>
+        <div class="tl-content">
+          <strong>תיקונים מהירים + מפת דרכים</strong>
+          <span>מטפל בבאגים בוערים, מאחה פערי תיעוד, ומציג מפת דרכים עם 2-3 שיפורים בעלי ROI גבוה לחודש הקרוב.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-week">שבוע 3-4</div>
+        <div class="tl-content">
+          <strong>שיפורים ופיצ'רים</strong>
+          <span>מתחיל לבצע את מפת הדרכים — שיפור איכות ה-matching, הוספת אוטומציות, אינטגרציות שחסרות. ערך אמיתי בחודש הראשון.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-week">מחודש 2</div>
+        <div class="tl-content">
+          <strong>תפעול שוטף + שיפור מתמשך</strong>
+          <span>סבבים חודשיים — פיצ'רים, אופטימיזציה, ניטור, חידושים. אתה קובע עדיפויות, אני מבצע.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>על הזמן:</strong> מערכת מנוהלת לא נמדדת ב"שעות עבודה" אלא בערך שהיא מקבלת. עם Claude Code אני מספק תוצאות שדורשות בית תוכנה שלם — אבל כשכל ההחלטות עוברות דרך CTO אחד שרואה את כל המערכת. זו הסיבה ש-10K לחודש עובד.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-content">
+    <div class="footer-brand">© שלומי זוין · CTO as a Service · boostart.io</div>
+    <div class="footer-contact">
+      <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+      <a href="tel:+972545567213">054-5567213</a>
+      <a href="https://wa.me/972545567213">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Theme toggle
+  const themeBtn = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const stored = localStorage.getItem('theme') || 'dark';
+  if (stored === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeIcon.textContent = '☾';
+  }
+  themeBtn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    if (current === 'light') {
+      document.documentElement.removeAttribute('data-theme');
+      themeIcon.textContent = '☀';
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeIcon.textContent = '☾';
+      localStorage.setItem('theme', 'light');
+    }
+  });
+
+  // Tabs
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  function switchTab(name) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+    window.scrollTo({ top: document.querySelector('.tabs-wrap').offsetTop - 70, behavior: 'smooth' });
+  }
+  tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  document.querySelectorAll('[data-tab]').forEach(el => {
+    if (!el.classList.contains('tab')) {
+      el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.tab); });
+    }
+  });
+
+  // ----- AI Match Agent (deterministic demo) -----
+  function tokenize(s) {
+    return (s || '').toLowerCase()
+      .replace(/[.,!?;:()"׳'״"-]/g, ' ')
+      .split(/\s+/).filter(Boolean);
+  }
+  function overlap(a, b) {
+    const setA = new Set(a), setB = new Set(b);
+    let common = 0;
+    setA.forEach(x => { if (setB.has(x)) common++; });
+    const union = new Set([...setA, ...setB]).size;
+    return union === 0 ? 0 : common / union;
+  }
+  function ageScore(a1, a2) {
+    const diff = Math.abs(a1 - a2);
+    if (diff <= 2) return 1;
+    if (diff <= 5) return 0.85;
+    if (diff <= 8) return 0.65;
+    if (diff <= 12) return 0.4;
+    return 0.2;
+  }
+  function compute() {
+    const p1 = {
+      age: +document.getElementById('p1-age').value || 30,
+      interests: document.getElementById('p1-interests').value,
+      bio: document.getElementById('p1-bio').value,
+      looking: document.getElementById('p1-looking').value
+    };
+    const p2 = {
+      age: +document.getElementById('p2-age').value || 30,
+      interests: document.getElementById('p2-interests').value,
+      bio: document.getElementById('p2-bio').value,
+      looking: document.getElementById('p2-looking').value
+    };
+
+    const interestsScore = overlap(tokenize(p1.interests), tokenize(p2.interests));
+    const bioScore = overlap(tokenize(p1.bio), tokenize(p2.bio));
+    const lookingScore = overlap(tokenize(p1.looking), tokenize(p2.looking));
+    const ageS = ageScore(p1.age, p2.age);
+
+    const total = Math.round(
+      (interestsScore * 0.35 + bioScore * 0.20 + lookingScore * 0.25 + ageS * 0.20) * 100
+    );
+
+    const common = new Set(tokenize(p1.interests).filter(x => tokenize(p2.interests).includes(x)));
+
+    return { p1, p2, total, breakdown: {
+      interests: Math.round(interestsScore * 100),
+      bio: Math.round(bioScore * 100),
+      looking: Math.round(lookingScore * 100),
+      age: Math.round(ageS * 100)
+    }, commonInterests: [...common] };
+  }
+
+  function verdictLabel(score) {
+    if (score >= 80) return { label: 'התאמה גבוהה מאוד', emoji: '🔥' };
+    if (score >= 65) return { label: 'התאמה טובה', emoji: '✨' };
+    if (score >= 45) return { label: 'התאמה סבירה', emoji: '🌿' };
+    return { label: 'התאמה נמוכה', emoji: '⚪' };
+  }
+
+  function buildStarters(common, p1, p2) {
+    const out = [];
+    if (common.length > 0) {
+      out.push(`שניכם אוהבים ${common[0]} — שאלה פתוחה: "מה האחרון/ה שעשית בנושא ${common[0]}?"`);
+    }
+    if (Math.abs(p1.age - p2.age) <= 3) {
+      out.push('אתם באותו שלב חיים — נסה לפתוח בשיחה על חוויות עכשוויות, לא על העבר.');
+    }
+    if (p1.looking.toLowerCase().includes(p2.looking.toLowerCase().slice(0, 4))) {
+      out.push('שניכם מחפשים אותו דבר — אפשר לדבר בכנות יחסית מהר על כיוון.');
+    }
+    if (out.length === 0) {
+      out.push('התחל מסקרנות — שאלה פתוחה על משהו מהביו שלהם, בלי לחכות לתשובה ארוכה.');
+      out.push('הימנע משאלות סגורות בהתחלה. תן מקום לתשובה לא צפויה.');
+    }
+    return out;
+  }
+
+  function buildInsights(b) {
+    const items = [];
+    if (b.interests >= 50) items.push('חפיפה גבוהה בתחומי עניין — נושאים לדבר עליהם זמינים מיד.');
+    else if (b.interests >= 25) items.push('חפיפה חלקית בתחומי עניין — דורש קצת חקירה משותפת.');
+    else items.push('תחומי עניין שונים — יכול להיות מעניין אם שניהם פתוחים, מסוכן אם לא.');
+
+    if (b.age >= 80) items.push('פערי גיל קטנים — שלב חיים דומה.');
+    else if (b.age <= 40) items.push('פער גילים משמעותי — לוודא תאימות בשלב חיים.');
+
+    if (b.looking >= 50) items.push('שניהם מסכימים על סוג הקשר — בסיס יציב לפתיחה.');
+    else items.push('כיוונים שונים בסוג הקשר — שווה לבדוק בשלב מוקדם.');
+
+    return items;
+  }
+
+  function typeWrite(el, html, done) {
+    el.innerHTML = html;
+    if (done) done();
+  }
+
+  async function runAgent() {
+    const out = document.getElementById('agent-output');
+    out.classList.remove('empty');
+    out.innerHTML = '<div class="agent-line"><span class="agent-tag">Agent</span><span class="typing">מחשב התאמה</span></div>';
+
+    await new Promise(r => setTimeout(r, 500));
+    const res = compute();
+    const verdict = verdictLabel(res.total);
+    const insights = buildInsights(res.breakdown);
+    const starters = buildStarters(res.commonInterests, res.p1, res.p2);
+
+    out.innerHTML = `
+      <div class="agent-line" style="justify-content: space-between; margin-bottom: 14px;">
+        <span class="agent-tag">Match Result</span>
+        <span style="font-size: 13px; color: var(--text-dim);">${verdict.emoji} ${verdict.label}</span>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div class="score-big">${res.total}</div>
+        <div style="color: var(--text-dim); font-size: 14px;">/ 100 תאימות כללית</div>
+      </div>
+      <div class="score-bar"><div class="score-fill" id="score-fill"></div></div>
+
+      <div class="agent-section">
+        <h4>פירוט לפי קטגוריות</h4>
+        <ul>
+          <li>תחומי עניין: <strong style="color: var(--text);">${res.breakdown.interests}%</strong></li>
+          <li>סגנון תיאור עצמי: <strong style="color: var(--text);">${res.breakdown.bio}%</strong></li>
+          <li>סוג קשר מבוקש: <strong style="color: var(--text);">${res.breakdown.looking}%</strong></li>
+          <li>תאימות גיל: <strong style="color: var(--text);">${res.breakdown.age}%</strong></li>
+        </ul>
+      </div>
+
+      <div class="agent-section">
+        <h4>תובנות האייג'נט</h4>
+        <ul>
+          ${insights.map(i => `<li>· ${i}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="agent-section">
+        <h4>פותחי שיחה מומלצים</h4>
+        <ul>
+          ${starters.map(s => `<li>· ${s}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+    setTimeout(() => {
+      const fill = document.getElementById('score-fill');
+      if (fill) fill.style.width = res.total + '%';
+    }, 80);
+  }
+
+  document.getElementById('run-agent').addEventListener('click', runAgent);
+
+  const samples = [
+    {
+      p1: { age: 34, interests: 'גיטרה, סרטים, ריצה', bio: 'מוזיקאי לשעבר, היום בהייטק. אוהב סרטים ישנים ושיחות לילה.', looking: 'קשר רציני' },
+      p2: { age: 31, interests: 'מוזיקה, ריצה, ספרות', bio: 'אוהבת ריצה ארוכה, ספרות ישראלית, ושיחות אמיתיות.', looking: 'קשר רציני' }
+    },
+    {
+      p1: { age: 27, interests: 'מסיבות, טיולים, אקסטרים', bio: 'חיים אחת, יאללה לעשות.', looking: 'משהו זורם' },
+      p2: { age: 38, interests: 'יין, אופרה, ספרות צרפתית', bio: 'מחפש שותפה לחיים שקטים ומעמיקים.', looking: 'נישואין' }
+    },
+    {
+      p1: { age: 29, interests: 'בישול, אומנות, יוגה', bio: 'מאמינה ביצירת ערך אמיתי. אוהבת לבשל לאנשים שאני אוהבת.', looking: 'קשר רציני' },
+      p2: { age: 30, interests: 'אומנות, בישול, צילום', bio: 'צלם פעיל, מבשל ברצינות, מחפש מישהי לחלוק איתה.', looking: 'קשר רציני' }
+    }
+  ];
+
+  document.getElementById('randomize').addEventListener('click', () => {
+    const s = samples[Math.floor(Math.random() * samples.length)];
+    document.getElementById('p1-age').value = s.p1.age;
+    document.getElementById('p1-interests').value = s.p1.interests;
+    document.getElementById('p1-bio').value = s.p1.bio;
+    document.getElementById('p1-looking').value = s.p1.looking;
+    document.getElementById('p2-age').value = s.p2.age;
+    document.getElementById('p2-interests').value = s.p2.interests;
+    document.getElementById('p2-bio').value = s.p2.bio;
+    document.getElementById('p2-looking').value = s.p2.looking;
+  });
+</script>
+</body>
+</html>

@@ -74,6 +74,6 @@ export default function App() {
     case 'session-detail':
       return <SessionDetail uid={uid} sessionId={route.sessionId} navigate={navigate} />;
     case 'settings':
-      return <Settings navigate={navigate} onLogout={doLogout} />;
+      return <Settings uid={uid} navigate={navigate} onLogout={doLogout} />;
   }
 }

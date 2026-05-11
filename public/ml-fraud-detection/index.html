@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Data Scientist · Fraud / Anomaly Detection | Shlomi Zevin</title>
+  <meta name="description" content="Proposal for Data Scientist & ML/AI Engineer position — Fraud / Anomaly Detection. Shlomi Zevin — 20+ years engineering & research, neural networks, real-time anomaly detection." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c12;
+      --bg-alt: #0f121a;
+      --card: #141821;
+      --card-hover: #181d28;
+      --border: #1f2530;
+      --border-strong: #2a313d;
+      --text: #f3f5f9;
+      --text-muted: #8b93a3;
+      --text-dim: #5a6271;
+      --accent: #06b6d4;
+      --accent-strong: #0891b2;
+      --accent-soft: rgba(6, 182, 212, 0.12);
+      --accent-2: #818cf8;
+      --accent-2-soft: rgba(129, 140, 248, 0.12);
+      --good: #10b981;
+      --good-soft: rgba(16, 185, 129, 0.12);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.14);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f6f7fa;
+      --card: #ffffff;
+      --card-hover: #f9fafc;
+      --border: #e6e8ee;
+      --border-strong: #d2d6df;
+      --text: #0a0c12;
+      --text-muted: #545b6a;
+      --text-dim: #8b93a3;
+      --accent-soft: rgba(6, 182, 212, 0.10);
+      --accent-2-soft: rgba(129, 140, 248, 0.10);
+      --good-soft: rgba(16, 185, 129, 0.10);
+      --warn-soft: rgba(245, 158, 11, 0.10);
+      --danger-soft: rgba(239, 68, 68, 0.10);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .mono { font-family: 'JetBrains Mono', 'Menlo', monospace; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 60; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; gap: 1rem; }
+    .logo { display: inline-flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+    .logo-mark { width: 36px; height: 36px; border-radius: 9px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; color: white; letter-spacing: -0.02em; }
+    .logo-text { font-weight: 700; font-size: 0.97rem; color: var(--text); letter-spacing: -0.01em; display: block; }
+    .logo-sub { font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.55rem; }
+    .theme-toggle { background: transparent; border: 1px solid var(--border); border-radius: 999px; width: 36px; height: 36px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-cta { padding: 0.5rem 1rem; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .header-cta:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-bar { position: sticky; top: 60px; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; padding: 0; white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.92rem; font-weight: 500; padding: 0.95rem 1.3rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; font-family: inherit; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 2.5rem; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; color: var(--accent); padding: 0.35rem 0.85rem; border: 1px solid var(--border); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.5rem; letter-spacing: 0.02em; }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .hero h1 { font-size: clamp(1.85rem, 4.5vw, 3rem); font-weight: 800; line-height: 1.18; margin-bottom: 1.25rem; letter-spacing: -0.02em; max-width: 920px; }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 820px; margin-bottom: 2rem; line-height: 1.75; }
+    .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: all 0.15s; font-family: inherit; }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-head { margin-bottom: 2.5rem; }
+    .section-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .section-head p { color: var(--text-muted); max-width: 760px; font-size: 1rem; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+
+    /* GRID */
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s, background 0.15s; }
+    .card:hover { border-color: var(--border-strong); background: var(--card-hover); }
+    .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .card p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; }
+    .card-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.85rem; font-weight: 700; }
+    .card-icon.indigo { background: var(--accent-2-soft); color: var(--accent-2); }
+    .card-icon.green { background: var(--good-soft); color: var(--good); }
+    .card-icon.warn { background: var(--warn-soft); color: var(--warn); }
+    .card-icon.danger { background: var(--danger-soft); color: var(--danger); }
+    .card ul { list-style: none; margin-top: 0.85rem; padding: 0; }
+    .card li { font-size: 0.88rem; color: var(--text-muted); padding: 0.3rem 0; padding-left: 1.1rem; position: relative; }
+    .card li::before { content: ''; position: absolute; left: 0; top: 0.85rem; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+    /* MATCH TABLE */
+    .req-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--card); }
+    .req-table th { background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 0.88rem; padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .req-table td { padding: 0.95rem 1rem; border-top: 1px solid var(--border); font-size: 0.91rem; vertical-align: top; }
+    .req-table tr:first-child td { border-top: none; }
+    .req-col { width: 32%; color: var(--text); font-weight: 500; }
+    .my-col { color: var(--text-muted); }
+    .check-col { width: 50px; text-align: center; }
+    .check-yes { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--good-soft); color: var(--good); align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+
+    /* CALLOUT */
+    .callout { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin: 2rem 0; }
+    .callout h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--accent); }
+    .callout p { color: var(--text); font-size: 0.95rem; line-height: 1.7; }
+    .callout p + p { margin-top: 0.55rem; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0; }
+    .stat { padding: 1.5rem 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .stat-num { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); line-height: 1; margin-bottom: 0.5rem; }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* EXPERIENCE */
+    .exp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .exp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--accent); }
+    .exp-tag { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+    .exp-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .exp-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+    .exp-stack { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 1rem; }
+    .exp-stack span { font-size: 0.72rem; padding: 0.22rem 0.6rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); }
+
+    /* PIPELINE FLOW */
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin: 2rem 0; align-items: stretch; }
+    .flow-step { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 0.85rem; text-align: center; position: relative; }
+    .flow-step .num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .flow-step h5 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .flow-step p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; }
+    .flow-arrow { position: absolute; right: -16px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 1rem; pointer-events: none; }
+    .flow-step:last-child .flow-arrow { display: none; }
+
+    /* DEMO FRAME */
+    .demo-frame { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .demo-header { padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--bg-alt); }
+    .demo-dots { display: flex; gap: 0.35rem; }
+    .demo-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--border-strong); }
+    .demo-url { font-size: 0.78rem; color: var(--text-muted); padding: 0.3rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-family: 'JetBrains Mono', monospace; }
+    .demo-label { font-size: 0.7rem; color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .demo-label::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulseDot 1.4s infinite; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .demo-body { background: var(--card); padding: 1.5rem; }
+
+    /* FRAUD DASHBOARD */
+    .fraud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .fraud-controls { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; padding: 0.85rem 1rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 1rem; }
+    .ctrl-group { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
+    .ctrl-group label { font-weight: 600; color: var(--text); }
+    .ctrl-btn { padding: 0.42rem 0.85rem; border-radius: 8px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 0.82rem; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .ctrl-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .ctrl-btn.danger-btn { color: var(--danger); border-color: var(--danger); }
+    .ctrl-btn.danger-btn:hover { background: var(--danger-soft); }
+    input[type="range"].slider { accent-color: var(--accent); }
+
+    /* KPI ROW */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+    .kpi { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; }
+    .kpi-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+    .kpi-value { font-size: 1.45rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; line-height: 1; }
+    .kpi-value.good { color: var(--good); }
+    .kpi-value.warn { color: var(--warn); }
+    .kpi-value.danger { color: var(--danger); }
+    .kpi-sub { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.25rem; }
+
+    /* TX STREAM */
+    .panel { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .panel-head { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--card); }
+    .panel-head h5 { font-size: 0.9rem; font-weight: 700; }
+    .panel-head .meta { font-size: 0.72rem; color: var(--text-muted); }
+    .stream-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .stream-table th { padding: 0.5rem 0.75rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+    .stream-table td { padding: 0.55rem 0.75rem; border-top: 1px solid var(--border); font-size: 0.82rem; vertical-align: middle; }
+    .stream-table .mono { font-size: 0.76rem; }
+    .stream-wrap { max-height: 360px; overflow-y: auto; }
+    .stream-wrap::-webkit-scrollbar { width: 8px; }
+    .stream-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    .row-flash { animation: rowEnter 0.5s ease; }
+    @keyframes rowEnter { from { background: var(--accent-soft); } to { background: transparent; } }
+    .row-fraud { background: var(--danger-soft) !important; }
+    .row-suspect { background: var(--warn-soft) !important; }
+    .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.18rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+    .badge.ok { background: var(--good-soft); color: var(--good); }
+    .badge.suspect { background: var(--warn-soft); color: var(--warn); }
+    .badge.fraud { background: var(--danger-soft); color: var(--danger); }
+    .score-bar { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 110px; }
+    .score-bar .bar { width: 60px; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+    .score-bar .fill { height: 100%; background: var(--good); transition: width 0.3s, background 0.3s; }
+    .score-bar .fill.suspect { background: var(--warn); }
+    .score-bar .fill.fraud { background: var(--danger); }
+    .score-bar .num { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; min-width: 32px; }
+
+    /* DETAIL PANEL */
+    .detail-panel { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; }
+    .detail-empty { text-align: center; color: var(--text-dim); font-size: 0.88rem; padding: 2rem 1rem; }
+    .detail-head { padding-bottom: 0.85rem; border-bottom: 1px solid var(--border); margin-bottom: 0.85rem; }
+    .detail-head .tx-id { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .detail-head .tx-amount { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+    .detail-head .tx-meta { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .detail-section { margin-bottom: 0.85rem; }
+    .detail-section h6 { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.55rem; }
+    .feature-list { display: flex; flex-direction: column; gap: 0.45rem; }
+    .feature-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.6rem; align-items: center; font-size: 0.82rem; }
+    .feature-row .label { color: var(--text); }
+    .feature-row .value { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); }
+    .feature-row .impact { display: inline-flex; align-items: center; gap: 0.3rem; min-width: 100px; }
+    .feature-row .impact-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--border); position: relative; overflow: hidden; }
+    .feature-row .impact-fill { position: absolute; height: 100%; background: var(--danger); }
+    .feature-row .impact-fill.neg { background: var(--good); }
+    .feature-row .impact-num { font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); min-width: 38px; text-align: right; }
+
+    /* SCATTER */
+    .scatter-wrap { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; }
+    .scatter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+    .scatter-header h6 { font-size: 0.85rem; font-weight: 700; }
+    .scatter-legend { display: flex; gap: 0.7rem; font-size: 0.72rem; color: var(--text-muted); }
+    .scatter-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .scatter-legend .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .scatter-legend .dot.ok { background: var(--good); }
+    .scatter-legend .dot.suspect { background: var(--warn); }
+    .scatter-legend .dot.fraud { background: var(--danger); }
+    .scatter-svg { width: 100%; height: 280px; display: block; }
+
+    /* METRICS BLOCK */
+    .metrics-block { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 1rem; }
+    .metric-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; text-align: center; }
+    .metric-card .name { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+    .metric-card .val { font-size: 1.3rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+    .metric-card .desc { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+    /* TIMELINE - PROJECT */
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before { content: ''; position: absolute; left: 8px; top: 12px; bottom: 12px; width: 2px; background: var(--border); }
+    .timeline-item { position: relative; padding-bottom: 1.75rem; padding-left: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; left: -19px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-week { font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .timeline-item h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+    .timeline-item p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* PRICE CARD */
+    .price-card { background: var(--card); border: 1px solid var(--accent); border-radius: 18px; padding: 2rem; max-width: 640px; }
+    .price-tag { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .price-num { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .price-num strong { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .price-num span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+    .price-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    .price-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+    .price-list li { padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; padding-left: 1.6rem; position: relative; }
+    .price-list li:last-child { border-bottom: none; }
+    .price-list li::before { content: '✓'; position: absolute; left: 0; top: 0.55rem; color: var(--accent); font-weight: 800; }
+
+    /* STACK */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
+    .stack-item { padding: 0.95rem 1rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .stack-item h5 { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stack-item p { font-size: 0.92rem; color: var(--text); font-weight: 500; }
+
+    /* CREDENTIAL NOTE */
+    .cred-note { background: var(--accent-2-soft); border: 1px solid var(--accent-2); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; }
+    .cred-note h4 { color: var(--accent-2); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .cred-note p { color: var(--text); font-size: 0.92rem; line-height: 1.7; }
+    .cred-note p + p { margin-top: 0.6rem; }
+
+    /* FOOTER */
+    .footer { padding: 2.5rem 0 3rem; border-top: 1px solid var(--border); margin-top: 3rem; text-align: center; }
+    .footer-cta { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .footer-meta { color: var(--text-muted); font-size: 0.85rem; line-height: 1.7; }
+    .footer-meta a { color: var(--accent); text-decoration: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .container { padding: 0 1.1rem; }
+      .grid-2, .grid-3, .grid-4, .exp-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .flow { grid-template-columns: 1fr; }
+      .fraud-grid { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .metrics-block { grid-template-columns: repeat(3, 1fr); }
+      .hero { padding: 2.5rem 0 2rem; }
+      .section { padding: 2rem 0; }
+      .tab-btn { padding: 0.85rem 0.95rem; font-size: 0.88rem; }
+      .price-num strong { font-size: 2.2rem; }
+      .price-card { padding: 1.5rem; }
+      .demo-body { padding: 1rem; }
+      .stream-table th:nth-child(2), .stream-table td:nth-child(2) { display: none; }
+      .stream-table th:nth-child(4), .stream-table td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">SZ</span>
+      <span>
+        <span class="logo-text">Shlomi Zevin</span>
+        <span class="logo-sub">CTO as a Service · 20+ years engineering &amp; research</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+      <a href="https://wa.me/972545567213" class="header-cta" target="_blank">Talk to me</a>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <div class="container">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="proposal">Proposal</button>
+      <button class="tab-btn" data-tab="experience">Relevant Experience</button>
+      <button class="tab-btn" data-tab="demo">Live Demo · Real-time Fraud Detection</button>
+      <button class="tab-btn" data-tab="budget">Budget &amp; Timeline</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ============ TAB: PROPOSAL ============ -->
+<section class="tab-content active" data-content="proposal">
+
+  <div class="container hero">
+    <div class="hero-eyebrow"><span class="dot"></span>Data Scientist · ML/AI Engineer · Fraud / Anomaly Detection</div>
+    <h1>Fraud detection is <em>real-time anomaly detection</em>. I've been building neural networks that do exactly that — for years, on real data.</h1>
+    <p class="hero-sub">
+      I read the listing carefully. 4+ years in ML/AI, focus on fraud / anomaly detection, research background. That's the intersection I've been sitting at for years — built and researched neural networks on real financial data (algo-trading), built behavioral analytics models in production, and every project I've shipped since 2018 involves predictive models at scale. This proposal isn't generic — it's specific to this stack and to the false-positive / recall trade-off that's unique to fraud.
+    </p>
+    <div class="hero-cta">
+      <button class="btn primary" onclick="goTab('demo')">Live Demo →</button>
+      <button class="btn ghost" onclick="goTab('experience')">Relevant Experience</button>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">How I approach the problem</div>
+      <h2>End-to-end fraud detection pipeline</h2>
+      <p>The actual production workflow — not just a notebook. Each step is a failure point if you don't get it right.</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h5>Data &amp; Labels</h5>
+        <p>Source mapping, noise filtering, ground truth from chargebacks</p>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <div class="num">2</div>
+        <h5>Feature Engineering</h5>
+        <p>User/device/IP aggregations, temporal sequences, velocity features</p>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <div class="num">3</div>
+        <h5>Modeling</h5>
+        <p>XGBoost / Isolation Forest / Autoencoder, ensembling</p>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <div class="num">4</div>
+        <h5>Threshold &amp; Cost</h5>
+        <p>Balance precision/recall by your real cost of FP vs FN</p>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <div class="num">5</div>
+        <h5>Serving &amp; Monitoring</h5>
+        <p>Low-latency API, drift detection, explainability, retraining</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">Requirements → what I bring</div>
+      <h2>Every line in the listing — translated into specific experience</h2>
+      <p>Nothing dodged. Including the tricky parts (advanced degree) — addressed transparently.</p>
+    </div>
+
+    <table class="req-table">
+      <thead>
+        <tr>
+          <th class="req-col">Requirement</th>
+          <th>What I bring</th>
+          <th class="check-col">✓</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>4+ years in ML / AI engineering</strong></td>
+          <td class="my-col">20+ years in software engineering, of which 7+ years actively developing production ML models (algo-trading, sports prediction, logistics optimization, behavior analytics). Not Kaggle notebooks — models that ran on real money, real production traffic, and real customers.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hands-on Fraud / Anomaly Detection</strong></td>
+          <td class="my-col">I built and researched neural networks and decision trees for detecting anomalous patterns in market data (crypto + stocks) — that's anomaly detection by definition. Plus behavioral analytics in production (detecting unusual usage patterns) in consumer apps. The stack is identical to fraud: Isolation Forest, Autoencoders, XGBoost, unsupervised clustering.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Master's / Ph.D. in CS / AI</strong></td>
+          <td class="my-col">I have a B.Sc. in CS plus 20+ years of applied research-grade engineering. I've built, trained, and evaluated neural networks as part of real work. If formal credentials are missing — I'll surface that immediately. But the offer is: <strong>look at the code and the models I bring.</strong> That speaks louder than a diploma.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>3-month full-time project</strong></td>
+          <td class="my-col">That's exactly the CTO-as-a-Service window. I take projects from spec to production in 3 months. With Claude Code as a force multiplier, those 3 months look like 8 months of a regular developer's output.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hybrid mode</strong></td>
+          <td class="my-col">Tel Aviv based — happy to come into the office 1-2 days a week, rest from home. Async work documented well, daily syncs as needed. I've been working this way with distributed teams for years.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Production-grade ML</strong></td>
+          <td class="my-col">Not just running .fit(). I handle data drift, label leakage, training-serving skew, retraining cadence, A/B testing of models, shadow mode deployment. The professional standard that separates a model that "works in Excel" from one that runs in live production.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Python / ML stack</strong></td>
+          <td class="my-col">Python, pandas, scikit-learn, XGBoost/LightGBM, PyTorch, TensorFlow, FastAPI for serving, MLflow / Weights &amp; Biases for tracking, Airflow / Prefect for pipelines. But the tools are the surface — what matters is knowing when to use what.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Cloud / Big Data</strong></td>
+          <td class="my-col">AWS (SageMaker, Kinesis, Lambda, S3), GCP (Vertex AI, BigQuery, Pub/Sub), Spark/Databricks when needed. Real streaming — built Kafka/Kinesis pipelines with sub-second latency.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>FP / Recall trade-off in business cost terms</strong></td>
+          <td class="my-col">In production, an over-eager fraud model blocks real customers = lost revenue. Too lenient = losses. I built a cost-sensitive learning framework that bakes the cost of FP vs FN directly into the loss function. Plus human-in-the-loop for grey areas.</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+        <tr>
+          <td><strong>Explainability</strong></td>
+          <td class="my-col">SHAP, LIME, feature importance, custom visualizations. Every model decision is explainable to the analyst reviewing it. (See the demo: each score comes with top contributing features.)</td>
+          <td class="check-col"><span class="check-yes">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="cred-note">
+      <h4>About the advanced-degree requirement — full transparency</h4>
+      <p>The listing requires Master's / Ph.D. in the field. <strong>I don't have a formal Master's.</strong> I have a B.Sc. CS plus 20+ years of real research-grade engineering — built, trained, and evaluated neural networks on real data, mostly with real money on the line (algo-trading). Understanding of backprop, regularization, overfitting, and why models predict what they predict — not from a course, but from the work itself.</p>
+      <p>If the listing is a <strong>strict admin filter</strong> — I understand and won't waste your time. If what you're really after is <strong>someone who can build a fraud model that works</strong> — look at the demo and the experience. I'm confident it'll speak for itself.</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">What I'll build for you</div>
+      <h2>9 modules — a complete fraud detection system</h2>
+      <p>Not just "the model". A model without the pipeline around it is a toy. You'll get the pipeline.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Data Foundation</h3>
+        <p>Source mapping, PII handling, building a labeled dataset from chargebacks and manual reviews.</p>
+        <ul>
+          <li>Label noise validation</li>
+          <li>Data leakage detection</li>
+          <li>Temporal train/val/test splits</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon indigo">🧬</div>
+        <h3>Feature Engineering</h3>
+        <p>This is the gold mine in fraud detection. Velocity features, graph features, device fingerprints, behavioral sequences.</p>
+        <ul>
+          <li>User / IP / device aggregations</li>
+          <li>Time windows (1m, 1h, 24h)</li>
+          <li>Action sequence embeddings</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>Modeling</h3>
+        <p>Not one box — three parallel models that talk to each other. Supervised, unsupervised, deep.</p>
+        <ul>
+          <li>XGBoost / LightGBM as main</li>
+          <li>Isolation Forest for novelty</li>
+          <li>Autoencoder for complex patterns</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon indigo">⚡</div>
+        <h3>Real-time Serving</h3>
+        <p>Sub-100ms latency. FastAPI + Redis feature store, async batch option for less time-critical cases.</p>
+        <ul>
+          <li>Model + features service</li>
+          <li>Smart caching</li>
+          <li>Graceful degradation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon green">🎯</div>
+        <h3>Threshold Optimization</h3>
+        <p>Where do you set the line? Not by accuracy — by $ saved per $ blocked. Business cost framework.</p>
+        <ul>
+          <li>Cost-matrix optimization</li>
+          <li>Per-segment thresholds</li>
+          <li>Auto-update over time</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon green">🧠</div>
+        <h3>Explainability</h3>
+        <p>Every model decision is explained. SHAP values per transaction — top features that drove the score. Critical for analysts and for compliance.</p>
+        <ul>
+          <li>SHAP / LIME</li>
+          <li>Natural-language reasons</li>
+          <li>Decision audit trail</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">📈</div>
+        <h3>Drift &amp; Monitoring</h3>
+        <p>A model that worked last week can stop working today. Data drift, prediction drift, performance decay — monitored automatically.</p>
+        <ul>
+          <li>PSI / KS on features</li>
+          <li>Automated alerts</li>
+          <li>Scheduled retraining</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon warn">👤</div>
+        <h3>Human-in-the-Loop</h3>
+        <p>Grey zone (score 0.5-0.8) routes to an analyst. Their decisions feed back as new labels — active learning loop.</p>
+        <ul>
+          <li>Smart review queue</li>
+          <li>Feedback capture</li>
+          <li>Active learning</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon danger">🛡️</div>
+        <h3>Adversarial Resilience</h3>
+        <p>Fraudsters adapt. I build a measurable process for tracking tactic shifts, plus diverse model ensembles that don't break together.</p>
+        <ul>
+          <li>Adversarial testing</li>
+          <li>Diverse ensemble</li>
+          <li>Internal red team</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">Pitfalls I know in my gut</div>
+      <h2>Where fraud systems fail — and how I prevent it</h2>
+      <p>The 4 classic risks I see in every fraud detection project — and how I put a safety net under each from day 1.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-icon danger">🎭</div>
+        <h3>Label Leakage</h3>
+        <p>A feature that updates <em>after</em> the decision (e.g. "chargeback_count") — the model shows 99% accuracy in backtest and falls apart in production. My first check: rigorous <strong>temporal validation</strong>, point-in-time correctness.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon danger">⚖️</div>
+        <h3>Class Imbalance</h3>
+        <p>Your fraud rate is probably 0.1%-2%. A "lazy" model that always says "legit" — 99% accurate. I work with SMOTE, class weights, focal loss, and measure PR-AUC, not ROC-AUC.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon danger">🌊</div>
+        <h3>Concept Drift</h3>
+        <p>Fraud tactics shift monthly. A static model decays in 3-6 months. I build monitoring that detects decay <em>before</em> it shows up in business numbers.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon danger">💸</div>
+        <h3>False Positives Out of Control</h3>
+        <p>If FP rate gets too high, analysts lose trust and rubber-stamp everything — "alert fatigue". I track analyst review rate and set thresholds that preserve reasonable precision.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">About the monthly model</div>
+      <h2>I'm CTO as a Service, not a hire</h2>
+    </div>
+
+    <div class="cred-note">
+      <h4>Why this is actually good for you on a 3-month project</h4>
+      <p>I can't join as a full-time employee — I'm a tech partner on a monthly engagement. But on a 3-month project, that's <strong>exactly what you need</strong>: bounded time, clear scope, clean exit at the end, no long-term commitment.</p>
+      <p><strong>The model:</strong> ~$13,500/month covering me + a data engineer / ML engineer alongside as the project requires. Full transparency — your code, your models, your infra. At the end of 3 months: a production-ready system, an internal team that's been trained, and a clean handoff to whoever continues.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: EXPERIENCE ============ -->
+<section class="tab-content" data-content="experience">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">Who I am</div>
+      <h2>Shlomi Zevin — CTO as a Service. ML engineering &amp; research from before it was a buzzword.</h2>
+      <p>I built and researched neural networks on real data before "AI" became a trend. The experience comes from places where models operated on real money, or real users.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">20+</div>
+        <div class="stat-label">years in engineering</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">7+</div>
+        <div class="stat-label">years ML in production</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">50+</div>
+        <div class="stat-label">products built from zero</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3-4</div>
+        <div class="stat-label">typical months from spec to production</div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 3rem;">
+      <h2>Specific projects that map to fraud detection</h2>
+      <p>Not "approximate" experience. For every capability the role requires — there's a concrete example.</p>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-tag">Anomaly Detection · Real $</div>
+        <h4>Algo-trading system based on neural networks</h4>
+        <p>Personal project running for years. Started with decision trees, evolved to neural networks. Built the models, trained them, evaluated them, traded on real money. <strong>This is anomaly detection by definition</strong> — detecting unusual patterns in financial time series. The stack is identical to fraud: imbalanced classes, concept drift, temporal validation, cost-sensitive thresholds.</p>
+        <div class="exp-stack">
+          <span>Neural Networks</span>
+          <span>XGBoost</span>
+          <span>Time Series</span>
+          <span>Anomaly Detection</span>
+          <span>Backtesting</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Behavioral Analytics</div>
+        <h4>Doing — AI-driven behavior analysis</h4>
+        <p>Therapy platform for children on the autism spectrum. Built a behavior analytics engine that detects unusual usage patterns — directly transferable to the fraud skillset: detecting what's <em>different</em> from a user's expected behavior. Same primitive, different signal.</p>
+        <div class="exp-stack">
+          <span>Sequence Models</span>
+          <span>User Profiling</span>
+          <span>Outlier Detection</span>
+          <span>Production AI</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Prediction Modeling</div>
+        <h4>Octopol &amp; Sidelines — sports prediction</h4>
+        <p>Two products. Octopol — match outcome prediction algorithm. Sidelines — fantasy football team optimization with genetic algorithms. <strong>Sidelines was acquired by NI.</strong> Both products: prediction under uncertainty, classification + ranking models, probability calibration.</p>
+        <div class="exp-stack">
+          <span>Classification</span>
+          <span>Genetic Algorithms</span>
+          <span>Probability Calibration</span>
+          <span>Acquired</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">EdTech · ML</div>
+        <h4>ML-powered campaign optimization</h4>
+        <p>EdTech platform — model that predicted which campaigns would convert and allocated budget automatically. Multi-armed bandits + supervised conversion prediction. In production, on real budgets, with the feature most relevant to fraud: <strong>automated decisions under business cost</strong>.</p>
+        <div class="exp-stack">
+          <span>Conversion Prediction</span>
+          <span>Multi-Armed Bandits</span>
+          <span>A/B Testing</span>
+          <span>Cost Optimization</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Optimization</div>
+        <h4>Evolutionary algorithm for logistics optimization</h4>
+        <p>Same-day delivery system — evolutionary algorithm (close cousin of genetic algorithms) for route optimization across hundreds of points. Optimization under constraints — overlapping skill set with cost-sensitive fraud thresholding.</p>
+        <div class="exp-stack">
+          <span>Evolutionary Algorithms</span>
+          <span>Optimization</span>
+          <span>Constraints</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">AI Agents · LLM</div>
+        <h4>Production AI agent platform</h4>
+        <p>Full multi-LLM agent platform (OpenAI, Claude, Gemini), with routing, stateful conversations, streaming. Relevant to fraud when an LLM enters the explainability layer (natural-language decision rationale for analysts).</p>
+        <div class="exp-stack">
+          <span>LLM Agents</span>
+          <span>RAG</span>
+          <span>Production AI</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Data Engineering</div>
+        <h4>Pipelines at scale</h4>
+        <p>Built streaming pipelines on Kafka/Kinesis, batch ETL with Airflow/Spark, Redis-backed feature stores. The data infrastructure that has to sit under a fraud model in production.</p>
+        <div class="exp-stack">
+          <span>Kafka</span>
+          <span>Spark</span>
+          <span>Airflow</span>
+          <span>Redis</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Cloud · MLOps</div>
+        <h4>End-to-end MLOps</h4>
+        <p>SageMaker, Vertex AI, MLflow, Weights &amp; Biases, model registries, CI/CD for models, A/B testing in production, shadow deployments. The second pillar (after the model itself) of a fraud system that actually works.</p>
+        <div class="exp-stack">
+          <span>SageMaker</span>
+          <span>MLflow</span>
+          <span>CI/CD</span>
+          <span>Model Registry</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Statistical Modeling</div>
+        <h4>Research background in modeling</h4>
+        <p>Beyond practical work — <strong>I understand the theory</strong>: backprop, regularization, bias-variance, time-series-correct cross-validation, stratified sampling, significance testing, confidence intervals. The background that lets me hold an eye-level conversation with a senior data scientist.</p>
+        <div class="exp-stack">
+          <span>Statistics</span>
+          <span>Hypothesis Testing</span>
+          <span>Bayesian Methods</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2.5rem;">
+      <h4>What sets me apart on this specific project</h4>
+      <p>Fraud detection looks like a problem of "picking the right algorithm" — that's an illusion. The real problem is in the seams: between raw data and features, between the model and the business, between latency and accuracy, between the analyst and the model. <strong>I've built each of these boxes individually, and I know exactly how they break in the seams.</strong> That's the difference between someone who took a Coursera course and someone whose models ran on real money for years.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: DEMO ============ -->
+<section class="tab-content" data-content="demo">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">Live Interactive Demo</div>
+      <h2>Real-time Fraud Detection — interactive</h2>
+      <p>Simulates an incoming transaction stream, a model scoring each one in real time, SHAP-style feature importance, and live performance metrics. Click any transaction to see the full breakdown. Built in minutes with Claude Code — this is a proof of pace, not a finished system.</p>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-header">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <span class="demo-url">fraud-engine.boostart.io/dashboard</span>
+        </div>
+        <span class="demo-label">live</span>
+      </div>
+      <div class="demo-body">
+
+        <div class="fraud-controls">
+          <div class="ctrl-group">
+            <label>Stream:</label>
+            <button class="ctrl-btn active" id="streamPlay">▶ Play</button>
+            <button class="ctrl-btn" id="streamPause">⏸ Pause</button>
+          </div>
+          <div class="ctrl-group">
+            <label>Speed:</label>
+            <button class="ctrl-btn" data-speed="2000">Slow</button>
+            <button class="ctrl-btn active" data-speed="900">Normal</button>
+            <button class="ctrl-btn" data-speed="350">Fast</button>
+          </div>
+          <div class="ctrl-group">
+            <label>Threshold:</label>
+            <input type="range" class="slider" id="thresholdSlider" min="20" max="90" value="65" />
+            <span class="mono" id="thresholdVal">0.65</span>
+          </div>
+          <div class="ctrl-group">
+            <button class="ctrl-btn danger-btn" id="injectFraud">💉 Inject Attack</button>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-label">Transactions</div>
+            <div class="kpi-value" id="kpiTotal">0</div>
+            <div class="kpi-sub" id="kpiTotalRate">0/min</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Fraud blocked</div>
+            <div class="kpi-value danger" id="kpiBlocked">0</div>
+            <div class="kpi-sub" id="kpiBlockedAmount">$0 saved</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Manual review</div>
+            <div class="kpi-value warn" id="kpiReview">0</div>
+            <div class="kpi-sub">analyst queue</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Avg latency</div>
+            <div class="kpi-value good" id="kpiLatency">42ms</div>
+            <div class="kpi-sub">p95: <span id="kpiLatencyP95">78ms</span></div>
+          </div>
+        </div>
+
+        <div class="fraud-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <h5>🔴 Live Transaction Stream</h5>
+              <span class="meta">real-time · click for details</span>
+            </div>
+            <div class="stream-wrap" id="streamWrap">
+              <table class="stream-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                    <th>Amount</th>
+                    <th>User</th>
+                    <th>Score</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="streamBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="detail-panel" id="detailPanel">
+            <div class="detail-empty" id="detailEmpty">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+              <div>Pick a transaction from the stream</div>
+              <div style="font-size: 0.78rem; margin-top: 0.5rem; color: var(--text-dim);">Or wait — the next detected fraud opens automatically</div>
+            </div>
+            <div id="detailContent" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="scatter-wrap" style="margin-top: 1rem;">
+          <div class="scatter-header">
+            <h6>Anomaly Map — 2D projection of recent transactions</h6>
+            <div class="scatter-legend">
+              <span><span class="dot ok"></span>Legit</span>
+              <span><span class="dot suspect"></span>Suspect</span>
+              <span><span class="dot fraud"></span>Fraud</span>
+            </div>
+          </div>
+          <svg class="scatter-svg" id="scatter" viewBox="0 0 600 280" preserveAspectRatio="none">
+            <g id="scatterGrid"></g>
+            <g id="scatterPoints"></g>
+          </svg>
+        </div>
+
+        <div class="metrics-block">
+          <div class="metric-card">
+            <div class="name">Precision</div>
+            <div class="val" id="metricPrec">0.94</div>
+            <div class="desc">of predicted fraud</div>
+          </div>
+          <div class="metric-card">
+            <div class="name">Recall</div>
+            <div class="val" id="metricRec">0.87</div>
+            <div class="desc">of actual fraud</div>
+          </div>
+          <div class="metric-card">
+            <div class="name">PR-AUC</div>
+            <div class="val" id="metricAuc">0.91</div>
+            <div class="desc">area under curve</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2rem;">
+      <h4>What you're seeing here</h4>
+      <p>A synthetic transaction stream that mimics real load. The model scores each transaction (XGBoost-like scoring, simulated), crosses a threshold you control, and routes transactions to block / review / approve. Click any transaction to see the SHAP-style feature contributions. The scatter plot shows a 2D projection of feature space — isolated regions = anomalies.</p>
+      <p><strong>Why this isn't just UI:</strong> every piece — feature engineering, cost-sensitive thresholds, explainability, the analyst view, drift monitoring — is one of the boxes I'll actually build for you. This isn't a mockup — it's an architecture sketch you can click through.</p>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ============ TAB: BUDGET ============ -->
+<section class="tab-content" data-content="budget">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">Budget &amp; Timeline</div>
+      <h2>Monthly model · 3 months · production-ready</h2>
+      <p>Clear scope, transparent pricing, clean exit at the end.</p>
+    </div>
+
+    <div class="price-card">
+      <div class="price-tag">CTO as a Service · Fraud Detection</div>
+      <div class="price-num">
+        <strong>~$13,500</strong>
+        <span>/ month</span>
+      </div>
+      <p class="price-desc">Covers me (tech lead + ML) + a data engineer / ML engineer alongside as the phase requires. Total ~$40,500 for the full 3-month engagement.</p>
+      <ul class="price-list">
+        <li>Production fraud / anomaly detection model</li>
+        <li>End-to-end feature engineering pipeline</li>
+        <li>Real-time serving API (sub-100ms)</li>
+        <li>Analyst dashboard + explainability layer</li>
+        <li>Drift monitoring + retraining cadence</li>
+        <li>Model CI/CD, A/B + shadow deployments</li>
+        <li>Technical docs + internal team training</li>
+        <li>Full transparency — your code, your models</li>
+      </ul>
+    </div>
+
+    <div class="section" style="padding-top: 2rem;">
+      <div class="section-head">
+        <div class="section-eyebrow">Phased timeline</div>
+        <h2>What 3 months actually looks like</h2>
+        <p>Clear milestones, end-of-month checkpoints, model in production by end of month 3.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-week">Weeks 1-2</div>
+          <h4>Data discovery, baseline</h4>
+          <p>Source mapping, building a labeled dataset, EDA, identifying potential leakage, simple baseline model (logistic regression) for comparison. <strong>Output:</strong> data report + baseline metrics.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Weeks 3-4</div>
+          <h4>Serious feature engineering</h4>
+          <p>Velocity features, aggregations, graph features (where relevant), device fingerprints, action sequences. Stability checks over time. <strong>Output:</strong> feature store + feature catalog.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Weeks 5-6</div>
+          <h4>Modeling &amp; tuning</h4>
+          <p>Train main XGBoost / LightGBM, Isolation Forest for novelty, Autoencoder for deep patterns. Hyperparameter tuning. Ensemble. <strong>Output:</strong> trained models + eval report.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Weeks 7-8</div>
+          <h4>Serving + threshold optimization</h4>
+          <p>FastAPI serving, Redis feature store, load testing, threshold optimization against your actual cost matrix, explainability layer (SHAP). <strong>Output:</strong> production-ready API + explainer.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Weeks 9-10</div>
+          <h4>Analyst dashboard + human-in-the-loop</h4>
+          <p>Dashboard with review queue, decision history, feedback loop, case management. "Retrain with my labels" button. <strong>Output:</strong> production-ready dashboard.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week">Weeks 11-12</div>
+          <h4>Monitoring, drift, rollout</h4>
+          <p>Data drift, prediction drift, performance decay, alerts. Shadow mode, A/B testing, gradual rollout. Internal team training. <strong>Output:</strong> live system + trained team.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <div class="section-head">
+        <div class="section-eyebrow">Stack</div>
+        <h2>The stack I'll bring</h2>
+      </div>
+      <div class="stack-grid">
+        <div class="stack-item"><h5>Language</h5><p>Python 3.11+</p></div>
+        <div class="stack-item"><h5>Core ML</h5><p>scikit-learn, XGBoost, LightGBM</p></div>
+        <div class="stack-item"><h5>Deep Learning</h5><p>PyTorch, TensorFlow</p></div>
+        <div class="stack-item"><h5>Anomaly</h5><p>Isolation Forest, Autoencoders, PyOD</p></div>
+        <div class="stack-item"><h5>Explainability</h5><p>SHAP, LIME, ELI5</p></div>
+        <div class="stack-item"><h5>Serving</h5><p>FastAPI, Redis, Docker</p></div>
+        <div class="stack-item"><h5>Pipelines</h5><p>Airflow, Prefect, Dagster</p></div>
+        <div class="stack-item"><h5>Streaming</h5><p>Kafka, Kinesis, RedPanda</p></div>
+        <div class="stack-item"><h5>Cloud</h5><p>AWS (SageMaker), GCP (Vertex)</p></div>
+        <div class="stack-item"><h5>Tracking</h5><p>MLflow, W&amp;B, Neptune</p></div>
+        <div class="stack-item"><h5>Big Data</h5><p>Spark, Databricks, BigQuery</p></div>
+        <div class="stack-item"><h5>Monitoring</h5><p>Evidently, WhyLabs, Arize</p></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2rem;">
+      <h4>Next step?</h4>
+      <p>If this resonates — a 30-minute call. I want to understand the data you have today, the system you have today, and what's working or not. I'll come back with a specific point of view — not a generic deck.</p>
+      <p><strong>Shlomi Zevin</strong><br/>
+      <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:054-5567213">054-5567213</a> · <a href="https://wa.me/972545567213" target="_blank">WhatsApp</a></p>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-cta">
+      <a class="btn primary" href="https://wa.me/972545567213" target="_blank">WhatsApp</a>
+      <a class="btn ghost" href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+    </div>
+    <p class="footer-meta">
+      Shlomi Zevin · CTO as a Service · <a href="https://boostart.io" target="_blank">boostart.io</a><br/>
+      054-5567213 · 20+ years engineering · 7+ years ML in production
+    </p>
+  </div>
+</footer>
+
+<script>
+  // Theme toggle
+  (function() {
+    const btn = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    btn.textContent = saved === 'light' ? '☀️' : '🌙';
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      if (cur === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+        btn.textContent = '🌙';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        btn.textContent = '☀️';
+      }
+    });
+  })();
+
+  // Tabs
+  function goTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.dataset.content === name));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+
+  /* =====================================================================
+     FRAUD DETECTION DEMO
+     ===================================================================== */
+
+  const NAMES = ['Daniel.K', 'Maya.R', 'Ofir.S', 'Talia.B', 'Itay.M', 'Noga.L', 'Ron.G', 'Yael.D', 'Eitan.P', 'Mor.A', 'Adi.N', 'Ben.H'];
+  const COUNTRIES = ['IL', 'US', 'GB', 'DE', 'FR', 'NG', 'RU', 'TH', 'BR', 'IN', 'PH'];
+  const RISK_COUNTRIES = ['NG', 'RU', 'TH', 'PH'];
+  const MERCHANTS = ['Amazon', 'Steam', 'AliExpress', 'Booking.com', 'Wolt', 'Apple', 'Spotify', 'Uber', 'Etsy', 'BestBuy', 'eBay', 'Shopify-store'];
+  const DEVICES = ['iOS-17', 'Android-14', 'Win-Chrome', 'Mac-Safari', 'Linux-FF', 'iOS-15', 'Android-12'];
+
+  let txCounter = 1000;
+  let totalTx = 0;
+  let blockedTx = 0;
+  let savedAmount = 0;
+  let reviewQueue = 0;
+  let latencySum = 0;
+  let latencyCount = 0;
+  let p95Buf = [];
+  let allTx = [];
+  let speedMs = 900;
+  let threshold = 0.65;
+  let streamTimer = null;
+  let injectFlag = 0;
+  let selectedTxId = null;
+
+  const fmt$ = n => '$' + n.toLocaleString('en-US', {maximumFractionDigits: 0});
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const irand = (a, b) => Math.floor(rand(a, b + 1));
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  function generateTx() {
+    const isFraudInjected = injectFlag > 0;
+    if (isFraudInjected) injectFlag--;
+
+    const isActualFraud = isFraudInjected || Math.random() < 0.04;
+    const isMaybeRisky = !isActualFraud && Math.random() < 0.12;
+
+    let amount, country, hour, deviceMatch, ipUserMismatch, velocityScore, accountAge;
+    if (isActualFraud) {
+      amount = irand(800, 4500);
+      country = pick(RISK_COUNTRIES.concat(['US', 'GB']));
+      hour = pick([2, 3, 4, 23]);
+      deviceMatch = Math.random() < 0.2;
+      ipUserMismatch = Math.random() < 0.85;
+      velocityScore = rand(0.7, 1.0);
+      accountAge = irand(1, 14);
+    } else if (isMaybeRisky) {
+      amount = irand(150, 1200);
+      country = pick(COUNTRIES);
+      hour = pick([0, 1, 22, 23, 14, 15]);
+      deviceMatch = Math.random() < 0.6;
+      ipUserMismatch = Math.random() < 0.3;
+      velocityScore = rand(0.3, 0.7);
+      accountAge = irand(15, 200);
+    } else {
+      amount = irand(8, 350);
+      country = pick(['IL', 'IL', 'IL', 'US', 'US', 'GB', 'DE', 'FR']);
+      hour = irand(8, 21);
+      deviceMatch = Math.random() < 0.95;
+      ipUserMismatch = Math.random() < 0.05;
+      velocityScore = rand(0.0, 0.3);
+      accountAge = irand(180, 2500);
+    }
+
+    const features = {
+      amount,
+      country,
+      hour,
+      device_match: deviceMatch ? 1 : 0,
+      ip_user_geo_mismatch: ipUserMismatch ? 1 : 0,
+      velocity_1h: velocityScore,
+      account_age_days: accountAge,
+      merchant_risk: rand(0, 1),
+      is_new_merchant: Math.random() < 0.2 ? 1 : 0,
+    };
+
+    const contribs = computeContributions(features);
+    const baseScore = 0.05;
+    const sumContrib = contribs.reduce((s, c) => s + c.value, 0);
+    const score = Math.max(0, Math.min(1, baseScore + sumContrib));
+
+    return {
+      id: 'tx_' + (txCounter++),
+      timestamp: new Date(),
+      user: pick(NAMES) + '#' + irand(100, 999),
+      device: pick(DEVICES),
+      merchant: pick(MERCHANTS),
+      features,
+      score,
+      contribs,
+      isActualFraud,
+      latency: irand(28, 95),
+    };
+  }
+
+  function computeContributions(f) {
+    const c = [];
+    if (f.amount > 1500) c.push({ name: 'amount', value: 0.22, raw: '$' + f.amount, desc: 'amount significantly above norm' });
+    else if (f.amount > 700) c.push({ name: 'amount', value: 0.08, raw: '$' + f.amount, desc: 'amount above average' });
+    else c.push({ name: 'amount', value: -0.04, raw: '$' + f.amount, desc: 'normal amount' });
+    if (RISK_COUNTRIES.includes(f.country)) c.push({ name: 'country', value: 0.18, raw: f.country, desc: 'high-risk country' });
+    else c.push({ name: 'country', value: -0.03, raw: f.country, desc: 'normal country' });
+    if (f.hour < 6 || f.hour >= 23) c.push({ name: 'hour_of_day', value: 0.13, raw: f.hour + ':00', desc: 'unusual hour' });
+    else c.push({ name: 'hour_of_day', value: -0.02, raw: f.hour + ':00', desc: 'normal active hours' });
+    if (!f.device_match) c.push({ name: 'device_match', value: 0.15, raw: 'no', desc: 'unrecognized device' });
+    else c.push({ name: 'device_match', value: -0.05, raw: 'yes', desc: 'known device' });
+    if (f.ip_user_geo_mismatch) c.push({ name: 'ip_geo_mismatch', value: 0.20, raw: 'yes', desc: 'IP location mismatch' });
+    else c.push({ name: 'ip_geo_mismatch', value: -0.04, raw: 'no', desc: 'IP location matches' });
+    if (f.velocity_1h > 0.6) c.push({ name: 'velocity_1h', value: 0.16, raw: f.velocity_1h.toFixed(2), desc: 'unusual transaction rate' });
+    else if (f.velocity_1h > 0.3) c.push({ name: 'velocity_1h', value: 0.05, raw: f.velocity_1h.toFixed(2), desc: 'slightly elevated rate' });
+    else c.push({ name: 'velocity_1h', value: -0.03, raw: f.velocity_1h.toFixed(2), desc: 'normal rate' });
+    if (f.account_age_days < 30) c.push({ name: 'account_age', value: 0.10, raw: f.account_age_days + 'd', desc: 'very young account' });
+    else if (f.account_age_days < 90) c.push({ name: 'account_age', value: 0.04, raw: f.account_age_days + 'd', desc: 'young account' });
+    else c.push({ name: 'account_age', value: -0.06, raw: f.account_age_days + 'd', desc: 'established account' });
+    if (f.merchant_risk > 0.7) c.push({ name: 'merchant_risk', value: 0.07, raw: f.merchant_risk.toFixed(2), desc: 'merchant risk' });
+    else c.push({ name: 'merchant_risk', value: -0.02, raw: f.merchant_risk.toFixed(2), desc: 'trusted merchant' });
+    return c.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+  }
+
+  function classify(score) {
+    if (score >= threshold + 0.15) return 'fraud';
+    if (score >= threshold) return 'fraud';
+    if (score >= threshold - 0.18) return 'suspect';
+    return 'ok';
+  }
+
+  function actionLabel(cls) {
+    if (cls === 'fraud') return '<span class="badge fraud">Block</span>';
+    if (cls === 'suspect') return '<span class="badge suspect">Review</span>';
+    return '<span class="badge ok">Approve</span>';
+  }
+
+  function scoreBar(score, cls) {
+    const w = Math.round(score * 100);
+    return `<span class="score-bar"><span class="bar"><span class="fill ${cls === 'ok' ? '' : cls}" style="width:${w}%"></span></span><span class="num mono">${score.toFixed(2)}</span></span>`;
+  }
+
+  function formatTime(d) {
+    return d.toTimeString().slice(0, 8);
+  }
+
+  function addRow(tx) {
+    const tbody = document.getElementById('streamBody');
+    const cls = classify(tx.score);
+    const tr = document.createElement('tr');
+    tr.dataset.txId = tx.id;
+    tr.className = 'row-flash ' + (cls === 'fraud' ? 'row-fraud' : cls === 'suspect' ? 'row-suspect' : '');
+    tr.innerHTML = `
+      <td class="mono">${tx.id.slice(-4)}</td>
+      <td class="mono">${formatTime(tx.timestamp)}</td>
+      <td>${fmt$(tx.features.amount)}</td>
+      <td>${tx.user}</td>
+      <td>${scoreBar(tx.score, cls)}</td>
+      <td>${actionLabel(cls)}</td>
+    `;
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => selectTx(tx));
+    tbody.insertBefore(tr, tbody.firstChild);
+
+    while (tbody.children.length > 30) tbody.removeChild(tbody.lastChild);
+
+    allTx.push(tx);
+    if (allTx.length > 80) allTx.shift();
+
+    updateKpis(tx, cls);
+    updateScatter();
+
+    if (cls === 'fraud' && (!selectedTxId || document.getElementById('detailEmpty').style.display !== 'none')) {
+      selectTx(tx);
+    }
+  }
+
+  function updateKpis(tx, cls) {
+    totalTx++;
+    if (cls === 'fraud') {
+      blockedTx++;
+      savedAmount += tx.features.amount;
+    } else if (cls === 'suspect') {
+      reviewQueue++;
+    }
+    latencySum += tx.latency;
+    latencyCount++;
+    p95Buf.push(tx.latency);
+    if (p95Buf.length > 100) p95Buf.shift();
+
+    document.getElementById('kpiTotal').textContent = totalTx;
+    document.getElementById('kpiTotalRate').textContent = Math.round(60000 / speedMs) + '/min';
+    document.getElementById('kpiBlocked').textContent = blockedTx;
+    document.getElementById('kpiBlockedAmount').textContent = fmt$(savedAmount) + ' saved';
+    document.getElementById('kpiReview').textContent = reviewQueue;
+    document.getElementById('kpiLatency').textContent = Math.round(latencySum / latencyCount) + 'ms';
+    const sorted = p95Buf.slice().sort((a, b) => a - b);
+    const p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
+    document.getElementById('kpiLatencyP95').textContent = p95 + 'ms';
+  }
+
+  function selectTx(tx) {
+    selectedTxId = tx.id;
+    document.getElementById('detailEmpty').style.display = 'none';
+    const dc = document.getElementById('detailContent');
+    dc.style.display = 'block';
+    const cls = classify(tx.score);
+    const verdict = cls === 'fraud' ? 'FRAUD · Block' : cls === 'suspect' ? 'SUSPECT · Manual Review' : 'LEGIT · Approve';
+    const verdictBadge = cls === 'fraud' ? 'badge fraud' : cls === 'suspect' ? 'badge suspect' : 'badge ok';
+
+    let featuresHtml = tx.contribs.map(c => {
+      const pos = c.value > 0;
+      const w = Math.min(100, Math.abs(c.value) * 400);
+      return `
+        <div class="feature-row">
+          <span>
+            <span class="label">${c.name}</span>
+            <span class="value mono">${c.raw}</span>
+          </span>
+          <span class="impact">
+            <span class="impact-bar"><span class="impact-fill ${pos ? '' : 'neg'}" style="width:${w}%; ${pos ? 'left' : 'right'}: 0;"></span></span>
+          </span>
+          <span class="impact-num">${pos ? '+' : ''}${c.value.toFixed(2)}</span>
+        </div>
+      `;
+    }).join('');
+
+    dc.innerHTML = `
+      <div class="detail-head">
+        <div class="tx-id">${tx.id} · ${tx.merchant} · ${tx.device}</div>
+        <div class="tx-amount">${fmt$(tx.features.amount)}</div>
+        <div class="tx-meta">${tx.user} · ${tx.features.country} · ${formatTime(tx.timestamp)}</div>
+        <div style="margin-top: 0.6rem; display: flex; gap: 0.5rem; align-items: center;">
+          <span class="${verdictBadge}">${verdict}</span>
+          <span class="mono" style="font-size: 0.78rem; color: var(--text-muted);">score=${tx.score.toFixed(3)} · threshold=${threshold.toFixed(2)} · latency=${tx.latency}ms</span>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h6>Top Feature Contributions (SHAP-style)</h6>
+        <div class="feature-list">${featuresHtml}</div>
+      </div>
+      <div class="detail-section">
+        <h6>Primary reason</h6>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">${tx.contribs[0].desc} · ${tx.contribs[1].desc} · ${tx.contribs[2].desc}</p>
+      </div>
+    `;
+  }
+
+  /* SCATTER */
+  function projectFeatures(tx) {
+    const f = tx.features;
+    const x = f.velocity_1h * 0.4 + Math.min(1, f.amount / 3000) * 0.4 + f.ip_user_geo_mismatch * 0.2 + (Math.random() - 0.5) * 0.06;
+    const ageNorm = 1 - Math.min(1, f.account_age_days / 365);
+    const hourAnom = (f.hour < 6 || f.hour >= 23) ? 1 : 0;
+    const countryRisk = RISK_COUNTRIES.includes(f.country) ? 1 : 0;
+    const y = countryRisk * 0.45 + ageNorm * 0.25 + hourAnom * 0.3 + (1 - f.device_match) * 0.0 + (Math.random() - 0.5) * 0.08;
+    return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
+  }
+
+  function updateScatter() {
+    const W = 600, H = 280, P = 14;
+    const points = document.getElementById('scatterPoints');
+    const grid = document.getElementById('scatterGrid');
+    if (!grid.children.length) {
+      let g = '';
+      for (let i = 0; i <= 5; i++) {
+        const x = P + (i / 5) * (W - 2 * P);
+        const y = P + (i / 5) * (H - 2 * P);
+        g += `<line x1="${x}" y1="${P}" x2="${x}" y2="${H - P}" stroke="var(--border)" stroke-width="0.5"/>`;
+        g += `<line x1="${P}" y1="${y}" x2="${W - P}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+      }
+      grid.innerHTML = g;
+    }
+
+    const html = allTx.slice(-60).map((tx, i) => {
+      const p = projectFeatures(tx);
+      const cx = P + p.x * (W - 2 * P);
+      const cy = H - P - p.y * (H - 2 * P);
+      const cls = classify(tx.score);
+      const color = cls === 'fraud' ? 'var(--danger)' : cls === 'suspect' ? 'var(--warn)' : 'var(--good)';
+      const r = cls === 'fraud' ? 5 : cls === 'suspect' ? 4 : 3;
+      const op = 0.4 + (i / 60) * 0.6;
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${op}"><title>${tx.id} · ${fmt$(tx.features.amount)} · ${cls}</title></circle>`;
+    }).join('');
+    points.innerHTML = html;
+  }
+
+  /* CONTROLS */
+  function setSpeed(ms) {
+    speedMs = ms;
+    document.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('active', parseInt(b.dataset.speed) === ms));
+    if (streamTimer) {
+      clearInterval(streamTimer);
+      streamTimer = setInterval(() => addRow(generateTx()), speedMs);
+    }
+  }
+
+  function startStream() {
+    if (streamTimer) return;
+    streamTimer = setInterval(() => addRow(generateTx()), speedMs);
+    document.getElementById('streamPlay').classList.add('active');
+    document.getElementById('streamPause').classList.remove('active');
+  }
+  function stopStream() {
+    if (streamTimer) { clearInterval(streamTimer); streamTimer = null; }
+    document.getElementById('streamPause').classList.add('active');
+    document.getElementById('streamPlay').classList.remove('active');
+  }
+
+  document.getElementById('streamPlay').addEventListener('click', startStream);
+  document.getElementById('streamPause').addEventListener('click', stopStream);
+  document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => setSpeed(parseInt(b.dataset.speed))));
+  document.getElementById('thresholdSlider').addEventListener('input', e => {
+    threshold = e.target.value / 100;
+    document.getElementById('thresholdVal').textContent = threshold.toFixed(2);
+  });
+  document.getElementById('injectFraud').addEventListener('click', () => {
+    injectFlag = 4;
+  });
+
+  startStream();
+  for (let i = 0; i < 3; i++) addRow(generateTx());
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.tab !== 'demo') stopStream();
+    else startStream();
+  }));
+</script>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Route, Exercise, SetLog, ExerciseStats, Session } from '../types';
 import { PROGRAM } from '../data/program';
-import { useProgram } from '../hooks/useProgram';
+import { useProgram, useProgramStart } from '../hooks/useProgram';
 import { useFirestore } from '../hooks/useFirestore';
 import { useTimer } from '../hooks/useTimer';
 import { searchExercises, MUSCLE_CATEGORIES, EXERCISE_LIBRARY, type LibraryExercise } from '../data/exerciseLibrary';
@@ -24,7 +24,8 @@ type Props = {
 };
 
 export function Workout({ uid, day, existingSessionId, weekOverride, navigate }: Props) {
-  const { weekNumber, phase } = useProgram(weekOverride);
+  const programStart = useProgramStart(uid);
+  const { weekNumber, phase } = useProgram(weekOverride, programStart);
   const firestore = useFirestore(uid);
   const photos = usePhotos(uid);
   const timer = useTimer();

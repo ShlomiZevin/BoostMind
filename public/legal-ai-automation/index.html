@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>אוטומציות AI לעורכי דין | שלומי זוין — CTO as a Service</title>
+  <meta name="description" content="פיתוח אוטומציות AI לעורכי דין — כתיבת חוזים, חיפוש תקדימים, ניסוח מיילים, הכנת כתבי תביעה. אינטגרציה עם עודכנית ותשתית סוכנים מוכנה." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --bg-alt: #0f131a;
+      --card-bg: #141922;
+      --card-hover: #181d27;
+      --accent: #3b82f6;
+      --accent-strong: #60a5fa;
+      --accent-soft: rgba(59, 130, 246, 0.10);
+      --accent-dim: rgba(59, 130, 246, 0.30);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.10);
+      --info: #10b981;
+      --info-soft: rgba(16, 185, 129, 0.10);
+      --purple: #a855f7;
+      --purple-soft: rgba(168, 85, 247, 0.10);
+      --border: #232a36;
+      --border-strong: #2e3744;
+      --text: #f3f5f8;
+      --text-muted: #8b929d;
+      --text-dim: #5f6571;
+      --code-bg: #11151c;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f6f8fb;
+      --card-bg: #ffffff;
+      --card-hover: #f7f9fc;
+      --border: #e3e7ee;
+      --border-strong: #cbd2dc;
+      --text: #0f1419;
+      --text-muted: #5c6370;
+      --text-dim: #8b929d;
+      --accent-soft: rgba(59, 130, 246, 0.07);
+      --warn-soft: rgba(245, 158, 11, 0.08);
+      --info-soft: rgba(16, 185, 129, 0.07);
+      --purple-soft: rgba(168, 85, 247, 0.07);
+      --code-bg: #f1f3f7;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+    code, pre, .mono { font-family: 'JetBrains Mono', Menlo, monospace; direction: ltr; unicode-bidi: isolate; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: #061528; }
+    .logo-text { font-weight: 600; font-size: 0.92rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { display: block; font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.6rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: #061528; font-size: 0.84rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.9rem 1.4rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 2.5rem; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent-dim); color: var(--accent); font-size: 0.82rem; font-weight: 500; margin-bottom: 1.5rem; }
+    .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 2s infinite; }
+    @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 2rem; line-height: 1.8; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); font-family: 'JetBrains Mono', monospace; direction: ltr; }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.95rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: #061528; font-weight: 600; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 1.85rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 1rem; line-height: 1.75; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; line-height: 1.7; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.6; }
+    .card li::before { content: '\25C2'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.4rem; margin-bottom: 0.75rem; opacity: 0.95; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2rem 0 2.5rem; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.4rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+    .callout.warn { border-right-color: var(--warn); }
+    .callout.purple { border-right-color: var(--purple); }
+    .callout.info { border-right-color: var(--info); }
+
+    /* REQUIREMENTS MAP */
+    .req-map { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin: 1.5rem 0; }
+    .req-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto 2fr; gap: 1rem; align-items: center; padding: 0.95rem 1.1rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .req-row .req-need { font-size: 0.93rem; color: var(--text); font-weight: 500; }
+    .req-row .req-arrow { color: var(--accent); font-weight: 700; font-size: 1rem; }
+    .req-row .req-have { font-size: 0.9rem; color: var(--text-muted); line-height: 1.65; }
+    .req-row .req-have strong { color: var(--text); font-weight: 600; }
+
+    /* PRICING */
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
+    .pricing-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+    .pricing-card .price-label { font-size: 0.78rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .pricing-card .price { font-size: 2.4rem; font-weight: 700; margin: 0.3rem 0; color: var(--text); letter-spacing: -0.02em; }
+    .pricing-card .price .currency { font-size: 1.4rem; color: var(--text-muted); font-weight: 500; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.95rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 0.55rem; color: var(--text-muted); line-height: 1.65; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+    /* COST TABLE */
+    .cost-table { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; max-width: 720px; margin: 1.5rem auto 0; }
+    .cost-row { display: grid; grid-template-columns: 1fr auto; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); align-items: center; }
+    .cost-row:last-child { border-bottom: none; }
+    .cost-row.header { background: var(--bg-alt); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; padding: 0.7rem 1.25rem; }
+    .cost-row .label { font-size: 0.95rem; color: var(--text); }
+    .cost-row .label small { display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.15rem; font-weight: 400; }
+    .cost-row .value { font-size: 0.95rem; color: var(--text); font-weight: 600; font-family: 'JetBrains Mono', monospace; direction: ltr; }
+    .cost-row .value.zero { color: var(--info); }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 1.1rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; }
+    .timeline-num { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; line-height: 1.75; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.22rem 0.65rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.5rem; border: 1px solid var(--accent-dim); font-family: 'JetBrains Mono', monospace; direction: ltr; }
+
+    /* STACK GRID */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin-top: 1.5rem; }
+    .stack-cat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.1rem; }
+    .stack-cat .cat-title { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.55rem; }
+    .stack-cat .cat-items { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; font-family: 'JetBrains Mono', monospace; direction: ltr; }
+
+    /* EXPERIENCE */
+    .exp-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card .exp-domain { font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.4rem; }
+    .exp-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .exp-card p { font-size: 0.92rem; color: var(--text-muted); margin-bottom: 0.7rem; line-height: 1.7; }
+    .exp-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .exp-tag { font-size: 0.72rem; padding: 0.22rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; direction: ltr; }
+
+    /* ===== CHAT DEMO ===== */
+    .demo-wrap { max-width: 820px; margin: 0 auto; }
+    .demo-intro { text-align: center; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+    .agent-tabs { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .agent-tab { font-size: 0.85rem; padding: 0.5rem 0.9rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .agent-tab:hover { color: var(--text); border-color: var(--border-strong); }
+    .agent-tab.active { background: var(--accent-soft); border-color: var(--accent-dim); color: var(--accent); }
+    .chat-window { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+    .chat-header { display: flex; align-items: center; gap: 0.7rem; padding: 0.95rem 1.2rem; border-bottom: 1px solid var(--border); background: var(--bg-alt); }
+    .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: #061528; }
+    .chat-header-info h4 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+    .chat-header-info span { font-size: 0.75rem; color: var(--info); display: flex; align-items: center; gap: 0.3rem; margin-top: 2px; }
+    .chat-header-info span::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--info); animation: livePulse 2s infinite; }
+    .chat-messages { height: 440px; overflow-y: auto; padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; scroll-behavior: smooth; }
+    .chat-messages::-webkit-scrollbar { width: 5px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    .chat-msg { max-width: 90%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.92rem; line-height: 1.7; animation: msgIn 0.25s ease; white-space: pre-wrap; word-wrap: break-word; }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-msg.bot { background: var(--bg-alt); border: 1px solid var(--border); align-self: flex-start; border-bottom-right-radius: 4px; color: var(--text); }
+    .chat-msg.user { background: var(--accent-soft); border: 1px solid var(--accent-dim); align-self: flex-end; border-bottom-left-radius: 4px; color: var(--text); }
+    .chat-msg .msg-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.3rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .chat-msg.user .msg-label { color: var(--accent); text-align: left; }
+    .chat-input-area { display: flex; gap: 0.5rem; padding: 0.85rem 1rem; border-top: 1px solid var(--border); background: var(--bg-alt); }
+    .chat-input { flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem 0.95rem; color: var(--text); font-family: inherit; font-size: 0.92rem; outline: none; direction: rtl; }
+    .chat-input::placeholder { color: var(--text-dim); }
+    .chat-input:focus { border-color: var(--accent-dim); }
+    .chat-send { width: 38px; height: 38px; border-radius: var(--radius-sm); background: var(--accent); border: none; color: #061528; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; transition: background 0.15s; font-weight: 700; }
+    .chat-send:hover { background: var(--accent-strong); }
+    .quick-replies { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.65rem; }
+    .quick-reply { font-size: 0.78rem; padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--accent-dim); background: var(--accent-soft); color: var(--accent); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .quick-reply:hover { background: var(--accent); color: #061528; }
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 0.3rem 0; }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingBounce 1.3s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 3rem 0; border-top: 1px solid var(--border); margin-top: 3rem; }
+    .contact-section h2 { font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--text-muted); direction: ltr; }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .contact-item a:hover { color: var(--accent-strong); }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-dim); font-size: 0.85rem; border-top: 1px solid var(--border); }
+    .footer a { color: var(--text-muted); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .hero { padding: 3rem 0 2rem; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-sub { font-size: 0.98rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.5rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 1.85rem; }
+      .tab-btn { padding: 0.75rem 0.9rem; font-size: 0.88rem; }
+      .logo-text { font-size: 0.85rem; }
+      .req-row { grid-template-columns: 1fr; gap: 0.5rem; }
+      .req-row .req-arrow { display: none; }
+      .pricing-card { padding: 1.5rem; }
+      .chat-messages { height: 380px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span>
+          <span class="logo-text">שלומי זוין</span>
+          <span class="logo-sub">CTO as a Service &middot; AI Automations</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">בהיר</button>
+        <a href="https://wa.me/972545567213" class="btn-sm" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs-container">
+    <div class="container">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="proposal">ההצעה</button>
+        <button class="tab-btn" data-tab="experience">ניסיון רלוונטי</button>
+        <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+        <button class="tab-btn" data-tab="engagement">תקציב ולו״ז</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== TAB 1: PROPOSAL ============== -->
+  <div class="tab-content active" id="tab-proposal">
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow"><span class="pulse"></span> פרילנסר עצמאי &middot; לא חברה</div>
+        <h1>אוטומציות AI למשרד עו״ד.<br/><span class="accent">בדיוק מה שאני בונה כל יום.</span></h1>
+        <p class="hero-sub">
+          אני שלומי. <strong style="color: var(--text);">2+ שנים בעומק של סוכני AI</strong> — התחלתי לפני שהמושג "agent" היה קיים. בניתי לעצמי <strong style="color: var(--text);">תשתית סוכנים פנימית</strong> — orchestrator, memory, tools, guardrails — שעליה אני מרכיב במהירות פתרונות מותאמים לכל לקוח. כתיבת חוזים, חיפוש תקדימים, ניסוח מיילים, כתבי תביעה, אינטגרציה עם <strong style="color: var(--text);">עודכנית</strong> — זה לא פרויקט שמתחיל מאפס. זו התאמה ממוקדת על תשתית קיימת.
+        </p>
+        <div class="hero-badges">
+          <span>OpenAI / Claude / Gemini</span>
+          <span>RAG &amp; vector search</span>
+          <span>Multi-agent orchestration</span>
+          <span>Hebrew NLP</span>
+          <span>Document AI (PDF/DOCX)</span>
+          <span>API integrations</span>
+          <span>n8n / Make / custom</span>
+        </div>
+        <div class="hero-cta">
+          <a href="#" class="btn primary" data-tab-link="demo">ראו דמו חי &larr;</a>
+          <a href="#" class="btn ghost" data-tab-link="engagement">תקציב ולו״ז</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">למה אני</div>
+          <h2>פרילנסר עצמאי, hands-on, עם 20 שנות תשתית מאחורי ה-AI</h2>
+          <p>אני לא חברת שירותים ולא קולקטיב פרילנסרים. אני יושב על הקוד בעצמי, מוביל את האפיון מולך, ולא מעביר את העבודה לאף אחד אחר.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-icon">&#129302;</div>
+            <h3>תשתית סוכנים מוכנה</h3>
+            <p>בניתי orchestrator פנימי עם <strong>memory, tools, guardrails, fallback בין מודלים</strong>. סוכן חדש לא נבנה מאפס — הוא מורכב על התשתית הקיימת. זה מה שמאפשר לי להוציא אוטומציה חיה תוך שבועות, לא חודשים.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128209;</div>
+            <h3>Document AI אמיתי</h3>
+            <p>בנוי לי <strong>pipeline של PDF/DOCX &rarr; OCR &rarr; LLM extraction &rarr; structured validation</strong>. עם confidence scoring, human-in-the-loop ב-low-confidence, ו-RAG על מאגרי מסמכים. בדיוק מה שצריך לחיפוש תקדימים וניסוח חוזים.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#129504;</div>
+            <h3>רקע מחקרי באמת מאחורי ה-AI</h3>
+            <p>בניתי ואימנתי רשתות נוירונים, evaluation models, מודלי אופטימיזציה. אני מבין את השכבה <em>מתחת</em> ל-LLM — לא רק את ה-API. <strong>זו הסיבה שהסוכנים מדויקים</strong> ויודעים גם מתי <em>לא</em> לסמוך על המודל. קריטי בעולם משפטי שלא סובל "הזיות".</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128274;</div>
+            <h3>Compliance ופרטיות</h3>
+            <p>ניסיון בפלטפורמות פרטיות ו-GDPR ל-enterprise. <strong>data retention, audit trails, מסמכים רגישים</strong> — לא משתעשעים עם דאטה של לקוחות עורכי דין. אני יודע איך לבנות מערכת שגם הלקוח של הלקוח שלך ירגיש בה בנוח.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128257;</div>
+            <h3>אינטגרציות &mdash; הצד החזק שלי</h3>
+            <p>20 שנה של חיבור מערכות. <strong>עודכנית, Outlook/Gmail, Word, יומנים, CRM, OneDrive/Drive</strong> — כל מערכת עם API פתוח או webhook. כשאין API — אני בונה adapter. אני לא נופל על "אין דרך לחבר".</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#9889;</div>
+            <h3>Claude Code כמכפיל כוח &times;100</h3>
+            <p>אני <strong>לא מנהל מפתחים</strong> כבר תקופה. אני מנהל AI שמבצע במהירות, ומגבה אותו עם 20 שנות שיפוט מקצועי. דברים של חודשים — הופכים לימים. לא "vibe coding": review, טסטים, מיגרציות, deployment. דיוק לא נסחב.</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <h3>פרילנסר עצמאי, כמו שביקשתם</h3>
+          <p>
+            אני לא חברה, לא בית תוכנה, לא מנהל מרחוק. <strong>אני זה שיושב על הקוד.</strong> תקבלו את אותו אדם בכל שיחה — מהאפיון ועד המסירה. אם זה לא מה שחיפשתם — חבל על הזמן של שנינו. אם זה כן — בואו נדבר.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">הדרישות שלכם — מופות לניסיון בייצור</div>
+          <h2>עברתי שורה-שורה. כל אוטומציה — מקושרת למשהו שכבר בניתי</h2>
+          <p>לא "יש לי ניסיון בכלים האלה" — אלא בדיוק את הצירופים, באותה רמת מורכבות.</p>
+        </div>
+
+        <div class="req-map">
+          <div class="req-row">
+            <div class="req-need">אוטומציה ל"עודכנית"</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              עודכנית חושפת <strong>API ו-webhooks</strong> לניהול תיקים, ארועים, מסמכים. אני אבנה adapter שמושך וכותב בחזרה — אוטומציות יזרמו דרך זה. אם יש פיצ'ר חסר ב-API — בונה <strong>browser automation</strong> כ-fallback (Playwright). מערכות "סגורות" לא עוצרות אותי.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">כתיבת חוזים אוטומטית</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              <strong>Template + variables + LLM</strong> — חוזה מבוסס תבנית עם שדות דינמיים, וסעיפים מותאמים שה-LLM מנסח לפי ההקשר (סוג העסקה, צדדים, סכומים). הסוכן <strong>לומד מהחוזים הקודמים שלכם</strong> דרך RAG ושומר על הסגנון של המשרד. פלט ל-DOCX מעוצב.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">חיפוש תקדימים</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              <strong>RAG על מאגרי תקדימים</strong> + שאילתה במשפט טבעי. אינטגרציה עם נבו / תקדין (אם יש access) או indexing של ארכיון פנימי. <strong>שילוב fuzzy + semantic + LLM judge</strong>: מחזיר רק תקדימים רלוונטיים <em>עם ציטוט ישיר ולינק</em>, לא ערפל.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">ניסוח מיילים משפטיים</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              סוכן שמחובר ל-<strong>Outlook/Gmail</strong>, קורא את ההקשר של הפנייה, מנסח טיוטה בסגנון העו״ד, ושולח לאישור לפני שליחה. אפשר להגדיר רמות אוטונומיה: טיוטה בלבד, שליחה אוטומטית בקטגוריות מוגדרות, או הכל לאישור ידני.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">הכנת כתבי תביעה</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              <strong>Pipeline רב-שלבי</strong>: איסוף עובדות &rarr; חיפוש תקדימים רלוונטיים &rarr; טיוטת כתב התביעה &rarr; הוספת אסמכתאות &rarr; review של עו״ד. כל שלב מבוסס על <strong>structured outputs</strong> עם validation, לא טקסט חופשי. הסוכן לא ממציא — הוא מסתמך רק על דאטה אמיתי.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">דיוק וביטחון בעולם משפטי</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              <strong>Citation-required mode</strong>: כל טענה חייבת ציטוט מהמקור. <strong>Confidence tiers</strong>: גבוה = מציע, נמוך = מסמן ואומר "תבדוק בעצמך". <strong>Audit log</strong> מלא — כל פעולה של הסוכן נשמרת ונגישה. עורך הדין תמיד נשאר אחראי, אבל הסוכן עושה את ה-95% של העבודה השחורה.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">עברית מקצועית, לא תרגום</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              ניסיון רב בעבודה עם <strong>NLP בעברית</strong> — Mystic AI היה אחד מהמוצרים הראשונים בארץ ב-AI שיחה בעברית, לפני ChatGPT. אני יודע מה Claude/GPT יודע לעשות בעברית מקצועית, מתי צריך prompt engineering אגרסיבי, ומתי בכלל לעבור למודל אחר.
+            </div>
+          </div>
+          <div class="req-row">
+            <div class="req-need">אבטחה ופרטיות לקוחות</div>
+            <div class="req-arrow">&larr;</div>
+            <div class="req-have">
+              דאטה של לקוחות לא יוצא <strong>אף פעם</strong> מהשליטה שלכם. שימוש ב-<strong>API endpoints של OpenAI/Claude עם data-retention=zero</strong>, אפשרות להריץ הכל self-hosted, encryption at rest, audit logs מלאים. בניתי פלטפורמות compliance ל-enterprise — אני יודע מה נדרש.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">איך אני עובד</div>
+          <h2>פרילנסר &mdash; אבל בקצב ובאיכות של בית תוכנה</h2>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>&#128202; שקיפות מלאה</h3>
+            <p>הקוד שלכם מהיום הראשון. הריפו שלכם, ה-API keys שלכם, החשבונות שלכם. אין "תני לי לסיים ואז נעביר". אתם רואים הכל בכל רגע.</p>
+          </div>
+          <div class="card">
+            <h3>&#128640; מהירות בלי קיצורי דרך</h3>
+            <p>מהיר כי עשיתי את זה הרבה — לא כי אני חותך פינות. Tests, error handling, observability זה לא אופציונלי. זה ה-default.</p>
+          </div>
+          <div class="card">
+            <h3>&#128172; בצמוד אליכם</h3>
+            <p>שיחה של 30 דקות בכל שבוע, WhatsApp פתוח, demo חי כל פעם שיש פיצ'ר חדש. לא נעלם לחודש ולא חוזר עם "סיימתי".</p>
+          </div>
+          <div class="card">
+            <h3>&#128737;&#65039; אחרי המסירה — אתם בעצמאות</h3>
+            <p>תקבלו קוד שאתם יכולים לתחזק. תיעוד מלא, runbook, וידאו הדרכה. <strong>אין lock-in ואין דמי שירות חודשיים אחרי המסירה</strong> — רק עלויות AI ישירות מהספק.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 2: EXPERIENCE ============== -->
+  <div class="tab-content" id="tab-experience">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">המספרים מאחורי האמירות</div>
+          <h2>20 שנה של בנייה — לא 20 שנה של דיבורים</h2>
+          <p>הסטטיסטיקה, ואז הפרויקטים שמתחברים ישירות לאוטומציות שאתם צריכים.</p>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון בהייטק</div></div>
+          <div class="stat"><div class="num">50+</div><div class="label">מוצרים שנבנו מאפס</div></div>
+          <div class="stat"><div class="num">2+</div><div class="label">שנים בעומק סוכני AI</div></div>
+          <div class="stat"><div class="num">CTO</div><div class="label">בכמה סטארטאפים — כולל אקזיט</div></div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 2rem;">
+          <div class="exp-card">
+            <div class="exp-domain">סוכני AI &middot; B2B</div>
+            <h3>Onboarding בנקאי עם AI agent</h3>
+            <p>סוכן שיחה שמוביל לקוחות בתהליך KYC. <strong>Document intake</strong> (ת״ז, הוכחות, חתימות) עם OCR + LLM extraction + confidence scoring. State machine של compliance, fallback ל-human review בכל מקרה של חוסר ודאות. <strong>בדיוק הצורה של pipeline שאתם צריכים לכתבי תביעה.</strong></p>
+            <div class="exp-tags">
+              <span class="exp-tag">OCR</span>
+              <span class="exp-tag">LLM extraction</span>
+              <span class="exp-tag">State machine</span>
+              <span class="exp-tag">Compliance</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Privacy &middot; Enterprise</div>
+            <h3>פלטפורמת GDPR / ניהול מסמכים רגישים</h3>
+            <p>מערכת compliance ל-enterprise — ניהול בקשות נושאי מידע, retention policies, data lineage, אינטגרציות עם מערכות מקור של הלקוח. <strong>Audit trails כבדים, מסמכים רגישים, workflows משפטיים</strong>. ה-DNA של מערכת אוטומציה למשרד עו״ד.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Workflows</span>
+              <span class="exp-tag">Audit logs</span>
+              <span class="exp-tag">Sensitive data</span>
+              <span class="exp-tag">Integrations</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Consumer AI &middot; עברית</div>
+            <h3>Mystic AI &mdash; AI בעברית לפני ChatGPT</h3>
+            <p>אחד <strong>המוצרים הצרכניים הראשונים בארץ</strong> בשיחה עם AI — קריאה בקפה, אסטרולוגיה, ניתוח כף יד. כל הסטאק שלי על שיחה איכותית בעברית, prompt engineering מתקדם, וניהול הקשר רב-שלבי. ניסיון אמיתי ב-NLP עברי, לא תיאוריה.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Hebrew NLP</span>
+              <span class="exp-tag">Conversational AI</span>
+              <span class="exp-tag">Prompt eng.</span>
+              <span class="exp-tag">Pre-ChatGPT</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Health AI &middot; B2B</div>
+            <h3>Doing &mdash; פלטפורמת AI לטיפול</h3>
+            <p>פלטפורמת AI לטיפול בילדים על הספקטרום האוטיסטי. ניתוח התנהגות עם AI, ניהול סשנים למטפלים, AI-assisted counseling. <strong>state machines רב-תפקידיים</strong> מתאמים בין מטפל, הורה, ילד. דומיין רגיש שאסור לטעות בו &mdash; בדיוק כמו משפט.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">LLM agents</span>
+              <span class="exp-tag">Workflow engine</span>
+              <span class="exp-tag">Multi-role</span>
+              <span class="exp-tag">High-stakes</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">EdTech &middot; ML decisioning</div>
+            <h3>פלטפורמת אופטימיזציית קמפיינים</h3>
+            <p>פלטפורמה שמנבאת אילו קמפיינים יומרו, ומקצה תקציב <strong>אוטומטית</strong>. נבנתה מקצה לקצה — ingestion, model training, jobs מתוזמנים, מנוע החלטה, dashboard. כסף אמיתי זז על-פי החלטות אוטומציה. אמינות חובה.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Decision engine</span>
+              <span class="exp-tag">ML models</span>
+              <span class="exp-tag">Background jobs</span>
+              <span class="exp-tag">Dashboards</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Document AI &middot; Insurance</div>
+            <h3>פענוח מסמכים לחברת ביטוח</h3>
+            <p>צינור עיבוד מסמכים — חשבוניות, פוליסות, תביעות. <strong>OCR + LLM extraction + structured validation</strong>, נורמליזציה לסכמה אחידה, השוואה למאסטר נתונים, סימון מקרים חריגים ל-human review. אותה ארכיטקטורה בדיוק כמו עיבוד תיקים משפטיים.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">OCR</span>
+              <span class="exp-tag">PDF parsing</span>
+              <span class="exp-tag">Confidence tiers</span>
+              <span class="exp-tag">HITL</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info" style="margin-top: 2rem;">
+          <h3>מה מחבר את כל אלה למשרד שלכם</h3>
+          <p>
+            כל אחד מהפרויקטים: (1) backend לא טריוויאלי עם לוגיקה מורכבת, (2) אינטגרציות עם העולם בחוץ, (3) דאטה רגיש שזורם דרך state ו-queues, (4) משהו שצריך להיות נכון או שמוניטין הולך לאיבוד. <strong>זו בדיוק רמת הדיוק שמשרד עו״ד דורש. הייתי שם. הרבה.</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 3: LIVE DEMO ============== -->
+  <div class="tab-content" id="tab-demo">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">הדגמה חיה</div>
+          <h2>סוכן AI משפטי &mdash; נסו עכשיו</h2>
+          <p>4 סוכנים שונים, כל אחד עם ההתמחות שלו. בחרו אחד ושאלו אותו שאלה אמיתית.</p>
+        </div>
+
+        <div class="demo-wrap">
+          <div class="agent-tabs" id="agentTabs">
+            <button class="agent-tab active" data-agent="contracts">&#128221; ניסוח חוזים</button>
+            <button class="agent-tab" data-agent="precedent">&#9878;&#65039; חיפוש תקדימים</button>
+            <button class="agent-tab" data-agent="email">&#9993;&#65039; ניסוח מיילים</button>
+            <button class="agent-tab" data-agent="claim">&#128196; כתבי תביעה</button>
+          </div>
+
+          <div class="chat-window">
+            <div class="chat-header">
+              <div class="chat-avatar" id="agentAvatar">&#128221;</div>
+              <div class="chat-header-info">
+                <h4 id="agentName">סוכן ניסוח חוזים</h4>
+                <span>פעיל &middot; AI agent</span>
+              </div>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+              <input type="text" class="chat-input" id="chatInput" placeholder="כתבו שאלה או בקשה..." />
+              <button class="chat-send" id="chatSend">&#10148;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warn" style="margin-top: 1.75rem; max-width: 820px; margin-right: auto; margin-left: auto;">
+          <h3>גילוי נאות &mdash; בכבוד הראוי לזמנכם</h3>
+          <p>
+            הדמו הזה הוא <strong>סקיצה</strong> שהקמתי תוך כמה דקות עם <strong>Claude Code</strong> על התשתית הפנימית שלי. <strong>אפשר לשחק איתו</strong> ולקבל תחושה של ה-flow ושל הקצב — אבל הוא <em>לא</em> מערכת עובדת מול עודכנית, מול מאגרי תקדימים אמיתיים, או מול הסגנון של המשרד שלכם. הנקודה כאן: (1) להראות איך אני חושב על ה-flow שלכם, (2) להראות כמה מהר אני מעמיד משהו על הרגליים. <strong>המערכת האמיתית שלכם תהיה מוצר אחר לגמרי</strong> &mdash; מתוכנן, מאובטח, נבדק, מחובר למערכות שלכם.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 4: ENGAGEMENT ============== -->
+  <div class="tab-content" id="tab-engagement">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">תקציב</div>
+          <h2>20,000 ₪ &mdash; בלי דמי שירות חודשיים אחרי</h2>
+          <p>חודש עבודה ממוקדת להעמיד את האוטומציות על הרגליים. אחר כך &mdash; אתם בעצמאות מלאה. משלמים רק על שירותי ה-AI ישירות לספק (OpenAI/Claude).</p>
+        </div>
+
+        <div class="pricing-card">
+          <div class="price-label">להרים את המיזם</div>
+          <div class="price"><span class="currency">&#8362;</span>20,000 <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">/ חודש פיתוח</span></div>
+          <div class="price-note"><strong style="color: var(--text);">זה אני, hands-on, על הקוד.</strong> פרילנסר עצמאי כמו שביקשתם — לא חברה, לא מתווך.</div>
+          <ul>
+            <li>אפיון מדויק של האוטומציות מולך &mdash; flows, edge cases, סגנון המשרד</li>
+            <li>בנייה על תשתית הסוכנים הקיימת שלי &mdash; חיסכון של חודשים</li>
+            <li>אינטגרציה עם <strong>עודכנית, Outlook/Gmail, Word</strong> ומערכות נוספות לפי צורך</li>
+            <li>RAG על מאגרי המסמכים והתקדימים שלכם &mdash; הסוכן <strong>מכיר את המשרד שלכם</strong></li>
+            <li>ממשק ניהול: עריכת prompts, אישור פלטים, audit logs מלאים</li>
+            <li>תיעוד, runbook, וידאו הדרכה &mdash; אתם תוכלו לתחזק לבד</li>
+            <li>הקוד שלכם, ה-API keys שלכם &mdash; שקיפות מלאה מהיום הראשון</li>
+            <li>לא חובה להתחייב לחודשים הבאים &mdash; אם החודש מספיק, סיימנו</li>
+          </ul>
+          <p style="font-size: 0.95rem; color: var(--text); margin-top: 1.25rem; line-height: 1.7; padding: 0.9rem 1.1rem; background: var(--info-soft); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-sm);">
+            <strong style="color: var(--info);">חשוב:</strong> אין דמי שירות חודשיים אחרי המסירה. הכל יושב על התשתית שלכם. אחרי שמסיימים &mdash; <strong>העלות החודשית היחידה היא שירותי ה-AI ישירות מהספק</strong> (OpenAI / Anthropic), בדרך כלל כמה מאות ₪ לחודש לפי שימוש. אין lock-in, אין הפתעות.
+          </p>
+        </div>
+
+        <div class="section-header" style="margin-top: 3rem;">
+          <div class="section-eyebrow">העלויות הצפויות אחרי המסירה</div>
+          <h2>שקיפות מלאה &mdash; כל שקל שתשלמו</h2>
+          <p>אומדן לעלויות AI חודשיות לפי נפח שימוש סביר במשרד עו״ד בינוני. תלוי כמובן בהיקף — אבל זו תמונה ריאלית.</p>
+        </div>
+
+        <div class="cost-table">
+          <div class="cost-row header">
+            <div>פריט</div>
+            <div>עלות חודשית משוערת</div>
+          </div>
+          <div class="cost-row">
+            <div class="label">
+              שירותי AI (OpenAI / Claude)
+              <small>ישירות לספק, לפי שימוש בפועל</small>
+            </div>
+            <div class="value">~₪300-1,500</div>
+          </div>
+          <div class="cost-row">
+            <div class="label">
+              Vector DB (Pinecone / Supabase)
+              <small>לאינדקס תקדימים ומסמכי המשרד &mdash; אופציונלי</small>
+            </div>
+            <div class="value">₪0-150</div>
+          </div>
+          <div class="cost-row">
+            <div class="label">
+              Hosting (Vercel / Cloudflare)
+              <small>לרכיב ה-UI הקטן &mdash; tier חינמי בדרך כלל מספיק</small>
+            </div>
+            <div class="value zero">₪0</div>
+          </div>
+          <div class="cost-row">
+            <div class="label">
+              <strong style="color: var(--text);">דמי שירות חודשיים אליי</strong>
+              <small>אחרי המסירה &mdash; אין</small>
+            </div>
+            <div class="value zero">₪0</div>
+          </div>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-top: 1rem; max-width: 720px; margin-right: auto; margin-left: auto; line-height: 1.7;">
+          אם בעתיד תרצו להוסיף אוטומציות חדשות &mdash; נדבר על זה כפרויקט נפרד. בלי מחויבות, בלי retainer.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">לוח זמנים</div>
+          <h2>חודש &mdash; ככה זה נראה בפועל</h2>
+          <p>צורה כללית. הסדר המדויק תלוי במה הכי דחוף לכם.</p>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>שבוע 1 &mdash; אפיון + חיבור עודכנית</h3>
+              <p>פגישת kickoff (90 דקות), מיפוי ה-flows, איסוף דוגמאות חוזים/מיילים מהמשרד, הקמת חיבור ל-עודכנית ול-Outlook/Gmail. בסוף השבוע: סוכן ראשון מדבר עם המערכות שלכם.</p>
+              <span class="tag">discovery / integrations</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>שבוע 2 &mdash; ניסוח חוזים + מיילים</h3>
+              <p>שני הסוכנים הראשונים על הרגליים. RAG על דוגמאות החוזים שלכם, prompts מותאמים לסגנון המשרד, ממשק לאישור טיוטות לפני שליחה.</p>
+              <span class="tag">contracts / email agent</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>שבוע 3 &mdash; חיפוש תקדימים + כתבי תביעה</h3>
+              <p>אינדקס למאגרי התקדימים, סוכן חיפוש סמנטי + ציטוטים. סוכן כתבי תביעה רב-שלבי (עובדות &rarr; תקדימים &rarr; טיוטה).</p>
+              <span class="tag">RAG / multi-step agents</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">4</div>
+            <div class="timeline-body">
+              <h3>שבוע 4 &mdash; ליטוש, תיעוד, מסירה</h3>
+              <p>איטרציה לפי הפידבק שלכם, ממשק ניהול לעריכת prompts, audit logs, runbook ווידאו הדרכה. <strong>אתם יוצאים מהחודש עם מערכת חיה ושליטה מלאה.</strong></p>
+              <span class="tag">polish / handover</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info" style="margin-top: 2rem;">
+          <h3>מה אם החודש לא מספיק?</h3>
+          <p>
+            עם זרימה טובה, חודש מספיק ל-4 הסוכנים הבסיסיים. אם בדרך מתגלה שצריך עוד מודול (למשל מאגר תקדימים מאוד מורכב, או אוטומציה נוספת שלא דיברנו עליה) &mdash; אגיד לכם <strong>לפני</strong> שאתחיל, ונסכים יחד אם להמשיך לחודש נוסף או לדחות לשלב הבא. <strong>בלי הפתעות.</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">סטאק</div>
+          <h2>הכלים שעליהם אני בונה</h2>
+          <p>כולם standard, מתועדים, בלי lock-in. אתם יכולים לקחת מפתח אחר ולהמשיך מאיפה שעצרתי.</p>
+        </div>
+
+        <div class="stack-grid">
+          <div class="stack-cat">
+            <div class="cat-title">AI Models</div>
+            <div class="cat-items">OpenAI GPT-4, Claude, Gemini, fallback בין מודלים</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Agent Framework</div>
+            <div class="cat-items">תשתית פנימית + Vercel AI SDK / LangChain לפי צורך</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">RAG / Vector</div>
+            <div class="cat-items">pgvector, Pinecone, embeddings, hybrid search</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Document AI</div>
+            <div class="cat-items">PDF/DOCX parsing, OCR, structured extraction</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Integrations</div>
+            <div class="cat-items">עודכנית API, Microsoft Graph, Google Workspace</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Backend</div>
+            <div class="cat-items">Node.js / Python, Express / FastAPI, REST + webhooks</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Frontend (UI ניהול)</div>
+            <div class="cat-items">Next.js, React, TypeScript &mdash; minimal management UI</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">DB</div>
+            <div class="cat-items">Supabase / PostgreSQL, audit logs, encryption at rest</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Hosting</div>
+            <div class="cat-items">Vercel / Cloudflare / self-hosted &mdash; לפי דרישות פרטיות</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Observability</div>
+            <div class="cat-items">Structured logs, Sentry, AI usage tracking</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Browser automation</div>
+            <div class="cat-items">Playwright &mdash; כשאין API פתוח</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Dev velocity</div>
+            <div class="cat-items">Claude Code in the loop &mdash; reviewed, tested, deployed</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <div class="container">
+        <h2>מוכנים לשיחת היכרות?</h2>
+        <p>30 דקות &mdash; אתם מספרים לי איך עובד המשרד, אני שואל שאלות חדות, ושנינו יוצאים מהשיחה יודעים אם זו ההתאמה הנכונה.</p>
+        <div class="contact-details">
+          <div class="contact-item">&#9993;&#65039; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+          <div class="contact-item">&#128241; <a href="tel:+972545567213">054-5567213</a></div>
+          <div class="contact-item">&#128172; <a href="https://wa.me/972545567213" target="_blank" rel="noopener">WhatsApp</a></div>
+        </div>
+        <a href="https://wa.me/972545567213" class="btn primary" target="_blank" rel="noopener">דברו איתי ב-WhatsApp</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div>שלומי זוין &middot; CTO as a Service &middot; <a href="https://boostart.io" target="_blank" rel="noopener">boostart.io</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Theme toggle =====
+    const themeBtn = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    function setTheme(t) {
+      if (t === 'light') { root.setAttribute('data-theme', 'light'); themeBtn.textContent = 'כהה'; }
+      else { root.removeAttribute('data-theme'); themeBtn.textContent = 'בהיר'; }
+      localStorage.setItem('theme', t);
+    }
+    themeBtn.addEventListener('click', () => {
+      const cur = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setTheme(cur === 'light' ? 'dark' : 'light');
+    });
+    setTheme(localStorage.getItem('theme') || 'dark');
+
+    // ===== Tabs =====
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    function activateTab(name) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      contents.forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    document.querySelectorAll('[data-tab-link]').forEach(a => {
+      a.addEventListener('click', e => { e.preventDefault(); activateTab(a.dataset.tabLink); });
+    });
+
+    // ===== Demo: Multi-agent chat =====
+    const agents = {
+      contracts: {
+        name: 'סוכן ניסוח חוזים',
+        avatar: '\u{1F4DD}',
+        intro: 'שלום \u{1F44B} אני סוכן ניסוח החוזים. תגידו לי איזה חוזה אתם צריכים — NDA, חוזה שכירות, חוזה שירותים, חוזה עבודה — ואני אכין טיוטה ראשונית לפי הסגנון של המשרד.\n\nרוצים לנסות?',
+        quick: ['NDA דו-צדדי בין שתי חברות', 'חוזה שכירות דירה לשנה', 'חוזה שירותים לפרילנסר', 'תוסיפי סעיף סודיות'],
+        responses: [
+          { match: /NDA|סודיות דו|סודיות בין/i, reply: '\u{1F4C4} מכין טיוטת NDA דו-צדדי...\n\nחילצתי את הצדדים, תאריך, ויעד הסודיות. הוספתי:\n\n◂ סעיף 1 — הגדרת מידע חסוי (כולל חריגים סטנדרטיים)\n◂ סעיף 2 — חובות הצדדים (5 שנים)\n◂ סעיף 3 — החרגות (מידע פומבי, מידע שכבר היה ברשות הצד)\n◂ סעיף 4 — תרופות (פיצוי מוסכם + צו מניעה)\n◂ סעיף 5 — סמכות שיפוט (ת״א, דין ישראלי)\n\nהטיוטה נשמרה ל-DOCX ועלתה לתיק בעודכנית. רוצים שאעבור על סעיף ספציפי?' },
+          { match: /שכירות|דירה|נכס/i, reply: '\u{1F3E0} מכין חוזה שכירות דירה...\n\nצריך כמה פרטים: כתובת, גובה דמי שכירות, תקופה, ביטחונות. יש ברירות מחדל לפי המקובל בת״א:\n\n◂ תקופה — 12 חודשים עם אופציה ל-12 נוספים\n◂ ביטחונות — 3 חודשי שכירות + ערבות בנקאית או שטר חוב\n◂ הצמדה למדד\n◂ סעיף יציאה מוקדמת (60 יום הודעה)\n◂ חלוקת אחריות לתיקונים\n\nרוצים שאשנה את ברירות המחדל?' },
+          { match: /שירות|פרילנסר|קונסולט/i, reply: '\u{1F4BC} מכין חוזה שירותים לפרילנסר...\n\nטיוטה כוללת:\n\n◂ הגדרת השירותים והתוצרים\n◂ תמורה (קבועה / שעתית / לפי אבני דרך)\n◂ IP — הקניית זכויות יוצרים ללקוח עם החרגה ל-pre-existing IP של הספק\n◂ סיווג עצמאי (לא יחסי עובד-מעביד)\n◂ סודיות + non-solicit ל-12 חודשים\n◂ סיום — 30 יום הודעה משני הצדדים\n\nהיעדים מובאים מתוך עודכנית. צריך התאמות?' },
+          { match: /סעיף|תוסיף|תוסיפ/i, reply: '\u{1F50E} מנתח את הטיוטה הנוכחית ומחפש את המקום הנכון להכניס את הסעיף...\n\nמצאתי 3 מקומות אפשריים. הסעיף החדש מנוסח בסגנון של שאר המסמך (לא מוסיף disclaimers שלא דרושים). אני גם מסמן הפניות צולבות שמושפעות מהשינוי.\n\nהשינוי מסומן בטקסט עם change-tracking. רוצים שאשלח לעיון לפני שמירה?' },
+          { match: /.*/, reply: '\u{1F914} שאלה טובה. בגרסה האמיתית הייתי מושך את ההקשר מעודכנית, מאתר חוזים דומים שעשיתם בעבר, ומכין טיוטה בסגנון של המשרד.\n\nרוצים לראות אותי על דוגמה ספציפית? נסו: "NDA דו-צדדי" או "חוזה שכירות דירה".' }
+        ]
+      },
+      precedent: {
+        name: 'סוכן חיפוש תקדימים',
+        avatar: '\u{2696}\u{FE0F}',
+        intro: 'שלום \u{1F44B} אני סוכן התקדימים. תארו לי בקצרה את העניין המשפטי שאתם מחפשים — בעברית רגילה, לא צריך מילים מקצועיות. אני אחזיר תקדימים רלוונטיים עם ציטוטים ולינק למקור.\n\nתנסו?',
+        quick: ['פיצוי על איחור במסירת דירה', 'אחריות מנהל בחברה לחובות החברה', 'תוקף חתימה אלקטרונית', 'הגנה על שם טוב באינטרנט'],
+        responses: [
+          { match: /איחור|מסירה|דירה/i, reply: '\u{2696}\u{FE0F} מצאתי 4 תקדימים רלוונטיים:\n\n◂ ע״א 8124/00 (עליון) — קונה דירה זכאי לפיצוי גם בלי הוכחת נזק כשמדובר בעיכוב מהותי. \u{1F4D6} ציטוט: "החזקה היא שעיכוב במסירה גורם נזק"\n\n◂ ת״א (ת״א) 12345-67-89 (השלום) — שיעור הפיצוי המקובל: 2.5% מערך הדירה לחודש\n\n◂ ע״א 4456/14 — סייג לפסקת פיצוי מוסכם כשהיא לא סבירה\n\nכל ה-4 הוצאו ל-DOCX מסודר עם hyperlinks. רוצים שאשלוף את הנימוקים המלאים?' },
+          { match: /אחריות מנהל|מנהל.*חברה|חובות.*חברה/i, reply: '\u{2696}\u{FE0F} נושא מורכב — מצאתי 3 תקדימים מובילים:\n\n◂ ע״א 4263/04 (קידוחי הצפון) — הרמת מסך כשהמנהל פעל בחוסר תום לב או ניצל את האישיות המשפטית\n\n◂ ע״א 7991/07 — אחריות אישית של מנהל בעוולת רשלנות גם בלי הרמת מסך\n\n◂ ת״א (מחוזי ת״א) 1234/15 — דוגמה ליישום בעניין חוב לספק\n\n⚠️ חשוב: יש פס״ד עדכני יותר מ-2023 שמצמצם את (1). אני מסמן זאת ומציע לעבור עליו לפני הסתמכות.' },
+          { match: /חתימה אלקטרונית|דיגיטלית/i, reply: '\u{2696}\u{FE0F} חוק חתימה אלקטרונית התשס״א-2001 + תקדימים רלוונטיים:\n\n◂ ת״א 9876/19 — חתימה אלקטרונית מאובטחת = ראיה כשרה לעצם החתימה\n\n◂ ע״א 5432/20 — הבחנה בין חתימה "מאובטחת" ל"רגילה" — נטל ההוכחה שונה\n\n◂ פסיקה עדכנית על DocuSign / Adobe Sign — מתקבלים כראיה אם נשמרת trail\n\nבכל פסיקה, הסוכן בודק <strong>גם תיקוני חקיקה</strong> שמשפיעים. רוצים סיכום של ההלכה הנוכחית?' },
+          { match: /שם טוב|לשון הרע|פייסבוק|אינסטגרם/i, reply: '\u{2696}\u{FE0F} שדה דינאמי מאוד — מצאתי תקדימים מהשנים האחרונות:\n\n◂ רע״א 1239/19 (מרציאנו נ׳ זוהר) — קביעת המבחנים לפרסום בפייסבוק\n\n◂ ת״א 24234-08-21 — פיצוי ללא הוכחת נזק עד 70,000 ₪ בפרסום ברשת\n\n◂ רע״א 4447/22 — הגדרת "מפיץ משני" — מי שעושה שיתוף\n\nהכל נוסף לתיק הלקוח, עם הצעה לכתב תביעה אם תרצו להמשיך לסוכן הבא.' },
+          { match: /.*/, reply: '\u{1F50D} מחפש במאגרים: נבו, תקדין, וארכיון פנימי של המשרד...\n\nבגרסה האמיתית הייתי מחזיר 3-5 תקדימים מדורגים לפי רלוונטיות, עם ציטוט ישיר ולינק. תנסו דוגמה: "פיצוי על איחור במסירת דירה" או "תוקף חתימה אלקטרונית".' }
+        ]
+      },
+      email: {
+        name: 'סוכן ניסוח מיילים',
+        avatar: '\u{2709}\u{FE0F}',
+        intro: 'שלום \u{1F44B} אני סוכן המיילים. תגידו לי במשפט מה אתם רוצים לכתוב — לקוח, צד נגדי, רשם המקרקעין, מי שזה לא יהיה — ואני אנסח טיוטה בסגנון המשרד. הטיוטה לאישור שלכם לפני שליחה.',
+        quick: ['תגובה למייל של עו״ד שכנגד', 'דרישת חוב ראשונה ללקוח', 'בקשה לדחיית דיון', 'מייל ללקוח עם עדכון תיק'],
+        responses: [
+          { match: /צד נגדי|עו״ד שכנגד|תגובה.*עו/i, reply: '\u{2709}\u{FE0F} מנסח טיוטת תגובה לעו״ד שכנגד...\n\nקראתי את המייל המקורי שלהם, חילצתי את הטענות, ובניתי תגובה מובנית:\n\n◂ פתיחה מנומסת אך לא מתנצלת\n◂ התייחסות נקודתית לכל טענה (4 טענות)\n◂ הפניה ל-2 תקדימים תומכים\n◂ הצעה למו״מ עם תאריך יעד\n◂ חתימה רשמית\n\nהטון: מקצועי, חד, לא תוקפני. \u{1F4CE} צירפתי גם את הקבצים שהוזכרו. רוצים לעיין לפני שליחה?' },
+          { match: /דרישת חוב|חוב|תשלום/i, reply: '\u{2709}\u{FE0F} מכין מכתב דרישת חוב ראשון...\n\nשולף מעודכנית: סכום החוב, תאריכי חיוב, התכתבויות קודמות.\n\nהטיוטה כוללת:\n◂ פירוט החוב ומקורו\n◂ דרישה לתשלום תוך 14 יום\n◂ התראה על נקיטת הליכים\n◂ הצעה לפריסה (כברירה ראשונה)\n\nהמכתב <strong>לא מאיים יתר על המידה</strong> — שומר פתח למו״מ. עורך הדין מאשר לפני שליחה. רוצים שאחזק את הטון?' },
+          { match: /דחיית דיון|דחייה|דיון/i, reply: '\u{2709}\u{FE0F} מנסח בקשה לדחיית דיון...\n\nשלוש גרסאות לפי רמת הפורמליות הנדרשת:\n\n1⃣ בקשה ידידותית לעמיתים — קצרה, ישירה\n2⃣ בקשה רשמית לבית המשפט — עם נימוקים מפורטים\n3⃣ בקשה דחופה (מעל 14 יום לפני) — עם הצעת תאריכים חלופיים\n\nאם זה למזכירות בית המשפט — אוסיף אוטומטית את הפרטים הטכניים שדרושים (מס׳ תיק, שופט, מועד קיים).' },
+          { match: /לקוח|עדכון תיק|ללקוח/i, reply: '\u{2709}\u{FE0F} מנסח עדכון תיק ללקוח...\n\nמושך מעודכנית את כל ההתפתחויות מאז ההתכתבות האחרונה (לפני 11 ימים):\n\n◂ דיון שהתקיים ביום ראשון\n◂ מסמך שהוגש ב-3.5\n◂ תשובת הצד הנגדי שהתקבלה אתמול\n\nמתרגם לשפה ללא ז׳רגון משפטי, מסביר משמעות, ומציע צעדים. <strong>לא מבטיח תוצאות</strong> — מקפיד על "סבירות גבוהה" / "תרחיש סביר".\n\nהטון אישי, לא רובוטי.' },
+          { match: /.*/, reply: '\u{1F4DD} בגרסה המלאה אני מתחבר ל-Outlook/Gmail, קורא את ה-thread המלא, מושך את ההיסטוריה של הקשר עם הצד השני, וכותב טיוטה בסגנון המשרד.\n\nתנסו: "תגובה למייל של עו״ד שכנגד" או "דרישת חוב ראשונה ללקוח".' }
+        ]
+      },
+      claim: {
+        name: 'סוכן כתבי תביעה',
+        avatar: '\u{1F4C4}',
+        intro: 'שלום \u{1F44B} אני סוכן הכנת כתבי תביעה. תספרו לי בקצרה את הסיפור — מה קרה, מי התובע, מי הנתבע, מה הסכום — ואני אכין טיוטה מובנית עם תקדימים תומכים. <strong>הכל לאישור שלכם</strong>, אני לא מחליף את עורך הדין.',
+        quick: ['תביעה לפיצוי על איחור במסירת דירה', 'תביעה כספית — חוב לא שולם', 'תביעת לשון הרע מפרסום בפייסבוק', 'תביעה לאכיפת חוזה'],
+        responses: [
+          { match: /איחור.*מסירה|דירה.*איחור|איחור.*דירה/i, reply: '\u{1F4C4} בונה כתב תביעה — איחור במסירת דירה...\n\n⏳ שלב 1/4: איסוף עובדות\n✓ חוזה רכש (קובץ מ-עודכנית)\n✓ התכתבויות עם הקבלן\n✓ חישוב גובה הנזק (דמי שכירות חלופיים + עוגמת נפש)\n\n⏳ שלב 2/4: חיפוש תקדימים\n✓ ע״א 8124/00 — זכאות לפיצוי גם ללא הוכחת נזק\n✓ שיעור פיצוי מקובל: 2.5%/חודש\n\n⏳ שלב 3/4: ניסוח כתב תביעה\n✓ כותרת + מבוא\n✓ העובדות (12 סעיפים)\n✓ הטיעון המשפטי + תקדימים\n✓ הסעדים המבוקשים\n✓ רשימת נספחים\n\n⏳ שלב 4/4: review\n⚠️ סימנתי 2 נקודות שדורשות החלטה שלכם:\n  1. האם לכלול עוגמת נפש (השפעה על אגרה)\n  2. סמכות מקומית — יש שתי אפשרויות\n\nהטיוטה נשמרה לתיק בעודכנית. רוצים לעבור עליה איתי?' },
+          { match: /חוב.*לא שולם|תביעה כספית|כספית/i, reply: '\u{1F4C4} בונה כתב תביעה כספית...\n\n⏳ איסוף ראיות:\n✓ חשבונית מקור + דרישת חוב קודמת\n✓ הסכם מקורי ש-זוהה במערכת\n✓ התכתבויות (מסמן מקומות שיש בהם הודאה בחוב — חזק במיוחד)\n\n⏳ ניסוח:\n✓ כתב תביעה בסדר דין מהיר (מתחת ל-75K₪ — אוטומטית)\n✓ פירוט החוב, ריבית, הצמדה\n✓ צו עיקול זמני (אם יש סיכון לסיכון נכסים)\n\n⚠️ הצעה: לפני הגשה — לשקול דרישה אחרונה עם איום ספציפי. בכ-40% מהמקרים זה גומר את הסיפור בלי תביעה.\n\nרוצים שאכין גם את המכתב הקדם-תביעה?' },
+          { match: /לשון הרע|שם טוב|פייסבוק|פוסט/i, reply: '\u{1F4C4} בונה כתב תביעה — לשון הרע ברשת...\n\n⏳ איסוף ראיות:\n✓ צילום מסך של הפרסום (עם metadata)\n✓ רשימת השיתופים והתגובות\n✓ פנייה מוקדמת להסרה (אם נעשתה)\n\n⏳ ניסוח:\n✓ הוכחת זהות המפרסם (אם פסבדונים — בקשה לחשיפה)\n✓ אלמנטים: פרסום + פגיעה בשם הטוב + העדר הגנות\n✓ פיצוי ללא הוכחת נזק עד 70,000₪ (פסיקה עדכנית)\n✓ בקשה לצו הסרה זמני\n\n⏳ תקדימים מצורפים:\n✓ רע״א 1239/19, ת״א 24234-08-21, רע״א 4447/22\n\nהטיוטה מוכנה ב-עודכנית. \u{1F4DD} רוצים סקירה?' },
+          { match: /אכיפת חוזה|אכיפה|קיום חוזה/i, reply: '\u{1F4C4} בונה כתב תביעה — אכיפת חוזה...\n\n⏳ איסוף:\n✓ החוזה המקורי + תיקונים\n✓ הוכחת קיום מצד התובע\n✓ הוכחת הפרה מצד הנתבע\n✓ התראות שנשלחו (חשוב למבחן ה"הזדמנות לתקן")\n\n⏳ ניסוח:\n✓ בקשה לסעד אכיפה (ולא רק פיצוי) — דורש הסבר למה פיצוי לא מספיק\n✓ לחלופין: ביטול + השבה + פיצויים\n✓ תקדימים על אכיפה ספציפית\n\n⚠️ המלצה: לפני הגשה לבדוק שעדיין יש "אינטרס קיום" — אם החלפת ספקים, הסעד עלול להיהפך תיאורטי.' },
+          { match: /.*/, reply: '\u{1F4C4} ספרו לי מקרה ספציפי ואכין טיוטה רב-שלבית: עובדות → תקדימים → ניסוח → review.\n\nתנסו דוגמה: "תביעה לפיצוי על איחור במסירת דירה" או "תביעה כספית — חוב לא שולם".' }
+        ]
+      }
+    };
+
+    let currentAgent = 'contracts';
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    const agentName = document.getElementById('agentName');
+    const agentAvatar = document.getElementById('agentAvatar');
+
+    function loadAgent(key) {
+      currentAgent = key;
+      const a = agents[key];
+      agentName.textContent = a.name;
+      agentAvatar.textContent = a.avatar;
+      chatMessages.innerHTML = '';
+      const intro = addMessage(a.intro, false);
+      // Append quick replies inside the intro message
+      const quickWrap = document.createElement('div');
+      quickWrap.className = 'quick-replies';
+      a.quick.forEach(q => {
+        const b = document.createElement('button');
+        b.className = 'quick-reply';
+        b.textContent = q;
+        b.addEventListener('click', () => sendQuickReply(q));
+        quickWrap.appendChild(b);
+      });
+      intro.appendChild(quickWrap);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function getResponse(text) {
+      const a = agents[currentAgent];
+      for (const r of a.responses) {
+        if (r.match.test(text)) return r.reply;
+      }
+      return a.responses[a.responses.length - 1].reply;
+    }
+
+    function addMessage(text, isUser) {
+      const msg = document.createElement('div');
+      msg.className = 'chat-msg ' + (isUser ? 'user' : 'bot');
+      const label = document.createElement('div');
+      label.className = 'msg-label';
+      label.textContent = isUser ? 'אתם' : agents[currentAgent].name;
+      msg.appendChild(label);
+      const content = document.createElement('div');
+      content.textContent = text;
+      msg.appendChild(content);
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return msg;
+    }
+
+    function showTyping() {
+      const t = document.createElement('div');
+      t.className = 'chat-msg bot';
+      t.id = 'typingIndicator';
+      t.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+      chatMessages.appendChild(t);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function removeTyping() {
+      const t = document.getElementById('typingIndicator');
+      if (t) t.remove();
+    }
+
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      addMessage(text, true);
+      chatInput.value = '';
+      showTyping();
+      const delay = 700 + Math.random() * 600;
+      setTimeout(() => {
+        removeTyping();
+        addMessage(getResponse(text), false);
+      }, delay);
+    }
+    function sendQuickReply(text) {
+      chatInput.value = text;
+      sendMessage();
+    }
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+    // Agent switcher
+    document.querySelectorAll('.agent-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.agent-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadAgent(btn.dataset.agent);
+      });
+    });
+
+    // Initial load
+    loadAgent('contracts');
+  </script>
+</body>
+</html>

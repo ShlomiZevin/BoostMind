@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>אוטומציה עם Claude — ליווי טכנולוגי | שלומי זוין</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --accent: #06b6d4;
+    --accent-soft: rgba(6, 182, 212, 0.12);
+    --accent-strong: #0891b2;
+  }
+  [data-theme="dark"] {
+    --bg: #0a0a0b;
+    --bg-2: #121214;
+    --card: #161618;
+    --card-2: #1c1c1f;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --text: #f2f2f4;
+    --text-dim: #9a9aa3;
+    --text-muted: #6a6a73;
+    --code-bg: #0d0d0f;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --bg-2: #f4f4f5;
+    --card: #ffffff;
+    --card-2: #f8f8f9;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.14);
+    --text: #18181b;
+    --text-dim: #52525b;
+    --text-muted: #a1a1aa;
+    --code-bg: #f4f4f5;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Heebo', system-ui, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+  code, pre, .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+
+  /* Header */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
+  .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .brand-sub { color: var(--text-muted); font-weight: 400; font-size: 13px; margin-right: 2px; }
+  .theme-toggle {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    transition: all 0.15s;
+  }
+  .theme-toggle:hover { border-color: var(--border-strong); }
+
+  /* Hero */
+  .hero { max-width: 1180px; margin: 0 auto; padding: 80px 24px 48px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    margin-bottom: 24px;
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .hero h1 {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p.lead {
+    font-size: 19px; color: var(--text-dim); max-width: 720px;
+    line-height: 1.65;
+  }
+  .hero-meta {
+    display: flex; gap: 28px; margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero-meta-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .hero-meta-value { font-size: 15px; color: var(--text); font-weight: 600; }
+
+  /* Tabs */
+  .tabs-wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: transparent; border: none; color: var(--text-dim);
+    padding: 14px 18px; font-size: 14px; font-weight: 500;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    white-space: nowrap; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .panel { max-width: 1180px; margin: 0 auto; padding: 56px 24px 100px; display: none; }
+  .panel.active { display: block; }
+
+  /* Section heads */
+  .section-eyebrow { font-size: 12px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  h2 { font-size: clamp(26px, 3.5vw, 36px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 12px; }
+  h2 + .sub { color: var(--text-dim); font-size: 17px; max-width: 680px; margin-bottom: 36px; }
+
+  /* Cards */
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .card:hover { border-color: var(--border-strong); }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 16px;
+  }
+  .card h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+  .card .tag { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: block; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 40px 0 48px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+  .stat-num { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .stat-label { font-size: 13px; color: var(--text-dim); }
+
+  /* Lists */
+  .check-list { display: flex; flex-direction: column; gap: 10px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    color: var(--text-dim); font-size: 15px; line-height: 1.6;
+  }
+  .check-mark {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; margin-top: 4px;
+  }
+
+  /* Quote */
+  .quote-block {
+    background: var(--card); border: 1px solid var(--border);
+    border-right: 3px solid var(--accent);
+    border-radius: 8px; padding: 24px 28px;
+    margin: 32px 0;
+  }
+  .quote-block p { font-size: 17px; color: var(--text); font-weight: 500; line-height: 1.5; }
+
+  /* Demo */
+  .demo-shell { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .demo-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--card-2); }
+  .demo-tab {
+    flex: 1; padding: 14px 16px; background: transparent; border: none;
+    color: var(--text-dim); font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: inherit; border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .demo-tab:hover { color: var(--text); }
+  .demo-tab.active { color: var(--text); background: var(--card); border-bottom-color: var(--accent); }
+  .demo-body { padding: 28px; min-height: 380px; }
+  .demo-input-wrap { margin-bottom: 16px; }
+  .demo-input-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: block; font-weight: 600; }
+  .demo-input {
+    width: 100%; background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+    min-height: 100px; resize: vertical; direction: rtl;
+  }
+  .demo-input:focus { outline: none; border-color: var(--accent); }
+  .demo-input.ltr { direction: ltr; text-align: left; }
+  .demo-run {
+    background: var(--accent); color: #001016; border: none;
+    padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;
+    cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.15s;
+  }
+  .demo-run:hover { background: var(--accent-strong); }
+  .demo-run:disabled { opacity: 0.6; cursor: not-allowed; }
+  .demo-samples { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .demo-sample-btn {
+    background: var(--card-2); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .demo-sample-btn:hover { border-color: var(--accent); color: var(--text); }
+  .demo-output {
+    margin-top: 20px; background: var(--code-bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px; min-height: 100px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+    color: var(--text);
+  }
+  .demo-output .key { color: var(--accent); }
+  .demo-output .str { color: #a3e635; }
+  .demo-output .num { color: #f59e0b; }
+  .demo-output .punct { color: var(--text-muted); }
+  .demo-output-label {
+    font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-top: 20px; margin-bottom: 8px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .demo-output-label .live-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .cursor::after { content: '▊'; color: var(--accent); animation: blink 0.7s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .demo-note {
+    margin-top: 16px; font-size: 12px; color: var(--text-muted);
+    padding: 10px 14px; background: var(--bg-2); border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* Budget */
+  .price-card {
+    background: var(--card); border: 1px solid var(--accent);
+    border-radius: 16px; padding: 36px; margin-bottom: 32px;
+    position: relative;
+  }
+  .price-tag {
+    position: absolute; top: 20px; left: 28px;
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    background: var(--accent-soft); padding: 4px 10px; border-radius: 4px;
+  }
+  .price-title { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 600; }
+  .price-amount {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;
+  }
+  .price-num { font-size: 56px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+  .price-unit { font-size: 18px; color: var(--text-dim); }
+  .price-sub { color: var(--text-dim); font-size: 15px; margin-bottom: 28px; }
+  .price-list { display: flex; flex-direction: column; gap: 12px; }
+  .price-list .check-item { font-size: 15px; }
+
+  .timeline {
+    display: flex; flex-direction: column; gap: 16px;
+    margin-top: 24px;
+  }
+  .timeline-item {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .timeline-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+  }
+  .timeline-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-content p { font-size: 14px; color: var(--text-dim); }
+
+  /* Tech stack */
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .stack-item {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 12px 14px; border-radius: 8px;
+    font-size: 13px; color: var(--text);
+    text-align: center; font-weight: 500;
+  }
+
+  /* CTA */
+  .cta {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px;
+    text-align: center; margin-top: 40px;
+  }
+  .cta h3 { font-size: 24px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.01em; }
+  .cta p { color: var(--text-dim); margin-bottom: 24px; font-size: 16px; }
+  .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 8px; font-weight: 600; font-size: 15px;
+    text-decoration: none; transition: all 0.15s; cursor: pointer;
+    font-family: inherit; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: #001016; }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-secondary { background: var(--card-2); color: var(--text); border-color: var(--border-strong); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .footer a { color: var(--text-dim); text-decoration: none; }
+  .footer a:hover { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .hero { padding: 56px 20px 32px; }
+    .panel { padding: 36px 20px 80px; }
+    .price-card { padding: 28px 22px; }
+    .price-num { font-size: 44px; }
+    .demo-body { padding: 20px; }
+    .demo-tab { padding: 12px 8px; font-size: 12px; }
+    .cta { padding: 28px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>שלומי זוין</span>
+      <span class="brand-sub">· CTO as a Service</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">🌙</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="pill">
+    <span class="pill-dot"></span>
+    הצעה לפרילנסר/ית לאוטומציה עם Claude
+  </div>
+  <h1>אוטומציה עם Claude.<br/>לא פרילנסר — <span class="accent">שותף טכנולוגי.</span></h1>
+  <p class="lead">
+    אתה מחפש מישהו שיבנה לך אוטומציות עם Claude.
+    אני יכול לעשות את זה — אבל אני מציע משהו אחר ויותר חכם:
+    <strong style="color:var(--text)">ליווי חודשי</strong> שבו אני בונה איתך, מארכט נכון, ומשאיר לך מערכת שאתה שולט בה. בלי תלות.
+  </p>
+
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">מודל</span>
+      <span class="hero-meta-value">חודשי · 10,000 ₪</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">התחלה</span>
+      <span class="hero-meta-value">תוך 48 שעות</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">סקופ</span>
+      <span class="hero-meta-value">דינמי, ללא lock-in</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">ניסיון</span>
+      <span class="hero-meta-value">15+ שנים, 50+ מוצרים</span>
+    </div>
+  </div>
+</section>
+
+<div class="tabs-wrap">
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="offer">ההצעה</button>
+    <button class="tab" data-tab="experience">ניסיון רלוונטי</button>
+    <button class="tab" data-tab="demo">הדגמה חיה</button>
+    <button class="tab" data-tab="budget">תקציב ולו"ז</button>
+  </div>
+</div>
+
+<!-- TAB 1: OFFER -->
+<section class="panel active" id="panel-offer">
+  <div class="section-eyebrow">למה ההצעה הזו שונה</div>
+  <h2>אתה לא צריך פרילנסר. אתה צריך ארכיטקט.</h2>
+  <p class="sub">
+    פרילנסר טוב יבנה לך מה שתבקש. ארכיטקט יבנה איתך את הדבר הנכון — וישאיר לך מערכת שמתחזקת את עצמה, גמישה לשינויים, וניתן להוסיף לה ידיים זולות יותר אחר כך.
+  </p>
+
+  <div class="grid grid-2" style="margin-bottom: 48px;">
+    <div class="card">
+      <div class="card-icon">📧</div>
+      <h3>אוטומציית אימיילים וחשבוניות</h3>
+      <p>סינון אוטומטי, קיטלוג, חילוץ נתונים מ-PDF/תמונה, יצירת תגובות, ניתוב לפי תוכן — הכל עם Claude כמנוע הבנת השפה.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎙️</div>
+      <h3>תמלול וסיכום</h3>
+      <p>תמלול אוטומטי (Whisper / Claude voice), סיכום שיחות וישיבות, חילוץ action items, יצירת דו"חות. עם הפרדת דוברים ושמירה על קונטקסט.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <h3>מילוי טפסים ומעבר נתונים</h3>
+      <p>אוטומציה בין מערכות שלא מדברות (CRM, ERP, Sheets, אתרי לקוחות), מילוי טפסים אוטומטי, סנכרון דו-כיווני, validation חכם.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <h3>אינטגרציות עם אתרים ומערכות</h3>
+      <p>API integrations, scraping מתוחכם, webhooks, n8n / Make / Zapier כשמתאים — קוד מותאם כשלא. תמיד הכלי הנכון למשימה.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <h3>סוכני Claude מדויקים</h3>
+      <p>לא prompt engineering חובבני — בניית agents עם זיכרון, tools, ו-guardrails. אני מבין את הטכנולוגיה מבפנים, יודע איפה המגבלות.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>ניהול תוכן ותקשורת</h3>
+      <p>זרימות תוכן אוטומטיות, broadcast מבוסס Claude, ניהול ערוצי תקשורת (WhatsApp, Telegram, Email), generation לפי תבניות.</p>
+    </div>
+  </div>
+
+  <div class="section-eyebrow">למה אני</div>
+  <h2>15 שנה בטכנולוגיה. שנתיים עם Claude Code יום-יום.</h2>
+  <p class="sub">
+    אני לא "התחלתי השנה עם AI". אני מהנדס תוכנה ותיק שעבר התמחות עמוקה ב-LLMs ו-AI agents — אבל מגיע עם הבנה של מערכות שלמות, ולא רק של ה-prompt.
+  </p>
+
+  <div class="check-list" style="max-width: 760px;">
+    <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">Claude Code יום-יום.</strong> אני בונה איתו אוטומציות, agents, ופרויקטים שלמים. דברים שלקחו חודשים — לוקחים ימים.</span></div>
+    <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">תשתית לבניית agents מהירה.</strong> יש לי שלד מוכן ל-Claude agents עם memory, tools, MCP. לא מתחילים מאפס.</span></div>
+    <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">מבין את המגבלות.</strong> יודע מתי Claude יטעה, איפה צריך deterministic code, איפה אפשר להרשות gen. זה ההבדל בין POC לבין מערכת בייצור.</span></div>
+    <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">לא בורג.</strong> רואה את המערכת השלמה — מהקלט של המשתמש, דרך ה-API, ה-DB, וה-monitoring. לא רק "הנה הסקריפט".</span></div>
+    <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">שקיפות מלאה.</strong> הקוד שלך, ה-prompts שלך, האקאונטים שלך. בלי lock-in, בלי "תלות בי לחיים".</span></div>
+  </div>
+
+  <div class="quote-block">
+    <p>"מחיר של פרילנסר. ראייה של CTO. אני בונה איתך את האוטומציות — ובמקביל בונה לך מערכת מסודרת שתוכל להרחיב גם אחרי שאעזוב."</p>
+  </div>
+</section>
+
+<!-- TAB 2: EXPERIENCE -->
+<section class="panel" id="panel-experience">
+  <div class="section-eyebrow">המספרים</div>
+  <h2>הניסיון, בקצרה.</h2>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num">15+</div><div class="stat-label">שנות ניסיון בהייטק</div></div>
+    <div class="stat"><div class="stat-num">50+</div><div class="stat-label">מוצרים שנבנו מאפס</div></div>
+    <div class="stat"><div class="stat-num">2+</div><div class="stat-label">שנים עם Claude וכלי AI מתקדמים</div></div>
+    <div class="stat"><div class="stat-num">100×</div><div class="stat-label">מהירות פיתוח עם Claude Code</div></div>
+  </div>
+
+  <div class="section-eyebrow">דוגמאות רלוונטיות</div>
+  <h2 style="font-size: 24px;">מה שכבר בניתי בעולמות האוטומציה ו-AI</h2>
+
+  <div class="grid grid-2" style="margin-top: 28px;">
+    <div class="card">
+      <span class="tag">Email + LLM</span>
+      <h3>סינון וניתוב אימיילים עסקיים</h3>
+      <p>מערכת שמקבלת מאות אימיילים ביום, מקטלגת אותם, מחלצת מהם נתונים מובנים (חשבוניות, הזמנות, פניות), ומנתבת לזרימות עבודה שונות. כולל שמירה היסטורית ו-fallback ידני למקרים מורכבים.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Voice + Claude</span>
+      <h3>תמלול וסיכום שיחות מכירה</h3>
+      <p>שיחות נקלטות, מתומללות עם Whisper, מועברות ל-Claude לחילוץ: רגשות, התנגדויות, action items, הזדמנויות. הסיכומים מוזרמים אוטומטית ל-CRM של הלקוח.</p>
+    </div>
+    <div class="card">
+      <span class="tag">PDF + OCR + Claude</span>
+      <h3>חילוץ נתונים מחשבוניות וטפסים</h3>
+      <p>פייפליין שמקבל PDF/תמונה, מזהה את סוג המסמך, מחלץ את כל השדות הרלוונטיים (גם כשהפורמט לא סטנדרטי), מאמת מול מסד נתונים, ומכניס למערכת. שיעור דיוק 95%+.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Multi-system Sync</span>
+      <h3>סנכרון בין מערכות לא תואמות</h3>
+      <p>אינטגרציה דו-כיוונית בין CRM, ERP, ו-Google Sheets ללקוח שעבד עם שלוש מערכות שלא דיברו. אין אובדן נתונים, יש log מלא, וכל ההבדלים מוכרעים לפי כללים שהלקוח הגדיר.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Claude Agents</span>
+      <h3>סוכני AI ליישומים עסקיים</h3>
+      <p>סוכנים שעובדים עם tools (Calendar, Email, DB, API חיצוני), מקבלים החלטות, ופועלים אוטונומית. עם guardrails, audit trail, ו-human-in-the-loop למקרים קריטיים.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Form Automation</span>
+      <h3>מילוי טפסים אוטומטי באתרים חיצוניים</h3>
+      <p>בוטים שעובדים מול אתרי לקוחות (כולל כאלה עם CAPTCHA), ממלאים טפסים מתוך מסד נתונים פנימי, ומדווחים על תוצאות. שילוב של Playwright + Claude להבנת UI דינמי.</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 48px;">
+    <div class="section-eyebrow">תחומי מומחיות</div>
+    <h2 style="font-size: 22px;">מה שאני מביא לשולחן</h2>
+    <div class="stack-grid" style="margin-top: 20px;">
+      <div class="stack-item">Claude API</div>
+      <div class="stack-item">Claude Code</div>
+      <div class="stack-item">MCP servers</div>
+      <div class="stack-item">OpenAI / GPT-4</div>
+      <div class="stack-item">Whisper / TTS</div>
+      <div class="stack-item">RAG / Vector DBs</div>
+      <div class="stack-item">n8n / Make</div>
+      <div class="stack-item">Python / Node.js</div>
+      <div class="stack-item">Playwright</div>
+      <div class="stack-item">FastAPI / Express</div>
+      <div class="stack-item">PostgreSQL</div>
+      <div class="stack-item">Redis / Queues</div>
+      <div class="stack-item">AWS / GCP</div>
+      <div class="stack-item">Docker</div>
+      <div class="stack-item">Webhooks</div>
+      <div class="stack-item">OAuth / APIs</div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 3: DEMO -->
+<section class="panel" id="panel-demo">
+  <div class="section-eyebrow">הוכחת כוח</div>
+  <h2>שלוש אוטומציות. שתגדיר. שתריץ עכשיו.</h2>
+  <p class="sub">
+    כל מה שתראה כאן נבנה תוך דקות עם Claude Code. אלו דוגמאות מצומצמות של הזרימות שאני בונה ללקוחות בייצור — רק שכאן אתה רואה את זה רץ במקום לקרוא עליו.
+  </p>
+
+  <div class="demo-shell">
+    <div class="demo-tabs">
+      <button class="demo-tab active" data-demo="email">📧 סינון אימייל</button>
+      <button class="demo-tab" data-demo="invoice">🧾 חילוץ חשבונית</button>
+      <button class="demo-tab" data-demo="meeting">🎙️ סיכום שיחה</button>
+    </div>
+
+    <div class="demo-body">
+      <!-- Email demo -->
+      <div class="demo-pane" data-pane="email">
+        <span class="demo-input-label">בחר אימייל לדוגמה או הדבק משלך</span>
+        <div class="demo-samples">
+          <button class="demo-sample-btn" data-sample="email-1">📩 פנייה מלקוח</button>
+          <button class="demo-sample-btn" data-sample="email-2">💳 הודעת תשלום</button>
+          <button class="demo-sample-btn" data-sample="email-3">📢 ספאם / שיווק</button>
+        </div>
+        <textarea class="demo-input" id="email-input" placeholder="הדבק תוכן של אימייל כאן..."></textarea>
+        <button class="demo-run" id="email-run">▶ הרץ סינון</button>
+        <div id="email-output-wrap" style="display:none;">
+          <div class="demo-output-label"><span class="live-dot"></span>פלט Claude (JSON מובנה)</div>
+          <div class="demo-output mono" id="email-output"></div>
+        </div>
+        <div class="demo-note">בפועל: Claude מנתח את האימייל, מסווג, מחליט על פעולה, וכותב לתור עיבוד או מנתב למערכת המתאימה. כל זה תוך 1-2 שניות לאימייל.</div>
+      </div>
+
+      <!-- Invoice demo -->
+      <div class="demo-pane" data-pane="invoice" style="display:none;">
+        <span class="demo-input-label">בחר חשבונית לדוגמה</span>
+        <div class="demo-samples">
+          <button class="demo-sample-btn" data-sample="invoice-1">🧾 חשבונית ספק</button>
+          <button class="demo-sample-btn" data-sample="invoice-2">📃 קבלה ידנית</button>
+          <button class="demo-sample-btn" data-sample="invoice-3">📄 הזמנה עם פריטים</button>
+        </div>
+        <textarea class="demo-input" id="invoice-input" placeholder="טקסט שיוצא מ-OCR של חשבונית..."></textarea>
+        <button class="demo-run" id="invoice-run">▶ חלץ נתונים</button>
+        <div id="invoice-output-wrap" style="display:none;">
+          <div class="demo-output-label"><span class="live-dot"></span>נתונים מובנים מוכנים למערכת</div>
+          <div class="demo-output mono" id="invoice-output"></div>
+        </div>
+        <div class="demo-note">בפועל: PDF / תמונה → OCR → Claude לחילוץ שדות → validation → הכנסה ל-ERP. כולל זיהוי כפילויות וטיפול בפורמטים לא סטנדרטיים.</div>
+      </div>
+
+      <!-- Meeting demo -->
+      <div class="demo-pane" data-pane="meeting" style="display:none;">
+        <span class="demo-input-label">בחר תמליל לדוגמה</span>
+        <div class="demo-samples">
+          <button class="demo-sample-btn" data-sample="meeting-1">🤝 פגישת מכירה</button>
+          <button class="demo-sample-btn" data-sample="meeting-2">📞 שיחת לקוח</button>
+          <button class="demo-sample-btn" data-sample="meeting-3">🧑‍💼 ישיבת צוות</button>
+        </div>
+        <textarea class="demo-input" id="meeting-input" placeholder="תמליל שיחה / ישיבה..."></textarea>
+        <button class="demo-run" id="meeting-run">▶ סכם והפק action items</button>
+        <div id="meeting-output-wrap" style="display:none;">
+          <div class="demo-output-label"><span class="live-dot"></span>סיכום + action items</div>
+          <div class="demo-output mono" id="meeting-output"></div>
+        </div>
+        <div class="demo-note">בפועל: הקלטה → Whisper לתמלול → Claude לסיכום, חילוץ משימות ושליחה אוטומטית למיילים / Slack / CRM. עם זיהוי דוברים והקשר היסטורי.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 4: BUDGET -->
+<section class="panel" id="panel-budget">
+  <div class="section-eyebrow">תקציב ומודל עבודה</div>
+  <h2>חודשי. שקוף. ללא הפתעות.</h2>
+  <p class="sub">המודל פשוט: אתה משלם חודש, מקבל ערך — ממשיכים. לא מתאים? עוצרים בסוף החודש. בלי lock-in, בלי תוספות מפתיעות, בלי "תיקונים" שעולים יותר מהמוצר.</p>
+
+  <div class="price-card">
+    <span class="price-tag">המודל המוצע</span>
+    <div class="price-title">ליווי טכנולוגי חודשי</div>
+    <div class="price-amount">
+      <span class="price-num">10,000 ₪</span>
+      <span class="price-unit">/ חודש</span>
+    </div>
+    <p class="price-sub">לא מע"מ · חודש קלנדרי · ניתן להפסיק בכל חודש</p>
+
+    <div class="price-list">
+      <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">אני בעצמי על הפרויקט</strong> — לא צוות, לא מיקור משנה. שלומי, ישירות.</span></div>
+      <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">בנייה של האוטומציות</strong> — לא רק "ייעוץ". אני יושב, כותב, מפעיל, ומוסר עובד.</span></div>
+      <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">ארכיטקטורה נקייה</strong> — שתוכל להרחיב לבד, או להוסיף ידיים זולות יותר בהמשך.</span></div>
+      <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">תיעוד ו-handover</strong> — כל מה שאני בונה, מתועד. הקוד שלך, ה-prompts שלך, החשבונות שלך.</span></div>
+      <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">סקופ דינמי</strong> — אתה לא חתום על feature list. צריך לשנות עדיפויות? משנים.</span></div>
+      <div class="check-item"><span class="check-mark">✓</span><span><strong style="color:var(--text)">אפס lock-in</strong> — בכל רגע אתה יכול לקחת הכל ולעבור. בלי דרמה.</span></div>
+    </div>
+  </div>
+
+  <div class="section-eyebrow">איך מתחילים</div>
+  <h2 style="font-size: 22px;">השבוע הראשון</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-num">1</div>
+      <div class="timeline-content">
+        <h4>שיחת kickoff — 60 דקות</h4>
+        <p>סוקרים את כל האוטומציות שבראש, מסדרים לפי ערך/דחיפות, מסכמים מה רץ ראשון.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-num">2</div>
+      <div class="timeline-content">
+        <h4>אוטומציה ראשונה תוך 3-5 ימים</h4>
+        <p>בוחרים משימה אחת ברורה (סינון מיילים / חילוץ חשבוניות / וכו') — אני בונה, מציג רץ, מטמיע. אתה רואה ערך מהשבוע הראשון.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-num">3</div>
+      <div class="timeline-content">
+        <h4>תשתית לזרימה רציפה</h4>
+        <p>מקימים repo משותף, monitoring, logging, ו-pipeline. אחרי זה כל אוטומציה חדשה נכנסת ל"מסילה" שעובדת.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-num">4</div>
+      <div class="timeline-content">
+        <h4>חודש 1 — סיכום ופתיחת חודש 2</h4>
+        <p>סוקרים מה נבנה, איפה היה ערך, מה הלאה. אם לא נדלקת — נפרדים בידידות. אם כן — ממשיכים.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <h3>שיחה של 20 דקות. בלי התחייבות.</h3>
+    <p>תספר לי על האוטומציות שבראש שלך. אם זה מתאים — נמשיך. אם לא — לפחות תקבל כיוון מקצועי.</p>
+    <div class="cta-buttons">
+      <a class="btn btn-primary" href="https://wa.me/972545567213?text=%D7%94%D7%99%20%D7%A9%D7%9C%D7%95%D7%9E%D7%99%2C%20%D7%A8%D7%90%D7%99%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%94%D7%A6%D7%A2%D7%94%20%D7%9C%D7%90%D7%95%D7%98%D7%95%D7%9E%D7%A6%D7%99%D7%99%D7%AA%20Claude%20%D7%95%D7%99%D7%A9%20%D7%9C%D7%99%20%D7%A2%D7%A0%D7%99%D7%99%D7%9F">💬 WhatsApp</a>
+      <a class="btn btn-secondary" href="mailto:shlomi@boostart.io?subject=אוטומציה%20Claude%20-%20שיחה">📧 shlomi@boostart.io</a>
+      <a class="btn btn-secondary" href="tel:+972545567213">📞 054-5567213</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>שלומי זוין · CTO as a Service · <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a></p>
+</footer>
+
+<script>
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+  const stored = localStorage.getItem('theme');
+  if (stored) html.setAttribute('data-theme', stored);
+  themeToggle.textContent = html.getAttribute('data-theme') === 'dark' ? '🌙' : '☀️';
+  themeToggle.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`panel-${target}`).classList.add('active');
+      window.scrollTo({ top: document.querySelector('.tabs-wrap').offsetTop - 60, behavior: 'smooth' });
+    });
+  });
+
+  // Demo tabs
+  document.querySelectorAll('.demo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.demo;
+      document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.demo-pane').forEach(p => p.style.display = 'none');
+      tab.classList.add('active');
+      document.querySelector(`[data-pane="${target}"]`).style.display = 'block';
+    });
+  });
+
+  // Sample data
+  const samples = {
+    'email-1': `שלום שלומי,
+פנינו אליכם לפני שבועיים בנושא הטמעת מערכת ה-CRM שלכם. עדיין לא קיבלנו הצעת מחיר.
+התקציב שלנו: עד 25,000 ש"ח. דד-ליין: סוף החודש.
+ניתן לחזור אלי גם בטלפון 052-1234567.
+תודה,
+דנה ממורן בע"מ`,
+    'email-2': `Hi,
+Your payment of $1,240.00 to AWS has been processed.
+Invoice #INV-2026-04-1108
+Card ending in 4421
+Date: 2026-05-09
+View receipt: https://billing.aws.amazon.com/...`,
+    'email-3': `🔥 הזדמנות אחרונה - 70% הנחה!!!
+רק היום! קורס שיווק דיגיטלי שישנה לך את החיים!
+לחץ כאן עכשיו >>>
+תזדרז! נשארו רק 3 מקומות!`,
+
+    'invoice-1': `חשבונית מס מס' 2026/4521
+ספק: דאטה סנטר בע"מ ח.פ. 514203987
+תאריך: 09/05/2026
+לקוח: בוסטארט בע"מ
+
+שירותי אחסון שרת - אפריל 2026 | 1 | 1,800.00
+תמיכה טכנית 24/7 | 1 | 600.00
+
+סה"כ לפני מע"מ: 2,400.00
+מע"מ 17%: 408.00
+סה"כ לתשלום: 2,808.00 ש"ח
+
+תאריך פירעון: 09/06/2026`,
+    'invoice-2': `קבלה
+משק לוי - ירקות וירוקים
+תאריך 08.05.26
+שעה 11:42
+
+עגבניות שרי 1 ק"ג - 14
+מלפפונים 2 ק"ג - 12
+בצל 0.5 - 4.5
+פטרוזיליה - 8
+
+סה"כ: 38.5 שח
+מזומן: 50
+עודף: 11.5`,
+    'invoice-3': `Purchase Order #PO-2026-0117
+From: Acme Supplies Inc.
+Bill To: BoostMind LTD
+Order Date: May 9, 2026
+
+Items:
+1. USB-C Hub 7-port | Qty 5 | Unit $42.00 | Total $210.00
+2. Mechanical Keyboard | Qty 2 | Unit $128.00 | Total $256.00
+3. Webcam 4K | Qty 3 | Unit $89.00 | Total $267.00
+
+Subtotal: $733.00
+Shipping: $24.00
+Tax (8.5%): $64.35
+Grand Total: $821.35`,
+
+    'meeting-1': `שלומי: היי דני, תודה שקבעת איתי שיחה. ספר לי קצת מה אתם עושים.
+דני: אנחנו חברת לוגיסטיקה בינונית, יש לנו 40 נהגים בשטח, ובעיה גדולה עם דיווחים ידניים.
+שלומי: כמה זמן זה לוקח לכל נהג ביום?
+דני: בערך שעה. כפול 40. זה ארבע משרות שלמות.
+שלומי: ויש מערכת ניהול קיימת?
+דני: יש לנו את SAP, אבל הנהגים מתנגדים לרישום שם. הם שולחים וואטסאפ למוקד והם מקלידים.
+שלומי: כן. הבנתי. אז המטרה היא להוציא מהוואטסאפ ישר ל-SAP, נכון?
+דני: בדיוק. ואם אפשר גם לזהות חריגות אוטומטית - מעולה.
+שלומי: אני בונה בדיוק את זה. נסגור?
+דני: שלח לי הצעה עד שלישי.`,
+    'meeting-2': `לקוחה: שלום, אני מתקשרת בנושא הזמנה 88291.
+נציג: שלום, כן, אני רואה את ההזמנה. במה אפשר לעזור?
+לקוחה: אמורתם לשלוח עד אתמול ועוד לא הגיע כלום. אני מתחתנת שבת.
+נציג: רגע אני בודק. אני רואה שהמשלוח עוכב בגלל הבעיה במחסן ביום שני.
+לקוחה: זה לא מעניין אותי, אני צריכה את זה.
+נציג: בהחלט מובן. אני קופץ עכשיו לאישור משלוח מהיר על חשבוננו, יגיע מחר בבוקר עד 11.
+לקוחה: ואם זה לא יגיע אני מבטלת ומקבלת החזר כספי מלא?
+נציג: כן בוודאי. אני מעדכן לך במייל ובוואטסאפ ברגע שהשליח יצא.`,
+    'meeting-3': `אמיר: בוקר טוב. הסטטוס של ה-Q2 לפניכם. רוצה לדבר על שלושה דברים.
+אמיר: אחד - יעדי מכירות, אנחנו 12% מתחת. שניים - תקלת השרת בשבוע שעבר, צריכים post-mortem עד יום ה'. שלוש - גיוס. צריכים שני מפתחים נוספים עד סוף החודש.
+שירה: על המכירות - ה-funnel דווקא מלא, הבעיה היא ב-closing. אני לוקחת על עצמי ניתוח מעמיק עד יום שני.
+דוד: ל-post-mortem אני אחראי. אעבור על הלוגים השבוע ואצרף את המסקנות.
+מיכל: לגיוס - יש לי שני מועמדים טובים בצנרת. אסגור ראיונות סופיים עד 20/5.
+אמיר: מצוין. נפגשים שוב יום ה' בעשר.`
+  };
+
+  // Helper: simulate streaming output
+  function streamText(el, text, speed = 12) {
+    return new Promise(resolve => {
+      el.textContent = '';
+      el.classList.add('cursor');
+      let i = 0;
+      const step = () => {
+        if (i >= text.length) { el.classList.remove('cursor'); resolve(); return; }
+        const chunk = Math.min(3 + Math.floor(Math.random() * 4), text.length - i);
+        el.textContent += text.slice(i, i + chunk);
+        i += chunk;
+        setTimeout(step, speed);
+      };
+      step();
+    });
+  }
+
+  // Outputs
+  const outputs = {
+    'email-1': `{
+  "category": "פנייה עסקית - הצעת מחיר",
+  "priority": "high",
+  "sentiment": "professional, mild frustration",
+  "client": {
+    "name": "דנה",
+    "company": "מורן בע\\"מ",
+    "phone": "052-1234567"
+  },
+  "key_facts": {
+    "topic": "הטמעת CRM",
+    "budget_ils": 25000,
+    "deadline": "סוף החודש",
+    "follow_up_count": 2
+  },
+  "suggested_action": "send_quote_immediately",
+  "auto_response": "שלום דנה, מתנצל על העיכוב — חוזר אליך תוך 2 שעות עם הצעה ממוקדת. שלומי.",
+  "route_to": "sales_queue",
+  "tags": ["crm", "warm-lead", "overdue-response"]
+}`,
+    'email-2': `{
+  "category": "תשלום / חשבונית - מערכת",
+  "priority": "low",
+  "vendor": "AWS",
+  "transaction": {
+    "amount_usd": 1240.00,
+    "invoice_id": "INV-2026-04-1108",
+    "card_last4": "4421",
+    "date": "2026-05-09"
+  },
+  "suggested_action": "auto_file_to_accounting",
+  "route_to": "finance/aws-payments",
+  "tags": ["payment", "aws", "infrastructure"],
+  "human_review_needed": false
+}`,
+    'email-3': `{
+  "category": "ספאם / שיווק לא מבוקש",
+  "priority": "discard",
+  "spam_score": 0.94,
+  "indicators": [
+    "אמוג'י בכותרת",
+    "סימני קריאה מרובים",
+    "fake urgency",
+    "אין כתובת שולח אמיתית"
+  ],
+  "suggested_action": "move_to_spam",
+  "route_to": null,
+  "human_review_needed": false
+}`,
+
+    'invoice-1': `{
+  "document_type": "tax_invoice",
+  "invoice_number": "2026/4521",
+  "supplier": {
+    "name": "דאטה סנטר בע\\"מ",
+    "tax_id": "514203987"
+  },
+  "customer": "בוסטארט בע\\"מ",
+  "issue_date": "2026-05-09",
+  "due_date": "2026-06-09",
+  "currency": "ILS",
+  "line_items": [
+    { "description": "שירותי אחסון שרת - אפריל 2026", "qty": 1, "unit_price": 1800.00 },
+    { "description": "תמיכה טכנית 24/7", "qty": 1, "unit_price": 600.00 }
+  ],
+  "subtotal": 2400.00,
+  "vat_rate": 0.17,
+  "vat_amount": 408.00,
+  "total": 2808.00,
+  "validation": { "math_check": "passed", "duplicate_check": "passed" },
+  "category": "infrastructure",
+  "ready_for_erp": true
+}`,
+    'invoice-2': `{
+  "document_type": "receipt",
+  "supplier": "משק לוי - ירקות וירוקים",
+  "date": "2026-05-08",
+  "time": "11:42",
+  "line_items": [
+    { "description": "עגבניות שרי", "qty_kg": 1, "total": 14.00 },
+    { "description": "מלפפונים", "qty_kg": 2, "total": 12.00 },
+    { "description": "בצל", "qty_kg": 0.5, "total": 4.50 },
+    { "description": "פטרוזיליה", "qty": 1, "total": 8.00 }
+  ],
+  "subtotal": 38.50,
+  "payment": { "method": "cash", "tendered": 50.00, "change": 11.50 },
+  "validation": { "math_check": "passed" },
+  "category": "groceries",
+  "notes": "no_tax_id - household_purchase"
+}`,
+    'invoice-3': `{
+  "document_type": "purchase_order",
+  "po_number": "PO-2026-0117",
+  "supplier": "Acme Supplies Inc.",
+  "customer": "BoostMind LTD",
+  "order_date": "2026-05-09",
+  "currency": "USD",
+  "line_items": [
+    { "sku_hint": "USB-C Hub 7-port", "qty": 5, "unit_price": 42.00, "total": 210.00 },
+    { "sku_hint": "Mechanical Keyboard", "qty": 2, "unit_price": 128.00, "total": 256.00 },
+    { "sku_hint": "Webcam 4K", "qty": 3, "unit_price": 89.00, "total": 267.00 }
+  ],
+  "subtotal": 733.00,
+  "shipping": 24.00,
+  "tax_rate": 0.085,
+  "tax_amount": 64.35,
+  "total": 821.35,
+  "category": "office_equipment",
+  "validation": { "math_check": "passed" }
+}`,
+
+    'meeting-1': `{
+  "meeting_type": "discovery_call",
+  "duration_estimate_min": 12,
+  "participants": ["שלומי", "דני (לקוח)"],
+  "company_context": {
+    "industry": "לוגיסטיקה",
+    "size": "40 נהגים בשטח",
+    "current_systems": ["SAP", "WhatsApp (ערוץ אד-הוק)"]
+  },
+  "pain_points": [
+    "שעה ביום לכל נהג על דיווחים ידניים",
+    "התנגדות נהגים לרישום ב-SAP",
+    "מוקד מקליד דיווחים מ-WhatsApp ידנית"
+  ],
+  "opportunity": {
+    "scope": "אינטגרציית WhatsApp → SAP + זיהוי חריגות אוטומטי",
+    "estimated_value": "4 משרות מלאות = ~₪40K/חודש חיסכון"
+  },
+  "action_items": [
+    { "owner": "שלומי", "task": "להכין הצעה ממוקדת", "due": "2026-05-12" },
+    { "owner": "דני", "task": "להכין דוגמאות וואטסאפ אמיתיות לשליחה" }
+  ],
+  "next_step": "שליחת הצעה עד יום ג'",
+  "close_signal": "high"
+}`,
+    'meeting-2': `{
+  "interaction_type": "customer_service_call",
+  "category": "delivery_delay_complaint",
+  "customer_sentiment": "frustrated_but_resolved",
+  "issue": {
+    "order_id": "88291",
+    "problem": "משלוח לא הגיע בזמן",
+    "urgency_reason": "חתונה בשבת"
+  },
+  "resolution": {
+    "action": "express_shipping_on_company_expense",
+    "eta": "מחר עד 11:00",
+    "fallback": "ביטול + החזר כספי מלא"
+  },
+  "commitments": [
+    "עדכון במייל ובוואטסאפ ברגע יציאת שליח"
+  ],
+  "follow_up_needed": true,
+  "follow_up_at": "2026-05-10T11:00:00",
+  "csat_risk": "medium",
+  "auto_actions": ["create_express_shipment", "schedule_followup_notification"]
+}`,
+    'meeting-3': `{
+  "meeting_type": "team_sync",
+  "summary": "סקירת Q2 - שלוש סוגיות מרכזיות: יעדי מכירות, post-mortem תקלת שרת, גיוס.",
+  "decisions": [
+    "ניתוח funnel/closing - שירה - עד 2026-05-11",
+    "Post-mortem תקלת שרת - דוד - עד 2026-05-14",
+    "סגירת 2 מפתחים נוספים - מיכל - עד 2026-05-20"
+  ],
+  "action_items": [
+    { "owner": "שירה", "task": "ניתוח מעמיק של שלב ה-closing במכירות", "due": "2026-05-11" },
+    { "owner": "דוד", "task": "post-mortem על תקלת השרת + מסקנות", "due": "2026-05-14" },
+    { "owner": "מיכל", "task": "סגירת ראיונות סופיים ל-2 מפתחים", "due": "2026-05-20" }
+  ],
+  "key_metrics": {
+    "sales_vs_target": "-12%",
+    "funnel_status": "מלא",
+    "bottleneck": "closing"
+  },
+  "next_meeting": "2026-05-14T10:00:00"
+}`
+  };
+
+  // Wire sample buttons
+  document.querySelectorAll('.demo-sample-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.sample;
+      const [type] = key.split('-');
+      document.getElementById(`${type}-input`).value = samples[key];
+      document.getElementById(`${type}-input`).dataset.sampleKey = key;
+    });
+  });
+
+  // Wire run buttons
+  function wireRun(type) {
+    const btn = document.getElementById(`${type}-run`);
+    const input = document.getElementById(`${type}-input`);
+    const outputWrap = document.getElementById(`${type}-output-wrap`);
+    const output = document.getElementById(`${type}-output`);
+    btn.addEventListener('click', async () => {
+      const text = input.value.trim();
+      if (!text) {
+        alert('בחר דוגמה או הדבק טקסט');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = '⏳ Claude מעבד...';
+      outputWrap.style.display = 'block';
+      output.textContent = '';
+      await new Promise(r => setTimeout(r, 600));
+      const key = input.dataset.sampleKey;
+      let result;
+      if (key && outputs[key]) {
+        result = outputs[key];
+      } else {
+        result = `{
+  "note": "זוהי הדגמה — בפועל Claude יעבד את הטקסט שלך ויחזיר JSON מובנה מותאם.",
+  "preview_of_your_input": ${JSON.stringify(text.slice(0, 80) + (text.length > 80 ? '...' : ''))},
+  "what_would_happen": "סיווג, חילוץ נתונים, החלטה על פעולה, ניתוב למערכת המתאימה."
+}`;
+      }
+      await streamText(output, result, 8);
+      btn.disabled = false;
+      btn.textContent = '▶ הרץ שוב';
+    });
+  }
+  wireRun('email');
+  wireRun('invoice');
+  wireRun('meeting');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>אוטומציית AI ל-Home Improvement | שלומי זוין — CTO as a Service</title>
+  <meta name="description" content="שותפות CTO לחברת home improvement בקליפורניה — אוטומציית AI על ניהול עבודה, מארקטינג ותפעול שוטף. סוכני AI, אינטגרציות, מערכות בפועל." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --bg-alt: #0f131a;
+      --card-bg: #141922;
+      --card-hover: #181d27;
+      --accent: #f97316;
+      --accent-strong: #fb923c;
+      --accent-soft: rgba(249, 115, 22, 0.10);
+      --accent-dim: rgba(249, 115, 22, 0.30);
+      --warn: #f59e0b;
+      --warn-soft: rgba(245, 158, 11, 0.10);
+      --info: #3b82f6;
+      --info-soft: rgba(59, 130, 246, 0.10);
+      --green: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.10);
+      --purple: #a855f7;
+      --purple-soft: rgba(168, 85, 247, 0.10);
+      --border: #232a36;
+      --border-strong: #2e3744;
+      --text: #f3f5f8;
+      --text-muted: #8b929d;
+      --text-dim: #5f6571;
+      --code-bg: #11151c;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-alt: #f6f8fb;
+      --card-bg: #ffffff;
+      --card-hover: #f7f9fc;
+      --border: #e3e7ee;
+      --border-strong: #cbd2dc;
+      --text: #0f1419;
+      --text-muted: #5c6370;
+      --text-dim: #8b929d;
+      --accent-soft: rgba(249, 115, 22, 0.08);
+      --warn-soft: rgba(245, 158, 11, 0.08);
+      --info-soft: rgba(59, 130, 246, 0.07);
+      --green-soft: rgba(16, 185, 129, 0.07);
+      --purple-soft: rgba(168, 85, 247, 0.07);
+      --code-bg: #f1f3f7;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+    code, pre, .mono { font-family: 'JetBrains Mono', Menlo, monospace; direction: ltr; unicode-bidi: isolate; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: #1a0a00; }
+    .logo-text { font-weight: 600; font-size: 0.92rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { display: block; font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.6rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: #1a0a00; font-size: 0.84rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.95rem; font-weight: 500; padding: 0.9rem 1.4rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 2.5rem; text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent-dim); color: var(--accent); font-size: 0.82rem; font-weight: 500; margin-bottom: 1.5rem; }
+    .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 2s infinite; }
+    @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 800px; margin: 0 auto 2rem; line-height: 1.8; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); font-family: 'JetBrains Mono', monospace; direction: ltr; }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.95rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: #1a0a00; font-weight: 600; }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 1.85rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 1rem; line-height: 1.75; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; margin: 0 0 0.7rem; line-height: 1.7; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.6; }
+    .card li::before { content: '\25C2'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.4rem; margin-bottom: 0.75rem; opacity: 0.95; }
+
+    /* PILLAR CARDS */
+    .pillar { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; position: relative; overflow: hidden; }
+    .pillar::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; }
+    .pillar.work::before { background: var(--accent); }
+    .pillar.marketing::before { background: var(--info); }
+    .pillar.ops::before { background: var(--green); }
+    .pillar .pillar-tag { display: inline-block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); margin-bottom: 0.85rem; }
+    .pillar.work .pillar-tag { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); }
+    .pillar.marketing .pillar-tag { background: var(--info-soft); color: var(--info); border: 1px solid rgba(59,130,246,0.3); }
+    .pillar.ops .pillar-tag { background: var(--green-soft); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .pillar h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .pillar > p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.1rem; line-height: 1.7; }
+    .pillar ul { list-style: none; padding: 0; margin: 0; }
+    .pillar li { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.55rem; display: flex; align-items: flex-start; gap: 0.55rem; line-height: 1.6; }
+    .pillar.work li::before { content: '\25C2'; color: var(--accent); flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+    .pillar.marketing li::before { content: '\25C2'; color: var(--info); flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+    .pillar.ops li::before { content: '\25C2'; color: var(--green); flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+    .pillar li strong { color: var(--text); font-weight: 600; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2rem 0 2.5rem; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.4rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.5rem 1.75rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+    .callout.warn { border-right-color: var(--warn); }
+    .callout.info { border-right-color: var(--info); }
+    .callout.green { border-right-color: var(--green); }
+
+    /* PRICING */
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
+    .pricing-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+    .pricing-card .price-label { font-size: 0.78rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .pricing-card .price-headline { font-size: 1.85rem; font-weight: 700; margin: 0.4rem 0 0.6rem; color: var(--text); letter-spacing: -0.02em; line-height: 1.25; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.98rem; line-height: 1.75; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0 0; }
+    .pricing-card li { font-size: 0.95rem; margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 0.55rem; color: var(--text-muted); line-height: 1.65; }
+    .pricing-card li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .pricing-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 1.1rem; max-width: 800px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; }
+    .timeline-num { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.93rem; line-height: 1.75; }
+    .timeline-body .tag { display: inline-block; font-size: 0.75rem; padding: 0.22rem 0.65rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.5rem; border: 1px solid var(--accent-dim); font-family: 'JetBrains Mono', monospace; direction: ltr; }
+
+    /* STACK GRID */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin-top: 1.5rem; }
+    .stack-cat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.1rem; }
+    .stack-cat .cat-title { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.55rem; }
+    .stack-cat .cat-items { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; font-family: 'JetBrains Mono', monospace; direction: ltr; }
+
+    /* EXPERIENCE */
+    .exp-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card .exp-domain { font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.4rem; }
+    .exp-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .exp-card p { font-size: 0.92rem; color: var(--text-muted); margin-bottom: 0.7rem; line-height: 1.7; }
+    .exp-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .exp-tag { font-size: 0.72rem; padding: 0.22rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; direction: ltr; }
+
+    /* DEMO */
+    .demo-card { max-width: 820px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem 2rem; text-align: center; position: relative; overflow: hidden; }
+    .demo-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: var(--accent); }
+    .demo-card .demo-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.9; }
+    .demo-card h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
+    .demo-card .demo-lead { color: var(--text-muted); font-size: 1rem; line-height: 1.8; margin-bottom: 1.5rem; max-width: 640px; margin-left: auto; margin-right: auto; }
+    .demo-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; max-width: 700px; margin: 1.5rem auto; text-align: right; }
+    .demo-list .item { display: flex; gap: 0.55rem; align-items: flex-start; padding: 0.65rem 0.85rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; }
+    .demo-list .item::before { content: '\25C2'; color: var(--accent); flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 3rem 0; border-top: 1px solid var(--border); margin-top: 3rem; }
+    .contact-section h2 { font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1rem; }
+    .contact-details { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--text-muted); direction: ltr; }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .contact-item a:hover { color: var(--accent-strong); }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-dim); font-size: 0.85rem; border-top: 1px solid var(--border); }
+    .footer a { color: var(--text-muted); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .demo-list { grid-template-columns: 1fr; }
+      .hero { padding: 3rem 0 2rem; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-sub { font-size: 0.98rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.5rem; }
+      .stats-row { gap: 1.5rem; }
+      .stat .num { font-size: 1.85rem; }
+      .tab-btn { padding: 0.75rem 0.9rem; font-size: 0.88rem; }
+      .logo-text { font-size: 0.85rem; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price-headline { font-size: 1.4rem; }
+      .demo-card { padding: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span>
+          <span class="logo-text">שלומי זוין</span>
+          <span class="logo-sub">CTO as a Service</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">בהיר</button>
+        <a href="https://wa.me/972545567213" class="btn-sm" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs-container">
+    <div class="container">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="proposal">ההצעה</button>
+        <button class="tab-btn" data-tab="pillars">שלושת הצירים</button>
+        <button class="tab-btn" data-tab="experience">ניסיון רלוונטי</button>
+        <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+        <button class="tab-btn" data-tab="engagement">התקשרות ולו״ז</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== TAB 1: PROPOSAL ============== -->
+  <div class="tab-content active" id="tab-proposal">
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow"><span class="pulse"></span> Home Improvement &middot; California</div>
+        <h1>אוטומציית AI על העסק כולו —<br/><span class="accent">לא 3 כלים, מערכת אחת.</span></h1>
+        <p class="hero-sub">
+          קראתי את הפנייה שלך — חברת home improvement בקליפורניה, רוצה להטמיע AI בניהול עבודה, מארקטינג, ותפעול שוטף.
+          זה <strong style="color: var(--text);">בדיוק</strong> סוג השותפות שאני בונה. לא "מומחה לאוטומציה" שמחבר Zapier-ים.
+          שותף טכנולוגי שרואה את כל העסק כמערכת אחת — ובונה AI שמדבר על פני שלושת הצירים, לא בסילו נפרד לכל אחד.
+        </p>
+        <div class="hero-badges">
+          <span>AI agents (2+ years)</span>
+          <span>OpenAI &amp; Claude</span>
+          <span>Workflow automation</span>
+          <span>CRM integrations</span>
+          <span>Voice / SMS / Email</span>
+          <span>Lead intelligence</span>
+          <span>Dispatch &amp; scheduling</span>
+          <span>Estimating AI</span>
+        </div>
+        <div class="hero-cta">
+          <a href="#" class="btn primary" data-tab-link="pillars">שלושת הצירים &larr;</a>
+          <a href="#" class="btn ghost" data-tab-link="demo">הדגמה חיה</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">למה אני</div>
+          <h2>לא בורג בצוות. שותף טכנולוגי שלוקח בעלות.</h2>
+          <p>אני שלומי. 20+ שנה בהייטק, 50+ מוצרים מאפס, 2+ שנים בעומק סוכני AI. רואה את כל המערכת — מ-DB דרך השרת, סוכני AI, אינטגרציות, עד הקליינט. לא בית תוכנה. שותף שיושב בצמוד אליכם.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-icon">&#129302;</div>
+            <h3>סוכני AI — לפני שזו הייתה מילה</h3>
+            <p>התחלתי לבנות agents עוד לפני שהמושג "agent" היה קיים. <strong>Mystic AI</strong> — אחד ממוצרי ה-AI הצרכניים הראשונים, לפני ChatGPT. מאז: onboarding בנקאי, sales agents, wellness companions, ועכשיו multi-crew agents עם chain reactions, triggered context ו-memory.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128270;</div>
+            <h3>20+ שנה <em>מתחת</em> ל-AI</h3>
+            <p>בניתי ואימנתי רשתות נוירונים בעצמי, אלגוריתמים גנטיים, מודלים של אופטימיזציה לכסף אמיתי (אלגו-טריידינג בקריפטו ובמניות). אני מבין את השכבה <em>מתחת</em> ל-LLM. <strong>זו הסיבה שהסוכנים שאני בונה מדויקים</strong> — ויודעים גם מתי <em>לא</em> לסמוך על המודל.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128279;</div>
+            <h3>מומחיות באינטגרציות</h3>
+            <p>שדה משחקים שלי: לקחת מערכות שלא דיברו אחת עם השנייה (CRM, dispatch, חשבונאות, lead sources, voice, SMS) ולעשות שיחה שיש לה משמעות עסקית. לא "להזיז שדה משדה לשדה" — להקים <strong>שכבת AI שמכוונת מי, מתי, איך, ולמה</strong>.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#9881;</div>
+            <h3>Right-sized — לא over-engineered</h3>
+            <p>לא בונה Kubernetes ל-100 לקוחות. מתאים את הארכיטקטורה לשלב שאתם נמצאים בו עכשיו, עם נתיב נקי לגדילה. זה מה שמייחד מישהו שעשה את זה 50 פעם — היכולת להגיד "לא צריך עכשיו" בלי לחסום אתכם בעוד שנה.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#128737;&#65039;</div>
+            <h3>Production defaults מהיום הראשון</h3>
+            <p>Idempotent jobs, replayable webhooks, structured logs, observability. ראיתי מה נשבר ב-3 בלילה — ובניתי כך שלא יחזיק פייג'ר. זה לא "תוסף" אצלי. זה ה-default. אוטומציה שלא רצה ב-3 בלילה ולא קוראת לאף אחד היא לא אוטומציה.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#9889;</div>
+            <h3>Claude Code &times;100</h3>
+            <p>אני <strong>לא מנהל מפתחים</strong> כבר תקופה. אני מנהל AI שמבצע במהירות, ומגבה אותו עם 20 שנות שיפוט. דברים של חודשים — ימים. לא "vibe coding": review, טסטים, מיגרציות, deploy. דיוק לא נסחב. הקצב הזה הוא בדיוק מה שמאפשר לי לטפל בשלושת הצירים בו-זמנית.</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <h3>בגובה העיניים</h3>
+          <p>
+            אני לא הכי זול בשוק ואני לא קוסם. מה שאני כן — מישהו שעשה צירופים כאלה הרבה פעמים, ויודע מראש איפה ה-AI יפספס, איפה ה-CRM יישבר, איפה ה-dispatch ייתקע. אם תספרו לי על העסק 30 דקות, אני אדע להגיד לכם <strong>איזה אוטומציה משתלמת קודם, איזה אחר כך, ואיזה לא שווה</strong>. <strong>זו עבודה של שנים — לא של pitch.</strong> אם זה לא מתאים — נפרדנו בכבוד, אפס מחויבות.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 2: PILLARS ============== -->
+  <div class="tab-content" id="tab-pillars">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">המפה</div>
+          <h2>שלושת הצירים — איך AI נכנס לכל אחד מהם</h2>
+          <p>זו לא רשימה תיאורטית. אלה אוטומציות שאני יודע לבנות בפועל — מקצה לקצה, תוך שבועות, על הסטאק שכבר יש לכם.</p>
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 2rem;">
+
+          <!-- PILLAR 1: WORK -->
+          <div class="pillar work">
+            <span class="pillar-tag">ציר 1</span>
+            <h3>ניהול עבודה</h3>
+            <p>השטח, הצוותים, העבודה השוטפת. כאן AI מחליף 80% מה-friction של coordination יומיומי.</p>
+            <ul>
+              <li><strong>AI dispatcher</strong> — משייך job לצוות הנכון לפי מיקום, מיומנות, זמינות, ו-SLA. לא scheduler עיוור — סוכן שמבין הקשר.</li>
+              <li><strong>Voice-to-task</strong> מהשטח — foreman מצלצל / מקליט הודעה, AI מוציא את הפעולות, שולח לפלטפורמה, מתייג צוותים.</li>
+              <li><strong>מעקב התקדמות מתמונות</strong> — צוות מצלם, AI מסווג שלב, מודד התקדמות, מתריע על חריגות בזמן אמת.</li>
+              <li><strong>Job briefs אוטומטיים</strong> — AI מסכם spec, חומרים, מה הלקוח רוצה, מי בא מתי. נשלח לצוות בבוקר, בלי שאף אחד "ירכז".</li>
+              <li><strong>Change order detection</strong> — AI שמזהה שינוי בסקופ מתכתובת/הקלטה, מחשב עלות, מעלה לאישור.</li>
+              <li><strong>Customer updates</strong> — אוטומטיים, מבוססי-context: "הצוות מסיים היום, נחזור מחר 9:00 לסיים את ה-trim". עם branding שלכם.</li>
+            </ul>
+          </div>
+
+          <!-- PILLAR 2: MARKETING -->
+          <div class="pillar marketing">
+            <span class="pillar-tag">ציר 2</span>
+            <h3>מארקטינג</h3>
+            <p>איפה הלידים נופלים, איפה ה-ROAS דולף. AI כאן הוא לא "כלי לפוסטים" — הוא מנוע שמכפיל את ה-conversion.</p>
+            <ul>
+              <li><strong>AI lead qualifier</strong> — על שיחות נכנסות (voice), טפסים, צ'אט. מסווג חם/קר תוך שניות, מנווט ל-rep הנכון או ל-self-serve.</li>
+              <li><strong>Auto-followup sequencer</strong> — לידים שלא ענו תוך 48ש' → SMS / מייל / שיחה אוטומטית, עם הקשר אישי. <strong>לידים מתים = כסף שנעלם.</strong></li>
+              <li><strong>Review request automation</strong> — אחרי כל job, AI מזהה לקוחות מרוצים (מטון השיחה / cadence), שולח בקשה ב-timing נכון, בערוץ הנכון. Yelp / Google ratings עולים אוטומטית.</li>
+              <li><strong>Content engine</strong> — תוצאות עבודה (לפני/אחרי), AI מנסח תיאור, יוצר פוסט, מתזמן ל-Instagram / Facebook / Google Business Profile.</li>
+              <li><strong>Lead source attribution</strong> — איזה ערוץ באמת ממיר. AI cross-references בין lead source ל-revenue, מציג מה לעצור ולמה להגדיל.</li>
+              <li><strong>Estimate-to-close</strong> — AI שמנסח proposal מותאם אישית, ממשיך עם follow-up עד סגירה / no-go ברור.</li>
+            </ul>
+          </div>
+
+          <!-- PILLAR 3: OPS -->
+          <div class="pillar ops">
+            <span class="pillar-tag">ציר 3</span>
+            <h3>תפעול שוטף</h3>
+            <p>back-office. השעות שאתם / הצוות שלכם מבזבזים על דברים ש-AI יעשה ב-15 שניות. זה הציר שהכי "משלם את עצמו".</p>
+            <ul>
+              <li><strong>AI estimator</strong> — לקוח שולח תמונות / וידאו / scope, AI מוציא הערכת עלות ראשונית (חומרים + שעות), מנסחת proposal.</li>
+              <li><strong>Invoice automation</strong> — מ-job completion → invoice → payment reminder, אוטומטי. כולל עיגון לחשבונאות (QuickBooks וכו').</li>
+              <li><strong>Supplier orders</strong> — AI שמרכז דרישות חומרים מ-jobs פעילים, יוצר PO, שולח לספקים, סוגר loops.</li>
+              <li><strong>P&amp;L per job</strong> — אוטומטי, real-time. רואים אילו עבודות רווחיות, איפה דולף תקציב, איזה צוות efficient.</li>
+              <li><strong>Payment reconciliation</strong> — AI שמתאם בין חשבוניות, תשלומים, ו-bank feeds. שגיאות תופסות לפני שמגיעות לחשב.</li>
+              <li><strong>Crew payroll prep</strong> — AI מסכם שעות / עבודה / bonus rules, מוציא תלוש מוכן לאישור — לא 3 שעות של עבודה ידנית כל שבוע.</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div class="callout green">
+          <h3>הקסם הוא בחיבור — לא בכלי בודד</h3>
+          <p>
+            כל אחד יכול לחבר לכם Zapier ל-form. השותפות שאני מציע היא <strong>שכבת AI אחת שמדברת על פני כל הצירים</strong>: לקוח שמתקשר → lead qualifier מסווג → אם חם, dispatcher כבר יודע אילו צוותים פנויים השבוע → estimator כבר רץ על ה-scope → ה-CRM, החשבונאות, ה-marketing כולם בעדכון אחד. <strong>זה מה שלא תקבלו מ-3 ספקים נפרדים.</strong>
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 3: EXPERIENCE ============== -->
+  <div class="tab-content" id="tab-experience">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">המספרים מאחורי האמירות</div>
+          <h2>20 שנה של בנייה — לא 20 שנה של דיבורים</h2>
+          <p>הסטטיסטיקה, ואז הפרויקטים הספציפיים שמתחברים ישירות לעולם שלכם.</p>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון בהייטק</div></div>
+          <div class="stat"><div class="num">50+</div><div class="label">מוצרים שנבנו מאפס</div></div>
+          <div class="stat"><div class="num">2+</div><div class="label">שנים בעומק סוכני AI</div></div>
+          <div class="stat"><div class="num">CTO</div><div class="label">בכמה סטארטאפים</div></div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 2rem;">
+          <div class="exp-card">
+            <div class="exp-domain">סוכני AI &middot; B2B</div>
+            <h3>Onboarding בנקאי עם AI agent</h3>
+            <p>סוכן שיחה שמוביל לקוחות בתהליך. <strong>Document intake</strong> (תעודות, הוכחות) עם OCR + LLM extraction + confidence scoring. State machine, fallback ל-human review בכל מקרה של חוסר ודאות. בדיוק הצורה של pipeline שצריך ל-lead qualifier + estimator שלכם.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Voice agent</span>
+              <span class="exp-tag">LLM extraction</span>
+              <span class="exp-tag">State machine</span>
+              <span class="exp-tag">HITL</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">לוגיסטיקה &middot; אופטימיזציה</div>
+            <h3>אופטימיזציית מסלולי משלוח Same-Day</h3>
+            <p>אלגוריתם אבולוציוני (משפחת גנטיים) לאופטימיזציה של מסלולים על מאות נקודות. שיפור דור אחר דור, חישוב מחדש בזמן אמת. <strong>זה השריר של dispatch + scheduling חכם</strong> — איך משייכים job לצוות הנכון מתוך עשרות אילוצים בו-זמנית.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Dispatch</span>
+              <span class="exp-tag">Optimization</span>
+              <span class="exp-tag">PostgreSQL</span>
+              <span class="exp-tag">Real-time</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">EdTech &middot; ML decisioning</div>
+            <h3>פלטפורמת אופטימיזציית קמפיינים</h3>
+            <p>פלטפורמה שמנבאת אילו קמפיינים יומרו, ומקצה תקציב <strong>אוטומטית</strong>. נבנתה מקצה לקצה: ingestion, model training, jobs מתוזמנים, מנוע החלטה, dashboard. <strong>זו הצורה של lead source attribution + ROAS optimization</strong> שצריך לכם בציר המארקטינג.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Decision engine</span>
+              <span class="exp-tag">ML models</span>
+              <span class="exp-tag">Attribution</span>
+              <span class="exp-tag">ROAS</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">פיננסים &middot; דיוק חישובי</div>
+            <h3>Billing &amp; Settlement Engines</h3>
+            <p>מנועי חיוב, subscriptions, marketplace settlements ב-Stripe. דיוק עד אגורה — numeric, לא float. Webhook reconciliation עם idempotency. Dunning, proration, חשבוניות. <strong>זו הצורה של invoice + payment reconciliation</strong> שתצטרכו בציר התפעול.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Stripe</span>
+              <span class="exp-tag">Reconciliation</span>
+              <span class="exp-tag">Webhooks</span>
+              <span class="exp-tag">Numeric precision</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Construction / ERP &middot; פעיל</div>
+            <h3>מערכת ERP + סוכני AI לקבלנים</h3>
+            <p>פרויקט פעיל: מערכת לקבלני בנייה — פענוח BOQ מ-PDF, התאמת מק"טים אוטומטית, חישובי תמחור, ניהול קבלני משנה. <strong>הניסיון שלי כולל עבודה בחברה שניתחה מערכות ERP</strong> — אני מכיר את הדומיין הזה מהצד הנכון. זה חיבור ישיר לעולם שלכם.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Construction</span>
+              <span class="exp-tag">Estimating</span>
+              <span class="exp-tag">PDF AI</span>
+              <span class="exp-tag">Multi-tenant</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Real Estate &middot; CTO מייסד</div>
+            <h3>פלטפורמת תיווך נדל״ן</h3>
+            <p>מייסד-CTO. בניתי SaaS שלם מאפס: auth, listings, lead engine, transactions, billing, dashboards פנימיים, אינטגרציות צד שלישי. <strong>נדל"ן ו-home improvement חולקים אותו DNA</strong>: leads + jobs + crews + tools + billing + customer comms. עברתי בדיוק את כל הצירים האלה.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">SaaS</span>
+              <span class="exp-tag">Lead engine</span>
+              <span class="exp-tag">Multi-tenant</span>
+              <span class="exp-tag">Integrations</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Health AI &middot; B2B SaaS</div>
+            <h3>Doing &mdash; פלטפורמת AI לטיפול</h3>
+            <p>AI לטיפול בילדים על הספקטרום. ניתוח התנהגות עם AI, ניהול סשנים, AI-assisted counseling. <strong>state machines רב-תפקידיים</strong> מתאמים בין מטפל, הורה, ילד. בדיוק כמו צוותי שטח-משרד-לקוח שלכם.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">LLM agents</span>
+              <span class="exp-tag">Workflow engine</span>
+              <span class="exp-tag">Multi-role</span>
+              <span class="exp-tag">Real-time</span>
+            </div>
+          </div>
+
+          <div class="exp-card">
+            <div class="exp-domain">Consumer AI &middot; שיחה</div>
+            <h3>Mystic AI — שיחות AI לפני ChatGPT</h3>
+            <p>אחד ממוצרי ה-AI הצרכניים הראשונים בארץ — לפני ChatGPT. סוכני שיחה לטארוט, אסטרולוגיה, palm reading. <strong>הצורה של conversation design + persona consistency + handling-the-weird-cases</strong> — זה השריר שמתחת ל-lead qualifier וצ'אט שירות לקוחות.</p>
+            <div class="exp-tags">
+              <span class="exp-tag">Conversational AI</span>
+              <span class="exp-tag">Persona design</span>
+              <span class="exp-tag">Edge cases</span>
+              <span class="exp-tag">Scale</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info" style="margin-top: 2rem;">
+          <h3>מה מחבר את כל אלה לדבר שלכם</h3>
+          <p>
+            כל אחד מהפרויקטים: (1) backend לא טריוויאלי עם לוגיקה עסקית אמיתית, (2) אינטגרציות עם העולם המבולגן בחוץ, (3) דאטה שזורם דרך state ו-queues, (4) משהו שצריך להיות נכון או שכסף הולך לאיבוד. <strong>זו בדיוק רמת המערכת שלכם — שלושה צירים שמדברים אחד עם השני.</strong> הייתי שם. הרבה.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 4: LIVE DEMO ============== -->
+  <div class="tab-content" id="tab-demo">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">הדגמה חיה</div>
+          <h2>סקיצה של AI לניהול שטח — לחצו וראו</h2>
+          <p>הדמו הזה הוא <strong>Foreman Companion</strong> — סוכן AI שמלווה foreman בשטח. הקמתי אותו תוך כמה דקות עם Claude Code על התשתית הפנימית שלי, כדי להראות את <strong>הקצב</strong> ואת <strong>הצורה</strong> של פתרון לציר הראשון (ניהול עבודה).</p>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-icon">&#128640;</div>
+          <h3>Foreman Companion — דמו אינטראקטיבי</h3>
+          <p class="demo-lead">סוכן AI שמדבר עם foreman בשטח: דיווחי התקדמות, תיוג בעיות, יצירת job briefs, החלטות מהירות.</p>
+          <a id="demoLink" href="https://aspect-agents.firebaseapp.com/foreman/" target="_blank" rel="noopener" class="btn primary" style="font-size: 1.05rem; padding: 0.95rem 2rem; margin-top: 0.5rem;">פתחו את הדמו &larr;</a>
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim);">נפתח בכרטיסייה חדשה</div>
+
+          <div class="demo-list">
+            <div class="item">סוכן AI שמטפל בדיווחי שטח קוליים / טקסטואליים</div>
+            <div class="item">תיוג אוטומטי של בעיות → routing למוקד הנכון</div>
+            <div class="item">חישוב התקדמות real-time מול ה-spec</div>
+            <div class="item">יצירת job briefs אוטומטיים לבוקר הבא</div>
+            <div class="item">UX מותאם לטלפון בשטח (לא דסקטופ)</div>
+            <div class="item">שילוב טבעי של voice + text + structured data</div>
+          </div>
+        </div>
+
+        <div class="callout warn" style="margin-top: 1.75rem; max-width: 820px; margin-right: auto; margin-left: auto;">
+          <h3>גילוי נאות — בכבוד הראוי לזמנכם</h3>
+          <p>
+            הדמו הזה הוא <strong>סקיצה</strong> שהקמתי תוך כמה דקות עם <strong>Claude Code</strong> על התשתית הפנימית שלי. <strong>אפשר לשחק איתו</strong> ולקבל תחושה של ה-flow ושל הקצב — אבל הוא <em>לא</em> מערכת בייצור עבור החברה שלכם. שתי נקודות שאני רוצה להראות: (1) <strong>איך אני חושב על ה-flow</strong> של ציר ניהול העבודה, (2) <strong>כמה מהר אני מעמיד משהו על הרגליים</strong>. המערכת האמיתית — מתוכננת, מאובטחת, נבדקת — תהיה מוצר אחר לגמרי, מותאם בדיוק לעסק שלכם.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============== TAB 5: ENGAGEMENT ============== -->
+  <div class="tab-content" id="tab-engagement">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">מודל ההתקשרות</div>
+          <h2>בואו נדבר. אני מתאים את עצמי לצרכים שלכם.</h2>
+          <p>אני לא מתחיל בהצעת מחיר נוקשה. בעסקים מהסוג שלכם — שלושה צירים שמתפתחים תוך כדי תנועה — תמחור פרויקטלי לחוץ פוגע בשני הצדדים. אני רוצה להבין קודם איפה אתם עומדים, מה כואב הכי, ואיפה ה-ROI הכי מהיר. ואז להציע מבנה התקשרות שמתאים בדיוק.</p>
+        </div>
+
+        <div class="pricing-card">
+          <div class="price-label">CTO as a Service</div>
+          <div class="price-headline">בואו נדבר 30 דקות, ואני אתאים לכם מבנה שעובד.</div>
+          <p class="price-note">
+            מודל ברירת המחדל אצלי הוא <strong style="color: var(--text);">חודשי, גמיש, ללא lock-in</strong>. אבל אני יכול להתאים את עצמי כמעט לכל פורמט: התחלה בנפח קטן ולהגדיל, focus על ציר אחד קודם, או צוות מלא במקביל. <strong>הכלל היחיד שלי: שקיפות מלאה ואפס הפתעות.</strong>
+          </p>
+          <ul>
+            <li><strong>אני המפתח הראשי.</strong> יושב על הקוד בעצמי, לא רק על הארכיטקטורה</li>
+            <li>אם צריך תגבור — מביא מפתח סניור איכותי (בדרך כלל <strong>מגולם במחיר</strong>, לא תוספת)</li>
+            <li>עבודה בצמוד אליכם כמו CTO פנימי — קריאות שבועיות, החלטות מוצר, decisions ביחד</li>
+            <li>שקיפות מלאה: הריפו שלכם, הענן שלכם, הקוד שלכם — מהיום הראשון</li>
+            <li>סקופ גמיש: גדל, הקטן, שנה כיוון בלי משא ומתן מחדש</li>
+            <li>Defaults של ייצור: tests, types, observability, migrations מהיום הראשון</li>
+            <li>ללא lock-in — ניתן לסיום בכל חודש, הקוד תמיד שלכם</li>
+          </ul>
+          <p style="font-size: 0.95rem; color: var(--text); margin-top: 1.25rem; line-height: 1.7; padding: 0.9rem 1.1rem; background: var(--accent-soft); border: 1px solid var(--accent-dim); border-radius: var(--radius-sm);">
+            <strong>הסוד שמכפיל את הערך:</strong> אני עובד עם <strong>Claude Code</strong> כמכפיל כוח. דברים שהיו לוקחים חודשים — לוקחים ימים. זה לא "vibe coding" — זה 20 שנות שיפוט מקצועי שמנהלות AI שמבצע במהירות. אתם לא משלמים על מפתח — אתם משלמים על תוצאה.
+          </p>
+          <div class="pricing-cta">
+            <a href="https://wa.me/972545567213" class="btn primary" target="_blank" rel="noopener">דברו איתי ב-WhatsApp</a>
+            <a href="mailto:shlomi@boostart.io?subject=Home%20Improvement%20AI" class="btn ghost">שלחו מייל</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">איך זה מתגלגל</div>
+          <h2>הנתיב הטיפוסי — מ-kickoff ל-ROI ראשון</h2>
+          <p>הצורה הכללית. הסדר המדויק תלוי במה כואב לכם הכי, ובמה נותן ROI הכי מהיר.</p>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <div class="timeline-num">1</div>
+            <div class="timeline-body">
+              <h3>שבוע 1 — מיפוי + עדיפויות</h3>
+              <p>יושב איתכם על העסק. ממפה את כל התהליכים בשלושת הצירים, איפה ה-friction הכי כואב, איזה ROI הכי מהיר. בסוף השבוע — מפת דרכים מסכימה ושלוש "wins מהירים" שמתחילים מיד.</p>
+              <span class="tag">discovery / mapping / quick-wins</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">2</div>
+            <div class="timeline-body">
+              <h3>שבועות 2&ndash;4 — Quick Wins</h3>
+              <p>מפעיל את ה-3 אוטומציות שזיהינו כהכי משתלמות. בדרך כלל אלה יהיו lead followup automation, AI estimator בסיסי, ו-customer updates אוטומטיים. <strong>בסוף 3 שבועות — חוסכים שעות ביום, ה-ROI כבר מורגש.</strong></p>
+              <span class="tag">automation / integrations / fast-deploy</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">3</div>
+            <div class="timeline-body">
+              <h3>שבועות 4&ndash;9 — סוכני AI מרכזיים</h3>
+              <p>בונים את הסוכנים העמוקים — AI dispatcher, lead qualifier, voice agent, content engine. כל סוכן עולה מאחורי feature flag, נצפה end-to-end, נבדק על דאטה אמיתית של החברה. שכבת ה-AI המרכזית שתחזיק את העסק.</p>
+              <span class="tag">AI agents / orchestration / observability</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">4</div>
+            <div class="timeline-body">
+              <h3>שבועות 9&ndash;12 — back-office + dashboards</h3>
+              <p>עוברים לציר התפעול: invoice automation, supplier flows, P&amp;L per job, payment reconciliation. ה-data layer המרכזית, עם dashboards שמראים לכם את העסק במבט אחד. כאן המערכת הופכת ל"מוח" של העסק.</p>
+              <span class="tag">ops / reporting / dashboards</span>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-num">5</div>
+            <div class="timeline-body">
+              <h3>שבועות 12+ — חיזוק + הרחבה</h3>
+              <p>מעבר ל"חי" מלא, חיבור הדוקומנטציה לצוות, runbooks, איטרציה לפי data אמיתי. בשלב הזה ה-roadmap הופך ל-rolling — מוסיפים, משפרים, מרחיבים. אתם מחליטים את הקצב.</p>
+              <span class="tag">scale / continuous improvement</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">סטאק</div>
+          <h2>הכלים שאני מביא איתי</h2>
+          <p>אגנוסטי לחלוטין למה שכבר יש לכם — אני נכנס לסטאק שלכם, לא להפך. הרשימה כאן מציגה במה אני שוטף.</p>
+        </div>
+
+        <div class="stack-grid">
+          <div class="stack-cat">
+            <div class="cat-title">AI / Agents</div>
+            <div class="cat-items">OpenAI, Claude, Gemini, Vercel AI SDK, function calling, structured outputs</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Voice / Phone</div>
+            <div class="cat-items">Twilio, Vapi, Retell, Deepgram, Whisper</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">CRM / Field Ops</div>
+            <div class="cat-items">Hubspot, Salesforce, Jobber, Housecall Pro, ServiceTitan</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Comms</div>
+            <div class="cat-items">SMS, email (SendGrid/Postmark), WhatsApp Business API</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Backend / DB</div>
+            <div class="cat-items">Node.js, Python, Supabase, PostgreSQL, Redis</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Frontend</div>
+            <div class="cat-items">Next.js, React, TypeScript, Tailwind</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Workflow</div>
+            <div class="cat-items">n8n, Temporal, custom orchestrators, Edge Functions</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Accounting</div>
+            <div class="cat-items">QuickBooks API, Xero, Stripe, Plaid for bank feeds</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Marketing</div>
+            <div class="cat-items">Google Business, Yelp APIs, Meta Ads, attribution tracking</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Document AI</div>
+            <div class="cat-items">PDF parsing, OCR, image classification, photo-to-estimate</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Hosting</div>
+            <div class="cat-items">Vercel, AWS, GCP — מתאים לשלב, לא over-engineered</div>
+          </div>
+          <div class="stack-cat">
+            <div class="cat-title">Dev velocity</div>
+            <div class="cat-items">Claude Code in the loop &mdash; reviewed, tested, deployed</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <div class="container">
+        <h2>בואו נדבר 30 דקות</h2>
+        <p>אתם מספרים לי על העסק, אני שואל שאלות חדות, ושנינו יוצאים מהשיחה יודעים אם זו ההתאמה הנכונה — ואם כן, איזה מבנה התקשרות מתאים בדיוק לכם.</p>
+        <div class="contact-details">
+          <div class="contact-item">&#9993;&#65039; <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+          <div class="contact-item">&#128241; <a href="tel:+972545567213">054-5567213</a></div>
+          <div class="contact-item">&#128172; <a href="https://wa.me/972545567213" target="_blank" rel="noopener">WhatsApp</a></div>
+        </div>
+        <a href="https://wa.me/972545567213" class="btn primary" target="_blank" rel="noopener">דברו איתי ב-WhatsApp</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div>שלומי זוין &middot; CTO as a Service &middot; <a href="https://boostart.io" target="_blank" rel="noopener">boostart.io</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Theme toggle =====
+    const themeBtn = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    function setTheme(t) {
+      if (t === 'light') { root.setAttribute('data-theme', 'light'); themeBtn.textContent = 'כהה'; }
+      else { root.removeAttribute('data-theme'); themeBtn.textContent = 'בהיר'; }
+      localStorage.setItem('theme', t);
+    }
+    themeBtn.addEventListener('click', () => {
+      const cur = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setTheme(cur === 'light' ? 'dark' : 'light');
+    });
+    setTheme(localStorage.getItem('theme') || 'dark');
+
+    // ===== Tabs =====
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    function activateTab(name) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      contents.forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    document.querySelectorAll('[data-tab-link]').forEach(a => {
+      a.addEventListener('click', e => { e.preventDefault(); activateTab(a.dataset.tabLink); });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>אתר תדמית לעסק משכנתאות | נועם זוין</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2310b981'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Heebo,sans-serif' font-size='18' font-weight='700' fill='%230a0e1a'%3Eנ%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0f14;
+      --bg-soft: #0f151c;
+      --surface: #141b24;
+      --surface-2: #1a2330;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --text: #e6ebf2;
+      --text-muted: #8a96a6;
+      --accent: #10b981;
+      --accent-soft: rgba(16,185,129,0.10);
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+    [data-theme="light"] {
+      --bg: #f7f8fa;
+      --bg-soft: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f1f3f7;
+      --border: rgba(15,23,32,0.08);
+      --border-strong: rgba(15,23,32,0.16);
+      --text: #0f1720;
+      --text-muted: #5a6573;
+      --accent: #059669;
+      --accent-soft: rgba(5,150,105,0.10);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+
+    .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; gap: 1rem; }
+    .logo { display: inline-flex; align-items: center; gap: 0.7rem; text-decoration: none; color: var(--text); }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--accent); color: #0a0f14;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 800;
+    }
+    .logo-text { font-weight: 700; font-size: 0.97rem; line-height: 1.1; }
+    .logo-sub { font-size: 0.74rem; color: var(--text-muted); font-weight: 400; display: block; margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 0.7rem; }
+    .header-actions .phone { color: var(--text-muted); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 9px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface); color: var(--text);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; transition: background 0.15s, border-color 0.15s;
+    }
+    .theme-toggle:hover { background: var(--surface-2); }
+
+    /* TABS */
+    .tabs-bar {
+      position: sticky; top: 65px; z-index: 40;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .tabs { display: flex; gap: 0; overflow-x: auto; }
+    .tab-btn {
+      background: transparent; border: none; color: var(--text-muted);
+      font-family: inherit; font-size: 0.93rem; font-weight: 500;
+      padding: 0.95rem 1.4rem; cursor: pointer; position: relative;
+      white-space: nowrap; transition: color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after {
+      content: ''; position: absolute; bottom: -1px; right: 0; left: 0;
+      height: 2px; background: var(--accent);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fade 0.25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 3rem; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-soft);
+      padding: 0.3rem 0.75rem; border-radius: 999px;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 800; line-height: 1.1;
+      margin: 0 0 1.1rem;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub {
+      font-size: 1.1rem; color: var(--text-muted);
+      max-width: 680px; margin: 0 0 2rem;
+    }
+    .hero-cta { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+    .hero-meta { display: flex; gap: 1.5rem; margin-top: 2.5rem; flex-wrap: wrap; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .hero-meta-item { display: flex; flex-direction: column; gap: 0.15rem; }
+    .hero-meta-item .label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+    .hero-meta-item .value { font-size: 1rem; font-weight: 600; color: var(--text); }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.75rem 1.4rem; border-radius: 9px;
+      font-family: inherit; font-size: 0.93rem; font-weight: 600;
+      border: 1px solid transparent; cursor: pointer; text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .btn.primary { background: var(--accent); color: #052e1c; }
+    .btn.primary:hover { transform: translateY(-1px); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+    .btn.ghost:hover { background: var(--surface); }
+
+    /* SECTIONS */
+    .section { padding: 4rem 0; border-top: 1px solid var(--border); }
+    .section-head { margin-bottom: 2.5rem; max-width: 720px; }
+    .section-head h2 { font-size: 1.85rem; margin: 0 0 0.5rem; letter-spacing: -0.01em; font-weight: 700; }
+    .section-head p { color: var(--text-muted); font-size: 1rem; margin: 0; }
+
+    /* CARDS */
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .card:hover { border-color: var(--border-strong); }
+    .card-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--accent-soft); color: var(--accent);
+      font-size: 0.85rem; font-weight: 700;
+      margin-bottom: 0.9rem;
+    }
+    .card h3 { margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 600; }
+    .card p { margin: 0; color: var(--text-muted); font-size: 0.93rem; line-height: 1.55; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.4rem;
+    }
+    .stat .num { font-size: 1.85rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* CALLOUT */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-right: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.6rem;
+      margin: 1.5rem 0;
+    }
+    .callout h3 { margin: 0 0 0.4rem; font-size: 1.02rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .callout a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .callout a:hover { text-decoration: underline; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 0; max-width: 760px; }
+    .step { display: grid; grid-template-columns: 36px 1fr; gap: 1.2rem; padding: 1.2rem 0; border-bottom: 1px solid var(--border); }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border-strong);
+      color: var(--accent); font-weight: 700; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 0.1rem;
+    }
+    .step h3 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; }
+    .step p { margin: 0; color: var(--text-muted); font-size: 0.92rem; }
+    .step .tag { display: inline-block; font-size: 0.74rem; padding: 0.18rem 0.55rem; border-radius: 6px; background: var(--accent-soft); color: var(--accent); margin-top: 0.45rem; font-weight: 600; }
+
+    /* PRICING */
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 520px;
+    }
+    .pricing-card .badge {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      color: var(--accent); background: var(--accent-soft);
+      padding: 0.25rem 0.65rem; border-radius: 6px; margin-bottom: 0.8rem;
+    }
+    .pricing-card .price { font-size: 2.6rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+    .pricing-card .price-suffix { font-size: 1rem; color: var(--text-muted); font-weight: 500; margin-right: 0.3rem; }
+    .pricing-card .price-note { color: var(--text-muted); font-size: 0.88rem; margin-top: 0.3rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 1.5rem 0; }
+    .pricing-card li {
+      font-size: 0.93rem; padding: 0.5rem 0;
+      display: flex; align-items: flex-start; gap: 0.55rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .pricing-card li:last-child { border-bottom: none; }
+    .pricing-card li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+    /* DEMO */
+    .demo-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .demo-controls { display: flex; flex-direction: column; gap: 1.2rem; }
+    .demo-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .demo-field label { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
+    .demo-field .field-row { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; }
+    .demo-field .field-value { font-size: 1.05rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .demo-field input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; background: var(--surface-2);
+      border-radius: 999px; outline: none; margin: 0.3rem 0;
+    }
+    .demo-field input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: 3px solid var(--bg);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .demo-field input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: 3px solid var(--bg);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .track-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .track-pill {
+      padding: 0.45rem 0.85rem; border-radius: 8px;
+      background: var(--surface-2); color: var(--text-muted);
+      border: 1px solid var(--border); font-family: inherit;
+      font-size: 0.85rem; font-weight: 500; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .track-pill:hover { color: var(--text); }
+    .track-pill.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+    .demo-results { display: flex; flex-direction: column; gap: 0.9rem; }
+    .result-card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 1rem 1.2rem;
+    }
+    .result-card .label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; font-weight: 500; }
+    .result-card .value { font-size: 1.6rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .result-card .value.highlight { color: var(--accent); font-size: 1.9rem; }
+    .result-card .sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    .demo-chart {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 1rem;
+    }
+    .demo-chart .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.7rem; }
+    .demo-chart .chart-title { font-size: 0.88rem; font-weight: 600; }
+    .demo-chart .chart-legend { display: flex; gap: 0.8rem; font-size: 0.78rem; color: var(--text-muted); }
+    .demo-chart .chart-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .demo-chart .dot { width: 9px; height: 9px; border-radius: 2px; }
+    .demo-chart .dot.principal { background: var(--accent); }
+    .demo-chart .dot.interest { background: var(--text-muted); }
+    .demo-chart .bar-row { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--surface); margin: 0.5rem 0; }
+    .demo-chart .bar-principal { background: var(--accent); }
+    .demo-chart .bar-interest { background: var(--text-muted); opacity: 0.4; }
+    .demo-chart .chart-foot { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); }
+
+    /* CONTACT */
+    .contact-block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1.5rem; flex-wrap: wrap;
+    }
+    .contact-block .left h3 { margin: 0 0 0.3rem; font-size: 1.2rem; font-weight: 700; }
+    .contact-block .left p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+    .contact-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .contact-link {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.55rem 0.9rem; border-radius: 8px;
+      background: var(--surface-2); color: var(--text);
+      border: 1px solid var(--border); text-decoration: none;
+      font-size: 0.88rem; font-weight: 500; transition: border-color 0.15s;
+    }
+    .contact-link:hover { border-color: var(--border-strong); }
+
+    /* FOOTER */
+    .site-footer {
+      border-top: 1px solid var(--border); padding: 1.8rem 0;
+      text-align: center; font-size: 0.83rem; color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+
+    @media (max-width: 820px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .demo-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 3rem 0 2rem; }
+      .section { padding: 2.8rem 0; }
+      .tabs-bar { top: 65px; }
+      .pricing-card { padding: 1.5rem; }
+      .pricing-card .price { font-size: 2.1rem; }
+      .contact-block { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 1.1rem; }
+      .header-actions .phone { display: none; }
+      .logo-sub { display: none; }
+      .tab-btn { padding: 0.85rem 0.9rem; font-size: 0.85rem; }
+      .hero-meta { gap: 1rem; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .result-card .value { font-size: 1.35rem; }
+      .result-card .value.highlight { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">נז</span>
+        <span>
+          <span class="logo-text">נועם זוין</span>
+          <span class="logo-sub">פיתוח אתרים &amp; מערכות</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <span class="phone">054-5567213</span>
+        <button class="theme-toggle" id="theme-toggle" title="Dark / Light">🌙</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="offer">ההצעה</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="about">למה אני</button>
+      <button class="tab-btn" data-tab="pricing">מחיר ולו"ז</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: OFFER -->
+<div class="tab-content active" id="tab-offer">
+  <section class="hero">
+    <div class="container">
+      <span class="hero-eyebrow">אתר תדמית · יועצי משכנתאות</span>
+      <h1>אתר שמוכר אמון —<br/><span class="accent">לפני שהלקוח מרים טלפון.</span></h1>
+      <p class="hero-sub">
+        בעולם המשכנתאות, מי שזוכה בלקוח הוא לא בהכרח הזול — אלא מי שמשדר רצינות מהשנייה הראשונה.
+        אני בונה לכם אתר תדמית נקי, מהיר, מותאם נייד, עם מחשבון משכנתא אמיתי שמייצר לידים.
+      </p>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">בואו נדבר בוואטסאפ</a>
+        <button class="btn ghost" onclick="switchTab('demo')">תסתכלו על הדגמה חיה ←</button>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="label">מודל</span>
+          <span class="value">10,000 ש"ח / חודש</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="label">לו"ז</span>
+          <span class="value">2-4 שבועות לאוויר</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="label">ליווי</span>
+          <span class="value">CTO מאחור (20+ שנות ניסיון)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>מה תקבלו</h2>
+        <p>אתר תדמית מלא — לא תבנית, לא וורדפרס. בנוי בקוד נקי, נטען מיד, עובד מצוין במובייל.</p>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="card-num">01</div>
+          <h3>עיצוב נקי ומקצועי</h3>
+          <p>שפה ויזואלית של 2026 — לא של סוכנות משנת 2018. מותאם לסיפור שלכם, לקהל, ולתחושה שאתם רוצים להשאיר.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">02</div>
+          <h3>מחשבון משכנתא חי</h3>
+          <p>הלקוח מזין סכום, חודשים, ריבית — ומקבל תוצאה. כלי שעובד יותר טוב מ-CTA רגיל ומייצר לידים אמיתיים.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">03</div>
+          <h3>מובייל קודם</h3>
+          <p>רוב הלידים מגיעים מהנייד. האתר נבנה מובייל-פירסט, לא "גרסת מובייל" של דסקטופ.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">04</div>
+          <h3>טופס יצירת קשר חכם</h3>
+          <p>טופס שלא מבריח — שאלות נכונות, שדות מינימליים, אישור מיידי. לידים נכנסים ישר למייל / וואטסאפ שלכם.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">05</div>
+          <h3>SEO + מהירות</h3>
+          <p>מבנה נכון, meta tags, schema markup, תמונות מאופטמות. נטען בפחות משנייה — גוגל אוהב את זה, גם הלקוחות.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">06</div>
+          <h3>העלאה מלאה לאוויר</h3>
+          <p>דומיין, אחסון, SSL, אנליטיקס. מקבלים אתר חי, לא קוד בגיטהאב. הכל מסודר על שמכם.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>💡 רגע של כנות לגבי המחיר</h3>
+        <p>
+          המודל הוא חודשי — 10,000 ש"ח לחודש. למה לא פיקס? כי בפרויקטים כאלה תמיד יש שינויים, גמישות, בקשות תוך כדי.
+          חודשי = אפס "אה, גם זה בתוספת". בפרויקט תדמית כזה ההערכה שלי היא חודש בודד עד אוויר. אחרי זה אתם בשליטה
+          מלאה — ממשיכים, מורידים, או נשארים על retainer לתחזוקה ושיפורים.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 2: DEMO -->
+<div class="tab-content" id="tab-demo">
+  <section class="section" style="border-top: none;">
+    <div class="container">
+      <div class="section-head">
+        <h2>מחשבון משכנתא — חי, אינטראקטיבי</h2>
+        <p>זה הסוג של כלי שאני מתכוון להטמיע באתר. שחקו עם המחוונים, החליפו מסלולים, ראו איך התוצאה משתנה בזמן אמת.</p>
+      </div>
+
+      <div class="demo-wrap">
+        <div class="demo-grid">
+          <!-- LEFT: CONTROLS -->
+          <div class="demo-controls">
+            <div class="demo-field">
+              <label>מסלול משכנתא</label>
+              <div class="track-tabs">
+                <button class="track-pill active" data-rate="3.5">קבועה לא צמודה</button>
+                <button class="track-pill" data-rate="2.8">פריים</button>
+                <button class="track-pill" data-rate="3.1">משתנה</button>
+                <button class="track-pill" data-rate="2.5">צמודה למדד</button>
+              </div>
+            </div>
+
+            <div class="demo-field">
+              <div class="field-row">
+                <label>סכום ההלוואה</label>
+                <span class="field-value" id="amount-value">1,200,000 ₪</span>
+              </div>
+              <input type="range" id="amount" min="200000" max="3000000" step="50000" value="1200000" />
+              <div class="chart-foot">
+                <span>200K</span>
+                <span>3M</span>
+              </div>
+            </div>
+
+            <div class="demo-field">
+              <div class="field-row">
+                <label>תקופה (חודשים)</label>
+                <span class="field-value" id="months-value">240 חודשים</span>
+              </div>
+              <input type="range" id="months" min="60" max="360" step="12" value="240" />
+              <div class="chart-foot">
+                <span>5 שנים</span>
+                <span>30 שנים</span>
+              </div>
+            </div>
+
+            <div class="demo-field">
+              <div class="field-row">
+                <label>ריבית שנתית</label>
+                <span class="field-value" id="rate-value">3.5%</span>
+              </div>
+              <input type="range" id="rate" min="1" max="8" step="0.1" value="3.5" />
+              <div class="chart-foot">
+                <span>1%</span>
+                <span>8%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: RESULTS -->
+          <div class="demo-results">
+            <div class="result-card">
+              <div class="label">החזר חודשי משוער</div>
+              <div class="value highlight" id="monthly">6,963 ₪</div>
+              <div class="sub" id="monthly-sub">לפי לוח שפיצר</div>
+            </div>
+            <div class="result-card">
+              <div class="label">סך החזר כולל</div>
+              <div class="value" id="total">1,671,108 ₪</div>
+            </div>
+            <div class="result-card">
+              <div class="label">סך ריבית לכל התקופה</div>
+              <div class="value" id="interest">471,108 ₪</div>
+            </div>
+
+            <div class="demo-chart">
+              <div class="chart-head">
+                <span class="chart-title">פירוט החזר</span>
+                <div class="chart-legend">
+                  <span><span class="dot principal"></span>קרן</span>
+                  <span><span class="dot interest"></span>ריבית</span>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-principal" id="bar-principal" style="width: 71.8%"></div>
+                <div class="bar-interest" id="bar-interest" style="width: 28.2%"></div>
+              </div>
+              <div class="chart-foot">
+                <span id="bar-principal-label">קרן 71.8%</span>
+                <span id="bar-interest-label">ריבית 28.2%</span>
+              </div>
+            </div>
+
+            <button class="btn primary" style="width: 100%;" onclick="alert('💡 במערכת האמיתית — כפתור זה ישלח את הנתונים שהלקוח הזין ישר לוואטסאפ / מייל שלכם, עם פרטי הקשר שלו. ליד חם.')">
+              שלחו לי הצעה מותאמת
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>⚡ ההדגמה הזו נבנתה תוך דקות</h3>
+        <p>
+          אני עובד עם Claude Code וכלי AI מהדור החדש — מה שאומר שמוקאפ אינטראקטיבי כזה הוא עניין של דקות, לא ימים.
+          באתר האמיתי המחשבון יהיה מחובר למערכת לידים, יישלח אליכם וואטסאפ אוטומטי כשמישהו ממלא, ויהיה דיוק
+          מלא לכל מסלול (כולל ריביות עדכניות מבנק ישראל). זו רק טעימה של הזרימה.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 3: ABOUT -->
+<div class="tab-content" id="tab-about">
+  <section class="section" style="border-top: none;">
+    <div class="container">
+      <div class="section-head">
+        <h2>למה אני</h2>
+        <p>מפתח צעיר עם רעב — וגב מקצועי שלא ייעלם.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="num">10K</div>
+          <div class="label">חודשי, שקוף, גמיש</div>
+        </div>
+        <div class="stat">
+          <div class="num">2-4</div>
+          <div class="label">שבועות לאוויר</div>
+        </div>
+        <div class="stat">
+          <div class="num">100%</div>
+          <div class="label">קוד שלכם, תמיד</div>
+        </div>
+        <div class="stat">
+          <div class="num">CTO</div>
+          <div class="label">מלווה אותי מאחור</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 2rem;">
+        <div class="card">
+          <div class="card-num">01</div>
+          <h3>בונה אתרים מוסמך</h3>
+          <p>לא חובבן ולא לומד תוך כדי. עברתי הכשרה רשמית, ובניתי כבר מערכות אמיתיות בייצור — לא רק landing pages.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">02</div>
+          <h3>פורטל משחקים פעיל</h3>
+          <p>בניתי את <a href="https://plaxzy.com" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">plaxzy.com</a> — פורטל משחקים מלא עם משתמשים אמיתיים. הוכחה שאני יודע לקחת מוצר מאפס לאוויר, לא רק לעצב פיקסלים.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">03</div>
+          <h3>שלומי זוין מלווה אותי</h3>
+          <p>אבא שלי, CTO as a Service עם 20+ שנות ניסיון. בנה 50+ מוצרים מאפס. כל החלטה ארכיטקטונית עוברת ביקורת שלו. מחיר של צעיר — איכות של בכיר.</p>
+        </div>
+        <div class="card">
+          <div class="card-num">04</div>
+          <h3>AI-native מהיום הראשון</h3>
+          <p>הדור שלי גדל על Claude Code, Cursor, וכלי AI לפיתוח. זה לא משהו ש"למדתי" — זה איך שאני חושב על פיתוח. וזה מה שמאפשר לי לתת מחיר כזה.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>💡 ההבדל ביני לבין "פרילנסר זול"</h3>
+        <p>
+          פרילנסר זול נעלם אחרי שמעבירים תשלום — ולא תופסים אותו כשמשהו נשבר. אצלי יש כתובת קבועה, אימייל אמיתי,
+          טלפון שעונה (של אבא שלי, שלומי), וגב מקצועי שלא ייעלם. המחיר נמוך כי אני צעיר — לא כי אני לא אכפתי.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- TAB 4: PRICING -->
+<div class="tab-content" id="tab-pricing">
+  <section class="section" style="border-top: none;">
+    <div class="container">
+      <div class="section-head">
+        <h2>מחיר ולו"ז</h2>
+        <p>חודשי, שקוף, בלי הפתעות. אם הפרויקט מסתיים בחודש — שילמתם חודש אחד. זהו.</p>
+      </div>
+
+      <div class="pricing-card">
+        <span class="badge">אתר תדמית מלא</span>
+        <div>
+          <span class="price">10,000</span>
+          <span class="price-suffix">ש"ח / חודש</span>
+        </div>
+        <div class="price-note">בהערכה — חודש אחד מספיק. בלי קנסות, בלי lock-in, בלי תוספות מפתיעות.</div>
+        <ul>
+          <li>עיצוב מותאם — לא תבנית</li>
+          <li>פיתוח מלא בקוד נקי (לא וורדפרס)</li>
+          <li>מחשבון משכנתא אינטראקטיבי</li>
+          <li>טופס יצירת קשר חכם → וואטסאפ/מייל</li>
+          <li>SEO + מהירות טעינה (Lighthouse 90+)</li>
+          <li>מובייל מושלם, נגישות, RTL</li>
+          <li>דומיין, אחסון, SSL, אנליטיקס</li>
+          <li>2 סבבי תיקונים אחרי המסירה</li>
+        </ul>
+        <a href="https://wa.me/972545567213" class="btn primary" style="width: 100%;">בואו נתחיל</a>
+      </div>
+
+      <div class="section-head" style="margin-top: 3.5rem;">
+        <h2>איך נראה החודש הזה</h2>
+      </div>
+      <div class="timeline">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <h3>שיחת היכרות ואיפיון</h3>
+            <p>שיחה קצרה לעבור על העסק, הקהל, התחושה שאתם רוצים להעביר, ודוגמאות לאתרים שאתם אוהבים. נבחר יחד את כיוון העיצוב.</p>
+            <span class="tag">ימים 1-2</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <h3>סקיצות עיצוב</h3>
+            <p>שולח לכם 2-3 כיוונים עיצוביים. בוחרים, מדייקים, מאשרים.</p>
+            <span class="tag">ימים 3-6</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <h3>פיתוח</h3>
+            <p>בונה את האתר במלואו — דפים, מחשבון, טפסים, אנימציות. שולח לינק ביניים שתוכלו לראות איך זה מתקדם.</p>
+            <span class="tag">ימים 7-18</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>
+            <h3>תיקונים והעלאה</h3>
+            <p>סבב הערות, תיקונים, חיבור לדומיין, SSL, אנליטיקס. האתר באוויר.</p>
+            <span class="tag">ימים 19-25</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div>
+            <h3>ליווי אחרי השקה</h3>
+            <p>שבוע ראשון אחרי האוויר — אני זמין לכל באג קטן, התאמה, הוספת תוכן. אחרי החודש — אם רוצים תחזוקה / שיפורים, ממשיכים. אם לא — נפרדים בידידות.</p>
+            <span class="tag">ימים 26-30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 3rem;">
+        <h3>💰 תנאי תשלום</h3>
+        <p>
+          50% בהתחלה, 50% עם העלאה לאוויר. לא משלמים את המלא לפני שרואים מוצר חי. אם רוצים להמשיך לחודש נוסף
+          (תחזוקה, תוספות, תוכן חדש) — אומרים, ממשיכים. בלי lock-in.
+        </p>
+      </div>
+
+      <div class="contact-block" style="margin-top: 3rem;">
+        <div class="left">
+          <h3>בואו נדבר</h3>
+          <p>הדרך הכי טובה להבין אם זה מתאים — שיחה של 15 דקות.</p>
+        </div>
+        <div class="contact-links">
+          <a href="https://wa.me/972545567213" class="contact-link">💬 וואטסאפ</a>
+          <a href="tel:054-5567213" class="contact-link">📞 054-5567213</a>
+          <a href="mailto:shlomi@boostart.io" class="contact-link">✉️ אימייל</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    נועם זוין · פיתוח אתרים &amp; מערכות · בליווי שלומי זוין (CTO as a Service) · <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · 054-5567213
+  </div>
+</footer>
+
+<script>
+  // TABS
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // THEME
+  const themeToggle = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  themeToggle.textContent = saved === 'light' ? '☀️' : '🌙';
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'light' ? '☀️' : '🌙';
+  });
+
+  // MORTGAGE CALCULATOR
+  const amountEl = document.getElementById('amount');
+  const monthsEl = document.getElementById('months');
+  const rateEl = document.getElementById('rate');
+  const amountValue = document.getElementById('amount-value');
+  const monthsValue = document.getElementById('months-value');
+  const rateValue = document.getElementById('rate-value');
+  const monthlyEl = document.getElementById('monthly');
+  const totalEl = document.getElementById('total');
+  const interestEl = document.getElementById('interest');
+  const barPrincipal = document.getElementById('bar-principal');
+  const barInterest = document.getElementById('bar-interest');
+  const barPrincipalLabel = document.getElementById('bar-principal-label');
+  const barInterestLabel = document.getElementById('bar-interest-label');
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('he-IL') + ' ₪';
+  }
+
+  function calc() {
+    const P = +amountEl.value;
+    const n = +monthsEl.value;
+    const r = (+rateEl.value) / 100 / 12;
+    const monthly = r === 0 ? P / n : (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const total = monthly * n;
+    const interest = total - P;
+    const principalPct = (P / total) * 100;
+    const interestPct = 100 - principalPct;
+
+    amountValue.textContent = (+amountEl.value).toLocaleString('he-IL') + ' ₪';
+    const years = Math.floor(n / 12);
+    const remMonths = n % 12;
+    monthsValue.textContent = remMonths === 0 ? `${years} שנים` : `${years} שנים ו-${remMonths} חודשים`;
+    rateValue.textContent = (+rateEl.value).toFixed(1) + '%';
+    monthlyEl.textContent = fmt(monthly);
+    totalEl.textContent = fmt(total);
+    interestEl.textContent = fmt(interest);
+    barPrincipal.style.width = principalPct.toFixed(1) + '%';
+    barInterest.style.width = interestPct.toFixed(1) + '%';
+    barPrincipalLabel.textContent = `קרן ${principalPct.toFixed(1)}%`;
+    barInterestLabel.textContent = `ריבית ${interestPct.toFixed(1)}%`;
+  }
+
+  [amountEl, monthsEl, rateEl].forEach(el => el.addEventListener('input', calc));
+
+  document.querySelectorAll('.track-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.track-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      rateEl.value = pill.dataset.rate;
+      calc();
+    });
+  });
+
+  calc();
+</script>
+
+</body>
+</html>

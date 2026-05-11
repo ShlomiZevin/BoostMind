@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Claude Code Mentor · ליווי שלומי זוין · 10K/חודש</title>
+  <meta name="description" content="במקום לשכור פרילנסר שמתיימר 'לעבוד עם Claude Code' — קבל את האיש שעובד עם Claude Code יום-יום, כמלווה. 10,000 ש״ח לחודש." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c0c0e;
+      --bg-alt: #131316;
+      --card-bg: #17171b;
+      --card-hover: #1d1d22;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.16);
+      --text: #ececf1;
+      --text-strong: #ffffff;
+      --text-muted: #8a8a94;
+      --text-dim: #5f5f68;
+      --accent: #5b8dff;
+      --accent-hover: #4a7cef;
+      --accent-soft: rgba(91,141,255,0.10);
+      --accent-dim: rgba(91,141,255,0.30);
+      --success: #18b67a;
+      --success-soft: rgba(24,182,122,0.10);
+      --warn: #f5a524;
+      --warn-soft: rgba(245,165,36,0.10);
+      --danger: #ef4444;
+      --danger-soft: rgba(239,68,68,0.10);
+      --code-bg: #1a1a1f;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+      --mono: 'JetBrains Mono', 'SF Mono', Monaco, Consolas, monospace;
+    }
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --bg-alt: #f3f3f5;
+      --card-bg: #ffffff;
+      --card-hover: #f6f6f8;
+      --border: rgba(0,0,0,0.08);
+      --border-strong: rgba(0,0,0,0.16);
+      --text: #1a1a1f;
+      --text-strong: #000000;
+      --text-muted: #5e5e68;
+      --text-dim: #8a8a94;
+      --accent: #2d6cef;
+      --accent-hover: #1d5cdf;
+      --accent-soft: rgba(45,108,239,0.07);
+      --accent-dim: rgba(45,108,239,0.22);
+      --success: #0e8a5a;
+      --success-soft: rgba(14,138,90,0.08);
+      --warn: #b8770e;
+      --warn-soft: rgba(184,119,14,0.08);
+      --danger: #d32f2f;
+      --danger-soft: rgba(211,47,47,0.07);
+      --code-bg: #f1f1f4;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      transition: background 200ms ease, color 200ms ease;
+    }
+    code, pre, .mono { font-family: var(--mono); direction: ltr; text-align: left; unicode-bidi: embed; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; }
+    .logo-text { font-weight: 600; font-size: 0.95rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { font-weight: 400; font-size: 0.78rem; color: var(--text-muted); }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.82rem; color: var(--text-muted); font-family: inherit; transition: all 0.15s; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.45rem 1rem; border-radius: var(--radius-sm); background: var(--accent); color: white; font-size: 0.84rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: var(--accent-hover); }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 58px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.92rem; font-weight: 500; padding: 0.9rem 1.3rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4rem 0 2.5rem; text-align: center; }
+    .hero-eyebrow { display: inline-block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); padding: 0.3rem 0.8rem; border: 1px solid var(--accent-dim); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.2rem; }
+    .hero h1 { font-size: clamp(1.9rem, 4.2vw, 3rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.1rem; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 760px; margin: 0 auto 1.8rem; line-height: 1.7; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 1.8rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.32rem 0.78rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .price-banner { display: inline-flex; align-items: baseline; gap: 0.4rem; margin: 0.5rem 0 1.5rem; }
+    .price-banner .num { font-size: 2.4rem; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+    .price-banner .unit { font-size: 1rem; color: var(--text-muted); }
+    .price-banner .strike { font-size: 0.9rem; color: var(--text-dim); text-decoration: line-through; margin-inline-start: 0.5rem; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.72rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 2.5rem 0; }
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 2rem; }
+    .section-header h2 { font-size: 1.7rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 0.98rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.4rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1.02rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\25B8'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.4rem; margin-bottom: 0.6rem; }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.4rem 1.6rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.92rem; line-height: 1.75; }
+    .callout.warn { border-right-color: var(--warn); }
+    .callout.success { border-right-color: var(--success); }
+
+    /* COMPARE TABLE */
+    .compare { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+    .compare th { background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 0.88rem; padding: 0.95rem 1rem; text-align: right; }
+    .compare td { padding: 0.95rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; vertical-align: top; color: var(--text-muted); line-height: 1.7; }
+    .compare td.label { color: var(--text); font-weight: 500; width: 30%; }
+    .compare td.good { color: var(--success); font-weight: 500; }
+    .compare td.bad { color: var(--text-dim); }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.5rem 0 2.5rem; }
+    .stat { text-align: center; padding: 1.2rem 0.8rem; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    .stat .num { font-size: 1.85rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 0.9rem; max-width: 780px; margin: 1.5rem auto 0; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; }
+    .timeline-num { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent-dim); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 0.98rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.4rem; border: 1px solid var(--accent-dim); margin-left: 0.3rem; }
+
+    /* PRICING */
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--accent); border-radius: var(--radius-lg); padding: 2rem; max-width: 720px; margin: 0 auto; position: relative; }
+    .pricing-card .ptag { position: absolute; top: -12px; right: 1.8rem; background: var(--accent); color: white; font-size: 0.72rem; padding: 0.25rem 0.7rem; border-radius: var(--radius-sm); font-weight: 600; letter-spacing: 0.04em; }
+    .pricing-card .pname { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .pricing-card .pdesc { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.3rem; line-height: 1.65; }
+    .pricing-card .price { font-size: 2.6rem; font-weight: 700; color: var(--text); margin-bottom: 0.1rem; letter-spacing: -0.03em; }
+    .pricing-card .price small { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
+    .pricing-card .price-note { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .pricing-card ul { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+    .pricing-card li { font-size: 0.9rem; margin-bottom: 0.55rem; display: flex; align-items: flex-start; gap: 0.5rem; color: var(--text); }
+    .pricing-card li::before { content: '\2713'; color: var(--success); font-weight: 700; flex-shrink: 0; }
+    .pricing-card li small { color: var(--text-muted); font-weight: 400; }
+
+    /* ============ DEMO: RECIPES ============ */
+    .demo-wrap { max-width: 1080px; margin: 0 auto; }
+    .demo-intro { text-align: center; max-width: 760px; margin: 0 auto 1.5rem; color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+    .recipe-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+    .recipe-btn { padding: 0.55rem 1.1rem; border-radius: var(--radius-sm); background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+    .recipe-btn:hover { color: var(--text); border-color: var(--border-strong); }
+    .recipe-btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-dim); }
+    .recipe-panel { display: none; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .recipe-panel.active { display: block; animation: fadeIn 0.25s ease; }
+    .recipe-head { padding: 1.2rem 1.4rem; border-bottom: 1px solid var(--border); background: var(--bg-alt); }
+    .recipe-head .rtag { display: inline-block; font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-bottom: 0.5rem; border: 1px solid var(--accent-dim); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .recipe-head h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; letter-spacing: -0.01em; }
+    .recipe-head p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+    .recipe-body { padding: 1.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+    .recipe-col h4 { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; }
+    .recipe-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.9rem 1rem; font-family: var(--mono); font-size: 0.8rem; line-height: 1.7; color: var(--text); overflow-x: auto; white-space: pre-wrap; }
+    .recipe-block .c-key { color: #c084fc; }
+    .recipe-block .c-str { color: #86efac; }
+    .recipe-block .c-cmt { color: var(--text-dim); font-style: italic; }
+    .recipe-block .c-acc { color: var(--accent); }
+    .recipe-notes { margin-top: 0.7rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; }
+    .recipe-notes strong { color: var(--text); font-weight: 600; }
+
+    /* EXPERIENCE */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .exp-card p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 0.7rem; line-height: 1.6; }
+    .exp-tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); margin-left: 0.25rem; margin-bottom: 0.25rem; border: 1px solid var(--border); }
+
+    /* CONTACT */
+    .contact-section { text-align: center; padding: 2.5rem 0; }
+    .contact-section h2 { font-size: 1.7rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .contact-section p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .contact-details { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .contact-item { display: flex; align-items: center; gap: 0.45rem; font-size: 0.95rem; color: var(--text-muted); }
+    .contact-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+    .footer a { color: var(--accent); text-decoration: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .stats-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .recipe-body { grid-template-columns: 1fr; }
+      .hero { padding: 2.8rem 0 1.8rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero-sub { font-size: 0.98rem; }
+      .section { padding: 2rem 0; }
+      .section-header h2 { font-size: 1.45rem; }
+      .tab-btn { padding: 0.75rem 0.85rem; font-size: 0.86rem; }
+      .logo-sub { display: none; }
+      .compare td.label { width: auto; }
+      .pricing-card { padding: 1.4rem; }
+      .pricing-card .price { font-size: 2.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span>
+          <span class="logo-text">שלומי זוין</span>
+          <span class="logo-sub"> · Claude Code Mentor · ליווי טכנולוגי</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <a class="btn-sm" href="https://wa.me/972545567213" target="_blank">WhatsApp ←</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">ההצעה</button>
+      <button class="tab-btn" onclick="switchTab('why')">למה זה הגיוני</button>
+      <button class="tab-btn" onclick="switchTab('demo')">Claude Code · בפועל</button>
+      <button class="tab-btn" onclick="switchTab('experience')">ניסיון</button>
+      <button class="tab-btn" onclick="switchTab('budget')">תקציב ומודל</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== TAB 1: PROPOSAL ==================== -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+    <section class="hero">
+      <span class="hero-eyebrow">Claude Code Mentor · ליווי שלומי</span>
+      <h1>במקום פרילנסר שמתיימר<br/><span class="accent">— תקבל את הראש שמאחורי הקלעים.</span></h1>
+      <p class="hero-sub">
+        אני שלומי. עובד עם <b>Claude Code</b> יום-יום כתשתית הפיתוח שלי, בניתי איתו עשרות מערכות בייצור,
+        ומלווה צוותים שעובדים איתו. במקום לקחת פרילנסר שעוד "לומד את הכלי" — קח את האיש שמלמד אותו.
+      </p>
+      <div class="price-banner">
+        <span class="num">10,000 ₪</span>
+        <span class="unit">/ חודש</span>
+        <span class="strike">המחיר הרגיל שלי: 50K/חודש</span>
+      </div>
+      <div class="hero-badges">
+        <span>Claude Code · יומיומי</span>
+        <span>2+ שנים AI agents</span>
+        <span>20+ שנות פיתוח</span>
+        <span>50+ מוצרים בייצור</span>
+        <span>זמינות מיידית</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="https://wa.me/972545567213">💬 בוא נדבר</a>
+        <a class="btn ghost" href="#" onclick="switchTab('demo'); return false;">⚡ ראה איך אני עובד</a>
+      </div>
+    </section>
+
+    <div class="callout">
+      <h3>🎯 רגע לפני שממשיכים — בואו נדייק על מה זה</h3>
+      <p>
+        זאת לא הצעת פיתוח פרויקטלית. זה <b>ליווי טכנולוגי חודשי</b>. אתה (או מי שמפתח אצלך) בונה בפועל
+        עם Claude Code / Claude Cowork — אני נכנס מאחור: בונה ארכיטקטורה, מתכנן זרימות, כותב prompts
+        ו-CLAUDE.md, עושה code review, מסיר חסמים, ומקצר ימים-של-תקיעה ל-דקות-של-תשובה. הלקוח רץ מהר
+        בלי לשבור דברים.
+      </p>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>מה כלול בליווי החודשי</h2>
+        <p>לא שעות שצריך לעקוב אחריהן — חודש שלם של גישה אליי</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>אסטרטגיה ושיחה שבועית</h3>
+          <ul>
+            <li>שיחה שבועית של שעה — מתכננים מה לבנות ואיך</li>
+            <li>חלוקה נכונה למשימות שמתאימות ל-Claude Code</li>
+            <li>בחירת סטאק, ספריות, ארכיטקטורה</li>
+            <li>החלטות tradeoffs — מתי לבנות, מתי לקנות, מתי לדחות</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">⚙️</div>
+          <h3>בנייה ותחזוקת ה־CLAUDE.md</h3>
+          <ul>
+            <li>קובץ CLAUDE.md מותאם לפרויקט — תשתית הליבה של Claude Code</li>
+            <li>הגדרת קונטקסט, סטנדרטים, דגשים, מה לא לעשות</li>
+            <li>Skills, Hooks, MCP servers — כל מה שצריך</li>
+            <li>שדרוג שוטף ככל שהפרויקט גדל</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📐</div>
+          <h3>Code Review + תיקון מסלול</h3>
+          <ul>
+            <li>סקירת קוד שה־AI כותב — לפני שהוא נכנס לייצור</li>
+            <li>זיהוי מקומות שה־LLM "נשבר" — אבטחה, queries, edge cases</li>
+            <li>החלטה איפה להתערב ידנית ואיפה להמשיך אוטומטי</li>
+            <li>שמירה על איכות שלא מתפזרת עם הזמן</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔓</div>
+          <h3>הסרת חסמים — Async</h3>
+          <ul>
+            <li>תקוע על בעיה? שולח לי WhatsApp — אני נכנס</li>
+            <li>פותר בתוך שעות, לא ימים — בלי לחכות לפגישה</li>
+            <li>קוד, deploy, באגים, ארכיטקטורה — מה שצריך</li>
+            <li>זמינות גבוהה, גם בערב, גם בסופ"ש כשדחוף</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🤖</div>
+          <h3>AI Agents · אם רלוונטי</h3>
+          <ul>
+            <li>בניית agents אמיתיים — לא chatbot בסיסי</li>
+            <li>RAG, memory, tool-use, multi-step orchestration</li>
+            <li>איך לבנות אותם ב-Claude Code עצמו</li>
+            <li>2+ שנים hands-on, לא תיאוריה</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <h3>Deploy, CI/CD, Infra</h3>
+          <ul>
+            <li>הקמת סביבות — dev / staging / prod</li>
+            <li>CI/CD שעובד עם Claude Code בלולאה</li>
+            <li>Firebase, Vercel, GCP, AWS — לפי המקרה</li>
+            <li>Monitoring וסקייל בסיסי</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="callout success">
+      <h3>💡 השורה התחתונה</h3>
+      <p>
+        ב־10,000 ₪ לחודש אתה מקבל גישה לבן-אדם שמלווה היום סטארטאפים ב-50K/חודש.
+        זה לא "שעות ייעוץ" עם מונה — זה ליווי אמיתי. דקה דחוף — שולח הודעה, אני בפנים.
+        החודש הראשון מוכיח את עצמו, אחרת לא ממשיכים. אפס lock-in.
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ==================== TAB 2: WHY ==================== -->
+<div id="tab-why" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>למה הליווי הזה ולא פרילנסר רגיל</h2>
+        <p>בואו נשים את זה צד-ליד</p>
+      </div>
+
+      <table class="compare">
+        <thead>
+          <tr>
+            <th class="label">פרמטר</th>
+            <th>פרילנסר "Claude Code" רגיל</th>
+            <th>ליווי שלומי</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="label">ניסיון אמיתי</td>
+            <td class="bad">לרוב פחות משנה, לומד תוך כדי</td>
+            <td class="good">20+ שנות פיתוח · יום-יום ב-Claude Code</td>
+          </tr>
+          <tr>
+            <td class="label">ראיית מערכת</td>
+            <td class="bad">כותב פיצ'רים, לא ארכיטקט</td>
+            <td class="good">CTO ל-3 סטארטאפים · ליווי ל-50+ מוצרים</td>
+          </tr>
+          <tr>
+            <td class="label">איפה ה־AI נשבר</td>
+            <td class="bad">מקבל את הפלט כמו שהוא</td>
+            <td class="good">יודע מראש איפה לעצור, איפה להתערב, איפה לתקן</td>
+          </tr>
+          <tr>
+            <td class="label">תשתיות (CLAUDE.md, Hooks, MCP)</td>
+            <td class="bad">"שמעתי על זה, אנסה"</td>
+            <td class="good">בונה את זה מאפס לכל פרויקט — תשתית הליבה</td>
+          </tr>
+          <tr>
+            <td class="label">אגנטים מורכבים</td>
+            <td class="bad">"OpenAI API" בסיסי</td>
+            <td class="good">2+ שנים hands-on · RAG, memory, multi-step</td>
+          </tr>
+          <tr>
+            <td class="label">מחיר חודשי</td>
+            <td class="bad">8K-15K ש"ח (זמן שלם שלו על הפרויקט)</td>
+            <td class="good">10K ש"ח (גישה אליי, לא שעות שלי)</td>
+          </tr>
+          <tr>
+            <td class="label">סיכון אם זה לא עובד</td>
+            <td class="bad">חודש שרוף, פרויקט תקוע</td>
+            <td class="good">חודש ראשון מוכיח את עצמו, אפס lock-in</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn" style="margin-top: 2rem;">
+        <h3>⚠️ הקאץ' שאני שם על השולחן</h3>
+        <p>
+          המחיר הרגיל שלי הוא 50K/חודש כי בדרך כלל אני נכנס בעלות מלאה — מקצה לקצה.
+          ב-10K, אני <b>מלווה — לא בונה במקומך</b>. הזמן שלי מצומצם יותר, אבל הגישה אליי
+          מלאה: שיחה שבועית, code review, async chat, ארכיטקטורה. אתה הראש המבצע, אני
+          הראש המקצועי שמאחורייך. אם הפרויקט יגדל ויהיה צורך באמת לקחת בעלות מלאה —
+          נדבר על מודל אחר. בינתיים זה ה-fit הנכון.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>למי זה מתאים</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">✅</div>
+          <h3>מנכ"ל/יזם שכותב עם AI</h3>
+          <p>אתה לא מפתח, אבל בונה לבד עם Claude Code. צריך מישהו לידך שיגיד "כן, ככה" או "לא, ככה". אני זה.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">✅</div>
+          <h3>צוות פיתוח קטן</h3>
+          <p>1-3 מפתחים שעוברים ל-AI-native. צריכים mentor שיתכנן ארכיטקטורה, יקבע סטנדרטים, יזיז חסמים.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">✅</div>
+          <h3>פרויקט באמצע — תקוע</h3>
+          <p>התחלת ב-Claude Code, נכנסת לפינה, ה-AI כותב סלט, צריך לסדר. אני נכנס, מסדר, ממשיכים.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">❌</div>
+          <h3>פיתוח Full-Time במקומך</h3>
+          <p>לא, זה לא ההצעה הזאת. אם צריך שאני אכתוב הכול — זה מודל CTO מלא של 50K/חודש.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">❌</div>
+          <h3>חברה ענקית עם 50+ מפתחים</h3>
+          <p>שם נכון לקחת יועץ ארגוני, לא mentor אישי. הקטע שלי הוא עומק אישי, לא הדרכות אוטומטיות.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">❌</div>
+          <h3>מי שלא רוצה לעבוד עם Claude Code</h3>
+          <p>זה הסטאק שלי. אם אתם רוצים Cursor / Copilot / משהו אחר — בסדר, אבל אז אני לא ה-fit האידאלי.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+
+<!-- ==================== TAB 3: DEMO ==================== -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>איך אני עובד עם Claude Code — בפועל</h2>
+        <p>לא תיאוריה. ה־patterns שאני משתמש בהם יום-יום. לחצו על אחד —</p>
+      </div>
+
+      <div class="demo-wrap">
+        <p class="demo-intro">
+          העמוד הזה עצמו — נבנה ב-Claude Code תוך דקות. גם הפורטל boostmind-b052c.web.app
+          שאני שולח לכל לקוח. אלה ה-recipes שאני משתמש בהם — חלקם תוצר של חודשים של זיקוק.
+        </p>
+
+        <div class="recipe-tabs">
+          <button class="recipe-btn active" onclick="switchRecipe('claudemd')">CLAUDE.md מנוסח נכון</button>
+          <button class="recipe-btn" onclick="switchRecipe('hooks')">Hooks · automation</button>
+          <button class="recipe-btn" onclick="switchRecipe('subagents')">Sub-Agents · במקביל</button>
+          <button class="recipe-btn" onclick="switchRecipe('mcp')">MCP Servers</button>
+          <button class="recipe-btn" onclick="switchRecipe('review')">Code Review של AI</button>
+        </div>
+
+        <!-- Recipe 1: CLAUDE.md -->
+        <div id="recipe-claudemd" class="recipe-panel active">
+          <div class="recipe-head">
+            <span class="rtag">Recipe · 01</span>
+            <h3>CLAUDE.md — תשתית הליבה של Claude Code</h3>
+            <p>הקובץ שמכתיב לכל סשן של Claude Code איך לחשוב, מה לעשות, ומה לא לעשות. רוב הצוותים כותבים אותו רע.</p>
+          </div>
+          <div class="recipe-body">
+            <div class="recipe-col">
+              <h4>🚫 איך רוב הצוותים כותבים</h4>
+              <div class="recipe-block"># My Project
+
+<span class="c-cmt"># Setup</span>
+npm install
+npm run dev
+
+<span class="c-cmt"># Description</span>
+This is a React app for users
+to manage their tasks.
+
+<span class="c-cmt"># Be helpful and write good code</span></div>
+              <div class="recipe-notes">
+                <strong>מה רע פה:</strong> מסביר מה עושה הקוד (שה-AI יכול לקרוא לבד). לא נותן <b>הקשר מקצועי, כללי טון, ומה אסור לעשות</b>. ה-AI מנחש.
+              </div>
+            </div>
+            <div class="recipe-col">
+              <h4>✅ איך אני כותב</h4>
+              <div class="recipe-block"><span class="c-acc"># Domain</span>
+מערכת ניהול משימות לצוותי
+פיתוח. משתמשים = developers.
+
+<span class="c-acc"># Style — חובה</span>
+- TypeScript strict
+- אין any. אין as unknown
+- שמות בעברית בטקסט, אנגלית בקוד
+
+<span class="c-acc"># Architecture rules</span>
+- DB queries דרך repo/ בלבד
+- אין SQL ב-route handlers
+- כל mutation = audit log
+
+<span class="c-acc"># What NOT to do</span>
+- אל תוסיף ספריות חדשות
+  בלי לשאול
+- אל תכתוב comments מיותרים</div>
+              <div class="recipe-notes">
+                <strong>למה זה עובד:</strong> נותן <b>קונטקסט עסקי, סטנדרטים, ואיסורים</b>. ה-AI לא צריך לנחש — הוא יודע איך אתם רוצים. שינוי דרמטי בפלט.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipe 2: Hooks -->
+        <div id="recipe-hooks" class="recipe-panel">
+          <div class="recipe-head">
+            <span class="rtag">Recipe · 02</span>
+            <h3>Hooks — אוטומציה שמונעת באגים</h3>
+            <p>פיצ'ר ש-90% מהמשתמשים לא יודעים שקיים. Hooks רצים אוטומטית לפני/אחרי קריאות כלי. מקטין באגים ב-80%.</p>
+          </div>
+          <div class="recipe-body">
+            <div class="recipe-col">
+              <h4>⚠️ ללא Hooks</h4>
+              <div class="recipe-block"><span class="c-cmt"># Claude כותב קוד</span>
+src/api/users.ts ✓ נכתב
+
+<span class="c-cmt"># 30 דקות אחרי...</span>
+$ npm run build
+TS2345: Type 'string' is
+not assignable to type
+'number' in users.ts:42
+
+<span class="c-cmt"># 15 דקות אחרי...</span>
+$ npm test
+FAIL users.test.ts
+TypeError: undefined</div>
+              <div class="recipe-notes">
+                <strong>הבעיה:</strong> הבאגים מתגלים מאוחר. כל סיבוב = אובדן זמן וקונטקסט.
+              </div>
+            </div>
+            <div class="recipe-col">
+              <h4>✅ עם Hook אחרי כל Edit</h4>
+              <div class="recipe-block"><span class="c-key">{</span>
+  <span class="c-str">"hooks"</span>: {
+    <span class="c-str">"PostToolUse"</span>: [{
+      <span class="c-str">"matcher"</span>: <span class="c-str">"Edit|Write"</span>,
+      <span class="c-str">"hooks"</span>: [{
+        <span class="c-str">"type"</span>: <span class="c-str">"command"</span>,
+        <span class="c-str">"command"</span>: <span class="c-str">"npm run typecheck"</span>
+      }]
+    }]
+  }
+<span class="c-key">}</span>
+
+<span class="c-cmt"># Claude מקבל typecheck error מיד</span>
+<span class="c-cmt"># ומתקן ב-loop, לפני שעוברים הלאה</span></div>
+              <div class="recipe-notes">
+                <strong>למה זה משנה:</strong> ה-AI מקבל פידבק מיידי, מתקן בלולאה אותה. הקוד שמגיע אליך — כבר עובר build & tests. <b>פחות סיבובים, פחות באגים.</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipe 3: Sub-Agents -->
+        <div id="recipe-subagents" class="recipe-panel">
+          <div class="recipe-head">
+            <span class="rtag">Recipe · 03</span>
+            <h3>Sub-Agents — עבודה במקביל</h3>
+            <p>במקום Claude אחד שעובד טורית — כמה agents שעובדים במקביל על משימות עצמאיות. דקות במקום שעות.</p>
+          </div>
+          <div class="recipe-body">
+            <div class="recipe-col">
+              <h4>🐢 טורי (איך רובם עובדים)</h4>
+              <div class="recipe-block"><span class="c-cmt"># משימה: לבדוק 3 דברים</span>
+<span class="c-cmt"># בקוד</span>
+
+1. Claude קורא file A → 30s
+2. Claude קורא file B → 30s
+3. Claude קורא file C → 30s
+4. Claude מחבר → 20s
+─────────────────────────
+<span class="c-acc">סה"כ: ~110 שניות</span>
+
+<span class="c-cmt"># משימה: לחפש 5 סוגי באגים</span>
+1+2+3+4+5 → 5 דקות
+חלון הקונטקסט מתמלא,
+ה-AI מאבד פוקוס</div>
+              <div class="recipe-notes">
+                <strong>הבעיה:</strong> ה-AI מבזבז קונטקסט על קריאות-עזר ומאבד פוקוס במשימות ארוכות.
+              </div>
+            </div>
+            <div class="recipe-col">
+              <h4>⚡ מקבילי (איך אני עובד)</h4>
+              <div class="recipe-block"><span class="c-cmt"># משימה: לבדוק 3 דברים</span>
+parallel:
+  - Agent("בדוק את A") ┐
+  - Agent("בדוק את B") ├─ 30s
+  - Agent("בדוק את C") ┘
+  → merge results: 10s
+─────────────────────────
+<span class="c-acc">סה"כ: ~40 שניות</span>
+
+<span class="c-cmt"># בנוסף:</span>
+- כל agent בקונטקסט נקי
+- האב נשאר עם פוקוס מלא
+- תוצאות תמציתיות חוזרות</div>
+              <div class="recipe-notes">
+                <strong>למה זה מנצח:</strong> פי 3 מהר ב-3 משימות, פי 10 ב-10 משימות. בנוסף — האב לא רואה את הזבל של כל סוכן, רק את הסיכום. <b>פוקוס נשמר, מהירות עולה.</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipe 4: MCP -->
+        <div id="recipe-mcp" class="recipe-panel">
+          <div class="recipe-head">
+            <span class="rtag">Recipe · 04</span>
+            <h3>MCP Servers — לחבר את Claude לעולם</h3>
+            <p>Model Context Protocol = איך Claude מתחבר ל-DB שלך, ל-Slack, ל-Linear, ל-Jira, לכל מערכת. בלי לכתוב glue code.</p>
+          </div>
+          <div class="recipe-body">
+            <div class="recipe-col">
+              <h4>🛠️ MCP servers שאני מתקין רוטינית</h4>
+              <div class="recipe-block"><span class="c-key">{</span>
+  <span class="c-str">"mcpServers"</span>: {
+    <span class="c-str">"postgres"</span>: {
+      <span class="c-str">"command"</span>: <span class="c-str">"npx"</span>,
+      <span class="c-str">"args"</span>: [<span class="c-str">"@mcp/postgres"</span>]
+    },
+    <span class="c-str">"linear"</span>: {
+      <span class="c-str">"command"</span>: <span class="c-str">"npx"</span>,
+      <span class="c-str">"args"</span>: [<span class="c-str">"@mcp/linear"</span>]
+    },
+    <span class="c-str">"playwright"</span>: { ... },
+    <span class="c-str">"firebase"</span>: { ... },
+    <span class="c-str">"sentry"</span>: { ... }
+  }
+<span class="c-key">}</span></div>
+              <div class="recipe-notes">
+                <strong>תוצאה:</strong> Claude יכול לבצע <b>SELECT</b> על ה-DB, לפתוח <b>tickets</b>, לבדוק <b>errors</b>, להריץ <b>tests</b> בדפדפן — מבלי שתכתוב שורת glue.
+              </div>
+            </div>
+            <div class="recipe-col">
+              <h4>💬 שיחה אמיתית עם MCP</h4>
+              <div class="recipe-block">user:
+"כמה משתמשים נרשמו השבוע?"
+
+claude (postgres mcp):
+SELECT count(*) FROM users
+WHERE created_at >= NOW() - INTERVAL '7 days';
+→ 142 משתמשים
+
+user:
+"פתח ticket ב-Linear לחקור
+למה ההמרה ירדה ב-12%"
+
+claude (linear mcp):
+✓ Created INV-2347
+"Investigate conversion drop"
+assignee: shlomi
+priority: high</div>
+              <div class="recipe-notes">
+                <strong>הקלילות הזאת</strong> = תרגום מיידי בין דיבור לפעולה. בלי zapier, בלי n8n flows, בלי קוד. <b>זה ה-game changer האמיתי של 2026.</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipe 5: Code Review -->
+        <div id="recipe-review" class="recipe-panel">
+          <div class="recipe-head">
+            <span class="rtag">Recipe · 05</span>
+            <h3>Code Review של מה ש־AI כותב</h3>
+            <p>הסכנה הכי גדולה ב-AI coding: קוד שעובד, אבל מסתיר חורי אבטחה / queries איטיים / edge cases שלא נחשבו. ככה אני סורק.</p>
+          </div>
+          <div class="recipe-body">
+            <div class="recipe-col">
+              <h4>🔍 מה לחפש — Checklist</h4>
+              <div class="recipe-block"><span class="c-acc">SECURITY</span>
+□ SQL injection (template strings ב-queries?)
+□ XSS (innerHTML, dangerouslySetInnerHTML)
+□ Auth — האם כל endpoint מוגן?
+□ Secrets ב-git? .env בעריכה?
+
+<span class="c-acc">DATA</span>
+□ Race conditions ב-mutations
+□ Missing indexes ל-queries תכופים
+□ N+1 queries (בלולאה async)
+□ Pagination — תמיד, גם ב-internal
+
+<span class="c-acc">EDGE CASES</span>
+□ Empty arrays, null, undefined
+□ Network failures, timeouts
+□ User אם זה לא הוא?
+□ מה קורה במקביל?
+
+<span class="c-acc">QUALITY</span>
+□ Dead code שה-AI הוסיף "ליתר ביטחון"
+□ Try/catch גנרי שמחביא בעיות
+□ ספריות לא נחוצות שנוספו</div>
+              <div class="recipe-notes">
+                <strong>אני עובר על הצ'ק־ליסט הזה</strong> על כל PR שה-AI מייצר. רוב הבאגים נתפסים כאן, לפני שיוצאים מהמחשב.
+              </div>
+            </div>
+            <div class="recipe-col">
+              <h4>🎯 דוגמה — באג שתפסתי השבוע</h4>
+              <div class="recipe-block"><span class="c-cmt">// AI כתב:</span>
+const user = await db.user.findUnique({
+  where: { email }
+});
+if (user.password === input) {
+  return generateToken(user);
+}
+
+<span class="c-cmt">// 🚨 3 בעיות:</span>
+<span class="c-cmt">// 1. compare ב-=== של hash =</span>
+<span class="c-cmt">//    timing attack</span>
+<span class="c-cmt">// 2. אם user == null → crash</span>
+<span class="c-cmt">// 3. אין rate limiting</span>
+
+<span class="c-cmt">// תיקנתי:</span>
+const user = await db.user.findUnique({
+  where: { email }
+});
+if (!user) return rateLimit.fail();
+const ok = await bcrypt.compare(
+  input, user.passwordHash
+);
+if (!ok) return rateLimit.fail();
+return generateToken(user);</div>
+              <div class="recipe-notes">
+                <strong>זה ההבדל</strong> בין "AI שכותב קוד" ל-"AI שכותב קוד טוב". <b>הוא צריך עין בכירה מעליו.</b> זה התפקיד שלי בליווי.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</div>
+
+
+<!-- ==================== TAB 4: EXPERIENCE ==================== -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>למה אני יודע מה אני אומר</h2>
+        <p>20+ שנות פיתוח · 2+ שנים hands-on עם AI agents · 50+ מוצרים בייצור</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">20+</div>
+          <div class="label">שנות פיתוח</div>
+        </div>
+        <div class="stat">
+          <div class="num">50+</div>
+          <div class="label">מוצרים בייצור</div>
+        </div>
+        <div class="stat">
+          <div class="num">2+</div>
+          <div class="label">שנות AI agents</div>
+        </div>
+        <div class="stat">
+          <div class="num">∞</div>
+          <div class="label">סשנים ב-Claude Code</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>פרויקטים רלוונטיים שעבדתי עליהם</h2>
+        <p>דברים שבניתי, לא דברים שראיתי בקורס</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="exp-card">
+          <h3>🤖 Mystic AI — אחת מהאפליקציות הראשונות של AI לצרכן</h3>
+          <p>אפליקציית AI chat לקריאת קלפים, אסטרולוגיה, וכף יד. נבנתה לפני שהמונח "AI agent" היה ברור. עיצוב agents מורכבים, memory, persona, multi-turn.</p>
+          <span class="exp-tag">AI agents</span>
+          <span class="exp-tag">Consumer</span>
+          <span class="exp-tag">Production scale</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🏦 Banking onboarding agent</h3>
+          <p>סוכן AI להצטרפות לקוחות חדשים בבנק. שיחה אינטליגנטית שמחליפה טפסים. הבנת KYC, בדיקות תאימות, ו-handoff לאדם כשצריך.</p>
+          <span class="exp-tag">LLM agents</span>
+          <span class="exp-tag">Fintech</span>
+          <span class="exp-tag">Compliance</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🧠 Doing — פלטפורמת AI לטיפול בילדים על הספקטרום</h3>
+          <p>ניתוח התנהגות עם AI, ניהול מפגשי טיפול, לוחות תקשורת חזותיים, ייעוץ מבוסס AI. כל הפלטפורמה — AI driven.</p>
+          <span class="exp-tag">Health</span>
+          <span class="exp-tag">AI analysis</span>
+          <span class="exp-tag">End-to-end</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>📊 Octopol — אלגוריתם חיזוי תוצאות ספורט</h3>
+          <p>מודל מלא לחיזוי תוצאות משחקים. רשתות נוירונים מותאמות, איסוף נתונים, evaluation. הבנה אמיתית של איך LLMs ומודלים עובדים מתחת למכסה.</p>
+          <span class="exp-tag">ML research</span>
+          <span class="exp-tag">Sports</span>
+          <span class="exp-tag">Neural nets</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>📈 Algo Trading — קריפטו ומניות</h3>
+          <p>פרויקט אישי. בניתי, אימנתי ותפעלתי מודלים. הימרתי כסף אמיתי. שם למדתי איך LLM עובד מבפנים — מהקרביים.</p>
+          <span class="exp-tag">ML production</span>
+          <span class="exp-tag">Real stakes</span>
+          <span class="exp-tag">Models</span>
+        </div>
+
+        <div class="exp-card">
+          <h3>🛒 Logistics — אופטימיזציית מסלולי משלוח</h3>
+          <p>אלגוריתם אבולוציוני לאופטימיזציה של מסלולי משלוח. מאות נקודות, תנאים מורכבים, בדור-אחרי-דור. אלגוריתמיקה כבדה.</p>
+          <span class="exp-tag">Algorithms</span>
+          <span class="exp-tag">Optimization</span>
+          <span class="exp-tag">Real-time</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 2rem;">
+        <h3>🎓 הרקע המחקרי</h3>
+        <p>
+          לא רק פיתוח. <b>בניתי ואימנתי רשתות נוירונים בעצמי</b>. למדתי למה הן מנבאות מה שהן מנבאות.
+          הרקע הזה הוא הסיבה שאני יודע מתי LLM יעבוד, מתי ייכשל, ואיך לבנות agents שמטפלים בשני המקרים.
+          רוב האנשים שאומרים "אני יודע AI" — מחברים API. אני <b>מבין את הטכנולוגיה</b>.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+
+<!-- ==================== TAB 5: BUDGET ==================== -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>תקציב ומודל עבודה</h2>
+        <p>שקיפות מלאה — בלי הפתעות, בלי שעות שצריך לעקוב</p>
+      </div>
+
+      <div class="pricing-card">
+        <span class="ptag">PROPOSED</span>
+        <div class="pname">Claude Code Mentor · ליווי חודשי</div>
+        <div class="pdesc">גישה אישית אליי, לא שעות במונה. אתה רץ — אני מאחורייך.</div>
+        <div class="price">10,000 <small>₪ / חודש</small></div>
+        <div class="price-note">פלוס מע"מ · ללא lock-in · ביטול בהודעה של 30 יום</div>
+
+        <ul>
+          <li><b>שיחה שבועית · 60 דק'</b> <small>— תכנון, ארכיטקטורה, החלטות</small></li>
+          <li><b>WhatsApp / Slack ישיר</b> <small>— תקוע? שולח, אני בפנים תוך שעות</small></li>
+          <li><b>Code Review</b> <small>— סקירת PR-ים חשובים שה-AI כותב, לפני production</small></li>
+          <li><b>CLAUDE.md מותאם</b> <small>— בנייה ותחזוקה של תשתית הליבה</small></li>
+          <li><b>Hooks + MCP + Sub-agents</b> <small>— הקמת התשתיות שמכפילות מהירות</small></li>
+          <li><b>סקירת ארכיטקטורה</b> <small>— החלטות שיש להן השלכות ב-3 חודשים, לא ב-3 ימים</small></li>
+          <li><b>AI Agents · אם רלוונטי</b> <small>— RAG, memory, tool-use, multi-step</small></li>
+          <li><b>Deploy + CI/CD</b> <small>— הקמת התשתיות שתעבוד איתן</small></li>
+        </ul>
+
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+          <a class="btn primary" href="https://wa.me/972545567213">💬 דבר איתי ב-WhatsApp</a>
+          <a class="btn ghost" href="mailto:shlomi@boostart.io">📧 שלח מייל</a>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>איך זה מתחיל</h2>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body">
+            <h3>שיחת היכרות · חינם · 30 דק'</h3>
+            <p>מבינים מה הפרויקט, מה דחוף, איפה אתם תקועים. בודקים אם יש כימיה.</p>
+            <span class="tag">היום-מחר</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body">
+            <h3>שבוע התנעה</h3>
+            <p>בונים יחד את CLAUDE.md, מתקינים hooks ו-MCP, מסדרים את הסביבה. אחרי שבוע — הקצב מתחיל לזוז.</p>
+            <span class="tag">שבוע 1</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body">
+            <h3>שגרת ליווי</h3>
+            <p>שיחה שבועית, code review בלולאה, async תמיכה. אתה רץ — אני מאחורייך. החודש הראשון מוכיח את עצמו.</p>
+            <span class="tag">שבוע 2 והלאה</span>
+          </div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body">
+            <h3>החלטה — להמשיך או לא</h3>
+            <p>בסוף החודש: עזרתי? כן → ממשיכים, חודש בחודש. לא → סיום נקי, אפס מחויבות. שקיפות מלאה.</p>
+            <span class="tag">סוף חודש 1</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <h2>בא לדבר?</h2>
+      <p>שיחת היכרות חינם, 30 דקות. אם אין כימיה — לא ממשיכים. ככה זה תמיד אצלי.</p>
+      <div class="contact-details">
+        <div class="contact-item">📧 <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a></div>
+        <div class="contact-item">📱 <a href="tel:+972545567213">054-5567213</a></div>
+        <div class="contact-item">💬 <a href="https://wa.me/972545567213" target="_blank">WhatsApp</a></div>
+      </div>
+      <a class="btn primary" href="https://wa.me/972545567213" target="_blank">דבר איתי עכשיו ב-WhatsApp</a>
+    </section>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    שלומי זוין · CTO as a Service · AI-Native ·
+    <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> ·
+    <a href="tel:+972545567213">054-5567213</a>
+  </div>
+</footer>
+
+<script>
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'light' ? '' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    document.querySelector('.theme-toggle').textContent = next === 'light' ? '☀' : '🌙';
+    try { localStorage.setItem('theme', next); } catch(e) {}
+  }
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.querySelector('.theme-toggle').textContent = '☀';
+    }
+  } catch(e) {}
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    if (event && event.target && event.target.classList.contains('tab-btn')) {
+      event.target.classList.add('active');
+    } else {
+      const idx = ['proposal','why','demo','experience','budget'].indexOf(name);
+      if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    }
+    document.getElementById('tab-' + name).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function switchRecipe(name) {
+    document.querySelectorAll('.recipe-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.recipe-panel').forEach(p => p.classList.remove('active'));
+    if (event && event.target) event.target.classList.add('active');
+    document.getElementById('recipe-' + name).classList.add('active');
+  }
+</script>
+
+</body>
+</html>

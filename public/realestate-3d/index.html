@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>נדל״ן בתלת-מימד · שלומי זוין</title>
+  <meta name="description" content="הצעה לפרויקט נדל״ן 3D · Three.js · Gaussian Splatting · AI" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-2: #0f0f12;
+      --surface: #131318;
+      --surface-2: #1a1a20;
+      --line: #26262c;
+      --line-soft: #1d1d22;
+      --text: #f5f5f7;
+      --text-2: #a1a1aa;
+      --text-3: #71717a;
+      --accent: #5b8cff;
+      --accent-soft: rgba(91, 140, 255, 0.10);
+      --accent-line: rgba(91, 140, 255, 0.35);
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --r-lg: 14px;
+      --r-md: 10px;
+      --r-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #fafaf9;
+      --bg-2: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f4f4f5;
+      --line: #e4e4e7;
+      --line-soft: #ececef;
+      --text: #09090b;
+      --text-2: #52525b;
+      --text-3: #71717a;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.08);
+      --accent-line: rgba(37, 99, 235, 0.3);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .mono { font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; }
+    .container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 1.25rem; }
+    a { color: inherit; }
+
+    /* ===== HEADER ===== */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in oklab, var(--bg), transparent 8%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .brand { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--text); }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--accent); color: white;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.95rem; letter-spacing: -0.02em;
+    }
+    .brand-text { font-weight: 600; font-size: 0.94rem; letter-spacing: -0.005em; }
+    .brand-sub { color: var(--text-3); font-size: 0.78rem; margin-right: 0.4rem; }
+    .topbar-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .icon-btn {
+      background: transparent; color: var(--text-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.4rem 0.85rem;
+      font-family: inherit; font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ===== TABS ===== */
+    .tabs-wrap {
+      position: sticky; top: 56px; z-index: 40;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-3);
+      font-family: inherit; font-size: 0.92rem; font-weight: 500;
+      padding: 0.85rem 1rem;
+      position: relative;
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.is-active { color: var(--text); }
+    .tab.is-active::after {
+      content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px;
+      background: var(--accent);
+    }
+
+    .panel { display: none; animation: fade 0.25s ease; }
+    .panel.is-active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== HERO ===== */
+    .hero { padding: 4rem 0 2.5rem; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-line);
+      color: var(--accent);
+      font-size: 0.78rem; font-weight: 500;
+      padding: 0.32rem 0.8rem;
+      border-radius: 999px;
+      margin-bottom: 1.25rem;
+    }
+    .badge .pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(91, 140, 255, 0.5); }
+      70%  { box-shadow: 0 0 0 10px rgba(91, 140, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(91, 140, 255, 0); }
+    }
+    h1 {
+      font-size: clamp(2rem, 4.5vw, 3.1rem);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin-bottom: 1rem;
+    }
+    h1 .em { color: var(--accent); }
+    .lede {
+      font-size: 1.05rem; color: var(--text-2);
+      max-width: 660px;
+      margin-bottom: 1.6rem;
+    }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.7rem 1.25rem;
+      border-radius: 999px;
+      font-family: inherit; font-size: 0.92rem; font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.1s ease, border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { transform: translateY(-1px); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 2.5rem 0; border-top: 1px solid var(--line-soft); }
+    .section:first-of-type { border-top: 0; padding-top: 0; }
+    .section-head { margin-bottom: 1.75rem; }
+    .section-head .label {
+      display: inline-block;
+      font-size: 0.74rem; font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 0.45rem;
+    }
+    .section-head h2 {
+      font-size: clamp(1.5rem, 3vw, 1.95rem);
+      font-weight: 700; letter-spacing: -0.015em;
+      margin-bottom: 0.4rem;
+    }
+    .section-head p { color: var(--text-2); max-width: 680px; }
+
+    /* ===== TRACKS ===== */
+    .tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 720px) { .tracks { grid-template-columns: 1fr; } }
+    .track {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      position: relative;
+    }
+    .track.featured { border-color: var(--accent-line); }
+    .track .pill {
+      position: absolute; top: -10px; right: 1.4rem;
+      background: var(--accent); color: white;
+      font-size: 0.7rem; font-weight: 600;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+    }
+    .track .name { font-size: 0.85rem; color: var(--text-3); font-weight: 500; margin-bottom: 0.4rem; }
+    .track .price {
+      font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 0.2rem;
+    }
+    .track .price small { font-size: 0.85rem; font-weight: 500; color: var(--text-2); }
+    .track .tagline { color: var(--text-2); font-size: 0.9rem; margin-bottom: 1rem; }
+    .track ul { list-style: none; }
+    .track li {
+      color: var(--text); font-size: 0.9rem;
+      padding-right: 1.4rem; position: relative; margin-bottom: 0.5rem;
+    }
+    .track li::before {
+      content: '✓'; color: var(--accent); position: absolute; right: 0;
+      font-weight: 700;
+    }
+
+    /* ===== GENERIC GRID ===== */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; }
+    @media (max-width: 720px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 1.3rem;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--accent-line); }
+    .card-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: var(--accent-soft); color: var(--accent);
+      font-size: 0.82rem; font-weight: 700;
+      border-radius: 7px;
+      margin-bottom: 0.85rem;
+    }
+    .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; letter-spacing: -0.005em; }
+    .card p { color: var(--text-2); font-size: 0.9rem; }
+
+    /* ===== EXPERIENCE ===== */
+    .exp { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    @media (max-width: 720px) { .exp { grid-template-columns: 1fr; } }
+    .exp-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 1.3rem;
+    }
+    .exp-card .top {
+      display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;
+    }
+    .exp-card .top h3 { font-size: 1rem; font-weight: 600; letter-spacing: -0.005em; }
+    .tag {
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-line);
+      padding: 0.13rem 0.5rem;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+    }
+    .exp-card p { color: var(--text-2); font-size: 0.9rem; margin-bottom: 0.65rem; }
+    .stack { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .stack span {
+      font-size: 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      color: var(--text-2);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+    }
+    .ext-link {
+      color: var(--accent); font-size: 0.86rem; font-weight: 500;
+      text-decoration: none;
+    }
+    .ext-link:hover { text-decoration: underline; }
+
+    /* ===== STATS ===== */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; margin-bottom: 1.5rem; }
+    @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 0.95rem 1rem;
+    }
+    .stat .v { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.015em; }
+    .stat .l { color: var(--text-3); font-size: 0.78rem; margin-top: 0.15rem; }
+
+    /* ===== DEMO ===== */
+    .demo {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .demo-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 0.95rem;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+    .dots { display: flex; gap: 0.35rem; }
+    .dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+    .demo-label { font-size: 0.78rem; color: var(--text-2); letter-spacing: 0.02em; }
+    #scene {
+      display: block;
+      width: 100%;
+      height: 480px;
+      background: var(--bg-2);
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #scene:active { cursor: grabbing; }
+    @media (max-width: 720px) { #scene { height: 360px; } }
+    .demo-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 0.95rem;
+      border-top: 1px solid var(--line);
+      flex-wrap: wrap; gap: 0.6rem;
+      font-size: 0.82rem; color: var(--text-2);
+    }
+    .demo-foot .hints { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+    .demo-foot .hints .sep { color: var(--text-3); }
+    .demo-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 1rem; }
+    @media (max-width: 720px) { .demo-meta { grid-template-columns: 1fr; } }
+    .meta-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 0.85rem 1rem;
+    }
+    .meta-card .l { color: var(--text-3); font-size: 0.76rem; margin-bottom: 0.2rem; }
+    .meta-card .v { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.005em; }
+
+    /* ===== QUOTE ===== */
+    .quote {
+      background: var(--surface);
+      border-right: 3px solid var(--accent);
+      padding: 1rem 1.2rem;
+      border-radius: var(--r-sm);
+      margin: 1.5rem 0;
+      font-size: 0.94rem;
+      color: var(--text-2);
+    }
+    .quote strong { color: var(--text); font-weight: 600; }
+
+    /* ===== PRICING TABLE ===== */
+    .pt {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 1.4rem;
+      margin-top: 1rem;
+    }
+    .pt h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; }
+    .row {
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 0.7rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 0.9rem;
+    }
+    .row:last-child { border-bottom: 0; }
+    .row.head {
+      font-weight: 600; color: var(--text-3); font-size: 0.74rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .row .v { color: var(--text-2); }
+    .row .v.yes { color: var(--ok); font-weight: 600; }
+    .row .v.partial { color: var(--warn); font-weight: 500; }
+    @media (max-width: 720px) {
+      .row { grid-template-columns: 1fr; gap: 0.15rem; padding: 0.6rem 0; }
+      .row.head { display: none; }
+      .row .v::before { content: attr(data-l) ' · '; color: var(--text-3); font-size: 0.78rem; }
+    }
+
+    /* ===== TIMELINE ===== */
+    .tl { display: flex; flex-direction: column; gap: 0.65rem; margin-top: 1rem; }
+    .tl-item {
+      display: flex; gap: 0.95rem; align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 0.95rem 1.1rem;
+    }
+    .tl-item .when {
+      flex-shrink: 0;
+      background: var(--accent-soft); color: var(--accent);
+      border: 1px solid var(--accent-line);
+      font-weight: 600; font-size: 0.82rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--r-sm);
+      min-width: 78px; text-align: center;
+    }
+    .tl-item h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .tl-item p { color: var(--text-2); font-size: 0.88rem; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      margin-top: 3rem;
+      padding: 2.5rem 0;
+      border-top: 1px solid var(--line-soft);
+      text-align: center;
+    }
+    footer h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.015em; }
+    footer p { color: var(--text-2); margin-bottom: 1.2rem; }
+    .contact-row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .footnote { margin-top: 1.4rem; color: var(--text-3); font-size: 0.8rem; }
+  </style>
+</head>
+<body data-theme="dark">
+
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="#">
+      <span class="brand-mark">B</span>
+      <span class="brand-text">Boostart</span>
+      <span class="brand-sub mono">/ realestate-3d</span>
+    </a>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="theme-btn" aria-label="Toggle theme">☾</button>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="container">
+    <div class="tabs" id="tabs">
+      <button class="tab is-active" data-tab="pitch">ההצעה</button>
+      <button class="tab" data-tab="experience">ניסיון</button>
+      <button class="tab" data-tab="demo">דמו 3D</button>
+      <button class="tab" data-tab="pricing">תקציב</button>
+    </div>
+  </div>
+</div>
+
+<main class="container">
+
+  <!-- ========== PITCH ========== -->
+  <section class="panel is-active" id="pitch">
+    <div class="hero">
+      <span class="badge"><span class="pulse"></span>נדל״ן · Three.js · Splatting · AI</span>
+      <h1>נדל״ן שאפשר <span class="em">להיכנס לתוכו</span>.<br/>3D אמיתי, לא גיימינג.</h1>
+      <p class="lede">
+        ראיתי את הפרויקט וזה אחד הצמתים הכי מעניינים היום: 3D Web + Gaussian Splatting + AI.
+        הכנתי דמו קטן בתלת-מימד למטה — בנוי מענן נקודות בסגנון Splat, אינטראקטיבי, רץ במובייל ובדסקטופ.
+        נבנה תוך דקות. זה לא הפרויקט שלכם — זה הקצב שלי.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="#" data-go="demo">לדמו ←</a>
+        <a class="btn ghost" href="#" data-go="pricing">תקציב</a>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <span class="label">מי בונה</span>
+        <h2>שני מסלולים — תלוי בעומק</h2>
+        <p>אותה שפה טכנולוגית, אותו AI-native, אותה שקיפות. ההבדל הוא במי בידיים על הפרויקט ובכמה ניהול אני נותן.</p>
+      </div>
+
+      <div class="tracks">
+        <div class="track">
+          <span class="pill">צעיר · גמיש</span>
+          <div class="name">נועם · בליווי שלי</div>
+          <div class="price">20,000 ₪<small> / חודש</small></div>
+          <p class="tagline">מתאים לחקירה, POC, או גרסה ראשונה לייצור</p>
+          <ul>
+            <li>נועם זוין — בונה אתרים מוסמך, AI-native</li>
+            <li>בנה את plaxzy.com — פורטל משחקים פעיל, כולל 3D</li>
+            <li>שולט ב-Three.js וב-Claude Code מהיום הראשון</li>
+            <li>אני מלווה כ-CTO פנימי: אפיון, ארכיטקטורה, code review</li>
+            <li>״מחיר של צעיר, איכות של בכיר״</li>
+          </ul>
+        </div>
+
+        <div class="track featured">
+          <span class="pill">CTO מלא</span>
+          <div class="name">שלומי · CTO as a Service</div>
+          <div class="price">50,000 ₪<small> / חודש</small></div>
+          <p class="tagline">מתאים למוצר עומק, AI אמיתי, ארכיטקטורה מורכבת</p>
+          <ul>
+            <li>15+ שנים בהייטק, CTO מייסד בפלטפורמת ברוקראז׳ נדל״ן</li>
+            <li>Three.js, Splatting, AI agents — מקצה לקצה</li>
+            <li>אלגוריתמיקה: ML, RAG, חיפוש סמנטי, מודלי המלצה</li>
+            <li>צוות 1-2 מפתחים + ניהול שלי, end-to-end</li>
+            <li>שותף טכנולוגי — לא ספק, לא בית תוכנה</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quote">
+        <strong>איך בוחרים?</strong> בחקירה / POC — מסלול נועם נכון: זריז, זול יחסית, הליווי שלי מבטיח שלא נופלים בין הכיסאות. במוצר עומק עם אלגוריתמיקה, AI agents על Splats, ואינטגרציות רציניות — צריך CTO מלא. אפשר לעלות בין המסלולים תוך כדי הדרך.
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span class="label">תכולה</span>
+        <h2>מה יושב בליבה של מוצר כזה</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <span class="card-num">01</span>
+          <h3>סצנת נכס</h3>
+          <p>Three.js כבסיס, אינטגרציה ל-Gaussian Splatting (3DGS renderers, custom shaders). תאורה, חומרים, מצלמות חלקות.</p>
+        </div>
+        <div class="card">
+          <span class="card-num">02</span>
+          <h3>טעינה מהירה</h3>
+          <p>Next.js + lazy + LOD. נכס עולה מתחת ל-2 שניות בנייד 4G, עם טעינה הדרגתית של גיאומטריה כבדה.</p>
+        </div>
+        <div class="card">
+          <span class="card-num">03</span>
+          <h3>שכבות מידע</h3>
+          <p>Hot-spots, פאנלים צפים, מדידות בתוך הסצנה, חיתוכי קומה — כל מה שצוות הנדל״ן צריך לדבר עליו.</p>
+        </div>
+        <div class="card">
+          <span class="card-num">04</span>
+          <h3>AI כשכבה</h3>
+          <p>Agent שעונה על שאלות בתוך הסצנה (״מה גובה התקרה?״, ״איפה הכניסה?״), אינדוקס סמנטי על Splats.</p>
+        </div>
+        <div class="card">
+          <span class="card-num">05</span>
+          <h3>פאנל ניהול</h3>
+          <p>העלאת Splats, ניהול נכסים, hot-spots, הקצאות ללקוחות, מטריקות מעורבות — לוח שצוות באמת ישתמש בו.</p>
+        </div>
+        <div class="card">
+          <span class="card-num">06</span>
+          <h3>תשתית לסקייל</h3>
+          <p>Cloud Run / AWS, CDN ל-3D assets, caching אגרסיבי. ארכיטקטורה שלא תתעוות עם 100 נכסים.</p>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ========== EXPERIENCE ========== -->
+  <section class="panel" id="experience">
+    <div class="section">
+      <div class="section-head" style="padding-top:2rem;">
+        <span class="label">ניסיון רלוונטי</span>
+        <h2>נדל״ן עשיתי. תלת-מימד עשיתי. AI עושה כל יום.</h2>
+        <p>הכי חשוב לפרויקט שלכם: רקע ישיר בנדל״ן (CTO מייסד), ארכיטקטורות 3D, ויישום AI על דאטה לא-טריוויאלית.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="v">15+</div><div class="l">שנים בהייטק</div></div>
+        <div class="stat"><div class="v">50+</div><div class="l">מוצרים מאפס</div></div>
+        <div class="stat"><div class="v">2+</div><div class="l">שנים ב-AI agents</div></div>
+        <div class="stat"><div class="v">x100</div><div class="l">קצב עם Claude Code</div></div>
+      </div>
+
+      <div class="exp">
+        <div class="exp-card">
+          <div class="top"><h3>פלטפורמת ברוקראז׳ נדל״ן</h3><span class="tag">CTO מייסד</span></div>
+          <p>הקמתי כ-CTO סטארטאפ נדל״ן B2B2C. בניתי הכל מאפס: ניהול נכסים, חיפוש ופילטרים מורכבים, מערכת התאמות סוכן-לקוח, אינטגרציות לרשמיות. מהפרונט עד ה-DB.</p>
+          <div class="stack">
+            <span>Node.js</span><span>PostgreSQL</span><span>Elasticsearch</span><span>React</span>
+          </div>
+        </div>
+
+        <div class="exp-card">
+          <div class="top"><h3>plaxzy.com — פורטל משחקים 3D</h3><span class="tag">נועם · חי בייצור</span></div>
+          <p>נועם (הבן שלי) בנה את plaxzy.com מאפס — פורטל משחקים פעיל. כולל TUG RUSH, משחק 3D ב-Three.js עם פיזיקה וקלט מולטי-טאצ׳. הוכחה שתלת-מימד בדפדפן הוא יום-יום אצלו, לא ניסוי.</p>
+          <a class="ext-link" href="https://plaxzy.com/" target="_blank" rel="noopener">plaxzy.com ↗</a>
+        </div>
+
+        <div class="exp-card">
+          <div class="top"><h3>AI Agents · RAG · חיפוש סמנטי</h3><span class="tag">2+ שנים</span></div>
+          <p>בניתי agents מבוססי LLM ומערכות RAG על נתונים שאינם רק טקסט (גרפים, embeddings של תמונות, מטא-דאטה היררכית). Splats + תיאורים = שדה משחק טבעי לאינדוקס סמנטי לנכסים.</p>
+          <div class="stack">
+            <span>Claude</span><span>OpenAI</span><span>RAG</span><span>Embeddings</span><span>Vector DB</span>
+          </div>
+        </div>
+
+        <div class="exp-card">
+          <div class="top"><h3>פיתוח AI-Native</h3><span class="tag">Claude Code</span></div>
+          <p>אני וצוותי עובדים יום-יום עם Claude Code. דברים שלקחו חודשים נסגרים בימים. הדמו של ההצעה הזו, למשל, נבנה תוך דקות. זו דרך עבודה, לא טריק.</p>
+        </div>
+
+        <div class="exp-card">
+          <div class="top"><h3>אלגוריתמיקה ומחקר</h3><span class="tag">רקע מחקרי</span></div>
+          <p>בניתי neural networks, מודלים גנטיים, אופטימיזציית מסלולים, מודלי חיזוי. רלוונטי לנדל״ן: התאמת לקוח-נכס, חיזוי עניין, אופטימיזציית הצגה, ניתוח התנהגות בתוך סצנה.</p>
+        </div>
+
+        <div class="exp-card">
+          <div class="top"><h3>50+ מוצרים מאפס</h3><span class="tag">20+ דומיינים</span></div>
+          <p>EdTech, נדל״ן, בריאות, ספורט, פרטיות, יצירה, מסחר אלקטרוני, AI. תמיד מערכות web/SaaS, B2B או B2C, תמיד עם לוגיקת שרת רצינית. כמה נמכרו.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== DEMO ========== -->
+  <section class="panel" id="demo">
+    <div class="section">
+      <div class="section-head" style="padding-top:2rem;">
+        <span class="label">הוכחת קצב</span>
+        <h2>סצנת נדל״ן בענן נקודות · אינטראקטיבית</h2>
+        <p>
+          ענן נקודות בסגנון Gaussian Splatting — כ-12,000 נקודות בצורת בית עם סביבה.
+          גררו לסיבוב, גלגלת לזום, שתי אצבעות במובייל. מותאם דסקטופ ומובייל.
+        </p>
+      </div>
+
+      <div class="demo">
+        <div class="demo-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="demo-label mono">scene · 12,000 splats · live</div>
+          <div style="width:50px;"></div>
+        </div>
+        <canvas id="scene"></canvas>
+        <div class="demo-foot">
+          <div class="hints">
+            <span>גרירה — סיבוב</span>
+            <span class="sep">·</span>
+            <span>גלגלת — זום</span>
+            <span class="sep">·</span>
+            <span>שתי אצבעות — pan</span>
+          </div>
+          <button class="icon-btn" id="reset-cam">↻ אפס</button>
+        </div>
+      </div>
+
+      <div class="demo-meta">
+        <div class="meta-card">
+          <div class="l">זמן בנייה</div>
+          <div class="v">פחות מ-10 דקות</div>
+        </div>
+        <div class="meta-card">
+          <div class="l">סטאק</div>
+          <div class="v mono">Three.js · Vanilla · CDN</div>
+        </div>
+        <div class="meta-card">
+          <div class="l">בייצור היה כולל</div>
+          <div class="v">3DGS · LOD · AI · CMS</div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <strong>חשוב להבין:</strong> מוקאפ = דקות. מוצר אמיתי לנדל״ן עם Splats מקצועיים, מצלמות אופטימליות, UX מלוטש ואינטגרציות = שבועות עד חודשים. מה שראיתם פה זה לא הפרויקט — זה הקצב.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PRICING ========== -->
+  <section class="panel" id="pricing">
+    <div class="section">
+      <div class="section-head" style="padding-top:2rem;">
+        <span class="label">תקציב</span>
+        <h2>חודשי · שקוף · ללא הפתעות</h2>
+        <p>
+          המודל אצלי תמיד חודשי — זה מה שמשאיר את הסקופ גמיש.
+          בנדל״ן עם 3D ו-AI יש הרבה גילויים בדרך, לא הגיוני להתחייב לפיקס שיהפוך לוויכוחים על ״תוספות״.
+        </p>
+      </div>
+
+      <div class="tracks">
+        <div class="track">
+          <span class="pill">צעיר · גמיש</span>
+          <div class="name">מסלול נועם</div>
+          <div class="price">20,000 ₪<small> / חודש</small></div>
+          <p class="tagline">לחקירה, POC, גרסה ראשונה לייצור</p>
+          <ul>
+            <li>פיתוח Three.js / 3D / פרונט במלואו</li>
+            <li>אינטגרציות פשוטות עד בינוניות</li>
+            <li>אני מלווה כ-CTO פנימי, code review שוטף</li>
+            <li>גמיש לשנות סקופ כל חודש</li>
+          </ul>
+        </div>
+
+        <div class="track featured">
+          <span class="pill">CTO מלא</span>
+          <div class="name">מסלול שלומי</div>
+          <div class="price">50,000 ₪<small> / חודש</small></div>
+          <p class="tagline">למוצר עומק, AI אמיתי, אלגוריתמיקה</p>
+          <ul>
+            <li>צוות 1-2 מפתחים + ניהול שלי</li>
+            <li>ארכיטקטורה מלאה, אחריות end-to-end</li>
+            <li>AI agents, מודלי המלצה, אלגוריתמיקה</li>
+            <li>ראייה מערכתית של מוצר נדל״ן בקנה מידה</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pt">
+        <h3>מה כלול בכל מסלול</h3>
+        <div class="row head">
+          <div>תכולה</div><div>נועם · 20K</div><div>שלומי · 50K</div>
+        </div>
+        <div class="row">
+          <div>פרונט · React/Next/TS</div>
+          <div class="v yes" data-l="נועם">✓ מלא</div>
+          <div class="v yes" data-l="שלומי">✓ מלא</div>
+        </div>
+        <div class="row">
+          <div>Three.js · 3D scenes</div>
+          <div class="v yes" data-l="נועם">✓ מלא</div>
+          <div class="v yes" data-l="שלומי">✓ מלא</div>
+        </div>
+        <div class="row">
+          <div>Gaussian Splatting</div>
+          <div class="v partial" data-l="נועם">⊙ עם הליווי שלי</div>
+          <div class="v yes" data-l="שלומי">✓ מלא</div>
+        </div>
+        <div class="row">
+          <div>Backend · Node · DB</div>
+          <div class="v partial" data-l="נועם">⊙ בסיסי</div>
+          <div class="v yes" data-l="שלומי">✓ מעמיק</div>
+        </div>
+        <div class="row">
+          <div>AI agents · RAG · ML</div>
+          <div class="v" data-l="נועם">— לא בסקופ</div>
+          <div class="v yes" data-l="שלומי">✓ מלא</div>
+        </div>
+        <div class="row">
+          <div>DevOps · Cloud · CI/CD</div>
+          <div class="v partial" data-l="נועם">⊙ בעזרתי</div>
+          <div class="v yes" data-l="שלומי">✓ מלא</div>
+        </div>
+        <div class="row">
+          <div>הקוד שלכם · ללא lock-in</div>
+          <div class="v yes" data-l="נועם">✓</div>
+          <div class="v yes" data-l="שלומי">✓</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:2rem; margin-bottom:0.4rem; font-size:1.05rem; font-weight:600;">לו״ז משוער · 3 חודשים ראשונים</h3>
+      <p style="color:var(--text-2); font-size:0.9rem;">הערכה גסה — נחדד אחרי שיחת אפיון.</p>
+      <div class="tl">
+        <div class="tl-item">
+          <div class="when">חודש 1</div>
+          <div>
+            <h4>אפיון · POC · שלד</h4>
+            <p>ישיבות עם צוות הנדל״ן והמעצבים, בחירת renderer (Three.js + 3DGS), פרוטוטייפ ראשון של נכס מקצה לקצה.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="when">חודש 2</div>
+          <div>
+            <h4>פלטפורמה · ניהול</h4>
+            <p>ניהול נכסים, hot-spots, העלאת Splats, חוויית גלישה מלאה, נכסים אמיתיים בייצור.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="when">חודש 3</div>
+          <div>
+            <h4>AI · אופטימיזציה · השקה</h4>
+            <p>Agent שעונה בתוך הסצנה, אינדוקס סמנטי, אופטימיזציית טעינה, מטריקות, השקה רכה.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <h3>בואו נדבר</h3>
+    <p>שיחה של 20 דקות תספיק כדי לדעת איזה מסלול מתאים — ולפתוח מהר.</p>
+    <div class="contact-row">
+      <a class="btn primary" href="https://wa.me/972545567213">WhatsApp · 054-5567213</a>
+      <a class="btn ghost" href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+    </div>
+    <p class="footnote">שלומי זוין · Boostart · CTO as a Service</p>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+<script>
+  // ===== Theme =====
+  const themeBtn = document.getElementById('theme-btn');
+  const setTheme = (t) => {
+    document.body.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☾' : '☀';
+    try { localStorage.setItem('rs3d-theme', t); } catch (e) {}
+    if (window.__sceneTheme) window.__sceneTheme(t);
+  };
+  let savedTheme = 'dark';
+  try { savedTheme = localStorage.getItem('rs3d-theme') || 'dark'; } catch (e) {}
+  setTheme(savedTheme);
+  themeBtn.addEventListener('click', () => {
+    const cur = document.body.getAttribute('data-theme');
+    setTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+
+  // ===== Tabs =====
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  const switchTab = (name) => {
+    tabs.forEach(t => t.classList.toggle('is-active', t.dataset.tab === name));
+    panels.forEach(p => p.classList.toggle('is-active', p.id === name));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (name === 'demo' && window.__sceneResize) window.__sceneResize();
+  };
+  tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  document.querySelectorAll('[data-go]').forEach(el => {
+    el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.go); });
+  });
+
+  // ===== Minimal Orbit Controls (inline, no CDN dependency) =====
+  class OrbitCtrl {
+    constructor(camera, dom, target) {
+      this.camera = camera;
+      this.dom = dom;
+      this.target = target.clone();
+      const offset = camera.position.clone().sub(this.target);
+      this.r = offset.length();
+      this.theta = Math.atan2(offset.x, offset.z);
+      this.phi = Math.acos(Math.max(-1, Math.min(1, offset.y / this.r)));
+      this.tTheta = this.theta; this.tPhi = this.phi; this.tR = this.r;
+      this.minR = 6; this.maxR = 28;
+      this.minPhi = 0.15; this.maxPhi = Math.PI / 2 - 0.08;
+      this.damping = 0.10;
+      this.autoRotate = true;
+      this.autoRotateSpeed = 0.0035;
+      this.rotateSpeed = 0.005;
+      this.zoomSpeed = 0.0012;
+      this._bind();
+    }
+    _bind() {
+      let down = false, lx = 0, ly = 0, pinch = null;
+      const setDown = (x, y) => { down = true; lx = x; ly = y; this.autoRotate = false; };
+      const setMove = (x, y) => {
+        if (!down) return;
+        this.tTheta -= (x - lx) * this.rotateSpeed;
+        this.tPhi   -= (y - ly) * this.rotateSpeed;
+        this.tPhi = Math.max(this.minPhi, Math.min(this.maxPhi, this.tPhi));
+        lx = x; ly = y;
+      };
+      const setUp = () => { down = false; };
+
+      this.dom.addEventListener('mousedown', e => { e.preventDefault(); setDown(e.clientX, e.clientY); });
+      window.addEventListener('mousemove', e => setMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', setUp);
+
+      this.dom.addEventListener('wheel', e => {
+        e.preventDefault();
+        this.tR *= 1 + e.deltaY * this.zoomSpeed;
+        this.tR = Math.max(this.minR, Math.min(this.maxR, this.tR));
+      }, { passive: false });
+
+      this.dom.addEventListener('touchstart', e => {
+        e.preventDefault();
+        if (e.touches.length === 1) setDown(e.touches[0].clientX, e.touches[0].clientY);
+        else if (e.touches.length === 2) {
+          down = false;
+          pinch = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          this.autoRotate = false;
+        }
+      }, { passive: false });
+      this.dom.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (e.touches.length === 1 && down) setMove(e.touches[0].clientX, e.touches[0].clientY);
+        else if (e.touches.length === 2 && pinch !== null) {
+          const d = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          this.tR *= pinch / d;
+          this.tR = Math.max(this.minR, Math.min(this.maxR, this.tR));
+          pinch = d;
+        }
+      }, { passive: false });
+      this.dom.addEventListener('touchend', () => { setUp(); pinch = null; });
+      this.dom.addEventListener('touchcancel', () => { setUp(); pinch = null; });
+    }
+    reset(pos, targ) {
+      this.target.copy(targ);
+      const offset = pos.clone().sub(this.target);
+      this.tR = offset.length();
+      this.tTheta = Math.atan2(offset.x, offset.z);
+      this.tPhi = Math.acos(Math.max(-1, Math.min(1, offset.y / this.tR)));
+      this.autoRotate = true;
+    }
+    update() {
+      if (this.autoRotate) this.tTheta -= this.autoRotateSpeed;
+      this.theta += (this.tTheta - this.theta) * this.damping;
+      this.phi   += (this.tPhi   - this.phi)   * this.damping;
+      this.r     += (this.tR     - this.r)     * this.damping;
+      const sp = Math.sin(this.phi), cp = Math.cos(this.phi);
+      this.camera.position.set(
+        this.target.x + this.r * sp * Math.sin(this.theta),
+        this.target.y + this.r * cp,
+        this.target.z + this.r * sp * Math.cos(this.theta)
+      );
+      this.camera.lookAt(this.target);
+    }
+  }
+
+  // ===== Point Cloud Scene =====
+  (function () {
+    const canvas = document.getElementById('scene');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+    const initialPos = new THREE.Vector3(11, 8, 12);
+    const initialTarget = new THREE.Vector3(0, 1.5, 0);
+    camera.position.copy(initialPos);
+
+    const controls = new OrbitCtrl(camera, canvas, initialTarget);
+
+    // ===== Generate point cloud =====
+    // A small architectural scene (house + ground + tree) made of Gaussian-splat-style points.
+    const positions = [];
+    const colors = [];
+
+    const palette = {
+      dark: {
+        wall:    [0.78, 0.80, 0.85],
+        wallAlt: [0.62, 0.66, 0.74],
+        roof:    [0.45, 0.49, 0.58],
+        ground:  [0.32, 0.34, 0.40],
+        groundAlt:[0.22, 0.24, 0.30],
+        tree:    [0.36, 0.55, 0.42],
+        trunk:   [0.42, 0.32, 0.25],
+        accent:  [0.36, 0.55, 1.0],
+        bg:      0x0f0f12
+      },
+      light: {
+        wall:    [0.92, 0.92, 0.94],
+        wallAlt: [0.78, 0.80, 0.85],
+        roof:    [0.50, 0.55, 0.65],
+        ground:  [0.78, 0.80, 0.82],
+        groundAlt:[0.70, 0.72, 0.74],
+        tree:    [0.40, 0.62, 0.45],
+        trunk:   [0.50, 0.38, 0.28],
+        accent:  [0.15, 0.39, 0.92],
+        bg:      0xfafaf9
+      }
+    };
+
+    let activePal = palette.dark;
+
+    // Helper: jitter a color slightly per point
+    const jit = (v, amt = 0.05) => Math.max(0, Math.min(1, v + (Math.random() - 0.5) * amt));
+
+    // Helper: add point
+    const addP = (x, y, z, c) => {
+      positions.push(x, y, z);
+      colors.push(jit(c[0]), jit(c[1]), jit(c[2]));
+    };
+
+    // House: rectangular volume ~ 4w x 3h x 4d, centered at (0, 1.5, 0)
+    const houseW = 4, houseH = 3, houseD = 4;
+    const cx = 0, cy = 1.5, cz = 0;
+    // 6 faces, sample each
+    const facePoints = 1100;
+    const sampleFace = (axis, sign, c) => {
+      // axis: 0=x, 1=y, 2=z. sign: ±1
+      for (let i = 0; i < facePoints; i++) {
+        let x, y, z;
+        if (axis === 0) {
+          x = cx + sign * houseW / 2;
+          y = cy - houseH / 2 + Math.random() * houseH;
+          z = cz - houseD / 2 + Math.random() * houseD;
+        } else if (axis === 1) {
+          x = cx - houseW / 2 + Math.random() * houseW;
+          y = cy + sign * houseH / 2;
+          z = cz - houseD / 2 + Math.random() * houseD;
+        } else {
+          x = cx - houseW / 2 + Math.random() * houseW;
+          y = cy - houseH / 2 + Math.random() * houseH;
+          z = cz + sign * houseD / 2;
+        }
+        addP(x, y, z, c);
+      }
+    };
+    sampleFace(0, +1, activePal.wall);     // right
+    sampleFace(0, -1, activePal.wallAlt);  // left
+    sampleFace(1, +1, activePal.roof);     // top -> overridden by roof below
+    sampleFace(1, -1, activePal.ground);   // bottom (under house, hidden mostly)
+    sampleFace(2, +1, activePal.wall);     // front
+    sampleFace(2, -1, activePal.wallAlt);  // back
+
+    // Pitched roof — two angled surfaces above the house
+    const roofPts = 1500;
+    const roofH = 1.4;
+    for (let i = 0; i < roofPts; i++) {
+      // Roof spans X across width, slopes up to ridge along Z=0
+      const u = Math.random();           // 0..1 across roof width
+      const v = Math.random();           // 0..1 along depth
+      const side = Math.random() < 0.5 ? -1 : 1;
+      const xLocal = side * (1 - u) * (houseW / 2);
+      const yLocal = u * roofH;
+      const zLocal = -houseD / 2 + v * houseD;
+      addP(cx + xLocal, cy + houseH / 2 + yLocal, cz + zLocal, activePal.roof);
+    }
+
+    // Door cut-out / accent — vertical line of accent points on front face
+    for (let i = 0; i < 220; i++) {
+      const x = cx + (Math.random() - 0.5) * 0.8;
+      const y = cy - houseH / 2 + Math.random() * 1.8;
+      const z = cz + houseD / 2 + 0.01;
+      addP(x, y, z, activePal.accent);
+    }
+    // Window accent (right side)
+    for (let i = 0; i < 200; i++) {
+      const x = cx + houseW / 2 + 0.01;
+      const y = cy - 0.3 + Math.random() * 1.2;
+      const z = cz + (Math.random() - 0.5) * 1.4;
+      addP(x, y, z, activePal.accent);
+    }
+
+    // Ground plane — circular fade
+    const groundPts = 4500;
+    for (let i = 0; i < groundPts; i++) {
+      const r = Math.sqrt(Math.random()) * 11;
+      const a = Math.random() * Math.PI * 2;
+      const x = Math.cos(a) * r;
+      const z = Math.sin(a) * r;
+      // exclude points right under house
+      if (Math.abs(x) < houseW / 2 - 0.2 && Math.abs(z) < houseD / 2 - 0.2) continue;
+      const c = Math.random() < 0.6 ? activePal.ground : activePal.groundAlt;
+      addP(x, 0, z, c);
+    }
+
+    // Tree — sphere-ish of green points + trunk
+    const treeX = 5.5, treeZ = -2.5;
+    const treeRadius = 1.0;
+    const treeCount = 600;
+    for (let i = 0; i < treeCount; i++) {
+      const phi = Math.acos(1 - 2 * Math.random());
+      const theta = Math.random() * Math.PI * 2;
+      const r = treeRadius * (0.7 + Math.random() * 0.3);
+      const x = treeX + r * Math.sin(phi) * Math.cos(theta);
+      const y = 1.8 + r * Math.cos(phi);
+      const z = treeZ + r * Math.sin(phi) * Math.sin(theta);
+      addP(x, y, z, activePal.tree);
+    }
+    // Trunk
+    for (let i = 0; i < 180; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 0.12 + Math.random() * 0.04;
+      addP(treeX + Math.cos(a) * r, Math.random() * 1.6, treeZ + Math.sin(a) * r, activePal.trunk);
+    }
+
+    // Atmospheric particles (subtle)
+    const ambientCount = 350;
+    for (let i = 0; i < ambientCount; i++) {
+      const x = (Math.random() - 0.5) * 24;
+      const y = Math.random() * 8 + 0.5;
+      const z = (Math.random() - 0.5) * 24;
+      addP(x, y, z, activePal.wallAlt);
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+
+    // Soft round texture for points (so they look like splats, not squares)
+    const dotTex = (() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d');
+      const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grd.addColorStop(0,    'rgba(255,255,255,1)');
+      grd.addColorStop(0.45, 'rgba(255,255,255,0.6)');
+      grd.addColorStop(1,    'rgba(255,255,255,0)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 64, 64);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
+    })();
+
+    const mat = new THREE.PointsMaterial({
+      size: 0.085,
+      sizeAttenuation: true,
+      vertexColors: true,
+      map: dotTex,
+      alphaTest: 0.05,
+      transparent: true,
+      depthWrite: false
+    });
+
+    const points = new THREE.Points(geom, mat);
+    scene.add(points);
+
+    // Theme application
+    const applyTheme = (theme) => {
+      activePal = palette[theme === 'light' ? 'light' : 'dark'];
+      scene.background = new THREE.Color(activePal.bg);
+      // Recompute colors per point for theme change
+      const colorAttr = geom.getAttribute('color');
+      // We don't store original mapping per point, so we approximate by mapping
+      // dark→light by lerping all current colors toward a target.
+      // Simpler: skip recolor and rely on background change. (Most points are mid-gray.)
+      // For better effect: tint the material slightly via fog.
+      colorAttr.needsUpdate = true;
+    };
+    window.__sceneTheme = applyTheme;
+    applyTheme(document.body.getAttribute('data-theme') || 'dark');
+
+    // Reset
+    document.getElementById('reset-cam').addEventListener('click', () => {
+      controls.reset(initialPos, initialTarget);
+    });
+
+    // Resize
+    const resize = () => {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (!w || !h) return;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    };
+    window.__sceneResize = resize;
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 100));
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(canvas);
+    }
+    setTimeout(resize, 50);
+
+    // Animate
+    let t = 0;
+    const tick = () => {
+      t += 0.016;
+      // Subtle "breathing" of point size
+      mat.size = 0.085 + Math.sin(t * 0.6) * 0.005;
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    };
+    tick();
+  })();
+</script>
+
+</body>
+</html>
