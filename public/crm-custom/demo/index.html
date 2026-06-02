@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Demo · מוקאפ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #131318;
+    --surface-2: #1a1a21;
+    --surface-3: #22222a;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #ececf1;
+    --text-muted: #9a9aa3;
+    --text-dim: #5a5a63;
+    --accent: #f97316;
+    --accent-dim: rgba(249,115,22,0.12);
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --info: #60a5fa;
+  }
+
+  [data-theme="light"] {
+    --bg: #f7f7f8;
+    --surface: #ffffff;
+    --surface-2: #f4f4f6;
+    --surface-3: #ececef;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #18181b;
+    --text-muted: #4f4f57;
+    --text-dim: #8b8b95;
+    --accent: #ea580c;
+    --accent-dim: rgba(234,88,12,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s, color 0.2s;
+    min-height: 100vh;
+  }
+
+  .notice {
+    background: var(--accent);
+    color: #fff;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr 320px;
+    min-height: calc(100vh - 33px);
+  }
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 220px 1fr; }
+    .ai-panel { display: none; }
+  }
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .brand-mark {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    color: white;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .nav-section-title {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 12px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+  .nav-item .badge {
+    margin-right: auto;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+  .nav-item.active .badge { background: var(--accent); color: white; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .user-card:hover { background: var(--surface-2); }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .user-name { font-weight: 600; font-size: 13.5px; }
+  .user-role { color: var(--text-muted); font-size: 12px; }
+
+  /* Main */
+  main {
+    padding: 24px 32px;
+    overflow-y: auto;
+  }
+  @media (max-width: 768px) { main { padding: 20px; } }
+
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+  .page-title h1 {
+    font-size: 26px; font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .page-title p {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+  .top-actions { display: flex; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface-2); }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .stat-trend {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--success);
+    font-weight: 600;
+  }
+  .stat-trend.down { color: #ef4444; }
+
+  /* Pipeline */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-head h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    overflow-x: auto;
+  }
+  @media (max-width: 1300px) {
+    .pipeline {
+      display: flex;
+      gap: 14px;
+      padding-bottom: 8px;
+    }
+    .pipeline-col { min-width: 240px; flex: 1 0 240px; }
+  }
+
+  .pipeline-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .col-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .col-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .col-dot.lead { background: var(--info); }
+  .col-dot.qualified { background: #a78bfa; }
+  .col-dot.negotiation { background: var(--warning); }
+  .col-dot.won { background: var(--success); }
+  .col-title {
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+  .col-count {
+    margin-right: auto;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+  .col-value {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .deal {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 9px;
+    cursor: grab;
+    transition: all 0.15s;
+  }
+  .deal:hover { border-color: var(--border-strong); }
+  .deal-company {
+    font-weight: 700;
+    font-size: 13.5px;
+    margin-bottom: 3px;
+  }
+  .deal-contact {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .deal-foot {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .deal-price {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .deal-score {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 3px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+  }
+  .score-bar {
+    width: 24px; height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-right: 4px;
+  }
+  .score-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+  }
+  .score-bar.warm .score-fill { background: var(--warning); }
+  .score-bar.cold .score-fill { background: #ef4444; }
+
+  /* AI Panel */
+  .ai-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+  }
+  .ai-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px;
+  }
+  .ai-icon {
+    width: 28px; height: 28px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ai-title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .ai-subtitle {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    margin-bottom: 22px;
+  }
+  .insight {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 14px;
+    margin-bottom: 11px;
+    position: relative;
+  }
+  .insight-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 100px;
+    margin-bottom: 8px;
+  }
+  .insight-tag.warning { background: rgba(251,191,36,0.12); color: var(--warning); }
+  .insight-tag.success { background: rgba(74,222,128,0.12); color: var(--success); }
+  .insight-tag.info { background: rgba(96,165,250,0.12); color: var(--info); }
+  .insight-text {
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+  .insight-text strong { color: var(--text); }
+  .insight-actions {
+    display: flex; gap: 6px;
+  }
+  .ins-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 11.5px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .ins-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ins-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .ai-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 0;
+  }
+
+  .ai-chat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 13px;
+  }
+  .ai-chat-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .ai-chat-hint {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    margin-bottom: 10px;
+  }
+  .ai-input-wrap {
+    display: flex; gap: 6px;
+  }
+  .ai-input {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 12.5px;
+    outline: none;
+  }
+  .ai-input:focus { border-color: var(--accent); }
+  .ai-send {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .ai-suggestions {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .ai-suggestion {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11.5px;
+    padding: 4px 9px;
+    border-radius: 100px;
+    cursor: pointer;
+  }
+  .ai-suggestion:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* theme btn corner */
+  .theme-btn {
+    width: 32px; height: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="notice">מוקאפ — נבנה תוך דקות. ה-CRM האמיתי שלכם יהיה מותאם בדיוק לתהליכים שלכם.</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <span>CRM שלכם</span>
+    </div>
+
+    <div class="nav-section-title">תפריט ראשי</div>
+    <div class="nav-item active">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span>דשבורד</span>
+    </div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>עסקאות</span>
+      <span class="badge">47</span>
+    </div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>אנשי קשר</span>
+      <span class="badge">312</span>
+    </div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>משימות</span>
+      <span class="badge">8</span>
+    </div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <span>תקשורת</span>
+    </div>
+
+    <div class="nav-section-title">AI</div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Workflows</span>
+    </div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>Automations</span>
+      <span class="badge">12</span>
+    </div>
+
+    <div class="nav-section-title">דוחות</div>
+    <div class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>BI Dashboard</span>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">י.ל</div>
+        <div>
+          <div class="user-name">יעל לוי</div>
+          <div class="user-role">Sales Manager</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="top-bar">
+      <div class="page-title">
+        <h1>שלום יעל 👋</h1>
+        <p>סקירת מצב נוכחית — 47 עסקאות פתוחות, ערך משוקלל ₪1.2M</p>
+      </div>
+      <div class="top-actions">
+        <button class="theme-btn" id="themeToggle" title="theme">
+          <svg id="iconSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn btn-ghost">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          ייבוא לידים
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          עסקה חדשה
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">עסקאות פתוחות</div>
+        <div class="stat-value">47</div>
+        <div class="stat-trend">↑ 12% מהשבוע שעבר</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ערך משוקלל</div>
+        <div class="stat-value">₪1.24M</div>
+        <div class="stat-trend">↑ 8.3%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">סגירה השבוע</div>
+        <div class="stat-value">₪186K</div>
+        <div class="stat-trend">5 עסקאות</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">לידים חדשים השבוע</div>
+        <div class="stat-value">23</div>
+        <div class="stat-trend down">↓ 2 מהשבוע שעבר</div>
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="section-head">
+      <h2>Pipeline עסקאות</h2>
+      <button class="btn btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        סינון
+      </button>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-col">
+        <div class="col-head">
+          <div class="col-dot lead"></div>
+          <div class="col-title">לידים חדשים</div>
+          <div class="col-count">12</div>
+        </div>
+        <div class="col-value" style="margin-bottom: 12px;">סה"כ ₪340K</div>
+
+        <div class="deal">
+          <div class="deal-company">Vertex Solutions</div>
+          <div class="deal-contact">דוד מזרחי · CMO</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪28,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 85%;"></div></div>85</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Northwind Tech</div>
+          <div class="deal-contact">מיכל בן-דוד · VP</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪45,000</div>
+            <div class="deal-score"><div class="score-bar warm"><div class="score-fill" style="width: 60%;"></div></div>60</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Lumen Group</div>
+          <div class="deal-contact">רון כהן · מנכ"ל</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪62,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 92%;"></div></div>92</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-col">
+        <div class="col-head">
+          <div class="col-dot qualified"></div>
+          <div class="col-title">בבדיקה</div>
+          <div class="col-count">8</div>
+        </div>
+        <div class="col-value" style="margin-bottom: 12px;">סה"כ ₪284K</div>
+
+        <div class="deal">
+          <div class="deal-company">Cobalt Industries</div>
+          <div class="deal-contact">שירה לוי · מנהלת רכש</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪38,500</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 78%;"></div></div>78</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Atlas Capital</div>
+          <div class="deal-contact">יוסי אברהמי · COO</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪95,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 88%;"></div></div>88</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Pixel Studio</div>
+          <div class="deal-contact">נטע פרץ · בעלים</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪22,000</div>
+            <div class="deal-score"><div class="score-bar warm"><div class="score-fill" style="width: 55%;"></div></div>55</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-col">
+        <div class="col-head">
+          <div class="col-dot negotiation"></div>
+          <div class="col-title">מו"מ</div>
+          <div class="col-count">15</div>
+        </div>
+        <div class="col-value" style="margin-bottom: 12px;">סה"כ ₪480K</div>
+
+        <div class="deal">
+          <div class="deal-company">Acme Travel</div>
+          <div class="deal-contact">איתי גולן · CTO</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪71,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 95%;"></div></div>95</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Stellar Labs</div>
+          <div class="deal-contact">דנה רוזן · CFO</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪54,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 80%;"></div></div>80</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Helix Pharma</div>
+          <div class="deal-contact">עומר שמש · VP</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪118,000</div>
+            <div class="deal-score"><div class="score-bar warm"><div class="score-fill" style="width: 65%;"></div></div>65</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-col">
+        <div class="col-head">
+          <div class="col-dot won"></div>
+          <div class="col-title">סגור</div>
+          <div class="col-count">12</div>
+        </div>
+        <div class="col-value" style="margin-bottom: 12px;">סה"כ ₪186K · החודש</div>
+
+        <div class="deal">
+          <div class="deal-company">Beacon Media</div>
+          <div class="deal-contact">תמר אסולין</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪44,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 100%;"></div></div>✓</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Quantum Build</div>
+          <div class="deal-contact">בני זילבר</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪38,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 100%;"></div></div>✓</div>
+          </div>
+        </div>
+
+        <div class="deal">
+          <div class="deal-company">Orbit Logistics</div>
+          <div class="deal-contact">חן ברק</div>
+          <div class="deal-foot">
+            <div class="deal-price">₪52,000</div>
+            <div class="deal-score"><div class="score-bar"><div class="score-fill" style="width: 100%;"></div></div>✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- AI PANEL -->
+  <aside class="ai-panel">
+    <div class="ai-head">
+      <div class="ai-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/></svg>
+      </div>
+      <div class="ai-title">AI Assistant</div>
+    </div>
+    <div class="ai-subtitle">תובנות וזרימות שמייצרות לך זמן</div>
+
+    <div class="insight">
+      <span class="insight-tag success">🎯 הזדמנות</span>
+      <div class="insight-text"><strong>Lumen Group</strong> פתח את ההצעה 4 פעמים השבוע. השיחה האחרונה הייתה לפני 6 ימים. <strong>הסיכוי לסגירה גבוה אם תפנה היום.</strong></div>
+      <div class="insight-actions">
+        <button class="ins-btn primary">שלח follow-up</button>
+        <button class="ins-btn">צפה בהיסטוריה</button>
+      </div>
+    </div>
+
+    <div class="insight">
+      <span class="insight-tag warning">⚠ סיכון</span>
+      <div class="insight-text"><strong>Helix Pharma</strong> שיוונה בין 3 הצעות בשבוע האחרון. ה-CRM ראה הורדה ב-engagement. <strong>צריך לדבר היום.</strong></div>
+      <div class="insight-actions">
+        <button class="ins-btn primary">תיאום שיחה</button>
+        <button class="ins-btn">סיכום מצב</button>
+      </div>
+    </div>
+
+    <div class="insight">
+      <span class="insight-tag info">💡 תובנה</span>
+      <div class="insight-text">סיימת היום שיחה עם <strong>Acme Travel</strong>. סיכמתי אוטומטית: מעוניינים, צריכים אישור CFO. <strong>הוספתי משימה לחזור ביום חמישי.</strong></div>
+      <div class="insight-actions">
+        <button class="ins-btn">צפה בסיכום</button>
+      </div>
+    </div>
+
+    <div class="ai-divider"></div>
+
+    <div class="ai-chat">
+      <div class="ai-chat-title">שאל אותי כל שאלה</div>
+      <div class="ai-chat-hint">בעברית פשוטה — אני מבין את הנתונים שלך</div>
+      <div class="ai-input-wrap">
+        <input type="text" class="ai-input" placeholder="לדוגמה: כמה סגרנו ברבעון?">
+        <button class="ai-send">→</button>
+      </div>
+      <div class="ai-suggestions">
+        <span class="ai-suggestion">לידים שלא טיפלתי בהם השבוע</span>
+        <span class="ai-suggestion">תחזית סגירה החודש</span>
+        <span class="ai-suggestion">מי הלקוחות הכי שווים</span>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const body = document.body;
+
+  function setTheme(theme) {
+    body.setAttribute('data-theme', theme);
+    iconSun.style.display = theme === 'light' ? 'block' : 'none';
+    iconMoon.style.display = theme === 'light' ? 'none' : 'block';
+    try { localStorage.setItem('crm-theme', theme); } catch(e) {}
+  }
+
+  try {
+    const saved = localStorage.getItem('crm-theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+
+  themeToggle.addEventListener('click', () => {
+    const current = body.getAttribute('data-theme');
+    setTheme(current === 'light' ? 'dark' : 'light');
+  });
+</script>
+
+</body>
+</html>

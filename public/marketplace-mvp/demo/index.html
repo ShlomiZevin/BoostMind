@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match · מרקטפלייס דו-צדדי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #131318;
+    --surface-2: #1a1a21;
+    --surface-3: #22222a;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #ececf1;
+    --text-muted: #9a9aa3;
+    --text-dim: #5a5a63;
+    --accent: #14b8a6;
+    --accent-dim: rgba(20,184,166,0.12);
+    --success: #4ade80;
+    --warning: #fbbf24;
+  }
+
+  [data-theme="light"] {
+    --bg: #f7f7f8;
+    --surface: #ffffff;
+    --surface-2: #f4f4f6;
+    --surface-3: #ececef;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #18181b;
+    --text-muted: #4f4f57;
+    --text-dim: #8b8b95;
+    --accent: #0d9488;
+    --accent-dim: rgba(13,148,136,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s, color 0.2s;
+    min-height: 100vh;
+  }
+
+  .notice {
+    background: var(--accent);
+    color: #fff;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Nav */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+  .nav-brand-mark {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-weight: 900;
+  }
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+  .live-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 5px 11px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .theme-btn {
+    width: 34px; height: 34px;
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Main */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .toggle-tabs {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 18px;
+    max-width: 320px;
+  }
+  .toggle-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 9px 14px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .toggle-tab.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .page-head {
+    margin-bottom: 24px;
+  }
+  .page-head h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .page-head p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+  }
+
+  /* Filters */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .filter-chip.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Listings */
+  .listings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .listing {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .listing:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .listing-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+  }
+  .listing-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .listing-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 1px;
+  }
+  .listing-cat {
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+  .listing-badge {
+    margin-right: auto;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 5px;
+  }
+  .listing-body {
+    color: var(--text);
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    min-height: 42px;
+  }
+  .listing-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .listing-price {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+  }
+  .listing-rating {
+    display: flex; align-items: center; gap: 4px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+  .listing-rating .star {
+    color: var(--warning);
+  }
+  .listing-cta {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Right panel */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .panel h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel h3 .h-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .activity-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .activity-item:first-of-type { border-top: none; padding-top: 0; }
+  .activity-avatar {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .activity-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .activity-text strong { font-weight: 700; }
+  .activity-time {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+
+  .stat-block {
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .stat-block:last-child { margin-bottom: 0; }
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .stat-val {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .stat-trend {
+    color: var(--success);
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Mobile preview hint */
+  .demo-hint {
+    background: var(--surface-2);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .demo-hint strong { color: var(--accent); }
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="notice">דמו — נבנה תוך דקות באמצעות Claude Code. המרקטפלייס שלכם יהיה לפי האפיון שלכם.</div>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-brand-mark">M</div>
+    <span>Match</span>
+  </div>
+  <div class="nav-right">
+    <div class="live-pill"><div class="live-dot"></div>247 LIVE עכשיו</div>
+    <button class="theme-btn" id="themeToggle" title="theme">
+      <svg id="iconSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- Main feed -->
+  <main>
+    <div class="page-head">
+      <h1>Match · מרקטפלייס דו-צדדי</h1>
+      <p>חיבור בזמן אמת בין מציעים למבקשים. כל הצדדים מסונכרנים, אינסטנט.</p>
+    </div>
+
+    <div class="toggle-tabs">
+      <button class="toggle-tab active" onclick="switchSide(this, 'a')">צד מציעים</button>
+      <button class="toggle-tab" onclick="switchSide(this, 'b')">צד מבקשים</button>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-chip active">הכל</div>
+      <div class="filter-chip">בתל אביב</div>
+      <div class="filter-chip">בירושלים</div>
+      <div class="filter-chip">בחיפה</div>
+      <div class="filter-chip">פנוי היום</div>
+      <div class="filter-chip">דירוג 4.5+</div>
+    </div>
+
+    <div class="listings" id="listings">
+
+      <div class="listing">
+        <div class="listing-head">
+          <div class="listing-avatar">ד.כ</div>
+          <div>
+            <div class="listing-name">דנה כהן</div>
+            <div class="listing-cat">תל אביב · פנויה היום</div>
+          </div>
+          <div class="listing-badge">חדש</div>
+        </div>
+        <div class="listing-body">10 שנות ניסיון בתחום, זמינות גבוהה, ביקוש חוזר מ-95% מהלקוחות.</div>
+        <div class="listing-meta">
+          <div>
+            <div class="listing-rating">
+              <span class="star">★</span>
+              <span><strong style="color: var(--text);">4.9</strong> · 127 חוות דעת</span>
+            </div>
+            <div class="listing-price">₪320/שעה</div>
+          </div>
+          <button class="listing-cta">התאמה</button>
+        </div>
+      </div>
+
+      <div class="listing">
+        <div class="listing-head">
+          <div class="listing-avatar">י.ל</div>
+          <div>
+            <div class="listing-name">יואב לוי</div>
+            <div class="listing-cat">ירושלים · פנוי מחר</div>
+          </div>
+        </div>
+        <div class="listing-body">מומחה ברמת בכיר, התאמה אישית מלאה, גמישות בזמנים.</div>
+        <div class="listing-meta">
+          <div>
+            <div class="listing-rating">
+              <span class="star">★</span>
+              <span><strong style="color: var(--text);">4.8</strong> · 89 חוות דעת</span>
+            </div>
+            <div class="listing-price">₪280/שעה</div>
+          </div>
+          <button class="listing-cta">התאמה</button>
+        </div>
+      </div>
+
+      <div class="listing">
+        <div class="listing-head">
+          <div class="listing-avatar">מ.ב</div>
+          <div>
+            <div class="listing-name">מאיה בר</div>
+            <div class="listing-cat">חיפה · פנויה עכשיו</div>
+          </div>
+          <div class="listing-badge">פופולרי</div>
+        </div>
+        <div class="listing-body">מתמחה בלקוחות עסקיים, גישה מקצועית ושירותית, תקשורת בעברית/אנגלית.</div>
+        <div class="listing-meta">
+          <div>
+            <div class="listing-rating">
+              <span class="star">★</span>
+              <span><strong style="color: var(--text);">5.0</strong> · 213 חוות דעת</span>
+            </div>
+            <div class="listing-price">₪400/שעה</div>
+          </div>
+          <button class="listing-cta">התאמה</button>
+        </div>
+      </div>
+
+      <div class="listing">
+        <div class="listing-head">
+          <div class="listing-avatar">ר.פ</div>
+          <div>
+            <div class="listing-name">רון פרץ</div>
+            <div class="listing-cat">תל אביב · פנוי השבוע</div>
+          </div>
+        </div>
+        <div class="listing-body">פתרונות יצירתיים, יחס מעולה, פאוור-יוזר של הפלטפורמה.</div>
+        <div class="listing-meta">
+          <div>
+            <div class="listing-rating">
+              <span class="star">★</span>
+              <span><strong style="color: var(--text);">4.7</strong> · 64 חוות דעת</span>
+            </div>
+            <div class="listing-price">₪240/שעה</div>
+          </div>
+          <button class="listing-cta">התאמה</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Side panel -->
+  <aside>
+
+    <div class="panel">
+      <h3><span class="h-dot"></span>פעילות חיה</h3>
+
+      <div class="activity-item">
+        <div class="activity-avatar">ת.א</div>
+        <div>
+          <div class="activity-text"><strong>תמר אסולין</strong> התאימה עם <strong>דנה כהן</strong></div>
+          <div class="activity-time">לפני 8 שניות</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-avatar">י.ש</div>
+        <div>
+          <div class="activity-text"><strong>יוסי שלום</strong> פרסם בקשה חדשה</div>
+          <div class="activity-time">לפני 22 שניות</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-avatar">ש.ב</div>
+        <div>
+          <div class="activity-text">עסקה נסגרה: <strong>שירה בן-דוד ↔ רון פרץ</strong></div>
+          <div class="activity-time">לפני דקה</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-avatar">א.ג</div>
+        <div>
+          <div class="activity-text"><strong>איתי גרינברג</strong> השלים אימות</div>
+          <div class="activity-time">לפני 2 דקות</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-avatar">ע.ר</div>
+        <div>
+          <div class="activity-text"><strong>עידן רז</strong> תכל עסקה — חיוב ₪960 הושלם</div>
+          <div class="activity-time">לפני 3 דקות</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>סטטיסטיקות חיות</h3>
+
+      <div class="stat-block">
+        <div class="stat-label">עסקאות פעילות</div>
+        <div class="stat-val">38</div>
+        <div class="stat-trend">↑ +5 בשעה האחרונה</div>
+      </div>
+
+      <div class="stat-block">
+        <div class="stat-label">משתמשים מחוברים עכשיו</div>
+        <div class="stat-val">247</div>
+        <div class="stat-trend">↑ +12% מאתמול</div>
+      </div>
+
+      <div class="stat-block">
+        <div class="stat-label">מטצ' זמן ממוצע</div>
+        <div class="stat-val">3.4 דק'</div>
+        <div class="stat-trend">↓ מהיר מהממוצע</div>
+      </div>
+    </div>
+
+    <div class="demo-hint">
+      <strong>💡 הערה טכנית:</strong> כל מה שאתם רואים — פעילות חיה, סטטיסטיקות מתעדכנות, מטצ'ינג בזמן אמת — רץ ב-WebSocket אמיתי בקוד אמיתי. ב-Bubble זה רוב הזמן polling שגוזל workflow units. זה ההבדל בין MVP שעובד ל-1000 משתמשים, ל-MVP שתקוע ב-100.
+    </div>
+
+  </aside>
+</div>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const body = document.body;
+
+  function setTheme(theme) {
+    body.setAttribute('data-theme', theme);
+    iconSun.style.display = theme === 'light' ? 'block' : 'none';
+    iconMoon.style.display = theme === 'light' ? 'none' : 'block';
+    try { localStorage.setItem('mp-theme', theme); } catch(e) {}
+  }
+
+  try {
+    const saved = localStorage.getItem('mp-theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+
+  themeToggle.addEventListener('click', () => {
+    const current = body.getAttribute('data-theme');
+    setTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  function switchSide(el, side) {
+    document.querySelectorAll('.toggle-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

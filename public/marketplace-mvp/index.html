@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הצעה — MVP מרקטפלייס דו-צדדי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #131318;
+    --surface-2: #1a1a21;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --text: #ececf1;
+    --text-muted: #8b8b94;
+    --text-dim: #5a5a63;
+    --accent: #14b8a6;
+    --accent-hover: #2dd4bf;
+    --accent-dim: rgba(20,184,166,0.12);
+    --success: #4ade80;
+    --danger: #f87171;
+  }
+
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f6;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #18181b;
+    --text-muted: #56565e;
+    --text-dim: #9090a0;
+    --accent: #0d9488;
+    --accent-hover: #0f766e;
+    --accent-dim: rgba(13,148,136,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,12,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  [data-theme="light"] header { background: rgba(250,250,250,0.85); }
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; max-width: 1200px; margin: 0 auto;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .logo-mark {
+    width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; color: white; font-weight: 800;
+  }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .theme-toggle {
+    width: 38px; height: 38px; background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .theme-toggle:hover { border-color: var(--border-strong); background: var(--surface); }
+
+  .tabs-wrap {
+    border-bottom: 1px solid var(--border); background: var(--bg);
+    position: sticky; top: 73px; z-index: 90;
+  }
+  .tabs {
+    display: flex; gap: 4px; max-width: 1200px; margin: 0 auto; padding: 0 24px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: transparent; border: none; color: var(--text-muted);
+    font-family: inherit; font-size: 15px; font-weight: 500;
+    padding: 16px 18px; cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  section { padding: 80px 0; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  .hero { padding: 80px 0 60px; text-align: center; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px;
+    background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 100px;
+    color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 24px;
+  }
+  .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.02em; margin-bottom: 20px;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p.lead {
+    font-size: clamp(17px, 2vw, 20px); color: var(--text-muted);
+    max-width: 760px; margin: 0 auto 36px;
+  }
+  .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 22px; border-radius: 10px;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    text-decoration: none; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary {
+    background: var(--surface); color: var(--text); border-color: var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--border-strong); background: var(--surface-2); }
+
+  .section-eyebrow {
+    color: var(--accent); font-size: 14px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px); font-weight: 700;
+    letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.2;
+  }
+  .section-lead {
+    font-size: 18px; color: var(--text-muted);
+    max-width: 760px; margin-bottom: 48px;
+  }
+
+  .value-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; margin-top: 40px;
+  }
+  .value-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; transition: border-color 0.15s;
+  }
+  .value-card:hover { border-color: var(--border-strong); }
+  .value-card .icon-wrap {
+    width: 40px; height: 40px; background: var(--accent-dim); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .value-card h4 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .value-card p { color: var(--text-muted); font-size: 14.5px; line-height: 1.6; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px; margin: 40px 0; padding: 32px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  }
+  .stat .num {
+    font-size: 40px; font-weight: 800; color: var(--accent);
+    line-height: 1; margin-bottom: 6px; letter-spacing: -0.02em;
+  }
+  .stat .label { color: var(--text-muted); font-size: 14px; }
+
+  /* Comparison */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 60px;
+  }
+  @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+
+  .comp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .comp-card.highlighted {
+    border-color: var(--accent);
+  }
+  .comp-card h3 {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .comp-card .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .comp-card.highlighted .tag {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+  .comp-list { list-style: none; }
+  .comp-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0;
+    color: var(--text-muted);
+    font-size: 14.5px;
+  }
+  .comp-list li .check { color: var(--success); flex-shrink: 0; margin-top: 4px; }
+  .comp-list li .x { color: var(--danger); flex-shrink: 0; margin-top: 4px; }
+  .comp-card.highlighted .comp-list li { color: var(--text); }
+
+  /* Quote box */
+  .quote-box {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 40px 0;
+    position: relative;
+  }
+  .quote-box::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    right: 28px;
+    font-size: 80px;
+    color: var(--accent);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .quote-box p {
+    font-size: 19px;
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .quote-box .by {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 14px;
+  }
+
+  .demo-frame-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 12px; margin-top: 20px;
+  }
+  .demo-toolbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+  }
+  .demo-dots { display: flex; gap: 6px; }
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-2); }
+  .demo-dot.r { background: #ff5f57; }
+  .demo-dot.y { background: #febc2e; }
+  .demo-dot.g { background: #28c840; }
+  .demo-url {
+    flex: 1; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted);
+  }
+  .demo-iframe {
+    width: 100%; height: 720px; border: none; border-radius: 8px;
+    background: white; margin-top: 12px; display: block;
+  }
+  .demo-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+  .demo-note {
+    margin-top: 16px; padding: 14px 18px;
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    border-radius: 10px; color: var(--text); font-size: 14px;
+  }
+
+  .budget-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 36px; max-width: 560px; margin: 40px auto 0;
+  }
+  .budget-card .who {
+    color: var(--text-muted); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .budget-card h3 {
+    font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;
+  }
+  .budget-card .tagline {
+    color: var(--text-muted); font-size: 15px; margin-bottom: 24px;
+  }
+  .budget-card .price-wrap {
+    padding: 20px 0; border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  }
+  .budget-card .price {
+    font-size: 44px; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+  }
+  .budget-card .price-suffix { color: var(--text-muted); font-size: 15px; margin-top: 6px; }
+  .budget-features { list-style: none; margin-bottom: 28px; }
+  .budget-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0; color: var(--text); font-size: 14.5px;
+  }
+  .budget-features li svg { flex-shrink: 0; color: var(--accent); margin-top: 3px; }
+
+  .milestones {
+    margin-top: 50px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+  }
+  .milestones h3 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+  .milestone-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px;
+  }
+  .milestone { border-right: 2px solid var(--accent); padding-right: 16px; }
+  .milestone .ms-num {
+    color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 6px;
+  }
+  .milestone .ms-name { font-weight: 600; margin-bottom: 4px; }
+  .milestone .ms-desc { color: var(--text-muted); font-size: 13.5px; }
+
+  .stack-wrap { margin-top: 40px; }
+  .stack-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+  }
+  .stack-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  .stack-card .stack-label {
+    color: var(--text-muted); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .stack-card .stack-items {
+    font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: var(--text);
+  }
+
+  .final-cta {
+    text-align: center; padding: 80px 24px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; margin: 40px 0;
+  }
+  .final-cta h2 {
+    font-size: clamp(28px, 4vw, 38px); font-weight: 800;
+    letter-spacing: -0.02em; margin-bottom: 16px;
+  }
+  .final-cta p {
+    color: var(--text-muted); font-size: 17px; margin-bottom: 28px;
+    max-width: 560px; margin-left: auto; margin-right: auto;
+  }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 40px 0; margin-top: 40px;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  .footer-contact { display: flex; gap: 18px; flex-wrap: wrap; color: var(--text-muted); font-size: 14px; }
+  .footer-contact a { color: var(--text-muted); text-decoration: none; }
+  .footer-contact a:hover { color: var(--accent); }
+  .footer-brand { color: var(--text-muted); font-size: 14px; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.92em;
+    background: var(--surface-2); padding: 2px 6px; border-radius: 4px; color: var(--accent);
+  }
+
+  @media (max-width: 640px) {
+    section { padding: 56px 0; }
+    .hero { padding: 56px 0 40px; }
+    .stats { padding: 20px; }
+    .stat .num { font-size: 32px; }
+    .demo-iframe { height: 560px; }
+    .milestone { border-right: none; border-bottom: 2px solid var(--accent); padding-right: 0; padding-bottom: 12px; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">ש</div>
+      <span>שלומי זוין · CTO as a Service</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="theme">
+        <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="proposal">ההצעה</button>
+    <button class="tab" data-tab="why">למה לא Bubble</button>
+    <button class="tab" data-tab="demo">דמו מרקטפלייס</button>
+    <button class="tab" data-tab="budget">תקציב ולו"ז</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero container">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    הצעה ל-MVP מרקטפלייס דו-צדדי
+  </div>
+  <h1>ביקשתם Bubble.<br><span class="accent">אני חייב להגיד לכם משהו.</span></h1>
+  <p class="lead">לפני שאני מצרף לינקים ל-3 אפליקציות Bubble, אני חייב לעצור ולומר משהו בכנות מקצועית: לדעתי, Bubble היא הבחירה הלא נכונה לפרויקט הזה — ויותר חשוב, יש דרך טובה יותר במחיר דומה ובאותו לוז. בלי לק. הסבר בפנים.</p>
+  <div class="hero-cta">
+    <a href="demo/" target="_blank" class="btn btn-primary">צפו בדמו של מרקטפלייס ←</a>
+    <a href="#" onclick="document.querySelector('[data-tab=why]').click(); return false;" class="btn btn-secondary">למה לא Bubble?</a>
+  </div>
+</section>
+
+<!-- TAB: PROPOSAL -->
+<section class="tab-section active container" id="proposal">
+  <div class="section-eyebrow">ההצעה</div>
+  <h2 class="section-title">MVP מרקטפלייס שמוכן לייצור אמיתי</h2>
+  <p class="section-lead">200 שעות עבודה זה היקף סביר ל-MVP של מרקטפלייס דו-צדדי — אם הסטאק נכון. אני מציע לבנות את ה-MVP שלכם בקוד אמיתי באמצעות Claude Code, במהירות זהה ל-Bubble, אבל עם תוצאה שתחזיק כשתעלו לסקייל, כשתתחילו לקבל אלפי משתמשים, וכשתבקשו פיצ'רים שאף כלי no-code לא מסוגל לתת.</p>
+
+  <div class="quote-box">
+    <p>"בכמה השנים האחרונות ראיתי לא מעט פרויקטים שיצאו לדרך ב-Bubble ולא הגיעו לייצור אמיתי. לא כי המפתחים לא היו טובים — אלא כי הכלי עצמו לא נבנה למה שמרקטפלייס דו-צדדי בזמן אמת צריך. ארכיטקטורת נתונים, Privacy Rules אמיתיים, ביצועים מתחת לסקייל, אינטגרציות סליקה ישראליות — כל אחד מהאלה הופך לסיוט ב-Bubble."</p>
+    <div class="by">— שלומי זוין, CTO as a Service · 20+ שנות פיתוח</div>
+  </div>
+
+  <div class="value-grid">
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <h4>אותה מהירות, איכות אחרת</h4>
+      <p>עם Claude Code בניהול שלי, MVP מרקטפלייס מלא נכנס ל-200 שעות בקלות — בקוד אמיתי, נקי, מתועד. בלי "תקרה של Bubble".</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h4>אבטחה אמיתית, לא Privacy Rules</h4>
+      <p>במקום מערכת מבולגנת של Privacy Rules ב-Bubble (שמרקטפלייס מאחד לקריסה מהר), backend אמיתי עם authorization, RLS ב-Postgres, audit logs. בנוי לאמת.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <h4>סליקה ישראלית — native</h4>
+      <p>משולם, קארדקום, Tranzila, Pelecard — אינטגרציות native. לא workarounds של Bubble plugin. webhooks, payouts לצד השני, refunds, חיובים מורכבים.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h4>זמן אמת אמיתי</h4>
+      <p>WebSocket / SSE לרילטיים מטצ'ינג, נוטיפיקציות, סטטוסים. לא polling כל 5 שניות שעולה לכם בחבילה של Bubble. ארכיטקטורה נכונה מהיום הראשון.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      </div>
+      <h4>Mobile-first אמיתי</h4>
+      <p>responsive design ב-CSS modern (flex/grid). לא "Bubble responsive" שנשבר ב-Safari. ביצועים מעולים גם במכשירים חלשים. אפשר אפילו PWA / native לאחר MVP.</p>
+    </div>
+
+    <div class="value-card">
+      <div class="icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6v6H9z"/></svg>
+      </div>
+      <h4>הקוד שלכם, ה-IP שלכם</h4>
+      <p>Git repo פרטי שלכם, hosting שלכם, database שלכם. בהתאמה למה שאתם מבקשים ב-NDA וב-IP transfer. בלי vendor lock-in. בלי "מה יקרה אם Bubble יסגרו את החשבון".</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון</div></div>
+    <div class="stat"><div class="num">50+</div><div class="label">מוצרים מאפס</div></div>
+    <div class="stat"><div class="num">100×</div><div class="label">מכפיל Claude Code</div></div>
+    <div class="stat"><div class="num">200</div><div class="label">שעות ל-MVP מלא</div></div>
+  </div>
+
+  <h3 style="margin-top: 60px; margin-bottom: 16px; font-size: 24px; font-weight: 700;">מה כלול ב-MVP</h3>
+  <div class="value-grid">
+    <div class="value-card">
+      <h4>שני זרמי משתמש</h4>
+      <p>Onboarding מלא לשני הצדדים — KYC בסיסי, profile, אימות. דיוק מקצועי בצד מורכב של מרקטפלייסים.</p>
+    </div>
+    <div class="value-card">
+      <h4>מנוע מטצ'ינג בזמן אמת</h4>
+      <p>הליבה של מרקטפלייס דו-צדדי. אלגוריתם מטצ'ינג מותאם, WebSocket לעדכונים, מערכת התראות חיה.</p>
+    </div>
+    <div class="value-card">
+      <h4>סליקה ישראלית מלאה</h4>
+      <p>משולם / קארדקום / Tranzila. payouts לצד השני, refunds, חשבוניות אוטומטיות.</p>
+    </div>
+    <div class="value-card">
+      <h4>WhatsApp + SMS</h4>
+      <p>Twilio / Vonage / Pelephone API. התראות אוטומטיות בנקודות הקריטיות של המסע.</p>
+    </div>
+    <div class="value-card">
+      <h4>פאנל ניהול מלא</h4>
+      <p>סטטיסטיקות, ניהול משתמשים, ניהול עסקאות, KYC review, billing — לפי האפיון שלכם.</p>
+    </div>
+    <div class="value-card">
+      <h4>Database Schema מקצועי</h4>
+      <p>PostgreSQL נורמלי + indexes, audit logs, RLS אמיתי. תשתית שמחזיקה ל-100x משתמשים.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB: WHY NOT BUBBLE -->
+<section class="tab-section container" id="why">
+  <div class="section-eyebrow">למה לא Bubble</div>
+  <h2 class="section-title">בכנות, על הסכנות של Bubble למרקטפלייס</h2>
+  <p class="section-lead">חשוב לי לומר את זה ברור: יש פרויקטים ש-Bubble מעולה להם — landing pages, prototypes, פלטפורמות פנימיות פשוטות. <strong style="color: var(--text);">מרקטפלייס דו-צדדי בזמן אמת עם סליקה — לא ביניהם.</strong> ראיתי יותר מדי פרויקטים נופלים בדיוק בנקודה הזו. הנה למה:</p>
+
+  <div class="comparison">
+    <div class="comp-card">
+      <h3>Bubble.io · מה שמחכה לכם</h3>
+      <span class="tag">מציאות שיוצאת לאור אחרי 100 שעות</span>
+      <ul class="comp-list">
+        <li><span class="x">✕</span> <strong>ביצועים</strong> — מתחת ל-1000 משתמשים נראה טוב. מעבר לזה הדפים נטענים ב-3-7 שניות. fix: aggressive caching, חבילות מחיר עולות.</li>
+        <li><span class="x">✕</span> <strong>Privacy Rules</strong> — מערכת שמורכבת לרוחב במהירות. במרקטפלייס דו-צדדי, שגיאת privacy = leak של מידע בין צד א' לצד ב'. ראיתי את זה קורה.</li>
+        <li><span class="x">✕</span> <strong>זמן אמת</strong> — אין WebSocket אמיתי. הכל polling שעולה כסף ועוד כסף.</li>
+        <li><span class="x">✕</span> <strong>סליקה ישראלית</strong> — אין integration native. plugins לא אמינים. תכננו לשבועות של דיבוג.</li>
+        <li><span class="x">✕</span> <strong>תמחור</strong> — workflow units אוזלים. שדרוג חבילה כל כמה חודשים. ברגע שהמרקטפלייס מצליח, החשבון מתפוצץ.</li>
+        <li><span class="x">✕</span> <strong>Vendor lock-in</strong> — לא ניתן לייצא את האפליקציה. אם Bubble נופלים / מעלים מחירים / שנהי מדיניות — אתם תקועים.</li>
+        <li><span class="x">✕</span> <strong>מובייל</strong> — responsive ב-Bubble בעייתי. PWA / native — לא ריאלי.</li>
+        <li><span class="x">✕</span> <strong>NDA / IP</strong> — הקוד לא באמת שלכם. ה-IP transfer הופך לתיאורטי.</li>
+      </ul>
+    </div>
+
+    <div class="comp-card highlighted">
+      <h3>קוד אמיתי + Claude Code</h3>
+      <span class="tag">הגישה שלי</span>
+      <ul class="comp-list">
+        <li><span class="check">✓</span> <strong>ביצועים</strong> — Next.js + Postgres = milliseconds. עומד באלפי משתמשים בו-זמנית כברירת מחדל.</li>
+        <li><span class="check">✓</span> <strong>אבטחה</strong> — authorization בקוד, RLS אמיתי ב-Postgres, audit logs. בנוי לסטנדרטים תאגידיים.</li>
+        <li><span class="check">✓</span> <strong>זמן אמת</strong> — WebSocket / SSE native. מטצ'ינג בזמן אמת אמיתי, לא סימולציה.</li>
+        <li><span class="check">✓</span> <strong>סליקה ישראלית</strong> — אינטגרציות עמוקות עם משולם / קארדקום / Tranzila. כמו במערכות שכבר בניתי.</li>
+        <li><span class="check">✓</span> <strong>תמחור</strong> — תשלמו hosting ($20-50/חודש) + DB. צומח לאט וצפוי.</li>
+        <li><span class="check">✓</span> <strong>בעלות</strong> — ה-repo שלכם, hosting שלכם. אין lock-in. תוכלו להחליף מפתח מחר אם תרצו.</li>
+        <li><span class="check">✓</span> <strong>מובייל</strong> — responsive ברמת פיקסל. PWA זמין. native app אפשרי.</li>
+        <li><span class="check">✓</span> <strong>NDA / IP</strong> — אמיתי. הקוד שלכם. ההעברה שלכם.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px;">"אבל אתה כותב שזה לוקח אותו זמן — איך?"</h3>
+  <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 16px;">בגלל ש-<code>Claude Code</code> מאפשר לי לכתוב קוד ב-velocity של no-code, אבל עם איכות production. 20+ שנות פיתוח שלי = יודע מה לבקש, מתי לעצור, איפה לבדוק. ההבדל בינ </p>
+
+  <div class="value-grid" style="margin-top: 0;">
+    <div class="value-card">
+      <h4>הסטאק שאני בונה בו</h4>
+      <p>Next.js (frontend), Node.js (backend), PostgreSQL (database), Stripe/משולם (payments), Twilio (SMS/WhatsApp), Vercel/Railway (hosting). הכל סטנדרט תעשייתי, מתועד, מבוקר.</p>
+    </div>
+    <div class="value-card">
+      <h4>למה זה משנה לכם</h4>
+      <p>אם המרקטפלייס מצליח, רוצים שיצמח. לא רוצים מצב שכל פיצ'ר חדש דורש workaround. לא רוצים לראות את התקציב שלכם נשרף על Bubble subscription. רוצים לישון בלילה.</p>
+    </div>
+    <div class="value-card">
+      <h4>מה אם בכל זאת רוצים Bubble?</h4>
+      <p>אני לא הצוות שלכם. אומר את זה בכנות — אני לא אבנה משהו שאני יודע שיגיע לקיר. יש מפתחי Bubble מעולים, ואני שמח להמליץ. אבל לא אעשה עבודה שאני יודע שתעלה לכם פי 3 בשנה הבאה.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB: DEMO -->
+<section class="tab-section container" id="demo">
+  <div class="section-eyebrow">דמו מרקטפלייס</div>
+  <h2 class="section-title">דוגמה שנבנתה תוך דקות</h2>
+  <p class="section-lead">במקום לצרף לינקים לאפליקציות Bubble (שאני לא ממליץ עליהן בכל מקרה), בניתי לכם דמו מהיר של מרקטפלייס דו-צדדי בקוד אמיתי. הכל responsive, real-time, ועובד. נבנה תוך דקות באמצעות Claude Code — אותה תשתית שתקבלו במוצר האמיתי.</p>
+
+  <div class="demo-actions">
+    <a href="demo/" target="_blank" class="btn btn-primary">פתחו את הדמו במסך מלא ←</a>
+  </div>
+
+  <div class="demo-note">
+    <strong>הערה:</strong> דמו ניטרלי לדוגמה. המרקטפלייס שלכם יהיה לפי האפיון שלכם — תהליכים, צדדים, מטצ'ינג, סליקה, התראות, פאנל ניהול — כפי שמופיע במסמך הדרישות. הדמו פה כדי להראות איכות, רספונסיביות, וזמן בנייה.
+  </div>
+
+  <div class="demo-frame-wrap">
+    <div class="demo-toolbar">
+      <div class="demo-dots">
+        <div class="demo-dot r"></div>
+        <div class="demo-dot y"></div>
+        <div class="demo-dot g"></div>
+      </div>
+      <div class="demo-url">boostmind-b052c.web.app/marketplace-mvp/demo/</div>
+    </div>
+    <iframe class="demo-iframe" src="demo/" title="דמו מרקטפלייס" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- TAB: BUDGET -->
+<section class="tab-section container" id="budget">
+  <div class="section-eyebrow">תקציב ולו"ז</div>
+  <h2 class="section-title">איך עובדים יחד</h2>
+  <p class="section-lead">המודל החודשי שלי גמיש ל-milestones כמו שאתם מבקשים. אבני דרך מוגדרות, תוצרים ברורים, ובעלות מלאה שלכם על הכל. NDA + IP transfer — כמובן, חלק מהותי מהשיטה.</p>
+
+  <div class="budget-card">
+    <span class="who">CTO as a Service</span>
+    <h3>שלומי זוין · באופן אישי</h3>
+    <p class="tagline">פרילנסר ותיק, ניסיון מוכח. אישית מוביל את הפרויקט. 200 שעות נכנסות בכ-2-3 חודשים חיים.</p>
+    <div class="price-wrap">
+      <div class="price">₪50,000<span style="font-size: 18px; color: var(--text-muted); font-weight: 600;"> / חודש</span></div>
+      <div class="price-suffix">חודשי. סך הכל ל-MVP: כ-₪100K-150K לפי 2-3 חודשי עבודה.</div>
+    </div>
+    <ul class="budget-features">
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> שלומי באופן אישי — לא צוות, לא מתווך</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Milestones מוגדרים מראש — תשלום לפי תוצרים</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> NDA + העברת IP מלאה — חלק מהשיטה</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> כל חשבונות צד שלישי בבעלותכם המלאה</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> אינטגרציה עם סליקה ישראלית מלאה</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Twilio / WhatsApp / SMS — אוטומציות מלאות</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Mobile-first מקצועי</li>
+      <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> אחריות מלאה אחרי ההשקה</li>
+    </ul>
+    <a href="https://wa.me/972545567213" target="_blank" class="btn btn-primary" style="width: 100%; justify-content: center;">תיאום שיחה</a>
+  </div>
+
+  <div class="milestones">
+    <h3>אבני דרך (Milestones)</h3>
+    <div class="milestone-grid">
+      <div class="milestone">
+        <div class="ms-num">Milestone 1</div>
+        <div class="ms-name">Foundation</div>
+        <div class="ms-desc">DB schema, auth, onboarding שני צדדים, profiles. ~3 שבועות.</div>
+      </div>
+      <div class="milestone">
+        <div class="ms-num">Milestone 2</div>
+        <div class="ms-name">Core Matching</div>
+        <div class="ms-desc">מנוע מטצ'ינג, רילטיים, התראות פנים-מערכת. ~3 שבועות.</div>
+      </div>
+      <div class="milestone">
+        <div class="ms-num">Milestone 3</div>
+        <div class="ms-name">Payments + Comms</div>
+        <div class="ms-desc">סליקה ישראלית, WhatsApp/SMS, חשבוניות, payouts. ~2 שבועות.</div>
+      </div>
+      <div class="milestone">
+        <div class="ms-num">Milestone 4</div>
+        <div class="ms-name">Admin + Launch</div>
+        <div class="ms-desc">פאנל ניהול, ביצועים, אבטחה, בדיקות, השקה לייצור. ~2 שבועות.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack-wrap">
+    <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 20px;">הסטאק</h3>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <div class="stack-label">Frontend</div>
+        <div class="stack-items">Next.js · React · TypeScript · Tailwind</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Backend</div>
+        <div class="stack-items">Node.js · tRPC / REST · WebSocket</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Database</div>
+        <div class="stack-items">PostgreSQL · Redis · RLS · audit logs</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Payments</div>
+        <div class="stack-items">משולם · קארדקום · Tranzila · Stripe</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Comms</div>
+        <div class="stack-items">Twilio · WhatsApp Business · SMS</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-label">Hosting</div>
+        <div class="stack-items">Vercel · Railway · AWS — בחירתכם</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="final-cta">
+    <h2>שיחה של 20 דקות.</h2>
+    <p>גם אם בסוף תבחרו ב-Bubble — אומר לכם בכנות מה הסיכונים, מה ההזדמנויות, ואיך הייתי בונה את זה. בלי התחייבות. בלי לחץ.</p>
+    <div class="hero-cta">
+      <a href="https://wa.me/972545567213" target="_blank" class="btn btn-primary">WhatsApp ←</a>
+      <a href="mailto:shlomi@boostart.io" class="btn btn-secondary">shlomi@boostart.io</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">© שלומי זוין · Boostart</div>
+      <div class="footer-contact">
+        <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+        <a href="tel:+972545567213">054-5567213</a>
+        <a href="https://wa.me/972545567213" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const body = document.body;
+
+  function setTheme(theme) {
+    body.setAttribute('data-theme', theme);
+    iconSun.style.display = theme === 'light' ? 'block' : 'none';
+    iconMoon.style.display = theme === 'light' ? 'none' : 'block';
+    try { localStorage.setItem('theme', theme); } catch(e) {}
+  }
+
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+
+  themeToggle.addEventListener('click', () => {
+    const current = body.getAttribute('data-theme');
+    setTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.tab-section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      sections.forEach(s => {
+        s.classList.toggle('active', s.id === target);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

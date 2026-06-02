@@ -9,6 +9,7 @@ interface Props {
   answers: Answers
   onBack: () => void
   onRetake: () => void
+  onPrintQA: () => void
 }
 
 const BAND_BG: Record<Band, string> = {
@@ -32,7 +33,7 @@ const BAND_BORDER: Record<Band, string> = {
   veryhigh: 'border-band-veryhigh/40',
 }
 
-export const Results = ({ answers, onBack, onRetake }: Props) => {
+export const Results = ({ answers, onBack, onRetake, onPrintQA }: Props) => {
   const results = useMemo(() => scoreAll(answers), [answers])
 
   const totalAnswered = results.reduce((sum, r) => sum + r.itemsAnswered, 0)
@@ -50,10 +51,11 @@ export const Results = ({ answers, onBack, onRetake }: Props) => {
           ← חזור
         </button>
         <div className="flex flex-wrap gap-2">
+          <button onClick={onPrintQA} className="btn-primary text-sm">PDF שאלות + תשובות</button>
           <button onClick={() => exportJson(answers, results)} className="btn-ghost text-sm">JSON</button>
           <button onClick={() => exportAnswersCsv(answers)} className="btn-ghost text-sm">CSV תשובות</button>
           <button onClick={() => exportResultsCsv(results)} className="btn-ghost text-sm">CSV תוצאות</button>
-          <button onClick={printResults} className="btn-ghost text-sm">הדפסה / PDF</button>
+          <button onClick={printResults} className="btn-ghost text-sm">PDF תוצאות</button>
           <button onClick={onRetake} className="btn-ghost text-sm">מילוי חדש</button>
         </div>
       </div>

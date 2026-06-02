@@ -29,6 +29,17 @@
   }
 }
 
+@media print {
+  html, body {
+    background: white !important;
+    color: black !important;
+  }
+  .screen-only { display: none !important; }
+  .print-qa { page-break-inside: auto; }
+  .break-inside-avoid { break-inside: avoid; }
+  .break-inside-avoid-page { break-inside: avoid-page; }
+}
+
 @layer components {
   .card {
     @apply bg-bg-card border border-border rounded-xl;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Intro } from './components/Intro'
 import { Questionnaire } from './components/Questionnaire'
 import { Results } from './components/Results'
+import { PrintAnswers } from './components/PrintAnswers'
 import { isComplete } from './lib/scoring'
 import type { Answers, Rating } from './lib/scoring'
 import {
@@ -10,7 +11,7 @@ import {
   loadTheme, saveTheme,
 } from './lib/storage'
 
-type View = 'intro' | 'questionnaire' | 'results'
+type View = 'intro' | 'questionnaire' | 'results' | 'print-qa'
 
 const App = () => {
   const [answers, setAnswers] = useState<Answers>(() => loadAnswers())
@@ -89,6 +90,14 @@ const App = () => {
           answers={answers}
           onBack={handleExitToIntro}
           onRetake={handleStart}
+          onPrintQA={() => setView('print-qa')}
+        />
+      )}
+
+      {view === 'print-qa' && (
+        <PrintAnswers
+          answers={answers}
+          onClose={() => setView('results')}
         />
       )}
     </div>
