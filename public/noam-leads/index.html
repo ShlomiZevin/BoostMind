@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>לוח העבודה של נועם — ניהול לידים</title>
+  <meta name="description" content="כלי העבודה של נועם: לוח לניהול לידים — לראות, לסנן, לסמן סטטוס ולהוסיף הערות, ומדריך קצר איך עובדים." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --bg-alt: #0f131a;
+      --card-bg: #151a23;
+      --card-bg-2: #1a2230;
+      --accent: #f59e0b;
+      --accent-soft: rgba(245, 158, 11, 0.12);
+      --blue: #0ea5e9;
+      --blue-soft: rgba(14, 165, 233, 0.12);
+      --green: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.12);
+      --purple: #a855f7;
+      --purple-soft: rgba(168, 85, 247, 0.12);
+      --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.12);
+      --gray: #9aa3b2;
+      --border: #232936;
+      --border-soft: rgba(255,255,255,0.06);
+      --text: #f4f6f9;
+      --text-muted: #9aa3b2;
+      --radius-lg: 16px;
+      --radius-md: 11px;
+      --radius-sm: 8px;
+    }
+    [data-theme="light"] {
+      --bg: #f7f8fa; --bg-alt: #eef1f5; --card-bg: #ffffff; --card-bg-2: #f3f5f8;
+      --border: #e2e6ec; --border-soft: rgba(0,0,0,0.07);
+      --text: #11161f; --text-muted: #5b6472;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; transition: background .25s, color .25s; -webkit-font-smoothing: antialiased; }
+    .container { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 1.1rem; }
+    a { color: inherit; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px); background: color-mix(in srgb, var(--bg) 88%, transparent); border-bottom: 1px solid var(--border-soft); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: .65rem 0; gap: 1rem; }
+    .logo { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.05rem; font-weight: 800; color: #1a1205; }
+    .logo-text b { font-weight: 700; font-size: .95rem; display: block; line-height: 1.2; }
+    .logo-text span { font-size: .72rem; color: var(--text-muted); }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 999px; padding: .35rem .7rem; cursor: pointer; font-size: .82rem; color: var(--text-muted); transition: all .18s; font-family: inherit; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* TABS */
+    .tabs-wrap { position: sticky; top: 51px; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-soft); }
+    .tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: .95rem; font-weight: 500; padding: .85rem 1.15rem; cursor: pointer; position: relative; transition: color .18s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); font-weight: 600; }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px; background: var(--accent); border-radius: 2px 2px 0 0; }
+    .tab-content { display: none; animation: fade .3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* INTRO */
+    .intro { padding: 1.6rem 0 .6rem; }
+    .intro h1 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); font-weight: 800; letter-spacing: -.5px; margin-bottom: .35rem; }
+    .intro p { color: var(--text-muted); font-size: .98rem; max-width: 760px; }
+
+    /* PIPELINE STATS */
+    .pipeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: .55rem; margin: 1.1rem 0 1.2rem; }
+    .pstat { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: .6rem .7rem; text-align: center; cursor: pointer; transition: border-color .15s, transform .15s; border-top: 3px solid var(--s-color, var(--gray)); }
+    .pstat:hover { transform: translateY(-2px); }
+    .pstat.active { border-color: var(--s-color); box-shadow: 0 0 0 1px var(--s-color) inset; }
+    .pstat .n { font-size: 1.5rem; font-weight: 800; line-height: 1; color: var(--s-color, var(--text)); }
+    .pstat .l { font-size: .72rem; color: var(--text-muted); margin-top: .25rem; }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; margin-bottom: 1.1rem; }
+    .search { flex: 1; min-width: 200px; position: relative; }
+    .search input { width: 100%; background: var(--card-bg); border: 1px solid var(--border); border-radius: 999px; padding: .55rem 2.4rem .55rem 1rem; color: var(--text); font-family: inherit; font-size: .92rem; outline: none; transition: border-color .15s; }
+    .search input:focus { border-color: var(--accent); }
+    .search::before { content: '🔍'; position: absolute; right: .85rem; top: 50%; transform: translateY(-50%); font-size: .85rem; opacity: .6; }
+    .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .chip-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 999px; padding: .4rem .85rem; font-size: .85rem; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s; }
+    .chip-btn:hover { color: var(--text); border-color: var(--text-muted); }
+    .chip-btn.active { background: var(--accent); color: #1a1205; border-color: var(--accent); font-weight: 600; }
+    .reset-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 999px; padding: .4rem .8rem; font-size: .8rem; cursor: pointer; font-family: inherit; transition: all .15s; }
+    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .count-line { font-size: .82rem; color: var(--text-muted); margin-bottom: .8rem; }
+
+    /* LEADS GRID */
+    .leads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1rem; padding-bottom: 2rem; }
+    .lead { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 1.1rem; display: flex; flex-direction: column; gap: .65rem; border-inline-start: 4px solid var(--s-color, var(--gray)); transition: transform .15s, box-shadow .15s; }
+    .lead:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .lead.is-hot { box-shadow: 0 0 0 1px color-mix(in srgb, var(--red) 35%, transparent); }
+    .lead-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .lead-name { font-size: 1.08rem; font-weight: 700; line-height: 1.25; }
+    .lead-name small { display: block; font-size: .75rem; color: var(--text-muted); font-weight: 400; direction: ltr; text-align: right; }
+    .top-right { display: flex; align-items: center; gap: .4rem; flex-shrink: 0; }
+    .star { background: none; border: none; cursor: pointer; font-size: 1.15rem; line-height: 1; padding: 0; color: var(--text-muted); transition: transform .12s; }
+    .star:hover { transform: scale(1.2); }
+    .star.on { color: var(--accent); }
+    .badge { font-size: .68rem; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; white-space: nowrap; }
+    .badge.hot { background: var(--red); color: #fff; }
+    .lead-meta { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .mchip { font-size: .72rem; padding: .2rem .5rem; border-radius: 6px; background: var(--card-bg-2); color: var(--text-muted); border: 1px solid var(--border-soft); }
+    .mchip.cat { color: var(--blue); background: var(--blue-soft); border-color: transparent; }
+    .lead-desc { font-size: .87rem; color: var(--text-muted); }
+    .box { border-radius: var(--radius-sm); padding: .55rem .7rem; font-size: .83rem; }
+    .box.weak { background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 20%, transparent); }
+    .box.weak b { color: var(--red); }
+    .box.todo { background: var(--green-soft); border: 1px solid color-mix(in srgb, var(--green) 20%, transparent); }
+    .box.todo b { color: var(--green); }
+    .lead-links { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .llink { font-size: .8rem; font-weight: 600; text-decoration: none; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: 999px; padding: .3rem .75rem; transition: all .15s; }
+    .llink:hover { background: var(--accent-soft); }
+    .llink.tel { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 28%, transparent); }
+    .llink.tel:hover { background: var(--blue-soft); }
+
+    /* STATUS CONTROL */
+    .status-row { display: flex; align-items: center; gap: .5rem; margin-top: .2rem; padding-top: .65rem; border-top: 1px dashed var(--border-soft); }
+    .status-row label { font-size: .78rem; color: var(--text-muted); font-weight: 600; flex-shrink: 0; }
+    .status-select { flex: 1; background: var(--card-bg-2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .6rem; font-family: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; outline: none; }
+    .status-select:focus { border-color: var(--accent); }
+    .note-input { width: 100%; background: var(--card-bg-2); color: var(--text); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: .5rem .65rem; font-family: inherit; font-size: .83rem; resize: vertical; min-height: 38px; outline: none; transition: border-color .15s; }
+    .note-input:focus { border-color: var(--accent); }
+    .note-input::placeholder { color: var(--text-muted); opacity: .7; }
+
+    .empty { text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: .95rem; }
+
+    /* GUIDE */
+    .section { padding: 1.6rem 0; }
+    .section h2 { font-size: 1.35rem; font-weight: 700; margin: 1.6rem 0 .3rem; display: flex; align-items: center; gap: .5rem; }
+    .section h2:first-child { margin-top: .4rem; }
+    .section h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .section .sub { color: var(--text-muted); margin-bottom: 1.1rem; font-size: .95rem; }
+    .gcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .9rem; }
+    .gcard { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 1.1rem; }
+    .gcard .ico { font-size: 1.5rem; margin-bottom: .5rem; }
+    .gcard h3 { font-size: 1rem; margin-bottom: .3rem; }
+    .gcard p { font-size: .87rem; color: var(--text-muted); }
+    .steps { display: flex; flex-direction: column; gap: .8rem; counter-reset: s; }
+    .step { display: flex; gap: .9rem; background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 1rem 1.1rem; }
+    .step .num { counter-increment: s; flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: #1a1205; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+    .step .num::before { content: counter(s); }
+    .step h4 { font-size: 1rem; margin-bottom: .2rem; }
+    .step p { font-size: .88rem; color: var(--text-muted); }
+    .callout { border-radius: var(--radius-md); padding: 1.1rem 1.2rem; border: 1px solid; margin: 1.1rem 0; }
+    .callout.info { background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 25%, transparent); }
+    .callout.good { background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 25%, transparent); }
+    .callout.warn { background: var(--red-soft); border-color: color-mix(in srgb, var(--red) 25%, transparent); }
+    .callout h4 { font-size: 1rem; margin-bottom: .35rem; }
+    .callout p { font-size: .9rem; color: var(--text-muted); }
+    .callout p + p { margin-top: .5rem; }
+    .msg-card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 1.2rem; }
+    .msg-card p { white-space: pre-line; font-size: .94rem; color: var(--text); }
+    .copy-btn { margin-top: .8rem; background: var(--accent); color: #1a1205; border: none; border-radius: 999px; padding: .45rem 1.1rem; font-size: .85rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .copy-btn:active { transform: scale(.97); }
+
+    /* CODE + TECH */
+    .codeblock { background: #0b0e13; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.15rem; overflow-x: auto; direction: ltr; text-align: left; margin: 1rem 0; }
+    [data-theme="light"] .codeblock { background: #0d1117; }
+    .codeblock pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .8rem; line-height: 1.6; color: #c9d1d9; white-space: pre; margin: 0; }
+    .codeblock .c { color: #8b949e; }
+    .codeblock .k { color: #ff7b72; }
+    .codeblock .s { color: #a5d6ff; }
+    .inline-code { font-family: ui-monospace, Consolas, monospace; font-size: .85em; background: var(--card-bg-2); border: 1px solid var(--border-soft); border-radius: 5px; padding: .05rem .35rem; color: var(--accent); direction: ltr; display: inline-block; }
+    .tech-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .8rem; margin: 1rem 0; }
+    .tech-item { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: .9rem 1rem; }
+    .tech-item .t { font-weight: 700; font-size: .95rem; margin-bottom: .15rem; display: flex; align-items: center; gap: .4rem; }
+    .tech-item .d { font-size: .82rem; color: var(--text-muted); }
+    .tech-item .tag { font-size: .68rem; font-family: ui-monospace, monospace; background: var(--accent-soft); color: var(--accent); padding: .1rem .4rem; border-radius: 5px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; margin: 1rem 0; }
+    .split .col { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 1rem 1.1rem; }
+    .split .col h4 { font-size: .98rem; margin-bottom: .4rem; }
+    .split .col p, .split .col li { font-size: .86rem; color: var(--text-muted); }
+    .split .col ul { padding-inline-start: 1.1rem; margin-top: .3rem; }
+    @media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
+
+    /* FOOTER */
+    .footer { border-top: 1px solid var(--border-soft); margin-top: 1rem; padding: 1.6rem 0; text-align: center; }
+    .footer p { color: var(--text-muted); font-size: .85rem; margin-bottom: .3rem; }
+    .footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 720px) {
+      .pipeline { grid-template-columns: repeat(3, 1fr); }
+      .leads-grid { grid-template-columns: 1fr; }
+      .logo-text span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">נ</span>
+        <span class="logo-text"><b>לוח העבודה של נועם</b><span>ניהול לידים · מעקב · ביצוע</span></span>
+      </a>
+      <button class="theme-toggle" id="themeToggle">☀️ מצב יום</button>
+    </div>
+  </header>
+
+  <div class="tabs-wrap">
+    <div class="container">
+      <nav class="tabs" id="tabs">
+        <button class="tab-btn active" data-tab="board">🎯 הלידים שלי</button>
+        <button class="tab-btn" data-tab="concept">💡 הקונספט</button>
+        <button class="tab-btn" data-tab="tech">🛠️ הטכנולוגיה</button>
+        <button class="tab-btn" data-tab="guide">📘 איך עובדים</button>
+      </nav>
+    </div>
+  </div>
+
+  <main class="container">
+
+    <!-- ===================== BOARD ===================== -->
+    <section class="tab-content active" id="board">
+      <div class="intro">
+        <h1>הלידים שלי</h1>
+        <p>זה הלוח שלך. כל ליד הוא עסק אמיתי שמתאים לבנות לו אתר. <b>סמן סטטוס, סנן, חפש, והוסף הערות</b> — הכל נשמר אצלך בדפדפן אוטומטית. לחיצה על שורת הסטטוס למעלה מסננת לפי שלב.</p>
+      </div>
+
+      <div class="pipeline" id="pipeline"><!-- live --></div>
+
+      <div class="toolbar">
+        <div class="search"><input type="text" id="searchInput" placeholder="חיפוש לפי שם, אזור או תחום..." /></div>
+        <div class="chips" id="catChips">
+          <button class="chip-btn active" data-cat="all">הכל</button>
+          <button class="chip-btn" data-cat="car">רכב</button>
+          <button class="chip-btn" data-cat="realestate">נדל"ן</button>
+          <button class="chip-btn" data-cat="clinic">קליניקות</button>
+          <button class="chip-btn" data-cat="exclude">⛔ לא מתאימים</button>
+        </div>
+        <button class="reset-btn" id="resetBtn">↺ אפס סימונים</button>
+      </div>
+
+      <div class="count-line" id="countLine"></div>
+      <div class="leads-grid" id="leadsGrid"></div>
+    </section>
+
+    <!-- ===================== CONCEPT ===================== -->
+    <section class="tab-content" id="concept">
+      <div class="section">
+        <div class="intro" style="padding-top:.4rem">
+          <h1>הקונספט — "Flagship דיגיטלי"</h1>
+          <p>לא עוד אתר. לא עוד צ'אטבוט. <b>חוויה דיגיטלית שמתייחסת לכל מבקר כאורח פרטי</b> — ומפנה אותו לפגישה. זה מה שנבנה לעסקים האלה, וזה מה שאף אחד עוד לא עושה נכון.</p>
+        </div>
+
+        <h2><span class="dot"></span> התובנה: האתר הוא חליפה, לא כלי</h2>
+        <p class="sub">מתווך יוקרה / יבואן רכב / קליניקה אסתטית — האתר שלהם הוא <b>תדמית</b>. הוא חלק מהמוצר. הוא קיים כדי לגרום למבקר <i>להרגיש</i> את היוקרה ולגרום לבעלים <i>להיראות</i> אליטיסט. לכן השאלה היא לא "איך נביא עוד לידים" אלא:</p>
+        <div class="callout info">
+          <h4>"מה גורם למבקר להרגיש שנכנס לסלון פרטי במקום לחנות?"</h4>
+          <p>זה הדבר שאף אחד לא חידש כבר 20 שנה. האתרים האלה קפואים כברושורה דיגיטלית: דף בית ← גלריה ← אודות ← טופס. אותו דבר לכולם. ברושורה היא ההפך מיוקרה — יוקרה זה תשומת לב אישית, מישהו ש<b>מבין אותך</b>.</p>
+        </div>
+
+        <h2><span class="dot"></span> איך מתאימים למבקר שלא מכירים? פשוט — שואלים</h2>
+        <p class="sub">הטעות היא לנסות <i>לנחש</i> מבקר קר מתוך דאטה — מורכב, מטריד, ולא אמין. הפתרון הוא הפתרון היוקרתי: <b>קונסיירז' טוב לא מנתח אותך בסתר. הוא שואל שאלה אחת.</b></p>
+        <div class="gcards">
+          <div class="gcard"><div class="ico">❓</div><h3>שאלה אחת בכניסה</h3><p>"מחפש בית למגורים, או השקעה?" · "רכב ראשון, או להוסיף לאוסף?" — נגיעה אחת, וכבר יודעים את הסגמנט. בלי מעקב, בלי דאטה.</p></div>
+          <div class="gcard"><div class="ico">🎯</div><h3>התאמה בזמן אמת</h3><p>הפרסונליזציה היא <b>מוצהרת ברגע</b> ומתחדדת תוך כדי שיחה — לא מנוחשת מפרופיל. פשוט יותר לבנות, וכן יותר.</p></div>
+          <div class="gcard"><div class="ico">✨</div><h3>זה מרגיש כמו יחס</h3><p>להישאל "מה מביא אותך?" זו תשומת לב, לא חיכוך. בדיוק התחושה של מותג יוקרה.</p></div>
+        </div>
+
+        <h2><span class="dot"></span> 50/50 — קונסיירז' או דפדוף, לבחירת המבקר</h2>
+        <div class="split">
+          <div class="col">
+            <h4>💬 מסלול קונסיירז'</h4>
+            <p>מי שרוצה שיובילו אותו — מדבר עם הסוכן. הוא שואל, מסנן, ממליץ על ה-3 הנכונים, ומתאם פגישה. כמו דילר פרטי.</p>
+          </div>
+          <div class="col">
+            <h4>🖼️ מסלול דפדוף</h4>
+            <p>מי שרוצה לחקור לבד — גולל קטלוג נקי וקולנועי. בכל רגע יכול לקפוץ לסוכן ("שאל על הנכס הזה"). אותו מנוע, שתי דלתות.</p>
+          </div>
+        </div>
+        <p class="sub">המבקר בוחר את הקצב שלו. שתי הדלתות מובילות לאותו מקום: <b>פגישה + ליד אצל הבעלים.</b></p>
+
+        <h2><span class="dot"></span> הקסם האמיתי = פונקציונליות, לא עיצוב</h2>
+        <p class="sub">העיצוב מכניס אותם בדלת. <b>הפונקציה היא מה שמשלמים עליה כל חודש.</b> רשימה קצרה — וזה מה שוויקס לא יכול לעשות:</p>
+        <div class="gcards">
+          <div class="gcard"><div class="ico">⚡</div><h3>תשובות מיידיות מהמלאי האמיתי</h3><p>בלי "נחזור אליך". הסוכן יודע בדיוק מה יש.</p></div>
+          <div class="gcard"><div class="ico">📅</div><h3>קובע פגישה עכשיו</h3><p>סיור / נסיעת מבחן / תור — ישר ליומן.</p></div>
+          <div class="gcard"><div class="ico">🔎</div><h3>התאמה בשפה חופשית</h3><p>"וילה עם בריכה בכפר שמריהו עד 20 מ׳" ← ה-3 הנכונים, לא 200.</p></div>
+          <div class="gcard"><div class="ico">📲</div><h3>הליד נוחת אצל הבעלים מיד</h3><p>שם, מה רצה, מתי מגיע — ישר לטלפון.</p></div>
+        </div>
+
+        <h2><span class="dot"></span> ההרחבה שמבדלת לגמרי: חדר תצוגה פרטי</h2>
+        <div class="callout good">
+          <h4>🔗 "מר כהן — שלוש יחידות, נבחרו עבורך"</h4>
+          <p>לבעלים יש לקוח חם. בלחיצה, המערכת מייצרת <b>עמוד תצוגה פרטי וממותג</b> — לינק ייחודי, השם שלו עליו, רק הפריטים שנבחרו לו. הבעלים שולח את זה במקום וואטסאפ עם 4 תמונות מטושטשות. <b>הלינק עצמו גורם לבעלים להיראות מיליון דולר.</b> זו המכירה הרגשית: לא "תקבל לידים" אלא "כל לינק שתשלח יציג אותך כשחקן הכי אליטיסט בשוק". אותו מנוע — פעם לקהל, פעם ללקוח אחד.</p>
+        </div>
+
+        <h2><span class="dot"></span> למה זה לא ניתן להעתקה (ועדיין קל לנו לשכפל)</h2>
+        <div class="split">
+          <div class="col">
+            <h4>למה מתחרים לא יעתיקו</h4>
+            <ul>
+              <li>צ'אטבוט זה פיצ'ר שכל אחד מדביק. חוויה יוקרתית + קונסיירז' + חדרי תצוגה פרטיים זו <b>קטגוריה</b>.</li>
+              <li>היא מוגדרת ע"י טעם ו-art direction — דברים שוויקס וכלים ב-20$ פשוט לא מסוגלים לייצר.</li>
+            </ul>
+          </div>
+          <div class="col">
+            <h4>למה לנועם זה קל לשכפל</h4>
+            <ul>
+              <li>מנוע אחד. לכל לקוח מחליפים: <b>Brand Kit</b> (פונט, צבעים, תנועה) + <b>מלאי</b> + <b>פרסונה</b>.</li>
+              <li>Flagship חדש תוך אחר־צהריים — אבל כל אחד מרגיש בעבודת יד, כי המנוע מבצע art-direction מה-Brand Kit.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <h4>📌 השורה התחתונה</h4>
+          <p>הם לא צריכים אתר. הם צריכים <b>Flagship דיגיטלי שמתייחס לכל מבקר כאורח פרטי — ולינק שהם גאים לשלוח.</b> זה לא היה קיים. זה מה שנועם בונה.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TECH ===================== -->
+    <section class="tab-content" id="tech">
+      <div class="section">
+        <div class="intro" style="padding-top:.4rem">
+          <h1>הטכנולוגיה</h1>
+          <p>הכלל הכי חשוב: <b>מנוע גנרי אחד שנועם משכפל</b> — לא לבנות כל אתר מאפס. מנוע אחד משרת נדל"ן, רכב וקליניקות. לכל לקוח רק קונפיג + מלאי + פרסונה.</p>
+        </div>
+
+        <h2><span class="dot"></span> הסטאק</h2>
+        <div class="tech-row">
+          <div class="tech-item"><div class="t">⚛️ React <span class="tag">frontend</span></div><div class="d">ה-widget הצף, לוח הבקרה של הבעלים, ותבנית האתר/Flagship.</div></div>
+          <div class="tech-item"><div class="t">🟩 Node.js <span class="tag">backend</span></div><div class="d">אורקסטרציה של הסוכן, function-calling, webhooks של ערוצים, קביעת פגישות.</div></div>
+          <div class="tech-item"><div class="t">🔥 Firestore <span class="tag">DB עכשיו</span></div><div class="d">ללא DevOps, real-time ללוח הבקרה בחינם. מושלם להשקה ול-20–50 לקוחות ראשונים.</div></div>
+          <div class="tech-item"><div class="t">🐘 PostgreSQL <span class="tag">DB בהמשך</span></div><div class="d">כשגדלים בגדול. מחליפים <b>רק</b> את שכבת ה-repo — הסוכן וה-UI לא יודעים על זה.</div></div>
+          <div class="tech-item"><div class="t">🤖 GPT <span class="tag">LLM</span></div><div class="d">המוח של הסוכן. provider-agnostic — אפשר להחליף ל-Claude בלי לגעת בלוגיקה.</div></div>
+          <div class="tech-item"><div class="t">💬 לינק וואטסאפ <span class="tag">יציאה בלבד</span></div><div class="d">כפתור <span class="inline-code">wa.me</span> פשוט — מהאתר יוצאים לוואטסאפ של העסק, כמו כל אתר. <b>בלי אינטגרציה דו-כיוונית</b> — יותר מדי כאב ראש להתחלה.</div></div>
+        </div>
+
+        <h2><span class="dot"></span> Firestore או Postgres? — ההכרעה</h2>
+        <div class="callout good">
+          <h4>מתחילים ב-Firestore. הסוד: Repository Pattern</h4>
+          <p>כל קריאה/כתיבה עוברת דרך ממשק אחד (<span class="inline-code">repo.getCatalog(tenantId)</span>) — אף פעם לא קוראים ל-Firestore ישירות מהלוגיקה. ככה <b>לא מחליטים על DB עכשיו — מחליטים על הממשק עכשיו.</b> Firestore הוא ה-impl הראשון הנכון (אפס תחזוקה, real-time), ומעבר ל-Postgres בעתיד הוא החלפת מימוש אחד, לא כתיבה מחדש. גם מהיר־עכשיו וגם בר־צמיחה.</p>
+        </div>
+
+        <h2><span class="dot"></span> הארכיטקטורה (Multi-Tenant)</h2>
+        <p class="sub">כל לקוח הוא רק <span class="inline-code">tenantId</span>. מנוע אחד, הרבה לקוחות.</p>
+        <div class="codeblock"><pre><span class="c">┌─ FRONTEND (React) ──────────────────────────┐</span>
+  • embed.js        <span class="c">→ ה-widget שמודבק על כל אתר קיים</span>
+  • dashboard/      <span class="c">→ CRM לבעלים: לידים, שיחות, פגישות</span>
+  • flagship/       <span class="c">→ אתר/חוויה מלאה (כשרוצים בנייה מחדש)</span>
+<span class="c">└─────────────────────────────────────────────┘</span>
+<span class="c">┌─ BACKEND (Node.js) ─────────────────────────┐</span>
+  • /agent          <span class="c">→ אורקסטרציה + LLM function-calling</span>
+  • /notify         <span class="c">→ התראת ליד לבעלים (מייל / וואטסאפ יוצא)</span>
+  • tools/          <span class="c">→ כלים גנריים (ראה למטה)</span>
+  • repo/           <span class="c">→ ממשק אחד, DB מתחלף מאחוריו</span>
+<span class="c">└─────────────────────────────────────────────┘</span>
+<span class="c">┌─ DATA (Firestore → Postgres) ───────────────┐</span>
+  tenants/{id}      <span class="c">→ vertical, persona, brandKit, calendar</span>
+  catalog/{id}      <span class="c">→ properties | cars | treatments</span>
+  conversations/    <span class="c">→ זיכרון מלא, per-tenant</span>
+  leads/ · bookings/
+<span class="c">└─────────────────────────────────────────────┘</span></pre></div>
+
+        <h2><span class="dot"></span> 3 העקרונות שהופכים את זה לשכפיל בשעה</h2>
+        <div class="steps">
+          <div class="step"><div class="num"></div><div><h4>כלים גנריים, וורטיקל מתחלף</h4><p><span class="inline-code">searchCatalog()</span> · <span class="inline-code">getDetails()</span> · <span class="inline-code">bookMeeting()</span> · <span class="inline-code">captureLead()</span> — זהים לרכב/נדל"ן/קליניקה. לקוח חדש = tenant doc חדש + מלאי. <b>בלי קוד.</b></p></div></div>
+          <div class="step"><div class="num"></div><div><h4>Repository מעל ה-DB</h4><p>הלוגיקה לא מכירה את Firestore. החלפה ל-Postgres = מימוש repo אחד חדש. ה-UI והסוכן לא משתנים.</p></div></div>
+          <div class="step"><div class="num"></div><div><h4>אתר מלא ועצמאי — לא widget באמצע</h4><p>הדליברבל הוא <b>האתר האמיתי המלא והפונקציונלי</b>. ערוצים חיצוניים? רק <b>לינק וואטסאפ יוצא</b> (<span class="inline-code">wa.me</span>), כמו כל אתר. בלי אינטגרציות דו-כיווניות בהתחלה — נועם מגיע עם האתר עצמו, לא עם משהו באמצע.</p></div></div>
+        </div>
+
+        <h2><span class="dot"></span> אופציונלי: רגל בדלת על האתר הקיים</h2>
+        <div class="codeblock"><pre><span class="k">&lt;script</span> <span class="s">src</span>=<span class="s">"https://agent.noam.dev/embed.js"</span> <span class="s">data-tenant</span>=<span class="s">"mishael-motors"</span><span class="k">&gt;&lt;/script&gt;</span></pre></div>
+        <p class="sub"><b>המוצר של נועם הוא האתר המלא — לא widget באמצע.</b> אבל אם רוצים רגל בדלת, שורה אחת מדביקה את הקונסיירז' על האתר הקיים שלהם תוך 30 שניות. ברגע שהם רואים אותו עובד וגורם לאתר הישן להיראות עתיק — הם רוצים את האתר המלא. <b>זה כלי המרה, לא הדליברבל.</b></p>
+
+        <h2><span class="dot"></span> מבנה הקבצים לשכפול</h2>
+        <div class="codeblock"><pre>engine/                <span class="c">← קוד אחד, לא נוגעים</span>
+  agent · chat-ui · booking · lead-capture · repo
+
+clients/
+  mishael-motors/
+    config.json        <span class="c">← לוגו, צבעים, vertical="cars"</span>
+    catalog.json       <span class="c">← המלאי האמיתי</span>
+    persona.txt        <span class="c">← טון + מטרת מכירה</span></pre></div>
+        <div class="callout warn">
+          <h4>⚠️ עיקרון על</h4>
+          <p>מנוע גנרי, <b>פלט בעבודת יד</b>. לא משקיעים יותר מדי בעיצוב ייחודי לכל לקוח — המנוע מבצע art-direction מה-Brand Kit. הזמן מושקע בפונקציונליות (תשובות, התאמה, פגישות), כי שם הערך שמצדיק תשלום חודשי.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== GUIDE ===================== -->
+    <section class="tab-content" id="guide">
+      <div class="section">
+        <h2><span class="dot"></span> הרעיון בקצרה</h2>
+        <p class="sub">פשוט מאוד — ואף אחד כמעט לא עושה את זה ככה:</p>
+        <div class="gcards">
+          <div class="gcard"><div class="ico">💰</div><h3>עסק עשיר, אתר חלש</h3><p>יש המון עסקים שמרוויחים יפה אבל האתר שלהם מבייש אותם — ישן, איטי, או שאין בכלל. הם יכולים לשלם.</p></div>
+          <div class="gcard"><div class="ico">⚙️</div><h3>בונים להם אתר אמיתי</h3><p>לא מוקאפ — אתר מלא ועובד עם התוכן האמיתי שלהם, ועם עוזר AI חכם שמכיר את המוצרים ועונה ללקוחות.</p></div>
+          <div class="gcard"><div class="ico">🚀</div><h3>מעלים לאוויר</h3><p>פורסים על דומיין זמני. האתר חי, אפשר להיכנס מהנייד, העוזר עובד.</p></div>
+          <div class="gcard"><div class="ico">📩</div><h3>שולחים לינק</h3><p>הודעת וואטסאפ קצרה: "בניתי לך אתר חדש, תיכנס תראה." המוצר המוגמר מוכר את עצמו.</p></div>
+        </div>
+
+        <h2><span class="dot"></span> הזרימה — צעד אחרי צעד</h2>
+        <div class="steps">
+          <div class="step"><div class="num"></div><div><h4>בוחר ליד מהלוח</h4><p>מתחילים מ-🔥 ליד חם, אחר כך מהחזקים. פותחים את האתר הקיים שלהם לראות מה חלש. מסמנים סטטוס "בונה אתר".</p></div></div>
+          <div class="step"><div class="num"></div><div><h4>בונה את האתר עם Claude Code</h4><p>אתר מלא עם התוכן האמיתי + עוזר AI שמכיר את המלאי ויודע לדחוף לפעולה (לתאם, להשאיר פרטים). זה מה שמבדל אותך.</p></div></div>
+          <div class="step"><div class="num"></div><div><h4>מעלה לאוויר ובודק בנייד</h4><p>לינק חי שעובד מושלם במובייל. מסמן "שלחתי לינק".</p></div></div>
+          <div class="step"><div class="num"></div><div><h4>שולח הודעה ועוקב</h4><p>הודעה אישית בוואטסאפ (למטה). חוזר ללוח, רושם הערה מה ענו, ומעדכן סטטוס עד "נסגר ✅".</p></div></div>
+        </div>
+
+        <h2><span class="dot"></span> הודעת הוואטסאפ שלך 🔥</h2>
+        <p class="sub">אישית, כנה, פשוטה. בלי לשחק "חברה גדולה" — להיות אתה.</p>
+        <div class="msg-card">
+          <p id="msgText">היי, קוראים לי נועם 👋
+
+אני בן 16 ומפתח אתרים עם Claude Code — אתרים מורכבים ומערכות דינמיות, כולל סוכני AI, שזה התחום שאני ממש מתמחה בו.
+
+לקחתי את העסק שלך כפרויקט ובניתי לך אתר חדש לגמרי. הוא כבר מוכן ומתפקד — ואם בא לך, הוא שלך.
+
+אני אהיה כן איתך: אני בתחילת הדרך ומחפש את הלקוחות הראשונים שלי. בדיוק בגלל זה אני נותן יחס שאף אחד גדול לא ייתן — שירות צמוד, זמינות מלאה, ורצון אמיתי שתצליח.
+
+תיכנס תראה, זה כבר חי:
+[הלינק לאתר]
+
+ואם בא לך לדבר על זה — אני כאן 🙂
+נועם</p>
+          <button class="copy-btn" id="copyMsg">📋 העתק הודעה</button>
+        </div>
+
+        <div class="callout good">
+          <h4>👆 למה זה עובד</h4>
+          <p><b>הגיל גלוי</b> — "בן 16" עושה אותך בלתי נשכח ומעורר אהדה, לא חלש. <b>כנות</b> — "מחפש לקוחות ראשונים" בונה אמון, אנשים אוהבים לעזור למישהו אמיתי. <b>היחס כפיצוי</b> — ממיר חוסר ותק ליתרון: שירות צמוד שאף אחד גדול לא נותן. <b>האתר כבר קיים</b> — אתה מראה מציאות, לא מבטיח חלום.</p>
+        </div>
+
+        <div class="callout info">
+          <h4>🧠 העוזר AI — מה הופך אתר ל"מכונת מכירות"</h4>
+          <p>צ'אט קטן באתר שמחובר ל-GPT ו<b>מכיר את המלאי האמיתי</b> של העסק. לקוח שואל "יש רכב עד 200 אלף אוטומט?" — והעוזר עונה מדויק מהמלאי, ואז מציע לתאם. כל שיחה שמסתיימת בכוונה נשמרת כליד ומגיעה לבעל העסק. תתייעץ עם שלומי על המימוש לכל אתר.</p>
+        </div>
+
+        <div class="callout warn">
+          <h4>⚠️ שים לב לפני שמתחילים</h4>
+          <p>תמיד פתח את האתר הקיים של העסק <b>לפני</b> שאתה בונה — אולי שדרגו בינתיים. ובלידים מסומנים "⛔ לא מתאימים" — לא לפנות, כבר יש להם אתר טוב (הם בלוח רק כדי שתראה מה נחשב "אתר טוב").</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>לוח העבודה של נועם · נבנה עם Claude Code</p>
+      <p>בליווי שלומי זוין · <a href="https://plaxzy.com/" target="_blank" rel="noopener">plaxzy.com</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Theme =====
+    const root = document.documentElement, themeBtn = document.getElementById('themeToggle');
+    function setTheme(t){ if(t==='light'){root.setAttribute('data-theme','light');themeBtn.textContent='🌙 מצב לילה';} else {root.removeAttribute('data-theme');themeBtn.textContent='☀️ מצב יום';} try{localStorage.setItem('noam-theme',t);}catch(e){} }
+    themeBtn.addEventListener('click',()=>setTheme(root.hasAttribute('data-theme')?'dark':'light'));
+    try{setTheme(localStorage.getItem('noam-theme')||'dark');}catch(e){setTheme('dark');}
+
+    // ===== Tabs =====
+    document.getElementById('tabs').addEventListener('click',e=>{
+      const b=e.target.closest('.tab-btn'); if(!b) return;
+      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); document.getElementById(b.dataset.tab).classList.add('active');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    // ===== Statuses =====
+    const STATUSES = [
+      { key:'new',       label:'חדש',        color:'var(--gray)' },
+      { key:'contacted', label:'יצרתי קשר',  color:'var(--blue)' },
+      { key:'building',  label:'בונה אתר',   color:'var(--accent)' },
+      { key:'sent',      label:'שלחתי לינק', color:'var(--purple)' },
+      { key:'won',       label:'נסגר ✅',    color:'var(--green)' },
+      { key:'dropped',   label:'לא רלוונטי', color:'var(--red)' },
+    ];
+    const SMAP = Object.fromEntries(STATUSES.map(s=>[s.key,s]));
+
+    // ===== Leads =====
+    const LEADS = [
+      { id:'mishael', cat:'car', catLabel:'רכב', hot:true, def:'contacted',
+        name:'מישאל מוטורס', en:'Mishael Motors', loc:'פרטים אצל שלומי',
+        desc:'סוחר רכב — <b>שלומי כבר דיבר איתו והוא הביע עניין.</b> הליד הכי חם, מכאן מתחילים.',
+        url:'https://www.google.com/search?q=%D7%9E%D7%99%D7%A9%D7%90%D7%9C+%D7%9E%D7%95%D7%98%D7%95%D7%A8%D7%A1',
+        weak:'לא נמצא אתר ממשי בחיפוש — נראה שאין/חלשה נוכחות דיגיטלית. <b>בדיוק ההזדמנות.</b>',
+        todo:'לא צריך למכור — להראות. בנה אתר מלא עם קטלוג רכבים + עוזר AI, העלה, ושלח לינק חי בוואטסאפ. פרטים מדויקים מקבלים משלומי.', tel:null },
+
+      { id:'aayafit', cat:'realestate', catLabel:'נדל"ן', def:'new',
+        name:'א.א. יפית', en:'A.A. Yafit', loc:'הרצליה פיתוח / כפר שמריהו',
+        desc:'תיווך יוקרה ותיק (מ-1985) — וילות ופנטהאוזים, 100–230 מ\' ₪.',
+        url:'https://www.aayafit-villa.co.il/',
+        weak:'בנוי על <b>SITE123</b> (בונה אתרים זול) — כתוב בפוטר. עברית בלבד. פער צורם מול היוקרה.',
+        todo:'אתר custom יוקרתי + גרסה אנגלית לקונים בינלאומיים + עוזר AI לנכסים.', tel:null },
+
+      { id:'yokra', cat:'realestate', catLabel:'נדל"ן', def:'new',
+        name:'יוקרה אסטייט', en:'Yokra Estate', loc:'ת"א · ירושלים · הרצליה · קיסריה',
+        desc:'תיווך יוקרה (מ-1997) — נכסים 4–100 מ\' ₪.',
+        url:'https://www.yokra-estate.co.il/',
+        weak:'אתר <b>Joomla</b> בעיצוב 2015, כולל אייקון <b>Google+</b> (שירות שנסגר). אין פריימוורק מודרני.',
+        todo:'שדרוג לאתר מודרני מהיר + עוזר AI לסינון נכסים.', tel:null },
+
+      { id:'square34', cat:'realestate', catLabel:'נדל"ן', def:'new',
+        name:'Square34', en:'סקוור 34', loc:'הרצליה פיתוח (כיכר טירן)',
+        desc:'מותג בוטיק — השכרות 23–50K/חודש, מכירות עד 32 מ\' ₪.',
+        url:'https://square34.com/real-estate-herzliya-pituach/',
+        weak:'WordPress ישן — הפוטר כתוב <b>2018</b>, הפוסט האחרון 2019. תמיכה בסיסית בלבד במובייל.',
+        todo:'אתר טרי עם ניהול נכסים דינמי + עוזר AI.', tel:'+972522525277' },
+
+      { id:'bnadlan', cat:'realestate', catLabel:'נדל"ן', def:'new',
+        name:'בוטיק נדל"ן הרצליה', en:'Boutique Nadlan', loc:'הרצליה (אחד העם 23)',
+        desc:'בוטיק יוקרה (מ-2014) — פנטהאוזים ווילות.',
+        url:'https://b-nadlan.co.il/',
+        weak:'<b>עברית בלבד — אין אנגלית</b> (/en/ מחזיר 404). בעיה מול קונים בינלאומיים.',
+        todo:'זווית מרכזית: גרסה דו-לשונית EN/HE. האתר עצמו לא תבניתי — לא לתקוף על זה.', tel:null },
+
+      { id:'lotus', cat:'realestate', catLabel:'נדל"ן', def:'new',
+        name:'לוטוס נדל"ן', en:'Lotus Nadlan', loc:'הרצליה (בלינסון 1)',
+        desc:'בוטיק שמתמקד בלעדית בהרצליה (17+ שנה).',
+        url:'https://www.lotus-nadlan.co.il/',
+        weak:'עיצוב WordPress תבניתי 2020–21, כרטיסי נכס פורמולאיים. יש אנגלית.',
+        todo:'מועמד בינוני. דגש על עיצוב מודרני ועוזר AI, לא על "אין אנגלית".', tel:null },
+
+      { id:'2048', cat:'car', catLabel:'רכב יוקרה', def:'new',
+        name:'קבוצת 2048', en:'2048 Luxury Cars', loc:'תל אביב (הרצל 20)',
+        desc:'יבוא אישי/מקביל — BMW, פורשה, מרצדס. רישיון משרד התחבורה.',
+        url:'https://www.2048luxurycars.com/',
+        weak:'תבנית מ-2016 — <b>Bootstrap 3.3.7</b>, נתיבי תמונות /Uploads/2018/, אנליטיקס מת.',
+        todo:'אתר מודרני עם קטלוג + עוזר AI שמתאם נסיעות מבחן ומסנן לפי תקציב.', tel:'+97233038303' },
+
+      { id:'luxmotors', cat:'car', catLabel:'רכב יוקרה', def:'new',
+        name:'Luxury Motors', en:'לקשורי מוטורס', loc:'הרצליה פיתוח',
+        desc:'רכבי יוקרה/ספורט — פורשה, G63, BMW XM. יבוא + טרייד-אין.',
+        url:'https://luxury-motors.co.il/',
+        weak:'WordPress + Elementor על תבנית ריקה, נבנה ע"י סוכנות זולה ב-2023. לא custom.',
+        todo:'אתר custom + עוזר AI. טרייד-אין = כלי הערכת שווי חכם.', tel:'+972542222555' },
+
+      { id:'barmedical', cat:'clinic', catLabel:'קליניקה', def:'new',
+        name:'בר מדיקל', en:'Bar Medical', loc:'ירושלים (תלפיות)',
+        desc:'רפואה אסתטית (20+ שנה, 6,000+ לקוחות) — לייזר, בוטוקס, עיצוב גוף.',
+        url:'http://www.barmedical.co.il/',
+        weak:'WordPress ישן, פריסה בסיסית, תפריטי ניווט כפולים (פריימוורק מיושן).',
+        todo:'אתר מודרני + עוזר AI לקביעת תורים וייעוץ ראשוני. נפח לקוחות גדול = הרבה לידים.', tel:null },
+
+      { id:'tirosh', cat:'clinic', catLabel:'קליניקה', def:'new',
+        name:'ד"ר אילן תירוש', en:'Dr. Elan Tirosh', loc:'חיפה (הברושים 20)',
+        desc:'מרפאת שיניים פרטית — שתלים ושיקום הפה (35 שנה, מומחה NYU).',
+        url:'https://drtirosh.co.il/',
+        weak:'<b>עברית בלבד</b>, עיצוב מיושן, טקסט צפוף, ניווט sidebar, לא ממוטב למובייל.',
+        todo:'אתר נקי ומקצועי + עוזר AI לשאלות שתלים וקביעת תור.', tel:null },
+
+      // ---- EXCLUDE (info only) ----
+      { id:'veraprime', cat:'exclude', catLabel:'נדל"ן', def:'dropped', readonly:true,
+        name:'VeraPrime', en:'ורהפריים', loc:'הרצליה פיתוח',
+        desc:'תיווך יוקרה ($811K–$16.9M+).', url:'https://www.veraprime.co.il/',
+        weak:'<b>כבר יש אתר טוב</b> — מודרני, רספונסיבי, דו-לשוני, מתוחזק. לא לפנות.',
+        todo:'', tel:null },
+      { id:'nivo', cat:'exclude', catLabel:'רכב', def:'dropped', readonly:true,
+        name:"NIVO CAR'S", en:'ניבו קארס', loc:'—', desc:'סחר רכב.',
+        url:'https://www.nivocars.co.il/',
+        weak:'<b>כבר יש אתר טוב</b> — פילטר מלאי עובד, בלוג, מובייל. לא לפנות.', todo:'', tel:null },
+      { id:'rosen', cat:'exclude', catLabel:'קליניקה', def:'dropped', readonly:true,
+        name:'ד"ר משה רוזן', en:'Dr. Moshe Rosen', loc:'תל אביב / ירושלים',
+        desc:'רפואה אסתטית — בוטוקס, Morpheus 8.', url:'https://drmosherosen.co.il/',
+        weak:'<b>כבר יש אתר טוב</b> — custom, PWA, מתוחזק. לא לפנות.', todo:'', tel:null },
+    ];
+
+    // ===== Persistence =====
+    const STORE_KEY = 'noam-leads-state-v1';
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e) { state = {}; }
+    function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+    function getLead(id){ const l=LEADS.find(x=>x.id===id); if(!state[id]) state[id]={status:l.def,note:'',star:false}; return state[id]; }
+
+    // ===== Filter state =====
+    let fCat='all', fStatus='all', fQ='';
+
+    // ===== Render pipeline =====
+    function renderPipeline(){
+      const wrap=document.getElementById('pipeline');
+      const active = LEADS.filter(l=>l.cat!=='exclude');
+      const counts={}; STATUSES.forEach(s=>counts[s.key]=0);
+      active.forEach(l=>{ counts[getLead(l.id).status]++; });
+      wrap.innerHTML = STATUSES.map(s=>`
+        <div class="pstat ${fStatus===s.key?'active':''}" data-status="${s.key}" style="--s-color:${s.color}">
+          <div class="n">${counts[s.key]}</div><div class="l">${s.label}</div>
+        </div>`).join('');
+    }
+
+    // ===== Render leads =====
+    function matches(l){
+      if(fCat==='all'){ if(l.cat==='exclude') return false; }
+      else if(l.cat!==fCat) return false;
+      if(fStatus!=='all' && getLead(l.id).status!==fStatus) return false;
+      if(fQ){ const hay=(l.name+' '+l.en+' '+l.loc+' '+l.catLabel+' '+l.desc).toLowerCase(); if(!hay.includes(fQ)) return false; }
+      return true;
+    }
+    function renderLeads(){
+      const grid=document.getElementById('leadsGrid');
+      let list=LEADS.filter(matches);
+      // sort: starred first, then hot, then by status order
+      const order=Object.fromEntries(STATUSES.map((s,i)=>[s.key,i]));
+      list.sort((a,b)=>{
+        const sa=getLead(a.id), sb=getLead(b.id);
+        if(sb.star-sa.star) return sb.star-sa.star;
+        if((b.hot?1:0)-(a.hot?1:0)) return (b.hot?1:0)-(a.hot?1:0);
+        return order[sa.status]-order[sb.status];
+      });
+      document.getElementById('countLine').textContent = `מציג ${list.length} לידים${fCat==='exclude'?' (לא מתאימים — לצפייה בלבד)':''}`;
+      if(!list.length){ grid.innerHTML='<div class="empty">אין לידים שתואמים לסינון.</div>'; return; }
+      grid.innerHTML = list.map(l=>{
+        const st=getLead(l.id), sc=SMAP[st.status].color;
+        const tel = l.tel ? `<a class="llink tel" href="tel:${l.tel}">📞 התקשר</a>` : '';
+        const ctrls = l.readonly ? '' : `
+          <div class="status-row">
+            <label>סטטוס:</label>
+            <select class="status-select" data-id="${l.id}">
+              ${STATUSES.map(s=>`<option value="${s.key}" ${st.status===s.key?'selected':''}>${s.label}</option>`).join('')}
+            </select>
+          </div>
+          <textarea class="note-input" data-id="${l.id}" placeholder="הערה אישית (מה ענו, מתי לחזור, רעיונות...)">${st.note||''}</textarea>`;
+        const star = l.readonly ? '' : `<button class="star ${st.star?'on':''}" data-id="${l.id}" title="סמן כחשוב">${st.star?'★':'☆'}</button>`;
+        const badge = l.hot ? '<span class="badge hot">🔥 חם</span>' : '';
+        return `
+        <article class="lead ${l.hot?'is-hot':''}" style="--s-color:${sc}">
+          <div class="lead-top">
+            <div class="lead-name">${l.name}<small>${l.en}</small></div>
+            <div class="top-right">${badge}${star}</div>
+          </div>
+          <div class="lead-meta">
+            <span class="mchip cat">${l.catLabel}</span>
+            <span class="mchip">📍 ${l.loc}</span>
+          </div>
+          <p class="lead-desc">${l.desc}</p>
+          <div class="box weak"><b>⚠ חולשת האתר:</b> ${l.weak}</div>
+          ${l.todo?`<div class="box todo"><b>✦ מה לבנות:</b> ${l.todo}</div>`:''}
+          <div class="lead-links"><a class="llink" href="${l.url}" target="_blank" rel="noopener">🔗 האתר הקיים</a>${tel}</div>
+          ${ctrls}
+        </article>`;
+      }).join('');
+    }
+    function renderAll(){ renderPipeline(); renderLeads(); }
+
+    // ===== Events =====
+    document.getElementById('leadsGrid').addEventListener('change',e=>{
+      const sel=e.target.closest('.status-select'); if(sel){ getLead(sel.dataset.id).status=sel.value; saveState(); renderAll(); }
+    });
+    document.getElementById('leadsGrid').addEventListener('input',e=>{
+      const ta=e.target.closest('.note-input'); if(ta){ getLead(ta.dataset.id).note=ta.value; saveState(); }
+    });
+    document.getElementById('leadsGrid').addEventListener('click',e=>{
+      const st=e.target.closest('.star'); if(st){ const s=getLead(st.dataset.id); s.star=!s.star; saveState(); renderAll(); }
+    });
+    document.getElementById('catChips').addEventListener('click',e=>{
+      const b=e.target.closest('.chip-btn'); if(!b) return;
+      document.querySelectorAll('#catChips .chip-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); fCat=b.dataset.cat; renderLeads();
+    });
+    document.getElementById('pipeline').addEventListener('click',e=>{
+      const p=e.target.closest('.pstat'); if(!p) return;
+      fStatus = (fStatus===p.dataset.status) ? 'all' : p.dataset.status;
+      if(fStatus!=='all' && fCat==='exclude'){ // exclude has no active statuses
+        fCat='all'; document.querySelectorAll('#catChips .chip-btn').forEach(x=>x.classList.toggle('active',x.dataset.cat==='all'));
+      }
+      renderAll();
+    });
+    document.getElementById('searchInput').addEventListener('input',e=>{ fQ=e.target.value.trim().toLowerCase(); renderLeads(); });
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      if(confirm('לאפס את כל הסטטוסים, ההערות והסימונים? פעולה זו לא הפיכה.')){ state={}; saveState(); fStatus='all'; renderAll(); }
+    });
+
+    // ===== Copy message =====
+    document.getElementById('copyMsg').addEventListener('click',()=>{
+      const t=document.getElementById('msgText').innerText;
+      navigator.clipboard.writeText(t).then(()=>{ const b=document.getElementById('copyMsg'); b.textContent='✅ הועתק!'; setTimeout(()=>b.textContent='📋 העתק הודעה',1600); });
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>

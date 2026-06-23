@@ -6,6 +6,33 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/zvin-collab{,/**}",
+        "destination": "/micro-comedy/",
+        "type": 301
+      },
+      {
+        "source": "/geek-and-prompty/:rest*",
+        "destination": "/yotamverse/:rest*",
+        "type": 301
+      },
+      {
+        "source": "/geek-and-prompty",
+        "destination": "/yotamverse/",
+        "type": 301
+      },
+      {
+        "source": "/geek-and-prompty-v2{,/**}",
+        "destination": "/yotamverse/",
+        "type": 301
+      },
+      {
+        "source": "/yotam{,/}",
+        "destination": "/yotamverse/",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "/storyboard/**",

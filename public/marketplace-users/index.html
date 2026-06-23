@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>פיתוח מערכת משתמשים ל-Marketplace | Backend / Full-Stack | נועם זוין</title>
+  <meta name="description" content="הקמת מערכת משתמשים מאפס למרקטפלייס B2B2C — הרשמה, הזדהות, ניהול יוזרים, אבטחה, RBAC. ג'וניור AI-native בליווי שלומי זוין. 10,000 ש\"ח לחודש." />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c11;
+      --bg-alt: #0f121a;
+      --card: #13171f;
+      --card-hover: #181d27;
+      --border: #1f2530;
+      --border-strong: #2a313e;
+      --text: #f3f5fa;
+      --text-muted: #8990a1;
+      --text-dim: #585f70;
+      --accent: #6366f1;
+      --accent-soft: rgba(99, 102, 241, 0.13);
+      --accent-strong: #4f46e5;
+      --on-accent: #ffffff;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #fafafb;
+      --bg-alt: #f1f2f6;
+      --card: #ffffff;
+      --card-hover: #f7f8fb;
+      --border: #e6e8ee;
+      --border-strong: #d6d9e1;
+      --text: #0a0c11;
+      --text-muted: #5a6172;
+      --text-dim: #8990a1;
+      --accent-soft: rgba(99, 102, 241, 0.09);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    code, .mono { font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 60; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; gap: 1rem; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 8px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; color: var(--on-accent); }
+    .logo-text { font-weight: 700; font-size: 0.95rem; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub { font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 0.55rem; }
+    .theme-toggle { background: transparent; border: 1px solid var(--border); border-radius: 999px; width: 36px; height: 36px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .header-cta { padding: 0.5rem 1rem; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .header-cta:hover { background: var(--accent-strong); }
+
+    /* TABS */
+    .tabs-bar { position: sticky; top: 60px; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: flex-start; padding: 0; white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.92rem; font-weight: 500; padding: 0.95rem 1.3rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 2.5rem; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; color: var(--accent); padding: 0.35rem 0.85rem; border: 1px solid var(--accent-soft); border-radius: 999px; background: var(--accent-soft); margin-bottom: 1.5rem; letter-spacing: 0.02em; }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .hero h1 { font-size: clamp(1.85rem, 4.5vw, 3.1rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.25rem; letter-spacing: -0.02em; max-width: 900px; }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub { font-size: 1.08rem; color: var(--text-muted); max-width: 740px; margin-bottom: 2rem; line-height: 1.7; }
+    .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: var(--on-accent); }
+    .btn.primary:hover { background: var(--accent-strong); }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-head { margin-bottom: 2.5rem; }
+    .section-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .section-head p { color: var(--text-muted); max-width: 720px; font-size: 1rem; }
+    .section-eyebrow { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+
+    /* GRID */
+    .grid { display: grid; gap: 1rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s, background 0.15s; }
+    .card:hover { border-color: var(--border-strong); background: var(--card-hover); }
+    .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .card p { color: var(--text-muted); font-size: 0.93rem; line-height: 1.6; }
+    .card-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.85rem; }
+    .card ul { list-style: none; margin-top: 0.85rem; padding: 0; }
+    .card li { font-size: 0.9rem; color: var(--text-muted); padding: 0.3rem 0; padding-right: 1.1rem; position: relative; }
+    .card li::before { content: ''; position: absolute; right: 0; top: 0.85rem; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+    /* FIT (why us) */
+    .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .vs-col { padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    .vs-col.ask { background: var(--card); }
+    .vs-col.have { background: var(--accent-soft); border-color: var(--accent); }
+    .vs-col h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .vs-col.ask h4 { color: var(--text-muted); }
+    .vs-col.have h4 { color: var(--accent); }
+    .vs-col ul { list-style: none; padding: 0; margin: 0; }
+    .vs-col li { font-size: 0.93rem; padding: 0.5rem 0; padding-right: 1.6rem; position: relative; color: var(--text); line-height: 1.5; }
+    .vs-col.ask li { color: var(--text); }
+    .vs-col li::before { content: ''; position: absolute; right: 0; top: 0.8rem; width: 14px; height: 14px; border-radius: 50%; }
+    .vs-col.ask li::before { background: var(--accent-soft); border: 1px solid var(--accent); }
+    .vs-col.have li::before { background: var(--accent); }
+    .vs-col.have li::after { content: '✓'; position: absolute; right: 2px; top: 0.5rem; font-size: 0.75rem; font-weight: 800; color: var(--on-accent); }
+    .vs-col.ask li::after { content: '→'; position: absolute; right: 2.5px; top: 0.5rem; font-size: 0.7rem; font-weight: 800; color: var(--accent); }
+
+    /* FEATURES BIG */
+    .feat-list { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-top: 1.5rem; }
+    .feat-item { display: flex; gap: 1rem; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); align-items: flex-start; }
+    .feat-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem; }
+    .feat-body h4 { font-size: 0.98rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .feat-body p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0; }
+    .stat { padding: 1.5rem 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); text-align: right; }
+    .stat-num { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); line-height: 1; margin-bottom: 0.5rem; }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* EXPERIENCE */
+    .exp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .exp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--accent); }
+    .exp-tag { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+    .exp-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .exp-card p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
+    .exp-stack { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 1rem; }
+    .exp-stack span { font-size: 0.72rem; padding: 0.22rem 0.6rem; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); }
+
+    /* CALLOUT */
+    .callout { background: var(--card); border: 1px solid var(--border); border-right: 3px solid var(--accent); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin: 2rem 0; }
+    .callout h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--accent); }
+    .callout p { color: var(--text); font-size: 0.95rem; line-height: 1.6; }
+
+    /* DEMO FRAME */
+    .demo-frame { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .demo-header { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--bg-alt); }
+    .demo-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .demo-dots { display: flex; gap: 0.35rem; }
+    .demo-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--border-strong); }
+    .demo-url { font-size: 0.78rem; color: var(--text-muted); padding: 0.3rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+    .demo-label { font-size: 0.7rem; color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .demo-body { background: var(--card); padding: 1.2rem; }
+
+    /* DEMO LAYOUT */
+    .demo-cols { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; align-items: start; }
+    .panel { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .panel-head { padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .panel-head h4 { font-size: 0.92rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .panel-head .endpoint { font-size: 0.68rem; color: var(--text-dim); }
+    .panel-body { padding: 1.1rem; }
+
+    /* AUTH FORM */
+    .auth-switch { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 2px; margin-bottom: 1.1rem; width: 100%; }
+    .auth-switch button { flex: 1; padding: 0.5rem; background: transparent; border: none; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .auth-switch button.active { background: var(--accent); color: var(--on-accent); }
+    .field { margin-bottom: 0.9rem; }
+    .field label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 500; }
+    .field input, .field select { width: 100%; padding: 0.65rem 0.8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.9rem; transition: border-color 0.15s; }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+    .field input.invalid { border-color: var(--danger); }
+    .field input.valid { border-color: var(--ok); }
+    .field-hint { font-size: 0.72rem; margin-top: 0.3rem; min-height: 1rem; }
+    .field-hint.err { color: var(--danger); }
+    .field-hint.ok { color: var(--ok); }
+
+    /* PASSWORD STRENGTH */
+    .pw-meter { display: flex; gap: 4px; margin-top: 0.4rem; }
+    .pw-seg { height: 4px; flex: 1; border-radius: 2px; background: var(--border-strong); transition: background 0.2s; }
+    .pw-label { font-size: 0.72rem; margin-top: 0.3rem; color: var(--text-muted); }
+
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .role-opt { padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); transition: all 0.15s; }
+    .role-opt.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+    .role-opt small { display: block; font-weight: 400; font-size: 0.68rem; opacity: 0.8; margin-top: 0.15rem; }
+
+    .auth-submit { width: 100%; padding: 0.75rem; background: var(--accent); color: var(--on-accent); border: none; border-radius: 8px; font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: background 0.15s; margin-top: 0.3rem; }
+    .auth-submit:hover { background: var(--accent-strong); }
+    .auth-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* OTP */
+    .otp-note { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 8px; padding: 0.7rem 0.85rem; font-size: 0.8rem; margin-bottom: 1rem; line-height: 1.5; }
+    .otp-note strong { color: var(--accent); letter-spacing: 0.25em; font-size: 1rem; }
+    .otp-inputs { display: flex; gap: 0.4rem; direction: ltr; justify-content: center; margin-bottom: 1rem; }
+    .otp-inputs input { width: 38px; height: 46px; text-align: center; font-size: 1.2rem; font-weight: 700; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+    .otp-inputs input:focus { outline: none; border-color: var(--accent); }
+    .link-btn { background: none; border: none; color: var(--text-muted); font-size: 0.78rem; cursor: pointer; text-decoration: underline; margin-top: 0.6rem; }
+
+    /* USERS TABLE */
+    .users-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    .ustat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.7rem; }
+    .ustat .n { font-size: 1.3rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .ustat .l { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .users-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 360px; overflow-y: auto; }
+    .user-row { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; transition: border-color 0.15s; }
+    .user-row.fresh { border-color: var(--accent); animation: pop 0.4s ease; }
+    @keyframes pop { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .ava { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--on-accent); }
+    .user-main { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.86rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
+    .user-email { font-size: 0.72rem; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { font-size: 0.64rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 999px; letter-spacing: 0.02em; }
+    .badge.buyer { background: rgba(99,102,241,0.15); color: #818cf8; }
+    .badge.seller { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .badge.admin { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .badge.active { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .badge.pending { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .badge.suspended { background: rgba(239,68,68,0.15); color: #f87171; }
+    .mfa-chip { font-size: 0.62rem; color: var(--text-dim); display: inline-flex; align-items: center; gap: 0.2rem; }
+    .row-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+    .row-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-alt); color: var(--text-muted); cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .row-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* SECURITY LOG */
+    .seclog { margin-top: 1rem; }
+    .log-list { display: flex; flex-direction: column; gap: 0; max-height: 200px; overflow-y: auto; font-size: 0.78rem; }
+    .log-line { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.2rem; border-bottom: 1px solid var(--border); }
+    .log-line:last-child { border-bottom: none; }
+    .log-time { color: var(--text-dim); font-size: 0.7rem; flex-shrink: 0; min-width: 58px; direction: ltr; text-align: right; }
+    .log-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .log-dot.ok { background: var(--ok); }
+    .log-dot.warn { background: var(--warn); }
+    .log-dot.danger { background: var(--danger); }
+    .log-dot.info { background: var(--accent); }
+    .log-event { color: var(--text-muted); }
+    .log-event code { color: var(--text); background: var(--bg); padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 0.72rem; }
+
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(120%); background: var(--card); border: 1px solid var(--accent); border-radius: 10px; padding: 0.8rem 1.3rem; font-size: 0.88rem; font-weight: 600; z-index: 300; transition: transform 0.3s ease; box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* TIMELINE */
+    .timeline { position: relative; padding-right: 2rem; }
+    .timeline::before { content: ''; position: absolute; right: 8px; top: 12px; bottom: 12px; width: 2px; background: var(--border); }
+    .timeline-item { position: relative; padding-bottom: 1.75rem; padding-right: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; right: -19px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-week { font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .timeline-item h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+    .timeline-item p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; }
+
+    /* PRICE CARD */
+    .price-card { background: var(--card); border: 1px solid var(--accent); border-radius: 18px; padding: 2rem; max-width: 540px; }
+    .price-tag { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .price-num { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .price-num strong { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .price-num span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+    .price-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    .price-list { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+    .price-list li { padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.93rem; padding-right: 1.6rem; position: relative; }
+    .price-list li:last-child { border-bottom: none; }
+    .price-list li::before { content: '✓'; position: absolute; right: 0; top: 0.55rem; color: var(--accent); font-weight: 800; }
+
+    /* STACK */
+    .stack-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
+    .stack-item { padding: 0.85rem 1rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .stack-item h5 { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stack-item p { font-size: 0.92rem; color: var(--text); font-weight: 500; }
+
+    /* FOOTER */
+    .footer { padding: 2.5rem 0 3rem; border-top: 1px solid var(--border); margin-top: 3rem; text-align: center; }
+    .footer-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .footer-meta { color: var(--text-muted); font-size: 0.85rem; line-height: 1.8; }
+    .footer-meta a { color: var(--accent); text-decoration: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .container { padding: 0 1.1rem; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .vs-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .exp-grid { grid-template-columns: 1fr; }
+      .hero { padding: 2.5rem 0 2rem; }
+      .section { padding: 2rem 0; }
+      .tab-btn { padding: 0.85rem 0.95rem; font-size: 0.88rem; }
+      .demo-cols { grid-template-columns: 1fr; }
+      .users-stats { grid-template-columns: repeat(2, 1fr); }
+      .price-num strong { font-size: 2.5rem; }
+      .price-card { padding: 1.5rem; }
+      .budget-split { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">NZ</span>
+      <span>
+        <span class="logo-text">נועם זוין</span>
+        <span class="logo-sub">Backend / Full-Stack · AI-native · בליווי שלומי זוין</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="החלף ערכת נושא">🌙</button>
+      <a href="https://wa.me/972545567213" class="header-cta" target="_blank">דברו איתנו</a>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <div class="container">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="proposal">ההצעה</button>
+      <button class="tab-btn" data-tab="experience">ניסיון רלוונטי</button>
+      <button class="tab-btn" data-tab="demo">הדגמה חיה</button>
+      <button class="tab-btn" data-tab="budget">תקציב ולו"ז</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ============ TAB: PROPOSAL ============ -->
+<section class="tab-content active" data-content="proposal">
+
+  <div class="container hero">
+    <div class="hero-eyebrow"><span class="dot"></span>הצעה — מערכת משתמשים ל-Marketplace B2B2C</div>
+    <h1>אתם מחפשים <em>ג'וניור שעובד עם Vibe Coding</em>. זה בדיוק מה שאני.</h1>
+    <p class="hero-sub">
+      אני נועם — מפתח Backend / Full-Stack, AI-native, עובד עם Claude Code מהיום הראשון. אבל אני לא לבד: מאחורי כל שורת קוד עומד שלומי זוין, אבא שלי, עם 20+ שנות ניסיון בהייטק ומערכות משתמשים ואבטחה בקנה מידה גדול. <strong>מחיר של ג'וניור, איכות וביטחון של בכיר.</strong> אני בונה לכם את כל שכבת המשתמשים — הרשמה, הזדהות, ניהול, ואבטחה — מאפס, נקי, ומותאם בדיוק למרקטפלייס שלכם.
+    </p>
+    <div class="hero-cta">
+      <button class="btn primary" onclick="goTab('demo')">↓ דמו חי — מערכת משתמשים שעובדת</button>
+      <button class="btn ghost" onclick="goTab('budget')">לראות תקציב ולו"ז</button>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">למה אני בול בשבילכם</div>
+      <h2>קראתי את המודעה. כל שורה בה מתארת בדיוק את הדרך שבה אני עובד.</h2>
+      <p>אתם לא מחפשים בית תוכנה יקר עם תהליך כבד. אתם מחפשים מישהו רעב, מהיר, שעובד עם הכלים החדשים — ושאפשר לסמוך עליו על חלק רגיש כמו משתמשים ואבטחה. זו בדיוק נקודת החיבור:</p>
+    </div>
+
+    <div class="vs-grid">
+      <div class="vs-col ask">
+        <h4>מה שכתבתם במודעה</h4>
+        <ul>
+          <li>"פרילנסר ג'וניור — זה מעולה"</li>
+          <li>"עבודה עם פלטפורמות וכלי Vibe Coding"</li>
+          <li>"בניית כל מה שקשור ליוזרים מאפס"</li>
+          <li>"הזדהות, הקמה וניהול יוזרים"</li>
+          <li>"שהמערכת מאובטחת ועובדת כמו שצריך"</li>
+          <li>"יכולת עבודה עצמאית ועמידה ביעדים"</li>
+        </ul>
+      </div>
+      <div class="vs-col have">
+        <h4>מה שאני מביא</h4>
+        <ul>
+          <li>ג'וניור אמיתי, רעב, במחיר ג'וניור — 10K לחודש</li>
+          <li>AI-native. Claude Code זו לא מילה — זו דרך העבודה שלי</li>
+          <li>פורטל חי שבניתי לבד מאפס — כולל חשבונות משתמשים</li>
+          <li>RBAC, JWT, OTP, אימות מייל — בדיוק התחום שתבנו לי</li>
+          <li>שלומי מלווה את האבטחה — 20 שנה של מערכות בייצור</li>
+          <li>עצמאי בביצוע, עם רשת ביטחון שעוצרת טעויות לפני שהן קורות</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h4>איך ג'וניור נותן לכם ביטחון על שכבת המשתמשים?</h4>
+      <p>בגלל הליווי. משתמשים ואבטחה זה לא מקום לאלתר — והאמת היא שזה גם לא מקום שבו ג'וניור רגיל היה צריך לעבוד לבד. אצלי זה אחרת: אני מבצע מהר עם Claude Code, ושלומי — שבנה onboarding לבנקים, מערכות הרשאות, וזרימות הזדהות בקנה מידה גדול — מתכנן איתי את הארכיטקטורה, בודק את הקוד הרגיש, ועוצר אותי מטעויות אבטחה לפני שהן נכנסות. אתם מקבלים מחיר של ג'וניור עם שיקול דעת של בכיר על החלק הכי קריטי במערכת.</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">תכולת המודול</div>
+      <h2>מה אני בונה לכם בשכבת המשתמשים</h2>
+      <p>זה מודול ממוקד שמשתלב בפלטפורמה שלכם — לא משתלט עליה. API נקי, מתועד, שהצוות שלכם מתחבר אליו ביום.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">🔑</div>
+        <h3>הרשמה והזדהות</h3>
+        <p>זרימת signup/login מלאה — אימייל+סיסמה, אימות מייל/טלפון (OTP), Magic Link, ו-Social Login (Google / Apple). כל מה שצריך כדי שיוזר ייכנס בקלות ובבטחה.</p>
+        <ul>
+          <li>אימות אימייל וטלפון</li>
+          <li>שחזור סיסמה מאובטח</li>
+          <li>OAuth — Google, Apple, ועוד</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <h3>ניהול יוזרים</h3>
+        <p>פרופילים, עדכון פרטים, היסטוריית פעילות, השעיה/הפעלה, מחיקה לפי בקשה. פאנל ניהול לצוות שלכם — לראות, לחפש, ולפעול על כל משתמש.</p>
+        <ul>
+          <li>CRUD מלא על משתמשים</li>
+          <li>חיפוש, סינון, ייצוא</li>
+          <li>audit trail לכל פעולה</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏷️</div>
+        <h3>תפקידים והרשאות (RBAC)</h3>
+        <p>מרקטפלייס B2B2C = כמה סוגי משתמשים. קונים, מוכרים/ספקים, מנהלי ארגון, אדמין-על. מערכת הרשאות גמישה שמגדירה מי רואה ומי עושה מה.</p>
+        <ul>
+          <li>תפקידים מרובים per-user</li>
+          <li>הרשאות ברמת ארגון (B2B)</li>
+          <li>הפרדת גישה מלאה בין צדדים</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <h3>אבטחה כברירת מחדל</h3>
+        <p>זה הלב. סיסמאות מוצפנות (bcrypt/argon2), JWT + refresh tokens, sessions מנוהלים, rate limiting, הגנה מפני brute-force ו-OWASP Top 10. בנוי נכון מהיסוד.</p>
+        <ul>
+          <li>הצפנת סיסמאות תקנית</li>
+          <li>הגנת rate-limit ו-lockout</li>
+          <li>תאימות OWASP</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>אימות דו-שלבי (2FA / MFA)</h3>
+        <p>SMS, אפליקציית authenticator (TOTP), או מייל. אופציה למשתמשים, חובה לאדמינים. כי במרקטפלייס יש כסף — וחשבון מוכר שנפרץ זה אסון.</p>
+        <ul>
+          <li>TOTP — Google Authenticator</li>
+          <li>קודי שחזור (backup codes)</li>
+          <li>אכיפה לפי תפקיד</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔌</div>
+        <h3>API נקי לאינטגרציה</h3>
+        <p>REST/GraphQL מתועד, webhooks לאירועי משתמש (נרשם, אומת, הושעה), ו-SDK פנימי. הצוות שלכם מתחבר ל-endpoints מוכנים — לא צריך להבין את הפנימיות.</p>
+        <ul>
+          <li>תיעוד OpenAPI מלא</li>
+          <li>Webhooks לכל אירוע</li>
+          <li>אינטגרציה בלי כאב ראש</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">איך אני עובד</div>
+      <h2>מה אתם מקבלים מעבר לקוד</h2>
+    </div>
+
+    <div class="feat-list">
+      <div class="feat-item">
+        <span class="feat-num">1</span>
+        <div class="feat-body">
+          <h4>עבודה עצמאית, עם שקיפות מלאה</h4>
+          <p>אני לוקח את מודול המשתמשים ורץ איתו — לא צריך לנהל אותי צמוד. אבל אתם רואים הכל: Git פתוח, עדכונים שוטפים, דמו בכל שלב משמעותי. עצמאות בלי קופסה שחורה.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">2</span>
+        <div class="feat-body">
+          <h4>השתלבות בפלטפורמה הקיימת שלכם</h4>
+          <p>אני לא בא לכתוב מחדש את המרקטפלייס. אני בונה מודול שמתחבר לסטאק שלכם — בכל טכנולוגיה שאתם עובדים בה. מתאים את עצמי אליכם, לא להפך.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">3</span>
+        <div class="feat-body">
+          <h4>סקירת אבטחה של שלומי על כל קומיט רגיש</h4>
+          <p>כל מה שנוגע לסיסמאות, טוקנים, הרשאות וזרימות הזדהות — עובר עין שנייה של מי שעשה את זה עשרות פעמים בייצור. זו לא הבטחה שיווקית, זה חלק מתהליך העבודה.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <span class="feat-num">4</span>
+        <div class="feat-body">
+          <h4>קוד נקי, מתועד, ושלכם</h4>
+          <p>בלי lock-in, בלי תלות בי. הקוד ב-Git שלכם מהיום הראשון, מתועד, עם בדיקות. כל מפתח אחר בצוות יכול להמשיך מאיפה שעצרתי.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: EXPERIENCE ============ -->
+<section class="tab-content" data-content="experience">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">מי אני</div>
+      <h2>נועם זוין. מפתח צעיר, AI-native — עם פורטל חי שבניתי לבד.</h2>
+      <p>אתם ביקשתם דוגמאות לפרויקטים, "גם אישיים מתקופת הלמידה". אז קבלו את הדבר האמיתי: לא תרגיל, אלא פלטפורמה חיה עם משתמשים אמיתיים שבניתי מאפס — קוד, פריסה, חשבונות, השקה.</p>
+    </div>
+
+    <div class="callout" style="margin-bottom: 2rem;">
+      <h4>הדוגמה הכי חשובה: plaxzy.com</h4>
+      <p><a href="https://plaxzy.com" target="_blank" style="color:var(--accent);text-decoration:underline;font-weight:600;">plaxzy.com</a> — פורטל משחקים שלם שבניתי בעצמי. עיצוב, קוד, אינטגרציות, פריסה לאוויר, והשקה. תיכנסו ותראו: זו לא "עבודת לימוד", זו פלטפורמה פעילה עם משתמשים. אם בניתי פורטל מלא לבד — מודול משתמשים למרקטפלייס שלכם הוא בדיוק המגרש שלי.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">10K</div>
+        <div class="stat-label">ש"ח לחודש. שקוף וגמיש</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">100×</div>
+        <div class="stat-label">קצב פיתוח עם Claude Code</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">20+</div>
+        <div class="stat-label">שנות ניסיון של שלומי מאחורי</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">~1</div>
+        <div class="stat-label">חודש בהערכה למודול עובד</div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 3rem;">
+      <h2>למה החיבור הזה עובד — שלוש רגליים</h2>
+      <p>ג'וניור מהיר + כלי AI מהדור החדש + בכיר עם 20 שנה על אבטחה ומשתמשים. הצירוף הזה לא קיים בשום מקום אחר במחיר הזה.</p>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-tag">רגל ראשונה</div>
+        <h4>נועם — Full-Stack, AI-native</h4>
+        <p>בונה אתרים ומערכות, מוכח בייצור: <strong>plaxzy.com</strong>. שולט ב-Node.js, React, Next.js, ובסיסי נתונים. עובד עם Claude Code כדרך חשיבה, לא ככלי שלמדתי.</p>
+        <div class="exp-stack">
+          <span>Node.js</span><span>React</span><span>PostgreSQL</span><span>plaxzy.com</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">רגל שנייה</div>
+        <h4>Claude Code — Vibe Coding</h4>
+        <p>בדיוק הכלים שביקשתם במודעה. דברים של חודשים הופכים לימים, של ימים לדקות. זה למה 10K לחודש מספיק כדי לבנות מערכת רצינית — הקצב מטורף.</p>
+        <div class="exp-stack">
+          <span>Claude Code</span><span>Vibe Coding</span><span>AI-native</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">רגל שלישית</div>
+        <h4>שלומי זוין — CTO ומנטור אבטחה</h4>
+        <p>אבא שלי. 20+ שנים בהייטק, 50+ מוצרים, מומחה למערכות הזדהות, RBAC, onboarding לבנקים ואבטחת מידע. מלווה כל קומיט רגיש. <em>רשת הביטחון שלכם.</em></p>
+        <div class="exp-stack">
+          <span>Auth / Identity</span><span>Security</span><span>RBAC</span><span>ליווי</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 3rem;">
+      <h2>מה ספציפית רלוונטי למודול המשתמשים שלכם</h2>
+      <p>לא מתחילים מאפס. כל חלק במשימה שלכם — מישהו בשרשרת שלנו כבר בנה.</p>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-tag">חשבונות בייצור</div>
+        <h4>plaxzy.com — חשבונות משתמשים חיים</h4>
+        <p>פלטפורמה עם משתמשים אמיתיים שנרשמים, מתחברים, ומשתמשים. ההתמודדות עם state של משתמש, sessions וזרימת חשבון — כבר בידיים שלי, מקוד אמיתי.</p>
+        <div class="exp-stack">
+          <span>חשבונות</span><span>Sessions</span><span>פרודקשן</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">הזדהות — שלומי</div>
+        <h4>Onboarding והזדהות לבנקים</h4>
+        <p>שלומי בנה זרימות onboarding והזדהות למוסדות פיננסיים — שם אבטחה והזדהות הם לא המלצה, הם רגולציה. כל הידע הזה זמין לי בכל פגישת ליווי.</p>
+        <div class="exp-stack">
+          <span>Onboarding</span><span>KYC</span><span>Auth flows</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">הרשאות</div>
+        <h4>RBAC ומערכות רב-צדדיות</h4>
+        <p>שלומי בנה פלטפורמות B2B ו-B2B2C עם הפרדת הרשאות בין ספקים, לקוחות, ומנהלים — בדיוק המודל של מרקטפלייס. תפקידים, ארגונים, הרשאות מדורגות.</p>
+        <div class="exp-stack">
+          <span>RBAC</span><span>Multi-tenant</span><span>B2B2C</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">אבטחה</div>
+        <h4>אבטחת מידע ופרטיות</h4>
+        <p>שלומי בנה פלטפורמות פרטיות ו-compliance (GDPR, ניהול מידע ברמת enterprise). כשמדובר בהגנה על נתוני משתמשים — יש מי שעשה את זה בקנה מידה רגולטורי.</p>
+        <div class="exp-stack">
+          <span>GDPR</span><span>OWASP</span><span>Encryption</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">תשלומים ומוכרים</div>
+        <h4>מערכות תשלום ו-billing</h4>
+        <p>במרקטפלייס יש מוכרים שמקבלים כסף. שלומי בנה עשרות מערכות חיוב — Stripe, PayPal, subscriptions. כשתרצו לקשור משתמשים לתשלומים, יש בסיס.</p>
+        <div class="exp-stack">
+          <span>Stripe</span><span>Billing</span><span>Payouts</span>
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <div class="exp-tag">Backend בקנה מידה</div>
+        <h4>ארכיטקטורת שרת ו-DB</h4>
+        <p>שלומי בנה microservices, אופטימיזציית DB, indexing, ו-APIs בקנה מידה. אני מיישם דפוסים שעובדים — לא ממציא מאפס וגם לא over-engineering.</p>
+        <div class="exp-stack">
+          <span>Node.js</span><span>PostgreSQL</span><span>REST/GraphQL</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ============ TAB: DEMO ============ -->
+<section class="tab-content" data-content="demo">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">דמו חי — לא מוקאפ</div>
+      <h2>מערכת משתמשים שעובדת. הרשמה, אימות OTP, RBAC, ולוג אבטחה — בזמן אמת.</h2>
+      <p>תירשמו משמאל, תאמתו עם הקוד, ותראו את המשתמש החדש נכנס לטבלת הניהול מימין — עם בקרת תפקידים, השעיה, ויומן אבטחה שמתעדכן על כל פעולה. זה לא צילום מסך, זה קוד שרץ. נבנה תוך דקות עם Claude Code.</p>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-header">
+        <div class="demo-header-left">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <div class="demo-url mono">api.marketplace.io / auth</div>
+        </div>
+        <div class="demo-label">● דמו חי</div>
+      </div>
+
+      <div class="demo-body">
+        <div class="demo-cols">
+
+          <!-- AUTH PANEL -->
+          <div class="panel">
+            <div class="panel-head">
+              <h4>🔑 הרשמה / כניסה</h4>
+              <span class="endpoint mono">POST /auth</span>
+            </div>
+            <div class="panel-body">
+
+              <!-- STEP 1: FORM -->
+              <div id="authForm">
+                <div class="auth-switch">
+                  <button class="active" data-mode="signup">הרשמה</button>
+                  <button data-mode="login">כניסה</button>
+                </div>
+
+                <div class="field">
+                  <label>אימייל</label>
+                  <input type="email" id="emailIn" placeholder="you@company.com" autocomplete="off" />
+                  <div class="field-hint" id="emailHint"></div>
+                </div>
+
+                <div class="field">
+                  <label>סיסמה</label>
+                  <input type="password" id="pwIn" placeholder="לפחות 8 תווים" autocomplete="off" />
+                  <div class="pw-meter" id="pwMeter">
+                    <span class="pw-seg"></span><span class="pw-seg"></span><span class="pw-seg"></span><span class="pw-seg"></span>
+                  </div>
+                  <div class="pw-label" id="pwLabel">חוזק סיסמה</div>
+                </div>
+
+                <div class="field" id="roleField">
+                  <label>סוג משתמש (RBAC)</label>
+                  <div class="role-grid">
+                    <div class="role-opt active" data-role="buyer">קונה<small>buyer</small></div>
+                    <div class="role-opt" data-role="seller">מוכר<small>seller</small></div>
+                  </div>
+                </div>
+
+                <button class="auth-submit" id="submitBtn" disabled>צור חשבון →</button>
+              </div>
+
+              <!-- STEP 2: OTP -->
+              <div id="otpStep" style="display:none;">
+                <div class="otp-note">
+                  📩 קוד אימות נשלח לאימייל.<br />
+                  הקוד שלכם (לדמו): <strong id="otpCode">000000</strong>
+                </div>
+                <div class="field"><label>הזינו את הקוד בן 6 הספרות</label></div>
+                <div class="otp-inputs" id="otpInputs">
+                  <input maxlength="1" inputmode="numeric" /><input maxlength="1" inputmode="numeric" /><input maxlength="1" inputmode="numeric" /><input maxlength="1" inputmode="numeric" /><input maxlength="1" inputmode="numeric" /><input maxlength="1" inputmode="numeric" />
+                </div>
+                <div class="field-hint err" id="otpHint" style="text-align:center;"></div>
+                <button class="auth-submit" id="verifyBtn">אמת והפעל חשבון ✓</button>
+                <div style="text-align:center;"><button class="link-btn" id="cancelOtp">ביטול</button></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ADMIN PANEL -->
+          <div class="panel">
+            <div class="panel-head">
+              <h4>👥 ניהול משתמשים</h4>
+              <span class="endpoint mono">GET /admin/users</span>
+            </div>
+            <div class="panel-body">
+              <div class="users-stats">
+                <div class="ustat"><div class="n" id="stTotal">0</div><div class="l">סה"כ</div></div>
+                <div class="ustat"><div class="n" id="stActive">0</div><div class="l">פעילים</div></div>
+                <div class="ustat"><div class="n" id="stSellers">0</div><div class="l">מוכרים</div></div>
+                <div class="ustat"><div class="n" id="stPending">0</div><div class="l">ממתינים</div></div>
+              </div>
+
+              <div class="users-list" id="usersList"></div>
+
+              <div class="seclog">
+                <div class="panel-head" style="padding:0.6rem 0; border-bottom:1px solid var(--border); margin-bottom:0.3rem;">
+                  <h4 style="font-size:0.82rem;">🛡️ יומן אבטחה (Audit Log)</h4>
+                  <span class="endpoint mono">stream</span>
+                </div>
+                <div class="log-list" id="logList"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <div class="card">
+        <h3 style="color:var(--accent);">⚡ נבנה תוך דקות</h3>
+        <p>הדמו הזה — זרימת הרשמה, אימות OTP, מנגנון חוזק סיסמה, RBAC, טבלת ניהול, ויומן אבטחה — נבנה תוך דקות עם Claude Code. אצלכם זה יקבל DB אמיתי, הצפנה, וגרסת ייצור (שזה חודש של עבודה אמיתית, לא דקות 😉).</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent);">🔐 אבטחה מההתחלה</h3>
+        <p>שימו לב לפרטים: חוזק סיסמה חי, אימות מייל לפני הפעלה, סטטוס pending→active, השעיית משתמש, ולוג שמתעד כל פעולה. ככה נראית מערכת שבנויה נכון מהיסוד.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent);">🏷️ B2B2C מובנה</h3>
+        <p>קונה, מוכר, אדמין — תפקידים שונים, הרשאות שונות. תלחצו על אייקון התפקיד בכל שורה כדי לראות את ה-RBAC עובד. בדיוק המודל של מרקטפלייס רב-צדדי.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB: BUDGET ============ -->
+<section class="tab-content" data-content="budget">
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">תקציב ולוח זמנים</div>
+      <h2>10,000 ש"ח לחודש. שקוף, גמיש, בלי הפתעות.</h2>
+      <p>בהערכה — עם זרימה טובה, מודול המשתמשים יכול להיות עובד ומשולב תוך פחות מחודש. אבל אני עובד <strong>תמיד בתמחור חודשי</strong> ולא פיקס — כי בפרויקטים כאלה תמיד יש שינויים בדרך, וכך לא נכנסים לסיכוני סקופ ו"תוספות".</p>
+    </div>
+
+    <div class="budget-split" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 2.5rem; align-items: start;">
+      <div class="price-card">
+        <div class="price-tag">המודל — חודשי</div>
+        <div class="price-num">
+          <strong>10,000</strong>
+          <span>ש"ח / חודש</span>
+        </div>
+        <p class="price-desc">עבודה חודשית גמישה. הערכה מציאותית: <strong>~1 חודש למודול עובד ומשולב</strong>. אם מתארך מסיבות לגיטימיות — ממשיכים חודש שני, באותו תעריף.</p>
+        <ul class="price-list">
+          <li>זרימת הרשמה, כניסה, ושחזור סיסמה</li>
+          <li>אימות מייל/טלפון (OTP) + Magic Link</li>
+          <li>Social Login (Google / Apple)</li>
+          <li>2FA / MFA (TOTP + קודי שחזור)</li>
+          <li>RBAC — קונה / מוכר / אדמין / ארגון</li>
+          <li>פאנל ניהול משתמשים לצוות שלכם</li>
+          <li>הצפנת סיסמאות, JWT, sessions, rate-limit</li>
+          <li>API מתועד + webhooks לאינטגרציה</li>
+          <li>Audit log לכל פעולה רגישה</li>
+          <li>סקירת אבטחה של שלומי על קוד רגיש</li>
+          <li>גמישות מלאה בסקופ — שינויים בדרך בלי תוספת</li>
+          <li>הקוד שלכם, ב-Git שלכם, מהיום הראשון</li>
+        </ul>
+        <button class="btn primary" style="width:100%; padding:0.95rem;" onclick="window.open('https://wa.me/972545567213?text=' + encodeURIComponent('היי שלומי, ראינו את ההצעה של נועם למערכת המשתמשים למרקטפלייס — בא לנו לדבר.'), '_blank')">📱 בואו נדבר ב-WhatsApp</button>
+        <p style="font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:0.85rem;">ההתקשרות נעשית דרך שלומי זוין · 054-5567213</p>
+      </div>
+
+      <div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem;">לוח זמנים מוערך</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 1</div>
+            <h4>איפיון, ארכיטקטורה, ומודל הרשאות</h4>
+            <p>פגישות איתכם + שלומי. מיפוי סוגי המשתמשים במרקטפלייס, מודל RBAC, בחירת מנגנון הזדהות, וסקיצת סכמת ה-DB. תיאום מלא עם הפלטפורמה הקיימת שלכם.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 2</div>
+            <h4>הליבה — הרשמה, כניסה, אימות</h4>
+            <p>בניית זרימת signup/login, אימות מייל/OTP, שחזור סיסמה, הצפנה, JWT ו-sessions. סוף השבוע — דמו עובד של זרימת ההזדהות.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 3</div>
+            <h4>RBAC, ניהול, ו-2FA</h4>
+            <p>מערכת תפקידים והרשאות, פאנל ניהול משתמשים, 2FA/MFA, Social Login. סקירת אבטחה ממוקדת של שלומי על כל החלקים הרגישים.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">שבוע 4</div>
+            <h4>אינטגרציה, הקשחה, ועלייה לאוויר</h4>
+            <p>חיבור ה-API לפלטפורמה שלכם, webhooks, בדיקות אבטחה (rate-limit, OWASP), audit log, תיעוד. <strong>מודול המשתמשים חי ומשולב.</strong></p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-week">אחרי</div>
+            <h4>אם רוצים להמשיך — באותו תעריף</h4>
+            <p>פיצ'רים נוספים, KYC למוכרים, חיבור לתשלומים, או מודולים נוספים במרקטפלייס — ממשיכים באותו מודל חודשי. בלי lock-in. אפשר לעצור בכל רגע.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2.5rem;">
+      <h4>למה חודשי ולא פיקס?</h4>
+      <p>פשוט: בפרויקטים כאלה תמיד יש שינויים בדרך — דרישת אבטחה שצצה, סוג משתמש נוסף, אינטגרציה שמסתבכת. בתמחור פיקס זה הופך ל"תוספות" ומשא ומתן. בתמחור חודשי — פשוט עובדים, גמישים, בלי חיכוך. זה גם מה שמאפשר לתת מחיר נמוך מההתחלה — בלי "באפר" של סיכוני סקופ.</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <div class="section-eyebrow">הסטאק</div>
+      <h2>הטכנולוגיות שאני עובד איתן</h2>
+      <p>סטאק מודרני ויציב — אבל גמיש. אם הפלטפורמה שלכם בנויה אחרת, אני מתאים את עצמי אליה.</p>
+    </div>
+
+    <div class="stack-list">
+      <div class="stack-item"><h5>Backend</h5><p>Node.js + Express / NestJS</p></div>
+      <div class="stack-item"><h5>Database</h5><p>PostgreSQL + Redis</p></div>
+      <div class="stack-item"><h5>Auth</h5><p>JWT + Refresh / OAuth2</p></div>
+      <div class="stack-item"><h5>2FA</h5><p>TOTP / SMS / Email</p></div>
+      <div class="stack-item"><h5>הצפנה</h5><p>bcrypt / argon2</p></div>
+      <div class="stack-item"><h5>API</h5><p>REST / GraphQL + OpenAPI</p></div>
+      <div class="stack-item"><h5>Frontend</h5><p>React / Next.js</p></div>
+      <div class="stack-item"><h5>Hosting</h5><p>Cloud Run / Vercel</p></div>
+      <div class="stack-item"><h5>Security</h5><p>OWASP / Rate-limit</p></div>
+      <div class="stack-item"><h5>CI/CD</h5><p>GitHub Actions</p></div>
+      <div class="stack-item"><h5>Monitoring</h5><p>Sentry</p></div>
+      <div class="stack-item"><h5>AI Dev</h5><p>Claude Code</p></div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <h2>מה אם זה לא יעבוד?</h2>
+      <p>שאלה לגיטימית, במיוחד על שכבת משתמשים. הנה ההתחייבות:</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h3>שקיפות מלאה</h3>
+        <p>אתם רואים את הקוד, את ה-Git, את ההתקדמות, מהיום הראשון. כל שבוע — דמו ועדכון. שלומי משתתף בכל פגישה משמעותית.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <h3>רשת ביטחון על אבטחה</h3>
+        <p>כל קוד שנוגע בהזדהות, סיסמאות, או הרשאות עובר סקירה של שלומי. אם משהו דורש עומק שאני לא בטוח בו — הוא קופץ. זו הערבות האמיתית.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔓</div>
+        <h3>בלי lock-in</h3>
+        <p>הקוד שלכם, מתועד, מהיום הראשון. כל מפתח בצוות יוכל להמשיך. שום תלות בי, שום קופסה שחורה על חלק קריטי כמו משתמשים.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-cta">
+      <a href="https://wa.me/972545567213" class="btn primary" target="_blank">WhatsApp</a>
+      <a href="mailto:shlomi@boostart.io" class="btn ghost">shlomi@boostart.io</a>
+      <a href="tel:0545567213" class="btn ghost">054-5567213</a>
+    </div>
+    <div class="footer-meta">
+      <strong>נועם זוין</strong> · Backend / Full-Stack · בליווי ובאחריות שלומי זוין (CTO as a Service · <a href="https://boostart.io">boostart.io</a>)<br />
+      ההתקשרות, החתימה והאחריות — דרך שלומי. דוגמה לעבודה של נועם: <a href="https://plaxzy.com" target="_blank">plaxzy.com</a><br />
+      <span style="opacity:0.7;">בנוי עם Claude Code, כמובן. הקוד מותאם, מתועד, ויהיה שלכם.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // THEME
+  const themeBtn = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    themeBtn.textContent = '☀️';
+  }
+  themeBtn.addEventListener('click', () => {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      themeBtn.textContent = '🌙';
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeBtn.textContent = '☀️';
+      localStorage.setItem('theme', 'light');
+    }
+  });
+
+  // TABS
+  function goTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.dataset.content === name));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+
+  // ===== DEMO: USERS / AUTH SYSTEM =====
+  const AVA_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6'];
+  const ROLE_HE = { buyer: 'קונה', seller: 'מוכר', admin: 'אדמין' };
+  const STATUS_HE = { active: 'פעיל', pending: 'ממתין', suspended: 'מושעה' };
+  const ROLE_CYCLE = ['buyer', 'seller', 'admin'];
+
+  let uid = 100;
+  let users = [
+    { id: ++uid, name: 'מירב כהן', email: 'merav@shopz.co.il', role: 'seller', status: 'active', mfa: true, color: '#22c55e' },
+    { id: ++uid, name: 'דניאל לוי', email: 'daniel.l@gmail.com', role: 'buyer', status: 'active', mfa: false, color: '#6366f1' },
+    { id: ++uid, name: 'Admin', email: 'admin@marketplace.io', role: 'admin', status: 'active', mfa: true, color: '#f59e0b' },
+    { id: ++uid, name: 'אבי ברק', email: 'avi.barak@outlook.com', role: 'buyer', status: 'pending', mfa: false, color: '#ec4899' },
+  ];
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function nowTime() { const d = new Date(); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
+  function initials(name) {
+    const clean = name.replace(/[^A-Za-zא-ת ]/g, '').trim();
+    const parts = clean.split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] || '') + (parts[1][0] || '');
+    return (clean[0] || '?') + (clean[1] || '');
+  }
+
+  // SECURITY LOG
+  const logs = [];
+  function addLog(level, html) {
+    logs.unshift({ t: nowTime(), level, html });
+    if (logs.length > 30) logs.pop();
+    renderLogs();
+  }
+  function renderLogs() {
+    const el = document.getElementById('logList');
+    el.innerHTML = logs.map(l =>
+      `<div class="log-line"><span class="log-time mono">${l.t}</span><span class="log-dot ${l.level}"></span><span class="log-event">${l.html}</span></div>`
+    ).join('');
+  }
+
+  // RENDER USERS
+  function renderUsers(freshId) {
+    const el = document.getElementById('usersList');
+    el.innerHTML = '';
+    users.forEach(u => {
+      const row = document.createElement('div');
+      row.className = 'user-row' + (u.id === freshId ? ' fresh' : '');
+      row.innerHTML = `
+        <div class="ava" style="background:${u.color}">${initials(u.name)}</div>
+        <div class="user-main">
+          <div class="user-name">${u.name}
+            <span class="badge ${u.role}">${ROLE_HE[u.role]}</span>
+            <span class="badge ${u.status}">${STATUS_HE[u.status]}</span>
+          </div>
+          <div class="user-email mono">${u.email} ${u.mfa ? '· <span class="mfa-chip">🔐 2FA</span>' : ''}</div>
+        </div>
+        <div class="row-actions">
+          <button class="row-btn" title="שנה תפקיד" data-act="role" data-id="${u.id}">🏷️</button>
+          <button class="row-btn" title="${u.status === 'suspended' ? 'הפעל' : 'השעה'}" data-act="suspend" data-id="${u.id}">${u.status === 'suspended' ? '↺' : '⛔'}</button>
+        </div>`;
+      el.appendChild(row);
+    });
+    renderStats();
+  }
+
+  function renderStats() {
+    document.getElementById('stTotal').textContent = users.length;
+    document.getElementById('stActive').textContent = users.filter(u => u.status === 'active').length;
+    document.getElementById('stSellers').textContent = users.filter(u => u.role === 'seller').length;
+    document.getElementById('stPending').textContent = users.filter(u => u.status === 'pending').length;
+  }
+
+  // ADMIN ACTIONS
+  document.getElementById('usersList').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    const u = users.find(x => x.id === id);
+    if (!u) return;
+    if (btn.dataset.act === 'role') {
+      const idx = ROLE_CYCLE.indexOf(u.role);
+      u.role = ROLE_CYCLE[(idx + 1) % ROLE_CYCLE.length];
+      addLog('info', `שינוי תפקיד: <code>${u.email}</code> → ${ROLE_HE[u.role]} (RBAC)`);
+    } else if (btn.dataset.act === 'suspend') {
+      if (u.status === 'suspended') { u.status = 'active'; addLog('ok', `הופעל מחדש: <code>${u.email}</code>`); }
+      else { u.status = 'suspended'; addLog('danger', `הושעה: <code>${u.email}</code>`); }
+    }
+    renderUsers(id);
+  });
+
+  // AUTH FORM
+  let mode = 'signup';
+  let selectedRole = 'buyer';
+  let pendingOtp = null;
+  let pendingUser = null;
+
+  const emailIn = document.getElementById('emailIn');
+  const pwIn = document.getElementById('pwIn');
+  const submitBtn = document.getElementById('submitBtn');
+
+  document.querySelectorAll('.auth-switch button').forEach(b => {
+    b.addEventListener('click', () => {
+      mode = b.dataset.mode;
+      document.querySelectorAll('.auth-switch button').forEach(x => x.classList.toggle('active', x === b));
+      document.getElementById('roleField').style.display = mode === 'signup' ? 'block' : 'none';
+      submitBtn.textContent = mode === 'signup' ? 'צור חשבון →' : 'התחבר →';
+      validate();
+    });
+  });
+
+  document.querySelectorAll('.role-opt').forEach(r => {
+    r.addEventListener('click', () => {
+      selectedRole = r.dataset.role;
+      document.querySelectorAll('.role-opt').forEach(x => x.classList.toggle('active', x === r));
+    });
+  });
+
+  function emailValid(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function pwScore(v) {
+    let s = 0;
+    if (v.length >= 8) s++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+    if (/[0-9]/.test(v)) s++;
+    if (/[^A-Za-z0-9]/.test(v)) s++;
+    return s;
+  }
+
+  function validate() {
+    const ev = emailIn.value.trim();
+    const pv = pwIn.value;
+    // email hint
+    const eh = document.getElementById('emailHint');
+    if (!ev) { eh.textContent = ''; emailIn.classList.remove('valid', 'invalid'); }
+    else if (emailValid(ev)) { eh.textContent = '✓ אימייל תקין'; eh.className = 'field-hint ok'; emailIn.classList.add('valid'); emailIn.classList.remove('invalid'); }
+    else { eh.textContent = 'פורמט אימייל לא תקין'; eh.className = 'field-hint err'; emailIn.classList.add('invalid'); emailIn.classList.remove('valid'); }
+    // pw meter
+    const score = pwScore(pv);
+    const labels = ['', 'חלשה', 'בינונית', 'טובה', 'חזקה מאוד'];
+    const colors = ['', '#ef4444', '#f59e0b', '#22c55e', '#22c55e'];
+    document.querySelectorAll('#pwMeter .pw-seg').forEach((seg, i) => {
+      seg.style.background = i < score ? colors[score] : 'var(--border-strong)';
+    });
+    document.getElementById('pwLabel').textContent = pv ? ('חוזק סיסמה: ' + labels[score]) : 'חוזק סיסמה';
+    document.getElementById('pwLabel').style.color = pv && score >= 3 ? '#22c55e' : 'var(--text-muted)';
+    // submit enable
+    const ok = emailValid(ev) && (mode === 'login' ? pv.length >= 1 : (pv.length >= 8 && score >= 2));
+    submitBtn.disabled = !ok;
+  }
+  emailIn.addEventListener('input', validate);
+  pwIn.addEventListener('input', validate);
+
+  // SUBMIT -> OTP
+  submitBtn.addEventListener('click', () => {
+    const email = emailIn.value.trim();
+    if (mode === 'login') {
+      const u = users.find(x => x.email.toLowerCase() === email.toLowerCase());
+      if (!u) { addLog('warn', `ניסיון כניסה נכשל: <code>${email}</code> (לא קיים)`); showToast('משתמש לא נמצא'); return; }
+      if (u.status === 'suspended') { addLog('danger', `כניסה נחסמה: <code>${email}</code> (מושעה)`); showToast('החשבון מושעה'); return; }
+      addLog('ok', `כניסה הצליחה: <code>${email}</code>`);
+      addLog('info', `הונפק JWT + refresh token ל-<code>${email}</code>`);
+      showToast('התחברת בהצלחה ✓');
+      renderUsers(u.id);
+      return;
+    }
+    // signup
+    if (users.some(x => x.email.toLowerCase() === email.toLowerCase())) {
+      addLog('warn', `הרשמה נדחתה: <code>${email}</code> כבר רשום`);
+      showToast('אימייל כבר רשום'); return;
+    }
+    pendingOtp = ('' + Math.floor(100000 + Math.random() * 900000));
+    pendingUser = { email, role: selectedRole };
+    document.getElementById('otpCode').textContent = pendingOtp;
+    document.getElementById('authForm').style.display = 'none';
+    document.getElementById('otpStep').style.display = 'block';
+    document.getElementById('otpHint').textContent = '';
+    document.querySelectorAll('#otpInputs input').forEach(i => i.value = '');
+    document.querySelector('#otpInputs input').focus();
+    addLog('info', `נוצר חשבון (pending): <code>${email}</code>`);
+    addLog('info', `קוד אימות נשלח ל-<code>${email}</code>`);
+  });
+
+  // OTP inputs auto-advance
+  const otpInputs = Array.from(document.querySelectorAll('#otpInputs input'));
+  otpInputs.forEach((inp, i) => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/[^0-9]/g, '');
+      if (inp.value && i < otpInputs.length - 1) otpInputs[i + 1].focus();
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !inp.value && i > 0) otpInputs[i - 1].focus();
+    });
+  });
+
+  document.getElementById('verifyBtn').addEventListener('click', () => {
+    const entered = otpInputs.map(i => i.value).join('');
+    if (entered.length < 6) { document.getElementById('otpHint').textContent = 'הזינו 6 ספרות'; return; }
+    if (entered !== pendingOtp) {
+      document.getElementById('otpHint').textContent = 'קוד שגוי, נסו שוב';
+      addLog('warn', `אימות OTP נכשל: <code>${pendingUser.email}</code>`);
+      return;
+    }
+    // success -> create active user
+    const u = {
+      id: ++uid,
+      name: pendingUser.email.split('@')[0].replace(/[._]/g, ' '),
+      email: pendingUser.email,
+      role: pendingUser.role,
+      status: 'active',
+      mfa: false,
+      color: AVA_COLORS[uid % AVA_COLORS.length],
+    };
+    users.unshift(u);
+    addLog('ok', `אומת והופעל: <code>${u.email}</code> (${ROLE_HE[u.role]})`);
+    addLog('info', `הונפק JWT + refresh token ל-<code>${u.email}</code>`);
+    showToast('החשבון אומת והופעל ✓');
+    // reset form
+    document.getElementById('otpStep').style.display = 'none';
+    document.getElementById('authForm').style.display = 'block';
+    emailIn.value = ''; pwIn.value = '';
+    validate();
+    renderUsers(u.id);
+  });
+
+  document.getElementById('cancelOtp').addEventListener('click', () => {
+    document.getElementById('otpStep').style.display = 'none';
+    document.getElementById('authForm').style.display = 'block';
+    addLog('warn', `הרשמה בוטלה: <code>${pendingUser ? pendingUser.email : ''}</code>`);
+  });
+
+  // TOAST
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // INIT
+  addLog('info', 'המערכת עלתה · 4 משתמשים נטענו');
+  addLog('ok', 'כניסה הצליחה: <code>admin@marketplace.io</code>');
+  renderUsers();
+  validate();
+</script>
+
+</body>
+</html>

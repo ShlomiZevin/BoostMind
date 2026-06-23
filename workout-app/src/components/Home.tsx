@@ -86,8 +86,8 @@ export function Home({ uid, navigate, initialWeek }: Props) {
 
   // Week date range from schedule
   const formatShort = (d: Date) => `${d.getDate()}/${d.getMonth()+1}`;
-  const programStart = new Date(program.startDate);
-  const scheduleStart = new Date(programStart.getTime() + (weekNumber - 1) * 7 * 24 * 60 * 60 * 1000);
+  const programStartDate = new Date(programStart);
+  const scheduleStart = new Date(programStartDate.getTime() + (weekNumber - 1) * 7 * 24 * 60 * 60 * 1000);
   const scheduleEnd = new Date(scheduleStart.getTime() + 6 * 24 * 60 * 60 * 1000);
   // Collect all dates from the green boxes for this week to show actual range
   const allWeekDates: string[] = [];

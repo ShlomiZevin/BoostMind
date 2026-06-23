@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>הצעת מחיר · צ'אט טארוט AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0a18;
+    --bg-2: #15101f;
+    --card: #1a1428;
+    --card-2: #221a32;
+    --border: rgba(212, 165, 116, 0.18);
+    --border-strong: rgba(212, 165, 116, 0.35);
+    --text: #f5ecd9;
+    --text-soft: #c9bda0;
+    --text-mute: #8a7f6a;
+    --gold: #d4a574;
+    --gold-bright: #e8c594;
+    --gold-deep: #a87844;
+  }
+  [data-theme="light"] {
+    --bg: #f6efe1;
+    --bg-2: #ede2cc;
+    --card: #ffffff;
+    --card-2: #faf3e3;
+    --border: rgba(168, 120, 68, 0.22);
+    --border-strong: rgba(168, 120, 68, 0.4);
+    --text: #2b1f12;
+    --text-soft: #5a4a32;
+    --text-mute: #8a7956;
+    --gold: #a87844;
+    --gold-bright: #c89055;
+    --gold-deep: #7a5530;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+  }
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+  [data-theme="light"] .stars { opacity: 0.12; }
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--gold-bright);
+    border-radius: 50%;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.4); }
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Top */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 0;
+  }
+  .brand {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: var(--gold);
+  }
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-soft);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Header */
+  .doc-header {
+    text-align: center;
+    padding: 50px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+  }
+  .doc-label {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px, 5vw, 52px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  h1 .accent { color: var(--gold); font-style: italic; }
+  .doc-sub {
+    font-size: 16px;
+    color: var(--text-soft);
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  /* Tarot strip */
+  .tarot-strip {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 40px 0 10px;
+    flex-wrap: wrap;
+  }
+  .tarot-card {
+    width: 88px;
+    height: 142px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    transition: transform 0.4s ease;
+  }
+  .tarot-card:nth-child(odd) { transform: rotate(-3deg) translateY(6px); }
+  .tarot-card:nth-child(even) { transform: rotate(2deg) translateY(-3px); }
+  .tarot-card:hover { transform: rotate(0) translateY(-6px); }
+  .tarot-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Section */
+  section { padding: 40px 0; }
+  .sec-num {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+  .sec-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(26px, 3vw, 34px);
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .sec-body p {
+    color: var(--text-soft);
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  /* What's included list */
+  .included {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .included ul {
+    list-style: none;
+  }
+  .included li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .included li:last-child { border-bottom: none; }
+  .included .check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(212, 165, 116, 0.15);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .included .cross {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(180, 100, 100, 0.12);
+    color: #c97676;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .included .li-title {
+    color: var(--text);
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  .included .li-desc {
+    color: var(--text-mute);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Demo */
+  .demo-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 18px;
+  }
+  .chat-name { font-weight: 600; font-size: 14px; }
+  .chat-status { font-size: 12px; color: var(--text-mute); }
+  .chat-status .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #6dc26d; margin-left: 6px; vertical-align: middle; }
+  .msg {
+    display: flex;
+    margin-bottom: 12px;
+  }
+  .msg.user { justify-content: flex-end; }
+  .msg-bubble {
+    max-width: 80%;
+    padding: 11px 15px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .msg.bot .msg-bubble {
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-right-radius: 4px;
+  }
+  .msg.user .msg-bubble {
+    background: var(--gold);
+    color: #1a1428;
+    border-bottom-left-radius: 4px;
+  }
+  .demo-cards {
+    display: flex;
+    gap: 14px;
+    margin-top: 12px;
+    padding: 14px;
+    background: var(--bg-2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    align-items: center;
+  }
+  .demo-cards .cards-row {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .demo-cards .mini-card {
+    width: 64px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .demo-cards .mini-card img { width: 100%; height: 100%; object-fit: cover; }
+  .demo-cards .mini-card-info { flex: 1; font-size: 13px; color: var(--text-soft); line-height: 1.55; min-width: 0; }
+  .demo-cards .mini-card-info strong { color: var(--gold); display: block; margin-bottom: 4px; font-size: 13px; }
+  .chat-input {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 6px 6px 18px;
+    align-items: center;
+  }
+  .chat-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  .chat-input input::placeholder { color: var(--text-mute); }
+  .chat-input button {
+    background: var(--gold);
+    color: #1a1428;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .demo-note {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--text-mute);
+    font-style: italic;
+  }
+
+  /* Timeline */
+  .timeline-list {
+    display: grid;
+    gap: 14px;
+  }
+  .tl-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-right: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .tl-when {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    min-width: 110px;
+    padding-top: 2px;
+  }
+  .tl-what {
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.65;
+    flex: 1;
+  }
+  .tl-what .tl-head {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .tl-what .tl-desc {
+    color: var(--text-soft);
+    font-size: 14px;
+  }
+
+  /* Note box */
+  .note-box {
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-right: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-top: 24px;
+    color: var(--text-soft);
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+  .note-box strong { color: var(--gold); }
+
+  /* Price */
+  .price-card {
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    padding: 40px 32px;
+    text-align: center;
+    position: relative;
+  }
+  .price-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 18px;
+    border: 1px solid var(--gold);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  .price-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+  .price-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .price-amount .currency { color: var(--gold); font-size: 42px; vertical-align: top; margin-right: 6px; }
+  .price-note {
+    color: var(--text-soft);
+    font-size: 15px;
+    margin: 0 auto;
+    max-width: 460px;
+  }
+  .price-scope {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--text-mute);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .price-vat {
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    margin-top: 6px;
+    margin-bottom: 28px;
+    font-family: 'Cinzel', serif;
+  }
+  .payment-terms {
+    margin: 0 auto 24px;
+    max-width: 440px;
+    text-align: right;
+  }
+  .payment-title {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 2.5px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .payment-rows {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .payment-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .payment-row:last-child { border-bottom: none; }
+  .payment-pct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--gold);
+    min-width: 60px;
+  }
+  .payment-text {
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 0;
+    text-align: center;
+    margin-top: 60px;
+  }
+  footer .sig-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  footer .sig-info { color: var(--text-soft); font-size: 14px; }
+  footer .sig-info a { color: var(--text-soft); text-decoration: none; }
+  footer .sig-info a:hover { color: var(--gold); }
+
+  @media (max-width: 640px) {
+    section { padding: 30px 0; }
+    .doc-header { padding: 30px 0; margin-bottom: 30px; }
+    .tarot-card { width: 70px; height: 112px; }
+    .price-card { padding: 32px 22px; }
+    .price-amount { font-size: 56px; }
+    .price-amount .currency { font-size: 32px; }
+    .demo-box { padding: 18px; }
+    .tl-item { flex-direction: column; gap: 6px; }
+    .tl-when { min-width: auto; }
+
+    .demo-cards {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+    .demo-cards .cards-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .demo-cards .mini-card {
+      width: 80px;
+      height: 124px;
+    }
+    .demo-cards .mini-card-info {
+      text-align: center;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .demo-cards .mini-card-info strong {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+  }
+</style>
+</head>
+<body data-theme="dark">
+<div class="stars" id="stars"></div>
+
+<div class="wrap">
+
+<div class="topbar">
+  <div class="brand">✦ TAROT · AI</div>
+  <button class="theme-toggle" id="themeToggle">☀ מצב יום</button>
+</div>
+
+<!-- HEADER -->
+<header class="doc-header">
+  <div class="doc-label">הצעת מחיר</div>
+  <h1>צ'אט טארוט <span class="accent">AI</span></h1>
+  <p class="doc-sub">
+    מסמך עם תכולת העבודה, לוחות הזמנים והמחיר —
+    לסיכום מה שדיברנו עליו בטלפון.
+  </p>
+
+  <div class="tarot-strip">
+    <div class="tarot-card"><img src="tarot/themagician.jpg" alt="הקוסם"/></div>
+    <div class="tarot-card"><img src="tarot/theempress.jpg" alt="הקיסרית"/></div>
+    <div class="tarot-card"><img src="tarot/thesun.jpg" alt="השמש"/></div>
+    <div class="tarot-card"><img src="tarot/themoon.jpg" alt="הירח"/></div>
+    <div class="tarot-card"><img src="tarot/thestar.jpg" alt="הכוכב"/></div>
+    <div class="tarot-card"><img src="tarot/wheeloffortune.jpg" alt="גלגל המזל"/></div>
+  </div>
+</header>
+
+<!-- WHAT IT IS -->
+<section>
+  <div class="sec-num">01</div>
+  <h2 class="sec-title">מה אנחנו בונים</h2>
+  <div class="sec-body">
+    <p>
+      אתר שבו מי שנכנס יכול לשאול שאלה, לקבל קריאת קלפים אמיתית מהמערכת —
+      בסגנון, בקול ובדגשים שלך.
+    </p>
+    <p>
+      אתר באינטרנט, מותאם למחשב וגם לסלולר. <strong style="color: var(--text);">לא אפליקציה</strong> —
+      נכנסים דרך הדפדפן כמו לכל אתר אחר.
+    </p>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section>
+  <div class="sec-num">02</div>
+  <h2 class="sec-title">איך זה ירגיש</h2>
+  <div class="demo-box">
+    <div class="chat-header">
+      <div class="chat-avatar">✦</div>
+      <div>
+        <div class="chat-name">קריאת טארוט</div>
+        <div class="chat-status">זמין עכשיו <span class="dot"></span></div>
+      </div>
+    </div>
+
+    <div class="msg bot">
+      <div class="msg-bubble">שלום. ספר לי — מה השאלה שמעסיקה אותך עכשיו?</div>
+    </div>
+
+    <div class="msg user">
+      <div class="msg-bubble">אני מתלבט אם להחליף עבודה. כבר 4 שנים באותו מקום ומרגיש תקוע.</div>
+    </div>
+
+    <div class="msg bot">
+      <div class="msg-bubble">אשלוף שלושה קלפים — מה שעוצר, מה שמשתחרר, ומה שמחכה.</div>
+    </div>
+
+    <div class="demo-cards">
+      <div class="cards-row">
+        <div class="mini-card"><img src="tarot/theemperor.jpg" alt="הקיסר"/></div>
+        <div class="mini-card"><img src="tarot/wheeloffortune.jpg" alt="גלגל המזל"/></div>
+        <div class="mini-card"><img src="tarot/thesun.jpg" alt="השמש"/></div>
+      </div>
+      <div class="mini-card-info">
+        <strong>הקיסר · גלגל המזל · השמש</strong>
+        מבנה ישן ששמר עליך, רגע של תנועה, ואור בצד השני. הזמן בשל.
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" placeholder="הקלד שאלה..." disabled />
+      <button>שלח ✦</button>
+    </div>
+  </div>
+  <div class="demo-note">* הדגמה בלבד — העיצוב והניסוח הסופיים יותאמו אלייך</div>
+</section>
+
+<!-- WHAT'S INCLUDED -->
+<section>
+  <div class="sec-num">03</div>
+  <h2 class="sec-title">מה כלול במחיר</h2>
+  <div class="included">
+    <ul>
+      <li>
+        <span class="check">✓</span>
+        <div>
+          <div class="li-title">צ'אט טארוט חכם</div>
+          <div class="li-desc">המנוע שמקבל שאלה, שולף קלפים ונותן פרשנות בסגנון שלך.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <div>
+          <div class="li-title">עיצוב מלא של האתר</div>
+          <div class="li-desc">עיצוב מותאם בדיוק לעולם שלך — בלי תבניות מוכנות.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <div>
+          <div class="li-title">מותאם למחשב ולסלולר</div>
+          <div class="li-desc">אתר אחד שעובד יפה בכל מסך. לא אפליקציה.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <div>
+          <div class="li-title">כל הממשקים שצריך</div>
+          <div class="li-desc">עמוד הבית, הצ'אט, שליפת הקלפים, פאנל ניהול בסיסי.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <div>
+          <div class="li-title">סט תמונות קלפים מלא</div>
+          <div class="li-desc">אם נצטרך — נרכוש או נייצר תמונות נוספות לפי הטעם שלך. כלול במחיר.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <div>
+          <div class="li-title">העלאה לאוויר</div>
+          <div class="li-desc">העלאה לדומיין, הגדרות, וידוא שהכל עובד.</div>
+        </div>
+      </li>
+      <li>
+        <span class="cross">✗</span>
+        <div>
+          <div class="li-title">שיווק וקידום</div>
+          <div class="li-desc">לא כלולים בהצעה הזאת.</div>
+        </div>
+      </li>
+      <li>
+        <span class="cross">✗</span>
+        <div>
+          <div class="li-title">חיוב לקוחות / סליקת תשלומים</div>
+          <div class="li-desc">לא כלול בגרסה הראשונה. אם נרצה להוסיף בהמשך — נדבר עליו בנפרד.</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section>
+  <div class="sec-num">04</div>
+  <h2 class="sec-title">לוחות זמנים</h2>
+  <div class="sec-body">
+    <p>
+      העבודה לוקחת <strong style="color: var(--text);">כחודש</strong>.
+      גרסה ראשונה עובדת תהיה אצלך תוך <strong style="color: var(--text);">כמה ימים עד שבוע</strong> —
+      אתר ראשוני שאפשר להיכנס אליו, לראות, להתחיל לשחק.
+    </p>
+    <p>
+      משם — פינג-פונג של דיוקים, הערות, התאמות בעיצוב, ניסוחים, התאמת הסגנון של ה-AI לקול שלך.
+      זה החלק שלוקח את רוב הזמן וזה החלק שצריך אותך.
+    </p>
+    <p>
+      וחשוב להבין — אתר זה דבר חי. הוא לא "מסתיים" באמת. תמיד יבואו רעיונות, שיפורים, דברים להוסיף או לשנות.
+      ההצעה הזאת היא להקמת גרסה ראשונה — אתר עובד, יפה, באוויר. מכאן ממשיכים יחד מה שצריך.
+    </p>
+  </div>
+</section>
+
+<!-- PRICE -->
+<section>
+  <div class="sec-num">05</div>
+  <h2 class="sec-title">הצעת מחיר</h2>
+
+  <div class="price-card">
+    <div class="price-tag">סך הכל</div>
+    <div class="price-amount"><span class="currency">₪</span>30,000</div>
+    <p class="price-note">להקמת הגרסה הראשונה של האתר — מוכן, יפה, באוויר.</p>
+    <div class="price-vat">לא כולל מע״מ</div>
+
+    <div class="payment-terms">
+      <div class="payment-title">תנאי תשלום</div>
+      <div class="payment-rows">
+        <div class="payment-row">
+          <div class="payment-pct">30%</div>
+          <div class="payment-text">מקדמה בהתחלת העבודה</div>
+        </div>
+        <div class="payment-row">
+          <div class="payment-pct">70%</div>
+          <div class="payment-text">במסירת האתר</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="price-scope">
+      <strong style="color: var(--gold);">חשוב לציין:</strong>
+      המחיר הזה הוא להקמת האתר עד שלב של אתר עובד.
+      התממשקות לסליקה וחיוב לקוחות לא כלולה — נדבר עליה בנפרד אם וכשנרצה להוסיף.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="sig-name">שלומי זוין</div>
+  <div class="sig-info">
+    <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> ·
+    <a href="tel:0545567213">054-5567213</a>
+  </div>
+</footer>
+
+</div>
+
+<script>
+  const stars = document.getElementById('stars');
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.animationDelay = (Math.random() * 3) + 's';
+    s.style.opacity = 0.3 + Math.random() * 0.7;
+    stars.appendChild(s);
+  }
+
+  const toggle = document.getElementById('themeToggle');
+  toggle.addEventListener('click', () => {
+    const body = document.body;
+    const next = body.dataset.theme === 'dark' ? 'light' : 'dark';
+    body.dataset.theme = next;
+    toggle.textContent = next === 'dark' ? '☀ מצב יום' : '☾ מצב לילה';
+  });
+</script>
+</body>
+</html>

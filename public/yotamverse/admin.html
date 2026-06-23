@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geek & Prompty — ניהול</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0714; --surface:#150e26; --surface-2:#1d1433;
+    --border:rgba(255,255,255,.09);
+    --green:#97f53d; --pink:#ff4fd8;
+    --text:#f1ecff; --muted:#a99fc4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Heebo',sans-serif;min-height:100vh}
+  .wrap{max-width:860px;margin:0 auto;padding:20px}
+  h1{font-family:'Bangers',cursive;direction:ltr;text-align:center;color:var(--green);text-shadow:3px 3px 0 #5b2a8c;letter-spacing:.05em;font-size:2rem;margin:20px 0 4px}
+  .sub{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:24px}
+
+  .tabs{display:flex;gap:8px;margin-bottom:20px;justify-content:center;flex-wrap:wrap}
+  .tab{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:9px 22px;border-radius:10px;font-family:'Heebo',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer}
+  .tab.on{border-color:var(--green);color:var(--green);background:rgba(151,245,61,.08)}
+
+  .panel{display:none}
+  .panel.on{display:block}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1;min-width:120px}
+
+  label{font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:4px}
+  input,select,textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;
+    color:var(--text);font-family:'Heebo',sans-serif;font-size:1rem;padding:9px 12px;outline:none;
+  }
+  input:focus,select:focus{border-color:var(--green)}
+  button{
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    font-family:'Heebo',sans-serif;font-weight:700;font-size:.9rem;
+    padding:9px 18px;border-radius:9px;cursor:pointer;
+  }
+  button.primary{background:var(--green);border-color:var(--green);color:#0b0714}
+  button.danger{color:#ff5470;border-color:rgba(255,84,112,.4)}
+  button:disabled{opacity:.5;cursor:default}
+
+  /* orders */
+  .order-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .onum{font-family:monospace;font-weight:700;color:var(--green);direction:ltr;font-size:1.05rem}
+  .badge{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:999px;border:1px solid var(--border)}
+  .badge.new{color:var(--green);border-color:rgba(151,245,61,.5)}
+  .badge.paid{color:#53d8ff;border-color:rgba(83,216,255,.5)}
+  .badge.shipped{color:var(--pink);border-color:rgba(255,79,216,.5)}
+  .badge.done{color:var(--muted)}
+  .badge.cancelled{color:#ff5470;border-color:rgba(255,84,112,.4)}
+  .odate{color:var(--muted);font-size:.8rem}
+  .oitems{margin:10px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);padding:8px 0;font-size:.9rem}
+  .oitems div{padding:2px 0}
+  .ototal{font-weight:800;color:var(--green)}
+  .oshirt{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:4px 0}
+  .oshirt-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .dlbtn{flex:none;background:var(--green);color:#0b0714;text-decoration:none;font-weight:800;font-size:.82rem;padding:6px 14px;border-radius:9px;white-space:nowrap}
+  .dlbtn:hover{filter:brightness(1.08)}
+  .splbtn{flex:none;background:transparent;border:1px solid var(--cyan);color:var(--cyan);text-decoration:none;font-weight:700;font-size:.82rem;padding:6px 14px;border-radius:9px;white-space:nowrap}
+  .splbtn:hover{background:rgba(83,216,255,.12)}
+  .olinks{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .olinks a{color:var(--green);text-decoration:none;font-weight:600;font-size:.85rem;border:1px solid rgba(151,245,61,.4);border-radius:8px;padding:5px 12px}
+  .filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .filters button{padding:6px 14px;font-size:.82rem}
+  .filters button.on{border-color:var(--green);color:var(--green)}
+
+  /* products */
+  .pimg{width:64px;height:88px;object-fit:cover;border-radius:8px;background:#1a1130}
+  .pfields{flex:1;display:grid;grid-template-columns:1fr 90px 70px;gap:8px;min-width:230px}
+  @media(max-width:560px){.pfields{grid-template-columns:1fr 80px}}
+  .checkline{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+  .checkline input{width:auto}
+  .hint{color:var(--muted);font-size:.82rem;margin-top:6px;line-height:1.5}
+
+  .empty{color:var(--muted);text-align:center;padding:30px}
+  .toast{position:fixed;bottom:24px;right:50%;transform:translate(50%,80px);background:var(--green);color:#0b0714;font-weight:800;padding:12px 26px;border-radius:12px;z-index:200;transition:transform .25s;font-size:.95rem}
+  .toast.show{transform:translate(50%,0)}
+
+  /* gate */
+  .gate{max-width:340px;margin:18vh auto;text-align:center}
+  .gate input{text-align:center;font-size:1.1rem;margin:14px 0}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h1>GEEK & PROMPTY</h1>
+  <div class="sub">אזור ניהול</div>
+  <input type="password" id="gatePass" placeholder="סיסמה" autofocus>
+  <button class="primary" id="gateBtn" style="width:100%">כניסה</button>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <h1>GEEK & PROMPTY</h1>
+  <div class="sub">ניהול חנות · <a href="./" style="color:var(--green)">לצפייה בחנות ←</a></div>
+
+  <div class="tabs">
+    <button class="tab on" data-t="orders">📦 הזמנות</button>
+    <button class="tab" data-t="products">👕 מוצרים</button>
+    <button class="tab" data-t="settings">⚙️ הגדרות</button>
+  </div>
+
+  <div class="panel on" id="panel-orders">
+    <div class="filters" id="filters"></div>
+    <div id="ordersList"><div class="empty">טוען...</div></div>
+  </div>
+
+  <div class="panel" id="panel-products">
+    <div id="productsList"></div>
+    <div class="card">
+      <b style="display:block;margin-bottom:10px">➕ הוספת חולצה חדשה</b>
+      <div class="row" style="margin-bottom:8px">
+        <div class="grow"><label>שם</label><input id="npName" placeholder="שם החולצה"></div>
+        <div style="width:90px"><label>מחיר ₪</label><input id="npPrice" type="number" value="80"></div>
+      </div>
+      <div class="row">
+        <div class="grow"><label>תמונה</label><input type="file" id="npImg" accept="image/*"></div>
+        <button class="primary" id="npAdd" style="align-self:flex-end">הוספה</button>
+      </div>
+      <div class="hint">התמונה מוקטנת אוטומטית ונשמרת ישירות במסד — אין צורך בשום דבר נוסף.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <div class="grow"><label>מחיר משלוח ₪</label><input id="sShipping" type="number"></div>
+        <div class="grow"><label>זמן אספקה (טקסט)</label><input id="sShipNote"></div>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <div class="grow"><label>מספר לביט / פייבוקס</label><input id="sBit" dir="ltr"></div>
+        <div class="grow"><label>וואטסאפ (פורמט בינלאומי)</label><input id="sWa" dir="ltr" placeholder="9725..."></div>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <div class="grow"><label>לינק פייפאל (paypal.me — לא חובה)</label><input id="sPaypal" dir="ltr" placeholder="https://paypal.me/..."></div>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <div class="grow"><label>🎁 מחיר ברכה מיותם ₪</label><input id="sGreet" type="number"></div>
+        <div class="grow"><label>🤓 מחיר ללמוד עם יותם ₪</label><input id="sLearn" type="number"></div>
+      </div>
+      <div class="row" style="margin-bottom:14px">
+        <div class="grow"><label>סיסמת ניהול</label><input id="sPass" dir="ltr"></div>
+      </div>
+      <button class="primary" id="sSave">שמירת הגדרות</button>
+      <div class="hint">אם משאירים את לינק הפייפאל ריק — כפתור הפייפאל לא יוצג ללקוחות.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90",
+  authDomain: "boostmind-b052c.firebaseapp.com",
+  projectId: "boostmind-b052c"
+});
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+
+const DEFAULT_PASS = 'prompty2026';
+const DEFAULT_SETTINGS = {
+  shipping: 35, shippingNote: 'עד 6 ימי עסקים',
+  whatsapp: '972549064930', bitPhone: '054-5567213',
+  paypalLink: '', adminPass: DEFAULT_PASS,
+  greetPrice: 30, learnPrice: 50
+};
+const DEFAULT_PRODUCTS = [
+  { id:'shirt-1', name:'גיק קלאסי — בלאסטר מוד', img:'img/shirt-1.jpg', price:80, active:true, order:1 },
+  { id:'shirt-2', name:'גיק ופרומפטי — System: Prompting', img:'img/shirt-2.jpg', price:80, active:true, order:2 },
+  { id:'shirt-3', name:'GEEK MODE: BADASS', img:'img/shirt-3.jpg', price:80, active:true, order:3 },
+  { id:'shirt-4', name:'וובה לובה פרומפט דאב דאב!', img:'img/shirt-4.jpg', price:80, active:true, order:4 },
+  { id:'shirt-5', name:'זה בסדר, זה בסדר — פורטל', img:'img/shirt-5.jpg', price:80, active:true, order:5 },
+  { id:'shirt-6', name:'זה בסדר, זה בסדר — קלאסי', img:'img/shirt-6.jpg', price:80, active:true, order:6 }
+];
+let settings = Object.assign({}, DEFAULT_SETTINGS);
+
+let toastTimer;
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400); }
+function esc(s){ return String(s||'').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+/* ---------- gate ---------- */
+async function tryLogin(){
+  const v = $('gatePass').value;
+  try{
+    const ss = await db.collection('gp-shop').doc('settings').get();
+    if(ss.exists) settings = Object.assign({}, DEFAULT_SETTINGS, ss.data());
+  }catch(e){}
+  if(v === (settings.adminPass || DEFAULT_PASS)){
+    sessionStorage.setItem('gp-admin','1');
+    enter();
+  } else toast('סיסמה שגויה');
+}
+$('gateBtn').onclick = tryLogin;
+$('gatePass').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+
+async function enter(){
+  $('gate').style.display = 'none';
+  $('app').style.display = 'block';
+  try{
+    const ss = await db.collection('gp-shop').doc('settings').get();
+    if(ss.exists) settings = Object.assign({}, DEFAULT_SETTINGS, ss.data());
+  }catch(e){}
+  fillSettings();
+  await loadProdMap();
+  watchOrders();
+  loadProducts();
+}
+if(sessionStorage.getItem('gp-admin') === '1'){ enter(); }
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x===t));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'panel-'+t.dataset.t));
+});
+
+/* ---------- orders ---------- */
+const STATUSES = [
+  ['new','חדשה'],['paid','שולמה'],['shipped','נשלחה'],['done','הושלמה'],['cancelled','בוטלה']
+];
+let orders = [];
+let filter = 'all';
+
+function watchOrders(){
+  db.collection('gp-orders').orderBy('createdAt','desc').limit(300).onSnapshot(snap => {
+    orders = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+    renderFilters(); renderOrders();
+  }, err => { $('ordersList').innerHTML = '<div class="empty">שגיאה בטעינת הזמנות</div>'; });
+}
+
+function renderFilters(){
+  const counts = { all: orders.length };
+  STATUSES.forEach(([k]) => counts[k] = orders.filter(o => o.status === k).length);
+  $('filters').innerHTML =
+    `<button data-f="all" class="${filter==='all'?'on':''}">הכל (${counts.all})</button>` +
+    STATUSES.map(([k,l]) => `<button data-f="${k}" class="${filter===k?'on':''}">${l} (${counts[k]})</button>`).join('');
+  $('filters').querySelectorAll('button').forEach(b => b.onclick = () => { filter = b.dataset.f; renderFilters(); renderOrders(); });
+}
+
+function renderOrders(){
+  const list = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  if(!list.length){ $('ordersList').innerHTML = '<div class="empty">אין הזמנות עדיין 🦗</div>'; return; }
+  $('ordersList').innerHTML = list.map(o => {
+    const d = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate() : null;
+    const ds = d ? d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) : '';
+    const sLabel = (STATUSES.find(s => s[0]===o.status) || ['new','חדשה'])[1];
+    const phoneDigits = String(o.phone||'').replace(/\D/g,'');
+    const waPhone = phoneDigits.startsWith('0') ? '972'+phoneDigits.slice(1) : phoneDigits;
+    return `<div class="card">
+      <div class="order-head">
+        <span class="onum">${esc(o.orderNum)}</span>
+        <span class="badge ${esc(o.status)}">${sLabel}</span>
+        <span class="odate">${ds}</span>
+      </div>
+      <div style="margin-top:8px"><b>${esc(o.name)}</b> · <span dir="ltr">${esc(o.phone)}</span>
+        ${o.shipping ? '' : '<span class="badge" style="color:var(--cyan);border-color:rgba(83,216,255,.5);margin-right:6px">🎥 דיגיטלי</span>'}<br>
+      <span style="color:var(--muted);font-size:.9rem">${[esc(o.city), esc(o.street)].filter(Boolean).join(', ')}${(o.city||o.street) && o.notes ? ' · ' : ''}${o.notes ? esc(o.notes) : ''}${!(o.city||o.street||o.notes) ? 'הזמנה דיגיטלית — נשלח בוואטסאפ' : ''}</span></div>
+      <div class="oitems">${(o.items||[]).map(i => i.type === 'addon'
+        ? `<div>🎥 <b>${esc(i.name)}</b> — ${i.price} ₪<div style="color:var(--muted);font-size:.85rem;white-space:pre-wrap;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:5px 0">${esc(i.desc)}</div></div>`
+        : `<div class="oshirt"><span>👕 ${esc(i.name)} — ${esc(i.cut)}${i.fit ? ' ' + esc(i.fit) : ''} / ${esc(i.color)} / ${esc(i.size)} × ${i.qty} = ${i.price*i.qty} ₪</span><span class="oshirt-btns">${printSrc(i) ? `<a class="dlbtn" href="${printSrc(i)}" download="${printName(o,i)}">⬇️ קובץ להדפסה</a>` : ''}<a class="splbtn" href="${supplierUrl(i)}" target="_blank" rel="noopener">🛒 הזמנה מהספק</a></span></div>`).join('')}</div>
+      <div>${o.shipping ? 'משלוח ' + o.shipping + ' ₪ · ' : ''}<span class="ototal">סה״כ ${o.total} ₪</span></div>
+      <div class="olinks">
+        <a href="tel:${esc(o.phone)}">📞 חיוג</a>
+        <a href="https://wa.me/${waPhone}?text=${encodeURIComponent('היי ' + (o.name||'').split(' ')[0] + '! זה יותם מ-YOTAMVERSE 🌀 לגבי הזמנה ' + o.orderNum)}" target="_blank" rel="noopener">💬 וואטסאפ</a>
+        <select data-id="${o._id}" class="oStatus" style="width:auto;padding:5px 10px;font-size:.85rem">
+          ${STATUSES.map(([k,l]) => `<option value="${k}" ${o.status===k?'selected':''}>${l}</option>`).join('')}
+        </select>
+        <button class="danger oDel" data-id="${o._id}" style="padding:5px 12px;font-size:.82rem">מחיקה</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('ordersList').querySelectorAll('.oStatus').forEach(s => s.onchange = () =>
+    db.collection('gp-orders').doc(s.dataset.id).update({status: s.value}).then(() => toast('עודכן ✓')));
+  $('ordersList').querySelectorAll('.oDel').forEach(b => b.onclick = () => {
+    if(confirm('למחוק את ההזמנה?')) db.collection('gp-orders').doc(b.dataset.id).delete().then(() => toast('נמחקה'));
+  });
+}
+
+/* ---------- products ---------- */
+let products = [];
+let prodMap = {};
+
+async function loadProdMap(){
+  try{
+    const snap = await db.collection('gp-products').get();
+    prodMap = {};
+    snap.forEach(d => prodMap[d.id] = d.data());
+  }catch(e){}
+}
+
+/* full-quality print file for an order's shirt item */
+const PRINT_BASE = 'print/';
+function printSrc(item){
+  const p = prodMap[item.id];
+  if(p && p.img && p.img.indexOf('data:') === 0) return p.img;        // admin-uploaded → its stored image
+  if(/^shirt-[1-6]$/.test(item.id)) return PRINT_BASE + item.id + '.jpg'; // built-in → full-res original
+  if(p && p.img) return p.img;                                        // fallback to product image path
+  return '';
+}
+function printName(o, item){
+  const c = item.color === 'שחור' ? 'black' : item.color === 'לבן' ? 'white' : (item.color || '');
+  const cut = item.cut === 'גברים' ? 'men' : item.cut === 'נשים' ? 'women' : (item.cut || '');
+  return [o.orderNum, item.id, cut, c, item.size].filter(Boolean).join('-') + '.jpg';
+}
+
+/* supplier (migvan4u) product pages by cut */
+const SUPPLIER = {
+  men:      'https://www.migvan4u.co.il/product/%d7%97%d7%95%d7%9c%d7%a6%d7%aa-%d7%9b%d7%95%d7%aa%d7%a0%d7%94-%d7%90%d7%99%d7%9b%d7%95%d7%aa%d7%99%d7%aa-170-%d7%92%d7%a8%d7%9d-t-wear/',
+  womenT:   'https://www.migvan4u.co.il/product/%d7%97%d7%95%d7%9c%d7%a6%d7%aa-%d7%9b%d7%95%d7%aa%d7%a0%d7%94-%d7%90%d7%99%d7%9b%d7%95%d7%aa%d7%99%d7%aa-170-%d7%92%d7%a8%d7%9d-t-wear-%d7%92%d7%96%d7%a8%d7%aa-%d7%a0%d7%a9%d7%99%d7%9d-%d7%a6%d7%95/',
+  womenReg: 'https://www.migvan4u.co.il/product/%d7%97%d7%95%d7%9c%d7%a6%d7%aa-%d7%9b%d7%95%d7%aa%d7%a0%d7%94-%d7%92%d7%96%d7%a8%d7%aa-%d7%a0%d7%a9%d7%99%d7%9d-%d7%a6%d7%95%d7%95%d7%90%d7%a8%d7%95%d7%9f-%d7%a2%d7%92%d7%95%d7%9c-%d7%a6%d7%91%d7%a2-3/'
+};
+function supplierUrl(item){
+  if(item.cut === 'נשים') return item.fit === 'רגילה' ? SUPPLIER.womenReg : SUPPLIER.womenT;
+  return SUPPLIER.men;
+}
+
+async function loadProducts(){
+  try{
+    const snap = await db.collection('gp-products').orderBy('order').get();
+    products = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+    prodMap = {};
+    products.forEach(p => prodMap[p._id] = p);
+  }catch(e){ products = []; }
+  renderProducts();
+}
+
+function renderProducts(){
+  if(!products.length){
+    $('productsList').innerHTML = `<div class="card" style="text-align:center">
+      <p style="margin-bottom:12px;color:var(--muted)">המוצרים עדיין לא במסד — האתר מציג כרגע את 6 החולצות המובנות.<br>כדי לערוך שמות ומחירים, טוענים אותן למסד בלחיצה:</p>
+      <button class="primary" id="seedBtn">טעינת 6 החולצות לעריכה</button>
+    </div>`;
+    $('seedBtn').onclick = async () => {
+      const batch = db.batch();
+      DEFAULT_PRODUCTS.forEach(p => batch.set(db.collection('gp-products').doc(p.id), {
+        name:p.name, img:p.img, price:p.price, active:true, order:p.order
+      }));
+      await batch.commit();
+      toast('נטענו ✓'); loadProducts();
+    };
+    return;
+  }
+  $('productsList').innerHTML = products.map((p,idx) => `
+    <div class="card">
+      <div class="row">
+        <img class="pimg" src="${p.img}" alt="">
+        <div class="pfields">
+          <div><label>שם</label><input data-id="${p._id}" data-k="name" value="${esc(p.name)}"></div>
+          <div><label>מחיר ₪</label><input data-id="${p._id}" data-k="price" type="number" value="${p.price}"></div>
+          <div class="checkline" style="align-self:end;padding-bottom:8px">
+            <input type="checkbox" data-id="${p._id}" data-k="active" ${p.active!==false?'checked':''} id="act-${p._id}">
+            <label for="act-${p._id}" style="margin:0">מוצג</label>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;justify-content:flex-end">
+        <button class="pUp" data-i="${idx}" ${idx===0?'disabled':''}>↑</button>
+        <button class="pDown" data-i="${idx}" ${idx===products.length-1?'disabled':''}>↓</button>
+        <button class="primary pSave" data-id="${p._id}">שמירה</button>
+        <button class="danger pDel" data-id="${p._id}">מחיקה</button>
+      </div>
+    </div>`).join('');
+
+  $('productsList').querySelectorAll('.pSave').forEach(b => b.onclick = async () => {
+    const id = b.dataset.id;
+    const get = k => $('productsList').querySelector(`[data-id="${id}"][data-k="${k}"]`);
+    await db.collection('gp-products').doc(id).update({
+      name: get('name').value.trim(),
+      price: Number(get('price').value) || 80,
+      active: get('active').checked
+    });
+    toast('נשמר ✓'); loadProducts();
+  });
+  $('productsList').querySelectorAll('.pDel').forEach(b => b.onclick = async () => {
+    if(!confirm('למחוק את המוצר?')) return;
+    await db.collection('gp-products').doc(b.dataset.id).delete();
+    toast('נמחק'); loadProducts();
+  });
+  const swap = async (i,j) => {
+    const a = products[i], b = products[j];
+    const batch = db.batch();
+    batch.update(db.collection('gp-products').doc(a._id), {order: j+1});
+    batch.update(db.collection('gp-products').doc(b._id), {order: i+1});
+    await batch.commit(); loadProducts();
+  };
+  $('productsList').querySelectorAll('.pUp').forEach(b => b.onclick = () => swap(+b.dataset.i, +b.dataset.i-1));
+  $('productsList').querySelectorAll('.pDown').forEach(b => b.onclick = () => swap(+b.dataset.i, +b.dataset.i+1));
+}
+
+/* add product: resize image on canvas -> dataURL into Firestore (1MB doc limit) */
+function fileToDataUrl(file){
+  return new Promise((res, rej) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const maxW = 900;
+      const scale = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      let q = 0.82, out = c.toDataURL('image/jpeg', q);
+      while(out.length > 880000 && q > 0.4){ q -= 0.1; out = c.toDataURL('image/jpeg', q); }
+      if(out.length > 880000) rej(new Error('big'));
+      else res(out);
+    };
+    img.onerror = rej;
+    img.src = url;
+  });
+}
+
+$('npAdd').onclick = async () => {
+  const name = $('npName').value.trim();
+  const price = Number($('npPrice').value) || 80;
+  const file = $('npImg').files[0];
+  if(!name || !file){ toast('צריך שם ותמונה'); return; }
+  if(!products.length){ toast('קודם טענו את 4 החולצות לעריכה'); return; }
+  $('npAdd').disabled = true; $('npAdd').textContent = 'מעלה...';
+  try{
+    const dataUrl = await fileToDataUrl(file);
+    await db.collection('gp-products').add({
+      name, price, img: dataUrl, active: true,
+      order: (products.length ? Math.max(...products.map(p => p.order||0)) : 0) + 1
+    });
+    $('npName').value = ''; $('npImg').value = '';
+    toast('נוסף ✓'); loadProducts();
+  }catch(e){
+    toast(e.message === 'big' ? 'התמונה גדולה מדי גם אחרי כיווץ' : 'שגיאה בהעלאה');
+  }
+  $('npAdd').disabled = false; $('npAdd').textContent = 'הוספה';
+};
+
+/* ---------- settings ---------- */
+function fillSettings(){
+  $('sShipping').value = settings.shipping;
+  $('sShipNote').value = settings.shippingNote;
+  $('sBit').value = settings.bitPhone;
+  $('sWa').value = settings.whatsapp;
+  $('sPaypal').value = settings.paypalLink || '';
+  $('sGreet').value = settings.greetPrice;
+  $('sLearn').value = settings.learnPrice;
+  $('sPass').value = settings.adminPass || DEFAULT_PASS;
+}
+$('sSave').onclick = async () => {
+  const s = {
+    shipping: Number($('sShipping').value) || 35,
+    shippingNote: $('sShipNote').value.trim() || 'עד 6 ימי עסקים',
+    bitPhone: $('sBit').value.trim(),
+    whatsapp: $('sWa').value.trim(),
+    paypalLink: $('sPaypal').value.trim(),
+    greetPrice: Number($('sGreet').value) || 30,
+    learnPrice: Number($('sLearn').value) || 50,
+    adminPass: $('sPass').value.trim() || DEFAULT_PASS
+  };
+  await db.collection('gp-shop').doc('settings').set(s);
+  settings = Object.assign({}, DEFAULT_SETTINGS, s);
+  toast('ההגדרות נשמרו ✓');
+};
+</script>
+</body>
+</html>

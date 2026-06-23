@@ -7,5 +7,14 @@ service cloud.firestore {
     match /users/{userId}/{document=**} {
       allow read, write: if true;
     }
+    match /gp-products/{docId} {
+      allow read, write: if true;
+    }
+    match /gp-orders/{docId} {
+      allow read, write: if true;
+    }
+    match /gp-shop/{docId} {
+      allow read, write: if true;
+    }
   }
 }

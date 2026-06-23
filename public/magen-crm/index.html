@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>מערכת CRM, תהליכים ואוטומציות | חברת מגן — שלומי זוין, CTO as a Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --bg-alt: #0f1217;
+      --card-bg: #14181f;
+      --card-hover: #191e26;
+      --accent: #4f7dff;
+      --accent-soft: rgba(79, 125, 255, 0.12);
+      --accent-dim: rgba(79, 125, 255, 0.45);
+      --border: #20262f;
+      --border-strong: #2c333d;
+      --text: #f4f6f9;
+      --text-muted: #8a93a0;
+      --text-dim: #5c6470;
+      --ok: #34d399;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --purple: #a78bfa;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+    }
+    [data-theme="light"] {
+      --bg: #ffffff; --bg-alt: #f6f8fb; --card-bg: #ffffff; --card-hover: #f6f8fb;
+      --border: #e5e8ee; --border-strong: #d2d7e0;
+      --text: #0e1117; --text-muted: #58616e; --text-dim: #8a93a0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); scroll-behavior: smooth; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; }
+    .logo-text { font-weight: 600; font-size: 0.9rem; color: var(--text); direction: ltr; letter-spacing: -0.01em; }
+    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .theme-toggle { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.8rem; color: var(--text-muted); transition: all 0.15s; }
+    .theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-sm { padding: 0.4rem 0.9rem; border-radius: var(--radius-sm); background: var(--accent); color: white; font-size: 0.82rem; font-weight: 500; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-sm:hover { background: #3d68e8; }
+
+    /* TABS */
+    .tabs-container { position: sticky; top: 57px; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 0; justify-content: center; padding: 0; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.9rem; font-weight: 500; padding: 0.9rem 1.35rem; cursor: pointer; position: relative; transition: color 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; right: 0; left: 0; height: 2px; background: var(--accent); }
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { padding: 4.5rem 0 3rem; text-align: center; }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.7rem); font-weight: 700; line-height: 1.25; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub { font-size: 1.05rem; color: var(--text-muted); max-width: 800px; margin: 0 auto 2rem; line-height: 1.7; }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-bottom: 2rem; }
+    .hero-badges span { font-size: 0.78rem; padding: 0.3rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); }
+    .hero-cta { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.4rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; text-decoration: none; font-family: inherit; transition: all 0.15s; }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { background: #3d68e8; }
+    .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn.ghost:hover { border-color: var(--border-strong); background: var(--card-bg); }
+
+    /* SECTIONS */
+    .section { padding: 3rem 0; }
+    .section-header { text-align: center; max-width: 740px; margin: 0 auto 2.5rem; }
+    .section-header h2 { font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .section-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* CARDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .card:hover { border-color: var(--border-strong); }
+    .card h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .card p { color: var(--text-muted); font-size: 0.88rem; margin: 0 0 0.7rem; }
+    .card ul { list-style: none; padding: 0; margin: 0; }
+    .card li { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+    .card li::before { content: '\2014'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+    .card-icon { font-size: 1.5rem; margin-bottom: 0.75rem; opacity: 0.9; }
+    .card-num { font-size: 0.72rem; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+
+    /* STATS */
+    .stats-row { display: flex; justify-content: center; gap: 3rem; margin: 2rem 0; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 2.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .stat .label { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* EXPERIENCE CARDS */
+    .exp-card { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; transition: border-color 0.15s; }
+    .exp-card:hover { border-color: var(--border-strong); }
+    .exp-card h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .exp-card p { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 0.6rem; line-height: 1.6; }
+    .exp-tag { display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--bg-alt); color: var(--text-muted); margin-left: 0.25rem; margin-bottom: 0.25rem; border: 1px solid var(--border); }
+
+    /* CALLOUT */
+    .callout { border-radius: var(--radius-lg); padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border); border-right: 3px solid var(--accent); margin: 1.5rem 0; }
+    .callout h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 600; }
+    .callout p { margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; }
+
+    /* QA BOX (mandatory questions) */
+    .qa-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem 1.5rem; margin-bottom: 1rem; }
+    .qa-item .q { display: flex; gap: 0.7rem; align-items: flex-start; font-weight: 600; font-size: 0.97rem; margin-bottom: 0.6rem; }
+    .qa-item .q .qn { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+    .qa-item .a { color: var(--text-muted); font-size: 0.89rem; line-height: 1.75; padding-right: 0.2rem; }
+    .qa-item .a strong { color: var(--text); font-weight: 600; }
+
+    /* ARCH DIAGRAM */
+    .arch { display: grid; grid-template-columns: 1fr; gap: 0.75rem; max-width: 760px; margin: 1.5rem auto 0; }
+    .arch-layer { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.25rem; background: var(--card-bg); }
+    .arch-layer.client { border-right: 3px solid var(--accent); }
+    .arch-layer.core { border-right: 3px solid var(--ok); }
+    .arch-layer.crm { border-right: 3px solid var(--purple); }
+    .arch-layer h4 { font-size: 0.92rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .arch-layer .lbl { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); color: var(--text-dim); }
+    .arch-layer p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+    .arch-arrow { text-align: center; color: var(--text-dim); font-size: 1.1rem; line-height: 1; }
+
+    /* DEMO */
+    .demo-container { max-width: 940px; margin: 0 auto; }
+    .demo-app { background: var(--card-bg); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+    .demo-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.25rem; background: var(--bg-alt); border-bottom: 1px solid var(--border); }
+    .demo-header h3 { font-size: 0.88rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+    .demo-status { font-size: 0.72rem; padding: 0.2rem 0.65rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); }
+    .demo-body { padding: 1.25rem; }
+    .demo-tabs { display: flex; gap: 0.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; padding: 0.25rem; background: var(--bg-alt); border-radius: var(--radius-md); border: 1px solid var(--border); }
+    .demo-tab { padding: 0.5rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; }
+    .demo-tab:hover { color: var(--text); }
+    .demo-tab.active { background: var(--card-bg); color: var(--text); border-color: var(--border); }
+    .demo-panel { display: none; animation: fadeIn 0.25s ease; }
+    .demo-panel.active { display: block; }
+    .pulse-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 0.3rem; animation: livePulse 2s infinite; }
+    @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* FORM DEMO */
+    .form-row { margin-bottom: 0.9rem; }
+    .form-row label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .form-row input, .form-row select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; color: var(--text); font-family: inherit; font-size: 0.85rem; }
+    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--accent); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .lead-result { margin-top: 1rem; border: 1px solid var(--accent-dim); background: var(--accent-soft); border-radius: var(--radius-md); padding: 1rem 1.25rem; display: none; animation: fadeIn 0.3s ease; }
+    .lead-result h4 { font-size: 0.9rem; margin-bottom: 0.6rem; }
+    .auto-action { font-size: 0.8rem; color: var(--text-muted); padding: 0.35rem 0; display: flex; align-items: center; gap: 0.5rem; border-top: 1px solid var(--border); }
+    .auto-action:first-of-type { border-top: none; }
+    .auto-action .tick { color: var(--ok); font-weight: 700; }
+
+    /* QUESTIONNAIRE DEMO */
+    .quiz-progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 1.25rem; }
+    .quiz-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.35s ease; }
+    .quiz-q { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .quiz-meta { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 1rem; }
+    .quiz-opt { display: block; width: 100%; text-align: right; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.7rem 0.9rem; color: var(--text); font-family: inherit; font-size: 0.87rem; cursor: pointer; margin-bottom: 0.5rem; transition: all 0.15s; }
+    .quiz-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .quiz-score-bar { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
+    .quiz-score-bar .lbl { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+    .quiz-score-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .quiz-score-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; }
+    .quiz-score-val { font-size: 0.9rem; font-weight: 700; color: var(--text); min-width: 38px; text-align: left; }
+
+    /* DYNAMIC REPORT DEMO */
+    .report-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .report-badge { font-size: 0.72rem; padding: 0.25rem 0.7rem; border-radius: var(--radius-sm); font-weight: 600; border: 1px solid; }
+    .report-badge.high { color: var(--ok); border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.08); }
+    .report-badge.mid { color: var(--warn); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+    .report-badge.low { color: var(--bad); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+    .chart-bars { display: flex; align-items: flex-end; gap: 0.6rem; height: 130px; padding: 0.5rem 0; }
+    .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; height: 100%; justify-content: flex-end; }
+    .chart-bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; transition: height 0.6s ease; min-height: 2px; }
+    .chart-bar.alt { background: var(--purple); }
+    .chart-label { font-size: 0.68rem; color: var(--text-muted); text-align: center; }
+    .insight { padding: 0.7rem 0.85rem; margin-bottom: 0.5rem; border-radius: var(--radius-sm); font-size: 0.83rem; background: var(--bg); border: 1px solid var(--border); border-right: 3px solid var(--border-strong); }
+    .insight.warn { border-right-color: var(--warn); }
+    .insight.ok { border-right-color: var(--ok); }
+    .insight.info { border-right-color: var(--accent); }
+    .insight .it { font-weight: 600; margin-bottom: 0.15rem; }
+    .insight .id { color: var(--text-muted); font-size: 0.79rem; line-height: 1.55; }
+
+    /* PROCESS BOARD */
+    .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .board-col { background: var(--bg-alt); border-radius: var(--radius-md); padding: 0.75rem; border: 1px solid var(--border); }
+    .board-col-head { font-size: 0.75rem; font-weight: 600; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; }
+    .board-count { font-size: 0.68rem; padding: 0.1rem 0.45rem; border-radius: var(--radius-sm); background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); }
+    .board-card { background: var(--card-bg); border-radius: var(--radius-sm); padding: 0.6rem; margin-bottom: 0.5rem; border: 1px solid var(--border); font-size: 0.8rem; }
+    .board-card .bc-name { font-weight: 600; margin-bottom: 0.2rem; font-size: 0.82rem; }
+    .board-card .bc-meta { color: var(--text-muted); font-size: 0.7rem; }
+    .col-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 0.3rem; }
+
+    /* AUTOMATION LOG */
+    .auto-log { font-family: 'SF Mono','Monaco','Courier New',monospace; font-size: 0.74rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.9rem; direction: ltr; text-align: left; min-height: 160px; }
+    .log-line { padding: 0.18rem 0; opacity: 0; animation: logFadeIn 0.3s forwards; color: var(--text-muted); }
+    .log-line .t { color: var(--text-dim); }
+    .log-line.ok span.k { color: var(--ok); }
+    .log-line.info span.k { color: var(--accent); }
+    .log-line.warn span.k { color: var(--warn); }
+    @keyframes logFadeIn { to { opacity: 1; } }
+
+    /* PERMISSIONS */
+    .perm-roles { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .perm-role { padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; }
+    .perm-role.active { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+    .perm-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .perm-table th, .perm-table td { text-align: right; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--border); }
+    .perm-table th { color: var(--text-muted); font-weight: 500; font-size: 0.75rem; }
+    .perm-yes { color: var(--ok); font-weight: 700; }
+    .perm-no { color: var(--text-dim); }
+    .perm-partial { color: var(--warn); font-weight: 600; }
+
+    /* PRICING TABLE */
+    .price-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1rem 0; }
+    .price-table th { text-align: right; padding: 0.7rem 0.85rem; border-bottom: 2px solid var(--border-strong); color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+    .price-table td { text-align: right; padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border); }
+    .price-table tr:hover td { background: var(--card-hover); }
+    .price-table .stage-name { font-weight: 600; color: var(--text); }
+    .price-table .stage-desc { font-size: 0.76rem; color: var(--text-dim); margin-top: 0.15rem; }
+    .price-table .amount { font-weight: 700; color: var(--text); white-space: nowrap; direction: ltr; text-align: left; }
+    .price-table .hrs { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+    .price-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; font-size: 1rem; padding-top: 1rem; }
+    .price-table tfoot .amount { color: var(--accent); font-size: 1.15rem; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+    .summary-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; }
+    .summary-box.hl { border-color: var(--accent-dim); background: var(--accent-soft); }
+    .summary-box .sv { font-size: 1.5rem; font-weight: 700; color: var(--text); direction: ltr; }
+    .summary-box.hl .sv { color: var(--accent); }
+    .summary-box .sl { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .meta-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin: 1.25rem 0; }
+    .meta-list .mi { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 1rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.86rem; }
+    .meta-list .mi .ml { color: var(--text-muted); }
+    .meta-list .mi .mv { font-weight: 600; color: var(--text); }
+
+    /* TIMELINE */
+    .timeline { display: flex; flex-direction: column; gap: 1.1rem; max-width: 780px; margin: 0 auto; }
+    .timeline-step { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: flex-start; }
+    .timeline-num { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--card-bg); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+    .timeline-body h3 { margin: 0 0 0.25rem; font-size: 0.96rem; font-weight: 600; }
+    .timeline-body p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+    .timeline-body .tag { display: inline-block; font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent); margin-top: 0.4rem; border: 1px solid var(--accent-dim); }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.82rem; border-top: 1px solid var(--border); margin-top: 2rem; line-height: 1.8; }
+    .footer a { color: var(--text); text-decoration: none; }
+    .footer a:hover { color: var(--accent); }
+
+    .note { font-size: 0.8rem; color: var(--text-dim); text-align: center; margin-top: 1rem; line-height: 1.6; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .board { grid-template-columns: repeat(2, 1fr); }
+      .summary-grid { grid-template-columns: 1fr; }
+      .meta-list { grid-template-columns: 1fr; }
+      .stats-row { gap: 1.5rem; }
+      .tab-btn { padding: 0.75rem 0.9rem; font-size: 0.84rem; }
+      .hero h1 { font-size: 1.6rem; }
+      .price-table { font-size: 0.8rem; }
+      .price-table th, .price-table td { padding: 0.55rem 0.5rem; }
+    }
+    @media (max-width: 480px) {
+      .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">SZ</span>
+        <span class="logo-text">Shlomi Zevin · CTO</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()">&#9790; / &#9788;</button>
+        <a href="https://wa.me/972545567213" class="btn-sm">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-container">
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('proposal')">ההצעה</button>
+      <button class="tab-btn" onclick="switchTab('arch')">ארכיטקטורה ועצמאות</button>
+      <button class="tab-btn" onclick="switchTab('experience')">ניסיון רלוונטי</button>
+      <button class="tab-btn" onclick="switchTab('demo')">הדגמה חיה</button>
+      <button class="tab-btn" onclick="switchTab('budget')">הצעת מחיר ולו"ז</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: PROPOSAL -->
+<div id="tab-proposal" class="tab-content active">
+  <div class="container">
+
+    <div class="hero">
+      <h1>מערכת <span class="accent">CRM, תהליכים ואוטומציות</span><br>לחברת מגן</h1>
+      <p class="hero-sub">
+        מסע לקוח מלא — מליד ועד תוצר. טפסים דיגיטליים מסתעפים, מנועי ניקוד וחישוב, אוטומציות, דוחות ומצגות דינמיות, הרשאות ובקרה. הכל בנוי בשכבה עצמאית שאינה כבולה ל-CRM אחד, עם בעלות מלאה שלכם על כל תוצר — אפיון, קוד, נתונים ולוגיקה.
+      </p>
+      <div class="hero-badges">
+        <span>אפיון עסקי מלא</span>
+        <span>CRM-agnostic</span>
+        <span>Workflow Engine</span>
+        <span>טפסים מסתעפים</span>
+        <span>מנועי חישוב וניקוד</span>
+        <span>דוחות ומצגות דינמיות</span>
+        <span>WhatsApp · Email · SMS</span>
+        <span>הרשאות 5 רמות</span>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/972545567213" class="btn primary">בואו נדבר</a>
+        <button class="btn ghost" onclick="switchTab('demo')">לדמו החי</button>
+      </div>
+    </div>
+
+    <!-- HEADLINE INSIGHT: the core architecture promise -->
+    <div class="callout">
+      <h3>&#129513; הלב של ההצעה: עצמאות מה-CRM, לא תלות בו</h3>
+      <p>
+        הדרישה הכי חשובה במכרז שלכם היא לא "להקים CRM" — היא <strong>לא להיכבל אליו</strong>. רוב הספקים יבנו לכם הכל בתוך שורנס, וביום שתרצו לעבור — תגלו שכל הלוגיקה, החישובים והתהליכים כלואים בפלטפורמה זרה. אני בונה הפוך: <strong>מנוע התהליכים, מסד הנתונים, החישובים והטפסים יושבים בשכבה עצמאית בבעלותכם</strong>. שורנס (או כל CRM עתידי) הוא רק "החלון" התפעולי. החלפת CRM = מיפוי מחדש של שכבת תצוגה דקה בלבד — לא אפיון מחדש של המערכת.
+      </p>
+    </div>
+
+    <!-- CUSTOMER JOURNEY -->
+    <div class="section">
+      <div class="section-header">
+        <h2>מסע הלקוח — 6 השלבים שתיארתם</h2>
+        <p>כל שלב במכרז קיבל מענה מלא. ככה זה נראה כשמתרגמים אותו למערכת.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-num">שלב 1</div>
+          <div class="card-icon">&#128229;</div>
+          <h3>קליטת ליד</h3>
+          <ul>
+            <li>טופס דיגיטלי ראשוני</li>
+            <li>יצירת ליד + כרטיס לקוח אוטומטית</li>
+            <li>שיוך מקור הגעה וגורם מטפל</li>
+            <li>פתיחת משימות, תזכורות, הודעות</li>
+            <li>ניהול סטטוס ליד</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-num">שלב 2</div>
+          <div class="card-icon">&#128221;</div>
+          <h3>איסוף מידע ראשוני</h3>
+          <ul>
+            <li>~15 שאלות עם לוגיקות הסתעפות</li>
+            <li>מנגנון ניקוד וחישוב תוצאה</li>
+            <li>מסך סיכום ותוצאות ראשוניות</li>
+            <li>יצירת המשך תהליך אוטומטי</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-num">שלב 3</div>
+          <div class="card-icon">&#128203;</div>
+          <h3>איסוף מידע מורחב</h3>
+          <ul>
+            <li>150–200 שדות, מחולקים לקטגוריות</li>
+            <li>חובה/רשות + הסתעפות מותנית</li>
+            <li>שמירת טיוטה וכניסה חוזרת</li>
+            <li>העלאת מסמכים + מעקב השלמה</li>
+            <li>תזכורות אוטומטיות</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-num">שלב 4</div>
+          <div class="card-icon">&#129518;</div>
+          <h3>עיבוד מידע</h3>
+          <ul>
+            <li>מנוע חישובים, ניקוד, דירוג</li>
+            <li>סיווג מידע וניתוח נתונים</li>
+            <li>הפקת תובנות ותוצרים</li>
+            <li>הלוגיקה העסקית שלכם — תחת NDA</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-num">שלב 5</div>
+          <div class="card-icon">&#128202;</div>
+          <h3>הפקת תוצרים</h3>
+          <ul>
+            <li>דוחות, טבלאות, גרפים</li>
+            <li>טקסטים מותנים, מסקנות, תובנות</li>
+            <li>מצגות אוטומטיות + עריכה ידנית</li>
+            <li>ייצוא בכל פורמט</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-num">שלב 6</div>
+          <div class="card-icon">&#9881;</div>
+          <h3>ניהול תהליך</h3>
+          <ul>
+            <li>ניהול משימות, תהליכים, מסמכים</li>
+            <li>ניהול סטטוסים, מעקבים, בקרה</li>
+            <li>התראות ו-SLA</li>
+            <li>5 רמות הרשאה</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHY ME -->
+    <div class="section">
+      <div class="section-header">
+        <h2>למה אני, ולא בית תוכנה</h2>
+        <p>לא הצעה פרויקטלית של "ספק" — שותף טכנולוגי שלוקח בעלות על המערכת מקצה לקצה.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">&#127919;</div>
+          <h3>אפיון לפני קוד</h3>
+          <p>20+ שנה של אפיון מערכות מידע מורכבות. סדנאות אפיון, מיפוי תהליכים, מסע לקוח, מבני נתונים והרשאות — מסמך אפיון מלא שהוא נכס בפני עצמו, גם אם תחליטו לבנות עם מישהו אחר.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128274;</div>
+          <h3>ניסיון ברגולציה ומידע רגיש</h3>
+          <p>פלטפורמות compliance ו-GDPR, fintech, וניתוח מערכות ERP. עבדתי שנים עם מידע רגיש, הרשאות, ובקרה — בדיוק העולם של פיננסים, ביטוח ופנסיה.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>קצב פי 10 עם AI</h3>
+          <p>אני מנהל פיתוח עם Claude Code וכלי AI מהדור החדש. מה שלקח חודשים הופך לשבועות. הדמו שאתם רואים כאן נבנה תוך דקות — זה אותו קצב שתקבלו לאורך כל הפרויקט.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB 2: ARCHITECTURE & INDEPENDENCE -->
+<div id="tab-arch" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>ארכיטקטורה, עצמאות ובעלות</h2>
+        <p>זו הדרישה המרכזית שלכם — וזו גם נקודת החוזק שלי. מענה ישיר ל-6 שאלות החובה.</p>
+      </div>
+
+      <!-- ARCH DIAGRAM -->
+      <div class="arch">
+        <div class="arch-layer client">
+          <h4>&#128100; שכבת התצוגה התפעולית <span class="lbl">החלף בקלות</span></h4>
+          <p>שורנס / מסכי נציגים. דקה, ניתנת להחלפה. כאן ורק כאן יש "תלות" — ומינימלית.</p>
+        </div>
+        <div class="arch-arrow">&#8645;</div>
+        <div class="arch-layer core">
+          <h4>&#129513; שכבת הליבה העצמאית <span class="lbl">בבעלותכם</span></h4>
+          <p>מנוע תהליכים (Workflow Engine), מנוע חישוב/ניקוד, מנוע טפסים, מנוע הפקת תוצרים, מסד נתונים, ו-API סטנדרטי. <strong>כל הלוגיקה העסקית כאן — לא בתוך ה-CRM.</strong></p>
+        </div>
+        <div class="arch-arrow">&#8645;</div>
+        <div class="arch-layer crm">
+          <h4>&#128279; שכבת אינטגרציות <span class="lbl">תקני</span></h4>
+          <p>WhatsApp, Email, SMS, אחסון מסמכים, ייצוא נתונים — דרך APIs תקניים, ללא lock-in לספק.</p>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top: 3rem;">
+        <h2>6 שאלות החובה — תשובות ישירות</h2>
+      </div>
+
+      <div class="qa-item">
+        <div class="q"><span class="qn">1</span><span>אילו רכיבים יהיו תלויים בשורנס?</span></div>
+        <div class="a">רק <strong>שכבת התצוגה התפעולית</strong> — מסכי הנציגים, לוחות העבודה היומיומיים, וניהול הרשאות המשתמשים בתוך הממשק. אם נבחר להשתמש בשורנס כ"חלון" — זה הרכיב היחיד שתלוי בו. <strong>הנתונים, הלוגיקה, החישובים, הטפסים והאוטומציות לא תלויים בו כלל.</strong></div>
+      </div>
+      <div class="qa-item">
+        <div class="q"><span class="qn">2</span><span>אילו רכיבים יהיו ניתנים להעברה למערכת אחרת?</span></div>
+        <div class="a">למעשה <strong>הכל</strong>: מבנה הנתונים, מנוע התהליכים, מנוע החישוב והניקוד, הטפסים והלוגיקות המסתעפות, הפקת הדוחות והמצגות, והאוטומציות. כל אלה נבנים בשכבה עצמאית עם schema מתועד ו-API — ועוברים כמו שהם.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q"><span class="qn">3</span><span>כיצד תבוצע העברת המערכת בעתיד במקרה של החלפת CRM?</span></div>
+        <div class="a">מכיוון שהלוגיקה והנתונים יושבים בשכבת ליבה עצמאית עם API מתועד — מעבר CRM פירושו <strong>מיפוי מחדש של שכבת תצוגה דקה בלבד</strong>: לחבר את ה-CRM החדש ל-API הקיים, ולשחזר את המסכים. ייצוא מלא של כל הנתונים והמסמכים זמין בלחיצה. אין אפיון מחדש, אין בנייה מחדש של לוגיקה.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q"><span class="qn">4</span><span>אילו רכיבים עלולים לדרוש פיתוח מחדש?</span></div>
+        <div class="a">רק <strong>הגדרות ה-UI הספציפיות לשורנס</strong> — הקונפיגורציה של הלוחות והמסכים בתוך הפלטפורמה. ככל שנשמור על הלוגיקה מחוץ ל-CRM מהיום הראשון (וזה בדיוק התכנון), הרכיב הזה מצטמצם למינימום. שום מנגנון עסקי לא ייבנה מחדש.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q"><span class="qn">5</span><span>כיצד ניתן לצמצם תלות עתידית במערכת שורנס?</span></div>
+        <div class="a">ארכיטקטורת decoupling: מנוע תהליכים וחישוב עצמאי, מסד נתונים משלכם, ו-APIs תקניים (REST). <strong>אסור לבנות לוגיקה עסקית בתוך מנגנוני האוטומציה הקנייניים של שורנס</strong> — שם נוצר ה-lock-in. שורנס משמש כקליפה תפעולית בלבד. זה עיקרון יסוד שמלווה כל החלטה אדריכלית.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q"><span class="qn">6</span><span>כיצד תשמר בעלות מלאה של הלקוח על כלל התוצרים?</span></div>
+        <div class="a">כל הקוד, ה-schema, מסמכי האפיון, התהליכים והלוגיקה יושבים ב-<strong>repo ומסד נתונים בבעלות מגן</strong>. תיעוד מלא נמסר כתוצר רשמי (אפיון, תרשימי זרימה, מבנה נתונים, הרשאות, אוטומציות, טפסים, דוחות, אינטגרציות). אין lock-in גם אלי — סטאק סטנדרטי, הכל מועבר, אתם יכולים להמשיך עם כל צוות.</div>
+      </div>
+
+      <div class="callout">
+        <h3>&#128196; תוצרי התיעוד שתקבלו</h3>
+        <p>
+          מסמך אפיון מלא · תרשימי זרימה · מבנה נתונים מלא (schema) · מבנה הרשאות · פירוט אוטומציות · פירוט טפסים ושדות · פירוט דוחות ותוצרים · פירוט אינטגרציות. כל אלה נכסים בבעלותכם — חלק בלתי נפרד מהתמורה, לא "תוספת".
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: EXPERIENCE -->
+<div id="tab-experience" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>ניסיון רלוונטי</h2>
+        <p>דומיינים וטכנולוגיות שמתחברים ישירות למכרז — אפיון, CRM, Workflow, רגולציה, פיננסים.</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="num">20+</div><div class="label">שנות ניסיון</div></div>
+        <div class="stat"><div class="num">50+</div><div class="label">מוצרים שנבנו מאפס</div></div>
+        <div class="stat"><div class="num">6</div><div class="label">סטארטאפים כ-CTO</div></div>
+        <div class="stat"><div class="num">100%</div><div class="label">בעלות ושקיפות ללקוח</div></div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="exp-card">
+          <h3>&#128181; פיננסים, מסחר ומודלים</h3>
+          <p>פרויקט אלגו-טריידינג בקריפטו ומניות — בניית מודלי חיזוי, ניקוד ודירוג, חישובים מורכבים בכסף אמיתי. בדיוק סוג מנועי החישוב, הניקוד והסיווג שדורש שלב 4 שלכם.</p>
+          <span class="exp-tag">מנועי חישוב</span>
+          <span class="exp-tag">Scoring</span>
+          <span class="exp-tag">Prediction</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128202; רקע ב-ERP ותהליכים עסקיים</h3>
+          <p>עבדתי בחברה שניתחה מערכות ERP — הבנה עמוקה של תהליכים עסקיים, BOQ, רכש, פיננסים והרשאות ארגוניות. אני מדבר את השפה של מסע לקוח, סטטוסים ו-Workflow.</p>
+          <span class="exp-tag">ERP</span>
+          <span class="exp-tag">Workflow</span>
+          <span class="exp-tag">Business Process</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128274; Privacy &amp; Compliance — רגולציה</h3>
+          <p>פלטפורמות compliance ו-GDPR, ניהול מידע רגיש והרשאות. ניסיון ישיר עם מידע מוגן ומבני הרשאה — בדיוק מה שצריך בעולם הפיננסי-ביטוחי שאתם פועלים בו.</p>
+          <span class="exp-tag">GDPR</span>
+          <span class="exp-tag">הרשאות</span>
+          <span class="exp-tag">Data Privacy</span>
+          <span class="exp-tag">Enterprise</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129534; טפסים דיגיטליים מסתעפים</h3>
+          <p>בניתי לא מעט מערכות אבחון/אונבורדינג עם שאלונים מסתעפים, ניקוד מותנה, שמירת טיוטה והפקת תוצר אישי. שלבים 2–3 שלכם (15 שאלות + 200 שדות) הם בדיוק זה.</p>
+          <span class="exp-tag">Dynamic Forms</span>
+          <span class="exp-tag">Branching Logic</span>
+          <span class="exp-tag">Draft &amp; Resume</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#128231; אוטומציות ותקשורת</h3>
+          <p>מערכות עם WhatsApp Business API, Email ו-SMS, טריגרים מבוססי-אירוע, תזכורות ו-SLA. בדיוק שלב 4 שלכם — Workflow, התראות, פתיחת משימות ושינוי סטטוסים אוטומטי.</p>
+          <span class="exp-tag">WhatsApp API</span>
+          <span class="exp-tag">SLA</span>
+          <span class="exp-tag">Event Triggers</span>
+        </div>
+        <div class="exp-card">
+          <h3>&#129302; AI כמכפיל כוח</h3>
+          <p>2+ שנים בבניית AI agents, רקע מחקרי ב-ML. רלוונטי לשלב הפקת התובנות והתוצרים הדינמיים — ולעבודה במהירות שמקצרת לוחות זמנים פי כמה.</p>
+          <span class="exp-tag">LLM Agents</span>
+          <span class="exp-tag">Insights</span>
+          <span class="exp-tag">Claude Code</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>&#128161; למה הרקע הזה חשוב למכרז שלכם</h3>
+        <p>
+          המכרז דורש שילוב של אפיון מערכות, מנועי חישוב וניקוד, טפסים מסתעפים, אוטומציות, רגולציה ועצמאות ארכיטקטונית. לא צריך ללמוד את העולמות האלה מאפס — כבר עבדתי בכל אחד מהם. יתרון משמעותי במכרז ניתן לניסיון בפיננסים, ביטוח, פנסיה ושירותים מקצועיים — וזה בדיוק הצומת שבו אני יושב.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: DEMO -->
+<div id="tab-demo" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>הדגמה חיה</h2>
+        <p>כל מה שכאן <strong>אינטראקטיבי ועובד</strong> — מסע לקוח מלא בזעיר אנפין. נבנה תוך דקות, להדגמת קצב הפיתוח. זה לא מוקאפ סטטי.</p>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-app">
+          <div class="demo-header">
+            <h3>&#9889; Magen — Process &amp; CRM System</h3>
+            <span class="demo-status"><span class="pulse-dot"></span> Live · גרסת הדגמה</span>
+          </div>
+          <div class="demo-body">
+            <div class="demo-tabs">
+              <button class="demo-tab active" onclick="switchDemoTab('lead')">&#128229; קליטת ליד</button>
+              <button class="demo-tab" onclick="switchDemoTab('quiz')">&#128221; אבחון מסתעף + ניקוד</button>
+              <button class="demo-tab" onclick="switchDemoTab('report')">&#128202; תוצר דינמי</button>
+              <button class="demo-tab" onclick="switchDemoTab('board')">&#9881; תהליך + אוטומציות</button>
+              <button class="demo-tab" onclick="switchDemoTab('perm')">&#128272; הרשאות</button>
+            </div>
+
+            <!-- LEAD INTAKE -->
+            <div id="demo-lead" class="demo-panel active">
+              <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1rem;">מלאו טופס ראשוני — וראו איך נוצר ליד, נפתח כרטיס לקוח, ומופעלות האוטומציות (שלב 1).</p>
+              <div class="form-grid">
+                <div class="form-row"><label>שם מלא</label><input id="ld-name" value="דנה כהן" /></div>
+                <div class="form-row"><label>טלפון</label><input id="ld-phone" value="052-1234567" dir="ltr" /></div>
+              </div>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label>מקור הגעה</label>
+                  <select id="ld-source">
+                    <option>קמפיין פייסבוק</option>
+                    <option>גוגל</option>
+                    <option>המלצה</option>
+                    <option>אתר</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>תחום עניין</label>
+                  <select id="ld-topic">
+                    <option>תכנון פיננסי</option>
+                    <option>פנסיה</option>
+                    <option>ביטוח</option>
+                    <option>השקעות</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn primary" style="width:100%;" onclick="createLead()">&#128229; צור ליד והפעל תהליך</button>
+              <div class="lead-result" id="lead-result">
+                <h4>&#10003; ליד נוצר — כרטיס לקוח <span id="lr-name"></span> נפתח</h4>
+                <div class="auto-action"><span class="tick">&#10003;</span> שויך מקור הגעה: <span id="lr-source"></span></div>
+                <div class="auto-action"><span class="tick">&#10003;</span> שויך גורם מטפל אוטומטית לפי תחום (<span id="lr-topic"></span>)</div>
+                <div class="auto-action"><span class="tick">&#10003;</span> נפתחה משימה: "יצירת קשר ראשוני" — SLA 2 שעות</div>
+                <div class="auto-action"><span class="tick">&#10003;</span> נשלחה הודעת WhatsApp אוטומטית + קישור לאבחון</div>
+                <div class="auto-action"><span class="tick">&#10003;</span> סטטוס ליד: <strong>חדש &#8594; בטיפול</strong></div>
+              </div>
+            </div>
+
+            <!-- QUIZ -->
+            <div id="demo-quiz" class="demo-panel">
+              <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1rem;">אבחון ראשוני עם הסתעפות וניקוד חי (שלב 2). השאלות משתנות לפי התשובות.</p>
+              <div class="quiz-progress"><div class="quiz-progress-fill" id="quiz-fill"></div></div>
+              <div id="quiz-area"></div>
+              <div class="quiz-score-bar">
+                <span class="lbl">ניקוד מצטבר</span>
+                <div class="quiz-score-track"><div class="quiz-score-fill" id="quiz-score-fill"></div></div>
+                <span class="quiz-score-val" id="quiz-score-val">0</span>
+              </div>
+            </div>
+
+            <!-- DYNAMIC REPORT -->
+            <div id="demo-report" class="demo-panel">
+              <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1rem;">על בסיס האבחון, המערכת מפיקה תוצר דינמי — דירוג, גרף, ותובנות מותנות (שלבים 4–5). שנו את הפרופיל וראו איך התוצר משתנה.</p>
+              <div class="perm-roles" style="margin-bottom:1.25rem;">
+                <button class="perm-role active" onclick="genReport('high')">פרופיל מובחר</button>
+                <button class="perm-role" onclick="genReport('mid')">פרופיל בינוני</button>
+                <button class="perm-role" onclick="genReport('low')">פרופיל לטיפוח</button>
+              </div>
+              <div class="report-head">
+                <div>
+                  <div style="font-weight:700;font-size:1.05rem;" id="rep-title">דוח אבחון — דנה כהן</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);" id="rep-sub">תכנון פיננסי · נוצר אוטומטית</div>
+                </div>
+                <span class="report-badge high" id="rep-badge">דירוג: A — פוטנציאל גבוה</span>
+              </div>
+              <div class="chart-bars" id="rep-chart"></div>
+              <div style="display:flex;gap:0.6rem;font-size:0.68rem;color:var(--text-muted);margin:0.25rem 0 1rem;justify-content:center;">
+                <span>&#9632; ציון נוכחי</span>
+                <span style="color:var(--purple);">&#9632; פוטנציאל</span>
+              </div>
+              <div id="rep-insights"></div>
+              <button class="btn ghost" style="width:100%;margin-top:0.75rem;" onclick="alert('בייצור: הפקה ל-PDF / מצגת PPTX / ייצוא Excel — בלחיצה.')">&#128228; ייצוא דוח / מצגת (PDF · PPTX · Excel)</button>
+            </div>
+
+            <!-- PROCESS BOARD + AUTOMATIONS -->
+            <div id="demo-board" class="demo-panel">
+              <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1rem;">לוח ניהול תהליך לפי סטטוס (שלב 6) + לוג אוטומציות חי (שלב 4). לחצו "הרץ אוטומציות".</p>
+              <div class="board" style="margin-bottom:1.25rem;">
+                <div class="board-col">
+                  <div class="board-col-head"><span><span class="col-dot" style="background:var(--warn);"></span>ליד חדש</span><span class="board-count">3</span></div>
+                  <div class="board-card"><div class="bc-name">דנה כהן</div><div class="bc-meta">תכנון פיננסי · היום</div></div>
+                  <div class="board-card"><div class="bc-name">אבי לוי</div><div class="bc-meta">פנסיה · היום</div></div>
+                  <div class="board-card"><div class="bc-name">מאיה רז</div><div class="bc-meta">ביטוח · אתמול</div></div>
+                </div>
+                <div class="board-col">
+                  <div class="board-col-head"><span><span class="col-dot" style="background:var(--accent);"></span>באיסוף מידע</span><span class="board-count">2</span></div>
+                  <div class="board-card"><div class="bc-name">יוסי שמש</div><div class="bc-meta">אבחון 70% · המשך</div></div>
+                  <div class="board-card"><div class="bc-name">רונן גל</div><div class="bc-meta">טיוטה שמורה</div></div>
+                </div>
+                <div class="board-col">
+                  <div class="board-col-head"><span><span class="col-dot" style="background:var(--purple);"></span>בעיבוד</span><span class="board-count">2</span></div>
+                  <div class="board-card"><div class="bc-name">שירה פרץ</div><div class="bc-meta">חישוב תוצר</div></div>
+                  <div class="board-card"><div class="bc-name">עידן כץ</div><div class="bc-meta">ממתין למסמכים</div></div>
+                </div>
+                <div class="board-col">
+                  <div class="board-col-head"><span><span class="col-dot" style="background:var(--ok);"></span>תוצר נמסר</span><span class="board-count">2</span></div>
+                  <div class="board-card"><div class="bc-name">נועה דביר</div><div class="bc-meta">&#10003; דוח + מצגת</div></div>
+                  <div class="board-card"><div class="bc-name">תום אבן</div><div class="bc-meta">&#10003; הושלם</div></div>
+                </div>
+              </div>
+              <button class="btn primary" style="width:100%;margin-bottom:0.75rem;" onclick="runAutomations()">&#9658; הרץ מנוע אוטומציות (Workflow / SLA)</button>
+              <div class="auto-log" id="auto-log"><span style="color:var(--text-dim);">// לחצו להרצת מנוע האוטומציות...</span></div>
+            </div>
+
+            <!-- PERMISSIONS -->
+            <div id="demo-perm" class="demo-panel">
+              <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1rem;">5 רמות הרשאה. בחרו תפקיד וראו מה הוא רואה ועושה.</p>
+              <div class="perm-roles">
+                <button class="perm-role active" onclick="setRole('admin')">מנהל מערכת</button>
+                <button class="perm-role" onclick="setRole('pro_mgr')">מנהל מקצועי</button>
+                <button class="perm-role" onclick="setRole('ops')">תפעול</button>
+                <button class="perm-role" onclick="setRole('pro_user')">משתמש מקצועי</button>
+                <button class="perm-role" onclick="setRole('viewer')">צפייה בלבד</button>
+              </div>
+              <table class="perm-table">
+                <thead><tr><th>יכולת</th><th>הרשאה</th></tr></thead>
+                <tbody id="perm-body"></tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <p class="note">הדמו ממחיש את היכולות והקצב. המערכת בייצור נבנית בשבועות, עם אפיון מדויק, בדיקות והטמעה — לא בדקות. אבל ככה נראה הקצב.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: BUDGET -->
+<div id="tab-budget" class="tab-content">
+  <div class="container">
+    <div class="section">
+      <div class="section-header">
+        <h2>הצעת מחיר ולוחות זמנים</h2>
+        <p>פירוט עלויות לפי 8 השלבים שהוגדרו במכרז. הצעה אנטרפרייז מלאה — אפיון, פיתוח, תיעוד, בעלות, ועצמאות ארכיטקטונית.</p>
+      </div>
+
+      <table class="price-table">
+        <thead>
+          <tr><th>שלב</th><th>שעות</th><th>עלות</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="stage-name">שלב 1 · אפיון עסקי ותהליכי</div><div class="stage-desc">לימוד צרכים, סדנאות אפיון, מיפוי תהליכים, מסע לקוח, מסכים, שדות, הרשאות, טפסים, דוחות, אוטומציות, מסמך אפיון מלא</div></td>
+            <td class="hrs">~290 ש'</td>
+            <td class="amount">₪165,000</td>
+          </tr>
+          <tr>
+            <td><div class="stage-name">שלב 2 · הקמת תשתית מערכת</div><div class="stage-desc">שכבת ליבה עצמאית, CRM, ישויות, שדות, משתמשים, הרשאות, API</div></td>
+            <td class="hrs">~210 ש'</td>
+            <td class="amount">₪135,000</td>
+          </tr>
+          <tr>
+            <td><div class="stage-name">שלב 3 · טפסים ומסכים</div><div class="stage-desc">טפסים, מסכים, העלאת מסמכים, ~200 שדות, לוגיקות הסתעפות, שמירת טיוטה</div></td>
+            <td class="hrs">~300 ש'</td>
+            <td class="amount">₪190,000</td>
+          </tr>
+          <tr>
+            <td><div class="stage-name">שלב 4 · אוטומציות ו-Workflow</div><div class="stage-desc">משימות, התראות, תזכורות, WhatsApp, Email, SMS, SLA, סטטוסים, תהליכי אישור</div></td>
+            <td class="hrs">~270 ש'</td>
+            <td class="amount">₪175,000</td>
+          </tr>
+          <tr>
+            <td><div class="stage-name">שלב 5 · חישוב, דוחות ותוצרים</div><div class="stage-desc">מנועי חישוב וניקוד, דוחות, גרפים, טבלאות, מסמכים דינמיים, מצגות אוטומטיות</div></td>
+            <td class="hrs">~340 ש'</td>
+            <td class="amount">₪220,000</td>
+          </tr>
+          <tr>
+            <td><div class="stage-name">שלב 6 · בדיקות והבטחת איכות</div><div class="stage-desc">בדיקות מערכת, בדיקות משתמש, תיקונים, בדיקות קבלה</div></td>
+            <td class="hrs">~150 ש'</td>
+            <td class="amount">₪95,000</td>
+          </tr>
+          <tr>
+            <td><div class="stage-name">שלב 7 · הדרכה והטמעה</div><div class="stage-desc">הדרכות, חומרי הדרכה, עלייה לאוויר, ליווי ראשוני</div></td>
+            <td class="hrs">~110 ש'</td>
+            <td class="amount">₪70,000</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr><td>סה"כ הקמה (כולל אפיון)</td><td></td><td class="amount">₪1,050,000</td></tr>
+        </tfoot>
+      </table>
+      <p class="note">המחירים אינם כוללים מע"מ. עלויות צד ג' (רישוי שורנס, WhatsApp Business API, SMS, אחסון ענן) מועברות בעלות, לפי צריכה.</p>
+
+      <!-- MANDATORY SUMMARY -->
+      <div class="section-header" style="margin-top: 2.5rem; margin-bottom: 1rem;">
+        <h2>חובה לציין</h2>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-box"><div class="sv">₪165,000</div><div class="sl">עלות האפיון בלבד</div></div>
+        <div class="summary-box"><div class="sv">₪885,000</div><div class="sl">עלות ההקמה בלבד (ללא אפיון)</div></div>
+        <div class="summary-box hl"><div class="sv">₪1,050,000</div><div class="sl">עלות כוללת — אפיון + הקמה</div></div>
+      </div>
+
+      <div class="meta-list">
+        <div class="mi"><span class="ml">משך זמן האפיון</span><span class="mv">4–5 שבועות</span></div>
+        <div class="mi"><span class="ml">משך זמן כלל הפרויקט</span><span class="mv">18–22 שבועות</span></div>
+        <div class="mi"><span class="ml">אנשי צוות שיוקצו</span><span class="mv">3–4 (אפיון, פיתוח, QA + ניהול שלי)</span></div>
+        <div class="mi"><span class="ml">תוקף ההצעה</span><span class="mv">90 יום</span></div>
+      </div>
+
+      <!-- STAGE 8: MAINTENANCE -->
+      <div class="callout">
+        <h3>שלב 8 · תחזוקה ותמיכה (חודשי)</h3>
+        <p>
+          <strong>₪24,000 / חודש.</strong> כולל: עד ~40 שעות פיתוח/תמיכה חודשיות · ניטור ותחזוקת תשתית · עדכוני אבטחה · ליווי שוטף.
+          <br><strong>SLA:</strong> תקלה קריטית — תגובה תוך 2 שעות, מענה באותו יום עסקים · תקלה רגילה — תוך 24 שעות · בקשות פיתוח — לפי תכנון משותף.
+        </p>
+      </div>
+
+      <!-- ONGOING PARTNERSHIP NOTE -->
+      <div class="callout" style="border-right-color: var(--accent);">
+        <h3>&#128161; הערה על מודל העבודה</h3>
+        <p>
+          אני שותף טכנולוגי, לא בית תוכנה. ההצעה לעיל בנויה כפירוט פר-שלב לפי דרישת המכרז — אבל בפועל אני עובד בשקיפות מלאה לאורך הדרך, עם גמישות לשנות סקופ במסגרת התקציב המאושר לכל שלב. אתם רואים הכל, הקוד שלכם, תמיד. אפשר גם לעבוד במודל ליווי חודשי שוטף לאורך הפיילוט וההרחבה — נתאים את המבנה למה שנכון לכם.
+        </p>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="section-header" style="margin-top: 2.5rem;">
+        <h2>לוח זמנים — פיילוט (MVP)</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <div class="timeline-num">1</div>
+          <div class="timeline-body"><h3>אפיון עסקי ותהליכי</h3><p>סדנאות, מיפוי מסע לקוח, מבני נתונים, הרשאות, מסמך אפיון מלא. NDA נחתם לפני קבלת הלוגיקה העסקית.</p><span class="tag">שבועות 1–5</span></div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">2</div>
+          <div class="timeline-body"><h3>תשתית + טפסים</h3><p>שכבת ליבה עצמאית, ישויות, הרשאות, טפסים מסתעפים, ~200 שדות, שמירת טיוטה.</p><span class="tag">שבועות 5–11</span></div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">3</div>
+          <div class="timeline-body"><h3>אוטומציות + מנועי חישוב ותוצרים</h3><p>Workflow, SLA, התראות, מנוע ניקוד/חישוב, דוחות ומצגות דינמיות.</p><span class="tag">שבועות 11–18</span></div>
+        </div>
+        <div class="timeline-step">
+          <div class="timeline-num">4</div>
+          <div class="timeline-body"><h3>QA, הדרכה ועלייה לאוויר</h3><p>בדיקות מערכת ומשתמש, בדיקות קבלה, הדרכה, ליווי ראשוני, השקת הפיילוט.</p><span class="tag">שבועות 18–22</span></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:2.5rem;">
+        <a href="https://wa.me/972545567213" class="btn primary">בואו נקבע שיחה</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div>שלומי זוין — CTO as a Service · Boostart</div>
+    <div><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a> · <a href="https://wa.me/972545567213">WhatsApp</a></div>
+    <div style="margin-top:0.5rem;color:var(--text-dim);font-size:0.76rem;">ההצעה כפופה לחתימת NDA לפני קבלת מסמכי הלוגיקה העסקית של חברת מגן. תוקף ההצעה: 90 יום.</div>
+  </div>
+</footer>
+
+<script>
+  // THEME
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
+  }
+
+  // TABS
+  function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function switchDemoTab(name) {
+    document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('demo-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // LEAD INTAKE
+  function createLead() {
+    document.getElementById('lr-name').textContent = document.getElementById('ld-name').value || 'לקוח';
+    document.getElementById('lr-source').textContent = document.getElementById('ld-source').value;
+    document.getElementById('lr-topic').textContent = document.getElementById('ld-topic').value;
+    document.getElementById('lead-result').style.display = 'block';
+  }
+
+  // QUIZ — branching + scoring
+  const quizSteps = [
+    {
+      q: 'מה המטרה הפיננסית המרכזית שלך כרגע?',
+      meta: 'שאלה 1 מתוך 4 · קובעת את ענף ההסתעפות',
+      opts: [
+        { t: 'הגדלת חיסכון פנסיוני', s: 25, next: 'pension' },
+        { t: 'הגנה וביטוח למשפחה', s: 20, next: 'protect' },
+        { t: 'השקעות וצמיחת הון', s: 30, next: 'invest' }
+      ]
+    },
+    {
+      pension: { q: 'מה גובה ההפקדה החודשית הנוכחית?', meta: 'שאלה 2 · ענף פנסיה', opts: [
+        { t: 'מעל 2,500 ₪', s: 30 }, { t: '1,000–2,500 ₪', s: 20 }, { t: 'מתחת ל-1,000 ₪', s: 10 } ] },
+      protect: { q: 'יש לך כיום ביטוח חיים פעיל?', meta: 'שאלה 2 · ענף הגנה', opts: [
+        { t: 'כן, מקיף', s: 25 }, { t: 'כן, חלקי', s: 18 }, { t: 'אין', s: 8 } ] },
+      invest: { q: 'מה אופק ההשקעה שלך?', meta: 'שאלה 2 · ענף השקעות', opts: [
+        { t: 'מעל 10 שנים', s: 30 }, { t: '3–10 שנים', s: 22 }, { t: 'פחות מ-3 שנים', s: 12 } ] }
+    },
+    {
+      q: 'מה רמת הסיכון שמתאימה לך?',
+      meta: 'שאלה 3 מתוך 4',
+      opts: [ { t: 'גבוהה — מוכן לתנודתיות', s: 25 }, { t: 'בינונית — מאוזן', s: 20 }, { t: 'נמוכה — שמרני', s: 12 } ]
+    },
+    {
+      q: 'מתי תרצה להתחיל בתהליך?',
+      meta: 'שאלה 4 מתוך 4',
+      opts: [ { t: 'מיד', s: 25 }, { t: 'בחודש הקרוב', s: 18 }, { t: 'עדיין בודק', s: 8 } ]
+    }
+  ];
+  let quizIdx = 0, quizScore = 0, quizBranch = null;
+  const MAX_SCORE = 110;
+
+  function renderQuiz() {
+    const area = document.getElementById('quiz-area');
+    let step = quizSteps[quizIdx];
+    if (quizIdx === 1) step = step[quizBranch];
+    if (!step) { renderQuizDone(); return; }
+    let html = '<div class="quiz-q">' + step.q + '</div><div class="quiz-meta">' + step.meta + '</div>';
+    step.opts.forEach((o, i) => {
+      html += '<button class="quiz-opt" onclick="answerQuiz(' + o.s + ',\'' + (o.next || '') + '\')">' + o.t + '</button>';
+    });
+    area.innerHTML = html;
+    document.getElementById('quiz-fill').style.width = ((quizIdx) / quizSteps.length * 100) + '%';
+  }
+  function answerQuiz(score, next) {
+    quizScore += score;
+    if (next) quizBranch = next;
+    document.getElementById('quiz-score-val').textContent = quizScore;
+    document.getElementById('quiz-score-fill').style.width = Math.min(100, quizScore / MAX_SCORE * 100) + '%';
+    quizIdx++;
+    renderQuiz();
+  }
+  function renderQuizDone() {
+    document.getElementById('quiz-fill').style.width = '100%';
+    let tier = quizScore >= 85 ? 'A — פוטנציאל גבוה' : quizScore >= 60 ? 'B — פוטנציאל בינוני' : 'C — לטיפוח';
+    let cls = quizScore >= 85 ? 'ok' : quizScore >= 60 ? 'warn' : 'info';
+    document.getElementById('quiz-area').innerHTML =
+      '<div class="insight ' + cls + '"><div class="it">&#10003; אבחון הושלם · ניקוד ' + quizScore + '/' + MAX_SCORE + ' · דירוג ' + tier + '</div>' +
+      '<div class="id">המערכת חישבה ניקוד מצטבר לפי תשובות מסתעפות, סיווגה את הלקוח, ומפעילה אוטומטית את המשך התהליך — פתיחת איסוף מידע מורחב (שלב 3) והפקת תוצר (שלב 5). עברו ללשונית "תוצר דינמי" לראות את הפלט.</div></div>' +
+      '<button class="btn ghost" style="width:100%;margin-top:0.75rem;" onclick="resetQuiz()">&#8635; התחל מחדש</button>';
+  }
+  function resetQuiz() { quizIdx = 0; quizScore = 0; quizBranch = null;
+    document.getElementById('quiz-score-val').textContent = '0';
+    document.getElementById('quiz-score-fill').style.width = '0%';
+    renderQuiz();
+  }
+
+  // DYNAMIC REPORT
+  const reportData = {
+    high: {
+      badge: 'דירוג: A — פוטנציאל גבוה', badgeCls: 'high',
+      bars: [ {l:'נזילות',v:85,p:90}, {l:'חיסכון',v:70,p:95}, {l:'הגנה',v:60,p:88}, {l:'תשואה',v:75,p:92} ],
+      insights: [
+        {cls:'ok', t:'מועמד מובחר לליווי מלא', d:'פרופיל סיכון מאוזן ואופק ארוך — מתאים לתיק השקעות אקטיבי. מומלץ לזמן פגישת אסטרטגיה.'},
+        {cls:'info', t:'הזדמנות אופטימיזציה פנסיונית', d:'ניתן לשפר את מסלול ההפקדה ולהגדיל צבירה צפויה ב-18% עד גיל פרישה.'},
+        {cls:'warn', t:'פער הגנה ביטוחית', d:'כיסוי אובדן כושר עבודה חלקי — מומלץ להשלים. נפתחה משימה אוטומטית לגורם המטפל.'}
+      ]
+    },
+    mid: {
+      badge: 'דירוג: B — פוטנציאל בינוני', badgeCls: 'mid',
+      bars: [ {l:'נזילות',v:55,p:70}, {l:'חיסכון',v:50,p:75}, {l:'הגנה',v:45,p:70}, {l:'תשואה',v:48,p:72} ],
+      insights: [
+        {cls:'info', t:'פוטנציאל לפיתוח הדרגתי', d:'מומלץ להתחיל בצעד אחד מהותי — איחוד חסכונות פנסיוניים — ולבנות אמון לאורך זמן.'},
+        {cls:'warn', t:'נדרש איסוף מידע מורחב', d:'חסרים נתונים מהותיים. נשלחה תזכורת אוטומטית להשלמת השאלון המורחב (שלב 3).'}
+      ]
+    },
+    low: {
+      badge: 'דירוג: C — לטיפוח', badgeCls: 'low',
+      bars: [ {l:'נזילות',v:30,p:55}, {l:'חיסכון',v:25,p:60}, {l:'הגנה',v:35,p:58}, {l:'תשואה',v:28,p:50} ],
+      insights: [
+        {cls:'info', t:'הכנס למסלול טיפוח (Nurture)', d:'לא בשל לסגירה כעת. המערכת תשייך לרצף תוכן אוטומטי ותחזור לבדיקה בעוד 60 יום.'},
+        {cls:'warn', t:'פוטנציאל עתידי קיים', d:'אופק ההשקעה קצר כרגע — אך הפרופיל עשוי להבשיל. נשמר במעקב עם תזכורת מתוזמנת.'}
+      ]
+    }
+  };
+  function genReport(profile) {
+    document.querySelectorAll('#demo-report .perm-role').forEach(b => b.classList.remove('active'));
+    if (window.event && event.target.classList) event.target.classList.add('active');
+    const d = reportData[profile];
+    const badge = document.getElementById('rep-badge');
+    badge.textContent = d.badge;
+    badge.className = 'report-badge ' + d.badgeCls;
+    let chart = '';
+    d.bars.forEach(b => {
+      chart += '<div class="chart-col">' +
+        '<div class="chart-bar alt" style="height:' + b.p + '%"></div>' +
+        '<div class="chart-bar" style="height:' + b.v + '%"></div>' +
+        '<div class="chart-label">' + b.l + '</div></div>';
+    });
+    document.getElementById('rep-chart').innerHTML = chart;
+    let ins = '';
+    d.insights.forEach(i => {
+      ins += '<div class="insight ' + i.cls + '"><div class="it">' + i.t + '</div><div class="id">' + i.d + '</div></div>';
+    });
+    document.getElementById('rep-insights').innerHTML = ins;
+  }
+
+  // AUTOMATIONS LOG
+  const autoLines = [
+    {c:'info', k:'TRIGGER', t:'lead.created', m:'→ open task "first_contact" · SLA 2h'},
+    {c:'ok', k:'SENT', t:'whatsapp', m:'→ דנה כהן · template "welcome_diagnostic"'},
+    {c:'info', k:'ROUTE', t:'assign', m:'→ topic=financial_planning · agent=#A12'},
+    {c:'warn', k:'SLA', t:'check', m:'→ עידן כץ · waiting docs 26h · escalate'},
+    {c:'ok', k:'STATUS', t:'update', m:'→ שירה פרץ · processing → product_ready'},
+    {c:'info', k:'GEN', t:'report+pptx', m:'→ נועה דביר · exported PDF + PPTX'},
+    {c:'ok', k:'EMAIL', t:'sent', m:'→ נועה דביר · "your_report_ready"'},
+    {c:'info', k:'REMINDER', t:'scheduled', m:'→ tom·even +60d nurture follow-up'}
+  ];
+  function runAutomations() {
+    const log = document.getElementById('auto-log');
+    log.innerHTML = '';
+    autoLines.forEach((l, i) => {
+      setTimeout(() => {
+        const div = document.createElement('div');
+        div.className = 'log-line ' + l.c;
+        div.innerHTML = '<span class="t">[' + String(i+1).padStart(2,'0') + ':' + (i*7%60+10) + ']</span> <span class="k">' + l.k + '</span> ' + l.t + ' <span style="opacity:0.7">' + l.m + '</span>';
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+      }, i * 320);
+    });
+  }
+
+  // PERMISSIONS
+  const caps = ['ניהול משתמשים והרשאות','עריכת אפיון ותהליכים','צפייה בכל הלקוחות','עריכת כרטיס לקוח','הפעלת אוטומציות','הפקת דוחות ותוצרים','ייצוא נתונים'];
+  const roles = {
+    admin:    [2,2,2,2,2,2,2],
+    pro_mgr:  [0,2,2,2,2,2,2],
+    ops:      [0,0,2,2,2,1,1],
+    pro_user: [0,0,1,2,1,2,1],
+    viewer:   [0,0,1,0,0,1,0]
+  };
+  function setRole(r) {
+    document.querySelectorAll('#demo-perm .perm-role').forEach(b => b.classList.remove('active'));
+    if (window.event && event.target.classList) event.target.classList.add('active');
+    const map = roles[r];
+    let html = '';
+    caps.forEach((c, i) => {
+      let cell = map[i] === 2 ? '<span class="perm-yes">&#10003; מלא</span>'
+        : map[i] === 1 ? '<span class="perm-partial">&#9679; חלקי</span>'
+        : '<span class="perm-no">&#8212;</span>';
+      html += '<tr><td>' + c + '</td><td>' + cell + '</td></tr>';
+    });
+    document.getElementById('perm-body').innerHTML = html;
+  }
+
+  // INIT
+  renderQuiz();
+  genReport('high');
+  setRole('admin');
+</script>
+
+</body>
+</html>

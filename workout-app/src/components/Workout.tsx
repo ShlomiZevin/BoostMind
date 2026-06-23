@@ -14,6 +14,7 @@ import { usePhotos, type ExercisePhoto } from '../hooks/usePhotos';
 import { RestTimer } from './RestTimer';
 import { PhotoPanel } from './PhotoPanel';
 import { ExerciseImage } from './ExerciseImage';
+import { QuickAddPanel } from './QuickAddPanel';
 
 type Props = {
   uid: string;
@@ -67,6 +68,8 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
   const [durationRight, setDurationRight] = useState('');
 
   const [showExerciseList, setShowExerciseList] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [pendingNavToId, setPendingNavToId] = useState<string | null>(null);
   const [splitSides, setSplitSides] = useState(false);
   const [showFinishEarly, setShowFinishEarly] = useState(false); // false = same for both hands
   const [confirmSkip, setConfirmSkip] = useState(false);
@@ -124,6 +127,16 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
     if (!top) return [] as SetLog[];
     return filteredHistory.filter(h => h.sessionId === top.sessionId).map(h => h.set);
   }, [filteredHistory]);
+
+  // Auto-jump to a newly added exercise once it appears in the exercises array
+  useEffect(() => {
+    if (!pendingNavToId) return;
+    const idx = exercises.findIndex(e => e.id === pendingNavToId);
+    if (idx >= 0) {
+      goToExercise(idx);
+      setPendingNavToId(null);
+    }
+  }, [exercises, pendingNavToId]);
 
   // Init session + load custom exercises
   useEffect(() => {
@@ -583,6 +596,21 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
         </div>
       )}
 
+      {/* Quick add panel */}
+      {showQuickAdd && (
+        <QuickAddPanel
+          day={day}
+          recentExercises={customExercises}
+          onClose={() => setShowQuickAdd(false)}
+          onAdd={async (ex) => {
+            await firestore.addCustomExercise(day, ex);
+            setCustomExercises(prev => [...prev, ex]);
+            setShowQuickAdd(false);
+            setPendingNavToId(ex.id);
+          }}
+        />
+      )}
+
       {/* Exercise list panel */}
       {showExerciseList && (
         <ExerciseListPanel
@@ -651,12 +679,21 @@ export function Workout({ uid, day, existingSessionId, weekOverride, navigate }:
           <span className="text-xs text-muted-most mx-2">·</span>
           <span className="text-xs text-muted">W{weekNumber} P{phase.phase}</span>
         </div>
-        <button
-          onClick={() => setShowExerciseList(true)}
-          className="text-xs text-muted btn-icon px-2 py-1"
-        >
-          {exerciseIndex + 1}/{exercises.length} ☰
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setShowQuickAdd(true)}
+            className="text-lg text-emerald-600 dark:text-emerald-400 btn-icon px-2 py-1 leading-none"
+            aria-label="Add exercise"
+          >
+            +
+          </button>
+          <button
+            onClick={() => setShowExerciseList(true)}
+            className="text-xs text-muted btn-icon px-2 py-1"
+          >
+            {exerciseIndex + 1}/{exercises.length} ☰
+          </button>
+        </div>
       </div>
 
       {/* Exercise dots — tappable */}

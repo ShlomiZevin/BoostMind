@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>שלומי זווין — מיני־קומדיה למותגים</title>
+  <meta name="description" content="פרסומת שלא רוצים לדלג עליה. מיני־קומדיה למותגים — הגרסה הקומית של הפורמט החם ברשת.">
+  <meta property="og:title" content="שלומי זווין — מיני־קומדיה למותגים">
+  <meta property="og:description" content="סדרת תוכן בטיקטוק, אינסטגרם ופייסבוק — והמותג שלכם בתוך הסיפור.">
+  <meta property="og:image" content="https://boostmind-b052c.web.app/micro-comedy/profile.jpg">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="profile.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    :root {
+      --bg: #fafaf8;
+      --fg: #1a1a1c;
+      --muted: #6b6b70;
+      --card: rgba(0,0,0,0.025);
+      --card-border: rgba(0,0,0,0.08);
+      --border: rgba(0,0,0,0.06);
+      --accent: #ff7a45;
+      --accent-2: #ec4899;   /* secondary glow color */
+      --accent-3: #fbbf24;   /* tertiary glow color */
+      --accent-fg: #ffffff;
+    }
+    body.dark {
+      --bg: #0a0a0b;
+      --fg: #f5f5f7;
+      --muted: rgba(245,245,247,0.55);
+      --card: rgba(255,255,255,0.03);
+      --card-border: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.06);
+      --accent-fg: #0a0a0b;
+    }
+    body {
+      font-family: 'Heebo', system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    .container { max-width: 940px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    .accent { color: var(--accent); }
+
+    /* SCROLL PROGRESS */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent);
+      transform-origin: 0 50%; transform: scaleX(0);
+      z-index: 1000; pointer-events: none;
+    }
+
+    /* THEME TOGGLE */
+    .theme-toggle {
+      position: fixed; top: 16px; left: 16px; z-index: 100;
+      background: rgba(0,0,0,0.04); border: 1px solid var(--card-border);
+      color: inherit; padding: 8px 14px; border-radius: 10px;
+      cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500;
+      backdrop-filter: blur(8px);
+      transition: background 150ms, border-color 150ms;
+    }
+    body.dark .theme-toggle { background: rgba(255,255,255,0.06); }
+    .theme-toggle:hover { background: rgba(0,0,0,0.08); }
+    body.dark .theme-toggle:hover { background: rgba(255,255,255,0.1); }
+
+    /* AMBIENT GLOW BLOBS — solid color circles with heavy blur for "TikTok energy" */
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.22;
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+    }
+    body.dark .glow-blob { opacity: 0.35; }
+    .glow-blob-coral  { background: var(--accent);   }
+    .glow-blob-pink   { background: var(--accent-2); }
+    .glow-blob-yellow { background: var(--accent-3); }
+
+    /* Hero blobs */
+    .hero .glow-blob-1 { width: 460px; height: 460px; top: -100px;  right: -120px; animation: drift1 22s ease-in-out infinite; }
+    .hero .glow-blob-2 { width: 320px; height: 320px; bottom: -80px;  left: -80px;  animation: drift2 28s ease-in-out infinite; }
+    .hero .glow-blob-3 { width: 240px; height: 240px; top: 40%;     left: 40%;    animation: drift3 32s ease-in-out infinite; }
+    @keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px, 60px); } }
+    @keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(50px, -30px); } }
+    @keyframes drift3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px, 40px); } }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 700ms cubic-bezier(.16,.84,.2,1), transform 700ms cubic-bezier(.16,.84,.2,1); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding: 110px 0 60px;
+      position: relative; overflow: hidden;
+    }
+
+    /* PORTRAIT — with multiple expanding pulse rings (TikTok "live" feel) */
+    .hero-portrait {
+      position: relative;
+      width: 168px; height: 168px;
+      margin-bottom: 28px;
+      animation: heroIn 700ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    .ring {
+      position: absolute; inset: -6px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      opacity: 0;
+      animation: rippleOut 3.4s ease-out infinite;
+      pointer-events: none;
+    }
+    .ring-2 { animation-delay: 1.1s; }
+    .ring-3 { animation-delay: 2.2s; }
+    @keyframes rippleOut {
+      0% { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .hero-portrait-backdrop {
+      position: absolute; inset: 0;
+      background: var(--accent);
+      border-radius: 32% 68% 70% 30% / 30% 30% 70% 70%;
+      transform: rotate(-8deg) scale(1.08);
+      z-index: 0;
+      animation: morph 16s ease-in-out infinite;
+    }
+    .hero-portrait-img {
+      position: relative;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      z-index: 1;
+      border: 5px solid var(--bg);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      animation: float 6s ease-in-out infinite;
+    }
+    body.dark .hero-portrait-img { box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes morph {
+      0%, 100% { border-radius: 32% 68% 70% 30% / 30% 30% 70% 70%; transform: rotate(-8deg) scale(1.08); }
+      50% { border-radius: 60% 40% 30% 70% / 60% 50% 50% 40%; transform: rotate(6deg) scale(1.12); }
+    }
+
+    .hero-name {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; letter-spacing: 1.1px;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 24px;
+      animation: heroIn 700ms 80ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e; flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+
+    .hero-quote {
+      font-size: clamp(38px, 9.5vw, 104px); font-weight: 900;
+      line-height: 1.05; letter-spacing: -0.025em;
+      margin-bottom: 18px;
+      max-width: 16ch;
+      min-height: clamp(170px, 26vw, 340px);
+      animation: heroIn 900ms 180ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    .hero-quote-inner {
+      display: inline;
+      transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
+    }
+    .hero-quote-inner.swapping { opacity: 0; transform: translateY(-10px); filter: blur(6px); }
+    .qmark { color: var(--accent); }
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(20px); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: blur(0); }
+    }
+
+    .hero-caption {
+      font-size: 14px; color: var(--muted); font-weight: 500;
+      margin-bottom: 48px;
+      animation: heroIn 900ms 320ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    .hero-pitch {
+      font-size: clamp(18px, 2.3vw, 22px); font-weight: 400;
+      line-height: 1.6; max-width: 720px; margin-bottom: 40px;
+      animation: heroIn 900ms 460ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    .hero-cta-row {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      animation: heroIn 900ms 600ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    .cta-primary, .cta-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 24px; border-radius: 12px;
+      font-weight: 700; font-size: 15px;
+      text-decoration: none;
+      transition: background 150ms, border-color 150ms, transform 80ms ease-out;
+      will-change: transform;
+    }
+    .cta-primary {
+      background: var(--accent); color: var(--accent-fg);
+      animation: heroIn 900ms 600ms cubic-bezier(.16,.84,.2,1) both, ctaPulse 2.4s 2s ease-in-out infinite;
+    }
+    @keyframes ctaPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,122,69,0.45); }
+      50% { box-shadow: 0 0 0 14px rgba(255,122,69,0); }
+    }
+    .cta-primary:hover { background: #ff8c5e; }
+    .cta-secondary {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: inherit;
+    }
+    .cta-secondary:hover { background: var(--card); border-color: var(--accent); }
+
+    /* MARQUEE — uniform-height pills, tripled content for bulletproof seamless loop */
+    .marquee {
+      direction: ltr; /* anchor row to LEFT edge so translateX reveals content correctly */
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      padding: 22px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .marquee + .marquee { border-top: 0; padding-top: 0; padding-bottom: 24px; }
+    .marquee-row {
+      direction: ltr;
+      display: flex;
+      align-items: center;
+      width: max-content;
+      animation: scrollLeft 70s linear infinite;
+    }
+    .marquee-row.reverse { animation: scrollRight 70s linear infinite; }
+    .marquee:hover .marquee-row { animation-play-state: paused; }
+    .marquee-item {
+      direction: rtl;
+      flex-shrink: 0;
+      height: 40px;
+      margin-right: 12px;
+      padding: 0 18px;
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      background: var(--bg);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+    .marquee-item::before {
+      content: '"'; color: var(--accent); margin-left: 6px;
+      font-family: Georgia, serif; font-size: 20px; line-height: 0;
+      vertical-align: -6px;
+    }
+    @keyframes scrollLeft  { from { transform: translateX(0); }    to { transform: translateX(-33.3333%); } }
+    @keyframes scrollRight { from { transform: translateX(-33.3333%); } to { transform: translateX(0); } }
+
+    /* INLINE SAMPLES */
+    .reels-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+      justify-items: center;
+    }
+    @media (min-width: 720px) {
+      .reels-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .reel-embed {
+      width: 100%;
+      max-width: 380px;
+      direction: ltr;
+    }
+    .reel-embed blockquote.instagram-media {
+      margin: 0 auto !important;
+      border-radius: 12px !important;
+    }
+    .samples-cta { text-align: center; margin-top: 8px; }
+
+    /* FLOATING REEL — wider so Instagram embed's full UI fits */
+    .floating-reel {
+      display: none;
+      position: fixed;
+      bottom: 84px; /* sits above the hovering contact bar */
+      right: 20px;
+      width: 360px;
+      z-index: 50;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18), 0 0 0 6px rgba(255,122,69,0.08);
+      padding: 36px 14px 14px;
+      transition: transform 300ms ease, opacity 300ms ease;
+    }
+    body.dark .floating-reel { box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 6px rgba(255,122,69,0.18); }
+    .floating-reel.hidden { opacity: 0; transform: translateX(20px); pointer-events: none; }
+    .floating-reel-header {
+      position: absolute; top: 8px; left: 12px; right: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .floating-reel-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--accent);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .floating-reel-close {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--card); border: 1px solid var(--card-border);
+      cursor: pointer; font-size: 14px; line-height: 1;
+      color: var(--fg); padding: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .floating-reel-close:hover { background: rgba(0,0,0,0.08); }
+    body.dark .floating-reel-close:hover { background: rgba(255,255,255,0.1); }
+    .floating-reel-inner {
+      direction: ltr;
+      border-radius: 12px; overflow: hidden;
+    }
+    .floating-reel-inner blockquote.instagram-media {
+      margin: 0 !important;
+      min-width: 0 !important;
+    }
+    @media (min-width: 1180px) {
+      .floating-reel { display: block; }
+    }
+
+    /* SECTIONS */
+    section { padding: 96px 0; border-top: 1px solid var(--border); position: relative; overflow: hidden; }
+    .section-eyebrow {
+      font-size: 12px; font-weight: 700;
+      color: var(--accent); letter-spacing: 1.2px; text-transform: uppercase;
+      margin-bottom: 18px;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .section-eyebrow::before {
+      content: ''; width: 24px; height: 2px; background: var(--accent); border-radius: 2px;
+    }
+    .section-title {
+      font-size: clamp(28px, 5.2vw, 48px); font-weight: 800;
+      line-height: 1.13; margin-bottom: 24px;
+      letter-spacing: -0.015em;
+    }
+    .section-lead {
+      font-size: 18px; line-height: 1.65; color: var(--muted);
+      max-width: 700px; margin-bottom: 24px;
+    }
+    .section-lead:last-child { margin-bottom: 0; }
+    .callout {
+      background: rgba(255,122,69,0.06);
+      border: 1px solid rgba(255,122,69,0.22);
+      border-radius: 14px; padding: 24px 28px;
+      font-size: 19px; line-height: 1.5; font-weight: 500;
+      margin-top: 32px;
+    }
+    .callout-positive {
+      background: rgba(34,197,94,0.06);
+      border-color: rgba(34,197,94,0.24);
+    }
+    .callout strong { color: var(--accent); }
+    .callout-positive strong { color: #16a34a; }
+
+    /* Section: trend has a subtle pink glow blob in background */
+    .section-trend .glow-blob { opacity: 0.16; }
+    body.dark .section-trend .glow-blob { opacity: 0.28; }
+    .section-trend .glow-blob-1 { width: 380px; height: 380px; top: -120px; left: -100px; }
+
+    /* Benefits */
+    .benefits { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 32px; }
+    @media (min-width: 720px) { .benefits { grid-template-columns: 1fr 1fr; } }
+    .benefit {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 22px 24px;
+      transition: transform 240ms cubic-bezier(.16,.84,.2,1), border-color 200ms, box-shadow 240ms;
+    }
+    .benefit:hover {
+      transform: translateY(-3px) rotate(-0.4deg);
+      border-color: var(--accent);
+      box-shadow: 0 8px 24px rgba(255,122,69,0.18);
+    }
+    .benefit h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--accent); }
+    .benefit p { font-size: 15px; line-height: 1.5; color: var(--muted); }
+
+    /* Quotes */
+    .quotes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 720px) { .quotes { grid-template-columns: 1fr 1fr; } }
+    .quote-card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 22px 24px;
+      font-size: 17px; line-height: 1.5; font-weight: 500;
+      transition: transform 240ms cubic-bezier(.16,.84,.2,1), border-color 200ms, box-shadow 240ms;
+    }
+    .quote-card:nth-child(odd):hover { transform: translateY(-3px) rotate(-0.6deg); border-color: var(--accent); box-shadow: 0 8px 24px rgba(255,122,69,0.18); }
+    .quote-card:nth-child(even):hover { transform: translateY(-3px) rotate(0.6deg); border-color: var(--accent); box-shadow: 0 8px 24px rgba(255,122,69,0.18); }
+    .quote-card::before {
+      content: '"'; font-size: 60px; line-height: 0;
+      vertical-align: -20px; color: var(--accent);
+      margin-left: 4px; font-family: Georgia, serif;
+    }
+
+    /* Stats — bigger, with glow */
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (min-width: 720px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 14px; padding: 32px 16px;
+      text-align: center;
+      transition: transform 240ms cubic-bezier(.16,.84,.2,1), border-color 200ms, box-shadow 240ms;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute; inset: auto auto -40px 50%;
+      transform: translateX(-50%);
+      width: 80%; height: 80px;
+      background: var(--accent); opacity: 0;
+      filter: blur(40px);
+      transition: opacity 240ms;
+    }
+    .stat-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 32px rgba(255,122,69,0.22); }
+    .stat-card:hover::after { opacity: 0.5; }
+    .stat-num {
+      font-size: clamp(36px, 5vw, 48px); font-weight: 900; color: var(--accent);
+      line-height: 1; margin-bottom: 10px; letter-spacing: -0.02em;
+      position: relative; z-index: 1;
+    }
+    .stat-label { font-size: 13px; color: var(--muted); font-weight: 500; position: relative; z-index: 1; }
+
+    /* BRANDS CAROUSEL — one logo at a time, fly in / fly out */
+    .brand-stage {
+      position: relative;
+      height: 180px;
+      margin: 40px auto 8px;
+      max-width: 600px;
+      overflow: hidden;
+    }
+    .brand-slide {
+      position: absolute;
+      inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: translateX(70%) rotate(14deg) scale(0.72);
+      transition: opacity 620ms cubic-bezier(.16,.84,.2,1), transform 620ms cubic-bezier(.16,.84,.2,1);
+      pointer-events: none;
+      padding: 0 20px;
+    }
+    .brand-slide.active {
+      opacity: 1;
+      transform: translateX(0) rotate(0) scale(1);
+    }
+    .brand-slide.prev {
+      opacity: 0;
+      transform: translateX(-70%) rotate(-14deg) scale(0.72);
+    }
+    .brand-slide img {
+      max-width: 100%;
+      max-height: 130px;
+      object-fit: contain;
+      display: block;
+    }
+    /* JPG logos on white background — keep readable in dark mode by giving them a light card */
+    .brand-slide.has-white-bg img {
+      background: #ffffff;
+      padding: 14px 22px;
+      border-radius: 10px;
+    }
+    /* Soften logos that are too dark in dark mode */
+    body.dark .brand-slide:not(.has-white-bg) img {
+      filter: brightness(1.05);
+    }
+    body.dark .brand-slide.invert-dark img {
+      filter: invert(0.92) hue-rotate(180deg);
+    }
+    .brand-more {
+      font-size: clamp(40px, 7vw, 72px);
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      text-align: center;
+    }
+    .brand-dots {
+      display: flex; justify-content: center; gap: 8px;
+      margin-top: 22px;
+    }
+    .brand-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--card-border);
+      transition: background 240ms, transform 240ms;
+    }
+    .brand-dot.active { background: var(--accent); transform: scale(1.25); }
+    @media (prefers-reduced-motion: reduce) {
+      .brand-slide { transition: opacity 200ms; transform: none; }
+      .brand-slide.prev { transform: none; }
+    }
+    @media (max-width: 720px) {
+      .brand-stage { height: 140px; margin-top: 32px; }
+      .brand-slide img { max-height: 100px; }
+    }
+
+    /* WOLT — INVERTED HIGH-IMPACT SECTION */
+    .section-inverted {
+      background: var(--accent);
+      color: #ffffff;
+      border-top: none;
+    }
+    .section-inverted .section-eyebrow { color: rgba(255,255,255,0.92); }
+    .section-inverted .section-eyebrow::before { background: rgba(255,255,255,0.7); }
+    .section-inverted .section-title,
+    .section-inverted .section-lead { color: #ffffff; }
+    .section-inverted .section-lead { color: rgba(255,255,255,0.92); }
+    .section-inverted .case-box {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.28);
+    }
+    .section-inverted .case-box .big-num { color: #ffffff; }
+    .section-inverted .case-box .case-label { color: #ffffff; }
+    .section-inverted .case-box .case-desc { color: rgba(255,255,255,0.85); }
+    /* Big yellow glow blob inside inverted section */
+    .section-inverted .glow-blob { opacity: 0.4; }
+    .section-inverted .glow-blob-1 { width: 380px; height: 380px; top: -120px; right: -120px; background: var(--accent-3); }
+    .section-inverted .glow-blob-2 { width: 280px; height: 280px; bottom: -80px; left: -60px; background: var(--accent-2); }
+
+    /* Wolt case */
+    .case-box {
+      background: rgba(255,122,69,0.07);
+      border: 1px solid rgba(255,122,69,0.25);
+      border-radius: 18px; padding: 60px 28px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .case-box .big-num {
+      font-size: clamp(80px, 16vw, 144px); font-weight: 900;
+      color: var(--accent); line-height: 1; margin-bottom: 14px;
+      letter-spacing: -0.035em;
+    }
+    .case-box .case-label { font-size: 20px; font-weight: 700; }
+    .case-box .case-desc {
+      font-size: 15px; color: var(--muted); margin-top: 16px; line-height: 1.55;
+      max-width: 540px; margin-inline: auto;
+    }
+
+    /* Process */
+    .steps { display: grid; gap: 14px; }
+    .step {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 22px 24px;
+      display: flex; align-items: flex-start; gap: 18px;
+      transition: transform 240ms cubic-bezier(.16,.84,.2,1), box-shadow 240ms, border-color 200ms;
+    }
+    .step:hover { transform: translateX(-4px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(255,122,69,0.18); }
+    .step-num {
+      flex-shrink: 0;
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--accent); color: var(--accent-fg);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 17px;
+      transition: transform 240ms cubic-bezier(.16,.84,.2,1);
+    }
+    .step:hover .step-num { transform: rotate(-6deg) scale(1.1); }
+    .step-content h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .step-content p { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+    /* Contact */
+    .contact { padding: 96px 0 120px; text-align: center; position: relative; overflow: hidden; }
+    .contact .glow-blob-1 { width: 420px; height: 420px; top: -100px; left: 50%; transform: translateX(-50%); opacity: 0.18; }
+    body.dark .contact .glow-blob-1 { opacity: 0.3; }
+    .contact h2 {
+      font-size: clamp(34px, 5.8vw, 56px); font-weight: 900;
+      letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.08;
+    }
+    .contact-sub { color: var(--muted); font-size: 17px; margin-bottom: 36px; max-width: 600px; margin-inline: auto; }
+    .contact-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+    .contact-buttons a {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--card-border);
+      color: inherit; text-decoration: none;
+      padding: 13px 22px; border-radius: 11px;
+      font-weight: 600; font-size: 15px;
+      transition: background 150ms, border-color 150ms, transform 80ms ease-out;
+      will-change: transform;
+    }
+    .contact-buttons a:hover { border-color: var(--accent); }
+    .contact-buttons .primary {
+      background: var(--accent); border-color: var(--accent); color: var(--accent-fg);
+      animation: ctaPulse 2.4s ease-in-out infinite;
+    }
+    .contact-buttons .primary:hover { background: #ff8c5e; }
+
+    footer {
+      padding: 36px 0; text-align: center;
+      color: var(--muted); font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: inherit; text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    /* LIVE TOASTS */
+    .toast-container {
+      position: fixed;
+      bottom: 88px; left: 24px; /* sits above the hovering contact bar */
+      z-index: 60;
+      pointer-events: none;
+      display: flex; flex-direction: column; gap: 8px;
+      max-width: 320px;
+    }
+    .toast {
+      direction: rtl;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex; align-items: center; gap: 10px;
+      animation: toastIn 380ms cubic-bezier(.16,.84,.2,1) both, toastOut 380ms 4800ms forwards;
+    }
+    body.dark .toast { box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    .toast::before {
+      content: '';
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e; flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.28);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+    /* HOVERING CONTACT BAR — fixed at bottom on every viewport */
+    .hover-contact {
+      position: fixed;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 90;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.18), 0 0 0 6px rgba(255,122,69,0.10);
+      backdrop-filter: blur(10px);
+      direction: rtl;
+      max-width: calc(100vw - 24px);
+      animation: hoverIn 600ms 1200ms cubic-bezier(.16,.84,.2,1) both;
+    }
+    body.dark .hover-contact { box-shadow: 0 14px 40px rgba(0,0,0,0.6), 0 0 0 6px rgba(255,122,69,0.22); }
+    @keyframes hoverIn {
+      from { opacity: 0; transform: translate(-50%, 30px); }
+      to   { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .hover-contact-label {
+      font-size: 13px; font-weight: 700;
+      padding: 0 6px 0 4px;
+      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .hover-contact-actions {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .hover-contact a {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 14px; border-radius: 999px;
+      font-size: 13px; font-weight: 700;
+      text-decoration: none;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      color: inherit;
+      transition: background 150ms, border-color 150ms, transform 80ms ease-out;
+      white-space: nowrap;
+    }
+    .hover-contact a:hover { border-color: var(--accent); }
+    .hover-contact a.primary {
+      background: var(--accent); color: var(--accent-fg);
+      border-color: var(--accent);
+      animation: ctaPulse 2.4s ease-in-out infinite;
+    }
+    .hover-contact a.primary:hover { background: #ff8c5e; }
+
+    @media (max-width: 720px) {
+      section, .contact { padding: 64px 0; }
+      .container { padding: 0 20px; }
+      .hero { padding: 90px 0 50px; }
+      .hero-portrait { width: 128px; height: 128px; margin-bottom: 20px; }
+      .hero-quote { min-height: clamp(140px, 36vw, 220px); max-width: 14ch; }
+      .hero-pitch { margin-bottom: 32px; }
+      .case-box { padding: 40px 20px; }
+      .toast-container { display: none; }
+      .floating-reel { display: none !important; }
+      .theme-toggle { font-size: 12px; padding: 6px 10px; }
+      .scroll-progress { height: 2px; }
+      .glow-blob { filter: blur(60px); }
+
+      /* Hero CTAs stack vertically on mobile, all full-width */
+      .hero-cta-row { flex-direction: column; align-items: stretch; gap: 10px; }
+      .hero-cta-row .cta-primary,
+      .hero-cta-row .cta-secondary { justify-content: center; padding: 14px 18px; }
+
+      /* Contact buttons stack too */
+      .contact-buttons { flex-direction: column; align-items: stretch; }
+      .contact-buttons a { justify-content: center; padding: 14px 18px; }
+      .contact { padding-bottom: 140px; } /* room for hovering bar */
+
+      /* Hovering contact bar — compact form on mobile */
+      .hover-contact { padding: 8px 10px; gap: 6px; bottom: 12px; }
+      .hover-contact-label { display: none; }
+      .hover-contact a { padding: 9px 12px; font-size: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .marquee-row, .glow-blob, .ring { animation: none; }
+      .hero-portrait, .hero-portrait-img, .hero-portrait-backdrop,
+      .hero-name, .hero-quote, .hero-caption, .hero-pitch, .hero-cta-row,
+      .live-dot, .cta-primary, .contact-buttons .primary, .toast { animation: none; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="החלפת מצב תצוגה">🌙 חושך</button>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="glow-blob glow-blob-coral  glow-blob-1"></div>
+    <div class="glow-blob glow-blob-pink   glow-blob-2"></div>
+    <div class="glow-blob glow-blob-yellow glow-blob-3"></div>
+    <div class="container">
+      <div class="hero-portrait">
+        <span class="ring ring-1" aria-hidden="true"></span>
+        <span class="ring ring-2" aria-hidden="true"></span>
+        <span class="ring ring-3" aria-hidden="true"></span>
+        <div class="hero-portrait-backdrop"></div>
+        <img class="hero-portrait-img" src="profile.jpg" alt="Shlomi Zevin">
+      </div>
+      <span class="hero-name">
+        <span class="live-dot" aria-hidden="true"></span>
+        Shlomi Zevin · תוכן קומי למותגים
+      </span>
+      <h1 class="hero-quote">
+        <span class="hero-quote-inner" id="heroQuote"><span class="qmark">"</span>לא אכפת לי בכלל שזאת פרסומת<span class="qmark">"</span></span>
+      </h1>
+      <div class="hero-caption">— תגובה אמיתית. אחת מיני רבות.</div>
+      <p class="hero-pitch">
+        שלומי זווין יוצר מיני־קומדיה למותגים — סדרת תוכן עם דמויות חוזרות בטיקטוק, אינסטגרם ופייסבוק שהקהל עוקב אחריהן ברצף. המותג שלכם משולב בתוך הסיפור באופן טבעי. הקהל לא מרגיש שדחפו לו פרסומת — הוא רק רוצה שהסיפור ימשיך.
+      </p>
+      <div class="hero-cta-row">
+        <a href="#contact" class="cta-primary magnetic">בואו נדבר →</a>
+        <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noreferrer" class="cta-secondary magnetic">♪ TikTok</a>
+        <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noreferrer" class="cta-secondary magnetic">◉ Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE ROW 1 (3x duplicated for bulletproof seamless loop) -->
+  <div class="marquee">
+    <div class="marquee-row">
+      <div class="marquee-item">זאת הפרסומת הכי טובה שראיתי</div>
+      <div class="marquee-item">לא אכפת לי בכלל שזאת פרסומת</div>
+      <div class="marquee-item">תמשיכו עם הסדרה הזאת בבקשה</div>
+      <div class="marquee-item">סוף סוף פרסומת שאני לא רוצה לדלג עליה</div>
+      <div class="marquee-item">איך עוד לא עשו עם זה קמפיין ענק?</div>
+      <div class="marquee-item">תזכירו לי בעצם איזה מותג זה? 😅</div>
+      <div class="marquee-item">צריך פרק המשך עכשיו</div>
+      <div class="marquee-item">פרסומת ברמה של סדרה</div>
+      <div class="marquee-item">זאת הפרסומת הכי טובה שראיתי</div>
+      <div class="marquee-item">לא אכפת לי בכלל שזאת פרסומת</div>
+      <div class="marquee-item">תמשיכו עם הסדרה הזאת בבקשה</div>
+      <div class="marquee-item">סוף סוף פרסומת שאני לא רוצה לדלג עליה</div>
+      <div class="marquee-item">איך עוד לא עשו עם זה קמפיין ענק?</div>
+      <div class="marquee-item">תזכירו לי בעצם איזה מותג זה? 😅</div>
+      <div class="marquee-item">צריך פרק המשך עכשיו</div>
+      <div class="marquee-item">פרסומת ברמה של סדרה</div>
+      <div class="marquee-item">זאת הפרסומת הכי טובה שראיתי</div>
+      <div class="marquee-item">לא אכפת לי בכלל שזאת פרסומת</div>
+      <div class="marquee-item">תמשיכו עם הסדרה הזאת בבקשה</div>
+      <div class="marquee-item">סוף סוף פרסומת שאני לא רוצה לדלג עליה</div>
+      <div class="marquee-item">איך עוד לא עשו עם זה קמפיין ענק?</div>
+      <div class="marquee-item">תזכירו לי בעצם איזה מותג זה? 😅</div>
+      <div class="marquee-item">צריך פרק המשך עכשיו</div>
+      <div class="marquee-item">פרסומת ברמה של סדרה</div>
+    </div>
+  </div>
+  <!-- MARQUEE ROW 2 (reverse) -->
+  <div class="marquee">
+    <div class="marquee-row reverse">
+      <div class="marquee-item">איך זה ככה מצחיק וגם פרסומת בו זמנית</div>
+      <div class="marquee-item">דמויות שכבר מרגישות כמו חברים</div>
+      <div class="marquee-item">צריך עוד פרק עכשיו</div>
+      <div class="marquee-item">חבר׳ה אתם גאונים</div>
+      <div class="marquee-item">איזה רעיון תכלס</div>
+      <div class="marquee-item">סדרה שלמה כזאתי בבקשה</div>
+      <div class="marquee-item">צחקתי בקול</div>
+      <div class="marquee-item">לא ידעתי שמשהו כזה אפשרי בכלל</div>
+      <div class="marquee-item">איך זה ככה מצחיק וגם פרסומת בו זמנית</div>
+      <div class="marquee-item">דמויות שכבר מרגישות כמו חברים</div>
+      <div class="marquee-item">צריך עוד פרק עכשיו</div>
+      <div class="marquee-item">חבר׳ה אתם גאונים</div>
+      <div class="marquee-item">איזה רעיון תכלס</div>
+      <div class="marquee-item">סדרה שלמה כזאתי בבקשה</div>
+      <div class="marquee-item">צחקתי בקול</div>
+      <div class="marquee-item">לא ידעתי שמשהו כזה אפשרי בכלל</div>
+      <div class="marquee-item">איך זה ככה מצחיק וגם פרסומת בו זמנית</div>
+      <div class="marquee-item">דמויות שכבר מרגישות כמו חברים</div>
+      <div class="marquee-item">צריך עוד פרק עכשיו</div>
+      <div class="marquee-item">חבר׳ה אתם גאונים</div>
+      <div class="marquee-item">איזה רעיון תכלס</div>
+      <div class="marquee-item">סדרה שלמה כזאתי בבקשה</div>
+      <div class="marquee-item">צחקתי בקול</div>
+      <div class="marquee-item">לא ידעתי שמשהו כזה אפשרי בכלל</div>
+    </div>
+  </div>
+
+  <!-- INLINE SAMPLES -->
+  <section class="reveal">
+    <div class="container">
+      <div class="section-eyebrow">ככה זה נראה</div>
+      <h2 class="section-title">תוכן לטעימה.</h2>
+      <p class="section-lead">
+        שני סרטונים מהערוץ — מיני־קומדיה עם דמויות חוזרות. להציץ באווירה, בקצב, ובאופן שבו דברים מתחברים פרק לפרק.
+      </p>
+      <div class="reels-grid">
+        <div class="reel-embed">
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DW5-43gCG6N/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:12px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin:0; min-width:326px; padding:0; width:99.375%;">
+            <a href="https://www.instagram.com/reel/DW5-43gCG6N/" target="_blank" rel="noreferrer">צפו ב־Instagram</a>
+          </blockquote>
+        </div>
+        <div class="reel-embed">
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DWlohEyiLTl/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:12px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin:0; min-width:326px; padding:0; width:99.375%;">
+            <a href="https://www.instagram.com/reel/DWlohEyiLTl/" target="_blank" rel="noreferrer">צפו ב־Instagram</a>
+          </blockquote>
+        </div>
+      </div>
+      <div class="samples-cta">
+        <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noreferrer" class="cta-secondary magnetic">◉ לכל הסרטונים באינסטגרם →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TREND -->
+  <section class="reveal section-trend">
+    <div class="glow-blob glow-blob-pink glow-blob-1"></div>
+    <div class="container">
+      <div class="section-eyebrow">הטרנד</div>
+      <h2 class="section-title">מיני־דרמה זה הפורמט הכי חם של הרשת.<br>זאת הגרסה הקומית.</h2>
+      <p class="section-lead">
+        בשנים האחרונות מיני־דרמה — סדרות וורטיקליות קצרצרות, פרק־עוקב־פרק — הפכה לאחד הפורמטים הצומחים ביותר בעולם הדיגיטל. אפליקציות סטרימינג ייעודיות פרצו לטופ צ׳ארטים, סטודיוֹת ענק נכנסו לתחום, והפלטפורמות החברתיות התאימו את עצמן לסיפור בפרקים קצרים שאי אפשר להפסיק לצפות בהם.
+      </p>
+      <p class="section-lead">
+        כאן נכנס שלומי. הוא לוקח את הפורמט הזה ועושה אותו <span class="accent" style="font-weight:700">קומי</span>. דמויות חוזרות, סיטואציות יומיומיות, סיפור שזורם פרק לפרק — עם המותג שלכם בתוך הסיפור.
+      </p>
+      <div class="callout callout-positive">
+        <strong>זה רגע הכניסה.</strong> עכשיו, לפני שכל המותגים מבינים את הפוטנציאל וממלאים את הפיד באותו פורמט.
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMAT -->
+  <section class="reveal">
+    <div class="container">
+      <div class="section-eyebrow">הפורמט</div>
+      <h2 class="section-title">סיפור במקום פרסומת.</h2>
+      <p class="section-lead">
+        סדרת מיני־קומדיה עם דמויות חוזרות שהקהל מכיר ועוקב אחריהן ברצף — כמו סדרה. המוצר או השירות שלכם משולב בתוך העלילה באופן טבעי. לא כפרסומת. כחלק מהסיפור.
+      </p>
+      <div class="benefits">
+        <div class="benefit"><h3>סיפור מתמשך</h3><p>הקהל חוזר לפרק הבא. החשיפה לא נגמרת בסרטון אחד — היא בונה את עצמה.</p></div>
+        <div class="benefit"><h3>רגש אמיתי</h3><p>צחוק, הזדהות, וקטעים שאנשים שולחים אחד לשני — לא משדלים אותם.</p></div>
+        <div class="benefit"><h3>שילוב אורגני</h3><p>המותג חלק מהעלילה. בלי תוויות "ממומן" צורבות, בלי הקראה מלאכותית.</p></div>
+        <div class="benefit"><h3>בלי תחושת פרסומת</h3><p>הקהל לא מרגיש שמכרו לו משהו — הוא מרגיש שצפה בסרטון טוב.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REACTIONS -->
+  <section class="reveal">
+    <div class="container">
+      <div class="section-eyebrow">תגובות אמיתיות מהקהל</div>
+      <h2 class="section-title">"סוף סוף פרסומת שאני לא רוצה לדלג עליה."</h2>
+      <p class="section-lead">
+        תגובות אמיתיות שעולות מתחת לשיתופי הפעולה. ישירות מהקהל. זה לא קורה במקרה — זה תוצאה של הפורמט.
+      </p>
+      <div class="quotes">
+        <div class="quote-card">זאת הפרסומת הכי טובה שראיתי. בכלל.</div>
+        <div class="quote-card">לא אכפת לי בכלל שזאת פרסומת, אני סתם רוצה לראות עוד.</div>
+        <div class="quote-card">תמשיכו עם הסדרה הזאת בבקשה, אני מכור.</div>
+        <div class="quote-card">סוף סוף פרסומת שאני לא רוצה לדלג עליה.</div>
+        <div class="quote-card">איך עוד לא עשו עם זה קמפיין ענק?</div>
+        <div class="quote-card">תזכירו לי בעצם איזה מותג זה? 😅</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section class="reveal">
+    <div class="container">
+      <div class="section-eyebrow">הקהל</div>
+      <h2 class="section-title">למי זה מגיע.</h2>
+      <p class="section-lead">
+        קהל ישראלי מעורב, גילאי 25–45, אחוז משמעותי מאנשי הייטק (שלומי גם משם — מה שגורם לדמויות להיכנס ישר ללב הקהל). צופים שמחפשים תוכן, ולא חוסכים מתגובות.
+      </p>
+      <div class="stats">
+        <div class="stat-card"><div class="stat-num" data-count="40" data-suffix="K+">40K+</div><div class="stat-label">עוקבים בטיקטוק</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="24" data-suffix="K+">24K+</div><div class="stat-label">עוקבים באינסטגרם</div></div>
+        <div class="stat-card"><div class="stat-num">10–100K+</div><div class="stat-label">צפיות לסרטון</div></div>
+        <div class="stat-card"><div class="stat-num">FB</div><div class="stat-label">פעיל בפייסבוק</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRANDS WALL -->
+  <section class="reveal section-brands">
+    <div class="container">
+      <div class="section-eyebrow">מותגים שכבר היו בערוץ</div>
+      <h2 class="section-title">מותגים שעבדתי איתם.</h2>
+      <p class="section-lead">קולאבים, שילובי מותג, וקמפיינים — קטנים וגדולים.</p>
+      <div class="brand-stage" id="brandStage" aria-live="polite">
+        <div class="brand-slide active"><img src="logos/steimatzky.svg" alt="סטימצקי"></div>
+        <div class="brand-slide"><img src="logos/bug.png" alt="BUG"></div>
+        <div class="brand-slide has-white-bg"><img src="logos/ksp.jpg" alt="KSP"></div>
+        <div class="brand-slide"><img src="logos/buyme.svg" alt="BuyMe"></div>
+        <div class="brand-slide"><img src="logos/mta.png" alt="האקדמית תל אביב יפו"></div>
+        <div class="brand-slide invert-dark"><img src="logos/hebrew-academy.png" alt="האקדמיה ללשון העברית"></div>
+        <div class="brand-slide brand-more">ועוד...</div>
+      </div>
+      <div class="brand-dots" id="brandDots" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- WOLT — INVERTED HIGH-IMPACT SECTION -->
+  <section class="reveal section-inverted">
+    <div class="glow-blob glow-blob-1"></div>
+    <div class="glow-blob glow-blob-2"></div>
+    <div class="container">
+      <div class="section-eyebrow">קייס מרכזי</div>
+      <h2 class="section-title">קמפיין Wolt.</h2>
+      <p class="section-lead">
+        סדרה של 3 סרטונים (טיזרים + תוכן עיקרי) שנוצרה עבור Wolt — אחת מחברות משלוחי האוכל הגדולות בעולם.
+      </p>
+      <div class="case-box">
+        <div class="big-num" data-count="500" data-suffix="K+">500K+</div>
+        <div class="case-label">צפיות אורגניות בכל הפלטפורמות יחד</div>
+        <p class="case-desc">בלי תקציב מדיה. בלי קידום בתשלום. בלי בוטים. רק התוכן עצמו עשה את העבודה.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="reveal">
+    <div class="container">
+      <div class="section-eyebrow">איך זה עובד</div>
+      <h2 class="section-title">התהליך.</h2>
+      <p class="section-lead">פשוט, ישיר, וקצר. רוב הפרויקטים זזים מהיכרות לפרסום תוך 2–4 שבועות.</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><h3>שיחת היכרות</h3><p>הבנת המותג, הקהל והמסר. בדיקה שיש כימיה עם הסגנון.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><h3>כתיבת התוכן</h3><p>הדמויות, הסיטואציות והעלילה נכתבות במיוחד — כך שהמותג ישתלב באופן טבעי בסיפור.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><h3>צילום</h3><p>בשטח, באתר שלכם, או בכל מקום שמתאים לסיפור. עבודה זריזה ומקצועית.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><h3>פרסום ברצף</h3><p>טיקטוק, אינסטגרם, פייסבוק. תזמון לפי האלגוריתם של כל פלטפורמה.</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><h3>תוכן המשך</h3><p>סרטונים נוספים מאותם חומרים בשבועות שאחרי — מאריכים את החשיפה בלי תוספת עלות.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact reveal" id="contact">
+    <div class="glow-blob glow-blob-coral glow-blob-1"></div>
+    <div class="container">
+      <h2>בואו נדבר על המותג שלכם.</h2>
+      <p class="contact-sub">איפיון קצר, הצעת תוכן, וסגנון שמתאים לקהל שלכם. שיחה ראשונה — בלי התחייבות.</p>
+      <div class="contact-buttons">
+        <a href="mailto:shlomi@boostart.io?subject=שיתוף%20פעולה%20—%20מיני־קומדיה%20למותג" class="primary magnetic">✉ shlomi@boostart.io</a>
+        <a href="https://wa.me/972545567213" target="_blank" rel="noreferrer" class="magnetic">💬 WhatsApp</a>
+        <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noreferrer" class="magnetic">♪ TikTok</a>
+        <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noreferrer" class="magnetic">◉ Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      © Shlomi Zevin · <a href="https://boostart.io" target="_blank" rel="noreferrer">boostart.io</a>
+    </div>
+  </footer>
+
+  <!-- FLOATING REEL -->
+  <aside class="floating-reel" id="floatingReel" aria-label="סרטון מהערוץ">
+    <div class="floating-reel-header">
+      <span class="floating-reel-label"><span class="live-dot" aria-hidden="true"></span>סרטון מהערוץ</span>
+      <button type="button" class="floating-reel-close" id="floatingReelClose" aria-label="סגור">×</button>
+    </div>
+    <div class="floating-reel-inner">
+      <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DW5-43gCG6N/" data-instgrm-version="14" style="background:#FFF; border:0; margin:0; padding:0;">
+        <a href="https://www.instagram.com/reel/DW5-43gCG6N/" target="_blank" rel="noreferrer">צפו ב־Instagram</a>
+      </blockquote>
+    </div>
+  </aside>
+
+  <div class="toast-container" id="toastContainer" aria-hidden="true"></div>
+
+  <!-- HOVERING CONTACT BAR — always visible -->
+  <nav class="hover-contact" id="hoverContact" aria-label="צור קשר">
+    <span class="hover-contact-label">
+      <span class="live-dot" aria-hidden="true"></span>
+      בואו נדבר
+    </span>
+    <div class="hover-contact-actions">
+      <a href="mailto:shlomi@boostart.io?subject=שיתוף%20פעולה%20—%20מיני־קומדיה%20למותג" class="primary">✉ מייל</a>
+      <a href="https://wa.me/972545567213" target="_blank" rel="noreferrer">💬 WhatsApp</a>
+    </div>
+  </nav>
+
+  <script async src="https://www.instagram.com/embed.js"></script>
+
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const KEY = 'micro-comedy-theme';
+      const saved = localStorage.getItem(KEY);
+      const apply = (mode) => {
+        if (mode === 'dark') { document.body.classList.add('dark'); toggle.textContent = '☀️ אור'; }
+        else { document.body.classList.remove('dark'); toggle.textContent = '🌙 חושך'; }
+      };
+      apply(saved === 'dark' ? 'dark' : 'light');
+      toggle.addEventListener('click', () => {
+        const next = document.body.classList.contains('dark') ? 'light' : 'dark';
+        apply(next); localStorage.setItem(KEY, next);
+      });
+
+      const bar = document.getElementById('scrollProgress');
+      const updateProgress = () => {
+        const h = document.documentElement;
+        const max = h.scrollHeight - h.clientHeight;
+        bar.style.transform = `scaleX(${max > 0 ? h.scrollTop / max : 0})`;
+      };
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+      const countUp = (el) => {
+        const target = parseInt(el.dataset.count, 10);
+        const suffix = el.dataset.suffix || '';
+        if (isNaN(target)) return;
+        const duration = 1600;
+        const start = performance.now();
+        const ease = (t) => 1 - Math.pow(1 - t, 4);
+        const tick = (now) => {
+          const t = Math.min(1, (now - start) / duration);
+          el.textContent = Math.round(target * ease(t)) + suffix;
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      };
+      const countIo = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { countUp(e.target); countIo.unobserve(e.target); } });
+      }, { threshold: 0.5 });
+      document.querySelectorAll('[data-count]').forEach(el => countIo.observe(el));
+
+      const QUOTES = [
+        'לא אכפת לי בכלל שזאת פרסומת',
+        'זאת הפרסומת הכי טובה שראיתי',
+        'תמשיכו עם הסדרה הזאת בבקשה',
+        'סוף סוף פרסומת שלא רוצים לדלג עליה',
+        'פרסומת ברמה של סדרה'
+      ];
+      const wrapQuote = (text) => `<span class="qmark">"</span>${text}<span class="qmark">"</span>`;
+      const quoteEl = document.getElementById('heroQuote');
+      let qi = 0;
+      setTimeout(() => {
+        setInterval(() => {
+          quoteEl.classList.add('swapping');
+          setTimeout(() => {
+            qi = (qi + 1) % QUOTES.length;
+            quoteEl.innerHTML = wrapQuote(QUOTES[qi]);
+            quoteEl.classList.remove('swapping');
+          }, 320);
+        }, 4500);
+      }, 3500);
+
+      const hero = document.querySelector('.hero');
+      const heroSpotlightTarget = null; /* spotlight removed in favor of static glow blobs */
+
+      document.querySelectorAll('.magnetic').forEach(el => {
+        el.addEventListener('mousemove', (e) => {
+          const rect = el.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          el.style.transform = `translate(${x * 0.18}px, ${y * 0.18}px)`;
+        });
+        el.addEventListener('mouseleave', () => { el.style.transform = ''; });
+      });
+
+      const floatingReel = document.getElementById('floatingReel');
+      const closeBtn = document.getElementById('floatingReelClose');
+      closeBtn.addEventListener('click', () => {
+        floatingReel.classList.add('hidden');
+        sessionStorage.setItem('floatingReelClosed', '1');
+      });
+      if (sessionStorage.getItem('floatingReelClosed') === '1') {
+        floatingReel.classList.add('hidden');
+      }
+
+      const TOASTS = [
+        'תגובה חדשה: "צחקתי בקול"',
+        'תגובה חדשה: "תזכירו לי איזה מותג זה?"',
+        'תגובה חדשה: "צריך פרק המשך"',
+        'תגובה חדשה: "פרסומת ברמה של סדרה"',
+        'תגובה חדשה: "סדרה שלמה כזאתי בבקשה"',
+        'תגובה חדשה: "חבר׳ה אתם גאונים"',
+        'תגובה חדשה: "איך זה ככה מצחיק וגם פרסומת"',
+        'צופה חדש מטיקטוק עוקב',
+        'תגובה חדשה: "תמשיכו עם זה בבקשה"',
+      ];
+      let ti = 0;
+      const toastContainer = document.getElementById('toastContainer');
+      const showToast = () => {
+        if (window.innerWidth < 720) return;
+        if (document.hidden) return;
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = TOASTS[ti];
+        toastContainer.appendChild(t);
+        ti = (ti + 1) % TOASTS.length;
+        setTimeout(() => t.remove(), 5300);
+      };
+      setTimeout(() => { showToast(); setInterval(showToast, 7000); }, 5000);
+
+      const brandStage = document.getElementById('brandStage');
+      if (brandStage) {
+        const slides = Array.from(brandStage.querySelectorAll('.brand-slide'));
+        const dotsContainer = document.getElementById('brandDots');
+        const dots = slides.map((_, i) => {
+          const d = document.createElement('span');
+          d.className = 'brand-dot' + (i === 0 ? ' active' : '');
+          dotsContainer.appendChild(d);
+          return d;
+        });
+        let active = 0;
+        let cycleTimer = null;
+        const advance = () => {
+          const curr = slides[active];
+          const nextIdx = (active + 1) % slides.length;
+          const next = slides[nextIdx];
+          dots[active].classList.remove('active');
+          curr.classList.remove('active');
+          curr.classList.add('prev');
+          next.classList.add('active');
+          dots[nextIdx].classList.add('active');
+          setTimeout(() => curr.classList.remove('prev'), 640);
+          active = nextIdx;
+        };
+        const startCycle = () => {
+          if (cycleTimer) return;
+          cycleTimer = setInterval(advance, 2200);
+        };
+        const stopCycle = () => { clearInterval(cycleTimer); cycleTimer = null; };
+
+        const sectionEl = brandStage.closest('section');
+        const cycleIo = new IntersectionObserver((entries) => {
+          entries.forEach(e => { if (e.isIntersecting) startCycle(); else stopCycle(); });
+        }, { threshold: 0.25 });
+        cycleIo.observe(sectionEl);
+      }
+    })();
+  </script>
+</body>
+</html>

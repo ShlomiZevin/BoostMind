@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+  <meta name="description" content="Bring micro-drama into your hotel — a content partnership with Israeli comedy creator Shlomi Zevin (40K TikTok, 24K Instagram)." />
+  <meta property="og:title" content="Shlomi Zevin · Bring micro-drama into your hotel" />
+  <meta property="og:description" content="Character-based comedy sketches as a continuous storyline — and your hotel embedded inside it." />
+  <meta property="og:image" content="me.jpg" />
+  <title>Shlomi Zevin · Bring micro-drama into your hotel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --bg-card: #131316;
+      --bg-elev: #1a1a1e;
+      --text: #f0f0f2;
+      --muted: #9c9ca5;
+      --dim: #6b6b73;
+      --accent: #ff7a45;
+      --accent-2: #ffb86c;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+    }
+    html.light {
+      --bg: #fafafa;
+      --bg-card: #ffffff;
+      --bg-elev: #f4f4f6;
+      --text: #15151a;
+      --muted: #5a5a63;
+      --dim: #8e8e98;
+      --accent: #ea5a25;
+      --accent-2: #d97706;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background 200ms ease, color 200ms ease;
+    }
+    img { max-width: 100%; height: auto; display: block; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 28px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .brand {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      font-size: 16px;
+      color: var(--text);
+    }
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 150ms ease;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--text); }
+
+    /* Hero */
+    .hero {
+      padding: 40px 0 80px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 60px;
+      align-items: center;
+    }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; padding: 32px 0 56px; }
+      .hero-photo { max-width: 220px; margin: 0 auto; }
+    }
+    .kicker {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: 56px;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      font-weight: 800;
+      margin: 0 0 22px;
+    }
+    @media (max-width: 760px) { h1 { font-size: 38px; } }
+    .lead {
+      font-size: 21px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin: 0 0 32px;
+      max-width: 580px;
+    }
+    @media (max-width: 760px) { .lead { font-size: 18px; } }
+    .hero-photo img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      object-position: 50% 18%;
+      border-radius: 50%;
+      border: 1px solid var(--border-strong);
+    }
+
+    .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -0.005em;
+      transition: all 150ms ease;
+      text-decoration: none !important;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+    }
+    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+    }
+    .btn-ghost:hover { border-color: var(--text); }
+
+    /* Sections */
+    section { padding: 56px 0; }
+    section:last-of-type { padding-bottom: 80px; }
+    .section-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+    h2 {
+      font-size: 36px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      font-weight: 800;
+      margin: 0 0 24px;
+    }
+    @media (max-width: 760px) { h2 { font-size: 28px; } }
+    h3 {
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      font-weight: 700;
+      margin: 32px 0 12px;
+    }
+    p { margin: 0 0 18px; color: var(--text); }
+    p.muted { color: var(--muted); }
+
+    /* Card */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px;
+    }
+    @media (max-width: 760px) { .card { padding: 22px; } }
+
+    /* Stats grid */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 32px 0 8px;
+    }
+    @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+    .stat .num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat .label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.01em;
+      margin-top: 8px;
+    }
+
+    /* Highlight block */
+    .highlight {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 32px 0;
+    }
+    .highlight p:last-child { margin-bottom: 0; }
+    @media (max-width: 760px) { .highlight { padding: 22px; } }
+
+    /* Bullets */
+    ul.bullets {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    ul.bullets li {
+      padding: 14px 0 14px 28px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    ul.bullets li:first-child { padding-top: 4px; }
+    ul.bullets li:last-child { border-bottom: 0; padding-bottom: 4px; }
+    ul.bullets li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 22px;
+      width: 14px;
+      height: 2px;
+      background: var(--accent);
+    }
+    ul.bullets li:first-child::before { top: 12px; }
+
+    /* CTA section */
+    .cta-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 56px 40px;
+      margin-top: 24px;
+      text-align: center;
+    }
+    @media (max-width: 760px) { .cta-section { padding: 40px 24px; } }
+    .cta-section h2 { margin-bottom: 12px; }
+    .cta-section .lead { margin: 0 auto 28px; }
+    .contact-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+    /* Footer */
+    footer {
+      padding: 32px 0 56px;
+      text-align: center;
+      color: var(--dim);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+    footer a { color: var(--muted); }
+
+    /* Small utility */
+    .accent { color: var(--accent); }
+    .strong { font-weight: 700; color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">Shlomi Zevin</div>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☾</button>
+  </div>
+
+  <main class="container">
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="kicker">Comedy content creator · Israel</div>
+        <h1>Bring micro-drama into your hotel.</h1>
+        <p class="lead">
+          Character-based comedy sketches that play as a continuous storyline —
+          with your property as one of the locations the audience keeps coming back to.
+        </p>
+        <div class="cta-row">
+          <a href="#talk" class="btn btn-primary">Let's talk →</a>
+          <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noreferrer" class="btn btn-ghost">See my work on TikTok</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="me.jpg" alt="Shlomi Zevin" />
+      </div>
+    </section>
+
+    <!-- The shift -->
+    <section>
+      <div class="section-label">The shift</div>
+      <h2>Travel ads are losing. Micro-drama is winning.</h2>
+      <p class="muted">
+        Short videos built as ongoing storylines — same characters, evolving situations,
+        each clip pulling the audience into the next — have become the strongest format
+        in social marketing right now. They don't get scrolled past. They get followed.
+      </p>
+      <div class="highlight">
+        <p>
+          For a hotel, this is a fundamentally different value than a one-off sponsored post.
+          <span class="strong">Your property doesn't appear once and disappear.</span>
+          It becomes a location inside a story the audience is actively returning to —
+          watched, shared, saved, and quoted to a friend.
+        </p>
+      </div>
+      <p class="muted">
+        Hotels that step into this format now get exposure that
+        <span class="strong">builds and compounds</span> across weeks, not days.
+      </p>
+    </section>
+
+    <!-- What I do -->
+    <section>
+      <div class="section-label">What I do</div>
+      <h2>Everyday-life comedy that hits because it's true.</h2>
+      <p class="muted">
+        I create nuanced sketches built around characters everyone instantly recognizes from
+        their own life: the family member, the colleague at work, the cashier at the grocery
+        store, the type you meet everywhere.
+      </p>
+      <p class="muted">
+        Each character takes serious time to develop — building their profile, writing their
+        scripts, dialing in their look with filters until they feel completely real.
+        The most common comment I get on every video is
+        <span class="strong" style="color: var(--text)">"how is this so true?"</span>.
+        People connect because they see themselves and their world reflected back at them.
+      </p>
+    </section>
+
+    <!-- The numbers -->
+    <section>
+      <div class="section-label">The audience</div>
+      <h2>Real reach, with the right people.</h2>
+      <div class="stats">
+        <div class="stat"><div class="num">40K</div><div class="label">TikTok followers</div></div>
+        <div class="stat"><div class="num">24K</div><div class="label">Instagram followers</div></div>
+        <div class="stat"><div class="num">100K+</div><div class="label">Avg views per video</div></div>
+        <div class="stat"><div class="num">159K</div><div class="label">Single sketch · Wolt</div></div>
+      </div>
+      <p class="muted" style="margin-top: 28px;">
+        A wide range of men and women across all ages, with a particularly large share working
+        in high-tech — engineers, HR, IT, security, product, management. Several of my recurring
+        characters come from the tech world (where I came from originally) — those characters
+        happen to be audience favorites.
+      </p>
+    </section>
+
+    <!-- The offer -->
+    <section>
+      <div class="section-label">The proposal</div>
+      <h2>The story I'd build at your hotel.</h2>
+      <p class="muted">
+        Take my recurring characters and place them inside the hotel — into the room, by the
+        pool, at breakfast, the bar, the lobby. Each clip stands on its own, but also makes
+        the audience want to see the next. The property becomes the natural backdrop of an
+        ongoing series.
+      </p>
+
+      <h3 style="color: var(--accent); margin-top: 40px;">What I'm offering</h3>
+      <ul class="bullets">
+        <li>
+          <span class="strong">1–3 short comedy sketches per day during the stay</span>,
+          each shot at your hotel — naturally featuring the room, pool, restaurant,
+          breakfast, views, and atmosphere as part of the story.
+        </li>
+        <li>
+          <span class="strong">Your hotel mentioned and tagged in every sketch.</span>
+        </li>
+        <li>
+          <span class="strong">Additional sketches published over the following weeks</span>
+          from on-site footage — extending the exposure well beyond the stay itself.
+        </li>
+      </ul>
+
+      <h3 style="color: var(--accent); margin-top: 40px;">What this requires</h3>
+      <ul class="bullets">
+        <li>
+          <span class="strong">A 3–4 night hosted stay for 2 people.</span>
+          That's it. No fees, no media buy.
+        </li>
+      </ul>
+    </section>
+
+    <!-- Past work -->
+    <section>
+      <div class="section-label">Track record</div>
+      <h2>Brand collaborations that delivered.</h2>
+      <p class="muted">
+        I've worked with multiple major Israeli brands. Most recently, a campaign with
+        <span class="strong" style="color: var(--text)">Wolt</span> — a single sketch in that
+        partnership generated <span class="strong" style="color: var(--accent)">159K organic
+        views</span>, with reach amplified by saves and shares across both platforms.
+      </p>
+      <p class="muted">
+        For hotels in particular, the format scales naturally. The visit is just the production
+        window — the content keeps performing for weeks afterward.
+      </p>
+    </section>
+
+    <!-- CTA -->
+    <section id="talk">
+      <div class="cta-section">
+        <h2>Let's talk.</h2>
+        <p class="lead">
+          I can share sample videos, propose dates, and walk you through a short visual deck on a quick call.
+        </p>
+        <div class="contact-row">
+          <a class="btn btn-primary" href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+          <a class="btn btn-ghost" href="https://wa.me/972545567213" target="_blank" rel="noreferrer">WhatsApp +972-54-5567-213</a>
+        </div>
+        <div class="contact-row" style="margin-top: 18px;">
+          <a class="btn btn-ghost" href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noreferrer">TikTok</a>
+          <a class="btn btn-ghost" href="https://www.instagram.com/shlomizevin" target="_blank" rel="noreferrer">Instagram</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      Shlomi Zevin · Comedy creator · Israel<br />
+      <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle
+    const root = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const stored = (() => { try { return localStorage.getItem('shlomi-theme'); } catch { return null; } })();
+    if (stored === 'light') root.classList.add('light');
+    const updateIcon = () => { btn.textContent = root.classList.contains('light') ? '☾' : '☀'; };
+    updateIcon();
+    btn.addEventListener('click', () => {
+      root.classList.toggle('light');
+      try { localStorage.setItem('shlomi-theme', root.classList.contains('light') ? 'light' : 'dark'); } catch {}
+      updateIcon();
+    });
+  </script>
+</body>
+</html>
