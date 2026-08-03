@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קרב הניחושים — ניהול</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#121829; --surface-2:#1b2338; --surface-3:#252f4a;
+    --border:rgba(255,255,255,.10); --text:#f2f5ff; --muted:#95a0bd;
+    --accent:#ffd23f; --green:#2ee6a0; --red:#ff5470; --blue:#4d8dff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Heebo',sans-serif;min-height:100vh}
+  .wrap{max-width:660px;margin:0 auto;padding:16px 14px 70px}
+  a{color:var(--accent)}
+  h1{font-size:1.35rem;font-weight:900;display:flex;align-items:center;gap:8px;margin-bottom:2px}
+  .sub{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+  .backlink{display:inline-block;margin-bottom:12px;font-size:.85rem;font-weight:700}
+
+  button{font-family:inherit;font-weight:800;cursor:pointer;border-radius:11px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);padding:9px 14px;font-size:.9rem;transition:transform .08s}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+  button.green{background:var(--green);color:#04231a;border-color:var(--green)}
+  button.danger{color:var(--red);border-color:rgba(255,84,112,.4)}
+  button:disabled{opacity:.45;cursor:default}
+
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-weight:800}
+  .stat b{color:var(--accent);font-size:1.15rem}
+
+  /* filter toggle */
+  .filters{display:flex;gap:8px;margin:8px 0 16px;flex-wrap:wrap}
+  .ftab{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:8px 14px;font-weight:800;font-size:.88rem;cursor:pointer}
+  .ftab.on{color:var(--accent);border-color:var(--accent);background:rgba(255,210,63,.08)}
+  .ftab .cnt{background:var(--surface-3);border-radius:7px;padding:1px 7px;font-size:.75rem;margin-inline-start:6px}
+
+  .prop{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+  .prop.resolved{border-color:rgba(46,230,160,.4)} .prop.locked{border-color:rgba(255,210,63,.35)}
+  .prop-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px}
+  .prop-q{font-weight:800;font-size:1.05rem;line-height:1.35}
+  .prop-meta{font-size:.75rem;color:var(--muted);margin-bottom:11px}
+  .badge{font-size:.7rem;font-weight:800;padding:3px 9px;border-radius:999px;border:1px solid var(--border);white-space:nowrap}
+  .badge.open{color:var(--blue);border-color:rgba(77,141,255,.5)}
+  .badge.locked{color:var(--accent);border-color:rgba(255,210,63,.5)}
+  .badge.resolved{color:var(--green);border-color:rgba(46,230,160,.5)}
+  .opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .owrap{flex:1;min-width:140px;display:flex;flex-direction:column;gap:5px}
+  .owrap .oline{width:100%}
+  .oline{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:2px solid var(--border);border-radius:11px;padding:8px 10px}
+  .oline.win{border-color:var(--green);background:rgba(46,230,160,.12)}
+  .oline .olab{font-weight:800;flex:1} .oline .ocount{font-size:.72rem;color:var(--muted);background:var(--surface-3);border-radius:8px;padding:2px 8px;font-weight:800}
+  .oline .setbtn{padding:5px 10px;font-size:.78rem}
+  .whochips{display:flex;flex-wrap:wrap;gap:4px;padding:0 4px}
+  .chip{font-size:.72rem;font-weight:700;background:var(--surface-3);border-radius:7px;padding:2px 8px;color:var(--text)}
+  .oline.win + .whochips .chip{background:rgba(46,230,160,.18);color:var(--green)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;border-top:1px dashed var(--border);padding-top:10px;margin-top:4px}
+
+  .add{background:var(--surface);border:1px dashed var(--border);border-radius:16px;padding:14px;margin-bottom:22px}
+  .add h3{font-size:1rem;margin-bottom:10px}
+  label{font-size:.78rem;font-weight:700;color:var(--muted);display:block;margin:8px 0 4px}
+  input,select{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:1rem;padding:10px;outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .split3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .hint{color:var(--muted);font-size:.78rem;margin-top:6px}
+
+  /* games manager */
+  .gcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .gcard .gf{font-size:1.6rem} .gcard .gt{font-weight:900;font-size:1.1rem;flex:1;min-width:120px}
+  .gcard .gp{font-size:.78rem;color:var(--muted)}
+  .gcard .gact{display:flex;gap:6px;flex-wrap:wrap}
+  .gcard .gact a,.gcard .gact button{font-size:.82rem;padding:7px 11px;text-decoration:none;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-weight:800}
+  .gcard .gact a.mng{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+
+  .players-sec{margin-top:26px}
+  .players-sec h2{font-size:1.1rem;margin-bottom:10px}
+  .sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+  .sec-head h2{margin:0}
+  .amsg{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .amsg-main{flex:1;min-width:0}
+  .amsg-time{color:var(--muted);font-size:.72rem;margin-inline-start:6px}
+  .amsg-text{margin-top:3px;word-break:break-word;line-height:1.35}
+  .prow{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;overflow:hidden}
+  .prow summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px}
+  .prow summary::-webkit-details-marker{display:none}
+  .prow .pav{width:32px;height:32px;border-radius:50%;background:var(--surface-3);display:grid;place-items:center;font-weight:900;flex-shrink:0}
+  .prow .pname{font-weight:800;flex:1} .prow .ppts{font-weight:900;color:var(--accent);direction:ltr} .prow .pcnt{font-size:.75rem;color:var(--muted)}
+  .prow .caret{color:var(--muted);transition:transform .15s} .prow[open] .caret{transform:rotate(90deg)}
+  .prow .pdel{background:transparent;border:1px solid rgba(255,84,112,.4);color:var(--red);border-radius:9px;padding:5px 9px;font-size:.85rem;flex-shrink:0}
+  .pbets{padding:0 14px 12px;border-top:1px dashed var(--border)}
+  .pbet{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:.9rem;border-bottom:1px solid var(--border)}
+  .pbet:last-child{border-bottom:none}
+  .pbet .pq{color:var(--muted);flex:1} .pbet .pa{font-weight:800}
+  .pbet .pa.win{color:var(--green)} .pbet .pa.lose{color:var(--red)}
+
+  .danger-zone{margin-top:24px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-3);border:1px solid var(--border);color:var(--text);font-weight:800;padding:11px 18px;border-radius:12px;z-index:120;opacity:0;transition:all .25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- ============ GAMES MANAGER (no ?g) ============ -->
+  <div id="managerView" class="hidden">
+    <h1>🎛️ ניהול — כל המשחקים</h1>
+    <div class="sub">בוחרים משחק לניהול, או יוצרים משחק חדש</div>
+    <div id="gamesList"></div>
+
+    <div class="add" style="margin-top:22px">
+      <h3>➕ יצירת משחק חדש</h3>
+      <label>שם המשחק</label>
+      <input id="ngTitle" placeholder="לדוגמה: ברזיל נגד גרמניה">
+      <div class="split">
+        <div><label>קבוצה א' — שם</label><input id="ngTeamA" placeholder="ברזיל"></div>
+        <div><label>דגל א' (אימוג'י)</label><input id="ngFlagA" placeholder="🇧🇷" maxlength="8"></div>
+      </div>
+      <div class="split">
+        <div><label>קבוצה ב' — שם</label><input id="ngTeamB" placeholder="גרמניה"></div>
+        <div><label>דגל ב' (אימוג'י)</label><input id="ngFlagB" placeholder="🇩🇪" maxlength="8"></div>
+      </div>
+      <label style="margin-top:10px"><input type="checkbox" id="ngSeed" checked style="width:auto;vertical-align:middle;margin-inline-end:6px">טען סט הימורים כללי לדוגמה (8 הימורים)</label>
+      <button class="green" id="createGameBtn" style="margin-top:12px;width:100%">צור משחק</button>
+      <div class="hint">אחרי היצירה תיכנס לניהול המשחק ותוכל להוסיף/לערוך הימורים.</div>
+    </div>
+  </div>
+
+  <!-- ============ PER-GAME ADMIN (?g=...) ============ -->
+  <div id="gameView" class="hidden">
+    <a class="backlink" href="admin.html">‹ חזרה לכל המשחקים</a>
+    <h1 id="gTitle">🎛️ ניהול המשחק</h1>
+    <div class="sub" id="gSub">פותחים/נועלים/פוסקים הימורים בזמן אמת</div>
+
+    <div class="bar">
+      <div class="stat">👥 שחקנים: <b id="pcount">0</b></div>
+      <div class="stat">🎯 הימורים: <b id="propcount">0</b></div>
+      <button id="statusToggle">סיים משחק</button>
+    </div>
+
+    <div class="filters">
+      <button class="ftab on" id="fAll" onclick="setFilter('all')">הכל <span class="cnt" id="cAll">0</span></button>
+      <button class="ftab" id="fUnsettled" onclick="setFilter('unsettled')">⏳ עוד לא נפסקו <span class="cnt" id="cUnsettled">0</span></button>
+      <button class="ftab" id="fSettled" onclick="setFilter('settled')">✅ נפסקו <span class="cnt" id="cSettled">0</span></button>
+    </div>
+
+    <div class="row" style="margin-bottom:14px">
+      <button id="seedBtn">📋 הוסף סט הימורים לדוגמה</button>
+      <button id="lockAllBtn">🔒 נעל את כל הפתוחים</button>
+    </div>
+
+    <div id="props"></div>
+
+    <div class="players-sec">
+      <h2>👥 מי ניחש מה</h2>
+      <div id="playersList"></div>
+    </div>
+
+    <div class="players-sec">
+      <div class="sec-head"><h2>💬 קיר ההודעות</h2><button class="danger" id="wipeWall">🧹 מחק הכל</button></div>
+      <div id="wallAdmin"></div>
+    </div>
+
+    <div class="players-sec">
+      <div class="sec-head"><h2>🔥 הימור נועזות</h2><button class="danger" id="wipeTakes">🧹 מחק הכל</button></div>
+      <div id="takesAdmin"></div>
+    </div>
+
+    <div class="add">
+      <h3>➕ הוספת הימור חי</h3>
+      <label>השאלה</label>
+      <input id="aq" placeholder="לדוגמה: יהיה גול ב-10 הדקות הקרובות?">
+      <div class="split">
+        <div><label>תבנית תשובות</label>
+          <select id="atmpl">
+            <option value="yesno">כן / לא</option>
+            <option value="teams">קבוצה א' / קבוצה ב'</option>
+            <option value="teamsdraw">קבוצה א' / ב' / תיקו</option>
+            <option value="custom">מותאם (עד 4)</option>
+          </select>
+        </div>
+        <div><label>נקודות</label>
+          <select id="apts"><option>10</option><option>15</option><option>20</option><option>25</option></select>
+        </div>
+      </div>
+      <div id="customWrap" style="display:none">
+        <label>תשובות מופרדות בפסיק (2–4)</label>
+        <input id="acustom" placeholder="לדוגמה: 0-1, 2-3, 4+">
+      </div>
+      <button class="green" id="addBtn" style="margin-top:12px;width:100%">הוסף הימור למשחק</button>
+      <div class="hint">ההימור נוסף פתוח — כולם רואים אותו מיד ויכולים לנחש.</div>
+    </div>
+
+    <div class="danger-zone">
+      <button class="danger" id="resetBtn">🗑️ מחיקת כל ההימורים</button>
+      <button class="danger" id="delGameBtn">❌ מחיקת המשחק כולו</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey:"AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90", authDomain:"boostmind-b052c.firebaseapp.com", projectId:"boostmind-b052c" });
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const GAMES = db.collection('mundial-games');
+const PLAYERS = db.collection('mundial-players');
+const CHAT = db.collection('mundial-chat');
+const TAKES = db.collection('mundial-hottakes');
+const GAME_ID = new URLSearchParams(location.search).get('g');
+
+const o = (id,label,emoji) => ({ id, label, emoji });
+const GENERIC_PROPS = (fa,fb) => ([
+  { q:'מי תנצח את המשחק?', pts:25, options:[o('a','קבוצה א׳',fa),o('b','קבוצה ב׳',fb),o('draw','תיקו','🤝')] },
+  { q:'מי יבקיע גול ראשון?', pts:20, options:[o('a','קבוצה א׳',fa),o('b','קבוצה ב׳',fb),o('none','אף אחד (0:0)','🚫')] },
+  { q:'כמה גולים יהיו בסה"כ?', pts:20, options:[o('low','0–1','🥱'),o('mid','2–3','🔥'),o('high','4+','🚀')] },
+  { q:'יהיה גול ב-15 הדקות הראשונות? ⏱️', pts:15, options:[o('yes','כן','✅'),o('no','לא','🚫')] },
+  { q:'יהיה כרטיס אדום? 🟥', pts:15, options:[o('yes','כן','🟥'),o('no','לא','🚫')] },
+  { q:'יהיה פנדל? ⚽', pts:15, options:[o('yes','כן','⚽'),o('no','לא','🚫')] },
+  { q:'מי מוביל בסוף המחצית?', pts:15, options:[o('a','קבוצה א׳',fa),o('b','קבוצה ב׳',fb),o('draw','תיקו','🤝')] },
+  { q:'המשחק יגיע להארכות/פנדלים? ⏳', pts:20, options:[o('yes','כן','⏱️'),o('no','לא','🚫')] },
+]);
+
+let toastTimer; function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function isGhost(p){ return ((p&&p.name)||'').trim()==='שלומי'; } /* silent spectator */
+
+/* ================= MANAGER MODE ================= */
+if(!GAME_ID){
+  $('managerView').classList.remove('hidden');
+  let allGames=[], allCounts={};
+  GAMES.onSnapshot(s=>{ allGames=[]; s.forEach(d=>allGames.push({id:d.id,...d.data()})); renderGames(); });
+  PLAYERS.onSnapshot(s=>{ allCounts={}; s.forEach(d=>{ const data=d.data(); if(isGhost(data)) return; const g=data.gameId||'—'; allCounts[g]=(allCounts[g]||0)+1; }); renderGames(); });
+
+  function renderGames(){
+    const sorted=[...allGames].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    $('gamesList').innerHTML = sorted.length ? sorted.map(g=>{
+      const live=g.status!=='ended', np=(g.props||[]).length, res=(g.props||[]).filter(p=>p.status==='resolved').length;
+      const priv = g.private ? ' 🔒 פרטי' : '';
+      const shareBtn = g.private ? `<button onclick="copyLink('${g.id}')">📋 העתק לינק לחברים</button>` : '';
+      return `<div class="gcard">
+        <span class="gf">${g.flagA||'🏳️'}${g.flagB||'🏳️'}</span>
+        <div class="gt">${esc(g.title||'משחק')}<div class="gp">${live?'🔴 חי':'🏁 הסתיים'}${priv} · ${allCounts[g.id]||0} שחקנים · ${res}/${np} נפסקו</div></div>
+        <div class="gact">
+          <a class="mng" href="admin.html?g=${encodeURIComponent(g.id)}">⚙️ נהל</a>
+          <a href="live.html?g=${encodeURIComponent(g.id)}" target="_blank">📺 מסך</a>
+          <a href="play.html?g=${encodeURIComponent(g.id)}" target="_blank">🎮 שחק</a>
+          ${shareBtn}
+        </div>
+      </div>`;
+    }).join('') : '<div class="hint">אין עדיין משחקים. צור אחד למטה 👇</div>';
+  }
+
+  window.copyLink = (id) => {
+    const url = location.origin + '/mundial/play.html?g=' + encodeURIComponent(id);
+    navigator.clipboard.writeText(url).then(()=>toast('הלינק הועתק! שלח לחברים 📤')).catch(()=>prompt('העתק את הלינק:', url));
+  };
+
+  $('createGameBtn').onclick = async () => {
+    const title=$('ngTitle').value.trim();
+    const teamA=$('ngTeamA').value.trim()||'קבוצה א׳', teamB=$('ngTeamB').value.trim()||'קבוצה ב׳';
+    const flagA=$('ngFlagA').value.trim()||'🏳️', flagB=$('ngFlagB').value.trim()||'🏳️';
+    if(!title){ toast('צריך שם למשחק'); return; }
+    const id = title.replace(/\s+/g,'-').replace(/[^\w֐-׿-]/g,'').slice(0,40) + '-' + Date.now().toString(36).slice(-4);
+    const now=Date.now();
+    let props=[];
+    if($('ngSeed').checked){ props = GENERIC_PROPS(flagA,flagB).map((p,i)=>({id:'p'+(now+i),status:'open',correct:null,...p})); }
+    await GAMES.doc(id).set({ title, teamA, teamB, flagA, flagB, status:'live', createdAt:now, props });
+    location.href = 'admin.html?g='+encodeURIComponent(id);
+  };
+}
+
+/* ================= PER-GAME MODE ================= */
+let props=[], players={}, meta=null, filter='all';
+const GAME_DOC = GAME_ID ? GAMES.doc(GAME_ID) : null;
+
+if(GAME_ID){
+  $('gameView').classList.remove('hidden');
+  GAME_DOC.onSnapshot(s=>{
+    if(!s.exists){ $('gameView').innerHTML='<h1>המשחק לא נמצא</h1><a href="admin.html">‹ חזרה</a>'; return; }
+    meta = s.data(); props = meta.props||[];
+    $('gTitle').textContent = '🎛️ '+(meta.title||'ניהול המשחק');
+    $('gSub').innerHTML = `${meta.flagA||''} ${esc(meta.teamA||'')} נגד ${esc(meta.teamB||'')} ${meta.flagB||''} · <a href="live.html?g=${encodeURIComponent(GAME_ID)}" target="_blank">📺 מסך לייב</a>`;
+    $('statusToggle').textContent = meta.status==='ended' ? 'החזר לחי 🔴' : 'סיים משחק 🏁';
+    render();
+  });
+  PLAYERS.where('gameId','==',GAME_ID).onSnapshot(s=>{ players={}; s.forEach(d=>players[d.id]={id:d.id,...d.data()}); $('pcount').textContent=Object.values(players).filter(p=>!isGhost(p)).length; render(); });
+  CHAT.where('gameId','==',GAME_ID).onSnapshot(s=>{ adminChat=[]; s.forEach(d=>adminChat.push({id:d.id,...d.data()})); adminChat.sort((a,b)=>(b.ts||0)-(a.ts||0)); renderWallAdmin(); });
+  TAKES.where('gameId','==',GAME_ID).onSnapshot(s=>{ adminTakes=[]; s.forEach(d=>adminTakes.push({id:d.id,...d.data()})); adminTakes.sort((a,b)=>(b.ts||0)-(a.ts||0)); renderTakesAdmin(); });
+  $('wipeWall').onclick=async()=>{ if(!adminChat.length){ toast('הקיר כבר ריק'); return; } if(!confirm('למחוק את כל '+adminChat.length+' ההודעות בקיר?')) return; const b=db.batch(); adminChat.forEach(m=>b.delete(CHAT.doc(m.id))); await b.commit(); toast('הקיר נוקה 🧹'); };
+  $('wipeTakes').onclick=async()=>{ if(!adminTakes.length){ toast('אין הימורים'); return; } if(!confirm('למחוק את כל '+adminTakes.length+' הימורי הנועזות?')) return; const b=db.batch(); adminTakes.forEach(t=>b.delete(TAKES.doc(t.id))); await b.commit(); toast('נוקה 🧹'); };
+}
+
+function setFilter(f){ filter=f; ['All','Unsettled','Settled'].forEach(x=>$('f'+x).classList.toggle('on', filter===x.toLowerCase())); render(); }
+window.setFilter = setFilter;
+
+function betCounts(prop){
+  const c={}, names={}; prop.options.forEach(o=>{c[o.id]=0;names[o.id]=[];});
+  Object.values(players).forEach(p=>{ if(isGhost(p)) return; const b=(p.bets||{})[prop.id]; if(b!=null && c[b]!=null){ c[b]++; names[b].push(p.name||'?'); } });
+  c._names=names; return c;
+}
+function isUnsettled(p){ return (p.status||'open')!=='resolved'; }
+
+function render(){
+  if(!GAME_ID) return;
+  $('propcount').textContent = props.length;
+  const unsettled = props.filter(isUnsettled).length;
+  $('cAll').textContent = props.length; $('cUnsettled').textContent = unsettled; $('cSettled').textContent = props.length-unsettled;
+
+  const wrap = $('props');
+  let shown = props.map((p,i)=>({p,i}));
+  if(filter==='unsettled') shown = shown.filter(x=>isUnsettled(x.p));
+  else if(filter==='settled') shown = shown.filter(x=>!isUnsettled(x.p));
+
+  if(!props.length){ wrap.innerHTML='<div class="prop" style="text-align:center;color:var(--muted)">אין הימורים. לחצו "הוסף סט הימורים לדוגמה" 👆</div>'; renderPlayers(); return; }
+  if(!shown.length){ wrap.innerHTML='<div class="prop" style="text-align:center;color:var(--muted)">🎉 אין כאן הימורים בסינון הזה!</div>'; renderPlayers(); return; }
+
+  wrap.innerHTML = shown.map(({p:prop,i})=>{
+    const st = prop.status||'open';
+    const counts = betCounts(prop);
+    const opts = prop.options.map(o=>{
+      const isWin = prop.correct===o.id;
+      const who=(counts._names[o.id]||[]);
+      const chips = who.length?`<div class="whochips">${who.map(n=>`<span class="chip">${esc(n)}</span>`).join('')}</div>`:'';
+      return `<div class="owrap"><div class="oline ${isWin?'win':''}">
+        <span class="olab">${o.emoji||''} ${esc(o.label)}</span>
+        <span class="ocount">${counts[o.id]||0}</span>
+        ${st==='resolved'?(isWin?'<span class="badge resolved">✔ זוכה</span>':''):`<button class="setbtn green" onclick="resolve(${i},'${o.id}')">קבע כזוכה</button>`}
+        </div>${chips}</div>`;
+    }).join('');
+    let actions='';
+    if(st==='open') actions=`<button onclick="setStatus(${i},'locked')">🔒 נעל הימור</button><button class="danger" onclick="removeProp(${i})">מחק</button>`;
+    else if(st==='locked') actions=`<button onclick="setStatus(${i},'open')">🔓 פתח מחדש</button><span class="hint" style="align-self:center">בחרו למעלה מי הזוכה כדי לפסוק</span>`;
+    else actions=`<button onclick="unresolve(${i})">↩︎ בטל תוצאה</button><button class="danger" onclick="removeProp(${i})">מחק</button>`;
+    const total = prop.options.reduce((a,o)=>a+(counts[o.id]||0),0);
+    return `<div class="prop ${st}">
+      <div class="prop-top"><div class="prop-q">${esc(prop.q)}</div><span class="badge ${st}">${st==='open'?'פתוח':st==='locked'?'נעול':'נפסק ✓'}</span></div>
+      <div class="prop-meta">${prop.pts||10} נק' · ${total} ניחשו</div>
+      <div class="opts">${opts}</div>
+      <div class="actions row">${actions}</div>
+    </div>`;
+  }).join('');
+  renderPlayers();
+}
+
+function scoreFor(p){ let s=0; const b=p.bets||{}; for(const pr of props){ if(pr.status==='resolved' && pr.correct!=null && b[pr.id]===pr.correct) s+=(pr.points||pr.pts||10); } return s; }
+function labelFor(pr,id){ const o=pr.options.find(x=>x.id===id); return o?((o.emoji?o.emoji+' ':'')+o.label):'—'; }
+function renderPlayers(){
+  const list = Object.values(players).map(p=>({...p,pts:scoreFor(p),n:Object.keys(p.bets||{}).length})).sort((a,b)=>b.pts-a.pts||(a.joinedAt||0)-(b.joinedAt||0));
+  const wrap=$('playersList');
+  if(!list.length){ wrap.innerHTML='<div class="prop" style="text-align:center;color:var(--muted)">עוד לא נכנסו שחקנים</div>'; return; }
+  wrap.innerHTML = list.map(p=>{
+    const bets=p.bets||{};
+    const rows = props.filter(pr=>bets[pr.id]!=null).map(pr=>{ let cls=''; if(pr.status==='resolved') cls=bets[pr.id]===pr.correct?'win':'lose'; return `<div class="pbet"><span class="pq">${esc(pr.q)}</span><span class="pa ${cls}">${esc(labelFor(pr,bets[pr.id]))}</span></div>`; }).join('') || '<div class="pbet"><span class="pq">עוד לא ניחש כלום</span></div>';
+    const ghostTag = isGhost(p) ? ' <span style="color:var(--muted);font-size:.75rem">👻 צופה</span>' : '';
+    return `<details class="prow"${isGhost(p)?' style="opacity:.6"':''}><summary><span class="caret">▸</span><span class="pav">${(p.name&&p.name[0]||'?').toUpperCase()}</span><span class="pname">${esc(p.name||'?')}${ghostTag}</span><span class="pcnt">${p.n} ניחושים</span><span class="ppts">${p.pts}</span><button class="pdel" onclick="event.preventDefault();event.stopPropagation();delPlayer('${p.id}')" title="מחק שחקן">🗑️</button></summary><div class="pbets">${rows}</div></details>`;
+  }).join('');
+}
+
+let adminChat=[], adminTakes=[];
+function fmtTime(ts){ if(!ts) return ''; const d=new Date(ts); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+function renderWallAdmin(){
+  const el=$('wallAdmin'); if(!el) return;
+  if(!adminChat.length){ el.innerHTML='<div class="hint">אין הודעות בקיר</div>'; return; }
+  el.innerHTML=adminChat.map(m=>`<div class="amsg"><div class="amsg-main"><b>${esc(m.name||'?')}</b><span class="amsg-time">${fmtTime(m.ts)}</span><div class="amsg-text">${esc(m.text||'')}</div></div><button class="pdel" onclick="delMsg('${m.id}')">🗑️</button></div>`).join('');
+}
+function renderTakesAdmin(){
+  const el=$('takesAdmin'); if(!el) return;
+  if(!adminTakes.length){ el.innerHTML='<div class="hint">אין הימורי נועזות</div>'; return; }
+  el.innerHTML=adminTakes.map(t=>{ const rc=t.reactions||{}; const rs=Object.entries(rc).filter(([k,v])=>v).map(([k,v])=>k+v).join('  '); return `<div class="amsg"><div class="amsg-main"><b>${esc(t.name||'?')}</b><span class="amsg-time">${fmtTime(t.ts)}</span><div class="amsg-text">${esc(t.text||'')}</div>${rs?`<div class="amsg-time" style="margin:0">${esc(rs)}</div>`:''}</div><button class="pdel" onclick="delTake('${t.id}')">🗑️</button></div>`; }).join('');
+}
+async function delMsg(id){ if(!confirm('למחוק את ההודעה?')) return; try{ await CHAT.doc(id).delete(); }catch(e){ toast('מחיקה נכשלה'); } }
+async function delTake(id){ if(!confirm('למחוק את ההימור?')) return; try{ await TAKES.doc(id).delete(); }catch(e){ toast('מחיקה נכשלה'); } }
+window.delMsg=delMsg; window.delTake=delTake;
+
+async function deleteByPerson(coll, pid){
+  if(!pid) return;
+  const snap = await coll.where('gameId','==',GAME_ID).get();
+  const batch = db.batch(); let n=0;
+  snap.forEach(d=>{ if(d.data().personId===pid){ batch.delete(d.ref); n++; } });
+  if(n) await batch.commit();
+}
+async function delPlayer(id){
+  const p = players[id]; const nm = p ? (p.name||'שחקן') : 'שחקן'; const pid = p && p.personId;
+  if(!confirm('למחוק את "'+nm+'"? (הניחושים, הנקודות, וההודעות שלו בקיר ובנועזות יימחקו)')) return;
+  try{
+    await PLAYERS.doc(id).delete();
+    await deleteByPerson(CHAT, pid);
+    await deleteByPerson(TAKES, pid);
+    toast('"'+nm+'" והתוכן שלו נמחקו');
+  }catch(e){ toast('מחיקה נכשלה'); }
+}
+window.delPlayer = delPlayer;
+
+/* mutations */
+async function save(){ await GAME_DOC.set({ props }, { merge:true }); }
+async function setStatus(i,status){ props[i].status=status; if(status!=='resolved') props[i].correct=null; await save(); }
+window.setStatus=setStatus;
+async function resolve(i,optId){ props[i].status='resolved'; props[i].correct=optId; await save(); toast('נפסק! הטבלה מתעדכנת אצל כולם ⚡'); }
+window.resolve=resolve;
+async function unresolve(i){ props[i].status='locked'; props[i].correct=null; await save(); }
+window.unresolve=unresolve;
+async function removeProp(i){ if(!confirm('למחוק את ההימור?')) return; props.splice(i,1); await save(); }
+window.removeProp=removeProp;
+
+if(GAME_ID){
+  $('seedBtn').onclick = async ()=>{
+    if(props.length && !confirm('כבר יש הימורים. להוסיף את הסט לדוגמה בכל זאת?')) return;
+    const ts=Date.now();
+    const fa=meta.flagA||'🏳️', fb=meta.flagB||'🏳️';
+    const seeded=GENERIC_PROPS(fa,fb).map((p,idx)=>({id:'p'+(ts+idx),status:'open',correct:null,...p}));
+    props=props.concat(seeded); await save(); toast('נטענו '+seeded.length+' הימורים 🎯');
+  };
+  $('lockAllBtn').onclick = async ()=>{
+    let n=0; props.forEach(p=>{ if((p.status||'open')==='open'){ p.status='locked'; n++; } });
+    if(!n){ toast('אין הימורים פתוחים'); return; }
+    await save(); toast('ננעלו '+n+' הימורים 🔒');
+  };
+  $('statusToggle').onclick = async ()=>{ const ns = meta.status==='ended'?'live':'ended'; await GAME_DOC.set({status:ns},{merge:true}); toast(ns==='ended'?'המשחק סומן כהסתיים 🏁':'המשחק חזר לחי 🔴'); };
+  $('atmpl').onchange = e => { $('customWrap').style.display = e.target.value==='custom'?'block':'none'; };
+  $('addBtn').onclick = async ()=>{
+    const q=$('aq').value.trim(); if(!q){ toast('צריך לכתוב שאלה'); return; }
+    const tmpl=$('atmpl').value, pts=parseInt($('apts').value,10)||10;
+    const fa=meta.flagA||'🏳️', fb=meta.flagB||'🏳️', na=meta.teamA||'קבוצה א׳', nb=meta.teamB||'קבוצה ב׳';
+    let options;
+    if(tmpl==='yesno') options=[o('yes','כן','✅'),o('no','לא','🚫')];
+    else if(tmpl==='teams') options=[o('a',na,fa),o('b',nb,fb)];
+    else if(tmpl==='teamsdraw') options=[o('a',na,fa),o('b',nb,fb),o('draw','תיקו','🤝')];
+    else { const parts=$('acustom').value.split(',').map(s=>s.trim()).filter(Boolean).slice(0,4); if(parts.length<2){ toast('צריך לפחות 2 תשובות'); return; } options=parts.map((label,idx)=>o('c'+idx,label,'')); }
+    props.push({ id:'p'+Date.now(), status:'open', correct:null, q, pts, options }); await save();
+    $('aq').value=''; $('acustom').value=''; toast('ההימור נוסף וכולם רואים אותו 🔥');
+  };
+  $('resetBtn').onclick = async ()=>{ if(!confirm('למחוק את כל ההימורים? (לא מוחק שחקנים)')) return; props=[]; await GAME_DOC.set({props:[]},{merge:true}); toast('כל ההימורים נמחקו'); };
+  $('delGameBtn').onclick = async ()=>{
+    if(!confirm('למחוק את המשחק כולו? פעולה בלתי הפיכה.')) return;
+    for(const coll of [PLAYERS, CHAT, TAKES]){
+      const snap = await coll.where('gameId','==',GAME_ID).get();
+      const batch=db.batch(); snap.forEach(d=>batch.delete(d.ref)); if(snap.size) await batch.commit();
+    }
+    await GAME_DOC.delete(); location.href='admin.html';
+  };
+}
+</script>
+</body>
+</html>

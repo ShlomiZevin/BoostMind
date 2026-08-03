@@ -79,11 +79,40 @@ export type ExerciseStats = {
   updatedAt: number;
 };
 
+// Free (muscle-based) session model — the new primary model
+import type { MuscleGroup } from '../data/muscles';
+
+export type FreeSet = {
+  id: string;
+  muscle: MuscleGroup;
+  weight: number;
+  reps: number;
+  unit?: string;
+  exerciseName?: string;
+  timestamp: number;
+};
+
+export type PlannedExercise = {
+  name: string;                // canonical Hebrew name
+  muscle: MuscleGroup;
+  addedAt: number;
+};
+
+export type FreeSession = {
+  id: string;
+  date: number;                // start timestamp
+  completedAt?: number | null;
+  muscleGroups: MuscleGroup[]; // focus for this session
+  sets: FreeSet[];
+  plannedExercises?: PlannedExercise[]; // exercises queued for this session but not yet logged
+  completed: boolean;
+};
+
 // Route types
 export type Route =
-  | { page: 'home'; week?: number }
-  | { page: 'program-info' }
-  | { page: 'workout'; day: 1 | 2 | 3 | 4 | 5; sessionId?: string; week?: number }
+  | { page: 'home' }
+  | { page: 'session'; sessionId: string }
   | { page: 'history' }
-  | { page: 'session-detail'; sessionId: string }
-  | { page: 'settings' };
+  | { page: 'session-view'; sessionId: string }
+  | { page: 'settings' }
+  | { page: 'exercises' };

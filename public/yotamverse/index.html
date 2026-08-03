@@ -227,6 +227,13 @@
     padding:8px 16px;border-radius:10px;cursor:pointer;transition:background .15s,color .15s;
   }
   .card:hover .card-btn{background:var(--green);color:#050309}
+  .card-badge{
+    position:absolute;top:9px;right:9px;z-index:3;
+    background:var(--pink);color:#050309;font-weight:800;font-size:.72rem;
+    padding:4px 10px;border-radius:999px;box-shadow:0 2px 12px rgba(0,0,0,.45);
+  }
+  .card-tag{color:var(--pink);font-size:.74rem;font-weight:600;margin-top:-2px}
+  .modal-tag{color:var(--pink);font-size:.9rem;font-weight:700;margin-top:4px}
   .reveal{opacity:0;transform:translateY(34px);transition:opacity .6s ease, transform .6s ease}
   .reveal.in{opacity:1;transform:none}
 
@@ -639,30 +646,6 @@
   </div>
 </section>
 
-<!-- ===== GREET ===== -->
-<section class="view" id="view-greet">
-  <div class="wrap">
-    <button class="back-hub" data-home>← חזרה למולטיוורס</button>
-    <div class="world-hero">
-      <div class="wh-emoji">🎁</div>
-      <h2>ברכות מבוססות קונטקסט</h2>
-      <div class="wh-price"><span data-addon-price="greet">30</span> ₪</div>
-      <div class="wh-req">👕 מגיע רק יחד עם חולצה</div>
-      <p class="wh-desc">יום הולדת, מבחן, גיוס, חתונה, קידום או פרידה מהצוות — אני מקליט ברכה אישית לפי הקונטקסט שתשלחו.<br>לא "מזל טוב והרבה אושר". זה קונטקסט דל.<br>תשלחו דברים מביכים, אבל גם דברים שהם בסדר: שמות, פאדיחות, ג׳וס, משפטים קבועים והרגלים מוזרים.<br>ככל שהקונטקסט יותר עשיר — הפלט יותר מדויק.</p>
-    </div>
-    <h2 class="section-title">HOW IT WORKS</h2>
-    <div class="how">
-      <div class="how-step"><div class="how-num">1</div><h4>בוחרים אירוע</h4><p>למי הברכה, ומה חוגגים.</p></div>
-      <div class="how-step"><div class="how-num">2</div><h4>שולחים קונטקסט</h4><p>שמות, פאדיחות, ג׳וס — כמה שיותר.</p></div>
-      <div class="how-step"><div class="how-num">3</div><h4>אני מקליט</h4><p>ברכה אישית, מדויקת לקונטקסט.</p></div>
-      <div class="how-step"><div class="how-num">4</div><h4>הסרטון אצלכם</h4><p>נשלח ישירות לוואטסאפ שלכם.</p></div>
-    </div>
-    <div style="text-align:center;padding-bottom:60px">
-      <button class="world-cta" data-open="greet">הזמינו ברכה 🎥</button>
-    </div>
-  </div>
-</section>
-
 <!-- ===== LEARN ===== -->
 <section class="view" id="view-learn">
   <div class="wrap">
@@ -735,6 +718,7 @@
         <div>
           <div class="modal-name" id="mName"></div>
           <div class="modal-price" id="mPrice"></div>
+          <div class="modal-tag" id="mTag" style="display:none"></div>
         </div>
       </div>
       <div><span class="opt-label">גזרה</span><div class="opt-row" id="mCut"></div></div>
@@ -786,6 +770,7 @@ function imgUrl(p){
   return (p.startsWith('data:') || p.startsWith('http') || p.startsWith('/')) ? p : IMG_BASE + p;
 }
 const DEFAULT_PRODUCTS = [
+  { id:'shirt-7', name:'ספיידר-גיק', img:'img/shirt-7.jpg', price:80, active:true, order:0, badge:'חדש 🕷️', tagline:'לרגל צאת הסרט' },
   { id:'shirt-1', name:'גיק קלאסי — בלאסטר מוד', img:'img/shirt-1.jpg', price:80, active:true, order:1 },
   { id:'shirt-2', name:'גיק ופרומפטי — System: Prompting', img:'img/shirt-2.jpg', price:80, active:true, order:2 },
   { id:'shirt-3', name:'GEEK MODE: BADASS', img:'img/shirt-3.jpg', price:80, active:true, order:3 },
@@ -796,16 +781,9 @@ const DEFAULT_PRODUCTS = [
 const DEFAULT_SETTINGS = {
   shipping: 35, shippingNote: 'עד 6 ימי עסקים',
   whatsapp: '972549064930', bitPhone: '054-5567213', paypalLink: '',
-  greetPrice: 30, learnPrice: 50
+  learnPrice: 50
 };
 const ADDONS = {
-  greet: {
-    id: 'addon-greet', emoji: '🎁',
-    name: 'ברכה אישית מיותם',
-    price: () => Number(settings.greetPrice) || 30,
-    sub: 'שלחו לי קונטקסט — אני אקליט ברכה אישית. ככל שהקונטקסט עשיר יותר, הפלט מדויק יותר.',
-    placeholder: 'למי הברכה ומה האירוע? (יום הולדת / מבחן / גיוס / חתונה / קידום / פרידה מהצוות...)\n\nועכשיו הקונטקסט: שמות, פאדיחות, ג׳וס, משפטים קבועים, הרגלים מוזרים. דברים מביכים — אבל גם כאלה שהם בסדר. כמה שיותר.'
-  },
   learn: {
     id: 'addon-learn', emoji: '🤓',
     name: 'ללמוד עם יותם',
@@ -1048,10 +1026,12 @@ function renderGrid(){
     <div class="card reveal" data-id="${p.id}">
       <div class="card-img-box">
         <img class="card-img" src="${imgUrl(p.img)}" alt="${esc(p.name)}" loading="lazy">
+        ${p.badge ? `<span class="card-badge">${esc(p.badge)}</span>` : ''}
         <div class="glare"></div>
       </div>
       <div class="card-body">
         <div class="card-name">${esc(p.name)}</div>
+        ${p.tagline ? `<div class="card-tag">${esc(p.tagline)}</div>` : ''}
         <div class="card-row">
           <span class="card-price">${p.price} ₪</span>
           <button class="card-btn">אני רוצה ⚡</button>
@@ -1193,6 +1173,8 @@ function openProduct(id, e){
   $('mThumb').src = imgUrl(p.img);
   $('mName').textContent = p.name;
   $('mPrice').textContent = p.price + ' ₪';
+  if(p.badge || p.tagline){ $('mTag').textContent = [p.badge, p.tagline].filter(Boolean).join(' · '); $('mTag').style.display = ''; }
+  else $('mTag').style.display = 'none';
   renderOpts();
   $('qVal').textContent = '1';
   const x = e ? e.clientX : innerWidth / 2, y = e ? e.clientY : innerHeight / 2;
@@ -1472,7 +1454,6 @@ function toast(msg){
 /* ---------- worlds / view router ---------- */
 const WORLDS = [
   {key:'shop',    emoji:'🛒', name:'GEEK & PROMPTY', tag:'חנות',  desc:'החולצות שלי',          live:true},
-  {key:'greet',   emoji:'🎁', name:'ברכה מיותם',     tag:'וידאו', desc:'ברכה לפי קונטקסט',     live:true},
   {key:'learn',   emoji:'🤓', name:'ללמוד עם יותם',  tag:'וידאו', desc:'אני מסביר כל נושא',     live:true},
   {key:'channel', emoji:'🎬', name:'הערוץ הפרטי',    desc:'התוכן הבלעדי שלי',     live:false},
   {key:'upload',  emoji:'⬆️', name:'העלאת וידאו',    desc:'תעלו — אני אגיב',       live:false},
@@ -1529,7 +1510,7 @@ document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openAddo
 
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace('#','');
-  const target = ['shop','greet','learn'].includes(h) ? h : 'home';
+  const target = ['shop','learn'].includes(h) ? h : 'home';
   if(target !== currentView) showView(target);
 });
 
@@ -1541,7 +1522,7 @@ loadData();
 /* initial view from hash (deep links / back button) */
 (function(){
   const h = location.hash.replace('#','');
-  const target = ['shop','greet','learn'].includes(h) ? h : 'home';
+  const target = ['shop','learn'].includes(h) ? h : 'home';
   if(target !== 'home') showView(target);
 })();
 

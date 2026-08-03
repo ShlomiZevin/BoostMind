@@ -16,5 +16,29 @@ service cloud.firestore {
     match /gp-shop/{docId} {
       allow read, write: if true;
     }
+    match /mundial/{docId} {
+      allow read, write: if true;
+    }
+    match /mundial-games/{docId} {
+      allow read, write: if true;
+    }
+    match /mundial-players/{docId} {
+      allow read, write: if true;
+    }
+    match /mundial-chat/{docId} {
+      allow read, write: if true;
+    }
+    match /mundial-hottakes/{docId} {
+      allow read, write: if true;
+    }
+    match /party-rsvp/{docId} {
+      allow read, write: if true;
+    }
+    match /fleet_sessions/{docId} {
+      allow read, write: if true;
+    }
+    match /fleet_notes/{docId} {
+      allow read, write: if true;
+    }
   }
 }

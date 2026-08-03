@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קרב הניחושים ⚽ כל המשחקים</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#121829; --surface-2:#1b2338; --surface-3:#252f4a;
+    --border:rgba(255,255,255,.09);
+    --text:#f2f5ff; --muted:#95a0bd;
+    --accent:#ffd23f; --green:#2ee6a0; --red:#ff5470; --blue:#4d8dff;
+  }
+  [data-theme="light"]{
+    --bg:#eef1f8; --surface:#ffffff; --surface-2:#f2f5fc; --surface-3:#e6ebf6;
+    --border:rgba(10,20,50,.10); --text:#131a2e; --muted:#5b6688;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:'Heebo',sans-serif;min-height:100vh}
+  .wrap{max-width:620px;margin:0 auto;padding:0 14px 50px}
+  .topbar{position:sticky;top:0;z-index:50;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .brand{font-weight:900;font-size:1.15rem;display:flex;align-items:center;gap:7px}
+  .themebtn{background:var(--surface-2);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:11px;font-size:1.1rem;cursor:pointer}
+
+  .hero{text-align:center;padding:26px 10px 10px}
+  .hero h1{font-size:1.9rem;font-weight:900}
+  .hero p{color:var(--muted);margin-top:6px;font-size:1rem}
+
+  .sec{font-weight:900;font-size:.95rem;color:var(--muted);margin:26px 4px 12px;display:flex;align-items:center;gap:8px}
+  .sec .line{flex:1;height:1px;background:var(--border)}
+
+  .game{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;transition:border-color .2s}
+  .game.live{border-color:rgba(255,84,112,.4)}
+  .game-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .flags{font-size:2rem;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .flags .vs{font-size:.9rem;color:var(--muted);font-weight:800}
+  .gmeta{flex:1;min-width:0}
+  .gmeta .gtitle{font-weight:900;font-size:1.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gmeta .gsub{color:var(--muted);font-size:.82rem;margin-top:2px}
+  .status-pill{font-size:.72rem;font-weight:800;padding:4px 11px;border-radius:999px;border:1px solid var(--border);white-space:nowrap;flex-shrink:0}
+  .status-pill.live{color:var(--red);border-color:var(--red);display:inline-flex;align-items:center;gap:5px}
+  .status-pill.live .blink{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1s infinite}
+  .status-pill.ended{color:var(--muted)}
+  @keyframes blink{50%{opacity:.2}}
+  .gbtns{display:grid;grid-template-columns:2fr 1fr;gap:9px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;font-weight:800;font-size:1rem;padding:13px;border-radius:12px;border:1px solid var(--border);color:var(--text);background:var(--surface-2);cursor:pointer}
+  .btn.primary{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+  .btn.ghost{background:transparent}
+
+  .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:1rem}
+  .footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:30px;line-height:1.8}
+  .footer a{color:var(--muted)}
+  .adminlink{opacity:.5;font-size:.75rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span>⚽</span> קרב הניחושים</div>
+    <button class="themebtn" id="themeBtn">🌙</button>
+  </div>
+
+  <div class="hero">
+    <h1>קרב הניחושים 🏆</h1>
+    <p>בוחרים משחק, מזינים שם, ומנחשים בזמן אמת</p>
+  </div>
+
+  <div id="liveWrap"></div>
+  <div id="pastWrap"></div>
+
+  <div class="footer">
+    נבנה לכיף המשפחתי ⚽<br>
+    <a href="admin.html" class="adminlink">ניהול</a> · <a href="https://boostmind-b052c.web.app/boostart/" target="_blank">Boostart</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey:"AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90", authDomain:"boostmind-b052c.firebaseapp.com", projectId:"boostmind-b052c" });
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const themeBtn = $('themeBtn');
+function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); themeBtn.textContent=t==='light'?'☀️':'🌙'; try{localStorage.setItem('mundial-theme',t)}catch(e){} }
+applyTheme(localStorage.getItem('mundial-theme')||'dark');
+themeBtn.onclick = () => applyTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
+
+let games = [], counts = {};
+
+db.collection('mundial-games').onSnapshot(s => {
+  games = []; s.forEach(d => { const g={ id:d.id, ...d.data() }; if(!g.private) games.push(g); }); render();
+});
+db.collection('mundial-players').onSnapshot(s => {
+  counts = {}; s.forEach(d => { const data=d.data(); if(((data.name)||'').trim()==='שלומי') return; const g=data.gameId||'—'; counts[g]=(counts[g]||0)+1; }); render();
+});
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function resolvedCount(g){ return (g.props||[]).filter(p=>p.status==='resolved').length; }
+
+function card(g){
+  const live = g.status !== 'ended';
+  const np = (g.props||[]).length;
+  const players = counts[g.id]||0;
+  return `<div class="game ${live?'live':''}">
+    <div class="game-top">
+      <div class="flags">${g.flagA||'🏳️'}<span class="vs">VS</span>${g.flagB||'🏳️'}</div>
+      <div class="gmeta">
+        <div class="gtitle">${esc(g.title||'משחק')}</div>
+        <div class="gsub">👥 ${players} משחקים · 🎯 ${np} ניחושים · ✅ ${resolvedCount(g)} נפסקו</div>
+      </div>
+      <span class="status-pill ${live?'live':'ended'}">${live?'<span class="blink"></span> חי עכשיו':'הסתיים'}</span>
+    </div>
+    <div class="gbtns">
+      <a class="btn primary" href="play.html?g=${encodeURIComponent(g.id)}">${live?'🎮 שחק':'👀 צפה בתוצאות'}</a>
+      <a class="btn ghost" href="live.html?g=${encodeURIComponent(g.id)}">📺 מסך</a>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const sorted = [...games].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const live = sorted.filter(g=>g.status!=='ended');
+  const past = sorted.filter(g=>g.status==='ended');
+
+  if(!games.length){ $('liveWrap').innerHTML = '<div class="empty">אין עדיין משחקים.<br>המנהל יכול ליצור אחד ב<a href="admin.html" style="color:var(--accent)">דף הניהול</a> 👆</div>'; $('pastWrap').innerHTML=''; return; }
+
+  $('liveWrap').innerHTML = live.length ? `<div class="sec"><span class="line"></span> 🔴 משחקים חיים <span class="line"></span></div>` + live.map(card).join('') : '';
+  $('pastWrap').innerHTML = past.length ? `<div class="sec"><span class="line"></span> 🏁 משחקים שהסתיימו <span class="line"></span></div>` + past.map(card).join('') : '';
+}
+</script>
+</body>
+</html>

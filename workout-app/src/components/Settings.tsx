@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { Route } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
-import { useProgramStart, getAutoWeek } from '../hooks/useProgram';
+import { PARENT_INFO, musclesByParent, DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
+import type { MuscleGroup, MuscleParent } from '../data/muscles';
+import { TopBar } from './TopBar';
 
 type Props = {
   uid: string;
@@ -9,21 +11,16 @@ type Props = {
   onLogout: () => void;
 };
 
+const PARENT_ORDER: MuscleParent[] = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core'];
+
 export function Settings({ uid, navigate, onLogout }: Props) {
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
   const firestore = useFirestore(uid);
-  const effectiveStart = useProgramStart(uid);
-  const [override, setOverride] = useState<string | null>(null);
-  const [overrideLoaded, setOverrideLoaded] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [editing, setEditing] = useState(false);
+  const [targets, setTargets] = useState<Record<MuscleGroup, number>>({ ...DEFAULT_WEEKLY_TARGETS });
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    firestore.getProgramStartOverride().then(v => {
-      setOverride(v);
-      setDraft(v || '');
-      setOverrideLoaded(true);
-    });
+    firestore.getWeeklyTargets().then(t => { setTargets(t); setLoaded(true); });
   }, [uid]);
 
   function toggleTheme() {
@@ -42,103 +39,103 @@ export function Settings({ uid, navigate, onLogout }: Props) {
     }
   }
 
-  async function saveOverride() {
-    const v = draft.trim() || null;
-    await firestore.setProgramStartOverride(v);
-    setOverride(v);
-    setEditing(false);
+  async function changeTarget(id: MuscleGroup, delta: number) {
+    const next = Math.max(0, (targets[id] || 0) + delta);
+    const newTargets = { ...targets, [id]: next };
+    setTargets(newTargets);
+    await firestore.setWeeklyTargets(newTargets);
   }
 
-  async function clearOverride() {
-    await firestore.setProgramStartOverride(null);
-    setOverride(null);
-    setDraft('');
-    setEditing(false);
+  async function resetTargets() {
+    setTargets({ ...DEFAULT_WEEKLY_TARGETS });
+    await firestore.setWeeklyTargets(DEFAULT_WEEKLY_TARGETS);
   }
-
-  const previewWeek = getAutoWeek(draft || effectiveStart);
 
   return (
-    <div className="page-bg p-4 pb-20 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate({ page: 'home' })} className="text-muted text-2xl">←</button>
-        <h1 className="text-xl font-bold">Settings</h1>
-      </div>
+    <div className="page-bg min-h-screen">
+      <TopBar title="הגדרות" accent="brand" tint="amber" />
+      <div className="p-4 pb-4 max-w-lg mx-auto">
 
       <div className="card mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium">Theme</div>
-            <div className="text-xs text-muted">Switch between dark and light mode</div>
+        <div className="flex items-center justify-between" dir="rtl">
+          <div className="text-right">
+            <div className="font-medium">מצב תצוגה</div>
+            <div className="text-xs text-muted">חשוך / בהיר</div>
           </div>
           <button onClick={toggleTheme} className="btn-secondary px-4 py-2 text-sm">
-            {isDark ? '☀️ Light' : '🌙 Dark'}
+            {isDark ? '☀️ בהיר' : '🌙 חשוך'}
           </button>
         </div>
       </div>
 
+      <button
+        onClick={() => navigate({ page: 'exercises' })}
+        className="w-full card mb-4 dark:hover:bg-slate-800 hover:bg-slate-50"
+        dir="rtl"
+      >
+        <div className="flex items-center justify-between">
+          <div className="text-right">
+            <div className="font-medium">התרגילים שלי</div>
+            <div className="text-xs text-muted">ניהול תרגילים, תמונות, שמות וכינויים</div>
+          </div>
+          <span className="text-muted text-lg">←</span>
+        </div>
+      </button>
+
       <div className="card mb-4">
-        <div className="font-medium mb-1">Program start date</div>
-        <div className="text-xs text-muted mb-3">
-          Controls which week the app considers "current". By default it's derived from your earliest finished session.
-        </div>
-
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-muted text-xs">Effective</span>
-          <span className="font-mono">{effectiveStart} · W{getAutoWeek(effectiveStart)}</span>
-        </div>
-
-        {overrideLoaded && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted text-xs">Override</span>
-            <span className="font-mono text-xs">
-              {override ? <span className="text-amber-500">{override}</span> : <span className="text-muted-most">auto (none)</span>}
-            </span>
+        <div className="flex items-center justify-between mb-3" dir="rtl">
+          <div className="text-right">
+            <div className="font-medium">מטרות שבועיות</div>
+            <div className="text-xs text-muted">כמה סטים לכל שריר בשבוע</div>
           </div>
-        )}
-
-        {editing ? (
-          <div className="mt-3 pt-3 border-t border-subtle space-y-2">
-            <input
-              type="date"
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              className="input-field !text-sm !py-1.5 !px-2"
-            />
-            {draft && (
-              <div className="text-[10px] text-muted">
-                Today would be <span className="text-main font-mono">Week {previewWeek}</span>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <button onClick={() => { setEditing(false); setDraft(override || ''); }} className="btn-secondary flex-1 !py-1.5 text-xs">Cancel</button>
-              <button onClick={saveOverride} disabled={!draft} className={`btn-primary flex-1 !py-1.5 text-xs ${!draft ? 'opacity-50' : ''}`}>Save</button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex gap-2 mt-3">
-            <button onClick={() => setEditing(true)} className="btn-secondary flex-1 !py-1.5 text-xs">
-              {override ? 'Edit override' : 'Set override'}
-            </button>
-            {override && (
-              <button onClick={clearOverride} className="btn-secondary !py-1.5 text-xs text-amber-500">
-                Use auto
-              </button>
-            )}
+          <button onClick={resetTargets} className="text-[11px] text-blue-500 dark:text-blue-400">איפוס לברירת מחדל</button>
+        </div>
+        {loaded && (
+          <div className="space-y-4">
+            {PARENT_ORDER.map(parent => {
+              const info = PARENT_INFO[parent];
+              const children = musclesByParent(parent);
+              return (
+                <div key={parent}>
+                  <div className="text-xs font-semibold text-right mb-1.5 pb-1 border-b border-subtle" dir="rtl">
+                    {info.he}
+                  </div>
+                  <div className="space-y-1">
+                    {children.map(m => (
+                      <div key={m.id} className="flex items-center justify-between py-1" dir="rtl">
+                        <div className="text-sm">{m.he}</div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => changeTarget(m.id, -1)}
+                            className="w-8 h-8 rounded-lg dark:bg-slate-800 bg-slate-200 text-muted text-lg leading-none"
+                          >−</button>
+                          <span className="font-mono text-sm w-8 text-center">{targets[m.id] || 0}</span>
+                          <button
+                            onClick={() => changeTarget(m.id, 1)}
+                            className="w-8 h-8 rounded-lg dark:bg-slate-800 bg-slate-200 text-muted text-lg leading-none"
+                          >+</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
       <div className="card mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium">Switch User</div>
-            <div className="text-xs text-muted">Log out and enter a different passcode</div>
+        <div className="flex items-center justify-between" dir="rtl">
+          <div className="text-right">
+            <div className="font-medium">החלף משתמש</div>
+            <div className="text-xs text-muted">התנתק והכנס עם סיסמה אחרת</div>
           </div>
           <button onClick={onLogout} className="btn-secondary px-4 py-2 text-sm text-red-500">
-            Logout
+            התנתק
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

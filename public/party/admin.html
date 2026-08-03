@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>מטבח המארחים · מסיבת גג רמת וורבר</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#101a26">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#101a26; --card:#1c2937; --card2:#22303f;
+  --cream:#f6ecdc; --gold:#f0a63a; --gold-d:#c07f21; --pink:#ee5f92; --green:#3fbf87;
+  --text:#f6ecdc; --muted:#a4b0bd; --line:rgba(246,236,220,.14);
+  --scrim:rgba(10,16,24,.90); --field:rgba(255,255,255,.05); --field-b:rgba(246,236,220,.18);
+  --shadow:0 18px 50px rgba(0,0,0,.45); --bgimg:url(bg.jpg);
+}
+html[data-theme="light"]{
+  --navy:#fdf6ea; --card:#fffaf1; --card2:#fff5e6;
+  --cream:#1f2934; --gold:#c9801d; --gold-d:#a3650f; --pink:#d94b7d; --green:#1e8f5f;
+  --text:#22303c; --muted:#5f6d7b; --line:rgba(30,40,52,.13);
+  --scrim:rgba(255,247,235,.93); --field:rgba(255,255,255,.75); --field-b:rgba(30,40,52,.16);
+  --shadow:0 16px 44px rgba(120,84,30,.18); --bgimg:url(sky.jpg);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:'Heebo',system-ui,sans-serif;background:var(--navy);color:var(--text);line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;z-index:-2;background:var(--bgimg) center/cover no-repeat}
+body::after{content:'';position:fixed;inset:0;z-index:-1;background:var(--scrim)}
+h1,h2,h3,.disp{font-family:'Secular One','Heebo',sans-serif;font-weight:400;line-height:1.15;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 60px}
+
+/* gate */
+#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--scrim);backdrop-filter:blur(8px);padding:20px}
+#gate .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:32px;max-width:390px;width:100%;text-align:center;box-shadow:var(--shadow)}
+#gate h2{font-size:26px;margin-bottom:6px;color:var(--gold)}
+#gate p{color:var(--muted);font-size:14px;margin:0 0 20px}
+#gate input{width:100%;background:var(--field);border:1px solid var(--field-b);border-radius:11px;padding:14px;color:var(--text);font:inherit;font-size:20px;text-align:center;letter-spacing:.3em;outline:none}
+#gate input:focus{border-color:var(--gold)}
+#gate .msg{color:var(--pink);font-size:13.5px;height:20px;margin-top:8px;font-weight:700}
+
+header.hd{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:26px 0 18px;flex-wrap:wrap}
+header.hd .ttl{font-size:clamp(26px,5vw,38px)}
+header.hd .ttl span{color:var(--gold)}
+header.hd .sb{color:var(--muted);font-size:13.5px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--gold);color:#1a2634;border:none;border-radius:11px;padding:11px 20px;font:inherit;font-weight:800;font-size:14.5px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--gold-d);transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--field-b);font-weight:700}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold);background:transparent}
+.btn.sm{padding:7px 13px;font-size:13px;border-radius:9px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px 19px;box-shadow:var(--shadow)}
+.stat .n{font-family:'Secular One',sans-serif;font-size:38px;line-height:1;color:var(--gold)}
+.stat .l{font-size:13px;color:var(--muted);margin-top:5px;font-weight:700}
+.stat.alt .n{color:var(--pink)}
+.stat.grn .n{color:var(--green)}
+
+h2.sh{font-size:clamp(21px,4vw,28px);margin:26px 0 14px;display:flex;align-items:center;gap:10px}
+h2.sh::after{content:'';flex:1;height:1px;background:var(--line)}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow)}
+
+/* tally */
+.tally{display:grid;gap:11px}
+.trow{display:grid;grid-template-columns:56px 1fr auto;gap:13px;align-items:center;cursor:pointer;padding:6px;border-radius:12px;transition:.15s}
+.trow:hover{background:var(--card2)}
+.trow img{width:56px;height:46px;object-fit:cover;border-radius:9px;display:block}
+.trow .nm{font-weight:700;font-size:15px;margin-bottom:5px}
+.trow .bar{height:9px;background:var(--field);border-radius:99px;overflow:hidden}
+.trow .bar i{display:block;height:100%;background:var(--gold);border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
+.trow .qt{font-family:'Secular One',sans-serif;font-size:26px;color:var(--gold);min-width:34px;text-align:center}
+.trow.zero .qt{color:var(--muted);opacity:.5}
+.who{grid-column:1/-1;display:none;font-size:13px;color:var(--muted);padding:2px 6px 8px;line-height:1.7}
+.trow.open .who{display:block}
+
+/* guests */
+.filters{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filters input{flex:1;min-width:180px;background:var(--field);border:1px solid var(--field-b);border-radius:11px;padding:11px 14px;color:var(--text);font:inherit;font-size:15px;outline:none}
+.filters input:focus{border-color:var(--gold)}
+.chip{background:var(--field);border:1px solid var(--field-b);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;color:var(--text)}
+.chip:hover{border-color:var(--gold)}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#1a2634}
+
+.guests{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.g{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 19px;box-shadow:var(--shadow);position:relative;transition:.15s}
+.g:hover{border-color:rgba(240,166,58,.45)}
+.g .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.g .nm{font-family:'Secular One',sans-serif;font-size:20px;line-height:1.2}
+.g .meta{color:var(--muted);font-size:13px;margin-top:2px}
+.g .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:99px;border:1px solid}
+.tag.preg{color:var(--pink);border-color:var(--pink);background:rgba(238,95,146,.1)}
+.tag.veg{color:var(--green);border-color:var(--green);background:rgba(63,191,135,.1)}
+.g ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:5px}
+.g ul li{font-size:14px;display:flex;gap:8px;align-items:flex-start}
+.g ul li::before{content:'🔥';font-size:12px;line-height:1.55}
+.g .notes{margin-top:11px;background:var(--card2);border-radius:10px;padding:9px 12px;font-size:13.5px;color:var(--text);border-right:3px solid var(--gold)}
+.g .notes b{color:var(--gold);font-size:12px;display:block;margin-bottom:2px}
+.g .del{position:absolute;top:13px;left:13px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;opacity:0;transition:.15s;padding:4px}
+.g:hover .del{opacity:1}
+.g .del:hover{color:var(--pink)}
+.empty{text-align:center;color:var(--muted);padding:44px 20px;font-size:15px}
+
+.topbar{position:fixed;top:14px;left:14px;z-index:40;display:flex;gap:8px}
+.tbtn{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(16,26,38,.72);backdrop-filter:blur(10px);color:var(--text);font-size:16px;cursor:pointer;display:grid;place-items:center;transition:.16s}
+html[data-theme="light"] .tbtn{background:rgba(255,252,246,.8)}
+.tbtn:hover{border-color:var(--gold);color:var(--gold)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,120%);z-index:60;background:var(--gold);color:#1a2634;font-weight:800;padding:12px 22px;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.4);transition:transform .3s cubic-bezier(.2,.8,.3,1);max-width:92vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+@media(max-width:620px){ .trow{grid-template-columns:44px 1fr auto} .trow img{width:44px;height:38px} }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <h2>מטבח המארחים</h2>
+    <p>הכניסו את הקוד כדי לראות מי אוכל מה</p>
+    <input id="pw" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autofocus>
+    <div class="msg" id="pwMsg"></div>
+  </div>
+</div>
+
+<div class="topbar"><button class="tbtn" id="themeBtn">🌙</button></div>
+
+<div class="wrap">
+  <header class="hd">
+    <div>
+      <h1 class="ttl">מי אוכל <span>מה</span></h1>
+      <div class="sb">מסיבת גג · רמת וורבר, פתח תקווה · שבת 08/08/26 · 16:30</div>
+    </div>
+    <div class="tools">
+      <button class="btn ghost" id="copyBtn">📋 רשימה לקצב</button>
+      <a class="btn" href="index.html">לדף ההזמנה</a>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <h2 class="sh">מה יורד לגריל</h2>
+  <div class="panel"><div class="tally" id="tally"></div></div>
+
+  <h2 class="sh">האורחים</h2>
+  <div class="filters">
+    <input id="q" type="text" placeholder="חיפוש לפי שם / בקשה / מנה…">
+    <button class="chip" data-f="preg">בהריון</button>
+    <button class="chip" data-f="veg">טבעוני/צמחוני</button>
+    <button class="chip" data-f="notes">עם בקשות</button>
+  </div>
+  <div class="guests" id="guests"></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const CODE = '6724';
+const $ = id => document.getElementById(id);
+
+/* gate */
+function unlock(){ $('gate').style.display='none'; try{sessionStorage.setItem('party-admin','1')}catch(e){} start(); }
+if(sessionStorage.getItem('party-admin')==='1'){ $('gate').style.display='none'; }
+$('pw').addEventListener('input', e=>{
+  if(e.target.value === CODE) unlock();
+  else if(e.target.value.length >= CODE.length) $('pwMsg').textContent='קוד שגוי. נסו שוב.';
+  else $('pwMsg').textContent='';
+});
+
+/* theme */
+function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); $('themeBtn').textContent = t==='light'?'☀️':'🌙'; try{localStorage.setItem('party-theme',t)}catch(e){} }
+applyTheme(localStorage.getItem('party-theme')||'dark');
+$('themeBtn').onclick = () => applyTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
+
+let tT; function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),2600); }
+function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+const DISHES = [
+  {id:'entrecote', img:'food/1.jpg', name:'אנטריקוט וואגיו אימפריאלי'},
+  {id:'asado',     img:'food/2.jpg', name:'אסאדו בבישול איטי'},
+  {id:'burger',    img:'food/3.jpg', name:'המבורגר אמריקאי פרימיום'},
+  {id:'kebab',     img:'food/4.jpg', name:'קבב מזרחי מסורתי'},
+  {id:'merguez',   img:'food/5.jpg', name:'מרגז מסורתית'},
+  {id:'pargiot',   img:'food/6.jpg', name:'פרגיות מהגריל'},
+  {id:'sausage',   img:'food/7.jpg', name:'נקניקיות של פעם'},
+];
+
+firebase.initializeApp({ apiKey:"AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90", authDomain:"boostmind-b052c.firebaseapp.com", projectId:"boostmind-b052c" });
+const db = firebase.firestore();
+
+let rows = [], filters = new Set(), q = '';
+
+function start(){
+  db.collection('party-rsvp').onSnapshot(s => {
+    rows = []; s.forEach(d => rows.push({ id:d.id, ...d.data() }));
+    rows.sort((a,b)=> (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    render();
+  }, err => { console.error(err); toast('שגיאה בטעינת הנתונים'); });
+}
+if(sessionStorage.getItem('party-admin')==='1') start();
+
+function isVeg(g){ return g.vegan==='טבעוני' || g.vegan==='צמחוני'; }
+function isPreg(g){ return g.pregnant==='כן' || g.pregnant==='בודקים'; }
+
+function visible(){
+  return rows.filter(g=>{
+    if(filters.has('preg') && !isPreg(g)) return false;
+    if(filters.has('veg') && !isVeg(g)) return false;
+    if(filters.has('notes') && !(g.notes||'').trim()) return false;
+    if(q){
+      const hay = [g.name, g.notes, (g.dishes||[]).join(' '), g.gender, g.vegan].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function render(){
+  /* stats */
+  const totalDishes = rows.reduce((n,g)=>n+((g.dishIds||g.dishes||[]).length),0);
+  const preg = rows.filter(isPreg).length, veg = rows.filter(isVeg).length;
+  const ages = rows.map(g=>+g.age).filter(n=>!isNaN(n)&&n>0);
+  const avg = ages.length ? Math.round(ages.reduce((a,b)=>a+b,0)/ages.length) : '—';
+  $('stats').innerHTML = `
+    <div class="stat"><div class="n">${rows.length}</div><div class="l">נרשמו</div></div>
+    <div class="stat"><div class="n">${totalDishes}</div><div class="l">מנות בסך הכל</div></div>
+    <div class="stat alt"><div class="n">${preg}</div><div class="l">בהריון / בודקים</div></div>
+    <div class="stat grn"><div class="n">${veg}</div><div class="l">טבעוני / צמחוני</div></div>
+    <div class="stat"><div class="n">${avg}</div><div class="l">גיל ממוצע</div></div>`;
+
+  /* tally */
+  const counts = {}, whoBy = {};
+  DISHES.forEach(d=>{ counts[d.id]=0; whoBy[d.id]=[]; });
+  rows.forEach(g=>{
+    let ids = g.dishIds;
+    if(!ids || !ids.length){ ids = DISHES.filter(d=>(g.dishes||[]).includes(d.name)).map(d=>d.id); }
+    ids.forEach(id=>{ if(counts[id]!==undefined){ counts[id]++; whoBy[id].push(g.name||'—'); } });
+  });
+  const max = Math.max(1, ...Object.values(counts));
+  $('tally').innerHTML = DISHES.map(d=>`
+    <div class="trow ${counts[d.id]?'':'zero'}" data-id="${d.id}">
+      <img src="${d.img}" alt="">
+      <div><div class="nm">${esc(d.name)}</div><div class="bar"><i style="width:${counts[d.id]/max*100}%"></i></div></div>
+      <div class="qt">${counts[d.id]}</div>
+      <div class="who">${whoBy[d.id].length ? esc(whoBy[d.id].join(' · ')) : 'אף אחד עדיין'}</div>
+    </div>`).join('');
+
+  /* guests */
+  const list = visible();
+  $('guests').innerHTML = list.length ? list.map(g=>`
+    <div class="g">
+      <button class="del" data-id="${g.id}" title="מחיקה">✕</button>
+      <div class="top"><div>
+        <div class="nm">${esc(g.name||'ללא שם')}</div>
+        <div class="meta">${g.age?esc(g.age)+' · ':''}${esc(g.gender||'')}</div>
+      </div></div>
+      <div class="tags">
+        ${isPreg(g)?`<span class="tag preg">בהריון${g.pregnant==='בודקים'?' (בודקים)':''}</span>`:''}
+        ${isVeg(g)?`<span class="tag veg">${esc(g.vegan)}</span>`:''}
+      </div>
+      <ul>${(g.dishes||[]).map(d=>`<li>${esc(d)}</li>`).join('') || '<li style="color:var(--muted)">לא בחר מנה</li>'}</ul>
+      ${(g.notes||'').trim() ? `<div class="notes"><b>בקשה מיוחדת</b>${esc(g.notes)}</div>` : ''}
+    </div>`).join('')
+    : `<div class="empty" style="grid-column:1/-1">${rows.length ? 'אין תוצאות לסינון הזה.' : 'עדיין אף אחד לא נרשם. שלחו להם את הלינק. 🔥'}</div>`;
+}
+
+$('tally').addEventListener('click', e=>{ const r=e.target.closest('.trow'); if(r) r.classList.toggle('open'); });
+
+$('guests').addEventListener('click', async e=>{
+  const b = e.target.closest('.del'); if(!b) return;
+  const g = rows.find(r=>r.id===b.dataset.id);
+  if(!confirm(`למחוק את ${g?.name||'הרשומה'}?`)) return;
+  await db.collection('party-rsvp').doc(b.dataset.id).delete();
+  toast('נמחק');
+});
+
+$('q').addEventListener('input', e=>{ q = e.target.value.trim().toLowerCase(); render(); });
+document.querySelectorAll('.chip').forEach(c=>c.onclick = ()=>{
+  const f = c.dataset.f;
+  if(filters.has(f)) filters.delete(f); else filters.add(f);
+  c.classList.toggle('on', filters.has(f)); render();
+});
+
+/* copy butcher list */
+$('copyBtn').onclick = ()=>{
+  const counts = {}; DISHES.forEach(d=>counts[d.id]=0);
+  rows.forEach(g=>{
+    let ids = g.dishIds;
+    if(!ids||!ids.length) ids = DISHES.filter(d=>(g.dishes||[]).includes(d.name)).map(d=>d.id);
+    ids.forEach(id=>{ if(counts[id]!==undefined) counts[id]++; });
+  });
+  let t = `מסיבת גג · רמת וורבר · שבת 08/08/26 16:30\nנרשמו: ${rows.length} אורחים\n\nהזמנה:\n`;
+  DISHES.forEach(d=>{ if(counts[d.id]) t += `• ${d.name} — ${counts[d.id]}\n`; });
+  const veg = rows.filter(isVeg); if(veg.length) t += `\nטבעוני/צמחוני (${veg.length}): ${veg.map(g=>g.name).join(', ')}\n`;
+  const pr = rows.filter(isPreg); if(pr.length) t += `בהריון (${pr.length}): ${pr.map(g=>g.name).join(', ')}\n`;
+  const nt = rows.filter(g=>(g.notes||'').trim());
+  if(nt.length){ t += `\nבקשות מיוחדות:\n`; nt.forEach(g=> t += `• ${g.name}: ${g.notes}\n`); }
+  navigator.clipboard.writeText(t).then(()=>toast('הרשימה הועתקה')).catch(()=>{
+    prompt('העתיקו ידנית:', t);
+  });
+};
+</script>
+</body>
+</html>

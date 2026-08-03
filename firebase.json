@@ -41,6 +41,14 @@
       {
         "source": "/workout-app/**",
         "destination": "/workout-app/index.html"
+      },
+      {
+        "source": "/humblo/**",
+        "destination": "/humblo/index.html"
+      },
+      {
+        "source": "/corfu/**",
+        "destination": "/corfu/index.html"
       }
     ]
   },

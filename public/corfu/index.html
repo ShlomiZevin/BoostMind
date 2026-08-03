@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="he" dir="rtl" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="קורפו" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏖️</text></svg>" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏖️</text></svg>" />
+<title>קורפו · מדריך הטיול</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1220; --surface:#121c2e; --surface-2:#18253b; --border:rgba(255,255,255,.08);
+    --text:#e8eef7; --muted:#90a3bd; --accent:#38bdf8; --accent-ink:#04293f;
+    --sunset:#f5a524; --good:#34d399; --warn:#f87171; --radius:16px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  html:not(.dark){
+    --bg:#eef2f7; --surface:#ffffff; --surface-2:#f4f7fb; --border:rgba(15,30,55,.10);
+    --text:#0d1a2b; --muted:#5d6f86; --accent:#0284c7; --accent-ink:#ffffff;
+    --sunset:#d97706; --good:#059669; --warn:#dc2626;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Heebo',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+    overscroll-behavior-y:none;
+  }
+  #root{max-width:680px;margin:0 auto;min-height:100vh}
+  button{font-family:inherit;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+
+  /* header */
+  .topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 85%,transparent);
+    backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:12px 16px;
+    padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand h1{font-size:18px;font-weight:800;margin:0;letter-spacing:-.3px}
+  .brand .sub{font-size:12px;color:var(--muted);font-weight:500}
+  .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);display:grid;place-items:center;font-size:18px;flex:none}
+  .iconbtn:active{transform:scale(.94)}
+
+  /* layout */
+  .view{padding:16px 16px 110px}
+  .hero{padding:18px 16px 6px}
+  .hero h2{font-size:26px;font-weight:800;margin:0 0 2px;letter-spacing:-.5px}
+  .hero p{color:var(--muted);margin:0;font-size:14px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .card.tap{transition:transform .12s ease,border-color .15s}
+  .card.tap:active{transform:scale(.99);border-color:var(--accent)}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+    padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+  .pill.accent{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+  .pill.sunset{color:var(--sunset);border-color:color-mix(in srgb,var(--sunset) 40%,transparent)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  /* chips nav */
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface);color:var(--muted);font-weight:600;font-size:13px}
+  .chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+  /* day */
+  .dayhead{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+  .dayhead .dnum{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+  .dayhead h3{margin:0;font-size:17px;font-weight:800}
+  .dayhead .meta{font-size:12.5px;color:var(--muted)}
+  .progress{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin-top:12px}
+  .progress > i{display:block;height:100%;background:var(--good);border-radius:999px;transition:width .3s}
+
+  .timeline{margin-top:14px;position:relative}
+  .ti{display:flex;gap:12px;padding:3px 0}
+  .ti .tcol{flex:none;width:50px;text-align:left;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:var(--muted);padding-top:2px}
+  .ti .body{flex:1;min-width:0;padding-bottom:14px;border-right:2px solid var(--border);padding-right:14px;margin-right:-1px;position:relative}
+  .ti .dot{position:absolute;right:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+  .ti.done .dot{background:var(--good);border-color:var(--good)}
+  .ti.warn .dot{border-color:var(--sunset);background:var(--sunset)}
+  .ti .title{font-weight:600;font-size:15px}
+  .ti.done .title{text-decoration:line-through;color:var(--muted)}
+  .ti .note{font-size:13px;color:var(--muted);margin-top:1px}
+  .ti .linkrow{margin-top:7px}
+  .ti .chk{flex:none;width:26px;height:26px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);display:grid;place-items:center;font-size:14px;color:var(--good)}
+  .ti.done .chk{background:var(--good);border-color:var(--good);color:#062e22}
+  .tlink{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 12%,transparent);padding:5px 10px;border-radius:9px}
+
+  /* place card */
+  .pcard .ph{height:84px;border-radius:12px;display:flex;align-items:flex-end;padding:10px;margin-bottom:10px;
+    background:var(--surface-2);position:relative;overflow:hidden}
+  .pcard .ph .emoji{font-size:40px;line-height:1}
+  .pcard h3{margin:0;font-size:17px;font-weight:800}
+  .pcard .en{font-size:12px;color:var(--muted);font-weight:500}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:430px){.grid{grid-template-columns:1fr}}
+
+  /* detail overlay */
+  .overlay{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;animation:slideup .25s ease}
+  @keyframes slideup{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .ovbar{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));
+    display:flex;align-items:center;gap:12px;z-index:5}
+  .ovbar h2{font-size:18px;font-weight:800;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ovhero{height:140px;display:grid;place-items:center;font-size:72px;background:var(--surface-2)}
+  .ovbody{padding:18px 16px 120px;max-width:680px;margin:0 auto}
+  .sec{margin:18px 0}
+  .sec h4{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 8px;font-weight:700}
+  .kv{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14.5px}
+  .kv .k{flex:none;width:120px;color:var(--muted);font-weight:600}
+  .kv .v{flex:1}
+  .tips li{margin-bottom:7px;font-size:14.5px}
+  .body-text{font-size:15px;line-height:1.65}
+
+  /* action buttons */
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+  .actions.three{grid-template-columns:1fr 1fr 1fr}
+  .abtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:13px;
+    border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;font-size:12.5px}
+  .abtn .ic{font-size:20px}
+  .abtn:active{transform:scale(.96)}
+  .abtn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .abtn.wa{background:#25d366;color:#04210f;border-color:#25d366}
+
+  .bignav{display:block;width:100%;text-align:center;background:var(--accent);color:var(--accent-ink);
+    font-weight:800;font-size:15px;padding:15px;border-radius:14px;border:none;margin-bottom:10px}
+  .bignav:active{transform:scale(.99)}
+
+  /* checklist */
+  .clitem{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:15px}
+  .clitem:last-child{border-bottom:none}
+  .clitem .cb{flex:none;width:24px;height:24px;border-radius:7px;border:1.6px solid var(--border);display:grid;place-items:center;font-size:13px;color:var(--good)}
+  .clitem.on .cb{background:var(--good);border-color:var(--good);color:#062e22}
+  .clitem.on span{text-decoration:line-through;color:var(--muted)}
+  .clcat{font-size:13px;font-weight:800;color:var(--accent);margin:18px 0 4px;letter-spacing:.3px}
+
+  /* bottom nav */
+  .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);
+    backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;
+    padding:8px 6px calc(8px + var(--safe-b));max-width:680px;margin:0 auto}
+  .nav-i{flex:1;background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;font-weight:600;font-size:11px}
+  .nav-i .ic{font-size:21px;line-height:1}
+  .nav-i.on{color:var(--accent)}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  .divider{height:1px;background:var(--border);margin:16px 0}
+  .warnbox{background:color-mix(in srgb,var(--sunset) 13%,transparent);border:1px solid color-mix(in srgb,var(--sunset) 35%,transparent);
+    border-radius:12px;padding:11px 13px;font-size:13.5px;font-weight:600;color:var(--text);display:flex;gap:8px;align-items:flex-start}
+  .notebox{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+
+/* ---------------- helpers: navigation links ---------------- */
+const enc = encodeURIComponent;
+const gmapsDir = q => `https://www.google.com/maps/dir/?api=1&destination=${enc(q)}`;
+const gmapsView = q => `https://www.google.com/maps/search/?api=1&query=${enc(q)}`;
+const wazeNav = q => `https://waze.com/ul?q=${enc(q)}&navigate=yes`;
+const telLink = p => `tel:${p.replace(/[^+\d]/g,'')}`;
+const waLink = (p,t) => `https://wa.me/${p.replace(/[^\d]/g,'')}${t?`?text=${enc(t)}`:''}`;
+
+const HOTEL = {
+  name:'Rodostamo Hotel & Spa', he:'מלון Rodostamo', area:'Kommeno (קומנו)',
+  phone:'+302661440300', wa:'+306972184630', email:'info@rodostamo.gr',
+  q:'Rodostamo Hotel & Spa Kommeno Corfu', checkin:'14:00', checkout:'11:00',
+  coords:'39.662942,19.845581'
+};
+
+/* ---------------- DATA: places ---------------- */
+const PLACES = {
+  paleokastritsa:{ emoji:'🏝️', cat:'beach', must:true, snorkel:true,
+    name:'Paleokastritsa', he:'פָּלֵאוֹקַסְטְרִיצָה',
+    tag:'מפרץ של 6 מפרצונים', drive:'~40–45 דק׳ מהמלון',
+    q:'Paleokastritsa Beach Corfu',
+    desc:'הפוסטר של קורפו — מפרץ אחד שמורכב מ-6 מפרצונים בין צוקים ירוקים ומים טורקיז. אפשר לקפוץ בין המפרצונים ברגל או בסירה שכורה, ולשייט למערות הים מסביב לראש הכף.',
+    why:'המים הכי צלולים באי, נופים דרמטיים, נקודת היציאה של הסירה הפרטית ביום שלישי.',
+    time:'2–3 שעות למפרצון, יום שלם אם קופצים בין מפרצונים/לוקחים סירה',
+    best:'בוקר מוקדם (לפני 9) או אחרי 16:00 — באמצע היום אוטובוסים, צפיפות וחום',
+    parking:'חניון בתשלום (~€5 ליום) מאחורי Agios Spiridon. מתמלא עד 10–11 בבוקר',
+    facilities:'מצוין: שירותים, מקלחות, חדרי הלבשה, מיטות שיזוף (~€20–25 לזוג), ברים ומסעדות',
+    snorkelTxt:'מעולה סביב הסלעים — דגים, כוכבי ים, קיפודי ים, תמנונים. נראות 15–30מ׳',
+    tips:['להגיע לפני 9:00','לשלב עם שיט למערות הים','נעלי מים למפרצונים המחוצצים'] },
+
+  lagrotta:{ emoji:'🍹', cat:'beach', snorkel:false,
+    name:'La Grotta', he:'לָה גְרוֹטָה',
+    tag:'Beach Bar — לא מסעדה', drive:'~40–45 דק׳ מהמלון',
+    q:'La Grotta Beach Bar Paleokastritsa Corfu',
+    desc:'בר חוף אגדי שבנוי לתוך הצוקים במפרצון רחצה זעיר בפלאוקסטריצה. חצי מפרץ שחייה, חצי נקודת קפיצות לים, חצי בר קוקטיילים על מדפי סלע.',
+    why:'אווירה. מפרצון בולען מוקף קירות אבן, קוקטייל על הסלעים, קפיצות למים הצלולים. לעצור בשביל קפה, קוקטייל, שחייה וקפיצות — לא בשביל ארוחה.',
+    time:'1.5–3 שעות (שחייה + שתייה)',
+    best:'בוקר (~9:30) — פחות צפוף, מים רגועים. אחר כך מגיע קהל מסיבות צעיר',
+    parking:'קשה — חניית רחוב מצומצמת בכביש הצר מעל. להגיע מוקדם',
+    facilities:'בר (קוקטייל ~€16), מיטות שיזוף (~€15). אין מתקני חוף רגילים. אין דמי כניסה — משלמים על שתייה',
+    snorkelTxt:'מים צלולים מאוד, שנורקל קל סביב הקירות — אבל זה יותר מקום קפיצות מאשר שנורקלינג',
+    tips:['~140 מדרגות במורד הצוק — ובחזרה למעלה','נעלי מים — סלעים חלקלקים','קרש הקפיצה/מזח עץ אולי הוסרו — לבדוק במקום'] },
+
+  rovinia:{ emoji:'🐚', cat:'beach', snorkel:true,
+    name:'Rovinia Beach', he:'רוֹבִינְיָה',
+    tag:'מפרצון בר נסתר', drive:'~40–50 דק׳ מהמלון',
+    q:'Rovinia Beach Liapades Corfu',
+    desc:'מפרצון חלוקים לבנים מבודד ליד ליאפאדס (דרומית לפלאוקסטריצה), מוקף צוקים ומטעי זיתים. אחד החופים היפים והפראיים בקורפו.',
+    why:'שקט, ציורי, טורקיז, שנורקלינג מעולה בסלעים. תחנת רחצה ביום הסירה (15:30–17:30) — ניגוד נעים לחופים המאורגנים.',
+    time:'חצי יום (2–4 שעות). להביא הכל מהבית',
+    best:'בוקר — מים הכי רגועים, נראות שנורקל הכי טובה',
+    parking:'חניון עליון/תחתון מעל החוף, ואז ~10 דק׳ הליכה במורד דרך מטע זיתים',
+    facilities:'כמעט כלום — אין מיטות/שמשיות/שירותים. לפעמים סירת קנטינה מוכרת שתייה. להביא מים, אוכל, צל',
+    snorkelTxt:'הדגש — בצד ימין סביב הסלעים, אפשר לשחות מסביב לכף למפרץ הבא. דגים, כוכבי ים, סרטנים, תמנונים',
+    tips:['להביא הכל — אין חנויות','לשנורקל את הסלעים בצד ימין','נעלי מים — חלוקים'] },
+
+  yali:{ emoji:'⛵', cat:'beach', snorkel:true,
+    name:'Yali Beach', he:'יָאלִי',
+    tag:'גישה בסירה בלבד', drive:'מגיעים בסירה',
+    q:'Giali Beach Giannades Corfu',
+    desc:'מפרץ בתולי ומבודד מתחת לצוקים גבוהים בחוף המערבי. עוצרים שם בשיט הפרטי ביום שלישי.',
+    why:'בידוד אמיתי — ייתכן שיהיה רק לכם. מים טורקיז צלולים כבדולח, סלעים מסביב = שנורקלינג מצוין. רומנטי ושקט.',
+    time:'תחנה של שעה-שעתיים בתוך שיט חצי-יום',
+    best:'בוקר/צהריים — תלוי בסירה. לא לשקיעה (תלויים בסירה לחזרה)',
+    parking:'לא רלוונטי — מגיעים בסירה (מסלול היבשתי מסוכן ולא מומלץ)',
+    facilities:'אין כלום — להביא הכל',
+    snorkelTxt:'מים צלולים, סלעים מסביב — מעולה לשנורקל. אין שוניות אלמוגים (ים תיכון)',
+    tips:['להגיע בסירה — לא ברגל','לוודא עם בעל הסירה זמן איסוף','להביא מים, אוכל, צל'] },
+
+  portotimoni:{ emoji:'🏞️', cat:'beach', snorkel:true,
+    name:'Porto Timoni', he:'פּוֹרְטוֹ טִימוֹנִי',
+    tag:'מפרץ כפול — ירידה רגלית', drive:'~50–70 דק׳ מהמלון',
+    q:'Porto Timoni Beach Afionas Corfu',
+    desc:'החוף הכפול האייקוני של קורפו — שני מפרצי חלוקים גב-אל-גב על כף פראי מתחת לכפר אפיונאס. הצד השמאלי (Limni) טורקיז יותר, הימני (Porto Timoni) כחול עמוק.',
+    why:'אחד המקומות הכי מצולמים באי — מים טורקיז צלולים, צוקים דרמטיים, אפס פיתוח. נקודת התצפית מהצוק = צילום מנצח.',
+    time:'חצי יום (~30–40 דק׳ ירידה + שעות בחוף + 40–45 דק׳ עלייה)',
+    best:'בוקר מוקדם (הגעה 8–10) — אור טוב, מזג אוויר קריר לטיפוס. צפיפות גוברת מ-10:30',
+    parking:'בכפר אפיונאס (תחילת השביל). חניון עונתי בתשלום, מקומות מוגבלים שמתמלאים מהר',
+    facilities:'אין כלום בחוף — אין שירותים/מקלחות/מיטות/בר/צל. להביא הכל ולפנות זבל',
+    snorkelTxt:'מדורג גבוה — מים צלולים, רגועים, מוגנים, הכי טוב סביב הסלעים. כניסה חלוקית עמוקה מהר',
+    tips:['נעלי הליכה אמיתיות — הטיפוס תלול וחשוף','המון מים + כובע + קרם — אין צל','חלופה: מונית-ים 5 דק׳ מ-Agios Georgios (~€10–15)'] },
+
+  limni:{ emoji:'💎', cat:'beach', snorkel:true,
+    name:'Limni Beach', he:'לִימְנִי',
+    tag:'המפרץ השמאלי של פורטו טימוני', drive:'~50–70 דק׳ מהמלון',
+    q:'Limni Beach Porto Timoni Afionas Corfu',
+    desc:'המפרץ השמאלי/מערבי, הטורקיז יותר, של החוף הכפול פורטו טימוני. מפרצון חלוקים מול הים הפתוח.',
+    why:'אותו קסם מפרצון פראי כמו פורטו טימוני, רק בצד הבהיר והטורקיז. מים צלולים, שקט. ממשיכים לשם אחרי הרחצה הראשונה.',
+    time:'חצי יום (אותו אתר כמו פורטו טימוני)',
+    best:'בוקר — אותו אתר',
+    parking:'באפיונאס — אותה חניה',
+    facilities:'בעיקר אין. לפעמים מיטות שיזוף (~€5) בעונה, ללא בר. לא לסמוך על זה',
+    snorkelTxt:'מים טורקיז צלולים, שוליים סלעיים טובים לשנורקל',
+    tips:['אותו שביל מאפיונאס','להביא הכל','נעלי מים'] },
+
+  canaldamour:{ emoji:'🧡', cat:'beach', snorkel:true,
+    name:"Canal d'Amour", he:'קַנָאל ד׳אמוּר',
+    tag:'תעלת האהבה · סידארי', drive:'~50–60 דק׳ מהמלון',
+    q:"Canal d'Amour Sidari Corfu",
+    desc:'מצוקי אבן חול רכה שהרוח והגלים פיסלו לתעלות צרות, מדפים ומפרצונים זעירים בסידארי. המאפיין החתום — תעלת ים צרה בין שני מצוקים.',
+    why:'האגדה הרומנטית — זוג ששוחה יחד דרך התעלה "נשאר מאוהב לנצח". סלע כתום-זהוב מפוסל, מפרצונים טורקיז, מערות ים שאפשר לשחות בהן.',
+    time:'1.5–3 שעות (אזור הסלעים ~500מ׳)',
+    best:'בוקר מוקדם — מים הכי צלולים לפני שהשוחים מערבבים את החול, ופחות אנשים',
+    parking:'בתשלום קרוב (~€5–7) או חניון חינם (~12 דק׳ הליכה). חניית רחוב אסורה ונאכפת',
+    facilities:'מפותח — מיטות/שמשיות, מקלחות, שירותים, ברים ומסעדות במרחק צעדים',
+    snorkelTxt:'שחייה רגועה ורדודה, שנורקל מתגמל סביב מדפי הסלע והמערות. קיפודי ים — נעלי מים',
+    tips:['ללכת מוקדם — מים צלולים והתעלה לכם','לשחות יחד דרך התעלה (האגדה)','אין מציל — להיזהר במצוקים'] },
+
+  bellavista:{ emoji:'🌅', cat:'view', snorkel:false,
+    name:'Bella Vista', he:'בֵּלָה וִיסְטָה',
+    tag:'תצפית שקיעה · לאקונס', drive:'~40–45 דק׳ + טיפוס קצר',
+    q:'Bella Vista Viewpoint Lakones Corfu',
+    desc:'תצפית פנורמית מפורסמת על הכביש הראשי בכפר לאקונס, גבוה מעל פלאוקסטריצה. צילום הפוסטר של קורפו.',
+    why:'מבט עוצר נשימה ממעוף הציפור על 6 המפרצים של פלאוקסטריצה, חצי-האי בצורת לב והמים הטורקיז. בתי קפה עם מרפסות לשבת עם משקה — עצירת שקיעה רומנטית מושלמת.',
+    time:'30 דק׳ לתצפית; 1–2 שעות אם יושבים לקפה/ארוחה',
+    best:'שקיעה — החוויה החתומה. לאקונס פונה למערב, השמיים נצבעים כתום-ורוד מעל המפרצים',
+    parking:'מוגבל — כמה מקומות צמודי כביש. הכי טוב לחנות בבית קפה אם קונים משהו',
+    facilities:'כמה בתי קפה/מסעדות עם מרפסות מעל המפרצים, אזור תצפית עם ספסלים',
+    snorkelTxt:null,
+    tips:['לתזמן לשקיעה ולתפוס שולחן מרפסת','הכביש למעלה צר ומתפתל עם סיבובי סיכה','חופים ביום, נסיעה למעלה לשקיעה'] },
+
+  capedrastis:{ emoji:'🪨', cat:'view', snorkel:false,
+    name:'Cape Drastis', he:'כֵּף דְּרַסְטִיס',
+    tag:'מצוקים דרמטיים · פרולאדס', drive:'~55–70 דק׳ מהמלון',
+    q:'Cape Drastis Peroulades Corfu',
+    desc:'כף דרמטי ליד הכפר פרולאדס בקצה הצפון-מערבי. מצוקי חרסית-אבן חול חיוורים שפוסלו למחטי ים משוננות מול מים טורקיז עזים.',
+    why:'הניגוד הפראי לקנאל ד׳אמור — אחד הנופים הכי מרשימים באי, "כחול מטורף" מול אבן חיוורת. נקודת וואו וצילומי שעת זהב.',
+    time:'45 דק׳–1.5 שעות לתצפית (חניה, ~10–15 דק׳ הליכה, צילומים)',
+    best:'אחר צהריים עד שקיעה / שעת זהב — הכף פונה צפון-מערב ונצבע באור אחה״צ',
+    parking:'מוגבל ומחוספס. הכביש סלול ~700מ׳ ואז דרך עפר תלולה — לחנות איפה שנגמר האספלט וללכת ~15 דק׳',
+    facilities:'אין כלום במקום — שירותים/מסעדות בפרולאדס (~20 דק׳ הליכה). להביא מים והגנה',
+    snorkelTxt:'מים צלולים מאוד, אך זרמים חזקים אפשריים בכף החשוף. השחייה הטובה במפרצונים שמגיעים אליהם בסירה',
+    tips:['לתזמן לשעת זהב','לא להוריד רכב קטן לדרך העפר — לחנות וללכת','נעליים סגורות — לא כפכפים','לשלב עם Loggas/Sunset Beach לשקיעה'] },
+
+  oldtown:{ emoji:'🏛️', cat:'city', snorkel:false,
+    name:'Corfu Old Town', he:'העיר העתיקה',
+    tag:'אווירה · אוכל · גלידה', drive:'~15–20 דק׳ מהמלון',
+    q:'Liston Corfu Old Town',
+    desc:'הליבה ההיסטורית (אונסק״ו) עם אופי ונציאני חזק — סמטאות מרוצפות, בתים בגווני פסטל, טיילות מקומרות וכיכרות נסתרות. קומפקטית ולחלוטין הליכתית.',
+    why:'מהעיירות העתיקות הכי אטמוספריות ביוון לזוג שרק רוצה לשוטט, לשבת, לאכול ולצפות באנשים — בלי מוזיאונים. כביסה תלויה בין ארמונות, רצועת בתי הקפה Liston, ללכת לאיבוד במבוך עם גלידה ביד.',
+    time:'2.5–4 שעות לאווירה + ארוחה + גלידה; בקלות חצי יום או ערב שלם',
+    best:'אחר צהריים מאוחר אל תוך הערב — ה-Liston בצל, טיילת הערב המקומית, אור רך. שקיעה מעל המבצר הישן מהספיאנדה',
+    parking:'העיר העתיקה הליכתית — לחנות בשוליים וללכת. חניוני היקף בתשלום (Spianada ~€3, נמל ישן ~€5)',
+    facilities:'עיר עובדת מלאה — שירותים בבתי קפה, כספומטים, בתי מרקחת',
+    snorkelTxt:null,
+    tips:['קפה/אפריטיף ב-Liston תחת הקשתות באחה״צ','ללכת לאיבוד בקַמְפְּיֵילוֹ — הרובע הכי אטמוספרי','גלידה ב-Papagiorgis — לקחת קומקואט','לשתות Tsitsibira (בירת ג׳ינג׳ר מקומית), להביא ליקר קומקואט'] },
+};
+
+/* ---------------- DATA: restaurants ---------------- */
+const RESTAURANTS = {
+  ilpozzo:{ emoji:'🍝', name:'Il Pozzo', he:'איל פּוֹצוֹ', area:'Lakones (לאקונס)',
+    day:'שלישי', time:'20:00', book:'essential', sunset:true,
+    phone:'+306947315635', q:'Il Pozzo Lakones Corfu', web:null, fb:'https://facebook.com/ILPOZZOCORFU',
+    cuisine:'יווני · איטלקי · ים-תיכוני', price:'$$–$$$',
+    dishes:['רביולי בקר','ניוקי','מוסקה','מנות בשר','טירמיסו ביתי'],
+    desc:'מסעדה רומנטית גבוה בכפר לאקונס, עם נוף פנורמי על מפרץ פלאוקסטריצה. מדורגת #1 בלאקונס, 4.8 כוכבים.',
+    sunsetNote:'נוף שקיעה מאושר — לבקש שולחן מרפסת בצד, ליד הצוק, לנוף הפתוח על המפרץ',
+    tips:['להזמין מראש — חובה לשולחן שקיעה','המנה הכי טובה לזוג: רביולי בקר / ניוקי / מנות בשר','חניה במקום, מקבלים כרטיסים'] },
+
+  oliva:{ emoji:'🥩', name:'Oliva', he:'אוֹלִיבָה', area:'Nisaki (ניסאקי, חוף צפון-מזרח)',
+    day:'שני', time:'21:30', book:'recommended', sunset:false,
+    phone:'+302663091588', q:'Oliva Restaurant Nisaki Corfu', web:'https://olivacfu.com', email:'olivacfu@gmail.com',
+    cuisine:'יווני מודרני · ים-תיכוני · בשרים', price:'$$$',
+    dishes:['כבש מבושל לאט','פילה בקר','Rooster Pastitsada (פסטיצדה קורפיוטית)','אנטריקוט על האש'],
+    desc:'מסעדת נוף לים בניסאקי, גישה מודרנית/פיין-דיינינג. בשרים מובחרים ויינות נבחרים. 4.5/5.',
+    sunsetNote:null,
+    tips:['להזמין מראש לשולחן עם נוף לים','מצוין לזוג: כבש מבושל לאט, פילה בקר, פסטיצדה','אפשר להזמין דרך האתר olivacfu.com'] },
+
+  anthos:{ emoji:'🌿', name:'Restaurant Anthos', he:'אַנְתוֹס', area:'העיר העתיקה',
+    day:'חמישי', time:'20:30', book:'essential', sunset:false,
+    phone:'+302661032522', q:'Restaurant Anthos Maniarizi Arlioti Corfu Town', web:null,
+    cuisine:'ים-תיכוני · יווני עכשווי', price:'$$–$$$',
+    dishes:['בשרים רכים','סלט גבינת עזים','(התפריט נוטה לדגים — לוודא מנות בשר)'],
+    desc:'מסעדה אינטימית בסמטה בעיר העתיקה (Maniarizi Arlioti 15). משפחתית, 4.7/5, מקום זעיר שמתמלא. סגור בימי ראשון.',
+    sunsetNote:null,
+    tips:['להזמין מראש — מקום זעיר שמתמלא','⚠️ התפריט נוטה לדגים/פירות ים — להתקשר ולוודא מנות בשר לפני','ישיבה בחוץ בסמטה מקסימה'] },
+
+  anemos:{ emoji:'🍖', name:'Anemos', he:'אַנֵמוֹס', area:'Afionas (אפיונאס)',
+    day:'רביעי', time:'19:30', book:'recommended', sunset:true,
+    phone:'+302663052168', q:'Anemos Taverna Afionas Corfu', web:'https://anemosafionas.com', email:'anemosafionas@hotmail.com',
+    cuisine:'יווני · קורפיוטי מסורתי · בשרים', price:'$$–$$$',
+    dishes:['Beef Sofrito','Stifado','Kleftiko (כבש)','מוסקה'],
+    desc:'טברנה בראש כפר אפיונאס, על הצוק מעל מפרץ ארילאס — אחת מנקודות השקיעה הכי יפות בקורפו, בדיוק מעל החופים של יום רביעי (פורטו טימוני). 4.6/5.',
+    sunsetNote:'מהתצפיות הכי יפות באי — לבקש שולחן בקומה העליונה, להגיע 30–45 דק׳ לפני השקיעה',
+    tips:['להזמין מראש לשולחן נוף לשקיעה','חונים מחוץ לכפר ועולים ברגל — נעליים נוחות','להתקשר לוודא שפתוח (עונתי) ולבקש שולחן למעלה','עדיף לשמור מזומן זמין — לא תמיד אשראי'] },
+};
+
+/* ---------------- DATA: boat ---------------- */
+const BOATS = [
+  { name:'Corfu High Seas', he:'מומלץ — הכי הרבה פרטים מאומתים', wa:'+306980906522', web:'https://corfuhighseas.com',
+    info:'סירות 30 כ״ס (ללא רישיון), 4–9 אנשים. כולל ציוד שנורקל, צידנית על הסירה, ומפה מפורטת של החוף. דלק בנפרד.' },
+  { name:'Alpha Wave (Awave)', he:'הזמנה אונליין', wa:'+306987261334', web:'https://awavecorfu.com/online-booking/', email:'awave.corfu@gmail.com',
+    info:'ללא רישיון, סירות קלות לנהיגה. פתוח 09:00–17:30. לפעמים אפשר גם ללא הזמנה מראש.' },
+  { name:'Blue Lagoon Corfu', he:'נמל Alipa', wa:'+306986049459', web:'https://bluelagooncorfu.com/easy-booking/', email:'info@bluelagooncorfu.com',
+    info:'סירות 30 כ״ס ללא רישיון, נמל Alipa בפלאוקסטריצה. תדריך קצר + מפת הספוטים הכי טובים.' },
+  { name:'Argo Boats Corfu', he:'', wa:'+306942864714', web:'https://argoboatscorfu.gr',
+    info:'ללא רישיון, 7–8 איש לסירה. מחירים מ~€102 (כנראה ליום מלא — לוודא חצי יום).' },
+];
+
+/* ---------------- DATA: dishes ---------------- */
+const DISHES = [
+  ['Sofrito','סוֹפְריטוֹ','נתחי בקר דקים מבושלים לאט ברוטב לבן של שום, פטרוזיליה, יין לבן, חומץ ופלפל לבן. מוגש עם אורז או פירה. מנת הדגל הקורפיוטית.'],
+  ['Pastitsada','פַּסְטִיצָאדָה','תרנגול או עגל מבושלים ברוטב עגבניות עשיר ומתובל (קינמון, ציפורן) על פסטה עבה. מנת יום ראשון הקלאסית של קורפו.'],
+  ['Stifado','סְטִיפָאדוֹ','נזיד בשר (בקר/ארנב) מבושל לאט עם בצלצלים שלמים, יין אדום, חומץ ותבלינים חמים. דומה לפסטיצדה אבל בלי פסטה.'],
+  ['Lamb','כבש','כבש (או גדי) צלוי לאט עם שום, לימון, רוזמרין ועשבי תיבול עד שנופל מהעצם. קלאסיקה יוונית.'],
+  ['Baked Feta','פטה אפויה','פרוסת פטה אפויה בשמן זית ואורגנו (Feta Psiti), או עם עגבניות, פלפלים וצ׳ילי (Bouyiourdi). מוגש רותח, אוספים עם לחם.'],
+];
+
+/* ---------------- DATA: packing ---------------- */
+const PACKING = [
+  ['מסמכים', ['דרכונים','רישיון נהיגה','ארנק + אשראי']],
+  ['ים וחוף', ['בגדי ים','מגבות','שנורקל','מסכה','נעלי מים','קרם הגנה','כובע','משקפי שמש','תיק אטום לטלפון','בקבוק מים']],
+  ['אלקטרוניקה', ['מטענים','Power Bank']],
+  ['יום הסירה', ['מים','קרם הגנה','מגבות','שנורקל + מסכה','נעלי מים','תיק אטום','Power Bank']],
+];
+
+/* ---------------- DATA: itinerary ---------------- */
+const DAYS = [
+  { d:'שני', label:'נחיתה', date:'ערב הגעה', warn:null, items:[
+    {t:'20:00', x:'נחיתה בקורפו'},
+    {t:'20:30', x:'איסוף רכב שכור', n:'~30 דקות'},
+    {t:'21:00', x:'נסיעה למלון + Check In', n:'מלון Rodostamo, קומנו', hotel:true},
+    {t:'21:30', x:'ארוחת ערב — Oliva', n:'הזמנה מראש', rest:'oliva'},
+  ]},
+  { d:'שלישי', label:'יום השיא — סירה', date:'יום הסירה', warn:'לצאת מוקדם — 09:00', items:[
+    {t:'09:00', x:'יציאה מהמלון', hotel:true},
+    {t:'09:25', x:'הגעה ל-La Grotta', place:'lagrotta'},
+    {t:'09:30', x:'קפה, שחייה, קפיצות, תמונות', n:'עד 10:45'},
+    {t:'10:45', x:'הליכה למרינה'},
+    {t:'11:00', x:'קבלת הסירה', boat:true},
+    {t:'11:00', x:'שיט פרטי — מערות ים, מפרצים נסתרים, שנורקלינג', n:'עד 15:00', place:'yali'},
+    {t:'15:15', x:'החזרת הסירה'},
+    {t:'15:30', x:'Rovinia Beach — רחצה ומנוחה', n:'עד 17:30', place:'rovinia'},
+    {t:'17:45', x:'נסיעה ל-Bella Vista'},
+    {t:'18:15', x:'Bella Vista — צפייה בשקיעה', n:'עד 19:15', place:'bellavista'},
+    {t:'20:00', x:'ארוחת ערב — Il Pozzo', n:'הזמנה מראש', rest:'ilpozzo'},
+  ]},
+  { d:'רביעי', label:'פורטו טימוני', date:null, warn:null, items:[
+    {t:'09:30', x:'יציאה מהמלון', hotel:true},
+    {t:'10:15', x:'הגעה ל-Afionas'},
+    {t:'10:30', x:'ירידה רגלית ל-Porto Timoni', place:'portotimoni'},
+    {t:'11:00', x:'רחצה', n:'עד 13:30'},
+    {t:'13:30', x:'Limni Beach — שחייה', n:'עד 15:00', place:'limni'},
+    {t:'15:15', x:'חזרה ל-Afionas'},
+    {t:'15:30', x:'קפה'},
+    {t:'17:00', x:'חזרה למלון למנוחה', hotel:true},
+    {t:'19:30', x:'ארוחת ערב — Anemos', n:'הזמנה מראש · שקיעה', rest:'anemos'},
+  ]},
+  { d:'חמישי', label:'צפון + העיר העתיקה', date:null, warn:'מומלץ לצאת 09:00', items:[
+    {t:'09:00', x:'יציאה מהמלון', hotel:true},
+    {t:'10:00', x:"Canal d'Amour — הליכה, שחייה", n:'עד 11:45', place:'canaldamour'},
+    {t:'12:00', x:'Cape Drastis — תצפיות וצילומים', n:'עד 13:30', place:'capedrastis'},
+    {t:'13:30', x:'ארוחת צהריים קלה'},
+    {t:'15:00', x:'נסיעה לעיר העתיקה'},
+    {t:'15:30', x:'סיור בעיר העתיקה — Liston, Campiello, סמטאות, גלידה', n:'עד 20:15', place:'oldtown'},
+    {t:'20:30', x:'ארוחת ערב — Anthos', n:'הזמנה מראש', rest:'anthos'},
+  ]},
+  { d:'שישי', label:'טיסה חזרה', date:'בוקר', warn:null, items:[
+    {t:'בוקר', x:'ארוחת בוקר'},
+    {t:'', x:'Check Out', n:'עד 11:00', hotel:true},
+    {t:'', x:'נסיעה לשדה התעופה', n:'~15–20 דקות'},
+    {t:'', x:'החזרת הרכב'},
+    {t:'', x:'טיסה'},
+  ]},
+];
+
+/* ---------------- persistence ---------------- */
+function useStore(key, init){
+  const [v,setV]=useState(()=>{ try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch(e){return init;} });
+  useEffect(()=>{ try{localStorage.setItem(key,JSON.stringify(v));}catch(e){} },[key,v]);
+  return [v,setV];
+}
+
+/* ---------------- small components ---------------- */
+function ActionButtons({q, phone, wa, web, email, boat}){
+  return (
+    <div className={"actions"+( (phone||web||email)?" three":"")}>
+      <a className="abtn primary" href={gmapsDir(q)} target="_blank" rel="noopener">
+        <span className="ic">🧭</span>נווט (Maps)</a>
+      <a className="abtn" href={wazeNav(q)} target="_blank" rel="noopener">
+        <span className="ic">🚗</span>Waze</a>
+      <a className="abtn" href={gmapsView(q)} target="_blank" rel="noopener">
+        <span className="ic">📸</span>תמונות</a>
+      {phone && <a className="abtn" href={telLink(phone)}><span className="ic">📞</span>התקשר</a>}
+      {wa && <a className="abtn wa" href={waLink(wa)} target="_blank" rel="noopener"><span className="ic">💬</span>WhatsApp</a>}
+      {web && <a className="abtn" href={web} target="_blank" rel="noopener"><span className="ic">🔗</span>אתר</a>}
+      {email && <a className="abtn" href={`mailto:${email}`}><span className="ic">✉️</span>מייל</a>}
+    </div>
+  );
+}
+
+function KV({k,v}){ if(!v) return null; return <div className="kv"><div className="k">{k}</div><div className="v">{v}</div></div>; }
+
+/* ---------------- place detail overlay ---------------- */
+function PlaceDetail({p, onClose}){
+  return (
+    <div className="overlay">
+      <div className="ovbar">
+        <button className="iconbtn" onClick={onClose}>→</button>
+        <h2>{p.he} · {p.name}</h2>
+      </div>
+      <div className="ovhero">{p.emoji}</div>
+      <div className="ovbody">
+        <div className="row" style={{marginBottom:12}}>
+          {p.must && <span className="pill sunset">⭐ חובה</span>}
+          {p.snorkel && <span className="pill accent">🤿 שנורקלינג</span>}
+          <span className="pill">⏱️ {p.time}</span>
+        </div>
+        <p className="body-text">{p.desc}</p>
+        <ActionButtons q={p.q} />
+        <div className="sec">
+          <h4>למה להגיע</h4>
+          <p className="body-text" style={{margin:0}}>{p.why}</p>
+        </div>
+        <div className="sec">
+          <h4>פרטים</h4>
+          <KV k="כמה זמן" v={p.time} />
+          <KV k="מתי הכי טוב" v={p.best} />
+          <KV k="חניה" v={p.parking} />
+          <KV k="שירותים" v={p.facilities} />
+          <KV k="שנורקלינג" v={p.snorkelTxt} />
+          <KV k="נסיעה מהמלון" v={p.drive} />
+        </div>
+        <div className="sec">
+          <h4>טיפים · מה לא לפספס</h4>
+          <ul className="tips" style={{margin:0,paddingInlineStart:18}}>
+            {p.tips.map((t,i)=><li key={i}>{t}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- restaurant detail overlay ---------------- */
+function RestaurantDetail({r, onClose}){
+  const bookTxt = r.book==='essential'?'חובה להזמין מראש':'מומלץ להזמין מראש';
+  return (
+    <div className="overlay">
+      <div className="ovbar">
+        <button className="iconbtn" onClick={onClose}>→</button>
+        <h2>{r.he} · {r.name}</h2>
+      </div>
+      <div className="ovhero">{r.emoji}</div>
+      <div className="ovbody">
+        <div className="row" style={{marginBottom:12}}>
+          <span className="pill accent">📅 יום {r.day} · {r.time}</span>
+          {r.sunset && <span className="pill sunset">🌅 נוף שקיעה</span>}
+          <span className="pill">📍 {r.area}</span>
+        </div>
+        <p className="body-text">{r.desc}</p>
+        <div className="warnbox" style={{marginBottom:14}}>📌 {bookTxt}</div>
+        <ActionButtons q={r.q} phone={r.phone} web={r.web} email={r.email} />
+        <div className="sec">
+          <h4>פרטים</h4>
+          <KV k="מטבח" v={r.cuisine} />
+          <KV k="טווח מחירים" v={r.price} />
+          <KV k="אזור" v={r.area} />
+          {r.sunsetNote && <KV k="שקיעה" v={r.sunsetNote} />}
+        </div>
+        <div className="sec">
+          <h4>מנות מומלצות</h4>
+          <div className="row">{r.dishes.map((d,i)=><span key={i} className="pill">{d}</span>)}</div>
+        </div>
+        <div className="sec">
+          <h4>טיפים</h4>
+          <ul className="tips" style={{margin:0,paddingInlineStart:18}}>
+            {r.tips.map((t,i)=><li key={i}>{t}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- itinerary ---------------- */
+function ItineraryView({open, done, toggle}){
+  const [expanded,setExpanded]=useState(1); // default open day shlishi (highlight)
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>הלו״ז שלנו</h2>
+        <p>5 ימים · סמנו מה עשיתם, ראו מה נשאר</p>
+      </div>
+      {DAYS.map((day,di)=>{
+        const checkable=day.items;
+        const dkeybase='d'+di+'_';
+        const doneCount=checkable.reduce((a,_,ii)=>a+(done[dkeybase+ii]?1:0),0);
+        const pct=Math.round(doneCount/checkable.length*100);
+        const isOpen=expanded===di;
+        return (
+          <div className="card" key={di}>
+            <div className="dayhead" onClick={()=>setExpanded(isOpen?-1:di)}>
+              <div className="row" style={{gap:12,flexWrap:'nowrap',minWidth:0}}>
+                <div className="dnum">{day.d}</div>
+                <div style={{minWidth:0}}>
+                  <h3>{day.label}</h3>
+                  <div className="meta">{doneCount}/{checkable.length} הושלמו{day.date?' · '+day.date:''}</div>
+                </div>
+              </div>
+              <div className="row" style={{gap:8,flexWrap:'nowrap'}}>
+                {pct===100 && <span className="pill" style={{color:'var(--good)'}}>✓</span>}
+                <span style={{color:'var(--muted)',fontSize:18}}>{isOpen?'▾':'▸'}</span>
+              </div>
+            </div>
+            <div className="progress"><i style={{width:pct+'%'}}></i></div>
+            {day.warn && isOpen && <div className="warnbox" style={{marginTop:14}}>⚠️ {day.warn}</div>}
+            {isOpen &&
+              <div className="timeline">
+                {day.items.map((it,ii)=>{
+                  const k=dkeybase+ii; const isDone=!!done[k];
+                  return (
+                    <div className={"ti"+(isDone?' done':'')+(it.boat?' warn':'')} key={ii}>
+                      <div className="tcol">{it.t}</div>
+                      <div className="body">
+                        <div className="dot"></div>
+                        <div className="row" style={{justifyContent:'space-between',flexWrap:'nowrap',gap:10}}>
+                          <div style={{minWidth:0}}>
+                            <div className="title">{it.x}</div>
+                            {it.n && <div className="note">{it.n}</div>}
+                            <div className="linkrow row">
+                              {it.place && <button className="tlink" onClick={()=>open.place(it.place)}>{PLACES[it.place].emoji} {PLACES[it.place].he}</button>}
+                              {it.rest && <button className="tlink" onClick={()=>open.rest(it.rest)}>{RESTAURANTS[it.rest].emoji} {RESTAURANTS[it.rest].he}</button>}
+                              {it.hotel && <a className="tlink" href={gmapsDir(HOTEL.q)} target="_blank" rel="noopener">🏨 נווט למלון</a>}
+                              {it.boat && <button className="tlink" onClick={()=>open.tab('boat')}>🚤 פרטי הסירה</button>}
+                            </div>
+                          </div>
+                          <button className="chk" onClick={()=>toggle(k)}>{isDone?'✓':''}</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            }
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- places ---------------- */
+function PlacesView({openPlace}){
+  const [filter,setFilter]=useState('all');
+  const filters=[['all','הכל'],['beach','חופים'],['view','תצפיות'],['city','עיר'],['snorkel','שנורקלינג']];
+  const list=Object.entries(PLACES).filter(([id,p])=>{
+    if(filter==='all') return true;
+    if(filter==='snorkel') return p.snorkel;
+    return p.cat===filter;
+  });
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 10px'}}>
+        <h2>מקומות</h2>
+        <p>חופים, תצפיות והעיר העתיקה</p>
+      </div>
+      <div className="chips">
+        {filters.map(([k,l])=><button key={k} className={"chip"+(filter===k?' on':'')} onClick={()=>setFilter(k)}>{l}</button>)}
+      </div>
+      <div className="grid">
+        {list.map(([id,p])=>(
+          <div className="card tap pcard" key={id} onClick={()=>openPlace(id)} style={{marginBottom:0}}>
+            <div className="ph"><span className="emoji">{p.emoji}</span></div>
+            <div className="row" style={{gap:6,marginBottom:6}}>
+              {p.must && <span className="pill sunset" style={{fontSize:11,padding:'2px 8px'}}>⭐</span>}
+              {p.snorkel && <span className="pill accent" style={{fontSize:11,padding:'2px 8px'}}>🤿</span>}
+            </div>
+            <h3>{p.he}</h3>
+            <div className="en">{p.name}</div>
+            <div className="small muted" style={{marginTop:6}}>{p.tag}</div>
+            <div className="small muted" style={{marginTop:2}}>🚗 {p.drive}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- food ---------------- */
+function FoodView({openRest}){
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>אוכל</h2>
+        <p>3 מסעדות + מנות יווניות שחייבים</p>
+      </div>
+      <div className="clcat">המסעדות שלנו</div>
+      {Object.entries(RESTAURANTS).map(([id,r])=>(
+        <div className="card tap" key={id} onClick={()=>openRest(id)}>
+          <div className="row" style={{justifyContent:'space-between',flexWrap:'nowrap',gap:10}}>
+            <div className="row" style={{gap:12,flexWrap:'nowrap',minWidth:0}}>
+              <div style={{fontSize:32,flex:'none'}}>{r.emoji}</div>
+              <div style={{minWidth:0}}>
+                <h3 style={{margin:0,fontSize:17}}>{r.he} <span className="en">· {r.name}</span></h3>
+                <div className="small muted" style={{marginTop:2}}>{r.cuisine}</div>
+                <div className="row" style={{marginTop:7,gap:6}}>
+                  <span className="pill accent" style={{fontSize:11,padding:'3px 9px'}}>יום {r.day} · {r.time}</span>
+                  {r.sunset && <span className="pill sunset" style={{fontSize:11,padding:'3px 9px'}}>🌅 שקיעה</span>}
+                </div>
+              </div>
+            </div>
+            <span style={{color:'var(--muted)',fontSize:18,flex:'none'}}>‹</span>
+          </div>
+        </div>
+      ))}
+
+      <div className="clcat" style={{marginTop:26}}>מנות מקומיות שחייבים</div>
+      <div className="notebox" style={{marginBottom:14}}>🥩 אוכלים בשר, לא אוכלים פירות ים. אלו המנות הקורפיוטיות הקלאסיות:</div>
+      {DISHES.map(([en,he,d],i)=>(
+        <div className="card" key={i} style={{padding:'14px 16px'}}>
+          <h3 style={{margin:'0 0 4px',fontSize:16}}>{he} <span className="en">· {en}</span></h3>
+          <div className="small" style={{color:'var(--muted)',lineHeight:1.6}}>{d}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ---------------- boat ---------------- */
+function BoatView(){
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>🚤 יום הסירה</h2>
+        <p>יום שלישי · 11:00–15:00 · סירה פרטית מפלאוקסטריצה</p>
+      </div>
+      <div className="warnbox" style={{marginBottom:14}}>📌 להזמין מראש דרך WhatsApp כמה ימים לפני — לתפוס את חלון 11:00–15:00 ביום שלישי</div>
+      <div className="notebox" style={{marginBottom:18}}>
+        <b>בלי רישיון.</b> ביוון סירות עד 30 כ״ס מותרות ללא רישיון — בדיוק מה שכל החברות מציעות. מקבלים תדריך קצר ושיעור נהיגה לפני היציאה.<br/><br/>
+        <b>הערכת מחיר:</b> חצי יום (4 שעות) בערך €90–150 + דלק. אף חברה לא מפרסמת מחיר — שולחים WhatsApp לקבל הצעה.<br/><br/>
+        <b>מה לראות:</b> מערות ים · Yali Beach · מפרצים נסתרים · עצירות שנורקלינג ושחייה.
+      </div>
+
+      <div className="clcat">חברות השכרה (פלאוקסטריצה)</div>
+      {BOATS.map((b,i)=>(
+        <div className="card" key={i}>
+          <div className="row" style={{justifyContent:'space-between',alignItems:'flex-start',gap:10}}>
+            <div style={{minWidth:0}}>
+              <h3 style={{margin:0,fontSize:16}}>{b.name}</h3>
+              {b.he && <div className="small" style={{color:'var(--accent)',fontWeight:600,marginTop:2}}>{b.he}</div>}
+            </div>
+          </div>
+          <div className="small" style={{color:'var(--muted)',margin:'8px 0 12px',lineHeight:1.6}}>{b.info}</div>
+          <div className="row" style={{gap:8}}>
+            <a className="abtn wa" style={{flex:1,flexDirection:'row',padding:'10px'}} href={waLink(b.wa,'היי, מעוניינים להשכיר סירה פרטית ללא רישיון ביום שלישי 11:00-15:00 לזוג')} target="_blank" rel="noopener"><span className="ic">💬</span>WhatsApp</a>
+            <a className="abtn" style={{flex:'none',width:46,padding:'10px',flexDirection:'row'}} href={telLink(b.wa)}><span className="ic">📞</span></a>
+            {b.web && <a className="abtn" style={{flex:'none',width:46,padding:'10px',flexDirection:'row'}} href={b.web} target="_blank" rel="noopener"><span className="ic">🔗</span></a>}
+          </div>
+        </div>
+      ))}
+
+      <div className="clcat" style={{marginTop:22}}>ציוד ליום הסירה</div>
+      <div className="card">
+        {PACKING[3][1].map((it,i)=><div key={i} className="clitem" style={{borderBottom:i===PACKING[3][1].length-1?'none':'1px solid var(--border)'}}>🔹 <span>{it}</span></div>)}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- info ---------------- */
+function InfoView({packed, togglePack}){
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>מידע</h2>
+        <p>ציוד, מלון, נהיגה, שנורקלינג, מזג אוויר</p>
+      </div>
+
+      <div className="clcat">🎒 צ׳קליסט ציוד</div>
+      <div className="card">
+        {PACKING.slice(0,3).map(([cat,items],ci)=>(
+          <div key={ci}>
+            <div className="clcat" style={{marginTop:ci?16:0,fontSize:12}}>{cat}</div>
+            {items.map((it,ii)=>{
+              const k='p_'+ci+'_'+ii; const on=!!packed[k];
+              return (
+                <div key={ii} className={"clitem"+(on?' on':'')} onClick={()=>togglePack(k)}>
+                  <div className="cb">{on?'✓':''}</div><span>{it}</span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🏨 המלון</div>
+      <div className="card">
+        <h3 style={{margin:'0 0 2px',fontSize:16}}>{HOTEL.name}</h3>
+        <div className="small muted">{HOTEL.area} · 5 כוכבים</div>
+        <KV k="Check-in" v={HOTEL.checkin} />
+        <KV k="Check-out" v={HOTEL.checkout} />
+        <KV k="לשדה התעופה" v="~10 ק״מ · 15–20 דק׳" />
+        <KV k="לעיר העתיקה" v="~15–25 דק׳" />
+        <ActionButtons q={HOTEL.q} phone={HOTEL.phone} wa={HOTEL.wa} web="https://rodostamo.gr" email={HOTEL.email} />
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🌤️ מזג אוויר</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.7,color:'var(--muted)'}}>
+          קיץ קורפו: חם ושמשי, ~26–31°. הים רגוע ברוב הימים. אם יש רוח/גלים גבוהים — שווה להחליף סדר יום (למשל לדחות את הסירה ליום רגוע יותר).
+        </div>
+        <div className="row" style={{marginTop:12,gap:8}}>
+          <a className="abtn primary" style={{flex:1,flexDirection:'row'}} href="https://www.windy.com/?39.662,19.846,9" target="_blank" rel="noopener"><span className="ic">🌬️</span>Windy (רוח+גלים)</a>
+          <a className="abtn" style={{flex:1,flexDirection:'row'}} href="https://www.google.com/search?q=corfu+weather" target="_blank" rel="noopener"><span className="ic">☀️</span>תחזית</a>
+        </div>
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🤿 שנורקלינג</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.7}}>
+          <b>מה רואים:</b> תמנונים, כוכבי ים, סרטנים, קיפודי ים, להקות דגים. אין שוניות אלמוגים (ים תיכון).<br/>
+          <b>הכי טוב:</b> Yali · Rovinia · Paleokastritsa · Porto Timoni.<br/>
+          <b>⚠️ קיפודי ים</b> על הסלעים — לנעול נעלי מים תמיד.<br/>
+          <b>מים הכי צלולים:</b> פלאוקסטריצה (נראות 25מ׳+), בוקר מוקדם הכי טוב.
+        </div>
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🚗 רכב ונהיגה</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.7}}>
+          <b>רכב:</b> לקחת קומפקטי — כבישי הכפרים והחופים צרים והחניה בעיר צפופה.<br/>
+          <b>נהיגה:</b> אסרטיבית — להיזהר מהולכי רגל ומעצירות פתע (מהבהבים = עומדים לעצור).<br/>
+          <b>Waze/Maps</b> לפעמים מנווט לסמטאות הולכי רגל — אם יש עמודונים/ריצוף, לא נכנסים.<br/>
+          <b>חניה בעיר העתיקה:</b> הליכתית — לחנות בחניוני ההיקף וללכת. כחול ברחוב = 3 שעות מקסימום.
+        </div>
+      </div>
+
+      <div className="divider"></div>
+      <div className="small muted" style={{textAlign:'center',lineHeight:1.7,paddingBottom:8}}>
+        מדריך הטיול לקורפו 🏖️<br/>
+        חלק מהמחירים/שעות עונתיים — שווה לאמת טלפונית סמוך לתאריך
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- what's left ---------------- */
+function LeftView({done, toggle, open}){
+  const total=DAYS.reduce((a,d)=>a+d.items.length,0);
+  const remaining=total-DAYS.reduce((a,d,di)=>a+d.items.reduce((b,_,ii)=>b+(done['d'+di+'_'+ii]?1:0),0),0);
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>מה נשאר</h2>
+        <p>{remaining} מתוך {total} עדיין לא סומנו · כל מה שאין עליו צ׳ק</p>
+      </div>
+      {remaining===0 &&
+        <div className="card" style={{textAlign:'center',padding:'44px 16px'}}>
+          <div style={{fontSize:54}}>🎉</div>
+          <h3 style={{margin:'12px 0 4px'}}>עשיתם הכל!</h3>
+          <div className="small muted">כל הפעילויות סומנו. תיהנו 🏖️</div>
+        </div>
+      }
+      {DAYS.map((day,di)=>{
+        const items=day.items.map((it,ii)=>({it,k:'d'+di+'_'+ii})).filter(o=>!done[o.k]);
+        if(!items.length) return null;
+        return (
+          <div className="card" key={di}>
+            <div className="row" style={{justifyContent:'space-between',marginBottom:4}}>
+              <h3 style={{margin:0,fontSize:16}}>יום {day.d} <span className="en">· {day.label}</span></h3>
+              <span className="pill">{items.length}</span>
+            </div>
+            {items.map(({it,k},idx)=>(
+              <div className={"clitem"} key={k} onClick={()=>toggle(k)} style={{borderBottom:idx===items.length-1?'none':'1px solid var(--border)'}}>
+                <div className="cb"></div>
+                <div style={{flex:1,minWidth:0}}>
+                  <span>{it.t?it.t+' · ':''}{it.x}</span>
+                  {it.n && <div className="small muted" style={{textDecoration:'none'}}>{it.n}</div>}
+                </div>
+                {it.place && <button className="tlink" style={{flex:'none'}} onClick={e=>{e.stopPropagation();open.place(it.place);}}>{PLACES[it.place].emoji}</button>}
+                {it.rest && <button className="tlink" style={{flex:'none'}} onClick={e=>{e.stopPropagation();open.rest(it.rest);}}>{RESTAURANTS[it.rest].emoji}</button>}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- app ---------------- */
+function App(){
+  const [tab,setTab]=useState('itin');
+  const [dark,setDark]=useStore('corfu_dark',true);
+  const [done,setDone]=useStore('corfu_done',{});
+  const [packed,setPacked]=useStore('corfu_packed',{});
+  const [place,setPlace]=useState(null);
+  const [rest,setRest]=useState(null);
+
+  useEffect(()=>{
+    document.documentElement.classList.toggle('dark',dark);
+    const m=document.querySelector('meta[name=theme-color]');
+    if(m) m.setAttribute('content',dark?'#0b1220':'#eef2f7');
+  },[dark]);
+
+  const toggleDone=k=>setDone(d=>({...d,[k]:!d[k]}));
+  const togglePack=k=>setPacked(p=>({...p,[k]:!p[k]}));
+  const open={ place:setPlace, rest:setRest, tab:setTab };
+
+  const tabs=[
+    ['itin','🗓️','לו״ז'],['left','📋','נשאר'],['places','🏖️','מקומות'],['food','🍽️','אוכל'],['boat','🚤','סירה'],['info','🎒','מידע']
+  ];
+
+  return (
+    <div>
+      <div className="topbar">
+        <div className="brand">
+          <span style={{fontSize:24}}>🏖️</span>
+          <div>
+            <h1>קורפו</h1>
+            <div className="sub">טיול זוגי · 5 ימים</div>
+          </div>
+        </div>
+        <button className="iconbtn" onClick={()=>setDark(!dark)}>{dark?'☀️':'🌙'}</button>
+      </div>
+
+      {tab==='itin' && <ItineraryView open={open} done={done} toggle={toggleDone} />}
+      {tab==='left' && <LeftView done={done} toggle={toggleDone} open={open} />}
+      {tab==='places' && <PlacesView openPlace={setPlace} />}
+      {tab==='food' && <FoodView openRest={setRest} />}
+      {tab==='boat' && <BoatView />}
+      {tab==='info' && <InfoView packed={packed} togglePack={togglePack} />}
+
+      {place && <PlaceDetail p={PLACES[place]} onClose={()=>setPlace(null)} />}
+      {rest && <RestaurantDetail r={RESTAURANTS[rest]} onClose={()=>setRest(null)} />}
+
+      <div className="bottomnav">
+        {tabs.map(([k,ic,l])=>(
+          <button key={k} className={"nav-i"+(tab===k?' on':'')} onClick={()=>{setTab(k);window.scrollTo(0,0);}}>
+            <span className="ic">{ic}</span>{l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "humblo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vladmandic/face-api": "^1.7.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.3",
+    "puppeteer-core": "^23.11.1",
+    "vite": "^5.4.10"
+  }
+}

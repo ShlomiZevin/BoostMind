@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>מסיבת גג · רמת וורבר · פתח תקווה</title>
+<meta name="description" content="הזמנה למסיבת גג ברמת וורבר, פתח תקווה. שבת 08/08/26 בשעה 16:30. נא לבחור מנה מראש.">
+<meta name="theme-color" content="#101a26">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:site_name" content="מסיבת גג · רמת וורבר">
+<meta property="og:url" content="https://boostmind-b052c.web.app/party/">
+<meta property="og:title" content="הזמנה למסיבת גג · רמת וורבר, פתח תקווה">
+<meta property="og:description" content="שבת 08/08/26 · 16:30 · יש להודיע מראש על סוג האוכל המבוקש פר משתתף">
+<meta property="og:image" content="https://boostmind-b052c.web.app/party/og.jpg">
+<meta property="og:image:secure_url" content="https://boostmind-b052c.web.app/party/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="המארחת מרימה כוסית על רקע גג בפתח תקווה">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="הזמנה למסיבת גג · רמת וורבר, פתח תקווה">
+<meta name="twitter:description" content="שבת 08/08/26 · 16:30 · בוחרים מה אוכלים">
+<meta name="twitter:image" content="https://boostmind-b052c.web.app/party/og.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#101a26; --navy2:#17232f; --card:#1c2937; --card2:#22303f;
+  --cream:#f6ecdc; --gold:#f0a63a; --gold-d:#c07f21; --pink:#ee5f92;
+  --text:#f6ecdc; --muted:#a4b0bd; --line:rgba(246,236,220,.14);
+  --scrim1:rgba(10,16,24,.62); --scrim2:rgba(10,16,24,.90);
+  --field:rgba(255,255,255,.05); --field-b:rgba(246,236,220,.18);
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+  --bgimg:url(bg.jpg);
+}
+html[data-theme="light"]{
+  --navy:#fdf6ea; --navy2:#fffaf2; --card:#fffaf1; --card2:#fff5e6;
+  --cream:#1f2934; --gold:#c9801d; --gold-d:#a3650f; --pink:#d94b7d;
+  --text:#22303c; --muted:#5f6d7b; --line:rgba(30,40,52,.13);
+  --scrim1:rgba(255,247,235,.72); --scrim2:rgba(255,247,235,.93);
+  --field:rgba(255,255,255,.75); --field-b:rgba(30,40,52,.16);
+  --shadow:0 16px 44px rgba(120,84,30,.18);
+  --bgimg:url(sky.jpg);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Heebo',system-ui,sans-serif;background:var(--navy);color:var(--text);
+  overflow-x:hidden;line-height:1.6;
+}
+h1,h2,h3,.disp{font-family:'Secular One','Heebo',sans-serif;font-weight:400;letter-spacing:-.01em;line-height:1.12}
+
+/* ---------- background layers ---------- */
+#bgWrap{position:fixed;inset:-8% 0 -8% 0;z-index:-3;overflow:hidden}
+#bgImg{position:absolute;inset:0;background:var(--bgimg) center/cover no-repeat;transform:scale(1.12);will-change:transform;transition:background-image .3s}
+#bgScrim{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+   radial-gradient(120% 80% at 50% 0%, transparent 0%, var(--scrim1) 55%, var(--scrim2) 100%),
+   var(--scrim1);
+}
+#embers{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.75}
+
+/* ---------- string lights ---------- */
+.lights{position:absolute;top:0;left:0;right:0;height:130px;pointer-events:none;z-index:4}
+.lights svg{width:100%;height:130px;display:block}
+.wire{fill:none;stroke:rgba(0,0,0,.55);stroke-width:2.2}
+html[data-theme="light"] .wire{stroke:rgba(60,40,20,.45)}
+.bulb{fill:#ffd489;animation:flick 3.4s ease-in-out infinite}
+.halo{fill:#ffbf5e;opacity:.22;animation:halo 3.4s ease-in-out infinite}
+@keyframes flick{0%,100%{opacity:1}42%{opacity:.55}58%{opacity:.95}72%{opacity:.66}}
+@keyframes halo{0%,100%{opacity:.24}45%{opacity:.08}70%{opacity:.18}}
+
+/* ---------- shell ---------- */
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+header.top{position:relative;padding-top:84px;padding-bottom:16px}
+
+.topbar{position:fixed;top:14px;left:14px;z-index:30;display:flex;gap:8px}
+.tbtn{
+  width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(16,26,38,.72);backdrop-filter:blur(10px);color:var(--text);
+  font-size:17px;cursor:pointer;display:grid;place-items:center;transition:.16s;
+}
+html[data-theme="light"] .tbtn{background:rgba(255,252,246,.8)}
+.tbtn:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
+
+/* ---------- hero ---------- */
+.brush{
+  position:relative;background:#0e1823;color:var(--cream);
+  padding:26px 22px 32px;transform:rotate(-1.4deg);
+  clip-path:polygon(0.6% 8%,6% 2.5%,14% 6%,23% 1%,34% 5.5%,45% 1.5%,57% 6%,68% 2%,79% 6.5%,88% 2%,96% 7%,99.4% 12%,98.6% 26%,99.6% 40%,98.4% 55%,99.5% 70%,98% 84%,99% 94%,92% 98.5%,82% 94%,71% 98.8%,60% 94.5%,48% 99%,37% 94%,26% 98.5%,16% 94%,7% 98%,1.2% 92%,0.4% 78%,1.6% 62%,0.2% 47%,1.4% 32%,0% 20%);
+  box-shadow:var(--shadow);
+}
+html[data-theme="light"] .brush{background:#12202e}
+.brush .kick{font-family:'Secular One',sans-serif;color:var(--gold);font-size:clamp(20px,4.6vw,34px);line-height:1;margin-bottom:6px}
+.brush .big{font-family:'Secular One',sans-serif;color:#f6ecdc;font-size:clamp(38px,9.6vw,78px);line-height:.98;margin:2px 0 6px}
+.brush .sub{font-family:'Secular One',sans-serif;color:var(--gold);font-size:clamp(22px,5.4vw,40px);line-height:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.heart{color:var(--pink);font-size:.8em;display:inline-block;animation:beat 1.9s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}18%{transform:scale(1.22)}32%{transform:scale(1)}48%{transform:scale(1.16)}}
+
+.pill{
+  display:inline-flex;align-items:center;gap:9px;margin-top:14px;
+  background:var(--cream);color:#1a2634;border:2px dashed rgba(26,38,52,.35);
+  padding:8px 16px;border-radius:9px;font-weight:700;font-size:clamp(13.5px,3.6vw,18px);
+  box-shadow:0 8px 22px rgba(0,0,0,.28);
+}
+html[data-theme="light"] .pill{background:#12202e;color:#f6ecdc;border-color:rgba(246,236,220,.35)}
+
+/* date/time + host live in one row, host stays small on phones */
+.heroRow{display:flex;align-items:flex-end;gap:12px;margin-top:16px}
+.when{display:flex;flex-direction:column;gap:12px;flex:1 1 auto;min-width:0}
+.when .blk{display:flex;align-items:center;gap:10px}
+.when .ic{width:42px;height:42px;border:2.5px solid var(--gold);border-radius:11px;display:grid;place-items:center;color:var(--gold);flex:none}
+.when .ic svg{width:22px;height:22px}
+.when .lbl{font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+.when .val{font-family:'Secular One',sans-serif;font-size:clamp(23px,7vw,38px);color:var(--gold);line-height:1;white-space:nowrap}
+
+/* host */
+.host{position:relative;width:138px;flex:none;align-self:flex-end}
+.host img{
+  width:100%;height:auto;display:block;filter:drop-shadow(0 20px 28px rgba(0,0,0,.55));
+  animation:sway 6.5s ease-in-out infinite;transform-origin:50% 100%;
+}
+html[data-theme="light"] .host img{filter:drop-shadow(0 18px 26px rgba(120,80,30,.35))}
+@keyframes sway{0%,100%{transform:rotate(-1.1deg) translateY(0)}50%{transform:rotate(1.1deg) translateY(-9px)}}
+.host .glow{position:absolute;inset:auto 0 -10px 0;height:56px;background:radial-gradient(50% 100% at 50% 100%,rgba(240,166,58,.34),transparent 70%);filter:blur(6px)}
+.bubbleWrap{position:absolute;bottom:100%;left:0;right:0;margin-bottom:7px;display:flex;justify-content:center;pointer-events:none}
+.bubble{
+  background:var(--cream);color:#17232f;padding:7px 13px;border-radius:13px 13px 13px 3px;
+  font-weight:700;font-size:12.5px;line-height:1.25;white-space:nowrap;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);animation:pop .5s .8s both, bob 4s 1.4s ease-in-out infinite;
+}
+html[data-theme="light"] .bubble{background:#12202e;color:#f6ecdc}
+@keyframes pop{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:scale(1)}}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -6px}}
+
+/* ---------- gold banner ---------- */
+.notice{
+  display:flex;align-items:center;gap:11px;background:var(--gold);color:#1a2634;
+  padding:12px 16px;border-radius:12px;margin:22px 0 8px;font-weight:900;
+  font-size:clamp(14.5px,3.9vw,21px);line-height:1.35;box-shadow:0 12px 30px rgba(0,0,0,.3);
+}
+.bell{flex:none;width:26px;height:26px;color:#1a2634;transform-origin:50% 12%;animation:ring 3.6s ease-in-out infinite}
+@keyframes ring{0%,64%,100%{transform:rotate(0)}68%{transform:rotate(13deg)}72%{transform:rotate(-11deg)}76%{transform:rotate(8deg)}80%{transform:rotate(-6deg)}84%{transform:rotate(3deg)}}
+
+/* ---------- sections ---------- */
+section{padding:26px 0}
+.sec-h{display:flex;align-items:baseline;gap:11px;margin-bottom:5px;flex-wrap:wrap}
+.sec-h h2{font-size:clamp(25px,6.4vw,40px);margin:0;color:var(--text)}
+.sec-h .num{font-family:'Secular One',sans-serif;color:var(--gold);font-size:clamp(25px,6.4vw,40px)}
+.sec-p{color:var(--muted);margin:0 0 18px;max-width:62ch;font-size:14.5px}
+
+.panel{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:18px;box-shadow:var(--shadow);
+}
+
+.grid2{display:grid;grid-template-columns:1fr;gap:16px}
+.field label{display:block;font-weight:700;margin-bottom:7px;font-size:14.5px}
+.field label .req{color:var(--pink)}
+.field .hint{font-size:12.5px;color:var(--muted);font-weight:400;margin-right:4px}
+input[type=text],input[type=number],textarea{
+  width:100%;background:var(--field);border:1px solid var(--field-b);border-radius:11px;
+  padding:13px 15px;color:var(--text);font:inherit;font-size:16px;transition:.15s;outline:none;
+}
+input:focus,textarea:focus{border-color:var(--gold);background:var(--card2)}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
+textarea{min-height:96px;resize:vertical}
+.err{border-color:var(--pink)!important}
+
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{
+  flex:1;min-width:78px;background:var(--field);border:1px solid var(--field-b);color:var(--text);
+  border-radius:11px;padding:12px 10px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:.15s;
+}
+.seg button:hover{border-color:var(--gold)}
+.seg button.on{background:var(--gold);border-color:var(--gold);color:#1a2634}
+
+.joke{
+  display:none;margin-top:10px;background:rgba(240,166,58,.11);border:1px solid rgba(240,166,58,.4);
+  border-radius:11px;padding:11px 14px;font-size:14px;color:var(--text);
+}
+.joke.show{display:block;animation:pop .28s both}
+
+/* ---------- menu cards ---------- */
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:11px;margin-top:6px}
+.dish{
+  position:relative;background:var(--card2);border:1px solid var(--line);border-radius:15px;
+  overflow:hidden;cursor:pointer;text-align:right;padding:0;font:inherit;color:inherit;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),border-color .18s,box-shadow .18s;
+}
+.dish:hover{transform:translateY(-5px);border-color:rgba(240,166,58,.6);box-shadow:0 16px 34px rgba(0,0,0,.4)}
+.dish .ph{aspect-ratio:5/4;overflow:hidden;background:#0d1620}
+.dish .ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.2,.8,.3,1)}
+.dish:hover .ph img{transform:scale(1.08)}
+.dish .bd{padding:11px 12px 13px;background:var(--cream);color:#1c2733}
+html[data-theme="light"] .dish .bd{background:#fffaf1;color:#22303c}
+.dish .nm{font-family:'Secular One',sans-serif;font-size:15px;line-height:1.2;margin-bottom:4px}
+.dish .ds{font-size:12px;line-height:1.45;color:#4d5b6a}
+.dish .tick{
+  position:absolute;top:8px;left:8px;width:30px;height:30px;border-radius:50%;
+  background:rgba(12,20,30,.55);border:2px solid rgba(255,255,255,.55);backdrop-filter:blur(4px);
+  display:grid;place-items:center;color:#fff;font-size:16px;opacity:0;transform:scale(.6);transition:.2s;
+}
+.dish.on{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,166,58,.55),0 16px 34px rgba(0,0,0,.4)}
+.dish.on .tick{opacity:1;transform:scale(1);background:var(--gold);border-color:var(--gold);color:#1a2634}
+.dish.on .ph img{transform:scale(1.05)}
+
+.count{margin-top:14px;font-size:14px;color:var(--muted)}
+.count b{color:var(--gold)}
+
+/* ---------- submit ---------- */
+.actions{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.btn{
+  flex:1 1 auto;background:var(--gold);color:#1a2634;border:none;border-radius:12px;
+  padding:16px 24px;font:inherit;font-weight:900;font-size:17px;cursor:pointer;
+  transition:.16s;box-shadow:0 10px 26px rgba(240,166,58,.25);
+}
+.btn:hover{background:var(--gold-d);transform:translateY(-2px)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--field-b);box-shadow:none;font-weight:700}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold);background:transparent}
+.formerr{color:var(--pink);font-weight:700;font-size:14.5px}
+
+/* ---------- success ---------- */
+.done{display:none;text-align:center;padding:16px 6px 6px}
+.done.show{display:block;animation:pop .4s both}
+.done .tick-big{width:78px;height:78px;border-radius:50%;background:var(--gold);color:#1a2634;display:grid;place-items:center;font-size:40px;margin:0 auto 18px}
+.done h3{font-size:clamp(26px,5.6vw,36px);margin:0 0 8px}
+.done p{color:var(--muted);margin:0 auto 20px;max-width:46ch}
+.summary{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:right;max-width:520px;margin:0 auto 20px}
+.summary .row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.summary .row:last-child{border:none}
+.summary .row span:first-child{color:var(--muted)}
+.summary .row span:last-child{font-weight:700;text-align:left}
+
+/* ---------- footer strips ---------- */
+.strips{display:grid;grid-template-columns:1fr;gap:11px;margin:22px 0 34px}
+.strip{
+  display:flex;align-items:center;gap:12px;border:2px solid var(--gold);border-radius:13px;
+  padding:13px 16px;background:rgba(14,24,35,.55);backdrop-filter:blur(6px);
+}
+html[data-theme="light"] .strip{background:rgba(255,252,245,.7)}
+.strip svg{width:32px;height:32px;color:var(--gold);flex:none}
+.strip .t1{font-family:'Secular One',sans-serif;font-size:19px;color:var(--gold);line-height:1.15}
+.strip .t2{font-size:14.5px;font-weight:700;line-height:1.45}
+
+footer{padding:6px 0 40px;text-align:center;color:var(--muted);font-size:13px}
+footer a{color:var(--gold);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* toast */
+#toast{
+  position:fixed;bottom:22px;left:50%;transform:translate(-50%,120%);z-index:60;
+  background:var(--gold);color:#1a2634;font-weight:800;padding:13px 22px;border-radius:12px;
+  box-shadow:0 14px 34px rgba(0,0,0,.4);transition:transform .32s cubic-bezier(.2,.8,.3,1);max-width:92vw;text-align:center;
+}
+#toast.show{transform:translate(-50%,0)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .6s,transform .6s cubic-bezier(.2,.8,.3,1)}
+.rv.in{opacity:1;transform:none}
+
+/* ---------- desktop enhancement ---------- */
+@media(min-width:821px){
+  .wrap{padding:0 18px}
+  header.top{padding-top:116px;padding-bottom:24px}
+  .brush{padding:34px 40px 40px;max-width:840px}
+  .pill{margin-top:16px;padding:9px 20px}
+  .heroRow{gap:26px;margin-top:22px}
+  .when{flex-direction:row;align-items:center;gap:34px;flex-wrap:wrap}
+  .when .ic{width:46px;height:46px}
+  .when .ic svg{width:24px;height:24px}
+  .when .lbl{font-size:13px}
+  .host{width:290px}
+  .bubble{font-size:14px;padding:9px 15px}
+  .notice{gap:14px;padding:13px 22px;margin:30px 0 8px}
+  .bell{width:30px;height:30px}
+  section{padding:34px 0}
+  .panel{padding:32px}
+  .grid2{grid-template-columns:1fr 1fr;gap:18px}
+  .menu{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:15px}
+  .dish .nm{font-size:17px}
+  .dish .ds{font-size:12.8px}
+  .dish .bd{padding:13px 15px 16px}
+  .actions{gap:14px;margin-top:8px}
+  .btn{flex:0 0 auto;padding:16px 34px}
+  .strips{grid-template-columns:260px 1fr;gap:14px}
+  .strip{padding:14px 20px}
+}
+@media(max-width:370px){
+  .host{width:116px}
+  .when .val{font-size:21px}
+  .when .ic{width:38px;height:38px}
+  .bubble{font-size:11.5px;padding:6px 10px}
+  .menu{grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:9px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="bgWrap"><div id="bgImg"></div></div>
+<div id="bgScrim"></div>
+<canvas id="embers"></canvas>
+
+<div class="topbar">
+  <button class="tbtn" id="themeBtn" title="מצב תצוגה">🌙</button>
+</div>
+
+<div class="lights">
+  <svg viewBox="0 0 1200 130" preserveAspectRatio="none" aria-hidden="true"><g id="lightsG"></g></svg>
+</div>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="brush">
+    <div class="kick">הזמנה למסיבת גג</div>
+    <div class="big">ברמת וורבר</div>
+    <div class="sub">פתח תקווה! <span class="heart">♥</span></div>
+  </div>
+
+  <div class="pill">מותאם גם לנשים בהריון <span class="heart">♥</span></div>
+
+  <div class="heroRow">
+    <div class="when">
+      <div class="blk">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <div><div class="lbl">יום שבת</div><div class="val">08/08/26</div></div>
+      </div>
+      <div class="blk">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+        <div><div class="lbl">בשעה</div><div class="val">16:30</div></div>
+      </div>
+    </div>
+
+    <div class="host">
+      <div class="bubbleWrap"><div class="bubble">מה אתם אוכלים? 🍷</div></div>
+      <picture>
+        <source srcset="host.webp" type="image/webp">
+        <img src="host.png" alt="המארחת מרימה כוסית" width="928" height="1400">
+      </picture>
+      <div class="glow"></div>
+    </div>
+  </div>
+
+  <div class="notice">
+    <svg class="bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <span>יש להודיע מראש על סוג האוכל המבוקש פר משתתף</span>
+  </div>
+</header>
+
+<section class="rv">
+  <div class="sec-h"><span class="num">01</span><h2>מי אתם?</h2></div>
+  <p class="sec-p">ממלאים פעם אחת, וזהו. אפשר לחזור ולערוך אחר כך — הדף זוכר אתכם.</p>
+
+  <div class="panel">
+    <div class="grid2">
+      <div class="field">
+        <label for="fName">שם מלא <span class="req">*</span></label>
+        <input type="text" id="fName" placeholder="שם ומשפחה" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="fAge">גיל <span class="req">*</span> <span class="hint">(לא נספר לאף אחד)</span></label>
+        <input type="number" id="fAge" min="0" max="120" placeholder="למשל 34" inputmode="numeric">
+        <div class="joke" id="jAge"></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:18px">
+      <div class="field">
+        <label>מין <span class="req">*</span></label>
+        <div class="seg" id="segGender">
+          <button type="button" data-v="זכר">זכר</button>
+          <button type="button" data-v="נקבה">נקבה</button>
+          <button type="button" data-v="אחר">אחר</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>בהריון? <span class="hint">(האירוע מותאם, בלי לחץ)</span></label>
+        <div class="seg" id="segPreg">
+          <button type="button" data-v="לא">לא</button>
+          <button type="button" data-v="כן">כן</button>
+          <button type="button" data-v="בודקים">בודקים</button>
+        </div>
+        <div class="joke" id="jPreg"></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:18px">
+      <div class="field">
+        <label>טבעוני/ת? <span class="hint">(כדאי שנדע מראש)</span></label>
+        <div class="seg" id="segVegan">
+          <button type="button" data-v="לא">לא</button>
+          <button type="button" data-v="צמחוני">צמחוני/ת</button>
+          <button type="button" data-v="טבעוני">טבעוני/ת</button>
+        </div>
+        <div class="joke" id="jVegan"></div>
+      </div>
+      <div class="field">
+        <label for="fNotes">בקשות מיוחדות</label>
+        <textarea id="fNotes" placeholder="מדיום? ולנס? בלי חריף? מגיע עם עוד מישהו? כתבו כאן."></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="rv">
+  <div class="sec-h"><span class="num">02</span><h2>מה אוכלים?</h2></div>
+  <p class="sec-p">בוחרים מה שמתחשק — אפשר לסמן יותר מאחד. זה מה שיירד לגריל בשמכם.</p>
+  <div class="menu" id="menu"></div>
+  <div class="count" id="count">עדיין לא בחרתם כלום. <b>הגריל ממתין.</b></div>
+</section>
+
+<section class="rv" style="padding-top:8px">
+  <div class="panel">
+    <div id="formArea">
+      <div class="actions">
+        <button class="btn" id="submitBtn">שולחים את ההזמנה 🔥</button>
+        <button class="btn ghost" id="resetBtn" style="display:none">התחלה מחדש</button>
+        <span class="formerr" id="formErr"></span>
+      </div>
+    </div>
+
+    <div class="done" id="done">
+      <div class="tick-big">✓</div>
+      <h3 id="doneTitle">נרשמתם!</h3>
+      <p id="doneSub">נתראה בשבת 08/08/26 בשעה 16:30, רמת וורבר, פתח תקווה.</p>
+      <div class="summary" id="summary"></div>
+      <div class="actions" style="justify-content:center">
+        <button class="btn ghost" id="editBtn">לערוך את הבחירה</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strips rv">
+  <div class="strip">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.4 8.2-8 9-4.6-.8-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+    <div><div class="t1">חדר מוגן</div><div class="t2" style="font-size:13px;color:var(--muted)">צמוד לאירוע</div></div>
+  </div>
+  <div class="strip">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/><path d="M9.5 21v-6h5v6"/></svg>
+    <div class="t2">האירוע יתקיים גם אם המצב הביטחוני ישתנה,<br>וגם אם הנחיות פיקוד העורף ישתנו.</div>
+  </div>
+</div>
+
+<footer>
+  רמת וורבר, פתח תקווה · שבת 08/08/26 · 16:30<br>
+  <a href="admin.html">כניסת מארחים</a>
+</footer>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey:"AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90", authDomain:"boostmind-b052c.firebaseapp.com", projectId:"boostmind-b052c" });
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+
+/* ---------- theme ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  $('themeBtn').textContent = t==='light' ? '☀️' : '🌙';
+  document.querySelector('meta[name=theme-color]').setAttribute('content', t==='light' ? '#fdf6ea' : '#101a26');
+  try{ localStorage.setItem('party-theme',t); }catch(e){}
+}
+applyTheme(localStorage.getItem('party-theme') || 'dark');
+$('themeBtn').onclick = () => applyTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
+
+/* ---------- string lights ---------- */
+(function(){
+  const g = document.getElementById('lightsG');
+  const W = 1200, N = 15, sag = 46, top = 6;
+  let d = `M0 ${top} `;
+  for(let i=0;i<N;i++){
+    const x0 = W*i/N, x1 = W*(i+1)/N;
+    d += `Q ${(x0+x1)/2} ${top+sag} ${x1} ${top} `;
+  }
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',d); p.setAttribute('class','wire'); g.appendChild(p);
+  for(let i=0;i<N;i++){
+    const cx = W*(i+0.5)/N, cy = top + sag*0.5 + 13;
+    const stem = document.createElementNS('http://www.w3.org/2000/svg','line');
+    stem.setAttribute('x1',cx);stem.setAttribute('y1',cy-13);stem.setAttribute('x2',cx);stem.setAttribute('y2',cy-4);
+    stem.setAttribute('class','wire'); g.appendChild(stem);
+    const h = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    h.setAttribute('cx',cx);h.setAttribute('cy',cy);h.setAttribute('r',16);h.setAttribute('class','halo');
+    h.style.animationDelay = (i*0.37%3.4)+'s'; g.appendChild(h);
+    const b = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    b.setAttribute('cx',cx);b.setAttribute('cy',cy);b.setAttribute('r',4.6);b.setAttribute('class','bulb');
+    b.style.animationDelay = (i*0.37%3.4)+'s'; g.appendChild(b);
+  }
+})();
+
+/* ---------- embers ---------- */
+(function(){
+  const c = $('embers'), x = c.getContext('2d');
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let W,H,ps=[];
+  function size(){ W=c.width=innerWidth; H=c.height=innerHeight; }
+  size(); addEventListener('resize',size);
+  const N = innerWidth<700 ? 22 : 42;
+  for(let i=0;i<N;i++) ps.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.8+.5,s:Math.random()*.35+.12,d:Math.random()*Math.PI*2,o:Math.random()*.5+.2});
+  (function loop(){
+    x.clearRect(0,0,W,H);
+    for(const p of ps){
+      p.y -= p.s; p.d += .012; p.x += Math.sin(p.d)*.32;
+      if(p.y < -10){ p.y = H+10; p.x = Math.random()*W; }
+      x.beginPath(); x.arc(p.x,p.y,p.r,0,7); x.fillStyle='rgba(240,178,90,'+p.o+')'; x.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ---------- parallax ---------- */
+(function(){
+  const el = $('bgImg'); let t=0;
+  addEventListener('scroll',()=>{ t = scrollY*0.16; el.style.transform = `scale(1.12) translateY(${t}px)`; },{passive:true});
+})();
+
+/* ---------- reveal ---------- */
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.08});
+document.querySelectorAll('.rv').forEach(e=>io.observe(e));
+
+/* ---------- menu ---------- */
+const DISHES = [
+  {id:'entrecote', img:'food/1.jpg', name:'אנטריקוט וואגיו אימפריאלי', desc:'נתח אנטריקוט מובחר, מיושן בקפידה ונצלה לשלמות על הגריל.'},
+  {id:'asado',     img:'food/2.jpg', name:'אסאדו בבישול איטי',        desc:'אסאדו רך במיוחד עם ירקות שורש וטעמים עמוקים.'},
+  {id:'burger',    img:'food/3.jpg', name:'המבורגר אמריקאי פרימיום',   desc:'קציצת בקר עבה, עסיסית ונצלית על אש גלויה.'},
+  {id:'kebab',     img:'food/4.jpg', name:'קבב מזרחי מסורתי',          desc:'קבב מתובל בתערובת תבלינים ייחודית, עסיסי ועשיר בטעמים.'},
+  {id:'merguez',   img:'food/5.jpg', name:'מרגז מסורתית',              desc:'נקניקיות מרגז מתובלות בסגנון מסורתי, עם חריפות עדינה.'},
+  {id:'pargiot',   img:'food/6.jpg', name:'פרגיות מהגריל',             desc:'פרגיות עסיסיות במרינדה מיוחדת, מתאימות למבוגרים ולילדים.'},
+  {id:'sausage',   img:'food/7.jpg', name:'נקניקיות של פעם',           desc:'נקניקיות קלאסיות איכותיות, אהובות על כל המשפחה.'},
+];
+const picked = new Set();
+
+$('menu').innerHTML = DISHES.map((d,i)=>`
+  <button type="button" class="dish" data-id="${d.id}" style="animation-delay:${i*40}ms">
+    <span class="tick">✓</span>
+    <div class="ph"><img src="${d.img}" alt="${d.name}" loading="lazy"></div>
+    <div class="bd"><div class="nm">${d.name}</div><div class="ds">${d.desc}</div></div>
+  </button>`).join('');
+
+$('menu').addEventListener('click', e=>{
+  const b = e.target.closest('.dish'); if(!b) return;
+  const id = b.dataset.id;
+  if(picked.has(id)) picked.delete(id); else picked.add(id);
+  b.classList.toggle('on', picked.has(id));
+  updateCount();
+});
+function updateCount(){
+  const n = picked.size;
+  $('count').innerHTML = n===0
+    ? 'עדיין לא בחרתם כלום. <b>הגריל ממתין.</b>'
+    : (n===1 ? 'בחרתם <b>מנה אחת</b>. מכובד.'
+      : n<=3 ? `בחרתם <b>${n} מנות</b>. אנחנו אוהבים את הגישה.`
+      : `בחרתם <b>${n} מנות</b>. יש חדר מוגן, אין חדר החייאה. 🔥`);
+}
+
+/* ---------- segmented controls ---------- */
+const state = { gender:'', pregnant:'לא', vegan:'לא' };
+function seg(elId, key, onPick){
+  const el = $(elId);
+  el.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    [...el.children].forEach(c=>c.classList.remove('on'));
+    b.classList.add('on'); state[key] = b.dataset.v;
+    el.classList.remove('err');
+    onPick && onPick(b.dataset.v);
+  });
+}
+function setSeg(elId, key, v){
+  const el = $(elId);
+  [...el.children].forEach(c=>c.classList.toggle('on', c.dataset.v===v));
+  state[key]=v;
+}
+function joke(id, txt){ const e=$(id); if(txt){ e.textContent=txt; e.classList.add('show'); } else e.classList.remove('show'); }
+
+seg('segGender','gender', v=>{ checkPregJoke(); });
+seg('segPreg','pregnant', v=>{ checkPregJoke(); });
+seg('segVegan','vegan', v=>{
+  joke('jVegan', v==='טבעוני' ? 'הבנו. יש ירקות בגריל, פיתות, וסלטים — ומבטיחים לא לשים אותם על אותה רשת. 🥬'
+    : v==='צמחוני' ? 'סבבה. פרגיות זה לא צמחוני, רק שיהיה ברור. 🙂' : '');
+});
+function checkPregJoke(){
+  const g = state.gender, p = state.pregnant;
+  if(p==='כן' && g==='זכר') joke('jPreg','רגע. אם זה נכון — אנחנו מזמינים גם צלם. מזל טוב! 🍾');
+  else if(p==='כן') joke('jPreg','מצוין שידענו. יש כיסא נוח, צל, ובשר עשוי היטב. ♥');
+  else if(p==='בודקים') joke('jPreg','נשמור לכם מקום ליד המאוורר בכל מקרה. 🤞');
+  else joke('jPreg','');
+}
+setSeg('segPreg','pregnant','לא'); setSeg('segVegan','vegan','לא');
+
+$('fAge').addEventListener('input', e=>{
+  const v = +e.target.value;
+  if(!e.target.value) return joke('jAge','');
+  if(v>0 && v<6) joke('jAge','נקניקיות של פעם. סגור. 🌭');
+  else if(v>=100) joke('jAge','כל הכבוד. הכיסא הכי טוב שמור לכם.');
+  else if(v>=60) joke('jAge','גיל הזהב = מנה כפולה. ככה זה עובד.');
+  else joke('jAge','');
+});
+
+/* ---------- toast ---------- */
+let tT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),3200); }
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c=document.createElement('canvas'); c.style.cssText='position:fixed;inset:0;z-index:70;pointer-events:none';
+  c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
+  const x=c.getContext('2d'), cols=['#f0a63a','#ee5f92','#f6ecdc','#c07f21','#ffd489'], ps=[];
+  for(let i=0;i<130;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.4,w:5+Math.random()*7,h:8+Math.random()*10,
+    vy:2.4+Math.random()*3.4,vx:-1.4+Math.random()*2.8,r:Math.random()*6,vr:-.16+Math.random()*.32,c:cols[(Math.random()*cols.length)|0]});
+  let f=0;
+  (function loop(){
+    x.clearRect(0,0,c.width,c.height); f++;
+    for(const p of ps){ p.y+=p.vy; p.x+=p.vx; p.r+=p.vr;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.w/2,-p.h/2,p.w,p.h);x.restore(); }
+    if(f<180) requestAnimationFrame(loop); else c.remove();
+  })();
+}
+
+/* ---------- submit ---------- */
+const LS='party-rsvp-id';
+let docId = null; try{ docId = localStorage.getItem(LS); }catch(e){}
+
+function collect(){
+  return {
+    name: $('fName').value.trim(),
+    age: $('fAge').value ? +$('fAge').value : null,
+    gender: state.gender,
+    pregnant: state.pregnant,
+    vegan: state.vegan,
+    notes: $('fNotes').value.trim(),
+    dishes: DISHES.filter(d=>picked.has(d.id)).map(d=>d.name),
+    dishIds: [...picked],
+  };
+}
+
+$('submitBtn').onclick = async () => {
+  const d = collect(); let bad = null;
+  $('fName').classList.remove('err'); $('fAge').classList.remove('err'); $('segGender').classList.remove('err');
+  if(!d.name || d.name.length<2){ $('fName').classList.add('err'); bad = 'צריך שם מלא — אחרת הגריל לא ידע למי.'; $('fName').focus(); }
+  else if(d.age===null || d.age<0 || d.age>120){ $('fAge').classList.add('err'); bad = 'גיל, בבקשה. מספר סביר.'; $('fAge').focus(); }
+  else if(!d.gender){ $('segGender').classList.add('err'); bad = 'בחרו מין.'; }
+  else if(d.dishes.length===0){ bad = 'צריך לבחור לפחות מנה אחת. אי אפשר להגיע בידיים ריקות.'; document.querySelector('.menu').scrollIntoView({behavior:'smooth',block:'center'}); }
+  $('formErr').textContent = bad || '';
+  if(bad) return;
+
+  $('submitBtn').disabled = true; $('submitBtn').textContent = 'שולח…';
+  try{
+    const payload = { ...d, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    if(docId){
+      await db.collection('party-rsvp').doc(docId).set(payload, {merge:true});
+    }else{
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      const ref = await db.collection('party-rsvp').add(payload);
+      docId = ref.id; try{ localStorage.setItem(LS, docId); }catch(e){}
+    }
+    showDone(d);
+    confetti();
+  }catch(err){
+    console.error(err);
+    $('formErr').textContent = 'משהו נתקע בשליחה. נסו שוב בעוד רגע.';
+  }finally{
+    $('submitBtn').disabled = false; $('submitBtn').textContent = 'שולחים את ההזמנה 🔥';
+  }
+};
+
+function showDone(d){
+  $('formArea').style.display='none';
+  $('done').classList.add('show');
+  $('doneTitle').textContent = d.name.split(' ')[0] + ', רשמנו אתכם!';
+  $('summary').innerHTML = `
+    <div class="row"><span>שם</span><span>${esc(d.name)}</span></div>
+    <div class="row"><span>גיל</span><span>${d.age}</span></div>
+    <div class="row"><span>מין</span><span>${esc(d.gender)}</span></div>
+    <div class="row"><span>בהריון</span><span>${esc(d.pregnant)}</span></div>
+    <div class="row"><span>תזונה</span><span>${esc(d.vegan)}</span></div>
+    ${d.notes?`<div class="row"><span>בקשות</span><span>${esc(d.notes)}</span></div>`:''}
+    <div class="row"><span>מה יורד לגריל</span><span>${d.dishes.map(esc).join('<br>')}</span></div>`;
+  $('done').scrollIntoView({behavior:'smooth',block:'center'});
+  toast('נשמר. תודה!');
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+$('editBtn').onclick = () => { $('done').classList.remove('show'); $('formArea').style.display=''; $('fName').scrollIntoView({behavior:'smooth',block:'center'}); };
+
+/* ---------- restore previous answer ---------- */
+if(docId){
+  db.collection('party-rsvp').doc(docId).get().then(s=>{
+    if(!s.exists){ try{localStorage.removeItem(LS)}catch(e){}; docId=null; return; }
+    const d = s.data();
+    $('fName').value = d.name||''; $('fAge').value = d.age??''; $('fNotes').value = d.notes||'';
+    if(d.gender) setSeg('segGender','gender',d.gender);
+    setSeg('segPreg','pregnant',d.pregnant||'לא');
+    setSeg('segVegan','vegan',d.vegan||'לא');
+    (d.dishIds||[]).forEach(id=>{ picked.add(id); const b=document.querySelector(`.dish[data-id="${id}"]`); if(b) b.classList.add('on'); });
+    updateCount(); checkPregJoke();
+    $('submitBtn').textContent = 'לעדכן את ההזמנה 🔥';
+    $('resetBtn').style.display='';
+    toast('שלום שוב, ' + (d.name||'').split(' ')[0] + ' — הבחירה שלכם נטענה');
+  }).catch(()=>{});
+}
+$('resetBtn').onclick = () => {
+  if(!confirm('לנקות את הטופס ולהתחיל מחדש? (ההרשמה הקיימת נשארת אצל המארחים)')) return;
+  try{ localStorage.removeItem(LS); }catch(e){}
+  location.reload();
+};
+</script>
+</body>
+</html>

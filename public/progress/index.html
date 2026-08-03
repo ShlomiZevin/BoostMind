@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+  <meta name="description" content="סיכום הצעה לפרוגרס — סוכן AI חכם לאתר שעונה להורים על הכל ומפנה להרשמה וליצירת קשר." />
+  <meta name="theme-color" content="#6C4BC9" />
+  <title>פרוגרס · סיכום הצעה — סוכן AI לאתר</title>
+  <link rel="icon" href="progress-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --purple: #6C4BC9; --purple-deep: #5436A6; --blue: #3E90D9; --blue-deep: #2C6FB5;
+      --yellow: #F6C320; --yellow-deep: #E9B412; --green: #57B947;
+      --ink: #2A2350; --ink-soft: #5b5680; --bg: #F6F4FC; --card: #ffffff;
+      --line: #ECE8F6; --line-strong: #DAD3EE;
+      --shadow: 0 4px 14px rgba(76,54,140,.08); --shadow-lg: 0 18px 50px rgba(76,54,140,.16);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:'Rubik',-apple-system,'Segoe UI',sans-serif; font-size:17px; line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    img { max-width:100%; height:auto; display:block; }
+    a { color:inherit; text-decoration:none; }
+    h1,h2,h3 { font-family:'Fredoka','Rubik',sans-serif; line-height:1.15; margin:0; }
+    .wrap { max-width:880px; margin:0 auto; padding:0 22px; }
+
+    /* header */
+    header { position:sticky; top:0; z-index:50; background:rgba(246,244,252,.9); backdrop-filter:blur(10px); border-bottom:1px solid transparent; transition:border-color .2s; }
+    header.scrolled { border-bottom-color:var(--line); }
+    .nav { display:flex; align-items:center; justify-content:space-between; height:70px; }
+    .nav .logo { height:40px; }
+    .nav-mini { display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-soft); font-weight:500; }
+    .nav-mini img { height:17px; opacity:.85; }
+
+    /* hero */
+    .hero { background:linear-gradient(150deg, var(--purple) 0%, var(--purple-deep) 45%, var(--blue) 100%); color:#fff; position:relative; overflow:hidden; padding:56px 0 70px; }
+    .hero::before,.hero::after { content:''; position:absolute; border-radius:50%; opacity:.14; background:#fff; }
+    .hero::before { width:300px; height:300px; top:-110px; left:-70px; }
+    .hero::after { width:180px; height:180px; bottom:-60px; right:6%; }
+    .hero .wrap { position:relative; z-index:2; }
+    .hero-grid { display:grid; grid-template-columns:1fr .92fr; gap:46px; align-items:center; }
+    .badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); padding:6px 15px; border-radius:100px; font-size:13.5px; font-weight:600; margin-bottom:18px; }
+    .badge .pp { width:8px; height:8px; border-radius:50%; background:var(--yellow); }
+    .hero h1 { font-size:clamp(30px,4.6vw,46px); font-weight:700; margin-bottom:14px; }
+    .hero h1 .u { color:var(--yellow); }
+    .hero p.lead { font-size:clamp(16px,2vw,19px); opacity:.95; margin:0; max-width:440px; font-weight:400; }
+
+    /* chat */
+    .chat { background:var(--card); color:var(--ink); border-radius:24px; box-shadow:var(--shadow-lg); overflow:hidden; max-width:380px; margin-inline:auto; width:100%; }
+    .chat-top { background:var(--purple); color:#fff; padding:14px 18px; display:flex; align-items:center; gap:11px; }
+    .chat-av { width:40px; height:40px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:21px; }
+    .chat-top .who { font-weight:700; font-family:'Fredoka',sans-serif; font-size:16px; }
+    .chat-top .stat { font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px; }
+    .chat-top .stat::before { content:''; width:7px; height:7px; border-radius:50%; background:#5ee08a; }
+    .chat-body { padding:16px; height:290px; overflow-y:auto; background:#FAF8FE; display:flex; flex-direction:column; gap:11px; }
+    .msg { max-width:84%; padding:10px 14px; border-radius:15px; font-size:14.5px; line-height:1.55; animation:rise .3s ease; }
+    @keyframes rise { from { opacity:0; transform:translateY(8px);} }
+    .msg.bot { background:#fff; border:1px solid var(--line); border-bottom-right-radius:5px; align-self:flex-start; box-shadow:var(--shadow); }
+    .msg.user { background:var(--blue); color:#fff; border-bottom-left-radius:5px; align-self:flex-end; }
+    .msg .cta-link { display:inline-flex; align-items:center; gap:6px; margin-top:8px; background:var(--yellow); color:var(--ink); font-weight:700; font-size:13px; padding:7px 13px; border-radius:100px; }
+    .typing { display:flex; gap:4px; padding:13px 15px; background:#fff; border:1px solid var(--line); border-radius:15px; align-self:flex-start; width:fit-content; }
+    .typing span { width:7px; height:7px; border-radius:50%; background:var(--purple); opacity:.5; animation:tp 1s infinite; }
+    .typing span:nth-child(2){ animation-delay:.2s; } .typing span:nth-child(3){ animation-delay:.4s; }
+    @keyframes tp { 0%,100%{ transform:translateY(0); opacity:.4;} 50%{ transform:translateY(-4px); opacity:1;} }
+    .chips { padding:12px 14px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:7px; background:#fff; }
+    .chip { background:#F1ECFB; color:var(--purple); border:none; cursor:pointer; font-family:'Rubik'; font-size:12.5px; font-weight:600; padding:7px 12px; border-radius:100px; transition:background .15s; }
+    .chip:hover { background:#E4DAF8; }
+    .chat-input { display:flex; gap:8px; padding:11px 14px; border-top:1px solid var(--line); background:#fff; }
+    .chat-input input { flex:1; border:1px solid var(--line-strong); border-radius:100px; padding:10px 15px; font-family:'Rubik'; font-size:14px; outline:none; }
+    .chat-input input:focus { border-color:var(--purple); }
+    .chat-input button { background:var(--purple); border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .chat-input button svg { width:17px; height:17px; color:#fff; transform:scaleX(-1); }
+    .demo-note { text-align:center; color:rgba(255,255,255,.85); font-size:13px; margin-top:12px; }
+
+    section { padding:64px 0; }
+    .sec-head { text-align:center; max-width:560px; margin:0 auto 38px; }
+    .sec-head .kick { color:var(--purple); font-weight:700; font-size:14.5px; }
+    .sec-head h2 { font-size:clamp(26px,3.6vw,36px); font-weight:700; margin:8px 0 10px; }
+    .sec-head p { font-size:17px; color:var(--ink-soft); margin:0; }
+
+    /* included list */
+    .incl { background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); padding:30px 32px; max-width:680px; margin:0 auto; }
+    .incl ul { list-style:none; padding:0; margin:0; }
+    .incl li { display:flex; gap:13px; padding:13px 0; border-bottom:1px solid var(--line); font-size:16px; }
+    .incl li:last-child { border-bottom:none; }
+    .incl li svg { width:22px; height:22px; color:var(--green); flex-shrink:0; margin-top:3px; }
+    .incl li b { font-weight:700; }
+    .incl li .sub { display:block; font-size:13.5px; color:var(--ink-soft); margin-top:2px; }
+
+    /* phases */
+    .phase-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:760px; margin:0 auto; }
+    .phase { border-radius:22px; padding:28px; }
+    .phase.now { background:var(--purple); color:#fff; box-shadow:var(--shadow-lg); }
+    .phase.next { background:#fff; border:2px dashed var(--line-strong); }
+    .phase .tag { display:inline-block; font-size:12.5px; font-weight:700; padding:5px 13px; border-radius:100px; margin-bottom:14px; }
+    .phase.now .tag { background:var(--yellow); color:var(--ink); }
+    .phase.next .tag { background:#F1ECFB; color:var(--purple); }
+    .phase h3 { font-size:22px; font-weight:600; margin-bottom:12px; }
+    .phase ul { list-style:none; padding:0; margin:0; }
+    .phase li { display:flex; gap:10px; padding:6px 0; font-size:15px; }
+    .phase li svg { width:19px; height:19px; flex-shrink:0; margin-top:2px; }
+    .phase.now li svg { color:var(--yellow); } .phase.next li svg { color:var(--purple); }
+    .phase.next .nt { font-size:13.5px; color:var(--ink-soft); margin-top:12px; }
+
+    /* price */
+    .price-card { background:var(--card); border-radius:26px; box-shadow:var(--shadow-lg); max-width:560px; margin:0 auto; overflow:hidden; border:1px solid var(--line); }
+    .price-head { background:var(--yellow); padding:30px; text-align:center; }
+    .price-head .ph-tag { font-weight:700; color:var(--ink); font-size:15px; }
+    .price-head .amount { font-family:'Fredoka'; font-size:60px; font-weight:700; color:var(--ink); line-height:1; margin:8px 0 4px; }
+    .price-head .amount small { font-size:24px; }
+    .price-head .once { font-size:15px; color:var(--ink); font-weight:600; opacity:.85; }
+    .price-body { padding:28px 30px; }
+    .pay-terms { display:flex; gap:12px; }
+    .pay-terms .t { flex:1; background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:18px; text-align:center; }
+    .pay-terms .t .big { font-family:'Fredoka'; font-size:28px; font-weight:700; color:var(--purple); }
+    .pay-terms .t .lbl { font-size:14px; color:var(--ink-soft); margin-top:3px; }
+    .price-foot { display:flex; gap:10px; justify-content:center; margin-top:20px; flex-wrap:wrap; }
+    .pill { background:#fff; border:1px solid var(--line); border-radius:100px; padding:9px 16px; font-size:14px; font-weight:600; box-shadow:var(--shadow); }
+    .pill b { color:var(--purple); }
+    .price-note { background:var(--bg); border-radius:14px; padding:15px 17px; font-size:14px; color:var(--ink-soft); margin-top:18px; }
+    .price-note b { color:var(--ink); }
+
+    /* config + ownership */
+    .soft { background:#fff; }
+    .cfg-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; max-width:820px; margin:0 auto; }
+    .cfg { border:1px solid var(--line); border-radius:18px; padding:22px; background:var(--bg); }
+    .cfg .ic { font-size:26px; margin-bottom:9px; }
+    .cfg h3 { font-size:16.5px; font-weight:600; margin-bottom:6px; }
+    .cfg p { font-size:14px; color:var(--ink-soft); margin:0 0 10px; }
+    .cfg .rec { font-size:13px; background:#EAF7E8; color:#3e8b30; font-weight:600; padding:6px 11px; border-radius:9px; display:inline-block; }
+    .cfg .soon { font-size:13px; background:#FFF4E0; color:#B5790a; font-weight:600; padding:6px 11px; border-radius:9px; display:inline-block; }
+
+    .own { max-width:680px; margin:30px auto 0; background:var(--bg); border:1px solid var(--line); border-radius:18px; padding:24px 26px; }
+    .own h3 { font-size:18px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:9px; }
+    .own p { font-size:15px; color:var(--ink-soft); margin:0; }
+    .own .honest { color:var(--ink); font-weight:600; }
+
+    footer { background:var(--ink); color:#cfc9e8; padding:28px 0; }
+    .foot { display:flex; align-items:center; justify-content:center; gap:10px; font-size:14px; }
+    .foot img { height:19px; }
+
+    .reveal { opacity:0; transform:translateY(22px); transition:opacity .6s, transform .6s; }
+    .reveal.in { opacity:1; transform:none; }
+
+    @media (max-width:820px){ .cfg-grid { grid-template-columns:1fr; } }
+    @media (max-width:760px){ .hero-grid { grid-template-columns:1fr; gap:36px; } .phase-grid { grid-template-columns:1fr; } }
+    @media (max-width:520px){ section { padding:50px 0; } .nav-mini { display:none; } .pay-terms { flex-direction:column; } }
+    @media (prefers-reduced-motion:reduce){ *{ animation:none!important; transition:none!important;} .reveal{ opacity:1; transform:none;} }
+  </style>
+</head>
+<body>
+
+  <header id="hdr">
+    <div class="wrap nav">
+      <img class="logo" src="progress-logo.png" alt="פרוגרס" />
+      <div class="nav-mini">
+        <span>סיכום הצעה · הוכן ע"י</span>
+        <img src="boostart-logo.png" alt="Boostart" />
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <span class="badge"><span class="pp"></span>סוכן AI חכם לאתר</span>
+          <h1>עוזר חכם שעונה להורים על <span class="u">הכל</span>, ומפנה לאן שצריך.</h1>
+          <p class="lead">כפי שדיברנו — עוזר שמכיר את כל המידע של פרוגרס, עונה בעברית 24/7, ומפנה ישר להרשמה או ליצירת קשר. הנה סיכום קצר והמחיר. 👈 אפשר גם לנסות אותו.</p>
+        </div>
+        <div id="demo">
+          <div class="chat">
+            <div class="chat-top">
+              <div class="chat-av">🤸</div>
+              <div>
+                <div class="who">העוזר של פרוגרס</div>
+                <div class="stat">מחובר · עונה תוך שניות</div>
+              </div>
+            </div>
+            <div class="chat-body" id="chatBody">
+              <div class="msg bot">היי! 👋 אני העוזר החכם של פרוגרס. שאלו אותי כל דבר על החוגים — גילאים, מחירים, מיקומים, הרשמה...</div>
+            </div>
+            <div class="chips" id="chips">
+              <button class="chip" data-q="לאיזה גילאים מיועדים החוגים?">לאיזה גילאים?</button>
+              <button class="chip" data-q="כמה עולה החוג?">כמה עולה?</button>
+              <button class="chip" data-q="איפה מתקיימים החוגים?">איפה החוגים?</button>
+              <button class="chip" data-q="איך נרשמים לחוג?">איך נרשמים?</button>
+            </div>
+            <div class="chat-input">
+              <input id="chatIn" type="text" placeholder="כתבו שאלה משלכם..." autocomplete="off" />
+              <button id="chatSend" aria-label="שליחה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+            </div>
+          </div>
+          <p class="demo-note">הדגמה אמיתית — נסו ללחוץ על שאלה</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT'S INCLUDED -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kick">מה כלול</div>
+        <h2>הכל בפנים, בלי הפתעות</h2>
+      </div>
+      <div class="incl reveal">
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>בניית העוזר החכם</b> + הזנת כל המידע של פרוגרס</div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>עיצוב בסגנון פרוגרס</b> והטמעה באתר הוורדפרס הקיים</div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>הפניה חכמה</b> להרשמה וליצירת קשר</div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>בדיקות, ליטוש והעלאה לאוויר</b></div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div><b>תמיכה שוטפת — כלולה</b><span class="sub">דואגים שהעוזר עובד תקין ומטפלים בתקלות. ✦ לא כולל פיתוח פיצ'רים חדשים — אלה יתומחרו בנפרד.</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICE -->
+  <section id="price" class="soft">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kick">המחיר</div>
+        <h2>מחיר אחד, סגור</h2>
+      </div>
+      <div class="price-card reveal">
+        <div class="price-head">
+          <div class="ph-tag">שלב 1 · עוזר חכם מלא לאתר</div>
+          <div class="amount"><small>₪</small>12,000</div>
+          <div class="once">תשלום חד-פעמי · כולל תמיכה שוטפת</div>
+        </div>
+        <div class="price-body">
+          <div class="pay-terms">
+            <div class="t"><div class="big">30%</div><div class="lbl">מקדמה בתחילת העבודה</div></div>
+            <div class="t"><div class="big">70%</div><div class="lbl">היתרה במסירה</div></div>
+          </div>
+          <div class="price-foot">
+            <div class="pill">⚡ זמן הקמה: <b>2–4 שבועות</b></div>
+            <div class="pill">🛠️ אחרי תיאום עם המפתח שלכם</div>
+          </div>
+          <div class="price-note">
+            <b>עלויות שוטפות:</b> עלות מנוע ה-AI והאחסון נמוכה, ונסגור אותה יחד לפי האופציה שנבחר. <b>שלב 2</b> (הרשמה אוטומטית + WhatsApp) יתומחר בנפרד בהמשך.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASES -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kick">השלבים</div>
+        <h2>מתחילים במה שחשוב</h2>
+      </div>
+      <div class="phase-grid">
+        <div class="phase now reveal">
+          <span class="tag">שלב 1 · עכשיו</span>
+          <h3>עונה על הכל + מפנה</h3>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>מכיר את כל המידע של פרוגרס</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>עונה להורים בעברית, 24/7</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>מפנה להרשמה וליצירת קשר</li>
+          </ul>
+        </div>
+        <div class="phase next reveal">
+          <span class="tag">שלב 2 · בהמשך</span>
+          <h3>גם מבצע פעולות</h3>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>הרשמה לחוג ישירות מהצ'אט</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>חיבור ל-WhatsApp</li>
+          </ul>
+          <p class="nt">יתומחר בנפרד, אחרי ששלב 1 עובד מצוין.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFIG + OWNERSHIP -->
+  <section class="soft">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kick">מה נסגור יחד</div>
+        <h2>כמה החלטות קטנות — ואנחנו מלווים</h2>
+      </div>
+      <div class="cfg-grid reveal">
+        <div class="cfg">
+          <div class="ic">🖥️</div>
+          <h3>איפה העוזר רץ</h3>
+          <p>אצלכם או אצלנו. אצלנו זה הכי פשוט בשבילכם.</p>
+          <span class="rec">✓ ההמלצה: על השרתים שלנו</span>
+        </div>
+        <div class="cfg">
+          <div class="ic">🧠</div>
+          <h3>מנוע ה-AI</h3>
+          <p>חשבון שלכם או שלנו. אפשר להתחיל על חשבוננו.</p>
+          <span class="rec">✓ מתחילים על חשבוננו</span>
+        </div>
+        <div class="cfg">
+          <div class="ic">🔌</div>
+          <h3>גישה למידע</h3>
+          <p>נתאם עם המפתח שלכם איך לחבר את התוכן.</p>
+          <span class="soon">↻ תיאום עם המפתח</span>
+        </div>
+      </div>
+
+      <div class="own reveal">
+        <h3>🏗️ אופציה לעתיד: בעלות מלאה על האתר</h3>
+        <p>כמו שדיברנו — בהמשך אפשר לשכתב את האתר ממערכת וורדפרס למערכת קוד אמיתית, בבעלות מלאה שלכם, גמישה ומהירה יותר. <span class="honest">בכנות: האתר הנוכחי יפה ומתפקד מצוין כמו שהוא — אז זו לגמרי לא חובה, רק אפשרות פתוחה אם תרצו בהמשך.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap foot">
+      <span>נבנה באהבה ע"י</span>
+      <img src="boostart-logo.png" alt="Boostart" />
+    </div>
+  </footer>
+
+  <script>
+    var KB = [
+      { k:['גיל','גילאי','גילאים','בן כמה','בת כמה','לאיזה גיל'], a:'החוגים שלנו מיועדים לילדים בגילאי <b>3 עד 6</b> 🧒. מתאימים את הפעילות בדיוק לשלב ההתפתחותי של כל גיל.' },
+      { k:['מחיר','עולה','כמה זה','עלות','כסף','תשלום'], a:'המחיר משתנה לפי המרכז ומספר המפגשים בשבוע 💰. הכי נכון שתסגרו את זה ישירות איתנו.', cta:{ t:'☎️ צרו קשר לפרטי מחיר', h:'#' } },
+      { k:['איפה','מיקום','כתובת','מרכז','מרכזים','אזור','סניף'], a:'יש לנו כמה מרכזי פעילות 📍. בדף "מרכזים ושעות פעילות" תמצאו את כל המיקומים והשעות.', cta:{ t:'📍 למרכזים ושעות', h:'#' } },
+      { k:['נרשם','הרשמה','להירשם','רישום','להרשם','איך נרשמ'], a:'כיף שאתם רוצים להצטרף! 🎉 לחצו על הכפתור ותגיעו ישר לטופס ההרשמה.', cta:{ t:'📝 לטופס ההרשמה', h:'#' } },
+      { k:['שיעור','כולל','מה עושים','פעילות','שיטה','בשיעור'], a:'בכל שיעור הילדים עוברים מסלול תנועה והתעמלות אתגרי 🤸 שמפתח ביטחון, יכולות תנועה וחוסן רגשי — והכל מרגיש כמו משחק.' },
+      { k:['שעות','מתי','ימים','לוז','זמנים'], a:'השעות והימים משתנים לפי המרכז ⏰. כל הלו"ז המעודכן בדף "מרכזים ושעות פעילות".', cta:{ t:'🗓️ למרכזים ושעות', h:'#' } }
+    ];
+    var FALLBACK = { a:'שאלה מצוינת 🙂 על זה הכי נכון לדבר איתנו ישירות — נשמח לענות לכם אישית.', cta:{ t:'☎️ צרו קשר', h:'#' } };
+    var body = document.getElementById('chatBody');
+    function scroll(){ body.scrollTop = body.scrollHeight; }
+    function addUser(t){ var d=document.createElement('div'); d.className='msg user'; d.textContent=t; body.appendChild(d); scroll(); }
+    function addBot(html,cta){ var d=document.createElement('div'); d.className='msg bot'; d.innerHTML=html; if(cta){ var a=document.createElement('a'); a.className='cta-link'; a.href=cta.h; a.textContent=cta.t; d.appendChild(a);} body.appendChild(d); scroll(); }
+    function typing(){ var d=document.createElement('div'); d.className='typing'; d.innerHTML='<span></span><span></span><span></span>'; body.appendChild(d); scroll(); return d; }
+    function answer(q){ var low=q.toLowerCase(); var hit=FALLBACK; for(var i=0;i<KB.length;i++){ for(var j=0;j<KB[i].k.length;j++){ if(low.indexOf(KB[i].k[j])>-1){ hit=KB[i]; break; } } if(hit!==FALLBACK) break; } var t=typing(); setTimeout(function(){ t.remove(); addBot(hit.a, hit.cta); }, 750); }
+    function ask(q){ if(!q.trim())return; addUser(q); answer(q); }
+    document.getElementById('chips').addEventListener('click', function(e){ var b=e.target.closest('.chip'); if(!b)return; ask(b.getAttribute('data-q')); });
+    var input=document.getElementById('chatIn');
+    document.getElementById('chatSend').addEventListener('click', function(){ ask(input.value); input.value=''; });
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ ask(input.value); input.value=''; } });
+    var hdr=document.getElementById('hdr');
+    window.addEventListener('scroll', function(){ hdr.classList.toggle('scrolled', window.scrollY>10); }, {passive:true});
+    var io=new IntersectionObserver(function(en){ en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:.12});
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  </script>
+</body>
+</html>

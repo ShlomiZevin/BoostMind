@@ -4,11 +4,19 @@ import {
   arrayUnion, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise } from '../types';
+import type { MuscleGroup } from '../data/muscles';
+import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
+import { exercisePhotoKey } from './usePhotos';
+import { exerciseIdOf, findPersonalByName, type PersonalExercise, type RenameSuggestion } from '../data/exercisesDB';
 import { PROGRAM } from '../data/program';
 
 function sessionsCol(uid: string) {
   return collection(db, 'users', uid, 'sessions');
+}
+
+function freeSessionsCol(uid: string) {
+  return collection(db, 'users', uid, 'freeSessions');
 }
 
 function exerciseStatsCol(uid: string) {
@@ -324,6 +332,305 @@ export function useFirestore(uid: string | null) {
     return ratings[0] ? { difficulty: ratings[0].difficulty, addWeight: ratings[0].addWeight } : null;
   }, [uid]);
 
+  // ─── Free (muscle-based) sessions ───────────────────────────────
+
+  const toFreeSession = (id: string, data: any): FreeSession => ({
+    id,
+    date: data.date?.toMillis?.() ?? data.date,
+    completedAt: data.completedAt?.toMillis?.() ?? data.completedAt ?? null,
+    muscleGroups: data.muscleGroups || [],
+    sets: (data.sets || []).map((s: any) => ({ ...s })),
+    plannedExercises: Array.isArray(data.plannedExercises) ? data.plannedExercises : [],
+    completed: !!data.completed,
+  });
+
+  const createFreeSession = useCallback(async (muscleGroups: MuscleGroup[]): Promise<string> => {
+    if (!uid) throw new Error('No uid');
+    const sessionId = `free_${Date.now()}`;
+    const ref = doc(freeSessionsCol(uid), sessionId);
+    await setDoc(ref, {
+      date: Timestamp.now(),
+      muscleGroups,
+      sets: [],
+      completed: false,
+    });
+    return sessionId;
+  }, [uid]);
+
+  const getFreeSession = useCallback(async (sessionId: string): Promise<FreeSession | null> => {
+    if (!uid) return null;
+    const snap = await getDoc(doc(freeSessionsCol(uid), sessionId));
+    if (!snap.exists()) return null;
+    return toFreeSession(snap.id, snap.data());
+  }, [uid]);
+
+  const getFreeSessions = useCallback(async (): Promise<FreeSession[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(freeSessionsCol(uid));
+    return snap.docs
+      .map(d => toFreeSession(d.id, d.data()))
+      .sort((a, b) => b.date - a.date);
+  }, [uid]);
+
+  const logFreeSet = useCallback(async (sessionId: string, set: FreeSet) => {
+    if (!uid) return;
+    const clean: any = { ...set };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), { sets: arrayUnion(clean) });
+  }, [uid]);
+
+  const updateFreeSets = useCallback(async (sessionId: string, sets: FreeSet[]) => {
+    if (!uid) return;
+    const clean = sets.map(s => {
+      const c: any = { ...s };
+      Object.keys(c).forEach(k => { if (c[k] === undefined) delete c[k]; });
+      return c;
+    });
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), { sets: clean });
+  }, [uid]);
+
+  const completeFreeSession = useCallback(async (sessionId: string) => {
+    if (!uid) return;
+    // Prune focus muscles: keep only muscles that actually got a real (non-placeholder) set.
+    const snap = await getDoc(doc(freeSessionsCol(uid), sessionId));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const sets: FreeSet[] = (data.sets || []).map((s: any) => ({ ...s }));
+    const originalMuscles: MuscleGroup[] = data.muscleGroups || [];
+    const musclesWithRealSets = new Set<MuscleGroup>(
+      sets.filter(s => s.weight > 0 || s.reps > 0).map(s => s.muscle),
+    );
+    const pruned = originalMuscles.filter(m => musclesWithRealSets.has(m));
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      completed: true,
+      completedAt: Timestamp.now(),
+      muscleGroups: pruned.length > 0 ? pruned : originalMuscles,
+    });
+  }, [uid]);
+
+  const updatePlannedExercises = useCallback(async (sessionId: string, planned: PlannedExercise[]) => {
+    if (!uid) return;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), { plannedExercises: planned });
+  }, [uid]);
+
+  const duplicateFreeSession = useCallback(async (sessionId: string): Promise<string | null> => {
+    if (!uid) return null;
+    const src = await getDoc(doc(freeSessionsCol(uid), sessionId));
+    if (!src.exists()) return null;
+    const data = src.data();
+    const sets: FreeSet[] = (data.sets || []).map((s: any) => ({ ...s }));
+    // Build planned list from unique exercise names in the source session.
+    const seen = new Set<string>();
+    const planned: PlannedExercise[] = [];
+    for (const s of sets) {
+      const name = s.exerciseName?.trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      planned.push({ name, muscle: s.muscle, addedAt: Date.now() });
+    }
+    const newId = `free_${Date.now()}`;
+    await setDoc(doc(freeSessionsCol(uid), newId), {
+      date: Timestamp.now(),
+      muscleGroups: data.muscleGroups || [],
+      sets: [],
+      plannedExercises: planned,
+      completed: false,
+    });
+    return newId;
+  }, [uid]);
+
+  const deleteFreeSession = useCallback(async (sessionId: string) => {
+    if (!uid) return;
+    await deleteDoc(doc(freeSessionsCol(uid), sessionId));
+  }, [uid]);
+
+  const updateFreeSessionDates = useCallback(async (sessionId: string, opts: { date?: number; completedAt?: number }) => {
+    if (!uid) return;
+    const update: any = {};
+    if (opts.date != null) update.date = Timestamp.fromMillis(opts.date);
+    if (opts.completedAt != null) update.completedAt = Timestamp.fromMillis(opts.completedAt);
+    if (Object.keys(update).length === 0) return;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), update);
+  }, [uid]);
+
+  const updateFreeSessionMuscles = useCallback(async (sessionId: string, muscleGroups: MuscleGroup[]) => {
+    if (!uid) return;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), { muscleGroups });
+  }, [uid]);
+
+  const getWeeklyTargets = useCallback(async (): Promise<Record<MuscleGroup, number>> => {
+    if (!uid) return { ...DEFAULT_WEEKLY_TARGETS };
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    const snap = await getDoc(ref);
+    const stored = snap.exists() ? snap.data().weeklyTargets : null;
+    return { ...DEFAULT_WEEKLY_TARGETS, ...(stored || {}) };
+  }, [uid]);
+
+  const setWeeklyTargets = useCallback(async (targets: Partial<Record<MuscleGroup, number>>) => {
+    if (!uid) return;
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    await setDoc(ref, { weeklyTargets: targets }, { merge: true });
+  }, [uid]);
+
+  // ─── end free sessions ──────────────────────────────────────────
+
+  // ─── Personal exercise DB (per-user, built session by session) ─
+
+  const listPersonalExercises = useCallback(async (): Promise<PersonalExercise[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(collection(db, 'users', uid, 'exercises'));
+    return snap.docs.map(d => d.data() as PersonalExercise);
+  }, [uid]);
+
+  const upsertPersonalExercise = useCallback(async (ex: PersonalExercise) => {
+    if (!uid) return;
+    const clean: any = { ...ex, updatedAt: Date.now() };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(db, 'users', uid, 'exercises', ex.id), clean);
+  }, [uid]);
+
+  // Idempotent: creates only if a matching personal exercise doesn't already exist.
+  // Matching uses alias / he / slug so AI-generated variants map to the same DB entry
+  // instead of spawning duplicates. Optionally fills English on first create.
+  const ensurePersonalExercise = useCallback(async (
+    name: string,
+    defaultMuscle: MuscleGroup,
+    en?: string,
+  ): Promise<PersonalExercise | null> => {
+    if (!uid || !name.trim()) return null;
+    // First, check all existing personal exercises for a name-based match (he / alias / slug).
+    const all = await getDocs(collection(db, 'users', uid, 'exercises'));
+    const list = all.docs.map(d => d.data() as PersonalExercise);
+    const existing = findPersonalByName(list, name)
+      || list.find(e => e.id === exerciseIdOf(name));
+    if (existing) {
+      // Backfill English if we now have one and the record didn't.
+      if (en && !existing.en) {
+        const updated = { ...existing, en: en.trim(), updatedAt: Date.now() };
+        await setDoc(doc(db, 'users', uid, 'exercises', existing.id), updated);
+        return updated;
+      }
+      return existing;
+    }
+    const id = exerciseIdOf(name);
+    if (!id) return null;
+    const ex: PersonalExercise = {
+      id,
+      he: name.trim(),
+      en: en?.trim() || undefined,
+      defaultMuscle,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    const clean: any = { ...ex };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(db, 'users', uid, 'exercises', id), clean);
+    return ex;
+  }, [uid]);
+
+  const deletePersonalExercise = useCallback(async (id: string) => {
+    if (!uid) return;
+    await deleteDoc(doc(db, 'users', uid, 'exercises', id));
+  }, [uid]);
+
+  // ─── Rename suggestions (persistent across visits) ─────────────
+
+  const listRenameSuggestions = useCallback(async (): Promise<RenameSuggestion[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(collection(db, 'users', uid, 'renameSuggestions'));
+    return snap.docs.map(d => d.data() as RenameSuggestion);
+  }, [uid]);
+
+  const upsertRenameSuggestion = useCallback(async (sug: RenameSuggestion) => {
+    if (!uid) return;
+    const clean: any = { ...sug, updatedAt: Date.now() };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(db, 'users', uid, 'renameSuggestions', sug.id), clean);
+  }, [uid]);
+
+  const deleteRenameSuggestion = useCallback(async (id: string) => {
+    if (!uid) return;
+    await deleteDoc(doc(db, 'users', uid, 'renameSuggestions', id));
+  }, [uid]);
+
+  // One-time migration: scan all past sets and create personal entries for
+  // any exerciseName that doesn't already exist. Muscle inferred from most
+  // recent set that used that name.
+  const migratePersonalFromHistory = useCallback(async (): Promise<number> => {
+    if (!uid) return 0;
+    const [sessions, existing] = await Promise.all([
+      getDocs(freeSessionsCol(uid)).then(s => s.docs.map(d => d.data() as any)),
+      listPersonalExercises(),
+    ]);
+    const existingIds = new Set(existing.map(e => e.id));
+    // Build map: name → most-recent { muscle, ts }
+    const latest = new Map<string, { name: string; muscle: MuscleGroup; ts: number }>();
+    for (const s of sessions) {
+      for (const set of s.sets || []) {
+        if (!set.exerciseName) continue;
+        const id = exerciseIdOf(set.exerciseName);
+        if (!id || existingIds.has(id)) continue;
+        const prev = latest.get(id);
+        const ts = set.timestamp || 0;
+        if (!prev || ts > prev.ts) {
+          latest.set(id, { name: set.exerciseName, muscle: set.muscle, ts });
+        }
+      }
+    }
+    let created = 0;
+    for (const [id, info] of latest) {
+      const ex: PersonalExercise = {
+        id,
+        he: info.name.trim(),
+        defaultMuscle: info.muscle,
+        createdAt: info.ts || Date.now(),
+        updatedAt: Date.now(),
+      };
+      await setDoc(doc(db, 'users', uid, 'exercises', id), ex);
+      created++;
+    }
+    return created;
+  }, [uid, listPersonalExercises]);
+
+  // ─── Exercise photos (user-uploaded, one per exercise-name) ────
+
+  const saveExercisePhoto = useCallback(async (exerciseName: string, base64: string) => {
+    if (!uid) return;
+    const key = exercisePhotoKey(exerciseName);
+    if (!key) return;
+    const ref = doc(db, 'users', uid, 'exercisePhotos', key);
+    await setDoc(ref, { key, exerciseName, base64, createdAt: Date.now() });
+  }, [uid]);
+
+  const getExercisePhoto = useCallback(async (exerciseName: string): Promise<string | null> => {
+    if (!uid) return null;
+    const key = exercisePhotoKey(exerciseName);
+    if (!key) return null;
+    const snap = await getDoc(doc(db, 'users', uid, 'exercisePhotos', key));
+    if (!snap.exists()) return null;
+    return snap.data().base64 || null;
+  }, [uid]);
+
+  const getAllExercisePhotos = useCallback(async (): Promise<Record<string, string>> => {
+    if (!uid) return {};
+    const snap = await getDocs(collection(db, 'users', uid, 'exercisePhotos'));
+    const out: Record<string, string> = {};
+    for (const d of snap.docs) {
+      const data = d.data();
+      if (data.base64 && data.key) out[data.key] = data.base64;
+    }
+    return out;
+  }, [uid]);
+
+  const deleteExercisePhoto = useCallback(async (exerciseName: string) => {
+    if (!uid) return;
+    const key = exercisePhotoKey(exerciseName);
+    if (!key) return;
+    await deleteDoc(doc(db, 'users', uid, 'exercisePhotos', key));
+  }, [uid]);
+
   const getProgramStartOverride = useCallback(async (): Promise<string | null> => {
     if (!uid) return null;
     const ref = doc(db, 'users', uid, 'settings', 'main');
@@ -380,5 +687,33 @@ export function useFirestore(uid: string | null) {
     getExerciseDifficulty,
     getProgramStartOverride,
     setProgramStartOverride,
+    // Free (muscle-based) sessions
+    createFreeSession,
+    getFreeSession,
+    getFreeSessions,
+    logFreeSet,
+    updateFreeSets,
+    completeFreeSession,
+    deleteFreeSession,
+    updateFreeSessionDates,
+    updateFreeSessionMuscles,
+    updatePlannedExercises,
+    duplicateFreeSession,
+    getWeeklyTargets,
+    setWeeklyTargets,
+    // Exercise photos
+    saveExercisePhoto,
+    getExercisePhoto,
+    getAllExercisePhotos,
+    deleteExercisePhoto,
+    // Personal exercise DB
+    listPersonalExercises,
+    upsertPersonalExercise,
+    ensurePersonalExercise,
+    deletePersonalExercise,
+    migratePersonalFromHistory,
+    listRenameSuggestions,
+    upsertRenameSuggestion,
+    deleteRenameSuggestion,
   };
 }

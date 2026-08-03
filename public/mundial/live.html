@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קרב הניחושים — מסך לייב</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080b16; --surface:#111829; --surface-2:#1a2238; --surface-3:#28324f;
+    --border:rgba(255,255,255,.10); --text:#f2f5ff; --muted:#95a0bd;
+    --accent:#ffd23f; --green:#2ee6a0; --red:#ff5470; --blue:#4d8dff;
+    --gold:#ffd23f; --silver:#c9d3e8; --bronze:#e39a54;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--text);font-family:'Heebo',sans-serif;display:flex;flex-direction:column}
+
+  .head{display:flex;align-items:center;justify-content:space-between;padding:2vh 3vw 1vh;flex-shrink:0;gap:2vw}
+  .mode-tabs{display:flex;gap:.8vw}
+  .mtab{font-weight:900;font-size:1.5vw;color:var(--muted);border:.12vw solid var(--border);border-radius:.8vw;padding:.7vh 1.4vw;background:var(--surface);cursor:pointer;transition:all .2s}
+  .mtab.on{color:var(--accent);border-color:var(--accent);background:rgba(255,210,63,.10)}
+  .title{display:flex;align-items:center;gap:1vw;font-weight:900;font-size:2.2vw;white-space:nowrap;flex:1;justify-content:center;overflow:hidden}
+  .title .flag{font-size:2.6vw}
+  .title .vs{color:var(--muted);font-size:1.5vw}
+  .live-pill{display:flex;align-items:center;gap:.5vw;font-weight:900;font-size:1.3vw;color:var(--red);border:.13vw solid var(--red);border-radius:999px;padding:.5vh 1.2vw;flex-shrink:0}
+  .live-pill .blink{width:.9vw;height:.9vw;border-radius:50%;background:var(--red);animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.15}}
+
+  #banner{margin:0 3vw;background:var(--surface);border:.12vw solid var(--border);border-inline-start:.5vw solid var(--green);border-radius:1vw;padding:1.3vh 2vw;display:none;align-items:center;gap:1.5vw;flex-shrink:0;font-size:1.8vw;font-weight:800;animation:pop .4s}
+  #banner.show{display:flex}
+  #banner .bwin{color:var(--green)} #banner .bq{color:var(--muted);font-weight:700;font-size:1.4vw}
+  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .subhead{text-align:center;font-weight:900;font-size:1.5vw;color:var(--accent);padding:.6vh 0;flex-shrink:0}
+  .stage{flex:1;display:flex;flex-direction:column;gap:1.4vh;padding:1vh 3vw 3vh;overflow:hidden;min-height:0}
+
+  .podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:1.4vw;align-items:end;flex-shrink:0}
+  .pod{background:var(--surface);border:.12vw solid var(--border);border-radius:1.2vw;padding:1.6vh 1vw;text-align:center;transition:all .5s}
+  .pod .medal{font-size:3vw;line-height:1}
+  .pod .pav{width:4.4vw;height:4.4vw;border-radius:50%;background:var(--surface-3);display:grid;place-items:center;font-weight:900;font-size:2vw;margin:.8vh auto .6vh;overflow:hidden}
+  .pav img,.rav img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+  .pod .pname{font-weight:900;font-size:1.8vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pod .psub{font-size:1vw;color:var(--muted)}
+  .pod .ppts{font-weight:900;font-size:2.4vw;color:var(--accent);direction:ltr}
+  .pod.p1{border-color:var(--gold);transform:translateY(-1.4vh)}
+  .pod.p1 .pav{background:var(--gold);color:#0a0e1a}
+  .pod.p2{border-color:var(--silver)} .pod.p3{border-color:var(--bronze)}
+
+  .list{flex:1;display:flex;flex-direction:column;gap:1vh;overflow:hidden;min-height:0}
+  .row{display:flex;align-items:center;gap:1.5vw;background:var(--surface);border:.1vw solid var(--border);border-radius:.9vw;padding:1.1vh 1.8vw;transition:all .5s}
+  .row .rk{font-weight:900;font-size:1.7vw;color:var(--muted);width:3vw;text-align:center}
+  .row .rav{width:3.2vw;height:3.2vw;border-radius:50%;background:var(--surface-3);display:grid;place-items:center;font-weight:900;font-size:1.5vw;flex-shrink:0;overflow:hidden}
+  .row .rname{font-weight:800;font-size:1.9vw;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .rsub{font-size:1vw;color:var(--muted);flex-shrink:0}
+  .row .rpts{font-weight:900;font-size:2vw;color:var(--accent);direction:ltr}
+
+  .empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2vh;color:var(--muted);text-align:center}
+  .empty .big{font-size:2.6vw;font-weight:900;color:var(--text)}
+  .empty .url{font-size:2.2vw;font-weight:900;color:var(--accent);direction:ltr;background:var(--surface);border:.15vw solid var(--border);border-radius:1vw;padding:1.5vh 2vw}
+  .empty .sm{font-size:1.5vw}
+  #fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<div class="head">
+  <div class="mode-tabs">
+    <button class="mtab on" id="tabCur" onclick="setMode('current')">המשחק עכשיו</button>
+    <button class="mtab" id="tabAll" onclick="setMode('all')">🏆 כל המשחקים</button>
+  </div>
+  <div class="title" id="title">טוען…</div>
+  <div class="live-pill"><span class="blink"></span> LIVE</div>
+</div>
+
+<div id="banner"></div>
+<div class="subhead" id="subhead"></div>
+
+<div class="stage">
+  <div class="podium" id="podium"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey:"AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90", authDomain:"boostmind-b052c.firebaseapp.com", projectId:"boostmind-b052c" });
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const URL_G = new URLSearchParams(location.search).get('g');
+
+let games = {}, players = [], mode = 'current', currentId = URL_G || null;
+let lastResolvedKey = null, firstGameLoad = true, userLocked = false, rotTimer = null;
+
+db.collection('mundial-games').onSnapshot(s => {
+  games = {}; s.forEach(d => games[d.id] = { id:d.id, ...d.data() });
+  if(!currentId){ // pick most recent NON-private game as default
+    const arr = Object.values(games).filter(g=>!g.private).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if(arr.length) currentId = arr[0].id;
+  }
+  applyPrivacy(); checkNewResult(); render();
+});
+db.collection('mundial-players').onSnapshot(s => {
+  players = []; s.forEach(d => players.push({ id:d.id, ...d.data() })); render();
+});
+
+function scoreInGame(bets, game){
+  let s=0; bets=bets||{};
+  for(const pr of (game.props||[])){ if(pr.status==='resolved' && pr.correct!=null && bets[pr.id]===pr.correct) s+=(pr.points||pr.pts||10); }
+  return s;
+}
+function labelFor(game, id){ const pr=(game.props||[]).find(x=>x.correct===id||(x.options||[]).some(o=>o.id===id)); return id; }
+
+/* ---- private (isolated) game: single view, no all-games tab, no rotation ---- */
+let privateGame = false;
+function applyPrivacy(){
+  const g = games[currentId];
+  privateGame = !!(g && g.private);
+  if(privateGame){ $('tabAll').style.display='none'; $('tabCur').style.display='none'; mode='current'; clearTimeout(rotTimer); $('tabCur').classList.add('on'); $('tabAll').classList.remove('on'); }
+  else { $('tabAll').style.display=''; $('tabCur').style.display=''; }
+}
+
+/* ---- mode ---- */
+function setMode(m){ if(privateGame) return; mode=m; userLocked=true; $('tabCur').classList.toggle('on',m==='current'); $('tabAll').classList.toggle('on',m==='all'); render(); scheduleRotate(); }
+window.setMode = setMode;
+function scheduleRotate(){ clearTimeout(rotTimer); if(privateGame) return; rotTimer = setTimeout(()=>{ userLocked=false; mode = mode==='current'?'all':'current'; $('tabCur').classList.toggle('on',mode==='current'); $('tabAll').classList.toggle('on',mode==='all'); render(); scheduleRotate(); }, 12000); }
+document.addEventListener('keydown', e => { if(e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key===' ') setMode(mode==='current'?'all':'current'); });
+scheduleRotate();
+
+/* ---- banner on new resolution in current game ---- */
+function checkNewResult(){
+  const g = games[currentId]; if(!g){ firstGameLoad=false; return; }
+  const resolved = (g.props||[]).filter(p=>p.status==='resolved' && p.correct!=null);
+  if(!resolved.length){ lastResolvedKey=null; firstGameLoad=false; return; }
+  const last = resolved[resolved.length-1];
+  const key = g.id+'|'+last.id+'|'+last.correct;
+  if(key!==lastResolvedKey){ const prev=lastResolvedKey; lastResolvedKey=key; showBanner(g,last); if(!firstGameLoad && prev!==null){ burst(); mode='current'; } }
+  firstGameLoad=false;
+}
+let banT;
+function showBanner(g,pr){
+  const o=(pr.options||[]).find(x=>x.id===pr.correct);
+  const lab = o?((o.emoji?o.emoji+' ':'')+o.label):'—';
+  $('banner').innerHTML = `<span>✅</span><span class="bq">${esc(pr.q)}</span> <span class="bwin">${esc(lab)}</span>`;
+  $('banner').classList.add('show'); clearTimeout(banT); banT=setTimeout(()=>$('banner').classList.remove('show'),9000);
+}
+
+/* ---- build leaderboards ---- */
+function currentBoard(){
+  const g = games[currentId]; if(!g) return {rows:[], sub:''};
+  const rows = players.filter(p=>p.gameId===currentId && !isGhost(p)).map(p=>({ name:p.name||'?', pts:scoreInGame(p.bets,g), joinedAt:p.joinedAt||0, photo:p.photo||null }))
+    .sort((a,b)=> b.pts-a.pts || a.joinedAt-b.joinedAt);
+  return { rows, sub:'', title: g.title };
+}
+function allBoard(){
+  const agg = {}; // key by normalized name
+  for(const p of players){
+    if(isGhost(p)) continue;
+    const g = games[p.gameId]; if(!g) continue;
+    const key = (p.name||'?').trim().toLowerCase();
+    if(!agg[key]) agg[key] = { name:(p.name||'?').trim(), pts:0, games:0, joinedAt:p.joinedAt||0 };
+    agg[key].pts += scoreInGame(p.bets, g);
+    agg[key].games += 1;
+    agg[key].joinedAt = Math.min(agg[key].joinedAt, p.joinedAt||0);
+  }
+  const rows = Object.values(agg).sort((a,b)=> b.pts-a.pts || a.joinedAt-b.joinedAt);
+  return { rows };
+}
+
+function render(){
+  const g = games[currentId];
+  if(mode==='current'){
+    $('title').innerHTML = g ? `<span class="flag">${g.flagA||'🏳️'}</span> ${esc(g.teamA||'')} <span class="vs">VS</span> ${esc(g.teamB||'')} <span class="flag">${g.flagB||'🏳️'}</span>` : 'קרב הניחושים';
+    $('subhead').textContent = 'טבלת המשחק הנוכחי';
+  } else {
+    $('title').innerHTML = '🏆 אלופי כל המשחקים';
+    $('subhead').textContent = 'סכום הנקודות של כל שחקן בכל המשחקים';
+  }
+  const { rows } = mode==='current' ? currentBoard() : allBoard();
+
+  if(!rows.length){
+    $('podium').innerHTML=''; $('list').className='empty';
+    $('list').innerHTML = `<div class="big">מחכים לשחקנים… 🍿</div><div class="url">boostmind-b052c.web.app/mundial</div><div class="sm">נכנסים מהטלפון, בוחרים משחק, ומנחשים</div>`;
+    return;
+  }
+  $('list').className='list';
+
+  const top = rows.slice(0,3), order=[top[1],top[0],top[2]], cls=[2,1,3];
+  $('podium').innerHTML = order.map((p,idx)=>{
+    if(!p) return '<div></div>';
+    const rank=cls[idx], medal=rank===1?'🥇':rank===2?'🥈':'🥉';
+    const sub = mode==='all' ? `<div class="psub">${p.games} משחקים</div>` : '';
+    const av = p.photo?`<div class="pav"><img src="${p.photo}" alt=""></div>`:`<div class="pav">${(p.name[0]||'?').toUpperCase()}</div>`;
+    return `<div class="pod p${rank}"><div class="medal">${medal}</div>${av}<div class="pname">${esc(p.name)}</div>${sub}<div class="ppts">${p.pts}</div></div>`;
+  }).join('');
+
+  const rest = rows.slice(3,11);
+  $('list').innerHTML = rest.map((p,i)=>{
+    const sub = mode==='all' ? `<span class="rsub">${p.games} משחקים</span>` : '';
+    const av = p.photo?`<div class="rav"><img src="${p.photo}" alt=""></div>`:`<div class="rav">${(p.name[0]||'?').toUpperCase()}</div>`;
+    return `<div class="row"><div class="rk">${i+4}</div>${av}<div class="rname">${esc(p.name)}</div>${sub}<div class="rpts">${p.pts}</div></div>`;
+  }).join('');
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function isGhost(p){ return ((p&&p.name)||'').trim()==='שלומי'; }
+
+/* confetti */
+const fx=$('fx'), ctx=fx.getContext('2d'); let parts=[], raf=null;
+function sz(){ fx.width=innerWidth; fx.height=innerHeight; } sz(); addEventListener('resize',sz);
+function burst(){ const colors=['#ffd23f','#2ee6a0','#4d8dff','#ff5470','#ff4b4b','#ffffff'];
+  for(let i=0;i<160;i++){ parts.push({x:Math.random()*innerWidth,y:-20-Math.random()*innerHeight*0.3,vx:(Math.random()-.5)*4,vy:Math.random()*4+3,g:.12+Math.random()*.1,s:8+Math.random()*10,c:colors[(i*5)%colors.length],rot:Math.random()*6,vr:(Math.random()-.5)*.4,life:150+Math.random()*80}); }
+  if(!raf) tick();
+}
+function tick(){ ctx.clearRect(0,0,fx.width,fx.height);
+  parts.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life--; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); ctx.restore(); });
+  parts=parts.filter(p=>p.life>0 && p.y<fx.height+40);
+  if(parts.length) raf=requestAnimationFrame(tick); else { raf=null; ctx.clearRect(0,0,fx.width,fx.height); }
+}
+</script>
+</body>
+</html>

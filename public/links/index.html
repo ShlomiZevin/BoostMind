@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>שלומי זוין · יותם — הלינקים</title>
+<meta name="description" content="פניות בנושא שיתופי פעולה · החנות של יותם">
+<meta property="og:title" content="שלומי זוין · יותם">
+<meta property="og:description" content="פניות בנושא שת״פ · החנות של יותם">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08060f;
+    --surface:#150e26;
+    --surface-2:#1d1433;
+    --border:rgba(255,255,255,.10);
+    --green:#7df53d;
+    --pink:#ff4fd8;
+    --text:#f1ecff;
+    --muted:#a99fc4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:'Heebo',sans-serif;
+    min-height:100svh;
+    display:flex;align-items:center;justify-content:center;
+    padding:32px 20px calc(32px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+    overflow-x:hidden;
+  }
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .star{position:absolute;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.12}50%{opacity:.8}}
+
+  .wrap{position:relative;z-index:1;width:100%;max-width:400px;text-align:center}
+
+  .avatar{
+    width:104px;height:104px;border-radius:50%;
+    margin:0 auto 18px;overflow:hidden;
+    background:var(--surface-2);border:1px solid var(--border);
+    box-shadow:0 0 30px rgba(125,245,61,.18);
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  h1{
+    font-family:'Heebo',sans-serif;font-weight:900;letter-spacing:-.01em;
+    font-size:2.3rem;color:var(--green);
+    text-shadow:2px 2px 0 #3a1d63;line-height:1.1;
+  }
+  .sub{color:var(--muted);font-size:1rem;margin-top:10px;font-weight:500}
+
+  .links{display:flex;flex-direction:column;gap:14px;margin-top:30px}
+  .link{
+    display:flex;align-items:center;gap:14px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px 20px;
+    text-decoration:none;color:var(--text);
+    font-size:1.1rem;font-weight:700;
+    transition:transform .15s, border-color .15s, box-shadow .15s;
+    text-align:right;
+  }
+  .link:hover{transform:translateY(-2px)}
+  .link .ico{
+    width:46px;height:46px;flex:0 0 46px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+    background:var(--surface-2);
+  }
+  .link .txt{flex:1;display:flex;flex-direction:column;gap:2px}
+  .link .txt small{color:var(--muted);font-size:.85rem;font-weight:400}
+  .link .arr{color:var(--muted);font-size:1.2rem;transition:transform .15s}
+  .link:hover .arr{transform:translateX(-4px)}
+
+  .link.shop{border-color:rgba(125,245,61,.4)}
+  .link.shop:hover{border-color:var(--green);box-shadow:0 10px 34px rgba(0,0,0,.5),0 0 26px rgba(125,245,61,.16)}
+  .link.shop .ico{background:rgba(125,245,61,.12)}
+  .link.collab{border-color:rgba(255,79,216,.35)}
+  .link.collab:hover{border-color:var(--pink);box-shadow:0 10px 34px rgba(0,0,0,.5),0 0 26px rgba(255,79,216,.16)}
+  .link.collab .ico{background:rgba(255,79,216,.12)}
+
+  footer{margin-top:34px;color:var(--muted);font-size:.85rem}
+  footer a{color:var(--green);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <div class="avatar"><img src="profile.jpg" alt="שלומי זוין"></div>
+  <h1>שלומי זוין</h1>
+
+  <div class="links">
+    <a class="link collab" href="/micro-comedy/">
+      <span class="ico">🤝</span>
+      <span class="txt">פניות בנושא שת״פ<small>שיתופי פעולה, קמפיינים ומותגים</small></span>
+      <span class="arr">←</span>
+    </a>
+    <a class="link shop" href="/yotamverse/">
+      <span class="ico">🛒</span>
+      <span class="txt">החנות של יותם<small>חולצות ועוד</small></span>
+      <span class="arr">←</span>
+    </a>
+  </div>
+
+  <footer>נעים להכיר 👋</footer>
+</div>
+
+<script>
+(function(){
+  var box=document.getElementById('stars');
+  for(var i=0;i<70;i++){
+    var s=document.createElement('div');s.className='star';
+    var sz=Math.random()*2+.8;
+    s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+(Math.random()*100)+'%;right:'+(Math.random()*100)+'%;animation-delay:'+(Math.random()*3)+'s;animation-duration:'+(2+Math.random()*4)+'s';
+    box.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

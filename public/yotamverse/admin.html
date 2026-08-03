@@ -141,7 +141,6 @@
         <div class="grow"><label>לינק פייפאל (paypal.me — לא חובה)</label><input id="sPaypal" dir="ltr" placeholder="https://paypal.me/..."></div>
       </div>
       <div class="row" style="margin-bottom:10px">
-        <div class="grow"><label>🎁 מחיר ברכה מיותם ₪</label><input id="sGreet" type="number"></div>
         <div class="grow"><label>🤓 מחיר ללמוד עם יותם ₪</label><input id="sLearn" type="number"></div>
       </div>
       <div class="row" style="margin-bottom:14px">
@@ -171,9 +170,10 @@ const DEFAULT_SETTINGS = {
   shipping: 35, shippingNote: 'עד 6 ימי עסקים',
   whatsapp: '972549064930', bitPhone: '054-5567213',
   paypalLink: '', adminPass: DEFAULT_PASS,
-  greetPrice: 30, learnPrice: 50
+  learnPrice: 50
 };
 const DEFAULT_PRODUCTS = [
+  { id:'shirt-7', name:'ספיידר-גיק', img:'img/shirt-7.jpg', price:80, active:true, order:0, badge:'חדש 🕷️', tagline:'לרגל צאת הסרט' },
   { id:'shirt-1', name:'גיק קלאסי — בלאסטר מוד', img:'img/shirt-1.jpg', price:80, active:true, order:1 },
   { id:'shirt-2', name:'גיק ופרומפטי — System: Prompting', img:'img/shirt-2.jpg', price:80, active:true, order:2 },
   { id:'shirt-3', name:'GEEK MODE: BADASS', img:'img/shirt-3.jpg', price:80, active:true, order:3 },
@@ -301,7 +301,7 @@ const PRINT_BASE = 'print/';
 function printSrc(item){
   const p = prodMap[item.id];
   if(p && p.img && p.img.indexOf('data:') === 0) return p.img;        // admin-uploaded → its stored image
-  if(/^shirt-[1-6]$/.test(item.id)) return PRINT_BASE + item.id + '.jpg'; // built-in → full-res original
+  if(/^shirt-\d+$/.test(item.id)) return PRINT_BASE + item.id + '.jpg'; // built-in → full-res original
   if(p && p.img) return p.img;                                        // fallback to product image path
   return '';
 }
@@ -335,13 +335,13 @@ async function loadProducts(){
 function renderProducts(){
   if(!products.length){
     $('productsList').innerHTML = `<div class="card" style="text-align:center">
-      <p style="margin-bottom:12px;color:var(--muted)">המוצרים עדיין לא במסד — האתר מציג כרגע את 6 החולצות המובנות.<br>כדי לערוך שמות ומחירים, טוענים אותן למסד בלחיצה:</p>
-      <button class="primary" id="seedBtn">טעינת 6 החולצות לעריכה</button>
+      <p style="margin-bottom:12px;color:var(--muted)">המוצרים עדיין לא במסד — האתר מציג כרגע את 7 החולצות המובנות.<br>כדי לערוך שמות ומחירים, טוענים אותן למסד בלחיצה:</p>
+      <button class="primary" id="seedBtn">טעינת 7 החולצות לעריכה</button>
     </div>`;
     $('seedBtn').onclick = async () => {
       const batch = db.batch();
       DEFAULT_PRODUCTS.forEach(p => batch.set(db.collection('gp-products').doc(p.id), {
-        name:p.name, img:p.img, price:p.price, active:true, order:p.order
+        name:p.name, img:p.img, price:p.price, active:true, order:p.order, badge:p.badge||'', tagline:p.tagline||''
       }));
       await batch.commit();
       toast('נטענו ✓'); loadProducts();
@@ -446,7 +446,6 @@ function fillSettings(){
   $('sBit').value = settings.bitPhone;
   $('sWa').value = settings.whatsapp;
   $('sPaypal').value = settings.paypalLink || '';
-  $('sGreet').value = settings.greetPrice;
   $('sLearn').value = settings.learnPrice;
   $('sPass').value = settings.adminPass || DEFAULT_PASS;
 }
@@ -457,7 +456,6 @@ $('sSave').onclick = async () => {
     bitPhone: $('sBit').value.trim(),
     whatsapp: $('sWa').value.trim(),
     paypalLink: $('sPaypal').value.trim(),
-    greetPrice: Number($('sGreet').value) || 30,
     learnPrice: Number($('sLearn').value) || 50,
     adminPass: $('sPass').value.trim() || DEFAULT_PASS
   };
