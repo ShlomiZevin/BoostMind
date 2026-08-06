@@ -68,7 +68,7 @@ export function TopBar({ title, subtitle, actions, center, accent, tint = 'emera
                       : 'bg-white/90 dark:bg-slate-950/90 dark:border-slate-800/80 border-slate-200/80 shadow-[0_1px_0_0_rgba(0,0,0,0.03)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.03)]'}`}
       dir="rtl"
     >
-      <div className={`max-w-lg mx-auto flex items-center gap-3 px-4 ${isLive ? 'min-h-[60px] py-2' : 'min-h-[68px] py-3'}`}>
+      <div className="max-w-lg mx-auto flex items-center gap-3 px-4 min-h-[64px] py-2.5">
         {/* Right (RTL start): title + subtitle with accent bar */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Left-edge accent bar — brand identity, color per page */}

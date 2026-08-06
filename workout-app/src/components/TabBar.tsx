@@ -1,6 +1,6 @@
 import type { Route } from '../types';
 
-type TabId = 'home' | 'history' | 'exercises' | 'settings';
+type TabId = 'home' | 'history' | 'body' | 'exercises' | 'settings';
 
 type Props = {
   current: TabId;
@@ -65,6 +65,16 @@ function IconSettings() {
     </svg>
   );
 }
+function IconBody() {
+  // Simple torso/silhouette icon
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="4.5" r="2.2" />
+      <path d="M8 21v-6l-2-3V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4l-2 3v6" />
+      <path d="M10 12h4" />
+    </svg>
+  );
+}
 
 export function TabBar({ current, onNavigate, hasInProgress, onFabClick }: Props) {
   return (
@@ -119,16 +129,16 @@ export function TabBar({ current, onNavigate, hasInProgress, onFabClick }: Props
           </div>
 
           <TabButton
+            active={current === 'body'}
+            label="גוף"
+            icon={<IconBody />}
+            onClick={() => onNavigate({ page: 'body' })}
+          />
+          <TabButton
             active={current === 'exercises'}
             label="תרגילים"
             icon={<IconDumbbell />}
             onClick={() => onNavigate({ page: 'exercises' })}
-          />
-          <TabButton
-            active={current === 'settings'}
-            label="הגדרות"
-            icon={<IconSettings />}
-            onClick={() => onNavigate({ page: 'settings' })}
           />
         </div>
       </nav>

@@ -5,10 +5,10 @@ import { MUSCLE_BY_ID, MUSCLE_CLASSES } from '../data/muscles';
 import { useFirestore } from '../hooks/useFirestore';
 import { useTimer } from '../hooks/useTimer';
 import { LogSetModal } from './LogSetModal';
-import { RestTimer } from './RestTimer';
 import { AiChatPanel } from './AiChatPanel';
 import { findPersonalByName, type PersonalExercise } from '../data/exercisesDB';
 import { TopBar } from './TopBar';
+import { SessionScoreboard } from './SessionScoreboard';
 import aiCoachIcon from '../assets/ai-coach.png';
 
 type Props = {
@@ -19,6 +19,13 @@ type Props = {
 };
 
 const DEFAULT_REST_SECONDS = 30;
+function getUserDefaultRest(): number {
+  try {
+    const v = Number(localStorage.getItem('scoreboard:defaultRestSec'));
+    if (v >= 15 && v <= 600) return v;
+  } catch { /* ignore */ }
+  return DEFAULT_REST_SECONDS;
+}
 
 type ModalMode = { kind: 'add'; muscle?: MuscleGroup; exerciseName?: string }
               | { kind: 'edit'; set: FreeSet }
@@ -95,12 +102,12 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     return arr;
   }, [session]);
 
-  async function handleAddPlannedExercise(name: string, muscle: MuscleGroup, en?: string) {
+  async function handleAddPlannedExercise(name: string, muscle: MuscleGroup, en?: string, isHoldTime?: boolean) {
     if (!session) return;
     const trimmed = name.trim();
     if (!trimmed) return;
     // Resolve to canonical personal exercise (avoids duplicates)
-    const ensured = await firestore.ensurePersonalExercise(trimmed, muscle, en);
+    const ensured = await firestore.ensurePersonalExercise(trimmed, muscle, en, isHoldTime);
     const canonical = ensured?.he || trimmed;
     const finalMuscle = ensured?.defaultMuscle || muscle;
     // Add muscle to focus
@@ -178,7 +185,11 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
 
     // Start timer when: new real set OR completing a placeholder into a real set.
     const shouldStartTimer = !isPlaceholderNow && (!editingId || wasPlaceholder);
-    if (shouldStartTimer) timer.start(DEFAULT_REST_SECONDS);
+    if (shouldStartTimer) {
+      timer.start(getUserDefaultRest());
+      // Jump to top so the user sees the just-saved set + the scoreboard.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function openChatWith(
@@ -193,19 +204,19 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     setChatOpen(true);
   }
 
-  async function handleReplacePlanned(oldName: string, newName: string, muscle: MuscleGroup, en?: string) {
+  async function handleReplacePlanned(oldName: string, newName: string, muscle: MuscleGroup, en?: string, isHoldTime?: boolean) {
     if (!session) return;
     const nameKey = oldName.toLowerCase();
     // Safety: real sets logged → don't replace, fall back to add.
     const hasSets = session.sets.some(s => (s.exerciseName || '').toLowerCase() === nameKey);
     if (hasSets) {
-      await handleAddPlannedExercise(newName, muscle, en);
+      await handleAddPlannedExercise(newName, muscle, en, isHoldTime);
       return;
     }
     // Resolve new exercise to canonical (avoids duplicates)
     const trimmed = newName.trim();
     if (!trimmed) return;
-    const ensured = await firestore.ensurePersonalExercise(trimmed, muscle, en);
+    const ensured = await firestore.ensurePersonalExercise(trimmed, muscle, en, isHoldTime);
     const canonical = ensured?.he || trimmed;
     const finalMuscle = ensured?.defaultMuscle || muscle;
 
@@ -243,13 +254,9 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   }
 
   async function handleAbandon() {
-    if (!session) return;
-    // Truly empty session (no sets, no planned exercises) → silently drop.
-    // Anything with content → just leave (session stays alive as in-progress).
-    const isEmpty = session.sets.length === 0 && (session.plannedExercises || []).length === 0;
-    if (isEmpty) {
-      await firestore.deleteFreeSession(session.id);
-    }
+    // Session always stays alive when user just exits. To delete, use the trash button.
+    // Empty state (only focus muscles picked, no sets/exercises yet) is a valid in-progress state —
+    // user might come back to it after checking home / history / etc.
     navigate({ page: 'home' });
   }
 
@@ -271,18 +278,49 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     const d = new Date(ts);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
-  function fromDateInput(v: string, hour: number, min: number): number {
-    const [y, mo, d] = v.split('-').map(Number);
-    return new Date(y, mo - 1, d, hour, min).getTime();
+  function toTimeInput(ts: number): string {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   }
-  async function handleDateChange(field: 'date' | 'completedAt', value: string) {
+  function combineDateTime(dateStr: string, timeStr: string): number {
+    const [y, mo, d] = dateStr.split('-').map(Number);
+    const [hh, mm] = timeStr.split(':').map(Number);
+    return new Date(y, mo - 1, d, hh || 0, mm || 0).getTime();
+  }
+  function formatDuration(ms: number): string {
+    if (ms <= 0) return '—';
+    const totalMin = Math.round(ms / 60000);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    if (h > 0) return `${h} שעות ${m ? ` ${m} דקות` : ''}`.trim();
+    return `${m} דקות`;
+  }
+  // Edit session date (keeps existing start-hour). Also snaps completedAt onto the new date.
+  async function handleEditSessionDate(newDateStr: string) {
     if (!session) return;
-    const old = field === 'date' ? session.date : session.completedAt;
-    const oldDate = old ? new Date(old) : new Date();
-    const newTs = fromDateInput(value, oldDate.getHours(), oldDate.getMinutes());
-    await firestore.updateFreeSessionDates(session.id, { [field]: newTs });
-    setSession({ ...session, [field]: newTs });
+    const newStart = combineDateTime(newDateStr, toTimeInput(session.date));
+    const updates: { date: number; completedAt?: number } = { date: newStart };
+    if (session.completedAt != null) {
+      updates.completedAt = combineDateTime(newDateStr, toTimeInput(session.completedAt));
+    }
+    await firestore.updateFreeSessionDates(session.id, updates);
+    setSession({ ...session, ...updates });
   }
+  async function handleEditStartTime(timeStr: string) {
+    if (!session) return;
+    const newStart = combineDateTime(toDateInput(session.date), timeStr);
+    await firestore.updateFreeSessionDates(session.id, { date: newStart });
+    setSession({ ...session, date: newStart });
+  }
+  async function handleEditEndTime(timeStr: string) {
+    if (!session) return;
+    const baseDate = session.completedAt ?? session.date;
+    const newEnd = combineDateTime(toDateInput(baseDate), timeStr);
+    await firestore.updateFreeSessionDates(session.id, { completedAt: newEnd });
+    setSession({ ...session, completedAt: newEnd });
+  }
+  const sessionDurationMs = session && session.completedAt ? (session.completedAt - session.date) : 0;
+  const durationLabel = sessionDurationMs > 0 ? formatDuration(sessionDurationMs) : null;
 
   return (
     <div className="page-bg min-h-screen">
@@ -341,40 +379,51 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
       />
       <div className="px-4 pt-0 pb-32 max-w-lg mx-auto">
       {!historical && (
-        <RestTimer
-          remaining={timer.remaining}
-          isRunning={timer.isRunning}
-          isDone={timer.isDone}
-          onSkip={timer.skip}
-          onAddTime={timer.addTime}
-          nextLabel="הסט הבא"
+        <SessionScoreboard
+          sessionStartMs={session.date}
+          restRemaining={timer.remaining}
+          restIsRunning={timer.isRunning}
+          restIsDone={timer.isDone}
+          onRestSkip={timer.skip}
+          onRestAdd={timer.addTime}
         />
       )}
 
       {historical && (
-        <div className="card mt-4 mb-4" dir="rtl">
-          <div className="text-[10px] text-muted-most mb-2 text-right uppercase tracking-widest font-semibold">תאריכים</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] text-muted mb-1 text-right">התחלה</label>
-              <input
-                type="date"
-                value={toDateInput(session.date)}
-                onChange={e => handleDateChange('date', e.target.value)}
-                className="input-field !text-sm !py-2 !text-right"
-              />
-            </div>
-            {session.completedAt != null && (
-              <div>
-                <label className="block text-[10px] text-muted mb-1 text-right">סיום</label>
-                <input
-                  type="date"
-                  value={toDateInput(session.completedAt)}
-                  onChange={e => handleDateChange('completedAt', e.target.value)}
-                  className="input-field !text-sm !py-2 !text-right"
-                />
+        <div
+          className="w-full -mx-4 mb-0 px-4 py-2.5 text-right
+                     bg-gradient-to-l from-blue-500/10 via-blue-500/5 to-transparent
+                     dark:from-blue-500/15 dark:via-blue-500/8
+                     border-b dark:border-blue-500/25 border-blue-500/25"
+          style={{ width: 'calc(100% + 2rem)' }}
+          dir="rtl"
+        >
+          <div className="max-w-lg mx-auto">
+            {durationLabel && (
+              <div className="flex items-baseline justify-between mb-2">
+                <div className="text-[10px] text-blue-700/70 dark:text-blue-300/70 uppercase tracking-widest font-semibold">משך אימון</div>
+                <div className="font-mono font-bold text-base text-blue-700 dark:text-blue-300">{durationLabel}</div>
               </div>
             )}
+            <div className="grid grid-cols-3 gap-2">
+              <DateField
+                label="תאריך"
+                value={toDateInput(session.date)}
+                display={new Date(session.date).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                onChange={handleEditSessionDate}
+              />
+              <TimeField
+                label="שעת התחלה"
+                value={toTimeInput(session.date)}
+                onChange={handleEditStartTime}
+              />
+              <TimeField
+                label="שעת סיום"
+                value={session.completedAt != null ? toTimeInput(session.completedAt) : ''}
+                onChange={handleEditEndTime}
+                disabled={session.completedAt == null}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -391,11 +440,11 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           onClose={() => setChatOpen(false)}
           onAddSet={async (partial) => {
             if (chatReplaceCtx) {
-              await handleReplacePlanned(chatReplaceCtx.name, partial.exerciseName, partial.muscle, partial.en);
+              await handleReplacePlanned(chatReplaceCtx.name, partial.exerciseName, partial.muscle, partial.en, partial.isHoldTime);
               // After the first replace picked, drop out of replace mode so more suggestions become adds.
               setChatReplaceCtx(undefined);
             } else {
-              await handleAddPlannedExercise(partial.exerciseName, partial.muscle, partial.en);
+              await handleAddPlannedExercise(partial.exerciseName, partial.muscle, partial.en, partial.isHoldTime);
             }
           }}
         />
@@ -444,14 +493,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
 
       {/* ═══ Section: בפוקוס ═══ */}
       <section className="mb-6" dir="rtl">
-        <div className="sticky top-[60px] z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-rose-50/95 to-white/85 dark:from-rose-950/40 dark:to-slate-950/90 border-b border-rose-500/20 shadow-[0_2px_10px_-6px_rgba(244,63,94,0.35)]">
-          <div className="max-w-lg mx-auto flex items-baseline justify-between">
+        <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-rose-50/95 to-white/85 dark:from-rose-950/40 dark:to-slate-950/90 border-b border-rose-500/20 shadow-[0_2px_10px_-6px_rgba(244,63,94,0.35)]" style={{ top: historical ? 'var(--top-bar-h)' : 'calc(var(--top-bar-h) + 38px)' }}>
+          <div className="max-w-lg mx-auto flex items-baseline justify-between gap-2">
             <h2 className="inline-flex items-center gap-2 text-base font-bold">
               <span>בפוקוס</span>
               <span className="w-1 h-4 rounded-full bg-rose-500" />
             </h2>
-            <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold">
-              {session.muscleGroups.length} שרירים
+            <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold flex items-center gap-1 flex-wrap justify-end">
+              <span className="font-mono">{session.muscleGroups.length}</span><span>שרירים</span>
+              <span className="text-muted-most">·</span>
+              <span className="font-mono">{exerciseCount}</span><span>תרגילים</span>
+              <span className="text-muted-most">·</span>
+              <span className="font-mono">{realSetCount}</span><span>סטים</span>
             </span>
           </div>
         </div>
@@ -490,14 +543,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
       {/* ═══ Section: תרגילים באימון ═══ */}
       {(groupedSets.length > 0 || (session.plannedExercises || []).length > 0) && (
         <section className="mb-4" dir="rtl">
-          <div className="sticky top-[60px] z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-blue-50/95 to-white/85 dark:from-blue-950/40 dark:to-slate-950/90 border-b border-blue-500/20 shadow-[0_2px_10px_-6px_rgba(59,130,246,0.35)]">
-            <div className="max-w-lg mx-auto flex items-baseline justify-between">
+          <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-blue-50/95 to-white/85 dark:from-blue-950/40 dark:to-slate-950/90 border-b border-blue-500/20 shadow-[0_2px_10px_-6px_rgba(59,130,246,0.35)]" style={{ top: historical ? 'var(--top-bar-h)' : 'calc(var(--top-bar-h) + 38px)' }}>
+            <div className="max-w-lg mx-auto flex items-baseline justify-between gap-2">
               <h2 className="inline-flex items-center gap-2 text-base font-bold">
                 <span>תרגילים באימון</span>
                 <span className="w-1 h-4 rounded-full bg-blue-500" />
               </h2>
-              <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold">
-                {groupedSets.length + (session.plannedExercises || []).filter(p => !session.sets.some(s => (s.exerciseName || '').toLowerCase() === p.name.toLowerCase())).length} תרגילים
+              <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold flex items-center gap-1 flex-wrap justify-end">
+                <span className="font-mono">{session.muscleGroups.length}</span><span>שרירים</span>
+                <span className="text-muted-most">·</span>
+                <span className="font-mono">{exerciseCount}</span><span>תרגילים</span>
+                <span className="text-muted-most">·</span>
+                <span className="font-mono">{realSetCount}</span><span>סטים</span>
               </span>
             </div>
           </div>
@@ -519,16 +576,22 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       <div className="text-[11px] text-muted mt-0.5 text-right" dir="ltr" style={{ direction: 'ltr' }}>{enName}</div>
                     )}
                   </div>
-                  {/* Top-left corner: muscle chip · set count */}
-                  <span className={`shrink-0 inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full ${c.bg} ${c.text}`}>
-                    <span>{m.he}</span>
-                    <span className="opacity-70 font-mono">· {realSetCount}</span>
-                  </span>
+                  {/* Top-left corner: muscle chip · set count (+ hold-time badge) */}
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full ${c.bg} ${c.text}`}>
+                      <span>{m.he}</span>
+                      <span className="opacity-70 font-mono">· {realSetCount}</span>
+                    </span>
+                    {findPersonalByName(personalExercises, g.exerciseName)?.isHoldTime && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded dark:bg-slate-800 bg-slate-100 text-muted-most">⏱ החזקה</span>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   {g.sets.map(s => {
                     const unit = s.unit || 'kg';
                     const isPlaceholder = s.weight === 0 && s.reps === 0;
+                    const isHold = !!findPersonalByName(personalExercises, g.exerciseName)?.isHoldTime;
                     return (
                       <div
                         key={s.id}
@@ -539,6 +602,11 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                         <div className="font-mono text-base flex-1 text-right">
                           {isPlaceholder ? (
                             <span className="text-amber-500 text-sm">— להשלים —</span>
+                          ) : isHold ? (
+                            <span dir="ltr" className="inline-block font-bold">
+                              {s.reps}<span className="text-xs text-muted mr-0.5">שנ'</span>
+                              {s.weight > 0 && (<> · {s.weight}<span className="text-xs text-muted">{unit}</span></>)}
+                            </span>
                           ) : (
                             <span dir="ltr" className="inline-block font-bold">{s.weight}<span className="text-xs text-muted mr-0.5">{unit}</span> × {s.reps}</span>
                           )}
@@ -700,6 +768,57 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           </div>
         </div>
       )}
+      </div>
+    </div>
+  );
+}
+
+// Compact date field — shows a formatted display, hides the native picker behind it.
+// The <input type="date"> covers the whole element (opacity-0) so tapping it opens the
+// system picker without the picker chrome overflowing.
+function DateField({
+  label, value, display, onChange,
+}: {
+  label: string; value: string; display: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-[10px] text-muted mb-1 text-right">{label}</label>
+      <div className="relative">
+        <div className="input-field !text-sm !py-2.5 !px-2 !text-center font-mono pointer-events-none">
+          {display}
+        </div>
+        <input
+          type="date"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="absolute inset-0 opacity-0 cursor-pointer"
+        />
+      </div>
+    </div>
+  );
+}
+
+// Same idea for time.
+function TimeField({
+  label, value, onChange, disabled,
+}: {
+  label: string; value: string; onChange: (v: string) => void; disabled?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-[10px] text-muted mb-1 text-right">{label}</label>
+      <div className="relative">
+        <div className={`input-field !text-sm !py-2.5 !px-2 !text-center font-mono pointer-events-none ${disabled ? 'opacity-50' : ''}`}>
+          {value || '—'}
+        </div>
+        <input
+          type="time"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          disabled={disabled}
+          className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+        />
       </div>
     </div>
   );

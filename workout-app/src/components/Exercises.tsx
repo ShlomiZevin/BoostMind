@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Route } from '../types';
 import type { MuscleGroup, MuscleParent } from '../data/muscles';
 import { ACTIVE_MUSCLES, MUSCLE_BY_ID, MUSCLE_CLASSES, PARENT_INFO, musclesByParent } from '../data/muscles';
-import { type PersonalExercise } from '../data/exercisesDB';
+import { type PersonalExercise, exerciseIdOf } from '../data/exercisesDB';
 import { useFirestore } from '../hooks/useFirestore';
 import { prepareMedia, exercisePhotoKey } from '../hooks/usePhotos';
 import { CHAT_API_URL } from '../config/api';
 import { AiChatPanel } from './AiChatPanel';
 import { MigrateNames } from './MigrateNames';
 import { TopBar } from './TopBar';
+import { SettingsGearAction } from './TopBarActions';
 
 type Props = {
   uid: string;
@@ -32,6 +33,8 @@ export function Exercises({ uid, navigate }: Props) {
   const [namingChatOpen, setNamingChatOpen] = useState(false);
   const [migrateOpen, setMigrateOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [addExerciseOpen, setAddExerciseOpen] = useState(false);
+  const [aiAddOpen, setAiAddOpen] = useState(false);
   const [historyStats, setHistoryStats] = useState<Map<string, { count: number; lastTs: number; sessionsCount: number }>>(new Map());
 
   async function refresh() {
@@ -115,54 +118,62 @@ export function Exercises({ uid, navigate }: Props) {
     <div className="page-bg min-h-screen">
       <TopBar
         title="התרגילים שלי"
-        subtitle={exercises.length > 0 ? `${exercises.length} תרגילים` : undefined}
         accent="brand"
         tint="violet"
+        actions={
+          <>
+            <button
+              onClick={() => setAiAddOpen(true)}
+              aria-label="הוסף עם AI"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-violet-600 hover:bg-violet-500 text-white transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => setAddExerciseOpen(true)}
+              aria-label="הוסף ידנית"
+              className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-violet-500 text-violet-600 dark:text-violet-400 dark:hover:bg-violet-500/10 hover:bg-violet-500/5 transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <SettingsGearAction navigate={navigate} />
+          </>
+        }
       />
-      <div className="p-4 pb-4 max-w-lg mx-auto">
+      <div className="px-4 pt-0 pb-4 max-w-lg mx-auto">
 
-      {/* Top summary — proof that history is being logged */}
+      {/* Summary strip — full-width, edge-to-edge, matches the "in-progress" banner style */}
       {!loading && exercises.length > 0 && (
-        <div className="card mb-4 text-right" dir="rtl">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="text-[10px] text-muted-most uppercase tracking-widest font-semibold">היסטוריה</div>
-            <div className="text-right">
-              <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">{totalStats.sets}</span>
-              <span className="text-xs text-muted mr-1.5">סטים נרשמו</span>
-              <span className="text-muted-most mx-2">·</span>
-              <span className="font-mono font-semibold">{totalStats.exercisesWithHistory}</span>
-              <span className="text-xs text-muted mr-1.5">תרגילים עם היסטוריה</span>
+        <div
+          className="w-full -mx-4 mb-0 px-4 py-2 text-right
+                     bg-gradient-to-l from-violet-500/10 via-violet-500/5 to-transparent
+                     dark:from-violet-500/15 dark:via-violet-500/8
+                     border-b dark:border-violet-500/25 border-violet-500/25"
+          style={{ width: 'calc(100% + 2rem)' }}
+          dir="rtl"
+        >
+          <div className="max-w-lg mx-auto flex items-baseline justify-between gap-2">
+            <div className="text-[10px] text-violet-700/70 dark:text-violet-300/70 uppercase tracking-widest font-semibold">מאגר תרגילים</div>
+            <div className="inline-flex items-baseline gap-2 shrink-0">
+              <div className="inline-flex items-baseline gap-1">
+                <span className="font-mono font-bold text-base text-violet-700 dark:text-violet-300 leading-none">{exercises.length}</span>
+                <span className="text-[9px] text-violet-700/70 dark:text-violet-300/70">תרגילים</span>
+              </div>
+              <span className="text-muted-most">·</span>
+              <div className="inline-flex items-baseline gap-1">
+                <span className="font-mono font-bold text-base text-violet-700 dark:text-violet-300 leading-none">{totalStats.sets}</span>
+                <span className="text-[9px] text-violet-700/70 dark:text-violet-300/70">סטים</span>
+              </div>
+              <span className="text-muted-most">·</span>
+              <div className="inline-flex items-baseline gap-1">
+                <span className="font-mono font-bold text-base text-violet-700 dark:text-violet-300 leading-none">{totalStats.exercisesWithHistory}</span>
+                <span className="text-[9px] text-violet-700/70 dark:text-violet-300/70">היסטוריה</span>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Action toolbar */}
-      {!loading && (
-        <div className="card mb-4 space-y-2" dir="rtl">
-          <div className="text-[10px] text-muted-most text-right">פעולות</div>
-          <div className="flex flex-wrap gap-2 justify-start">
-            <button
-              onClick={() => setMigrateOpen(true)}
-              disabled={exercises.length === 0}
-              className="text-[11px] btn-secondary !py-1.5 !px-3 disabled:opacity-50 text-emerald-600 dark:text-emerald-400"
-            >
-              ✨ AI: השלם ותקן שמות
-            </button>
-            <button
-              onClick={() => setNamingChatOpen(true)}
-              disabled={exercises.length === 0}
-              className="text-[11px] btn-secondary !py-1.5 !px-3 disabled:opacity-50 text-violet-600 dark:text-violet-400"
-            >
-              ✎ שאל AI על שמות
-            </button>
-            <button
-              onClick={() => setConfirmResetAll(true)}
-              disabled={exercises.length === 0}
-              className="text-[11px] btn-secondary !py-1.5 !px-3 disabled:opacity-50 text-red-500"
-            >
-              מחק הכל
-            </button>
           </div>
         </div>
       )}
@@ -179,10 +190,19 @@ export function Exercises({ uid, navigate }: Props) {
         const kids = grouped.get(parent) || [];
         if (kids.length === 0) return null;
         const info = PARENT_INFO[parent];
+        const parentClasses = MUSCLE_CLASSES[info.color];
         return (
-          <div key={parent} className="mb-4">
-            <div className="text-right text-sm font-bold mb-2 pr-1" dir="rtl">
-              {info.he} <span className="text-muted-most font-normal">({kids.length})</span>
+          <section key={parent} className="mb-4" dir="rtl">
+            <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-950/95 dark:to-slate-950/85 border-b border-subtle" style={{ top: 'var(--top-bar-h)' }}>
+              <div className="max-w-lg mx-auto flex items-baseline justify-between">
+                <h2 className="inline-flex items-center gap-2 text-base font-bold">
+                  <span className={parentClasses.text}>{info.he}</span>
+                  <span className={`w-1 h-4 rounded-full ${parentClasses.bar}`} />
+                </h2>
+                <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold">
+                  {kids.length} תרגילים
+                </span>
+              </div>
             </div>
             <div className="space-y-2">
               {kids.map(ex => {
@@ -282,7 +302,7 @@ export function Exercises({ uid, navigate }: Props) {
                 );
               })}
             </div>
-          </div>
+          </section>
         );
       })}
 
@@ -347,6 +367,54 @@ export function Exercises({ uid, navigate }: Props) {
             const s = (data.suggestions || [])[0];
             if (!s || !s.suggestedHe) return null;
             return { he: s.suggestedHe, en: s.suggestedEn, muscle: s.muscle };
+          }}
+        />
+      )}
+
+      {/* AI free-text add — user describes an exercise, AI matches to existing or creates a new one */}
+      {aiAddOpen && (
+        <AiChatPanel
+          uid={uid}
+          mode="naming"
+          initialAssistantMessage={
+            "היי! תאר לי תרגיל שאתה רוצה להוסיף למאגר — במלל חופשי, כמו שאתה רואה אותו בחדר כושר.\n\n" +
+            "אני אבדוק קודם אם הוא כבר קיים אצלך ברשימה. אם כן — אגיד לך את השם המדויק. אם לא — אציע לך אותו עם שם עברי מובנה, שם אנגלי, קבוצת שריר, וצעדי ביצוע.\n\n" +
+            "איזה תרגיל?"
+          }
+          newThreadOnMount
+          onClose={() => { setAiAddOpen(false); refresh(); }}
+          onAddToDb={async ({ exerciseName, muscle, en, isHoldTime }) => {
+            await firestore.ensurePersonalExercise(exerciseName, muscle, en, isHoldTime);
+          }}
+        />
+      )}
+
+      {/* Add-new-exercise modal — reuses EditExerciseModal on a blank stub */}
+      {addExerciseOpen && (
+        <EditExerciseModal
+          exercise={{
+            id: '', he: '', en: '', defaultMuscle: 'chest',
+            createdAt: Date.now(), updatedAt: Date.now(),
+          }}
+          onClose={() => setAddExerciseOpen(false)}
+          onSave={async (patch) => {
+            const he = (patch.he || '').trim();
+            if (!he) return;
+            const id = exerciseIdOf(he);
+            if (!id) return;
+            await firestore.upsertPersonalExercise({
+              id,
+              he,
+              en: patch.en?.trim() || undefined,
+              defaultMuscle: patch.defaultMuscle || 'chest',
+              aliases: patch.aliases,
+              notes: patch.notes,
+              isHoldTime: patch.isHoldTime,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            });
+            setAddExerciseOpen(false);
+            refresh();
           }}
         />
       )}
@@ -460,6 +528,7 @@ function EditExerciseModal({
   const [muscle, setMuscle] = useState<MuscleGroup>(exercise.defaultMuscle);
   const [aliasesText, setAliasesText] = useState((exercise.aliases || []).join(', '));
   const [notes, setNotes] = useState(exercise.notes || '');
+  const [isHoldTime, setIsHoldTime] = useState<boolean>(!!exercise.isHoldTime);
   const [aiThinking, setAiThinking] = useState(false);
 
   async function runAiSuggest() {
@@ -480,7 +549,7 @@ function EditExerciseModal({
   return (
     <div className="fixed inset-0 z-50 flex flex-col overlay-solid">
       <div className="flex flex-row-reverse items-center justify-between p-4 border-b border-subtle">
-        <h2 className="font-bold text-lg" dir="rtl">עריכת תרגיל</h2>
+        <h2 className="font-bold text-lg" dir="rtl">{exercise.id ? 'עריכת תרגיל' : 'תרגיל חדש'}</h2>
         <button onClick={onClose} className="text-muted text-2xl">×</button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -547,6 +616,32 @@ function EditExerciseModal({
           <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">הערות</label>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="input-field !text-right !text-sm !py-2" dir="rtl" />
         </div>
+        {/* Hold-time toggle */}
+        <div className="card !p-3 !bg-transparent border dark:border-slate-800 border-slate-200" dir="rtl">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-right flex-1">
+              <div className="text-sm font-semibold">תרגיל של זמן החזקה</div>
+              <div className="text-[11px] text-muted mt-0.5">
+                לתרגילים כמו פלאנק — במקום חזרות רושמים שניות של החזקה
+              </div>
+            </div>
+            <button
+              onClick={() => setIsHoldTime(v => !v)}
+              role="switch"
+              aria-checked={isHoldTime}
+              className={`shrink-0 w-11 h-6 rounded-full relative transition-colors ${
+                isHoldTime ? 'bg-emerald-500' : 'dark:bg-slate-700 bg-slate-300'
+              }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow ${
+                  isHoldTime ? 'right-0.5' : 'right-[calc(100%-1.375rem)]'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
       </div>
       <div className="p-4 border-t border-subtle">
         <button
@@ -556,6 +651,7 @@ function EditExerciseModal({
             defaultMuscle: muscle,
             aliases: aliasesText.split(',').map(s => s.trim()).filter(Boolean),
             notes: notes.trim() || undefined,
+            isHoldTime: isHoldTime || undefined,
           })}
           className="btn-primary w-full py-3 font-semibold"
         >שמור</button>

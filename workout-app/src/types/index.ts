@@ -115,4 +115,5 @@ export type Route =
   | { page: 'history' }
   | { page: 'session-view'; sessionId: string }
   | { page: 'settings' }
-  | { page: 'exercises' };
+  | { page: 'exercises' }
+  | { page: 'body' };

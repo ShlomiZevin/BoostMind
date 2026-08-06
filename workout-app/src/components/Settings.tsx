@@ -4,6 +4,7 @@ import { useFirestore } from '../hooks/useFirestore';
 import { PARENT_INFO, musclesByParent, DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import type { MuscleGroup, MuscleParent } from '../data/muscles';
 import { TopBar } from './TopBar';
+import { CloseAction } from './TopBarActions';
 
 type Props = {
   uid: string;
@@ -53,7 +54,12 @@ export function Settings({ uid, navigate, onLogout }: Props) {
 
   return (
     <div className="page-bg min-h-screen">
-      <TopBar title="הגדרות" accent="brand" tint="amber" />
+      <TopBar
+        title="הגדרות"
+        accent="brand"
+        tint="amber"
+        actions={<CloseAction navigate={navigate} />}
+      />
       <div className="p-4 pb-4 max-w-lg mx-auto">
 
       <div className="card mb-4">

@@ -498,6 +498,7 @@ export function useFirestore(uid: string | null) {
     name: string,
     defaultMuscle: MuscleGroup,
     en?: string,
+    isHoldTime?: boolean,
   ): Promise<PersonalExercise | null> => {
     if (!uid || !name.trim()) return null;
     // First, check all existing personal exercises for a name-based match (he / alias / slug).
@@ -521,6 +522,7 @@ export function useFirestore(uid: string | null) {
       he: name.trim(),
       en: en?.trim() || undefined,
       defaultMuscle,
+      isHoldTime: isHoldTime || undefined,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };

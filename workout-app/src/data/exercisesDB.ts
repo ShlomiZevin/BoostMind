@@ -12,6 +12,10 @@ export type PersonalExercise = {
   aliases?: string[];            // alternate names / typos that resolve here
   photoBase64?: string;          // user-uploaded photo, replaces any icon
   notes?: string;                // free-text
+  // Hold-time exercises (planks, wall-sits, dead-hangs).
+  // When true, the "reps" field on each FreeSet represents seconds-held, not repetitions.
+  // Undefined (default) → normal rep-based exercise. Fully backward-compatible.
+  isHoldTime?: boolean;
   createdAt: number;
   updatedAt: number;
 };

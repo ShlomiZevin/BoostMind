@@ -3,6 +3,7 @@ import type { Route, FreeSession } from '../types';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, effectiveMuscles } from '../data/muscles';
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
+import { SettingsGearAction } from './TopBarActions';
 
 type Props = {
   uid: string;
@@ -28,6 +29,7 @@ export function FreeHistory({ uid, navigate }: Props) {
         subtitle={sessions.length > 0 ? `${sessions.length} אימונים` : undefined}
         accent="brand"
         tint="blue"
+        actions={<SettingsGearAction navigate={navigate} />}
       />
       <div className="p-4 pb-4 max-w-lg mx-auto">
 

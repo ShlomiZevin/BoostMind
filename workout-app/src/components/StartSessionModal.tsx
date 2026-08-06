@@ -8,13 +8,15 @@ type Props = {
   weeklySets?: Partial<Record<MuscleGroup, number>>;
   // Muscles trained around this same weekday last week — used to hint "you did these 7d ago".
   lastWeekMuscles?: Set<MuscleGroup>;
+  // Muscles trained in the last 48h — amber warning ("give them a rest")
+  recentMuscles?: Set<MuscleGroup>;
   onClose: () => void;
   onStart: (muscles: MuscleGroup[]) => void;
 };
 
 const PARENT_ORDER: MuscleParent[] = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core'];
 
-export function StartSessionModal({ suggested = [], weeklySets = {}, lastWeekMuscles, onClose, onStart }: Props) {
+export function StartSessionModal({ suggested = [], weeklySets = {}, lastWeekMuscles, recentMuscles, onClose, onStart }: Props) {
   const [selected, setSelected] = useState<Set<MuscleGroup>>(new Set());
 
   function useLastWeek() {
@@ -72,6 +74,24 @@ export function StartSessionModal({ suggested = [], weeklySets = {}, lastWeekMus
           </button>
         )}
 
+        {recentMuscles && recentMuscles.size > 0 && [...selected].some(id => recentMuscles.has(id)) && (
+          <div className="flex items-start gap-3 rounded-xl px-3 py-2.5 dark:bg-amber-950/40 bg-amber-50 border dark:border-amber-500/40 border-amber-300 text-[12px] text-amber-800 dark:text-amber-200" dir="rtl">
+            <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-amber-500 text-white">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </span>
+            <div className="text-right flex-1 min-w-0">
+              <div className="font-semibold">בחרת שרירים שאימנת ב-48 שעות האחרונות</div>
+              <div className="text-[11px] opacity-80 mt-0.5">
+                {[...selected].filter(id => recentMuscles.has(id)).map(id => ACTIVE_MUSCLES.find(m => m.id === id)?.he).filter(Boolean).join(' · ')}
+              </div>
+            </div>
+          </div>
+        )}
+
         {lastWeekMuscles && lastWeekMuscles.size > 0 && (
           <button
             onClick={useLastWeek}
@@ -102,13 +122,13 @@ export function StartSessionModal({ suggested = [], weeklySets = {}, lastWeekMus
           return (
             <div key={parent}>
               <div className="flex items-center justify-between mb-1.5" dir="rtl">
+                <div className="text-sm font-semibold">{info.he}</div>
                 <button
                   onClick={() => toggleParent(parent)}
                   className={`text-[10px] px-2 py-0.5 rounded ${allSelected ? 'bg-emerald-500 text-white' : someSelected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'dark:bg-slate-800 dark:text-slate-400 bg-slate-200 text-slate-500'}`}
                 >
                   {allSelected ? 'נבחר הכל' : 'בחר הכל'}
                 </button>
-                <div className="text-sm font-semibold" dir="rtl">{info.he}</div>
               </div>
               <div className="grid grid-cols-2 gap-2" dir="rtl">
                 {children.map(m => {
@@ -150,6 +170,18 @@ export function StartSessionModal({ suggested = [], weeklySets = {}, lastWeekMus
                           <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
                             <path d="M3 3v5h5" />
+                          </svg>
+                        </span>
+                      )}
+                      {recentMuscles?.has(m.id) && (
+                        <span
+                          className={`absolute ${isLastWeek ? '-top-1 -left-6' : '-top-1 -left-1'} flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-white text-[8px] font-bold shadow`}
+                          title="אימנת בשריר הזה ב-48 שעות האחרונות"
+                        >
+                          <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
                           </svg>
                         </span>
                       )}

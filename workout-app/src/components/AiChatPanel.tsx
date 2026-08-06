@@ -18,9 +18,18 @@ type Props = {
     en?: string;
     weight?: number;
     reps?: number;
+    isHoldTime?: boolean;
+  }) => Promise<void> | void;
+  /** Alternative to onAddSet — saves suggested exercise to personal DB instead of a session. Used from the Exercises page's "הוסף עם AI" flow. */
+  onAddToDb?: (partial: {
+    muscle: MuscleGroup;
+    exerciseName: string;
+    en?: string;
+    isHoldTime?: boolean;
   }) => Promise<void> | void;
   onRename?: (id: string, patch: { he?: string; en?: string; muscle?: MuscleGroup }) => Promise<void> | void;
-  initialPrompt?: string;  // Auto-send this prompt when the panel opens
+  initialPrompt?: string;  // Auto-send this prompt when the panel opens (as if the user typed it)
+  initialAssistantMessage?: string; // Seed the thread with a fake assistant greeting — no request to the server
   replaceContext?: { name: string; muscle: MuscleGroup }; // signal to the model + UI: user is REPLACING this exercise
   newThreadOnMount?: boolean;  // start a fresh conversation thread instead of resuming latest
   onClose: () => void;
@@ -34,6 +43,7 @@ type ActionSuggestExercise = {
   en?: string;
   muscle: string;
   isNew?: boolean;
+  isHoldTime?: boolean;
   howTo?: string[];
 };
 
@@ -149,7 +159,7 @@ function saveThreads(uid: string, mode: string, threads: Thread[]) {
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onRename, initialPrompt, replaceContext, newThreadOnMount, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, onClose,
 }: Props) {
   const firestore = useFirestore(uid);
   const [personalExercises, setPersonalExercises] = useState<PersonalExercise[]>([]);
@@ -219,6 +229,17 @@ export function AiChatPanel({
     if (!p) return;
     setInput(p);
     setTimeout(() => { setInput(''); void sendWith(p); }, 30);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Seed the active thread with a fake assistant greeting (no server round-trip) — used to
+  // prime the conversation with context without making the user look like they said something.
+  useEffect(() => {
+    if (!initialAssistantMessage || autoSentRef.current) return;
+    autoSentRef.current = true;
+    const cur = threads.find(t => t.id === activeId);
+    if (cur && cur.messages.length > 0) return; // already has content
+    updateActiveMessages([{ role: 'assistant', content: initialAssistantMessage, ts: Date.now() }]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -356,7 +377,7 @@ export function AiChatPanel({
   }
 
   async function handleSuggestAction(a: ActionSuggestExercise, key: string) {
-    if (!onAddSet) return;
+    if (!onAddSet && !onAddToDb) return;
     const muscle = ACTIVE_MUSCLES.find(m => m.id === a.muscle)?.id
       || (MUSCLE_BY_ID as any)[a.muscle]?.id;
     if (!muscle) return;
@@ -368,9 +389,17 @@ export function AiChatPanel({
     );
     const finalName = existing ? existing.he : a.name;
     const finalEn = existing?.en || a.en;
-    await onAddSet({ muscle, exerciseName: finalName, en: finalEn });
-    setAppliedActionIds(prev => new Set(prev).add(key));
-    showToast(replaceContext ? `⇄ הוחלף ל-${finalName}` : `✓ ${finalName} נוסף לאימון`);
+    if (onAddToDb && !onAddSet) {
+      await onAddToDb({ muscle, exerciseName: finalName, en: finalEn, isHoldTime: a.isHoldTime });
+      setAppliedActionIds(prev => new Set(prev).add(key));
+      showToast(existing ? `✓ ${finalName} כבר קיים ב-DB` : `✓ ${finalName} נוסף לרשימה`);
+      return;
+    }
+    if (onAddSet) {
+      await onAddSet({ muscle, exerciseName: finalName, en: finalEn, isHoldTime: a.isHoldTime });
+      setAppliedActionIds(prev => new Set(prev).add(key));
+      showToast(replaceContext ? `⇄ הוחלף ל-${finalName}` : `✓ ${finalName} נוסף לאימון`);
+    }
   }
 
   async function handleRenameAction(a: ActionRenameExercise, key: string) {
@@ -599,7 +628,7 @@ export function AiChatPanel({
                             </div>
                           </div>
                           <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
-                            {applied ? '✓ נוסף' : (replaceContext ? '⇄ החלף' : '+ הוסף לאימון')}
+                            {applied ? '✓ נוסף' : (replaceContext ? '⇄ החלף' : (onAddToDb && !onAddSet ? '+ הוסף למאגר' : '+ הוסף לאימון'))}
                           </span>
                         </button>
                         {/* How-to steps + Google-search link */}
@@ -696,7 +725,7 @@ export function AiChatPanel({
             placeholder="תאר תרגיל או בקש הצעה..."
             className="input-field flex-1 !text-right !text-sm !py-2.5"
             dir="rtl"
-            autoFocus={!initialPrompt}
+            /* No autoFocus — otherwise iOS Safari pops the keyboard and hides the header. User can tap the input themselves. */
           />
           <button
             onClick={send}

@@ -1,8 +1,15 @@
+/* Scoreboard font — retro dot-matrix look, matches train-station / LED displays */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Total TopBar height including iOS safe-area — sticky section titles use this to sit right under it */
+    --top-bar-h: calc(env(safe-area-inset-top) + 64px);
+  }
   html {
     -webkit-tap-highlight-color: transparent;
   }
@@ -73,6 +80,15 @@
   .btn-icon {
     @apply dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 bg-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-300 rounded-lg transition-colors;
   }
+}
+
+/* Scoreboard-style digital numbers — dot-matrix / retro LED look (VT323 fallback stack) */
+.font-scoreboard {
+  font-family: 'VT323', 'Cutive Mono', 'Courier New', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400; /* VT323 is bitmap — no weight variation, and 400 is the only face */
+  letter-spacing: 0.02em;
+  line-height: 0.9;
 }
 
 /* AI coach button — minimal health-tech, heartbeat pulse */

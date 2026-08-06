@@ -7,6 +7,7 @@ import { FreeSession } from './components/FreeSession';
 import { FreeHistory } from './components/FreeHistory';
 import { Settings } from './components/Settings';
 import { Exercises } from './components/Exercises';
+import { Body } from './components/Body';
 import { PasscodeScreen } from './components/PasscodeScreen';
 import { TabBar } from './components/TabBar';
 import { StartSessionModal } from './components/StartSessionModal';
@@ -19,6 +20,7 @@ function parseHash(): Route {
   if (hash === '/history') return { page: 'history' };
   if (hash === '/settings') return { page: 'settings' };
   if (hash === '/exercises') return { page: 'exercises' };
+  if (hash === '/body') return { page: 'body' };
   if (hash.startsWith('/session-view/')) {
     const sessionId = hash.split('/')[2];
     return { page: 'session-view', sessionId };
@@ -36,12 +38,13 @@ function routeToHash(route: Route): string {
     case 'history': return '#/history';
     case 'settings': return '#/settings';
     case 'exercises': return '#/exercises';
+    case 'body': return '#/body';
     case 'session': return `#/session/${route.sessionId}`;
     case 'session-view': return `#/session-view/${route.sessionId}`;
   }
 }
 
-const TAB_PAGES = new Set(['home', 'history', 'exercises', 'settings']);
+const TAB_PAGES = new Set(['home', 'history', 'exercises', 'body', 'settings']);
 
 function AppShell({ uid, route, navigate, doLogout }: {
   uid: string;
@@ -102,6 +105,19 @@ function AppShell({ uid, route, navigate, doLogout }: {
     return found;
   }, [allSessions]);
 
+  // Muscles trained in the last 24-48h — heads up so you don't hit them again too soon
+  const recentMuscles = useMemo(() => {
+    const cutoff = Date.now() - 48 * 3600_000;
+    const found = new Set<MuscleGroup>();
+    for (const sess of allSessions) {
+      if (sess.date < cutoff) continue;
+      for (const s of sess.sets) {
+        if (s.weight > 0 || s.reps > 0) found.add(s.muscle);
+      }
+    }
+    return found;
+  }, [allSessions]);
+
   async function handleFabClick() {
     if (inProgress) {
       navigate({ page: 'session', sessionId: inProgress.id });
@@ -138,6 +154,9 @@ function AppShell({ uid, route, navigate, doLogout }: {
     case 'exercises':
       content = <Exercises uid={uid} navigate={navigate} />;
       break;
+    case 'body':
+      content = <Body uid={uid} navigate={navigate} />;
+      break;
   }
 
   return (
@@ -159,6 +178,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
           suggested={suggested}
           weeklySets={weeklySets}
           lastWeekMuscles={lastWeekMuscles}
+          recentMuscles={recentMuscles}
           onClose={() => setShowStart(false)}
           onStart={handleStart}
         />

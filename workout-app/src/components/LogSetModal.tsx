@@ -81,6 +81,30 @@ export function LogSetModal({
   const [unit, setUnit] = useState(seed?.unit || 'kg');
   const [showAddMuscle, setShowAddMuscle] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
+  const [holdRunning, setHoldRunning] = useState(false);
+  const [holdStartMs, setHoldStartMs] = useState(0);
+  const [holdElapsedTick, setHoldElapsedTick] = useState(0);
+
+  useEffect(() => {
+    if (!holdRunning) return;
+    const id = setInterval(() => setHoldElapsedTick(t => t + 1), 50);
+    return () => clearInterval(id);
+  }, [holdRunning]);
+
+  function startHoldTimer() {
+    setHoldStartMs(Date.now());
+    setHoldRunning(true);
+  }
+  function stopHoldTimer() {
+    if (!holdRunning) return;
+    const secs = Math.max(1, Math.round((Date.now() - holdStartMs) / 1000));
+    setReps(String(secs));
+    setHoldRunning(false);
+  }
+  const holdElapsedMs = holdRunning ? (Date.now() - holdStartMs) : 0;
+  const holdElapsedSec = Math.floor(holdElapsedMs / 1000);
+  const holdElapsedCs = Math.floor((holdElapsedMs % 1000) / 10);
+  void holdElapsedTick;
 
   // Resolve seed to a PersonalExercise if possible
   useEffect(() => {
@@ -194,14 +218,32 @@ export function LogSetModal({
     }
   }, [muscle, currentName]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Per-exercise range for the last 30 days
+  // Last time (ms) the CURRENT muscle was hit with a real set — for the "worked recently" warning.
+  const muscleLastTrainedMs = useMemo(() => {
+    if (!muscle) return null;
+    let latest = 0;
+    for (const s of allPastSets) {
+      if (s.muscle !== muscle) continue;
+      if (s.weight === 0 && s.reps === 0) continue;
+      if (s.timestamp > latest) latest = s.timestamp;
+    }
+    return latest > 0 ? latest : null;
+  }, [muscle, allPastSets]);
+  const muscleWorkedRecentlyLabel = useMemo(() => {
+    if (!muscleLastTrainedMs) return null;
+    const hoursAgo = (Date.now() - muscleLastTrainedMs) / 3_600_000;
+    if (hoursAgo > 48) return null;
+    if (hoursAgo < 24) return 'היום';
+    return 'אתמול';
+  }, [muscleLastTrainedMs]);
+
+  // Per-exercise range for the last 30 days — includes bodyweight (0kg) sets too
   const referenceRange = useMemo(() => {
     if (!currentName) return null;
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const target = currentName.trim().toLowerCase();
     const recent = allPastSets.filter(s =>
       s.timestamp >= cutoff &&
-      s.weight > 0 &&
       s.exerciseName &&
       s.exerciseName.trim().toLowerCase() === target
     );
@@ -209,6 +251,11 @@ export function LogSetModal({
     const weights = recent.map(s => s.weight);
     return { min: Math.min(...weights), max: Math.max(...weights), count: recent.length };
   }, [currentName, allPastSets]);
+
+  function formatReferenceRange(r: { min: number; max: number }, u: string): string {
+    if (r.min === r.max) return `${r.min}${u}`;
+    return `${r.min}–${r.max}${u}`;
+  }
 
   function pickExisting(ex: PersonalExercise) {
     setSelectedExercise(ex);
@@ -273,11 +320,11 @@ export function LogSetModal({
             {isNewMuscleForSession && (
               <span className="text-[10px] text-amber-500">+ יצטרף לפוקוס</span>
             )}
-            <div className="text-[10px] text-muted">
+            <div className="text-[11px] font-medium dark:text-slate-300 text-slate-700">
               {muscle ? 'שריר (לחץ להסרה)' : 'שריר — כל תרגילי הפוקוס'}
             </div>
           </div>
-          <div className="flex flex-wrap gap-1.5 justify-end" dir="rtl">
+          <div className="flex flex-wrap gap-1.5 justify-start" dir="rtl">
             {chipMuscles.map(id => {
               const m = MUSCLE_BY_ID[id];
               if (!m) return null;
@@ -318,14 +365,30 @@ export function LogSetModal({
               ))}
             </div>
           )}
+          {muscle && muscleWorkedRecentlyLabel && (
+            <div
+              className="mt-3 flex items-start gap-3 text-[12px] text-amber-800 dark:text-amber-200 dark:bg-amber-950/40 bg-amber-50 border dark:border-amber-500/40 border-amber-300 rounded-xl px-3 py-2.5"
+              dir="rtl"
+            >
+              <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-amber-500 text-white">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </span>
+              <div className="text-right flex-1 min-w-0">
+                <div className="font-semibold">אימנת את השריר הזה {muscleWorkedRecentlyLabel}</div>
+                <div className="text-[11px] opacity-80 mt-0.5">שקול לתת לו יום מנוחה</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Selected-exercise panel — ONE consistent layout for every exercise */}
         {!pickerOpen && currentName && (() => {
           const photo = photoFor(currentName);
-          const range = currentHistory ? formatRange(currentHistory) : null;
           const hasAnyHistory = !!currentHistory;
-          const hasWeighted = !!referenceRange;
           return (
             <div className="card !p-3 border-2 border-emerald-400 dark:border-emerald-500 dark:!bg-emerald-950/25 !bg-emerald-50 shadow-md">
               {/* Row 1: photo slot + name + החלף — always same shape */}
@@ -368,17 +431,14 @@ export function LogSetModal({
               {!pickOnly && (
                 <div className="mt-3 pt-3 border-t border-emerald-500/20 text-right" dir="rtl">
                   {hasAnyHistory ? (
-                    <div className="flex items-center gap-2 justify-end flex-wrap text-[11px]">
-                      {hasWeighted && referenceRange && (
+                    <div className="flex items-center gap-2 flex-wrap text-[11px]" dir="rtl">
+                      {referenceRange && (
                         <span className="font-mono text-main">
                           <span className="text-muted-most text-[10px]">טווח 30י׳</span>{' '}
-                          <span dir="ltr" className="font-bold">{referenceRange.min}–{referenceRange.max}{unit}</span>
+                          <span dir="ltr" className="font-bold inline-block">{formatReferenceRange(referenceRange, unit)}</span>
                         </span>
                       )}
-                      {hasWeighted && range && !referenceRange && (
-                        <span className="font-mono text-main" dir="ltr">{range}</span>
-                      )}
-                      {hasWeighted && <span className="text-muted-most">·</span>}
+                      {referenceRange && <span className="text-muted-most">·</span>}
                       <span className="text-emerald-600 dark:text-emerald-400">{weeksAgoLabel(currentHistory!.lastTs)}</span>
                       <span className="text-muted-most">·</span>
                       <span className="text-muted">{currentHistory!.count} סטים בעבר</span>
@@ -391,8 +451,8 @@ export function LogSetModal({
                 </div>
               )}
 
-              {/* Row 3: media actions — ALWAYS shown so every exercise behaves the same */}
-              <div className="flex items-center gap-4 justify-end mt-3 pt-3 border-t border-emerald-500/20 text-[11px]" dir="rtl">
+              {/* Row 3: media actions + Google search — ALWAYS shown so every exercise behaves the same */}
+              <div className="flex items-center gap-3 justify-end mt-3 pt-3 border-t border-emerald-500/20 text-[11px]" dir="rtl">
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
@@ -400,17 +460,21 @@ export function LogSetModal({
                 >
                   {uploading ? '...טוען' : (photo ? 'החלף תמונה/וידאו' : '+ תמונה/וידאו')}
                 </button>
-                {photo && (
-                  <button
-                    onClick={async () => {
-                      if (!currentName) return;
-                      await firestore.deleteExercisePhoto(currentName);
-                      const k = exercisePhotoKey(currentName);
-                      setPhotosMap(prev => { const n = { ...prev }; delete n[k]; return n; });
-                    }}
-                    className="text-red-500 hover:text-red-400"
-                  >מחק</button>
-                )}
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(((selectedExercise?.en || currentName) as string) + ' exercise')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="חפש בגוגל"
+                  title="חיפוש בגוגל"
+                  className="mr-auto inline-flex items-center gap-1 text-muted hover:text-main"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5" />
+                  </svg>
+                  <span>חפש בגוגל</span>
+                </a>
               </div>
             </div>
           );
@@ -520,10 +584,10 @@ export function LogSetModal({
 
         {!pickOnly && (
         <>
-        {/* Weight + reps */}
+        {/* Weight + reps (or seconds when hold-time) */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">משקל ({unit})</label>
+            <label className="block text-[11px] font-medium dark:text-slate-300 text-slate-700 mb-1.5 text-right" dir="rtl">משקל ({unit})</label>
             <input
               type="text"
               inputMode="decimal"
@@ -535,14 +599,16 @@ export function LogSetModal({
             />
           </div>
           <div>
-            <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">חזרות</label>
+            <label className="block text-[11px] font-medium dark:text-slate-300 text-slate-700 mb-1.5 text-right" dir="rtl">
+              {selectedExercise?.isHoldTime ? 'שניות' : 'חזרות'}
+            </label>
             <input
               type="text"
               inputMode="numeric"
               value={reps}
               onChange={e => { const v = e.target.value; if (v === '' || /^[0-9]*$/.test(v)) setReps(v); }}
               onFocus={e => e.currentTarget.select()}
-              placeholder="12"
+              placeholder={selectedExercise?.isHoldTime ? '30' : '12'}
               className="input-field !text-lg !py-3 !text-center"
             />
           </div>
@@ -558,6 +624,50 @@ export function LogSetModal({
             >{u}</button>
           ))}
         </div>
+
+        {/* Hold-time timer — scoreboard-style tool for hold-time exercises */}
+        {selectedExercise?.isHoldTime && (
+          <div className="mt-4 rounded-2xl overflow-hidden bg-emerald-950 border border-emerald-500/25 shadow-lg" dir="rtl">
+            <div className="px-4 py-3 flex items-center justify-between gap-3">
+              <div className="text-right">
+                <div className="text-[9px] text-emerald-300/80 uppercase tracking-widest font-semibold flex items-center gap-1">
+                  <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 2h12" />
+                    <path d="M6 22h12" />
+                    <path d="M6 2v5a6 6 0 0 0 12 0V2" />
+                    <path d="M6 22v-5a6 6 0 0 1 12 0v5" />
+                  </svg>
+                  <span>סטופר</span>
+                </div>
+                <div className={`font-scoreboard text-3xl leading-none mt-1 ${holdRunning ? 'text-emerald-300' : 'text-white/60'}`}>
+                  {String(Math.floor(holdElapsedSec / 60)).padStart(2, '0')}:{String(holdElapsedSec % 60).padStart(2, '0')}
+                  <span className="text-xl opacity-80">.{String(holdElapsedCs).padStart(2, '0')}</span>
+                </div>
+              </div>
+              <button
+                onClick={holdRunning ? stopHoldTimer : startHoldTimer}
+                className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full font-semibold text-sm transition-colors ${
+                  holdRunning
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-emerald-500 hover:bg-emerald-400 text-white'
+                }`}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                {holdRunning ? (
+                  <>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></svg>
+                    <span>עצור ושמור</span>
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                    <span>התחל</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
         </>
         )}
       </div>

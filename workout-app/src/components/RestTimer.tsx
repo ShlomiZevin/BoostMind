@@ -23,6 +23,20 @@ export function RestTimer({ remaining, isRunning, onSkip, onAddTime, nextLabel, 
     if (remaining === 0) setMinimized(true);
   }, [remaining]);
 
+  // Auto-dismiss the "קדימה!" pill when the tab regains focus — user has clearly seen it.
+  useEffect(() => {
+    if (!isDone) return;
+    function onVisible() {
+      if (document.visibilityState === 'visible' && isDone) onSkip();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [isDone, onSkip]);
+
   if (!isRunning && !isDone) return null;
 
   const minutes = Math.floor(remaining / 60);
