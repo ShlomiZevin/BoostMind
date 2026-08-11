@@ -7,7 +7,7 @@ import {
 } from '../data/muscles';
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
-import { SettingsGearAction } from './TopBarActions';
+import { TabActions } from './TopBarActions';
 
 type Props = { uid: string; navigate: (r: Route) => void };
 
@@ -138,7 +138,7 @@ export function Body({ uid, navigate }: Props) {
         subtitle={`${sessionsInRange} אימונים · ${totalSets} סטים`}
         accent="brand"
         tint="blue"
-        actions={<SettingsGearAction navigate={navigate} />}
+        actions={<TabActions navigate={navigate} />}
       />
       <div className="px-4 pt-0 pb-4 max-w-lg mx-auto">
         {/* ═══ Range picker ═══ */}

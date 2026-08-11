@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>צ'ק-אין · מסיבת גג ברמת וורבר</title>
+<meta name="description" content="צ'ק-אין למסיבת הגג ברמת וורבר. בחירת מקום ישיבה, אזור עישון וכרטיס כניסה אישי. שבת 08/08/26, 16:30.">
+<meta name="theme-color" content="#101a26">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:site_name" content="מסיבת גג · רמת וורבר">
+<meta property="og:url" content="https://boostmind-b052c.web.app/party/checkin.html">
+<meta property="og:title" content="🎟️ הצ'ק-אין למסיבת הגג נפתח!">
+<meta property="og:description" content="בוחרים מקום ישיבה לפני שנתפס · אזור עישון · כרטיס כניסה אישי. שבת 08/08/26, 16:30.">
+<meta property="og:image" content="https://boostmind-b052c.web.app/party/og-checkin.jpg">
+<meta property="og:image:secure_url" content="https://boostmind-b052c.web.app/party/og-checkin.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="צ'ק-אין למסיבת גג ברמת וורבר">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="🎟️ הצ'ק-אין למסיבת הגג נפתח!">
+<meta name="twitter:description" content="בוחרים מקום ישיבה · שבת 08/08/26, 16:30">
+<meta name="twitter:image" content="https://boostmind-b052c.web.app/party/og-checkin.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#101a26; --card:#1c2937; --card2:#22303f;
+  --cream:#f6ecdc; --gold:#f0a63a; --gold-d:#c07f21; --pink:#ee5f92; --green:#3fbf87; --sky:#5aa9e6;
+  --text:#f6ecdc; --muted:#a4b0bd; --line:rgba(246,236,220,.14);
+  --scrim:rgba(10,16,24,.86); --field:rgba(255,255,255,.05); --field-b:rgba(246,236,220,.18);
+  --shadow:0 18px 50px rgba(0,0,0,.45); --bgimg:url(party-bg.jpg);
+}
+html[data-theme="light"]{
+  --navy:#fdf6ea; --card:#fffaf1; --card2:#fff5e6;
+  --cream:#1f2934; --gold:#c9801d; --gold-d:#a3650f; --pink:#d94b7d; --green:#1e8f5f; --sky:#2b7cb8;
+  --text:#22303c; --muted:#5f6d7b; --line:rgba(30,40,52,.13);
+  --scrim:rgba(255,247,235,.93); --field:rgba(255,255,255,.75); --field-b:rgba(30,40,52,.16);
+  --shadow:0 16px 44px rgba(120,84,30,.18); --bgimg:url(sky.jpg);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:'Heebo',system-ui,sans-serif;background:var(--navy);color:var(--text);line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:-2;background:var(--bgimg) center/cover no-repeat}
+body::after{content:'';position:fixed;inset:0;z-index:-1;background:var(--scrim)}
+h1,h2,h3,.disp{font-family:'Secular One','Heebo',sans-serif;font-weight:400;line-height:1.15;margin:0}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px 130px}
+
+/* ---------- top bar ---------- */
+.topline{
+  position:sticky;top:0;z-index:25;display:flex;align-items:center;gap:10px;
+  background:rgba(10,16,24,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:9px 12px;
+}
+html[data-theme="light"] .topline{background:rgba(255,250,242,.93)}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Secular One',sans-serif;font-size:15px;line-height:1.1;flex:1;min-width:0}
+.logo .mk{width:28px;height:28px;background:var(--gold);color:#1a2634;border-radius:8px;display:grid;place-items:center;font-size:15px;flex:none}
+.logo small{display:block;font-family:'Heebo';font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.06em}
+.cdown{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;flex:none}
+.cdown b{font-family:'Secular One',sans-serif;font-size:15px;color:var(--gold);font-weight:400;white-space:nowrap}
+.cdown small{font-size:9.5px;color:var(--muted);font-weight:800;white-space:nowrap}
+.tbtn{width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--text);font-size:14px;cursor:pointer;display:grid;place-items:center}
+.tbtn:hover{border-color:var(--gold)}
+
+.ticker{overflow:hidden;background:var(--gold);color:#1a2634;font-weight:800;font-size:12.5px;padding:6px 0;white-space:nowrap}
+.ticker div{display:inline-block;padding-right:100%;animation:mar 34s linear infinite}
+@keyframes mar{from{transform:translateX(0)}to{transform:translateX(100%)}}
+
+/* ---------- hero: band with its own background ---------- */
+.hero{
+  position:relative;overflow:hidden;           /* contains the sway so it can't grow the page */
+  margin:0 -14px 16px;padding:20px 16px 0;
+  background:url(party-bg.jpg) center 38%/cover no-repeat;
+  border-bottom:1px solid rgba(246,236,220,.16);
+}
+.hero::before{content:'';position:absolute;inset:0;background:rgba(10,16,24,.5)}
+.hero>*{position:relative;z-index:1}
+.htxt h1{font-size:clamp(23px,6.2vw,34px);margin:0;color:#f6ecdc}
+.htxt h1 em{font-style:normal;color:#f0a63a}
+.htxt h1 em.lg{display:block;font-size:1.4em;line-height:1.02;margin-bottom:3px}
+.hsub{color:#cbd5df;font-size:13.5px;margin:11px 0 0;line-height:1.55;max-width:44ch}
+/* the two of us standing on the floor of the band */
+.crew{position:relative;width:224px;height:150px;margin:16px 0 0 -16px}
+.crew img{position:absolute;bottom:0;width:auto;display:block;filter:drop-shadow(0 12px 18px rgba(0,0,0,.65));will-change:transform;backface-visibility:hidden}
+.crew .b{height:132px;left:0;animation:sway 7.4s ease-in-out infinite reverse;transform-origin:50% 100%}
+.crew .a{height:150px;right:0;animation:sway 6.5s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes sway{0%,100%{transform:rotate(-1.1deg)}50%{transform:rotate(1.1deg)}}
+.facts{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.fact{font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--field);color:var(--muted)}
+.fact b{color:var(--gold);font-weight:800}
+
+/* ---------- progress ---------- */
+.prog{display:flex;gap:5px;margin:20px 0 14px}
+.prog i{flex:1;height:5px;border-radius:99px;background:var(--field);transition:background .3s}
+.prog i.on{background:var(--gold)}
+.stepno{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.05em;margin-bottom:8px}
+
+/* ---------- steps ---------- */
+.step{display:none;animation:fade .35s both}
+.step.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.step h2{font-size:clamp(23px,5.8vw,32px);margin-bottom:6px}
+.step .lead{color:var(--muted);font-size:14.5px;margin:0 0 18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+
+/* ---------- guest list ---------- */
+.psearch{width:100%;background:var(--field);border:1px solid var(--field-b);border-radius:11px;padding:12px 14px;color:var(--text);font:inherit;font-size:16px;outline:none;margin-bottom:11px}
+.psearch:focus{border-color:var(--gold)}
+.plist{display:grid;gap:8px;max-height:340px;overflow:auto;padding-left:3px}
+.pax{display:flex;align-items:center;gap:11px;background:var(--field);border:1px solid var(--field-b);border-radius:12px;padding:11px 13px;cursor:pointer;font:inherit;color:var(--text);text-align:right;width:100%;transition:.15s}
+.pax:hover{border-color:var(--gold)}
+.pax.on{background:var(--gold);border-color:var(--gold);color:#1a2634}
+.pax .av{width:36px;height:36px;border-radius:50%;background:var(--card2);color:var(--gold);display:grid;place-items:center;font-family:'Secular One',sans-serif;font-size:15px;flex:none}
+.pax.on .av{background:rgba(26,38,52,.18);color:#1a2634}
+.pax .nm{font-weight:700;font-size:15.5px;line-height:1.2}
+.pax .mt{font-size:11.5px;opacity:.75}
+.pax .ck{margin-right:auto;font-size:11px;font-weight:800;opacity:.8;white-space:nowrap}
+.notlisted{margin-top:12px;font-size:13.5px;color:var(--muted);text-align:center}
+.notlisted a{color:var(--gold)}
+
+/* ---------- seat map ---------- */
+.room{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:38px 14px 16px;margin-bottom:12px;box-shadow:var(--shadow);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:26px 26px;background-position:-1px -1px;
+}
+.room::before{content:'';position:absolute;inset:9px;border:1px dashed var(--field-b);border-radius:11px;pointer-events:none}
+.room .rh{position:absolute;top:11px;right:14px;left:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.room .rn{font-family:'Secular One',sans-serif;font-size:15px}
+.room .rc{font-size:10.5px;font-weight:900;letter-spacing:.05em;padding:3px 9px;border-radius:99px;border:1px solid var(--gold);color:var(--gold);white-space:nowrap}
+.room .rs{font-size:11.5px;color:var(--muted);margin:2px 0 10px;position:relative;line-height:1.5}
+.room .note{position:relative;font-size:11.5px;line-height:1.5;color:var(--gold);background:rgba(240,166,58,.1);border:1px solid rgba(240,166,58,.35);border-radius:9px;padding:7px 10px;margin-bottom:11px}
+.seats{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;position:relative}
+.seat{position:relative;background:var(--card2);border:1.5px solid var(--field-b);border-radius:11px;padding:10px 8px;cursor:pointer;font:inherit;color:var(--text);transition:.15s;min-width:88px;text-align:center}
+.seat:hover:not(.taken){border-color:var(--gold);transform:translateY(-2px)}
+.seat .code{font-family:'Secular One',sans-serif;font-size:17px;line-height:1;color:var(--gold)}
+.seat .lb{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+.seat.on{background:var(--gold);border-color:var(--gold);color:#1a2634;box-shadow:0 0 0 3px rgba(240,166,58,.35)}
+.seat.on .code,.seat.on .lb{color:#1a2634}
+.seat.taken{opacity:.45;cursor:not-allowed;border-style:dashed}
+.seat.taken .lb{color:var(--pink)}
+.seat.wide{min-width:100%;padding:14px}
+.seat.sun{min-width:120px;border-radius:8px 8px 16px 16px;padding-top:16px}
+.seat.sun::before{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:44px;height:5px;border-radius:99px;background:var(--field-b)}
+.sofa{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.sofa .back{position:absolute;top:-9px;right:0;left:0;height:8px;border-radius:99px 99px 0 0;background:var(--field-b)}
+.sofa .seat{min-width:0}
+.sofa .lie{grid-column:1/-1;min-width:0;border-radius:11px}
+.bar{position:relative}
+.bar .counter{height:16px;border-radius:6px;background:var(--field-b);margin-bottom:11px;position:relative}
+.bar .counter::after{content:'הבר';position:absolute;top:-2px;right:10px;font-size:10px;font-weight:800;color:var(--muted)}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:4px}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;display:block}
+
+/* ---------- options ---------- */
+.opts{display:grid;gap:9px}
+.opt{display:flex;align-items:flex-start;gap:11px;background:var(--field);border:1.5px solid var(--field-b);border-radius:12px;padding:13px;cursor:pointer;transition:.15s;font:inherit;color:var(--text);text-align:right;width:100%}
+.opt:hover{border-color:var(--gold)}
+.opt.on{border-color:var(--gold);background:rgba(240,166,58,.1)}
+.opt .ico{font-size:22px;line-height:1;flex:none}
+.opt .t{font-weight:800;font-size:15px}
+.opt .d{font-size:12.5px;color:var(--muted);line-height:1.45}
+.opt .rd{margin-right:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--field-b);flex:none;display:grid;place-items:center;margin-top:2px}
+.opt.on .rd{border-color:var(--gold);background:var(--gold)}
+.opt.on .rd::after{content:'';width:7px;height:7px;border-radius:50%;background:#1a2634}
+
+.warn{background:rgba(240,166,58,.1);border:1.5px solid var(--gold);border-radius:13px;padding:14px;margin-bottom:16px}
+.warn h3{color:var(--gold);font-size:16px;margin-bottom:7px}
+.warn p{margin:0;font-size:13.5px;line-height:1.6}
+.warn ul{margin:8px 0 0;padding:0 20px 0 0;font-size:13.5px;line-height:1.75}
+
+.must{display:flex;align-items:flex-start;gap:11px;background:var(--field);border:1.5px solid var(--field-b);border-radius:12px;padding:14px;cursor:pointer;transition:.15s;width:100%;text-align:right;font:inherit;color:var(--text)}
+.must:hover{border-color:var(--gold)}
+.must.on{border-color:var(--green);background:rgba(63,191,135,.1)}
+.must .cb{width:24px;height:24px;border-radius:7px;border:2px solid var(--field-b);flex:none;display:grid;place-items:center;font-size:15px;color:transparent;transition:.15s;margin-top:1px}
+.must.on .cb{background:var(--green);border-color:var(--green);color:#0e1620}
+.must .t{font-weight:800;font-size:15.5px;line-height:1.3}
+.must .d{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:3px}
+.must .req{color:var(--pink);font-size:11.5px;font-weight:900;margin-right:6px}
+
+.upsell{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}
+.upsell:last-child{border:none}
+.upsell .t{flex:1;font-size:14.5px;font-weight:700;line-height:1.35}
+.upsell .t small{display:block;font-weight:400;font-size:12px;color:var(--muted);line-height:1.45;margin-top:2px}
+.upsell .pr{font-family:'Secular One',sans-serif;font-size:14px;color:var(--green);white-space:nowrap}
+.sw{width:44px;height:25px;border-radius:99px;background:var(--field-b);position:relative;cursor:pointer;flex:none;transition:.2s;border:none;padding:0}
+.sw::after{content:'';position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:var(--muted);transition:.2s}
+.sw.on{background:var(--gold)}
+.sw.on::after{right:22px;background:#1a2634}
+
+.terms{background:var(--field);border:1px solid var(--field-b);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.terms summary{padding:13px 15px;cursor:pointer;font-weight:800;font-size:14.5px;list-style:none}
+.terms summary::-webkit-details-marker{display:none}
+.terms summary::after{content:'▾';float:left;color:var(--gold)}
+.terms[open] summary::after{content:'▴'}
+.terms ol{margin:0;padding:0 32px 14px 14px;font-size:13.5px;color:var(--text);line-height:1.8}
+
+.consent{display:flex;align-items:flex-start;gap:10px;background:var(--field);border:1.5px solid var(--field-b);border-radius:12px;padding:14px;cursor:pointer;margin-bottom:12px;transition:.15s}
+.consent.on{border-color:var(--green);background:rgba(63,191,135,.09)}
+.cbx{width:22px;height:22px;border-radius:6px;border:2px solid var(--field-b);flex:none;display:grid;place-items:center;font-size:14px;color:transparent;transition:.15s;margin-top:1px}
+.consent.on .cbx{background:var(--green);border-color:var(--green);color:#0e1620}
+.consent .t{font-size:14px;line-height:1.5;font-weight:700}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:26;display:flex;padding:11px 14px calc(11px + env(safe-area-inset-bottom));background:rgba(10,16,24,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+html[data-theme="light"] .nav{background:rgba(255,250,242,.95)}
+.nav .in{max-width:860px;margin:0 auto;display:flex;gap:9px;width:100%}
+.btn{flex:1;background:var(--gold);color:#1a2634;border:none;border-radius:12px;padding:15px 20px;font:inherit;font-weight:900;font-size:16px;cursor:pointer;transition:.15s;box-shadow:0 8px 22px rgba(240,166,58,.22)}
+.btn:hover{background:var(--gold-d)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{flex:0 0 auto;background:transparent;color:var(--text);border:1px solid var(--field-b);box-shadow:none;font-weight:700;padding:15px 18px}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold);background:transparent}
+.nav.first #backBtn{display:none}
+
+/* ---------- ticket ---------- */
+.pass{background:var(--cream);color:#16202c;border-radius:18px;overflow:hidden;box-shadow:0 22px 60px rgba(0,0,0,.5);margin:0 auto 16px;max-width:440px;position:relative}
+html[data-theme="light"] .pass{background:#12202e;color:#f6ecdc}
+.pass .ph{background:#16202c;color:var(--cream);padding:13px 17px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+html[data-theme="light"] .pass .ph{background:#f0a63a;color:#16202c}
+.pass .ph .lg{font-family:'Secular One',sans-serif;font-size:15px}
+.pass .ph .cl{font-size:10px;font-weight:900;letter-spacing:.06em;opacity:.85;text-align:left}
+.pass .bd{padding:17px}
+.pr2{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:16px}
+.pr2 .pt{font-family:'Secular One',sans-serif;font-size:19px;line-height:1.1}
+.pr2 .sm{font-size:10.5px;opacity:.6;font-weight:700}
+.pr2 .pl{text-align:center;font-size:17px;color:#c07f21}
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-bottom:14px}
+.pgrid .k{font-size:9.5px;letter-spacing:.06em;opacity:.55;font-weight:900}
+.pgrid .v{font-family:'Secular One',sans-serif;font-size:16px;line-height:1.2;word-break:break-word}
+.pgrid .v.g{color:#c07f21}
+.pnote{font-size:11.5px;opacity:.78;border-top:1px dashed rgba(22,32,44,.28);padding-top:10px;line-height:1.6}
+html[data-theme="light"] .pnote{border-color:rgba(246,236,220,.28)}
+.perf{height:16px;position:relative;background:var(--cream)}
+html[data-theme="light"] .perf{background:#12202e}
+.perf::before,.perf::after{content:'';position:absolute;top:0;width:16px;height:16px;border-radius:50%;background:var(--card)}
+.perf::before{right:-8px}.perf::after{left:-8px}
+.perf i{position:absolute;top:8px;right:14px;left:14px;border-top:2px dashed rgba(22,32,44,.25)}
+html[data-theme="light"] .perf i{border-color:rgba(246,236,220,.25)}
+.bars{display:flex;gap:2px;align-items:flex-end;height:52px;padding:0 17px 14px;justify-content:center}
+.bars i{background:#16202c;display:block;border-radius:1px}
+html[data-theme="light"] .bars i{background:#f6ecdc}
+.pnr{text-align:center;font-family:'Secular One',sans-serif;letter-spacing:.35em;font-size:13px;padding-bottom:14px;opacity:.75}
+
+.doneHead{text-align:center;margin-bottom:18px}
+.doneHead .big{font-size:clamp(26px,6.4vw,38px);margin-bottom:6px}
+.doneHead p{color:var(--muted);font-size:14px;margin:0}
+.passActs{display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:440px;margin:0 auto 14px}
+.passActs .btn{flex:none;font-size:14.5px;padding:13px 12px}
+.keep{max-width:440px;margin:0 auto 12px;background:var(--card);border:2px solid var(--gold);border-radius:14px;padding:15px}
+.keep .kh{font-family:'Secular One',sans-serif;font-size:17px;color:var(--gold);margin-bottom:7px}
+.keep p{margin:0;font-size:13.5px;line-height:1.6}
+.surprise{max-width:440px;margin:0 auto 16px;display:flex;gap:12px;align-items:center;background:rgba(63,191,135,.1);border:1.5px solid var(--green);border-radius:14px;padding:15px}
+.surprise .sic{font-size:26px;line-height:1;flex:none}
+.surprise b{display:block;font-size:14.5px;color:var(--green);line-height:1.45}
+
+#toast{position:fixed;bottom:86px;left:50%;transform:translate(-50%,0);z-index:60;background:var(--gold);color:#1a2634;font-weight:800;padding:12px 20px;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.45);max-width:92vw;text-align:center;font-size:14px;line-height:1.4;opacity:0;visibility:hidden;transition:opacity .25s,transform .25s cubic-bezier(.2,.8,.3,1),visibility .25s}
+#toast.show{opacity:1;visibility:visible;transform:translate(-50%,-6px)}
+
+@media(min-width:700px){
+  .wrap{padding:0 18px 120px}
+  .hero{margin:0 -18px 20px;padding:30px 24px 0}
+  .crew{width:400px;height:252px;margin:8px 0 0 -24px}
+  .crew .b{height:222px}
+  .crew .a{height:252px}
+  .hsub{font-size:14.5px}
+  .panel,.room{padding:22px}
+  .room{padding-top:44px}
+  .seat{min-width:104px}
+}
+@media(max-width:359px){
+  .crew{width:196px;height:132px}
+  .crew .b{height:116px}
+  .crew .a{height:132px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topline">
+  <div class="logo"><span class="mk">🔥</span><span>רמת וורבר<small>צ׳ק-אין · RW-0808</small></span></div>
+  <div class="cdown"><small>האירוע מתחיל בעוד</small><b id="cd">—</b></div>
+  <button class="tbtn" id="themeBtn">🌙</button>
+</div>
+<div class="ticker"><div id="tick"></div></div>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="htxt">
+    <h1><em class="lg">צ'ק-אין</em>אנחנו <em>נרגשים</em> לקראת ההגעה שלך!</h1>
+  </div>
+  <p class="hsub">כדי שנוכל להיערך כמו שצריך, יש להשלים צ'ק-אין קצר: בחירת מקום ישיבה, אזור עישון ואישור התקנון.</p>
+  <div class="crew">
+    <img class="b" src="chef.webp" alt="על הגריל">
+    <img class="a" src="host.webp" alt="המארחת">
+  </div>
+</div>
+
+<div class="facts">
+  <span class="fact">שבת <b>08/08/26</b></span>
+  <span class="fact">כניסה <b>16:30</b></span>
+  <span class="fact">רמת וורבר, פ״ת</span>
+</div>
+
+<div class="prog" id="prog"></div>
+<div class="stepno" id="stepno"></div>
+
+<!-- STEP 1 -->
+<section class="step on" data-s="1">
+  <h2>פרטי האורח</h2>
+  <p class="lead">בחרו את שמכם מרשימת האורחים כדי להתחיל בצ'ק-אין.</p>
+  <div class="panel">
+    <input class="psearch" id="q" type="text" placeholder="חיפוש שם…">
+    <div class="plist" id="plist"><div style="color:var(--muted);text-align:center;padding:20px">טוען את רשימת האורחים…</div></div>
+    <div class="notlisted">השם לא מופיע ברשימה? <a href="index.html">יש להזמין אוכל תחילה</a> ואז לחזור לצ'ק-אין.</div>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step" data-s="2">
+  <h2>בחירת מקום</h2>
+  <p class="lead">בחרו את המקום שלכם. מקום שנבחר על ידי אורח אחר אינו זמין לבחירה.</p>
+  <div id="rooms"></div>
+  <div class="legend">
+    <span><i style="background:var(--card2);border:1.5px solid var(--field-b)"></i> פנוי</span>
+    <span><i style="background:var(--gold)"></i> נבחר על ידך</span>
+    <span><i style="background:var(--card2);border:1.5px dashed var(--pink)"></i> תפוס</span>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step" data-s="3">
+  <h2>אזור עישון</h2>
+  <div class="warn">
+    <h3>כל שטח האירוע הוא אזור עישון</h3>
+    <p>העישון מותר בכל אחד מהאזורים הבאים:</p>
+    <ul>
+      <li>הסלון</li>
+      <li>המטבח והבר</li>
+      <li>המרפסת ומיטות השיזוף</li>
+      <li>אזור הגריל</li>
+      <li>המסדרון והכניסה</li>
+      <li>השירותים</li>
+      <li>החדר המוגן</li>
+    </ul>
+    <p style="margin-top:9px">אין באירוע אזור נטול עישון.</p>
+  </div>
+  <p class="lead">מה אתם מעשנים?</p>
+  <div class="opts" id="smoke"></div>
+  <div id="smokeExtra"></div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step" data-s="4">
+  <h2>מה מביאים</h2>
+  <p class="lead">פריט חובה אחד. יש לסמן אותו כדי להמשיך.</p>
+  <div class="panel">
+    <button class="must" id="cake">
+      <span class="cb">✓</span>
+      <span>
+        <span class="t">עוגת קציפה עם שוקולד צ'יפס <span class="req">חובה</span></span>
+        <span class="d">כל אורח מתבקש להביא עוגת קציפה עם שוקולד צ'יפס. לא ניתן להשלים את הצ'ק-אין ללא סימון פריט זה.</span>
+      </span>
+    </button>
+    <div style="margin-top:13px;padding-top:13px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.6">
+      <b style="color:var(--text)">מדיניות כבודה:</b> מותרת שקית ניילון בלבד. תיק יד — בתוספת תשלום.
+    </div>
+  </div>
+
+  <h3 style="font-size:19px;margin:22px 0 4px">שדרוגים</h3>
+  <p class="lead" style="margin-bottom:12px">שירותים נוספים הזמינים באירוע. לבחירתכם.</p>
+  <div class="panel" id="ups"></div>
+</section>
+
+<!-- STEP 5 -->
+<section class="step" data-s="5">
+  <h2>אישור אחרון</h2>
+  <p class="lead">סיכום הפרטים לפני השלמת הצ'ק-אין.</p>
+  <div class="panel" id="review"></div>
+  <details class="terms" open>
+    <summary>תקנון האירוע</summary>
+    <ol>
+      <li>יוגשו הרבה בשרים וצריך לאכול.</li>
+      <li>יש להביא עוגה.</li>
+    </ol>
+  </details>
+  <label class="consent" id="consent">
+    <span class="cbx" id="cbx">✓</span>
+    <span class="t">קראתי את התקנון ואני מאשר/ת.</span>
+  </label>
+</section>
+
+<!-- DONE -->
+<section class="step" data-s="6">
+  <div class="doneHead">
+    <h2 class="big">הצ'ק-אין הושלם</h2>
+    <p id="doneSub"></p>
+  </div>
+  <div class="pass" id="pass"></div>
+
+  <div class="keep">
+    <div class="kh">📸 שמרו את הכרטיס</div>
+    <p>צלמו מסך של הכרטיס. יש להציג אותו בכניסה לאירוע.</p>
+  </div>
+
+  <div class="surprise">
+    <span class="sic">🎁</span>
+    <b>מחכה לכם הפתעה קטנה בכניסה.</b>
+  </div>
+
+  <div class="passActs">
+    <button class="btn ghost" id="icsBtn" style="flex:1">📅 ליומן</button>
+    <button class="btn" id="shareBtn">שיתוף בוואטסאפ</button>
+  </div>
+  <div style="text-align:center"><button class="btn ghost" id="againBtn" style="flex:none">עריכת הפרטים</button></div>
+</section>
+
+</div>
+
+<div class="nav first" id="nav"><div class="in">
+  <button class="btn ghost" id="backBtn">חזרה</button>
+  <button class="btn" id="nextBtn">להמשיך</button>
+</div></div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey:"AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90", authDomain:"boostmind-b052c.firebaseapp.com", projectId:"boostmind-b052c" });
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let tT; function toast(m){ const t=$('toast'); t.innerHTML=m; t.classList.add('show'); clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),3200); }
+
+function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); $('themeBtn').textContent=t==='light'?'☀️':'🌙'; try{localStorage.setItem('party-theme',t)}catch(e){} }
+applyTheme(localStorage.getItem('party-theme')||'dark');
+$('themeBtn').onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
+
+const START = new Date('2026-08-08T16:30:00+03:00');
+setInterval(()=>{
+  let d = START - new Date();
+  if(d<=0){ $('cd').textContent='מתחילים'; return; }
+  const h=Math.floor(d/36e5), m=Math.floor(d%36e5/6e4), s=Math.floor(d%6e4/1000);
+  $('cd').textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+},1000);
+
+$('tick').textContent = 'שבת 08/08/26 · כניסה בשעה 16:30 · רמת וורבר, פתח תקווה · הגריל נמצא במרפסת · במרפסת אין מיזוג · לא מומלץ לילדים ליד האש · כל שטח האירוע הוא אזור עישון · יש להביא עוגת קציפה עם שוקולד צ׳יפס · חדר מוגן צמוד לאירוע · ';
+
+/* ---------- data ---------- */
+const ROOMS = [
+  { id:'balcony', name:'מרפסת', cls:'מחלקה ראשונה', kind:'sun',
+    sub:'נוף פתוח לקו הרקיע, שתי מיטות שיזוף.',
+    note:'שימו לב: אין מיזוג במרפסת וייתכן שיהיה חם. הגריל נמצא במרפסת — בעיקר יהיו ריחות של עשן ובשר לאורך כל האירוע. לא מומלץ לילדים בשל האש הגלויה.',
+    seats:[{id:'sun-1',code:'1A',label:'מיטת שיזוף'},{id:'sun-2',code:'1B',label:'מיטת שיזוף'}] },
+  { id:'saloon', name:'סלון', cls:'מחלקת עסקים', kind:'sofa',
+    sub:'ספה פינתית, מיזוג פעיל, אזור מקורה.',
+    seats:[{id:'sofa-1',code:'2A',label:'ישיבה'},{id:'sofa-2',code:'2B',label:'ישיבה'},{id:'sofa-3',code:'2C',label:'ישיבה'},
+           {id:'sofa-lie',code:'2D',label:'מקום שכיבה'}] },
+  { id:'kitchen', name:'מטבח · הבר', cls:'שורת VIP', kind:'bar',
+    sub:'שני שרפרפים מול דלפק הבר. שתייה ומשקאות.',
+    note:'האוכל אינו מוכן במטבח — כל הבישול מתבצע על הגריל שבמרפסת.',
+    seats:[{id:'bar-1',code:'11A',label:'שרפרף בר'},{id:'bar-2',code:'11B',label:'שרפרף בר'}] },
+  { id:'grill', name:'עמידה ליד הגריל', cls:'כרטיס עמידה', kind:'stand',
+    sub:'במרפסת, לצד הגריל. מקומות ללא הגבלה.',
+    note:'אין מיזוג, וזהו האזור עם הכי הרבה ריחות עשן ובשר. לא מומלץ לילדים בשל האש הגלויה.',
+    seats:[{id:'stand',code:'STD',label:'עמידה ליד הגריל · ללא הגבלה',unlimited:true}] },
+];
+const SEATS = {}; ROOMS.forEach(r=>r.seats.forEach(s=>SEATS[s.id]={...s,room:r}));
+
+const SMOKE = [
+  {v:'סיגריות', ico:'🚬', t:'סיגריות', d:'מאפרות זמינות בכל אזורי האירוע.'},
+  {v:'קנאביס',  ico:'🌿', t:'קנאביס',  d:'מותר באותם אזורים, ללא הגבלה נוספת.'},
+  {v:'לא מעשן', ico:'○',  t:'לא מעשן/ת', d:'שימו לב שאין באירוע אזור נטול עישון.'},
+];
+const UPS = [
+  {id:'pillow', t:'כרית מותן אורתופדית', d:'כרית תמיכה לגב התחתון, לישיבה ממושכת.'},
+  {id:'fast',   t:'כניסה מהירה לשירותים', d:'עדיפות בתור לשירותים לאורך האירוע.'},
+  {id:'wipes',  t:'מגבונים', d:'מגבונים לחים, זמינים ליד אזור האוכל.'},
+];
+
+const st = { pax:null, seat:null, smoke:'', bring:'', cake:false, ups:[], consent:false };
+let guests = [], takenBy = {}, step = 1;
+
+db.collection('party-rsvp').onSnapshot(s=>{
+  guests = []; takenBy = {};
+  s.forEach(d=>{
+    const g = { id:d.id, ...d.data() };
+    guests.push(g);
+    if(g.seat && g.seat!=='stand') takenBy[g.seat] = { name:g.name, id:g.id };
+  });
+  guests.sort((a,b)=>(a.name||'').localeCompare(b.name||'','he'));
+  if(st.pax){ const f = guests.find(g=>g.id===st.pax.id); if(f) st.pax = f; }
+  renderPax(); renderRooms();
+}, e=>{ console.error(e); $('plist').innerHTML='<div style="color:var(--pink);text-align:center;padding:20px">לא הצלחנו לטעון את רשימת האורחים.</div>'; });
+
+/* ---------- step 1 ---------- */
+function renderPax(){
+  const q = ($('q').value||'').trim().toLowerCase();
+  if(!guests.length){
+    $('plist').innerHTML = '<div style="color:var(--muted);text-align:center;padding:24px">אין עדיין אורחים רשומים.</div>'; return;
+  }
+  const list = guests.filter(g=>!q || (g.name||'').toLowerCase().includes(q));
+  $('plist').innerHTML = list.map(g=>`
+    <button class="pax ${st.pax&&st.pax.id===g.id?'on':''}" data-id="${g.id}">
+      <span class="av">${esc((g.name||'?').trim().charAt(0))}</span>
+      <span><span class="nm">${esc(g.name||'ללא שם')}</span>
+        <span class="mt">${(g.dishes||[]).length? (g.dishes||[]).length+' מנות הוזמנו מראש' : 'ללא הזמנת אוכל'}</span></span>
+      ${g.checkedIn?`<span class="ck">✓ צ׳ק-אין</span>`:''}
+    </button>`).join('') || '<div style="color:var(--muted);text-align:center;padding:20px">לא נמצא אורח בשם הזה.</div>';
+}
+$('q').addEventListener('input', renderPax);
+$('plist').addEventListener('click', e=>{
+  const b = e.target.closest('.pax'); if(!b) return;
+  st.pax = guests.find(g=>g.id===b.dataset.id); if(!st.pax) return;
+  if(st.pax.checkedIn){
+    st.seat = st.pax.seat||null; st.smoke = st.pax.smoking||''; st.bring = st.pax.smokeBring||'';
+    st.cake = !!st.pax.cake; st.ups = st.pax.upgrades||[]; st.consent = !!st.pax.terms;
+    renderCake(); renderUps(); renderConsent();
+    toast('הפרטים הקודמים נטענו. ניתן לעדכן ולהנפיק כרטיס מחדש.');
+  }
+  renderPax(); renderRooms(); renderSmoke();
+});
+
+/* ---------- step 2 ---------- */
+function seatEl(s){
+  const taken = takenBy[s.id] && (!st.pax || takenBy[s.id].id !== st.pax.id);
+  const mine = st.seat === s.id;
+  const cls = ['seat', s.room.kind==='sun'?'sun':'', s.unlimited?'wide':'', s.id==='sofa-lie'?'lie':'', taken?'taken':'', mine?'on':''].filter(Boolean).join(' ');
+  return `<button class="${cls}" data-seat="${s.id}" ${taken?'disabled':''}>
+    <span class="code">${s.code}</span>
+    <span class="lb">${taken? esc(takenBy[s.id].name) : esc(s.label)}</span>
+  </button>`;
+}
+function renderRooms(){
+  $('rooms').innerHTML = ROOMS.map(r=>{
+    const inner = r.kind==='sofa'
+      ? `<div class="sofa"><span class="back"></span>${r.seats.map(s=>seatEl({...s,room:r})).join('')}</div>`
+      : r.kind==='bar'
+      ? `<div class="bar"><div class="counter"></div><div class="seats">${r.seats.map(s=>seatEl({...s,room:r})).join('')}</div></div>`
+      : `<div class="seats">${r.seats.map(s=>seatEl({...s,room:r})).join('')}</div>`;
+    const free = r.seats.filter(s=>s.unlimited || !(takenBy[s.id] && (!st.pax||takenBy[s.id].id!==st.pax.id))).length;
+    return `<div class="room">
+      <div class="rh"><span class="rn">${r.name}</span><span class="rc">${r.cls}</span></div>
+      <div class="rs">${r.sub}${r.kind==='stand'?'':` · ${free? free+' מקומות פנויים' : '<b style="color:var(--pink)">אין מקומות פנויים</b>'}`}</div>
+      ${r.note?`<div class="note">${r.note}</div>`:''}
+      ${inner}
+    </div>`;
+  }).join('');
+}
+$('rooms').addEventListener('click', e=>{
+  const b = e.target.closest('.seat'); if(!b || b.disabled) return;
+  const id = b.dataset.seat;
+  st.seat = (st.seat===id) ? null : id;
+  renderRooms();
+});
+
+/* ---------- step 3 ---------- */
+function renderSmoke(){
+  $('smoke').innerHTML = SMOKE.map(o=>`
+    <button class="opt ${st.smoke===o.v?'on':''}" data-v="${o.v}">
+      <span class="ico">${o.ico}</span>
+      <span><span class="t">${o.t}</span><span class="d">${o.d}</span></span>
+      <span class="rd"></span>
+    </button>`).join('');
+  const ex = $('smokeExtra');
+  ex.innerHTML = st.smoke==='קנאביס'
+    ? `<div class="panel" style="margin-top:12px">
+        <div style="font-weight:800;font-size:14.5px;margin-bottom:9px">אספקה</div>
+        <div class="opts">${[
+          {v:'מביא/ה משלי', d:'לא נדרשת אספקה מהמארחים.'},
+          {v:'נדרשת אספקה במקום', d:'המארחים יידעו להיערך בהתאם.'}
+        ].map(o=>`<button class="opt ${st.bring===o.v?'on':''}" data-b="${o.v}"><span><span class="t">${o.v}</span><span class="d">${o.d}</span></span><span class="rd"></span></button>`).join('')}</div>
+      </div>` : '';
+}
+$('smoke').addEventListener('click', e=>{
+  const b = e.target.closest('.opt'); if(!b) return;
+  st.smoke = b.dataset.v; if(st.smoke!=='קנאביס') st.bring='';
+  renderSmoke();
+});
+$('smokeExtra').addEventListener('click', e=>{
+  const b = e.target.closest('.opt'); if(!b) return;
+  st.bring = b.dataset.b; renderSmoke();
+});
+
+/* ---------- step 4 ---------- */
+function renderCake(){ $('cake').classList.toggle('on', st.cake); }
+$('cake').onclick = ()=>{ st.cake = !st.cake; renderCake(); };
+function renderUps(){
+  $('ups').innerHTML = UPS.map(u=>`
+    <div class="upsell">
+      <div class="t">${u.t}<small>${u.d}</small></div>
+      <div class="pr">₪0</div>
+      <button class="sw ${st.ups.includes(u.id)?'on':''}" data-u="${u.id}"></button>
+    </div>`).join('');
+}
+$('ups').addEventListener('click', e=>{
+  const b = e.target.closest('.sw'); if(!b) return;
+  const id = b.dataset.u;
+  st.ups = st.ups.includes(id) ? st.ups.filter(x=>x!==id) : [...st.ups, id];
+  renderUps();
+});
+
+/* ---------- step 5 ---------- */
+function renderConsent(){ $('consent').classList.toggle('on', st.consent); }
+$('consent').addEventListener('click', e=>{ e.preventDefault(); st.consent = !st.consent; renderConsent(); });
+
+function renderReview(){
+  const g = st.pax||{}, s = SEATS[st.seat]||{};
+  const row=(k,v)=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px"><span style="color:var(--muted)">${k}</span><span style="font-weight:700;text-align:left">${v}</span></div>`;
+  $('review').innerHTML =
+    row('אורח/ת', esc(g.name||'—')) +
+    row('מקום', s.code? `${s.code} · ${esc(s.room.name)}` : '—') +
+    row('עישון', esc(st.smoke||'—') + (st.bring? ' · '+esc(st.bring):'')) +
+    row('אוכל שהוזמן', (g.dishes||[]).length? esc((g.dishes||[]).join(' · ')) : 'לא הוזמן') +
+    row('עוגת קציפה', st.cake? 'מביא/ה' : '<span style="color:var(--pink)">לא סומן</span>') +
+    row('שדרוגים', st.ups.length? esc(UPS.filter(u=>st.ups.includes(u.id)).map(u=>u.t).join(' · ')) : 'ללא');
+}
+
+/* ---------- navigation ---------- */
+const LAST = 5;
+function setStep(n){
+  step = n;
+  document.querySelectorAll('.step').forEach(s=>s.classList.toggle('on', +s.dataset.s===n));
+  $('prog').innerHTML = Array.from({length:LAST},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+  $('stepno').textContent = n<=LAST ? `שלב ${n} מתוך ${LAST}` : '';
+  $('nav').style.display = n>LAST ? 'none' : '';
+  $('nav').classList.toggle('first', n===1);
+  $('nextBtn').textContent = n===LAST ? 'להשלים צ׳ק-אין' : 'להמשיך';
+  if(n===5) renderReview();
+  scrollTo({top:0,behavior:'smooth'});
+}
+$('backBtn').onclick = ()=> setStep(Math.max(1, step-1));
+$('nextBtn').onclick = async ()=>{
+  if(step===1 && !st.pax) return toast('יש לבחור שם מהרשימה.');
+  if(step===2 && !st.seat) return toast('יש לבחור מקום.');
+  if(step===3 && !st.smoke) return toast('יש לבחור אחת מהאפשרויות.');
+  if(step===3 && st.smoke==='קנאביס' && !st.bring) return toast('יש לבחור אפשרות אספקה.');
+  if(step===4 && !st.cake) return toast('יש לסמן את עוגת הקציפה עם שוקולד הצ׳יפס כדי להמשיך.');
+  if(step===5 && !st.consent) return toast('יש לאשר את קריאת התקנון.');
+  if(step<LAST) return setStep(step+1);
+  await finish();
+};
+
+/* ---------- submit ---------- */
+function pnrOf(id){
+  let h=0; for(const c of (id||'x')) h=(h*33+c.charCodeAt(0))>>>0;
+  const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let o='';
+  for(let i=0;i<6;i++){ o+=A[h%A.length]; h=Math.floor(h/A.length)+7*(i+1); }
+  return o;
+}
+async function finish(){
+  $('nextBtn').disabled = true; $('nextBtn').textContent = 'שומר…';
+  const s = SEATS[st.seat];
+  try{
+    await db.collection('party-rsvp').doc(st.pax.id).set({
+      checkedIn:true, seat:st.seat, seatCode:s.code, seatLabel:`${s.room.name} · ${s.label}`,
+      cabin:s.room.cls, smoking:st.smoke, smokeBring:st.bring, cake:st.cake,
+      upgrades:st.ups, terms:st.consent, checkinAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+    try{ localStorage.setItem('party-rsvp-id', st.pax.id); }catch(e){}
+    renderPass(); setStep(6); boom();
+  }catch(e){ console.error(e); toast('השמירה נכשלה. נסו שוב.'); }
+  finally{ $('nextBtn').disabled=false; $('nextBtn').textContent='להשלים צ׳ק-אין'; }
+}
+
+function renderPass(){
+  const g = st.pax, s = SEATS[st.seat], pnr = pnrOf(g.id);
+  const seq = Math.max(1, guests.filter(x=>x.checkedIn).length);
+  let h=0; for(const c of pnr) h=(h*31+c.charCodeAt(0))>>>0;
+  let bars=''; for(let i=0;i<46;i++){ h=(h*1103515245+12345)>>>0; bars+=`<i style="width:${1+(h%3)}px;height:${26+(h>>4)%26}px"></i>`; }
+  const upNames = UPS.filter(u=>st.ups.includes(u.id)).map(u=>u.t);
+  $('pass').innerHTML = `
+    <div class="ph"><span class="lg">🔥 רמת וורבר</span><span class="cl">כרטיס כניסה<br>${esc(s.room.cls)}</span></div>
+    <div class="bd">
+      <div class="pr2">
+        <div><div class="sm">מאיפה</div><div class="pt">הבית שלכם</div></div>
+        <div class="pl">🍷</div>
+        <div style="text-align:left"><div class="sm">לאן</div><div class="pt">רמת וורבר</div></div>
+      </div>
+      <div class="pgrid">
+        <div><div class="k">אורח/ת</div><div class="v">${esc(g.name)}</div></div>
+        <div><div class="k">מקום</div><div class="v g">${esc(s.code)}</div></div>
+        <div><div class="k">אירוע</div><div class="v">RW-0808</div></div>
+        <div><div class="k">תאריך</div><div class="v">08.08.26</div></div>
+        <div><div class="k">שעת כניסה</div><div class="v g">16:30</div></div>
+        <div><div class="k">קומה</div><div class="v">הגג</div></div>
+      </div>
+      <div class="pnote">
+        <b>${esc(s.room.name)}</b> · ${esc(s.label)}<br>
+        אוכל: ${(g.dishes||[]).length? esc(g.dishes.join(' · ')) : 'ללא הזמנה מראש'}<br>
+        עישון: ${esc(st.smoke)}${st.bring?' · '+esc(st.bring):''} · עוגה: מביא/ה${upNames.length?'<br>שדרוגים: '+esc(upNames.join(' · ')):''}<br>
+        צ׳ק-אין #${seq} · יש להציג כרטיס זה בכניסה
+      </div>
+    </div>
+    <div class="perf"><i></i></div>
+    <div class="bars">${bars}</div>
+    <div class="pnr">${pnr}</div>`;
+  $('doneSub').innerHTML = `${esc((g.name||'').split(' ')[0])}, המקום שלכם הוא <b style="color:var(--gold)">${esc(s.code)}</b> ב${esc(s.room.name)}.`;
+}
+
+function boom(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c=document.createElement('canvas'); c.style.cssText='position:fixed;inset:0;z-index:70;pointer-events:none';
+  c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
+  const x=c.getContext('2d'), cols=['#f0a63a','#ee5f92','#f6ecdc','#3fbf87','#5aa9e6'], ps=[];
+  for(let i=0;i<130;i++) ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,w:5+Math.random()*7,h:8+Math.random()*10,
+    vy:2.6+Math.random()*3.4,vx:-1.4+Math.random()*2.8,r:Math.random()*6,vr:-.16+Math.random()*.32,c:cols[(Math.random()*cols.length)|0]});
+  let f=0;(function l(){ x.clearRect(0,0,c.width,c.height); f++;
+    for(const p of ps){ p.y+=p.vy;p.x+=p.vx;p.r+=p.vr; x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.w/2,-p.h/2,p.w,p.h);x.restore(); }
+    if(f<190) requestAnimationFrame(l); else c.remove(); })();
+}
+
+$('againBtn').onclick = ()=> setStep(2);
+$('shareBtn').onclick = ()=>{
+  const s = SEATS[st.seat];
+  const t = `השלמתי צ׳ק-אין למסיבת הגג ברמת וורבר.\nהמקום שלי: ${s.code} · ${s.room.name}\nשבת 08/08/26, כניסה ב-16:30.\nלצ׳ק-אין: https://boostmind-b052c.web.app/party/checkin.html`;
+  open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
+};
+$('icsBtn').onclick = ()=>{
+  const s = SEATS[st.seat];
+  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Ramat Werber//RW0808//HE','BEGIN:VEVENT',
+    'UID:rw0808-'+st.pax.id+'@ramat.werber','DTSTAMP:20260807T120000Z',
+    'DTSTART:20260808T133000Z','DTEND:20260808T190000Z',
+    'SUMMARY:מסיבת גג ברמת וורבר',
+    'LOCATION:רמת וורבר, פתח תקווה',
+    'DESCRIPTION:מקום '+s.code+' · '+s.room.name+'. כניסה ב-16:30. יש להביא עוגת קציפה עם שוקולד צ׳יפס. כל שטח האירוע הוא אזור עישון.',
+    'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.download='ramat-werber-0808.ics'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('האירוע נוסף ליומן.');
+};
+
+/* boot */
+renderSmoke(); renderCake(); renderUps(); renderConsent(); setStep(1);
+setTimeout(()=>{
+  try{
+    const id = localStorage.getItem('party-rsvp-id');
+    if(id && !st.pax){ const g = guests.find(x=>x.id===id); if(g){ st.pax=g; renderPax(); } }
+  }catch(e){}
+}, 1500);
+</script>
+</body>
+</html>

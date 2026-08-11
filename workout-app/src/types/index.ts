@@ -90,22 +90,66 @@ export type FreeSet = {
   unit?: string;
   exerciseName?: string;
   timestamp: number;
+  // All sets sharing the same supersetGroup id are one linked superset.
+  // Field is optional so legacy sets keep working unchanged.
+  supersetGroup?: string;
+  // Position of THIS exercise within its supersetGroup (1 = first / source of the link).
+  // All sets of the same exercise share the same supersetOrder. Used to render members
+  // in the order the user linked them, and to support manual reorder via ↑/↓.
+  supersetOrder?: number;
 };
 
 export type PlannedExercise = {
   name: string;                // canonical Hebrew name
   muscle: MuscleGroup;
   addedAt: number;
+  // Optional superset id shared with other planned/logged items. When user logs the first set
+  // for this planned exercise, the set inherits this supersetGroup automatically.
+  supersetGroup?: string;
+  supersetOrder?: number;      // same semantics as FreeSet.supersetOrder
 };
+
+// AerobicType is now free-form — any label the user has (either the seeded 5 or a custom
+// exercise they added with defaultMuscle='aerobic'). Legacy values 'run'/'bike'/'row'/'walk'/
+// 'elliptical' remain valid; a one-time migration renamed them to their Hebrew equivalents.
+export type AerobicType = string;
+export type AerobicEntry = {
+  id: string;
+  timestamp: number;
+  type: AerobicType;
+  minutes: number;
+  km?: number;
+  avgHr?: number;
+  notes?: string;
+};
+
+// Session lifecycle:
+//   planned    → scheduled for a future date, no sets logged yet, `plannedFor` set
+//   active     → in progress (default when missing on old records)
+//   completed  → done (`completedAt` set, `completed = true`)
+export type FreeSessionStatus = 'planned' | 'active' | 'completed';
 
 export type FreeSession = {
   id: string;
-  date: number;                // start timestamp
+  date: number;                // start timestamp (for planned: midnight of `plannedFor`)
   completedAt?: number | null;
   muscleGroups: MuscleGroup[]; // focus for this session
   sets: FreeSet[];
   plannedExercises?: PlannedExercise[]; // exercises queued for this session but not yet logged
   completed: boolean;
+  status?: FreeSessionStatus;  // present on new records; legacy records inferred from `completed`
+  plannedFor?: string;         // YYYY-MM-DD when status='planned' (or when it once was planned)
+  aerobicEntries?: AerobicEntry[]; // cardio work in this session — separate from muscle sets
+};
+
+// Two exercises historically done together as a superset. Used to suggest partners when
+// a user adds one of them to a session. Keyed by sorted pair ids so A+B == B+A.
+export type SupersetPair = {
+  id: string;               // pairKey — sorted exerciseId_a__exerciseId_b
+  ids: [string, string];    // sorted
+  count: number;            // how many times user linked them
+  lastTs: number;
+  hidden?: boolean;         // user chose "אל תציע שוב"
 };
 
 // Route types
@@ -116,4 +160,5 @@ export type Route =
   | { page: 'session-view'; sessionId: string }
   | { page: 'settings' }
   | { page: 'exercises' }
-  | { page: 'body' };
+  | { page: 'body' }
+  | { page: 'install' };

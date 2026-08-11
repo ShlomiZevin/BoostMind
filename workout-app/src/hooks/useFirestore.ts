@@ -4,7 +4,7 @@ import {
   arrayUnion, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
@@ -315,10 +315,22 @@ export function useFirestore(uid: string | null) {
     return snap.exists() ? snap.data().ids || [] : [];
   }, [uid]);
 
-  const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, difficulty: 'easy' | 'ok' | 'hard', addWeight: boolean) => {
+  const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, difficulty: 'too-easy' | 'easy' | 'ok' | 'hard', addWeight: boolean) => {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
     await setDoc(ref, { exerciseId, sessionId, difficulty, addWeight, timestamp: Date.now() });
+  }, [uid]);
+
+  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty: string; addWeight: boolean } | null> => {
+    if (!uid) return null;
+    const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
+    const snap = await getDoc(ref);
+    return snap.exists() ? { difficulty: snap.data().difficulty, addWeight: !!snap.data().addWeight } : null;
+  }, [uid]);
+
+  const deleteExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string): Promise<void> => {
+    if (!uid) return;
+    await deleteDoc(doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`));
   }, [uid]);
 
   const getExerciseDifficulty = useCallback(async (exerciseId: string): Promise<{ difficulty: string; addWeight: boolean } | null> => {
@@ -334,15 +346,25 @@ export function useFirestore(uid: string | null) {
 
   // ─── Free (muscle-based) sessions ───────────────────────────────
 
-  const toFreeSession = (id: string, data: any): FreeSession => ({
-    id,
-    date: data.date?.toMillis?.() ?? data.date,
-    completedAt: data.completedAt?.toMillis?.() ?? data.completedAt ?? null,
-    muscleGroups: data.muscleGroups || [],
-    sets: (data.sets || []).map((s: any) => ({ ...s })),
-    plannedExercises: Array.isArray(data.plannedExercises) ? data.plannedExercises : [],
-    completed: !!data.completed,
-  });
+  const toFreeSession = (id: string, data: any): FreeSession => {
+    const explicit: FreeSessionStatus | undefined =
+      data.status === 'planned' || data.status === 'active' || data.status === 'completed'
+        ? data.status
+        : undefined;
+    const inferred: FreeSessionStatus = data.completed ? 'completed' : 'active';
+    return {
+      id,
+      date: data.date?.toMillis?.() ?? data.date,
+      completedAt: data.completedAt?.toMillis?.() ?? data.completedAt ?? null,
+      muscleGroups: data.muscleGroups || [],
+      sets: (data.sets || []).map((s: any) => ({ ...s })),
+      plannedExercises: Array.isArray(data.plannedExercises) ? data.plannedExercises : [],
+      completed: !!data.completed,
+      status: explicit || inferred,
+      plannedFor: typeof data.plannedFor === 'string' ? data.plannedFor : undefined,
+      aerobicEntries: Array.isArray(data.aerobicEntries) ? data.aerobicEntries : [],
+    };
+  };
 
   const createFreeSession = useCallback(async (muscleGroups: MuscleGroup[]): Promise<string> => {
     if (!uid) throw new Error('No uid');
@@ -353,6 +375,54 @@ export function useFirestore(uid: string | null) {
       muscleGroups,
       sets: [],
       completed: false,
+      status: 'active',
+    });
+    return sessionId;
+  }, [uid]);
+
+  // Create a session scheduled for a future (or today, before starting) day.
+  // Stores midnight of `plannedFor` in `date` so all sort/date logic keeps working —
+  // when the user "starts" the session we overwrite `date` with the real start time.
+  const createPlannedSession = useCallback(async (
+    muscleGroups: MuscleGroup[],
+    plannedFor: string, // YYYY-MM-DD
+    plannedExercises?: PlannedExercise[],
+  ): Promise<string> => {
+    if (!uid) throw new Error('No uid');
+    const [y, m, d] = plannedFor.split('-').map(Number);
+    const midnight = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0).getTime();
+    const sessionId = `plan_${plannedFor.replace(/-/g, '')}_${Date.now()}`;
+    const ref = doc(freeSessionsCol(uid), sessionId);
+    const payload: any = {
+      date: Timestamp.fromMillis(midnight),
+      muscleGroups,
+      sets: [],
+      completed: false,
+      status: 'planned',
+      plannedFor,
+    };
+    if (plannedExercises && plannedExercises.length) payload.plannedExercises = plannedExercises;
+    await setDoc(ref, payload);
+    return sessionId;
+  }, [uid]);
+
+  // Promote a planned session to active. GUARDS:
+  //   • If already active/completed → returns the id (no-op).
+  //   • If any OTHER active session exists → returns that session's id instead
+  //     (never overwrites a running session with a plan-start).
+  const startPlannedSession = useCallback(async (sessionId: string): Promise<string | null> => {
+    if (!uid) return null;
+    const all = await getDocs(freeSessionsCol(uid));
+    const list = all.docs.map(d => toFreeSession(d.id, d.data()));
+    const other = list.find(s => s.id !== sessionId && s.status === 'active');
+    if (other) return other.id;
+    const target = list.find(s => s.id === sessionId);
+    if (!target) return null;
+    if (target.status === 'active') return sessionId;
+    if (target.status === 'completed') return sessionId;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      status: 'active',
+      date: Timestamp.now(),
     });
     return sessionId;
   }, [uid]);
@@ -404,6 +474,7 @@ export function useFirestore(uid: string | null) {
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
       completed: true,
       completedAt: Timestamp.now(),
+      status: 'completed',
       muscleGroups: pruned.length > 0 ? pruned : originalMuscles,
     });
   }, [uid]);
@@ -413,22 +484,24 @@ export function useFirestore(uid: string | null) {
     await updateDoc(doc(freeSessionsCol(uid), sessionId), { plannedExercises: planned });
   }, [uid]);
 
-  const duplicateFreeSession = useCallback(async (sessionId: string): Promise<string | null> => {
+  const duplicateFreeSession = useCallback(async (sessionId: string, opts?: { includeExercises?: boolean }): Promise<string | null> => {
     if (!uid) return null;
+    const includeExercises = opts?.includeExercises ?? true;
     const src = await getDoc(doc(freeSessionsCol(uid), sessionId));
     if (!src.exists()) return null;
     const data = src.data();
     const sets: FreeSet[] = (data.sets || []).map((s: any) => ({ ...s }));
-    // Build planned list from unique exercise names in the source session.
-    const seen = new Set<string>();
-    const planned: PlannedExercise[] = [];
-    for (const s of sets) {
-      const name = s.exerciseName?.trim();
-      if (!name) continue;
-      const key = name.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      planned.push({ name, muscle: s.muscle, addedAt: Date.now() });
+    let planned: PlannedExercise[] = [];
+    if (includeExercises) {
+      const seen = new Set<string>();
+      for (const s of sets) {
+        const name = s.exerciseName?.trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        planned.push({ name, muscle: s.muscle, addedAt: Date.now() });
+      }
     }
     const newId = `free_${Date.now()}`;
     await setDoc(doc(freeSessionsCol(uid), newId), {
@@ -437,14 +510,163 @@ export function useFirestore(uid: string | null) {
       sets: [],
       plannedExercises: planned,
       completed: false,
+      status: 'active',
     });
     return newId;
+  }, [uid]);
+
+  // Convert an active (or completed) session BACK to planned. Sets are cleared; unique
+  // exercise names are lifted into plannedExercises so nothing is lost. Reason for
+  // existing: user built a session yesterday because we didn't have planning yet.
+  const convertToPlanned = useCallback(async (sessionId: string, plannedFor: string): Promise<void> => {
+    if (!uid) return;
+    const snap = await getDoc(doc(freeSessionsCol(uid), sessionId));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const sets: FreeSet[] = (data.sets || []).map((s: any) => ({ ...s }));
+    // Extract exercises (name + muscle) into planned entries so we don't lose them.
+    const seen = new Set<string>();
+    const planned: PlannedExercise[] = Array.isArray(data.plannedExercises) ? [...data.plannedExercises] : [];
+    for (const p of planned) seen.add(p.name.toLowerCase());
+    for (const s of sets) {
+      const name = s.exerciseName?.trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      planned.push({ name, muscle: s.muscle, addedAt: Date.now() });
+    }
+    const [y, m, d] = plannedFor.split('-').map(Number);
+    const midnight = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0).getTime();
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      status: 'planned',
+      plannedFor,
+      date: Timestamp.fromMillis(midnight),
+      completed: false,
+      completedAt: null,
+      sets: [],
+      plannedExercises: planned,
+    });
   }, [uid]);
 
   const deleteFreeSession = useCallback(async (sessionId: string) => {
     if (!uid) return;
     await deleteDoc(doc(freeSessionsCol(uid), sessionId));
   }, [uid]);
+
+  // Reactivate a completed session — flip it back to active so the user can add more sets today
+  // instead of holding two separate sessions for the same day.
+  const reactivateFreeSession = useCallback(async (sessionId: string): Promise<void> => {
+    if (!uid) return;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      completed: false,
+      completedAt: null,
+      status: 'active',
+    });
+  }, [uid]);
+
+  // Aerobic entries on a session — replaces the whole array (add/edit/delete all use this).
+  const setAerobicEntries = useCallback(async (sessionId: string, entries: AerobicEntry[]) => {
+    if (!uid) return;
+    // Firestore rejects undefined — strip any optional fields that are undefined.
+    const clean = entries.map(e => {
+      const c: any = { ...e };
+      Object.keys(c).forEach(k => { if (c[k] === undefined) delete c[k]; });
+      return c;
+    });
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), { aerobicEntries: clean });
+  }, [uid]);
+
+  // ─── Superset pairs ───────────────────────────────────────────
+  // Keyed by "sorted_a__sorted_b" so the same pair is recorded once regardless of order.
+  function pairKey(a: string, b: string): string {
+    return a < b ? `${a}__${b}` : `${b}__${a}`;
+  }
+  const listSupersetPairs = useCallback(async (): Promise<SupersetPair[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(collection(db, 'users', uid, 'supersetPairs'));
+    return snap.docs.map(d => d.data() as SupersetPair);
+  }, [uid]);
+  const recordSupersetPair = useCallback(async (a: string, b: string) => {
+    if (!uid || a === b) return;
+    const key = pairKey(a, b);
+    const ref = doc(db, 'users', uid, 'supersetPairs', key);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data() as SupersetPair;
+      await setDoc(ref, { ...data, count: (data.count || 0) + 1, lastTs: Date.now() }, { merge: true });
+    } else {
+      const ids: [string, string] = a < b ? [a, b] : [b, a];
+      const rec: SupersetPair = { id: key, ids, count: 1, lastTs: Date.now(), hidden: false };
+      await setDoc(ref, rec);
+    }
+  }, [uid]);
+  const hideSupersetPair = useCallback(async (a: string, b: string) => {
+    if (!uid) return;
+    const key = pairKey(a, b);
+    await setDoc(doc(db, 'users', uid, 'supersetPairs', key), { hidden: true }, { merge: true });
+  }, [uid]);
+  const unhideSupersetPair = useCallback(async (a: string, b: string) => {
+    if (!uid) return;
+    const key = pairKey(a, b);
+    await setDoc(doc(db, 'users', uid, 'supersetPairs', key), { hidden: false }, { merge: true });
+  }, [uid]);
+
+  // Copy planned/completed sessions from a source week (offset -1 = last week) into a target week
+  // (offset 0 = this week). Only picks completed sessions from the source (we never re-plan
+  // future incomplete plans). Each day in the source that had a completed workout becomes a
+  // planned session on the corresponding day of the target week.
+  const copyPlannedWeek = useCallback(async (opts: {
+    sourceWeekOffset: number;         // e.g. -1 for last week
+    targetWeekOffset: number;         // e.g. 0 for this week
+    includeExercises: boolean;        // true = muscles + exercises, false = muscles only
+  }): Promise<number> => {
+    if (!uid) return 0;
+    const now = new Date();
+    const sunday = new Date(now); sunday.setHours(0,0,0,0); sunday.setDate(sunday.getDate() - sunday.getDay());
+    const srcStart = new Date(sunday); srcStart.setDate(srcStart.getDate() + opts.sourceWeekOffset * 7);
+    const srcEnd = new Date(srcStart); srcEnd.setDate(srcEnd.getDate() + 7);
+    const tgtStart = new Date(sunday); tgtStart.setDate(tgtStart.getDate() + opts.targetWeekOffset * 7);
+    // Load everything, filter, avoid double-planning: if the target day already has any session, skip.
+    const all = await getDocs(freeSessionsCol(uid));
+    const list = all.docs.map(d => toFreeSession(d.id, d.data()));
+    const srcSessions = list.filter(s => s.status === 'completed' && s.date >= srcStart.getTime() && s.date < srcEnd.getTime());
+    const targetHasByDow = new Set<number>();
+    for (const s of list) {
+      const d = new Date(s.date);
+      if (d >= tgtStart && d < new Date(tgtStart.getTime() + 7 * 86_400_000)) targetHasByDow.add(d.getDay());
+    }
+    let created = 0;
+    for (const src of srcSessions) {
+      const srcDate = new Date(src.date);
+      const dow = srcDate.getDay();
+      if (targetHasByDow.has(dow)) continue;
+      const tgtDate = new Date(tgtStart); tgtDate.setDate(tgtDate.getDate() + dow);
+      const y = tgtDate.getFullYear();
+      const m = String(tgtDate.getMonth() + 1).padStart(2, '0');
+      const d2 = String(tgtDate.getDate()).padStart(2, '0');
+      const plannedFor = `${y}-${m}-${d2}`;
+      // Muscles come from what was actually trained, not the original focus (pruned in complete).
+      const muscles = src.muscleGroups.slice();
+      let planned: PlannedExercise[] | undefined;
+      if (opts.includeExercises) {
+        const seen = new Set<string>();
+        planned = [];
+        for (const s of src.sets) {
+          const name = s.exerciseName?.trim();
+          if (!name) continue;
+          const key = name.toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          planned.push({ name, muscle: s.muscle, addedAt: Date.now() });
+        }
+      }
+      await createPlannedSession(muscles, plannedFor, planned);
+      created++;
+      targetHasByDow.add(dow);
+    }
+    return created;
+  }, [uid, createPlannedSession]);
 
   const updateFreeSessionDates = useCallback(async (sessionId: string, opts: { date?: number; completedAt?: number }) => {
     if (!uid) return;
@@ -472,6 +694,36 @@ export function useFirestore(uid: string | null) {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'settings', 'main');
     await setDoc(ref, { weeklyTargets: targets }, { merge: true });
+  }, [uid]);
+
+  // Goals config — two modes:
+  //   'fixed'   → weeklyTargets is the source of truth (existing behavior)
+  //   'percent' → weeklyTotalSets (total per week) split by weeklyPercents (%/muscle)
+  //               Effective target for a muscle = round(total * percent / 100)
+  //               Bank = 100 - sum(percents). Never goes negative.
+  type GoalsConfig = {
+    mode: 'fixed' | 'percent';
+    totalSets: number;
+    percents: Partial<Record<MuscleGroup, number>>;
+  };
+  const getGoalsConfig = useCallback(async (): Promise<GoalsConfig> => {
+    if (!uid) return { mode: 'fixed', totalSets: 0, percents: {} };
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const mode: 'fixed' | 'percent' = data.goalsMode === 'percent' ? 'percent' : 'fixed';
+    const totalSets = typeof data.weeklyTotalSets === 'number' ? data.weeklyTotalSets : 0;
+    const percents = (data.weeklyPercents && typeof data.weeklyPercents === 'object') ? data.weeklyPercents : {};
+    return { mode, totalSets, percents };
+  }, [uid]);
+  const setGoalsConfig = useCallback(async (cfg: Partial<GoalsConfig>) => {
+    if (!uid) return;
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    const payload: any = {};
+    if (cfg.mode) payload.goalsMode = cfg.mode;
+    if (cfg.totalSets != null) payload.weeklyTotalSets = cfg.totalSets;
+    if (cfg.percents) payload.weeklyPercents = cfg.percents;
+    await setDoc(ref, payload, { merge: true });
   }, [uid]);
 
   // ─── end free sessions ──────────────────────────────────────────
@@ -598,12 +850,22 @@ export function useFirestore(uid: string | null) {
 
   // ─── Exercise photos (user-uploaded, one per exercise-name) ────
 
-  const saveExercisePhoto = useCallback(async (exerciseName: string, base64: string) => {
+  const saveExercisePhoto = useCallback(async (
+    exerciseName: string,
+    base64: string,
+    opts?: { alsoDefault?: boolean },
+  ) => {
     if (!uid) return;
     const key = exercisePhotoKey(exerciseName);
     if (!key) return;
+    // Always write the per-user copy.
     const ref = doc(db, 'users', uid, 'exercisePhotos', key);
     await setDoc(ref, { key, exerciseName, base64, createdAt: Date.now() });
+    // If the caller opted in (admin flow), also promote it to the global defaults.
+    if (opts?.alsoDefault) {
+      const defRef = doc(db, 'defaultExercisePhotos', key);
+      await setDoc(defRef, { key, exerciseName, base64, uploadedBy: uid, updatedAt: Date.now() });
+    }
   }, [uid]);
 
   const getExercisePhoto = useCallback(async (exerciseName: string): Promise<string | null> => {
@@ -611,17 +873,30 @@ export function useFirestore(uid: string | null) {
     const key = exercisePhotoKey(exerciseName);
     if (!key) return null;
     const snap = await getDoc(doc(db, 'users', uid, 'exercisePhotos', key));
-    if (!snap.exists()) return null;
-    return snap.data().base64 || null;
+    if (snap.exists() && snap.data().base64) return snap.data().base64;
+    // Fall back to the global default.
+    const defSnap = await getDoc(doc(db, 'defaultExercisePhotos', key));
+    if (defSnap.exists() && defSnap.data().base64) return defSnap.data().base64;
+    return null;
   }, [uid]);
 
+  // Returns { key → base64 } for both the global defaults AND the user's per-user overrides.
+  // User overrides always win over defaults (spread order matters).
+  // Defaults are BEST EFFORT — if rules block us or the collection doesn't exist, keep going.
   const getAllExercisePhotos = useCallback(async (): Promise<Record<string, string>> => {
     if (!uid) return {};
-    const snap = await getDocs(collection(db, 'users', uid, 'exercisePhotos'));
     const out: Record<string, string> = {};
-    for (const d of snap.docs) {
+    try {
+      const defSnap = await getDocs(collection(db, 'defaultExercisePhotos'));
+      for (const d of defSnap.docs) {
+        const data = d.data();
+        if (data.base64 && data.key) out[data.key] = data.base64;
+      }
+    } catch { /* defaults are optional — user photos still show */ }
+    const userSnap = await getDocs(collection(db, 'users', uid, 'exercisePhotos'));
+    for (const d of userSnap.docs) {
       const data = d.data();
-      if (data.base64 && data.key) out[data.key] = data.base64;
+      if (data.base64 && data.key) out[data.key] = data.base64; // override wins
     }
     return out;
   }, [uid]);
@@ -632,6 +907,35 @@ export function useFirestore(uid: string | null) {
     if (!key) return;
     await deleteDoc(doc(db, 'users', uid, 'exercisePhotos', key));
   }, [uid]);
+
+  // Admin only — deletes a global default photo (used to un-promote something).
+  const deleteDefaultExercisePhoto = useCallback(async (exerciseName: string) => {
+    const key = exercisePhotoKey(exerciseName);
+    if (!key) return;
+    await deleteDoc(doc(db, 'defaultExercisePhotos', key));
+  }, []);
+
+  // Admin only — promotes a specific photo (base64) to the global default for that exercise.
+  const setDefaultExercisePhoto = useCallback(async (exerciseName: string, base64: string) => {
+    const key = exercisePhotoKey(exerciseName);
+    if (!key) return;
+    await setDoc(doc(db, 'defaultExercisePhotos', key), {
+      key, exerciseName, base64, uploadedBy: uid || 'admin', updatedAt: Date.now(),
+    });
+  }, [uid]);
+
+  // Set of photo-keys that currently have a global default. Used by admin UI to show ★ state.
+  const listDefaultPhotoKeys = useCallback(async (): Promise<Set<string>> => {
+    try {
+      const snap = await getDocs(collection(db, 'defaultExercisePhotos'));
+      const out = new Set<string>();
+      for (const d of snap.docs) {
+        const data = d.data();
+        if (data.key) out.add(data.key);
+      }
+      return out;
+    } catch { return new Set(); }
+  }, []);
 
   const getProgramStartOverride = useCallback(async (): Promise<string | null> => {
     if (!uid) return null;
@@ -687,10 +991,22 @@ export function useFirestore(uid: string | null) {
     getExerciseNote,
     saveExerciseDifficulty,
     getExerciseDifficulty,
+    getExerciseDifficultyForSession,
+    deleteExerciseDifficulty,
     getProgramStartOverride,
     setProgramStartOverride,
     // Free (muscle-based) sessions
     createFreeSession,
+    createPlannedSession,
+    startPlannedSession,
+    copyPlannedWeek,
+    convertToPlanned,
+    reactivateFreeSession,
+    setAerobicEntries,
+    listSupersetPairs,
+    recordSupersetPair,
+    hideSupersetPair,
+    unhideSupersetPair,
     getFreeSession,
     getFreeSessions,
     logFreeSet,
@@ -703,11 +1019,16 @@ export function useFirestore(uid: string | null) {
     duplicateFreeSession,
     getWeeklyTargets,
     setWeeklyTargets,
+    getGoalsConfig,
+    setGoalsConfig,
     // Exercise photos
     saveExercisePhoto,
     getExercisePhoto,
     getAllExercisePhotos,
     deleteExercisePhoto,
+    deleteDefaultExercisePhoto,
+    setDefaultExercisePhoto,
+    listDefaultPhotoKeys,
     // Personal exercise DB
     listPersonalExercises,
     upsertPersonalExercise,

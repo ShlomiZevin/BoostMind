@@ -144,6 +144,33 @@ html[data-theme="light"] .bubble{background:#12202e;color:#f6ecdc}
 .bell{flex:none;width:26px;height:26px;color:#1a2634;transform-origin:50% 12%;animation:ring 3.6s ease-in-out infinite}
 @keyframes ring{0%,64%,100%{transform:rotate(0)}68%{transform:rotate(13deg)}72%{transform:rotate(-11deg)}76%{transform:rotate(8deg)}80%{transform:rotate(-6deg)}84%{transform:rotate(3deg)}}
 
+/* ---------- check-in CTA ---------- */
+.ciCta{
+  display:block;text-decoration:none;color:var(--text);
+  background:var(--card);border:2px solid var(--gold);border-radius:16px;
+  padding:20px 18px;margin-top:14px;box-shadow:var(--shadow);transition:.16s;
+}
+.ciCta:hover{transform:translateY(-2px)}
+.ciTop{
+  display:inline-flex;align-items:center;gap:7px;background:var(--gold);color:#1a2634;
+  font-weight:900;font-size:12.5px;letter-spacing:.04em;padding:5px 13px;border-radius:99px;margin-bottom:12px;
+}
+.ciTop i{font-style:normal;animation:tick 3.4s ease-in-out infinite;display:inline-block}
+@keyframes tick{0%,100%{transform:rotate(0)}50%{transform:rotate(-9deg)}}
+.ciH{
+  display:block;font-family:'Secular One',sans-serif;color:var(--cream);
+  font-size:clamp(25px,7vw,42px);line-height:1.15;margin-bottom:9px;
+}
+html[data-theme="light"] .ciH{color:#1f2934}
+.ciH em{font-style:normal;color:var(--gold)}
+.ciP{display:block;color:var(--muted);font-size:14px;line-height:1.55;margin-bottom:16px}
+.ciBtn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  background:var(--gold);color:#1a2634;border-radius:12px;padding:15px 22px;
+  font-weight:900;font-size:17px;transition:.16s;
+}
+.ciCta:hover .ciBtn{background:var(--gold-d)}
+
 /* ---------- sections ---------- */
 section{padding:26px 0}
 .sec-h{display:flex;align-items:baseline;gap:11px;margin-bottom:5px;flex-wrap:wrap}
@@ -350,6 +377,13 @@ footer a:hover{text-decoration:underline}
     <svg class="bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
     <span>יש להודיע מראש על סוג האוכל המבוקש פר משתתף</span>
   </div>
+
+  <a class="ciCta" href="checkin.html">
+    <span class="ciTop"><i>🎟️</i> הצ'ק-אין נפתח</span>
+    <span class="ciH">נרגשים ומזמינים אתכם<br><em>לעשות צ'ק-אין</em></span>
+    <span class="ciP">בוחרים איפה יושבים לפני שנתפס, מסמנים אזור עישון, ומקבלים כרטיס כניסה אישי. לוקח דקה.</span>
+    <span class="ciBtn">לצ'ק-אין ←</span>
+  </a>
 </header>
 
 <section class="rv">

@@ -10,6 +10,7 @@ import {
 } from '../data/exercisesDB';
 import { prepareMedia, exercisePhotoKey } from '../hooks/usePhotos';
 import { useFirestore } from '../hooks/useFirestore';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 type Props = {
   uid: string;
@@ -18,10 +19,15 @@ type Props = {
   allPastSets: FreeSet[];
   editingSet?: FreeSet;
   duplicateFrom?: FreeSet;
-  pickOnly?: boolean;   // when true, hide weight/reps and expose an "Add to session" action
+  // Which save buttons to show at the bottom.
+  //   'set'      → one "שמור סט" (default)
+  //   'exercise' → one "שמור תרגיל" (pick-only, no weight/reps required)
+  //   'dual'     → BOTH — used when the modal is opened via a muscle-group tile so the user can go either way
+  saveMode?: 'set' | 'exercise' | 'dual';
   onClose: () => void;
   onSave: (set: Omit<FreeSet, 'id' | 'timestamp'>, editingSetId?: string) => void;
-  onPickOnly?: (name: string, muscle: MuscleGroup) => void;   // called in pick-only mode
+  // Called when saving as exercise-only (no weight/reps). Fires from 'exercise' or 'dual' modes.
+  onPickOnly?: (name: string, muscle: MuscleGroup) => void;
 };
 
 function isVideoUrl(src: string): boolean {
@@ -48,8 +54,13 @@ function weeksAgoLabel(ts: number): string {
 }
 
 export function LogSetModal({
-  uid, sessionMuscles, defaultMuscle, allPastSets, editingSet, duplicateFrom, pickOnly, onClose, onSave, onPickOnly,
+  uid, sessionMuscles, defaultMuscle, allPastSets, editingSet, duplicateFrom,
+  saveMode = 'set',
+  onClose, onSave, onPickOnly,
 }: Props) {
+  const showSet = saveMode === 'set' || saveMode === 'dual';
+  const showExercise = saveMode === 'exercise' || saveMode === 'dual';
+  useBodyScrollLock();
   const firestore = useFirestore(uid);
   const isEdit = !!editingSet;
   const seed = editingSet || duplicateFrom;
@@ -63,9 +74,11 @@ export function LogSetModal({
     Promise.all([
       firestore.listPersonalExercises(),
       firestore.getAllExercisePhotos(),
-    ]).then(([exs, photos]) => {
+      isAdmin ? firestore.listDefaultPhotoKeys() : Promise.resolve(new Set<string>()),
+    ]).then(([exs, photos, defs]) => {
       setPersonalExercises(exs);
       setPhotosMap(photos);
+      setDefaultKeys(defs);
     });
   }, [uid]);
 
@@ -84,6 +97,8 @@ export function LogSetModal({
   const [holdRunning, setHoldRunning] = useState(false);
   const [holdStartMs, setHoldStartMs] = useState(0);
   const [holdElapsedTick, setHoldElapsedTick] = useState(0);
+  const [defaultKeys, setDefaultKeys] = useState<Set<string>>(new Set());
+  const isAdmin = uid === 'user_6724';
 
   useEffect(() => {
     if (!holdRunning) return;
@@ -185,38 +200,47 @@ export function LogSetModal({
     });
   }, [personalExercises, exerciseSearch, muscle, sessionMuscles, historyIdMap]);
 
-  // Recent names for the current muscle — same slice from personal DB
-  const recentForMuscle = useMemo(() => {
-    if (!muscle) return [] as string[];
-    const rows = pickPersonal(personalExercises, {
-      muscle,
-      historyMap: historyIdMap,
-    });
-    return rows.filter(r => historyIdMap[r.id]).slice(0, 6).map(r => r.he);
-  }, [personalExercises, muscle, historyIdMap]);
+  // Most-recent real set for the CURRENT exercise (across all history) — used both to prefill
+  // weight/reps and to render an explicit "פעם קודמת" line so the user sees the source.
+  const lastSetForExercise = useMemo(() => {
+    if (!currentName) return null;
+    const target = currentName.trim().toLowerCase();
+    return [...allPastSets]
+      .filter(s => s.exerciseName?.trim().toLowerCase() === target && (s.weight > 0 || s.reps > 0))
+      .sort((a, b) => b.timestamp - a.timestamp)[0] || null;
+  }, [currentName, allPastSets]);
 
-  // Prefill weight/reps from most recent set for this muscle+exercise
+  // Prefill weight/reps. Preference order:
+  //   1. Most-recent set of the SAME exercise (regardless of muscle) — most useful
+  //   2. Most-recent set of the same muscle — fallback for a fresh exercise on a familiar muscle
+  //   3. 12 × 0kg — neutral default
   useEffect(() => {
     if (seed) return;
-    if (!muscle) return;
     const target = currentName?.trim().toLowerCase();
-    const relevant = allPastSets
-      .filter(s =>
-        s.muscle === muscle &&
-        s.weight > 0 && s.reps > 0 &&
-        (!target || (s.exerciseName && s.exerciseName.trim().toLowerCase() === target))
-      )
-      .sort((a, b) => b.timestamp - a.timestamp);
-    if (relevant.length > 0) {
-      const last = relevant[0];
-      setWeight(String(last.weight));
-      setReps(String(last.reps));
-      if (last.unit) setUnit(last.unit);
-    } else {
-      setReps('12');
-      setWeight('0');
+    // 1. Same-exercise last set
+    if (target && lastSetForExercise) {
+      setWeight(String(lastSetForExercise.weight));
+      setReps(String(lastSetForExercise.reps));
+      if (lastSetForExercise.unit) setUnit(lastSetForExercise.unit);
+      return;
     }
-  }, [muscle, currentName]); // eslint-disable-line react-hooks/exhaustive-deps
+    // 2. Same-muscle last real set
+    if (muscle) {
+      const relevant = allPastSets
+        .filter(s => s.muscle === muscle && s.weight > 0 && s.reps > 0)
+        .sort((a, b) => b.timestamp - a.timestamp);
+      if (relevant.length > 0) {
+        const last = relevant[0];
+        setWeight(String(last.weight));
+        setReps(String(last.reps));
+        if (last.unit) setUnit(last.unit);
+        return;
+      }
+    }
+    // 3. Neutral default
+    setReps('12');
+    setWeight('0');
+  }, [muscle, currentName, lastSetForExercise]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Last time (ms) the CURRENT muscle was hit with a real set — for the "worked recently" warning.
   const muscleLastTrainedMs = useMemo(() => {
@@ -309,11 +333,6 @@ export function LogSetModal({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {pickOnly && (
-          <div className="text-[11px] text-center text-emerald-600 dark:text-emerald-400 -mt-1" dir="rtl">
-            בחר תרגיל להוסיף לאימון. לוגים ייכנסו אחר כך.
-          </div>
-        )}
         {/* Muscle chip picker */}
         <div>
           <div className="flex items-center justify-between mb-1.5" dir="rtl">
@@ -427,21 +446,30 @@ export function LogSetModal({
                 </button>
               </div>
 
-              {/* Row 2: history block — ALWAYS shown, with empty state */}
-              {!pickOnly && (
+              {/* Row 2: history block — hide when we're only saving an exercise (no set stats matter) */}
+              {saveMode !== 'exercise' && (
                 <div className="mt-3 pt-3 border-t border-emerald-500/20 text-right" dir="rtl">
                   {hasAnyHistory ? (
-                    <div className="flex items-center gap-2 flex-wrap text-[11px]" dir="rtl">
-                      {referenceRange && (
-                        <span className="font-mono text-main">
-                          <span className="text-muted-most text-[10px]">טווח 30י׳</span>{' '}
-                          <span dir="ltr" className="font-bold inline-block">{formatReferenceRange(referenceRange, unit)}</span>
-                        </span>
+                    <div className="space-y-1">
+                      {lastSetForExercise && (
+                        <div className="flex items-baseline gap-1.5 text-[11px]" dir="rtl">
+                          <span className="text-muted-most text-[10px]">פעם קודמת:</span>
+                          <span className="font-mono font-semibold text-emerald-700 dark:text-emerald-300" dir="ltr">
+                            {lastSetForExercise.weight}{lastSetForExercise.unit || 'kg'} × {lastSetForExercise.reps}
+                          </span>
+                          <span className="text-[10px] text-muted-most">· {weeksAgoLabel(lastSetForExercise.timestamp)}</span>
+                        </div>
                       )}
-                      {referenceRange && <span className="text-muted-most">·</span>}
-                      <span className="text-emerald-600 dark:text-emerald-400">{weeksAgoLabel(currentHistory!.lastTs)}</span>
-                      <span className="text-muted-most">·</span>
-                      <span className="text-muted">{currentHistory!.count} סטים בעבר</span>
+                      <div className="flex items-center gap-2 flex-wrap text-[11px]" dir="rtl">
+                        {referenceRange && (
+                          <span className="font-mono text-main">
+                            <span className="text-muted-most text-[10px]">טווח 30י׳</span>{' '}
+                            <span dir="ltr" className="font-bold inline-block">{formatReferenceRange(referenceRange, unit)}</span>
+                          </span>
+                        )}
+                        {referenceRange && <span className="text-muted-most">·</span>}
+                        <span className="text-muted">{currentHistory!.count} סטים בעבר</span>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-[11px] text-muted-most">
@@ -453,6 +481,34 @@ export function LogSetModal({
 
               {/* Row 3: media actions + Google search — ALWAYS shown so every exercise behaves the same */}
               <div className="flex items-center gap-3 justify-end mt-3 pt-3 border-t border-emerald-500/20 text-[11px]" dir="rtl">
+                {isAdmin && photo && (() => {
+                  const key = exercisePhotoKey(currentName);
+                  const isDefault = defaultKeys.has(key);
+                  return (
+                    <button
+                      onClick={async () => {
+                        if (isDefault) {
+                          await firestore.deleteDefaultExercisePhoto(currentName);
+                          setDefaultKeys(prev => { const n = new Set(prev); n.delete(key); return n; });
+                        } else {
+                          await firestore.setDefaultExercisePhoto(currentName, photo);
+                          setDefaultKeys(prev => { const n = new Set(prev); n.add(key); return n; });
+                        }
+                      }}
+                      title={isDefault ? 'התמונה היא ברירת מחדל לכולם — לחץ להסרה' : 'הגדר תמונה זו כברירת מחדל לכל המשתמשים'}
+                      className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border ${
+                        isDefault
+                          ? 'bg-amber-500 text-white border-amber-500'
+                          : 'text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      <svg viewBox="0 0 24 24" width="10" height="10" fill={isDefault ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                      <span>default</span>
+                    </button>
+                  );
+                })()}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
@@ -494,26 +550,6 @@ export function LogSetModal({
               className="input-field !text-sm !py-2 mb-2"
               dir="rtl"
             />
-
-            {recentForMuscle.length > 0 && !exerciseSearch && (
-              <div className="mb-2" dir="rtl">
-                <div className="text-[10px] text-muted-most mb-1 text-right">לאחרונה</div>
-                <div className="flex flex-wrap gap-1 justify-start">
-                  {recentForMuscle.map((n, i) => {
-                    const ex = findPersonalByName(personalExercises, n);
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => ex ? pickExisting(ex) : pickCustom(n)}
-                        className="text-[11px] px-2 py-1 rounded dark:bg-slate-800 dark:text-slate-300 bg-slate-100 text-slate-700 dark:hover:bg-slate-700 hover:bg-slate-200"
-                      >
-                        {n}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {pickerList.length > 0 && (
               <div>
@@ -582,8 +618,6 @@ export function LogSetModal({
           </div>
         )}
 
-        {!pickOnly && (
-        <>
         {/* Weight + reps (or seconds when hold-time) */}
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -668,12 +702,35 @@ export function LogSetModal({
             </div>
           </div>
         )}
-        </>
-        )}
       </div>
 
       <div className="p-4 border-t border-subtle">
-        {pickOnly ? (
+        {saveMode === 'dual' ? (
+          <div className="flex gap-2" dir="rtl">
+            <button
+              onClick={() => {
+                if (!muscle || !currentName.trim()) return;
+                onPickOnly?.(currentName.trim(), muscle);
+                onClose();
+              }}
+              disabled={!hasContext || !currentName.trim()}
+              className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-colors ${
+                hasContext && currentName.trim()
+                  ? 'dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-subtle'
+                  : 'dark:bg-slate-800/60 dark:text-slate-600 bg-slate-100 text-slate-400'
+              }`}
+            >שמור תרגיל</button>
+            <button
+              onClick={() => doSave(false)}
+              disabled={!hasValues || !currentName.trim()}
+              className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-colors ${
+                hasValues && currentName.trim()
+                  ? 'btn-primary'
+                  : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
+              }`}
+            >שמור סט</button>
+          </div>
+        ) : showExercise ? (
           <button
             onClick={() => {
               if (!muscle || !currentName.trim()) return;
@@ -684,8 +741,8 @@ export function LogSetModal({
             className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
               hasContext && currentName.trim() ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
             }`}
-          >הוסף תרגיל לאימון</button>
-        ) : (
+          >שמור תרגיל</button>
+        ) : showSet ? (
           <button
             onClick={() => doSave(false)}
             disabled={!hasValues}
@@ -695,7 +752,7 @@ export function LogSetModal({
           >
             {isEdit ? 'עדכן סט' : 'שמור סט'}
           </button>
-        )}
+        ) : null}
       </div>
 
       {imageOpen && photoFor(currentName) && (

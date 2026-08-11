@@ -218,7 +218,7 @@ app.post('/api/chat', async (req, res) => {
 
     const claudeResp = await anthropic.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: 2000,
+      max_tokens: 4000,
       system: systemPrompt,
       messages: messages.map(m => ({ role: m.role, content: String(m.content).slice(0, 4000) })),
     });
@@ -229,8 +229,13 @@ app.post('/api/chat', async (req, res) => {
       .map(b => b.text)
       .join('\n');
 
+    if (claudeResp.stop_reason && claudeResp.stop_reason !== 'end_turn') {
+      console.warn('chat stop_reason', claudeResp.stop_reason, 'usage', claudeResp.usage);
+    }
+
     res.json({
       text,
+      stopReason: claudeResp.stop_reason,
       usage: claudeResp.usage,
       rateLimit: { remaining: rl.remaining, limit: RL_MAX },
     });

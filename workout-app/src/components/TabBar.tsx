@@ -117,7 +117,11 @@ export function TabBar({ current, onNavigate, hasInProgress, onFabClick }: Props
               {hasInProgress ? (
                 <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               ) : (
-                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                // Lightning bolt — "start something explosive". Different sign from the standard +,
+                // pairs semantically with the play triangle used when a session is already running.
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true">
+                  <path d="M13 2 L4 14 h6 l-2 8 l10 -13 h-6 z" />
+                </svg>
               )}
               {hasInProgress && (
                 <span className="absolute -top-0.5 -left-0.5 flex h-3 w-3">

@@ -5,6 +5,10 @@ export function useTimer() {
   const [remaining, setRemaining] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const hasAlerted = useRef(false);
+  // iOS Safari (incl. PWAs) blocks AudioContext until it's created inside a user gesture and
+  // resumed. Create it once on `start()` — which IS a user gesture — and reuse it later when
+  // the chime fires from a setInterval callback (which isn't a user gesture on its own).
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   const start = useCallback((durationSeconds: number) => {
     const end = Date.now() + durationSeconds * 1000;
@@ -12,8 +16,24 @@ export function useTimer() {
     setRemaining(durationSeconds);
     setIsRunning(true);
     hasAlerted.current = false;
-    // Web push notifications don't fire reliably on iOS PWAs when the app is backgrounded —
-    // don't bother asking for permission. Users see the timer end inside the app instead.
+    // Prime audio while we still have the gesture. Some iOS versions also need a silent tone
+    // played immediately to fully unlock the audio pipeline; do that too.
+    try {
+      if (!audioCtxRef.current) {
+        const Ctor = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (Ctor) audioCtxRef.current = new Ctor();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx) {
+        if (ctx.state === 'suspended') ctx.resume().catch(() => { /* ignore */ });
+        // Silent unlock ping — 1 sample at zero gain. Enough for iOS to enable playback.
+        const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+      }
+    } catch { /* audio unavailable — timer still runs, just silent */ }
   }, []);
 
   const skip = useCallback(() => {
@@ -34,35 +54,40 @@ export function useTimer() {
       setRemaining(left);
       if (left <= 0 && !hasAlerted.current) {
         hasAlerted.current = true;
-        // Beep via Web Audio API
+        // Pleasant three-note "done" chime — C5 → E5 → G5 (major triad).
+        // Reuse the AudioContext unlocked during start() so iOS actually plays it.
         try {
-          const ctx = new AudioContext();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.frequency.value = 880;
-          gain.gain.value = 0.3;
-          osc.start();
-          osc.stop(ctx.currentTime + 0.3);
-          // Second beep
-          setTimeout(() => {
-            try {
-              const osc2 = ctx.createOscillator();
-              const gain2 = ctx.createGain();
-              osc2.connect(gain2);
-              gain2.connect(ctx.destination);
-              osc2.frequency.value = 880;
-              gain2.gain.value = 0.3;
-              osc2.start();
-              osc2.stop(ctx.currentTime + 0.3);
-            } catch (_) {}
-          }, 400);
-        } catch (_) {}
+          let ctx = audioCtxRef.current;
+          if (!ctx) {
+            const Ctor = (window as any).AudioContext || (window as any).webkitAudioContext;
+            if (Ctor) { ctx = new Ctor(); audioCtxRef.current = ctx; }
+          }
+          if (!ctx) throw new Error('no audio');
+          if (ctx.state === 'suspended') ctx.resume().catch(() => { /* ignore */ });
+          const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+          const start = ctx.currentTime + 0.02;
+          const noteDur = 0.55;
+          const stagger = 0.14;
+          notes.forEach((freq, i) => {
+            const t0 = start + i * stagger;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t0);
+            // Soft envelope: quick attack, exponential decay → bell-like.
+            gain.gain.setValueAtTime(0.0001, t0);
+            gain.gain.exponentialRampToValueAtTime(0.28, t0 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t0 + noteDur);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + noteDur + 0.05);
+          });
+          // Keep the context alive for the next timer — don't close.
+        } catch (_) { /* audio unavailable — no-op */ }
 
-        // Vibrate
+        // Vibrate — short pattern, matches the chime rhythm.
         if (navigator.vibrate) {
-          navigator.vibrate([500, 200, 500]);
+          navigator.vibrate([80, 60, 80, 60, 160]);
         }
 
         // Notifications intentionally removed — unreliable on iOS PWA when backgrounded;

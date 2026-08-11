@@ -47,6 +47,10 @@
         "destination": "/humblo/index.html"
       },
       {
+        "source": "/kabai/**",
+        "destination": "/kabai/index.html"
+      },
+      {
         "source": "/corfu/**",
         "destination": "/corfu/index.html"
       }

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>בנק עוגן — אסטרטגיית TCS BaNCS | הגשת מועמדות CTO</title>
+<meta name="description" content="אסטרטגיית ליבה בנקאית, אינטגרציה לאומית, בנקאות פתוחה ו-AI עבור בנק עוגן — הבנק החברתי הראשון בישראל.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c10; --card:#12151b; --card2:#171b22; --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,255,255,.15); --text:#eceef2; --muted:#98a1ae;
+  --accent:#3b82f6; --accent-dim:rgba(59,130,246,.10); --accent-line:rgba(59,130,246,.32);
+  --ok:#10b981; --ok-dim:rgba(16,185,129,.10);
+  --warn:#f59e0b; --warn-dim:rgba(245,158,11,.10);
+  --dot:rgba(255,255,255,.055);
+  --shell:rgba(10,12,16,.82);
+}
+html[data-theme="light"]{
+  --bg:#f4f5f7; --card:#ffffff; --card2:#fafbfc; --line:rgba(10,15,25,.09);
+  --line-strong:rgba(10,15,25,.15); --text:#11141a; --muted:#59626f;
+  --accent:#1d4ed8; --accent-dim:rgba(29,78,216,.06); --accent-line:rgba(29,78,216,.24);
+  --ok:#047857; --ok-dim:rgba(4,120,87,.06);
+  --warn:#b45309; --warn-dim:rgba(180,83,9,.07);
+  --dot:rgba(10,15,25,.05);
+  --shell:rgba(244,245,247,.85);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Heebo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.55;
+  -webkit-font-smoothing:antialiased; transition:background .18s,color .18s;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:radial-gradient(var(--dot) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+
+/* ===== fluid type ===== */
+:root{
+  --fs-h1:clamp(28px, min(5.4vw, 8.2vh), 62px);
+  --fs-h2:clamp(23px, min(3.5vw, 5.4vh), 42px);
+  --fs-h3:clamp(14.5px, min(1.35vw, 2.15vh), 19px);
+  --fs-body:clamp(12.5px, min(1.1vw, 1.75vh), 16px);
+  --fs-sub:clamp(14px, min(1.45vw, 2.3vh), 20px);
+  --fs-tiny:clamp(9.5px, min(.78vw, 1.25vh), 12px);
+  --gap:clamp(10px, 1.5vh, 18px);
+}
+
+/* ===== deck shell ===== */
+.deck{position:fixed; inset:0; z-index:1}
+.slide{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:clamp(52px,7vh,80px) clamp(20px,5.5vw,84px) clamp(58px,8vh,86px);
+  opacity:0; visibility:hidden; transform:translateY(16px) scale(.995);
+  transition:opacity .38s cubic-bezier(.4,0,.2,1), transform .38s cubic-bezier(.4,0,.2,1), visibility .38s;
+}
+.slide.active{opacity:1; visibility:visible; transform:none}
+.inner{
+  width:100%; max-width:1240px; max-height:100%; overflow-y:auto;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.inner::-webkit-scrollbar{display:none}
+.slide.active .inner > *{animation:rise .5s cubic-bezier(.22,.9,.3,1) both}
+.slide.active .inner > *:nth-child(1){animation-delay:.04s}
+.slide.active .inner > *:nth-child(2){animation-delay:.10s}
+.slide.active .inner > *:nth-child(3){animation-delay:.16s}
+.slide.active .inner > *:nth-child(4){animation-delay:.22s}
+.slide.active .inner > *:nth-child(5){animation-delay:.28s}
+.slide.active .inner > *:nth-child(6){animation-delay:.34s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .slide,.slide.active .inner > *{transition:none!important;animation:none!important}
+}
+
+/* ===== chrome ===== */
+.bar{
+  position:fixed; top:0; left:0; right:0; height:2px; z-index:40;
+  background:var(--line);
+}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .38s cubic-bezier(.4,0,.2,1)}
+
+.top{
+  position:fixed; top:0; left:0; right:0; z-index:38;
+  display:flex; align-items:center; gap:12px; padding:14px clamp(16px,3vw,30px) 0;
+  pointer-events:none;
+}
+.top > *{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:9px;font-size:var(--fs-tiny);font-weight:700;letter-spacing:.02em;color:var(--muted)}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.sp{flex:1}
+.ico{
+  width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+  background:var(--card); border:1px solid var(--line); color:var(--muted);
+  cursor:pointer; transition:color .15s,border-color .15s,background .15s;
+}
+.ico:hover{color:var(--text);border-color:var(--accent-line);background:var(--card2)}
+.ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.bot{
+  position:fixed; bottom:0; left:0; right:0; z-index:38;
+  display:flex; align-items:center; gap:clamp(10px,2vw,20px);
+  padding:0 clamp(16px,3vw,30px) 16px; pointer-events:none;
+}
+.bot > *{pointer-events:auto}
+.dots{display:flex; gap:5px; flex:1; align-items:center; flex-wrap:wrap}
+.dots b{
+  width:16px;height:5px;border-radius:3px;background:var(--line-strong);
+  cursor:pointer; transition:background .2s,width .2s; display:block;
+}
+.dots b:hover{background:var(--muted)}
+.dots b.on{background:var(--accent);width:26px}
+.count{font-size:var(--fs-tiny);color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.06em;white-space:nowrap}
+.count em{color:var(--text);font-style:normal;font-weight:700}
+.arrows{display:flex;gap:7px}
+.arrows .ico:disabled{opacity:.3;cursor:default}
+
+/* overview */
+.ov{
+  position:fixed; inset:0; z-index:60; background:var(--bg);
+  padding:clamp(20px,4vh,44px) clamp(18px,4vw,54px);
+  overflow-y:auto; display:none;
+}
+.ov.on{display:block}
+.ov h4{font-size:var(--fs-tiny);letter-spacing:.14em;color:var(--accent);font-weight:800;margin-bottom:16px;text-transform:uppercase}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.ov-item{
+  background:var(--card); border:1px solid var(--line); border-radius:10px;
+  padding:14px 15px; cursor:pointer; transition:border-color .15s,background .15s;
+  display:flex; gap:11px; align-items:flex-start;
+}
+.ov-item:hover{border-color:var(--accent-line);background:var(--card2)}
+.ov-item.on{border-color:var(--accent)}
+.ov-item span{font-size:11px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;padding-top:2px;min-width:17px}
+.ov-item p{font-size:13px;font-weight:600;line-height:1.4}
+.ov-close{position:absolute;top:18px;left:20px}
+
+/* ===== slide content ===== */
+.kicker{
+  font-size:var(--fs-tiny); font-weight:800; letter-spacing:.15em; color:var(--accent);
+  text-transform:uppercase; margin-bottom:clamp(8px,1.3vh,14px);
+  display:flex; align-items:center; gap:9px;
+}
+.kicker::before{content:"";width:20px;height:2px;background:var(--accent);border-radius:2px;flex:none}
+h1{font-size:var(--fs-h1); font-weight:900; letter-spacing:-.03em; line-height:1.08}
+h2{font-size:var(--fs-h2); font-weight:800; letter-spacing:-.025em; line-height:1.18}
+h3{font-size:var(--fs-h3); font-weight:700; letter-spacing:-.01em; margin-bottom:6px; line-height:1.3}
+.sub{color:var(--muted); font-size:var(--fs-sub); font-weight:400; margin-top:clamp(10px,1.6vh,18px); max-width:64ch}
+.lead{color:var(--muted); font-size:var(--fs-body); margin-top:clamp(8px,1.2vh,14px); margin-bottom:clamp(14px,2.4vh,26px); max-width:78ch}
+h2 + .grid, h2 + .split, h2 + .tbl-wrap, h2 + .tl{margin-top:clamp(14px,2.4vh,26px)}
+
+/* cover */
+.cover .rule{width:54px;height:3px;background:var(--accent);border-radius:2px;margin:clamp(16px,2.6vh,30px) 0}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:clamp(18px,3vh,34px)}
+.pill{
+  font-size:var(--fs-tiny); font-weight:700; padding:7px 14px; border-radius:100px;
+  border:1px solid var(--line-strong); color:var(--muted); background:var(--card);
+  letter-spacing:.03em;
+}
+.pill.on{border-color:var(--accent-line); color:var(--accent); background:var(--accent-dim)}
+
+/* divider */
+.slide.divider{overflow:hidden}
+.divider .inner{position:relative; z-index:1}
+.ghost{
+  position:absolute; left:clamp(10px,3vw,64px); top:50%; transform:translateY(-50%);
+  font-size:min(38vh,30vw); font-weight:900; line-height:.9;
+  color:var(--text); opacity:.045; letter-spacing:-.06em;
+  pointer-events:none; user-select:none; z-index:0;
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.part{font-size:var(--fs-tiny);font-weight:800;color:var(--accent);letter-spacing:.16em;margin-bottom:10px;text-transform:uppercase}
+
+/* grids */
+.grid{display:grid; gap:var(--gap)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:clamp(14px,2.1vh,22px) clamp(15px,1.5vw,22px);
+  transition:border-color .16s, transform .16s;
+}
+.card:hover{border-color:var(--accent-line); transform:translateY(-2px)}
+.card p{font-size:var(--fs-body);color:var(--muted)}
+.card p b{color:var(--text);font-weight:600}
+.tag{
+  display:inline-block; font-size:var(--fs-tiny); font-weight:800; letter-spacing:.1em;
+  color:var(--accent); background:var(--accent-dim); border:1px solid var(--accent-line);
+  padding:3px 9px; border-radius:5px; margin-bottom:clamp(7px,1.1vh,12px); text-transform:uppercase;
+}
+.card.ok .tag{color:var(--ok);background:var(--ok-dim);border-color:var(--ok)}
+.card.warn{border-color:var(--warn)}
+.card.warn .tag{color:var(--warn);background:var(--warn-dim);border-color:var(--warn)}
+
+/* lists */
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:clamp(6px,1.05vh,11px)}
+ul.clean li{position:relative;padding-inline-start:19px;font-size:var(--fs-body);color:var(--muted)}
+ul.clean li::before{content:"";position:absolute;inset-inline-start:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+ul.clean li b{color:var(--text);font-weight:600}
+ul.clean.ok li::before{background:var(--ok)}
+ul.clean.no li::before{background:var(--warn)}
+
+/* table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-body);min-width:660px}
+th{
+  background:var(--card2); text-align:start; font-weight:800; font-size:var(--fs-tiny);
+  letter-spacing:.08em; color:var(--muted); padding:11px 16px;
+  border-bottom:1px solid var(--line); text-transform:uppercase;
+}
+td{padding:clamp(9px,1.5vh,15px) 16px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--text);font-weight:700;white-space:nowrap}
+td b{color:var(--text);font-weight:600}
+code{font-size:.88em;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:4px;font-family:ui-monospace,'SF Mono',Menlo,monospace}
+
+/* timeline */
+.tl{display:flex;flex-direction:column}
+.tl-row{
+  display:grid;grid-template-columns:118px 1fr;gap:20px;
+  padding:clamp(9px,1.55vh,17px) 0;border-bottom:1px solid var(--line);
+}
+.tl-row:first-child{padding-top:0}
+.tl-row:last-child{border-bottom:none;padding-bottom:0}
+.tl-when{font-size:var(--fs-body);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.35}
+.tl-when small{display:block;color:var(--muted);font-weight:500;font-size:.88em}
+.tl-what p{font-size:var(--fs-body);color:var(--muted)}
+
+/* callout */
+.note{
+  border:1px solid var(--line); border-inline-start:3px solid var(--accent);
+  background:var(--card); border-radius:10px;
+  padding:clamp(11px,1.7vh,17px) clamp(14px,1.5vw,20px);
+  margin-top:var(--gap); font-size:var(--fs-body); color:var(--muted);
+}
+.note b{color:var(--text);font-weight:700}
+.note.ok{border-inline-start-color:var(--ok)}
+.note.warn{border-inline-start-color:var(--warn)}
+
+/* split */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:clamp(15px,2.2vh,24px)}
+.panel .ph{display:flex;align-items:center;gap:10px;margin-bottom:clamp(9px,1.5vh,15px);flex-wrap:wrap}
+.chip{
+  font-size:var(--fs-tiny);font-weight:800;letter-spacing:.1em;color:var(--accent);
+  background:var(--accent-dim);border:1px solid var(--accent-line);padding:3px 9px;border-radius:5px;
+}
+.chip.g{color:var(--ok);background:var(--ok-dim);border-color:var(--ok)}
+.chip.w{color:var(--warn);background:var(--warn-dim);border-color:var(--warn)}
+.panel h3{margin-bottom:0}
+.flow{display:flex;align-items:center;justify-content:center;gap:12px;font-size:var(--fs-tiny);color:var(--muted);margin-top:var(--gap);font-weight:700;letter-spacing:.05em}
+.flow i{height:1px;flex:1;background:var(--line-strong);max-width:200px;display:block}
+
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);margin-top:var(--gap)}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:clamp(13px,2vh,20px)}
+.metric .v{font-size:clamp(20px,min(2.3vw,3.6vh),32px);font-weight:900;letter-spacing:-.035em;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.1}
+.metric .k{font-size:var(--fs-tiny);color:var(--muted);margin-top:5px;font-weight:600}
+
+/* responsive */
+@media (max-width:900px){
+  .g3,.g4{grid-template-columns:1fr 1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+}
+@media (max-width:640px){
+  .slide{padding:56px 16px 76px}
+  .g2,.g3,.g4,.split{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .tl-row{grid-template-columns:1fr;gap:4px}
+  .brand span.t{display:none}
+  .dots b{width:9px}
+  .dots b.on{width:18px}
+  .ghost{font-size:min(24vh,32vw);opacity:.04;left:6px}
+}
+
+/* ===== print / PDF ===== */
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{height:auto;overflow:visible;background:#fff!important}
+  html{--bg:#fff;--card:#fff;--card2:#f7f8fa;--line:rgba(10,15,25,.14);
+       --line-strong:rgba(10,15,25,.22);--text:#11141a;--muted:#485262;
+       --accent:#1d4ed8;--accent-dim:rgba(29,78,216,.06);--accent-line:rgba(29,78,216,.3);
+       --ok:#047857;--ok-dim:rgba(4,120,87,.06);--warn:#b45309;--warn-dim:rgba(180,83,9,.07);
+       --fs-h1:40px;--fs-h2:27px;--fs-h3:14.5px;--fs-body:11.6px;--fs-sub:15px;--fs-tiny:9px;--gap:9px}
+  body::before{display:none}
+  .top,.bot,.bar,.ov,.ico{display:none!important}
+  .deck{position:static}
+  .slide{
+    position:static; opacity:1!important; visibility:visible!important; transform:none!important;
+    height:190mm; min-height:190mm; padding:13mm 15mm; page-break-after:always; break-after:page;
+    overflow:hidden; align-items:center;
+  }
+  .slide:last-child{page-break-after:auto}
+  .slide .inner{max-height:none;overflow:visible;animation:none!important}
+  .slide.active .inner > *{animation:none!important}
+  .card:hover{transform:none;border-color:var(--line)}
+  .ghost{opacity:.05}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="bar"><i id="prog"></i></div>
+
+<header class="top">
+  <div class="brand"><span class="dot"></span><span class="t">בנק עוגן · אסטרטגיית TCS BaNCS</span></div>
+  <div class="sp"></div>
+  <button class="ico" id="ovBtn" title="מפת שקפים (O)" aria-label="מפת שקפים">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  </button>
+  <button class="ico" id="themeBtn" title="ערכת נושא (T)" aria-label="ערכת נושא">
+    <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+  <button class="ico" id="fsBtn" title="מסך מלא (F)" aria-label="מסך מלא">
+    <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+  </button>
+  <button class="ico" id="pdfBtn" title="הורדה כ-PDF (P)" aria-label="הורדה כ-PDF">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+  </button>
+</header>
+
+<main class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide cover" data-t="שער">
+  <div class="inner">
+    <div class="kicker">בנק עוגן · הבנק החברתי הראשון בישראל</div>
+    <h1>אסטרטגיית ליבה בנקאית<br>TCS BaNCS</h1>
+    <div class="rule"></div>
+    <p class="sub">שילוב תשתיות, ליבה מבוססת ענן, אינטגרציה לתשתיות התשלומים הלאומיות, בנקאות פתוחה ובינה מלאכותית — בשירות חזון ההכללה הפיננסית.</p>
+    <div class="pills">
+      <span class="pill on">הגשת מועמדות · CTO</span>
+      <span class="pill">ליבה בנקאית</span>
+      <span class="pill">תשלומים ומסלקות</span>
+      <span class="pill">Open Banking</span>
+      <span class="pill">Data &amp; AI</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-t="אג׳נדה">
+  <div class="inner">
+    <div class="kicker">מפת הדרך</div>
+    <h2>מה נסקור</h2>
+    <div class="grid g3">
+      <div class="card"><span class="tag">חלק א׳</span><h3>מהפכת הליבה</h3><p>מעבר לליבה בנקאית מבוססת ענן במודל שירות, והפרדת שכבות הדאטה.</p></div>
+      <div class="card"><span class="tag">חלק ב׳</span><h3>אינטגרציה לאומית</h3><p>חיבור הליבה למס״ב, לזה״ב, לתשלומים מיידיים ולתקן ISO 20022.</p></div>
+      <div class="card"><span class="tag">חלק ג׳</span><h3>בנקאות פתוחה</h3><p>הנגשת דאטה לאקוסיסטם הפינטק באופן מאובטח ומבוסס הסכמה.</p></div>
+      <div class="card"><span class="tag">חלק ד׳</span><h3>תובנות ו-AI</h3><p>מנוע תובנות שמשרת את הלקוח, תחת ממשל נתונים ופרטיות הדוק.</p></div>
+      <div class="card"><span class="tag">חלק ה׳</span><h3>תוכנית ביצוע</h3><p>שלבי מעבר, ניהול סיכונים, מבנה צוות ו-90 הימים הראשונים.</p></div>
+      <div class="card ok"><span class="tag">העיקרון</span><h3>בנק חברתי קודם כול</h3><p>כל החלטה ארכיטקטונית נמדדת בשאלה אחת: האם היא מרחיבה הכללה פיננסית.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide divider" data-t="חלק א׳ · מהפכת הליבה">
+  <div class="ghost" aria-hidden="true">01</div>
+  <div class="inner">
+    <div class="part">חלק א׳</div>
+    <h1>מהפכת הליבה<br>הדיגיטלית</h1>
+    <p class="sub">מעבר לבנקאות מבוססת ענן — ליבה כשירות, בלי חוות שרתים ובלי חוב טכנולוגי מיובא.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-t="בחירת ליבה — BaaS">
+  <div class="inner">
+    <div class="kicker">בחירת ליבה</div>
+    <h2>TCS BaNCS במודל ליבה-כשירות (BaaS)</h2>
+    <p class="lead">בניגוד לבנקים ותיקים שנושאים מערכות מיינפריים בנות עשורים, עוגן מתחיל מדף חלק. זה יתרון מבני שצריך לנצל: לצרוך את הליבה כשירות מנוהל, ולהשקיע את ההון האנושי בשכבות שמייצרות בידול.</p>
+    <div class="grid g4">
+      <div class="card"><span class="tag">מודל</span><h3>ליבה כשירות</h3><p>צריכת TCS BaNCS כשירות מנוהל בענן — ללא תחזוקת חומרה, ללא מרכזי נתונים פרטיים, ועם מסלול שדרוגי גרסה מוסדר מול הספק.</p></div>
+      <div class="card"><span class="tag">ארכיטקטורה</span><h3>Cloud-Native</h3><p>מבנה מבוסס מיקרו-שירותים המאפשר לפתח, לבדוק ולשחרר מוצרים פיננסיים חדשים — אשראי, חיסכון, פיקדונות — בלי לגעת בליבה עצמה.</p></div>
+      <div class="card"><span class="tag">ממשקים</span><h3>API-First</h3><p>כל יכולת בנקאית נחשפת כ-API עוד לפני שיש לה מסך. זו התשתית לחוק שירות מידע פיננסי, לשיתופי פעולה עם פינטקים ולערוצים עתידיים.</p></div>
+      <div class="card"><span class="tag">זמינות</span><h3>רציפות תפקודית</h3><p>יעד זמינות 99.99% מעוגן ב-SLA חוזי מול הספק, לצד תוכנית DR ותרחישי המשכיות עסקית שנבדקים בפועל — לא על הנייר.</p></div>
+    </div>
+    <div class="note"><b>הערה על היעד:</b> 99.99% ≈ כ-52 דקות השבתה בשנה. זהו יעד ריאלי שספק ליבה מסחרי מתחייב אליו חוזית. יעדים גבוהים מכך נשמעים טוב בשקף, אך אינם ניתנים לאכיפה מול ספק — ולכן לא נציג אותם.</div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-t="ארכיטקטורת דאטה">
+  <div class="inner">
+    <div class="kicker">ארכיטקטורת דאטה</div>
+    <h2>הפרדה בין תפעול לאנליטיקה</h2>
+    <p class="lead">הטעות הנפוצה ביותר בבנקים היא הרצת דוחות כבדים על אותה מערכת שמנהלת עסקאות חיות. ההפרדה הזו היא החלטת יסוד, לא אופטימיזציה מאוחרת.</p>
+    <div class="split">
+      <div class="panel">
+        <div class="ph"><span class="chip">OLTP</span><h3>ליבה אופרטיבית בזמן אמת</h3></div>
+        <ul class="clean">
+          <li>ניהול עסקאות, העברות ובדיקת יתרות</li>
+          <li><b>ACID Compliance</b> — תקינות נתונים מוחלטת. אף שקל לא הולך לאיבוד ואף פעולה לא נשארת חצי-מבוצעת</li>
+          <li>הצפנה במנוחה (At Rest) ובתנועה (In Transit), עם ניהול מפתחות מופרד</li>
+          <li>מבודדת לחלוטין מעומסי שליפה ודיווח</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="chip g">OLAP</span><h3>סביבת אנליטיקה</h3></div>
+        <ul class="clean ok">
+          <li>שכפול רציף של נתוני הליבה באמצעות <b>CDC</b> — Change Data Capture</li>
+          <li>הרצת הדיווח הרגולטורי לבנק ישראל בלי להאט את האפליקציה</li>
+          <li>מודלי BI, מדעני נתונים וכלי בינה מלאכותית</li>
+          <li>שכבת מסיכה (Masking) לנתונים מזהים בסביבות שאינן ייצור</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow"><i></i>CDC · שכפול רציף בכיוון אחד בלבד<i></i></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-t="שכבת סוכני AI">
+  <div class="inner">
+    <div class="kicker">בינה מלאכותית</div>
+    <h2>שכבת סוכני AI מעל שכבת האנליטיקה</h2>
+    <p class="lead">שכבת ה-OLAP היא הבסיס להפעלת סוכני AI. חשוב מה שהם <b>לא</b> עושים: הם אינם ניגשים לליבה התפעולית ואינם מבצעים פעולה כספית ללא אישור.</p>
+    <div class="grid g3">
+      <div class="card"><span class="tag">רגולציה</span><h3>דיווח רגולטורי</h3><p>הפקה אוטומטית של קבצי הדיווח לבנק ישראל, עם בקרות ולידציה מובנות ואישור אנושי לפני שידור. הסוכן מכין — האדם חותם.</p></div>
+      <div class="card"><span class="tag">סיכון</span><h3>מניעת הונאות</h3><p>למידת דפוסי התנהגות וזיהוי חריגות בזמן אמת, עם ציון סיכון שמוזרם למנוע ההחלטות. כל חסימה ניתנת להסבר ולערעור.</p></div>
+      <div class="card"><span class="tag">אשראי</span><h3>תובנות אשראי</h3><p>ניתוח יכולת החזר בכלים מתקדמים — במפורש לצורך <b>הרחבת</b> הנגישות לאשראי לאוכלוסיות שמודל מסורתי פוסל אוטומטית.</p></div>
+    </div>
+    <div class="note warn"><b>מסגרת ממשל ל-AI:</b> כל מודל שמשפיע על החלטת אשראי יעבור בדיקת הטיה (Bias Testing) תקופתית, יתועד בתיעוד מודל, ויידרש להיות ניתן להסבר. בבנק חברתי זו לא דרישת ציות — זו דרישת ליבה של המנדט.</div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide divider" data-t="חלק ב׳ · אינטגרציה לאומית">
+  <div class="ghost" aria-hidden="true">02</div>
+  <div class="inner">
+    <div class="part">חלק ב׳</div>
+    <h1>אינטגרציה<br>לתשתיות הלאומיות</h1>
+    <p class="sub">כאן נמצא הפער האמיתי בין ליבה גלובלית לבנק ישראלי — וכאן מתמוטטים רוב פרויקטי ההטמעה.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-t="מסלקות ומערכות תשלום">
+  <div class="inner">
+    <div class="kicker">התאמה לרגולציה ולתשתית הישראלית</div>
+    <h2>חיבור הליבה למסלקות ולמערכות התשלומים</h2>
+    <p class="lead">TCS BaNCS היא ליבה גלובלית. הפער מול ישראל אינו בפונקציונליות הבנקאית — הוא בשכבת התשלומים והדיווח המקומית. שם נמצאת עיקר עבודת ההתאמה.</p>
+    <div class="grid g2">
+      <div class="card"><span class="tag">ניתוב</span><h3>ניהול בנק קוד 15</h3><p>עצמאות מלאה בניתוב תשלומים. המערכת מזהה את מספר החשבון והבנק המקבל ומנתבת את הבקשה למסלקה הרלוונטית, ללא תלות בבנק מתפעל חיצוני.</p></div>
+      <div class="card"><span class="tag">Batch</span><h3>מס״ב — מסלקה בנקאית</h3><p>המרה של פורמטי TCS הגלובליים לפורמט ה-Batch הישראלי: הרשאות לחיוב חשבון, זיכויי משכורות, העברות קבועות והחזרים.</p></div>
+      <div class="card warn"><span class="tag">שתי מערכות</span><h3>זה״ב ותשלומים מיידיים</h3><p><b>אלה שתי מערכות נפרדות, לא אחת.</b> זה״ב (RTGS) — סליקה גולמית בזמן אמת לסכומים גבוהים. תשלומים מיידיים — מערכת נפרדת, 24/7, לסכומים קטנים. כל אחת דורשת ממשק, לו״ז ותרחישי כשל משלה.</p></div>
+      <div class="card"><span class="tag">ציות</span><h3>מניעת הלבנת הון (AML)</h3><p>שילוב מנוע ניטור צד שלישי — למשל NICE Actimize — הסורק כל תנועה מול רשימות סנקציות לפני יציאתה למסלקה, בזמן תגובה של שברירי שנייה.</p></div>
+    </div>
+    <div class="note"><b>ISO 20022:</b> ארכיטקטורת נתונים עמוקה התומכת בתקן ההודעות הבינלאומי — כל פקודה נושאת דאטה מורחב (שולח, מוטב, סיבת תשלום, מזהי ישות) לכל אורך המסלול, מהאפליקציה ועד בנק ישראל. תקן זה אינו פיצ׳ר עתידי אלא תנאי כניסה.</div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide divider" data-t="חלק ג׳ · בנקאות פתוחה">
+  <div class="ghost" aria-hidden="true">03</div>
+  <div class="inner">
+    <div class="part">חלק ג׳</div>
+    <h1>בנקאות<br>פתוחה</h1>
+    <p class="sub">הנגשת הדאטה של עוגן לאקוסיסטם הפינטק — בהתאם לחוק שירות מידע פיננסי, ובאופן מאובטח.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-t="ארכיטקטורה מאובטחת ל-TPP">
+  <div class="inner">
+    <div class="kicker">ארכיטקטורה מאובטחת לגורם צד ג׳ (TPP)</div>
+    <h2>איך פותחים את הבנק בלי לפתוח את הליבה</h2>
+    <div class="grid g2">
+      <div class="card"><span class="tag">בידוד</span><h3>אין גישה ישירה למסד הנתונים</h3><p>כל תקשורת של גורם חיצוני עוברת דרך API Gateway ייעודי, שמהווה את הגבול היחיד בין העולם החיצון לליבת TCS BaNCS. אין יוצאים מן הכלל.</p></div>
+      <div class="card"><span class="tag">סטנדרט</span><h3>ממשקים לפי תקן מקובל</h3><p>ממשקי RESTful בפורמט JSON, בהלימה למפרט Berlin Group / NextGenPSD2 — התקן הטכני שעליו נשען יישום חוק שירות מידע פיננסי בישראל.</p></div>
+      <div class="card"><span class="tag">זהות</span><h3>mTLS &amp; OAuth 2.0</h3><p>אימות והצפנה דו-כיוונית. כל גוף מציג תעודה דיגיטלית מאושרת של ישות מפוקחת, וההרשאות מנוהלות באמצעות אסימוני גישה מוגבלי זמן והיקף.</p></div>
+      <div class="card ok"><span class="tag">הסכמה</span><h3>ניהול הסכמות (Consent)</h3><p>הזדהות חזקה (SCA) של הלקוח באפליקציית עוגן בטרם שיתוף נתון כלשהו. ההסכמה מוגבלת בזמן, מוגבלת בהיקף, וניתנת לביטול מיידי בממשק אחד.</p></div>
+    </div>
+    <div class="note"><b>הבחנה חשובה:</b> חוק שירות מידע פיננסי אינו PSD2 האירופי. התקן הטכני מיושר לברלין גרופ, אך המסגרת המשפטית, הפיקוח והרישוי הם ישראליים — בנק ישראל ורשות ניירות ערך.</div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-t="ממשקי Open Banking">
+  <div class="inner">
+    <div class="kicker">ממשקים מרכזיים</div>
+    <h2>Open Banking Endpoints</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>סוג הממשק</th><th>המידע או הפעולה</th><th>מקרה בוחן בעוגן</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Account Information<br><code>AIS</code></td>
+            <td>קריאת יתרות, היסטוריית תנועות ופרטי חשבון — <b>הרשאת קריאה בלבד</b>.</td>
+            <td>אפליקציית ניהול תקציב המרכזת תמונת דאטה מכל הבנקים למשק בית אחד.</td>
+          </tr>
+          <tr>
+            <td>Payment Initiation<br><code>PIS</code></td>
+            <td>ייזום פקודה לביצוע העברת כספים אקטיבית מחשבון הלקוח למוטב.</td>
+            <td>תשלום ישיר באתר איקומרס מחשבון העו״ש, ללא כרטיס אשראי וללא עמלת סליקה.</td>
+          </tr>
+          <tr>
+            <td>Confirmation of Funds<br><code>PIIS</code></td>
+            <td>תשובה בינארית (כן / לא) האם קיימת יתרה מספקת — <b>ללא חשיפת סכום</b>.</td>
+            <td>בדיקת כיסוי בזמן אמת מול ספק אשראי, ללא חשיפת מלוא תמונת החשבון.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note ok"><b>עקרון מינימיזציה:</b> PIIS ממחיש את הכלל המנחה — מוסרים את התשובה הנדרשת, לא את הדאטה. ככל שנחשוף פחות, כך תקטן חשיפת הבנק והלקוח כאחד.</div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-t="אתגרי תפעול וסייבר">
+  <div class="inner">
+    <div class="kicker">אתגרי תפעול וסייבר בסביבה פתוחה</div>
+    <h2>מה נשבר כשפותחים ממשקים</h2>
+    <div class="split">
+      <div class="panel">
+        <div class="ph"><span class="chip">ביצועים</span><h3>בידוד ומגבלת קצב</h3></div>
+        <ul class="clean">
+          <li>חברות פינטק מריצות אוטומציות שמייצרות נפח קריאות אדיר</li>
+          <li>ה-Gateway אוכף <b>Rate Limiting</b> ומכסות פר-ישות, כדי שעומס לגיטימי לא יתפקד כמתקפת מניעת שירות</li>
+          <li>שאילתה כבדה של צד ג׳ לעולם לא תפגע בלקוח שמשלם כרגע בקופה — הפרדת נתיבים ותעדוף תעבורה</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="chip g">ביקורת</span><h3>נתיב ביקורת מלא</h3></div>
+        <ul class="clean ok">
+          <li>דרישה רגולטורית קשיחה: רישום מלא לכל קריאה חיצונית</li>
+          <li>נשמר רקורד מדויק — <b>זהות הפינטק, האסימון שהוצג, ההסכמה שנשענו עליה, והנתון שנמשך</b></li>
+          <li>זהו הבסיס המודיעיני לחקירת תקריות סייבר ולשקיפות מול הרגולטור</li>
+          <li>הלוגים נשמרים בכתיבה-בלבד (WORM) לתקופת ההתיישנות</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="slide divider" data-t="חלק ד׳ · מנוע התובנות">
+  <div class="ghost" aria-hidden="true">04</div>
+  <div class="inner">
+    <div class="part">חלק ד׳</div>
+    <h1>מנוע התובנות<br>ללקוח</h1>
+    <p class="sub">מה שהופך בנק עם ליבה טובה לבנק חברתי — ומה שאסור לעשות בדרך.</p>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="slide" data-t="גבולות הדאטה">
+  <div class="inner">
+    <div class="kicker">איסוף מבוסס הסכמה בלבד</div>
+    <h2>מקורות המידע — ומה מחוץ לתחום</h2>
+    <p class="lead">התמונה הפיננסית המלאה של הלקוח נבנית ממקורות מוסדרים בלבד, ורק לאחר הסכמה מפורשת. הרחבה מעבר לכך אינה שאלה טכנולוגית — היא סיכון משפטי ומוניטין.</p>
+    <div class="split">
+      <div class="panel">
+        <div class="ph"><span class="chip g">נאסף</span><h3>מקורות מוסדרים, בהסכמה</h3></div>
+        <ul class="clean ok">
+          <li>עו״ש וכרטיסי אשראי בכל הבנקים — דרך Open Banking</li>
+          <li>פיקדונות, חסכונות ותיקי השקעות</li>
+          <li>מוצרים פנסיוניים — דרך המסלקה הפנסיונית</li>
+          <li>נתוני אשראי מלשכות מוסדרות, לפי חוק נתוני אשראי</li>
+          <li>התחייבויות והלוואות שהלקוח בחר לשתף</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="chip w">לא נאסף</span><h3>מחוץ לגבול</h3></div>
+        <ul class="clean no">
+          <li><b>רשתות חברתיות</b> — פייסבוק, אינסטגרם, טלגרם. לא כמקור, לא כאיתות, לא בעקיפין</li>
+          <li>אירועי חיים שנגזרים מהסקה (נישואין, לידה) לצורך שיווק</li>
+          <li>מקורות ציבוריים שלא נמסרה עליהם הסכמה ספציפית ומודעת</li>
+          <li>כל דאטה שאי אפשר להסביר ללקוח בשורה אחת מדוע הוא ברשותנו</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note warn"><b>למה זה קריטי:</b> איסוף מרשתות חברתיות סותר את מודל ההסכמה שהוצג בחלק ג׳, חושף את הבנק לחוק הגנת הפרטיות, ומתנגש חזיתית עם מנדט ההכללה הפיננסית — דירוג לקוח לפי נוכחותו ברשת הוא בדיוק המנגנון שבנק חברתי אמור לבטל.</div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide" data-t="תובנות שמשרתות את הלקוח">
+  <div class="inner">
+    <div class="kicker">תובנות שמשרתות את הלקוח</div>
+    <h2>מה הלקוח מקבל בפועל</h2>
+    <p class="lead">מבחן פשוט לכל תובנה: האם היא חוסכת ללקוח כסף או מונעת ממנו נזק. אם התובנה מוכרת לו מוצר — היא פרסומת, לא תובנה.</p>
+    <div class="grid g2">
+      <div class="card ok"><span class="tag">חיסכון ישיר</span><h3>איחוד חוב יקר</h3><p>״יש לך הלוואה של 100,000 ₪ בריבית 5%, ובמקביל פיקדון של 100,000 ₪ בריבית 2% בבנק אחר. סגירת ההלוואה מהפיקדון תחסוך לך כ-3,000 ₪ בשנה.״</p></div>
+      <div class="card ok"><span class="tag">מניעת עמלות</span><h3>סנכרון מועד חיוב</h3><p>״המשכורת נכנסת ב-10 לחודש, וכרטיסי האשראי יורדים ב-2. שינוי מועד החיוב ל-15 ימנע ממך חריגה חוזרת ואת עמלות החריגה הנלוות.״</p></div>
+      <div class="card ok"><span class="tag">התראה מוקדמת</span><h3>זיהוי חריגה בשוטף</h3><p>התראה יזומה כשקצב ההוצאה החודשי חורג מהדפוס הרגיל — לפני החריגה בפועל, לא אחריה. כולל הצעה קונקרטית לפעולה.</p></div>
+      <div class="card ok"><span class="tag">שקיפות שוק</span><h3>השוואת עלות דיור</h3><p>״שכר הדירה שאתה משלם גבוה ב-18% מהחציון באזור המגורים שלך״ — מידע השוואתי אנונימי, כבסיס למשא ומתן מיודע.</p></div>
+    </div>
+    <div class="note ok"><b>ממשל נתונים:</b> מינימיזציה במקור · הגבלת מטרה מוגדרת · מחיקה בתום תקופה · ביטול הסכמה בקליק אחד · לוג גישה מלא · איסור מוחלט על מכירת מידע לצד שלישי.</div>
+  </div>
+</section>
+
+<!-- 16 -->
+<section class="slide divider" data-t="חלק ה׳ · תוכנית הביצוע">
+  <div class="ghost" aria-hidden="true">05</div>
+  <div class="inner">
+    <div class="part">חלק ה׳</div>
+    <h1>תוכנית<br>הביצוע</h1>
+    <p class="sub">מארכיטקטורה על שקף לתוכנית עבודה עם שלבים, סיכונים, צוות ולוח זמנים.</p>
+  </div>
+</section>
+
+<!-- 17 -->
+<section class="slide" data-t="מפת דרכים">
+  <div class="inner">
+    <div class="kicker">שלבי המעבר</div>
+    <h2>מפת דרכים להטמעה</h2>
+    <div class="tl">
+      <div class="tl-row"><div class="tl-when">שלב 0<small>חודשים 0–3</small></div><div class="tl-what"><h3>אפיון, ניתוח פערים והתקשרות</h3><p>מיפוי פערים מלא בין יכולות BaNCS לדרישות הרגולציה והתשלומים בישראל, בחירת מודל אירוח, וגיבוש הסכם מול הספק — כולל SLA, מסלול שדרוגים, בעלות על נתונים ותנאי יציאה.</p></div></div>
+      <div class="tl-row"><div class="tl-when">שלב 1<small>חודשים 3–9</small></div><div class="tl-what"><h3>ליבה וסביבות</h3><p>הקמת סביבות פיתוח, בדיקות וייצור. הפעלת מוצרי היסוד — חשבון עו״ש, יתרות, העברות פנימיות. תחילת פיתוח שכבת ההתאמה הישראלית.</p></div></div>
+      <div class="tl-row"><div class="tl-when">שלב 2<small>חודשים 9–15</small></div><div class="tl-what"><h3>תשלומים, מסלקות והרצה מקבילה</h3><p>ממשקי מס״ב, זה״ב ותשלומים מיידיים. שילוב מנוע ה-AML. מיגרציית נתונים והרצה מקבילה (Parallel Run) עם התאמה יומית מלאה מול המערכת הקיימת.</p></div></div>
+      <div class="tl-row"><div class="tl-when">שלב 3<small>חודשים 15–21</small></div><div class="tl-what"><h3>בנקאות פתוחה, דאטה ו-AI</h3><p>הקמת ה-API Gateway וממשקי ה-Open Banking, בניית סביבת האנליטיקה על גבי CDC, והפעלת מנוע התובנות והדיווח הרגולטורי האוטומטי.</p></div></div>
+      <div class="tl-row"><div class="tl-when">שלב 4<small>חודשים 21+</small></div><div class="tl-what"><h3>עלייה לאוויר בגלים ו-Hypercare</h3><p>מעבר מדורג בגלי לקוחות, לא ב״מפץ גדול״. תקופת Hypercare עם צוות ייעודי, ניטור מוגבר ותוכנית נסיגה מוגדרת לכל גל.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 -->
+<section class="slide" data-t="סיכונים ומענה">
+  <div class="inner">
+    <div class="kicker">ניהול סיכונים</div>
+    <h2>הסיכונים המרכזיים והמענה להם</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>סיכון</th><th>ההשלכה</th><th>המענה</th></tr></thead>
+        <tbody>
+          <tr><td>תלות בספק<br>Vendor Lock-in</td><td>אובדן כוח מיקוח וחשיפה לתמחור עתידי</td><td>בעלות חוזית מלאה על הנתונים, ייצוא בפורמט פתוח, ותנאי יציאה מוגדרים בהסכם מהיום הראשון</td></tr>
+          <tr><td>מיגרציית נתונים</td><td>פערי יתרות, אובדן היסטוריה, חוסר אמון לקוחות</td><td>הרצה מקבילה עם התאמה יומית, מיגרציה בגלים, ותוכנית נסיגה נבדקת לכל גל</td></tr>
+          <tr><td>פער התאמה מקומית</td><td>עיכוב בלו״ז ותלות בתעדוף של ספק גלובלי</td><td>שכבת אדפטציה ישראלית בבעלות הבנק, מנותקת ממחזור הגרסאות של הספק</td></tr>
+          <tr><td>ענן ורגולציה</td><td>אי-עמידה בהוראות ניהול בנקאי תקין בנושא מיקור-חוץ וענן</td><td>מיפוי מוקדם מול הפיקוח על הבנקים, ריבונות נתונים, וזכות ביקורת חוזית בספק</td></tr>
+          <tr><td>עומס מצד פינטקים</td><td>פגיעה בזמינות השירות ללקוחות הבנק</td><td>מגבלות קצב, מכסות פר-ישות, בידוד נתיבים ותעדוף תעבורת לקוח קצה</td></tr>
+          <tr><td>כשל בממשק תשלומים</td><td>עיכוב משכורות או תשלומים — נזק מוניטין מיידי</td><td>ניטור ייעודי לכל ממשק, התראות ברמת קובץ, ונוהל טיפול ידני מתורגל</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="slide" data-t="מבנה הצוות">
+  <div class="inner">
+    <div class="kicker">מבנה ארגוני</div>
+    <h2>הצוות שמריץ את זה</h2>
+    <p class="lead">מבנה מבוסס צוותי מוצר עצמאיים (Squads), כל אחד עם בעלות מלאה על תחומו — מפיתוח ועד ייצור.</p>
+    <div class="grid g4">
+      <div class="card"><span class="tag">Squad</span><h3>ליבה בנקאית</h3><p>הטמעת BaNCS, קונפיגורציית מוצרים, שכבת ההתאמה הישראלית</p></div>
+      <div class="card"><span class="tag">Squad</span><h3>תשלומים ומסלקות</h3><p>מס״ב, זה״ב, תשלומים מיידיים, ISO 20022, התאמות וניטור</p></div>
+      <div class="card"><span class="tag">Squad</span><h3>ערוצים ו-API</h3><p>אפליקציה, Gateway, Open Banking, ניהול הסכמות</p></div>
+      <div class="card"><span class="tag">Squad</span><h3>דאטה ו-AI</h3><p>CDC, מחסן נתונים, דיווח רגולטורי, מנוע התובנות</p></div>
+      <div class="card ok"><span class="tag">רוחב</span><h3>סייבר וציות</h3><p>אבטחת מידע, AML, פרטיות, ממשק מול הפיקוח על הבנקים</p></div>
+      <div class="card ok"><span class="tag">רוחב</span><h3>DevOps &amp; SRE</h3><p>ענן, CI/CD, ניטור, זמינות, ניהול תקריות והמשכיות עסקית</p></div>
+      <div class="card ok"><span class="tag">רוחב</span><h3>QA ואוטומציה</h3><p>בדיקות אינטגרציה, בדיקות עומס, ולידציה של מיגרציית נתונים</p></div>
+      <div class="card ok"><span class="tag">רוחב</span><h3>ניהול תוכנית</h3><p>סנכרון מול הספק, לו״ז, תקציב ודיווח להנהלה ולדירקטוריון</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 20 -->
+<section class="slide" data-t="90 הימים הראשונים">
+  <div class="inner">
+    <div class="kicker">90 הימים הראשונים</div>
+    <h2>איך אני נכנס לתפקיד</h2>
+    <div class="grid g3">
+      <div class="card"><span class="tag">ימים 1–30</span><h3>להקשיב ולמפות</h3><p>מיפוי מלא של המצב הקיים — מערכות, ספקים, חוזים, חובות טכנולוגיים ופערי ציות. שיחות אחד-על-אחד עם כל בעלי העניין, כולל הפיקוח על הבנקים.</p></div>
+      <div class="card"><span class="tag">ימים 31–60</span><h3>להכריע ולעגן</h3><p>מסמך ארכיטקטורה מאושר, ניתוח פערים מול BaNCS, אומדן תקציב ולו״ז מפורט — ופתיחת המשא ומתן המסחרי מול הספק.</p></div>
+      <div class="card ok"><span class="tag">ימים 61–90</span><h3>לייצר תנע</h3><p>גיוס ליבת הצוות, הקמת סביבת פיתוח ראשונה, ותוצר מוחשי אחד שאפשר להראות להנהלה — כדי שהתוכנית תיראה אמיתית ולא תיאורטית.</p></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="v">99.99%</div><div class="k">יעד זמינות מעוגן ב-SLA</div></div>
+      <div class="metric"><div class="v">21</div><div class="k">חודשים ליישום מלא</div></div>
+      <div class="metric"><div class="v">3</div><div class="k">מערכות תשלום לאומיות</div></div>
+      <div class="metric"><div class="v">0</div><div class="k">מקורות דאטה שאינם מוסדרים</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 21 -->
+<section class="slide" data-t="סיכום">
+  <div class="inner">
+    <div class="kicker">סיכום</div>
+    <h2>שלוש נקודות לזכור</h2>
+    <div class="grid g3">
+      <div class="card"><span class="tag">01</span><h3>הליבה היא לא הבידול</h3><p>TCS BaNCS היא כלי מצוין — אבל אותה ליבה זמינה לכל מתחרה. הבידול של עוגן ייווצר בשכבות שמעליה: התובנות, ההכללה הפיננסית וחוויית הלקוח.</p></div>
+      <div class="card"><span class="tag">02</span><h3>ההתאמה המקומית היא הסיכון</h3><p>פרויקטי ליבה לא נכשלים בגלל הליבה. הם נכשלים בשכבת התשלומים, המיגרציה והציות המקומיים. שם צריך לרכז את הכוח האנושי ואת מרווח הביטחון בלו״ז.</p></div>
+      <div class="card ok"><span class="tag">03</span><h3>פרטיות היא המוצר</h3><p>בנק חברתי שמדרג לקוחות לפי מקורות שאינם מוסדרים מאבד בדיוק את מה שמגדיר אותו. גבולות הדאטה אינם מגבלה על החזון — הם החזון.</p></div>
+    </div>
+    <div class="note"><b>תודה.</b> אשמח להיכנס לעומק בכל אחד מהחלקים — ובמיוחד בניתוח הפערים מול הרגולציה הישראלית ובתוכנית המיגרציה.</div>
+  </div>
+</section>
+
+</main>
+
+<footer class="bot">
+  <div class="dots" id="dots"></div>
+  <div class="count"><em id="cur">1</em> / <span id="tot">21</span></div>
+  <div class="arrows">
+    <button class="ico" id="prev" title="הקודם" aria-label="השקף הקודם"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+    <button class="ico" id="next" title="הבא" aria-label="השקף הבא"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+  </div>
+</footer>
+
+<div class="ov" id="ov">
+  <button class="ico ov-close" id="ovClose" aria-label="סגירה"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  <h4>מפת שקפים</h4>
+  <div class="ov-grid" id="ovGrid"></div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var N = slides.length, i = 0;
+  var prog = document.getElementById('prog'), dots = document.getElementById('dots');
+  var cur = document.getElementById('cur'), tot = document.getElementById('tot');
+  var prevB = document.getElementById('prev'), nextB = document.getElementById('next');
+  var ov = document.getElementById('ov'), ovGrid = document.getElementById('ovGrid');
+  var root = document.documentElement;
+  tot.textContent = N;
+
+  slides.forEach(function(s, n){
+    var d = document.createElement('b');
+    d.title = (n+1) + '. ' + (s.dataset.t || '');
+    d.addEventListener('click', function(){ go(n) });
+    dots.appendChild(d);
+
+    var it = document.createElement('div');
+    it.className = 'ov-item';
+    it.innerHTML = '<span>' + String(n+1).padStart(2,'0') + '</span><p></p>';
+    it.querySelector('p').textContent = s.dataset.t || ('שקף ' + (n+1));
+    it.addEventListener('click', function(){ go(n); closeOv() });
+    ovGrid.appendChild(it);
+  });
+  var dotEls = dots.children, ovEls = ovGrid.children;
+
+  function go(n){
+    n = Math.max(0, Math.min(N-1, n));
+    slides[i].classList.remove('active');
+    i = n;
+    slides[i].classList.add('active');
+    slides[i].querySelector('.inner').scrollTop = 0;
+    for(var k=0;k<N;k++){
+      dotEls[k].classList.toggle('on', k===i);
+      ovEls[k].classList.toggle('on', k===i);
+    }
+    prog.style.width = ((i+1)/N*100) + '%';
+    cur.textContent = i+1;
+    prevB.disabled = i===0;
+    nextB.disabled = i===N-1;
+    if(location.hash !== '#'+(i+1)){ history.replaceState(null,'','#'+(i+1)) }
+  }
+  function next(){ go(i+1) }
+  function prev(){ go(i-1) }
+
+  nextB.addEventListener('click', next);
+  prevB.addEventListener('click', prev);
+
+  document.addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k = e.key;
+    if(ov.classList.contains('on') && (k==='Escape'||k==='o'||k==='O')){ closeOv(); return }
+    if(k==='ArrowLeft'||k==='ArrowDown'||k==='PageDown'||k===' '){ e.preventDefault(); next() }
+    else if(k==='ArrowRight'||k==='ArrowUp'||k==='PageUp'){ e.preventDefault(); prev() }
+    else if(k==='Home'){ e.preventDefault(); go(0) }
+    else if(k==='End'){ e.preventDefault(); go(N-1) }
+    else if(k==='o'||k==='O'){ openOv() }
+    else if(k==='t'||k==='T'){ toggleTheme() }
+    else if(k==='f'||k==='F'){ toggleFs() }
+    else if(k==='p'||k==='P'){ window.print() }
+  });
+
+  var sx=0, sy=0, tracking=false;
+  document.addEventListener('touchstart', function(e){
+    if(e.touches.length!==1) return;
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(!tracking) return; tracking=false;
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)<55 || Math.abs(dx)<Math.abs(dy)*1.3) return;
+    if(dx<0) next(); else prev();
+  }, {passive:true});
+
+  function openOv(){ ov.classList.add('on') }
+  function closeOv(){ ov.classList.remove('on') }
+  document.getElementById('ovBtn').addEventListener('click', openOv);
+  document.getElementById('ovClose').addEventListener('click', closeOv);
+
+  function toggleTheme(){
+    var nx = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', nx);
+    try{ localStorage.setItem('ogen-theme', nx) }catch(err){}
+  }
+  document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+  try{ var sv=localStorage.getItem('ogen-theme'); if(sv) root.setAttribute('data-theme', sv) }catch(err){}
+
+  function toggleFs(){
+    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){}).call(document.documentElement) }
+    else { document.exitFullscreen() }
+  }
+  document.getElementById('fsBtn').addEventListener('click', toggleFs);
+  document.getElementById('pdfBtn').addEventListener('click', function(){ window.print() });
+
+  var start = parseInt((location.hash||'').replace('#',''), 10);
+  go(isNaN(start) ? 0 : start-1);
+})();
+</script>
+</body>
+</html>

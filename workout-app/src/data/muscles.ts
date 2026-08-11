@@ -13,10 +13,13 @@ export type MuscleGroup =
   | 'quads' | 'hamstrings' | 'glutes' | 'adductors' | 'abductors' | 'calves'
   // Core
   | 'abs' | 'obliques'
+  // Aerobic — kept out of muscle graphs / focus pickers, but a valid category so
+  // aerobic exercises can live in the same personalExercises DB as everything else.
+  | 'aerobic'
   // Legacy — data compat only, do not offer for new picks
   | 'back' | 'legs' | 'shoulders';
 
-export type MuscleParent = 'chest' | 'back' | 'shoulders' | 'arms' | 'legs' | 'core';
+export type MuscleParent = 'chest' | 'back' | 'shoulders' | 'arms' | 'legs' | 'core' | 'aerobic';
 
 export type MuscleInfo = {
   id: MuscleGroup;
@@ -34,6 +37,7 @@ export const PARENT_INFO: Record<MuscleParent, { he: string; en: string; color: 
   arms:      { he: 'ידיים',   en: 'Arms',      color: 'violet',  order: 4 },
   legs:      { he: 'רגליים',  en: 'Legs',      color: 'emerald', order: 5 },
   core:      { he: 'ליבה',    en: 'Core',      color: 'zinc',    order: 6 },
+  aerobic:   { he: 'אירובי',  en: 'Aerobic',   color: 'cyan',    order: 7 },
 };
 
 export const MUSCLES: MuscleInfo[] = [
@@ -67,6 +71,10 @@ export const MUSCLES: MuscleInfo[] = [
   // Core
   { id: 'abs',          he: 'בטן',          en: 'Abs',          parent: 'core',      color: 'zinc' },
   { id: 'obliques',     he: 'בטן צדדית',    en: 'Obliques',     parent: 'core',      color: 'gray' },
+  // Aerobic — legacy=true so it stays out of muscle-focus pickers + volume graphs;
+  // exists purely so exercises can carry defaultMuscle='aerobic' and the aerobic modal
+  // can pull types straight from the personal exercises DB.
+  { id: 'aerobic',      he: 'אירובי',       en: 'Aerobic',      parent: 'aerobic',   color: 'cyan',   legacy: true },
 ];
 
 export const ACTIVE_MUSCLES: MuscleInfo[] = MUSCLES.filter(m => !m.legacy);
@@ -104,6 +112,7 @@ export const DEFAULT_WEEKLY_TARGETS: Record<MuscleGroup, number> = {
   'biceps': 0, 'triceps': 0, 'forearms': 0,
   'quads': 0, 'hamstrings': 0, 'glutes': 0, 'adductors': 0, 'abductors': 0, 'calves': 0,
   'abs': 0, 'obliques': 0,
+  'aerobic': 0,
   'back': 0, 'legs': 0, 'shoulders': 0,
 };
 

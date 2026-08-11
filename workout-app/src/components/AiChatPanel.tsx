@@ -32,10 +32,21 @@ type Props = {
   initialAssistantMessage?: string; // Seed the thread with a fake assistant greeting — no request to the server
   replaceContext?: { name: string; muscle: MuscleGroup }; // signal to the model + UI: user is REPLACING this exercise
   newThreadOnMount?: boolean;  // start a fresh conversation thread instead of resuming latest
+  // Names of exercises currently in this session — either already logged (with sets)
+  // or queued as plannedExercises. Used for BOTH:
+  //   (a) Telling the AI so it knows what you're already doing today
+  //   (b) Highlighting "already added" suggestion cards in blue instead of green
+  currentSessionExercises?: Array<{ name: string; muscle: MuscleGroup; hasSets: boolean }>;
+  // 'active' when the user is inside a live workout right now; 'planned' when editing a future plan.
+  currentSessionStatus?: 'active' | 'planned';
+  // YYYY-MM-DD the session is planned for — only meaningful when currentSessionStatus === 'planned'.
+  currentSessionPlannedFor?: string;
+  // Short summary of aerobic done in this session — e.g. "15 דק' ריצה, 20 דק' אופניים".
+  currentSessionAerobicSummary?: string;
   onClose: () => void;
 };
 
-type Msg = { role: 'user' | 'assistant'; content: string; ts: number };
+type Msg = { role: 'user' | 'assistant'; content: string; ts: number; truncated?: boolean };
 
 type ActionSuggestExercise = {
   type: 'suggest_exercise';
@@ -78,7 +89,15 @@ function parseChunks(text: string): Chunk[] {
     } catch { /* ignore malformed */ }
     last = m.index + m[0].length;
   }
-  const tail = text.slice(last).trim();
+  let tail = text.slice(last).trim();
+  // If the model got cut mid-action-block, `tail` contains an unclosed ```action fragment
+  // followed by broken JSON like `{"type":"suggest_exercise","na`. Strip anything from the
+  // last ```action onward so the user doesn't see raw JSON scraps — the truncation warning
+  // chip carries the "response was cut" signal instead.
+  const lastOpen = tail.lastIndexOf('```action');
+  if (lastOpen >= 0 && !tail.slice(lastOpen).includes('```', 9)) {
+    tail = tail.slice(0, lastOpen).trim();
+  }
   if (tail) out.push({ type: 'text', text: tail });
   return out.length > 0 ? out : [{ type: 'text', text: text.trim() }];
 }
@@ -159,7 +178,7 @@ function saveThreads(uid: string, mode: string, threads: Thread[]) {
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, onClose,
 }: Props) {
   const firestore = useFirestore(uid);
   const [personalExercises, setPersonalExercises] = useState<PersonalExercise[]>([]);
@@ -321,28 +340,95 @@ export function AiChatPanel({
     setLoading(true);
     setError(null);
 
-    // Trim personal-exercise payload — include en in naming mode so AI can see gaps
-    const exPayload = personalExercises.slice(0, 300).map(e => ({
-      id: e.id,
-      he: e.he,
-      en: e.en,
-      defaultMuscle: e.defaultMuscle,
-      lastUsedDays: lastUsedDaysByEx.get(e.he.toLowerCase()),
-    }));
-    // Include everything from the last 10 days, newest first. Hard cap 400 as a safety net.
-    const cutoff = Date.now() - 10 * 86_400_000;
+    // Personal exercise DB — send EVERYTHING (up to 300). The AI needs the full DB to answer
+    // "give me something I haven't done lately" without inventing duplicates.
+    // Every entry carries the exact last-used date so the AI can reason about recency
+    // per-exercise even without the older sessions in the payload.
+    const exPayload = personalExercises.slice(0, 300).map(e => {
+      const days = lastUsedDaysByEx.get(e.he.toLowerCase());
+      let lastUsed: string | null = null;
+      if (days !== undefined) {
+        const d = new Date(Date.now() - days * 86_400_000);
+        const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        lastUsed = `${days}d · ${ymd}`;
+      }
+      return {
+        id: e.id,
+        he: e.he,
+        en: e.en,
+        defaultMuscle: e.defaultMuscle,
+        // Server prints this field as-is — string OR null. Old server that expected a number
+        // still works (template literal on a string is a no-op).
+        lastUsedDays: lastUsed,
+      };
+    });
+    // Sets: 8-day window (covers same-day-last-week + a day of slack), cap at 200. Newest first.
+    // Cutting from 10d/400 down to 8d/200 roughly halves the prompt-size cost of the sets list
+    // without losing the "what did I train last <this day>" signal.
+    const cutoff = Date.now() - 8 * 86_400_000;
+    const DOW_HE_SHORT = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
     const setsPayload = [...recentSets]
       .filter(s => s.timestamp >= cutoff)
       .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 400)
-      .map(s => ({
-        exerciseName: s.exerciseName,
-        muscle: s.muscle,
-        weight: s.weight,
-        reps: s.reps,
-        unit: s.unit,
-        date: new Date(s.timestamp).toISOString().slice(0, 10),
-      }));
+      .slice(0, 200)
+      .map(s => {
+        const d = new Date(s.timestamp);
+        const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return {
+          exerciseName: s.exerciseName,
+          muscle: s.muscle,
+          weight: s.weight,
+          reps: s.reps,
+          unit: s.unit,
+          date: `${ymd} (${DOW_HE_SHORT[d.getDay()]})`,
+        };
+      });
+
+    // Prepend today's date + day-of-week + the current-session state to the FIRST user message
+    // before sending. Only affects wire payload — the UI still shows the user's original text.
+    // This is how the model learns:
+    //   • what day is "today"
+    //   • which exercises are already queued for TODAY (planned + already-logged)
+    //     so it doesn't propose something you already have.
+    const today = new Date();
+    const todayYmd = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const contextParts = [`היום ${DOW_HE_SHORT[today.getDay()]} ${todayYmd}`];
+    // CRITICAL: tell the AI whether this chat is inside a live workout right now, or inside
+    // a PLANNED session for a FUTURE date. Without this the model assumes it's talking about
+    // today and gives wrong-day answers ("no plan for tomorrow — only today's session").
+    if (currentSessionStatus === 'planned' && currentSessionPlannedFor) {
+      const [py, pm, pd] = currentSessionPlannedFor.split('-').map(Number);
+      const planDate = new Date(py, (pm || 1) - 1, pd || 1);
+      const planDow = DOW_HE_SHORT[planDate.getDay()];
+      const isToday = currentSessionPlannedFor === todayYmd;
+      const isTomorrow = (planDate.getTime() - new Date(todayYmd + 'T00:00:00').getTime()) / 86_400_000 === 1;
+      const relative = isToday ? ' (היום)' : isTomorrow ? ' (מחר)' : '';
+      contextParts.push(`השיחה על אימון מתוכנן ליום ${planDow} ${currentSessionPlannedFor}${relative} — לא על היום. הצעות/הוספות נוגעות לתוכנית הזאת`);
+    } else if (currentSessionStatus === 'active') {
+      contextParts.push(`השיחה בתוך אימון חי (עכשיו)`);
+    }
+    if (currentSessionExercises.length > 0) {
+      const inSession = currentSessionExercises
+        .map(e => `${e.name} (${e.muscle}${e.hasSets ? ' · נרשם' : ' · מתוכנן'})`)
+        .join('; ');
+      const label = currentSessionStatus === 'planned' ? 'תרגילים בתוכנית הנוכחית' : 'תרגילים באימון הנוכחי';
+      contextParts.push(`${label}: ${inSession}`);
+    } else if (sessionMuscles.length > 0) {
+      const label = currentSessionStatus === 'planned' ? 'פוקוס התוכנית' : 'פוקוס האימון';
+      contextParts.push(`${label}: ${sessionMuscles.join(', ')}`);
+    }
+    if (currentSessionAerobicSummary) {
+      contextParts.push(`אירובי בסשן: ${currentSessionAerobicSummary}`);
+    }
+    const todayLine = `[הקשר: ${contextParts.join(' | ')}]`;
+    let firstUserSeen = false;
+    const wireMessages = nextMessages.map(m => {
+      if (m.role === 'user' && !firstUserSeen) {
+        firstUserSeen = true;
+        return { role: m.role, content: `${todayLine}\n${m.content}` };
+      }
+      return { role: m.role, content: m.content };
+    });
 
     try {
       const resp = await fetch(`${CHAT_API_URL.replace(/\/$/, '')}/api/chat`, {
@@ -351,7 +437,7 @@ export function AiChatPanel({
         body: JSON.stringify({
           uid,
           mode,
-          messages: nextMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: wireMessages,
           personalExercises: exPayload,
           recentSets: setsPayload,
           sessionMuscles,
@@ -363,7 +449,20 @@ export function AiChatPanel({
         throw new Error(body.error || `HTTP ${resp.status}`);
       }
       const data = await resp.json();
-      updateActiveMessages([...nextMessages, { role: 'assistant' as const, content: data.text || '', ts: Date.now() }]);
+      const text: string = data.text || '';
+      // Detect truncation two ways:
+      //   1. Server told us (needs the max_tokens redeploy)
+      //   2. Backtick fences don't balance — Anthropic ran out mid-JSON-block. Common failure.
+      const serverSaysCut = data.stopReason && data.stopReason !== 'end_turn' && data.stopReason !== 'stop_sequence';
+      const backtickFences = (text.match(/```/g) || []).length;
+      const unclosedFence = backtickFences % 2 !== 0;
+      const truncated = !!serverSaysCut || unclosedFence;
+      updateActiveMessages([...nextMessages, {
+        role: 'assistant' as const,
+        content: text,
+        ts: Date.now(),
+        truncated,
+      }]);
     } catch (e: any) {
       setError(e?.message || String(e));
     } finally {
@@ -582,8 +681,10 @@ export function AiChatPanel({
 
         {messages.map((m, i) => {
           const chunks = m.role === 'assistant' ? parseChunks(m.content) : [{ type: 'text' as const, text: m.content }];
+          const showTruncated = m.role === 'assistant' && m.truncated;
           return (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-start' : 'items-end'}`}>
+            <div className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
               <div
                 className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm space-y-2 ${
                   m.role === 'user'
@@ -603,19 +704,31 @@ export function AiChatPanel({
                   if (a.type === 'suggest_exercise') {
                     const mus = MUSCLE_BY_ID[a.muscle as MuscleGroup];
                     const c = mus ? MUSCLE_CLASSES[mus.color] : null;
+                    // Is this exercise ALREADY in today's session (planned or logged)?
+                    // Different visual grammar so the AI's rehash doesn't look like a fresh addable card.
+                    const nameKey = a.name.trim().toLowerCase();
+                    const inSession = currentSessionExercises.some(e => e.name.trim().toLowerCase() === nameKey);
+                    const inSessionEntry = inSession ? currentSessionExercises.find(e => e.name.trim().toLowerCase() === nameKey) : null;
+                    const useBlue = inSession && !applied;
                     return (
                       <div
                         key={j}
-                        className={`w-full rounded-xl border dark:border-emerald-800 border-emerald-300 overflow-hidden ${
-                          applied ? 'opacity-60' : 'dark:bg-emerald-950/40 bg-emerald-50'
+                        className={`w-full rounded-xl border overflow-hidden ${
+                          applied
+                            ? 'dark:border-emerald-800 border-emerald-300 opacity-60'
+                            : useBlue
+                              ? 'dark:border-blue-800 border-blue-300 dark:bg-blue-950/40 bg-blue-50'
+                              : 'dark:border-emerald-800 border-emerald-300 dark:bg-emerald-950/40 bg-emerald-50'
                         }`}
                         dir="rtl"
                       >
-                        {/* Top row: name + add button */}
+                        {/* Top row: name + status */}
                         <button
-                          onClick={() => !applied && handleSuggestAction(a, key)}
-                          disabled={applied}
-                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-right ${!applied ? 'dark:hover:bg-emerald-900/50 hover:bg-emerald-100' : ''}`}
+                          onClick={() => !applied && !useBlue && handleSuggestAction(a, key)}
+                          disabled={applied || useBlue}
+                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-right ${
+                            !applied && !useBlue ? 'dark:hover:bg-emerald-900/50 hover:bg-emerald-100' : ''
+                          }`}
                         >
                           <div className="text-right flex-1 min-w-0">
                             <div className="text-sm font-semibold">{a.name}</div>
@@ -624,11 +737,15 @@ export function AiChatPanel({
                               {c && mus && (
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>{mus.he}</span>
                               )}
-                              {a.isNew && <span className="text-[10px] text-amber-500">חדש</span>}
+                              {a.isNew && !useBlue && <span className="text-[10px] text-amber-500">חדש</span>}
                             </div>
                           </div>
-                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
-                            {applied ? '✓ נוסף' : (replaceContext ? '⇄ החלף' : (onAddToDb && !onAddSet ? '+ הוסף למאגר' : '+ הוסף לאימון'))}
+                          <span className={`text-[11px] font-semibold shrink-0 ${useBlue ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                            {applied
+                              ? '✓ נוסף'
+                              : useBlue
+                                ? (inSessionEntry?.hasSets ? '✓ באימון' : '✓ בתוכנית')
+                                : (replaceContext ? '⇄ החלף' : (onAddToDb && !onAddSet ? '+ הוסף למאגר' : '+ הוסף לאימון'))}
                           </span>
                         </button>
                         {/* How-to steps + Google-search link */}
@@ -695,6 +812,16 @@ export function AiChatPanel({
                 })}
               </div>
             </div>
+            {showTruncated && (
+              <button
+                onClick={() => sendWith('המשך')}
+                className="mt-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/25"
+                dir="rtl"
+              >
+                ⚠️ נחתך באמצע — לחץ להמשך
+              </button>
+            )}
+            </div>
           );
         })}
 
@@ -721,7 +848,6 @@ export function AiChatPanel({
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder="תאר תרגיל או בקש הצעה..."
             className="input-field flex-1 !text-right !text-sm !py-2.5"
             dir="rtl"

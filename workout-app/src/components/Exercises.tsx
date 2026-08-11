@@ -9,14 +9,14 @@ import { CHAT_API_URL } from '../config/api';
 import { AiChatPanel } from './AiChatPanel';
 import { MigrateNames } from './MigrateNames';
 import { TopBar } from './TopBar';
-import { SettingsGearAction } from './TopBarActions';
+import { TabActions } from './TopBarActions';
 
 type Props = {
   uid: string;
   navigate: (route: Route) => void;
 };
 
-const PARENT_ORDER: MuscleParent[] = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core'];
+const PARENT_ORDER: MuscleParent[] = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core', 'aerobic'];
 
 export function Exercises({ uid, navigate }: Props) {
   const firestore = useFirestore(uid);
@@ -36,15 +36,19 @@ export function Exercises({ uid, navigate }: Props) {
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [aiAddOpen, setAiAddOpen] = useState(false);
   const [historyStats, setHistoryStats] = useState<Map<string, { count: number; lastTs: number; sessionsCount: number }>>(new Map());
+  const [defaultKeys, setDefaultKeys] = useState<Set<string>>(new Set());
+  const isAdmin = uid === 'user_6724';
 
   async function refresh() {
-    const [exs, ps, sessions] = await Promise.all([
+    const [exs, ps, sessions, defs] = await Promise.all([
       firestore.listPersonalExercises(),
       firestore.getAllExercisePhotos(),
       firestore.getFreeSessions(),
+      isAdmin ? firestore.listDefaultPhotoKeys() : Promise.resolve(new Set<string>()),
     ]);
     setExercises(exs);
     setPhotos(ps);
+    setDefaultKeys(defs);
     // Compute per-exercise historical set count + last-used
     const stats = new Map<string, { count: number; lastTs: number; sessionsCount: number }>();
     const sessionSeenPer = new Map<string, Set<string>>();
@@ -120,30 +124,30 @@ export function Exercises({ uid, navigate }: Props) {
         title="התרגילים שלי"
         accent="brand"
         tint="violet"
-        actions={
-          <>
-            <button
-              onClick={() => setAiAddOpen(true)}
-              aria-label="הוסף עם AI"
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-violet-600 hover:bg-violet-500 text-white transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
-              </svg>
-            </button>
-            <button
-              onClick={() => setAddExerciseOpen(true)}
-              aria-label="הוסף ידנית"
-              className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-violet-500 text-violet-600 dark:text-violet-400 dark:hover:bg-violet-500/10 hover:bg-violet-500/5 transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-            <SettingsGearAction navigate={navigate} />
-          </>
-        }
+        actions={<TabActions navigate={navigate} />}
       />
+
+      {/* Floating add-exercise cluster — bottom-left, above the tab bar */}
+      <div className="fixed bottom-24 left-4 z-40 flex flex-col-reverse gap-3" dir="ltr">
+        <button
+          onClick={() => setAddExerciseOpen(true)}
+          aria-label="הוסף תרגיל ידנית"
+          className="w-16 h-16 rounded-full flex items-center justify-center bg-violet-600 hover:bg-violet-500 text-white shadow-[0_8px_24px_-4px_rgba(139,92,246,0.55)] ring-4 ring-violet-500/20 transition-transform active:scale-95 hover:scale-105"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button
+          onClick={() => setAiAddOpen(true)}
+          aria-label="הוסף עם AI"
+          className="ai-orb-violet w-12 h-12 rounded-full flex items-center justify-center bg-violet-500 hover:bg-violet-400 text-white shadow-[0_6px_18px_-4px_rgba(139,92,246,0.65)] ring-2 ring-violet-400/25 transition-transform active:scale-95 hover:scale-105"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+          </svg>
+        </button>
+      </div>
       <div className="px-4 pt-0 pb-4 max-w-lg mx-auto">
 
       {/* Summary strip — full-width, edge-to-edge, matches the "in-progress" banner style */}
@@ -183,6 +187,29 @@ export function Exercises({ uid, navigate }: Props) {
       {!loading && exercises.length === 0 && !migrating && (
         <div className="card text-center py-6 text-muted text-sm" dir="rtl">
           עדיין אין תרגילים ברשימה שלך. הם ייבנו לבד ברגע שתתחיל לרשום סטים.
+        </div>
+      )}
+
+      {/* Solid add-exercise buttons — mirrored to the '+ אירובי' style, always visible so users
+          don't have to hunt for the floating FAB. */}
+      {!loading && (
+        <div className="mt-3 mb-4 flex gap-2" dir="rtl">
+          <button
+            onClick={() => setAddExerciseOpen(true)}
+            className="flex-1 py-3 rounded-xl border border-violet-500/40 bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span>הוסף תרגיל</span>
+          </button>
+          <button
+            onClick={() => setAiAddOpen(true)}
+            className="ai-orb-violet py-3 px-4 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+              <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+            </svg>
+            <span>AI</span>
+          </button>
         </div>
       )}
 
@@ -282,6 +309,34 @@ export function Exercises({ uid, navigate }: Props) {
                           className="text-amber-500"
                         >מחק תמונה</button>
                       )}
+                      {isAdmin && photo && (() => {
+                        const key = exercisePhotoKey(ex.he);
+                        const isDefault = defaultKeys.has(key);
+                        return (
+                          <button
+                            onClick={async () => {
+                              if (isDefault) {
+                                await firestore.deleteDefaultExercisePhoto(ex.he);
+                                setDefaultKeys(prev => { const n = new Set(prev); n.delete(key); return n; });
+                              } else {
+                                await firestore.setDefaultExercisePhoto(ex.he, photo);
+                                setDefaultKeys(prev => { const n = new Set(prev); n.add(key); return n; });
+                              }
+                            }}
+                            title={isDefault ? 'הסר את התמונה כברירת מחדל לכולם' : 'הגדר תמונה זו כברירת מחדל לכולם'}
+                            className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border ${
+                              isDefault
+                                ? 'bg-amber-500 text-white border-amber-500'
+                                : 'text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-500/10'
+                            }`}
+                          >
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill={isDefault ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                            <span>default</span>
+                          </button>
+                        );
+                      })()}
                       <button onClick={() => setEditing(ex)} className="text-blue-500">ערוך</button>
                       <button onClick={() => setConfirmDeleteId(ex.id)} className="text-red-500">מחק</button>
                       <a
@@ -595,7 +650,8 @@ function EditExerciseModal({
         <div>
           <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">שריר עיקרי</label>
           <div className="grid grid-cols-3 gap-1.5" dir="rtl">
-            {ACTIVE_MUSCLES.map(m => {
+            {/* Regular muscles + a distinct "אירובי" chip for cardio types */}
+            {[...ACTIVE_MUSCLES, MUSCLE_BY_ID['aerobic']].map(m => {
               const c = MUSCLE_CLASSES[m.color];
               const active = m.id === muscle;
               return (

@@ -8,9 +8,13 @@ import { FreeHistory } from './components/FreeHistory';
 import { Settings } from './components/Settings';
 import { Exercises } from './components/Exercises';
 import { Body } from './components/Body';
+import { Install } from './components/Install';
 import { PasscodeScreen } from './components/PasscodeScreen';
 import { TabBar } from './components/TabBar';
 import { StartSessionModal } from './components/StartSessionModal';
+import { Chronograph } from './components/Chronograph';
+import { useTimer } from './hooks/useTimer';
+import { useStandaloneStopwatch } from './hooks/useStandaloneStopwatch';
 import type { MuscleGroup } from './data/muscles';
 import { ACTIVE_MUSCLES } from './data/muscles';
 
@@ -21,6 +25,7 @@ function parseHash(): Route {
   if (hash === '/settings') return { page: 'settings' };
   if (hash === '/exercises') return { page: 'exercises' };
   if (hash === '/body') return { page: 'body' };
+  if (hash === '/install') return { page: 'install' };
   if (hash.startsWith('/session-view/')) {
     const sessionId = hash.split('/')[2];
     return { page: 'session-view', sessionId };
@@ -39,6 +44,7 @@ function routeToHash(route: Route): string {
     case 'settings': return '#/settings';
     case 'exercises': return '#/exercises';
     case 'body': return '#/body';
+    case 'install': return '#/install';
     case 'session': return `#/session/${route.sessionId}`;
     case 'session-view': return `#/session-view/${route.sessionId}`;
   }
@@ -63,7 +69,9 @@ function AppShell({ uid, route, navigate, doLogout }: {
     (async () => {
       const list = await firestore.getFreeSessions();
       setAllSessions(list);
-      setInProgress(list.find(s => !s.completed) || null);
+      // "In progress" means genuinely started — planned sessions are NOT in-progress
+      // (they live only on Home until the user hits "התחל").
+      setInProgress(list.find(s => s.status === 'active') || null);
     })();
   }, [route, uid]);
 
@@ -118,12 +126,36 @@ function AppShell({ uid, route, navigate, doLogout }: {
     return found;
   }, [allSessions]);
 
+  // If a completed session for TODAY exists, offer to return to it rather than starting a new one.
+  const todaysCompleted = useMemo(() => {
+    const midnight = new Date(); midnight.setHours(0,0,0,0);
+    const start = midnight.getTime();
+    const end = start + 86_400_000;
+    return allSessions.find(s => s.status === 'completed' && (s.completedAt || s.date) >= start && (s.completedAt || s.date) < end) || null;
+  }, [allSessions]);
+  const [sameDayPrompt, setSameDayPrompt] = useState(false);
+
   async function handleFabClick() {
-    if (inProgress) {
-      navigate({ page: 'session', sessionId: inProgress.id });
-    } else {
-      setShowStart(true);
+    // Re-fetch before deciding. Local `inProgress` can be stale — e.g. Home just deleted the
+    // active session and App's state hasn't been re-polled (poll is on route-change only).
+    // Without this we'd navigate to a deleted session and hit "session not found".
+    const list = await firestore.getFreeSessions();
+    setAllSessions(list);
+    const freshActive = list.find(s => s.status === 'active') || null;
+    setInProgress(freshActive);
+    if (freshActive) {
+      navigate({ page: 'session', sessionId: freshActive.id });
+      return;
     }
+    const midnight = new Date(); midnight.setHours(0,0,0,0);
+    const start = midnight.getTime();
+    const end = start + 86_400_000;
+    const freshDoneToday = list.find(s => s.status === 'completed' && (s.completedAt || s.date) >= start && (s.completedAt || s.date) < end) || null;
+    if (freshDoneToday) {
+      setSameDayPrompt(true);
+      return;
+    }
+    setShowStart(true);
   }
 
   async function handleStart(muscles: MuscleGroup[]) {
@@ -132,12 +164,25 @@ function AppShell({ uid, route, navigate, doLogout }: {
     navigate({ page: 'session', sessionId: id });
   }
 
+  async function handleReturnToTodays() {
+    if (!todaysCompleted) return;
+    setSameDayPrompt(false);
+    await firestore.reactivateFreeSession(todaysCompleted.id);
+    navigate({ page: 'session', sessionId: todaysCompleted.id });
+  }
+
+  // Standalone stopwatch — controlled by the TopBar toggle. Auto-hides during live sessions
+  // (FreeSession renders its own Chronograph then).
+  const { open: stopwatchOpen, set: setStopwatchOpen } = useStandaloneStopwatch();
+  const standaloneTimer = useTimer();
+  const showStandaloneStopwatch = stopwatchOpen && !inProgress && TAB_PAGES.has(route.page);
+
   const isTabPage = TAB_PAGES.has(route.page);
 
   let content: React.ReactNode = null;
   switch (route.page) {
     case 'home':
-      content = <FreeHome uid={uid} navigate={navigate} />;
+      content = <FreeHome uid={uid} navigate={navigate} onStartRequest={handleFabClick} />;
       break;
     case 'session':
       content = <FreeSession key={route.sessionId} uid={uid} sessionId={route.sessionId} navigate={navigate} />;
@@ -157,6 +202,9 @@ function AppShell({ uid, route, navigate, doLogout }: {
     case 'body':
       content = <Body uid={uid} navigate={navigate} />;
       break;
+    case 'install':
+      content = <Install navigate={navigate} />;
+      break;
   }
 
   return (
@@ -173,6 +221,22 @@ function AppShell({ uid, route, navigate, doLogout }: {
           onFabClick={handleFabClick}
         />
       )}
+
+      {/* Standalone stopwatch — floats globally; opened/closed via the TopBar toggle next to Settings.
+          Automatically hidden when a live session is active (session has its own Chronograph). */}
+      {showStandaloneStopwatch && (
+        <Chronograph
+          standalone
+          sessionStartMs={Date.now()}
+          restRemaining={standaloneTimer.remaining}
+          restIsRunning={standaloneTimer.isRunning}
+          restIsDone={standaloneTimer.isDone}
+          onRestSkip={standaloneTimer.skip}
+          onRestAdd={standaloneTimer.addTime}
+          onRestStart={(s) => standaloneTimer.start(s)}
+          onDismiss={() => setStopwatchOpen(false)}
+        />
+      )}
       {showStart && (
         <StartSessionModal
           suggested={suggested}
@@ -182,6 +246,27 @@ function AppShell({ uid, route, navigate, doLogout }: {
           onClose={() => setShowStart(false)}
           onStart={handleStart}
         />
+      )}
+      {sameDayPrompt && todaysCompleted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4" onClick={() => setSameDayPrompt(false)}>
+          <div className="card max-w-sm w-full text-right" dir="rtl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-emerald-600 dark:text-emerald-400 mb-2">כבר סיימת אימון היום</h3>
+            <p className="text-sm text-muted mb-4">
+              יש לך אימון שסיימת היום — {todaysCompleted.sets.filter(s => s.weight > 0 || s.reps > 0).length} סטים.
+              נחזור אליו כדי להוסיף עוד?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSameDayPrompt(false)}
+                className="btn-secondary flex-1 py-3"
+              >ביטול</button>
+              <button
+                onClick={handleReturnToTodays}
+                className="btn-primary flex-1 py-3"
+              >חזור לאימון</button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

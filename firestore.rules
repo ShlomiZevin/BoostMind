@@ -40,5 +40,8 @@ service cloud.firestore {
     match /fleet_notes/{docId} {
       allow read, write: if true;
     }
+    match /defaultExercisePhotos/{docId} {
+      allow read, write: if true;
+    }
   }
 }
