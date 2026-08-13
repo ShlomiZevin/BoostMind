@@ -715,23 +715,28 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                 {slot.active && (() => {
                   const act = slot.active!;
                   const paused = !!act.pausedAt;
-                  // Fresh = the session is paused at exactly its start moment (pausedAt === date).
-                  // This flag is pinned by create / restart / start-planned and cleared the
-                  // moment the user taps "התחל" (via resumeFreeSession) or logs a set.
+                  // Fresh = pausedAt pinned to start (== date). Fresh wins over paused
+                  // for label/color, so "restart" reads as a new session (not "מושהה").
                   const fresh = paused && act.pausedAt === act.date;
-                  const dotBg = paused ? 'bg-amber-500' : 'bg-emerald-500';
-                  const dotRingBg = paused ? 'bg-amber-400' : 'bg-emerald-400';
-                  const label = paused ? 'מושהה' : (fresh ? 'אימון מוכן' : 'אימון פתוח');
-                  const labelCls = paused ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300';
+                  const trulyPaused = paused && !fresh;
+                  const dotBg = trulyPaused ? 'bg-amber-500' : 'bg-emerald-500';
+                  const dotRingBg = trulyPaused ? 'bg-amber-400' : 'bg-emerald-400';
+                  const label = fresh ? 'אימון מוכן' : (trulyPaused ? 'מושהה' : 'אימון פתוח');
+                  const labelCls = trulyPaused ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300';
+                  // Card tint: amber when paused so the WHOLE tile reads as on-hold,
+                  // not just the dot/label. Fresh + running stay emerald.
+                  const cardCls = trulyPaused
+                    ? 'dark:bg-amber-950/30 bg-amber-50 border-amber-500/40'
+                    : 'dark:bg-emerald-950/30 bg-emerald-50 border-emerald-500/40';
                   return (
                     <div
-                      className="mb-2 rounded-xl px-3 py-2 dark:bg-emerald-950/30 bg-emerald-50 border border-emerald-500/40 relative"
+                      className={`mb-2 rounded-xl px-3 py-2 border relative ${cardCls}`}
                       dir="rtl"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="inline-flex items-center gap-1.5">
                           <span className="relative flex h-2 w-2">
-                            {!paused && !fresh && (
+                            {!trulyPaused && !fresh && (
                               <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${dotRingBg}`} />
                             )}
                             <span className={`relative inline-flex rounded-full h-2 w-2 ${dotBg}`} />
@@ -772,9 +777,9 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                           )}
                           <button
                             onClick={async () => {
-                              if (fresh) {
-                                // "התחל" — kicks off the timer and persists the transition
-                                // so the tile no longer reads "התחל" after we leave.
+                              // Primary CTA transitions state whether fresh (התחל)
+                              // or paused (המשך). Timer runs after either tap.
+                              if (fresh || trulyPaused) {
                                 await firestore.resumeFreeSession(act.id);
                               }
                               navigate({ page: 'session', sessionId: act.id });
@@ -1059,27 +1064,29 @@ function TodayTile({
     // Elapsed: frozen when paused, live otherwise
     const elapsedMs = (paused ? (active.pausedAt as number) : Date.now()) - active.date;
     const minutesAgo = Math.max(0, Math.floor(elapsedMs / 60000));
-    // Fresh = pausedAt pinned to the session's start moment. Consistent across
-    // create / restart / start-planned. Cleared the moment the user taps "התחל"
-    // (resumeFreeSession) or logs a set (auto-resume in FreeSession).
+    // Fresh = pausedAt pinned to the session's start moment (== date). This is
+    // the "new / restart" state — despite pausedAt being set, we treat it as a
+    // fresh session, NOT as "paused". Fresh takes priority over paused so labels
+    // and colors read as "ready to start", not "on hold".
     const fresh = paused && active.pausedAt === active.date;
+    const trulyPaused = paused && !fresh;
     const timeLabel = fresh
       ? 'עכשיו'
       : minutesAgo < 60 ? `לפני ${minutesAgo}׳`
       : minutesAgo < 60 * 24 ? `לפני ${Math.floor(minutesAgo / 60)} שעות`
       : new Date(active.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
     // Visual accents shift with state so the banner announces itself:
-    //   active-running → emerald ring + pulse
-    //   paused         → amber tint + amber dot, no pulse
     //   fresh          → emerald, no pulse (nothing to keep ticking about yet)
-    const containerCls = paused
+    //   active-running → emerald ring + pulse
+    //   truly paused   → amber tint + amber dot, no pulse
+    const containerCls = trulyPaused
       ? 'from-amber-500/15 via-amber-500/6 dark:from-amber-500/20 dark:via-amber-500/10 border-amber-500/40 dark:border-amber-500/40'
       : 'from-emerald-500/18 via-emerald-500/10 dark:from-emerald-500/25 dark:via-emerald-500/12 border-emerald-500/50 dark:border-emerald-500/50';
-    const dotBg = paused ? 'bg-amber-500' : 'bg-emerald-500';
-    const dotRingBg = paused ? 'bg-amber-400' : 'bg-emerald-400';
-    const label = paused ? 'מושהה' : (fresh ? 'אימון מוכן' : 'אימון פתוח');
-    const labelCls = paused ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200';
-    const subCls = paused ? 'text-amber-700/80 dark:text-amber-300/80' : 'text-emerald-700 dark:text-emerald-300';
+    const dotBg = trulyPaused ? 'bg-amber-500' : 'bg-emerald-500';
+    const dotRingBg = trulyPaused ? 'bg-amber-400' : 'bg-emerald-400';
+    const label = fresh ? 'אימון מוכן' : (trulyPaused ? 'מושהה' : 'אימון פתוח');
+    const labelCls = trulyPaused ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200';
+    const subCls = trulyPaused ? 'text-amber-700/80 dark:text-amber-300/80' : 'text-emerald-700 dark:text-emerald-300';
     return (
       <div
         className={`w-full -mx-4 mb-0 px-4 py-3 text-right bg-gradient-to-l to-transparent border-b-2 shadow-[0_4px_18px_-8px_rgba(0,0,0,0.15)] ${containerCls}`}
@@ -1091,7 +1098,7 @@ function TodayTile({
           <div className="flex items-start justify-between gap-2">
             <div className="inline-flex items-center gap-2 flex-wrap min-w-0">
               <span className="relative flex h-2 w-2 self-center">
-                {!paused && !fresh && (
+                {!trulyPaused && !fresh && (
                   <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${dotRingBg}`} />
                 )}
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${dotBg}`} />
@@ -1144,7 +1151,10 @@ function TodayTile({
             />
             <button
               onClick={async () => {
-                if (fresh) await onStartActive();
+                // Primary CTA resumes the timer whether the session is "fresh"
+                // (never started) or "paused" (mid-session pause). Either way,
+                // the user's intent is "let's go" — so state should transition.
+                if (fresh || trulyPaused) await onStartActive();
                 onNavigate({ page: 'session', sessionId: active.id });
               }}
               className="shrink-0 inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-[0_3px_10px_-2px_rgba(16,185,129,0.5)]"

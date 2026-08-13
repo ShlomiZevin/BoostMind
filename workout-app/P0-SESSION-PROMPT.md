@@ -19,7 +19,10 @@ Then tell me what you make of it, and **we'll agree together what to do and in w
 1. **Hebrew-only, RTL-only.** Every string you write is Hebrew. Where the report flags English, the fix is *to Hebrew*.
 2. **Web app / PWA — not an app store product.** No store-compliance work.
 3. **Clarity pass, not a rewrite.** Nothing gets removed, only reorganised. Every feature stays reachable.
-4. **§3.1 matters most: one visual language.** The same action must look identical everywhere — same icon, colour, shape, font. A smaller variant is still the same button. Don't fix one button; extract the shared component and route every call site through it.
+4. **§3.1 + §3.2 matter most — one visual language and one layout grammar.**
+   - The same *action* must look identical everywhere — same icon, colour, shape, font. A smaller variant is still the same button.
+   - The same *thing* must be built the same way everywhere — screen skeleton, section, card anatomy, overlay type, how a metric is written, how empty/loading/error look.
+   - **Work top-down, not screen-by-screen.** Pick one grammar, open every screen that uses it, make them agree, then move to the next. Don't fix one button — extract the shared component and route every call site through it. A change is done when the same thing looks the same in *all* its locations, not when one screen looks good.
 5. **§8 lists what must keep working.** Don't regress it.
 6. I use this app daily. If a change alters behaviour rather than looks, ask me first.
 

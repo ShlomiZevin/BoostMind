@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 
 type Props = {
   sessionStartMs: number;
+  // When set, the session is paused — elapsed freezes at pausedAtMs - sessionStartMs.
+  // Undefined means the timer is running (or the session is fresh with no
+  // meaningful start yet, in which case the caller can pass sessionStartMs = now).
+  pausedAtMs?: number;
   restRemaining: number;
   restIsRunning: boolean;
   restIsDone: boolean;
@@ -68,7 +72,7 @@ function saveDefaultRest(v: number) { try { localStorage.setItem(DEFAULT_REST_KE
  *   • Position persists across sessions (localStorage)
  */
 export function Chronograph({
-  sessionStartMs, restRemaining, restIsRunning, restIsDone, onRestSkip, onRestAdd, onRestStart,
+  sessionStartMs, pausedAtMs, restRemaining, restIsRunning, restIsDone, onRestSkip, onRestAdd, onRestStart,
   standalone, onDismiss,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -138,8 +142,13 @@ export function Chronograph({
     return () => clearInterval(id);
   }, [swRunning]);
 
-  const sessionRawElapsedMs = now - sessionStartMs;
-  const activePauseMs = sessionPaused ? (now - sessionPauseStartMs) : 0;
+  // If the session is paused at the store level (pausedAtMs from Firestore), the
+  // elapsed clock freezes at pausedAtMs - sessionStartMs. Local Chronograph pause
+  // (sessionPaused) still stacks on top of that in case the user pauses inside
+  // the widget too.
+  const effectiveNow = pausedAtMs != null ? pausedAtMs : now;
+  const sessionRawElapsedMs = effectiveNow - sessionStartMs;
+  const activePauseMs = sessionPaused ? (effectiveNow - sessionPauseStartMs) : 0;
   const sessionElapsedSec = Math.max(0, Math.floor((sessionRawElapsedMs - sessionAccumPauseMs - activePauseMs) / 1000));
 
   const swElapsedMs = swAccumMs + (swRunning ? (now - swStartMs) : 0);

@@ -930,6 +930,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
       {!historical && !planning && (
         <Chronograph
           sessionStartMs={session.date}
+          pausedAtMs={session.pausedAt}
           restRemaining={timer.remaining}
           restIsRunning={timer.isRunning}
           restIsDone={timer.isDone}
