@@ -109,6 +109,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
   const [confirmDeleteInProgress, setConfirmDeleteInProgress] = useState<string | null>(null);
   const [confirmDeletePlanned, setConfirmDeletePlanned] = useState<string | null>(null);
   const [movePlanId, setMovePlanId] = useState<string | null>(null);
+  const [confirmRestartId, setConfirmRestartId] = useState<string | null>(null);
   const [planForDate, setPlanForDate] = useState<string | null>(null); // YYYY-MM-DD
   const [copyWeekOpen, setCopyWeekOpen] = useState(false);
   const [graphMode, setGraphMode] = useState<GraphMode>('done');
@@ -388,6 +389,18 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
         onConvertActive={() => inProgress && setConvertActiveOpen(inProgress.id)}
         onDeletePlanned={() => plannedToday && setConfirmDeletePlanned(plannedToday.id)}
         onMovePlanned={() => plannedToday && setMovePlanId(plannedToday.id)}
+        onRestartActive={() => inProgress && setConfirmRestartId(inProgress.id)}
+        onTogglePauseActive={async () => {
+          if (!inProgress) return;
+          if (inProgress.pausedAt) { await firestore.resumeFreeSession(inProgress.id); }
+          else { await firestore.pauseFreeSession(inProgress.id); }
+          await refresh();
+        }}
+        onStartActive={async () => {
+          if (!inProgress) return;
+          await firestore.resumeFreeSession(inProgress.id);
+          await refresh();
+        }}
         onStartNew={() => onStartRequest?.()}
       />
 
@@ -427,45 +440,38 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
           }}
         />
       )}
+      {confirmRestartId && (
+        <ConfirmModal
+          title="לאפס את הטיימר?"
+          body="הזמן שהצטבר יאופס והכפתור יחזור ל־'התחל'. הסטים שכבר רשמת נשארים."
+          onCancel={() => setConfirmRestartId(null)}
+          onConfirm={async () => {
+            const id = confirmRestartId;
+            setConfirmRestartId(null);
+            if (id) { await firestore.restartFreeSession(id); await refresh(); }
+          }}
+        />
+      )}
 
       {/* ═══ Section: נפח שבועי ═══ */}
       <section className="mb-6" dir="rtl">
         <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-emerald-50/95 to-white/85 dark:from-emerald-950/40 dark:to-slate-950/90 border-b border-emerald-500/20 shadow-[0_2px_10px_-6px_rgba(16,185,129,0.35)]" style={{ top: 'var(--top-bar-h)' }}>
           <div className="max-w-lg mx-auto flex items-baseline justify-between gap-2">
-            <h2 className="inline-flex items-center gap-2 text-base font-bold">
+            <h2 className="inline-flex items-center gap-2 text-base font-bold shrink-0">
               <span>נפח שבועי</span>
               <span className="w-1 h-4 rounded-full bg-emerald-500" />
-              <button
-                onClick={() => navigate({ page: 'settings' })}
-                title="ערוך יעדים בהגדרות"
-                className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25"
-              >
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-                  <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-                  <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
-                </svg>
-                <span>ערוך</span>
-              </button>
             </h2>
-            {/* Both toggles live on the same row as the title so the sticky header
-                stays compact. The mode picker uses a select for space efficiency —
-                three segmented chips wouldn't fit next to "בוצע / + מתוכנן". */}
-            <div className="inline-flex items-center gap-2 shrink-0">
-              <select
-                value={volumeMode}
-                onChange={e => changeVolumeMode(e.target.value as any)}
-                aria-label="בסיס השוואה"
-                title="בסיס השוואה"
-                className="text-[10px] font-semibold rounded-full px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-main border border-transparent focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
-                dir="rtl"
-              >
-                <option value="goals">יעדים</option>
-                <option value="last-week">שבוע שעבר</option>
-                <option value="absolute">מוחלט</option>
-              </select>
-              <div className="inline-flex items-center gap-1 rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-[10px] font-semibold">
+            {/* Both switchers on ONE line — tighter chip padding so the 3-way volume
+                mode picker fits alongside the 2-way בוצע/+מתוכנן. The "ערוך" pill
+                was removed; edit-goals is reachable from the same button below the
+                weekly graph card. */}
+            <div className="inline-flex items-center gap-1.5 shrink-0 min-w-0">
+              <div className="inline-flex items-center rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-[10px] font-semibold">
+                <ToggleChip active={volumeMode === 'goals'} onClick={() => changeVolumeMode('goals')} tint="emerald">יעדים</ToggleChip>
+                <ToggleChip active={volumeMode === 'last-week'} onClick={() => changeVolumeMode('last-week')} tint="emerald">שב׳ שעבר</ToggleChip>
+                <ToggleChip active={volumeMode === 'absolute'} onClick={() => changeVolumeMode('absolute')} tint="emerald">מוחלט</ToggleChip>
+              </div>
+              <div className="inline-flex items-center rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-[10px] font-semibold">
                 <ToggleChip active={graphMode === 'done'} onClick={() => setGraphMode('done')} tint="emerald">בוצע</ToggleChip>
                 <ToggleChip active={graphMode === 'planned'} onClick={() => setGraphMode('planned')} tint="blue">+ מתוכנן</ToggleChip>
               </div>
@@ -646,10 +652,29 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
               };
             }
 
+            // If the tile has content, one click on the tile background (empty area,
+            // NOT on an inner button) navigates to the primary session:
+            //   active → session (live) · planned → session (edit) · else → session-view.
+            // Inner buttons keep their own onClicks — the closest() check skips
+            // the outer nav when the click bubbled up from an interactive element.
+            const primary = slot.active
+              ? { id: slot.active.id, page: 'session' as const }
+              : slot.planned[0]
+                ? { id: slot.planned[0].id, page: 'session' as const }
+                : slot.completed[0]
+                  ? { id: slot.completed[0].id, page: 'session-view' as const }
+                  : null;
+            const handleTileClick = (e: React.MouseEvent<HTMLDivElement>) => {
+              if (!primary) return;
+              const t = e.target as HTMLElement;
+              if (t.closest('button, a, input, textarea, select, [role="button"]')) return;
+              navigate({ page: primary.page, sessionId: primary.id });
+            };
             return (
               <div
                 key={slot.key}
-                className={`rounded-2xl border ${slotClass} p-3 transition-colors`}
+                onClick={handleTileClick}
+                className={`rounded-2xl border ${slotClass} p-3 transition-colors ${primary ? 'cursor-pointer' : ''}`}
                 style={slotStyle}
                 dir="rtl"
               >
@@ -682,22 +707,91 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                     )}
                     <span className="text-[10px] text-muted-most font-mono" dir="ltr">{dateStr}</span>
                   </div>
-                  <span className={`text-[10px] ${isPast && !hasAny ? 'text-muted-most/60' : 'text-muted-most'}`}>
-                    {DOW_HE[dow]}
-                  </span>
+                  {/* Second Hebrew-long-day chip on the left was removed — it duplicated
+                      the "יום X" label on the right. */}
                 </div>
 
                 {/* Content */}
-                {slot.active && (
-                  <button
-                    onClick={() => navigate({ page: 'session', sessionId: slot.active!.id })}
-                    className="w-full text-right rounded-xl px-3 py-2 dark:bg-emerald-950/40 bg-emerald-50 border border-emerald-500/30 mb-2"
-                    dir="rtl"
-                  >
-                    <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 mb-1">אתה באמצע אימון — לחץ כדי להמשיך ←</div>
-                    <MuscleChips ids={slot.active.muscleGroups} tint="emerald" aerobic={groupAerobic(slot.active)} />
-                  </button>
-                )}
+                {slot.active && (() => {
+                  const act = slot.active!;
+                  const paused = !!act.pausedAt;
+                  // Fresh = the session is paused at exactly its start moment (pausedAt === date).
+                  // This flag is pinned by create / restart / start-planned and cleared the
+                  // moment the user taps "התחל" (via resumeFreeSession) or logs a set.
+                  const fresh = paused && act.pausedAt === act.date;
+                  const dotBg = paused ? 'bg-amber-500' : 'bg-emerald-500';
+                  const dotRingBg = paused ? 'bg-amber-400' : 'bg-emerald-400';
+                  const label = paused ? 'מושהה' : (fresh ? 'אימון מוכן' : 'אימון פתוח');
+                  const labelCls = paused ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300';
+                  return (
+                    <div
+                      className="mb-2 rounded-xl px-3 py-2 dark:bg-emerald-950/30 bg-emerald-50 border border-emerald-500/40 relative"
+                      dir="rtl"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="inline-flex items-center gap-1.5">
+                          <span className="relative flex h-2 w-2">
+                            {!paused && !fresh && (
+                              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${dotRingBg}`} />
+                            )}
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${dotBg}`} />
+                          </span>
+                          <span className={`text-[11px] font-bold uppercase tracking-widest ${labelCls}`}>{label}</span>
+                        </div>
+                        <div className="inline-flex items-center gap-1">
+                          {!fresh && (
+                            <button
+                              onClick={async () => {
+                                if (paused) { await firestore.resumeFreeSession(act.id); }
+                                else { await firestore.pauseFreeSession(act.id); }
+                                await refresh();
+                              }}
+                              aria-label={paused ? 'המשך' : 'השהה'}
+                              title={paused ? 'המשך' : 'השהה'}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center hover:bg-slate-500/10 ${paused ? 'text-blue-600 dark:text-blue-300' : 'text-emerald-700 dark:text-emerald-300'}`}
+                            >
+                              {paused ? (
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                              ) : (
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                              )}
+                            </button>
+                          )}
+                          {!fresh && (
+                            <button
+                              onClick={() => setConfirmRestartId(act.id)}
+                              aria-label="אפס טיימר"
+                              title="אפס טיימר"
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15"
+                            >
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M23 4v6h-6" />
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                              </svg>
+                            </button>
+                          )}
+                          <button
+                            onClick={async () => {
+                              if (fresh) {
+                                // "התחל" — kicks off the timer and persists the transition
+                                // so the tile no longer reads "התחל" after we leave.
+                                await firestore.resumeFreeSession(act.id);
+                              }
+                              navigate({ page: 'session', sessionId: act.id });
+                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                          >
+                            <span>{fresh ? 'התחל' : 'המשך'}</span>
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M15 6l-6 6 6 6" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <MuscleChips ids={act.muscleGroups} tint="emerald" aerobic={groupAerobic(act)} />
+                    </div>
+                  );
+                })()}
 
                 {slot.completed.map((s) => {
                   const realSets = s.sets.filter(x => x.weight > 0 || x.reps > 0);
@@ -855,11 +949,12 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                         onClick={() => handlePlanWithAi(slot.key)}
                         title="תכנן ליום זה עם AI"
                         aria-label="תכנן עם AI"
-                        className="shrink-0 inline-flex items-center justify-center px-3 py-2 rounded-lg dark:bg-slate-800 bg-slate-100 dark:hover:bg-slate-700 hover:bg-slate-200 text-blue-600 dark:text-blue-400"
+                        className="shrink-0 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
                       >
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
                           <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
                         </svg>
+                        <span>AI</span>
                       </button>
                     </div>
                   )
@@ -931,7 +1026,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
 //   4. Nothing yet       → emerald gradient + invitation + "התחל אימון"
 function TodayTile({
   active, planned, completed, isStarting,
-  onNavigate, onStartPlanned, onReactivate, onDeleteActive, onConvertActive, onDeletePlanned, onMovePlanned, onStartNew,
+  onNavigate, onStartPlanned, onReactivate, onDeleteActive, onConvertActive, onDeletePlanned, onMovePlanned, onRestartActive, onTogglePauseActive, onStartActive, onStartNew,
 }: {
   active: FreeSession | null;
   planned: FreeSession | null;
@@ -944,6 +1039,11 @@ function TodayTile({
   onConvertActive: () => void;
   onDeletePlanned: () => void;
   onMovePlanned: () => void;
+  onRestartActive: () => void;
+  onTogglePauseActive: () => void;
+  // Called when the fresh session's primary "התחל" button is tapped. Parent
+  // should resume the timer before navigating so the transition persists.
+  onStartActive: () => Promise<void> | void;
   onStartNew: () => void;
 }) {
   const todayLabel = new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -955,51 +1055,87 @@ function TodayTile({
     const uniqExercises = new Set(realSetList.map(x => (x.exerciseName || '').toLowerCase()).filter(Boolean)).size;
     const plannedOnly = (active.plannedExercises || []).filter(p => !realSetList.some(s => (s.exerciseName || '').toLowerCase() === p.name.toLowerCase())).length;
     const totalExercises = uniqExercises + plannedOnly;
-    const minutesAgo = Math.max(0, Math.floor((Date.now() - active.date) / 60000));
-    const timeLabel =
-      minutesAgo < 60 ? `לפני ${minutesAgo}׳` :
-      minutesAgo < 60 * 24 ? `לפני ${Math.floor(minutesAgo / 60)} שעות` :
-      new Date(active.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+    const paused = !!active.pausedAt;
+    // Elapsed: frozen when paused, live otherwise
+    const elapsedMs = (paused ? (active.pausedAt as number) : Date.now()) - active.date;
+    const minutesAgo = Math.max(0, Math.floor(elapsedMs / 60000));
+    // Fresh = pausedAt pinned to the session's start moment. Consistent across
+    // create / restart / start-planned. Cleared the moment the user taps "התחל"
+    // (resumeFreeSession) or logs a set (auto-resume in FreeSession).
+    const fresh = paused && active.pausedAt === active.date;
+    const timeLabel = fresh
+      ? 'עכשיו'
+      : minutesAgo < 60 ? `לפני ${minutesAgo}׳`
+      : minutesAgo < 60 * 24 ? `לפני ${Math.floor(minutesAgo / 60)} שעות`
+      : new Date(active.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+    // Visual accents shift with state so the banner announces itself:
+    //   active-running → emerald ring + pulse
+    //   paused         → amber tint + amber dot, no pulse
+    //   fresh          → emerald, no pulse (nothing to keep ticking about yet)
+    const containerCls = paused
+      ? 'from-amber-500/15 via-amber-500/6 dark:from-amber-500/20 dark:via-amber-500/10 border-amber-500/40 dark:border-amber-500/40'
+      : 'from-emerald-500/18 via-emerald-500/10 dark:from-emerald-500/25 dark:via-emerald-500/12 border-emerald-500/50 dark:border-emerald-500/50';
+    const dotBg = paused ? 'bg-amber-500' : 'bg-emerald-500';
+    const dotRingBg = paused ? 'bg-amber-400' : 'bg-emerald-400';
+    const label = paused ? 'מושהה' : (fresh ? 'אימון מוכן' : 'אימון פתוח');
+    const labelCls = paused ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200';
+    const subCls = paused ? 'text-amber-700/80 dark:text-amber-300/80' : 'text-emerald-700 dark:text-emerald-300';
     return (
       <div
-        className="w-full -mx-4 mb-0 px-4 py-3 text-right
-                   bg-gradient-to-l from-emerald-500/12 via-emerald-500/6 to-transparent
-                   dark:from-emerald-500/18 dark:via-emerald-500/10
-                   border-b dark:border-emerald-500/25 border-emerald-500/25"
+        className={`w-full -mx-4 mb-0 px-4 py-3 text-right bg-gradient-to-l to-transparent border-b-2 shadow-[0_4px_18px_-8px_rgba(0,0,0,0.15)] ${containerCls}`}
         style={{ width: 'calc(100% + 2rem)' }}
         dir="rtl"
       >
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between gap-2">
-            <div className="inline-flex items-center gap-2 min-w-0">
+          {/* Row 1: status + counters on the RIGHT (RTL start), icon actions on the LEFT */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="inline-flex items-center gap-2 flex-wrap min-w-0">
               <span className="relative flex h-2 w-2 self-center">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                {!paused && !fresh && (
+                  <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${dotRingBg}`} />
+                )}
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${dotBg}`} />
               </span>
-              <span className="text-sm font-bold text-emerald-800 dark:text-emerald-200">אימון פתוח</span>
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">{timeLabel}</span>
-            </div>
-            <div className="inline-flex items-center gap-2 shrink-0">
-              {/* Small secondary icons — sit on the visual-left of the title row so
-                  they're accessible without competing with the primary "המשך" CTA. */}
-              <div className="inline-flex items-center gap-0.5">
-                <IconBtn onClick={onConvertActive} title="המר לתוכנית" tint="blue">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                </IconBtn>
-                <IconBtn onClick={onDeleteActive} title="מחק" tint="red">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                  </svg>
-                </IconBtn>
-              </div>
-              <span className="inline-flex items-baseline gap-1"><span className="font-mono font-bold text-base text-emerald-700 dark:text-emerald-300">{totalExercises}</span><span className="text-[9px] text-emerald-700/70 dark:text-emerald-300/70">תר׳</span></span>
+              <span className={`text-sm font-bold ${labelCls}`}>{label}</span>
+              <span className={`text-[10px] font-semibold uppercase tracking-widest ${subCls}`}>{timeLabel}</span>
               <span className="text-muted-most">·</span>
-              <span className="inline-flex items-baseline gap-1"><span className="font-mono font-bold text-base text-emerald-700 dark:text-emerald-300">{realSets}</span><span className="text-[9px] text-emerald-700/70 dark:text-emerald-300/70">סט׳</span></span>
+              <span className="inline-flex items-baseline gap-1"><span className={`font-mono font-bold text-base ${subCls}`}>{totalExercises}</span><span className="text-[9px] text-muted">תר׳</span></span>
+              <span className="text-muted-most">·</span>
+              <span className="inline-flex items-baseline gap-1"><span className={`font-mono font-bold text-base ${subCls}`}>{realSets}</span><span className="text-[9px] text-muted">סט׳</span></span>
+            </div>
+            {/* Top-left action icons — pause/restart show only when there's something
+                to pause or reset. Convert-to-planned + delete are always available. */}
+            <div className="inline-flex items-center gap-0.5 shrink-0">
+              {!fresh && (
+                <IconBtn onClick={onTogglePauseActive} title={paused ? 'המשך' : 'השהה'} tint={paused ? 'blue' : 'red'}>
+                  {paused ? (
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                  )}
+                </IconBtn>
+              )}
+              {!fresh && (
+                <IconBtn onClick={onRestartActive} title="אפס טיימר" tint="blue">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 4v6h-6" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                </IconBtn>
+              )}
+              <IconBtn onClick={onConvertActive} title="המר לתוכנית" tint="blue">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </IconBtn>
+              <IconBtn onClick={onDeleteActive} title="מחק" tint="red">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                </svg>
+              </IconBtn>
             </div>
           </div>
-          {/* Row 2: chip groups on the right (RTL start), single primary CTA on the left */}
+          {/* Row 2: chip groups on the right, primary CTA on the left */}
           <div className="flex items-start justify-between gap-2 mt-2">
             <BannerChipGroups
               muscles={active.muscleGroups}
@@ -1007,15 +1143,16 @@ function TodayTile({
               muscleTint="emerald"
             />
             <button
-              onClick={() => onNavigate({ page: 'session', sessionId: active.id })}
+              onClick={async () => {
+                if (fresh) await onStartActive();
+                onNavigate({ page: 'session', sessionId: active.id });
+              }}
               className="shrink-0 inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-[0_3px_10px_-2px_rgba(16,185,129,0.5)]"
             >
-              <span>המשך</span>
+              <span>{fresh ? 'התחל' : 'המשך'}</span>
               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
             </button>
           </div>
-          {/* Secondary actions (convert-to-planned + delete) live at the top-left of
-              the title row instead of below the CTA. Cleaner and out of the way. */}
         </div>
       </div>
     );
@@ -1044,7 +1181,10 @@ function TodayTile({
             <div className="inline-flex items-center gap-1 shrink-0">
               <IconBtn onClick={onMovePlanned} title="העבר לתאריך" tint="blue">
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
               </IconBtn>
               <IconBtn onClick={onDeletePlanned} title="מחק תוכנית" tint="red">
@@ -1359,7 +1499,7 @@ function ToggleChip({ children, active, onClick, tint }: { children: React.React
   return (
     <button
       onClick={onClick}
-      className={`px-2 py-0.5 rounded-full transition-colors ${active ? activeCls : 'text-muted hover:text-main'}`}
+      className={`px-1.5 py-0.5 rounded-full transition-colors whitespace-nowrap ${active ? activeCls : 'text-muted hover:text-main'}`}
     >{children}</button>
   );
 }

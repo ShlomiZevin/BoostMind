@@ -385,6 +385,8 @@ export function useFirestore(uid: string | null) {
       status: explicit || inferred,
       plannedFor: typeof data.plannedFor === 'string' ? data.plannedFor : undefined,
       aerobicEntries: Array.isArray(data.aerobicEntries) ? data.aerobicEntries : [],
+      restartedAt: data.restartedAt?.toMillis?.() ?? data.restartedAt ?? undefined,
+      pausedAt: data.pausedAt?.toMillis?.() ?? data.pausedAt ?? undefined,
     };
   };
 
@@ -392,8 +394,14 @@ export function useFirestore(uid: string | null) {
     if (!uid) throw new Error('No uid');
     const sessionId = `free_${Date.now()}`;
     const ref = doc(freeSessionsCol(uid), sessionId);
+    // pausedAt = date pins a "fresh" state — the elapsed clock stays at 0 until
+    // the user explicitly hits "התחל" (which calls resumeFreeSession) or logs a
+    // set (which auto-resumes). This keeps the tile's "התחל" ↔ "המשך" label
+    // consistent with actual timer activity.
+    const nowTs = Timestamp.now();
     await setDoc(ref, {
-      date: Timestamp.now(),
+      date: nowTs,
+      pausedAt: nowTs,
       muscleGroups,
       sets: [],
       completed: false,
@@ -428,6 +436,50 @@ export function useFirestore(uid: string | null) {
     return sessionId;
   }, [uid]);
 
+  // "Restart from scratch": clear ALL logged sets, zero the timer, and pin
+  // pausedAt = date so the timer stays frozen at 0 until the user explicitly
+  // taps "התחל" again (which resumes via resumeFreeSession). Planned exercises
+  // stay put — this is "start over the sets", not "delete the workout plan".
+  const restartFreeSession = useCallback(async (sessionId: string): Promise<void> => {
+    if (!uid) return;
+    const nowTs = Timestamp.now();
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      date: nowTs,
+      restartedAt: nowTs,
+      pausedAt: nowTs,   // frozen at 0 elapsed — fresh state
+      sets: [],
+    });
+  }, [uid]);
+
+  // Pause the elapsed-time clock on an active session. `pausedAt` marks WHEN we
+  // paused; while it's set, the UI shows the frozen elapsed = pausedAt − date.
+  const pauseFreeSession = useCallback(async (sessionId: string): Promise<void> => {
+    if (!uid) return;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      pausedAt: Timestamp.fromMillis(Date.now()),
+    });
+  }, [uid]);
+
+  // Resume from pause: shift `date` forward by the time we were paused, so the
+  // ongoing "elapsed = now − date" formula picks up right where it stopped.
+  const resumeFreeSession = useCallback(async (sessionId: string): Promise<void> => {
+    if (!uid) return;
+    const snap = await getDoc(doc(freeSessionsCol(uid), sessionId));
+    if (!snap.exists()) return;
+    const data = snap.data() as any;
+    const pausedAt: number | undefined = data.pausedAt?.toMillis?.() ?? data.pausedAt;
+    const startedAt: number | undefined = data.date?.toMillis?.() ?? data.date;
+    if (!pausedAt || !startedAt) {
+      await updateDoc(doc(freeSessionsCol(uid), sessionId), { pausedAt: null });
+      return;
+    }
+    const gap = Date.now() - pausedAt;
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      date: Timestamp.fromMillis(startedAt + gap),
+      pausedAt: null,
+    });
+  }, [uid]);
+
   // Move a planned session to a different date. Rewrites both `plannedFor` (the
   // YYYY-MM-DD key) and `date` (midnight timestamp used by sorters), keeping the
   // status intact. No-op if the session doesn't exist or isn't planned.
@@ -457,9 +509,13 @@ export function useFirestore(uid: string | null) {
     if (!target) return null;
     if (target.status === 'active') return sessionId;
     if (target.status === 'completed') return sessionId;
+    // pausedAt = date so the promoted session lands in "fresh, not started"
+    // state — user still has to tap "התחל" to kick off the timer.
+    const nowTs = Timestamp.now();
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
       status: 'active',
-      date: Timestamp.now(),
+      date: nowTs,
+      pausedAt: nowTs,
     });
     return sessionId;
   }, [uid]);
@@ -1223,6 +1279,9 @@ export function useFirestore(uid: string | null) {
     createFreeSession,
     createPlannedSession,
     movePlannedSession,
+    restartFreeSession,
+    pauseFreeSession,
+    resumeFreeSession,
     startPlannedSession,
     copyPlannedWeek,
     convertToPlanned,

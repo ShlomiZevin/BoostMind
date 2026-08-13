@@ -140,6 +140,12 @@ export type FreeSession = {
   status?: FreeSessionStatus;  // present on new records; legacy records inferred from `completed`
   plannedFor?: string;         // YYYY-MM-DD when status='planned' (or when it once was planned)
   aerobicEntries?: AerobicEntry[]; // cardio work in this session — separate from muscle sets
+  // Set when the user explicitly restarts the timer on an active session.
+  // Home shows "התחל" instead of "המשך" until a new set is logged after this ts.
+  restartedAt?: number;
+  // Set while the session is paused — elapsed freezes at (pausedAt − date).
+  // Cleared on resume; `date` is shifted forward to preserve elapsed.
+  pausedAt?: number;
 };
 
 // Two exercises historically done together as a superset. Used to suggest partners when

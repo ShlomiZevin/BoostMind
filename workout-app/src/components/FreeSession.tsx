@@ -256,6 +256,12 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   async function handleSaveSet(partial: Omit<FreeSet, 'id' | 'timestamp'>, editingId?: string) {
     if (!session) return;
 
+    // Logging a set implicitly "starts" the workout — if the session is still in
+    // the fresh/paused state, resume the timer so the elapsed clock starts now.
+    if (session.pausedAt) {
+      await firestore.resumeFreeSession(session.id);
+    }
+
     // Auto-add muscle to session focus if new
     let sessionMuscles = session.muscleGroups;
     if (!sessionMuscles.includes(partial.muscle)) {
@@ -747,8 +753,15 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   // no chronograph, no delete-set (there's nothing to delete). Add-exercise + edit-muscles still work.
   const planning = session.status === 'planned';
   const plannedForLabel = session.plannedFor
-    ? new Date(session.plannedFor + 'T00:00:00').toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'numeric' })
+    ? new Date(session.plannedFor + 'T00:00:00').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'numeric' })
     : null;
+  // "Start" button only makes sense when today's date matches the plan.
+  const plannedForIsToday = (() => {
+    if (!session.plannedFor) return false;
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const ymd = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    return session.plannedFor === ymd;
+  })();
 
   const realSetCount = session.sets.filter(s => s.weight > 0 || s.reps > 0).length;
   const exerciseCount = groupedSets.length + (session.plannedExercises || []).filter(p => !session.sets.some(s => (s.exerciseName || '').toLowerCase() === p.name.toLowerCase())).length;
@@ -806,37 +819,68 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   return (
     <div className="page-bg min-h-screen">
       <TopBar
-        title={planning ? 'תכנון אימון' : historical ? 'אימון' : 'אימון בתהליך'}
+        // Same title shape everywhere: just "אימון" + a small state chip. Planned
+        // and live now feel like the same card in different modes, not two designs.
+        title={
+          <span className="inline-flex items-center gap-1.5">
+            <span>אימון</span>
+            {planning && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 uppercase tracking-wider">מתוכנן</span>
+            )}
+            {historical && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 uppercase tracking-wider">היסטוריה</span>
+            )}
+          </span>
+        }
         accent={planning || historical ? 'brand' : 'live'}
         tint={planning ? 'blue' : historical ? 'blue' : undefined}
         subtitle={
           <span className="inline-flex items-center gap-1.5">
             <span>{planning && plannedForLabel ? plannedForLabel : dateLabel}</span>
             <span className="text-muted-most">·</span>
-            <span className="font-mono">{exerciseCount} תרגילים</span>
+            <span className="font-mono">{exerciseCount} תר׳</span>
             {!planning && (
               <>
                 <span className="text-muted-most">·</span>
-                <span className="font-mono">{realSetCount} סטים</span>
+                <span className="font-mono">{realSetCount} סט׳</span>
               </>
             )}
           </span>
         }
         actions={
           <>
-            {planning && (
+            {/* Primary "התחל" ONLY when the plan is for today — no point starting
+                a Friday session on a Wednesday. Non-today planned sessions just
+                show the edit surface with move/delete. */}
+            {planning && plannedForIsToday && (
               <button
                 onClick={handleStartPlanned}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold
+                className="inline-flex items-center gap-1 text-xs font-bold
                            px-3 py-1.5 rounded-full
                            bg-blue-600 hover:bg-blue-500 text-white
-                           transition-colors"
+                           shadow-[0_3px_10px_-2px_rgba(59,130,246,0.5)] transition-colors"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
                 <span>התחל</span>
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 6l-6 6 6 6" />
+                </svg>
+              </button>
+            )}
+            {planning && (
+              <button
+                onClick={() => setMovePlanOpen(true)}
+                aria-label="העבר תאריך"
+                title="העבר תאריך"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-full text-blue-600 dark:text-blue-300 hover:bg-blue-500/15 -me-2"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
               </button>
             )}
             {!historical && !planning && (
@@ -895,47 +939,8 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
         />
       )}
 
-      {/* Planned-mode strip — subtle blue tint. The "התחל" CTA lives in the TopBar itself,
-          so this is just a quiet contextual label matching the historical strip pattern. */}
-      {planning && (
-        <div
-          className="w-full -mx-4 mb-0 px-4 py-1.5 text-right
-                     bg-blue-500/8 dark:bg-blue-500/12
-                     border-b dark:border-blue-500/20 border-blue-500/20"
-          style={{ width: 'calc(100% + 2rem)' }}
-          dir="rtl"
-        >
-          <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-700 dark:text-blue-300">
-              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              <span>תוכנית ל{plannedForLabel}</span>
-            </div>
-            {/* Compact icon-only move-plan button — the date is already shown in
-                the same strip ("תוכנית ל{X}"), so a full "העבר לתאריך" label would
-                repeat information. Calendar-with-arrow glyph + a11y label suffices. */}
-            <button
-              onClick={() => setMovePlanOpen(true)}
-              aria-label="העבר את התוכנית לתאריך אחר"
-              title="העבר את התוכנית לתאריך אחר"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full dark:bg-blue-950/40 bg-blue-100 text-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/60 hover:bg-blue-200 transition-colors"
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="14" height="16" rx="2" />
-                <line x1="14" y1="2" x2="14" y2="6" />
-                <line x1="7" y1="2" x2="7" y2="6" />
-                <line x1="3" y1="10" x2="17" y2="10" />
-                <path d="M15 15l6-3-6-3" />
-                <line x1="21" y1="12" x2="10" y2="12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Planned-mode strip was removed — its date duplicated the TopBar subtitle,
+          and its move-plan button now lives in the TopBar actions instead. */}
 
       {historical && (
         <div
@@ -1694,6 +1699,15 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
         onAdd={() => setAerobicModal({})}
         onEdit={(e) => setAerobicModal({ editing: e })}
         onDelete={(id) => setConfirmDeleteAerobicId(id)}
+        // Manual replace = open the same aerobic modal on this entry (user picks
+        // a different type/values). Editing is effectively "replace" for aerobic.
+        onReplace={(e) => setAerobicModal({ editing: e })}
+        // AI = open the coach chat with a passive replace hint for this aerobic entry.
+        onAi={(e) => openChatWith(
+          undefined,
+          { name: e.type, muscle: 'aerobic' as MuscleGroup },
+          true,
+        )}
       />
 
       {/* Floating link-mode banner — hovers ABOVE the bottom action bar so activating link mode
@@ -2079,13 +2093,16 @@ const AEROBIC_ICON_BY_HE: Record<string, string> = {
 function aerobicIcon(t: string): string { return AEROBIC_ICON_BY_HE[t] || '·'; }
 function aerobicLabel(t: string): string { return t; }
 
-function AerobicSection({ entries, planning, readOnly, onAdd, onEdit, onDelete }: {
+function AerobicSection({ entries, planning, readOnly, onAdd, onEdit, onDelete, onReplace, onAi }: {
   entries: AerobicEntry[];
   planning?: boolean;
   readOnly?: boolean;
   onAdd: () => void;
   onEdit: (e: AerobicEntry) => void;
   onDelete: (id: string) => void;
+  // Optional to keep backward-compat — when omitted the buttons don't render.
+  onReplace?: (e: AerobicEntry) => void;
+  onAi?: (e: AerobicEntry) => void;
 }) {
   const totalMin = entries.reduce((s, e) => s + (e.minutes || 0), 0);
   const label = planning ? 'אירובי מתוכנן' : 'אירובי';
@@ -2152,16 +2169,38 @@ function AerobicSection({ entries, planning, readOnly, onAdd, onEdit, onDelete }
                 </div>
               </button>
               {!readOnly && (
-                <div className="flex justify-end mt-3 pt-3 border-t border-subtle/60">
+                /* Actions row mirrors the exercise-panel layout:
+                   [+ עוד סט / החלף / AI / הסר]  — same order, same visual weight. */
+                <div className="flex gap-2 mt-3 pt-3 border-t border-subtle/60" dir="rtl">
+                  <button
+                    onClick={(ev) => { ev.stopPropagation(); onEdit(e); }}
+                    className="flex-1 py-2 text-sm font-semibold rounded-xl border-2 dark:border-cyan-500/60 border-cyan-500 text-cyan-600 dark:text-cyan-300 dark:hover:bg-cyan-500/10 hover:bg-cyan-500/5"
+                  >ערוך</button>
+                  {onReplace && (
+                    <button
+                      onClick={(ev) => { ev.stopPropagation(); onReplace(e); }}
+                      className="py-2 px-3 rounded-xl dark:bg-slate-800 bg-slate-100 dark:hover:bg-slate-700 hover:bg-slate-200 font-semibold text-xs text-main"
+                      title="החלף לסוג אירובי אחר"
+                    >החלף</button>
+                  )}
+                  {onAi && (
+                    <button
+                      onClick={(ev) => { ev.stopPropagation(); onAi(e); }}
+                      className="inline-flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
+                      aria-label="הצע חלופה עם AI"
+                      title="הצע חלופה עם AI"
+                    >
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                      </svg>
+                      <span>AI</span>
+                    </button>
+                  )}
                   <button
                     onClick={(ev) => { ev.stopPropagation(); onDelete(e.id); }}
+                    className="py-2 px-3 rounded-xl dark:bg-slate-800 bg-slate-100 dark:hover:bg-slate-700 hover:bg-slate-200 font-semibold text-xs text-red-500"
                     aria-label="מחק"
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-red-500 hover:bg-red-500/10"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                    </svg>
-                  </button>
+                  >הסר</button>
                 </div>
               )}
             </div>

@@ -17,6 +17,7 @@
 | **Stack** | React 18 + TypeScript + Vite + Tailwind, Firebase (Auth + Firestore), Express backend for the AI endpoints. |
 | **Entry** | [src/App.tsx](src/App.tsx) — hash routing, `AuthedShell` gates onboarding, `AppShell` renders tabs. |
 | **Shared UI** | [src/components/TopBar.tsx](src/components/TopBar.tsx), [TabBar.tsx](src/components/TabBar.tsx), [TopBarActions.tsx](src/components/TopBarActions.tsx). Design tokens in [src/index.css](src/index.css) (`.card`, `.btn-primary`, `.input-field`, `.text-muted`, …). |
+| **Delivery target** | **A web app, served from Firebase Hosting.** Installable to the home screen as a PWA ([Install.tsx](src/components/Install.tsx) walks users through it), but **not distributed through any app store.** Nothing in this document is store-compliance work — every recommendation here exists to make the product clearer, not to satisfy a review process. |
 | **Do not break** | See §8. The app is in daily production use by the owner (a professional trainer). Behaviour changes must be conservative; this is a clarity pass, not a rewrite. |
 
 **Working style for this brief:** prefer extracting shared components over editing 6 copies. Several findings below are the *same* problem duplicated across files — fix the root, not the instances.
@@ -27,15 +28,16 @@
 
 The functionality is deep and the engineering is solid. The problem is not missing capability — it is **unexplained abundance**. A first-time user is shown every feature at once, with no hierarchy signalling what matters now and what can be discovered later.
 
-**Five blockers for selling this:**
+**Six blockers for selling this:**
 
 | # | Blocker | Why it kills the sale |
 |---|---|---|
 | **1** | **The "exercise vs. set" model is never explained** | It is the app's core concept. The bottom bar offers `+ אירובי` · `+ תרגיל` · `+ סט` — all three open the *same* modal in different `saveMode`s. Six differently-worded add buttons exist across the session screen. A newcomer cannot guess the model. |
-| **2** | **Colour carries no consistent meaning** | 13 accent colours in use. Blue = planned *and* history *and* the "workouts this week" section *and* the primary "log set" button. Green = live *and* completed *and* brand *and* AI. There is no language to learn. |
-| **3** | **The session screen is overloaded** | ~14 interactive targets in a *single* exercise card. Supersets — a pro-level feature — sit at the same visual weight as logging a set. |
-| **4** | **Panels don't separate from each other** | `TopBar` and sticky section headers use near-identical treatment (gradient + accent bar + bold title). While scrolling it reads as if the header swapped. This is the root of the "can't tell the areas apart" feeling. |
-| **5** | **No moment of orientation** | No visual onboarding, no coach marks, no guiding empty states. Skip the AI chat and you land on a Home screen full of zeros and dashes that looks broken. |
+| **2** | **The same action looks different everywhere** | "Start a workout" is drawn **six ways** — two icons, two colours, three shapes, two of them with no icon at all. "Add" has **nine** treatments; delete has seven; close has two. The user never gets to learn what any action looks like, because it never looks the same twice. See §3.1. |
+| **3** | **Colour carries no consistent meaning** | 13 accent colours in use. Blue = planned *and* history *and* the "workouts this week" section *and* the primary "log set" button. Green = live *and* completed *and* brand *and* AI. There is no language to learn. |
+| **4** | **The session screen is overloaded** | ~14 interactive targets in a *single* exercise card. Supersets — a pro-level feature — sit at the same visual weight as logging a set. |
+| **5** | **Panels don't separate from each other** | `TopBar` and sticky section headers use near-identical treatment (gradient + accent bar + bold title). While scrolling it reads as if the header swapped. This is the root of the "can't tell the areas apart" feeling. |
+| **6** | **No moment of orientation** | No visual onboarding, no coach marks, no guiding empty states. Skip the AI chat and you land on a Home screen full of zeros and dashes that looks broken. |
 
 **Plus one product-level miss:** the PWA manifest is entirely English, so a Hebrew-only app installs to the home screen labelled **"Workout"**. See §4.1.
 
@@ -49,7 +51,7 @@ The functionality is deep and the engineering is solid. The problem is not missi
 
 - **No product name, no value proposition.** "מאמן אישי" is a category label, not a brand. A user arriving from a link has no idea what they are about to get.
 - **No screenshots, no benefit bullets, no social proof.** Mandatory for a paid product.
-- **Google only.** No Apple Sign-In (a hard blocker for iOS App Store distribution), no email, no "try without an account" demo path.
+- **Google only, with no way to look before signing in.** The bigger problem is not the missing providers — it is that a prospective user must hand over an account before seeing anything at all. For a product you are selling, add a **"הצץ בלי חשבון" demo mode** with sample data, or at minimum show what's inside on this screen.
 - The white Google button on a white light-mode background has weak contrast ([L40](src/components/LoginScreen.tsx#L40)).
 
 **Fix:** turn it into a short landing screen — product name + tagline + three benefit bullets (track sets in seconds · personal AI coach · a plan built for you) + auth buttons. One screen height, no scroll.
@@ -195,7 +197,7 @@ The strongest selling feature, and the least framed.
 - **Percent-goal mode ships ~26 sliders and a "bank" concept** ([L352–L419](src/components/Settings.tsx#L352)) at the same hierarchy level as "מצב תצוגה". This is a professional-trainer feature. **Collapse it behind "הגדרות מתקדמות".**
 - **Missing settings users will look for:** default weight unit (kg/lb), default rest time (currently only in `localStorage` as `scoreboard:defaultRestSec`, reachable *only* from inside the chronograph — effectively undiscoverable), and 🔴 **sound/vibration on rest-timer completion** (entirely absent — a silent rest timer is a functional gap in a gym app).
 - **"שכח אותי" sits above "החלף משתמש"** — irreversible above routine. Move it to the bottom under a "אזור מסוכן" heading. (The red border and type-your-email confirmation are excellent — keep them.)
-- No about/version screen, no support link, no privacy policy — all required for app store distribution.
+- No about/version line and no support contact. Minor, but on a paid product a user who hits a bug has nowhere to go, and you have no way to tell which build they are on when they report it.
 
 ---
 
@@ -221,7 +223,112 @@ Excellent engineering — a floating disc, draggable, snapping to 8 anchors, thr
 
 ## 3. Design system
 
-### 3.1 Colour — the root cause of "panels look the same"
+### 3.1 One language per action — the same thing must look the same everywhere
+
+**This is the highest-priority consistency requirement.** Right now, a single conceptual action is drawn differently in every place it appears: different icon, different colour, different shape, different size — sometimes no icon at all. A user cannot learn "this is what starting a workout looks like", because it never looks the same twice.
+
+**Rule to enforce:** one action = one icon + one colour + one shape. Size and prominence may vary (a compact variant is fine); **identity may not.** A minimised button is the *same* button, smaller — not a different button.
+
+#### Evidence — "start a workout", six ways
+
+| # | Where | Icon | Colour | Shape | Label |
+|---|---|---|---|---|---|
+| 1 | TabBar FAB — [TabBar.tsx L106](src/components/TabBar.tsx#L106) | ⚡ bolt, 30px | emerald | 64px circle | *none* |
+| 2 | TodayTile, empty — [FreeHome.tsx L1151](src/components/FreeHome.tsx#L1151) | ⚡ bolt, 11px | emerald | `rounded-full`, `text-xs` | התחל אימון |
+| 3 | TodayTile, planned — [FreeHome.tsx L1068](src/components/FreeHome.tsx#L1068) | ▶ play, 11px | **blue** | `rounded-full`, `text-xs` | התחל תוכנית |
+| 4 | Weekly card — [FreeHome.tsx L808](src/components/FreeHome.tsx#L808) | **none** | blue | **`rounded-lg`**, `text-sm` | התחל תוכנית |
+| 5 | Session TopBar — [FreeSession.tsx L828](src/components/FreeSession.tsx#L828) | ▶ play, 12px | blue | `rounded-full`, `text-xs` | התחל |
+| 6 | Start modal footer — [StartSessionModal.tsx L255](src/components/StartSessionModal.tsx#L255) | **none** | emerald | **`rounded-xl`**, `text-lg` | התחל אימון (n) |
+
+**Two different icons, two colours, three radii, three labels, and two variants with no icon at all — for one action.**
+
+#### Evidence — "add something", nine ways
+
+| Label | Treatment | Colour | Padding |
+|---|---|---|---|
+| `+ סט` | solid | emerald | `py-5 text-xl` |
+| `+ תרגיל` | solid | slate | `py-4 text-sm` |
+| `+ אירובי` | 1px outline | cyan | `py-4 text-sm` |
+| `+ הוסף תרגיל` | **dashed** outline | violet | `py-3 text-sm` |
+| `+ הוסף אימון אירובי` | **dashed** outline | cyan | `py-3 text-sm` |
+| `+ סט נוסף` | **2px** outline | emerald | `py-2.5 text-sm` |
+| `+ רשום סט` | solid | **blue** | `py-2.5 text-sm` |
+| `+ הוסף אימון` | solid | slate | `py-2 text-sm`, `rounded-lg` |
+| `הוסף תרגיל` (Exercises) | 1px outline | violet | `py-3 text-sm` |
+
+Four fill styles (solid / 1px / 2px / dashed), five colours, five padding scales, two radii.
+
+#### Evidence — everything else that repeats
+
+- **Delete** — seven treatments. Icon sizes 12 / 14 / 16 / 18px; containers 0 / 28 / 32 / 36px; `rounded-lg` and `rounded-full`; **and one that is plain red text** ("מחק" in [Exercises.tsx L341](src/components/Exercises.tsx#L341)).
+- **Close** — pages use an SVG `×` inside a 36–40px circle ([TopBarActions.tsx L98](src/components/TopBarActions.tsx#L98), [AiChatPanel.tsx L725](src/components/AiChatPanel.tsx#L725)); modals use a bare `×` **text character** with no button chrome ([LogSetModal.tsx L341](src/components/LogSetModal.tsx#L341), [StartSessionModal.tsx L73](src/components/StartSessionModal.tsx#L73), [AerobicModal.tsx L66](src/components/AerobicModal.tsx#L66), [Exercises.tsx L608](src/components/Exercises.tsx#L608)). Two entirely different close affordances split along page/modal lines for no reason the user can perceive.
+- **Muscle chips** — the same tag rendered at three font sizes (`9px` / `10px`), two radii (`rounded` / `rounded-full`) and four padding combos across FreeHome, FreeHistory, FreeSession, AiChatPanel and LogSetModal.
+- **Progress bars** — two different RTL fill techniques and three heights (see §4.3).
+- **Section headers** — the sticky header block is copy-pasted inline in five screens (Home ×2, Session ×2, History, Body, Exercises) with only the gradient colour changed. It is not a component.
+- **Confirm dialogs** — six separately hand-written modals (delete set / session / aerobic / plan / exercise, finish session), each with slightly different wording and button order.
+- **Numerals** — three treatments: `font-mono` (63 uses), `font-scoreboard` (9 uses), and unstyled default. The same number can render in a different face on two adjacent screens.
+- **Border radius** — `rounded-full` ×135, `rounded-lg` ×45, `rounded-xl` ×42, `rounded-2xl` ×12, plus `sm`/`md`. Six radii with no rule about which applies where.
+
+#### Fix
+
+Extract a small shared component layer and route **every** call site through it. Nothing else in this document will hold together without it — the colour system (§3.3) and panel hierarchy (§3.4) cannot be enforced across dozens of hand-rolled variants.
+
+| Component | Replaces |
+|---|---|
+| `<ActionButton variant="primary\|secondary\|ghost" size="sm\|md\|lg" icon>` | all 9 add buttons, all 6 start buttons |
+| `<IconButton icon size tone="neutral\|danger">` | all 7 delete affordances, all close buttons |
+| `<MuscleChip muscle count?>` | all 5 chip renderings |
+| `<ProgressBar value target tone>` | both bar techniques |
+| `<SectionHeader title tone>` | the 5 copy-pasted sticky headers |
+| `<ConfirmDialog>` | the 6 hand-written confirm modals |
+
+**Decide once and apply everywhere:**
+- **Start = ▶ play, always.** (Drop the lightning bolt — see §2.3. Play is the universally understood symbol and it already appears in 3 of the 6 variants.)
+- **Add = `+`, always.**
+- **Delete = one trash icon at one size**, in a `danger`-toned `IconButton`. Never plain text.
+- **Close = one `×` IconButton**, identical on pages and modals.
+- **Radius: two values only** — `rounded-full` for pills and icon buttons, `rounded-xl` for everything else.
+- **All numerals in `font-mono`**, except the chronograph, which owns `font-scoreboard` exclusively.
+
+### 3.2 One layout grammar — does the whole thing hang together?
+
+§3.1 makes each *component* consistent. This section is the level above it: **do the screens assemble those components the same way?** Judge the app as one system, not as a set of individually-reasonable screens. Most of what follows is invisible when you look at one screen at a time and obvious the moment you look at two side by side.
+
+**Define these six grammars once, then hold every screen to them.**
+
+#### 1. Screen skeleton
+Every tab page must be built from the same skeleton, in the same order:
+`TopBar → [context strip] → section → section → …`
+Today Home injects an edge-to-edge `TodayTile` between the TopBar and the first section; Exercises injects a violet summary strip; History and Body go straight into a section. Three different answers to "what comes first". **Pick one and make the optional strip a defined slot, not an ad-hoc div.**
+
+#### 2. Section grammar
+A section = header + body. Today the header is copy-pasted inline in five screens with only the gradient colour swapped, and the body is sometimes a `.card`, sometimes a bare `div`, sometimes a `space-y-2` list. **One `<Section title tone>` wrapper; the body is always a card or always a list — decide which.**
+
+#### 3. Card anatomy
+Every card that represents a *thing* (a workout, an exercise, a plan) should have the same three-row anatomy: **title row → content → action row**. Today the session-exercise card, the planned card, the history card and the Home weekly card each invent their own arrangement, and the action row sits in a different place in each.
+
+#### 4. Overlay grammar
+There are two overlay styles in use, with **no rule about which applies when**:
+- **Full-screen** (7 files): StartSessionModal, LogSetModal, AiChatPanel, AerobicModal, OnboardingScreen, MigrateNames, EditExerciseModal
+- **Centered dialog** (7 files): every confirm, MovePlanModal, CopyWeekModal, ConvertToPlannedModal, DuplicateModal
+
+AerobicModal is full-screen for four fields, while MovePlanModal is a centered card for a similar-sized job. **Define three kinds and when each applies:** full-screen = multi-step or long content · bottom sheet = a short choice during a flow (this is what task 1's `+ הוסף` sheet should be — the app currently has none) · centered dialog = confirm/destructive only.
+
+#### 5. Same data, same format — everywhere
+The same metric is currently written several ways. "X exercises · Y sets" renders as:
+- `{n} תרגילים · {n} סטים` — full words, [FreeHistory L239](src/components/FreeHistory.tsx#L239), [FreeHome L747](src/components/FreeHome.tsx#L747)
+- `{n} תר׳ · {n} סט׳` — abbreviated, different size and colour, [FreeHome L1102](src/components/FreeHome.tsx#L1102), [L1247](src/components/FreeHome.tsx#L1247)
+- `{n} תרגילים · {n} סטים` again in the Session TopBar subtitle *and* in its section header — two different sizes on one screen
+
+**Rule: one metric = one format = one component.** Build `<SessionStats exercises sets />` and use it everywhere. Same for dates, durations, muscle counts and "time ago" labels — each currently has 2–3 formats.
+
+#### 6. State grammar
+Empty, loading and error must look the same on every screen. Today: loading is `Loading...` centred, or in a card, or a blank `page-bg`; empty is a bare sentence on History, a dotted moon tile on Home, a card on Exercises; error mostly doesn't exist. **One `<EmptyState>`, one `<LoadingState>`, one `<ErrorState>`.**
+
+#### How to work this
+Do not review screen by screen. For each grammar above, **open every screen that uses it and make them agree** — then move to the next grammar. A change is only done when the same thing looks the same in all of its locations, not when one screen looks good.
+
+### 3.3 Colour — the root cause of "panels look the same"
 
 Measured in code (`*-500` utilities): `emerald ×120`, `blue ×86`, `red ×61`, `amber ×30`, `cyan ×22`, `indigo ×17`, `violet ×15`, plus teal / purple / pink / orange / sky / rose.
 
@@ -248,7 +355,7 @@ Measured in code (`*-500` utilities): `emerald ×120`, `blue ×86`, `red ×61`, 
 
 Aerobic keeps cyan (a genuine category). Delete keeps red. Warning keeps amber. **Supersets: drop the 5-colour palette for a single treatment — one border plus a "סופרסט A" label.**
 
-### 3.2 Panel hierarchy — why everything blends
+### 3.4 Panel hierarchy — why everything blends
 
 Three hierarchy levels currently look nearly identical:
 
@@ -264,24 +371,24 @@ Levels 1 and 2 are visually interchangeable, so scrolling makes it look like the
 - **Card/panel** — this is where surface and border belong. It carries the content.
 - **Remove every `bg-gradient-to-b` from section headers.** Gradients blur boundaries; panel separation needs the opposite.
 
-### 3.3 Typography
+### 3.5 Typography
 
 - **151 occurrences of `text-[9px]` / `text-[10px]`.** Too small — especially for Hebrew, especially in a gym, especially for the 40+ audience. **Minimum 12px for anything meant to be read.**
 - **No type scale.** In use: `text-[9px]`, `[10px]`, `[11px]`, `[12px]`, `[13px]`, `xs`, `sm`, `base`, `lg`, `xl` — ten levels. **Reduce to five:** 12 / 14 / 16 / 20 / 28.
 - 🟠 **No Hebrew webfont is loaded.** [src/index.css](src/index.css) imports only `VT323` (the scoreboard face, Latin-only), and the body stack is `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif` — **no Hebrew family at all**. Hebrew falls back to whatever the OS picks, so the app looks materially different across iOS / Android / Windows. Load **Heebo** or **Assistant** and put it first in the stack.
 
-### 3.4 Touch targets
+### 3.6 Touch targets
 
 Below 44×44px: `IconBtn` (`w-7 h-7` = 28px), superset arrows (`w-5 h-5` = 20px), plan delete (`p-0.5`), aerobic delete (`w-8 h-8`), all text actions in Exercises. **Critical in a gym app.**
 
-### 3.5 Loading and error states
+### 3.7 Loading and error states
 
 - 🟠 **"Loading..." in English on 5 live screens** (see §4.2).
 - No skeleton loaders — blank surfaces during fetch.
 - **Two consecutive blank screens on cold start:** `<div className="page-bg" />` once while `useAuth` hydrates ([App.tsx L312](src/App.tsx#L312)) and again while `shouldShowOnboarding` resolves ([App.tsx L366](src/App.tsx#L366)). On a slow connection this reads as a crash.
 - 🔴 **No global error state.** If Firestore fails, `loading` stays `true` forever and the user sits on "Loading..." indefinitely.
 
-### 3.6 Dialog consistency
+### 3.8 Dialog consistency
 
 **Six separately hand-written confirm modals** (delete set, delete session, delete aerobic, delete plan, delete exercise, finish session), each with slightly different wording and button order. **Extract a single `<ConfirmDialog>`.**
 
@@ -295,8 +402,8 @@ The app is Hebrew-only, so this section is a correctness audit, not a translatio
 
 | Severity | String | Location | Action |
 |---|---|---|---|
-| 🔴 | `"name": "Workout Logger"`, `"short_name": "Workout"`, `"description": "Track your gym workouts"` | [public/manifest.json](public/manifest.json) | **The home-screen icon label on a Hebrew-only app reads "Workout".** Translate all three. Also add `"lang": "he"` and `"dir": "rtl"`. |
-| 🟠 | `Loading...` ×5 | Body [L132](src/components/Body.tsx#L132), Exercises [L185](src/components/Exercises.tsx#L185), FreeHistory [L163](src/components/FreeHistory.tsx#L163), FreeHome [L333](src/components/FreeHome.tsx#L333), FreeSession [L737](src/components/FreeSession.tsx#L737) | Replace with "טוען…" — or better, skeletons (§3.5). |
+| 🔴 | `"name": "Workout Logger"`, `"short_name": "Workout"`, `"description": "Track your gym workouts"` | [public/manifest.json](public/manifest.json) | The app actively teaches users to install to the home screen ([Install.tsx](src/components/Install.tsx)) — and **the icon then reads "Workout" in English on a Hebrew-only app.** This is the last step of your own onboarding flow and it lands in the wrong language. Translate all three; add `"lang": "he"` and `"dir": "rtl"`. |
+| 🟠 | `Loading...` ×5 | Body [L132](src/components/Body.tsx#L132), Exercises [L185](src/components/Exercises.tsx#L185), FreeHistory [L163](src/components/FreeHistory.tsx#L163), FreeHome [L333](src/components/FreeHome.tsx#L333), FreeSession [L737](src/components/FreeSession.tsx#L737) | Replace with "טוען…" — or better, skeletons (§3.7). |
 | 🟠 | `GO!` | Chronograph [L283](src/components/Chronograph.tsx#L283), [L337](src/components/Chronograph.tsx#L337) | Inconsistent with the app's own caption "קדימה!" at [L386](src/components/Chronograph.tsx#L386). Unify on "קדימה!". |
 | 🟠 | `English name` (field label) | Exercises [L647](src/components/Exercises.tsx#L647) | → "שם באנגלית". *(The placeholder `Barbell Bench Press — Medium Grip` is correct as-is — it demonstrates the English field.)* |
 | 🟡 | `default` (button label) ×2 | Exercises [L336](src/components/Exercises.tsx#L336), LogSetModal [L535](src/components/LogSetModal.tsx#L535) | Admin-only, but still English. → "ברירת מחדל". |
@@ -333,7 +440,7 @@ Four components are **imported by nothing** — ~1,000 lines of dead code, and e
 
 ### 4.4 🔴 Zoom is disabled
 
-[index.html](index.html) sets `maximum-scale=1.0, user-scalable=no`. This **blocks pinch-zoom**, which is a WCAG 1.4.4 failure and a common App Store review rejection. It is especially damaging here given §3.3 (151 instances of 9–10px text) — users who cannot read the small Hebrew text have no recourse. **Remove `maximum-scale` and `user-scalable`.**
+[index.html](index.html) sets `maximum-scale=1.0, user-scalable=no`. This **blocks pinch-zoom in mobile browsers**. Combined with §3.5 (151 instances of 9–10px Hebrew text), a user who cannot read the small text has no recourse at all — they cannot zoom in. Given the 40+ audience this app targets, that is a real usability failure, not a theoretical one. **Remove `maximum-scale` and `user-scalable`.**
 
 ---
 
@@ -375,7 +482,7 @@ Do these first regardless of the phased plan. Each is small and independently sh
 2. **Example prompts → tappable chips** ([AiChatPanel L800](src/components/AiChatPanel.tsx#L800)). Cheapest possible lift in AI engagement.
 3. **History default → `30d`** ([FreeHistory L74](src/components/FreeHistory.tsx#L74)). One line; removes a "my data is gone" moment.
 4. **Translate the manifest.** Three strings; fixes the home-screen icon label.
-5. **Remove `user-scalable=no`.** One line; unblocks accessibility and store review.
+5. **Remove `user-scalable=no`.** One line; lets users pinch-zoom the small Hebrew text.
 6. **Delete the 4 dead components.** ~1,000 lines gone, audit noise eliminated.
 
 ---
@@ -394,17 +501,19 @@ Do these first regardless of the phased plan. Each is small and independently sh
 | 6 | **Onboarding: non-chat path** + progress indicator + summary screen. | A user who never types can complete onboarding. |
 | 7 | **One-time coach marks** on Home and Session (3 bubbles, skippable, persisted). | Shown once per user; dismissible. |
 | 8 | **Sound + vibration on rest-timer completion.** | Audible and haptic on iOS and Android. |
+| 9 | **Unify the repeated affordances** (§3.1) — extract `<ActionButton>` and `<IconButton>`, then route every *start*, *add*, *delete* and *close* through them. | Start is always ▶ in one colour; add is always `+`; delete is one icon at one size, never plain text; close is identical on pages and modals. |
 
 ### P1 — clarity and consistency
 
 | # | Task | Acceptance criterion |
 |---|---|---|
-| 9 | **Four-colour semantic system** (§3.1) — refactor all usages. | Each colour has exactly one meaning; documented in a comment block in `index.css`. |
-| 10 | **Panel hierarchy** (§3.2) — remove gradients from section headers, make them non-sticky and quiet; opaque TopBar. | Three visually distinct levels: nav / section / panel. |
+| 9 | **Four-colour semantic system** (§3.3) — refactor all usages. | Each colour has exactly one meaning; documented in a comment block in `index.css`. |
+| 10 | **One layout grammar** (§3.2) — screen skeleton, section wrapper, card anatomy, overlay rules, `<SessionStats>`, `<EmptyState>`/`<LoadingState>`/`<ErrorState>`. | The same thing looks the same on every screen that shows it. |
+| 11 | **Panel hierarchy** (§3.4) — remove gradients from section headers, make them non-sticky and quiet; opaque TopBar. | Three visually distinct levels: nav / section / panel. |
 | 11 | **Collapse the exercise card** to 3 visible actions + `⋯` menu. | ≤5 tap targets per collapsed card. |
 | 12 | **Supersets behind advanced** + one-time explainer on first 🔗. | A user who never opens `⋯` never sees superset UI. |
 | 13 | **Type + touch minimums** — 12px text, 44px targets. | Zero `text-[9px]`/`[10px]`; zero sub-44px interactive elements. |
-| 14 | **Single `<ConfirmDialog>`** replacing all 6 hand-rolled modals. | One component, six call sites. |
+| 14 | **Finish the component layer** (§3.1) — `<MuscleChip>`, `<ProgressBar>`, `<SectionHeader>`, `<ConfirmDialog>`; two border radii only; all numerals in `font-mono`. | Zero inline copies of these six patterns remain. |
 | 15 | **Separate delete from "סיים"** in the session TopBar. | Delete lives in a `⋯` menu. |
 | 16 | **Home day order** — today first + legend row. | Today is the first tile. |
 | 17 | **RTL cleanup** (§4.3) — strip redundant `dir="rtl"`, migrate to logical properties, unify the progress-bar technique into a shared `<ProgressBar>`, fix the Hebrew-in-LTR span. | Zero `text-right`; one progress-bar implementation. |
@@ -419,7 +528,7 @@ Do these first regardless of the phased plan. Each is small and independently sh
 | 21 | **Skeleton loaders** + global error state + offline state. |
 | 22 | **Collapse advanced Settings** (percent goals); add global unit + default rest time. |
 | 23 | **Chat context chip** under the panel title + response streaming. |
-| 24 | **Apple Sign-In**, privacy policy, about/version screen. |
+| 24 | **Demo/preview mode** on the login screen (see §2.1) + an about/version line with a support contact. |
 | 25 | **Delete all dead code** (~1,140 lines — §4.2). |
 | 26 | Fix the Settings tab-bar active state; unify `sess.completed` → `status`. |
 

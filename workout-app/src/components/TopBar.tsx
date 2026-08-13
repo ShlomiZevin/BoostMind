@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 type TintColor = 'emerald' | 'blue' | 'violet' | 'amber';
 
 type Props = {
-  title: string;
+  title: ReactNode;
   subtitle?: ReactNode;
   /** Rendered on the LEFT (RTL end) — usually action buttons. */
   actions?: ReactNode;

@@ -74,5 +74,8 @@ ehthumbs.db
 # Scraper state (runtime data, not code)
 sent-projects.json
 
+# Fleet session pointers (runtime state + auth token, regenerated on register)
+.fleet-session.*.json
+
 # dataconnect generated files
 .dataconnect
