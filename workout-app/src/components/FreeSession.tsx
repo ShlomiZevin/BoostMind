@@ -7,6 +7,7 @@ import { useTimer } from '../hooks/useTimer';
 import { LogSetModal } from './LogSetModal';
 import { AiChatPanel } from './AiChatPanel';
 import { AerobicModal } from './AerobicModal';
+import { MovePlanModal } from './MovePlanModal';
 import { findPersonalByName, exerciseIdOf, type PersonalExercise } from '../data/exercisesDB';
 import { TopBar } from './TopBar';
 import { Chronograph } from './Chronograph';
@@ -31,7 +32,8 @@ function getUserDefaultRest(): number {
 type ModalMode = { kind: 'add'; muscle?: MuscleGroup; exerciseName?: string }
               | { kind: 'edit'; set: FreeSet }
               | { kind: 'dup'; set: FreeSet }
-              | { kind: 'pick' };
+              | { kind: 'pick' }
+              | { kind: 'replace'; oldName: string; muscle: MuscleGroup };
 
 // Superset color palette — one color per unique ss id in a session, chosen from this rotating set.
 type SsColor = { border: string; badgeBg: string; badgeText: string; stripe: string; label: string };
@@ -77,6 +79,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   }
   // Aerobic state
   const [aerobicModal, setAerobicModal] = useState<{ editing?: AerobicEntry } | null>(null);
+  const [movePlanOpen, setMovePlanOpen] = useState(false);
   const [confirmDeleteAerobicId, setConfirmDeleteAerobicId] = useState<string | null>(null);
   // Set to true when the finish-session prompt is asking about aerobic — if user hits "add" we
   // reopen the aerobic modal and re-open the finish prompt afterward.
@@ -912,6 +915,24 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
               </svg>
               <span>תוכנית ל{plannedForLabel}</span>
             </div>
+            {/* Compact icon-only move-plan button — the date is already shown in
+                the same strip ("תוכנית ל{X}"), so a full "העבר לתאריך" label would
+                repeat information. Calendar-with-arrow glyph + a11y label suffices. */}
+            <button
+              onClick={() => setMovePlanOpen(true)}
+              aria-label="העבר את התוכנית לתאריך אחר"
+              title="העבר את התוכנית לתאריך אחר"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full dark:bg-blue-950/40 bg-blue-100 text-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/60 hover:bg-blue-200 transition-colors"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="14" height="16" rx="2" />
+                <line x1="14" y1="2" x2="14" y2="6" />
+                <line x1="7" y1="2" x2="7" y2="6" />
+                <line x1="3" y1="10" x2="17" y2="10" />
+                <path d="M15 15l6-3-6-3" />
+                <line x1="21" y1="12" x2="10" y2="12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
@@ -978,7 +999,16 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           uid={uid}
           sessionMuscles={session.muscleGroups}
           recentSets={[...allPastSets, ...session.sets]}
+          // Only auto-send a prompt when the caller explicitly provided one.
+          // Replace flow no longer auto-sends — user opens the chat, sees the
+          // context banner at the top (via replaceContext) + a passive greeting,
+          // then asks for what they want. Feels less pushy.
           initialPrompt={chatInitialPrompt}
+          initialAssistantMessage={
+            !chatInitialPrompt && chatReplaceCtx
+              ? `אני יכול להציע לך חלופה ל־"${chatReplaceCtx.name}". תכתוב לי מה בא לך — למשל "משהו יותר קל", "עם מכונה", "בלי משקולות" — ואני אציע.`
+              : undefined
+          }
           replaceContext={chatReplaceCtx}
           newThreadOnMount={chatNewThread}
           currentSessionExercises={currentSessionExercises}
@@ -1010,6 +1040,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           defaultMuscle={modal.kind === 'add' ? modal.muscle : undefined}
           allPastSets={allPastSets}
           editingSet={modal.kind === 'edit' ? modal.set : undefined}
+          sessionId={session.id}
           duplicateFrom={
             modal.kind === 'dup' ? modal.set :
             modal.kind === 'add' && modal.exerciseName
@@ -1019,34 +1050,40 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           saveMode={
             planning ? 'exercise' :                                         // planning: no sets exist, always exercise-only
             modal.kind === 'pick' ? 'exercise' :                           // "+ תרגיל" button → save-exercise only
+            modal.kind === 'replace' ? 'exercise' :                        // manual replace → pick new exercise, no set fields
             modal.kind === 'add' && modal.muscle && !modal.exerciseName ? 'dual' :  // muscle-tile click → both
             'set'                                                           // "+ סט" and normal set flows → save-set only
           }
+          replacingName={modal.kind === 'replace' ? modal.oldName : undefined}
           onClose={() => setModal(null)}
           onSave={handleSaveSet}
-          onPickOnly={(name, muscle) => handleAddPlannedExercise(name, muscle)}
+          onPickOnly={async (name, muscle, en, isHoldTime) => {
+            if (modal.kind === 'replace') {
+              await handleReplacePlanned(modal.oldName, name, muscle, en, isHoldTime);
+              setModal(null);
+            } else {
+              await handleAddPlannedExercise(name, muscle, en, isHoldTime);
+            }
+          }}
         />
       )}
 
 
-      {/* Floating AI coach — minimal glass orb with subtle heartbeat (live sessions only) */}
+      {/* Floating AI coach — clearly labelled "AI" pill so it never reads as a
+          generic settings icon. Same visual grammar as the home-page trainer button. */}
       {!historical && <button
         onClick={() => openChatWith()}
-        aria-label="שאל את המאמן"
-        className="fixed bottom-32 left-4 z-30 bg-transparent border-0 p-0 focus:outline-none group"
+        aria-label="מאמן AI"
+        className="fixed bottom-32 left-4 z-30 h-11 px-3.5 rounded-full inline-flex items-center gap-1.5
+                   bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm
+                   shadow-[0_6px_20px_-4px_rgba(16,185,129,0.6)] backdrop-blur-md
+                   transition-transform active:scale-95"
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
-        <span
-          className="ai-orb flex items-center justify-center w-12 h-12 rounded-full
-                     bg-white/85 dark:bg-slate-900/80 backdrop-blur-md
-                     border border-emerald-500/30 dark:border-emerald-400/30
-                     transition-transform group-active:scale-90 group-hover:scale-105"
-        >
-          {/* Clean AI sparkle — emerald, matches the primary action color */}
-          <svg viewBox="0 0 24 24" className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" aria-hidden="true">
-            <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
-          </svg>
-        </span>
+        <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" aria-hidden="true">
+          <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+        </svg>
+        <span>AI</span>
       </button>}
 
       {/* ═══ Section: בפוקוס ═══ */}
@@ -1225,7 +1262,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       )}
                       <button
                         onClick={() => setLinkFrom({ sourceName: g.exerciseName, sourceSsId: ssId })}
-                        title={ssId ? 'הוסף עוד לסופרסט' : 'קשר לסופרסט'}
+                        title={ssId ? 'הוסף עוד תרגיל לסופרסט' : 'חבר עם תרגיל אחר לסופרסט'}
                         className={`text-[10px] px-1.5 py-0.5 rounded-full ${ssId ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted hover:text-indigo-500'}`}
                       >
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1239,11 +1276,14 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                           title="הסר תרגיל זה מהסופרסט"
                           className="text-[10px] px-1.5 py-0.5 rounded-full text-muted hover:text-red-500"
                         >
+                          {/* Broken-chain (unlink) icon — clearly reads as "detach from superset" */}
                           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
+                            <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-.12-7.07 5 5 0 0 0-6.95 0l-1.72 1.71" />
+                            <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 .12 7.07 5 5 0 0 0 6.95 0l1.71-1.71" />
+                            <line x1="8" y1="2" x2="8" y2="5" />
+                            <line x1="2" y1="8" x2="5" y2="8" />
+                            <line x1="16" y1="19" x2="16" y2="22" />
+                            <line x1="19" y1="16" x2="22" y2="16" />
                           </svg>
                         </button>
                       )}
@@ -1306,9 +1346,15 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       undefined,
                       true, // start fresh chat
                     )}
-                    className="btn-secondary !py-2.5 !px-3 text-sm"
-                    aria-label="הוסף עוד AI"
-                  >✨</button>
+                    className="inline-flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
+                    aria-label="הוסף עוד עם AI"
+                    title="הוסף עוד עם AI"
+                  >
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                      <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                    </svg>
+                    <span>AI</span>
+                  </button>
                 </div>
                 {/* Partner suggestions — small dashed card per known-but-not-in-session partner */}
                 {partnerIds.length > 0 && partnerIds.slice(0, 2).map(pid => {
@@ -1318,6 +1364,10 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                   if (!pmus) return null;
                   const pKey = pairKey(exId, pid);
                   const pair = supersetPairs.find(p => p.id === pKey);
+                  // If the SOURCE exercise is already in a superset, adding this
+                  // partner will grow that group — not create a fresh 2-member one.
+                  // Show the correct target size so the user isn't misled by "×2".
+                  const resultingSize = inSuperset ? ssTotal + 1 : 2;
                   return (
                     <div
                       key={`sug:${pid}`}
@@ -1326,9 +1376,13 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     >
                       <div className="min-w-0 flex-1 text-right">
                         <div className="text-indigo-700 dark:text-indigo-300">
-                          <span className="opacity-70">בעבר סופרסט עם:</span>{' '}
+                          <span className="opacity-70">
+                            {inSuperset ? 'לצרף לסופרסט הקיים:' : 'בעבר סופרסט עם:'}
+                          </span>{' '}
                           <span className="font-semibold">{partnerEx.he}</span>
-                          {pair && pair.count > 1 && <span className="opacity-60"> · ×{pair.count}</span>}
+                          {inSuperset
+                            ? <span className="opacity-60"> · יהיה ×{resultingSize}</span>
+                            : (pair && pair.count > 1 && <span className="opacity-60"> · בעבר ×{pair.count}</span>)}
                         </div>
                       </div>
                       <div className="shrink-0 flex items-center gap-1">
@@ -1360,22 +1414,42 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           {(() => {
             const raw = (session.plannedExercises || [])
               .filter(p => !session.sets.some(s => (s.exerciseName || '').toLowerCase() === p.name.toLowerCase()));
+            // Which supersetGroups have at least one LOGGED member? Planned members
+            // sharing those groups should render at the TOP of the planned section
+            // so the whole superset stays visually together after the user logs any
+            // one of them. (True inline interleaving would require refactoring the
+            // planned card into a shared component — this is the light version.)
+            const loggedSs = new Set<string>();
+            for (const g of groupedSets) {
+              const ss = groupSsId(g);
+              if (ss) loggedSs.add(ss);
+            }
             const seenSs = new Set<string>();
             const plannedList: typeof raw = [];
+            // First pass: planned members that belong to a superset already logged.
+            for (const p of raw) {
+              const ss = p.supersetGroup;
+              if (!ss || !loggedSs.has(ss) || seenSs.has(ss)) continue;
+              seenSs.add(ss);
+              const members = raw.filter(q => q.supersetGroup === ss);
+              members.sort((a, b) => (a.supersetOrder ?? 9999) - (b.supersetOrder ?? 9999));
+              for (const mm of members) plannedList.push(mm);
+            }
+            // Second pass: everything else, preserving user-visible ordering.
             for (const p of raw) {
               const ss = p.supersetGroup;
               if (!ss || seenSs.has(ss)) { plannedList.push(p); if (ss) seenSs.add(ss); continue; }
               seenSs.add(ss);
-              // Collect this superset's planned members and order them by supersetOrder.
               const members = raw.filter(q => q.supersetGroup === ss);
               members.sort((a, b) => (a.supersetOrder ?? 9999) - (b.supersetOrder ?? 9999));
-              for (const m of members) plannedList.push(m);
+              for (const mm of members) plannedList.push(mm);
             }
             // Dedupe (partners we already appended)
             const seenP = new Set<typeof raw[number]>();
             const dedup: typeof raw = [];
             for (const x of plannedList) { if (!seenP.has(x)) { dedup.push(x); seenP.add(x); } }
             return dedup.map((p, pi) => {
+              const attachedToLoggedSs = !!p.supersetGroup && loggedSs.has(p.supersetGroup);
               const m = MUSCLE_BY_ID[p.muscle];
               if (!m) return null;
               const c = MUSCLE_CLASSES[m.color];
@@ -1466,6 +1540,11 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                             <span>{pSsIdx}/{pSsTotal}</span>
                           </span>
                         )}
+                        {attachedToLoggedSs && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30" title="שאר הסופרסט כבר נרשם">
+                            המשך של הסופרסט למעלה
+                          </span>
+                        )}
                       </div>
                       {enName && (
                         <div className="text-[11px] text-muted mt-0.5 text-right" dir="ltr" style={{ direction: 'ltr' }}>{enName}</div>
@@ -1488,7 +1567,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       )}
                       <button
                         onClick={() => setLinkFrom({ sourceName: p.name, sourceSsId: pSs })}
-                        title={pSs ? 'הוסף עוד לסופרסט' : 'קשר לסופרסט'}
+                        title={pSs ? 'הוסף עוד תרגיל לסופרסט' : 'חבר עם תרגיל אחר לסופרסט'}
                         className={`text-[10px] px-1.5 py-0.5 rounded-full ${pSs ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted hover:text-indigo-500'}`}
                       >
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1502,11 +1581,14 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                           title="הסר תרגיל זה מהסופרסט"
                           className="text-[10px] px-1.5 py-0.5 rounded-full text-muted hover:text-red-500"
                         >
+                          {/* Broken-chain (unlink) icon — clearly reads as "detach from superset" */}
                           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                            <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                            <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
+                            <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-.12-7.07 5 5 0 0 0-6.95 0l-1.72 1.71" />
+                            <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 .12 7.07 5 5 0 0 0 6.95 0l1.71-1.71" />
+                            <line x1="8" y1="2" x2="8" y2="5" />
+                            <line x1="2" y1="8" x2="5" y2="8" />
+                            <line x1="16" y1="19" x2="16" y2="22" />
+                            <line x1="19" y1="16" x2="22" y2="16" />
                           </svg>
                         </button>
                       )}
@@ -1524,13 +1606,25 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       >+ רשום סט</button>
                     )}
                     <button
+                      onClick={() => setModal({ kind: 'replace', oldName: p.name, muscle: p.muscle })}
+                      className="inline-flex items-center justify-center py-2.5 px-3 rounded-xl dark:bg-slate-800 bg-slate-100 dark:hover:bg-slate-700 hover:bg-slate-200 font-semibold text-xs text-main"
+                      title="החלף ידנית"
+                    >החלף</button>
+                    <button
                       onClick={() => openChatWith(
-                        `תציע לי חלופה ל"${p.name}" (${m.he}), משהו שאני יכול לעשות עכשיו במקום.`,
+                        undefined,  // no auto-sent prompt — chat opens with a passive header
                         { name: p.name, muscle: p.muscle },
                         true, // start fresh chat
                       )}
-                      className="btn-secondary !py-2.5 !px-3 text-sm"
-                    >✨ החלף</button>
+                      className="inline-flex items-center justify-center gap-1 py-2.5 px-3 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
+                      aria-label="הצע חלופה עם AI"
+                      title="הצע חלופה עם AI"
+                    >
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                      </svg>
+                      <span>AI</span>
+                    </button>
                     <button
                       onClick={() => handleRemovePlanned(p.name)}
                       className="btn-secondary !py-2.5 !px-3 text-sm text-red-500"
@@ -1606,53 +1700,58 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           doesn't reflow the exercise list under the user's finger. */}
       {!historical && linkFrom && (
         <div className="fixed bottom-24 left-4 right-4 z-40 max-w-lg mx-auto" dir="rtl">
-          <div className="rounded-xl px-3 py-2 bg-indigo-600 text-white shadow-[0_8px_28px_-6px_rgba(79,70,229,0.6)] flex items-center justify-between gap-2">
-            <span className="text-[12px] truncate">
-              בחר תרגיל לקשר עם <strong>{linkFrom.sourceName}</strong>
-            </span>
+          <div className="rounded-xl px-3 py-2.5 bg-indigo-600 text-white shadow-[0_8px_28px_-6px_rgba(79,70,229,0.6)] flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-bold leading-tight">בחר תרגיל לחיבור לסופרסט</div>
+              <div className="text-[11px] opacity-90 leading-tight mt-0.5 truncate">
+                לחץ על תרגיל אחר כדי לחבר אותו עם <strong>{linkFrom.sourceName}</strong> — תעשה אותם אחד אחרי השני בלי הפסקה
+              </div>
+            </div>
             <button
               onClick={() => setLinkFrom(null)}
               className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 shrink-0"
-            >סיים</button>
+            >ביטול</button>
           </div>
         </div>
       )}
 
       {/* Fixed bottom action bar */}
       {!historical && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t dark:from-slate-950 dark:via-slate-950 from-slate-50 via-slate-50 to-transparent">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t dark:from-slate-950 dark:via-slate-950 from-slate-50 via-slate-50 to-transparent" dir="rtl">
+          {/* DOM order (RTL): [סט → תרגיל → אירובי]. Primary CTA on the right where
+              the eye starts, then secondary "+ תרגיל", then "+ אירובי" trails. */}
           <div className="max-w-lg mx-auto flex gap-2">
             {planning ? (
               <>
-                <button
-                  onClick={() => setAerobicModal({})}
-                  className="py-4 px-3 text-sm font-semibold shrink-0 rounded-xl border border-cyan-500/40 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-950/40"
-                  title="הוסף אירובי לתוכנית"
-                >+ אירובי</button>
                 <button
                   onClick={() => setModal({ kind: 'pick' })}
                   className="btn-primary !bg-blue-600 hover:!bg-blue-500 flex-1 py-5 text-xl font-semibold"
                 >
                   + תרגיל לתוכנית
                 </button>
-              </>
-            ) : (
-              <>
                 <button
                   onClick={() => setAerobicModal({})}
                   className="py-4 px-3 text-sm font-semibold shrink-0 rounded-xl border border-cyan-500/40 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-950/40"
-                  title="הוסף אירובי"
+                  title="הוסף אירובי לתוכנית"
                 >+ אירובי</button>
-                <button
-                  onClick={() => setModal({ kind: 'pick' })}
-                  className="btn-secondary py-4 px-3 text-sm font-semibold shrink-0"
-                >+ תרגיל</button>
+              </>
+            ) : (
+              <>
                 <button
                   onClick={() => setModal({ kind: 'add' })}
                   className="btn-primary flex-1 py-5 text-xl font-semibold"
                 >
                   + סט
                 </button>
+                <button
+                  onClick={() => setModal({ kind: 'pick' })}
+                  className="btn-secondary py-4 px-3 text-sm font-semibold shrink-0"
+                >+ תרגיל</button>
+                <button
+                  onClick={() => setAerobicModal({})}
+                  className="py-4 px-3 text-sm font-semibold shrink-0 rounded-xl border border-cyan-500/40 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-950/40"
+                  title="הוסף אירובי"
+                >+ אירובי</button>
               </>
             )}
           </div>
@@ -1665,6 +1764,20 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           editing={aerobicModal.editing}
           onClose={() => { setAerobicModal(null); if (addAerobicFromFinish) { setAddAerobicFromFinish(false); setConfirmFinish(true); } }}
           onSave={handleSaveAerobic}
+        />
+      )}
+
+      {movePlanOpen && session && (
+        <MovePlanModal
+          currentYmd={session.plannedFor}
+          onCancel={() => setMovePlanOpen(false)}
+          onMove={async (newYmd) => {
+            await firestore.movePlannedSession(session.id, newYmd);
+            const [y, m, d] = newYmd.split('-').map(Number);
+            const midnight = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0).getTime();
+            setSession({ ...session, plannedFor: newYmd, date: midnight });
+            setMovePlanOpen(false);
+          }}
         />
       )}
 
@@ -1839,7 +1952,7 @@ const DIFF_COLOR: Record<Difficulty, string> = {
   hard: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40',
 };
 
-function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; exerciseName: string; sessionId: string }) {
+export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; exerciseName: string; sessionId: string }) {
   const firestore = useFirestore(uid);
   const exId = useMemo(() => exerciseIdOf(exerciseName), [exerciseName]);
   const [note, setNote] = useState('');
@@ -1994,59 +2107,64 @@ function AerobicSection({ entries, planning, readOnly, onAdd, onEdit, onDelete }
           className="w-full py-3 rounded-xl border border-dashed border-cyan-500/40 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/10 text-sm font-semibold"
         >+ {planning ? 'הוסף אירובי לתוכנית' : 'הוסף אימון אירובי'}</button>
       ) : entries.length === 0 && readOnly ? null : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {entries.map(e => (
-            <button
-              key={e.id}
-              onClick={() => !readOnly && onEdit(e)}
-              disabled={readOnly}
-              className={`w-full text-right rounded-xl px-3 py-3 dark:bg-cyan-950/25 bg-cyan-50/70 border border-cyan-500/25 ${
-                readOnly ? 'cursor-default' : 'dark:hover:bg-cyan-950/40 hover:bg-cyan-100'
-              }`}
-              dir="rtl"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-lg">{aerobicIcon(e.type)}</span>
-                  <span className="text-sm font-bold text-cyan-800 dark:text-cyan-200">{aerobicLabel(e.type)}</span>
+            /* Structured like an exercise card: title + English on top, cyan "muscle-style"
+               chip beside it, duration/metrics under, and a bottom-border row with the
+               red trash button — same shape and delete placement the exercise cards use. */
+            <div key={e.id} className="card mb-0 relative" dir="rtl">
+              <button
+                onClick={() => !readOnly && onEdit(e)}
+                disabled={readOnly}
+                className={`w-full text-right ${readOnly ? 'cursor-default' : ''}`}
+                dir="rtl"
+              >
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="text-right flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-lg leading-none">{aerobicIcon(e.type)}</span>
+                      <div className="text-base font-bold leading-tight">{aerobicLabel(e.type)}</div>
+                    </div>
+                    {e.notes && (
+                      <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 text-right italic leading-snug">"{e.notes}"</div>
+                    )}
+                  </div>
+                  <span className="shrink-0 inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full bg-cyan-100 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-300">
+                    <span>אירובי</span>
+                  </span>
                 </div>
-                <div className="inline-flex items-baseline gap-2 shrink-0">
-                  <span className="font-mono font-bold text-base text-cyan-700 dark:text-cyan-300">{e.minutes}</span>
-                  <span className="text-[10px] text-cyan-600/70 dark:text-cyan-400/70">דק'</span>
+                <div className="flex items-baseline gap-3" dir="rtl">
+                  <div className="inline-flex items-baseline gap-1">
+                    <span className="font-mono font-bold text-lg text-cyan-700 dark:text-cyan-300">{e.minutes}</span>
+                    <span className="text-[10px] text-muted">דק'</span>
+                  </div>
                   {e.km != null && (
-                    <>
-                      <span className="text-muted-most">·</span>
-                      <span className="font-mono font-bold text-base text-cyan-700 dark:text-cyan-300">{e.km}</span>
-                      <span className="text-[10px] text-cyan-600/70 dark:text-cyan-400/70">ק"מ</span>
-                    </>
+                    <div className="inline-flex items-baseline gap-1">
+                      <span className="font-mono font-bold text-lg text-cyan-700 dark:text-cyan-300">{e.km}</span>
+                      <span className="text-[10px] text-muted">ק"מ</span>
+                    </div>
                   )}
                   {e.avgHr != null && (
-                    <>
-                      <span className="text-muted-most">·</span>
-                      <span className="font-mono text-xs text-cyan-700/80 dark:text-cyan-300/80">♥ {e.avgHr}</span>
-                    </>
+                    <div className="inline-flex items-baseline gap-1">
+                      <span className="font-mono font-bold text-sm text-cyan-700 dark:text-cyan-300">♥ {e.avgHr}</span>
+                    </div>
                   )}
                 </div>
-              </div>
-              {e.notes && (
-                <div className="text-[11px] text-cyan-700/80 dark:text-cyan-300/80 mt-1 text-right italic">"{e.notes}"</div>
-              )}
+              </button>
               {!readOnly && (
-              <div className="flex justify-end mt-2 pt-2 border-t border-cyan-500/20">
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(ev) => { ev.stopPropagation(); onDelete(e.id); }}
-                  aria-label="מחק"
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-red-500 hover:bg-red-500/10 cursor-pointer"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                  </svg>
-                </span>
-              </div>
+                <div className="flex justify-end mt-3 pt-3 border-t border-subtle/60">
+                  <button
+                    onClick={(ev) => { ev.stopPropagation(); onDelete(e.id); }}
+                    aria-label="מחק"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-red-500 hover:bg-red-500/10"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                    </svg>
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
           ))}
           {!readOnly && (
             <button

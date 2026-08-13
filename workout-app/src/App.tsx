@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Route, FreeSession as FreeSessionType } from './types';
 import { useAuth } from './hooks/useAuth';
 import { useFirestore } from './hooks/useFirestore';
@@ -9,12 +9,15 @@ import { Settings } from './components/Settings';
 import { Exercises } from './components/Exercises';
 import { Body } from './components/Body';
 import { Install } from './components/Install';
-import { PasscodeScreen } from './components/PasscodeScreen';
+import { LoginScreen } from './components/LoginScreen';
+import { OnboardingScreen } from './components/OnboardingScreen';
 import { TabBar } from './components/TabBar';
 import { StartSessionModal } from './components/StartSessionModal';
 import { Chronograph } from './components/Chronograph';
 import { useTimer } from './hooks/useTimer';
 import { useStandaloneStopwatch } from './hooks/useStandaloneStopwatch';
+import { useAiTrainerPanel } from './hooks/useAiTrainerPanel';
+import { AiChatPanel } from './components/AiChatPanel';
 import type { MuscleGroup } from './data/muscles';
 import { ACTIVE_MUSCLES } from './data/muscles';
 
@@ -177,6 +180,11 @@ function AppShell({ uid, route, navigate, doLogout }: {
   const standaloneTimer = useTimer();
   const showStandaloneStopwatch = stopwatchOpen && !inProgress && TAB_PAGES.has(route.page);
 
+  // AI trainer panel — opened from the TopBar action on any tab page. General-purpose
+  // coach chat (no live-session context). Rendered here at app-shell level so it can
+  // overlay the current tab uniformly.
+  const { open: aiPanelOpen, closePanel: closeAiPanel } = useAiTrainerPanel();
+
   const isTabPage = TAB_PAGES.has(route.page);
 
   let content: React.ReactNode = null;
@@ -247,6 +255,18 @@ function AppShell({ uid, route, navigate, doLogout }: {
           onStart={handleStart}
         />
       )}
+      {aiPanelOpen && (
+        <AiChatPanel
+          uid={uid}
+          mode="trainer"
+          // Feed the trainer everything it needs to answer both "מה עשיתי השבוע?"
+          // and "מה מתוכנן לי" questions. Sessions in allSessions are sorted
+          // newest-first — take past 30 for history + all planned for schedule.
+          recentSets={allSessions.slice(0, 30).flatMap(s => s.sets || [])}
+          plannedSessions={allSessions.filter(s => s.status === 'planned')}
+          onClose={closeAiPanel}
+        />
+      )}
       {sameDayPrompt && todaysCompleted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4" onClick={() => setSameDayPrompt(false)}>
           <div className="card max-w-sm w-full text-right" dir="rtl" onClick={(e) => e.stopPropagation()}>
@@ -273,7 +293,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
 }
 
 export default function App() {
-  const { uid, login, logout: doLogout } = useAuth();
+  const { uid, loading, displayName, login, logout: doLogout } = useAuth();
   const [route, setRoute] = useState<Route>(parseHash);
 
   useEffect(() => {
@@ -286,8 +306,75 @@ export default function App() {
     window.location.hash = routeToHash(r);
   };
 
+  // Wait for Firebase Auth to hydrate before deciding what to show — otherwise we'd
+  // briefly flash the login screen on every reload even for signed-in users.
+  if (loading) {
+    return <div className="page-bg" />;
+  }
+
   if (!uid) {
-    return <PasscodeScreen onUnlock={login} />;
+    return <LoginScreen onLogin={login} />;
+  }
+
+  return (
+    <AuthedShell
+      uid={uid}
+      displayName={displayName}
+      route={route}
+      navigate={navigate}
+      doLogout={doLogout}
+    />
+  );
+}
+
+// Wraps AppShell with the empty-account check → onboarding gate.
+// Kept as a separate component so the empty-account probe re-runs when uid changes
+// (i.e. after login) without racing the AppShell mount.
+function AuthedShell({ uid, displayName, route, navigate, doLogout }: {
+  uid: string;
+  displayName: string | null;
+  route: Route;
+  navigate: (r: Route) => void;
+  doLogout: () => void;
+}) {
+  const firestore = useFirestore(uid);
+  // 'checking' → probe hasn't returned yet; 'onboarding' → new user, show wizard;
+  // 'ready' → normal app. We probe once per uid.
+  const [status, setStatus] = useState<'checking' | 'onboarding' | 'ready'>('checking');
+  // Stash firestore in a ref so the effect doesn't re-fire on every render.
+  // (useFirestore returns a fresh object literal each render — depending on it in
+  // deps would cause an infinite re-probe loop that kept status stuck at 'checking'
+  // and rendered a permanent white page.)
+  const firestoreRef = useRef(firestore);
+  firestoreRef.current = firestore;
+
+  useEffect(() => {
+    let cancelled = false;
+    firestoreRef.current.shouldShowOnboarding()
+      .then(show => {
+        if (cancelled) return;
+        setStatus(show ? 'onboarding' : 'ready');
+      })
+      .catch(err => {
+        console.warn('shouldShowOnboarding failed, defaulting to ready', err);
+        if (!cancelled) setStatus('ready');
+      });
+    return () => { cancelled = true; };
+  }, [uid]);
+
+  if (status === 'checking') {
+    return <div className="page-bg" />;
+  }
+
+  if (status === 'onboarding') {
+    return (
+      <OnboardingScreen
+        uid={uid}
+        displayName={displayName}
+        navigate={navigate}
+        onDone={() => setStatus('ready')}
+      />
+    );
   }
 
   return <AppShell uid={uid} route={route} navigate={navigate} doLogout={doLogout} />;

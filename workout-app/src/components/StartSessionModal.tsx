@@ -68,9 +68,9 @@ export function StartSessionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overlay-solid">
-      <div className="flex flex-row-reverse items-center justify-between p-4 border-b border-subtle">
-        <h2 className="font-bold text-lg" dir="rtl">{heading || 'מה מתאמנים היום?'}</h2>
-        <button onClick={onClose} className="text-muted text-2xl">×</button>
+      <div className="flex items-center justify-between p-4 border-b border-subtle" dir="rtl">
+        <h2 className="font-bold text-lg">{heading || 'מה מתאמנים היום?'}</h2>
+        <button onClick={onClose} aria-label="סגור" className="text-muted text-2xl leading-none">×</button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

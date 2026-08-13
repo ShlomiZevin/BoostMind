@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut,
+  onAuthStateChanged, type User,
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90",
@@ -13,42 +17,71 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
-// Passcode-based user ID
-export function getPasscode(): string | null {
-  return localStorage.getItem('workout-passcode');
+// Emails that resolve to a specific legacy uid instead of the raw Firebase Auth uid.
+// This lets Shlomi's Google login land on his existing data at users/user_6724/*
+// without moving anything. Add more entries here for any future legacy accounts.
+const EMAIL_TO_UID: Record<string, string> = {
+  'shlomi@boostart.io': 'user_6724',
+};
+
+// Resolve the app-level uid from a Firebase Auth user.
+// Rule: emails in EMAIL_TO_UID map to their legacy uid; everyone else uses
+// the raw Firebase Auth uid, ensuring per-user data isolation out of the box.
+// Sync resolver — used at render time, no async I/O.
+export function resolveAppUid(user: User): string {
+  const email = (user.email || '').toLowerCase();
+  return EMAIL_TO_UID[email] || user.uid;
 }
 
-export function setPasscode(passcode: string) {
-  localStorage.setItem('workout-passcode', `user_${passcode}`);
-}
-
-export function getUserId(): string | null {
-  const passcode = localStorage.getItem('workout-passcode');
-  return passcode;
-}
-
-export function logout() {
-  localStorage.removeItem('workout-passcode');
-}
-
-// Migrate data from old device ID to new passcode-based ID
-export async function migrateFromDeviceId(newUserId: string) {
-  const oldId = localStorage.getItem('workout-device-id');
-  if (!oldId || oldId === newUserId) return;
-
-  const subcollections = ['sessions', 'exerciseStats', 'exercisePhotos', 'customExercises', 'hiddenExercises'];
-
-  for (const sub of subcollections) {
-    const oldCol = collection(db, 'users', oldId, sub);
-    const snap = await getDocs(oldCol);
-    for (const d of snap.docs) {
-      const newRef = doc(db, 'users', newUserId, sub, d.id);
-      await setDoc(newRef, d.data());
-      await deleteDoc(doc(db, 'users', oldId, sub, d.id));
+// Async resolver — also consults the Firestore alias doc, letting users manually
+// link a Google account to a legacy uid via Settings. Called once on login and
+// cached in localStorage so subsequent renders can stay synchronous.
+export async function resolveAppUidAsync(user: User): Promise<string> {
+  const emailUid = EMAIL_TO_UID[(user.email || '').toLowerCase()];
+  if (emailUid) return emailUid;
+  try {
+    const snap = await getDoc(doc(getFirestore(), 'authAliases', user.uid));
+    if (snap.exists()) {
+      const legacy = snap.data()?.legacyUid;
+      if (typeof legacy === 'string' && legacy) return legacy;
     }
-  }
+  } catch { /* alias doc missing / rules deny — fall through */ }
+  return user.uid;
+}
 
-  // Clean up old device ID
-  localStorage.removeItem('workout-device-id');
+// Persist a link between the current Firebase Auth uid and a legacy passcode-based
+// uid. After this, resolveAppUidAsync(user) returns the legacy uid so the user
+// sees the same data they had before Google Sign-In.
+export async function claimLegacyUid(user: User, legacyUid: string): Promise<void> {
+  const clean = legacyUid.trim();
+  if (!clean) throw new Error('empty legacyUid');
+  await setDoc(doc(getFirestore(), 'authAliases', user.uid), {
+    legacyUid: clean,
+    email: user.email || null,
+    createdAt: Date.now(),
+  });
+  // Also cache locally so useAuth picks it up on next mount without another read.
+  try { localStorage.setItem(`authAlias:${user.uid}`, clean); } catch { /* ignore */ }
+}
+
+// Read the cached alias set by claimLegacyUid, if any.
+export function cachedLegacyUid(user: User): string | null {
+  try { return localStorage.getItem(`authAlias:${user.uid}`); } catch { return null; }
+}
+
+export async function signInWithGoogle(): Promise<User> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const cred = await signInWithPopup(auth, provider);
+  return cred.user;
+}
+
+export async function signOutUser(): Promise<void> {
+  await signOut(auth);
+}
+
+export function subscribeToAuth(cb: (user: User | null) => void): () => void {
+  return onAuthStateChanged(auth, cb);
 }

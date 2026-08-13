@@ -3,7 +3,9 @@ import cors from 'cors';
 import Anthropic from '@anthropic-ai/sdk';
 
 const PORT = process.env.PORT || 8080;
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5';
+// Opus 5 for higher-quality Hebrew — the extra cost is worth it for the
+// user-facing conversational modes. Override with CLAUDE_MODEL if needed.
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 if (!ANTHROPIC_API_KEY) {
@@ -44,7 +46,7 @@ app.get('/', (_req, res) => res.status(200).send('workout-ai ok'));
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { uid, messages, personalExercises, recentSets, sessionMuscles, mode, replaceContext } = req.body || {};
+    const { uid, messages, personalExercises, recentSets, sessionMuscles, mode, replaceContext, userProfile, plannedSessions } = req.body || {};
     if (!uid || typeof uid !== 'string' || uid.length > 100) {
       return res.status(400).json({ error: 'missing or invalid uid' });
     }
@@ -61,7 +63,7 @@ app.post('/api/chat', async (req, res) => {
     const exList = Array.isArray(personalExercises) ? personalExercises : [];
     const setsList = Array.isArray(recentSets) ? recentSets : [];
     const focusList = Array.isArray(sessionMuscles) ? sessionMuscles : [];
-    const chatMode = mode === 'naming' ? 'naming' : 'session';
+    const chatMode = ['naming', 'onboarding', 'trainer'].includes(mode) ? mode : 'session';
 
     // ─── Naming-mode system prompt ─────────────────────────────
     const namingPrompt = [
@@ -214,7 +216,150 @@ app.post('/api/chat', async (req, res) => {
         : '',
     ].filter(Boolean).join('\n');
 
-    const systemPrompt = chatMode === 'naming' ? namingPrompt : sessionPrompt;
+    // ─── Onboarding-mode system prompt (new user, gathering info) ───
+    // The AI runs a natural conversation — it can ask, chat, or answer the user's
+    // questions freely. When it learns a profile field it emits update_profile so
+    // the client persists it. When enough fields are known it offers ready_to_build.
+    const profileJson = userProfile && typeof userProfile === 'object' ? JSON.stringify(userProfile) : '{}';
+    const onboardingPrompt = [
+      "You are a warm, friendly personal trainer greeting a brand-new user of a Hebrew workout app.",
+      "This is their FIRST conversation. They know nothing yet. Your job is to make them feel in good hands.",
+      "",
+      "== TONE — NATIVE HEBREW, NOT TRANSLATED ==",
+      "עברית טבעית ומדוברת של מאמן ישראלי אמיתי. אסור לתרגם מאנגלית מילה במילה.",
+      "כתוב כמו שאתה מדבר לחבר בחדר כושר — קצר, ברור, בגובה העיניים.",
+      "השתמש בביטויים ישראליים אמיתיים ('בוא נראה', 'קטן עלינו', 'אין בעיה', 'עשיתי לך')",
+      "במקום תרגומי-מכונה ('בוא נתחיל את המסע', 'המטרה שלך היא ה...').",
+      "משפטים קצרים. לא יותר משתי שורות בכל תשובה, ואז השאלה הבאה.",
+      "פנייה בגוף שני. אם לא ברור מהמגדר — נסה לזהות מהשם, אם אין לך מידע — פנייה נייטרלית.",
+      "Answer their questions freely — this is a CONVERSATION, not an interrogation.",
+      "If they ask about training, form, nutrition — answer.",
+      "",
+      "== YOUR GOAL ==",
+      "Learn enough about them to build a starter plan. The fields you want to fill in:",
+      "  • name          (their name)",
+      "  • level         (beginner | intermediate | advanced)",
+      "  • goal          (mass | cut | strength | health)",
+      "  • daysPerWeek   (integer 2..7)",
+      "  • focusMuscles  (list of muscle keys)   OR   focus = 'full_body' if they don't know",
+      "  • limitations   (short Hebrew text or 'אין')",
+      "",
+      "Ask about these NATURALLY — one at a time, over a real conversation. You may skip a",
+      "field, revisit later, or accept 'skip this' as an answer. NEVER dump all questions at once.",
+      "If the user leads the conversation elsewhere, follow them; steer back gently when you can.",
+      "",
+      "== CURRENT PROFILE ==",
+      "This is what we already know about the user (may be empty on first turn):",
+      profileJson,
+      "Do NOT re-ask fields that are already populated. Refer back to them naturally.",
+      "",
+      "== ACTIONS YOU CAN EMIT ==",
+      "",
+      "1) quick_replies — when a question has a finite set of natural answers, offer chips so",
+      "   the user can tap instead of type. Include a 'דלג' chip when the field is skippable.",
+      "```action",
+      "{\"type\":\"quick_replies\",\"options\":[\"אופציה 1\",\"אופציה 2\",\"דלג\"]}",
+      "```",
+      "",
+      "2) update_profile — the MOMENT you learn a field (from a chip tap OR free text), emit",
+      "   this so the client persists it immediately. Multiple in one turn is fine.",
+      "```action",
+      "{\"type\":\"update_profile\",\"patch\":{\"level\":\"beginner\"}}",
+      "```",
+      "   Valid patch keys: name, level, goal, daysPerWeek, focus, focusMuscles, limitations.",
+      "   focusMuscles keys: chest, upper-chest, lower-chest, lats, mid-back, traps, rear-delts,",
+      "   lower-back, front-delts, side-delts, biceps, triceps, forearms, quads, hamstrings,",
+      "   glutes, calves, abs, obliques.",
+      "",
+      "3) ready_to_build — once level + goal + daysPerWeek + (focusMuscles OR focus) are all",
+      "   known, confirm in one short sentence and emit:",
+      "```action",
+      "{\"type\":\"ready_to_build\",\"name\":\"<name>\",\"level\":\"...\",\"goal\":\"...\",\"daysPerWeek\":3,\"focus\":\"...\",\"focusMuscles\":[\"...\"],\"limitations\":\"...\"}",
+      "```",
+      "daysPerWeek is an integer 2..7.",
+      "   After emitting ready_to_build, add ONE short sentence like 'בונה לך תוכנית עכשיו — לחץ על הכפתור למטה'.",
+      "",
+      `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
+    ].join('\n');
+
+    // ─── Trainer-mode system prompt (home-page general AI trainer) ──
+    const trainerPrompt = [
+      "You are a friendly personal training assistant for a Hebrew-speaking gym athlete.",
+      "You're being invoked from the app's Home screen — the user isn't inside a live session right now.",
+      "Answer any question about training, technique, programming, nutrition basics, or exercise selection.",
+      "",
+      "== HEBREW STYLE — NATIVE, NOT TRANSLATED ==",
+      "עברית טבעית של מאמן ישראלי. אסור תרגום-מכונה מאנגלית.",
+      "משפטים קצרים ופרקטיים. ביטויים ישראליים אמיתיים — 'בוא נראה', 'קטן עלינו',",
+      "'נסה ככה', 'עדיף ש...', 'תרגיש חופשי'. לא 'בוא נצא למסע', לא 'המטרה שלך הינה'.",
+      "בכל תשובה תיזהר מפומפוזיות. תגיב כמו בן אדם, לא כמו landing page.",
+      "",
+      "== EXPLAIN THE BASICS TO BEGINNERS ==",
+      "אם המשתמש מתחיל (level=beginner או שלא הוזן) — הסבר מונחים בסיסיים כשהם עולים.",
+      "לדוגמה: אם שואל על 'סמית מכונה' — הסבר שזו מכונה עם מוט קבוע במסילה שנותנת יציבות.",
+      "אל תניח שהוא יודע מונחי חדר כושר. תמיד תסביר בקצרה אם משהו לא ברור לחלוטין.",
+      "עם מתקדמים — דבר לעניין ישר, בלי הסברים מיותרים.",
+      "",
+      "== RECENT WORKOUT HISTORY ==",
+      "Use this to answer 'what did I do last week' / 'when did I last hit chest' style questions.",
+      "Each line is one logged set with its real date:",
+      setsList.length === 0
+        ? "  (no history yet)"
+        : setsList.slice(0, 200).map(s =>
+            `- ${s.date || '?'} · ${s.exerciseName || '(no-name)'} · ${s.muscle} · ${s.weight}×${s.reps}${s.unit || 'kg'}`
+          ).join('\n'),
+      "",
+      "== UPCOMING PLANNED SESSIONS ==",
+      "Use this to answer 'what's on my plan', 'when am I training X next', or to reason about",
+      "whether adding/moving an exercise fits the week. Each block is one planned day:",
+      Array.isArray(plannedSessions) && plannedSessions.length > 0
+        ? plannedSessions.slice(0, 20).map(p => {
+            const muscles = Array.isArray(p.muscleGroups) ? p.muscleGroups.join(', ') : '';
+            const ex = Array.isArray(p.exercises) && p.exercises.length > 0
+              ? p.exercises.map(e => `${e.name} (${e.muscle})`).join(' · ')
+              : '(no exercises yet)';
+            return `- ${p.plannedFor || '?'} | muscles: ${muscles} | exercises: ${ex}`;
+          }).join('\n')
+        : "  (nothing scheduled)",
+      "",
+      "== USER PROFILE ==",
+      "Tailor advice using what you know about the user (all fields optional; may be empty):",
+      profileJson,
+      "",
+      "== UPDATING THE PROFILE ==",
+      "If the user tells you a preference or change ('אני עכשיו רוצה להתמקד ברגליים', 'עברתי",
+      "ל-4 ימים בשבוע', 'יש לי כאב בכתף') — persist it immediately with an update_profile action:",
+      "```action",
+      "{\"type\":\"update_profile\",\"patch\":{\"focusMuscles\":[\"quads\",\"hamstrings\",\"glutes\"]}}",
+      "```",
+      "Valid patch keys: name, level, goal, daysPerWeek, focus, focusMuscles, limitations.",
+      "You may confirm the change in one short sentence afterwards.",
+      "",
+      "== EXERCISE DB ==",
+      "The user's personal exercise DB (id | Hebrew | muscle):",
+      exList.length === 0
+        ? "  (empty)"
+        : exList.slice(0, 200).map(e => `- ${e.id} | ${e.he} | ${e.defaultMuscle}`).join('\n'),
+      "",
+      "You MAY propose exercises via suggest_exercise action blocks (same schema as session mode),",
+      "but be selective — this is a Q&A / advice channel, not a session logger.",
+      "",
+      "```action",
+      "{\"type\":\"suggest_exercise\",\"name\":\"<Hebrew name>\",\"en\":\"<English>\",\"muscle\":\"<muscle key>\",\"isNew\":true|false,\"isHoldTime\":true|false,\"howTo\":[\"<step 1>\",\"<step 2>\"]}",
+      "```",
+      "",
+      "Valid muscle keys: chest, upper-chest, lower-chest, lats, mid-back, traps, rear-delts,",
+      "lower-back, front-delts, side-delts, biceps, triceps, forearms, quads, hamstrings,",
+      "glutes, adductors, abductors, calves, abs, obliques.",
+      "",
+      `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
+    ].filter(Boolean).join('\n');
+
+    const systemPrompt =
+      chatMode === 'naming' ? namingPrompt
+      : chatMode === 'onboarding' ? onboardingPrompt
+      : chatMode === 'trainer' ? trainerPrompt
+      : sessionPrompt;
 
     const claudeResp = await anthropic.messages.create({
       model: CLAUDE_MODEL,
@@ -367,6 +512,187 @@ app.post('/api/rename-suggestions', async (req, res) => {
     });
   } catch (e) {
     console.error('rename-suggestions error', e);
+    res.status(500).json({ error: 'internal', message: String(e?.message || e) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// Onboarding plan builder — two-stage, small responses to avoid truncation.
+// Stage A: skeleton — returns day scaffolding (focus muscles + names).
+// Stage B: exercises for one specific day — returns 4-6 exercises.
+// Client calls A once, then B in parallel per day.
+// ─────────────────────────────────────────────────────────────────
+
+const MUSCLE_KEYS = new Set([
+  'chest', 'upper-chest', 'lower-chest',
+  'lats', 'mid-back', 'traps', 'rear-delts', 'lower-back',
+  'front-delts', 'side-delts',
+  'biceps', 'triceps', 'forearms',
+  'quads', 'hamstrings', 'glutes', 'adductors', 'abductors', 'calves',
+  'abs', 'obliques',
+]);
+
+function safeParseJson(text) {
+  if (!text) return null;
+  const attempts = [
+    text,
+    text.replace(/^```(?:json)?\s*|\s*```$/g, '').trim(),
+    (() => { const m = text.match(/\{[\s\S]*\}/); return m ? m[0] : text; })(),
+  ];
+  for (const t of attempts) {
+    try { return JSON.parse(t); } catch { /* try next */ }
+  }
+  return null;
+}
+
+app.post('/api/onboarding/build-skeleton', async (req, res) => {
+  try {
+    const { uid, profile } = req.body || {};
+    if (!uid || typeof uid !== 'string' || uid.length > 100) {
+      return res.status(400).json({ error: 'missing or invalid uid' });
+    }
+    if (!profile || typeof profile !== 'object') {
+      return res.status(400).json({ error: 'missing profile' });
+    }
+    const rl = rateLimit(uid);
+    if (!rl.ok) return res.status(429).json({ error: 'rate limit exceeded' });
+
+    const sys = [
+      "You design a starter training program skeleton for a Hebrew-speaking user based on a short profile.",
+      "OUTPUT ONLY STRICT JSON (no prose, no markdown fences).",
+      "",
+      "Given the profile, produce a `days` array with EXACTLY `daysPerWeek` entries.",
+      "Each day has:",
+      "  • `nameHe` — short Hebrew day name/theme, e.g. 'יום דחיפה', 'פלג גוף עליון', 'גוף מלא A'",
+      "  • `focusMuscles` — 2-5 muscle keys this day should target",
+      "",
+      "Rules:",
+      "  • For beginners or 'לא בטוח', prefer FULL BODY splits (each day covers all major groups lightly).",
+      "  • For 3+ days at intermediate/advanced, split reasonably: PPL, Upper/Lower, Bro-split, etc.",
+      "  • Cover the user's focusMuscles across the week — priority muscles get 2+ days.",
+      "  • Avoid overlapping heavy muscles on consecutive days (chest → rest before pushing again).",
+      "",
+      "Valid muscle keys: " + Array.from(MUSCLE_KEYS).join(', ') + ".",
+      "",
+      "Response schema:",
+      '{"days":[{"nameHe":"<Hebrew label>","focusMuscles":["chest","triceps",...]},...]}',
+    ].join('\n');
+
+    const profileSummary = JSON.stringify({
+      name: profile.name || null,
+      level: profile.level || null,
+      goal: profile.goal || null,
+      daysPerWeek: Number(profile.daysPerWeek) || 3,
+      focus: profile.focus || null,
+      focusMuscles: Array.isArray(profile.focusMuscles) ? profile.focusMuscles : [],
+      limitations: profile.limitations || null,
+    });
+
+    const claudeResp = await anthropic.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 1200,
+      system: sys,
+      messages: [{ role: 'user', content: `Profile:\n${profileSummary}\n\nReturn the skeleton JSON.` }],
+    });
+    const text = claudeResp.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    const parsed = safeParseJson(text);
+    if (!parsed || !Array.isArray(parsed.days)) {
+      return res.status(500).json({ error: 'invalid skeleton', raw: text.slice(0, 800) });
+    }
+    const days = parsed.days
+      .filter(d => d && Array.isArray(d.focusMuscles))
+      .map(d => ({
+        nameHe: String(d.nameHe || 'אימון').slice(0, 60),
+        focusMuscles: d.focusMuscles
+          .filter(k => MUSCLE_KEYS.has(k))
+          .slice(0, 6),
+      }))
+      .filter(d => d.focusMuscles.length > 0);
+    res.json({ days, usage: claudeResp.usage });
+  } catch (e) {
+    console.error('build-skeleton error', e);
+    res.status(500).json({ error: 'internal', message: String(e?.message || e) });
+  }
+});
+
+app.post('/api/onboarding/build-day', async (req, res) => {
+  try {
+    const { uid, profile, day, globalExercises } = req.body || {};
+    if (!uid || typeof uid !== 'string' || uid.length > 100) {
+      return res.status(400).json({ error: 'missing or invalid uid' });
+    }
+    if (!day || !Array.isArray(day.focusMuscles) || day.focusMuscles.length === 0) {
+      return res.status(400).json({ error: 'missing day.focusMuscles' });
+    }
+    const rl = rateLimit(uid);
+    if (!rl.ok) return res.status(429).json({ error: 'rate limit exceeded' });
+
+    const level = profile?.level || 'beginner';
+    const goal = profile?.goal || 'health';
+    const focusMuscles = day.focusMuscles.filter(k => MUSCLE_KEYS.has(k));
+    // Only send exercises that match the day's focus muscles, keeps the prompt tight.
+    const globalList = Array.isArray(globalExercises) ? globalExercises : [];
+    const relevant = globalList
+      .filter(e => focusMuscles.includes(e.defaultMuscle))
+      .slice(0, 80)
+      .map(e => `- ${e.he} | ${e.defaultMuscle}`);
+
+    const sys = [
+      "You pick 4-6 exercises for ONE training day based on the user's profile and focus muscles.",
+      "OUTPUT ONLY STRICT JSON (no prose, no markdown fences).",
+      "",
+      "Rules:",
+      "  • Return 4-6 exercises, ordered from compound → isolation.",
+      "  • Cover ALL focus muscles at least once. Prefer compound moves for beginners.",
+      "  • REUSE names from the 'Available exercises' list below WHEN THERE IS A CLOSE MATCH.",
+      "    Otherwise invent a clean Hebrew name using the naming template.",
+      "  • Hebrew names must be PURE Hebrew (no English words / transliteration).",
+      "  • Include a short English name for every entry.",
+      "",
+      "Naming template: <grip/attachment> <equipment> <angle/position>.",
+      "  Barbell → מוט, Dumbbell → משקולת, Cable → כבל, Machine → מכונה,",
+      "  Wide → רחבה, Close → צרה, Incline → משופע, Seated → בישיבה.",
+      "",
+      "Valid muscle keys: " + Array.from(MUSCLE_KEYS).join(', ') + ".",
+      "",
+      "Response schema:",
+      '{"exercises":[{"he":"<Hebrew name>","en":"<English>","muscle":"<key>","isHoldTime":true|false}]}',
+    ].join('\n');
+
+    const userMsg = [
+      `Day theme: ${day.nameHe || 'אימון'}`,
+      `Focus muscles: ${focusMuscles.join(', ')}`,
+      `Level: ${level}. Goal: ${goal}.`,
+      relevant.length > 0
+        ? `Available exercises (prefer these):\n${relevant.join('\n')}`
+        : 'Available exercises: (none — invent clean Hebrew names)',
+      '',
+      'Return JSON.',
+    ].join('\n');
+
+    const claudeResp = await anthropic.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 1500,
+      system: sys,
+      messages: [{ role: 'user', content: userMsg }],
+    });
+    const text = claudeResp.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    const parsed = safeParseJson(text);
+    if (!parsed || !Array.isArray(parsed.exercises)) {
+      return res.status(500).json({ error: 'invalid day', raw: text.slice(0, 800) });
+    }
+    const exercises = parsed.exercises
+      .filter(e => e && typeof e.he === 'string' && MUSCLE_KEYS.has(e.muscle))
+      .slice(0, 8)
+      .map(e => ({
+        he: String(e.he).trim().slice(0, 120),
+        en: e.en ? String(e.en).trim().slice(0, 120) : undefined,
+        muscle: e.muscle,
+        isHoldTime: !!e.isHoldTime,
+      }));
+    res.json({ exercises, usage: claudeResp.usage });
+  } catch (e) {
+    console.error('build-day error', e);
     res.status(500).json({ error: 'internal', message: String(e?.message || e) });
   }
 });

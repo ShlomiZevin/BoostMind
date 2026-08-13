@@ -9,6 +9,7 @@ import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { TabActions } from './TopBarActions';
 import { StartSessionModal } from './StartSessionModal';
+import { MovePlanModal } from './MovePlanModal';
 
 type Props = {
   uid: string;
@@ -37,6 +38,50 @@ const AEROBIC_ICON: Record<string, string> = {
 };
 function aerobicIcon(type: string): string { return AEROBIC_ICON[type] || '❤'; }
 
+// Compact labeled chip groups for the top banners. Renders muscles and aerobic
+// entries as two tiny bordered mini-panels (one on top of the other) so the
+// two categories stay visually distinct even in the tight banner area.
+function BannerChipGroups({ muscles, aerobic, muscleTint, labelBg }: {
+  muscles: MuscleGroup[];
+  aerobic: Array<{ type: string; minutes: number }>;
+  muscleTint: 'emerald' | 'blue';
+  labelBg?: string;
+}) {
+  const muscleTxt = muscleTint === 'emerald' ? 'text-emerald-700 dark:text-emerald-300' : 'text-blue-700 dark:text-blue-300';
+  const bg = labelBg || 'bg-white/85 dark:bg-slate-900/70';
+  const shown = muscles.slice(0, 6);
+  const overflow = muscles.length - shown.length;
+  return (
+    <div className="flex flex-col gap-2 min-w-0 flex-1">
+      {shown.length > 0 && (
+        <div className="relative rounded-md border border-slate-400/30 dark:border-slate-500/40 px-1.5 pt-2 pb-1">
+          <span className={`absolute -top-1.5 right-1.5 px-1 ${bg} text-[8px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400`}>כח</span>
+          <div className="flex flex-wrap gap-1">
+            {shown.map(id => {
+              const m = MUSCLE_BY_ID[id]; if (!m) return null;
+              return <span key={id} className={`text-[9px] px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/40 ${muscleTxt}`}>{m.he}</span>;
+            })}
+            {overflow > 0 && <span className="text-[9px] px-1.5 py-0.5 rounded-full text-muted">+{overflow}</span>}
+          </div>
+        </div>
+      )}
+      {aerobic.length > 0 && (
+        <div className="relative rounded-md border border-cyan-400/50 px-1.5 pt-2 pb-1">
+          <span className={`absolute -top-1.5 right-1.5 px-1 ${bg} text-[8px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400`}>אירובי</span>
+          <div className="flex flex-wrap gap-1">
+            {aerobic.map(a => (
+              <span key={`aer-${a.type}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500 text-white inline-flex items-center gap-1 shadow-sm">
+                <span className="text-[10px] leading-none">{aerobicIcon(a.type)}</span>
+                <bdi>{a.type}</bdi> · {a.minutes}ד
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function startOfWeek(d: Date): Date {
   const out = new Date(d);
   out.setHours(0, 0, 0, 0);
@@ -63,9 +108,24 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
   const [expandedParents, setExpandedParents] = useState<Set<MuscleParent>>(new Set());
   const [confirmDeleteInProgress, setConfirmDeleteInProgress] = useState<string | null>(null);
   const [confirmDeletePlanned, setConfirmDeletePlanned] = useState<string | null>(null);
+  const [movePlanId, setMovePlanId] = useState<string | null>(null);
   const [planForDate, setPlanForDate] = useState<string | null>(null); // YYYY-MM-DD
   const [copyWeekOpen, setCopyWeekOpen] = useState(false);
   const [graphMode, setGraphMode] = useState<GraphMode>('done');
+  // Volume comparison basis — persisted so the user's preference sticks across reloads.
+  //   'goals'     → use targets (or last-week fallback when none set) — the default
+  //   'last-week' → force compare to last week's counts, ignoring configured targets
+  //   'absolute'  → no target, bars fill relatively vs. the busiest muscle
+  const [volumeMode, setVolumeMode] = useState<'goals' | 'last-week' | 'absolute'>(() => {
+    try {
+      const v = localStorage.getItem('freehome:volumeMode');
+      return (v === 'last-week' || v === 'absolute') ? v : 'goals';
+    } catch { return 'goals'; }
+  });
+  function changeVolumeMode(v: 'goals' | 'last-week' | 'absolute') {
+    setVolumeMode(v);
+    try { localStorage.setItem('freehome:volumeMode', v); } catch { /* ignore */ }
+  }
   const [startingId, setStartingId] = useState<string | null>(null);
   const [convertActiveOpen, setConvertActiveOpen] = useState<string | null>(null);
 
@@ -206,11 +266,14 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
     return counts;
   }, [sessions, weekStart.getTime()]);
 
-  // Effective goal per muscle:
-  //   - percent mode: total × percent / 100
-  //   - fixed mode: explicit target if set, else last week's volume for that muscle.
-  //   - either mode with nothing available: 0 (falls back to relative-bars downstream).
+  // Effective goal per muscle. Behavior depends on `volumeMode`:
+  //   'absolute'  → 0 (no target, bars normalize to the busiest muscle)
+  //   'last-week' → last week's real volume for that muscle
+  //   'goals'     → percent mode: total × percent / 100
+  //               → fixed mode: explicit target if set, else last week's fallback
   function effectiveTarget(id: MuscleGroup): number {
+    if (volumeMode === 'absolute') return 0;
+    if (volumeMode === 'last-week') return lastWeekSetsPerMuscle[id] || 0;
     if (goalsMode === 'percent' && goalsTotalSets > 0) {
       const pct = goalsPercents[id] || 0;
       return Math.round(goalsTotalSets * pct / 100);
@@ -324,6 +387,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
         onDeleteActive={() => inProgress && setConfirmDeleteInProgress(inProgress.id)}
         onConvertActive={() => inProgress && setConvertActiveOpen(inProgress.id)}
         onDeletePlanned={() => plannedToday && setConfirmDeletePlanned(plannedToday.id)}
+        onMovePlanned={() => plannedToday && setMovePlanId(plannedToday.id)}
         onStartNew={() => onStartRequest?.()}
       />
 
@@ -352,6 +416,17 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
           }}
         />
       )}
+      {movePlanId && (
+        <MovePlanModal
+          currentYmd={sessions.find(s => s.id === movePlanId)?.plannedFor}
+          onCancel={() => setMovePlanId(null)}
+          onMove={async (newYmd) => {
+            const id = movePlanId;
+            setMovePlanId(null);
+            if (id) { await firestore.movePlannedSession(id, newYmd); await refresh(); }
+          }}
+        />
+      )}
 
       {/* ═══ Section: נפח שבועי ═══ */}
       <section className="mb-6" dir="rtl">
@@ -371,12 +446,29 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                   <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
                   <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
                 </svg>
-                <span>יעדים</span>
+                <span>ערוך</span>
               </button>
             </h2>
-            <div className="inline-flex items-center gap-1 rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-[10px] font-semibold">
-              <ToggleChip active={graphMode === 'done'} onClick={() => setGraphMode('done')} tint="emerald">בוצע</ToggleChip>
-              <ToggleChip active={graphMode === 'planned'} onClick={() => setGraphMode('planned')} tint="blue">+ מתוכנן</ToggleChip>
+            {/* Both toggles live on the same row as the title so the sticky header
+                stays compact. The mode picker uses a select for space efficiency —
+                three segmented chips wouldn't fit next to "בוצע / + מתוכנן". */}
+            <div className="inline-flex items-center gap-2 shrink-0">
+              <select
+                value={volumeMode}
+                onChange={e => changeVolumeMode(e.target.value as any)}
+                aria-label="בסיס השוואה"
+                title="בסיס השוואה"
+                className="text-[10px] font-semibold rounded-full px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-main border border-transparent focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                dir="rtl"
+              >
+                <option value="goals">יעדים</option>
+                <option value="last-week">שבוע שעבר</option>
+                <option value="absolute">מוחלט</option>
+              </select>
+              <div className="inline-flex items-center gap-1 rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-[10px] font-semibold">
+                <ToggleChip active={graphMode === 'done'} onClick={() => setGraphMode('done')} tint="emerald">בוצע</ToggleChip>
+                <ToggleChip active={graphMode === 'planned'} onClick={() => setGraphMode('planned')} tint="blue">+ מתוכנן</ToggleChip>
+              </div>
             </div>
           </div>
         </div>
@@ -620,25 +712,37 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                       className="w-full text-right rounded-xl px-3 py-2 dark:bg-slate-800/60 bg-slate-100/70 hover:bg-slate-100 dark:hover:bg-slate-800 mb-2"
                       dir="rtl"
                     >
-                      <div className="flex gap-1 flex-wrap mb-1.5">
-                        {muscles.map(id => {
-                          const m = MUSCLE_BY_ID[id];
-                          if (!m) return null;
-                          const c = MUSCLE_CLASSES[m.color];
-                          const count = setsPerMuscle.get(id) || 0;
-                          return (
-                            <span key={id} className={`text-[10px] px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>
-                              {m.he} <span className="font-mono opacity-70">· {count}</span>
-                            </span>
-                          );
-                        })}
-                        {groupAerobic(s).map(a => (
-                          <span key={`aer-${a.type}`} className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500 text-white ring-1 ring-cyan-300/60 dark:ring-cyan-400/40 inline-flex items-center gap-1">
-                            <span className="text-[11px] leading-none">{aerobicIcon(a.type)}</span>
-                            <bdi>{a.type}</bdi> <span className="font-mono opacity-90">· {a.minutes}ד</span>
-                          </span>
-                        ))}
-                      </div>
+                      {muscles.length > 0 && (
+                        <div className="relative rounded-lg border border-slate-400/25 dark:border-slate-500/30 p-1.5 pt-3 mb-3">
+                          <span className="absolute -top-2 right-2 px-1.5 dark:bg-slate-800 bg-slate-100 text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">כח</span>
+                          <div className="flex gap-1 flex-wrap">
+                            {muscles.map(id => {
+                              const m = MUSCLE_BY_ID[id];
+                              if (!m) return null;
+                              const c = MUSCLE_CLASSES[m.color];
+                              const count = setsPerMuscle.get(id) || 0;
+                              return (
+                                <span key={id} className={`text-[10px] px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>
+                                  {m.he} <span className="font-mono opacity-70">· {count}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {groupAerobic(s).length > 0 && (
+                        <div className="relative rounded-lg border border-cyan-400/40 p-1.5 pt-3 mb-1.5">
+                          <span className="absolute -top-2 right-2 px-1.5 dark:bg-slate-800 bg-slate-100 text-[9px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">אירובי</span>
+                          <div className="flex gap-1 flex-wrap">
+                            {groupAerobic(s).map(a => (
+                              <span key={`aer-${a.type}`} className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500 text-white ring-1 ring-cyan-300/60 dark:ring-cyan-400/40 inline-flex items-center gap-1">
+                                <span className="text-[11px] leading-none">{aerobicIcon(a.type)}</span>
+                                <bdi>{a.type}</bdi> <span className="font-mono opacity-90">· {a.minutes}ד</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="text-[11px] text-muted flex items-center gap-1.5" dir="rtl">
                         <span className="font-mono font-semibold text-main">{uniq}</span>
                         <span>תרגילים</span>
@@ -688,12 +792,37 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                         </div>
                       )}
                     </button>
-                    {isToday && (
+                    {isToday ? (
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setMovePlanId(s.id)}
+                          className="py-2 rounded-lg border border-blue-500/50 text-blue-700 dark:text-blue-300 hover:bg-blue-500/10 text-xs font-semibold inline-flex items-center justify-center gap-1"
+                        >
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                          </svg>
+                          <span>העבר לתאריך</span>
+                        </button>
+                        <button
+                          onClick={() => handleStartPlanned(s.id)}
+                          disabled={startingId === s.id}
+                          className="py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold disabled:opacity-60"
+                        >{startingId === s.id ? '...מתחיל' : 'התחל תוכנית'}</button>
+                      </div>
+                    ) : (
                       <button
-                        onClick={() => handleStartPlanned(s.id)}
-                        disabled={startingId === s.id}
-                        className="mt-2 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold disabled:opacity-60"
-                      >{startingId === s.id ? '...מתחיל' : 'התחל תוכנית'}</button>
+                        onClick={() => setMovePlanId(s.id)}
+                        className="mt-2 w-full py-2 rounded-lg border border-blue-500/50 text-blue-700 dark:text-blue-300 hover:bg-blue-500/10 text-xs font-semibold inline-flex items-center justify-center gap-1.5"
+                      >
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                        </svg>
+                        <span>העבר לתאריך</span>
+                      </button>
                     )}
                   </div>
                 ))}
@@ -802,7 +931,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
 //   4. Nothing yet       → emerald gradient + invitation + "התחל אימון"
 function TodayTile({
   active, planned, completed, isStarting,
-  onNavigate, onStartPlanned, onReactivate, onDeleteActive, onConvertActive, onDeletePlanned, onStartNew,
+  onNavigate, onStartPlanned, onReactivate, onDeleteActive, onConvertActive, onDeletePlanned, onMovePlanned, onStartNew,
 }: {
   active: FreeSession | null;
   planned: FreeSession | null;
@@ -814,6 +943,7 @@ function TodayTile({
   onDeleteActive: () => void;
   onConvertActive: () => void;
   onDeletePlanned: () => void;
+  onMovePlanned: () => void;
   onStartNew: () => void;
 }) {
   const todayLabel = new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -849,46 +979,43 @@ function TodayTile({
               <span className="text-sm font-bold text-emerald-800 dark:text-emerald-200">אימון פתוח</span>
               <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">{timeLabel}</span>
             </div>
-            <div className="inline-flex items-baseline gap-2 shrink-0">
+            <div className="inline-flex items-center gap-2 shrink-0">
+              {/* Small secondary icons — sit on the visual-left of the title row so
+                  they're accessible without competing with the primary "המשך" CTA. */}
+              <div className="inline-flex items-center gap-0.5">
+                <IconBtn onClick={onConvertActive} title="המר לתוכנית" tint="blue">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </IconBtn>
+                <IconBtn onClick={onDeleteActive} title="מחק" tint="red">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                  </svg>
+                </IconBtn>
+              </div>
               <span className="inline-flex items-baseline gap-1"><span className="font-mono font-bold text-base text-emerald-700 dark:text-emerald-300">{totalExercises}</span><span className="text-[9px] text-emerald-700/70 dark:text-emerald-300/70">תר׳</span></span>
               <span className="text-muted-most">·</span>
               <span className="inline-flex items-baseline gap-1"><span className="font-mono font-bold text-base text-emerald-700 dark:text-emerald-300">{realSets}</span><span className="text-[9px] text-emerald-700/70 dark:text-emerald-300/70">סט׳</span></span>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-2 mt-2">
-            <div className="flex flex-wrap gap-1 min-w-0 flex-1">
-              {active.muscleGroups.slice(0, 6).map(id => {
-                const m = MUSCLE_BY_ID[id]; if (!m) return null;
-                return <span key={id} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/40 text-emerald-700 dark:text-emerald-300">{m.he}</span>;
-              })}
-              {active.muscleGroups.length > 6 && <span className="text-[9px] px-1.5 py-0.5 rounded-full text-muted">+{active.muscleGroups.length - 6}</span>}
-              {groupAerobic(active).map(a => (
-                <span key={`aer-${a.type}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500 text-white inline-flex items-center gap-1 shadow-sm">
-                  <span className="text-[10px] leading-none">{aerobicIcon(a.type)}</span>
-                  <bdi>{a.type}</bdi> · {a.minutes}ד
-                </span>
-              ))}
-            </div>
-            <div className="inline-flex items-center gap-1 shrink-0">
-              <IconBtn onClick={onConvertActive} title="המר לתוכנית" tint="blue">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </IconBtn>
-              <IconBtn onClick={onDeleteActive} title="מחק" tint="red">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                </svg>
-              </IconBtn>
-              <button
-                onClick={() => onNavigate({ page: 'session', sessionId: active.id })}
-                className="ml-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-[0_3px_10px_-2px_rgba(16,185,129,0.5)]"
-              >
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-                <span>המשך</span>
-              </button>
-            </div>
+          {/* Row 2: chip groups on the right (RTL start), single primary CTA on the left */}
+          <div className="flex items-start justify-between gap-2 mt-2">
+            <BannerChipGroups
+              muscles={active.muscleGroups}
+              aerobic={groupAerobic(active)}
+              muscleTint="emerald"
+            />
+            <button
+              onClick={() => onNavigate({ page: 'session', sessionId: active.id })}
+              className="shrink-0 inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-[0_3px_10px_-2px_rgba(16,185,129,0.5)]"
+            >
+              <span>המשך</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+            </button>
           </div>
+          {/* Secondary actions (convert-to-planned + delete) live at the top-left of
+              the title row instead of below the CTA. Cleaner and out of the way. */}
         </div>
       </div>
     );
@@ -914,40 +1041,38 @@ function TodayTile({
               <span className="text-sm font-bold text-blue-800 dark:text-blue-200">תוכנית להיום</span>
               <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-widest">מוכן להתחיל</span>
             </div>
-            <button
-              onClick={() => onNavigate({ page: 'session', sessionId: planned.id })}
-              className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold shrink-0"
-            >ערוך תוכנית ←</button>
-          </div>
-          <div className="flex items-center justify-between gap-2 mt-2">
-            <div className="flex flex-wrap gap-1 min-w-0 flex-1">
-              {planned.muscleGroups.slice(0, 6).map(id => {
-                const m = MUSCLE_BY_ID[id]; if (!m) return null;
-                return <span key={id} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/40 text-blue-700 dark:text-blue-300">{m.he}</span>;
-              })}
-              {planned.muscleGroups.length > 6 && <span className="text-[9px] px-1.5 py-0.5 rounded-full text-muted">+{planned.muscleGroups.length - 6}</span>}
-              {groupAerobic(planned).map(a => (
-                <span key={`aer-${a.type}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500 text-white inline-flex items-center gap-1 shadow-sm">
-                  <span className="text-[10px] leading-none">{aerobicIcon(a.type)}</span>
-                  <bdi>{a.type}</bdi> · {a.minutes}ד
-                </span>
-              ))}
-            </div>
             <div className="inline-flex items-center gap-1 shrink-0">
+              <IconBtn onClick={onMovePlanned} title="העבר לתאריך" tint="blue">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                </svg>
+              </IconBtn>
               <IconBtn onClick={onDeletePlanned} title="מחק תוכנית" tint="red">
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
                 </svg>
               </IconBtn>
               <button
-                onClick={onStartPlanned}
-                disabled={isStarting}
-                className="ml-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-[0_3px_10px_-2px_rgba(59,130,246,0.5)] disabled:opacity-60"
-              >
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-                <span>{isStarting ? '...' : 'התחל תוכנית'}</span>
-              </button>
+                onClick={() => onNavigate({ page: 'session', sessionId: planned.id })}
+                className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold px-1.5"
+              >ערוך</button>
             </div>
+          </div>
+          {/* Row 2: chip groups on the right (RTL start), single primary CTA on the left */}
+          <div className="flex items-start justify-between gap-2 mt-2">
+            <BannerChipGroups
+              muscles={planned.muscleGroups}
+              aerobic={groupAerobic(planned)}
+              muscleTint="blue"
+            />
+            <button
+              onClick={onStartPlanned}
+              disabled={isStarting}
+              className="shrink-0 inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-[0_3px_10px_-2px_rgba(59,130,246,0.5)] disabled:opacity-60"
+            >
+              <span>{isStarting ? '...' : 'התחל תוכנית'}</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -984,19 +1109,12 @@ function TodayTile({
               <span className="inline-flex items-baseline gap-1"><span className="font-mono font-bold text-base text-emerald-700 dark:text-emerald-300">{realSetList.length}</span><span className="text-[9px] text-emerald-700/70 dark:text-emerald-300/70">סט׳</span></span>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-2 mt-2">
-            <div className="flex flex-wrap gap-1 min-w-0 flex-1">
-              {effectiveMuscles(completed.muscleGroups, completed.sets).slice(0, 6).map(id => {
-                const m = MUSCLE_BY_ID[id]; if (!m) return null;
-                return <span key={id} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/40 text-emerald-700 dark:text-emerald-300">{m.he}</span>;
-              })}
-              {groupAerobic(completed).map(a => (
-                <span key={`aer-${a.type}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500 text-white inline-flex items-center gap-1 shadow-sm">
-                  <span className="text-[10px] leading-none">{aerobicIcon(a.type)}</span>
-                  <bdi>{a.type}</bdi> · {a.minutes}ד
-                </span>
-              ))}
-            </div>
+          <div className="flex items-start justify-between gap-2 mt-2">
+            <BannerChipGroups
+              muscles={effectiveMuscles(completed.muscleGroups, completed.sets)}
+              aerobic={groupAerobic(completed)}
+              muscleTint="emerald"
+            />
             <button
               onClick={onReactivate}
               className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-emerald-500/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold"
@@ -1109,27 +1227,12 @@ function ActiveSessionBanner({ session, onDelete, onConvertToPlanned, navigate }
             <span className="text-emerald-600 dark:text-emerald-400 text-base group-hover:-translate-x-0.5 transition-transform mr-1">←</span>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-2 mt-1.5">
-          <div className="flex flex-wrap gap-1 min-w-0">
-            {session.muscleGroups.slice(0, 6).map(id => {
-              const m = MUSCLE_BY_ID[id];
-              if (!m) return null;
-              return (
-                <span key={id} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/40 text-emerald-700 dark:text-emerald-300">
-                  {m.he}
-                </span>
-              );
-            })}
-            {session.muscleGroups.length > 6 && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full text-muted">+{session.muscleGroups.length - 6}</span>
-            )}
-            {groupAerobic(session).map(a => (
-              <span key={`aer-${a.type}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500 text-white inline-flex items-center gap-1 shadow-sm">
-                <span className="text-[10px] leading-none">{aerobicIcon(a.type)}</span>
-                <bdi>{a.type}</bdi> · {a.minutes}ד
-              </span>
-            ))}
-          </div>
+        <div className="flex items-start justify-between gap-2 mt-1.5">
+          <BannerChipGroups
+            muscles={session.muscleGroups}
+            aerobic={groupAerobic(session)}
+            muscleTint="emerald"
+          />
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); onConvertToPlanned(); }}
@@ -1201,50 +1304,52 @@ function PlannedTodayBanner({ session, isStarting, onStart, onDelete }: {
             >{isStarting ? '...' : 'התחל ←'}</button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          {session.muscleGroups.slice(0, 6).map(id => {
-            const m = MUSCLE_BY_ID[id];
-            if (!m) return null;
-            return (
-              <span key={id} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/40 text-blue-700 dark:text-blue-300">
-                {m.he}
-              </span>
-            );
-          })}
-          {session.muscleGroups.length > 6 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full text-muted">+{session.muscleGroups.length - 6}</span>
-          )}
-          {groupAerobic(session).map(a => (
-            <span key={`aer-${a.type}`} className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500 text-white inline-flex items-center gap-1 shadow-sm">
-              <span className="text-[10px] leading-none">{aerobicIcon(a.type)}</span>
-              <bdi>{a.type}</bdi> · {a.minutes}ד
-            </span>
-          ))}
+        <div className="mt-1.5">
+          <BannerChipGroups
+            muscles={session.muscleGroups}
+            aerobic={groupAerobic(session)}
+            muscleTint="blue"
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function MuscleChips({ ids, tint, aerobic }: { ids: MuscleGroup[]; tint: 'blue' | 'emerald'; aerobic?: Array<{ type: string; minutes: number }> }) {
+function MuscleChips({ ids, tint, aerobic, labelBg }: { ids: MuscleGroup[]; tint: 'blue' | 'emerald'; aerobic?: Array<{ type: string; minutes: number }>; labelBg?: string }) {
   const cls = tint === 'blue'
     ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
     : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300';
+  const bg = labelBg || (tint === 'blue' ? 'dark:bg-slate-900 bg-blue-50' : 'dark:bg-slate-900 bg-emerald-50');
+  const hasMuscles = ids.length > 0;
+  const hasAerobic = (aerobic || []).length > 0;
   return (
-    <div className="flex flex-wrap gap-1">
-      {ids.map(id => {
-        const m = MUSCLE_BY_ID[id];
-        if (!m) return null;
-        return (
-          <span key={id} className={`text-[10px] px-1.5 py-0.5 rounded ${cls}`}>{m.he}</span>
-        );
-      })}
-      {(aerobic || []).map(a => (
-        <span key={`aer-${a.type}`} className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500 text-white ring-1 ring-cyan-300/60 dark:ring-cyan-400/40 inline-flex items-center gap-1">
-          <span className="text-[11px] leading-none">{aerobicIcon(a.type)}</span>
-          <bdi>{a.type}</bdi> <span className="font-mono opacity-90">· {a.minutes}ד</span>
-        </span>
-      ))}
+    <div className="space-y-3">
+      {hasMuscles && (
+        <div className="relative rounded-lg border border-slate-400/25 dark:border-slate-500/30 p-1.5 pt-3">
+          <span className={`absolute -top-2 right-2 px-1.5 ${bg} text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider`}>כח</span>
+          <div className="flex flex-wrap gap-1">
+            {ids.map(id => {
+              const m = MUSCLE_BY_ID[id];
+              if (!m) return null;
+              return <span key={id} className={`text-[10px] px-1.5 py-0.5 rounded ${cls}`}>{m.he}</span>;
+            })}
+          </div>
+        </div>
+      )}
+      {hasAerobic && (
+        <div className="relative rounded-lg border border-cyan-400/40 p-1.5 pt-3">
+          <span className={`absolute -top-2 right-2 px-1.5 ${bg} text-[9px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider`}>אירובי</span>
+          <div className="flex flex-wrap gap-1">
+            {(aerobic || []).map(a => (
+              <span key={`aer-${a.type}`} className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500 text-white ring-1 ring-cyan-300/60 dark:ring-cyan-400/40 inline-flex items-center gap-1">
+                <span className="text-[11px] leading-none">{aerobicIcon(a.type)}</span>
+                <bdi>{a.type}</bdi> <span className="font-mono opacity-90">· {a.minutes}ד</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

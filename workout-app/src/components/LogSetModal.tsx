@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MuscleGroup } from '../data/muscles';
-import { MUSCLE_BY_ID, MUSCLE_CLASSES, ACTIVE_MUSCLES } from '../data/muscles';
+import { MUSCLE_BY_ID, MUSCLE_CLASSES, PARENT_INFO, musclesByParent } from '../data/muscles';
+import { ExerciseInline } from './FreeSession';
+import type { MuscleParent } from '../data/muscles';
 import type { FreeSet } from '../types';
 import {
   exerciseIdOf,
@@ -24,10 +26,16 @@ type Props = {
   //   'exercise' → one "שמור תרגיל" (pick-only, no weight/reps required)
   //   'dual'     → BOTH — used when the modal is opened via a muscle-group tile so the user can go either way
   saveMode?: 'set' | 'exercise' | 'dual';
+  // When set, the modal renders in "replace this exercise" mode — swaps the header
+  // and CTA to make it obvious we're substituting, not just adding.
+  replacingName?: string;
+  // Current session id — used to attach per-session difficulty ratings and to load
+  // notes/difficulty for the currently-selected exercise inline.
+  sessionId?: string;
   onClose: () => void;
   onSave: (set: Omit<FreeSet, 'id' | 'timestamp'>, editingSetId?: string) => void;
   // Called when saving as exercise-only (no weight/reps). Fires from 'exercise' or 'dual' modes.
-  onPickOnly?: (name: string, muscle: MuscleGroup) => void;
+  onPickOnly?: (name: string, muscle: MuscleGroup, en?: string, isHoldTime?: boolean) => void;
 };
 
 function isVideoUrl(src: string): boolean {
@@ -56,6 +64,8 @@ function weeksAgoLabel(ts: number): string {
 export function LogSetModal({
   uid, sessionMuscles, defaultMuscle, allPastSets, editingSet, duplicateFrom,
   saveMode = 'set',
+  replacingName,
+  sessionId,
   onClose, onSave, onPickOnly,
 }: Props) {
   const showSet = saveMode === 'set' || saveMode === 'dual';
@@ -210,34 +220,18 @@ export function LogSetModal({
       .sort((a, b) => b.timestamp - a.timestamp)[0] || null;
   }, [currentName, allPastSets]);
 
-  // Prefill weight/reps. Preference order:
-  //   1. Most-recent set of the SAME exercise (regardless of muscle) — most useful
-  //   2. Most-recent set of the same muscle — fallback for a fresh exercise on a familiar muscle
-  //   3. 12 × 0kg — neutral default
+  // Prefill weight/reps. Simpler contract per user request:
+  //   1. If we have history for THIS exercise → use last set's reps + weight
+  //   2. Otherwise → 12 × 0kg (neutral default). No cross-muscle heuristic —
+  //      that used to leak unrelated reps counts and confused new sets.
   useEffect(() => {
     if (seed) return;
-    const target = currentName?.trim().toLowerCase();
-    // 1. Same-exercise last set
-    if (target && lastSetForExercise) {
+    if (lastSetForExercise) {
       setWeight(String(lastSetForExercise.weight));
       setReps(String(lastSetForExercise.reps));
       if (lastSetForExercise.unit) setUnit(lastSetForExercise.unit);
       return;
     }
-    // 2. Same-muscle last real set
-    if (muscle) {
-      const relevant = allPastSets
-        .filter(s => s.muscle === muscle && s.weight > 0 && s.reps > 0)
-        .sort((a, b) => b.timestamp - a.timestamp);
-      if (relevant.length > 0) {
-        const last = relevant[0];
-        setWeight(String(last.weight));
-        setReps(String(last.reps));
-        if (last.unit) setUnit(last.unit);
-        return;
-      }
-    }
-    // 3. Neutral default
     setReps('12');
     setWeight('0');
   }, [muscle, currentName, lastSetForExercise]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -255,10 +249,16 @@ export function LogSetModal({
   }, [muscle, allPastSets]);
   const muscleWorkedRecentlyLabel = useMemo(() => {
     if (!muscleLastTrainedMs) return null;
-    const hoursAgo = (Date.now() - muscleLastTrainedMs) / 3_600_000;
-    if (hoursAgo > 48) return null;
-    if (hoursAgo < 24) return 'היום';
-    return 'אתמול';
+    // Calendar-day diff, not raw hours — otherwise a 26-hour gap that straddles
+    // midnight ('היום' → 'אתמול') was being read as 'אתמול' when it should be
+    // 'שלשום', or a 50-hour gap as 'over 2 days' — off by one day for the user.
+    const startOfDay = (t: number) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+    const daysAgo = Math.round((startOfDay(Date.now()) - startOfDay(muscleLastTrainedMs)) / 86_400_000);
+    if (daysAgo <= 0) return 'היום';
+    if (daysAgo === 1) return 'אתמול';
+    if (daysAgo === 2) return 'שלשום';
+    if (daysAgo <= 3) return `לפני ${daysAgo} ימים`;
+    return null;
   }, [muscleLastTrainedMs]);
 
   // Per-exercise range for the last 30 days — includes bodyweight (0kg) sets too
@@ -327,9 +327,18 @@ export function LogSetModal({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overlay-solid">
-      <div className="flex flex-row-reverse items-center justify-between p-4 border-b border-subtle">
-        <h2 className="font-bold text-lg" dir="rtl">{isEdit ? 'עריכת סט' : 'סט חדש'}</h2>
-        <button onClick={onClose} className="text-muted text-2xl">×</button>
+      <div className="flex items-center justify-between p-4 border-b border-subtle" dir="rtl">
+        <div className="min-w-0 flex-1">
+          <h2 className="font-bold text-lg truncate">
+            {replacingName ? 'החלף תרגיל' : isEdit ? 'עריכת סט' : 'סט חדש'}
+          </h2>
+          {replacingName && (
+            <div className="text-[11px] text-muted truncate">
+              במקום <span className="font-semibold text-main">{replacingName}</span>
+            </div>
+          )}
+        </div>
+        <button onClick={onClose} aria-label="סגור" className="text-muted text-2xl leading-none shrink-0">×</button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -372,16 +381,34 @@ export function LogSetModal({
             </button>
           </div>
           {showAddMuscle && (
-            <div className="mt-2 grid grid-cols-3 gap-1.5" dir="rtl">
-              {ACTIVE_MUSCLES.filter(m => !chipMuscles.includes(m.id)).map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => { setMuscle(m.id); setShowAddMuscle(false); clearExercise(); }}
-                  className="text-[11px] py-1.5 px-2 rounded dark:bg-slate-800 bg-slate-100 text-muted dark:hover:bg-slate-700 hover:bg-slate-200"
-                >
-                  {m.he}
-                </button>
-              ))}
+            <div className="mt-2 space-y-3" dir="rtl">
+              {/* Grouped by parent (חזה / גב / etc.) so scanning is quick — sub-muscles
+                  live under their group header instead of one big undifferentiated grid. */}
+              {(['chest','back','shoulders','arms','legs','core'] as MuscleParent[]).map(parent => {
+                const info = PARENT_INFO[parent];
+                const rows = musclesByParent(parent).filter(m => !chipMuscles.includes(m.id));
+                if (rows.length === 0) return null;
+                const parentCls = MUSCLE_CLASSES[info.color];
+                return (
+                  <div key={parent}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`w-1.5 h-3 rounded-full ${parentCls?.bar || 'bg-slate-400'}`} />
+                      <span className={`text-[10px] uppercase tracking-widest font-bold ${parentCls?.text || 'text-muted'}`}>{info.he}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {rows.map(m => (
+                        <button
+                          key={m.id}
+                          onClick={() => { setMuscle(m.id); setShowAddMuscle(false); clearExercise(); }}
+                          className="text-[11px] py-1.5 px-2 rounded dark:bg-slate-800 bg-slate-100 text-muted dark:hover:bg-slate-700 hover:bg-slate-200"
+                        >
+                          {m.he}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
           {muscle && muscleWorkedRecentlyLabel && (
@@ -618,20 +645,10 @@ export function LogSetModal({
           </div>
         )}
 
-        {/* Weight + reps (or seconds when hold-time) */}
+        {/* Weight + reps (or seconds when hold-time). In RTL grid, first DOM child
+            goes to the RIGHT column. Put reps first so reps sit on the right and
+            weight on the left — matches the original layout the user is used to. */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[11px] font-medium dark:text-slate-300 text-slate-700 mb-1.5 text-right" dir="rtl">משקל ({unit})</label>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={weight}
-              onChange={e => { const v = e.target.value; if (v === '' || /^[0-9]*\.?[0-9]*$/.test(v)) setWeight(v); }}
-              onFocus={e => e.currentTarget.select()}
-              placeholder="0"
-              className="input-field !text-lg !py-3 !text-center"
-            />
-          </div>
           <div>
             <label className="block text-[11px] font-medium dark:text-slate-300 text-slate-700 mb-1.5 text-right" dir="rtl">
               {selectedExercise?.isHoldTime ? 'שניות' : 'חזרות'}
@@ -643,6 +660,18 @@ export function LogSetModal({
               onChange={e => { const v = e.target.value; if (v === '' || /^[0-9]*$/.test(v)) setReps(v); }}
               onFocus={e => e.currentTarget.select()}
               placeholder={selectedExercise?.isHoldTime ? '30' : '12'}
+              className="input-field !text-lg !py-3 !text-center"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium dark:text-slate-300 text-slate-700 mb-1.5 text-right" dir="rtl">משקל ({unit})</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={weight}
+              onChange={e => { const v = e.target.value; if (v === '' || /^[0-9]*\.?[0-9]*$/.test(v)) setWeight(v); }}
+              onFocus={e => e.currentTarget.select()}
+              placeholder="0"
               className="input-field !text-lg !py-3 !text-center"
             />
           </div>
@@ -658,6 +687,13 @@ export function LogSetModal({
             >{u}</button>
           ))}
         </div>
+
+        {/* Difficulty + notes — inline, on the set page. Same widget the logged card
+            uses, so ratings/notes attached here appear on the card later. Only shows
+            once an exercise is selected AND we know the current session id. */}
+        {sessionId && currentName && (
+          <ExerciseInline uid={uid} exerciseName={currentName} sessionId={sessionId} />
+        )}
 
         {/* Hold-time timer — scoreboard-style tool for hold-time exercises */}
         {selectedExercise?.isHoldTime && (
@@ -710,7 +746,7 @@ export function LogSetModal({
             <button
               onClick={() => {
                 if (!muscle || !currentName.trim()) return;
-                onPickOnly?.(currentName.trim(), muscle);
+                onPickOnly?.(currentName.trim(), muscle, selectedExercise?.en, selectedExercise?.isHoldTime);
                 onClose();
               }}
               disabled={!hasContext || !currentName.trim()}
@@ -734,14 +770,14 @@ export function LogSetModal({
           <button
             onClick={() => {
               if (!muscle || !currentName.trim()) return;
-              onPickOnly?.(currentName.trim(), muscle);
+              onPickOnly?.(currentName.trim(), muscle, selectedExercise?.en, selectedExercise?.isHoldTime);
               onClose();
             }}
             disabled={!hasContext || !currentName.trim()}
             className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
               hasContext && currentName.trim() ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
             }`}
-          >שמור תרגיל</button>
+          >{replacingName ? 'החלף בתרגיל הנבחר' : 'שמור תרגיל'}</button>
         ) : showSet ? (
           <button
             onClick={() => doSave(false)}

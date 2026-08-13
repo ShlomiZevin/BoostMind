@@ -4,6 +4,7 @@ import { MUSCLE_BY_ID, MUSCLE_CLASSES, effectiveMuscles } from '../data/muscles'
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { TabActions } from './TopBarActions';
+import { MovePlanModal } from './MovePlanModal';
 
 type Props = {
   uid: string;
@@ -59,28 +60,43 @@ function rangeBounds(key: RangeKey): { from: number; to: number } {
   }
 }
 
+type StatusFilter = 'completed' | 'planned' | 'all';
+const STATUS_FILTERS: Array<{ key: StatusFilter; label: string }> = [
+  { key: 'completed', label: 'בוצעו' },
+  { key: 'planned',   label: 'מתוכננים' },
+  { key: 'all',       label: 'הכל' },
+];
+
 export function FreeHistory({ uid, navigate }: Props) {
   const firestore = useFirestore(uid);
   const [sessions, setSessions] = useState<FreeSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>('last-week');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('completed');
+  const [movePlanId, setMovePlanId] = useState<string | null>(null);
   const [dupSourceId, setDupSourceId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const refresh = () => {
     firestore.getFreeSessions().then(s => {
-      // History = completed only. Planned/active sessions live on Home, not here.
-      setSessions(s.filter(x => x.status === 'completed'));
+      // All sessions loaded here; completed/planned filter is applied at render time.
+      setSessions(s);
       setLoading(false);
     });
-  }, []);
+  };
+  useEffect(() => { refresh(); }, []);
 
   const filtered = useMemo(() => {
     const { from, to } = rangeBounds(range);
     return sessions.filter(s => {
+      if (statusFilter === 'completed' && s.status !== 'completed') return false;
+      if (statusFilter === 'planned' && s.status !== 'planned') return false;
+      // 'all' passes everything, but never show in-progress sessions here
+      // (they belong on Home). Active sessions from the past should still show.
+      if (statusFilter === 'all' && s.status === 'active') return false;
       const ts = s.completedAt || s.date;
       return ts >= from && ts < to;
     });
-  }, [sessions, range]);
+  }, [sessions, range, statusFilter]);
 
   return (
     <div className="page-bg min-h-screen">
@@ -106,7 +122,24 @@ export function FreeHistory({ uid, navigate }: Props) {
             </span>
           </div>
         </div>
-        <div className="card !p-2">
+        <div className="card !p-2 space-y-2">
+          {/* Status filter — completed / planned / all */}
+          <div className="grid grid-cols-3 gap-2">
+            {STATUS_FILTERS.map(f => {
+              const active = f.key === statusFilter;
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => setStatusFilter(f.key)}
+                  className={`text-center text-xs px-2 py-1.5 rounded-lg transition-colors ${
+                    active
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'dark:bg-slate-800 bg-slate-100 text-main dark:hover:bg-slate-700 hover:bg-slate-200'
+                  }`}
+                >{f.label}</button>
+              );
+            })}
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {RANGES.map(r => {
               const active = r.key === range;
@@ -136,51 +169,104 @@ export function FreeHistory({ uid, navigate }: Props) {
 
       <div className="space-y-2">
         {filtered.map(s => {
+          const isPlanned = s.status === 'planned';
           const d = new Date(s.completedAt || s.date);
-          const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+          const dateStr = isPlanned && s.plannedFor
+            ? s.plannedFor.split('-').reverse().join('/')
+            : `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
           const dowStr = d.toLocaleDateString('he-IL', { weekday: 'short' });
           const realSets = s.sets.filter(x => x.weight > 0 || x.reps > 0);
           const setsPerMuscle = new Map<string, number>();
           for (const set of realSets) setsPerMuscle.set(set.muscle, (setsPerMuscle.get(set.muscle) || 0) + 1);
           const muscles = effectiveMuscles(s.muscleGroups, s.sets);
-          const uniqExercises = new Set(realSets.map(x => (x.exerciseName || '').toLowerCase()).filter(Boolean)).size;
+          const uniqExercises = isPlanned
+            ? new Set((s.plannedExercises || []).map(e => e.name.toLowerCase())).size
+            : new Set(realSets.map(x => (x.exerciseName || '').toLowerCase()).filter(Boolean)).size;
           const aerobicByType = new Map<string, number>();
           for (const e of s.aerobicEntries || []) aerobicByType.set(e.type, (aerobicByType.get(e.type) || 0) + (e.minutes || 0));
+          const hasStrength = muscles.length > 0;
+          const hasAerobic = aerobicByType.size > 0;
           return (
-            <div key={s.id} className="card text-right dark:hover:bg-slate-800 hover:bg-slate-50" dir="rtl">
-              <button onClick={() => navigate({ page: 'session-view', sessionId: s.id })} className="w-full text-right" dir="rtl">
+            <div key={s.id} className={`card text-right dark:hover:bg-slate-800 hover:bg-slate-50 ${isPlanned ? 'border border-blue-500/30' : ''}`} dir="rtl">
+              <button
+                onClick={() => navigate(isPlanned ? { page: 'session', sessionId: s.id } : { page: 'session-view', sessionId: s.id })}
+                className="w-full text-right"
+                dir="rtl"
+              >
                 <div className="flex items-center justify-between mb-2" dir="rtl">
-                  <span className="text-sm font-semibold">{dowStr}</span>
+                  <div className="inline-flex items-center gap-1.5">
+                    <span className="text-sm font-semibold">{dowStr}</span>
+                    {isPlanned && (
+                      <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-300">מתוכנן</span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-muted font-mono" dir="ltr">{dateStr}</span>
                 </div>
-                <div className="flex gap-1 flex-wrap justify-start mb-1.5" dir="rtl">
-                  {muscles.map(id => {
-                    const m = MUSCLE_BY_ID[id];
-                    if (!m) return null;
-                    const c = MUSCLE_CLASSES[m.color];
-                    const count = setsPerMuscle.get(id) || 0;
-                    return (
-                      <span key={id} className={`text-[10px] px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>
-                        {m.he} <span className="font-mono opacity-70">· {count}</span>
-                      </span>
-                    );
-                  })}
-                  {Array.from(aerobicByType.entries()).map(([type, minutes]) => (
-                    <span key={`aer-${type}`} className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500 text-white ring-1 ring-cyan-300/60 dark:ring-cyan-400/40 inline-flex items-center gap-1">
-                      <span className="text-[11px] leading-none">{AEROBIC_ICON[type] || '❤'}</span>
-                      <bdi>{type}</bdi> <span className="font-mono opacity-90">· {minutes}ד</span>
-                    </span>
-                  ))}
-                </div>
+                {/* Strength / muscle chips — grouped in a labeled mini-panel so it's
+                    visually distinct from the aerobic panel underneath. Same chip size. */}
+                {hasStrength && (
+                  <div className="relative mb-3 rounded-lg border border-slate-400/25 dark:border-slate-500/30 p-1.5 pt-3">
+                    <span className="absolute -top-2 right-2 px-1.5 dark:bg-slate-900 bg-white text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">כח</span>
+                    <div className="flex gap-1 flex-wrap justify-start" dir="rtl">
+                      {muscles.map(id => {
+                        const m = MUSCLE_BY_ID[id];
+                        if (!m) return null;
+                        const c = MUSCLE_CLASSES[m.color];
+                        const count = setsPerMuscle.get(id) || 0;
+                        return (
+                          <span key={id} className={`text-[10px] px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>
+                            {m.he} {!isPlanned && <span className="font-mono opacity-70">· {count}</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {hasAerobic && (
+                  <div className="relative mb-1.5 rounded-lg border border-cyan-400/40 p-1.5 pt-3">
+                    <span className="absolute -top-2 right-2 px-1.5 dark:bg-slate-900 bg-white text-[9px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">אירובי</span>
+                    <div className="flex gap-1 flex-wrap justify-start" dir="rtl">
+                      {Array.from(aerobicByType.entries()).map(([type, minutes]) => (
+                        <span key={`aer-${type}`} className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500 text-white ring-1 ring-cyan-300/60 dark:ring-cyan-400/40 inline-flex items-center gap-1">
+                          <span className="text-[11px] leading-none">{AEROBIC_ICON[type] || '❤'}</span>
+                          <bdi>{type}</bdi> <span className="font-mono opacity-90">· {minutes}ד</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="text-xs text-muted text-right flex items-center gap-1.5 justify-end" dir="rtl">
                   <span className="font-mono font-semibold text-main">{uniqExercises}</span>
                   <span>תרגילים</span>
-                  <span className="text-muted-most">·</span>
-                  <span className="font-mono font-semibold text-main">{realSets.length}</span>
-                  <span>סטים</span>
+                  {!isPlanned && (
+                    <>
+                      <span className="text-muted-most">·</span>
+                      <span className="font-mono font-semibold text-main">{realSets.length}</span>
+                      <span>סטים</span>
+                    </>
+                  )}
                 </div>
               </button>
-              <div className="flex justify-end mt-2 pt-2 border-t border-subtle/60">
+              <div className="flex justify-end mt-2 pt-2 border-t border-subtle/60 gap-2">
+                {isPlanned && (
+                  <button
+                    onClick={() => setMovePlanId(s.id)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold
+                               px-3 py-1.5 rounded-full
+                               dark:bg-blue-900/40 bg-blue-100
+                               text-blue-700 dark:text-blue-300
+                               dark:hover:bg-blue-900/60 hover:bg-blue-200 transition-colors"
+                  >
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <span>העבר לתאריך</span>
+                  </button>
+                )}
+                {!isPlanned && (
                 <button
                   onClick={() => setDupSourceId(s.id)}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold
@@ -195,6 +281,7 @@ export function FreeHistory({ uid, navigate }: Props) {
                   </svg>
                   <span>שכפל אימון</span>
                 </button>
+                )}
               </div>
             </div>
           );
@@ -210,6 +297,17 @@ export function FreeHistory({ uid, navigate }: Props) {
             if (!src) return;
             const newId = await firestore.duplicateFreeSession(src, { includeExercises });
             if (newId) navigate({ page: 'session', sessionId: newId });
+          }}
+        />
+      )}
+      {movePlanId && (
+        <MovePlanModal
+          currentYmd={sessions.find(s => s.id === movePlanId)?.plannedFor}
+          onCancel={() => setMovePlanId(null)}
+          onMove={async (newYmd) => {
+            await firestore.movePlannedSession(movePlanId, newYmd);
+            setMovePlanId(null);
+            refresh();
           }}
         />
       )}

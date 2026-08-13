@@ -152,6 +152,28 @@ export type SupersetPair = {
   hidden?: boolean;         // user chose "אל תציע שוב"
 };
 
+// User profile — collected during onboarding, editable in Settings, and updatable
+// via conversation with the AI (the trainer can emit an update_profile action).
+// Any field may be missing; the AI treats absent fields as "not asked yet".
+export type UserProfile = {
+  name?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  goal?: 'mass' | 'cut' | 'strength' | 'health';
+  daysPerWeek?: 2 | 3 | 4 | 5 | 6 | 7;
+  focusMuscles?: MuscleGroup[];  // canonical muscle keys
+  focus?: string;                 // free-form label e.g. 'push_pull_legs' or 'גוף מלא'
+  limitations?: string;
+  // Set when the user finishes the onboarding wizard (or chooses to skip).
+  // Used to gate whether we auto-open onboarding on next login.
+  onboardingCompletedAt?: number;
+  // Explicit user request to (re-)open the onboarding chat. Overrides the legacy
+  // "has any data → mark complete" backfill so the reopen button always works,
+  // even for accounts that already have sessions/exercises. Cleared automatically
+  // when the user completes or skips the reopened chat.
+  forceOnboarding?: boolean;
+  updatedAt?: number;
+};
+
 // Route types
 export type Route =
   | { page: 'home' }

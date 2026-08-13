@@ -43,5 +43,17 @@ service cloud.firestore {
     match /defaultExercisePhotos/{docId} {
       allow read, write: if true;
     }
+    // Global exercise DB — shared across all users. Read-open; write also open
+    // for now (client-side gating restricts writes to the admin user). Once the
+    // Firebase Auth migration lands we tighten this to `request.auth.token.email == "shlomi@boostart.io"`.
+    match /exercises/{docId} {
+      allow read, write: if true;
+    }
+    // Auth alias: firebaseAuthUid → legacyUid. Written from Settings when a user
+    // claims an existing passcode-based account (used by shlomi@boostart.io when
+    // signing in with a Google email that doesn't match the hardcoded map).
+    match /authAliases/{authUid} {
+      allow read, write: if true;
+    }
   }
 }

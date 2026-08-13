@@ -1,14 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { FreeSet } from '../types';
+import type { FreeSet, FreeSession } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, ACTIVE_MUSCLES } from '../data/muscles';
 import { type PersonalExercise } from '../data/exercisesDB';
 import { CHAT_API_URL } from '../config/api';
 import { useFirestore } from '../hooks/useFirestore';
+import type { UserProfile } from '../types';
 
 type Props = {
   uid: string;
-  mode?: 'session' | 'naming';
+  mode?: 'session' | 'naming' | 'onboarding' | 'trainer';
+  // Onboarding-mode: invoked when the AI emits a ready_to_build action.
+  // Component owns the collected profile at that point; the parent triggers plan build.
+  onReadyToBuild?: (profile: ActionReadyToBuild) => void;
+  // Invoked whenever the AI emits an update_profile action — parent decides what to
+  // do (usually: persist the patch to Firestore + refresh in-memory state).
+  onProfilePatch?: (patch: Record<string, unknown>) => void;
+  // Small inline CTA that renders below the initial assistant greeting and
+  // auto-hides as soon as the user sends their first message. Used by
+  // OnboardingScreen to expose a low-key "דלג לעכשיו" escape.
+  earlySkipCta?: { label: string; onClick: () => void };
+  // Explicit stable thread id — overrides the default (resume latest / new).
+  // Used by OnboardingScreen to always land on the same "שיחת ההיכרות" thread
+  // whether it's the user's first onboarding or a reopen of an existing chat.
+  fixedThreadId?: string;
   // Session-mode props (defaults for naming mode)
   sessionMuscles?: MuscleGroup[];
   recentSets?: FreeSet[];
@@ -43,6 +58,8 @@ type Props = {
   currentSessionPlannedFor?: string;
   // Short summary of aerobic done in this session — e.g. "15 דק' ריצה, 20 דק' אופניים".
   currentSessionAerobicSummary?: string;
+  // Trainer mode: planned upcoming sessions so the AI can answer "מה מתוכנן לי השבוע?".
+  plannedSessions?: FreeSession[];
   onClose: () => void;
 };
 
@@ -66,7 +83,32 @@ type ActionRenameExercise = {
   muscle?: string;
 };
 
-type ChatAction = ActionSuggestExercise | ActionRenameExercise;
+type ActionQuickReplies = {
+  type: 'quick_replies';
+  options: string[];
+};
+
+// Emitted at end of onboarding; carries the profile the AI collected.
+// The client uses it to enable the "בנה לי את התוכנית" button + kick off plan generation.
+type ActionReadyToBuild = {
+  type: 'ready_to_build';
+  name?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  goal?: 'mass' | 'cut' | 'strength' | 'health';
+  daysPerWeek?: 2 | 3 | 4 | 5;
+  focus?: string;
+  focusMuscles?: string[];
+  limitations?: string;
+};
+
+// Emitted whenever the AI learns / infers a profile field. The client persists
+// the patch to Firestore immediately so state survives reloads and reads.
+type ActionUpdateProfile = {
+  type: 'update_profile';
+  patch: Record<string, unknown>;
+};
+
+type ChatAction = ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile;
 
 // Parse the response into a sequence of text chunks and action blocks so that
 // action cards render inline where the model placed them, not clumped at the end.
@@ -84,6 +126,12 @@ function parseChunks(text: string): Chunk[] {
       if (parsed?.type === 'suggest_exercise' && parsed.name) {
         out.push({ type: 'action', action: parsed });
       } else if (parsed?.type === 'rename_exercise' && parsed.id && parsed.newHe) {
+        out.push({ type: 'action', action: parsed });
+      } else if (parsed?.type === 'quick_replies' && Array.isArray(parsed.options)) {
+        out.push({ type: 'action', action: parsed });
+      } else if (parsed?.type === 'ready_to_build') {
+        out.push({ type: 'action', action: parsed });
+      } else if (parsed?.type === 'update_profile' && parsed.patch && typeof parsed.patch === 'object') {
         out.push({ type: 'action', action: parsed });
       }
     } catch { /* ignore malformed */ }
@@ -104,9 +152,27 @@ function parseChunks(text: string): Chunk[] {
 
 type Thread = { id: string; title: string; ts: number; messages: Msg[] };
 
-const THREADS_KEY = (uid: string, mode: string) => `aichat:threads:${uid}:${mode}`;
+// UNIFIED coach history: onboarding, trainer, AND in-session AI chats all share
+// the same "coach" storage bucket. Naming mode stays separate (different task).
+// The mode only changes the SYSTEM PROMPT sent to the server per turn, not the
+// thread archive — one continuous conversation the user can revisit from any
+// entry point.
+function storageMode(mode: string): string {
+  return mode === 'naming' ? 'naming' : 'coach';
+}
+const THREADS_KEY = (uid: string, mode: string) => `aichat:threads:${uid}:${storageMode(mode)}`;
 // Legacy single-thread key — migrated once on first load.
-const LEGACY_KEY = (uid: string, mode: string) => `aichat:history:${uid}:${mode}`;
+const LEGACY_KEY = (uid: string, mode: string) => `aichat:history:${uid}:${storageMode(mode)}`;
+// Older per-mode thread keys — merged into 'coach' on first load so users
+// don't lose earlier conversations from any entry point.
+const LEGACY_MODE_KEYS = (uid: string, mode: string): string[] => {
+  if (storageMode(mode) !== 'coach') return [];
+  return [
+    `aichat:threads:${uid}:onboarding`,
+    `aichat:threads:${uid}:trainer`,
+    `aichat:threads:${uid}:session`,
+  ];
+};
 
 function startOfToday(): number {
   const d = new Date();
@@ -132,6 +198,7 @@ function computeThreadTitle(messages: Msg[], fallbackTs: number): string {
 
 function loadTodaysThreads(uid: string, mode: string): Thread[] {
   const cutoff = startOfToday();
+  const isCoach = storageMode(mode) === 'coach';
   let threads: Thread[] = [];
   try {
     const raw = localStorage.getItem(THREADS_KEY(uid, mode));
@@ -140,6 +207,25 @@ function loadTodaysThreads(uid: string, mode: string): Thread[] {
       if (Array.isArray(arr)) threads = arr;
     }
   } catch { /* ignore */ }
+
+  // One-time merge from OLDER per-mode keys ('onboarding', 'trainer') into the
+  // unified coach bucket so users don't lose their onboarding conversation.
+  if (isCoach) {
+    const seenIds = new Set(threads.map(t => t.id));
+    for (const key of LEGACY_MODE_KEYS(uid, mode)) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) {
+          for (const t of arr) {
+            if (t?.id && !seenIds.has(t.id)) { threads.push(t); seenIds.add(t.id); }
+          }
+        }
+        localStorage.removeItem(key);
+      } catch { /* ignore */ }
+    }
+  }
 
   // One-time migration from the old single-thread key, if present and same-day.
   if (threads.length === 0) {
@@ -164,9 +250,11 @@ function loadTodaysThreads(uid: string, mode: string): Thread[] {
     } catch { /* ignore */ }
   }
 
-  // Only today's threads survive. Older ones silently drop.
-  return threads
-    .filter(t => t.ts >= cutoff)
+  // Coach threads survive across days — the trainer relationship is long-lived,
+  // and returning to the onboarding conversation is a core UX. Session/naming
+  // threads still expire nightly to keep the list clean.
+  const survivors = isCoach ? threads : threads.filter(t => t.ts >= cutoff);
+  return survivors
     .map(t => ({ ...t, messages: (t.messages || []).slice(-50) }))
     .sort((a, b) => b.ts - a.ts);
 }
@@ -178,12 +266,18 @@ function saveThreads(uid: string, mode: string, threads: Thread[]) {
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
 }: Props) {
   const firestore = useFirestore(uid);
   const [personalExercises, setPersonalExercises] = useState<PersonalExercise[]>([]);
+  // Local snapshot of the user profile — refetched on mount + after each update_profile
+  // action so the SERVER prompt always sees fresh state on the next turn.
+  const [userProfile, setUserProfile] = useState<UserProfile>({});
   const [threads, setThreads] = useState<Thread[]>(() => loadTodaysThreads(uid, mode));
   const [activeId, setActiveId] = useState<string>(() => {
+    // Explicit stable id wins: pin the panel to this thread whether it exists
+    // yet or not. The lazy-create effect below fills in an empty thread record.
+    if (fixedThreadId) return fixedThreadId;
     const existing = loadTodaysThreads(uid, mode);
     if (newThreadOnMount || existing.length === 0) {
       const t = Date.now();
@@ -238,7 +332,12 @@ export function AiChatPanel({
 
   useEffect(() => {
     firestore.listPersonalExercises().then(setPersonalExercises);
-  }, [uid]);
+    // Only trainer + onboarding modes actually use the profile — cheap to load anyway
+    // and lets action-driven updates always start from fresh state.
+    if (mode === 'onboarding' || mode === 'trainer') {
+      firestore.getUserProfile().then(setUserProfile).catch(() => setUserProfile({}));
+    }
+  }, [uid, mode]);
 
   // Auto-send an initialPrompt when the panel opens (used by quick-action chips).
   useEffect(() => {
@@ -442,6 +541,17 @@ export function AiChatPanel({
           recentSets: setsPayload,
           sessionMuscles,
           replaceContext,  // signals to the server this is a REPLACE flow
+          // Only send profile for modes that use it — keeps other modes lean.
+          userProfile: (mode === 'onboarding' || mode === 'trainer') ? userProfile : undefined,
+          // Trainer mode: summarize upcoming planned sessions so the AI can
+          // reference the actual schedule when the user asks about it.
+          plannedSessions: mode === 'trainer'
+            ? plannedSessions.slice(0, 20).map(s => ({
+                plannedFor: s.plannedFor,
+                muscleGroups: s.muscleGroups,
+                exercises: (s.plannedExercises || []).map(e => ({ name: e.name, muscle: e.muscle })),
+              }))
+            : undefined,
         }),
       });
       if (!resp.ok) {
@@ -463,6 +573,27 @@ export function AiChatPanel({
         ts: Date.now(),
         truncated,
       }]);
+      // Auto-persist any update_profile action blocks the AI emitted. Doing this in
+      // the send handler (rather than at render time) means state persists exactly
+      // once per response — not once per re-render of that message.
+      if (mode === 'onboarding' || mode === 'trainer') {
+        const chunks = parseChunks(text);
+        const patches: Record<string, unknown> = {};
+        for (const ch of chunks) {
+          if (ch.type === 'action' && ch.action.type === 'update_profile') {
+            Object.assign(patches, ch.action.patch);
+          }
+        }
+        if (Object.keys(patches).length > 0) {
+          try {
+            const merged = await firestore.updateUserProfile(patches);
+            setUserProfile(merged);
+            if (onProfilePatch) onProfilePatch(patches);
+          } catch (err) {
+            console.warn('update_profile persist failed', err);
+          }
+        }
+      }
     } catch (e: any) {
       setError(e?.message || String(e));
     } finally {
@@ -472,7 +603,10 @@ export function AiChatPanel({
 
   function actionKey(a: ChatAction, mi: number, ci: number): string {
     if (a.type === 'suggest_exercise') return `s:${mi}:${ci}:${a.name}`;
-    return `r:${mi}:${ci}:${a.id}`;
+    if (a.type === 'rename_exercise') return `r:${mi}:${ci}:${a.id}`;
+    if (a.type === 'quick_replies') return `q:${mi}:${ci}`;
+    if (a.type === 'update_profile') return `u:${mi}:${ci}`;
+    return `b:${mi}:${ci}`; // ready_to_build
   }
 
   async function handleSuggestAction(a: ActionSuggestExercise, key: string) {
@@ -553,10 +687,10 @@ export function AiChatPanel({
         </div>
         {/* Left (RTL end): actions */}
         <div className="flex items-center gap-2">
-          {threads.length > 1 && (
+          {(threads.length > 1 || (storageMode(mode) === 'coach' && threads.length >= 1)) && (
             <button
               onClick={() => setThreadsMenuOpen(v => !v)}
-              aria-label="שיחות היום"
+              aria-label="שיחות"
               className="w-10 h-10 rounded-full flex items-center justify-center text-muted dark:hover:bg-slate-800 hover:bg-slate-100 transition-colors relative"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
@@ -666,6 +800,18 @@ export function AiChatPanel({
                   <div>"האם יש שמות כפולים או דומים מדי?"</div>
                 </div>
               </>
+            ) : mode === 'trainer' ? (
+              <>
+                <div className="mb-2">שאל את המאמן כל שאלה על אימונים, טכניקה, תזונה או תוכניות:</div>
+                <div className="space-y-1 text-[11px]">
+                  <div>"מה עדיף למסת חזה, לחיצה במכונה או משקולות?"</div>
+                  <div>"כמה סטים לשבוע לכל שריר?"</div>
+                  <div>"אני חסום בסקוואט — מה לעשות?"</div>
+                  <div>"תן לי תוכנית ל-3 ימים לפוקוס גב וכתפיים"</div>
+                </div>
+              </>
+            ) : mode === 'onboarding' ? (
+              <div className="mb-2">כותב...</div>
             ) : (
               <>
                 <div className="mb-2">תאר את התרגיל שעשית או בקש הצעה. דוגמאות:</div>
@@ -700,6 +846,50 @@ export function AiChatPanel({
                   const a = chunk.action;
                   const key = actionKey(a, i, j);
                   const applied = appliedActionIds.has(key);
+
+                  if (a.type === 'update_profile') {
+                    // Silent — already persisted in sendWith. No UI chip, per user request.
+                    return null;
+                  }
+
+                  if (a.type === 'quick_replies') {
+                    // Chip row — tap a chip to auto-send it as the user's next reply.
+                    // Only render for the LAST assistant message so old chips don't stay clickable.
+                    const isLastAssistant = i === messages.length - 1;
+                    if (!isLastAssistant) return null;
+                    return (
+                      <div key={j} className="flex flex-wrap gap-1.5 pt-1" dir="rtl">
+                        {a.options.slice(0, 8).map((opt, k) => (
+                          <button
+                            key={k}
+                            onClick={() => { if (!loading) void sendWith(opt); }}
+                            disabled={loading}
+                            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 disabled:opacity-50"
+                          >{opt}</button>
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  if (a.type === 'ready_to_build') {
+                    // Onboarding-only: prominent CTA that hands the profile back to the parent.
+                    const isLastAssistant = i === messages.length - 1;
+                    return (
+                      <button
+                        key={j}
+                        onClick={() => { if (isLastAssistant && onReadyToBuild) onReadyToBuild(a); }}
+                        disabled={!isLastAssistant || !onReadyToBuild || applied}
+                        className={`w-full py-3 rounded-2xl font-bold text-sm inline-flex items-center justify-center gap-2 ${
+                          !isLastAssistant || applied
+                            ? 'dark:bg-emerald-900/40 bg-emerald-100 text-emerald-700 dark:text-emerald-300 opacity-60'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_3px_10px_-2px_rgba(16,185,129,0.5)]'
+                        }`}
+                        dir="rtl"
+                      >
+                        <span>{applied ? '✓ בונה...' : '✨ בנה לי את התוכנית'}</span>
+                      </button>
+                    );
+                  }
 
                   if (a.type === 'suggest_exercise') {
                     const mus = MUSCLE_BY_ID[a.muscle as MuscleGroup];
@@ -819,6 +1009,19 @@ export function AiChatPanel({
                 dir="rtl"
               >
                 ⚠️ נחתך באמצע — לחץ להמשך
+              </button>
+            )}
+            {/* Inline early-escape CTA — shows only under the greeting (last assistant
+                bubble AND no user reply yet). Dismisses itself the moment the user
+                sends anything, so it never lingers mid-conversation. */}
+            {earlySkipCta && m.role === 'assistant' && i === messages.length - 1
+              && !messages.some(mm => mm.role === 'user') && (
+              <button
+                onClick={earlySkipCta.onClick}
+                className="mt-2 text-[11px] px-3 py-1.5 rounded-full dark:bg-slate-800 bg-slate-100 text-muted hover:text-main border border-subtle"
+                dir="rtl"
+              >
+                {earlySkipCta.label}
               </button>
             )}
             </div>

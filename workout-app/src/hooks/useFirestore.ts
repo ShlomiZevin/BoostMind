@@ -4,7 +4,7 @@ import {
   arrayUnion, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
@@ -26,6 +26,28 @@ function exerciseStatsCol(uid: string) {
 function customExercisesCol(uid: string) {
   return collection(db, 'users', uid, 'customExercises');
 }
+
+// ─── Exercise DB paths ───────────────────────────────────────────
+// Global shared DB — read by everyone. Only admin writes here directly.
+function globalExercisesCol() {
+  return collection(db, 'exercises');
+}
+// User's own personal additions — NOT visible to other users.
+function userPersonalExercisesCol(uid: string) {
+  return collection(db, 'users', uid, 'personalExercises');
+}
+// User's per-exercise overrides (rename, muscle change) on global entries.
+function userExerciseOverridesCol(uid: string) {
+  return collection(db, 'users', uid, 'exerciseOverrides');
+}
+// User's soft-delete of a global entry — hides it from their list only.
+function userHiddenPersonalExercisesCol(uid: string) {
+  return collection(db, 'users', uid, 'hiddenPersonalExercises');
+}
+// Users allowed to write directly to the global exercise DB.
+// Once Google-Auth lands, this becomes an email-based check on the auth token.
+const ADMIN_UIDS = new Set<string>(['user_6724']);
+function isAdminUid(uid: string): boolean { return ADMIN_UIDS.has(uid); }
 
 function toSession(id: string, data: any): Session {
   return {
@@ -406,6 +428,21 @@ export function useFirestore(uid: string | null) {
     return sessionId;
   }, [uid]);
 
+  // Move a planned session to a different date. Rewrites both `plannedFor` (the
+  // YYYY-MM-DD key) and `date` (midnight timestamp used by sorters), keeping the
+  // status intact. No-op if the session doesn't exist or isn't planned.
+  const movePlannedSession = useCallback(async (sessionId: string, newYmd: string): Promise<void> => {
+    if (!uid) return;
+    const clean = /^\d{4}-\d{2}-\d{2}$/.test(newYmd) ? newYmd : null;
+    if (!clean) throw new Error('bad date');
+    const [y, m, d] = clean.split('-').map(Number);
+    const midnight = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0).getTime();
+    await updateDoc(doc(freeSessionsCol(uid), sessionId), {
+      plannedFor: clean,
+      date: Timestamp.fromMillis(midnight),
+    });
+  }, [uid]);
+
   // Promote a planned session to active. GUARDS:
   //   • If already active/completed → returns the id (no-op).
   //   • If any OTHER active session exists → returns that session's id instead
@@ -728,23 +765,87 @@ export function useFirestore(uid: string | null) {
 
   // ─── end free sessions ──────────────────────────────────────────
 
-  // ─── Personal exercise DB (per-user, built session by session) ─
-
+  // ─── Personal exercise DB ─────────────────────────────────────
+  // Layered model:
+  //   • Global `exercises/{id}` — shared read for every user, seeded from
+  //     Shlomi's original personal DB. Admin writes here directly.
+  //   • `users/{uid}/personalExercises/{id}` — this user's own additions
+  //     (not visible to other users).
+  //   • `users/{uid}/exerciseOverrides/{id}` — this user's rename / muscle
+  //     change on a specific global entry.
+  //   • `users/{uid}/hiddenPersonalExercises/{id}` — this user soft-deleted
+  //     the global entry; hidden from THEIR list only.
+  //
+  // Reader merges (global ∪ userCustom) → applies overrides → filters hidden.
+  // Writer routes to the right layer based on the uid's admin status and
+  // whether the target id already exists in global.
   const listPersonalExercises = useCallback(async (): Promise<PersonalExercise[]> => {
     if (!uid) return [];
-    const snap = await getDocs(collection(db, 'users', uid, 'exercises'));
-    return snap.docs.map(d => d.data() as PersonalExercise);
+    const [globalSnap, customSnap, ovSnap, hiddenSnap] = await Promise.all([
+      getDocs(globalExercisesCol()),
+      getDocs(userPersonalExercisesCol(uid)),
+      getDocs(userExerciseOverridesCol(uid)),
+      getDocs(userHiddenPersonalExercisesCol(uid)),
+    ]);
+    const hidden = new Set(hiddenSnap.docs.map(d => d.id));
+    const overrides = new Map<string, Partial<PersonalExercise>>(
+      ovSnap.docs.map(d => [d.id, d.data() as Partial<PersonalExercise>])
+    );
+    const out: PersonalExercise[] = [];
+    const seen = new Set<string>();
+    for (const d of globalSnap.docs) {
+      const base = d.data() as PersonalExercise;
+      if (hidden.has(base.id)) continue;
+      const ov = overrides.get(base.id);
+      out.push(ov ? { ...base, ...ov, id: base.id } : base);
+      seen.add(base.id);
+    }
+    for (const d of customSnap.docs) {
+      const custom = d.data() as PersonalExercise;
+      if (hidden.has(custom.id) || seen.has(custom.id)) continue;
+      out.push(custom);
+    }
+    return out;
   }, [uid]);
 
   const upsertPersonalExercise = useCallback(async (ex: PersonalExercise) => {
     if (!uid) return;
-    const clean: any = { ...ex, updatedAt: Date.now() };
-    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
-    await setDoc(doc(db, 'users', uid, 'exercises', ex.id), clean);
+    const cleanFull: any = { ...ex, updatedAt: Date.now() };
+    Object.keys(cleanFull).forEach(k => { if (cleanFull[k] === undefined) delete cleanFull[k]; });
+
+    // Does a global entry with this id exist?
+    const globalRef = doc(globalExercisesCol(), ex.id);
+    const globalSnap = await getDoc(globalRef);
+
+    if (globalSnap.exists()) {
+      if (isAdminUid(uid)) {
+        // Admin edits propagate to everyone — write global directly.
+        await setDoc(globalRef, cleanFull);
+      } else {
+        // Regular user: store only the fields that differ from the global base
+        // as an override. Keeps the shared DB clean and other users unaffected.
+        const base = globalSnap.data() as PersonalExercise;
+        const diff: any = { updatedAt: Date.now() };
+        for (const k of ['he', 'en', 'defaultMuscle', 'aliases', 'isHoldTime', 'notes', 'photoBase64'] as const) {
+          const cur = (ex as any)[k];
+          const b = (base as any)[k];
+          if (cur !== undefined && JSON.stringify(cur) !== JSON.stringify(b)) diff[k] = cur;
+        }
+        await setDoc(doc(userExerciseOverridesCol(uid), ex.id), diff);
+      }
+      return;
+    }
+
+    // No global entry yet: admin creates one, regular user creates their own.
+    if (isAdminUid(uid)) {
+      await setDoc(globalRef, cleanFull);
+    } else {
+      await setDoc(doc(userPersonalExercisesCol(uid), ex.id), cleanFull);
+    }
   }, [uid]);
 
   // Idempotent: creates only if a matching personal exercise doesn't already exist.
-  // Matching uses alias / he / slug so AI-generated variants map to the same DB entry
+  // Matches by he / alias / slug so AI-generated variants map back to the same DB entry
   // instead of spawning duplicates. Optionally fills English on first create.
   const ensurePersonalExercise = useCallback(async (
     name: string,
@@ -753,16 +854,13 @@ export function useFirestore(uid: string | null) {
     isHoldTime?: boolean,
   ): Promise<PersonalExercise | null> => {
     if (!uid || !name.trim()) return null;
-    // First, check all existing personal exercises for a name-based match (he / alias / slug).
-    const all = await getDocs(collection(db, 'users', uid, 'exercises'));
-    const list = all.docs.map(d => d.data() as PersonalExercise);
+    const list = await listPersonalExercises();
     const existing = findPersonalByName(list, name)
       || list.find(e => e.id === exerciseIdOf(name));
     if (existing) {
-      // Backfill English if we now have one and the record didn't.
       if (en && !existing.en) {
         const updated = { ...existing, en: en.trim(), updatedAt: Date.now() };
-        await setDoc(doc(db, 'users', uid, 'exercises', existing.id), updated);
+        await upsertPersonalExercise(updated);
         return updated;
       }
       return existing;
@@ -778,15 +876,26 @@ export function useFirestore(uid: string | null) {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    const clean: any = { ...ex };
-    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
-    await setDoc(doc(db, 'users', uid, 'exercises', id), clean);
+    await upsertPersonalExercise(ex);
     return ex;
-  }, [uid]);
+  }, [uid, listPersonalExercises, upsertPersonalExercise]);
 
   const deletePersonalExercise = useCallback(async (id: string) => {
     if (!uid) return;
-    await deleteDoc(doc(db, 'users', uid, 'exercises', id));
+    const globalRef = doc(globalExercisesCol(), id);
+    const globalSnap = await getDoc(globalRef);
+    if (globalSnap.exists()) {
+      if (isAdminUid(uid)) {
+        await deleteDoc(globalRef);
+      } else {
+        // Soft-hide for this user; also clear any override they had.
+        await setDoc(doc(userHiddenPersonalExercisesCol(uid), id), { id, hiddenAt: Date.now() });
+        try { await deleteDoc(doc(userExerciseOverridesCol(uid), id)); } catch { /* ignore */ }
+      }
+      return;
+    }
+    // Not global — try user's own custom entry.
+    try { await deleteDoc(doc(userPersonalExercisesCol(uid), id)); } catch { /* ignore */ }
   }, [uid]);
 
   // ─── Rename suggestions (persistent across visits) ─────────────
@@ -808,6 +917,119 @@ export function useFirestore(uid: string | null) {
     if (!uid) return;
     await deleteDoc(doc(db, 'users', uid, 'renameSuggestions', id));
   }, [uid]);
+
+  // ─── User profile (single doc) ────────────────────────────────
+  // Stored at users/{uid}/profile/main. Any field may be missing.
+  // The AI trainer can update it via update_profile action, and the user can
+  // edit fields directly from Settings. Also carries onboardingCompletedAt.
+  const getUserProfile = useCallback(async (): Promise<UserProfile> => {
+    if (!uid) return {};
+    try {
+      const snap = await getDoc(doc(db, 'users', uid, 'profile', 'main'));
+      if (snap.exists()) return snap.data() as UserProfile;
+    } catch { /* new user or empty */ }
+    return {};
+  }, [uid]);
+
+  const updateUserProfile = useCallback(async (patch: Partial<UserProfile>): Promise<UserProfile> => {
+    if (!uid) return patch as UserProfile;
+    const ref = doc(db, 'users', uid, 'profile', 'main');
+    const merged: any = { ...patch, updatedAt: Date.now() };
+    Object.keys(merged).forEach(k => { if (merged[k] === undefined) delete merged[k]; });
+    await setDoc(ref, merged, { merge: true });
+    // Return the full merged profile so callers can reflect it in UI immediately.
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() as UserProfile : (merged as UserProfile);
+  }, [uid]);
+
+  const markOnboardingComplete = useCallback(async (): Promise<void> => {
+    await updateUserProfile({ onboardingCompletedAt: Date.now() });
+  }, [updateUserProfile]);
+
+  // Gate for the onboarding wizard: show it whenever the user hasn't marked
+  // onboarding as complete. Legacy heuristic — treat accounts with existing sessions
+  // as already-onboarded so Shlomi's account and any other pre-profile user aren't
+  // re-prompted on next login.
+  //
+  // The `forceOnboarding` flag on the profile OVERRIDES the legacy check, so the
+  // Settings "reopen" button always brings the user back to the chat even after
+  // they've built up history.
+  // NUKE every piece of user data from Firestore for the current uid. Leaves the
+  // Firebase Auth account intact — just erases the app's memory of this user so a
+  // fresh sign-in feels like a brand-new account. Also removes any authAlias doc
+  // that binds a Google account to this uid.
+  //
+  // ⚠️ PROTECTED UIDS ⚠️
+  // The list below MUST NEVER be wiped via this flow. Callers pass their own
+  // shlomi@boostart.io => user_6724 mapping through resolveAppUid, so a
+  // misclick while signed in as Shlomi could otherwise erase years of data.
+  // If the resolved uid matches, we throw before touching a single doc.
+  const wipeAllUserData = useCallback(async (rawAuthUid?: string | null): Promise<void> => {
+    if (!uid) return;
+    const PROTECTED_UIDS = new Set<string>(['user_6724']);
+    if (PROTECTED_UIDS.has(uid)) {
+      throw new Error(`Protected uid "${uid}" — refusing to wipe. Remove it from PROTECTED_UIDS if you truly mean it.`);
+    }
+    const subcollections = [
+      'sessions',
+      'freeSessions',
+      'exerciseStats',
+      'customExercises',
+      'hiddenExercises',
+      'personalExercises',
+      'exerciseOverrides',
+      'hiddenPersonalExercises',
+      'exercisePhotos',
+      'renameSuggestions',
+      'supersetPairs',
+      'profile',
+      'settings',
+    ];
+    for (const sub of subcollections) {
+      try {
+        const snap = await getDocs(collection(db, 'users', uid, sub));
+        await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      } catch (err) {
+        console.warn('wipe subcollection failed', sub, err);
+      }
+    }
+    // Also clear the alias binding if any — otherwise next sign-in would re-resolve
+    // to the same (now-empty) app uid, which is fine but leaves stale linkage state.
+    if (rawAuthUid) {
+      try { await deleteDoc(doc(db, 'authAliases', rawAuthUid)); } catch { /* ignore */ }
+    }
+    // Purge local caches so the app truly forgets us on next mount.
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.includes(uid) || key.startsWith('aichat:') || key.startsWith('authAlias:')) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch { /* ignore */ }
+  }, [uid]);
+
+  const shouldShowOnboarding = useCallback(async (): Promise<boolean> => {
+    if (!uid) return false;
+    const profile = await getUserProfile();
+    if (profile.forceOnboarding) return true;
+    if (profile.onboardingCompletedAt) return false;
+    // Legacy accounts: any prior session means we implicitly consider them onboarded.
+    const [freeSnap, oldSessSnap, customSnap, ovSnap] = await Promise.all([
+      getDocs(freeSessionsCol(uid)),
+      getDocs(sessionsCol(uid)),
+      getDocs(userPersonalExercisesCol(uid)),
+      getDocs(userExerciseOverridesCol(uid)),
+    ]);
+    const hasAnyData = !freeSnap.empty || !oldSessSnap.empty || !customSnap.empty || !ovSnap.empty;
+    if (hasAnyData) {
+      // Backfill the flag so we don't repeat this check on every login.
+      await markOnboardingComplete();
+      return false;
+    }
+    return true;
+  }, [uid, getUserProfile, markOnboardingComplete]);
 
   // One-time migration: scan all past sets and create personal entries for
   // any exerciseName that doesn't already exist. Muscle inferred from most
@@ -842,11 +1064,13 @@ export function useFirestore(uid: string | null) {
         createdAt: info.ts || Date.now(),
         updatedAt: Date.now(),
       };
-      await setDoc(doc(db, 'users', uid, 'exercises', id), ex);
+      // Route through upsertPersonalExercise so admin writes to global and
+      // regular users write to their personal collection.
+      await upsertPersonalExercise(ex);
       created++;
     }
     return created;
-  }, [uid, listPersonalExercises]);
+  }, [uid, listPersonalExercises, upsertPersonalExercise]);
 
   // ─── Exercise photos (user-uploaded, one per exercise-name) ────
 
@@ -998,6 +1222,7 @@ export function useFirestore(uid: string | null) {
     // Free (muscle-based) sessions
     createFreeSession,
     createPlannedSession,
+    movePlannedSession,
     startPlannedSession,
     copyPlannedWeek,
     convertToPlanned,
@@ -1038,5 +1263,11 @@ export function useFirestore(uid: string | null) {
     listRenameSuggestions,
     upsertRenameSuggestion,
     deleteRenameSuggestion,
+    // Onboarding + profile
+    getUserProfile,
+    updateUserProfile,
+    markOnboardingComplete,
+    shouldShowOnboarding,
+    wipeAllUserData,
   };
 }

@@ -1,5 +1,6 @@
 import type { Route } from '../types';
 import { useStandaloneStopwatch } from '../hooks/useStandaloneStopwatch';
+import { useAiTrainerPanel } from '../hooks/useAiTrainerPanel';
 
 /** Reusable gear icon that navigates to settings — used in every tab page's TopBar. */
 export function SettingsGearAction({ navigate }: { navigate: (r: Route) => void }) {
@@ -45,11 +46,37 @@ export function StopwatchToggleAction() {
   );
 }
 
-/** Combined actions for tab pages — stopwatch toggle + settings gear.
- *  Every tab page uses this so both live in one predictable spot. */
+/** Ask-the-trainer button — opens a general-purpose AI chat overlay.
+ *  Emerald pill with sparkle + "AI" label so it clearly reads as an AI action,
+ *  not another gray settings icon. Same spot on every tab page. */
+export function AiTrainerAction() {
+  const { open, openPanel } = useAiTrainerPanel();
+  return (
+    <button
+      onClick={openPanel}
+      aria-label="מאמן AI"
+      title="מאמן AI"
+      className={`h-10 px-3 rounded-full inline-flex items-center gap-1 font-bold text-[13px] transition-colors focus:outline-none ${
+        open
+          ? 'bg-emerald-500 text-white'
+          : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25'
+      }`}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+        <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+      </svg>
+      <span>AI</span>
+    </button>
+  );
+}
+
+/** Combined actions for tab pages — AI trainer + stopwatch toggle + settings gear.
+ *  Every tab page uses this so all three live in one predictable spot. */
 export function TabActions({ navigate }: { navigate: (r: Route) => void }) {
   return (
     <>
+      <AiTrainerAction />
       <StopwatchToggleAction />
       <SettingsGearAction navigate={navigate} />
     </>
