@@ -9,6 +9,7 @@ import { AiChatPanel } from './AiChatPanel';
 import { AerobicModal } from './AerobicModal';
 import { MovePlanModal } from './MovePlanModal';
 import { findPersonalByName, exerciseIdOf, type PersonalExercise } from '../data/exercisesDB';
+import { exercisePhotoKey } from '../hooks/usePhotos';
 import { TopBar } from './TopBar';
 import { Chronograph } from './Chronograph';
 import aiCoachIcon from '../assets/ai-coach.png';
@@ -56,6 +57,9 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   const [modal, setModal] = useState<ModalMode | null>(null);
   const [allPastSets, setAllPastSets] = useState<FreeSet[]>([]);
   const [personalExercises, setPersonalExercises] = useState<PersonalExercise[]>([]);
+  // Photos map — key=exercisePhotoKey(name), value=base64 data URI. Same source
+  // the LogSetModal uses. Undefined for exercises without a photo (thumb hides).
+  const [photosMap, setPhotosMap] = useState<Record<string, string>>({});
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string | undefined>(undefined);
@@ -87,15 +91,17 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
 
   useEffect(() => {
     (async () => {
-      const [s, all, exs, pairs] = await Promise.all([
+      const [s, all, exs, pairs, photos] = await Promise.all([
         firestore.getFreeSession(sessionId),
         firestore.getFreeSessions(),
         firestore.listPersonalExercises(),
         firestore.listSupersetPairs(),
+        firestore.getAllExercisePhotos(),
       ]);
       setSession(s);
       setPersonalExercises(exs);
       setSupersetPairs(pairs);
+      setPhotosMap(photos);
       const past: FreeSet[] = [];
       for (const sess of all) {
         if (sess.id === sessionId) continue;
@@ -116,6 +122,31 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     })();
   }, [sessionId]);
 
+  // Auto-cleanup: when the user opens a session that was created empty by the
+  // "plan with AI" flow and then navigates away without adding anything, we
+  // don't want a ghost blank plan lingering on Home. Track the freshest session
+  // in a ref, and on unmount delete if it's still empty. Guarded on `planning
+  // && zero muscles + zero exercises + zero sets + zero aerobic` so a
+  // legitimate planned session (muscles picked, exercises queued) never gets
+  // clobbered.
+  const sessionRef = useRef<FreeSessionType | null>(null);
+  useEffect(() => { sessionRef.current = session; }, [session]);
+  useEffect(() => {
+    return () => {
+      const s = sessionRef.current;
+      if (!s) return;
+      const empty = (s.status === 'planned' || !s.status)
+        && (s.muscleGroups || []).length === 0
+        && (s.sets || []).length === 0
+        && (s.plannedExercises || []).length === 0
+        && (s.aerobicEntries || []).length === 0;
+      if (empty) {
+        firestore.deleteFreeSession(s.id).catch(() => { /* best-effort */ });
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const setsByMuscle = useMemo(() => {
     const map = new Map<MuscleGroup, FreeSet[]>();
     if (!session) return map;
@@ -129,7 +160,9 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
 
   // Group sets by (muscle, exerciseName) — same exercise stacks into one card.
   // Newest group first; sets within a group are chronological.
-  type SetGroup = { muscle: MuscleGroup; exerciseName: string; sets: FreeSet[]; latestTs: number };
+  // `done` marks groups the user has clearly moved on from — i.e. NOT the most
+  // recently worked exercise (or superset). Rendered below the planned section.
+  type SetGroup = { muscle: MuscleGroup; exerciseName: string; sets: FreeSet[]; latestTs: number; done?: boolean };
   const groupedSets = useMemo<SetGroup[]>(() => {
     if (!session) return [];
     const groups = new Map<string, SetGroup>();
@@ -175,7 +208,24 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     }
     // Filter out duplicates (partners we already appended)
     const seen = new Set<SetGroup>();
-    return out.filter(g => { if (seen.has(g)) return false; seen.add(g); return true; });
+    const uniq = out.filter(g => { if (seen.has(g)) return false; seen.add(g); return true; });
+    // Mark "done" = every group whose superset (or itself, if unlinked) is NOT
+    // the most recent one worked on. Only the current (top-most) exercise stays
+    // in the active list; done ones sink to the bottom of the exercises panel.
+    if (uniq.length > 0) {
+      const topSs = (uniq[0].sets.find(s => s.supersetGroup) || {}).supersetGroup;
+      const topKey = `${uniq[0].muscle}::${uniq[0].exerciseName.toLowerCase()}`;
+      for (let i = 0; i < uniq.length; i++) {
+        const g = uniq[i];
+        const gSs = (g.sets.find(s => s.supersetGroup) || {}).supersetGroup;
+        const key = `${g.muscle}::${g.exerciseName.toLowerCase()}`;
+        // "Current" set = shares a superset with the top group, OR IS the top
+        // group. Every other logged exercise is "done".
+        const isCurrent = topSs ? gSs === topSs : key === topKey;
+        g.done = !isCurrent;
+      }
+    }
+    return uniq;
   }, [session]);
 
   // Assign a stable palette color to each unique superset id encountered in this session.
@@ -1043,7 +1093,14 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
         <LogSetModal
           uid={uid}
           sessionMuscles={session.muscleGroups}
-          defaultMuscle={modal.kind === 'add' ? modal.muscle : undefined}
+          defaultMuscle={
+            // For manual REPLACE, seed the picker with the SAME muscle as the
+            // exercise being replaced — most replacements target the same
+            // muscle, and having the chip pre-selected saves a tap.
+            modal.kind === 'add' ? modal.muscle
+            : modal.kind === 'replace' ? modal.muscle
+            : undefined
+          }
           allPastSets={allPastSets}
           editingSet={modal.kind === 'edit' ? modal.set : undefined}
           sessionId={session.id}
@@ -1063,6 +1120,9 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           replacingName={modal.kind === 'replace' ? modal.oldName : undefined}
           onClose={() => setModal(null)}
           onSave={handleSaveSet}
+          onPhotoSaved={(photoKey, dataUrl) => {
+            setPhotosMap(prev => ({ ...prev, [photoKey]: dataUrl }));
+          }}
           onPickOnly={async (name, muscle, en, isHoldTime) => {
             if (modal.kind === 'replace') {
               await handleReplacePlanned(modal.oldName, name, muscle, en, isHoldTime);
@@ -1160,8 +1220,14 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
             </div>
           </div>
 
-          {/* 1) Exercises with logged sets — TOP */}
-          {groupedSets.map((g, gi) => {
+          {/* 1) Exercises with logged sets — TOP. Only the CURRENT one(s) show
+                 here; anything the user has moved on from goes below (see #3). */}
+          {(() => {
+            const activeGroups = groupedSets.filter(g => !g.done);
+            return activeGroups.map((g, gi) => {
+            // Neighbor lookups use the FILTERED array so superset headers/borders
+            // stay correct after "done" groups are pushed to the bottom.
+            const _neighbors = activeGroups;
             const m = MUSCLE_BY_ID[g.muscle];
             if (!m) return null;
             const c = MUSCLE_CLASSES[m.color];
@@ -1173,12 +1239,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
             const ssColor = ssId ? ssColorById.get(ssId) : null;
             const ssTotal = ssId ? (ssMemberCount.get(ssId) || 1) : 0;
             const ssIdx = ssId
-              ? groupedSets.filter(x => groupSsId(x) === ssId).indexOf(g) + 1
+              ? _neighbors.filter(x => groupSsId(x) === ssId).indexOf(g) + 1
               : 0;
-            const prevSsId = gi > 0 ? groupSsId(groupedSets[gi - 1]) : null;
-            const nextSsId = gi < groupedSets.length - 1 ? groupSsId(groupedSets[gi + 1]) : null;
+            const prevSsId = gi > 0 ? groupSsId(_neighbors[gi - 1]) : null;
+            const nextSsId = gi < _neighbors.length - 1 ? groupSsId(_neighbors[gi + 1]) : null;
             const isFirstInSs = !!ssId && ssId !== prevSsId;
-            const isLastInSs = !!ssId && ssId !== nextSsId;
+            // A "planned continuation" is a member of the same superset that
+            // still lives in plannedExercises (no sets yet) — it renders in the
+            // planned section right below this one. When present, this logged
+            // card must NOT close its bottom border, so the two cards visually
+            // fuse into one superset container.
+            const hasPlannedContinuation = !!ssId && (session.plannedExercises || []).some(p => p.supersetGroup === ssId);
+            const isLastInSs = !!ssId && ssId !== nextSsId && !hasPlannedContinuation;
             const exId = g.exerciseName ? exerciseIdOf(g.exerciseName) : '';
             const partnerIds = exId ? partnersForExercise(exId) : [];
             const inSuperset = !!ssId;
@@ -1216,12 +1288,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                   : linkFrom ? 'opacity-50' : '';
                 return (
               <div
-                className={`card relative ${linkRing} ${
+                // Non-superset cards use the shared `.card` class. Superset
+                // members inline the equivalent visual utilities MINUS the
+                // 1px border from `.card`, because it was winning over the
+                // `border-2 ${ssColor.border}` we want (leaving the colored
+                // border visible only on the header). The result: one clean
+                // colored border wrapping header + all members.
+                className={`relative ${linkRing} ${
                   inSuperset && ssColor
-                    ? `border-2 ${ssColor.border} rounded-t-none border-t-0 ${
+                    ? `dark:bg-slate-900 bg-white p-4 rounded-2xl border-2 ${ssColor.border} rounded-t-none border-t-0 ${
                         isLastInSs ? 'mb-3' : 'rounded-b-none border-b-0 mb-0'
                       }`
-                    : 'mb-3'
+                    : 'card mb-3'
                 }`}
                 dir="rtl"
               >
@@ -1301,6 +1379,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     {findPersonalByName(personalExercises, g.exerciseName)?.isHoldTime && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded dark:bg-slate-800 bg-slate-100 text-muted-most">⏱ החזקה</span>
                     )}
+                    {/* Photo thumbnail sits on the LEFT side (RTL end position),
+                        UNDER the muscle chip — so it never squeezes the Hebrew
+                        exercise name in the header row. */}
+                    {(() => {
+                      const k = g.exerciseName ? exercisePhotoKey(g.exerciseName) : '';
+                      const src = k ? photosMap[k] : null;
+                      if (!src) return null;
+                      const isVideo = src.startsWith('data:video/') || /\.(mp4|webm|mov)$/i.test(src);
+                      return isVideo
+                        ? <video src={src} className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10" muted playsInline autoPlay loop />
+                        : <img src={src} alt="" className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10" />;
+                    })()}
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -1413,7 +1503,8 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
               })()}
               </Fragment>
             );
-          })}
+            });
+          })()}
 
           {/* 2) Planned exercises — BELOW. Reorder so superset members are always adjacent
                  (mirror of what reorderForSupersets does for logged groups). */}
@@ -1489,9 +1580,15 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                 ? dedup.filter(x => x.supersetGroup === pSs).length
                   + groupedSets.filter(x => groupSsId(x) === pSs).length
                 : 0;
+              // The superset header was rendering TWICE when a superset had one
+              // member logged (rendered in the logged section above) and one
+              // still-planned (rendered here). Skip the header for planned
+              // members that already have a logged sibling — the "המשך של
+              // הסופרסט למעלה" chip inside the card conveys the connection.
+              const showSsHeader = isFirstInSs && !!pSsColor && !attachedToLoggedSs;
               return (
                 <Fragment key={`planned::${p.name.toLowerCase()}`}>
-                  {isFirstInSs && pSsColor && (
+                  {showSsHeader && (
                     <div className={`px-3 py-1.5 rounded-t-2xl border-2 border-b-0 ${pSsColor.border} ${pSsColor.badgeBg} flex items-center justify-between`} dir="rtl">
                       <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${pSsColor.badgeText}`}>
                         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1521,12 +1618,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     : linkFrom ? 'opacity-50' : '';
                   return (
                 <div
-                  className={`card relative border-dashed border-2 dark:border-slate-700 border-slate-300 ${linkRing} ${
+                  className={`relative ${linkRing} ${
                     inSuperset && pSsColor
-                      ? `!border-solid ${pSsColor.border} rounded-t-none border-t-0 ${
+                      // Superset planned card: solid colored border wrapping,
+                      // no top (fuses to whatever's above — header, logged
+                      // card, or previous planned member). Inlined utilities
+                      // instead of `.card` to avoid its 1px border overriding
+                      // our border-2. See the active-card branch for the
+                      // same reasoning.
+                      ? `dark:bg-slate-900 bg-white p-4 rounded-2xl border-2 ${pSsColor.border} rounded-t-none border-t-0 ${
                           isLastInSs ? 'mb-3' : 'rounded-b-none border-b-0 mb-0'
                         }`
-                      : 'mb-3'
+                      : `card border-dashed border-2 dark:border-slate-700 border-slate-300 mb-3`
                   }`}
                   dir="rtl"
                 >
@@ -1603,6 +1706,16 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                         <span className="opacity-70 font-mono">· 0</span>
                       </span>
                     </div>
+                    {/* Image under the muscle chip — same slot as active card. */}
+                    {(() => {
+                      const k = exercisePhotoKey(p.name);
+                      const src = k ? photosMap[k] : null;
+                      if (!src) return null;
+                      const isVideo = src.startsWith('data:video/') || /\.(mp4|webm|mov)$/i.test(src);
+                      return isVideo
+                        ? <video src={src} className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10" muted playsInline autoPlay loop />
+                        : <img src={src} alt="" className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10" />;
+                    })()}
                   </div>
                   <div className="flex gap-2 pt-2 border-t border-subtle/60" dir="rtl">
                     {!planning && (
@@ -1622,14 +1735,14 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                         { name: p.name, muscle: p.muscle },
                         true, // start fresh chat
                       )}
-                      className="inline-flex items-center justify-center gap-1 py-2.5 px-3 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
-                      aria-label="הצע חלופה עם AI"
-                      title="הצע חלופה עם AI"
+                      className="inline-flex items-center justify-center gap-1 py-2.5 px-2.5 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
+                      aria-label="החלף עם AI"
+                      title="החלף עם AI"
                     >
                       <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
                         <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
                       </svg>
-                      <span>AI</span>
+                      <span>החלף</span>
                     </button>
                     <button
                       onClick={() => handleRemovePlanned(p.name)}
@@ -1676,6 +1789,174 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                 </Fragment>
               );
             });
+          })()}
+
+          {/* 3) Done exercises — BOTTOM. Once the user starts logging a different
+                 (non-superset) exercise, the older one goes here. Compact + dimmed
+                 so it reads as "we're past that". Tap "+ סט" to log another set,
+                 which promotes it back to the top. */}
+          {(() => {
+            const doneGroups = groupedSets.filter(g => g.done);
+            if (doneGroups.length === 0) return null;
+            return (
+              <div className="mt-5" dir="rtl">
+                <div className="flex items-center gap-2 mb-2 opacity-70">
+                  <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400">בוצעו</span>
+                  <span className="flex-1 h-px bg-subtle" />
+                  <span className="text-[10px] text-muted-most">{doneGroups.length}</span>
+                </div>
+                <div className="space-y-0">
+                  {doneGroups.map((g, di) => {
+                    const m = MUSCLE_BY_ID[g.muscle];
+                    if (!m) return null;
+                    const c = MUSCLE_CLASSES[m.color];
+                    const personal = g.exerciseName ? findPersonalByName(personalExercises, g.exerciseName) : null;
+                    const enName = personal?.en;
+                    const isHold = !!personal?.isHoldTime;
+                    const realSetCount = g.sets.filter(s => s.weight > 0 || s.reps > 0).length;
+                    // Superset grouping: adjacent done members of the same ss
+                    // should render inside one bordered panel, mirroring the
+                    // active view's grouping so the reader sees the pair kept
+                    // its identity even after being moved to "בוצעו".
+                    const doneSsId = groupSsId(g);
+                    const doneSsColor = doneSsId ? ssColorById.get(doneSsId) : null;
+                    const doneSsTotal = doneSsId
+                      ? doneGroups.filter(x => groupSsId(x) === doneSsId).length
+                      : 0;
+                    const doneSsIdx = doneSsId
+                      ? doneGroups.filter(x => groupSsId(x) === doneSsId).indexOf(g) + 1
+                      : 0;
+                    const prevDoneSs = di > 0 ? groupSsId(doneGroups[di - 1]) : null;
+                    const nextDoneSs = di < doneGroups.length - 1 ? groupSsId(doneGroups[di + 1]) : null;
+                    const isFirstInDoneSs = !!doneSsId && doneSsId !== prevDoneSs;
+                    const isLastInDoneSs = !!doneSsId && doneSsId !== nextDoneSs;
+                    return (
+                      <Fragment key={`done:${g.muscle}::${g.exerciseName.toLowerCase()}`}>
+                      {/* Muted superset header — same shape as the active version, dimmed. */}
+                      {isFirstInDoneSs && doneSsColor && (
+                        <div className={`px-3 py-1 rounded-t-2xl border-2 border-b-0 ${doneSsColor.border} ${doneSsColor.badgeBg} opacity-80 flex items-center gap-2`} dir="rtl">
+                          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={doneSsColor.badgeText}>
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </svg>
+                          <span className={`text-[10px] font-bold ${doneSsColor.badgeText}`}>
+                            <span>סופרסט </span>
+                            <bdi>{doneSsColor.label}</bdi>
+                            <span> · </span>
+                            <bdi>{doneSsTotal}</bdi>
+                            <span> תרגילים · בוצעו</span>
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        className={`px-4 py-3 opacity-90 dark:bg-slate-900/60 bg-slate-100/60 ${
+                          doneSsColor
+                            ? `border-2 ${doneSsColor.border} rounded-t-none border-t-0 ${
+                                isLastInDoneSs ? 'rounded-b-2xl mb-2' : 'rounded-b-none border-b-0'
+                              }`
+                            : 'rounded-2xl border border-subtle mb-2'
+                        }`}
+                        dir="rtl"
+                      >
+                        {/* Header — mirrors the active card's layout so the eye
+                            recognizes it as the same object, just past-tense. */}
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div className="text-right flex-1 min-w-0">
+                            {/* Checkmark is embedded INSIDE the name span so it
+                                flows with the first line of text — no more
+                                flex-wrap orphaning the badge above a long
+                                Hebrew name. `align-middle` keeps it centered on
+                                the caps-height. */}
+                            <div className="text-base font-bold leading-tight">
+                              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white align-middle" style={{ marginInlineEnd: '0.375rem' }}>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M5 12l5 5L20 7" />
+                                </svg>
+                              </span>
+                              {g.exerciseName || '(ללא שם)'}
+                            </div>
+                            {enName && (
+                              <div className="text-[11px] text-muted mt-0.5 text-right" dir="ltr" style={{ direction: 'ltr' }}>{enName}</div>
+                            )}
+                          </div>
+                          <div className="shrink-0 flex flex-col items-end gap-1">
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full ${c.bg} ${c.text}`}>
+                              <span>{m.he}</span>
+                              <span className="opacity-70 font-mono">· {realSetCount}</span>
+                            </span>
+                            {isHold && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded dark:bg-slate-800 bg-slate-200 text-muted-most">⏱ החזקה</span>
+                            )}
+                            {(() => {
+                              const k = g.exerciseName ? exercisePhotoKey(g.exerciseName) : '';
+                              const src = k ? photosMap[k] : null;
+                              if (!src) return null;
+                              const isVideo = src.startsWith('data:video/') || /\.(mp4|webm|mov)$/i.test(src);
+                              return isVideo
+                                ? <video src={src} className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10 grayscale-[0.2]" muted playsInline autoPlay loop />
+                                : <img src={src} alt="" className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10 grayscale-[0.2]" />;
+                            })()}
+                          </div>
+                        </div>
+
+                        {/* Per-set rows — identical layout to the active card so
+                            a done exercise reads as "the same thing, banked".
+                            Tap edits; the delete button is here too because
+                            corrections on already-done sets should be one tap. */}
+                        <div className="space-y-1.5">
+                          {g.sets.map(s => {
+                            const unit = s.unit || 'kg';
+                            const isPlaceholder = s.weight === 0 && s.reps === 0;
+                            return (
+                              <div
+                                key={s.id}
+                                onClick={() => setModal({ kind: 'edit', set: s })}
+                                className={`flex items-center justify-between gap-3 rounded-lg px-3 py-3 bg-subtle cursor-pointer active:opacity-80 min-h-[44px] ${isPlaceholder ? 'border border-dashed dark:border-amber-700 border-amber-300' : ''}`}
+                                dir="rtl"
+                              >
+                                <div className="font-mono text-base flex-1 text-right">
+                                  {isPlaceholder ? (
+                                    <span className="text-amber-500 text-sm">— להשלים —</span>
+                                  ) : isHold ? (
+                                    <span dir="ltr" className="inline-block font-bold">
+                                      {s.reps}<span className="text-xs text-muted mr-0.5">שנ'</span>
+                                      {s.weight > 0 && (<> · {s.weight}<span className="text-xs text-muted">{unit}</span></>)}
+                                    </span>
+                                  ) : (
+                                    <span dir="ltr" className="inline-block font-bold">{s.weight}<span className="text-xs text-muted mr-0.5">{unit}</span> × {s.reps}</span>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setConfirmDeleteSetId(s.id); }}
+                                  aria-label="מחק סט"
+                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-500/10"
+                                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                                >
+                                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                                  </svg>
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* "+ סט" promotes this exercise back to the active list
+                            (the new set's timestamp becomes latest → group is
+                            no longer marked done in groupedSets). */}
+                        <div className="mt-3 pt-3 border-t border-subtle/60">
+                          <button
+                            onClick={() => setModal({ kind: 'dup', set: g.sets[g.sets.length - 1] })}
+                            className="w-full py-2.5 text-sm font-semibold rounded-xl border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-500/10 hover:bg-emerald-500/5 transition-colors"
+                          >+ סט נוסף</button>
+                        </div>
+                      </div>
+                      </Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            );
           })()}
         </section>
       )}
@@ -1753,7 +2034,20 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
             ) : (
               <>
                 <button
-                  onClick={() => setModal({ kind: 'add' })}
+                  onClick={() => {
+                    // Default to the LAST logged real set — same as tapping "+ סט נוסף"
+                    // on that exercise's card. Falls back to a blank picker only when
+                    // the session literally has zero sets yet.
+                    const realSets = session.sets.filter(s => s.weight > 0 || s.reps > 0);
+                    const lastSet = realSets.length > 0
+                      ? [...realSets].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))[0]
+                      : null;
+                    if (lastSet) {
+                      setModal({ kind: 'dup', set: lastSet });
+                    } else {
+                      setModal({ kind: 'add' });
+                    }
+                  }}
                   className="btn-primary flex-1 py-5 text-xl font-semibold"
                 >
                   + סט
@@ -1953,18 +2247,43 @@ function TimeField({
   );
 }
 
-// ─── Per-exercise notes + difficulty ────────────────────────────
-// Quiet strip at the bottom of each exercise card. Shows the last-session difficulty as
-// a subtle pill, lets the user rate THIS session, and expand a small notes textarea.
-type Difficulty = 'too-easy' | 'easy' | 'ok' | 'hard';
+// ─── Per-exercise "next-time bump" chips ────────────────────────
+// Replaces the old "how hard was that" chips (קל / בסדר / קשה / קל מדי) with
+// concrete kg bumps you'd want to try next time. Same UX mechanics: tap to
+// select, tap again to clear, and the previous session's choice shows as a
+// "פעם קודמת" pill. Storage schema is unchanged — the string just holds a
+// different value now. Old 'easy'/'hard'/… ratings from earlier sessions
+// won't render (per the "no migration" ask).
+type Difficulty = 'plus-1.25' | 'plus-2.5' | 'plus-5' | 'plus-10';
+// Insertion order controls DOM order, and DOM order in an RTL flex row
+// means: first-in-DOM = rightmost visual. Put +10 first so the big bumps
+// sit on the right and the small ones on the left — which is the natural
+// "small → left, big → right" reading the user asked for.
 const DIFF_LABEL: Record<Difficulty, string> = {
-  'too-easy': 'קל מדי', easy: 'קל', ok: 'בסדר', hard: 'קשה',
+  'plus-10': '+10', 'plus-5': '+5', 'plus-2.5': '+2.5', 'plus-1.25': '+1.25',
 };
 const DIFF_COLOR: Record<Difficulty, string> = {
-  'too-easy': 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/40',
-  easy: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40',
-  ok: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40',
-  hard: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40',
+  // Cool → warm gradient across the four deltas — small bumps read as safe,
+  // big bumps as ambitious. Keeps the visual language of the old chips.
+  'plus-1.25': 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/40',
+  'plus-2.5':  'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40',
+  'plus-5':    'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40',
+  'plus-10':   'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40',
+};
+
+// Next-time REPS chips — a parallel selector for how many reps to aim for
+// next set. Same UX mechanics as the weight-delta chips (tap-toggle, "פעם
+// קודמת" pill), same insertion-order-drives-RTL-order rule (biggest first
+// so 15 sits on the right and 8 on the left).
+type NextReps = '15' | '12' | '10' | '8';
+const REPS_LABEL: Record<NextReps, string> = { '15': '15', '12': '12', '10': '10', '8': '8' };
+const REPS_COLOR: Record<NextReps, string> = {
+  // Reverse the temperature: MORE reps = calmer (blue), FEWER reps = hotter
+  // (red), because low-rep sets are the heavy/max effort ones.
+  '15': 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/40',
+  '12': 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40',
+  '10': 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40',
+  '8':  'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40',
 };
 
 export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; exerciseName: string; sessionId: string }) {
@@ -1972,8 +2291,10 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
   const exId = useMemo(() => exerciseIdOf(exerciseName), [exerciseName]);
   const [note, setNote] = useState('');
   const [editingNote, setEditingNote] = useState(false);
-  const [thisDiff, setThisDiff] = useState<Difficulty | null>(null); // rating for THIS session
-  const [lastDiff, setLastDiff] = useState<Difficulty | null>(null); // rating from the previous (different) session
+  const [thisDiff, setThisDiff] = useState<Difficulty | null>(null);   // weight chip THIS session
+  const [lastDiff, setLastDiff] = useState<Difficulty | null>(null);   // weight chip PREVIOUS session
+  const [thisReps, setThisReps] = useState<NextReps | null>(null);     // reps chip THIS session
+  const [lastReps, setLastReps] = useState<NextReps | null>(null);     // reps chip PREVIOUS session
   const [loaded, setLoaded] = useState(false);
   const saveNoteTimer = useRef<any>(null);
 
@@ -1982,12 +2303,15 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
     Promise.all([
       firestore.getExerciseNote(exId),
       firestore.getExerciseDifficultyForSession(exId, sessionId),
-      firestore.getExerciseDifficulty(exId), // overall most-recent — may be this session or an older one
+      firestore.getExerciseDifficulty(exId),
     ]).then(([n, thisSess, mostRecent]) => {
       setNote(n || '');
-      if (thisSess?.difficulty) setThisDiff(thisSess.difficulty as Difficulty);
-      // Show "last time" pill only if the most-recent rating is from a DIFFERENT session
-      if (mostRecent?.difficulty && !thisSess) setLastDiff(mostRecent.difficulty as Difficulty);
+      const isValidDiff = (v: unknown): v is Difficulty => typeof v === 'string' && v in DIFF_LABEL;
+      const isValidReps = (v: unknown): v is NextReps => typeof v === 'string' && v in REPS_LABEL;
+      if (thisSess?.difficulty && isValidDiff(thisSess.difficulty)) setThisDiff(thisSess.difficulty);
+      if (thisSess?.nextReps   && isValidReps(thisSess.nextReps))   setThisReps(thisSess.nextReps);
+      if (!thisSess?.difficulty && mostRecent?.difficulty && isValidDiff(mostRecent.difficulty)) setLastDiff(mostRecent.difficulty);
+      if (!thisSess?.nextReps   && mostRecent?.nextReps   && isValidReps(mostRecent.nextReps))   setLastReps(mostRecent.nextReps);
       setLoaded(true);
     });
   }, [exId, sessionId]);
@@ -2001,13 +2325,24 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
   async function rate(d: Difficulty) {
     if (!exId) return;
-    // Tap the already-selected chip → clear the rating.
     if (thisDiff === d) {
       setThisDiff(null);
-      await firestore.deleteExerciseDifficulty(exId, sessionId);
+      // Clear just the weight chip, keep the reps chip if any.
+      await firestore.saveExerciseDifficulty(exId, sessionId, { difficulty: null });
     } else {
       setThisDiff(d);
-      await firestore.saveExerciseDifficulty(exId, sessionId, d, false);
+      await firestore.saveExerciseDifficulty(exId, sessionId, { difficulty: d });
+    }
+  }
+
+  async function rateReps(r: NextReps) {
+    if (!exId) return;
+    if (thisReps === r) {
+      setThisReps(null);
+      await firestore.saveExerciseDifficulty(exId, sessionId, { nextReps: null });
+    } else {
+      setThisReps(r);
+      await firestore.saveExerciseDifficulty(exId, sessionId, { nextReps: r });
     }
   }
 
@@ -2015,12 +2350,24 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
   return (
     <div className="mt-2 pt-2 border-t border-subtle/40 space-y-1.5" dir="rtl">
-      {/* Header row: last-difficulty pill (only when nothing rated this session) + note toggle */}
+      {/* Header row: "פעם קודמת" pill(s) if you didn't already mark THIS
+          session + note toggle. Both weight and reps get their own pill so the
+          hint mirrors what's actually stored. */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
           {lastDiff && !thisDiff && (
-            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${DIFF_COLOR[lastDiff]}`} title="פעם קודמת">
-              פעם קודמת: {DIFF_LABEL[lastDiff]}
+            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${DIFF_COLOR[lastDiff]}`} title="מה סימנת פעם קודמת להוסיף במשקל">
+              משקל קודם: <bdi dir="ltr">{DIFF_LABEL[lastDiff]}</bdi>
+            </span>
+          )}
+          {lastReps && !thisReps && (
+            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${REPS_COLOR[lastReps]}`} title="מה סימנת פעם קודמת כחזרות">
+              חזרות קודם: <bdi dir="ltr">{REPS_LABEL[lastReps]}</bdi>
+            </span>
+          )}
+          {!lastDiff && !lastReps && !thisDiff && !thisReps && (
+            <span className="text-[9px] text-muted-most">
+              לפעם הבאה:
             </span>
           )}
         </div>
@@ -2040,21 +2387,49 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
         </button>
       </div>
 
-      {/* Difficulty chips — gentle selected state, click again to unselect */}
-      <div className="flex flex-wrap gap-1">
-        {(Object.keys(DIFF_LABEL) as Difficulty[]).map(d => {
-          const active = thisDiff === d;
-          return (
-            <button
-              key={d}
-              onClick={() => rate(d)}
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
-                active ? DIFF_COLOR[d] : 'border-subtle text-muted hover:text-main'
-              }`}
-              title={active ? 'לחץ שוב לביטול' : undefined}
-            >{DIFF_LABEL[d]}</button>
-          );
-        })}
+      {/* Row 1 — next-time WEIGHT bumps. */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] text-muted-most shrink-0">משקל</span>
+        <div className="flex flex-wrap gap-1">
+          {(Object.keys(DIFF_LABEL) as Difficulty[]).map(d => {
+            const active = thisDiff === d;
+            return (
+              <button
+                key={d}
+                onClick={() => rate(d)}
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                  active ? DIFF_COLOR[d] : 'border-subtle text-muted hover:text-main'
+                }`}
+                title={active ? 'לחץ שוב לביטול' : undefined}
+              >
+                <bdi dir="ltr">{DIFF_LABEL[d]}</bdi>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Row 2 — next-time REPS target. Same UX as row 1. Separate storage
+          field on the same doc so weight & reps can be marked independently. */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] text-muted-most shrink-0">חזרות</span>
+        <div className="flex flex-wrap gap-1">
+          {(Object.keys(REPS_LABEL) as NextReps[]).map(r => {
+            const active = thisReps === r;
+            return (
+              <button
+                key={r}
+                onClick={() => rateReps(r)}
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                  active ? REPS_COLOR[r] : 'border-subtle text-muted hover:text-main'
+                }`}
+                title={active ? 'לחץ שוב לביטול' : undefined}
+              >
+                <bdi dir="ltr">{REPS_LABEL[r]}</bdi>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Note — reading mode is clean text; editing mode is a textarea */}

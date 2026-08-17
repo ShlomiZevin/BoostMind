@@ -16,6 +16,11 @@ export type PersonalExercise = {
   // When true, the "reps" field on each FreeSet represents seconds-held, not repetitions.
   // Undefined (default) → normal rep-based exercise. Fully backward-compatible.
   isHoldTime?: boolean;
+  // Anchor = a "staple" exercise the user comes back to session after session.
+  // Anchors surface at the TOP of any exercise picker (bolded), with the
+  // regular pool below. Intent: quick pick of your core lifts, then discover
+  // rotation exercises underneath.
+  isAnchor?: boolean;
   createdAt: number;
   updatedAt: number;
 };
@@ -85,10 +90,27 @@ export function pickPersonal(
     );
   }
   const h = opts.historyMap || {};
+  // Two-tier sort:
+  //   1) ANCHORS on top (the user's staples). Within anchors, sorted by
+  //      neglected-first — even staples rotate a bit so you don't hit the
+  //      exact same top-of-list every session.
+  //   2) Non-anchors below. Same neglected-first rule as before:
+  //      never-used → oldest history → newest → Hebrew alphabetical.
+  const rankWithinBucket = (a: PersonalExercise, b: PersonalExercise) => {
+    const aTs = h[a.id];
+    const bTs = h[b.id];
+    const aNever = !aTs;
+    const bNever = !bTs;
+    if (aNever && !bNever) return -1;
+    if (!aNever && bNever) return 1;
+    if (aNever && bNever) return a.he.localeCompare(b.he, 'he');
+    return (aTs as number) - (bTs as number);
+  };
   return [...list].sort((a, b) => {
-    const aH = h[a.id] || 0;
-    const bH = h[b.id] || 0;
-    if (aH || bH) return bH - aH;
-    return a.he.localeCompare(b.he, 'he');
+    const aA = !!a.isAnchor;
+    const bA = !!b.isAnchor;
+    if (aA && !bA) return -1;
+    if (!aA && bA) return 1;
+    return rankWithinBucket(a, b);
   });
 }

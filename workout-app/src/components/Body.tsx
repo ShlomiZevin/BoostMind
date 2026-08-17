@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Route, FreeSession } from '../types';
 import type { MuscleGroup, MuscleParent } from '../data/muscles';
 import {
@@ -8,6 +8,7 @@ import {
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { TabActions } from './TopBarActions';
+import { GoalsCard } from './GoalsCard';
 
 type Props = { uid: string; navigate: (r: Route) => void };
 
@@ -61,6 +62,12 @@ export function Body({ uid, navigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>('this-week');
   const [expandedParents, setExpandedParents] = useState<Set<MuscleParent>>(new Set());
+  // How to scale the volume bars:
+  //   'relative' — filled bar = the muscle that got the MOST work in the range.
+  //   'goal'     — filled bar = your set weekly goal for that muscle.
+  // The user asked for goal-based comparison so they can see how much of each
+  // weekly target they actually hit, not just relative order.
+  const [barMode, setBarMode] = useState<'relative' | 'goal'>('relative');
 
   function toggleParent(p: MuscleParent) {
     setExpandedParents(prev => {
@@ -80,6 +87,16 @@ export function Body({ uid, navigate }: Props) {
       setTargets(t);
       setLoading(false);
     })();
+  }, [uid]);
+
+  // Live-subscribe to targets so edits in the GoalsCard below flow into the
+  // volume bars immediately (no page reload needed to see the new bar scale).
+  const firestoreRef = useRef(firestore);
+  firestoreRef.current = firestore;
+  useEffect(() => {
+    if (!uid) return;
+    const unsub = firestoreRef.current.subscribeToWeeklyTargets(t => setTargets(t));
+    return unsub;
   }, [uid]);
 
   const { start: rangeStart, end: rangeEnd } = useMemo(() => computeRange(range), [range]);
@@ -188,6 +205,23 @@ export function Body({ uid, navigate }: Props) {
               </span>
             </div>
           </div>
+          {/* Bar-scale toggle — "יחסי" (default) vs "יעדים" so the user can see
+              volume as a fraction of what they configured, not just the top muscle. */}
+          <div className="mb-2 flex items-center justify-between gap-2" dir="rtl">
+            <div className="inline-flex rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-[11px] font-semibold">
+              <button
+                onClick={() => setBarMode('relative')}
+                className={`px-3 py-1 rounded-full transition-colors ${barMode === 'relative' ? 'bg-emerald-500 text-white' : 'text-muted'}`}
+              >יחסי</button>
+              <button
+                onClick={() => setBarMode('goal')}
+                className={`px-3 py-1 rounded-full transition-colors ${barMode === 'goal' ? 'bg-emerald-500 text-white' : 'text-muted'}`}
+              >יעדים</button>
+            </div>
+            <span className="text-[10px] text-muted-most">
+              {barMode === 'goal' ? 'סרגל מלא = יעד שבועי הושג' : 'סרגל מלא = שריר עם הכי הרבה סטים בטווח'}
+            </span>
+          </div>
           <div className="card !p-3">
             <div className="space-y-3">
               {PARENT_ORDER.map(parent => {
@@ -195,7 +229,11 @@ export function Body({ uid, navigate }: Props) {
                 const parentClasses = MUSCLE_CLASSES[info.color];
                 const children = musclesByParent(parent);
                 const done = children.reduce((sum, m) => sum + (setsPerMuscle[m.id] || 0), 0);
-                const pct = maxParentSets > 0 ? (done / maxParentSets) * 100 : 0;
+                // Goal-mode: parent bar width = done vs sum of children's goals.
+                const parentGoal = children.reduce((sum, m) => sum + (targets[m.id] || 0), 0);
+                const pct = barMode === 'goal'
+                  ? (parentGoal > 0 ? Math.min(100, (done / parentGoal) * 100) : 0)
+                  : (maxParentSets > 0 ? (done / maxParentSets) * 100 : 0);
                 const isExpanded = expandedParents.has(parent);
                 return (
                   <div key={parent}>
@@ -215,14 +253,19 @@ export function Body({ uid, navigate }: Props) {
                             strokeWidth="2.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            className={`text-muted-most transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                            className={`text-muted-most transition-transform ${isExpanded ? '-rotate-90' : ''}`}
                           >
                             <path d="M15 18l-6-6 6-6" />
                           </svg>
                           <span className={`font-bold text-base ${parentClasses.text}`}>{info.he}</span>
                         </div>
                         <span className="font-mono text-xs text-muted-most">
-                          {done > 0 ? `${done} סטים` : '—'}
+                          {barMode === 'goal' && parentGoal > 0 ? (
+                            // Force LTR embed so "7 / 20" stays visually
+                            // "7 / 20" — without this, RTL bidi reorders the
+                            // two number runs and shows "20 / 7".
+                            <bdi dir="ltr">{done} / {parentGoal}</bdi>
+                          ) : (done > 0 ? `${done} סטים` : '—')}
                         </span>
                       </div>
                       <div className="w-full dark:bg-slate-800/60 bg-slate-200/70 rounded-full h-2.5 flex">
@@ -236,13 +279,20 @@ export function Body({ uid, navigate }: Props) {
                       <div className="space-y-1 pr-6 mt-2">
                         {children.map(m => {
                           const d = setsPerMuscle[m.id] || 0;
-                          const p = maxSubMuscleSets > 0 ? (d / maxSubMuscleSets) * 100 : 0;
+                          const goal = targets[m.id] || 0;
+                          const p = barMode === 'goal'
+                            ? (goal > 0 ? Math.min(100, (d / goal) * 100) : 0)
+                            : (maxSubMuscleSets > 0 ? (d / maxSubMuscleSets) * 100 : 0);
                           const c = MUSCLE_CLASSES[m.color];
                           return (
                             <div key={m.id}>
                               <div className="flex items-baseline justify-between text-[11px] mb-0.5" dir="rtl">
                                 <span className={c.text}>{m.he}</span>
-                                <span className="font-mono text-muted-most">{d > 0 ? `${d} סטים` : '—'}</span>
+                                <span className="font-mono text-muted-most">
+                                  {barMode === 'goal' && goal > 0 ? (
+                                    <bdi dir="ltr">{d} / {goal}</bdi>
+                                  ) : (d > 0 ? `${d} סטים` : '—')}
+                                </span>
                               </div>
                               <div className="w-full dark:bg-slate-800 bg-slate-200 rounded-full h-1 flex">
                                 <div
@@ -262,9 +312,22 @@ export function Body({ uid, navigate }: Props) {
           </div>
         </section>
 
-        <div className="text-[10px] text-muted-most text-right px-1" dir="rtl">
-          יעדים שבועיים מוגדרים ב<span className="opacity-70">הגדרות</span>. הטווחים כאן יחסיים לשריר האקטיבי ביותר בטווח הנבחר. {Object.values(targets).some(v => v > 0) ? '' : ''}
-        </div>
+        {/* Goals editor moved here from Settings — same UI, same live-subscribe
+            state, sits next to the chart it drives. */}
+        <section className="mb-4" dir="rtl">
+          <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-emerald-50/95 to-white/85 dark:from-emerald-950/40 dark:to-slate-950/90 border-b border-emerald-500/20 shadow-[0_2px_10px_-6px_rgba(16,185,129,0.35)]" style={{ top: 'var(--top-bar-h)' }}>
+            <div className="max-w-lg mx-auto flex items-baseline justify-between">
+              <h2 className="inline-flex items-center gap-2 text-base font-bold">
+                <span>יעדים שבועיים</span>
+                <span className="w-1 h-4 rounded-full bg-emerald-500" />
+              </h2>
+              <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold">
+                עריכה
+              </span>
+            </div>
+          </div>
+          <GoalsCard uid={uid} />
+        </section>
       </div>
     </div>
   );

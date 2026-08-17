@@ -242,7 +242,14 @@ export function Exercises({ uid, navigate }: Props) {
                     <div className="flex items-start gap-3">
                       <div className="flex-1 text-right min-w-0">
                         <div className="flex items-center gap-2 justify-start">
-                          <span className="text-sm font-semibold truncate">{ex.he}</span>
+                          {ex.isAnchor && (
+                            <span title="עוגן" className="shrink-0 inline-flex text-amber-500">
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
+                              </svg>
+                            </span>
+                          )}
+                          <span className={`text-sm truncate ${ex.isAnchor ? 'font-bold' : 'font-semibold'}`}>{ex.he}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${c.bg} ${c.text}`}>{m.he}</span>
                         </div>
                         {ex.en && (
@@ -584,6 +591,7 @@ function EditExerciseModal({
   const [aliasesText, setAliasesText] = useState((exercise.aliases || []).join(', '));
   const [notes, setNotes] = useState(exercise.notes || '');
   const [isHoldTime, setIsHoldTime] = useState<boolean>(!!exercise.isHoldTime);
+  const [isAnchor, setIsAnchor] = useState<boolean>(!!exercise.isAnchor);
   const [aiThinking, setAiThinking] = useState(false);
 
   async function runAiSuggest() {
@@ -672,6 +680,38 @@ function EditExerciseModal({
           <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">הערות</label>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="input-field !text-right !text-sm !py-2" dir="rtl" />
         </div>
+        {/* Anchor toggle — surfaces this exercise at the TOP of every picker. */}
+        <div className="card !p-3 !bg-transparent border dark:border-slate-800 border-slate-200" dir="rtl">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-right flex-1">
+              <div className="text-sm font-semibold inline-flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" className="text-amber-500">
+                  <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
+                </svg>
+                <span>עוגן (מופיע ראשון בבחירה)</span>
+              </div>
+              <div className="text-[11px] text-muted mt-0.5">
+                תרגילים שאתה חוזר אליהם כל אימון — צוף למעלה ברשימת הבחירה
+              </div>
+            </div>
+            <button
+              onClick={() => setIsAnchor(v => !v)}
+              role="switch"
+              aria-checked={isAnchor}
+              className={`shrink-0 w-11 h-6 rounded-full relative transition-colors ${
+                isAnchor ? 'bg-amber-500' : 'dark:bg-slate-700 bg-slate-300'
+              }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow ${
+                  isAnchor ? 'right-0.5' : 'right-[calc(100%-1.375rem)]'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
         {/* Hold-time toggle */}
         <div className="card !p-3 !bg-transparent border dark:border-slate-800 border-slate-200" dir="rtl">
           <div className="flex items-start justify-between gap-3">
@@ -708,6 +748,7 @@ function EditExerciseModal({
             aliases: aliasesText.split(',').map(s => s.trim()).filter(Boolean),
             notes: notes.trim() || undefined,
             isHoldTime: isHoldTime || undefined,
+            isAnchor: isAnchor || undefined,
           })}
           className="btn-primary w-full py-3 font-semibold"
         >שמור</button>

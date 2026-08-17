@@ -146,7 +146,14 @@ export function Chronograph({
   // elapsed clock freezes at pausedAtMs - sessionStartMs. Local Chronograph pause
   // (sessionPaused) still stacks on top of that in case the user pauses inside
   // the widget too.
-  const effectiveNow = pausedAtMs != null ? pausedAtMs : now;
+  //
+  // Special case: a "fresh" session pins pausedAtMs === sessionStartMs as a
+  // sentinel so home tiles can render a "ready to start" label. Treat that
+  // sentinel as LIVE — otherwise the widget shows 00:00 forever until the
+  // user logs a first set (which is the bug the user hit: the clock only
+  // started ticking after the first save, even though elapsed was correct).
+  const isFreshSentinel = pausedAtMs != null && pausedAtMs === sessionStartMs;
+  const effectiveNow = pausedAtMs != null && !isFreshSentinel ? pausedAtMs : now;
   const sessionRawElapsedMs = effectiveNow - sessionStartMs;
   const activePauseMs = sessionPaused ? (effectiveNow - sessionPauseStartMs) : 0;
   const sessionElapsedSec = Math.max(0, Math.floor((sessionRawElapsedMs - sessionAccumPauseMs - activePauseMs) / 1000));

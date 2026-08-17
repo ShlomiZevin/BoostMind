@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Route, FreeSession } from '../types';
 import type { MuscleGroup, MuscleParent } from '../data/muscles';
 import {
@@ -155,9 +155,35 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
 
   useEffect(() => { refresh(); }, []);
 
+  // Live subscribe to weekly targets — an AI-driven goal change (or a Settings
+  // edit in another tab) reflects here instantly, no reload required.
+  const firestoreRef = useRef(firestore);
+  firestoreRef.current = firestore;
+  useEffect(() => {
+    if (!uid) return;
+    const unsub = firestoreRef.current.subscribeToWeeklyTargets(t => setTargets(t));
+    return unsub;
+  }, [uid]);
+
+  // Week-order preference (Saturday-first vs Sunday-first) — subscribed so a
+  // change in Settings reflects here without a reload.
+  const [weekOrder, setWeekOrderState] = useState<'saturday-first' | 'sunday-first'>('saturday-first');
+  useEffect(() => {
+    if (!uid) return;
+    const unsub = firestoreRef.current.subscribeToWeekOrder(setWeekOrderState);
+    return unsub;
+  }, [uid]);
+
   const inProgress = sessions.find(s => s.status === 'active');
 
-  const weekStart = startOfWeek(new Date());
+  // Offset from THIS week (0 = current, -1 = last week, +1 = next week...).
+  // Resets to 0 whenever the component remounts so opening Home always lands on today.
+  const [weekOffset, setWeekOffset] = useState(0);
+  const weekStart = useMemo(() => {
+    const base = startOfWeek(new Date());
+    base.setDate(base.getDate() + weekOffset * 7);
+    return base;
+  }, [weekOffset]);
   const weekEnd = new Date(weekStart.getTime() + 7 * 86_400_000);
 
   // Grouped by day-of-week within current week: 7 slots, Sun..Sat
@@ -350,14 +376,26 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
   const recentCutoff = anchorMs - 2 * 86_400_000; // 48h before plan-day midnight
   const lastWeekMuscles = new Set<MuscleGroup>();
   const recentMuscles = new Set<MuscleGroup>();
+  // Timestamp of the most-recent real set per muscle across ALL history — feeds
+  // the "אומן לפני N ימים" line on each tile in StartSessionModal. Note we
+  // don't scope to completed sessions here: an in-progress session with real
+  // sets logged should still count as "trained today".
+  const lastTrainedByMuscle: Partial<Record<MuscleGroup, number>> = {};
   for (const s of sessions) {
-    if (s.status !== 'completed') continue;
-    const ts = s.completedAt || s.date;
-    if (ts >= sameDayLastWeekStart && ts < sameDayLastWeekEnd) {
-      for (const set of s.sets) if (set.weight > 0 || set.reps > 0) lastWeekMuscles.add(set.muscle);
+    if (s.status === 'completed') {
+      const ts = s.completedAt || s.date;
+      if (ts >= sameDayLastWeekStart && ts < sameDayLastWeekEnd) {
+        for (const set of s.sets) if (set.weight > 0 || set.reps > 0) lastWeekMuscles.add(set.muscle);
+      }
+      if (ts >= recentCutoff && ts < anchorMs) {
+        for (const set of s.sets) if (set.weight > 0 || set.reps > 0) recentMuscles.add(set.muscle);
+      }
     }
-    if (ts >= recentCutoff && ts < anchorMs) {
-      for (const set of s.sets) if (set.weight > 0 || set.reps > 0) recentMuscles.add(set.muscle);
+    for (const set of s.sets) {
+      if (set.weight === 0 && set.reps === 0) continue;
+      const setTs = set.timestamp || s.date;
+      const prev = lastTrainedByMuscle[set.muscle];
+      if (prev === undefined || setTs > prev) lastTrainedByMuscle[set.muscle] = setTs;
     }
   }
   const suggested = ACTIVE_MUSCLES
@@ -504,7 +542,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                   <button onClick={() => toggleParent(parent)} className="w-full text-right" dir="rtl">
                     <div className="flex items-center justify-between mb-1" dir="rtl">
                       <div className="flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-muted-most transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-muted-most transition-transform ${isExpanded ? '-rotate-90' : ''}`}>
                           <path d="M15 18l-6-6 6-6" />
                         </svg>
                         <span className={`font-bold text-base ${parentClasses.text}`}>{info.he}</span>
@@ -526,8 +564,12 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                           : (parentTotal > 0 ? `${parentDoneOnly}${parentPlannedOnly > 0 && graphMode === 'planned' ? `+${parentPlannedOnly}` : ''} סטים` : '—')}
                       </span>
                     </div>
-                    <div className="w-full dark:bg-slate-800/60 bg-slate-200/70 rounded-full h-2.5 overflow-hidden flex flex-row-reverse">
-                      {/* Right-anchored (RTL) — DONE segment first (solid), then PLANNED extension (striped). */}
+                    <div className="w-full dark:bg-slate-800/60 bg-slate-200/70 rounded-full h-2.5 overflow-hidden flex">
+                      {/* RTL flex-row places the first DOM child on the physical
+                          RIGHT — so DONE renders on the right and PLANNED
+                          extends to its LEFT. flex-row-reverse (the old value)
+                          flipped the axis and put DONE on the LEFT, which broke
+                          consistency with every other bar in the app. */}
                       <div className={`${parentClasses.bar} h-2.5 transition-all ${parentDoneOnly === 0 ? 'opacity-0' : ''}`} style={{ width: `${donePct}%` }} />
                       {plannedPct > 0 && (
                         <div
@@ -606,20 +648,55 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
         <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-blue-50/95 to-white/85 dark:from-blue-950/40 dark:to-slate-950/90 border-b border-blue-500/20 shadow-[0_2px_10px_-6px_rgba(59,130,246,0.35)]" style={{ top: 'var(--top-bar-h)' }}>
           <div className="max-w-lg mx-auto flex items-baseline justify-between">
             <h2 className="inline-flex items-center gap-2 text-base font-bold">
-              <span>אימוני השבוע</span>
+              <span>
+                {weekOffset === 0 ? 'אימוני השבוע'
+                  : weekOffset === -1 ? 'השבוע שעבר'
+                  : weekOffset === 1 ? 'השבוע הבא'
+                  : weekOffset < 0 ? `לפני ${-weekOffset} שבועות` : `בעוד ${weekOffset} שבועות`}
+              </span>
               <span className="w-1 h-4 rounded-full bg-blue-500" />
             </h2>
-            <button
-              onClick={() => setCopyWeekOpen(true)}
-              className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20"
-            >העתק שבוע שעבר</button>
+            {/* RTL nav: right button = previous (arrow →), left button = next (arrow ←).
+                Physical order in RTL flex: first child renders on the RIGHT.
+                One always-visible context button on the far end (either "היום" or
+                "העתק שבוע שעבר") so the layout never shifts as the user pages weeks. */}
+            <div className="inline-flex items-center gap-1">
+              <button
+                onClick={() => setWeekOffset(o => o - 1)}
+                aria-label="שבוע קודם"
+                title="שבוע קודם"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300 hover:bg-blue-500/10"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+              </button>
+              <button
+                onClick={() => setWeekOffset(o => o + 1)}
+                aria-label="שבוע הבא"
+                title="שבוע הבא"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-300 hover:bg-blue-500/10"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+              </button>
+              {weekOffset === 0 ? (
+                <button
+                  onClick={() => setCopyWeekOpen(true)}
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 whitespace-nowrap min-w-[7.5rem] text-center"
+                >העתק שבוע שעבר</button>
+              ) : (
+                <button
+                  onClick={() => setWeekOffset(0)}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-500 whitespace-nowrap min-w-[7.5rem] text-center"
+                >חזור להיום</button>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          {/* Descending day-of-week: Sat(6) → Sun(0). Every day of the week is shown regardless
-              of whether it has content. Empty future days get the "+ הוסף אימון" button. */}
-          {[...weekSlots].sort((a, b) => b.date.getDay() - a.date.getDay()).map((slot) => {
+          {/* Day order controlled by user preference. Default (saturday-first):
+              Sat(6) → Sun(0). Sunday-first flips to Sun(0) → Sat(6). Every day
+              of the week is shown regardless of whether it has content. */}
+          {[...weekSlots].sort((a, b) => weekOrder === 'sunday-first' ? a.date.getDay() - b.date.getDay() : b.date.getDay() - a.date.getDay()).map((slot) => {
             const isToday = slot.key === todayYmd;
             const isPast = slot.date.getTime() < new Date(new Date().setHours(0,0,0,0)).getTime();
             const hasAny = slot.completed.length > 0 || slot.planned.length > 0 || !!slot.active;
@@ -721,7 +798,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                   const trulyPaused = paused && !fresh;
                   const dotBg = trulyPaused ? 'bg-amber-500' : 'bg-emerald-500';
                   const dotRingBg = trulyPaused ? 'bg-amber-400' : 'bg-emerald-400';
-                  const label = fresh ? 'אימון מוכן' : (trulyPaused ? 'מושהה' : 'אימון פתוח');
+                  const label = fresh ? 'מוכן' : (trulyPaused ? 'מושהה' : 'פתוח');
                   const labelCls = trulyPaused ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300';
                   // Card tint: amber when paused so the WHOLE tile reads as on-hold,
                   // not just the dot/label. Fresh + running stay emerald.
@@ -959,7 +1036,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
                           <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
                         </svg>
-                        <span>AI</span>
+                        <span>תכנן</span>
                       </button>
                     </div>
                   )
@@ -983,6 +1060,7 @@ export function FreeHome({ uid, navigate, onStartRequest }: Props) {
             weeklySets={weeklySetsPerMuscle}
             lastWeekMuscles={lastWeekMuscles}
             recentMuscles={recentMuscles}
+            lastTrainedByMuscle={lastTrainedByMuscle}
             heading={`תכנן ל${dateLabel}`}
             buttonLabel="שמור תוכנית"
             buttonLabelWithCount={(n) => `שמור תוכנית (${n})`}
@@ -1084,7 +1162,9 @@ function TodayTile({
       : 'from-emerald-500/18 via-emerald-500/10 dark:from-emerald-500/25 dark:via-emerald-500/12 border-emerald-500/50 dark:border-emerald-500/50';
     const dotBg = trulyPaused ? 'bg-amber-500' : 'bg-emerald-500';
     const dotRingBg = trulyPaused ? 'bg-amber-400' : 'bg-emerald-400';
-    const label = fresh ? 'אימון מוכן' : (trulyPaused ? 'מושהה' : 'אימון פתוח');
+    // Compact labels — dropped "אימון" prefix so the row never wraps on tight
+    // widths (icons + timer + counters take room too). Dot color carries the state.
+    const label = fresh ? 'מוכן' : (trulyPaused ? 'מושהה' : 'פתוח');
     const labelCls = trulyPaused ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200';
     const subCls = trulyPaused ? 'text-amber-700/80 dark:text-amber-300/80' : 'text-emerald-700 dark:text-emerald-300';
     return (

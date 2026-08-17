@@ -122,40 +122,47 @@ export function FreeHistory({ uid, navigate }: Props) {
             </span>
           </div>
         </div>
-        <div className="card !p-2 space-y-2">
-          {/* Status filter — completed / planned / all */}
-          <div className="grid grid-cols-3 gap-2">
-            {STATUS_FILTERS.map(f => {
-              const active = f.key === statusFilter;
-              return (
-                <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
-                  className={`text-center text-xs px-2 py-1.5 rounded-lg transition-colors ${
-                    active
-                      ? 'bg-blue-600 text-white font-semibold'
-                      : 'dark:bg-slate-800 bg-slate-100 text-main dark:hover:bg-slate-700 hover:bg-slate-200'
-                  }`}
-                >{f.label}</button>
-              );
-            })}
+        <div className="card !p-3 space-y-3">
+          {/* Two visually distinct filter GROUPS so it's obvious they answer
+              different questions:
+                Status → segmented pill picker (compact, one-of-three)
+                Range  → labeled chip grid (multiple time windows) */}
+          <div>
+            <div className="text-[10px] uppercase tracking-widest font-semibold text-muted mb-1.5">סוג</div>
+            <div className="inline-flex w-full rounded-full p-0.5 bg-slate-100 dark:bg-slate-900 text-xs font-semibold">
+              {STATUS_FILTERS.map(f => {
+                const active = f.key === statusFilter;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setStatusFilter(f.key)}
+                    className={`flex-1 text-center py-1.5 rounded-full transition-colors ${
+                      active ? 'bg-blue-600 text-white shadow-sm' : 'text-muted hover:text-main'
+                    }`}
+                  >{f.label}</button>
+                );
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {RANGES.map(r => {
-              const active = r.key === range;
-              return (
-                <button
-                  key={r.key}
-                  onClick={() => setRange(r.key)}
-                  className={`text-right text-xs px-3 py-2 rounded-lg transition-colors ${
-                    active
-                      ? 'bg-blue-600 text-white font-semibold'
-                      : 'dark:bg-slate-800 bg-slate-100 text-main dark:hover:bg-slate-700 hover:bg-slate-200'
-                  }`}
-                  dir="rtl"
-                >{r.label}</button>
-              );
-            })}
+          <div>
+            <div className="text-[10px] uppercase tracking-widest font-semibold text-muted mb-1.5">טווח זמן</div>
+            <div className="grid grid-cols-2 gap-2">
+              {RANGES.map(r => {
+                const active = r.key === range;
+                return (
+                  <button
+                    key={r.key}
+                    onClick={() => setRange(r.key)}
+                    className={`text-right text-xs px-3 py-2 rounded-lg border transition-colors ${
+                      active
+                        ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/50 font-semibold'
+                        : 'dark:bg-slate-800/60 bg-slate-50 text-main border-transparent dark:hover:bg-slate-700 hover:bg-slate-100'
+                    }`}
+                    dir="rtl"
+                  >{r.label}</button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>

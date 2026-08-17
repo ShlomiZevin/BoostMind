@@ -180,6 +180,32 @@ export type UserProfile = {
   updatedAt?: number;
 };
 
+// Chat persistence — moved from localStorage → Firestore so answers survive
+// tab-close, sync across devices, and can be written by the server too.
+// Thread doc holds metadata; per-message docs live in the messages subcollection.
+export type ChatMessageDoc = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  ts: number;
+  truncated?: boolean;
+  // Assistant messages carry the mode they were generated in so the UI can
+  // render mode-specific badges if needed. User messages omit it.
+  mode?: 'session' | 'trainer' | 'onboarding' | 'naming';
+  // Optional attached image (base64 data URL). Present on user messages that
+  // sent a photo ("what muscle does this machine work?" flows). Sits in the
+  // same doc as `content` so a single Firestore read yields the whole turn.
+  image?: string;
+};
+export type ChatThreadDoc = {
+  id: string;
+  title: string;
+  ts: number;         // when the thread started
+  updatedAt: number;  // last message ts (drives ordering)
+  // 'coach' = onboarding/trainer/session (unified); 'naming' = naming helper
+  bucket: 'coach' | 'naming';
+};
+
 // Route types
 export type Route =
   | { page: 'home' }

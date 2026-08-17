@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, PARENT_INFO, musclesByParent } from '../data/muscles';
 import { ExerciseInline } from './FreeSession';
@@ -36,6 +36,9 @@ type Props = {
   onSave: (set: Omit<FreeSet, 'id' | 'timestamp'>, editingSetId?: string) => void;
   // Called when saving as exercise-only (no weight/reps). Fires from 'exercise' or 'dual' modes.
   onPickOnly?: (name: string, muscle: MuscleGroup, en?: string, isHoldTime?: boolean) => void;
+  // Called RIGHT after a photo write to Firestore, so parents holding their own
+  // photosMap (FreeSession) can update in-place without waiting for a reload.
+  onPhotoSaved?: (photoKey: string, dataUrl: string) => void;
 };
 
 function isVideoUrl(src: string): boolean {
@@ -50,15 +53,16 @@ function Thumb({ src, alt, className }: { src?: string | null; alt: string; clas
   return <div className={`${className} dark:bg-slate-800 bg-slate-100 flex items-center justify-center text-muted-most text-xs`}>—</div>;
 }
 
-function weeksAgoLabel(ts: number): string {
-  const days = (Date.now() - ts) / (24 * 60 * 60 * 1000);
-  if (days < 7) return 'השבוע';
-  const weeks = Math.floor(days / 7);
-  if (weeks === 1) return 'לפני שבוע';
-  if (weeks < 4) return `לפני ${weeks} שבועות`;
-  const months = Math.floor(days / 30);
-  if (months === 1) return 'לפני חודש';
-  return `לפני ${months} חודשים`;
+// Days-since label — shown on each picker row so neglected exercises are
+// obvious at a glance. Calendar-day diff (not raw hours) so a 26-hour gap
+// that crosses midnight reads as "אתמול", not "לפני יומיים".
+function daysAgoLabel(ts: number): string {
+  const startOfDay = (t: number) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const days = Math.max(0, Math.round((startOfDay(Date.now()) - startOfDay(ts)) / 86_400_000));
+  if (days === 0) return 'היום';
+  if (days === 1) return 'אתמול';
+  if (days === 2) return 'לפני יומיים';
+  return `לפני ${days} ימים`;
 }
 
 export function LogSetModal({
@@ -66,7 +70,7 @@ export function LogSetModal({
   saveMode = 'set',
   replacingName,
   sessionId,
-  onClose, onSave, onPickOnly,
+  onClose, onSave, onPickOnly, onPhotoSaved,
 }: Props) {
   const showSet = saveMode === 'set' || saveMode === 'dual';
   const showExercise = saveMode === 'exercise' || saveMode === 'dual';
@@ -74,6 +78,10 @@ export function LogSetModal({
   const firestore = useFirestore(uid);
   const isEdit = !!editingSet;
   const seed = editingSet || duplicateFrom;
+  // A seed with all-zero values (e.g. the "+ סט" on an exercise whose last set
+  // was a 0/0 placeholder) shouldn't block the prev-workout prefill below —
+  // otherwise the kg input opens at "0" even though we have real history.
+  const seedHasRealValues = !!seed && (seed.weight > 0 || seed.reps > 0);
 
   const [personalExercises, setPersonalExercises] = useState<PersonalExercise[]>([]);
   const [photosMap, setPhotosMap] = useState<Record<string, string>>({});
@@ -212,20 +220,35 @@ export function LogSetModal({
 
   // Most-recent real set for the CURRENT exercise (across all history) — used both to prefill
   // weight/reps and to render an explicit "פעם קודמת" line so the user sees the source.
+  // Also match on the personal exercise's ALIASES, so a set logged before the
+  // exercise was renamed still counts as history for the same exercise.
   const lastSetForExercise = useMemo(() => {
     if (!currentName) return null;
     const target = currentName.trim().toLowerCase();
+    const personal = findPersonalByName(personalExercises, currentName);
+    const nameKeys = new Set<string>([target]);
+    if (personal) {
+      nameKeys.add(personal.he.trim().toLowerCase());
+      if (personal.en) nameKeys.add(personal.en.trim().toLowerCase());
+      for (const a of personal.aliases || []) nameKeys.add(a.trim().toLowerCase());
+    }
     return [...allPastSets]
-      .filter(s => s.exerciseName?.trim().toLowerCase() === target && (s.weight > 0 || s.reps > 0))
+      .filter(s => {
+        const n = s.exerciseName?.trim().toLowerCase();
+        return !!n && nameKeys.has(n) && (s.weight > 0 || s.reps > 0);
+      })
       .sort((a, b) => b.timestamp - a.timestamp)[0] || null;
-  }, [currentName, allPastSets]);
+  }, [currentName, allPastSets, personalExercises]);
 
   // Prefill weight/reps. Simpler contract per user request:
   //   1. If we have history for THIS exercise → use last set's reps + weight
   //   2. Otherwise → 12 × 0kg (neutral default). No cross-muscle heuristic —
   //      that used to leak unrelated reps counts and confused new sets.
   useEffect(() => {
-    if (seed) return;
+    // Only bail when the seed carries REAL user values — otherwise we still
+    // want to pull weight/reps from the exercise's history so a "+ סט" tap
+    // opens with the prior workout's kg already filled in.
+    if (seedHasRealValues) return;
     if (lastSetForExercise) {
       setWeight(String(lastSetForExercise.weight));
       setReps(String(lastSetForExercise.reps));
@@ -234,7 +257,7 @@ export function LogSetModal({
     }
     setReps('12');
     setWeight('0');
-  }, [muscle, currentName, lastSetForExercise]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [muscle, currentName, lastSetForExercise, seedHasRealValues]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Last time (ms) the CURRENT muscle was hit with a real set — for the "worked recently" warning.
   const muscleLastTrainedMs = useMemo(() => {
@@ -484,7 +507,7 @@ export function LogSetModal({
                           <span className="font-mono font-semibold text-emerald-700 dark:text-emerald-300" dir="ltr">
                             {lastSetForExercise.weight}{lastSetForExercise.unit || 'kg'} × {lastSetForExercise.reps}
                           </span>
-                          <span className="text-[10px] text-muted-most">· {weeksAgoLabel(lastSetForExercise.timestamp)}</span>
+                          <span className="text-[10px] text-muted-most">· {daysAgoLabel(lastSetForExercise.timestamp)}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 flex-wrap text-[11px]" dir="rtl">
@@ -584,41 +607,70 @@ export function LogSetModal({
                   {muscle ? `תרגילים ל${currentMuscle?.he}` : `תרגילי הפוקוס`} ({pickerList.length})
                 </div>
                 <div className="rounded-xl border border-subtle card !p-0 max-h-72 overflow-y-auto">
-                  {pickerList.slice(0, 80).map(ex => {
+                  {pickerList.slice(0, 80).map((ex, ix, arr) => {
                     const h = historyForExercise(ex);
                     const range = h ? formatRange(h) : null;
                     const exMuscle = MUSCLE_BY_ID[ex.defaultMuscle];
                     const emc = exMuscle ? MUSCLE_CLASSES[exMuscle.color] : null;
                     const photo = photoFor(ex.he) || ex.photoBase64;
+                    // The picker sort places anchors first. When we cross the
+                    // anchor→non-anchor boundary, drop a subtle "בעבר" strip so
+                    // the user sees "these are my staples, the rest below".
+                    const prev = ix > 0 ? arr[ix - 1] : null;
+                    const showAnchorDivider = !ex.isAnchor && !!prev?.isAnchor;
+                    const isFirstAnchor = ex.isAnchor && (!prev || !prev.isAnchor);
                     return (
-                      <button
-                        key={ex.id}
-                        onClick={() => pickExisting(ex)}
-                        className="w-full flex flex-row-reverse items-center gap-2 px-3 py-2 border-b border-subtle/50 last:border-0 dark:hover:bg-slate-800 hover:bg-slate-100"
-                      >
-                        {photo && (
-                          <div className="w-12 h-12 rounded overflow-hidden shrink-0">
-                            <Thumb src={photo} alt={ex.he} className="w-full h-full object-cover" />
+                      <Fragment key={ex.id}>
+                        {isFirstAnchor && (
+                          <div className="px-3 pt-2 pb-1 text-[9px] uppercase tracking-widest font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1" dir="rtl">
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true">
+                              <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
+                            </svg>
+                            <span>עוגנים</span>
                           </div>
                         )}
-                        <div className="text-right flex-1 min-w-0" dir="rtl">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-sm font-medium truncate">{ex.he}</span>
-                            {h && (
-                              <span className="text-[9px] shrink-0 text-emerald-600 dark:text-emerald-400">
-                                {weeksAgoLabel(h.lastTs)}
-                              </span>
-                            )}
+                        {showAnchorDivider && (
+                          <div className="px-3 pt-2 pb-1 text-[9px] uppercase tracking-widest font-semibold text-muted-most border-t border-subtle" dir="rtl">
+                            <span>שאר התרגילים</span>
                           </div>
-                          {ex.en && (
-                            <div className="text-[10px] text-muted truncate mt-0.5" dir="ltr" style={{ direction: 'ltr' }}>{ex.en}</div>
+                        )}
+                        <button
+                          onClick={() => pickExisting(ex)}
+                          className={`w-full flex flex-row-reverse items-center gap-2 px-3 py-2 border-b border-subtle/50 last:border-0 dark:hover:bg-slate-800 hover:bg-slate-100 ${
+                            ex.isAnchor ? 'dark:bg-amber-950/10 bg-amber-50/40' : ''
+                          }`}
+                        >
+                          {photo && (
+                            <div className="w-12 h-12 rounded overflow-hidden shrink-0">
+                              <Thumb src={photo} alt={ex.he} className="w-full h-full object-cover" />
+                            </div>
                           )}
-                          <div className="flex items-center justify-between gap-2 mt-0.5">
-                            {emc && <span className={`text-[9px] px-1 rounded ${emc.bg} ${emc.text}`}>{exMuscle?.he}</span>}
-                            {range && <span className="text-[10px] font-mono text-main shrink-0" dir="ltr">{range}</span>}
+                          <div className="text-right flex-1 min-w-0" dir="rtl">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`text-sm truncate inline-flex items-center gap-1 ${ex.isAnchor ? 'font-bold' : 'font-medium'}`}>
+                                {ex.isAnchor && (
+                                  <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true" className="text-amber-500 shrink-0">
+                                    <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
+                                  </svg>
+                                )}
+                                <span className="truncate">{ex.he}</span>
+                              </span>
+                              {h && (
+                                <span className="text-[9px] shrink-0 text-emerald-600 dark:text-emerald-400">
+                                  {daysAgoLabel(h.lastTs)}
+                                </span>
+                              )}
+                            </div>
+                            {ex.en && (
+                              <div className="text-[10px] text-muted truncate mt-0.5" dir="ltr" style={{ direction: 'ltr' }}>{ex.en}</div>
+                            )}
+                            <div className="flex items-center justify-between gap-2 mt-0.5">
+                              {emc && <span className={`text-[9px] px-1 rounded ${emc.bg} ${emc.text}`}>{exMuscle?.he}</span>}
+                              {range && <span className="text-[10px] font-mono text-main shrink-0" dir="ltr">{range}</span>}
+                            </div>
                           </div>
-                        </div>
-                      </button>
+                        </button>
+                      </Fragment>
                     );
                   })}
                 </div>
@@ -811,6 +863,9 @@ export function LogSetModal({
             await firestore.saveExercisePhoto(currentName, dataUrl);
             const k = exercisePhotoKey(currentName);
             setPhotosMap(prev => ({ ...prev, [k]: dataUrl }));
+            // Push the fresh photo up so FreeSession's card grid updates without
+            // needing a page reload to pick it up.
+            if (onPhotoSaved) onPhotoSaved(k, dataUrl);
           } catch (err: any) {
             alert(err?.message || 'שגיאה בהעלאה');
           } finally {

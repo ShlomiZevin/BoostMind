@@ -129,6 +129,21 @@ function AppShell({ uid, route, navigate, doLogout }: {
     return found;
   }, [allSessions]);
 
+  // Timestamp of the MOST-RECENT real set per muscle across all history.
+  // Feeds the "אומן לפני N ימים" line on each tile in StartSessionModal.
+  const lastTrainedByMuscle = useMemo(() => {
+    const map: Partial<Record<MuscleGroup, number>> = {};
+    for (const sess of allSessions) {
+      for (const s of sess.sets) {
+        if (s.weight === 0 && s.reps === 0) continue;
+        const ts = s.timestamp || sess.date;
+        const prev = map[s.muscle];
+        if (prev === undefined || ts > prev) map[s.muscle] = ts;
+      }
+    }
+    return map;
+  }, [allSessions]);
+
   // If a completed session for TODAY exists, offer to return to it rather than starting a new one.
   const todaysCompleted = useMemo(() => {
     const midnight = new Date(); midnight.setHours(0,0,0,0);
@@ -251,6 +266,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
           weeklySets={weeklySets}
           lastWeekMuscles={lastWeekMuscles}
           recentMuscles={recentMuscles}
+          lastTrainedByMuscle={lastTrainedByMuscle}
           onClose={() => setShowStart(false)}
           onStart={handleStart}
         />

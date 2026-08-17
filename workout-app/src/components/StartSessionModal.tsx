@@ -11,6 +11,10 @@ type Props = {
   lastWeekMuscles?: Set<MuscleGroup>;
   // Muscles trained in the last 48h — amber warning ("give them a rest")
   recentMuscles?: Set<MuscleGroup>;
+  // Timestamp (ms) of the most-recent real set per muscle across ALL history.
+  // Rendered on each tile as "אומן היום / אתמול / לפני N ימים / …" so the
+  // athlete can see recency at a glance before picking the day's focus.
+  lastTrainedByMuscle?: Partial<Record<MuscleGroup, number>>;
   // Optional overrides so the same modal can be used for planning a future day.
   heading?: string;         // e.g. "תכנן ליום שלישי"
   buttonLabel?: string;     // e.g. "תכנן אימון"
@@ -21,11 +25,36 @@ type Props = {
 
 const PARENT_ORDER: MuscleParent[] = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core'];
 
+// Format the "אומן לפני …" line for a muscle tile. Day-diff is measured
+// between calendar midnights, so a set logged 5 hours ago at 23:00 correctly
+// reads "אתמול" the moment we cross midnight — not "לפני 5 שעות".
+// Never returns null: gives an explicit "לא אומן" when the muscle has zero
+// history, which is more useful than silence.
+function formatLastTrained(ts: number | undefined): { text: string; muted: boolean } {
+  if (!ts) return { text: 'טרם אומן', muted: true };
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const then = new Date(ts);
+  const thenDay = new Date(then.getFullYear(), then.getMonth(), then.getDate()).getTime();
+  const days = Math.max(0, Math.round((today - thenDay) / 86_400_000));
+  if (days === 0) return { text: 'אומן היום', muted: false };
+  if (days === 1) return { text: 'אומן אתמול', muted: false };
+  if (days === 2) return { text: 'לפני יומיים', muted: false };
+  if (days <= 6) return { text: `לפני ${days} ימים`, muted: false };
+  if (days === 7) return { text: 'לפני שבוע', muted: true };
+  if (days <= 13) return { text: `לפני ${days} ימים`, muted: true };
+  if (days === 14) return { text: 'לפני שבועיים', muted: true };
+  if (days <= 27) return { text: `לפני ${Math.round(days / 7)} שבועות`, muted: true };
+  if (days <= 60) return { text: `לפני חודש+`, muted: true };
+  return { text: `לפני ${Math.round(days / 30)} חודשים`, muted: true };
+}
+
 export function StartSessionModal({
   suggested = [],
   weeklySets = {},
   lastWeekMuscles,
   recentMuscles,
+  lastTrainedByMuscle,
   heading,
   buttonLabel,
   buttonLabelWithCount,
@@ -159,7 +188,7 @@ export function StartSessionModal({
                   const maxThisWeek = Math.max(1, ...ACTIVE_MUSCLES.map(x => weeklySets[x.id] || 0));
                   const ratio = Math.min(1, doneThisWeek / maxThisWeek);
                   // Clean heat scale — untrained is neutral (not amber), trained fades emerald→red.
-                  let baseClass = 'relative text-right px-3 py-3 rounded-xl transition text-sm min-h-[52px] flex items-center';
+                  let baseClass = 'relative text-right px-3 py-2.5 rounded-xl transition text-sm min-h-[58px] flex items-center';
                   let inlineStyle: React.CSSProperties = {};
                   let extraClass = '';
                   if (isSelected) {
@@ -184,6 +213,7 @@ export function StartSessionModal({
                     extraClass = heavyText ? 'text-white font-semibold' : 'text-red-900 dark:text-red-950';
                   }
                   const isRecent = recentMuscles?.has(m.id);
+                  const lastTrained = formatLastTrained(lastTrainedByMuscle?.[m.id]);
                   return (
                     <button
                       key={m.id}
@@ -221,7 +251,16 @@ export function StartSessionModal({
                         </div>
                       )}
                       <div className="flex items-center justify-between gap-2 w-full">
-                        <span className="flex-1 text-right font-medium">{m.he}</span>
+                        {/* Name on top, "אומן לפני …" underneath as a small
+                            recency line. Sub-line stays flush-right (RTL) and
+                            uses the tile's own text color at reduced opacity so
+                            it reads on every heat tier without new color rules. */}
+                        <div className="flex-1 min-w-0 text-right">
+                          <div className="font-medium leading-tight">{m.he}</div>
+                          <div className={`text-[10px] leading-tight mt-0.5 ${lastTrained.muted ? 'opacity-55' : 'opacity-85'}`}>
+                            {lastTrained.text}
+                          </div>
+                        </div>
                         {doneThisWeek > 0 && (
                           <span className="text-[10px] font-mono shrink-0 opacity-80">{doneThisWeek}</span>
                         )}

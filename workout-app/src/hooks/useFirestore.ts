@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import {
   collection, doc, setDoc, updateDoc, getDoc, getDocs, deleteDoc,
-  arrayUnion, Timestamp,
+  arrayUnion, Timestamp, onSnapshot, query, orderBy,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
@@ -337,17 +337,28 @@ export function useFirestore(uid: string | null) {
     return snap.exists() ? snap.data().ids || [] : [];
   }, [uid]);
 
-  const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, difficulty: 'too-easy' | 'easy' | 'ok' | 'hard', addWeight: boolean) => {
+  // `difficulty` = next-time weight bump chip (plus-1.25/plus-2.5/plus-5/plus-10).
+  // `nextReps`   = next-time target reps chip (8/10/12/15).
+  // Both are opaque strings in Firestore so the schema doesn't churn every time
+  // we swap chip semantics. Either can be null (cleared).
+  type DifficultyPatch = { difficulty?: string | null; nextReps?: string | null };
+  const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, patch: DifficultyPatch) => {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
-    await setDoc(ref, { exerciseId, sessionId, difficulty, addWeight, timestamp: Date.now() });
+    // Merge so setting nextReps doesn't wipe difficulty and vice versa.
+    const body: any = { exerciseId, sessionId, timestamp: Date.now() };
+    if (patch.difficulty !== undefined) body.difficulty = patch.difficulty;
+    if (patch.nextReps !== undefined) body.nextReps = patch.nextReps;
+    await setDoc(ref, body, { merge: true });
   }, [uid]);
 
-  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty: string; addWeight: boolean } | null> => {
+  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty?: string; nextReps?: string } | null> => {
     if (!uid) return null;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
     const snap = await getDoc(ref);
-    return snap.exists() ? { difficulty: snap.data().difficulty, addWeight: !!snap.data().addWeight } : null;
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return { difficulty: d.difficulty || undefined, nextReps: d.nextReps || undefined };
   }, [uid]);
 
   const deleteExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string): Promise<void> => {
@@ -355,15 +366,15 @@ export function useFirestore(uid: string | null) {
     await deleteDoc(doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`));
   }, [uid]);
 
-  const getExerciseDifficulty = useCallback(async (exerciseId: string): Promise<{ difficulty: string; addWeight: boolean } | null> => {
+  const getExerciseDifficulty = useCallback(async (exerciseId: string): Promise<{ difficulty?: string; nextReps?: string } | null> => {
     if (!uid) return null;
-    // Get most recent difficulty rating for this exercise
+    // Get most recent chip choices for this exercise across all sessions.
     const snap = await getDocs(collection(db, 'users', uid, 'exerciseDifficulty'));
     const ratings = snap.docs
       .map(d => d.data())
       .filter(d => d.exerciseId === exerciseId)
       .sort((a, b) => b.timestamp - a.timestamp);
-    return ratings[0] ? { difficulty: ratings[0].difficulty, addWeight: ratings[0].addWeight } : null;
+    return ratings[0] ? { difficulty: ratings[0].difficulty || undefined, nextReps: ratings[0].nextReps || undefined } : null;
   }, [uid]);
 
   // ─── Free (muscle-based) sessions ───────────────────────────────
@@ -789,6 +800,36 @@ export function useFirestore(uid: string | null) {
     await setDoc(ref, { weeklyTargets: targets }, { merge: true });
   }, [uid]);
 
+  // Realtime version — every subscriber (home, settings, chat) sees the same
+  // change instantly, so an AI-driven update to goals reflects on every screen
+  // without a reload. Merges DEFAULT_WEEKLY_TARGETS on top of stored so muscles
+  // never seen before still have a numeric baseline.
+  const subscribeToWeeklyTargets = useCallback((cb: (t: Record<MuscleGroup, number>) => void): () => void => {
+    if (!uid) return () => {};
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    return onSnapshot(ref, snap => {
+      const stored = snap.exists() ? (snap.data() as any).weeklyTargets : null;
+      cb({ ...DEFAULT_WEEKLY_TARGETS, ...(stored || {}) });
+    });
+  }, [uid]);
+
+  // Week-order preference — controls whether the home week grid starts on
+  // Saturday (Israeli default) or Sunday. Stored per-user in settings/main.
+  type WeekOrder = 'saturday-first' | 'sunday-first';
+  const subscribeToWeekOrder = useCallback((cb: (order: WeekOrder) => void): () => void => {
+    if (!uid) return () => {};
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    return onSnapshot(ref, snap => {
+      const stored = snap.exists() ? ((snap.data() as any).weekOrder as WeekOrder | undefined) : undefined;
+      cb(stored === 'sunday-first' ? 'sunday-first' : 'saturday-first');
+    });
+  }, [uid]);
+  const setWeekOrder = useCallback(async (order: WeekOrder) => {
+    if (!uid) return;
+    const ref = doc(db, 'users', uid, 'settings', 'main');
+    await setDoc(ref, { weekOrder: order }, { merge: true });
+  }, [uid]);
+
   // Goals config — two modes:
   //   'fixed'   → weeklyTargets is the source of truth (existing behavior)
   //   'percent' → weeklyTotalSets (total per week) split by weeklyPercents (%/muscle)
@@ -882,7 +923,7 @@ export function useFirestore(uid: string | null) {
         // as an override. Keeps the shared DB clean and other users unaffected.
         const base = globalSnap.data() as PersonalExercise;
         const diff: any = { updatedAt: Date.now() };
-        for (const k of ['he', 'en', 'defaultMuscle', 'aliases', 'isHoldTime', 'notes', 'photoBase64'] as const) {
+        for (const k of ['he', 'en', 'defaultMuscle', 'aliases', 'isHoldTime', 'isAnchor', 'notes', 'photoBase64'] as const) {
           const cur = (ex as any)[k];
           const b = (base as any)[k];
           if (cur !== undefined && JSON.stringify(cur) !== JSON.stringify(b)) diff[k] = cur;
@@ -1001,6 +1042,81 @@ export function useFirestore(uid: string | null) {
   const markOnboardingComplete = useCallback(async (): Promise<void> => {
     await updateUserProfile({ onboardingCompletedAt: Date.now() });
   }, [updateUserProfile]);
+
+  // ─── Chat threads + messages (Firestore-backed, realtime) ────────
+  // Threads live at users/{uid}/chatThreads/{threadId}, messages at
+  // users/{uid}/chatThreads/{threadId}/messages/{msgId}. Moving off localStorage
+  // gives us cross-device sync + tab-close resilience + a server-writable log.
+  const chatThreadsCol = useCallback(() => collection(db, 'users', uid || 'null', 'chatThreads'), [uid]);
+  const chatMessagesCol = useCallback((threadId: string) =>
+    collection(db, 'users', uid || 'null', 'chatThreads', threadId, 'messages'), [uid]);
+
+  const upsertChatThread = useCallback(async (threadId: string, meta: Partial<ChatThreadDoc>) => {
+    if (!uid) return;
+    await setDoc(doc(chatThreadsCol(), threadId), { id: threadId, ...meta }, { merge: true });
+  }, [uid, chatThreadsCol]);
+
+  const addChatMessage = useCallback(async (threadId: string, msg: Omit<ChatMessageDoc, 'id'>): Promise<string> => {
+    if (!uid) return '';
+    // Deterministic id from ts+role so client optimism and server writes don't
+    // duplicate the same message. Same ts+role means same message.
+    const id = `m_${msg.ts}_${msg.role}`;
+    const clean: any = { ...msg, id };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(chatMessagesCol(threadId), id), clean, { merge: true });
+    // Bump thread updatedAt so the list orders correctly without extra reads.
+    await setDoc(doc(chatThreadsCol(), threadId), { id: threadId, updatedAt: msg.ts }, { merge: true });
+    return id;
+  }, [uid, chatThreadsCol, chatMessagesCol]);
+
+  const listChatThreads = useCallback(async (bucket: 'coach' | 'naming'): Promise<ChatThreadDoc[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(chatThreadsCol());
+    return snap.docs
+      .map(d => d.data() as ChatThreadDoc)
+      .filter(t => (t.bucket || 'coach') === bucket)
+      .sort((a, b) => (b.updatedAt || b.ts || 0) - (a.updatedAt || a.ts || 0));
+  }, [uid, chatThreadsCol]);
+
+  const subscribeToChatThreads = useCallback((bucket: 'coach' | 'naming', cb: (threads: ChatThreadDoc[]) => void): () => void => {
+    if (!uid) return () => {};
+    return onSnapshot(chatThreadsCol(), snap => {
+      // Firestore fires the listener from local cache first. On a fresh browser
+      // that cache is empty even when the server has threads, which used to make
+      // us think "no history → create a new thread" and land on a blank chat.
+      // Skip cache-only EMPTY snapshots — the server round-trip will follow with
+      // the real data. Non-empty cache snapshots are still useful (fast paint).
+      if (snap.empty && snap.metadata && snap.metadata.fromCache) return;
+      const list = snap.docs
+        .map(d => d.data() as ChatThreadDoc)
+        .filter(t => (t.bucket || 'coach') === bucket)
+        .sort((a, b) => (b.updatedAt || b.ts || 0) - (a.updatedAt || a.ts || 0));
+      cb(list);
+    });
+  }, [uid, chatThreadsCol]);
+
+  const subscribeToChatMessages = useCallback((threadId: string, cb: (msgs: ChatMessageDoc[]) => void): () => void => {
+    if (!uid) return () => {};
+    const q = query(chatMessagesCol(threadId), orderBy('ts', 'asc'));
+    return onSnapshot(q, snap => {
+      // Same cache-race guard as subscribeToChatThreads. First fire on a
+      // fresh browser is often the empty local cache — we'd flash "no
+      // messages" before the server round-trip. Skipping cache-empty snapshots
+      // keeps the previous state until real data lands.
+      if (snap.empty && snap.metadata && snap.metadata.fromCache) return;
+      cb(snap.docs.map(d => d.data() as ChatMessageDoc));
+    });
+  }, [uid, chatMessagesCol]);
+
+  const deleteChatThread = useCallback(async (threadId: string): Promise<void> => {
+    if (!uid) return;
+    // Delete messages subcollection first (Firestore doesn't cascade).
+    try {
+      const snap = await getDocs(chatMessagesCol(threadId));
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    } catch { /* ignore */ }
+    try { await deleteDoc(doc(chatThreadsCol(), threadId)); } catch { /* ignore */ }
+  }, [uid, chatMessagesCol, chatThreadsCol]);
 
   // Gate for the onboarding wizard: show it whenever the user hasn't marked
   // onboarding as complete. Legacy heuristic — treat accounts with existing sessions
@@ -1303,6 +1419,9 @@ export function useFirestore(uid: string | null) {
     duplicateFreeSession,
     getWeeklyTargets,
     setWeeklyTargets,
+    subscribeToWeeklyTargets,
+    subscribeToWeekOrder,
+    setWeekOrder,
     getGoalsConfig,
     setGoalsConfig,
     // Exercise photos
@@ -1328,5 +1447,12 @@ export function useFirestore(uid: string | null) {
     markOnboardingComplete,
     shouldShowOnboarding,
     wipeAllUserData,
+    // Chat (Firestore-backed)
+    upsertChatThread,
+    addChatMessage,
+    listChatThreads,
+    subscribeToChatThreads,
+    subscribeToChatMessages,
+    deleteChatThread,
   };
 }
