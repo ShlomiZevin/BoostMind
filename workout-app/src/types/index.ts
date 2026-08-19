@@ -177,7 +177,77 @@ export type UserProfile = {
   // even for accounts that already have sessions/exercises. Cleared automatically
   // when the user completes or skips the reopened chat.
   forceOnboarding?: boolean;
+  // Dietary profile lives here rather than in settings/main — a second profile
+  // in a different doc is a trap.
+  diet?: DietProfile;
   updatedAt?: number;
+};
+
+// ─── תזונה ─────────────────────────────────────────────────────────
+// The unit of tracking is YOUR meal, not an ingredient database. The ingredient
+// breakdown exists to justify the calorie number and let you tweak it — we never
+// ask the user to assemble a meal from parts.
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'drink';
+
+export type MealIngredient = { he: string; calories: number };
+
+export type MealMacros = { protein?: number; carbs?: number; fat?: number; sugar?: number };
+
+export type MealFlags = { highSugar?: boolean; emptyCarbs?: boolean };
+
+/** A meal template in the user's library. Starts empty; grows every time they
+ *  log something new — same lifecycle as personalExercises. */
+export type PersonalMeal = {
+  id: string;                    // slug of `he` (exerciseIdOf) — stable key
+  he: string;                    // canonical Hebrew name, per the naming convention
+  /** Legacy/optional. A meal is just a meal — WHEN you ate it is a property of
+   *  the eating, not of the dish, so this is never set on new templates and is
+   *  only read as a fallback default in the picker. */
+  type?: MealType;
+  calories: number;              // for ONE serving
+  ingredients?: MealIngredient[];
+  macros?: MealMacros;
+  flags?: MealFlags;
+  photoBase64?: string;
+  aliases?: string[];
+  isAnchor?: boolean;            // a staple — pinned to the top of the picker
+  createdAt: number;
+  updatedAt: number;
+  lastUsedAt?: number;
+};
+
+/** One thing actually eaten. Denormalised snapshot: editing a template later
+ *  never rewrites history. */
+export type MealLog = {
+  id: string;
+  mealId?: string | null;        // null for a one-off
+  name: string;                  // snapshot
+  calories: number;              // snapshot, ALREADY multiplied by servings
+  servings: number;              // 1 = one portion of the template
+  ingredients?: MealIngredient[];
+  macros?: MealMacros;
+  flags?: MealFlags;
+  mealType: MealType;
+  timestamp: number;
+  notes?: string;
+};
+
+/** Dietary profile — lives on UserProfile (profile/main), NOT settings/main.
+ *  One profile doc, not two. */
+export type DietProfile = {
+  enabled?: boolean;
+  goal?: 'lose' | 'maintain' | 'gain';
+  weightKg?: number;
+  heightCm?: number;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
+  activityMultiplier?: number;   // 1.2 sedentary → 1.725 very active
+  dailyCalorieTarget?: number;
+  dailyCalorieTargetManual?: boolean;  // stop recomputing when stats change
+  avoidSugar?: boolean;
+  avoidEmptyCarbs?: boolean;
+  constraints?: string;          // free text, read verbatim by the coach
 };
 
 // Chat persistence — moved from localStorage → Firestore so answers survive
@@ -202,12 +272,28 @@ export type ChatThreadDoc = {
   title: string;
   ts: number;         // when the thread started
   updatedAt: number;  // last message ts (drives ordering)
-  // 'coach' = onboarding/trainer/session (unified); 'naming' = naming helper
-  bucket: 'coach' | 'naming';
+  // 'coach' = onboarding/trainer/session (unified); 'naming' = naming helper;
+  // 'dietary' = the food coach (disjoint from the trainer's history)
+  bucket: ChatBucket;
+  // Written on every message so a THREAD snapshot alone tells the app whether
+  // the coach has answered — no per-thread message listener just to drive the
+  // "answer is ready" notification.
+  lastRole?: 'user' | 'assistant';
+  lastAt?: number;
+  // True when the assistant's last reply carries an action block the user still
+  // has to approve. Distinguishes "answer ready" from "waiting on you".
+  lastHasAction?: boolean;
 };
 
+export type ChatBucket = 'coach' | 'naming' | 'dietary';
+
 // Route types
+//
+// Page ids are unique ACROSS places, so the place a route belongs to is derived
+// (see places/registry.ts → placeOf) rather than carried on the route itself.
+// That keeps every existing `navigate({ page: 'home' })` call site valid.
 export type Route =
+  // אימונים
   | { page: 'home' }
   | { page: 'session'; sessionId: string }
   | { page: 'history' }
@@ -215,4 +301,10 @@ export type Route =
   | { page: 'settings' }
   | { page: 'exercises' }
   | { page: 'body' }
-  | { page: 'install' };
+  | { page: 'install' }
+  // תזונה
+  | { page: 'food-today' }
+  | { page: 'food-history' }
+  | { page: 'food-insights' }
+  | { page: 'food-meals' }
+  | { page: 'food-settings' };

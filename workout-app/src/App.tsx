@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Route, FreeSession as FreeSessionType } from './types';
+import type { Route, FreeSession as FreeSessionType, MealLog, PersonalMeal, UserProfile } from './types';
 import { useAuth } from './hooks/useAuth';
 import { useFirestore } from './hooks/useFirestore';
 import { FreeHome } from './components/FreeHome';
@@ -18,11 +18,40 @@ import { useTimer } from './hooks/useTimer';
 import { useStandaloneStopwatch } from './hooks/useStandaloneStopwatch';
 import { useAiTrainerPanel } from './hooks/useAiTrainerPanel';
 import { AiChatPanel } from './components/AiChatPanel';
+import { useChatNotifier } from './hooks/useChatNotifier';
+import { FoodToday } from './components/FoodToday';
+import { FoodHistory } from './components/FoodHistory';
+import { FoodInsights } from './components/FoodInsights';
+import { FoodMeals } from './components/FoodMeals';
+import { FoodSettings } from './components/FoodSettings';
+import { LogMealModal } from './components/LogMealModal';
+import type { MealDraft } from './components/AiChatPanel';
+import { FabFan, PlaceProvider, PlacesSheet } from './components/PlaceSwitcher';
+import {
+  PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
+} from './places/registry';
+import type { QuickAction } from './places/registry';
 import type { MuscleGroup } from './data/muscles';
 import { ACTIVE_MUSCLES } from './data/muscles';
+import { caloriesOn, estimateBurn, mealTypeForNow, pickMeals, startOfDay } from './data/diet';
+
+// Hash → route. Page ids are unique across places, so the place is derived
+// (placeOf) rather than encoded twice.
+const FOOD_HASH: Record<string, Route['page']> = {
+  '/food/today': 'food-today',
+  '/food/history': 'food-history',
+  '/food/insights': 'food-insights',
+  '/food/meals': 'food-meals',
+  '/food/settings': 'food-settings',
+};
 
 function parseHash(): Route {
-  const hash = window.location.hash.slice(1);
+  let hash = window.location.hash.slice(1);
+  // Accept the explicit place-prefixed form for אימונים too, so #/exercise/home
+  // and the legacy #/home are the same route. Old bookmarks keep working.
+  hash = hash.replace(/^\/exercise(?=\/|$)/, '');
+  const food = FOOD_HASH[hash];
+  if (food) return { page: food } as Route;
   if (!hash || hash === '/' || hash === '/home') return { page: 'home' };
   if (hash === '/history') return { page: 'history' };
   if (hash === '/settings') return { page: 'settings' };
@@ -30,12 +59,10 @@ function parseHash(): Route {
   if (hash === '/body') return { page: 'body' };
   if (hash === '/install') return { page: 'install' };
   if (hash.startsWith('/session-view/')) {
-    const sessionId = hash.split('/')[2];
-    return { page: 'session-view', sessionId };
+    return { page: 'session-view', sessionId: hash.split('/')[2] };
   }
   if (hash.startsWith('/session/')) {
-    const sessionId = hash.split('/')[2];
-    return { page: 'session', sessionId };
+    return { page: 'session', sessionId: hash.split('/')[2] };
   }
   return { page: 'home' };
 }
@@ -50,10 +77,13 @@ function routeToHash(route: Route): string {
     case 'install': return '#/install';
     case 'session': return `#/session/${route.sessionId}`;
     case 'session-view': return `#/session-view/${route.sessionId}`;
+    case 'food-today': return '#/food/today';
+    case 'food-history': return '#/food/history';
+    case 'food-insights': return '#/food/insights';
+    case 'food-meals': return '#/food/meals';
+    case 'food-settings': return '#/food/settings';
   }
 }
-
-const TAB_PAGES = new Set(['home', 'history', 'exercises', 'body', 'settings']);
 
 function AppShell({ uid, route, navigate, doLogout }: {
   uid: string;
@@ -66,9 +96,15 @@ function AppShell({ uid, route, navigate, doLogout }: {
   const [allSessions, setAllSessions] = useState<FreeSessionType[]>([]);
   const [showStart, setShowStart] = useState(false);
 
+  const place = placeOf(route.page);
+  const isTabPage = TAB_PAGES.has(route.page);
+
+  // Remember the last tab per place so switching back resumes where you were.
+  useEffect(() => { rememberPage(route.page); }, [route.page]);
+
   // Poll for session state whenever route changes to a tab page.
   useEffect(() => {
-    if (!TAB_PAGES.has(route.page)) return;
+    if (!isTabPage) return;
     (async () => {
       const list = await firestore.getFreeSessions();
       setAllSessions(list);
@@ -77,6 +113,74 @@ function AppShell({ uid, route, navigate, doLogout }: {
       setInProgress(list.find(s => s.status === 'active') || null);
     })();
   }, [route, uid]);
+
+  // ─── Food ────────────────────────────────────────────────────────
+  // Bumping this key is how a save anywhere (modal, quick action) tells the
+  // food tabs to refetch.
+  const [mealRefresh, setMealRefresh] = useState(0);
+  const [showLogMeal, setShowLogMeal] = useState(false);
+  const [mealDraft, setMealDraft] = useState<MealDraft | null>(null);
+  const [foodChatOpen, setFoodChatOpen] = useState(false);
+  const [todayMeals, setTodayMeals] = useState<MealLog[]>([]);
+  const [personalMeals, setPersonalMeals] = useState<PersonalMeal[]>([]);
+  const [profile, setProfile] = useState<UserProfile>({});
+
+  useEffect(() => {
+    if (!isTabPage) return;
+    firestore.getMealLogs(startOfDay())
+      .then(setTodayMeals)
+      .catch(() => { /* nothing logged yet */ });
+  }, [route, uid, mealRefresh]);
+
+  // The coach needs the meal library and the profile. Only fetched once the
+  // user is actually in תזונה or has opened the chat — אימונים pays nothing.
+  useEffect(() => {
+    if (place !== 'food' && !foodChatOpen) return;
+    firestore.listPersonalMeals().then(setPersonalMeals).catch(() => { /* empty */ });
+    firestore.getUserProfile().then(setProfile).catch(() => { /* new user */ });
+  }, [place, foodChatOpen, uid, mealRefresh]);
+
+  const todayBurn = useMemo(() => {
+    const start = startOfDay();
+    return estimateBurn(allSessions.filter(s => (s.completedAt || s.date) >= start), profile.diet?.weightKg);
+  }, [allSessions, profile.diet?.weightKg]);
+
+  async function addMealFromChat(d: MealDraft) {
+    await firestore.logMeal({
+      mealId: d.mealId,
+      he: d.he,
+      mealType: d.mealType,
+      caloriesPerServing: d.calories,
+      servings: 1,
+      ingredients: d.ingredients,
+      macros: d.macros,
+      flags: d.flags,
+    });
+    setMealRefresh(k => k + 1);
+  }
+
+  // ─── Place switching ─────────────────────────────────────────────
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [fanOpen, setFanOpen] = useState(false);
+
+  function goToPlace(next: PlaceId) {
+    setSheetOpen(false);
+    setFanOpen(false);
+    navigate({ page: entryPageFor(next) } as Route);
+  }
+
+  // Quick actions never leave the current place — the modal opens on top.
+  function runQuickAction(a: QuickAction) {
+    setSheetOpen(false);
+    setFanOpen(false);
+    if (a.id === 'food:add-meal') { setShowLogMeal(true); return; }
+    if (a.id === 'exercise:start') { void handleFabClick(); return; }
+  }
+
+  const otherPlaceActions = useMemo(
+    () => Object.values(PLACES).filter(p => p.id !== place).flatMap(p => p.quickActions),
+    [place],
+  );
 
   // Weekly-sets and suggestions for StartSessionModal
   const weeklySets = useMemo(() => {
@@ -130,7 +234,6 @@ function AppShell({ uid, route, navigate, doLogout }: {
   }, [allSessions]);
 
   // Timestamp of the MOST-RECENT real set per muscle across all history.
-  // Feeds the "אומן לפני N ימים" line on each tile in StartSessionModal.
   const lastTrainedByMuscle = useMemo(() => {
     const map: Partial<Record<MuscleGroup, number>> = {};
     for (const sess of allSessions) {
@@ -146,14 +249,15 @@ function AppShell({ uid, route, navigate, doLogout }: {
 
   // If a completed session for TODAY exists, offer to return to it rather than starting a new one.
   const todaysCompleted = useMemo(() => {
-    const midnight = new Date(); midnight.setHours(0,0,0,0);
-    const start = midnight.getTime();
+    const start = startOfDay();
     const end = start + 86_400_000;
     return allSessions.find(s => s.status === 'completed' && (s.completedAt || s.date) >= start && (s.completedAt || s.date) < end) || null;
   }, [allSessions]);
   const [sameDayPrompt, setSameDayPrompt] = useState(false);
 
   async function handleFabClick() {
+    // In תזונה the centre action logs a meal.
+    if (place === 'food') { setShowLogMeal(true); return; }
     // Re-fetch before deciding. Local `inProgress` can be stale — e.g. Home just deleted the
     // active session and App's state hasn't been re-polled (poll is on route-change only).
     // Without this we'd navigate to a deleted session and hit "session not found".
@@ -165,8 +269,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
       navigate({ page: 'session', sessionId: freshActive.id });
       return;
     }
-    const midnight = new Date(); midnight.setHours(0,0,0,0);
-    const start = midnight.getTime();
+    const start = startOfDay();
     const end = start + 86_400_000;
     const freshDoneToday = list.find(s => s.status === 'completed' && (s.completedAt || s.date) >= start && (s.completedAt || s.date) < end) || null;
     if (freshDoneToday) {
@@ -193,14 +296,25 @@ function AppShell({ uid, route, navigate, doLogout }: {
   // (FreeSession renders its own Chronograph then).
   const { open: stopwatchOpen, set: setStopwatchOpen } = useStandaloneStopwatch();
   const standaloneTimer = useTimer();
-  const showStandaloneStopwatch = stopwatchOpen && !inProgress && TAB_PAGES.has(route.page);
+  const showStandaloneStopwatch = stopwatchOpen && !inProgress && isTabPage && place === 'exercise';
 
-  // AI trainer panel — opened from the TopBar action on any tab page. General-purpose
-  // coach chat (no live-session context). Rendered here at app-shell level so it can
-  // overlay the current tab uniformly.
-  const { open: aiPanelOpen, closePanel: closeAiPanel } = useAiTrainerPanel();
+  // AI trainer panel — opened from the TopBar action on any tab page.
+  const { open: aiPanelOpen, openPanel: openAiPanel, closePanel: closeAiPanel } = useAiTrainerPanel();
 
-  const isTabPage = TAB_PAGES.has(route.page);
+  // "The coach answered" — fires when a reply lands with the panel closed.
+  const { alert, pendingByBucket, dismiss, markAllSeen } = useChatNotifier(uid, { paused: aiPanelOpen || foodChatOpen });
+
+  // Live status line per place on the sheet — the same number that place's
+  // home screen shows, so the sheet is worth opening even without switching.
+  function statusFor(p: PlaceId): string {
+    if (p === 'exercise') {
+      const weekStart = (() => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - d.getDay()); return d.getTime(); })();
+      const n = allSessions.filter(s => s.status === 'completed' && s.date >= weekStart).length;
+      return n > 0 ? `${n} אימונים השבוע` : 'אין אימונים השבוע';
+    }
+    const kcal = caloriesOn(todayMeals, startOfDay());
+    return kcal > 0 ? `היום: ${kcal} קק״ל` : 'עוד לא רשמת היום';
+  }
 
   let content: React.ReactNode = null;
   switch (route.page) {
@@ -228,25 +342,41 @@ function AppShell({ uid, route, navigate, doLogout }: {
     case 'install':
       content = <Install navigate={navigate} />;
       break;
+    case 'food-today':
+      content = <FoodToday uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} onAddMeal={() => setShowLogMeal(true)} />;
+      break;
+    case 'food-history':
+      content = <FoodHistory uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} />;
+      break;
+    case 'food-insights':
+      content = <FoodInsights uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} />;
+      break;
+    case 'food-meals':
+      content = <FoodMeals uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} />;
+      break;
+    case 'food-settings':
+      content = <FoodSettings uid={uid} navigate={navigate} />;
+      break;
   }
 
   return (
-    <>
+    <PlaceProvider value={{ place, openSheet: () => setSheetOpen(true), pendingByBucket }}>
       {/* Reserve room at the bottom so tab bar never overlaps content */}
       <div className={isTabPage ? 'pb-24' : ''}>
         {content}
       </div>
       {isTabPage && (
         <TabBar
-          current={route.page as any}
+          current={route.page}
+          place={place}
           onNavigate={navigate}
           hasInProgress={!!inProgress}
           onFabClick={handleFabClick}
+          onFabLongPress={() => setFanOpen(true)}
         />
       )}
 
-      {/* Standalone stopwatch — floats globally; opened/closed via the TopBar toggle next to Settings.
-          Automatically hidden when a live session is active (session has its own Chronograph). */}
+      {/* Standalone stopwatch — floats globally; opened/closed via the TopBar toggle. */}
       {showStandaloneStopwatch && (
         <Chronograph
           standalone
@@ -260,6 +390,60 @@ function AppShell({ uid, route, navigate, doLogout }: {
           onDismiss={() => setStopwatchOpen(false)}
         />
       )}
+
+      {/* Long-press fan — other places' quick actions, without leaving this one. */}
+      {fanOpen && (
+        <FabFan
+          actions={otherPlaceActions}
+          onPick={runQuickAction}
+          onOpenSheet={() => { setFanOpen(false); setSheetOpen(true); }}
+          onClose={() => setFanOpen(false)}
+        />
+      )}
+
+      {sheetOpen && (
+        <PlacesSheet
+          current={place}
+          onGo={goToPlace}
+          statusFor={statusFor}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
+
+      {showLogMeal && (
+        <LogMealModal
+          uid={uid}
+          initialDraft={mealDraft}
+          onClose={() => {
+            // Opened from the conversation → go back to the conversation.
+            // Dropping the user on a blank "new meal" screen loses their place.
+            const fromChat = !!mealDraft;
+            setShowLogMeal(false);
+            setMealDraft(null);
+            if (fromChat) setFoodChatOpen(true);
+          }}
+          onSaved={() => setMealRefresh(k => k + 1)}
+          onOpenChat={() => setFoodChatOpen(true)}
+        />
+      )}
+
+      {/* The food coach — a real conversation, same panel as the trainer.
+          Meal cards render inline; approving one logs it, editing one hands it
+          to the manual modal. */}
+      {foodChatOpen && (
+        <AiChatPanel
+          uid={uid}
+          mode="dietary"
+          personalMeals={personalMeals}
+          todayMeals={todayMeals}
+          dietProfile={profile.diet}
+          todayBurn={todayBurn}
+          onAddMeal={addMealFromChat}
+          onEditMeal={(d) => { setMealDraft(d); setFoodChatOpen(false); setShowLogMeal(true); }}
+          onClose={() => setFoodChatOpen(false)}
+        />
+      )}
+
       {showStart && (
         <StartSessionModal
           suggested={suggested}
@@ -283,6 +467,48 @@ function AppShell({ uid, route, navigate, doLogout }: {
           onClose={closeAiPanel}
         />
       )}
+
+      {/* "The coach answered" — the reply landed while you were elsewhere. */}
+      {alert && isTabPage && (() => {
+        // The toast wears the colour of the place whose coach spoke, and says
+        // which coach it was — two coaches means "המאמן ענה" alone is ambiguous.
+        const isFood = alert.bucket === 'dietary';
+        const coachName = isFood ? 'מאמן תזונה' : 'מאמן אימונים';
+        const box = isFood
+          ? 'dark:border-amber-800 border-amber-300 dark:bg-amber-950/90 bg-amber-50/95'
+          : 'dark:border-emerald-800 border-emerald-300 dark:bg-emerald-950/90 bg-emerald-50/95';
+        const icon = isFood ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300' : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300';
+        const head = isFood ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200';
+        const sub = isFood ? 'text-amber-700/70 dark:text-amber-300/70' : 'text-emerald-700/70 dark:text-emerald-300/70';
+        const cta = isFood ? 'bg-amber-500' : 'bg-emerald-600';
+        return (
+        <div className="fixed left-0 right-0 z-[45] px-4" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 84px)' }} dir="rtl">
+          <div className={`max-w-lg mx-auto flex items-center gap-2 rounded-2xl px-3 py-2.5 shadow-lg border backdrop-blur ${box}`}>
+            <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${icon}`}>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z" />
+              </svg>
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className={`text-[13px] font-bold ${head}`}>
+                {coachName} {alert.hasAction ? 'מחכה לאישור' : 'ענה'}
+              </div>
+              <div className={`text-[10px] truncate ${sub}`}>{alert.title}</div>
+            </div>
+            <button
+              onClick={() => { markAllSeen(); if (isFood) setFoodChatOpen(true); else openAiPanel(); }}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-white text-[12px] font-bold ${cta}`}
+            >פתח</button>
+            <button onClick={dismiss} aria-label="סגור" className={`shrink-0 p-1 ${sub}`}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <path d="M6 6l12 12M6 18L18 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        );
+      })()}
+
       {sameDayPrompt && todaysCompleted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4" onClick={() => setSameDayPrompt(false)}>
           <div className="card max-w-sm w-full text-right" dir="rtl" onClick={(e) => e.stopPropagation()}>
@@ -292,19 +518,13 @@ function AppShell({ uid, route, navigate, doLogout }: {
               נחזור אליו כדי להוסיף עוד?
             </p>
             <div className="flex gap-2">
-              <button
-                onClick={() => setSameDayPrompt(false)}
-                className="btn-secondary flex-1 py-3"
-              >ביטול</button>
-              <button
-                onClick={handleReturnToTodays}
-                className="btn-primary flex-1 py-3"
-              >חזור לאימון</button>
+              <button onClick={() => setSameDayPrompt(false)} className="btn-secondary flex-1 py-3">ביטול</button>
+              <button onClick={handleReturnToTodays} className="btn-primary flex-1 py-3">חזור לאימון</button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </PlaceProvider>
   );
 }
 
@@ -344,8 +564,6 @@ export default function App() {
 }
 
 // Wraps AppShell with the empty-account check → onboarding gate.
-// Kept as a separate component so the empty-account probe re-runs when uid changes
-// (i.e. after login) without racing the AppShell mount.
 function AuthedShell({ uid, displayName, route, navigate, doLogout }: {
   uid: string;
   displayName: string | null;
@@ -358,9 +576,6 @@ function AuthedShell({ uid, displayName, route, navigate, doLogout }: {
   // 'ready' → normal app. We probe once per uid.
   const [status, setStatus] = useState<'checking' | 'onboarding' | 'ready'>('checking');
   // Stash firestore in a ref so the effect doesn't re-fire on every render.
-  // (useFirestore returns a fresh object literal each render — depending on it in
-  // deps would cause an infinite re-probe loop that kept status stuck at 'checking'
-  // and rendered a permanent white page.)
   const firestoreRef = useRef(firestore);
   firestoreRef.current = firestore;
 

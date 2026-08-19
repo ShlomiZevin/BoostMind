@@ -203,13 +203,15 @@ export function Exercises({ uid, navigate }: Props) {
 
       {/* Sticky action bar — pins directly under the top nav so add/AI-add
           are always one tap away regardless of scroll depth. Backdrop blur
-          + gradient wash keeps the row legible over any content below. */}
+          + gradient wash keeps the row legible over any content below.
+          Fixed height (h-14 = 56px) so the muscle-group headers below can
+          precisely stack under it via calc(var(--top-bar-h) + 56px). */}
       {!loading && (
         <div
-          className="sticky z-30 -mx-4 px-4 py-2 backdrop-blur bg-gradient-to-b from-slate-50/95 to-slate-50/70 dark:from-slate-950/90 dark:to-slate-950/70 border-b border-violet-500/15"
+          className="sticky z-30 -mx-4 px-4 h-14 flex items-center backdrop-blur bg-gradient-to-b from-slate-50/95 to-slate-50/70 dark:from-slate-950/90 dark:to-slate-950/70 border-b border-violet-500/15"
           style={{ top: 'var(--top-bar-h)' }}
         >
-          <div className="max-w-lg mx-auto flex gap-2" dir="rtl">
+          <div className="max-w-lg mx-auto w-full flex gap-2" dir="rtl">
             <button
               onClick={() => setAddExerciseOpen(true)}
               className="flex-1 py-2.5 rounded-xl border border-violet-500/40 bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-sm font-semibold inline-flex items-center justify-center gap-1.5"
@@ -237,7 +239,13 @@ export function Exercises({ uid, navigate }: Props) {
         const parentClasses = MUSCLE_CLASSES[info.color];
         return (
           <section key={parent} className="mb-4" dir="rtl">
-            <div className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-950/95 dark:to-slate-950/85 border-b border-subtle" style={{ top: 'var(--top-bar-h)' }}>
+            <div
+              className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-950/95 dark:to-slate-950/85 border-b border-subtle"
+              // Stacks directly under the sticky action bar (56px tall) so
+              // the CURRENT muscle group header is always the one at the top
+              // of the viewport as the user scrolls between groups.
+              style={{ top: 'calc(var(--top-bar-h) + 56px)' }}
+            >
               <div className="max-w-lg mx-auto flex items-baseline justify-between">
                 <h2 className="inline-flex items-center gap-2 text-base font-bold">
                   <span className={parentClasses.text}>{info.he}</span>

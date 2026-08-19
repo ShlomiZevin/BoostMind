@@ -83,23 +83,66 @@ async function persistAssistantMessage({ uid, threadId, text, truncated, mode, b
   // Thread doc: MERGE only — must not clobber title/ts written by the client.
   // Include `bucket` so a thread first surfaced by the server still lands in
   // the right list.
+  //
+  // `lastRole` / `lastAt` / `lastHasAction` exist so the client can tell "the
+  // coach answered" from a THREAD snapshot alone — no per-message listener on
+  // every thread just to drive the notification. `lastHasAction` reports
+  // whether this reply carries a proposal the user still has to approve, which
+  // is the difference between "answer ready" and "waiting on you".
   try {
     await fsPatch(
       `users/${enc(uid)}/chatThreads/${enc(threadId)}`,
-      { id: threadId, updatedAt: ts, bucket: bucket || 'coach' },
+      {
+        id: threadId,
+        updatedAt: ts,
+        bucket: bucket || 'coach',
+        lastRole: 'assistant',
+        lastAt: ts,
+        lastHasAction: /```action/.test(text || ''),
+      },
       { merge: true },
     );
   } catch (e) { /* thread bump is not fatal */ }
 }
 
+const MEAL_TYPES = new Set(['breakfast', 'lunch', 'dinner', 'snack', 'drink']);
+
+// Naming convention — mirrors the exercise-DB template. Without it the same
+// meal lands in the DB five times and the history splits across all five.
+const MEAL_NAMING_RULES = [
+  "== שם הארוחה — כללי חובה ==",
+  "תבנית: <מרכיב עיקרי> [הכנה] [עם <תוספת>]",
+  "1. עברית בלבד. בלי מילים באנגלית ובלי תעתיק.",
+  "2. בלי כמויות בשם. 'פיתה' — לא '2 פיתות'. הכמויות חיות ב-ingredients ובגודל המנה.",
+  "   זה הכלל הכי חשוב: כמויות בשם מפצלות ארוחה אחת לעשר רשומות שונות.",
+  "3. בלי מילות זמן-ארוחה. 'ארוחת בוקר' זה השדה type, לא חלק מהשם.",
+  "4. בלי פעלים ובלי שייכות. לא 'אכלתי שקשוקה', לא 'השקשוקה שלי'.",
+  "5. אופן הכנה רק אם הוא משנה קלוריות: 'בתנור', 'מטוגן', 'קלוי' — כן.",
+  "   'טרי', 'ביתי', 'טעים' — לא.",
+  "6. מרכיב עיקרי קודם, תוספות אחרי 'עם'. מקסימום שתי תוספות בשם;",
+  "   כל השאר חיים ב-ingredients.",
+  "7. יחיד, 2-5 מילים.",
+  "",
+  "דוגמאות טובות: 'שקשוקה עם פיתה', 'חזה עוף בתנור עם אורז', 'סלט טונה', 'קפה הפוך'",
+  "דוגמאות רעות:  '2 פיתות עם שקשוקה' (כמות), 'ארוחת צהריים - עוף' (מילת זמן),",
+  "               'אכלתי יוגורט' (פועל), 'קפה הפוך גדול עם 2 סוכר' (כמויות)",
+].join('\n');
+
+
 const app = express();
+// Firebase Hosting preview channels get their own origin
+// (boostmind-b052c--<channel>-<hash>.web.app), so a fixed allowlist would block
+// every preview deploy. Match the project's own hosts by pattern instead, and
+// keep localhost for dev.
+const ALLOWED_ORIGIN = /^https:\/\/boostmind-b052c(--[a-z0-9-]+)?\.(web\.app|firebaseapp\.com)$/;
 app.use(cors({
-  origin: [
-    'https://boostmind-b052c.web.app',
-    'https://boostmind-b052c.firebaseapp.com',
-    'http://localhost:5173',
-    'http://localhost:4173',
-  ],
+  origin: (origin, cb) => {
+    // Same-origin / curl / server-to-server requests send no Origin header.
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGIN.test(origin)) return cb(null, true);
+    if (/^http:\/\/localhost:\d+$/.test(origin)) return cb(null, true);
+    return cb(null, false);
+  },
 }));
 // Bumped from 256kb to 4mb so message payloads that include a compressed
 // base64 image (client caps at ~1024px / q=0.75, typically 100–400KB) don't
@@ -143,7 +186,7 @@ app.post('/api/chat', async (req, res) => {
     const exList = Array.isArray(personalExercises) ? personalExercises : [];
     const setsList = Array.isArray(recentSets) ? recentSets : [];
     const focusList = Array.isArray(sessionMuscles) ? sessionMuscles : [];
-    const chatMode = ['naming', 'onboarding', 'trainer'].includes(mode) ? mode : 'session';
+    const chatMode = ['naming', 'onboarding', 'trainer', 'dietary'].includes(mode) ? mode : 'session';
 
     // ─── Naming-mode system prompt ─────────────────────────────
     const namingPrompt = [
@@ -578,10 +621,80 @@ app.post('/api/chat', async (req, res) => {
       `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
     ].filter(Boolean).join('\n');
 
+    // ─── Dietary-mode system prompt (the food coach) ───────────────
+    // A real conversation, exactly like the trainer — NOT a form. When a meal
+    // comes up it emits a suggest_meal block, which the client renders as an
+    // editable card inside the chat. The talking never stops for it.
+    const { dietProfile, personalMeals, todayMeals, todayBurn } = req.body || {};
+    const mealsList = Array.isArray(personalMeals) ? personalMeals : [];
+    const todayList = Array.isArray(todayMeals) ? todayMeals : [];
+    const eatenToday = todayList.reduce((a, m) => a + (Number(m.calories) || 0), 0);
+
+    const dietaryPrompt = [
+      "אתה מאמן תזונה אישי של משתמש דובר עברית. אתה בשיחה — לא בטופס.",
+      "",
+      "== טון — עברית טבעית, לא מתורגמת ==",
+      "עברית מדוברת של מאמן ישראלי אמיתי. משפטים קצרים. בגובה העיניים.",
+      "בלי הטפות, בלי מוסר, בלי 'חשוב לזכור ש...'. אתה מכמת, מציע, וממשיך הלאה.",
+      "גירעון זה משחק של מספרים — לא שאלה מוסרית. אם המשתמש אכל משהו 'רע',",
+      "אתה אומר כמה זה עלה ומה אפשר לעשות עם שאר היום. זהו.",
+      "על דחפים (סוכר, פחמימות ריקות): תכיר במשיכה, תציע חלופה קטנה יותר,",
+      "תגיד כמה זה חוסך. בלי להשמיע אכזבה.",
+      "",
+      "== מה אתה עושה ==",
+      "- עונה על שאלות תזונה, מציע ארוחות, עוזר לתכנן את היום",
+      "- כשהמשתמש מספר מה הוא אכל — אתה מפרק את זה לארוחה מובנית (ראה למטה)",
+      "- מעדיף ארוחות מהמאגר שלו שהוא לא אכל לאחרונה, לפני שאתה ממציא חדשות",
+      "- ביום אימון כבד אפשר יותר; ביום מנוחה פחות",
+      "",
+      "== ארוחה = בלוק פעולה ==",
+      "בכל פעם שעולה ארוחה קונקרטית — משהו שהמשתמש אכל, או הצעה שלך —",
+      "הוסף בלוק פעולה מיד אחרי המשפט שמציג אותה:",
+      "",
+      "```action",
+      "{\"type\":\"suggest_meal\",\"mealId\":\"<id קיים מהמאגר או null>\",\"he\":\"<שם>\",\"mealType\":\"breakfast|lunch|dinner|snack|drink\",\"calories\":650,\"ingredients\":[{\"he\":\"<מרכיב>\",\"calories\":220}],\"macros\":{\"protein\":30,\"carbs\":70,\"fat\":20,\"sugar\":8},\"flags\":{\"highSugar\":false,\"emptyCarbs\":true},\"note\":\"<שורה קצרה — למה, או כמה זה חוסך>\"}",
+      "```",
+      "",
+      "הבלוק לא עוצר את השיחה — תמשיך לדבר אחריו כרגיל.",
+      "אל תכתוב 'רשמתי לך' — הכרטיס נותן למשתמש כפתור, והוא זה שמאשר.",
+      "כמה ארוחות בתשובה אחת? בלוק אחד לכל ארוחה, כל אחד אחרי המשפט שלו.",
+      "",
+      MEAL_NAMING_RULES,
+      "",
+      "== קלוריות ==",
+      "פרק תמיד למרכיבים עם מספר לכל אחד; calories = הסכום שלהם.",
+      "אל תמציא מספרים כשאין לך מושג — תשאל שאלה קצרה אחת במקום.",
+      "",
+      "== שאלות סגורות ==",
+      "כששאלה שלך היא בחירה מתוך כמה אפשרויות, תן צ'יפים:",
+      "```action",
+      "{\"type\":\"quick_replies\",\"options\":[\"אופציה 1\",\"אופציה 2\"]}",
+      "```",
+      "",
+      "== הפרופיל התזונתי ==",
+      dietProfile && typeof dietProfile === 'object' ? JSON.stringify(dietProfile) : '(עוד לא הוגדר)',
+      "",
+      `== היום עד עכשיו ==`,
+      `נאכל: ${eatenToday} קק״ל${todayBurn ? ` · נשרף באימון: ~${Number(todayBurn) || 0} קק״ל` : ''}`,
+      todayList.length === 0
+        ? '  (עוד לא נרשמו ארוחות היום)'
+        : todayList.slice(0, 40).map(m => `- ${m.name} · ${m.calories} קק״ל`).join('\n'),
+      "",
+      "== מאגר הארוחות שלו (id | שם | קלוריות | נאכל לפני) ==",
+      mealsList.length === 0
+        ? "  (ריק — אין לו עדיין ארוחות שמורות)"
+        : mealsList.slice(0, 200).map(m =>
+            `- ${m.id} | ${m.he} | ${m.calories} | ${m.lastUsedDays ?? 'מעולם'}`
+          ).join('\n'),
+      "",
+      `התאריך היום ${new Date().toISOString().slice(0, 10)}.`,
+    ].filter(Boolean).join('\n');
+
     const systemPrompt =
       chatMode === 'naming' ? namingPrompt
       : chatMode === 'onboarding' ? onboardingPrompt
       : chatMode === 'trainer' ? trainerPrompt
+      : chatMode === 'dietary' ? dietaryPrompt
       : sessionPrompt;
 
     // Reshape each message into Anthropic's content-block format when an
@@ -604,6 +717,81 @@ app.post('/api/chat', async (req, res) => {
       return { role: m.role, content: text };
     });
 
+    // Shared post-processing for both the streaming and non-streaming paths.
+    // Detect the same truncation signals the client checks so the persisted
+    // record matches what would render in-browser.
+    function truncationOf(text, stopReason) {
+      const backtickFences = (text.match(/```/g) || []).length;
+      return (stopReason && stopReason !== 'end_turn' && stopReason !== 'stop_sequence')
+        || (backtickFences % 2 !== 0);
+    }
+
+    // ─── Streaming path (SSE) ────────────────────────────────────
+    // The client renders deltas as they land, so the first characters appear in
+    // ~1-2s instead of after the whole 4000-token response. The Firestore write
+    // still happens server-side before we close the stream, so a closed tab
+    // mid-response loses nothing — same guarantee as the non-streaming path.
+    if (req.body?.stream === true) {
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      // Cloud Run / any proxy in front of us must not buffer the chunks.
+      res.setHeader('X-Accel-Buffering', 'no');
+      res.flushHeaders?.();
+
+      let text = '';
+      try {
+        const stream = anthropic.messages.stream({
+          model: CLAUDE_MODEL,
+          max_tokens: 4000,
+          system: systemPrompt,
+          messages: anthropicMessages,
+        });
+
+        stream.on('text', (delta) => {
+          text += delta;
+          res.write(`event: delta\ndata: ${JSON.stringify({ t: delta })}\n\n`);
+        });
+
+        const finalMsg = await stream.finalMessage();
+        const stopReason = finalMsg?.stop_reason || 'end_turn';
+        const truncated = truncationOf(text, stopReason);
+
+        if (stopReason && stopReason !== 'end_turn') {
+          console.warn('chat stop_reason', stopReason, 'usage', finalMsg?.usage);
+        }
+
+        // Persist BEFORE signalling done, so the client's listener and the
+        // "answer is ready" notification always have a real doc to point at.
+        if (threadId && typeof threadId === 'string') {
+          try {
+            await persistAssistantMessage({ uid, threadId, text, truncated, mode: chatMode, bucket });
+          } catch (e) {
+            console.warn('assistant persist failed', e?.message || e);
+          }
+        }
+
+        res.write(`event: done\ndata: ${JSON.stringify({
+          stopReason,
+          truncated,
+          usage: finalMsg?.usage,
+          rateLimit: { remaining: rl.remaining, limit: RL_MAX },
+        })}\n\n`);
+      } catch (e) {
+        console.error('chat stream error', e);
+        // Partial text is still worth keeping — the user watched it arrive.
+        if (text && threadId && typeof threadId === 'string') {
+          try {
+            await persistAssistantMessage({ uid, threadId, text, truncated: true, mode: chatMode, bucket });
+          } catch (_) { /* best effort */ }
+        }
+        res.write(`event: error\ndata: ${JSON.stringify({ message: String(e?.message || e) })}\n\n`);
+      }
+      res.end();
+      return;
+    }
+
+    // ─── Non-streaming path (kept for older clients) ─────────────
     const claudeResp = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 4000,
@@ -621,12 +809,7 @@ app.post('/api/chat', async (req, res) => {
       console.warn('chat stop_reason', claudeResp.stop_reason, 'usage', claudeResp.usage);
     }
 
-    // Detect the same truncation signals the client checks so the persisted
-    // record matches what would render in-browser.
-    const backtickFences = (text.match(/```/g) || []).length;
-    const truncated =
-      (claudeResp.stop_reason && claudeResp.stop_reason !== 'end_turn' && claudeResp.stop_reason !== 'stop_sequence')
-      || (backtickFences % 2 !== 0);
+    const truncated = truncationOf(text, claudeResp.stop_reason);
 
     // Persist FIRST — this is the whole point of the server-side write.
     // Even if the client's fetch aborted (tab closed), the assistant message
@@ -954,6 +1137,162 @@ app.post('/api/onboarding/build-day', async (req, res) => {
     res.json({ exercises, usage: claudeResp.usage });
   } catch (e) {
     console.error('build-day error', e);
+    res.status(500).json({ error: 'internal', message: String(e?.message || e) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// Meal parser — free text or a plate photo → one structured meal proposal.
+//
+// Deliberately NOT the chat endpoint: no conversation history, no exercise DB,
+// no profile, no planned sessions. Same model, a fraction of the input, so the
+// answer lands while the user is still holding the phone. Nothing is written
+// here — the client renders an approval card and the user taps to save.
+// ─────────────────────────────────────────────────────────────────
+
+app.post('/api/food/parse-meal', async (req, res) => {
+  try {
+    const { uid, text, image, mealType, knownMeals } = req.body || {};
+    if (!uid || typeof uid !== 'string' || uid.length > 100) {
+      return res.status(400).json({ error: 'missing or invalid uid' });
+    }
+    const hasText = typeof text === 'string' && text.trim().length > 0;
+    const hasImage = typeof image === 'string' && image.startsWith('data:image/');
+    if (!hasText && !hasImage) {
+      return res.status(400).json({ error: 'missing text or image' });
+    }
+    const rl = rateLimit(uid);
+    if (!rl.ok) return res.status(429).json({ error: 'rate limit exceeded', resetAt: rl.resetAt });
+
+    const known = Array.isArray(knownMeals) ? knownMeals.slice(0, 300) : [];
+    const slot = MEAL_TYPES.has(mealType) ? mealType : null;
+
+    const sys = [
+      "אתה עוזר תזונה של אפליקציה עברית. המשתמש מתאר ארוחה שאכל (טקסט או תמונה של הצלחת),",
+      "ואתה מחזיר רשומת ארוחה מובנית אחת. פלט JSON בלבד — בלי פרוזה, בלי גדרות markdown.",
+      "",
+      "== קודם כל: בדוק אם הארוחה כבר קיימת במאגר ==",
+      "רשימת הארוחות של המשתמש מופיעה למטה. אם מה שהוא תיאר מתאים לאחת מהן —",
+      "החזר את ה-id שלה בשדה mealId והשתמש בשם ובקלוריות שלה. אל תמציא רשומה כפולה.",
+      "התאמה = אותה מנה בעיקרה, גם אם הניסוח שונה ('שקשוקה' ≈ 'שקשוקה עם פיתה' רק אם",
+      "התיאור באמת כולל פיתה). בספק — קרוב יותר להתאמה מאשר לכפילות.",
+      "אם זו ארוחה חדשה — mealId יהיה null.",
+      "",
+      MEAL_NAMING_RULES,
+      "",
+      "== קלוריות ==",
+      "פרק את הארוחה למרכיבים עם הערכת קלוריות לכל אחד, וסכום ב-calories.",
+      "calories חייב להיות שווה לסכום המרכיבים.",
+      "הערך לפי גדלי מנה ישראליים סטנדרטיים. אם המשתמש ציין כמות — כבד אותה.",
+      "אם אי אפשר להעריך בכלל (תיאור מעורפל מדי, תמונה לא ברורה) — החזר needsInfo=true",
+      "עם שאלה קצרה אחת בעברית ב-question, ואל תמציא מספרים.",
+      "",
+      "== דגלים ==",
+      "highSugar: נכון אם sugar מעל 20 גרם או שיש ממתקים/משקה ממותק/קינוח.",
+      "emptyCarbs: נכון אם יש לחם לבן, פסטה, אורז לבן, סוכר, בורקס, מאפים, משקה מוגז, מיץ.",
+      "שמרני בכוונה — עדיף לא לסמן מאשר לסמן ארוחה שלא מגיע לה.",
+      "",
+      slot ? `סוג הארוחה שהמשתמש בחר: ${slot}. השתמש בו אלא אם התיאור סותר אותו בבירור.` : '',
+      "",
+      "== מאגר הארוחות של המשתמש (id | שם | קלוריות) ==",
+      known.length === 0
+        ? "  (ריק — זו הארוחה הראשונה שלו)"
+        : known.map(m => `- ${String(m.id).slice(0, 100)} | ${String(m.he).slice(0, 80)} | ${Number(m.calories) || 0}`).join('\n'),
+      "",
+      "== מבנה התשובה ==",
+      '{"mealId":"<id קיים או null>","he":"<שם לפי התבנית>","type":"breakfast|lunch|dinner|snack|drink",',
+      '"calories":650,"ingredients":[{"he":"<מרכיב>","calories":220}],',
+      '"macros":{"protein":30,"carbs":70,"fat":20,"sugar":8},',
+      '"flags":{"highSugar":false,"emptyCarbs":true},',
+      '"needsInfo":false,"question":null}',
+      "",
+      `התאריך היום ${new Date().toISOString().slice(0, 10)}.`,
+    ].filter(Boolean).join('\n');
+
+    const userContent = [];
+    if (hasImage) {
+      const commaIdx = image.indexOf(',');
+      const header = image.slice(5, commaIdx);
+      userContent.push({
+        type: 'image',
+        source: { type: 'base64', media_type: header.split(';')[0] || 'image/jpeg', data: image.slice(commaIdx + 1) },
+      });
+    }
+    userContent.push({
+      type: 'text',
+      text: hasText
+        ? `אכלתי: ${String(text).slice(0, 1000)}`
+        : 'זו הצלחת שלי. זהה מה יש בה והערך קלוריות.',
+    });
+
+    const claudeResp = await anthropic.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 1000,
+      system: sys,
+      messages: [{ role: 'user', content: userContent }],
+    });
+
+    const raw = claudeResp.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    const parsed = safeParseJson(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return res.status(500).json({ error: 'invalid meal', raw: raw.slice(0, 500) });
+    }
+
+    if (parsed.needsInfo === true) {
+      return res.json({
+        needsInfo: true,
+        question: typeof parsed.question === 'string' ? parsed.question.slice(0, 300) : 'תוכל לפרט קצת יותר?',
+        usage: claudeResp.usage,
+      });
+    }
+
+    // Normalize + clamp before it ever reaches the client.
+    const ingredients = Array.isArray(parsed.ingredients)
+      ? parsed.ingredients
+          .filter(i => i && typeof i.he === 'string')
+          .slice(0, 20)
+          .map(i => ({ he: String(i.he).trim().slice(0, 80), calories: Math.max(0, Math.round(Number(i.calories) || 0)) }))
+      : [];
+    const summed = ingredients.reduce((acc, i) => acc + i.calories, 0);
+    const stated = Math.max(0, Math.round(Number(parsed.calories) || 0));
+    // The prompt requires calories === sum(ingredients). When the model drifts,
+    // trust the itemised breakdown — it's the part the user can actually check.
+    const calories = ingredients.length > 0 ? summed : stated;
+
+    const num = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 0 ? Math.round(n) : undefined;
+    };
+    const macros = parsed.macros && typeof parsed.macros === 'object' ? {
+      protein: num(parsed.macros.protein),
+      carbs: num(parsed.macros.carbs),
+      fat: num(parsed.macros.fat),
+      sugar: num(parsed.macros.sugar),
+    } : {};
+    Object.keys(macros).forEach(k => { if (macros[k] === undefined) delete macros[k]; });
+
+    const knownIds = new Set(known.map(m => String(m.id)));
+    const mealId = typeof parsed.mealId === 'string' && knownIds.has(parsed.mealId) ? parsed.mealId : null;
+
+    res.json({
+      needsInfo: false,
+      meal: {
+        mealId,
+        he: String(parsed.he || '').trim().slice(0, 120),
+        type: MEAL_TYPES.has(parsed.type) ? parsed.type : (slot || 'snack'),
+        calories,
+        ingredients,
+        macros,
+        flags: {
+          highSugar: !!(parsed.flags && parsed.flags.highSugar) || (num(macros.sugar) || 0) > 20,
+          emptyCarbs: !!(parsed.flags && parsed.flags.emptyCarbs),
+        },
+      },
+      usage: claudeResp.usage,
+      rateLimit: { remaining: rl.remaining, limit: RL_MAX },
+    });
+  } catch (e) {
+    console.error('parse-meal error', e);
     res.status(500).json({ error: 'internal', message: String(e?.message || e) });
   }
 });

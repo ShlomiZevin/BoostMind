@@ -4,7 +4,7 @@ import {
   arrayUnion, Timestamp, onSnapshot, query, orderBy,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
@@ -891,11 +891,15 @@ export function useFirestore(uid: string | null) {
     const out: PersonalExercise[] = [];
     const seen = new Set<string>();
     for (const d of globalSnap.docs) {
-      const base = d.data() as PersonalExercise;
-      if (hidden.has(base.id)) continue;
-      const ov = overrides.get(base.id);
-      out.push(ov ? { ...base, ...ov, id: base.id } : base);
-      seen.add(base.id);
+      const raw = d.data() as PersonalExercise;
+      if (hidden.has(raw.id)) continue;
+      // isAnchor is per-user and lives ONLY on the override. Strip whatever
+      // may have leaked into the global doc so old data doesn't cross users.
+      const { isAnchor: _dropAnchor, ...base } = raw as any;
+      void _dropAnchor;
+      const ov = overrides.get(raw.id);
+      out.push(ov ? { ...base, ...ov, id: raw.id } as PersonalExercise : { ...base, id: raw.id } as PersonalExercise);
+      seen.add(raw.id);
     }
     for (const d of customSnap.docs) {
       const custom = d.data() as PersonalExercise;
@@ -910,6 +914,35 @@ export function useFirestore(uid: string | null) {
     const cleanFull: any = { ...ex, updatedAt: Date.now() };
     Object.keys(cleanFull).forEach(k => { if (cleanFull[k] === undefined) delete cleanFull[k]; });
 
+    // isAnchor is ALWAYS a per-user preference — never a global attribute of
+    // the exercise itself. Split it out so admin edits don't propagate one
+    // user's anchor picks to everyone. (This was the "shared anchors on a
+    // fresh user" bug: admin's toggles were writing isAnchor to the global
+    // exercises doc.) Strip from any global write, then persist to the
+    // per-user override separately.
+    const userAnchor: boolean | undefined = cleanFull.isAnchor;
+    delete cleanFull.isAnchor;
+
+    async function writeUserAnchor() {
+      if (userAnchor) {
+        await setDoc(
+          doc(userExerciseOverridesCol(uid!), ex.id),
+          { isAnchor: true, updatedAt: Date.now() },
+          { merge: true },
+        );
+      } else {
+        // Toggled off: clear it from the override with merge so we don't
+        // wipe unrelated overrides (e.g. custom Hebrew name).
+        try {
+          await setDoc(
+            doc(userExerciseOverridesCol(uid!), ex.id),
+            { isAnchor: false, updatedAt: Date.now() },
+            { merge: true },
+          );
+        } catch { /* ignore */ }
+      }
+    }
+
     // Does a global entry with this id exist?
     const globalRef = doc(globalExercisesCol(), ex.id);
     const globalSnap = await getDoc(globalRef);
@@ -917,17 +950,21 @@ export function useFirestore(uid: string | null) {
     if (globalSnap.exists()) {
       if (isAdminUid(uid)) {
         // Admin edits propagate to everyone — write global directly.
+        // But isAnchor is user-scoped, so it goes to the override.
         await setDoc(globalRef, cleanFull);
+        await writeUserAnchor();
       } else {
         // Regular user: store only the fields that differ from the global base
         // as an override. Keeps the shared DB clean and other users unaffected.
         const base = globalSnap.data() as PersonalExercise;
         const diff: any = { updatedAt: Date.now() };
-        for (const k of ['he', 'en', 'defaultMuscle', 'aliases', 'isHoldTime', 'isAnchor', 'notes', 'photoBase64'] as const) {
+        for (const k of ['he', 'en', 'defaultMuscle', 'aliases', 'isHoldTime', 'notes', 'photoBase64'] as const) {
           const cur = (ex as any)[k];
           const b = (base as any)[k];
           if (cur !== undefined && JSON.stringify(cur) !== JSON.stringify(b)) diff[k] = cur;
         }
+        // Always include isAnchor in the override (per-user preference).
+        if (userAnchor !== undefined) diff.isAnchor = userAnchor;
         await setDoc(doc(userExerciseOverridesCol(uid), ex.id), diff);
       }
       return;
@@ -936,7 +973,10 @@ export function useFirestore(uid: string | null) {
     // No global entry yet: admin creates one, regular user creates their own.
     if (isAdminUid(uid)) {
       await setDoc(globalRef, cleanFull);
+      await writeUserAnchor();
     } else {
+      // Regular user's own doc — isAnchor lives on the doc directly.
+      if (userAnchor !== undefined) cleanFull.isAnchor = userAnchor;
       await setDoc(doc(userPersonalExercisesCol(uid), ex.id), cleanFull);
     }
   }, [uid]);
@@ -1065,11 +1105,18 @@ export function useFirestore(uid: string | null) {
     Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
     await setDoc(doc(chatMessagesCol(threadId), id), clean, { merge: true });
     // Bump thread updatedAt so the list orders correctly without extra reads.
-    await setDoc(doc(chatThreadsCol(), threadId), { id: threadId, updatedAt: msg.ts }, { merge: true });
+    // `lastRole` mirrors what the server stamps on its own writes — a user
+    // message clears the "coach answered" state so the notification only ever
+    // fires on a genuinely new reply.
+    await setDoc(
+      doc(chatThreadsCol(), threadId),
+      { id: threadId, updatedAt: msg.ts, lastRole: msg.role, lastAt: msg.ts, ...(msg.role === 'user' ? { lastHasAction: false } : {}) },
+      { merge: true },
+    );
     return id;
   }, [uid, chatThreadsCol, chatMessagesCol]);
 
-  const listChatThreads = useCallback(async (bucket: 'coach' | 'naming'): Promise<ChatThreadDoc[]> => {
+  const listChatThreads = useCallback(async (bucket: ChatBucket): Promise<ChatThreadDoc[]> => {
     if (!uid) return [];
     const snap = await getDocs(chatThreadsCol());
     return snap.docs
@@ -1078,7 +1125,7 @@ export function useFirestore(uid: string | null) {
       .sort((a, b) => (b.updatedAt || b.ts || 0) - (a.updatedAt || a.ts || 0));
   }, [uid, chatThreadsCol]);
 
-  const subscribeToChatThreads = useCallback((bucket: 'coach' | 'naming', cb: (threads: ChatThreadDoc[]) => void): () => void => {
+  const subscribeToChatThreads = useCallback((bucket: ChatBucket, cb: (threads: ChatThreadDoc[]) => void): () => void => {
     if (!uid) return () => {};
     return onSnapshot(chatThreadsCol(), snap => {
       // Firestore fires the listener from local cache first. On a fresh browser
@@ -1156,6 +1203,9 @@ export function useFirestore(uid: string | null) {
       'supersetPairs',
       'profile',
       'settings',
+      'personalMeals',
+      'mealLogs',
+      'appliedChatActions',
     ];
     for (const sub of subcollections) {
       try {
@@ -1333,6 +1383,209 @@ export function useFirestore(uid: string | null) {
     } catch { return new Set(); }
   }, []);
 
+  // ─── תזונה: meal library + meal log ───────────────────────────
+  // Mirrors the personal-exercise model. The reader is written as a layered
+  // merge from day one (global ∪ personal), with the global layer currently
+  // empty — so a seeded Israeli-food DB can land later with zero migration.
+  function personalMealsCol(u: string) { return collection(db, 'users', u, 'personalMeals'); }
+  function mealLogsCol(u: string) { return collection(db, 'users', u, 'mealLogs'); }
+
+  const listPersonalMeals = useCallback(async (): Promise<PersonalMeal[]> => {
+    if (!uid) return [];
+    const out: PersonalMeal[] = [];
+    const seen = new Set<string>();
+    // Global layer — optional. Missing collection or denying rules must not
+    // break the user's own library.
+    try {
+      const globalSnap = await getDocs(collection(db, 'meals'));
+      for (const d of globalSnap.docs) {
+        const m = d.data() as PersonalMeal;
+        if (!m?.id) continue;
+        out.push(m);
+        seen.add(m.id);
+      }
+    } catch { /* global meal DB is optional */ }
+    const mineSnap = await getDocs(personalMealsCol(uid));
+    for (const d of mineSnap.docs) {
+      const m = d.data() as PersonalMeal;
+      if (!m?.id || seen.has(m.id)) continue;
+      out.push(m);
+    }
+    return out;
+  }, [uid]);
+
+  const upsertPersonalMeal = useCallback(async (meal: PersonalMeal): Promise<void> => {
+    if (!uid) return;
+    const clean: any = { ...meal, updatedAt: Date.now() };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(personalMealsCol(uid), meal.id), clean, { merge: true });
+  }, [uid]);
+
+  const deletePersonalMeal = useCallback(async (id: string): Promise<void> => {
+    if (!uid) return;
+    await deleteDoc(doc(personalMealsCol(uid), id));
+  }, [uid]);
+
+  // Idempotent: returns the existing template when the name already resolves,
+  // otherwise creates one. This is what makes "log a meal" and "grow my meal
+  // DB" the same action instead of two chores.
+  const ensurePersonalMeal = useCallback(async (
+    input: { he: string; type: MealType; calories: number; ingredients?: MealIngredient[]; macros?: MealMacros; flags?: MealFlags; photoBase64?: string },
+  ): Promise<PersonalMeal | null> => {
+    if (!uid || !input.he.trim()) return null;
+    const all = await listPersonalMeals();
+    const nLower = input.he.trim().toLowerCase();
+    const existing = all.find(m =>
+      m.he.trim().toLowerCase() === nLower ||
+      (m.aliases || []).some(a => a.trim().toLowerCase() === nLower),
+    ) || all.find(m => m.id === exerciseIdOf(input.he));
+    if (existing) return existing;
+    const id = exerciseIdOf(input.he);
+    if (!id) return null;
+    const meal: PersonalMeal = {
+      id,
+      he: input.he.trim(),
+      type: input.type,
+      calories: Math.max(0, Math.round(input.calories)),
+      ingredients: input.ingredients,
+      macros: input.macros,
+      flags: input.flags,
+      photoBase64: input.photoBase64,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    await upsertPersonalMeal(meal);
+    return meal;
+  }, [uid, listPersonalMeals, upsertPersonalMeal]);
+
+  const getMealLogs = useCallback(async (sinceTs?: number): Promise<MealLog[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(mealLogsCol(uid));
+    return snap.docs
+      .map(d => d.data() as MealLog)
+      .filter(l => (sinceTs == null ? true : (l.timestamp || 0) >= sinceTs))
+      .sort((a, b) => b.timestamp - a.timestamp);
+  }, [uid]);
+
+  // Log a meal. Creates the template when this is a brand-new meal (§ auto-add
+  // rule) and stamps lastUsedAt so the picker's least-recently-eaten ordering
+  // stays honest.
+  const logMeal = useCallback(async (input: {
+    mealId?: string | null;
+    he: string;
+    mealType: MealType;
+    caloriesPerServing: number;
+    servings: number;
+    ingredients?: MealIngredient[];
+    macros?: MealMacros;
+    flags?: MealFlags;
+    photoBase64?: string;
+    notes?: string;
+    timestamp?: number;
+  }): Promise<string | null> => {
+    if (!uid) return null;
+    let templateId = input.mealId || null;
+    if (!templateId) {
+      const created = await ensurePersonalMeal({
+        he: input.he,
+        type: input.mealType,
+        calories: input.caloriesPerServing,
+        ingredients: input.ingredients,
+        macros: input.macros,
+        flags: input.flags,
+        photoBase64: input.photoBase64,
+      });
+      templateId = created?.id || null;
+    }
+    if (templateId) {
+      try {
+        await setDoc(doc(personalMealsCol(uid), templateId), { lastUsedAt: Date.now() }, { merge: true });
+      } catch { /* template may be global / read-only */ }
+    }
+    const ts = input.timestamp ?? Date.now();
+    const id = `ml_${ts}_${Math.random().toString(36).slice(2, 7)}`;
+    const servings = input.servings > 0 ? input.servings : 1;
+    const scale = (n?: number) => (n == null ? undefined : Math.round(n * servings));
+    const log: MealLog = {
+      id,
+      mealId: templateId,
+      name: input.he.trim(),
+      calories: Math.max(0, Math.round(input.caloriesPerServing * servings)),
+      servings,
+      ingredients: input.ingredients,
+      macros: input.macros ? {
+        protein: scale(input.macros.protein),
+        carbs: scale(input.macros.carbs),
+        fat: scale(input.macros.fat),
+        sugar: scale(input.macros.sugar),
+      } : undefined,
+      flags: input.flags,
+      mealType: input.mealType,
+      timestamp: ts,
+      notes: input.notes,
+    };
+    const clean: any = { ...log };
+    if (clean.macros) {
+      Object.keys(clean.macros).forEach(k => { if (clean.macros[k] === undefined) delete clean.macros[k]; });
+      if (Object.keys(clean.macros).length === 0) delete clean.macros;
+    }
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(mealLogsCol(uid), id), clean);
+    return id;
+  }, [uid, ensurePersonalMeal]);
+
+  // Edit an already-logged meal in place. History is a snapshot, so this only
+  // touches THIS entry — the template it came from is untouched.
+  const updateMealLog = useCallback(async (id: string, patch: Partial<MealLog>): Promise<void> => {
+    if (!uid) return;
+    const clean: any = { ...patch };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(mealLogsCol(uid), id), clean, { merge: true });
+  }, [uid]);
+
+  const deleteMealLog = useCallback(async (id: string): Promise<void> => {
+    if (!uid) return;
+    await deleteDoc(doc(mealLogsCol(uid), id));
+  }, [uid]);
+
+  // Which chat action cards have already been acted on. Kept in Firestore, not
+  // component state, so "added" survives closing the panel — the old in-memory
+  // set forgot everything the moment the chat reopened, which made the same
+  // suggestion look un-added and invited a duplicate log.
+  const getAppliedActions = useCallback(async (threadId: string): Promise<Set<string>> => {
+    if (!uid || !threadId) return new Set();
+    try {
+      const snap = await getDocs(collection(db, 'users', uid, 'appliedChatActions'));
+      const out = new Set<string>();
+      for (const d of snap.docs) {
+        const data = d.data() as any;
+        if (data?.threadId === threadId && typeof data.key === 'string') out.add(data.key);
+      }
+      return out;
+    } catch { return new Set(); }
+  }, [uid]);
+
+  const markActionApplied = useCallback(async (threadId: string, key: string): Promise<void> => {
+    if (!uid || !threadId || !key) return;
+    const id = `${threadId}__${key}`.replace(/[^\w-]+/g, '_').slice(0, 180);
+    await setDoc(doc(db, 'users', uid, 'appliedChatActions', id), {
+      threadId, key, appliedAt: Date.now(),
+    });
+  }, [uid]);
+
+  // Dietary profile lives under profile/main alongside the training profile.
+  const updateDietProfile = useCallback(async (patch: Partial<DietProfile>): Promise<UserProfile> => {
+    if (!uid) return {} as UserProfile;
+    const ref = doc(db, 'users', uid, 'profile', 'main');
+    const clean: any = { ...patch };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    // merge:true merges nested maps, so this patches `diet` without clobbering
+    // the training fields that live beside it.
+    await setDoc(ref, { diet: clean, updatedAt: Date.now() }, { merge: true });
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() as UserProfile : ({ diet: clean } as UserProfile);
+  }, [uid]);
+
   const getProgramStartOverride = useCallback(async (): Promise<string | null> => {
     if (!uid) return null;
     const ref = doc(db, 'users', uid, 'settings', 'main');
@@ -1441,6 +1694,18 @@ export function useFirestore(uid: string | null) {
     listRenameSuggestions,
     upsertRenameSuggestion,
     deleteRenameSuggestion,
+    // תזונה
+    listPersonalMeals,
+    upsertPersonalMeal,
+    ensurePersonalMeal,
+    deletePersonalMeal,
+    getMealLogs,
+    logMeal,
+    updateMealLog,
+    deleteMealLog,
+    updateDietProfile,
+    getAppliedActions,
+    markActionApplied,
     // Onboarding + profile
     getUserProfile,
     updateUserProfile,

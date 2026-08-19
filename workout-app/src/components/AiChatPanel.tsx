@@ -6,11 +6,11 @@ import { type PersonalExercise } from '../data/exercisesDB';
 import { CHAT_API_URL } from '../config/api';
 import { useFirestore } from '../hooks/useFirestore';
 import { compressImage } from '../hooks/usePhotos';
-import type { UserProfile } from '../types';
+import type { UserProfile, ChatBucket, MealFlags, MealIngredient, MealMacros, MealType, PersonalMeal, MealLog, DietProfile } from '../types';
 
 type Props = {
   uid: string;
-  mode?: 'session' | 'naming' | 'onboarding' | 'trainer';
+  mode?: 'session' | 'naming' | 'onboarding' | 'trainer' | 'dietary';
   // Onboarding-mode: invoked when the AI emits a ready_to_build action.
   // Component owns the collected profile at that point; the parent triggers plan build.
   onReadyToBuild?: (profile: ActionReadyToBuild) => void;
@@ -61,7 +61,32 @@ type Props = {
   currentSessionAerobicSummary?: string;
   // Trainer mode: planned upcoming sessions so the AI can answer "מה מתוכנן לי השבוע?".
   plannedSessions?: FreeSession[];
+  // ─── Dietary mode ───
+  personalMeals?: PersonalMeal[];
+  todayMeals?: MealLog[];
+  dietProfile?: DietProfile;
+  todayBurn?: number;
+  /** Approve a meal card → log it. */
+  onAddMeal?: (m: MealDraft) => Promise<void> | void;
+  /** Open the meal card in the manual editor instead of logging it as-is. */
+  onEditMeal?: (m: MealDraft) => void;
+  /** One-tap prompts above the input (e.g. your usual meals for this slot). */
+  suggestionChips?: string[];
   onClose: () => void;
+};
+
+/** What a meal card hands back when you approve or edit it. */
+export type MealDraft = {
+  /** Set when the draft came from a chat card, so saving via the manual editor
+   *  still marks that card as added. */
+  actionRef?: { threadId: string; key: string };
+  mealId?: string | null;
+  he: string;
+  mealType: MealType;
+  calories: number;
+  ingredients?: MealIngredient[];
+  macros?: MealMacros;
+  flags?: MealFlags;
 };
 
 type Msg = { role: 'user' | 'assistant'; content: string; ts: number; truncated?: boolean; image?: string };
@@ -117,7 +142,21 @@ type ActionSetWeeklyTargets = {
   targets: Record<string, number>;
 };
 
-type ChatAction = ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets;
+// A meal the coach surfaced mid-conversation. Rendered as an editable card
+// inline in the chat — the "smart object" — without interrupting the talking.
+type ActionSuggestMeal = {
+  type: 'suggest_meal';
+  mealId?: string | null;
+  he: string;
+  mealType?: MealType;
+  calories: number;
+  ingredients?: MealIngredient[];
+  macros?: MealMacros;
+  flags?: MealFlags;
+  note?: string;
+};
+
+type ChatAction = ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal;
 
 // Parse the response into a sequence of text chunks and action blocks so that
 // action cards render inline where the model placed them, not clumped at the end.
@@ -144,6 +183,8 @@ function parseChunks(text: string): Chunk[] {
         out.push({ type: 'action', action: parsed });
       } else if (parsed?.type === 'set_weekly_targets' && parsed.targets && typeof parsed.targets === 'object') {
         out.push({ type: 'action', action: parsed });
+      } else if (parsed?.type === 'suggest_meal' && parsed.he) {
+        out.push({ type: 'action', action: parsed });
       }
     } catch { /* ignore malformed */ }
     last = m.index + m[0].length;
@@ -161,6 +202,184 @@ function parseChunks(text: string): Chunk[] {
   return out.length > 0 ? out : [{ type: 'text', text: text.trim() }];
 }
 
+// True when the buffer ends inside an unclosed ```action fence — a card is
+// mid-flight. parseChunks already hides the partial JSON; this drives the
+// "מכין הצעה…" placeholder so a streaming reply doesn't look like it stalled.
+function hasOpenAction(text: string): boolean {
+  const lastOpen = text.lastIndexOf('```action');
+  if (lastOpen < 0) return false;
+  return !text.slice(lastOpen + '```action'.length).includes('```');
+}
+
+// Read the server's SSE stream, handing every text delta to `onDelta`.
+// Resolves with the full text once the `done` event lands. Throws on `error`.
+//
+// Why raw fetch + a reader rather than EventSource: EventSource is GET-only and
+// we need to POST a multi-KB body (history, exercise DB, optional image).
+async function streamChat(
+  url: string,
+  body: unknown,
+  onDelta: (chunk: string) => void,
+): Promise<{ text: string; truncated: boolean }> {
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const errBody = await resp.json().catch(() => ({} as any));
+    throw new Error(errBody.error || `HTTP ${resp.status}`);
+  }
+  if (!resp.body) throw new Error('no stream body');
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let text = '';
+  let truncated = false;
+
+  // SSE frames are separated by a blank line. Anything after the last blank
+  // line is a partial frame — keep it in `buffer` for the next chunk.
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const frames = buffer.split('\n\n');
+    buffer = frames.pop() || '';
+    for (const frame of frames) {
+      const evLine = frame.split('\n').find(l => l.startsWith('event: '));
+      const dataLine = frame.split('\n').find(l => l.startsWith('data: '));
+      if (!evLine || !dataLine) continue;
+      const event = evLine.slice(7).trim();
+      let payload: any;
+      try { payload = JSON.parse(dataLine.slice(6)); } catch { continue; }
+      if (event === 'delta' && typeof payload.t === 'string') {
+        text += payload.t;
+        onDelta(payload.t);
+      } else if (event === 'done') {
+        truncated = !!payload.truncated;
+      } else if (event === 'error') {
+        throw new Error(payload.message || 'stream error');
+      }
+    }
+  }
+  return { text, truncated };
+}
+
+// ─── The meal card ─────────────────────────────────────────────────
+//
+// A meal the coach mentioned, rendered inline in the conversation as something
+// you can act on. It does not interrupt the chat and it does not become a form:
+// the talking continues above and below it. Its own component so each card can
+// hold the meal-type choice you make on it.
+
+const MEAL_SLOTS: { id: MealType; he: string; emoji: string }[] = [
+  { id: 'breakfast', he: 'בוקר', emoji: '🌅' },
+  { id: 'lunch', he: 'צהריים', emoji: '🍽' },
+  { id: 'dinner', he: 'ערב', emoji: '🌙' },
+  { id: 'snack', he: 'נשנוש', emoji: '🥨' },
+  { id: 'drink', he: 'שתייה', emoji: '☕' },
+];
+
+function MealActionCard({
+  action, applied, onAdd, onEdit,
+}: {
+  action: ActionSuggestMeal;
+  applied: boolean;
+  onAdd: (draft: MealDraft) => void | Promise<void>;
+  onEdit?: (draft: MealDraft) => void;
+}) {
+  const [slot, setSlot] = useState<MealType>(action.mealType || 'snack');
+  const [busy, setBusy] = useState(false);
+
+  const draft: MealDraft = {
+    mealId: action.mealId ?? null,
+    he: action.he,
+    mealType: slot,
+    calories: Math.max(0, Math.round(action.calories || 0)),
+    ingredients: action.ingredients,
+    macros: action.macros,
+    flags: action.flags,
+  };
+
+  return (
+    <div
+      className={`rounded-xl border overflow-hidden ${
+        applied
+          ? 'border-emerald-500/40 dark:bg-emerald-950/20 bg-emerald-50/60'
+          : 'border-amber-500/40 dark:bg-amber-950/20 bg-amber-50/70'
+      }`}
+      dir="rtl"
+    >
+      <div className="px-3 pt-2.5 pb-2">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="font-bold text-[14px]">
+            {applied && <span className="text-emerald-600 dark:text-emerald-400 me-1">✓</span>}
+            {action.he}
+          </span>
+          <span className="font-mono font-bold text-[14px] shrink-0" dir="ltr">{draft.calories}</span>
+        </div>
+        {action.note && <div className="text-[11px] text-muted mt-0.5">{action.note}</div>}
+
+        {/* Ingredient breakdown — what justifies the number */}
+        {action.ingredients && action.ingredients.length > 0 && (
+          <div className="mt-2 space-y-0.5">
+            {action.ingredients.slice(0, 8).map((ing, k) => (
+              <div key={k} className="flex items-baseline justify-between text-[11px] text-muted">
+                <span className="truncate">{ing.he}</span>
+                <span className="font-mono shrink-0" dir="ltr">{ing.calories}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-1.5 mt-1.5">
+          {action.flags?.highSugar && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-500">🍬 עתיר סוכר</span>}
+          {action.flags?.emptyCarbs && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-500">🍞 פחמימות ריקות</span>}
+        </div>
+      </div>
+
+      {/* Added is a settled fact, not a button. It is persisted, so it still
+          reads "added" after you close and reopen the conversation. */}
+      {!applied ? (
+        <>
+          {/* Which slot this counts as — on the card, per turn. */}
+          <div className="px-3 pb-2 flex flex-wrap gap-1">
+            {MEAL_SLOTS.map(sl => (
+              <button
+                key={sl.id}
+                onClick={() => setSlot(sl.id)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-colors ${
+                  slot === sl.id
+                    ? 'bg-amber-500 text-white'
+                    : 'dark:bg-slate-800 bg-white text-muted'
+                }`}
+              >{sl.emoji} {sl.he}</button>
+            ))}
+          </div>
+          <div className="flex border-t border-amber-500/30">
+            <button
+              onClick={async () => { if (busy) return; setBusy(true); try { await onAdd(draft); } finally { setBusy(false); } }}
+              disabled={busy}
+              className="flex-1 py-2.5 text-[12px] font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
+            >{busy ? 'מוסיף…' : '+ הוסף להיום'}</button>
+            {onEdit && (
+              <button
+                onClick={() => onEdit(draft)}
+                className="px-4 py-2.5 text-[12px] font-semibold text-muted border-r border-amber-500/30 hover:bg-amber-500/10"
+              >ערוך</button>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="px-3 pb-2.5 pt-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+          נוסף ליומן היום
+        </div>
+      )}
+    </div>
+  );
+}
+
 type Thread = { id: string; title: string; ts: number; updatedAt?: number };
 
 // UNIFIED coach history: onboarding, trainer, AND in-session AI chats all share
@@ -168,8 +387,12 @@ type Thread = { id: string; title: string; ts: number; updatedAt?: number };
 // Mode only changes the SYSTEM PROMPT sent to the server per turn, not the
 // thread archive — one continuous conversation the user can revisit from any
 // entry point.
-function bucketOf(mode: string): 'coach' | 'naming' {
-  return mode === 'naming' ? 'naming' : 'coach';
+function bucketOf(mode: string): ChatBucket {
+  if (mode === 'naming') return 'naming';
+  // The food coach keeps its own history — the trainer never sees a meal chat
+  // and vice versa.
+  if (mode === 'dietary') return 'dietary';
+  return 'coach';
 }
 
 function pad2(n: number): string { return n < 10 ? `0${n}` : String(n); }
@@ -192,9 +415,11 @@ function computeThreadTitle(messages: Msg[], fallbackTs: number): string {
 // Runs once per (uid, bucket) — subsequent mounts are a no-op.
 async function migrateLocalStorageToFirestore(
   uid: string,
-  bucket: 'coach' | 'naming',
+  bucket: ChatBucket,
   firestore: { upsertChatThread: (id: string, meta: any) => Promise<void>; addChatMessage: (threadId: string, msg: any) => Promise<string> },
 ): Promise<void> {
+  // The food coach postdates localStorage chat storage — nothing to migrate.
+  if (bucket === 'dietary') return;
   const migKey = `aichat:migrated-fs:${uid}:${bucket}`;
   if (localStorage.getItem(migKey) === '1') return;
   const legacyKeys = bucket === 'coach'
@@ -238,7 +463,7 @@ async function migrateLocalStorageToFirestore(
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onEditMeal, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
 }: Props) {
   const bucket = bucketOf(mode);
   const firestore = useFirestore(uid);
@@ -277,6 +502,47 @@ export function AiChatPanel({
   const [toast, setToast] = useState<string | null>(null);
   const [threadsMenuOpen, setThreadsMenuOpen] = useState(false);
   const autoSentRef = useRef(false);
+
+  // ─── Streaming reply state ────────────────────────────────────
+  // `streamingText` is the live, not-yet-persisted assistant reply. It renders
+  // as a normal bubble while it grows, then clears when the Firestore listener
+  // delivers the persisted message — so the answer never appears twice.
+  // Deltas land per-token; batching them behind a ~60ms timer keeps React from
+  // re-rendering the whole thread on every character.
+  const [streamingText, setStreamingText] = useState('');
+  const streamBufRef = useRef('');
+  const streamTimerRef = useRef<number | null>(null);
+
+  function pushDelta(chunk: string) {
+    streamBufRef.current += chunk;
+    if (streamTimerRef.current != null) return;
+    streamTimerRef.current = window.setTimeout(() => {
+      streamTimerRef.current = null;
+      setStreamingText(streamBufRef.current);
+    }, 60);
+  }
+
+  // Everything before the first action fence — i.e. the prose the user should
+  // see. Any partial or complete ```action block stays hidden until the message
+  // is final.
+  const visibleStreamText = useMemo(() => {
+    const cut = streamingText.indexOf('```');
+    return (cut >= 0 ? streamingText.slice(0, cut) : streamingText).trimEnd();
+  }, [streamingText]);
+
+  function resetStream() {
+    if (streamTimerRef.current != null) {
+      clearTimeout(streamTimerRef.current);
+      streamTimerRef.current = null;
+    }
+    streamBufRef.current = '';
+    setStreamingText('');
+  }
+
+  // Drop the pending timer if the panel unmounts mid-stream.
+  useEffect(() => () => {
+    if (streamTimerRef.current != null) clearTimeout(streamTimerRef.current);
+  }, []);
 
   // ─── Migration: one-shot copy of legacy localStorage threads → Firestore ───
   useEffect(() => {
@@ -335,6 +601,17 @@ export function AiChatPanel({
   // fixedThreadId (onboarding) intentionally does NOT eager-create the doc —
   // the greeting-seed effect and/or the first send will create it with real
   // metadata (title, ts, bucket) so it shows up correctly in history.
+
+  // Applied cards are persisted per thread — reopening the chat must not offer
+  // to add something you already added.
+  useEffect(() => {
+    if (!uid || !activeId) return;
+    let cancelled = false;
+    firestoreRef.current.getAppliedActions(activeId)
+      .then(set => { if (!cancelled) setAppliedActionIds(set); })
+      .catch(() => { /* first run */ });
+    return () => { cancelled = true; };
+  }, [uid, activeId]);
 
   // ─── Subscribe to the active thread's messages ───
   useEffect(() => {
@@ -418,9 +695,10 @@ export function AiChatPanel({
     setTimeout(() => setToast(null), 2500);
   }
 
+  // Follow the conversation down as messages land AND as the live reply grows.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages.length]);
+  }, [messages.length, streamingText]);
 
   // Compute lastUsedDays per exercise from recentSets (best effort in short list)
   const lastUsedDaysByEx = useMemo(() => {
@@ -603,10 +881,11 @@ export function AiChatPanel({
     });
 
     try {
-      const resp = await fetch(`${CHAT_API_URL.replace(/\/$/, '')}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      resetStream();
+      const { text } = await streamChat(
+        `${CHAT_API_URL.replace(/\/$/, '')}/api/chat`,
+        {
+          stream: true,
           uid,
           threadId: activeId,
           bucket,
@@ -630,6 +909,25 @@ export function AiChatPanel({
           // Trainer mode: current per-muscle weekly targets + real weekly volume
           // for the past 4 weeks so the AI can propose sensible goal changes.
           weeklyTargets: mode === 'trainer' ? weeklyTargets : undefined,
+          // Dietary mode: the meal library (so "the usual" resolves to an
+          // existing entry instead of a duplicate), what's already been eaten
+          // today, and the profile that sets the target.
+          dietProfile: mode === 'dietary' ? dietProfile : undefined,
+          todayBurn: mode === 'dietary' ? todayBurn : undefined,
+          todayMeals: mode === 'dietary'
+            ? todayMeals.map(m => ({ name: m.name, calories: m.calories }))
+            : undefined,
+          personalMeals: mode === 'dietary'
+            ? personalMeals.slice(0, 200).map(m => ({
+                id: m.id,
+                he: m.he,
+                calories: m.calories,
+                // The breakdown travels too: it is what lets the coach say
+                // "your usual, minus the pita" instead of re-inventing the dish.
+                ingredients: (m.ingredients || []).slice(0, 12),
+                lastUsedDays: m.lastUsedAt ? Math.floor((Date.now() - m.lastUsedAt) / 86_400_000) : null,
+              }))
+            : undefined,
           volumeHistory: mode === 'trainer' ? (() => {
             const startOfWeek = (d: Date) => { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - x.getDay()); return x.getTime(); };
             const now = new Date();
@@ -653,14 +951,9 @@ export function AiChatPanel({
             }
             return buckets;
           })() : undefined,
-        }),
-      });
-      if (!resp.ok) {
-        const body = await resp.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${resp.status}`);
-      }
-      const data = await resp.json();
-      const text: string = data.text || '';
+        },
+        pushDelta,
+      );
       // Server persisted the assistant message to Firestore — the messages
       // listener will push it into local state on the next tick, so we DON'T
       // append it here. That's the whole point of the new architecture: if the
@@ -696,17 +989,31 @@ export function AiChatPanel({
       }
     } catch (e: any) {
       setError(e?.message || String(e));
+      // Any partial text the server managed to persist comes back through the
+      // messages listener — drop the local bubble so it can't double-render.
+      resetStream();
     } finally {
       setLoading(false);
     }
   }
 
+  // The persisted assistant message has landed via the Firestore listener —
+  // retire the local streaming bubble so the answer isn't shown twice.
+  useEffect(() => {
+    if (!streamingText) return;
+    const last = messages[messages.length - 1];
+    if (last && last.role === 'assistant') resetStream();
+  }, [messages, streamingText]);
+
+  // Keyed by message TIMESTAMP, not render index: the key has to survive a
+  // reload, because it is now persisted.
   function actionKey(a: ChatAction, mi: number, ci: number): string {
     if (a.type === 'suggest_exercise') return `s:${mi}:${ci}:${a.name}`;
     if (a.type === 'rename_exercise') return `r:${mi}:${ci}:${a.id}`;
     if (a.type === 'quick_replies') return `q:${mi}:${ci}`;
     if (a.type === 'update_profile') return `u:${mi}:${ci}`;
     if (a.type === 'set_weekly_targets') return `w:${mi}:${ci}`;
+    if (a.type === 'suggest_meal') return `m:${mi}:${ci}:${a.he}`;
     return `b:${mi}:${ci}`; // ready_to_build
   }
 
@@ -802,7 +1109,7 @@ export function AiChatPanel({
           </span>
           <div className="text-right">
             <h2 className="font-bold text-base leading-tight">
-              {mode === 'naming' ? 'מאמן שמות' : 'מאמן AI'}
+              {mode === 'naming' ? 'מאמן שמות' : mode === 'dietary' ? 'מאמן תזונה' : 'מאמן AI'}
             </h2>
             {replaceContext && (
               <div className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
@@ -941,6 +1248,16 @@ export function AiChatPanel({
                   <div>"תן לי תוכנית ל-3 ימים לפוקוס גב וכתפיים"</div>
                 </div>
               </>
+            ) : mode === 'dietary' ? (
+              <>
+                <div className="mb-2">ספר מה אכלת, או שאל כל שאלה על תזונה:</div>
+                <div className="space-y-1 text-[11px]">
+                  <div>"אכלתי שקשוקה עם 2 פיתות וקפה הפוך"</div>
+                  <div>"מה נשאר לי היום עד היעד?"</div>
+                  <div>"בא לי משהו מתוק — מה הכי פחות יעלה לי?"</div>
+                  <div>"תכין לי ארוחת ערב של 400 קלוריות"</div>
+                </div>
+              </>
             ) : mode === 'onboarding' ? (
               <div className="mb-2">כותב...</div>
             ) : (
@@ -993,7 +1310,7 @@ export function AiChatPanel({
                     return <div key={j} className="whitespace-pre-wrap text-right">{chunk.text}</div>;
                   }
                   const a = chunk.action;
-                  const key = actionKey(a, i, j);
+                  const key = actionKey(a, m.ts, j);
                   const applied = appliedActionIds.has(key);
 
                   if (a.type === 'update_profile') {
@@ -1182,9 +1499,27 @@ export function AiChatPanel({
                     );
                   }
 
+                  if (a.type === 'suggest_meal') {
+                    return (
+                      <MealActionCard
+                        key={j}
+                        action={a}
+                        applied={applied}
+                        onAdd={async (draft) => {
+                          if (!onAddMeal) return;
+                          await onAddMeal(draft);
+                          setAppliedActionIds(prev => new Set(prev).add(key));
+                          void firestoreRef.current.markActionApplied(activeId, key);
+                          showToast('נוסף להיום');
+                        }}
+                        onEdit={onEditMeal ? (d) => onEditMeal({ ...d, actionRef: { threadId: activeId, key } }) : undefined}
+                      />
+                    );
+                  }
+
                   // rename_exercise
-                  const existing = personalExercises.find(e => e.id === a.id);
-                  const mus = MUSCLE_BY_ID[(a.muscle || existing?.defaultMuscle || 'chest') as MuscleGroup];
+                  const existing = personalExercises.find(e => e.id === (a as ActionRenameExercise).id);
+                  const mus = MUSCLE_BY_ID[((a as ActionRenameExercise).muscle || existing?.defaultMuscle || 'chest') as MuscleGroup];
                   const c = mus ? MUSCLE_CLASSES[mus.color] : null;
                   return (
                     <button
@@ -1243,6 +1578,24 @@ export function AiChatPanel({
           );
         })}
 
+        {/* Live streaming reply — TEXT ONLY.
+            Action blocks are deliberately invisible while the reply is still
+            arriving: a half-formed proposal is noise, and a "ready" chip that
+            precedes the actual card just makes the user wait twice. The real
+            cards appear when the finished message lands. */}
+        {streamingText && (
+          <div className="flex justify-end">
+            <div className="max-w-[85%] rounded-2xl rounded-tr-sm px-3 py-2 text-sm dark:bg-slate-800 bg-slate-100" dir="rtl">
+              <span className="whitespace-pre-wrap text-right">{visibleStreamText}</span>
+              <span className="inline-flex items-center gap-0.5 align-middle ms-1">
+                <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '900ms' }} />
+                <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '150ms', animationDuration: '900ms' }} />
+                <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '300ms', animationDuration: '900ms' }} />
+              </span>
+            </div>
+          </div>
+        )}
+
         {(() => {
           // Dots reflect THIS thread's state only — never the global `loading`
           // flag, which used to leak across conversation switches (send on A,
@@ -1251,8 +1604,9 @@ export function AiChatPanel({
           // A 90-second freshness window prevents an old unanswered user
           // message (e.g. server crash from a prior day) from showing dots
           // forever.
+          // Once text starts streaming the dots give way to the live bubble.
           const lastMsg = messages[messages.length - 1];
-          const pending = !!lastMsg && lastMsg.role === 'user' && (Date.now() - (lastMsg.ts || 0)) < 90_000;
+          const pending = !streamingText && !!lastMsg && lastMsg.role === 'user' && (Date.now() - (lastMsg.ts || 0)) < 90_000;
           if (!pending) return null;
           return (
             <div className="flex justify-end">
@@ -1273,6 +1627,21 @@ export function AiChatPanel({
       </div>
 
       <div className="shrink-0 p-4 border-t border-subtle dark:bg-slate-950 bg-white pb-[max(env(safe-area-inset-bottom),1rem)]">
+        {/* One-tap prompts — in dietary mode these are your usual meals for this
+            time of day. They send as a normal message, so the coach answers with
+            a meal card and the conversation continues: quick access WITHOUT
+            turning the chat into a list screen. */}
+        {suggestionChips.length > 0 && !loading && (
+          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" dir="rtl">
+            {suggestionChips.slice(0, 5).map((c, i) => (
+              <button
+                key={i}
+                onClick={() => void sendWith(c)}
+                className="shrink-0 text-[11px] font-semibold px-2.5 py-1.5 rounded-full bg-amber-500/12 text-amber-700 dark:text-amber-300 whitespace-nowrap"
+              >{c}</button>
+            ))}
+          </div>
+        )}
         {/* Attached-image preview strip. Shows above the input; X to clear. */}
         {pendingImage && (
           <div className="mb-2 flex items-center gap-2" dir="rtl">

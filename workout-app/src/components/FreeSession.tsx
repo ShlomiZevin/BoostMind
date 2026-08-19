@@ -412,9 +412,11 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     }
     if (shouldStartTimer) {
       timer.start(getUserDefaultRest());
-      // Jump to top so the user sees the just-saved set + the scoreboard.
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    // ALWAYS scroll to top after a save (not only when the timer starts).
+    // Users' complaint: after adding a set they were left at whatever scroll
+    // depth they'd tapped from, having to scroll manually to see the update.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function openChatWith(
@@ -452,12 +454,26 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
       await firestore.updateFreeSessionMuscles(session.id, sessionMuscles);
     }
 
+    // TRANSFER superset membership from the replaced exercise onto the new one.
+    // Otherwise the OTHER member of a 2-exercise superset becomes a lonely
+    // 1-of-1, which reads as a broken superset. If the old member wasn't in
+    // any superset, oldSs is undefined and this is a no-op.
+    const oldEntry = (session.plannedExercises || []).find(p => p.name.toLowerCase() === nameKey);
+    const oldSs = oldEntry?.supersetGroup;
+    const oldSsOrder = oldEntry?.supersetOrder;
+
     // Atomic: build final planned list in one write.
     const withoutOld = (session.plannedExercises || []).filter(p => p.name.toLowerCase() !== nameKey);
     const alreadyPlanned = withoutOld.some(p => p.name.toLowerCase() === canonical.toLowerCase());
+    const newEntry: PlannedExercise = {
+      name: canonical,
+      muscle: finalMuscle,
+      addedAt: Date.now(),
+      ...(oldSs ? { supersetGroup: oldSs, supersetOrder: oldSsOrder } : {}),
+    };
     const finalPlanned = alreadyPlanned
       ? withoutOld
-      : [...withoutOld, { name: canonical, muscle: finalMuscle, addedAt: Date.now() }];
+      : [...withoutOld, newEntry];
     await firestore.updatePlannedExercises(session.id, finalPlanned);
 
     const exs = await firestore.listPersonalExercises();
@@ -1272,8 +1288,22 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
             const partnerIds = exId ? partnersForExercise(exId) : [];
             const inSuperset = !!ssId;
             const cardKey = `${g.muscle}::${g.exerciseName.toLowerCase()}`;
+            // Divider between adjacent superset members — a thin colored bar
+            // spanning the shared border, so the two exercises inside the
+            // same panel don't visually run into each other. Only renders for
+            // NON-first members of a superset (the header covers the top edge
+            // of the first member).
+            const showSsDivider = !!ssId && !isFirstInSs;
             return (
               <Fragment key={cardKey}>
+                {showSsDivider && ssColor && (
+                  <div
+                    aria-hidden="true"
+                    className={`border-x-2 ${ssColor.border} px-4`}
+                  >
+                    <div className={`h-px w-full ${ssColor.badgeBg} opacity-70`} />
+                  </div>
+                )}
                 {/* Superset header — appears above the first card in the group */}
                 {isFirstInSs && ssColor && (
                   <div className={`px-3 py-1.5 rounded-t-2xl border-2 border-b-0 ${ssColor.border} ${ssColor.badgeBg} flex items-center justify-between`} dir="rtl">
@@ -1309,13 +1339,13 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                 // extrabold name, users spot anchors instantly without any
                 // heavy visual hit. Tint sits on top of the base card bg.
                 const anchorTint = gAnchor
-                  // Anchors are the DEFAULT case in a mature workout, so
-                  // the tint stays a whisper — the right-edge amber stripe
-                  // carries the primary "this is an anchor" signal, and the
-                  // filled anchor toggle in the actions row reinforces it.
-                  // 6% amber overlay in both themes = warm undertone that
-                  // sits harmoniously on the dark navy background.
-                  ? 'bg-amber-500/[0.06] dark:bg-amber-500/[0.08]'
+                  // "Elevated card" pattern — the amber wash never felt right
+                  // on this palette. Anchors now use a slightly LIGHTER slate
+                  // in dark mode (so they read as "brought forward" against the
+                  // base slate-900) and a soft warm cream in light mode. The
+                  // amber right-edge stripe stays as the actual identifier —
+                  // this treatment is just the harmony backdrop under it.
+                  ? '!bg-slate-100 dark:!bg-slate-800'
                   : '';
                 return (
               <div
@@ -1361,9 +1391,6 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       <div className={`text-base leading-tight ${
                         findPersonalByName(personalExercises, g.exerciseName)?.isAnchor ? 'font-extrabold' : 'font-bold'
                       }`}>{displayName}</div>
-                      {/* Anchor signal comes from the amber tint on the card
-                          + the filled toggle chip on the left — no need for a
-                          second badge here (it was crowding the name row). */}
                       {inSuperset && (
                         <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${ssColor?.badgeBg} ${ssColor?.badgeText}`} title="מיקום בתוך הסופרסט">
                           <span>{ssIdx}/{ssTotal}</span>
@@ -1373,12 +1400,66 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     {enName && (
                       <div className="text-[11px] text-muted mt-0.5 text-right" dir="ltr" style={{ direction: 'ltr' }}>{enName}</div>
                     )}
+                    {/* Action icons live INSIDE the header cell, right under
+                        the English name. This lets them sit parallel to the
+                        muscle chip + image column on the left instead of
+                        pushing a new toolbar row below the header (which was
+                        adding a whole line of empty vertical space next to
+                        tall exercise images). */}
+                    <div className="flex items-center gap-1.5 mt-2 justify-start" dir="rtl">
+                      <AnchorToggle
+                        active={!!findPersonalByName(personalExercises, g.exerciseName)?.isAnchor}
+                        onToggle={() => toggleAnchorByName(g.exerciseName)}
+                        size="xs"
+                        showLabel={false}
+                        className="!px-1 !py-0.5"
+                      />
+                      <button
+                        onClick={() => setLinkFrom({ sourceName: g.exerciseName, sourceSsId: ssId })}
+                        title={ssId ? 'הוסף עוד תרגיל לסופרסט' : 'חבר עם תרגיל אחר לסופרסט'}
+                        aria-label={ssId ? 'הוסף לסופרסט' : 'חבר לסופרסט'}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center ${ssId ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : 'text-muted hover:text-indigo-500 hover:bg-indigo-500/10'}`}
+                      >
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                      </button>
+                      {ssId && !isFirstInSs && (
+                        <button
+                          onClick={() => reorderInSuperset(g.exerciseName, 'up')}
+                          title="הזז למעלה בסופרסט"
+                          aria-label="הזז למעלה"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
+                        >↑</button>
+                      )}
+                      {ssId && !isLastInSs && (
+                        <button
+                          onClick={() => reorderInSuperset(g.exerciseName, 'down')}
+                          title="הזז למטה בסופרסט"
+                          aria-label="הזז למטה"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
+                        >↓</button>
+                      )}
+                      {ssId && (
+                        <button
+                          onClick={() => unlinkExercise(g.exerciseName)}
+                          title="הסר תרגיל זה מהסופרסט"
+                          aria-label="הסר מסופרסט"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-500/10"
+                        >
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-.12-7.07 5 5 0 0 0-6.95 0l-1.72 1.71" />
+                            <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 .12 7.07 5 5 0 0 0 6.95 0l1.71-1.71" />
+                            <line x1="8" y1="2" x2="8" y2="5" />
+                            <line x1="2" y1="8" x2="5" y2="8" />
+                            <line x1="16" y1="19" x2="16" y2="22" />
+                            <line x1="19" y1="16" x2="22" y2="16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {/* Top-left cluster — MUSCLE-CHIP-ONLY column. All action
-                      icons (up/down/link/unlink + anchor toggle) now live on
-                      a dedicated toolbar row (see below) so this column's
-                      width equals just the muscle chip, giving the exercise
-                      name row the full width it needs. */}
                   <div className="shrink-0 flex flex-col items-end gap-1">
                     <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full ${c.bg} ${c.text}`}>
                       <span>{m.he}</span>
@@ -1387,9 +1468,6 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     {findPersonalByName(personalExercises, g.exerciseName)?.isHoldTime && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded dark:bg-slate-800 bg-slate-100 text-muted-most">⏱ החזקה</span>
                     )}
-                    {/* Photo thumbnail sits on the LEFT side (RTL end position),
-                        UNDER the muscle chip — so it never squeezes the Hebrew
-                        exercise name in the header row. */}
                     {(() => {
                       const k = g.exerciseName ? exercisePhotoKey(g.exerciseName) : '';
                       const src = k ? photosMap[k] : null;
@@ -1402,67 +1480,8 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                   </div>
                 </div>
 
-                {/* ─── Actions toolbar ────────────────────────────────
-                    A dedicated thin strip for anchor + superset controls.
-                    Kept OUT of the header row so the exercise name gets full
-                    horizontal space (previously the 4-5 icons stacked on the
-                    left were forcing a 3-line name wrap). */}
-                <div className="flex items-center gap-1.5 mb-2 justify-start" dir="rtl">
-                  <AnchorToggle
-                    active={!!findPersonalByName(personalExercises, g.exerciseName)?.isAnchor}
-                    onToggle={() => toggleAnchorByName(g.exerciseName)}
-                    size="xs"
-                    showLabel={false}
-                    className="!px-1 !py-0.5"
-                  />
-                  <button
-                    onClick={() => setLinkFrom({ sourceName: g.exerciseName, sourceSsId: ssId })}
-                    title={ssId ? 'הוסף עוד תרגיל לסופרסט' : 'חבר עם תרגיל אחר לסופרסט'}
-                    aria-label={ssId ? 'הוסף לסופרסט' : 'חבר לסופרסט'}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center ${ssId ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : 'text-muted hover:text-indigo-500 hover:bg-indigo-500/10'}`}
-                  >
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                    </svg>
-                  </button>
-                  {ssId && !isFirstInSs && (
-                    <button
-                      onClick={() => reorderInSuperset(g.exerciseName, 'up')}
-                      title="הזז למעלה בסופרסט"
-                      aria-label="הזז למעלה"
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
-                    >↑</button>
-                  )}
-                  {ssId && !isLastInSs && (
-                    <button
-                      onClick={() => reorderInSuperset(g.exerciseName, 'down')}
-                      title="הזז למטה בסופרסט"
-                      aria-label="הזז למטה"
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
-                    >↓</button>
-                  )}
-                  {ssId && (
-                    <button
-                      onClick={() => unlinkExercise(g.exerciseName)}
-                      title="הסר תרגיל זה מהסופרסט"
-                      aria-label="הסר מסופרסט"
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-500/10"
-                    >
-                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-.12-7.07 5 5 0 0 0-6.95 0l-1.72 1.71" />
-                        <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 .12 7.07 5 5 0 0 0 6.95 0l1.71-1.71" />
-                        <line x1="8" y1="2" x2="8" y2="5" />
-                        <line x1="2" y1="8" x2="5" y2="8" />
-                        <line x1="16" y1="19" x2="16" y2="22" />
-                        <line x1="19" y1="16" x2="22" y2="16" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  {g.sets.map(s => {
+                <div className="space-y-1">
+                  {g.sets.map((s, si) => {
                     const unit = s.unit || 'kg';
                     const isPlaceholder = s.weight === 0 && s.reps === 0;
                     const isHold = !!findPersonalByName(personalExercises, g.exerciseName)?.isHoldTime;
@@ -1470,10 +1489,19 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       <div
                         key={s.id}
                         onClick={() => setModal({ kind: 'edit', set: s })}
-                        className={`flex items-center justify-between gap-3 rounded-lg px-3 py-3 bg-subtle cursor-pointer active:opacity-80 min-h-[44px] ${isPlaceholder ? 'border border-dashed dark:border-amber-700 border-amber-300' : ''}`}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 bg-subtle cursor-pointer active:opacity-80 min-h-[40px] ${isPlaceholder ? 'border border-dashed dark:border-amber-700 border-amber-300' : ''}`}
                         dir="rtl"
                       >
-                        <div className="font-mono text-base flex-1 text-right">
+                        {/* Small set index — 1-based, so users can see at a
+                            glance how many sets they've done on this exercise
+                            without counting rows. Muted so the weight×reps
+                            data stays the primary read. `leading-none` + fixed
+                            line-height keeps it exactly on the same baseline
+                            as the mono weight text. */}
+                        <span className="shrink-0 w-6 text-[11px] font-mono text-muted-most text-center leading-none">
+                          {si + 1}
+                        </span>
+                        <div className="font-mono text-base flex-1 text-right leading-none">
                           {isPlaceholder ? (
                             <span className="text-amber-500 text-sm">— להשלים —</span>
                           ) : isHold ? (
@@ -1488,10 +1516,10 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                         <button
                           onClick={(e) => { e.stopPropagation(); setConfirmDeleteSetId(s.id); }}
                           aria-label="מחק סט"
-                          className="w-9 h-9 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-500/10"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-500/10"
                           style={{ WebkitTapHighlightColor: 'transparent' }}
                         >
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
                           </svg>
                         </button>
@@ -1654,8 +1682,20 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
               // members that already have a logged sibling — the "המשך של
               // הסופרסט למעלה" chip inside the card conveys the connection.
               const showSsHeader = isFirstInSs && !!pSsColor && !attachedToLoggedSs;
+              // Divider: shown between adjacent superset members inside the
+              // same panel — either two planned members in a row, or a
+              // planned member sitting directly under a logged one.
+              const showSsDivider = !!pSsColor && (!isFirstInSs || attachedToLoggedSs);
               return (
                 <Fragment key={`planned::${p.name.toLowerCase()}`}>
+                  {showSsDivider && pSsColor && (
+                    <div
+                      aria-hidden="true"
+                      className={`border-x-2 ${pSsColor.border} px-4`}
+                    >
+                      <div className={`h-px w-full ${pSsColor.badgeBg} opacity-70`} />
+                    </div>
+                  )}
                   {showSsHeader && (
                     <div className={`px-3 py-1.5 rounded-t-2xl border-2 border-b-0 ${pSsColor.border} ${pSsColor.badgeBg} flex items-center justify-between`} dir="rtl">
                       <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${pSsColor.badgeText}`}>
@@ -1686,7 +1726,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     : linkFrom ? 'opacity-50' : '';
                   const pAnchor = !!findPersonalByName(personalExercises, p.name)?.isAnchor;
                   const anchorTint = pAnchor
-                    ? '!bg-amber-100 dark:!bg-amber-900/40'
+                    ? '!bg-slate-100 dark:!bg-slate-800'
                     : '';
                   return (
                 <div
@@ -1739,8 +1779,62 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       {enName && (
                         <div className="text-[11px] text-muted mt-0.5 text-right" dir="ltr" style={{ direction: 'ltr' }}>{enName}</div>
                       )}
+                      {/* Action icons inside the header cell — parallel to
+                          the muscle chip + image on the left, no extra row. */}
+                      <div className="flex items-center gap-1.5 mt-2 justify-start" dir="rtl">
+                        <AnchorToggle
+                          active={!!findPersonalByName(personalExercises, p.name)?.isAnchor}
+                          onToggle={() => toggleAnchorByName(p.name)}
+                          size="xs"
+                          showLabel={false}
+                          className="!px-1 !py-0.5"
+                        />
+                        <button
+                          onClick={() => setLinkFrom({ sourceName: p.name, sourceSsId: pSs })}
+                          title={pSs ? 'הוסף עוד תרגיל לסופרסט' : 'חבר עם תרגיל אחר לסופרסט'}
+                          aria-label={pSs ? 'הוסף לסופרסט' : 'חבר לסופרסט'}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center ${pSs ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : 'text-muted hover:text-indigo-500 hover:bg-indigo-500/10'}`}
+                        >
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </svg>
+                        </button>
+                        {pSs && !isFirstInSs && (
+                          <button
+                            onClick={() => reorderInSuperset(p.name, 'up')}
+                            title="הזז למעלה בסופרסט"
+                            aria-label="הזז למעלה"
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
+                          >↑</button>
+                        )}
+                        {pSs && !isLastInSs && (
+                          <button
+                            onClick={() => reorderInSuperset(p.name, 'down')}
+                            title="הזז למטה בסופרסט"
+                            aria-label="הזז למטה"
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
+                          >↓</button>
+                        )}
+                        {pSs && (
+                          <button
+                            onClick={() => unlinkExercise(p.name)}
+                            title="הסר תרגיל זה מהסופרסט"
+                            aria-label="הסר מסופרסט"
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-500/10"
+                          >
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-.12-7.07 5 5 0 0 0-6.95 0l-1.72 1.71" />
+                              <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 .12 7.07 5 5 0 0 0 6.95 0l1.71-1.71" />
+                              <line x1="8" y1="2" x2="8" y2="5" />
+                              <line x1="2" y1="8" x2="5" y2="8" />
+                              <line x1="16" y1="19" x2="16" y2="22" />
+                              <line x1="19" y1="16" x2="22" y2="16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    {/* Muscle-chip-only column — actions moved below. */}
                     <div className="shrink-0 flex flex-col items-end gap-1">
                       <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full ${c.bg} ${c.text} opacity-80`}>
                         <span>{m.he}</span>
@@ -1756,61 +1850,6 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                           : <img src={src} alt="" className="w-14 h-14 mt-1 rounded-lg object-cover bg-slate-500/10" />;
                       })()}
                     </div>
-                  </div>
-
-                  {/* Actions toolbar — anchor + superset controls. */}
-                  <div className="flex items-center gap-1.5 mb-2 justify-start" dir="rtl">
-                    <AnchorToggle
-                      active={!!findPersonalByName(personalExercises, p.name)?.isAnchor}
-                      onToggle={() => toggleAnchorByName(p.name)}
-                      size="xs"
-                      showLabel={false}
-                      className="!px-1 !py-0.5"
-                    />
-                    <button
-                      onClick={() => setLinkFrom({ sourceName: p.name, sourceSsId: pSs })}
-                      title={pSs ? 'הוסף עוד תרגיל לסופרסט' : 'חבר עם תרגיל אחר לסופרסט'}
-                      aria-label={pSs ? 'הוסף לסופרסט' : 'חבר לסופרסט'}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center ${pSs ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : 'text-muted hover:text-indigo-500 hover:bg-indigo-500/10'}`}
-                    >
-                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                      </svg>
-                    </button>
-                    {pSs && !isFirstInSs && (
-                      <button
-                        onClick={() => reorderInSuperset(p.name, 'up')}
-                        title="הזז למעלה בסופרסט"
-                        aria-label="הזז למעלה"
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
-                      >↑</button>
-                    )}
-                    {pSs && !isLastInSs && (
-                      <button
-                        onClick={() => reorderInSuperset(p.name, 'down')}
-                        title="הזז למטה בסופרסט"
-                        aria-label="הזז למטה"
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-indigo-500/10 text-xs"
-                      >↓</button>
-                    )}
-                    {pSs && (
-                      <button
-                        onClick={() => unlinkExercise(p.name)}
-                        title="הסר תרגיל זה מהסופרסט"
-                        aria-label="הסר מסופרסט"
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-500/10"
-                      >
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-.12-7.07 5 5 0 0 0-6.95 0l-1.72 1.71" />
-                          <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 .12 7.07 5 5 0 0 0 6.95 0l1.71-1.71" />
-                          <line x1="8" y1="2" x2="8" y2="5" />
-                          <line x1="2" y1="8" x2="5" y2="8" />
-                          <line x1="16" y1="19" x2="16" y2="22" />
-                          <line x1="19" y1="16" x2="22" y2="16" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
 
                   <div className="flex gap-2 pt-2 border-t border-subtle/60" dir="rtl">
@@ -1901,7 +1940,13 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                   <span className="flex-1 h-px bg-subtle" />
                   <span className="text-[10px] text-muted-most">{doneGroups.length}</span>
                 </div>
-                <div className="space-y-0">
+                {/* space-y-3 gives a real visual gap between done cards,
+                    which was invisible before: anchor cards use bg-slate-100
+                    and the page bg is bg-slate-50 in light mode — nearly the
+                    same tone, so mb-2 between them looked like no gap at all.
+                    Cards inside a superset chain neutralize this via -mt-3 on
+                    non-first-in-ss members below. */}
+                <div className="space-y-3">
                   {doneGroups.map((g, di) => {
                     const m = MUSCLE_BY_ID[g.muscle];
                     if (!m) return null;
@@ -1926,8 +1971,20 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                     const nextDoneSs = di < doneGroups.length - 1 ? groupSsId(doneGroups[di + 1]) : null;
                     const isFirstInDoneSs = !!doneSsId && doneSsId !== prevDoneSs;
                     const isLastInDoneSs = !!doneSsId && doneSsId !== nextDoneSs;
+                    // Divider between adjacent done ss members (same shape as
+                    // the active/planned dividers so the pattern is consistent).
+                    const showDoneSsDivider = !!doneSsId && !isFirstInDoneSs;
+                    void doneSsIdx; // kept for future use if we want position label
                     return (
                       <Fragment key={`done:${g.muscle}::${g.exerciseName.toLowerCase()}`}>
+                      {showDoneSsDivider && doneSsColor && (
+                        <div
+                          aria-hidden="true"
+                          className={`border-x-2 ${doneSsColor.border} px-4 opacity-80 -mt-3`}
+                        >
+                          <div className={`h-px w-full ${doneSsColor.badgeBg} opacity-70`} />
+                        </div>
+                      )}
                       {/* Muted superset header — same shape as the active version, dimmed. */}
                       {isFirstInDoneSs && doneSsColor && (
                         <div className={`px-3 py-1 rounded-t-2xl border-2 border-b-0 ${doneSsColor.border} ${doneSsColor.badgeBg} opacity-80 flex items-center gap-2`} dir="rtl">
@@ -1947,16 +2004,22 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                       {(() => {
                         const gDoneAnchor = !!findPersonalByName(personalExercises, g.exerciseName)?.isAnchor;
                         const anchorTint = gDoneAnchor
-                          ? '!bg-amber-100 dark:!bg-amber-900/40'
+                          ? '!bg-slate-100 dark:!bg-slate-800'
                           : '';
                         return (
                       <div
+                        // In-ss non-first cards: cancel the space-y-3 gap so
+                        // superset members visually chain together. In-ss
+                        // first card: also gets -mt-3 because the header
+                        // above it should sit flush with the card body.
+                        // Non-ss and last-in-ss cards get NO negative margin,
+                        // so they take the full space-y-3 gap.
                         className={`relative px-4 py-3 opacity-90 dark:bg-slate-900/60 bg-slate-100/60 ${anchorTint} ${
                           doneSsColor
-                            ? `border-2 ${doneSsColor.border} rounded-t-none border-t-0 ${
-                                isLastInDoneSs ? 'rounded-b-2xl mb-2' : 'rounded-b-none border-b-0'
+                            ? `border-2 ${doneSsColor.border} rounded-t-none border-t-0 -mt-3 ${
+                                isLastInDoneSs ? 'rounded-b-2xl' : 'rounded-b-none border-b-0'
                               }`
-                            : 'rounded-2xl border border-subtle mb-2'
+                            : 'rounded-2xl border border-subtle'
                         }`}
                         dir="rtl"
                       >
@@ -1989,15 +2052,20 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                             {enName && (
                               <div className="text-[11px] text-muted mt-0.5 text-right" dir="ltr" style={{ direction: 'ltr' }}>{enName}</div>
                             )}
+                            {/* Anchor toggle inline in the header cell,
+                                parallel to the muscle chip + image column. */}
+                            <div className="flex items-center gap-1.5 mt-2 justify-start" dir="rtl">
+                              <AnchorToggle
+                                active={!!findPersonalByName(personalExercises, g.exerciseName)?.isAnchor}
+                                onToggle={() => toggleAnchorByName(g.exerciseName)}
+                                size="xs"
+                                showLabel={false}
+                                className="!px-1 !py-0.5"
+                              />
+                            </div>
                           </div>
+                          {/* Muscle-chip-only column — matches the active card. */}
                           <div className="shrink-0 flex flex-col items-end gap-1">
-                            <AnchorToggle
-                              active={!!findPersonalByName(personalExercises, g.exerciseName)?.isAnchor}
-                              onToggle={() => toggleAnchorByName(g.exerciseName)}
-                              size="xs"
-                              showLabel={false}
-                              className="!px-1 !py-0.5"
-                            />
                             <span className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full ${c.bg} ${c.text}`}>
                               <span>{m.he}</span>
                               <span className="opacity-70 font-mono">· {realSetCount}</span>
@@ -2017,43 +2085,34 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                           </div>
                         </div>
 
-                        {/* Per-set rows — identical layout to the active card so
-                            a done exercise reads as "the same thing, banked".
-                            Tap edits; the delete button is here too because
-                            corrections on already-done sets should be one tap. */}
-                        <div className="space-y-1.5">
-                          {g.sets.map(s => {
+                        {/* Per-set rows — read-only "banked" style. Numbered,
+                            compact, no delete affordance (destructive edits on
+                            done sets are too easy to mis-tap). Tap the whole
+                            row to correct a value if needed. */}
+                        <div className="space-y-1">
+                          {g.sets.map((s, si) => {
                             const unit = s.unit || 'kg';
                             const isPlaceholder = s.weight === 0 && s.reps === 0;
                             return (
                               <div
                                 key={s.id}
                                 onClick={() => setModal({ kind: 'edit', set: s })}
-                                className={`flex items-center justify-between gap-3 rounded-lg px-3 py-3 bg-subtle cursor-pointer active:opacity-80 min-h-[44px] ${isPlaceholder ? 'border border-dashed dark:border-amber-700 border-amber-300' : ''}`}
+                                className={`flex items-center gap-3 rounded-md px-2.5 py-1.5 cursor-pointer active:opacity-80 dark:bg-slate-800/60 bg-slate-200/50 ${isPlaceholder ? 'border border-dashed dark:border-amber-700 border-amber-300' : ''}`}
                                 dir="rtl"
                               >
-                                <div className="font-mono text-base flex-1 text-right">
+                                <span className="shrink-0 w-5 text-[10px] font-mono text-muted-most text-center">{si + 1}</span>
+                                <div className="font-mono text-sm flex-1 text-right">
                                   {isPlaceholder ? (
-                                    <span className="text-amber-500 text-sm">— להשלים —</span>
+                                    <span className="text-amber-500 text-xs">— להשלים —</span>
                                   ) : isHold ? (
-                                    <span dir="ltr" className="inline-block font-bold">
-                                      {s.reps}<span className="text-xs text-muted mr-0.5">שנ'</span>
-                                      {s.weight > 0 && (<> · {s.weight}<span className="text-xs text-muted">{unit}</span></>)}
+                                    <span dir="ltr" className="inline-block font-semibold">
+                                      {s.reps}<span className="text-[10px] text-muted mr-0.5">שנ'</span>
+                                      {s.weight > 0 && (<> · {s.weight}<span className="text-[10px] text-muted">{unit}</span></>)}
                                     </span>
                                   ) : (
-                                    <span dir="ltr" className="inline-block font-bold">{s.weight}<span className="text-xs text-muted mr-0.5">{unit}</span> × {s.reps}</span>
+                                    <span dir="ltr" className="inline-block font-semibold">{s.weight}<span className="text-[10px] text-muted mr-0.5">{unit}</span> × {s.reps}</span>
                                   )}
                                 </div>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setConfirmDeleteSetId(s.id); }}
-                                  aria-label="מחק סט"
-                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-500/10"
-                                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                                >
-                                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                                  </svg>
-                                </button>
                               </div>
                             );
                           })}
@@ -2065,7 +2124,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                         <div className="mt-3 pt-3 border-t border-subtle/60">
                           <button
                             onClick={() => setModal({ kind: 'dup', set: g.sets[g.sets.length - 1] })}
-                            className="w-full py-2.5 text-sm font-semibold rounded-xl border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-500/10 hover:bg-emerald-500/5 transition-colors"
+                            className="w-full py-2 text-sm font-semibold rounded-xl border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-500/10 hover:bg-emerald-500/5 transition-colors"
                           >+ סט נוסף</button>
                         </div>
                       </div>
@@ -2559,12 +2618,23 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
       {/* Note — reading mode is clean text; editing mode is a textarea */}
       {editingNote ? (
-        // No onBlur — we rely on the header "סיים" button, so tapping the button doesn't
-        // race with a blur that would flip editingNote before the click handler runs.
-        // The note itself is autosaved on typing (debounced).
+        // Flush any pending debounced save + exit edit mode when the user
+        // taps elsewhere. Guard against the "סיים" button race: if the blur
+        // was caused by clicking the header toggle itself (which toggles
+        // editingNote), we still want a clean exit — commitNote already ran
+        // on every keystroke so nothing is lost.
         <textarea
           value={note}
           onChange={(e) => commitNote(e.target.value)}
+          onBlur={(e) => {
+            // Flush the debounced save immediately so nothing is lost.
+            if (saveNoteTimer.current) {
+              clearTimeout(saveNoteTimer.current);
+              saveNoteTimer.current = null;
+            }
+            if (exId) { firestore.saveExerciseNote(exId, e.target.value); }
+            setEditingNote(false);
+          }}
           autoFocus
           rows={2}
           placeholder="הערה אישית לתרגיל (טכניקה, זווית, טיפ...)"

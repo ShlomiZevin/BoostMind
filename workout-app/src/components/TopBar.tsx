@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { PlacePill, usePlaceContext } from './PlaceSwitcher';
 
 type TintColor = 'emerald' | 'blue' | 'violet' | 'amber';
 
@@ -56,6 +57,11 @@ export function TopBar({ title, subtitle, actions, center, accent, tint = 'emera
   const isLive = accent === 'live';
   const isBrand = accent === 'brand';
   const t = TINT_STYLES[tint];
+  // On tab pages the static accent bar is promoted to an interactive place pill.
+  // Delivered by context so no page component has to know places exist.
+  // Live sessions keep the plain bar — you can't switch places mid-workout.
+  const placeCtx = usePlaceContext();
+  const showPill = !!placeCtx && !isLive;
   return (
     <header
       className={`sticky top-0 z-30
@@ -71,8 +77,11 @@ export function TopBar({ title, subtitle, actions, center, accent, tint = 'emera
       <div className="max-w-lg mx-auto flex items-center gap-3 px-4 min-h-[64px] py-2.5">
         {/* Right (RTL start): title + subtitle with accent bar */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {/* Left-edge accent bar — brand identity, color per page */}
-          {!isLive && <span className={`w-1 h-8 rounded-full ${t.bar} shrink-0`} />}
+          {/* Left-edge accent — the place pill where places apply, otherwise the
+              plain brand bar (live session, install screen, …). */}
+          {showPill
+            ? <PlacePill />
+            : !isLive && <span className={`w-1 h-8 rounded-full ${t.bar} shrink-0`} />}
           <div className="text-right min-w-0 flex-1">
             <h1 className={`font-bold leading-tight truncate ${isLive ? 'text-lg text-emerald-700 dark:text-emerald-200' : 'text-xl text-main'}`}>
               {title}

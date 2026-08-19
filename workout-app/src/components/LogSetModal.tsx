@@ -527,10 +527,11 @@ export function LogSetModal({
                   </button>
                 )}
                 <div className="flex-1 text-right min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5 justify-start">
-                    <span className="text-[10px] text-muted">תרגיל</span>
-                    {selectedExercise?.isAnchor && <AnchorBadge size="xs" />}
-                  </div>
+                  {/* Anchor status shows ONCE — via the toggle chip in the
+                      actions row below. Extra inline badge here was
+                      duplicated visual noise (the badge + the toggle both
+                      say the same thing). */}
+                  <div className="text-[10px] text-muted mb-0.5">תרגיל</div>
                   <div className={`text-sm leading-tight ${selectedExercise?.isAnchor ? 'font-bold' : 'font-semibold'}`}>{currentName}</div>
                   {selectedExercise?.en && (
                     <div className="text-[11px] text-muted mt-0.5" dir="ltr" style={{ direction: 'ltr' }}>{selectedExercise.en}</div>

@@ -434,6 +434,22 @@ inbox for free.
 
 ---
 
+## 7.4 As built — deviations from this plan
+
+Three deliberate differences between the plan above and the shipped code:
+
+1. **Place is derived, not carried.** The plan put `place` on the `Route`. In
+   practice page ids are already unique across places, so `placeOf(page)` in
+   `places/registry.tsx` derives it — which left every existing
+   `navigate({ page: 'home' })` call site untouched instead of rewriting dozens
+   of them. Hashes accept `#/exercise/home` and the legacy `#/home` alike.
+2. **The registry defines chrome, not content.** Tabs carry `page`/`he`/`icon`;
+   the content switch stays in `AppShell`. Same practical result — adding נשימה
+   is one registry entry plus one arm in the switch — with far less churn than
+   turning every screen into a render callback.
+3. **`שאל את המאמן` is not wired.** It would be a dead button until the dietary
+   coach exists, so the food place ships with one quick action (`+ ארוחה`).
+
 ## 8. Rollout
 
 Each phase is independently shippable and independently revertable.
