@@ -10,6 +10,7 @@ import { AiChatPanel } from './AiChatPanel';
 import { MigrateNames } from './MigrateNames';
 import { TopBar } from './TopBar';
 import { TabActions } from './TopBarActions';
+import { AnchorToggle, AnchorBadge } from './AnchorPill';
 
 type Props = {
   uid: string;
@@ -29,6 +30,10 @@ export function Exercises({ uid, navigate }: Props) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  // Photo delete confirmation — user reported wiping their photo by mistake
+  // because the delete-photo icon in the row action strip is too easy to hit.
+  // Two-step now: tap → dialog → confirm.
+  const [confirmDeletePhoto, setConfirmDeletePhoto] = useState<string | null>(null);
   const [confirmResetAll, setConfirmResetAll] = useState(false);
   const [namingChatOpen, setNamingChatOpen] = useState(false);
   const [migrateOpen, setMigrateOpen] = useState(false);
@@ -38,6 +43,20 @@ export function Exercises({ uid, navigate }: Props) {
   const [historyStats, setHistoryStats] = useState<Map<string, { count: number; lastTs: number; sessionsCount: number }>>(new Map());
   const [defaultKeys, setDefaultKeys] = useState<Set<string>>(new Set());
   const isAdmin = uid === 'user_6724';
+
+  // Anchor is a per-user flag — for shared/global exercises it's written to
+  // `userExerciseOverrides/{id}` so different users hold different anchor sets
+  // on top of the same underlying exercise. Optimistic local flip + rollback.
+  async function toggleAnchor(ex: PersonalExercise) {
+    const next = !ex.isAnchor;
+    setExercises(list => list.map(e => e.id === ex.id ? { ...e, isAnchor: next || undefined } : e));
+    try {
+      await firestore.upsertPersonalExercise({ ...ex, isAnchor: next || undefined });
+    } catch (e) {
+      setExercises(list => list.map(x => x.id === ex.id ? { ...x, isAnchor: ex.isAnchor } : x));
+      console.warn('anchor toggle failed', e);
+    }
+  }
 
   async function refresh() {
     const [exs, ps, sessions, defs] = await Promise.all([
@@ -99,7 +118,17 @@ export function Exercises({ uid, navigate }: Props) {
       arr.push(ex);
       map.set(m.parent, arr);
     }
-    for (const arr of map.values()) arr.sort((a, b) => a.he.localeCompare(b.he, 'he'));
+    // Within each muscle group: anchors first (bolded, users glance here
+    // first), then the rest alphabetically. Same rule as the picker.
+    for (const arr of map.values()) {
+      arr.sort((a, b) => {
+        const aA = !!a.isAnchor;
+        const bA = !!b.isAnchor;
+        if (aA && !bA) return -1;
+        if (!aA && bA) return 1;
+        return a.he.localeCompare(b.he, 'he');
+      });
+    }
     return map;
   }, [exercises]);
 
@@ -127,27 +156,9 @@ export function Exercises({ uid, navigate }: Props) {
         actions={<TabActions navigate={navigate} />}
       />
 
-      {/* Floating add-exercise cluster — bottom-left, above the tab bar */}
-      <div className="fixed bottom-24 left-4 z-40 flex flex-col-reverse gap-3" dir="ltr">
-        <button
-          onClick={() => setAddExerciseOpen(true)}
-          aria-label="הוסף תרגיל ידנית"
-          className="w-16 h-16 rounded-full flex items-center justify-center bg-violet-600 hover:bg-violet-500 text-white shadow-[0_8px_24px_-4px_rgba(139,92,246,0.55)] ring-4 ring-violet-500/20 transition-transform active:scale-95 hover:scale-105"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
-        <button
-          onClick={() => setAiAddOpen(true)}
-          aria-label="הוסף עם AI"
-          className="ai-orb-violet w-12 h-12 rounded-full flex items-center justify-center bg-violet-500 hover:bg-violet-400 text-white shadow-[0_6px_18px_-4px_rgba(139,92,246,0.65)] ring-2 ring-violet-400/25 transition-transform active:scale-95 hover:scale-105"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
-            <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
-          </svg>
-        </button>
-      </div>
+      {/* FABs removed — the sticky top action bar (below) is the single,
+          always-accessible entry point for add + AI-add. Less visual noise,
+          buttons stay where the eye already lands. */}
       <div className="px-4 pt-0 pb-4 max-w-lg mx-auto">
 
       {/* Summary strip — full-width, edge-to-edge, matches the "in-progress" banner style */}
@@ -190,26 +201,32 @@ export function Exercises({ uid, navigate }: Props) {
         </div>
       )}
 
-      {/* Solid add-exercise buttons — mirrored to the '+ אירובי' style, always visible so users
-          don't have to hunt for the floating FAB. */}
+      {/* Sticky action bar — pins directly under the top nav so add/AI-add
+          are always one tap away regardless of scroll depth. Backdrop blur
+          + gradient wash keeps the row legible over any content below. */}
       {!loading && (
-        <div className="mt-3 mb-4 flex gap-2" dir="rtl">
-          <button
-            onClick={() => setAddExerciseOpen(true)}
-            className="flex-1 py-3 rounded-xl border border-violet-500/40 bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-sm font-semibold inline-flex items-center justify-center gap-1.5"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            <span>הוסף תרגיל</span>
-          </button>
-          <button
-            onClick={() => setAiAddOpen(true)}
-            className="ai-orb-violet py-3 px-4 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
-              <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
-            </svg>
-            <span>AI</span>
-          </button>
+        <div
+          className="sticky z-30 -mx-4 px-4 py-2 backdrop-blur bg-gradient-to-b from-slate-50/95 to-slate-50/70 dark:from-slate-950/90 dark:to-slate-950/70 border-b border-violet-500/15"
+          style={{ top: 'var(--top-bar-h)' }}
+        >
+          <div className="max-w-lg mx-auto flex gap-2" dir="rtl">
+            <button
+              onClick={() => setAddExerciseOpen(true)}
+              className="flex-1 py-2.5 rounded-xl border border-violet-500/40 bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span>הוסף תרגיל</span>
+            </button>
+            <button
+              onClick={() => setAiAddOpen(true)}
+              className="ai-orb-violet flex-1 py-2.5 px-4 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+              </svg>
+              <span>הוסף עם AI</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -238,19 +255,26 @@ export function Exercises({ uid, navigate }: Props) {
                 const c = MUSCLE_CLASSES[m.color];
                 const photo = photoFor(ex);
                 return (
-                  <div key={ex.id} className="card" dir="rtl">
+                  <div
+                    key={ex.id}
+                    dir="rtl"
+                    // Whole card = tap-to-edit. Every inner control stops
+                    // propagation so this doesn't fire when the user hits
+                    // a specific action button.
+                    onClick={() => setEditing(ex)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(ex); } }}
+                    className={`card cursor-pointer transition-shadow hover:shadow-md dark:hover:bg-slate-900/80 ${
+                      ex.isAnchor ? 'ring-1 ring-amber-500/40 shadow-[0_0_18px_-8px_rgba(245,158,11,0.5)]' : ''
+                    }`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="flex-1 text-right min-w-0">
-                        <div className="flex items-center gap-2 justify-start">
-                          {ex.isAnchor && (
-                            <span title="עוגן" className="shrink-0 inline-flex text-amber-500">
-                              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-                                <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
-                              </svg>
-                            </span>
-                          )}
+                        <div className="flex items-center gap-2 justify-start flex-wrap">
                           <span className={`text-sm truncate ${ex.isAnchor ? 'font-bold' : 'font-semibold'}`}>{ex.he}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${c.bg} ${c.text}`}>{m.he}</span>
+                          {ex.isAnchor && <AnchorBadge size="xs" />}
                         </div>
                         {ex.en && (
                           <div className="text-[10px] text-muted mt-0.5 truncate text-right" dir="ltr" style={{ direction: 'ltr' }}>
@@ -292,7 +316,7 @@ export function Exercises({ uid, navigate }: Props) {
                       </div>
                       {photo && (
                         <button
-                          onClick={() => setLightbox({ src: photo, alt: ex.he })}
+                          onClick={(e) => { e.stopPropagation(); setLightbox({ src: photo, alt: ex.he }); }}
                           className="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-transparent border-0 p-0"
                         >
                           {photo.startsWith('data:video/') || /\.(mp4|webm|mov)$/i.test(photo) ? (
@@ -303,62 +327,92 @@ export function Exercises({ uid, navigate }: Props) {
                         </button>
                       )}
                     </div>
-                    <div className="flex gap-3 mt-2 justify-start text-[11px] items-center">
-                      <button onClick={() => { setUploadFor(ex.he); fileInputRef.current?.click(); }} className="text-blue-500">
-                        {photo ? 'החלף תמונה' : 'הוסף תמונה'}
-                      </button>
-                      {photo && (
-                        <button
-                          onClick={async () => {
-                            await firestore.deleteExercisePhoto(ex.he);
-                            setPhotos(p => { const n = { ...p }; delete n[exercisePhotoKey(ex.he)]; return n; });
-                          }}
-                          className="text-amber-500"
-                        >מחק תמונה</button>
-                      )}
-                      {isAdmin && photo && (() => {
-                        const key = exercisePhotoKey(ex.he);
-                        const isDefault = defaultKeys.has(key);
-                        return (
-                          <button
-                            onClick={async () => {
-                              if (isDefault) {
-                                await firestore.deleteDefaultExercisePhoto(ex.he);
-                                setDefaultKeys(prev => { const n = new Set(prev); n.delete(key); return n; });
-                              } else {
-                                await firestore.setDefaultExercisePhoto(ex.he, photo);
-                                setDefaultKeys(prev => { const n = new Set(prev); n.add(key); return n; });
-                              }
-                            }}
-                            title={isDefault ? 'הסר את התמונה כברירת מחדל לכולם' : 'הגדר תמונה זו כברירת מחדל לכולם'}
-                            className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border ${
-                              isDefault
-                                ? 'bg-amber-500 text-white border-amber-500'
-                                : 'text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-500/10'
-                            }`}
+                    {/* Consolidated action strip:
+                        LEFT (end in RTL) — utility icons (photo · delete · search)
+                        RIGHT (start in RTL) — the ANCHOR toggle takes primary
+                        real estate because it's the most-used per-exercise
+                        choice. Card body itself is now the "edit" target so we
+                        dropped the redundant "ערוך" text button. */}
+                    <div className="flex mt-3 pt-3 border-t border-subtle/50 items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <AnchorToggle
+                        active={!!ex.isAnchor}
+                        onToggle={() => toggleAnchor(ex)}
+                        size="sm"
+                      />
+                      <div className="mr-auto flex items-center gap-1">
+                        <IconBtn
+                          onClick={() => { setUploadFor(ex.he); fileInputRef.current?.click(); }}
+                          title={photo ? 'החלף תמונה/וידאו' : 'הוסף תמונה/וידאו'}
+                          className="text-blue-500 hover:text-blue-400"
+                        >
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                            <circle cx="12" cy="13" r="4" />
+                          </svg>
+                        </IconBtn>
+                        {photo && (
+                          <IconBtn
+                            onClick={() => setConfirmDeletePhoto(ex.he)}
+                            title="מחק תמונה"
+                            className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
                           >
-                            <svg viewBox="0 0 24 24" width="11" height="11" fill={isDefault ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            {/* Trash-with-image glyph: unambiguous "delete
+                                photo" — the old strike-through camera looked
+                                too close to the "add photo" camera icon and
+                                users tapped it by mistake. */}
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                              <circle cx="12" cy="14" r="2.5" />
                             </svg>
-                            <span>default</span>
-                          </button>
-                        );
-                      })()}
-                      <button onClick={() => setEditing(ex)} className="text-blue-500">ערוך</button>
-                      <button onClick={() => setConfirmDeleteId(ex.id)} className="text-red-500">מחק</button>
-                      <a
-                        href={`https://www.google.com/search?q=${encodeURIComponent((ex.en || ex.he) + ' exercise')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="חפש בגוגל"
-                        className="ml-auto inline-flex items-center justify-center w-7 h-7 rounded-full dark:bg-slate-800 bg-slate-100 text-muted hover:text-main"
-                        title="חיפוש בגוגל"
-                      >
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="11" cy="11" r="7" />
-                          <path d="M20 20l-3.5-3.5" />
-                        </svg>
-                      </a>
+                          </IconBtn>
+                        )}
+                        {isAdmin && photo && (() => {
+                          const key = exercisePhotoKey(ex.he);
+                          const isDefault = defaultKeys.has(key);
+                          return (
+                            <IconBtn
+                              onClick={async () => {
+                                if (isDefault) {
+                                  await firestore.deleteDefaultExercisePhoto(ex.he);
+                                  setDefaultKeys(prev => { const n = new Set(prev); n.delete(key); return n; });
+                                } else {
+                                  await firestore.setDefaultExercisePhoto(ex.he, photo);
+                                  setDefaultKeys(prev => { const n = new Set(prev); n.add(key); return n; });
+                                }
+                              }}
+                              title={isDefault ? 'תמונת ברירת מחדל — לחץ להסרה' : 'הגדר כברירת מחדל לכולם'}
+                              className={isDefault ? 'text-amber-500' : 'text-muted hover:text-amber-500'}
+                            >
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill={isDefault ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                              </svg>
+                            </IconBtn>
+                          );
+                        })()}
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent((ex.en || ex.he) + ' exercise')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label="חפש בגוגל"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full text-muted hover:text-main hover:bg-slate-500/10"
+                          title="חיפוש בגוגל"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="M20 20l-3.5-3.5" />
+                          </svg>
+                        </a>
+                        <IconBtn
+                          onClick={() => setConfirmDeleteId(ex.id)}
+                          title="מחק תרגיל"
+                          className="text-red-500 hover:text-red-400"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                          </svg>
+                        </IconBtn>
+                      </div>
                     </div>
                   </div>
                 );
@@ -506,6 +560,29 @@ export function Exercises({ uid, navigate }: Props) {
         </div>
       )}
 
+      {/* Confirm delete photo */}
+      {confirmDeletePhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4">
+          <div className="card max-w-sm w-full text-right" dir="rtl">
+            <h3 className="font-bold text-red-500 mb-2">מחק תמונה?</h3>
+            <p className="text-sm text-muted mb-4">
+              התמונה של <span className="font-semibold text-main">{confirmDeletePhoto}</span> תימחק לצמיתות. אפשר להעלות חדשה בכל רגע.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDeletePhoto(null)} className="btn-secondary flex-1">ביטול</button>
+              <button
+                onClick={async () => {
+                  await firestore.deleteExercisePhoto(confirmDeletePhoto);
+                  setPhotos(p => { const n = { ...p }; delete n[exercisePhotoKey(confirmDeletePhoto)]; return n; });
+                  setConfirmDeletePhoto(null);
+                }}
+                className="btn-primary flex-1 !bg-red-600 hover:!bg-red-500"
+              >מחק תמונה</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirm delete */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4">
@@ -574,6 +651,26 @@ export function Exercises({ uid, navigate }: Props) {
       )}
       </div>
     </div>
+  );
+}
+
+// Small round icon button — used in the DB row action strip so utility
+// actions (photo, delete, search, default) all read as one visual class.
+function IconBtn({
+  onClick, title, className = '', children,
+}: {
+  onClick?: () => void;
+  title?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+      title={title}
+      aria-label={title}
+      className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-500/10 transition-colors ${className}`}
+    >{children}</button>
   );
 }
 

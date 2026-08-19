@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { AnchorToggle, AnchorBadge } from './AnchorPill';
 import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, PARENT_INFO, musclesByParent } from '../data/muscles';
 import { ExerciseInline } from './FreeSession';
@@ -40,6 +41,29 @@ type Props = {
   // photosMap (FreeSession) can update in-place without waiting for a reload.
   onPhotoSaved?: (photoKey: string, dataUrl: string) => void;
 };
+
+// Section separator inside the picker list. Anchors and "everything else"
+// get the SAME shape — a small bar with an accent stripe on the right (RTL
+// start), an uppercase label, and a subtle top border for the "rest" section.
+// Anchors get amber, rest gets neutral.
+function SectionHeader({ tone, label }: { tone: 'anchor' | 'rest'; label: string }) {
+  const isAnchor = tone === 'anchor';
+  return (
+    <div
+      className={`px-3 py-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold ${
+        isAnchor
+          ? 'text-amber-700 dark:text-amber-300 dark:bg-amber-950/20 bg-amber-50/60 border-y border-amber-500/30'
+          : 'text-muted dark:bg-slate-800/40 bg-slate-100/70 border-y border-subtle/50'
+      }`}
+      dir="rtl"
+    >
+      <span
+        className={`w-0.5 h-3 rounded-full ${isAnchor ? 'bg-amber-500' : 'bg-slate-400 dark:bg-slate-500'}`}
+      />
+      <span>{label}</span>
+    </div>
+  );
+}
 
 function isVideoUrl(src: string): boolean {
   return src.startsWith('data:video/') || /\.(mp4|webm|mov)$/i.test(src);
@@ -99,6 +123,24 @@ export function LogSetModal({
       setDefaultKeys(defs);
     });
   }, [uid]);
+
+  // Toggle a personal exercise's `isAnchor` flag right from the picker — no
+  // detour through the exercise-DB page. Optimistic local update so the star
+  // flips instantly, then persists.
+  async function toggleAnchor(ex: PersonalExercise) {
+    const next = !ex.isAnchor;
+    setPersonalExercises(list => list.map(e => e.id === ex.id ? { ...e, isAnchor: next || undefined } : e));
+    if (selectedExercise?.id === ex.id) {
+      setSelectedExercise(prev => prev ? { ...prev, isAnchor: next || undefined } : prev);
+    }
+    try {
+      await firestore.upsertPersonalExercise({ ...ex, isAnchor: next || undefined });
+    } catch (e) {
+      // Roll back on failure — network/permission etc.
+      setPersonalExercises(list => list.map(x => x.id === ex.id ? { ...x, isAnchor: ex.isAnchor } : x));
+      console.warn('anchor toggle failed', e);
+    }
+  }
 
   const [muscle, setMuscle] = useState<MuscleGroup | null>(
     seed?.muscle || defaultMuscle || null,
@@ -485,8 +527,11 @@ export function LogSetModal({
                   </button>
                 )}
                 <div className="flex-1 text-right min-w-0">
-                  <div className="text-[10px] text-muted mb-0.5">תרגיל</div>
-                  <div className="text-sm font-semibold leading-tight">{currentName}</div>
+                  <div className="flex items-center gap-1.5 mb-0.5 justify-start">
+                    <span className="text-[10px] text-muted">תרגיל</span>
+                    {selectedExercise?.isAnchor && <AnchorBadge size="xs" />}
+                  </div>
+                  <div className={`text-sm leading-tight ${selectedExercise?.isAnchor ? 'font-bold' : 'font-semibold'}`}>{currentName}</div>
                   {selectedExercise?.en && (
                     <div className="text-[11px] text-muted mt-0.5" dir="ltr" style={{ direction: 'ltr' }}>{selectedExercise.en}</div>
                   )}
@@ -531,6 +576,17 @@ export function LogSetModal({
 
               {/* Row 3: media actions + Google search — ALWAYS shown so every exercise behaves the same */}
               <div className="flex items-center gap-3 justify-end mt-3 pt-3 border-t border-emerald-500/20 text-[11px]" dir="rtl">
+                {/* Anchor toggle lives in the bottom actions row now — putting
+                    it next to the exercise name shoved the "החלף" text and
+                    made the header jump. Here it's just another action, no
+                    layout impact. Only meaningful for personal-DB exercises. */}
+                {selectedExercise && (
+                  <AnchorToggle
+                    active={!!selectedExercise.isAnchor}
+                    onToggle={() => toggleAnchor(selectedExercise)}
+                    size="sm"
+                  />
+                )}
                 {isAdmin && photo && (() => {
                   const key = exercisePhotoKey(currentName);
                   const isDefault = defaultKeys.has(key);
@@ -621,55 +677,56 @@ export function LogSetModal({
                     const isFirstAnchor = ex.isAnchor && (!prev || !prev.isAnchor);
                     return (
                       <Fragment key={ex.id}>
+                        {/* Section headers — matched styling for both groups
+                            so the list reads as two clear buckets, not one
+                            with a random amber label at the top. Both bars
+                            have the same height, padding, and background. */}
                         {isFirstAnchor && (
-                          <div className="px-3 pt-2 pb-1 text-[9px] uppercase tracking-widest font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1" dir="rtl">
-                            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true">
-                              <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
-                            </svg>
-                            <span>עוגנים</span>
-                          </div>
+                          <SectionHeader tone="anchor" label="עוגנים" />
                         )}
                         {showAnchorDivider && (
-                          <div className="px-3 pt-2 pb-1 text-[9px] uppercase tracking-widest font-semibold text-muted-most border-t border-subtle" dir="rtl">
-                            <span>שאר התרגילים</span>
-                          </div>
+                          <SectionHeader tone="rest" label="שאר התרגילים" />
                         )}
-                        <button
-                          onClick={() => pickExisting(ex)}
+                        <div
                           className={`w-full flex flex-row-reverse items-center gap-2 px-3 py-2 border-b border-subtle/50 last:border-0 dark:hover:bg-slate-800 hover:bg-slate-100 ${
                             ex.isAnchor ? 'dark:bg-amber-950/10 bg-amber-50/40' : ''
                           }`}
                         >
-                          {photo && (
-                            <div className="w-12 h-12 rounded overflow-hidden shrink-0">
-                              <Thumb src={photo} alt={ex.he} className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className="text-right flex-1 min-w-0" dir="rtl">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className={`text-sm truncate inline-flex items-center gap-1 ${ex.isAnchor ? 'font-bold' : 'font-medium'}`}>
-                                {ex.isAnchor && (
-                                  <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true" className="text-amber-500 shrink-0">
-                                    <path d="M12 2l2.4 5.9L20.5 9l-4.6 3.5 1.6 6.1L12 15.9 6.5 18.6l1.6-6.1L3.5 9l6.1-1.1L12 2z" />
-                                  </svg>
-                                )}
-                                <span className="truncate">{ex.he}</span>
-                              </span>
-                              {h && (
-                                <span className="text-[9px] shrink-0 text-emerald-600 dark:text-emerald-400">
-                                  {daysAgoLabel(h.lastTs)}
-                                </span>
-                              )}
-                            </div>
-                            {ex.en && (
-                              <div className="text-[10px] text-muted truncate mt-0.5" dir="ltr" style={{ direction: 'ltr' }}>{ex.en}</div>
+                          <AnchorToggle
+                            active={!!ex.isAnchor}
+                            onToggle={() => toggleAnchor(ex)}
+                            size="xs"
+                            showLabel={false}
+                            className="!px-1.5 !py-1"
+                          />
+                          <button
+                            onClick={() => pickExisting(ex)}
+                            className="flex-1 flex flex-row-reverse items-center gap-2 text-right min-w-0"
+                          >
+                            {photo && (
+                              <div className="w-12 h-12 rounded overflow-hidden shrink-0">
+                                <Thumb src={photo} alt={ex.he} className="w-full h-full object-cover" />
+                              </div>
                             )}
-                            <div className="flex items-center justify-between gap-2 mt-0.5">
-                              {emc && <span className={`text-[9px] px-1 rounded ${emc.bg} ${emc.text}`}>{exMuscle?.he}</span>}
-                              {range && <span className="text-[10px] font-mono text-main shrink-0" dir="ltr">{range}</span>}
+                            <div className="text-right flex-1 min-w-0" dir="rtl">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className={`text-sm truncate ${ex.isAnchor ? 'font-bold' : 'font-medium'}`}>{ex.he}</span>
+                                {h && (
+                                  <span className="text-[9px] shrink-0 text-emerald-600 dark:text-emerald-400">
+                                    {daysAgoLabel(h.lastTs)}
+                                  </span>
+                                )}
+                              </div>
+                              {ex.en && (
+                                <div className="text-[10px] text-muted truncate mt-0.5" dir="ltr" style={{ direction: 'ltr' }}>{ex.en}</div>
+                              )}
+                              <div className="flex items-center justify-between gap-2 mt-0.5">
+                                {emc && <span className={`text-[9px] px-1 rounded ${emc.bg} ${emc.text}`}>{exMuscle?.he}</span>}
+                                {range && <span className="text-[10px] font-mono text-main shrink-0" dir="ltr">{range}</span>}
+                              </div>
                             </div>
-                          </div>
-                        </button>
+                          </button>
+                        </div>
                       </Fragment>
                     );
                   })}
