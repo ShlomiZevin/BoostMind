@@ -163,3 +163,18 @@
   to   { opacity: 1; transform: none; }
 }
 .place-menu { animation: place-menu-in 140ms ease-out; transform-origin: top center; }
+
+/* Long-press surfaces (the FAB and the fan it opens).
+   A long press is a gesture here, not a text interaction — without this, iOS
+   and Android start a selection / callout on whatever label sits under the
+   finger, so "+ ארוחה" gets highlighted mid-gesture. Tailwind's select-none
+   covers user-select but not -webkit-touch-callout, and the rule has to reach
+   descendants because the labels appear *after* the press begins. */
+.no-touch-select,
+.no-touch-select * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}

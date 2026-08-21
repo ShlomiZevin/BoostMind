@@ -27,6 +27,8 @@ import { FoodSettings } from './components/FoodSettings';
 import { LogMealModal } from './components/LogMealModal';
 import type { MealDraft } from './components/AiChatPanel';
 import { FabFan, PlaceProvider, PlacesSheet } from './components/PlaceSwitcher';
+import { FirstRunTour, TOUR_RESTART_EVENT, hasSeenTour } from './components/FirstRunTour';
+import { ReportsPanel } from './components/ReportsPanel';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
 } from './places/registry';
@@ -34,6 +36,7 @@ import type { QuickAction } from './places/registry';
 import type { MuscleGroup } from './data/muscles';
 import { ACTIVE_MUSCLES } from './data/muscles';
 import { caloriesOn, estimateBurn, mealTypeForNow, pickMeals, startOfDay } from './data/diet';
+import { cacheAiModel, isValidAiModel } from './config/aiModel';
 
 // Hash → route. Page ids are unique across places, so the place is derived
 // (placeOf) rather than encoded twice.
@@ -95,9 +98,42 @@ function AppShell({ uid, route, navigate, doLogout }: {
   const [inProgress, setInProgress] = useState<FreeSessionType | null>(null);
   const [allSessions, setAllSessions] = useState<FreeSessionType[]>([]);
   const [showStart, setShowStart] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const isAdmin = uid === 'user_6724';
+
+  // Admin-only double-click shortcut — opens the bug/feature reports panel from
+  // anywhere in the app. Reason (rep_1787310001832_4jel): the entry buried in
+  // Settings is easy to lose track of; catching double-clicks globally lets me
+  // file a report the moment I see the thing, without leaving the screen.
+  // Gated on isAdmin so no other user ever sees this shortcut.
+  useEffect(() => {
+    if (!isAdmin) return;
+    function onDblClick(e: MouseEvent) {
+      // Skip when the double-click landed on an editable target — otherwise
+      // double-clicking to select a word in an input would pop the modal.
+      const t = e.target as HTMLElement | null;
+      if (t) {
+        const tag = t.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON' || tag === 'A') return;
+        if (t.isContentEditable) return;
+        if (t.closest('input, textarea, select, button, a, [contenteditable="true"]')) return;
+      }
+      setReportsOpen(true);
+    }
+    window.addEventListener('dblclick', onDblClick);
+    return () => window.removeEventListener('dblclick', onDblClick);
+  }, [isAdmin]);
 
   const place = placeOf(route.page);
   const isTabPage = TAB_PAGES.has(route.page);
+
+  // Pull the model override down once per session so request bodies — which are
+  // built synchronously — can read it without an await.
+  useEffect(() => {
+    firestore.getAiModelPref()
+      .then(v => cacheAiModel(isValidAiModel(v) ? v : undefined))
+      .catch(() => { /* keep whatever is cached */ });
+  }, [uid]);
 
   // Remember the last tab per place so switching back resumes where you were.
   useEffect(() => { rememberPage(route.page); }, [route.page]);
@@ -160,6 +196,20 @@ function AppShell({ uid, route, navigate, doLogout }: {
   }
 
   // ─── Place switching ─────────────────────────────────────────────
+  // One-time orientation. Only the three things you cannot discover by
+  // looking: the place switcher, the coach, and the long-press.
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenTour(uid));
+  // Replayed from Settings — go home first, since that is where the tour's
+  // targets live.
+  useEffect(() => {
+    function onRestart() {
+      navigate({ page: 'home' });
+      setTourOpen(true);
+    }
+    window.addEventListener(TOUR_RESTART_EVENT, onRestart);
+    return () => window.removeEventListener(TOUR_RESTART_EVENT, onRestart);
+  }, []);
+
   const [sheetOpen, setSheetOpen] = useState(false);
   const [fanOpen, setFanOpen] = useState(false);
 
@@ -304,6 +354,13 @@ function AppShell({ uid, route, navigate, doLogout }: {
   // "The coach answered" — fires when a reply lands with the panel closed.
   const { alert, pendingByBucket, dismiss, markAllSeen } = useChatNotifier(uid, { paused: aiPanelOpen || foodChatOpen });
 
+  // Sitting in a conversation IS reading it. Mark on open as well as on close,
+  // so an answer that arrives while you are looking at it never resurfaces as
+  // a notification afterwards.
+  useEffect(() => {
+    if (aiPanelOpen || foodChatOpen) markAllSeen();
+  }, [aiPanelOpen, foodChatOpen]);
+
   // Live status line per place on the sheet — the same number that place's
   // home screen shows, so the sheet is worth opening even without switching.
   function statusFor(p: PlaceId): string {
@@ -401,6 +458,10 @@ function AppShell({ uid, route, navigate, doLogout }: {
         />
       )}
 
+      {tourOpen && isTabPage && !showLogMeal && !foodChatOpen && !aiPanelOpen && (
+        <FirstRunTour uid={uid} onDone={() => setTourOpen(false)} />
+      )}
+
       {sheetOpen && (
         <PlacesSheet
           current={place}
@@ -439,8 +500,22 @@ function AppShell({ uid, route, navigate, doLogout }: {
           dietProfile={profile.diet}
           todayBurn={todayBurn}
           onAddMeal={addMealFromChat}
+          onDietProfilePatch={async (patch) => {
+            const merged = await firestore.updateDietProfile(patch as any);
+            setProfile(merged);
+          }}
+          onSetCalorieTarget={async (target) => {
+            // Approving in chat is an explicit choice — pin it as manual so a
+            // later weight edit doesn't silently recompute it away.
+            const merged = await firestore.updateDietProfile({
+              dailyCalorieTarget: target,
+              dailyCalorieTargetManual: true,
+            });
+            setProfile(merged);
+            setMealRefresh(k => k + 1);
+          }}
           onEditMeal={(d) => { setMealDraft(d); setFoodChatOpen(false); setShowLogMeal(true); }}
-          onClose={() => setFoodChatOpen(false)}
+          onClose={() => { markAllSeen(); setFoodChatOpen(false); }}
         />
       )}
 
@@ -464,7 +539,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
           // newest-first — take past 30 for history + all planned for schedule.
           recentSets={allSessions.slice(0, 30).flatMap(s => s.sets || [])}
           plannedSessions={allSessions.filter(s => s.status === 'planned')}
-          onClose={closeAiPanel}
+          onClose={() => { markAllSeen(); closeAiPanel(); }}
         />
       )}
 
@@ -508,6 +583,8 @@ function AppShell({ uid, route, navigate, doLogout }: {
         </div>
         );
       })()}
+
+      {reportsOpen && <ReportsPanel uid={uid} onClose={() => setReportsOpen(false)} />}
 
       {sameDayPrompt && todaysCompleted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4" onClick={() => setSameDayPrompt(false)}>

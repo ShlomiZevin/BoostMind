@@ -40,6 +40,9 @@ type Props = {
   // Called RIGHT after a photo write to Firestore, so parents holding their own
   // photosMap (FreeSession) can update in-place without waiting for a reload.
   onPhotoSaved?: (photoKey: string, dataUrl: string) => void;
+  // Exercise names (Hebrew, canonical) to hide from the picker — used to avoid
+  // offering exercises that are already in the current session (live or planned).
+  excludeExerciseNames?: string[];
 };
 
 // Section separator inside the picker list. Anchors and "everything else"
@@ -95,6 +98,7 @@ export function LogSetModal({
   replacingName,
   sessionId,
   onClose, onSave, onPickOnly, onPhotoSaved,
+  excludeExerciseNames,
 }: Props) {
   const showSet = saveMode === 'set' || saveMode === 'dual';
   const showExercise = saveMode === 'exercise' || saveMode === 'dual';
@@ -251,14 +255,36 @@ export function LogSetModal({
     return m;
   }, [historyMap, personalExercises]);
 
+  // Names already in the session — filtered out of the picker so the user
+  // doesn't add duplicates. Keep the currently-being-replaced name visible
+  // (harmless: replacing X with X is a no-op).
+  const excludeSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const n of excludeExerciseNames || []) {
+      const norm = n?.trim().toLowerCase();
+      if (norm) s.add(norm);
+    }
+    if (replacingName) s.delete(replacingName.trim().toLowerCase());
+    return s;
+  }, [excludeExerciseNames, replacingName]);
+
   const pickerList = useMemo(() => {
-    return pickPersonal(personalExercises, {
+    const list = pickPersonal(personalExercises, {
       query: exerciseSearch,
       muscle: muscle ?? null,
       scope: sessionMuscles,
       historyMap: historyIdMap,
     });
-  }, [personalExercises, exerciseSearch, muscle, sessionMuscles, historyIdMap]);
+    if (excludeSet.size === 0) return list;
+    return list.filter(ex => {
+      if (excludeSet.has(ex.he.trim().toLowerCase())) return false;
+      if (ex.en && excludeSet.has(ex.en.trim().toLowerCase())) return false;
+      for (const a of ex.aliases || []) {
+        if (excludeSet.has(a.trim().toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [personalExercises, exerciseSearch, muscle, sessionMuscles, historyIdMap, excludeSet]);
 
   // Most-recent real set for the CURRENT exercise (across all history) — used both to prefill
   // weight/reps and to render an explicit "פעם קודמת" line so the user sees the source.

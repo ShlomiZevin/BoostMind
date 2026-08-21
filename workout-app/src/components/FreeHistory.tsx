@@ -194,12 +194,16 @@ export function FreeHistory({ uid, navigate }: Props) {
           const hasStrength = muscles.length > 0;
           const hasAerobic = aerobicByType.size > 0;
           return (
-            <div key={s.id} className={`card text-right dark:hover:bg-slate-800 hover:bg-slate-50 ${isPlanned ? 'border border-blue-500/30' : ''}`} dir="rtl">
-              <button
-                onClick={() => navigate(isPlanned ? { page: 'session', sessionId: s.id } : { page: 'session-view', sessionId: s.id })}
-                className="w-full text-right"
-                dir="rtl"
-              >
+            <div
+              key={s.id}
+              className={`card text-right cursor-pointer dark:hover:bg-slate-800 hover:bg-slate-50 ${isPlanned ? 'border border-blue-500/30' : ''}`}
+              dir="rtl"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(isPlanned ? { page: 'session', sessionId: s.id } : { page: 'session-view', sessionId: s.id })}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(isPlanned ? { page: 'session', sessionId: s.id } : { page: 'session-view', sessionId: s.id }); } }}
+            >
+              <div className="w-full text-right" dir="rtl">
                 <div className="flex items-center justify-between mb-2" dir="rtl">
                   <div className="inline-flex items-center gap-1.5">
                     <span className="text-sm font-semibold">{dowStr}</span>
@@ -253,11 +257,11 @@ export function FreeHistory({ uid, navigate }: Props) {
                     </>
                   )}
                 </div>
-              </button>
+              </div>
               <div className="flex justify-end mt-2 pt-2 border-t border-subtle/60 gap-2">
                 {isPlanned && (
                   <button
-                    onClick={() => setMovePlanId(s.id)}
+                    onClick={(e) => { e.stopPropagation(); setMovePlanId(s.id); }}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold
                                px-3 py-1.5 rounded-full
                                dark:bg-blue-900/40 bg-blue-100
@@ -274,7 +278,7 @@ export function FreeHistory({ uid, navigate }: Props) {
                 )}
                 {!isPlanned && (
                 <button
-                  onClick={() => setDupSourceId(s.id)}
+                  onClick={(e) => { e.stopPropagation(); setDupSourceId(s.id); }}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold
                              px-3 py-1.5 rounded-full
                              dark:bg-emerald-900/40 bg-emerald-100

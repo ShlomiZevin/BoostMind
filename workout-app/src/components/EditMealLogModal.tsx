@@ -70,9 +70,19 @@ export function EditMealLogModal({
 
         {/* The breakdown is part of the record, not just of the proposal — it
             is what makes a logged number checkable a week later. */}
-        {ingredients.length > 0 && (
+        {(
           <div className="space-y-1 bg-subtle rounded-xl p-2.5">
-            <div className="text-[11px] text-muted mb-1">מה יש בפנים</div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-muted">מה יש בפנים</span>
+              {ingredients.length > 0 && (
+                <span className="text-[11px] font-bold font-mono" dir="ltr">
+                  {ingredients.reduce((a, x) => a + x.calories, 0)}
+                </span>
+              )}
+            </div>
+            {ingredients.length === 0 && (
+              <div className="text-[11px] text-muted-more py-1">אין פירוט לרישום הזה</div>
+            )}
             {ingredients.map((ing, i) => (
               <div key={i} className="flex items-center gap-2 text-[13px]">
                 <input
@@ -97,8 +107,25 @@ export function EditMealLogModal({
                   className="w-16 text-left bg-transparent font-mono focus:outline-none"
                   dir="ltr"
                 />
+                <button
+                  onClick={() => {
+                    const next = ingredients.filter((_, k) => k !== i);
+                    setIngredients(next);
+                    if (next.length > 0) setCalories(String(next.reduce((a, x) => a + x.calories, 0)));
+                  }}
+                  aria-label="הסר מרכיב"
+                  className="text-muted-more hover:text-red-500 shrink-0"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M6 6l12 12M6 18L18 6" />
+                  </svg>
+                </button>
               </div>
             ))}
+            <button
+              onClick={() => setIngredients(prev => [...prev, { he: '', calories: 0 }])}
+              className="text-[12px] font-semibold text-amber-600 dark:text-amber-400 pt-0.5"
+            >+ הוסף מרכיב</button>
           </div>
         )}
 

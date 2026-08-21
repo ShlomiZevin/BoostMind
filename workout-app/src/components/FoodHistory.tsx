@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { MealLog, Route, UserProfile } from '../types';
+import type { FreeSession, MealLog, Route, UserProfile } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { FoodAiAction, SettingsGearAction } from './TopBarActions';
 import { EditMealLogModal } from './EditMealLogModal';
-import { MEAL_TYPES, effectiveTargetOf, startOfDay } from '../data/diet';
+import { MEAL_TYPES, effectiveTargetOf, estimateBurn, startOfDay } from '../data/diet';
 
 type Props = { uid: string; navigate: (r: Route) => void; refreshKey?: number; onOpenChat: () => void };
 
@@ -15,6 +15,7 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
 
   const [logs, setLogs] = useState<MealLog[]>([]);
   const [profile, setProfile] = useState<UserProfile>({});
+  const [sessions, setSessions] = useState<FreeSession[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [editing, setEditing] = useState<MealLog | null>(null);
@@ -22,13 +23,15 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [l, p] = await Promise.all([
+      const [l, p, ss] = await Promise.all([
         firestoreRef.current.getMealLogs(startOfDay() - 60 * 86_400_000),
         firestoreRef.current.getUserProfile(),
+        firestoreRef.current.getFreeSessions(),
       ]);
       if (cancelled) return;
       setLogs(l);
       setProfile(p);
+      setSessions(ss);
       setLoaded(true);
     })().catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
@@ -50,13 +53,21 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
       byDay.set(d, arr);
     }
     return [...byDay.entries()]
-      .map(([day, items]) => ({
-        day,
-        items: items.sort((a, b) => b.timestamp - a.timestamp),
-        total: items.reduce((a, x) => a + (x.calories || 0), 0),
-      }))
+      .map(([day, items]) => {
+        const dayEnd = day + 86_400_000;
+        const todays = sessions.filter(x => {
+          const t = x.completedAt || x.date;
+          return t >= day && t < dayEnd;
+        });
+        return {
+          day,
+          items: items.sort((a, b) => b.timestamp - a.timestamp),
+          total: items.reduce((a, x) => a + (x.calories || 0), 0),
+          burn: estimateBurn(todays, profile.diet?.weightKg),
+        };
+      })
       .sort((a, b) => b.day - a.day);
-  }, [logs]);
+  }, [logs, sessions, profile.diet?.weightKg]);
 
   return (
     <div className="page-bg min-h-screen">
@@ -74,10 +85,12 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
           <div className="card text-center py-10 text-[13px] text-muted">
             עוד אין היסטוריה — כל ארוחה שתרשום תופיע כאן
           </div>
-        ) : days.map(({ day, items, total }) => {
+        ) : days.map(({ day, items, total, burn }) => {
           const key = String(day);
+          // Same arithmetic as היום, so a past day reads the same way as today.
+          const net = total - burn;
           const isOpen = openDay === key;
-          const over = target != null && total > target;
+          const over = target != null && net > target;
           return (
             <div key={key} className="card py-0 overflow-hidden">
               <button
@@ -90,14 +103,35 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
                   </div>
                   <div className="text-[10px] text-muted">{items.length} ארוחות</div>
                 </div>
-                {target != null && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                    over ? 'bg-red-500/15 text-red-500' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                  }`}>
-                    {over ? 'מעל היעד' : 'בגירעון'}
-                  </span>
+                {/* goal · eaten · result — the three numbers that make a past
+                    day mean something. */}
+                {target != null ? (
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span className="text-center">
+                      <span className="block font-mono text-[11px] text-muted" dir="ltr">{target}</span>
+                      <span className="block text-[9px] text-muted-more">יעד</span>
+                    </span>
+                    <span className="text-center">
+                      <span className="block font-mono font-bold text-[13px]" dir="ltr">{total}</span>
+                      <span className="block text-[9px] text-muted-more">נאכל</span>
+                    </span>
+                    <span className="text-center">
+                      <span className="block font-mono text-[11px] text-sky-500" dir="ltr">{burn > 0 ? burn : '—'}</span>
+                      <span className="block text-[9px] text-muted-more">נשרף</span>
+                    </span>
+                    <span className="text-center">
+                      <span className={`block font-mono font-bold text-[13px] ${over ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`} dir="ltr">
+                        {net - target > 0 ? '+' : ''}{net - target}
+                      </span>
+                      <span className="block text-[9px] text-muted-more">{over ? 'עודף' : 'גירעון'}</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span className="font-mono font-bold text-[14px]" dir="ltr">{total}</span>
+                    {burn > 0 && <span className="font-mono text-[11px] text-sky-500" dir="ltr">-{burn}</span>}
+                  </div>
                 )}
-                <span className="font-mono font-bold text-[14px] shrink-0" dir="ltr">{total}</span>
               </button>
               {isOpen && (
                 <div className="border-t border-subtle py-2 space-y-1.5">
@@ -108,6 +142,11 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
                       className="w-full flex items-center gap-2 text-[12px] text-right py-0.5"
                     >
                       <span className="shrink-0">{MEAL_TYPES.find(t => t.id === l.mealType)?.emoji || '🍽'}</span>
+                      {/* Time matters here: meals get read back against sugar
+                          readings, and "what" without "when" can't be lined up. */}
+                      <span className="shrink-0 font-mono text-[10px] text-muted-more" dir="ltr">
+                        {new Date(l.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                       <span className="flex-1 min-w-0 truncate">
                         {l.name}{l.servings !== 1 && <span className="text-muted"> ×{l.servings}</span>}
                       </span>

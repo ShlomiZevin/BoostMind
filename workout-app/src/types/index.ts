@@ -250,6 +250,29 @@ export type DietProfile = {
   constraints?: string;          // free text, read verbatim by the coach
 };
 
+// ─── Bug / feature reports ─────────────────────────────────────────
+// Notes captured in the app while using it, instead of in WhatsApp and then
+// re-typed into a session. A Claude session reads these straight from
+// Firestore, so `place` and `status` are what let it see what is outstanding
+// per domain and what has already been handled.
+
+export type ReportKind = 'bug' | 'feature';
+export type ReportPlaceTag = 'exercise' | 'food' | 'general';
+export type ReportStatus = 'open' | 'in-progress' | 'done' | 'wont-do';
+
+export type AppReport = {
+  id: string;
+  kind: ReportKind;
+  place: ReportPlaceTag;
+  text: string;
+  screenshotBase64?: string;
+  status: ReportStatus;
+  createdAt: number;
+  updatedAt: number;
+  /** Free-text left by whoever handled it. */
+  resolution?: string;
+};
+
 // Chat persistence — moved from localStorage → Firestore so answers survive
 // tab-close, sync across devices, and can be written by the server too.
 // Thread doc holds metadata; per-message docs live in the messages subcollection.

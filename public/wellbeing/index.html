@@ -3,141 +3,228 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>מקום אחד לגוף — הרעיון</title>
-<meta name="description" content="אפליקציה אחת לאימונים, לתזונה ולנשימה. אותו שלד בכל תחום, מאמן שמכיר אותך, והכול מדבר אחד עם השני.">
+<title>מקום אחד</title>
+<meta name="description" content="אפליקציה אחת שמרכזת את כל הדברים שאנחנו עושים בשביל הגוף והנפש.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b1120; --surface:#111827; --surface-2:#0f1626;
-    --border:rgba(148,163,184,.14); --border-strong:rgba(148,163,184,.26);
-    --text:#e6edf7; --muted:#93a3b8; --muted-2:#64748b;
-    --accent:#10b981; --train:#10b981; --food:#f59e0b; --breath:#38bdf8;
+    --bg:#0b1120; --surface:#151f31; --surface-2:#111a2a; --panel:#0e1725;
+    --border:rgba(148,163,184,.17); --border-strong:rgba(148,163,184,.32);
+    --text:#f2f6fc; --body:#c9d5e5; --muted:#93a3b8;
+    --train:#34d399; --food:#fbbf24; --breath:#60a5fa;
+    --sleep:#a5b4fc; --recover:#5eead4; --mind:#d8b4fe;
+    /* chat — taken from the app */
+    --bub-me-bg:rgba(30,58,138,.5); --bub-me-tx:#dbeafe;
+    --bub-ai-bg:#1e293b; --bub-ai-tx:#e2e8f0;
+    --amber-bd:rgba(245,158,11,.4); --amber-bg:rgba(69,26,3,.28); --amber-tx:#fcd34d;
   }
   html[data-theme="light"]{
-    --bg:#f7f9fc; --surface:#ffffff; --surface-2:#f1f5f9;
-    --border:rgba(15,23,42,.10); --border-strong:rgba(15,23,42,.18);
-    --text:#0f172a; --muted:#475569; --muted-2:#94a3b8;
+    --bg:#fbfcfe; --surface:#ffffff; --surface-2:#f4f7fa; --panel:#f7f9fc;
+    --border:rgba(15,23,42,.11); --border-strong:rgba(15,23,42,.20);
+    --text:#0f172a; --body:#3d4b60; --muted:#64748b;
+    --train:#059669; --food:#d97706; --breath:#2563eb;
+    --sleep:#4f46e5; --recover:#0891b2; --mind:#9333ea;
+    --bub-me-bg:#dbeafe; --bub-me-tx:#1e40af;
+    --bub-ai-bg:#f1f5f9; --bub-ai-tx:#0f172a;
+    --amber-bd:rgba(245,158,11,.45); --amber-bg:rgba(255,251,235,.9); --amber-tx:#b45309;
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
   body{
-    background:var(--bg); color:var(--text);
+    background:var(--bg); color:var(--body);
     font-family:'Heebo',-apple-system,system-ui,sans-serif;
-    line-height:1.65; -webkit-font-smoothing:antialiased;
+    font-size:17px; line-height:1.85; -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
   }
-  .wrap{max-width:880px;margin:0 auto;padding:0 22px}
-  section{padding:64px 0;border-top:1px solid var(--border)}
-  section:first-of-type{border-top:none}
+  ::selection{background:var(--train);color:#04140d}
+  .wrap{max-width:800px;margin:0 auto;padding:0 24px}
+  section{padding:68px 0;border-top:1px solid var(--border)}
 
-  .eyebrow{
-    font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--muted-2);
-    margin-bottom:14px;
+  h1{font-size:clamp(38px,8vw,64px);font-weight:900;line-height:1.05;letter-spacing:-.03em;color:var(--text)}
+  h2{
+    font-size:clamp(24px,4vw,32px);font-weight:900;line-height:1.25;
+    letter-spacing:-.02em;color:var(--text);margin-bottom:26px;
   }
-  h1{font-size:clamp(32px,6vw,52px);font-weight:900;line-height:1.12;letter-spacing:-.02em}
-  h2{font-size:clamp(22px,3.6vw,30px);font-weight:700;line-height:1.25;margin-bottom:14px;letter-spacing:-.01em}
-  h3{font-size:16px;font-weight:700;margin-bottom:6px}
-  p{color:var(--muted);font-size:16px}
-  .lead{font-size:clamp(17px,2.2vw,20px);color:var(--muted);margin-top:18px;max-width:62ch}
+  h2::before{
+    content:"";display:block;width:34px;height:3px;border-radius:2px;
+    background:var(--rule,var(--train));margin-bottom:18px;
+  }
+  h3{font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-.01em}
+  p{max-width:60ch}
+  p + p{margin-top:16px}
   strong{color:var(--text);font-weight:700}
+  .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+  .rv{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+  .rv.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){
+    .rv{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
 
   /* Top bar */
-  .top{
-    position:sticky;top:0;z-index:20;background:var(--bg);
-    border-bottom:1px solid var(--border);
-  }
-  .top .wrap{display:flex;align-items:center;gap:12px;height:60px}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  .top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--border)}
+  .top .wrap{display:flex;align-items:center;gap:11px;height:58px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:var(--text)}
   .brand .mk{
-    width:32px;height:32px;border-radius:9px;border:1px solid var(--border-strong);
-    background:var(--surface-2);display:grid;place-items:center;color:var(--accent);
-  }
-  .wip{
-    font-size:10px;font-weight:700;color:var(--muted-2);border:1px solid var(--border);
-    padding:3px 8px;border-radius:999px;
+    width:30px;height:30px;border-radius:9px;border:1px solid var(--border-strong);
+    background:var(--surface-2);display:grid;place-items:center;color:var(--muted);flex:none;
   }
   .spacer{flex:1}
   .tgl{
     background:var(--surface);border:1px solid var(--border);color:var(--muted);
-    width:36px;height:36px;border-radius:9px;cursor:pointer;font-size:15px;
+    width:35px;height:35px;border-radius:9px;cursor:pointer;font-size:15px;flex:none;
+    transition:color .15s ease,border-color .15s ease;
   }
   .tgl:hover{border-color:var(--border-strong);color:var(--text)}
 
   /* Hero */
-  .hero{padding:76px 0 60px}
-  .places-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:30px}
-  .chip{
-    display:inline-flex;align-items:center;gap:7px;
-    border:1px solid var(--border);background:var(--surface);
-    padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;
+  .hero{padding:88px 0 66px;border-top:none}
+  .wip{
+    display:inline-block;margin-bottom:24px;
+    font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);
+    border:1px solid var(--border);border-radius:999px;padding:4px 12px;
   }
-  .dot{width:7px;height:7px;border-radius:99px;display:inline-block}
-  .chip.soon{color:var(--muted-2)}
+  .domains{margin-top:26px;font-size:clamp(15px,2.4vw,18px);color:var(--muted);line-height:2;max-width:46ch}
 
-  /* Cards */
-  .grid{display:grid;gap:14px;margin-top:26px}
-  .g2{grid-template-columns:repeat(2,1fr)}
-  .g3{grid-template-columns:repeat(3,1fr)}
-  .card{
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:14px;padding:20px;
+  /* Places */
+  .places{display:grid;gap:12px;margin:28px 0}
+  .place{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
   }
-  .card p{font-size:14px}
-  .num{
-    font-size:11px;font-weight:700;color:var(--muted-2);
-    letter-spacing:.1em;margin-bottom:10px;
+  .place .lft{flex:1;min-width:200px}
+  .place h3{margin-bottom:2px;display:flex;align-items:center;gap:9px}
+  .place .items{font-size:14.5px;color:var(--muted);line-height:1.7}
+  .dot{width:9px;height:9px;border-radius:99px;display:inline-block;flex:none}
+  .st{
+    font-size:11.5px;font-weight:700;padding:3px 11px;border-radius:999px;
+    border:1px solid var(--border);color:var(--muted);white-space:nowrap;
   }
+  .st.live{color:var(--train);border-color:currentColor}
 
-  /* Skeleton diagram */
+  /* Phones */
+  .phones{display:grid;gap:14px;grid-template-columns:repeat(3,1fr);margin:30px 0}
   .phone{
     border:1px solid var(--border-strong);border-radius:16px;background:var(--surface-2);
-    padding:12px;display:flex;flex-direction:column;gap:9px;min-height:210px;
+    padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px;
   }
   .phone .bar{
-    display:flex;align-items:center;gap:7px;
-    border:1px solid var(--border);border-radius:9px;padding:7px 9px;background:var(--surface);
+    display:flex;align-items:center;gap:8px;
+    border:1px solid var(--border);border-radius:9px;padding:7px 10px;background:var(--surface);
   }
-  .phone .mark{width:19px;height:19px;border-radius:6px;border:1px solid var(--border-strong);display:grid;place-items:center}
-  .phone .ttl{font-size:12px;font-weight:700}
+  .phone .mark{width:18px;height:18px;border-radius:6px;border:1px solid var(--border-strong);display:grid;place-items:center;flex:none}
+  .phone .ttl{font-size:12.5px;font-weight:700;color:var(--text)}
   .phone .body{flex:1;border:1px dashed var(--border);border-radius:9px}
-  .phone .tabs{display:flex;align-items:center;justify-content:space-between;gap:5px;padding-top:3px}
+  .phone .tabs{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:2px}
   .phone .tab{flex:1;height:5px;border-radius:99px;background:var(--border-strong)}
   .phone .fab{width:26px;height:26px;border-radius:99px;flex:none}
-  .cap{font-size:12px;color:var(--muted-2);margin-top:9px;text-align:center}
 
-  /* Chat mock */
-  .chat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:9px}
-  .msg{max-width:82%;padding:9px 12px;border-radius:13px;font-size:14px;line-height:1.5}
-  .me{align-self:flex-start;background:var(--surface-2);border:1px solid var(--border)}
-  .ai{align-self:flex-end;background:var(--surface-2);border:1px solid var(--border)}
-  .mealcard{
-    align-self:flex-end;max-width:88%;border:1px solid rgba(245,158,11,.4);
-    border-radius:12px;overflow:hidden;background:rgba(245,158,11,.06);
+  /* Day */
+  .day{margin:26px 0;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .day .r{
+    display:flex;align-items:baseline;gap:14px;padding:14px 20px;
+    background:var(--surface);border-top:1px solid var(--border);
   }
-  .mealcard .hd{display:flex;justify-content:space-between;gap:10px;padding:9px 12px 2px;font-weight:700;font-size:14px}
-  .mealcard .ing{display:flex;justify-content:space-between;padding:1px 12px;font-size:12px;color:var(--muted)}
-  .mealcard .slots{display:flex;gap:5px;padding:9px 12px}
-  .slot{font-size:10px;border:1px solid var(--border);border-radius:6px;padding:3px 7px;color:var(--muted)}
-  .slot.on{background:var(--food);color:#1a1206;border-color:transparent;font-weight:700}
-  .mealcard .act{border-top:1px solid rgba(245,158,11,.3);padding:9px 12px;font-size:12px;font-weight:700;color:var(--food)}
-  .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  .day .r:first-child{border-top:none}
+  .day .k{font-weight:700;font-size:15px;color:var(--text);min-width:104px;flex:none;display:flex;align-items:center;gap:9px}
+  .day .v{font-size:15px;color:var(--muted)}
 
-  /* List */
-  .rows{margin-top:22px;border:1px solid var(--border);border-radius:14px;overflow:hidden}
-  .row{display:flex;gap:14px;padding:16px 18px;background:var(--surface);border-top:1px solid var(--border)}
-  .row:first-child{border-top:none}
-  .row .k{font-weight:700;font-size:14px;min-width:104px;flex:none}
-  .row .v{font-size:14px;color:var(--muted)}
-  .st{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted-2);white-space:nowrap}
-  .st.live{color:var(--accent);border-color:rgba(16,185,129,.4)}
+  /* ── Chat, mirroring the app ───────────────────────────── */
+  .chat{
+    margin:26px 0;background:var(--panel);border:1px solid var(--border);
+    border-radius:18px;padding:18px 16px;display:flex;flex-direction:column;gap:12px;
+  }
+  .bub{
+    max-width:85%;border-radius:16px;padding:9px 13px;font-size:15px;line-height:1.6;
+  }
+  .bub.me{
+    align-self:flex-start;background:var(--bub-me-bg);color:var(--bub-me-tx);
+    border-top-left-radius:5px;font-weight:500;
+  }
+  .bub.ai{
+    align-self:flex-end;background:var(--bub-ai-bg);color:var(--bub-ai-tx);
+    border-top-right-radius:5px;
+  }
+  .mealcard{
+    align-self:flex-end;max-width:85%;width:min(100%,330px);
+    border:1px solid var(--amber-bd);background:var(--amber-bg);
+    border-radius:14px;overflow:hidden;
+  }
+  .mealcard .mh{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    padding:11px 13px 2px;
+  }
+  .mealcard .mt{font-weight:700;font-size:15px;color:var(--text)}
+  .mealcard .mc{font-weight:700;font-size:14px;color:var(--text);flex:none}
+  .mealcard .ings{padding:8px 13px 11px;display:grid;gap:3px}
+  .mealcard .ing{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+  .mealcard .acts{display:flex;border-top:1px solid var(--amber-bd)}
+  .mealcard .acts span{
+    flex:1;text-align:center;padding:10px 6px;font-size:13px;font-weight:700;color:var(--amber-tx);
+  }
+  .mealcard .acts span + span{
+    flex:0 0 auto;padding-inline:22px;color:var(--muted);font-weight:600;
+    border-inline-start:1px solid var(--amber-bd);
+  }
 
-  footer{border-top:1px solid var(--border);padding:40px 0 56px;color:var(--muted-2);font-size:14px}
-  footer a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--border-strong)}
+  /* Example exchanges */
+  .exs{display:grid;gap:22px;margin:24px 0}
+  .obj{
+    align-self:flex-end;max-width:85%;width:min(100%,330px);
+    border:1px solid var(--oc);background:var(--surface);border-radius:14px;
+    padding:12px 14px;font-size:14.5px;color:var(--text);font-weight:500;
+    display:flex;align-items:center;gap:10px;
+  }
+  .obj .dot{background:var(--oc)}
 
-  @media(max-width:720px){
-    .g2,.g3{grid-template-columns:1fr}
-    section{padding:48px 0}
-    .hero{padding:52px 0 42px}
+  /* Lists */
+  .list{margin-top:14px}
+  .list div{font-size:16px;color:var(--body);padding:11px 0;border-top:1px solid var(--border);line-height:1.6}
+  .list div:first-child{border-top:none;padding-top:4px}
+  .cols{display:grid;gap:34px;grid-template-columns:repeat(2,1fr);margin-top:12px}
+  .cols h3{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+
+  /* Future */
+  .fut{display:grid;gap:12px;grid-template-columns:repeat(3,1fr);margin:26px 0}
+  .fut div{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:16px 18px}
+  .fut .t{font-weight:700;font-size:16px;color:var(--text);margin-bottom:4px}
+  .fut .d{font-size:14.5px;color:var(--muted);line-height:1.6}
+
+  /* Name */
+  .rikma{
+    margin:26px 0;border:1px solid var(--border-strong);background:var(--surface);
+    border-radius:16px;padding:26px 24px;
+  }
+  .rikma .w{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .rikma .lat{font-size:clamp(28px,5vw,38px);font-weight:900;letter-spacing:.1em;color:var(--text);line-height:1.1}
+  .rikma .sep{width:5px;height:5px;border-radius:99px;background:var(--muted);align-self:center;flex:none}
+  .rikma .heb{font-size:clamp(26px,4.6vw,34px);font-weight:900;color:var(--text);line-height:1.2}
+  .names{display:flex;flex-wrap:wrap;gap:9px;margin:22px 0}
+  .nm{
+    border:1px solid var(--border);background:var(--surface);color:var(--text);
+    padding:8px 14px;border-radius:9px;font-size:14px;font-weight:700;letter-spacing:.06em;
+  }
+
+  .place,.fut div,.nm,.obj{transition:border-color .18s ease}
+  .place:hover,.fut div:hover,.nm:hover{border-color:var(--border-strong)}
+
+  footer{border-top:1px solid var(--border);padding:44px 0 64px;font-size:16px}
+  footer .nme{font-weight:700;color:var(--text);margin-bottom:6px}
+  footer a{color:var(--body);text-decoration:none;border-bottom:1px solid var(--border-strong)}
+  footer a:hover{color:var(--text)}
+
+  @media(max-width:760px){
+    body{font-size:16.5px}
+    .phones,.fut,.cols{grid-template-columns:1fr}
+    section{padding:52px 0}
+    .hero{padding:56px 0 44px}
+    .cols{gap:30px}
+    .day .r{flex-wrap:wrap;gap:2px 14px}
+    .day .k{min-width:0}
+    .bub,.mealcard,.obj{max-width:94%}
   }
 </style>
 </head>
@@ -147,13 +234,16 @@
   <div class="wrap">
     <div class="brand">
       <span class="mk">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-          <path d="M4 12h16"/><path d="M7 8.5v7M17 8.5v7"/>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="3.5" y="3.5" width="17" height="17" rx="5"/>
+          <circle cx="9" cy="9" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="15" cy="9" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="9" cy="15" r="1.4" fill="currentColor" stroke="none"/>
+          <circle cx="15" cy="15" r="1.4" fill="currentColor" stroke="none"/>
         </svg>
       </span>
-      <span>מקום אחד לגוף</span>
+      <span>מקום אחד</span>
     </div>
-    <span class="wip">שם סופי בהמשך</span>
     <span class="spacer"></span>
     <button class="tgl" id="tgl" aria-label="החלף מצב תצוגה">◐</button>
   </div>
@@ -161,235 +251,349 @@
 
 <div class="wrap">
 
-  <!-- Hero -->
   <section class="hero">
-    <div class="eyebrow">מה אני בונה</div>
-    <h1>אפליקציה אחת<br>לכל מה ששומר על הגוף.</h1>
-    <p class="lead">
-      אימונים, תזונה, נשימה — לא שלוש אפליקציות שלא מכירות אחת את השנייה,
-      אלא <strong>מקום אחד</strong> שבנוי מכמה תחומים שמתנהגים בדיוק אותו דבר,
-      ומדברים ביניהם.
-    </p>
-    <div class="places-line">
-      <span class="chip"><span class="dot" style="background:var(--train)"></span> אימונים</span>
-      <span class="chip"><span class="dot" style="background:var(--food)"></span> תזונה</span>
-      <span class="chip soon"><span class="dot" style="background:var(--breath)"></span> נשימה</span>
-      <span class="chip soon">+ מה שיבוא</span>
-    </div>
+    <span class="wip">שם בתהליך</span>
+    <h1>מקום אחד</h1>
+    <div class="domains">אימונים · תזונה · נשימה · שינה · התאוששות · גוף · נפש · ועוד</div>
   </section>
 
-  <!-- Problem -->
-  <section>
-    <div class="eyebrow">הבעיה</div>
-    <h2>הגוף שלך אחד. האפליקציות לא.</h2>
-    <p style="max-width:64ch">
-      האימונים באפליקציה אחת, האוכל בשנייה, הנשימה בשום מקום.
-      אף אחת מהן לא יודעת מה קורה בשנייה — אז אף אחת לא באמת יכולה לייעץ לך.
-      האפליקציה שסופרת קלוריות לא יודעת שהרגע עשית רגליים.
-      זה בדיוק הפער שהמוצר הזה סוגר.
-    </p>
+  <section class="rv" style="--rule:var(--train)">
+    <h2>הרעיון</h2>
+    <p>אפליקציה אחת שמרכזת את כל הדברים שאנחנו עושים בשביל הגוף והנפש.</p>
+    <p>אימונים, תזונה ונשימה הם המקומות הראשונים, אבל הרעיון רחב יותר.</p>
+    <p>שינה, התאוששות, מדיטציה, מוביליטי, גמישות, אמבטיות קרח, סאונה, מדדים, טיפולים, סדנאות, הרגלים — וכל דבר אחר שנכנס לעולם הזה.</p>
+    <p>לא רשימה סגורה של פיצ׳רים, אלא מעטפת שיכולה לגדול ולהכיל עוד תחומים עם הזמן.</p>
   </section>
 
-  <!-- The idea -->
-  <section>
-    <div class="eyebrow">הרעיון</div>
-    <h2>לא אפליקציה עם מסכים. מעטפת עם <em style="font-style:normal;color:var(--accent)">מקומות</em>.</h2>
-    <p style="max-width:64ch">
-      כל תחום הוא "מקום" עצמאי — עולם שלם עם הבית שלו, ההיסטוריה שלו, המאגר שלו והמאמן שלו.
-      אבל כל המקומות בנויים <strong>מאותו שלד בדיוק</strong>.
-    </p>
+  <section class="rv" style="--rule:var(--breath)">
+    <h2>המקומות</h2>
+    <p>כל תחום יכול להיות <strong>מקום</strong> בתוך האפליקציה.</p>
+    <p>לכל מקום עולם משלו — מסך בית, פעולות, היסטוריה, מידע ומאמן AI שמכיר את התחום ואת מה שהמשתמש עשה בו.</p>
 
-    <div class="grid g3">
-      <div>
-        <div class="phone">
-          <div class="bar">
-            <span class="mark" style="color:var(--train)">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h16"/><path d="M7 9v6M17 9v6"/></svg>
-            </span>
-            <span class="ttl">אימונים</span>
-          </div>
-          <div class="body"></div>
-          <div class="tabs">
-            <span class="tab"></span><span class="tab"></span>
-            <span class="fab" style="background:var(--train)"></span>
-            <span class="tab"></span><span class="tab"></span>
-          </div>
+    <div class="places">
+      <div class="place">
+        <div class="lft">
+          <h3><span class="dot" style="background:var(--train)"></span>אימונים</h3>
+          <div class="items">סטים · תרגילים · תוכניות · אירובי · נפח · יעדים</div>
         </div>
-        <div class="cap">סטים · אירובי · יעדים</div>
+        <span class="st live">חי</span>
       </div>
-      <div>
-        <div class="phone">
-          <div class="bar">
-            <span class="mark" style="color:var(--food)">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8a4 4 0 0 1 0 8" stroke-linecap="round"/></svg>
-            </span>
-            <span class="ttl">תזונה</span>
-          </div>
-          <div class="body"></div>
-          <div class="tabs">
-            <span class="tab"></span><span class="tab"></span>
-            <span class="fab" style="background:var(--food)"></span>
-            <span class="tab"></span><span class="tab"></span>
-          </div>
+      <div class="place">
+        <div class="lft">
+          <h3><span class="dot" style="background:var(--food)"></span>תזונה</h3>
+          <div class="items">ארוחות · מאכלים · מאזן · מאקרו · הרגלים</div>
         </div>
-        <div class="cap">ארוחות · מאזן · דחפים</div>
+        <span class="st live">חי</span>
       </div>
-      <div>
-        <div class="phone" style="opacity:.5">
-          <div class="bar">
-            <span class="mark" style="color:var(--breath)">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h4l2-4 4 8 2-4h4"/></svg>
-            </span>
-            <span class="ttl">נשימה</span>
-          </div>
-          <div class="body"></div>
-          <div class="tabs">
-            <span class="tab"></span><span class="tab"></span>
-            <span class="fab" style="background:var(--breath)"></span>
-            <span class="tab"></span><span class="tab"></span>
-          </div>
+      <div class="place">
+        <div class="lft">
+          <h3><span class="dot" style="background:var(--breath)"></span>נשימה</h3>
+          <div class="items">תרגולים · פרוטוקולים · סשנים</div>
         </div>
-        <div class="cap">בקרוב</div>
+        <span class="st">בדרך</span>
       </div>
     </div>
 
-    <div class="grid g2" style="margin-top:26px">
-      <div class="card">
-        <div class="num">01</div>
-        <h3>מי שלמד מקום אחד — יודע את כולם</h3>
-        <p>אותו שלד: ארבע לשוניות למטה, פעולה מרכזית אחת גדולה באמצע, אותו סרגל עליון.
-           רק התוכן משתנה. אין עקומת לימוד חדשה לכל תחום.</p>
-      </div>
-      <div class="card">
-        <div class="num">02</div>
-        <h3>צבע = מקום</h3>
-        <p>לכל מקום גוון משלו, ורק הוא. אתה יודע איפה אתה בלי לקרוא מילה,
-           והמעבר בין מקומות תמיד באותו כפתור באותה פינה.</p>
-      </div>
-      <div class="card">
-        <div class="num">03</div>
-        <h3>לחיצה ארוכה = לפעול במקום אחר</h3>
-        <p>הכפתור המרכזי עושה את מה שרלוונטי כאן. לחיצה ארוכה פותחת מניפה
-           עם הפעולות המהירות של המקומות האחרים — בלי לעזוב את מה שאתה עושה.</p>
-      </div>
-      <div class="card">
-        <div class="num">04</div>
-        <h3>להוסיף תחום = להוסיף שורה</h3>
-        <p>נשימה, שינה, מדידות — כל תחום חדש נכנס לתוך אותו שלד.
-           זה מה שהופך את זה למוצר שגדל, ולא לעוד אפליקציה שצריך לכתוב מחדש.</p>
-      </div>
-    </div>
+    <h3 style="margin-top:34px;margin-bottom:14px;font-size:21px">ומה בהמשך?</h3>
+    <p>שינה · התאוששות · מדיטציה · מוביליטי · גמישות · משקל ומדדים · סאונה · אמבטיות קרח · טיפולים · סדנאות · הרגלים · ועוד.</p>
+    <p>חלק מהדברים יכולים להפוך למקום שלם.</p>
+    <p>חלק יכולים להיות פעילות בתוך מקום אחר.</p>
+    <p>וחלק יכולים פשוט להיות מידע שהמערכת מכירה.</p>
+    <p>המבנה נשאר פתוח כדי שעולמות חדשים יוכלו להיכנס ולהתפתח עם הזמן.</p>
   </section>
 
-  <!-- Coach -->
-  <section>
-    <div class="eyebrow">המאמן</div>
-    <h2>שיחה. לא טופס.</h2>
-    <p style="max-width:64ch">
-      בכל מקום יושב מאמן שמכיר את ההיסטוריה שלך באותו תחום.
-      אתה פשוט מדבר איתו. וכשמשהו קונקרטי עולה בשיחה — הוא הופך ל<strong>אובייקט חכם</strong>
-      בתוך השיחה: כרטיס שאפשר לאשר, לערוך, ולשייך — בלי שהשיחה נעצרת.
-    </p>
+  <section class="rv" style="--rule:var(--food)">
+    <h2>אותה שפה</h2>
+    <p>כל המקומות בנויים מאותה שפה בסיסית.</p>
+    <p>ארבע לשוניות למטה, פעולה מרכזית באמצע, סרגל עליון ומעבר קבוע בין המקומות.</p>
+    <p>התוכן והפעולות משתנים, המבנה נשאר מוכר.</p>
 
-    <div class="chat" style="margin-top:24px">
-      <div class="msg me">אכלתי פיצה על דף אורז</div>
-      <div class="msg ai">מכיר את הטרנד — בסיס דק, קלוריות נמוכות. הנחתי שלושה דפים:</div>
-      <div class="mealcard">
-        <div class="hd"><span>פיצה על דף אורז</span><span class="mono">220</span></div>
-        <div class="ing"><span>דפי אורז</span><span class="mono">90</span></div>
-        <div class="ing"><span>רוטב עגבניות</span><span class="mono">20</span></div>
-        <div class="ing"><span>מוצרלה מגוררת</span><span class="mono">110</span></div>
-        <div class="slots">
-          <span class="slot">בוקר</span><span class="slot on">צהריים</span><span class="slot">ערב</span><span class="slot">נשנוש</span>
+    <div class="phones">
+      <div class="phone">
+        <div class="bar">
+          <span class="mark" style="color:var(--train)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h16"/><path d="M7 9v6M17 9v6"/></svg>
+          </span>
+          <span class="ttl">אימונים</span>
         </div>
-        <div class="act">+ הוסף להיום · ערוך</div>
+        <div class="body"></div>
+        <div class="tabs">
+          <span class="tab"></span><span class="tab"></span>
+          <span class="fab" style="background:var(--train)"></span>
+          <span class="tab"></span><span class="tab"></span>
+        </div>
       </div>
-      <div class="msg ai">עם האימון של היום נשארו לך עוד 1,320. מרווח נוח לערב.</div>
+      <div class="phone">
+        <div class="bar">
+          <span class="mark" style="color:var(--food)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8a4 4 0 0 1 0 8" stroke-linecap="round"/></svg>
+          </span>
+          <span class="ttl">תזונה</span>
+        </div>
+        <div class="body"></div>
+        <div class="tabs">
+          <span class="tab"></span><span class="tab"></span>
+          <span class="fab" style="background:var(--food)"></span>
+          <span class="tab"></span><span class="tab"></span>
+        </div>
+      </div>
+      <div class="phone">
+        <div class="bar">
+          <span class="mark" style="color:var(--breath)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h4l2-4 4 8 2-4h4"/></svg>
+          </span>
+          <span class="ttl">נשימה</span>
+        </div>
+        <div class="body"></div>
+        <div class="tabs">
+          <span class="tab"></span><span class="tab"></span>
+          <span class="fab" style="background:var(--breath)"></span>
+          <span class="tab"></span><span class="tab"></span>
+        </div>
+      </div>
     </div>
-    <div class="cap">כרטיס בתוך שיחה — לא מסך נפרד, לא טופס</div>
+
+    <p>לכל מקום צבע משלו, כך שהמעבר מאימונים לתזונה, נשימה או כל מקום אחר מורגש מיד — ועדיין הכול מרגיש חלק מאותו מוצר.</p>
+    <p>לחיצה ארוכה על הפעולה המרכזית יכולה לפתוח פעולות מהירות ממקומות אחרים.</p>
   </section>
 
-  <!-- Logging -->
-  <section>
-    <div class="eyebrow">הרישום</div>
-    <h2>שתי דרכים. אף אחת מהן לא עבודה.</h2>
-    <div class="grid g2">
-      <div class="card">
-        <h3>לדבר</h3>
-        <p>אומר מה אכלת במילים שלך, או מצלם את הצלחת.
-           המאמן מפרק לרכיבים עם מספר לכל אחד, ואתה מאשר או מתקן.</p>
+  <section class="rv" style="--rule:var(--sleep)">
+    <h2>הכול באותו הקשר</h2>
+    <p>המידע מכל המקומות נמצא בתוך אותה מערכת.</p>
+    <p>אימון שנעשה היום קיים גם כשהמשתמש נמצא בתזונה.</p>
+    <p>ארוחה שנרשמה שייכת לאותו יום שבו היו אימון, שינה, נשימה, מדיטציה או פעילות אחרת.</p>
+    <p>יום אחד יכול למשל להכיל:</p>
+
+    <div class="day">
+      <div class="r">
+        <span class="k"><span class="dot" style="background:var(--sleep)"></span>שינה</span>
+        <span class="v"><span class="mono">6:40</span> שעות</span>
       </div>
-      <div class="card">
-        <h3>לבחור</h3>
-        <p>המאכלים שאתה באמת אוכל, מסודרים לפי מה שלא אכלת הכי הרבה זמן.
-           בחירה, גודל מנה, סיום. בלי לחכות לאף אחד.</p>
+      <div class="r">
+        <span class="k"><span class="dot" style="background:var(--breath)"></span>בוקר</span>
+        <span class="v">תרגול נשימה · <span class="mono">12</span> דקות</span>
+      </div>
+      <div class="r">
+        <span class="k"><span class="dot" style="background:var(--train)"></span>אימון</span>
+        <span class="v">רגליים · <span class="mono">28</span> סטים</span>
+      </div>
+      <div class="r">
+        <span class="k"><span class="dot" style="background:var(--food)"></span>תזונה</span>
+        <span class="v"><span class="mono">2,140</span> קלוריות</span>
+      </div>
+      <div class="r">
+        <span class="k"><span class="dot" style="background:var(--recover)"></span>התאוששות</span>
+        <span class="v">אמבטיית קרח · <span class="mono">4</span> דקות</span>
+      </div>
+      <div class="r">
+        <span class="k"><span class="dot" style="background:var(--mind)"></span>ערב</span>
+        <span class="v">מדיטציה · <span class="mono">15</span> דקות</span>
       </div>
     </div>
-    <p style="margin-top:18px;max-width:64ch">
-      <strong>המאגר בונה את עצמו.</strong> כל דבר חדש שרשמת נשמר אוטומטית —
-      "לרשום ארוחה" ו"לבנות מאגר" הן אותה פעולה, אף פעם לא שתי מטלות.
-      ולכל ארוחה נשמר הפירוט שלה, כדי שבעוד שבוע תוכל לבדוק מאיפה הגיע המספר.
-    </p>
+
+    <p>צורת ההצגה יכולה להשתנות. העיקרון הוא שכל הדברים שייכים לאותו אדם ולאותו רצף של זמן.</p>
   </section>
 
-  <!-- Cross-place -->
-  <section>
-    <div class="eyebrow">החיבור</div>
-    <h2>המקומות מדברים ביניהם.</h2>
-    <p style="max-width:64ch">
-      זה הדבר שאפליקציה בודדת לא יכולה לעשות. התזונה יודעת מה שרפת היום באימון,
-      ולכן המאזן היומי הוא מספר אמיתי ולא ניחוש. יום רגליים כבד נראה אחרת מיום מנוחה —
-      אצלך במסך, בלי שתגיד מילה.
-    </p>
-    <div class="rows">
-      <div class="row"><span class="k">אימון היום</span><span class="v">28 סטים + 20 דק׳ אופניים → הערכת שריפה</span></div>
-      <div class="row"><span class="k">התזונה יודעת</span><span class="v">היעד היומי מתעדכן בהתאם, אוטומטית</span></div>
-      <div class="row"><span class="k">המאמן יודע</span><span class="v">"יום כבד — יש לך מרווח לערב"</span></div>
-    </div>
-  </section>
-
-  <!-- Status -->
-  <section>
-    <div class="eyebrow">איפה זה עומד</div>
-    <h2>עובד. לא מצגת.</h2>
-    <div class="rows">
-      <div class="row">
-        <span class="k">אימונים</span>
-        <span class="v">בשימוש יומי — סטים, אירובי, תוכניות, יעדי נפח, מאמן AI</span>
-        <span class="spacer"></span><span class="st live">חי</span>
-      </div>
-      <div class="row">
-        <span class="k">תזונה</span>
-        <span class="v">רישום ארוחות, מאגר, מאזן קלורי, מאמן תזונה</span>
-        <span class="spacer"></span><span class="st live">חי</span>
-      </div>
-      <div class="row">
-        <span class="k">נשימה</span>
-        <span class="v">התחום הבא שנכנס לאותו שלד</span>
-        <span class="spacer"></span><span class="st">בדרך</span>
-      </div>
-      <div class="row">
-        <span class="k">מיתוג</span>
-        <span class="v">שם, אייקון וזהות — בעבודה</span>
-        <span class="spacer"></span><span class="st">בעבודה</span>
-      </div>
-    </div>
+  <section class="rv" style="--rule:var(--train)">
+    <h2>המאמן</h2>
+    <p>בכל מקום נמצא מאמן AI שמתמחה בעולם שלו ומכיר את ההיסטוריה של המשתמש.</p>
+    <p>מאמן האימונים מכיר אימונים, תוכניות, תרגילים, נפח ויעדים.</p>
+    <p>מאמן התזונה מכיר ארוחות, מאכלים, הרגלים ומאזן.</p>
+    <p>מאמן הנשימה מכיר תרגולים, פרוטוקולים וסשנים.</p>
+    <p>כל המאמנים נמצאים בתוך אותה מערכת, ולכן ההקשר לא חייב להיעצר בגבולות של מקום אחד.</p>
     <p style="margin-top:18px">
-      עברית מלאה, RTL, עובד כאפליקציה על המסך הראשי בטלפון.
+      אימון יכול להיות חלק מההקשר של מאמן התזונה.<br>
+      שינה יכולה להיות חלק מההקשר של מאמן האימונים.<br>
+      נשימה והתאוששות יכולות להיפגש באותו יום ובאותו פרופיל.
     </p>
+  </section>
+
+  <section class="rv" style="--rule:var(--mind)">
+    <h2>שיחה שהיא גם ממשק</h2>
+    <p>המאמן הוא לא רק צ׳אט ששולחים אליו שאלות.</p>
+    <p>מדברים איתו בצורה טבעית, וכשמתוך השיחה עולה משהו שאפשר לעשות איתו פעולה, הוא יכול להפוך לאובייקט בתוך השיחה.</p>
+    <p>לדוגמה:</p>
+
+    <div class="chat">
+      <div class="bub me">״אכלתי פיצה על דף אורז.״</div>
+      <div class="bub ai">המאמן יכול לפרק אותה:</div>
+      <div class="mealcard">
+        <div class="mh">
+          <span class="mt">פיצה על דף אורז</span>
+          <span class="mc mono">220 קלוריות</span>
+        </div>
+        <div class="ings">
+          <div class="ing"><span>דפי אורז</span><span class="mono">90</span></div>
+          <div class="ing"><span>רוטב עגבניות</span><span class="mono">20</span></div>
+          <div class="ing"><span>מוצרלה</span><span class="mono">110</span></div>
+        </div>
+        <div class="acts"><span>הוסף להיום</span><span>ערוך</span></div>
+      </div>
+    </div>
+
+    <p>אותו עיקרון ממשיך גם במקומות אחרים.</p>
+
+    <div class="exs">
+      <div class="chat" style="margin:0">
+        <div class="bub me">״תבנה לי אימון כתפיים קצר.״</div>
+        <div class="obj" style="--oc:var(--train)">
+          <span class="dot"></span>אימון שאפשר לשמור או להתחיל.
+        </div>
+      </div>
+      <div class="chat" style="margin:0">
+        <div class="bub me">״כל בוקר חמש דקות נשימה.״</div>
+        <div class="obj" style="--oc:var(--breath)">
+          <span class="dot"></span>תרגול שאפשר להוסיף לשגרה.
+        </div>
+      </div>
+    </div>
+
+    <p>השיחה והממשק הם חלק מאותה חוויה.</p>
+  </section>
+
+  <section class="rv" style="--rule:var(--recover)">
+    <h2>המאגר נבנה תוך כדי</h2>
+    <p>השימוש באפליקציה בונה בהדרגה את העולם האישי של המשתמש.</p>
+    <p>בתזונה, מאכל חדש שנרשם יכול להפוך אוטומטית לחלק מהמאגר האישי.</p>
+    <p>באימונים, תרגילים שהמשתמש מבצע הופכים לחלק מהמאגר שלו.</p>
+    <p>אותו עיקרון יכול להמשיך לתרגילי נשימה, מדיטציות, שגרות התאוששות ודברים נוספים.</p>
+    <p>הרישום והשימוש הם גם הדרך שבה המערכת לומדת ונבנית לאורך זמן.</p>
+  </section>
+
+  <section class="rv" style="--rule:var(--train)">
+    <h2>מה כבר קיים</h2>
+    <div class="cols">
+      <div>
+        <h3><span class="dot" style="background:var(--train)"></span>אימונים</h3>
+        <div class="list">
+          <div>אימון חופשי לפי קבוצות שריר, עם סטים, משקלים וחזרות.</div>
+          <div>סופרסטים וקישור בין תרגילים.</div>
+          <div>אירובי בתוך אותו אימון — סוג, זמן, מרחק ודופק.</div>
+          <div>אימונים מתוכננים, פעילים והיסטוריים.</div>
+          <div>טיימר מנוחה, כרונומטר, השהיה והמשך.</div>
+          <div>יעדי נפח שבועיים לכל קבוצת שרירים.</div>
+          <div>מסך גוף שמשווה בין הנפח בפועל ליעדים.</div>
+          <div>מאגר תרגילים אישי שנבנה תוך כדי.</div>
+          <div>מאמן AI שמכיר את האימונים וההיסטוריה.</div>
+        </div>
+      </div>
+      <div>
+        <h3><span class="dot" style="background:var(--food)"></span>תזונה</h3>
+        <div class="list">
+          <div>רישום ארוחה בשיחה, מתמונה או מהמאגר האישי.</div>
+          <div>פירוק ארוחה לרכיבים, קלוריות ומאקרו.</div>
+          <div>סימון סוכר גבוה ופחמימות ריקות.</div>
+          <div>יעד יומי מחושב לפי BMR ו-TDEE עם אפשרות לשינוי ידני.</div>
+          <div>מסך יום עם מה שנאכל, הפעילות ומה שנשאר.</div>
+          <div>היסטוריה מלאה של הארוחות כפי שנרשמו בזמן אמת.</div>
+          <div>ניתוח קלוריות לפי שבוע, חודש ותקופות.</div>
+          <div>מאגר אישי שנבנה תוך כדי שימוש.</div>
+          <div>מאמן AI שמכיר את היסטוריית התזונה.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rv" style="--rule:var(--breath)">
+    <h2>התשתית</h2>
+    <div class="list">
+      <div>מעטפת אחת שמארחת את כל המקומות.</div>
+      <div>שכבת AI משותפת, עם פרסונה והקשר שונים לכל מקום.</div>
+      <div>שיחות שנשמרות ומסתנכרנות בין מכשירים.</div>
+      <div>פרופיל אישי שנבנה ומתעדכן תוך כדי שימוש.</div>
+      <div>המידע מהמקומות השונים יכול להפוך לחלק מהקשר משותף.</div>
+      <div>עברית מלאה ו-RTL.</div>
+      <div>עובד כאפליקציה מהמסך הראשי בטלפון.</div>
+    </div>
+  </section>
+
+  <section class="rv" style="--rule:var(--food)">
+    <h2>ומה עוד יכול להיכנס?</h2>
+    <p>הרשימה בכוונה לא סופית.</p>
+
+    <div class="fut">
+      <div><div class="t">נשימה</div><div class="d">תרגילים, פרוטוקולים, עצירות נשימה, סשנים והיסטוריה.</div></div>
+      <div><div class="t">שינה</div><div class="d">שעות, איכות, שגרות ונתונים.</div></div>
+      <div><div class="t">התאוששות</div><div class="d">מנוחה, עומס, תחושה ו-readiness.</div></div>
+      <div><div class="t">קור וחום</div><div class="d">אמבטיות קרח, סאונה ופרוטוקולים.</div></div>
+      <div><div class="t">Mind</div><div class="d">מדיטציה, סטרס, רגיעה ופוקוס.</div></div>
+      <div><div class="t">תנועה</div><div class="d">מוביליטי, גמישות, שיקום ותרגילים.</div></div>
+      <div><div class="t">מדדים</div><div class="d">משקל, אחוז שומן, דופק, HRV ומדידות נוספות.</div></div>
+      <div><div class="t">טיפולים</div><div class="d">פיזיותרפיה, עיסוי, טיפולים ושגרות שניתנו בעקבותיהם.</div></div>
+      <div><div class="t">סדנאות וחוויות</div><div class="d">סדנת נשימה, סדנת קור, ריטריט, אימון קבוצתי או כל פעילות אחרת שקשורה לעולם הזה.</div></div>
+    </div>
+
+    <p>ובהמשך יכולים להיכנס גם דברים שעוד לא נמצאים ברשימה בכלל.</p>
+  </section>
+
+  <section class="rv" style="--rule:var(--muted)">
+    <h2>השם</h2>
+    <p>גם השם עדיין בתהליך.</p>
+    <p>אחד הכיוונים האחרונים הוא:</p>
+
+    <div class="rikma">
+      <div class="w">
+        <span class="lat">RIKMA</span>
+        <span class="sep"></span>
+        <span class="heb">רִקְמָה</span>
+      </div>
+    </div>
+
+    <p>"רקמה" מתחברת לשני חלקים של הרעיון.</p>
+    <p>מצד אחד, רקמה היא חלק מהגוף — שריר, עצב, עור וגיד הם כולם רקמות.</p>
+    <p>מצד שני, לרקום פירושו לחבר ולשזור חלקים נפרדים למשהו אחד.</p>
+    <p>המשמעות הזאת מתחברת למבנה של המוצר: עולמות שונים של גוף ונפש שנמצאים בתוך מעטפת אחת ומתחברים ביניהם.</p>
+
+    <p style="margin-top:28px">שמות נוספים שעלו לאורך הדרך:</p>
+
+    <div class="names">
+      <span class="nm">BOD</span>
+      <span class="nm">BOD ONE</span>
+      <span class="nm">WHOLE</span>
+      <span class="nm">SOMA</span>
+      <span class="nm">VYTA</span>
+      <span class="nm">ONEBODY</span>
+      <span class="nm">BODYSPACE</span>
+      <span class="nm">PULSE</span>
+      <span class="nm">KIN</span>
+      <span class="nm">MODO</span>
+      <span class="nm">HUMA</span>
+      <span class="nm">UNO</span>
+      <span class="nm">KORA</span>
+      <span class="nm">SYNC</span>
+      <span class="nm">UNIO</span>
+      <span class="nm">OMNI</span>
+      <span class="nm">WELLO</span>
+      <span class="nm">BODIO</span>
+      <span class="nm">ONVO</span>
+      <span class="nm">VYVO</span>
+      <span class="nm">SENO</span>
+      <span class="nm">AYVO</span>
+      <span class="nm">WELY</span>
+      <span class="nm">NUVIA</span>
+      <span class="nm">SOMIO</span>
+      <span class="nm">VEYRA</span>
+      <span class="nm">UNIVA</span>
+      <span class="nm">LIVIO</span>
+      <span class="nm">NEXA</span>
+    </div>
+
+    <p>השם לא חייב להסביר את המוצר. הוא צריך להיות מספיק רחב כדי שהעולם שנבנה סביבו יוכל להמשיך להשתנות ולגדול.</p>
   </section>
 
 </div>
 
 <footer>
   <div class="wrap">
-    <div style="font-weight:700;color:var(--text);margin-bottom:6px">שלומי זוין</div>
+    <div class="nme">שלומי זוין</div>
     <div>
       <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a>
       &nbsp;·&nbsp;
       <a href="tel:0545567213">054-5567213</a>
     </div>
-    <div style="margin-top:14px;font-size:12px">הדף הזה הוא הסבר על הרעיון — לא עמוד מכירה. השם והמיתוג עוד לא סופיים.</div>
+    <div style="margin-top:10px">
+      <a href="https://boostmind-b052c.web.app/boostart/" target="_blank" rel="noopener">boostart</a>
+    </div>
   </div>
 </footer>
 
@@ -398,6 +602,17 @@
     var root=document.documentElement, k='lp-theme';
     var saved=null; try{saved=localStorage.getItem(k)}catch(e){}
     if(saved==='light') root.setAttribute('data-theme','light');
+
+    var els=document.querySelectorAll('.rv');
+    if(!('IntersectionObserver' in window)){
+      for(var j=0;j<els.length;j++) els[j].classList.add('in');
+    } else {
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+      },{rootMargin:'0px 0px -8% 0px',threshold:.05});
+      for(var j=0;j<els.length;j++) io.observe(els[j]);
+    }
+
     document.getElementById('tgl').addEventListener('click',function(){
       var light=root.getAttribute('data-theme')==='light';
       if(light) root.removeAttribute('data-theme'); else root.setAttribute('data-theme','light');

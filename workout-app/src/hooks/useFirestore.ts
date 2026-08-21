@@ -4,7 +4,7 @@ import {
   arrayUnion, Timestamp, onSnapshot, query, orderBy,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile, AppReport } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
@@ -1206,6 +1206,7 @@ export function useFirestore(uid: string | null) {
       'personalMeals',
       'mealLogs',
       'appliedChatActions',
+      'reports',
     ];
     for (const sub of subcollections) {
       try {
@@ -1499,7 +1500,17 @@ export function useFirestore(uid: string | null) {
     }
     if (templateId) {
       try {
-        await setDoc(doc(personalMealsCol(uid), templateId), { lastUsedAt: Date.now() }, { merge: true });
+        // Logging against an existing meal also REFRESHES it: if the coach (or
+        // the user) supplied a better breakdown, the library entry learns it
+        // instead of drifting behind the thing you actually eat. History is
+        // unaffected — logs keep their own snapshot.
+        const patch: any = { lastUsedAt: Date.now() };
+        if (input.ingredients && input.ingredients.length > 0) {
+          patch.ingredients = input.ingredients;
+          patch.calories = Math.max(0, Math.round(input.caloriesPerServing));
+          patch.updatedAt = Date.now();
+        }
+        await setDoc(doc(personalMealsCol(uid), templateId), patch, { merge: true });
       } catch { /* template may be global / read-only */ }
     }
     const ts = input.timestamp ?? Date.now();
@@ -1571,6 +1582,56 @@ export function useFirestore(uid: string | null) {
     await setDoc(doc(db, 'users', uid, 'appliedChatActions', id), {
       threadId, key, appliedAt: Date.now(),
     });
+  }, [uid]);
+
+  // Which model the AI calls use. Stored as an override: absent means "server
+  // default", which is what every existing account has.
+  const getAiModelPref = useCallback(async (): Promise<string | null> => {
+    if (!uid) return null;
+    const snap = await getDoc(doc(db, 'users', uid, 'settings', 'main'));
+    const v = snap.exists() ? (snap.data() as any).aiModel : null;
+    return typeof v === 'string' && v ? v : null;
+  }, [uid]);
+
+  const setAiModelPref = useCallback(async (model: string | null): Promise<void> => {
+    if (!uid) return;
+    await setDoc(doc(db, 'users', uid, 'settings', 'main'), { aiModel: model }, { merge: true });
+  }, [uid]);
+
+  // ─── Bug / feature reports ────────────────────────────────────
+  // Lives under the user so the existing rules cover it, and so a session can
+  // read the whole list with one REST GET on:
+  //   users/{uid}/reports
+  function reportsCol(u: string) { return collection(db, 'users', u, 'reports'); }
+
+  const listReports = useCallback(async (): Promise<AppReport[]> => {
+    if (!uid) return [];
+    const snap = await getDocs(reportsCol(uid));
+    return snap.docs
+      .map(d => d.data() as AppReport)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }, [uid]);
+
+  const addReport = useCallback(async (r: Omit<AppReport, 'id' | 'createdAt' | 'updatedAt' | 'status'> & { status?: AppReport['status'] }): Promise<string | null> => {
+    if (!uid) return null;
+    const now = Date.now();
+    const id = `rep_${now}_${Math.random().toString(36).slice(2, 6)}`;
+    const clean: any = { ...r, id, status: r.status || 'open', createdAt: now, updatedAt: now };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(reportsCol(uid), id), clean);
+    return id;
+  }, [uid]);
+
+  const updateReport = useCallback(async (id: string, patch: Partial<AppReport>): Promise<void> => {
+    if (!uid) return;
+    const clean: any = { ...patch, updatedAt: Date.now() };
+    Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
+    await setDoc(doc(reportsCol(uid), id), clean, { merge: true });
+  }, [uid]);
+
+  const deleteReport = useCallback(async (id: string): Promise<void> => {
+    if (!uid) return;
+    await deleteDoc(doc(reportsCol(uid), id));
   }, [uid]);
 
   // Dietary profile lives under profile/main alongside the training profile.
@@ -1704,6 +1765,14 @@ export function useFirestore(uid: string | null) {
     updateMealLog,
     deleteMealLog,
     updateDietProfile,
+    getAiModelPref,
+    setAiModelPref,
+    // Reports
+    isAdmin: !!uid && isAdminUid(uid),
+    listReports,
+    addReport,
+    updateReport,
+    deleteReport,
     getAppliedActions,
     markActionApplied,
     // Onboarding + profile

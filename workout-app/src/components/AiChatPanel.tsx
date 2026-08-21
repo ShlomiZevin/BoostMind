@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { FreeSet, FreeSession } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, ACTIVE_MUSCLES } from '../data/muscles';
 import { type PersonalExercise } from '../data/exercisesDB';
 import { CHAT_API_URL } from '../config/api';
+import { getAiModel } from '../config/aiModel';
 import { useFirestore } from '../hooks/useFirestore';
 import { compressImage } from '../hooks/usePhotos';
 import type { UserProfile, ChatBucket, MealFlags, MealIngredient, MealMacros, MealType, PersonalMeal, MealLog, DietProfile } from '../types';
@@ -70,6 +71,10 @@ type Props = {
   onAddMeal?: (m: MealDraft) => Promise<void> | void;
   /** Open the meal card in the manual editor instead of logging it as-is. */
   onEditMeal?: (m: MealDraft) => void;
+  /** The coach learned a profile fact (weight, goal, activity…) — persist it. */
+  onDietProfilePatch?: (patch: Record<string, unknown>) => Promise<void> | void;
+  /** The user approved a proposed daily calorie target. */
+  onSetCalorieTarget?: (target: number) => Promise<void> | void;
   /** One-tap prompts above the input (e.g. your usual meals for this slot). */
   suggestionChips?: string[];
   onClose: () => void;
@@ -156,7 +161,125 @@ type ActionSuggestMeal = {
   note?: string;
 };
 
-type ChatAction = ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal;
+/** The food coach learned something about you (weight, goal, activity…).
+ *  Approval-first, like every other card: nothing is written until you tap. */
+type ActionUpdateDietProfile = {
+  type: 'update_diet_profile';
+  patch: Record<string, unknown>;
+};
+
+/** A proposed daily calorie target. Approval-first: this is the number you
+ *  stare at every day, so nothing is written until you tap. */
+type ActionSetCalorieTarget = {
+  type: 'set_calorie_target';
+  target: number;
+  reason?: string;
+};
+
+type ChatAction = ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal | ActionUpdateDietProfile | ActionSetCalorieTarget;
+
+// Very small markdown renderer for chat bubbles. Handles the shapes the coach
+// actually emits: **bold**, *italic*, `code`, `- ` / `* ` bullets, `1. ` numbered
+// lists, `##`/`###` headings. Anything else falls through as plain text.
+// No dangerouslySetInnerHTML — the whole tree is built as React nodes.
+function renderInline(text: string, keyPrefix: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let buf = '';
+  const flush = () => { if (buf) { nodes.push(buf); buf = ''; } };
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] === '*' && text[i + 1] === '*') {
+      const end = text.indexOf('**', i + 2);
+      if (end > i + 2) {
+        flush();
+        nodes.push(<strong key={`${keyPrefix}:b:${i}`}>{text.slice(i + 2, end)}</strong>);
+        i = end + 2;
+        continue;
+      }
+    }
+    if (text[i] === '*') {
+      const end = text.indexOf('*', i + 1);
+      if (end > i + 1 && text[end + 1] !== '*') {
+        flush();
+        nodes.push(<em key={`${keyPrefix}:i:${i}`}>{text.slice(i + 1, end)}</em>);
+        i = end + 1;
+        continue;
+      }
+    }
+    if (text[i] === '`') {
+      const end = text.indexOf('`', i + 1);
+      if (end > i + 1) {
+        flush();
+        nodes.push(
+          <code key={`${keyPrefix}:c:${i}`} className="px-1 py-0.5 rounded bg-slate-500/15 font-mono text-[0.9em]">
+            {text.slice(i + 1, end)}
+          </code>
+        );
+        i = end + 1;
+        continue;
+      }
+    }
+    buf += text[i];
+    i++;
+  }
+  flush();
+  return nodes;
+}
+
+function MarkdownText({ text }: { text: string }) {
+  const lines = text.split('\n');
+  const blocks: ReactNode[] = [];
+  let list: { type: 'ul' | 'ol'; items: string[] } | null = null;
+  const flushList = () => {
+    if (!list) return;
+    const items = list.items;
+    const Tag = list.type;
+    blocks.push(
+      Tag === 'ul' ? (
+        <ul key={`l:${blocks.length}`} className="text-right pr-5 list-disc space-y-0.5">
+          {items.map((it, i) => <li key={i}>{renderInline(it, `l${blocks.length}:${i}`)}</li>)}
+        </ul>
+      ) : (
+        <ol key={`l:${blocks.length}`} className="text-right pr-5 list-decimal space-y-0.5">
+          {items.map((it, i) => <li key={i}>{renderInline(it, `l${blocks.length}:${i}`)}</li>)}
+        </ol>
+      )
+    );
+    list = null;
+  };
+  for (const line of lines) {
+    const bullet = line.match(/^\s*[-*+]\s+(.*)$/);
+    const numbered = line.match(/^\s*\d+\.\s+(.*)$/);
+    const h3 = line.match(/^\s*###\s+(.*)$/);
+    const h2 = line.match(/^\s*##\s+(.*)$/);
+    if (bullet) {
+      if (!list || list.type !== 'ul') { flushList(); list = { type: 'ul', items: [] }; }
+      list.items.push(bullet[1]);
+      continue;
+    }
+    if (numbered) {
+      if (!list || list.type !== 'ol') { flushList(); list = { type: 'ol', items: [] }; }
+      list.items.push(numbered[1]);
+      continue;
+    }
+    flushList();
+    if (h3) {
+      blocks.push(<div key={`h:${blocks.length}`} className="font-bold text-[15px] mt-1">{renderInline(h3[1], `h${blocks.length}`)}</div>);
+      continue;
+    }
+    if (h2) {
+      blocks.push(<div key={`h:${blocks.length}`} className="font-bold text-base mt-1">{renderInline(h2[1], `h${blocks.length}`)}</div>);
+      continue;
+    }
+    if (line.trim() === '') {
+      blocks.push(<div key={`s:${blocks.length}`} className="h-2" />);
+    } else {
+      blocks.push(<div key={`p:${blocks.length}`} className="whitespace-pre-wrap">{renderInline(line, `p${blocks.length}`)}</div>);
+    }
+  }
+  flushList();
+  return <div className="text-right space-y-1">{blocks}</div>;
+}
 
 // Parse the response into a sequence of text chunks and action blocks so that
 // action cards render inline where the model placed them, not clumped at the end.
@@ -184,6 +307,10 @@ function parseChunks(text: string): Chunk[] {
       } else if (parsed?.type === 'set_weekly_targets' && parsed.targets && typeof parsed.targets === 'object') {
         out.push({ type: 'action', action: parsed });
       } else if (parsed?.type === 'suggest_meal' && parsed.he) {
+        out.push({ type: 'action', action: parsed });
+      } else if (parsed?.type === 'update_diet_profile' && parsed.patch && typeof parsed.patch === 'object') {
+        out.push({ type: 'action', action: parsed });
+      } else if (parsed?.type === 'set_calorie_target' && Number.isFinite(Number(parsed.target))) {
         out.push({ type: 'action', action: parsed });
       }
     } catch { /* ignore malformed */ }
@@ -380,6 +507,33 @@ function MealActionCard({
   );
 }
 
+const DIET_FIELD_HE: Record<string, string> = {
+  goal: 'מטרה', weightKg: 'משקל', heightCm: 'גובה', age: 'גיל', gender: 'מין',
+  activityMultiplier: 'רמת פעילות', avoidSugar: 'הימנעות מסוכר',
+  avoidEmptyCarbs: 'הימנעות מפחמימות ריקות', constraints: 'מגבלות',
+  dailyCalorieTarget: 'יעד קלורי',
+};
+const DIET_VALUE_HE: Record<string, string> = {
+  lose: 'ירידה', maintain: 'שמירה', gain: 'עלייה',
+  male: 'גבר', female: 'אישה', other: 'אחר',
+  '1.2': 'יושבני', '1.375': 'קצת פעילות', '1.55': 'בינוני',
+  '1.725': 'פעיל', '1.9': 'מאוד פעיל',
+};
+
+function dietPatchRows(patch: Record<string, unknown>): { k: string; v: string }[] {
+  const out: { k: string; v: string }[] = [];
+  for (const [k, raw] of Object.entries(patch || {})) {
+    if (raw === undefined || raw === null || raw === '') continue;
+    const label = DIET_FIELD_HE[k];
+    if (!label) continue;
+    let v: string;
+    if (typeof raw === 'boolean') v = raw ? 'כן' : 'לא';
+    else v = DIET_VALUE_HE[String(raw)] || String(raw);
+    out.push({ k: label, v });
+  }
+  return out;
+}
+
 type Thread = { id: string; title: string; ts: number; updatedAt?: number };
 
 // UNIFIED coach history: onboarding, trainer, AND in-session AI chats all share
@@ -463,7 +617,7 @@ async function migrateLocalStorageToFirestore(
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onEditMeal, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onEditMeal, onDietProfilePatch, onSetCalorieTarget, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
 }: Props) {
   const bucket = bucketOf(mode);
   const firestore = useFirestore(uid);
@@ -886,6 +1040,8 @@ export function AiChatPanel({
         `${CHAT_API_URL.replace(/\/$/, '')}/api/chat`,
         {
           stream: true,
+          // Opt-in override; omitted when unset so the server keeps its default.
+          model: getAiModel(),
           uid,
           threadId: activeId,
           bucket,
@@ -1014,6 +1170,8 @@ export function AiChatPanel({
     if (a.type === 'update_profile') return `u:${mi}:${ci}`;
     if (a.type === 'set_weekly_targets') return `w:${mi}:${ci}`;
     if (a.type === 'suggest_meal') return `m:${mi}:${ci}:${a.he}`;
+    if (a.type === 'update_diet_profile') return `dp:${mi}:${ci}`;
+    if (a.type === 'set_calorie_target') return `ct:${mi}:${ci}:${a.target}`;
     return `b:${mi}:${ci}`; // ready_to_build
   }
 
@@ -1307,7 +1465,7 @@ export function AiChatPanel({
                 )}
                 {chunks.map((chunk, j) => {
                   if (chunk.type === 'text') {
-                    return <div key={j} className="whitespace-pre-wrap text-right">{chunk.text}</div>;
+                    return <MarkdownText key={j} text={chunk.text} />;
                   }
                   const a = chunk.action;
                   const key = actionKey(a, m.ts, j);
@@ -1499,6 +1657,85 @@ export function AiChatPanel({
                     );
                   }
 
+                  if (a.type === 'update_diet_profile') {
+                    const rows = dietPatchRows(a.patch);
+                    if (rows.length === 0) return null;
+                    const isLastAssistant = i === messages.length - 1;
+                    return (
+                      <div key={j} className={`rounded-xl border px-3 py-2.5 text-right ${
+                        applied
+                          ? 'border-emerald-500/40 dark:bg-emerald-950/20 bg-emerald-50/60'
+                          : 'border-amber-500/40 dark:bg-amber-950/20 bg-amber-50/70'
+                      }`} dir="rtl">
+                        <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${
+                          applied ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'
+                        }`}>
+                          {applied ? 'הפרופיל עודכן' : 'עדכון לפרופיל שלך'}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {rows.map(r => (
+                            <span key={r.k} className="inline-flex items-baseline gap-1 text-[11px] px-2 py-1 rounded-lg bg-slate-500/10">
+                              <span className="text-muted">{r.k}</span>
+                              <span className="font-bold">{r.v}</span>
+                            </span>
+                          ))}
+                        </div>
+                        {!applied && (
+                          <button
+                            onClick={async () => {
+                              if (!onDietProfilePatch || !isLastAssistant) return;
+                              await onDietProfilePatch(a.patch);
+                              setAppliedActionIds(prev => new Set(prev).add(key));
+                              void firestoreRef.current.markActionApplied(activeId, key);
+                              showToast('הפרופיל עודכן');
+                            }}
+                            disabled={!isLastAssistant}
+                            className={`w-full py-2 rounded-lg text-[12px] font-bold ${
+                              isLastAssistant ? 'bg-amber-500 text-white' : 'bg-subtle text-muted-more'
+                            }`}
+                          >אשר עדכון</button>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  if (a.type === 'set_calorie_target') {
+                    const isLastAssistant = i === messages.length - 1;
+                    return (
+                      <div key={j} className={`rounded-xl border px-3 py-2.5 text-right ${
+                        applied
+                          ? 'border-emerald-500/40 dark:bg-emerald-950/20 bg-emerald-50/60'
+                          : 'border-amber-500/40 dark:bg-amber-950/20 bg-amber-50/70'
+                      }`} dir="rtl">
+                        <div className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${
+                          applied ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'
+                        }`}>
+                          {applied ? 'היעד עודכן' : 'הצעה ליעד קלורי יומי'}
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mb-1">
+                          <span className="text-2xl font-bold font-mono" dir="ltr">{Math.round(a.target)}</span>
+                          <span className="text-[11px] text-muted">קק״ל ליום</span>
+                        </div>
+                        {a.reason && <div className="text-[11px] text-muted mb-2">{a.reason}</div>}
+                        {!applied && (
+                          <button
+                            onClick={async () => {
+                              if (!onSetCalorieTarget || !isLastAssistant) return;
+                              await onSetCalorieTarget(Math.round(a.target));
+                              setAppliedActionIds(prev => new Set(prev).add(key));
+                              void firestoreRef.current.markActionApplied(activeId, key);
+                              showToast('היעד עודכן');
+                            }}
+                            disabled={!isLastAssistant}
+                            className={`w-full py-2 rounded-lg text-[12px] font-bold ${
+                              isLastAssistant ? 'bg-amber-500 text-white' : 'bg-subtle text-muted-more'
+                            }`}
+                          >אשר יעד</button>
+                        )}
+                      </div>
+                    );
+                  }
+
                   if (a.type === 'suggest_meal') {
                     return (
                       <MealActionCard
@@ -1619,11 +1856,24 @@ export function AiChatPanel({
           );
         })()}
 
-        {error && (
-          <div className="text-center text-xs text-red-500" dir="rtl">
-            שגיאה: {error}
-          </div>
-        )}
+        {error && (() => {
+          // Common browser/service-worker network failures ("Load failed",
+          // "Failed to fetch", "NetworkError") surface as raw TypeError text
+          // that means nothing to a user. Translate them once; anything else
+          // shows verbatim so a real backend error is still visible.
+          const raw = String(error);
+          const looksLikeNetwork =
+            /Load failed/i.test(raw) ||
+            /Failed to fetch/i.test(raw) ||
+            /NetworkError/i.test(raw) ||
+            /respondWith/i.test(raw) ||
+            /net::ERR_/i.test(raw);
+          return (
+            <div className="text-center text-xs text-red-500" dir="rtl">
+              {looksLikeNetwork ? 'החיבור נפל באמצע השיחה. נסה שוב עוד רגע.' : `שגיאה: ${error}`}
+            </div>
+          );
+        })()}
       </div>
 
       <div className="shrink-0 p-4 border-t border-subtle dark:bg-slate-950 bg-white pb-[max(env(safe-area-inset-bottom),1rem)]">
@@ -1690,7 +1940,13 @@ export function AiChatPanel({
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder={pendingImage ? 'שאל על התמונה (או שלח בלי טקסט)' : 'תאר תרגיל או בקש הצעה...'}
+            placeholder={
+              pendingImage
+                ? (mode === 'dietary' ? 'מה יש בתמונה? (או שלח בלי טקסט)' : 'שאל על התמונה (או שלח בלי טקסט)')
+                : mode === 'dietary' ? 'מה אכלת?'
+                : mode === 'naming'  ? 'שאל על שמות…'
+                : 'תאר תרגיל או בקש הצעה'
+            }
             className="input-field flex-1 !text-right !text-sm !py-2.5"
             dir="rtl"
             /* No autoFocus — otherwise iOS Safari pops the keyboard and hides the header. User can tap the input themselves. */

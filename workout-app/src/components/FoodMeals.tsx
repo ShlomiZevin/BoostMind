@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { PersonalMeal, Route } from '../types';
+import type { MealIngredient, PersonalMeal, Route } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 import { compressImage } from '../hooks/usePhotos';
 import { TopBar } from './TopBar';
@@ -153,10 +153,21 @@ function EditMealModal({
   const [he, setHe] = useState(meal.he);
   const [calories, setCalories] = useState(String(meal.calories));
   const [isAnchor, setIsAnchor] = useState(!!meal.isAnchor);
+  const [ingredients, setIngredients] = useState<MealIngredient[]>(meal.ingredients || []);
   const [photo, setPhoto] = useState(meal.photoBase64);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // With a breakdown, the headline is the sum of its parts — never a number
+  // that can drift away from the rows underneath it.
+  const total = ingredients.length > 0
+    ? ingredients.reduce((a, x) => a + x.calories, 0)
+    : Math.max(0, Number(calories) || 0);
+
+  function patchIngredient(i: number, next: Partial<MealIngredient>) {
+    setIngredients(prev => prev.map((x, k) => (k === i ? { ...x, ...next } : x)));
+  }
 
   async function save() {
     if (busy || !he.trim()) return;
@@ -166,7 +177,8 @@ function EditMealModal({
     await firestore.upsertPersonalMeal({
       ...meal,
       he: he.trim(),
-      calories: Math.max(0, Number(calories) || 0),
+      calories: total,
+      ingredients: ingredients.length > 0 ? ingredients : undefined,
       isAnchor,
       photoBase64: photo,
     });
@@ -214,16 +226,66 @@ function EditMealModal({
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-muted shrink-0">קלוריות למנה</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={calories}
-            onChange={e => setCalories(e.target.value)}
-            className="input-field flex-1 py-2 text-base"
-          />
+        {/* The breakdown. A DB entry is the MEAL — "פיתה ביס עם כבד קצוץ" —
+            and the parts inside it are what make the number checkable and
+            adjustable. Editing any row re-sums the total. */}
+        <div className="bg-subtle rounded-xl p-2.5 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-muted">מה יש בפנים</span>
+            <span className="text-[11px] font-bold font-mono" dir="ltr">{total}</span>
+          </div>
+
+          {ingredients.length === 0 && (
+            <div className="text-[11px] text-muted-more py-1">אין עדיין פירוט למנה הזו</div>
+          )}
+
+          {ingredients.map((ing, i) => (
+            <div key={i} className="flex items-center gap-2 text-[13px]">
+              <input
+                value={ing.he}
+                onChange={e => patchIngredient(i, { he: e.target.value })}
+                placeholder="מרכיב"
+                className="flex-1 bg-transparent focus:outline-none min-w-0"
+              />
+              <input
+                type="number"
+                inputMode="numeric"
+                value={ing.calories}
+                onChange={e => patchIngredient(i, { calories: Math.max(0, Number(e.target.value) || 0) })}
+                className="w-16 text-left bg-transparent font-mono focus:outline-none"
+                dir="ltr"
+              />
+              <button
+                onClick={() => setIngredients(prev => prev.filter((_, k) => k !== i))}
+                aria-label="הסר מרכיב"
+                className="text-muted-more hover:text-red-500 shrink-0"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M6 6l12 12M6 18L18 6" />
+                </svg>
+              </button>
+            </div>
+          ))}
+
+          <button
+            onClick={() => setIngredients(prev => [...prev, { he: '', calories: 0 }])}
+            className="text-[12px] font-semibold text-amber-600 dark:text-amber-400 pt-0.5"
+          >+ הוסף מרכיב</button>
         </div>
+
+        {/* Only meaningful without a breakdown — otherwise the sum rules. */}
+        {ingredients.length === 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] text-muted shrink-0">קלוריות למנה</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={calories}
+              onChange={e => setCalories(e.target.value)}
+              className="input-field flex-1 py-2 text-base"
+            />
+          </div>
+        )}
 
         <button
           onClick={() => setIsAnchor(v => !v)}

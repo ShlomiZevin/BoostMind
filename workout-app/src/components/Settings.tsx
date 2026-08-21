@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { Route, UserProfile } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
+import { restartTour } from './FirstRunTour';
+import { ReportsPanel } from './ReportsPanel';
+import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId } from '../config/aiModel';
 import { CloseAction } from './TopBarActions';
 import { auth } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
@@ -17,6 +20,17 @@ type Props = {
 
 export function Settings({ uid, navigate, onLogout }: Props) {
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const [aiModel, setAiModelState] = useState<AiModelId | undefined>(() => getAiModel());
+
+  async function chooseModel(m: AiModelId) {
+    // Selecting the default clears the override entirely, so the request goes
+    // out exactly as it did before this setting existed.
+    const override = m === DEFAULT_AI_MODEL ? null : m;
+    setAiModelState(override || undefined);
+    cacheAiModel(override || undefined);
+    await firestoreRef.current.setAiModelPref(override);
+  }
   const firestore = useFirestore(uid);
   const firestoreRef = useRef(firestore);
   firestoreRef.current = firestore;
@@ -93,6 +107,71 @@ export function Settings({ uid, navigate, onLogout }: Props) {
           </div>
           <button onClick={toggleTheme} className="btn-secondary px-4 py-2 text-sm">
             {isDark ? '☀️ בהיר' : '🌙 חשוך'}
+          </button>
+        </div>
+      </div>
+
+      {/* Owner-only. Gated on the same admin uid the exercise DB already uses,
+          which shlomi@boostart.io resolves to via EMAIL_TO_UID. */}
+      {firestore.isAdmin && (
+        <div className="card mb-4 border border-emerald-500/30" dir="rtl">
+          <div className="text-right mb-2">
+            <div className="font-medium">מודל ה-AI</div>
+            <div className="text-xs text-muted">חל על כל המאמנים וכל קריאות ה-AI באפליקציה</div>
+          </div>
+          <div className="space-y-1.5">
+            {AI_MODELS.map(m => {
+              const active = (aiModel || DEFAULT_AI_MODEL) === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => void chooseModel(m.id)}
+                  className={`w-full text-right px-3 py-2.5 rounded-xl border transition-colors ${
+                    active
+                      ? 'border-emerald-500/50 bg-emerald-500/10'
+                      : 'border-subtle bg-subtle'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[14px]">{m.label}</span>
+                    {m.id === DEFAULT_AI_MODEL && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-500/15 text-muted">ברירת מחדל</span>
+                    )}
+                    {active && <span className="text-emerald-600 dark:text-emerald-400 text-[13px] ms-auto">✓</span>}
+                  </div>
+                  <div className="text-[11px] text-muted mt-0.5">{m.note}</div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[10px] text-muted-more mt-2">
+            {aiModel ? 'שינוי חל על השיחה הבאה. אפשר לחזור בכל רגע.' : 'לא נבחר מודל — נשלח בדיוק כמו קודם.'}
+          </div>
+        </div>
+      )}
+
+      {firestore.isAdmin && (
+        <div className="card mb-4 border border-emerald-500/30">
+          <div className="flex items-center justify-between" dir="rtl">
+            <div className="text-right">
+              <div className="font-medium">דיווחי באגים ופיצ׳רים</div>
+              <div className="text-xs text-muted">רשום תוך כדי שימוש — במקום להעביר בוואטסאפ</div>
+            </div>
+            <button onClick={() => setReportsOpen(true)} className="btn-secondary px-4 py-2 text-sm">
+              פתח
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card mb-4">
+        <div className="flex items-center justify-between" dir="rtl">
+          <div className="text-right">
+            <div className="font-medium">סיור קצר באפליקציה</div>
+            <div className="text-xs text-muted">מעבר בין מקומות, המאמן, ולחיצה ארוכה</div>
+          </div>
+          <button onClick={() => restartTour(uid)} className="btn-secondary px-4 py-2 text-sm">
+            הצג שוב
           </button>
         </div>
       </div>
@@ -198,6 +277,8 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       </button>
 
       <ForgetMeCard onLogout={onLogout} />
+
+      {reportsOpen && <ReportsPanel uid={uid} onClose={() => setReportsOpen(false)} />}
 
       <div className="card mb-4">
         <div className="flex items-center justify-between" dir="rtl">

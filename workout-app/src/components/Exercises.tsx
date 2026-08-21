@@ -6,6 +6,7 @@ import { type PersonalExercise, exerciseIdOf } from '../data/exercisesDB';
 import { useFirestore } from '../hooks/useFirestore';
 import { prepareMedia, exercisePhotoKey } from '../hooks/usePhotos';
 import { CHAT_API_URL } from '../config/api';
+import { getAiModel } from '../config/aiModel';
 import { AiChatPanel } from './AiChatPanel';
 import { MigrateNames } from './MigrateNames';
 import { TopBar } from './TopBar';
@@ -40,6 +41,7 @@ export function Exercises({ uid, navigate }: Props) {
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [aiAddOpen, setAiAddOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const [historyStats, setHistoryStats] = useState<Map<string, { count: number; lastTs: number; sessionsCount: number }>>(new Map());
   const [defaultKeys, setDefaultKeys] = useState<Set<string>>(new Set());
   const isAdmin = uid === 'user_6724';
@@ -109,9 +111,24 @@ export function Exercises({ uid, navigate }: Props) {
 
   // No auto-migration. User explicitly imports or resets when they choose.
 
+  // Search across Hebrew name, English name, and aliases. Case-insensitive,
+  // works on partial matches so "בנץ" catches "בנץ ראשי" etc.
+  const filteredExercises = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return exercises;
+    return exercises.filter(ex => {
+      if (ex.he && ex.he.toLowerCase().includes(q)) return true;
+      if (ex.en && ex.en.toLowerCase().includes(q)) return true;
+      for (const a of ex.aliases || []) {
+        if (a && a.toLowerCase().includes(q)) return true;
+      }
+      return false;
+    });
+  }, [exercises, search]);
+
   const grouped = useMemo(() => {
     const map = new Map<MuscleParent, PersonalExercise[]>();
-    for (const ex of exercises) {
+    for (const ex of filteredExercises) {
       const m = MUSCLE_BY_ID[ex.defaultMuscle];
       if (!m) continue;
       const arr = map.get(m.parent) || [];
@@ -130,7 +147,9 @@ export function Exercises({ uid, navigate }: Props) {
       });
     }
     return map;
-  }, [exercises]);
+  }, [filteredExercises]);
+
+  const totalMatches = filteredExercises.length;
 
   function photoFor(ex: PersonalExercise): string | null {
     const k = exercisePhotoKey(ex.he);
@@ -202,33 +221,68 @@ export function Exercises({ uid, navigate }: Props) {
       )}
 
       {/* Sticky action bar — pins directly under the top nav so add/AI-add
-          are always one tap away regardless of scroll depth. Backdrop blur
-          + gradient wash keeps the row legible over any content below.
-          Fixed height (h-14 = 56px) so the muscle-group headers below can
-          precisely stack under it via calc(var(--top-bar-h) + 56px). */}
+          + search are always one tap away regardless of scroll depth.
+          Backdrop blur + gradient wash keeps the row legible over any content
+          below. When there are exercises the search row is included, so the
+          muscle-group headers below stack under it via
+          calc(var(--top-bar-h) + 108px). When empty (no search row) the header
+          rule isn't reached because there are no muscle sections to render. */}
       {!loading && (
         <div
-          className="sticky z-30 -mx-4 px-4 h-14 flex items-center backdrop-blur bg-gradient-to-b from-slate-50/95 to-slate-50/70 dark:from-slate-950/90 dark:to-slate-950/70 border-b border-violet-500/15"
+          className="sticky z-30 -mx-4 px-4 py-2 backdrop-blur bg-gradient-to-b from-slate-50/95 to-slate-50/70 dark:from-slate-950/90 dark:to-slate-950/70 border-b border-violet-500/15"
           style={{ top: 'var(--top-bar-h)' }}
         >
-          <div className="max-w-lg mx-auto w-full flex gap-2" dir="rtl">
-            <button
-              onClick={() => setAddExerciseOpen(true)}
-              className="flex-1 py-2.5 rounded-xl border border-violet-500/40 bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-sm font-semibold inline-flex items-center justify-center gap-1.5"
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              <span>הוסף תרגיל</span>
-            </button>
-            <button
-              onClick={() => setAiAddOpen(true)}
-              className="ai-orb-violet flex-1 py-2.5 px-4 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5"
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
-                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
-              </svg>
-              <span>הוסף עם AI</span>
-            </button>
+          <div className="max-w-lg mx-auto w-full flex flex-col gap-2" dir="rtl">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setAddExerciseOpen(true)}
+                className="flex-1 py-2.5 rounded-xl border border-violet-500/40 bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span>הוסף תרגיל</span>
+              </button>
+              <button
+                onClick={() => setAiAddOpen(true)}
+                className="ai-orb-violet flex-1 py-2.5 px-4 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                </svg>
+                <span>הוסף עם AI</span>
+              </button>
+            </div>
+            {exercises.length > 0 && (
+              <div className="relative">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-most pointer-events-none">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                </span>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="חיפוש תרגיל..."
+                  dir="rtl"
+                  className="w-full h-9 pr-9 pl-9 rounded-lg border border-subtle bg-white dark:bg-slate-900 text-sm placeholder:text-muted-most focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full inline-flex items-center justify-center text-muted hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-800"
+                    aria-label="נקה חיפוש"
+                    type="button"
+                  >
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
+        </div>
+      )}
+
+      {!loading && exercises.length > 0 && search.trim() && totalMatches === 0 && (
+        <div className="card text-center py-6 text-muted text-sm mt-4" dir="rtl">
+          לא נמצאו תרגילים בשם <span className="font-semibold">"{search.trim()}"</span>.
         </div>
       )}
 
@@ -241,10 +295,11 @@ export function Exercises({ uid, navigate }: Props) {
           <section key={parent} className="mb-4" dir="rtl">
             <div
               className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-950/95 dark:to-slate-950/85 border-b border-subtle"
-              // Stacks directly under the sticky action bar (56px tall) so
-              // the CURRENT muscle group header is always the one at the top
-              // of the viewport as the user scrolls between groups.
-              style={{ top: 'calc(var(--top-bar-h) + 56px)' }}
+              // Stacks directly under the sticky action bar (~108px with
+              // search row + buttons) so the CURRENT muscle group header is
+              // always the one at the top of the viewport as the user
+              // scrolls between groups.
+              style={{ top: 'calc(var(--top-bar-h) + 108px)' }}
             >
               <div className="max-w-lg mx-auto flex items-baseline justify-between">
                 <h2 className="inline-flex items-center gap-2 text-base font-bold">
@@ -477,6 +532,7 @@ export function Exercises({ uid, navigate }: Props) {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                model: getAiModel(),
                 uid,
                 exercises: [{
                   id: editing.id,

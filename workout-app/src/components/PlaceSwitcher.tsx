@@ -79,6 +79,7 @@ export function PlacePill() {
   return (
     <button
       onClick={ctx.openSheet}
+      data-tour="place"
       aria-haspopup="menu"
       aria-label={`מקום נוכחי: ${place.he} — החלף מקום`}
       title={place.he}
@@ -180,6 +181,13 @@ export function FabFan({
   // Slide-to-choose: track the finger across the scrim and fire whatever puck
   // it is over when it lifts. Pointer events cover touch and mouse alike.
   useEffect(() => {
+    try { window.getSelection()?.removeAllRanges(); } catch { /* older engines */ }
+    const stopSelect = (e: Event) => e.preventDefault();
+    document.addEventListener('selectstart', stopSelect);
+    return () => document.removeEventListener('selectstart', stopSelect);
+  }, []);
+
+  useEffect(() => {
     function pick(x: number, y: number): string | null {
       const el = document.elementFromPoint(x, y) as HTMLElement | null;
       return el?.closest<HTMLElement>('[data-puck]')?.dataset.puck || null;
@@ -223,7 +231,7 @@ export function FabFan({
   const angleAt = (i: number) => (n === 1 ? -90 : -90 + SPAN / 2 - (SPAN / (n - 1)) * i);
 
   return (
-    <div className="fixed inset-0 z-[55] dark:bg-black/70 bg-black/40 backdrop-blur-[2px]" onClick={onClose}>
+    <div className="fixed inset-0 z-30 dark:bg-black/70 bg-black/40 backdrop-blur-[2px] no-touch-select touch-none" onClick={onClose}>
       {/* Origin = FAB centre: tab row (56) − FAB rise (28) + half FAB (32). */}
       <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 60px)' }}>
         {items.map((it, i) => {
@@ -243,6 +251,8 @@ export function FabFan({
               }}
               className="absolute flex flex-col items-center gap-1.5 fan-puck"
               style={{
+                left: 0,
+                top: 0,
                 transform: `translate(calc(-50% + ${dx}px), calc(50% + ${dy}px))`,
                 animationDelay: `${i * 40}ms`,
               }}

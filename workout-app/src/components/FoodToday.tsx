@@ -19,10 +19,12 @@ type Props = {
 
 /** One aligned label/number line in the hero breakdown. */
 function Row({ label, value, prefix, tone }: { label: string; value: number; prefix?: string; tone?: string }) {
+  // A sign on zero reads as broken arithmetic ("−0"). Zero has no direction.
+  const sign = value === 0 ? '' : (prefix || '');
   return (
     <div className="flex items-baseline justify-between gap-2">
       <span>{label}</span>
-      <span className={`font-mono ${tone || ''}`} dir="ltr">{prefix}{value}</span>
+      <span className={`font-mono ${tone || ''}`} dir="ltr">{sign}{value}</span>
     </div>
   );
 }
@@ -39,6 +41,7 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
   const [editing, setEditing] = useState<MealLog | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<MealLog | null>(null);
+  const [confirmDuplicate, setConfirmDuplicate] = useState<MealLog | null>(null);
 
   const dayStart = startOfDay();
 
@@ -74,6 +77,22 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
   // Negative = deficit (good when losing). Only meaningful once a target exists.
   const balance = target != null ? eaten - burn - target : null;
   const cleanDay = todayLogs.length > 0 && !todayLogs.some(l => l.flags?.highSugar || l.flags?.emptyCarbs);
+
+  async function duplicate(l: MealLog) {
+    // Re-log the template as it was eaten: same per-serving calories, same
+    // breakdown, same serving size — only the clock moves.
+    const perServing = Math.round(l.calories / (l.servings || 1));
+    await firestoreRef.current.logMeal({
+      mealId: l.mealId,
+      he: l.name,
+      mealType: l.mealType,
+      caloriesPerServing: perServing,
+      servings: l.servings || 1,
+      ingredients: l.ingredients,
+      flags: l.flags,
+    });
+    await reload();
+  }
 
   async function reload() {
     const l = await firestoreRef.current.getMealLogs(dayStart - 7 * 86_400_000);
@@ -160,7 +179,9 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
                   ) : (
                     <>
                       <div>
-                        <div className={`text-[26px] font-bold font-mono leading-none ${over ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`} dir="ltr">
+                        {/* dir=ltr keeps the digits in order; text-right keeps
+                            it on the same edge as the breakdown rows below. */}
+                        <div className={`text-[26px] font-bold font-mono leading-none text-right ${over ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`} dir="ltr">
                           {Math.abs(remaining!)}
                         </div>
                         <div className="text-[11px] text-muted mt-0.5">
@@ -253,6 +274,17 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
                               <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
                             </svg>
                           </button>
+                          <button
+                            onClick={() => setConfirmDuplicate(l)}
+                            aria-label="שכפל"
+                            title="אכלתי את זה שוב"
+                            className="shrink-0 p-2 text-muted-more hover:text-amber-500"
+                          >
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="9" y="9" width="11" height="11" rx="2" />
+                              <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                            </svg>
+                          </button>
                           {/* Fast delete — still asks, because a mis-tap here
                               silently changes the day's total. */}
                           <button
@@ -275,6 +307,34 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
           )}
         </div>
       </div>
+
+      {confirmDuplicate && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center dark:bg-black/70 bg-black/40 p-4" onClick={() => setConfirmDuplicate(null)}>
+          <div className="card max-w-sm w-full text-right" dir="rtl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold mb-1">להוסיף שוב?</h3>
+            <p className="text-sm text-muted mb-1">
+              {confirmDuplicate.name}
+              {confirmDuplicate.servings !== 1 && <span> ×{confirmDuplicate.servings}</span>}
+              {' · '}
+              <span className="font-mono" dir="ltr">{confirmDuplicate.calories}</span> קק״ל
+            </p>
+            <p className="text-[12px] text-muted-more mb-4">
+              יתווסף עכשיו ({new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}) עם אותו פירוט וגודל מנה.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmDuplicate(null)} className="btn-secondary flex-1 py-3">ביטול</button>
+              <button
+                onClick={async () => {
+                  const l = confirmDuplicate;
+                  setConfirmDuplicate(null);
+                  await duplicate(l);
+                }}
+                className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold"
+              >הוסף שוב</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmDelete && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center dark:bg-black/70 bg-black/40 p-4" onClick={() => setConfirmDelete(null)}>

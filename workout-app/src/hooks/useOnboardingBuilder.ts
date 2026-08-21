@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { CHAT_API_URL } from '../config/api';
+import { getAiModel } from '../config/aiModel';
 import { useFirestore } from './useFirestore';
 import type { MuscleGroup } from '../data/muscles';
 import type { PlannedExercise } from '../types';
@@ -71,7 +72,7 @@ export function useOnboardingBuilder(uid: string) {
       const skelResp = await fetch(`${CHAT_API_URL.replace(/\/$/, '')}/api/onboarding/build-skeleton`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid, profile }),
+        body: JSON.stringify({ model: getAiModel(), uid, profile }),
       });
       if (!skelResp.ok) {
         const body = await skelResp.json().catch(() => ({}));
@@ -109,6 +110,7 @@ export function useOnboardingBuilder(uid: string) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              model: getAiModel(),
               uid,
               profile,
               day: { nameHe: day.nameHe, focusMuscles: day.focusMuscles },

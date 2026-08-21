@@ -1313,14 +1313,20 @@ function TodayTile({
   if (completed) {
     const realSetList = completed.sets.filter(s => s.weight > 0 || s.reps > 0);
     const uniq = new Set(realSetList.map(x => (x.exerciseName || '').toLowerCase()).filter(Boolean)).size;
+    const goToSession = () => onNavigate({ page: 'session-view', sessionId: completed.id });
     return (
       <div
-        className="w-full -mx-4 mb-0 px-4 py-3 text-right
+        className="w-full -mx-4 mb-0 px-4 py-3 text-right cursor-pointer
                    bg-gradient-to-l from-emerald-500/12 via-amber-500/6 to-transparent
                    dark:from-emerald-500/18 dark:via-amber-500/10
-                   border-b dark:border-emerald-500/25 border-emerald-500/25"
+                   border-b dark:border-emerald-500/25 border-emerald-500/25
+                   hover:from-emerald-500/20 dark:hover:from-emerald-500/25"
         style={{ width: 'calc(100% + 2rem)' }}
         dir="rtl"
+        role="button"
+        tabIndex={0}
+        onClick={goToSession}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToSession(); } }}
       >
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between gap-2">
@@ -1346,7 +1352,7 @@ function TodayTile({
               muscleTint="emerald"
             />
             <button
-              onClick={onReactivate}
+              onClick={(e) => { e.stopPropagation(); onReactivate(); }}
               className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-emerald-500/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold"
             >
               <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>

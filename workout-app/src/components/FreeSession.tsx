@@ -213,21 +213,45 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     // Mark "done" = every group whose superset (or itself, if unlinked) is NOT
     // the most recent one worked on. Only the current (top-most) exercise stays
     // in the active list; done ones sink to the bottom of the exercises panel.
+    // COMPLETED sessions (session.completedAt is set) have no "current" exercise
+    // anymore — everything moves to Done, including retroactively in history.
     if (uniq.length > 0) {
-      const topSs = (uniq[0].sets.find(s => s.supersetGroup) || {}).supersetGroup;
-      const topKey = `${uniq[0].muscle}::${uniq[0].exerciseName.toLowerCase()}`;
-      for (let i = 0; i < uniq.length; i++) {
-        const g = uniq[i];
-        const gSs = (g.sets.find(s => s.supersetGroup) || {}).supersetGroup;
-        const key = `${g.muscle}::${g.exerciseName.toLowerCase()}`;
-        // "Current" set = shares a superset with the top group, OR IS the top
-        // group. Every other logged exercise is "done".
-        const isCurrent = topSs ? gSs === topSs : key === topKey;
-        g.done = !isCurrent;
+      const sessionDone = session.completedAt != null;
+      if (sessionDone) {
+        for (const g of uniq) g.done = true;
+      } else {
+        const topSs = (uniq[0].sets.find(s => s.supersetGroup) || {}).supersetGroup;
+        const topKey = `${uniq[0].muscle}::${uniq[0].exerciseName.toLowerCase()}`;
+        for (let i = 0; i < uniq.length; i++) {
+          const g = uniq[i];
+          const gSs = (g.sets.find(s => s.supersetGroup) || {}).supersetGroup;
+          const key = `${g.muscle}::${g.exerciseName.toLowerCase()}`;
+          // "Current" set = shares a superset with the top group, OR IS the top
+          // group. Every other logged exercise is "done".
+          const isCurrent = topSs ? gSs === topSs : key === topKey;
+          g.done = !isCurrent;
+        }
       }
     }
     return uniq;
   }, [session]);
+
+  // Names already present in the session (from logged sets + planned exercises).
+  // Fed to LogSetModal so the picker hides exercises the session already has —
+  // both live (with sets) and planned (no sets yet) count.
+  const excludeExerciseNames = useMemo<string[]>(() => {
+    if (!session) return [];
+    const s = new Set<string>();
+    for (const g of groupedSets) {
+      const n = g.exerciseName?.trim();
+      if (n) s.add(n);
+    }
+    for (const p of (session.plannedExercises || [])) {
+      const n = p.name?.trim();
+      if (n) s.add(n);
+    }
+    return [...s];
+  }, [session, groupedSets]);
 
   // Assign a stable palette color to each unique superset id encountered in this session.
   // First-seen id gets palette[0] (indigo, label 'A'), next gets palette[1], etc.
@@ -416,7 +440,15 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     // ALWAYS scroll to top after a save (not only when the timer starts).
     // Users' complaint: after adding a set they were left at whatever scroll
     // depth they'd tapped from, having to scroll manually to see the update.
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Two RAFs — the modal (which locks body scroll via useBodyScrollLock)
+    // hasn't unmounted yet at this call site; scrolling before it unmounts is
+    // a no-op on iOS. First RAF waits for React commit, second waits for the
+    // body-overflow style to actually clear so the smooth scroll kicks in.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
   }
 
   function openChatWith(
@@ -1126,6 +1158,7 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
         <LogSetModal
           uid={uid}
           sessionMuscles={session.muscleGroups}
+          excludeExerciseNames={excludeExerciseNames}
           defaultMuscle={
             // For manual REPLACE, seed the picker with the SAME muscle as the
             // exercise being replaced — most replacements target the same
@@ -1933,6 +1966,34 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           {(() => {
             const doneGroups = groupedSets.filter(g => g.done);
             if (doneGroups.length === 0) return null;
+
+            // Build explicit clusters BEFORE rendering: consecutive done groups
+            // sharing a superset id collapse into one cluster with a single
+            // bordered wrapper; everything else is a single-group cluster. This
+            // replaces the older -mt-3 dance that tried to hide `space-y-3`
+            // gaps INSIDE a superset chain — which the screenshot in
+            // rep_1787309255831_izz7 shows was breaking when adjacent members
+            // were rendered via sibling Fragments (space-y flattened across
+            // Fragment boundaries and split the frame visually).
+            const clusters: {
+              ssId: string | null;
+              ssColor: SsColor | null;
+              groups: typeof doneGroups;
+            }[] = [];
+            for (const g of doneGroups) {
+              const ssId = groupSsId(g);
+              const last = clusters[clusters.length - 1];
+              if (ssId && last && last.ssId === ssId) {
+                last.groups.push(g);
+              } else {
+                clusters.push({
+                  ssId,
+                  ssColor: ssId ? ssColorById.get(ssId) || null : null,
+                  groups: [g],
+                });
+              }
+            }
+
             return (
               <div className="mt-5" dir="rtl">
                 <div className="flex items-center gap-2 mb-2 opacity-70">
@@ -1940,85 +2001,63 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                   <span className="flex-1 h-px bg-subtle" />
                   <span className="text-[10px] text-muted-most">{doneGroups.length}</span>
                 </div>
-                {/* space-y-3 gives a real visual gap between done cards,
-                    which was invisible before: anchor cards use bg-slate-100
-                    and the page bg is bg-slate-50 in light mode — nearly the
-                    same tone, so mb-2 between them looked like no gap at all.
-                    Cards inside a superset chain neutralize this via -mt-3 on
-                    non-first-in-ss members below. */}
+                {/* space-y-3 gives a real visual gap between clusters. Cluster
+                    internals (superset chains) are one wrapping div now, so
+                    space-y-3 no longer reaches inside them. */}
                 <div className="space-y-3">
-                  {doneGroups.map((g, di) => {
-                    const m = MUSCLE_BY_ID[g.muscle];
-                    if (!m) return null;
-                    const c = MUSCLE_CLASSES[m.color];
-                    const personal = g.exerciseName ? findPersonalByName(personalExercises, g.exerciseName) : null;
-                    const enName = personal?.en;
-                    const isHold = !!personal?.isHoldTime;
-                    const realSetCount = g.sets.filter(s => s.weight > 0 || s.reps > 0).length;
-                    // Superset grouping: adjacent done members of the same ss
-                    // should render inside one bordered panel, mirroring the
-                    // active view's grouping so the reader sees the pair kept
-                    // its identity even after being moved to "בוצעו".
-                    const doneSsId = groupSsId(g);
-                    const doneSsColor = doneSsId ? ssColorById.get(doneSsId) : null;
-                    const doneSsTotal = doneSsId
-                      ? doneGroups.filter(x => groupSsId(x) === doneSsId).length
-                      : 0;
-                    const doneSsIdx = doneSsId
-                      ? doneGroups.filter(x => groupSsId(x) === doneSsId).indexOf(g) + 1
-                      : 0;
-                    const prevDoneSs = di > 0 ? groupSsId(doneGroups[di - 1]) : null;
-                    const nextDoneSs = di < doneGroups.length - 1 ? groupSsId(doneGroups[di + 1]) : null;
-                    const isFirstInDoneSs = !!doneSsId && doneSsId !== prevDoneSs;
-                    const isLastInDoneSs = !!doneSsId && doneSsId !== nextDoneSs;
-                    // Divider between adjacent done ss members (same shape as
-                    // the active/planned dividers so the pattern is consistent).
-                    const showDoneSsDivider = !!doneSsId && !isFirstInDoneSs;
-                    void doneSsIdx; // kept for future use if we want position label
+                  {clusters.map((cluster, ci) => {
+                    const cSize = cluster.groups.length;
+                    const isCluster = !!cluster.ssColor && cSize >= 1;
                     return (
-                      <Fragment key={`done:${g.muscle}::${g.exerciseName.toLowerCase()}`}>
-                      {showDoneSsDivider && doneSsColor && (
-                        <div
-                          aria-hidden="true"
-                          className={`border-x-2 ${doneSsColor.border} px-4 opacity-80 -mt-3`}
-                        >
-                          <div className={`h-px w-full ${doneSsColor.badgeBg} opacity-70`} />
-                        </div>
-                      )}
-                      {/* Muted superset header — same shape as the active version, dimmed. */}
-                      {isFirstInDoneSs && doneSsColor && (
-                        <div className={`px-3 py-1 rounded-t-2xl border-2 border-b-0 ${doneSsColor.border} ${doneSsColor.badgeBg} opacity-80 flex items-center gap-2`} dir="rtl">
-                          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={doneSsColor.badgeText}>
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                          </svg>
-                          <span className={`text-[10px] font-bold ${doneSsColor.badgeText}`}>
-                            <span>סופרסט </span>
-                            <bdi>{doneSsColor.label}</bdi>
-                            <span> · </span>
-                            <bdi>{doneSsTotal}</bdi>
-                            <span> תרגילים · בוצעו</span>
-                          </span>
-                        </div>
-                      )}
-                      {(() => {
-                        const gDoneAnchor = !!findPersonalByName(personalExercises, g.exerciseName)?.isAnchor;
-                        const anchorTint = gDoneAnchor
-                          ? '!bg-slate-100 dark:!bg-slate-800'
-                          : '';
-                        return (
                       <div
-                        // In-ss non-first cards: cancel the space-y-3 gap so
-                        // superset members visually chain together. In-ss
-                        // first card: also gets -mt-3 because the header
-                        // above it should sit flush with the card body.
-                        // Non-ss and last-in-ss cards get NO negative margin,
-                        // so they take the full space-y-3 gap.
+                        key={`done-cluster:${ci}:${cluster.ssId || 'solo'}:${cluster.groups[0].muscle}::${cluster.groups[0].exerciseName.toLowerCase()}`}
+                        className={isCluster ? `rounded-2xl border-2 ${cluster.ssColor!.border} overflow-hidden` : ''}
+                        dir="rtl"
+                      >
+                        {/* Superset header — only for ss clusters. Same shape as active. */}
+                        {isCluster && cluster.ssColor && (
+                          <div className={`px-3 py-1 ${cluster.ssColor.badgeBg} opacity-80 flex items-center gap-2`} dir="rtl">
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={cluster.ssColor.badgeText}>
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                            <span className={`text-[10px] font-bold ${cluster.ssColor.badgeText}`}>
+                              <span>סופרסט </span>
+                              <bdi>{cluster.ssColor.label}</bdi>
+                              <span> · </span>
+                              <bdi>{cSize}</bdi>
+                              <span> תרגילים · בוצעו</span>
+                            </span>
+                          </div>
+                        )}
+                        {cluster.groups.map((g, i) => {
+                          const m = MUSCLE_BY_ID[g.muscle];
+                          if (!m) return null;
+                          const c = MUSCLE_CLASSES[m.color];
+                          const personal = g.exerciseName ? findPersonalByName(personalExercises, g.exerciseName) : null;
+                          const enName = personal?.en;
+                          const isHold = !!personal?.isHoldTime;
+                          const realSetCount = g.sets.filter(s => s.weight > 0 || s.reps > 0).length;
+                          const gDoneAnchor = !!personal?.isAnchor;
+                          const anchorTint = gDoneAnchor
+                            ? '!bg-slate-100 dark:!bg-slate-800'
+                            : '';
+                          const isFirstOfCluster = i === 0;
+                          const showDoneSsDivider = isCluster && !isFirstOfCluster;
+                          return (
+                            <Fragment key={`done:${g.muscle}::${g.exerciseName.toLowerCase()}`}>
+                            {showDoneSsDivider && cluster.ssColor && (
+                              <div
+                                aria-hidden="true"
+                                className={`${cluster.ssColor.badgeBg} px-4 opacity-70`}
+                              >
+                                <div className={`h-px w-full ${cluster.ssColor.badgeBg} opacity-80`} />
+                              </div>
+                            )}
+                      <div
                         className={`relative px-4 py-3 opacity-90 dark:bg-slate-900/60 bg-slate-100/60 ${anchorTint} ${
-                          doneSsColor
-                            ? `border-2 ${doneSsColor.border} rounded-t-none border-t-0 -mt-3 ${
-                                isLastInDoneSs ? 'rounded-b-2xl' : 'rounded-b-none border-b-0'
-                              }`
+                          isCluster
+                            ? '' // border comes from cluster wrapper
                             : 'rounded-2xl border border-subtle'
                         }`}
                         dir="rtl"
@@ -2128,9 +2167,10 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                           >+ סט נוסף</button>
                         </div>
                       </div>
-                        );
-                      })()}
-                      </Fragment>
+                            </Fragment>
+                          );
+                        })}
+                      </div>
                     );
                   })}
                 </div>

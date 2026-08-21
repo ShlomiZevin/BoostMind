@@ -115,9 +115,10 @@ export function TabBar({ current, place, onNavigate, hasInProgress, onFabClick, 
             onPointerLeave={pressCancel}
             onPointerCancel={pressCancel}
             onContextMenu={(e) => e.preventDefault()}
+            data-tour="fab"
             aria-label={fabLabel}
             className={`absolute -top-7 w-16 h-16 rounded-full flex items-center justify-center
-                       text-white font-bold ${fab.shadow} select-none touch-none
+                       text-white font-bold ${fab.shadow} no-touch-select touch-none
                        transition-transform active:scale-95 hover:scale-105
                        ${hasInProgress && place === 'exercise' ? fab.live : fab.base}`}
             style={{ WebkitTapHighlightColor: 'transparent' }}

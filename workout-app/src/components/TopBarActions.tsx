@@ -61,6 +61,7 @@ export function AiTrainerAction() {
   return (
     <button
       onClick={openPanel}
+      data-tour="ai"
       aria-label="מאמן AI"
       title="מאמן AI"
       className={`relative h-10 px-3 rounded-full inline-flex items-center gap-1 font-bold text-[13px] transition-colors focus:outline-none ${
@@ -132,6 +133,7 @@ export function FoodAiAction({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
+      data-tour="ai"
       aria-label="מאמן תזונה"
       title="מאמן תזונה"
       className="relative h-10 px-3 rounded-full inline-flex items-center gap-1 font-bold text-[13px] transition-colors bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:bg-amber-500/25 focus:outline-none"

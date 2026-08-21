@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { MealLog, Route, UserProfile } from '../types';
+import type { FreeSession, MealLog, Route, UserProfile } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { FoodAiAction, SettingsGearAction } from './TopBarActions';
-import { caloriesOn, effectiveTargetOf, startOfDay } from '../data/diet';
+import { caloriesOn, effectiveTargetOf, estimateBurn, startOfDay } from '../data/diet';
 
 type Props = { uid: string; navigate: (r: Route) => void; refreshKey?: number; onOpenChat: () => void };
 
@@ -77,35 +77,95 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
 
   const [logs, setLogs] = useState<MealLog[]>([]);
   const [profile, setProfile] = useState<UserProfile>({});
+  const [sessions, setSessions] = useState<FreeSession[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [range, setRange] = useState<RangeKey>('last-7d');
+  const [metric, setMetric] = useState<'eaten' | 'burned' | 'net'>('eaten');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [l, p] = await Promise.all([
+      const [l, p, ss] = await Promise.all([
         firestoreRef.current.getMealLogs(startOfDay() - 120 * 86_400_000),
         firestoreRef.current.getUserProfile(),
+        firestoreRef.current.getFreeSessions(),
       ]);
       if (cancelled) return;
-      setLogs(l); setProfile(p); setLoaded(true);
+      setLogs(l); setProfile(p); setSessions(ss); setLoaded(true);
     })().catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
   }, [uid, refreshKey]);
 
   const target = effectiveTargetOf(profile.diet);
 
+  // Burn per day, from that day's actual training.
+  const burnOn = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const d of daysOfRange(range)) {
+      const dayEnd = d + 86_400_000;
+      const todays = sessions.filter(x => {
+        const t = x.completedAt || x.date;
+        return t >= d && t < dayEnd;
+      });
+      map.set(d, estimateBurn(todays, profile.diet?.weightKg));
+    }
+    return map;
+  }, [sessions, range, profile.diet?.weightKg]);
+
   const series = useMemo(() => {
-    return daysOfRange(range).map(d => ({
-      day: d,
-      kcal: caloriesOn(logs, d),
-      dow: new Date(d).toLocaleDateString('he-IL', { weekday: 'narrow' }),
-    }));
-  }, [logs, range]);
+    return daysOfRange(range).map(d => {
+      const kcal = caloriesOn(logs, d);
+      // Burn only counts on days you also logged food. A day with training and
+      // no meals isn't a 2,000-calorie deficit — it's a day you didn't track,
+      // and treating it as data made the totals meaningless.
+      const burn = kcal > 0 ? (burnOn.get(d) || 0) : 0;
+      return {
+        day: d,
+        kcal,
+        burn,
+        net: kcal - burn,
+        dow: new Date(d).toLocaleDateString('he-IL', { weekday: 'narrow' }),
+      };
+    });
+  }, [logs, range, burnOn]);
 
   const hasData = series.some(d => d.kcal > 0);
+
+  const METRICS = [
+    { id: 'eaten' as const, he: 'נאכל', pick: (d: typeof series[number]) => d.kcal },
+    { id: 'burned' as const, he: 'נשרף', pick: (d: typeof series[number]) => d.burn },
+    { id: 'net' as const, he: 'נטו', pick: (d: typeof series[number]) => d.net },
+  ];
+  const activeMetric = METRICS.find(m => m.id === metric)!;
+
+  // The range as a whole — this page is where you read the long game, so the
+  // totals matter more than any single bar.
+  const totals = useMemo(() => {
+    const logged = series.filter(d => d.kcal > 0);
+    const eaten = series.reduce((a, d) => a + d.kcal, 0);
+    // series.burn is already zeroed on untracked days.
+    const burned = series.reduce((a, d) => a + d.burn, 0);
+    const goal = target != null ? target * logged.length : null;
+    // Negative = deficit. Only counts days you actually logged, otherwise an
+    // untracked day would read as a huge fake deficit.
+    const net = goal == null ? null : eaten - burned - goal;
+    return { eaten, burned, goal, net, days: logged.length };
+  }, [series, target]);
   // A sensible ceiling even on an empty range, so the axis never reads 0/0/0.
-  const maxKcal = Math.max(target || 0, ...series.map(w => w.kcal), 500);
+  // 'net' draws eaten with the burned part stacked on top, so its ceiling is
+  // driven by eaten — scaling by the net value alone squashed the bars.
+  const maxKcal = Math.max(
+    metric === 'burned' ? 0 : (target || 0),
+    ...series.map(d => (metric === 'burned' ? d.burn : Math.max(d.kcal, Math.abs(d.net)))),
+    500,
+  );
+
+  // Average across tracked days only, for the reference line.
+  const avgValue = useMemo(() => {
+    const tracked = series.filter(d => d.kcal > 0);
+    if (tracked.length === 0) return 0;
+    return Math.round(tracked.reduce((a, d) => a + activeMetric.pick(d), 0) / tracked.length);
+  }, [series, metric]);
 
   const deficitStreak = target != null
     ? streakOf(logs, dl => dl.reduce((a, x) => a + x.calories, 0) <= target)
@@ -121,16 +181,85 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
           <div className="text-[12px] text-muted py-8 text-center">טוען…</div>
         ) : (
           <>
+            {/* Range summary — burn, goal, and where the deficit actually stands */}
             <div className="card">
-              <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-[12px] font-bold text-muted mb-3">סיכום התקופה</h2>
+              {totals.days === 0 ? (
+                <div className="py-4 text-center text-[12px] text-muted">אין ימים עם רישום בטווח הזה</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-[19px] font-bold font-mono" dir="ltr">{totals.eaten.toLocaleString()}</div>
+                      <div className="text-[10px] text-muted mt-0.5">נאכל</div>
+                    </div>
+                    <div>
+                      <div className="text-[19px] font-bold font-mono text-emerald-600 dark:text-emerald-400" dir="ltr">{totals.burned.toLocaleString()}</div>
+                      <div className="text-[10px] text-muted mt-0.5">נשרף באימונים</div>
+                    </div>
+                    <div>
+                      <div className="text-[19px] font-bold font-mono" dir="ltr">{totals.goal != null ? totals.goal.toLocaleString() : '—'}</div>
+                      <div className="text-[10px] text-muted mt-0.5">יעד ({totals.days} ימים)</div>
+                    </div>
+                  </div>
+
+                  {totals.net != null && (
+                    <div className="mt-3 pt-3 border-t border-subtle flex items-baseline justify-between">
+                      <span className="text-[12px] text-muted">
+                        {totals.net <= 0 ? 'גירעון מצטבר' : 'עודף מצטבר'}
+                      </span>
+                      <span className="text-right">
+                        <span className={`text-[22px] font-bold font-mono ${totals.net <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`} dir="ltr">
+                          {Math.abs(totals.net).toLocaleString()}
+                        </span>
+                        <span className="text-[11px] text-muted"> קק״ל</span>
+                        {/* ~7,700 kcal ≈ 1kg of body fat — the number people
+                            actually care about behind the calorie count. */}
+                        <span className="block text-[10px] text-muted-more">
+                          {'\u2248'} {(Math.abs(totals.net) / 7700).toFixed(2)} ק״ג {totals.net <= 0 ? 'ירידה' : 'עלייה'}
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {totals.net == null && (
+                    <div className="mt-3 pt-3 border-t border-subtle text-[11px] text-muted text-center">
+                      הגדר יעד קלורי כדי לראות את הגירעון המצטבר
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="card">
+              {/* Title and its average belong together on the RTL start edge —
+                  justify-between flung the average to the far left, where it
+                  read as part of the Y axis. */}
+              <div className="mb-3">
                 <h2 className="text-[12px] font-bold text-muted">קלוריות ליום</h2>
                 {hasData && (
-                  <span className="text-[10px] text-muted-more">
-                    ממוצע <span className="font-mono" dir="ltr">
-                      {Math.round(series.reduce((a, d) => a + d.kcal, 0) / Math.max(1, series.filter(d => d.kcal > 0).length))}
-                    </span>
-                  </span>
+                  <div className="text-[10px] text-muted-more mt-0.5">
+                    ממוצע {activeMetric.he}{' '}
+                    <span className="font-mono" dir="ltr">
+                      {Math.round(
+                        series.filter(d => d.kcal > 0).reduce((a, d) => a + activeMetric.pick(d), 0)
+                        / Math.max(1, series.filter(d => d.kcal > 0).length),
+                      )}
+                    </span>{' '}קק״ל
+                  </div>
                 )}
+              </div>
+
+              {/* Which series to draw */}
+              <div className="flex gap-1.5 mb-4">
+                {METRICS.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => setMetric(m.id)}
+                    className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                      metric === m.id ? 'bg-amber-500 text-white' : 'bg-subtle text-muted'
+                    }`}
+                  >{m.he}</button>
+                ))}
               </div>
 
               {!hasData ? (
@@ -138,50 +267,99 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                   אין עדיין נתונים בטווח הזה
                 </div>
               ) : (
-                /* RTL: axis on the RIGHT, newest day on the LEFT, so the chart
-                   reads in the same direction as the text around it. */
+                /* A chart is a chart: axis on the LEFT, time flowing left to
+                   right, regardless of the surrounding RTL text. Flipping it
+                   for RTL made it harder to read, not easier. */
                 <>
                   <div className="flex gap-2" dir="ltr">
-                    <div className="flex-1 relative h-36 flex items-end justify-between gap-[3px]">
+                    <div className="relative w-9 shrink-0 h-36 mt-2">
+                      {[1, 0.75, 0.5, 0.25, 0].map(f => (
+                        <span key={f} className="absolute right-1 -translate-y-1/2 text-[9px] text-muted-more font-mono" style={{ bottom: `${f * 100}%` }}>
+                          {Math.round(maxKcal * f)}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex-1 relative h-36 mt-2 flex items-end justify-between gap-[3px]">
                       {[0.25, 0.5, 0.75, 1].map(f => (
                         <span key={f} className="absolute left-0 right-0 border-t border-slate-200/60 dark:border-slate-800/60 pointer-events-none" style={{ bottom: `${f * 100}%` }} />
                       ))}
-                      {target != null && target <= maxKcal && (
-                        <span className="absolute left-0 right-0 border-t-2 border-dashed border-amber-500/70 pointer-events-none" style={{ bottom: `${(target / maxKcal) * 100}%` }} />
+                      {/* Target — meaningful against intake, so shown on both
+                          נאכל and נטו, never against raw burn. */}
+                      {metric !== 'burned' && target != null && target <= maxKcal && (
+                        <span className="absolute left-0 right-0 border-t-2 border-dashed border-amber-500/80 pointer-events-none z-20" style={{ bottom: `${(target / maxKcal) * 100}%` }}>
+                          <span className="absolute right-0 -top-[7px] px-1 rounded bg-amber-500 text-white text-[8px] font-bold font-mono leading-[13px]">
+                            {target}
+                          </span>
+                        </span>
                       )}
-                      {[...series].reverse().map(d => {
-                        const pct = (d.kcal / maxKcal) * 100;
-                        const over = target != null && d.kcal > target;
+                      {/* Average of the tracked days in this range. */}
+                      {avgValue > 0 && avgValue <= maxKcal && (
+                        <span className="absolute left-0 right-0 border-t border-dashed border-slate-400/80 pointer-events-none z-20" style={{ bottom: `${(avgValue / maxKcal) * 100}%` }}>
+                          <span className="absolute left-0 -top-[7px] px-1 rounded bg-slate-500 text-white text-[8px] font-bold font-mono leading-[13px]">
+                            {avgValue}
+                          </span>
+                        </span>
+                      )}
+                      {series.map(d => {
+                        const untracked = d.kcal === 0;
+                        if (untracked) {
+                          return (
+                            <div key={d.day} className="flex-1 h-full flex flex-col justify-end relative z-10">
+                              <div className="w-full rounded-t bg-slate-200 dark:bg-slate-800" style={{ height: '2%' }} />
+                            </div>
+                          );
+                        }
+                        if (metric === 'net') {
+                          // Eaten is the full bar; the burned share sits on top in
+                          // sky, literally eating into it. What's left underneath
+                          // is the net — which is the number that counts.
+                          const netPct = (Math.max(d.net, 0) / maxKcal) * 100;
+                          const burnPct = (Math.min(d.burn, d.kcal) / maxKcal) * 100;
+                          const over = target != null && d.net > target;
+                          return (
+                            <div key={d.day} className="flex-1 h-full flex flex-col justify-end relative z-10" title={`נאכל ${d.kcal} · נשרף ${d.burn} · נטו ${d.net}`}>
+                              {burnPct > 0 && (
+                                <div className="w-full rounded-t bg-sky-500/70" style={{ height: `${burnPct}%` }} />
+                              )}
+                              <div
+                                className={`w-full ${burnPct > 0 ? '' : 'rounded-t'} ${over ? 'bg-red-400' : 'bg-emerald-500'}`}
+                                style={{ height: `${Math.max(netPct, 3)}%` }}
+                              />
+                            </div>
+                          );
+                        }
+                        const v = activeMetric.pick(d);
+                        const pct = (Math.abs(v) / maxKcal) * 100;
+                        const over = metric === 'eaten' && target != null && d.kcal > target;
+                        const tone = metric === 'burned' ? 'bg-sky-500'
+                          : over ? 'bg-red-400'
+                          : 'bg-emerald-500';
                         return (
                           <div key={d.day} className="flex-1 h-full flex flex-col justify-end relative z-10">
                             <div
-                              className={`w-full rounded-t ${
-                                d.kcal === 0 ? 'bg-slate-200 dark:bg-slate-800'
-                                  : over ? 'bg-red-400' : 'bg-emerald-500'
-                              }`}
-                              style={{ height: `${d.kcal === 0 ? 2 : Math.max(pct, 3)}%` }}
-                              title={`${d.kcal}`}
+                              className={`w-full rounded-t ${tone}`}
+                              style={{ height: `${Math.max(pct, 3)}%` }}
+                              title={`${v}`}
                             />
                           </div>
                         );
                       })}
                     </div>
-                    <div className="relative w-9 shrink-0 h-36">
-                      {[1, 0.75, 0.5, 0.25, 0].map(f => (
-                        <span key={f} className="absolute left-1 -translate-y-1/2 text-[9px] text-muted-more font-mono" style={{ bottom: `${f * 100}%` }}>
-                          {Math.round(maxKcal * f)}
-                        </span>
-                      ))}
-                    </div>
                   </div>
+                  {metric === 'net' && (
+                    <div className="flex items-center justify-center gap-3 mt-2 text-[9px] text-muted" dir="rtl">
+                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500" /> נטו</span>
+                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-sky-500/70" /> נשרף באימון</span>
+                    </div>
+                  )}
                   {series.length <= 14 && (
                     <div className="flex gap-2 mt-1" dir="ltr">
+                      <span className="w-9 shrink-0" />
                       <div className="flex-1 flex justify-between gap-[3px]">
-                        {[...series].reverse().map(d => (
+                        {series.map(d => (
                           <span key={d.day} className="flex-1 text-center text-[8px] text-muted-more">{d.dow}</span>
                         ))}
                       </div>
-                      <span className="w-9 shrink-0" />
                     </div>
                   )}
                 </>

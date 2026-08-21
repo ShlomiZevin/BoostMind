@@ -4,6 +4,7 @@ import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID } from '../data/muscles';
 import { useFirestore } from '../hooks/useFirestore';
 import { CHAT_API_URL } from '../config/api';
+import { getAiModel } from '../config/aiModel';
 
 type Suggestion = {
   id: string;
@@ -54,6 +55,7 @@ export function MigrateNames({ uid, exercises, onClose, onDone }: Props) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              model: getAiModel(),
               uid,
               exercises: chunk.map(e => ({
                 id: e.id,

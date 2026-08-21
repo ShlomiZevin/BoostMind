@@ -6,6 +6,16 @@ const PORT = process.env.PORT || 8080;
 // Opus 5 for higher-quality Hebrew — the extra cost is worth it for the
 // user-facing conversational modes. Override with CLAUDE_MODEL if needed.
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
+
+// Per-request model override. Allow-listed on purpose: the body is client-sent,
+// and an arbitrary model string would be both a 404 waiting to happen and a way
+// to bill an unexpected tier. No override → CLAUDE_MODEL, i.e. today's
+// behaviour, so a client that never sends the field is unaffected.
+const ALLOWED_MODELS = new Set(['claude-opus-5', 'claude-sonnet-5']);
+function modelFor(req) {
+  const m = req && req.body && req.body.model;
+  return ALLOWED_MODELS.has(m) ? m : CLAUDE_MODEL;
+}
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 if (!ANTHROPIC_API_KEY) {
@@ -665,6 +675,33 @@ app.post('/api/chat', async (req, res) => {
       "פרק תמיד למרכיבים עם מספר לכל אחד; calories = הסכום שלהם.",
       "אל תמציא מספרים כשאין לך מושג — תשאל שאלה קצרה אחת במקום.",
       "",
+      "== לעדכן את הפרופיל שלו ==",
+      "ברגע שאתה לומד נתון — משקל, גובה, גיל, מין, רמת פעילות, מטרה, או העדפה",
+      "כמו 'אני לא אוכל סוכר' — הצע לעדכן אותו:",
+      "```action",
+      "{\"type\":\"update_diet_profile\",\"patch\":{\"weightKg\":78,\"goal\":\"lose\"}}",
+      "```",
+      "מפתחות חוקיים: goal (lose|maintain|gain), weightKg, heightCm, age,",
+      "gender (male|female|other), activityMultiplier (1.2 | 1.375 | 1.55 | 1.725 | 1.9),",
+      "avoidSugar, avoidEmptyCarbs, constraints.",
+      "אל תשאל את כל השאלות בבת אחת — זו שיחה, לא טופס. שאלה אחת בכל פעם,",
+      "ורק כשהיא רלוונטית למה שדובר.",
+      "גם זה כרטיס אישור — שום דבר לא נשמר עד שהמשתמש לוחץ.",
+      "אל תכתוב 'עדכנתי' / 'שמרתי' — עוד לא שמרת כלום.",
+      "",
+      "== לקבוע יעד קלורי ==",
+      "כשיש לך מספיק נתונים (משקל, גובה, גיל, פעילות ומטרה) — חשב והצע יעד:",
+      "  BMR (Mifflin-St Jeor): גבר 10w+6.25h-5a+5 · אישה 10w+6.25h-5a-161",
+      "  TDEE = BMR × מכפיל הפעילות",
+      "  ירידה: TDEE-500 · שמירה: TDEE · עלייה: TDEE+300",
+      "```action",
+      "{\"type\":\"set_calorie_target\",\"target\":1750,\"reason\":\"BMR 1750 × 1.4 פחות 500\"}",
+      "```",
+      "זה כרטיס אישור — היעד לא משתנה עד שהמשתמש לוחץ. נסח בהתאם:",
+      "  ✅ 'הנה היעד שיצא לי — אשר למטה אם זה נראה לך'",
+      "  ❌ 'עדכנתי לך את היעד' (עוד לא עדכנת כלום)",
+      "לפני הבלוק — משפט קצר אחד שמסביר מאיפה המספר הגיע.",
+      "",
       "== שאלות סגורות ==",
       "כששאלה שלך היא בחירה מתוך כמה אפשרויות, תן צ'יפים:",
       "```action",
@@ -742,7 +779,7 @@ app.post('/api/chat', async (req, res) => {
       let text = '';
       try {
         const stream = anthropic.messages.stream({
-          model: CLAUDE_MODEL,
+          model: modelFor(req),
           max_tokens: 4000,
           system: systemPrompt,
           messages: anthropicMessages,
@@ -793,7 +830,7 @@ app.post('/api/chat', async (req, res) => {
 
     // ─── Non-streaming path (kept for older clients) ─────────────
     const claudeResp = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
+      model: modelFor(req),
       max_tokens: 4000,
       system: systemPrompt,
       messages: anthropicMessages,
@@ -825,6 +862,7 @@ app.post('/api/chat', async (req, res) => {
     res.json({
       text,
       stopReason: claudeResp.stop_reason,
+      model: claudeResp.model,
       usage: claudeResp.usage,
       rateLimit: { remaining: rl.remaining, limit: RL_MAX },
     });
@@ -907,7 +945,7 @@ app.post('/api/rename-suggestions', async (req, res) => {
     ].join('\n');
 
     const claudeResp = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
+      model: modelFor(req),
       max_tokens: 4000,
       system: sys,
       messages: [{ role: 'user', content: `Clean up these ${exercises.length} exercise names:\n\n${items}` }],
@@ -1033,7 +1071,7 @@ app.post('/api/onboarding/build-skeleton', async (req, res) => {
     });
 
     const claudeResp = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
+      model: modelFor(req),
       max_tokens: 1200,
       system: sys,
       messages: [{ role: 'user', content: `Profile:\n${profileSummary}\n\nReturn the skeleton JSON.` }],
@@ -1115,7 +1153,7 @@ app.post('/api/onboarding/build-day', async (req, res) => {
     ].join('\n');
 
     const claudeResp = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
+      model: modelFor(req),
       max_tokens: 1500,
       system: sys,
       messages: [{ role: 'user', content: userMsg }],
@@ -1226,7 +1264,7 @@ app.post('/api/food/parse-meal', async (req, res) => {
     });
 
     const claudeResp = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
+      model: modelFor(req),
       max_tokens: 1000,
       system: sys,
       messages: [{ role: 'user', content: userContent }],
