@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { FreeSet, FreeSession } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, ACTIVE_MUSCLES } from '../data/muscles';
 import { type PersonalExercise } from '../data/exercisesDB';
 import { CHAT_API_URL } from '../config/api';
-import { getAiModel } from '../config/aiModel';
+import { getAiModel, DEFAULT_AI_MODEL } from '../config/aiModel';
 import { useFirestore } from '../hooks/useFirestore';
 import { compressImage } from '../hooks/usePhotos';
 import type { UserProfile, ChatBucket, MealFlags, MealIngredient, MealMacros, MealType, PersonalMeal, MealLog, DietProfile } from '../types';
@@ -94,7 +94,7 @@ export type MealDraft = {
   flags?: MealFlags;
 };
 
-type Msg = { role: 'user' | 'assistant'; content: string; ts: number; truncated?: boolean; image?: string };
+type Msg = { role: 'user' | 'assistant'; content: string; ts: number; truncated?: boolean; image?: string; llmModel?: string };
 
 type ActionSuggestExercise = {
   type: 'suggest_exercise';
@@ -644,6 +644,19 @@ export function AiChatPanel({
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [activeId, setActiveId] = useState<string>('');
   const [input, setInput] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-grow the chat textarea so long messages wrap onto multiple lines
+  // instead of scrolling horizontally in a single-line strip. Height mirrors
+  // the actual content up to ~7 lines; past that it starts scrolling inside
+  // the textarea so the send button never leaves the viewport.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const max = 168;
+    el.style.height = `${Math.min(el.scrollHeight, max)}px`;
+  }, [input]);
   // Attached image (base64 data URL) waiting to be sent with the next message.
   // The user picks it via the paperclip button; preview renders above the input.
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -774,6 +787,7 @@ export function AiChatPanel({
     const unsub = firestoreRef.current.subscribeToChatMessages(activeId, list => {
       setMessages(list.map(m => ({
         role: m.role, content: m.content, ts: m.ts, truncated: !!m.truncated, image: m.image,
+        llmModel: m.llmModel,
       })));
       setMessagesLoaded(true);
     });
@@ -1031,6 +1045,14 @@ export function AiChatPanel({
         firstUserSeen = true;
         base.content = `${todayLine}\n${m.content}`;
       }
+      // Image without text (only possible on messages after the first, since
+      // the first user turn always carries todayLine). Anthropic's Vision API
+      // rejects a content array made of a single image block with no text —
+      // pad with a neutral hint so the request goes through. The persisted
+      // user message in Firestore stays image-only; this is a wire-only shim.
+      if (base.image && !base.content.trim()) {
+        base.content = 'תסתכל בתמונה ותענה לפי ההקשר.';
+      }
       return base;
     });
 
@@ -1070,8 +1092,23 @@ export function AiChatPanel({
           // today, and the profile that sets the target.
           dietProfile: mode === 'dietary' ? dietProfile : undefined,
           todayBurn: mode === 'dietary' ? todayBurn : undefined,
+          // Name + calories was too thin: the coach could not answer "what did
+          // I eat this morning" or "how much protein was in that", because it
+          // never saw the clock or what was inside a meal. There are only a
+          // handful of meals in a day, so sending the whole record costs little
+          // and is the difference between a log and something it can reason on.
           todayMeals: mode === 'dietary'
-            ? todayMeals.map(m => ({ name: m.name, calories: m.calories }))
+            ? todayMeals.map(m => ({
+                name: m.name,
+                calories: m.calories,
+                mealType: m.mealType,
+                at: new Date(m.timestamp).toLocaleTimeString('he-IL', {
+                  hour: '2-digit', minute: '2-digit', hour12: false,
+                }),
+                servings: m.servings,
+                ingredients: m.ingredients,
+                macros: m.macros,
+              }))
             : undefined,
           personalMeals: mode === 'dietary'
             ? personalMeals.slice(0, 200).map(m => ({
@@ -1155,7 +1192,12 @@ export function AiChatPanel({
 
   // The persisted assistant message has landed via the Firestore listener —
   // retire the local streaming bubble so the answer isn't shown twice.
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) so the reset runs BEFORE paint on the
+  // same commit the new assistant message renders — otherwise the streaming
+  // bubble + the persisted bubble both paint for one frame and the user
+  // sees a ~1s flicker where the box "jumps" to a shorter/truncated preview
+  // right before the final answer replaces it (see rep_1787392153792_qeso).
+  useLayoutEffect(() => {
     if (!streamingText) return;
     const last = messages[messages.length - 1];
     if (last && last.role === 'assistant') resetStream();
@@ -1446,9 +1488,15 @@ export function AiChatPanel({
           const showTruncated = m.role === 'assistant' && m.truncated;
           return (
             <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-start' : 'items-end'}`}>
-            <div className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+            {/* w-full is load-bearing. The parent is `flex flex-col items-*`,
+                which makes this row shrink-to-fit — so the bubble's max-w-[85%]
+                resolved against the bubble's OWN natural width instead of the
+                column, capping every message at 85% of itself and wrapping
+                short ones for no reason ("מה לגבי המיץ / תפוזים?"). Measured:
+                row 157px → bubble 134px → two lines, in a 420px column. */}
+            <div className={`flex w-full ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
               <div
-                className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm space-y-2 ${
+                className={`w-fit max-w-[85%] rounded-2xl px-3 py-2 text-sm space-y-2 ${
                   m.role === 'user'
                     ? 'dark:bg-blue-900/50 bg-blue-100 text-blue-800 dark:text-blue-100 rounded-tl-sm'
                     : 'dark:bg-slate-800 bg-slate-100 rounded-tr-sm'
@@ -1789,6 +1837,10 @@ export function AiChatPanel({
                 })}
               </div>
             </div>
+            {/* Owner-only, and only while an override is active. */}
+            {firestore.isAdmin && m.role === 'assistant' && m.llmModel && m.llmModel !== DEFAULT_AI_MODEL && (
+              <div className="mt-0.5 text-[9px] text-muted-more" dir="ltr">{m.llmModel}</div>
+            )}
             {showTruncated && (
               <button
                 onClick={() => sendWith('המשך')}
@@ -1822,7 +1874,7 @@ export function AiChatPanel({
             cards appear when the finished message lands. */}
         {streamingText && (
           <div className="flex justify-end">
-            <div className="max-w-[85%] rounded-2xl rounded-tr-sm px-3 py-2 text-sm dark:bg-slate-800 bg-slate-100" dir="rtl">
+            <div className="w-fit max-w-[85%] rounded-2xl rounded-tr-sm px-3 py-2 text-sm dark:bg-slate-800 bg-slate-100" dir="rtl">
               <span className="whitespace-pre-wrap text-right">{visibleStreamText}</span>
               <span className="inline-flex items-center gap-0.5 align-middle ms-1">
                 <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '900ms' }} />
@@ -1906,7 +1958,7 @@ export function AiChatPanel({
             <div className="text-[11px] text-muted">תמונה מצורפת · כתוב שאלה או שלח כמו שזה</div>
           </div>
         )}
-        <div className="flex gap-2 items-center" dir="rtl">
+        <div className="flex gap-2 items-end" dir="rtl">
           {/* Hidden file input — the paperclip button triggers it. `capture`
               hints the mobile browser to offer camera as an option too. */}
           <input
@@ -1936,18 +1988,28 @@ export function AiChatPanel({
               </svg>
             )}
           </button>
-          <input
-            type="text"
+          <textarea
+            ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              // Enter alone = newline (never accidentally send from the on-screen keyboard).
+              // Cmd/Ctrl+Enter sends — desktop power-user shortcut; the שלח button always sends.
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                if (!loading && (input.trim() || pendingImage)) void send();
+              }
+            }}
             placeholder={
               pendingImage
                 ? (mode === 'dietary' ? 'מה יש בתמונה? (או שלח בלי טקסט)' : 'שאל על התמונה (או שלח בלי טקסט)')
-                : mode === 'dietary' ? 'מה אכלת?'
+                : mode === 'dietary' ? 'מה אכלת? או כל שאלה על תזונה'
                 : mode === 'naming'  ? 'שאל על שמות…'
                 : 'תאר תרגיל או בקש הצעה'
             }
-            className="input-field flex-1 !text-right !text-sm !py-2.5"
+            rows={1}
+            className="input-field composer-input flex-1 !text-right !text-sm !py-2.5 !text-start resize-none leading-snug !font-sans"
+            style={{ minHeight: '44px', overflowY: 'auto' }}
             dir="rtl"
             /* No autoFocus — otherwise iOS Safari pops the keyboard and hides the header. User can tap the input themselves. */
           />

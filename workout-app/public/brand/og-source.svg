@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0a0d1c"/>
+  <rect x="0" y="0" width="10" height="630" fill="#5b4bc4"/>
+
+  <!-- Mark in a soft brand-accent chip -->
+  <rect x="112" y="150" width="240" height="240" rx="52" fill="#5b4bc4"/>
+  <g transform="translate(160,198) scale(3.5)" fill="#ffffff" stroke="#ffffff">
+    <circle cx="32" cy="32" r="27" fill="none" stroke-width="4.5"/>
+    <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" stroke="none"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="880" y="290" fill="#ffffff" font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="900" font-size="220" text-anchor="middle" letter-spacing="-4">מצב</text>
+  <text x="880" y="360" fill="#b7bfd0" font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="500" font-size="42" text-anchor="middle">הכול במקום אחד</text>
+
+  <!-- Place chips -->
+  <g font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="700" font-size="28">
+    <rect x="480" y="455" width="180" height="60" rx="30" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+    <text x="570" y="495" fill="#ffffff" text-anchor="middle">מצב אימון</text>
+
+    <rect x="680" y="455" width="180" height="60" rx="30" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+    <text x="770" y="495" fill="#ffffff" text-anchor="middle">מצב תזונה</text>
+
+    <rect x="880" y="455" width="180" height="60" rx="30" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+    <text x="970" y="495" fill="#ffffff" text-anchor="middle">מצב נשימה</text>
+
+    <rect x="1080" y="455" width="80" height="60" rx="30" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
+    <text x="1120" y="495" fill="#b7bfd0" text-anchor="middle">ועוד</text>
+  </g>
+
+  <!-- URL -->
+  <text x="880" y="590" fill="#8a83b8" font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="600" font-size="24" text-anchor="middle">matzav.ai</text>
+</svg>

@@ -41,6 +41,17 @@
   .input-field {
     @apply dark:bg-slate-800 dark:border-slate-700 dark:text-white bg-white border-slate-300 text-slate-900 border rounded-xl px-4 py-3 text-center text-lg font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent w-full;
   }
+  /* A textarea placeholder WRAPS, and the composer is one row tall with a fixed
+     44px min-height — so any placeholder longer than a line had its second line
+     sliced through the middle. That is why the dietary hint got cut back to
+     "מה אכלת?", which undersells what the coach can do. Keeping it on one line
+     with an ellipsis means a fuller hint degrades gracefully on a narrow phone
+     instead of looking broken. */
+  .composer-input::placeholder {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
@@ -177,4 +188,241 @@
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Login — the way in to מצב.
+   Visual only. Deep quiet surface, ambient light hinting at the two
+   live modes (green מצב אימון / amber מצב תזונה) with the brand violet
+   between them, and one precise card. Motion is near-subliminal.
+   ══════════════════════════════════════════════════════════════ */
+.login-page{
+  --l-brand:#5b4bc4;
+  --l-train:#10b981;
+  --l-food:#f59e0b;
+  position:relative;
+  min-height:100dvh;
+  display:flex;
+  overflow:hidden;
+  background:#fafbfe;
+  color:#0c1220;
+}
+.dark .login-page{ background:#07090f; color:#f4f7fc; }
+
+.login-amb{
+  position:absolute;inset:-20%;pointer-events:none;
+  background:
+    radial-gradient(38% 34% at 78% 16%, rgba(16,185,129,.16), transparent 70%),
+    radial-gradient(36% 32% at 20% 82%, rgba(245,158,11,.14), transparent 70%),
+    radial-gradient(46% 40% at 50% 46%, rgba(91,75,196,.20), transparent 72%);
+  filter:blur(30px);
+  animation:login-drift 26s ease-in-out infinite alternate;
+}
+.dark .login-amb{
+  background:
+    radial-gradient(38% 34% at 78% 16%, rgba(16,185,129,.22), transparent 70%),
+    radial-gradient(36% 32% at 20% 82%, rgba(245,158,11,.18), transparent 70%),
+    radial-gradient(46% 40% at 50% 46%, rgba(91,75,196,.30), transparent 72%);
+}
+@keyframes login-drift{
+  from{ transform:translate3d(0,0,0) scale(1); }
+  to  { transform:translate3d(0,-2.2%,0) scale(1.05); }
+}
+
+.login-grain{
+  position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(circle at 1px 1px, rgba(15,23,42,.05) 1px, transparent 0);
+  background-size:42px 42px;
+  -webkit-mask-image:radial-gradient(72% 62% at 50% 40%, #000 10%, transparent 100%);
+  mask-image:radial-gradient(72% 62% at 50% 40%, #000 10%, transparent 100%);
+}
+.dark .login-grain{
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);
+}
+
+.login-inner{
+  position:relative;z-index:1;flex:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:28px 22px calc(28px + env(safe-area-inset-bottom));
+}
+.login-card{
+  width:100%;max-width:380px;text-align:center;
+  padding:38px 28px 30px;
+  border-radius:26px;
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(15,23,42,.09);
+  box-shadow:0 30px 70px -30px rgba(15,23,42,.22);
+  backdrop-filter:saturate(150%) blur(16px);
+  -webkit-backdrop-filter:saturate(150%) blur(16px);
+}
+.dark .login-card{
+  background:rgba(20,26,43,.55);
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 34px 80px -34px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* entrance — soft, staggered via inline animation-delay */
+@keyframes login-in{
+  from{ opacity:0; transform:translateY(9px); }
+  to  { opacity:1; transform:none; }
+}
+.login-lockup,.login-sub,.login-sub2,.login-modes,.login-ai,.login-btn{
+  opacity:0;
+  animation:login-in .62s cubic-bezier(.2,.75,.3,1) forwards;
+}
+
+/* Mark + wordmark are one unit: a single violet glow sits behind both, so the
+   identity reads as one object rather than an icon with a caption. */
+.login-lockup{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  margin-bottom:22px;
+}
+.login-lockup::before{
+  content:"";position:absolute;inset:-34% -18%;pointer-events:none;
+  background:radial-gradient(52% 62% at 50% 50%, rgba(91,75,196,.30), transparent 72%);
+  filter:blur(22px);
+}
+.dark .login-lockup::before{
+  background:radial-gradient(52% 62% at 50% 50%, rgba(91,75,196,.56), transparent 72%);
+}
+.login-mark{
+  position:relative;
+  width:82px;height:82px;flex:none;
+  border-radius:25px;display:grid;place-items:center;
+  background:var(--l-brand);color:#fff;
+  box-shadow:0 22px 48px -14px rgba(91,75,196,.70);
+}
+.login-title{
+  position:relative;
+  font-size:52px;font-weight:900;letter-spacing:-.05em;line-height:1;
+}
+.login-sub{
+  font-size:16.5px;font-weight:700;line-height:1.5;
+  color:#3d4b60;
+}
+.dark .login-sub{ color:#c9d3e2; }
+
+/* The second line carries the AI claim, so it sits below the rhythm line and
+   deliberately reads quieter — hierarchy, not two competing headlines. */
+.login-sub2{
+  margin-top:9px;
+  font-size:13.5px;font-weight:600;line-height:1.55;
+  color:#66738a;
+}
+.dark .login-sub2{ color:#8e9ab0; }
+
+.login-modes{
+  display:flex;justify-content:center;gap:8px;margin:20px 0 16px;flex-wrap:wrap;
+}
+.login-modes span{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12.5px;font-weight:700;
+  padding:6px 13px;border-radius:999px;
+  border:1px solid rgba(15,23,42,.10);
+  color:#5a667c;
+}
+.dark .login-modes span{ border-color:rgba(255,255,255,.10); color:#9aa5b8; }
+/* Each pill carries the faintest wash of its own mode colour — enough to start
+   teaching green = אימון / amber = תזונה, nowhere near neon. */
+.login-modes span:first-child{
+  border-color:rgba(16,185,129,.26);
+  background:rgba(16,185,129,.055);
+  box-shadow:0 0 16px -6px rgba(16,185,129,.34);
+}
+.login-modes span:last-child{
+  border-color:rgba(245,158,11,.26);
+  background:rgba(245,158,11,.055);
+  box-shadow:0 0 16px -6px rgba(245,158,11,.34);
+}
+.login-modes i{ width:6px;height:6px;border-radius:99px;flex:none; }
+
+/* Glass, brand-tinted, start-aligned — it reads as a fragment lifted out of the
+   app rather than another centred line of marketing on the card. */
+.login-ai{
+  margin:0 0 22px;
+  padding:12px 14px;
+  border-radius:15px;
+  text-align:start;
+  border:1px solid rgba(91,75,196,.22);
+  background:rgba(91,75,196,.05);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.dark .login-ai{
+  border-color:rgba(155,140,245,.24);
+  background:rgba(155,140,245,.065);
+}
+.login-ai .q{
+  display:block;
+  font-size:13.5px;font-weight:700;line-height:1.5;
+  color:#5b4bc4;
+}
+.dark .login-ai .q{ color:#b3a6ff; }
+.login-ai .a{
+  display:block;margin-top:5px;
+  font-size:12px;font-weight:600;line-height:1.5;
+  color:#66738a;
+}
+.dark .login-ai .a{ color:#8e9ab0; }
+
+.login-btn{
+  width:100%;
+  display:inline-flex;align-items:center;justify-content:center;gap:11px;
+  padding:14px 18px;border-radius:16px;
+  font-size:15px;font-weight:700;
+  background:#fff;color:#1e293b;
+  border:1px solid rgba(15,23,42,.14);
+  box-shadow:0 10px 26px -14px rgba(15,23,42,.35);
+  cursor:pointer;
+  transition:transform .16s cubic-bezier(.2,.8,.3,1), box-shadow .2s ease,
+             border-color .18s ease, background-color .18s ease;
+}
+.login-btn:hover:not(:disabled){
+  transform:translateY(-1px);
+  box-shadow:0 16px 34px -16px rgba(15,23,42,.42);
+  border-color:rgba(15,23,42,.22);
+}
+.login-btn:active:not(:disabled){ transform:translateY(0) scale(.994); }
+.login-btn:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(91,75,196,.42), 0 10px 26px -14px rgba(15,23,42,.35);
+  border-color:var(--l-brand);
+}
+.login-btn:disabled{ opacity:.62; cursor:default; }
+.dark .login-btn{ border-color:rgba(255,255,255,.16); box-shadow:0 14px 32px -16px rgba(0,0,0,.8); }
+.dark .login-btn:hover:not(:disabled){ border-color:rgba(255,255,255,.3); }
+
+.login-btn{ margin-top:4px; }
+
+.login-err{
+  margin-top:14px;font-size:12.5px;font-weight:600;line-height:1.5;
+  color:#dc2626;
+}
+.dark .login-err{ color:#f87171; }
+
+
+/* Mobile: let the screen breathe. Less decoration, no card chrome —
+   the surface itself becomes the card. */
+@media (max-width:520px){
+  .login-inner{ padding:24px 20px calc(30px + env(safe-area-inset-bottom)); }
+  .login-card{
+    padding:26px 4px 20px;
+    background:transparent;border:none;box-shadow:none;
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  .dark .login-card{ background:transparent;border:none;box-shadow:none; }
+  .login-amb{ opacity:.72; }
+  .login-grain{ display:none; }
+  .login-mark{ width:70px;height:70px;border-radius:22px; }
+  .login-title{ font-size:46px; }
+  .login-lockup{ gap:14px;margin-bottom:20px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .login-amb{ animation:none; }
+  .login-lockup,.login-sub,.login-sub2,.login-modes,.login-ai,.login-btn{
+    animation:none;opacity:1;
+  }
+  .login-btn:hover:not(:disabled),.login-btn:active:not(:disabled){ transform:none; }
 }

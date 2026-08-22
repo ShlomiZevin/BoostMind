@@ -12,9 +12,20 @@ const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
 // to bill an unexpected tier. No override → CLAUDE_MODEL, i.e. today's
 // behaviour, so a client that never sends the field is unaffected.
 const ALLOWED_MODELS = new Set(['claude-opus-5', 'claude-sonnet-5']);
-function modelFor(req) {
-  const m = req && req.body && req.body.model;
-  return ALLOWED_MODELS.has(m) ? m : CLAUDE_MODEL;
+function modelFor(req, label) {
+  const raw = req && req.body && req.body.model;
+  const chosen = ALLOWED_MODELS.has(raw) ? raw : CLAUDE_MODEL;
+  // One line per call. Without it there is no way to confirm afterwards which
+  // model actually served a request — which made the first Sonnet run
+  // impossible to verify.
+  console.log(JSON.stringify({
+    evt: 'model',
+    endpoint: label || 'chat',
+    model: chosen,
+    overridden: chosen !== CLAUDE_MODEL,
+    ignored: raw && !ALLOWED_MODELS.has(raw) ? String(raw).slice(0, 40) : undefined,
+  }));
+  return chosen;
 }
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
@@ -80,7 +91,7 @@ async function fsPatch(path, data, { merge = false } = {}) {
   }
 }
 
-async function persistAssistantMessage({ uid, threadId, text, truncated, mode, bucket }) {
+async function persistAssistantMessage({ uid, threadId, text, truncated, mode, bucket, llmModel }) {
   if (!uid || !threadId) return;
   const ts = Date.now();
   const msgId = `m_${ts}_assistant`;
@@ -88,7 +99,7 @@ async function persistAssistantMessage({ uid, threadId, text, truncated, mode, b
   // Message doc: brand-new id, full replace is fine.
   await fsPatch(
     `users/${enc(uid)}/chatThreads/${enc(threadId)}/messages/${enc(msgId)}`,
-    { id: msgId, role: 'assistant', content: text || '', ts, truncated: !!truncated, mode: mode || 'session' },
+    { id: msgId, role: 'assistant', content: text || '', ts, truncated: !!truncated, mode: mode || 'session', llmModel: llmModel || undefined },
   );
   // Thread doc: MERGE only — must not clobber title/ts written by the client.
   // Include `bucket` so a thread first surfaced by the server still lands in
@@ -116,6 +127,22 @@ async function persistAssistantMessage({ uid, threadId, text, truncated, mode, b
 }
 
 const MEAL_TYPES = new Set(['breakfast', 'lunch', 'dinner', 'snack', 'drink']);
+const MEAL_TYPE_HE = {
+  breakfast: 'בוקר', lunch: 'צהריים', dinner: 'ערב', snack: 'נשנוש', drink: 'שתייה',
+};
+
+// Everything here is Israel-local. The prompt used to stamp the date with
+// toISOString(), which is UTC — so between midnight and 03:00 Israel time the
+// coach believed it was still yesterday and reasoned about the wrong day's
+// meals. It also never saw the clock at all, only the date.
+function nowInIsrael() {
+  const fmt = new Intl.DateTimeFormat('he-IL', {
+    timeZone: 'Asia/Jerusalem',
+    weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+  return fmt.format(new Date());
+}
 
 // Naming convention — mirrors the exercise-DB template. Without it the same
 // meal lands in the DB five times and the history splits across all five.
@@ -713,9 +740,34 @@ app.post('/api/chat', async (req, res) => {
       "",
       `== היום עד עכשיו ==`,
       `נאכל: ${eatenToday} קק״ל${todayBurn ? ` · נשרף באימון: ~${Number(todayBurn) || 0} קק״ל` : ''}`,
+      // Time, slot, portion, ingredient breakdown and macros — not just a name
+      // and a number. Without these the coach cannot answer "what did I have
+      // this morning", "how much protein so far", or "what was in that".
       todayList.length === 0
         ? '  (עוד לא נרשמו ארוחות היום)'
-        : todayList.slice(0, 40).map(m => `- ${m.name} · ${m.calories} קק״ל`).join('\n'),
+        : todayList.slice(0, 40).map(m => {
+            const bits = [];
+            if (m.at) bits.push(m.at);
+            const slot = MEAL_TYPE_HE[m.mealType];
+            if (slot) bits.push(slot);
+            bits.push(m.name);
+            if (Number(m.servings) && Number(m.servings) !== 1) bits.push(`×${m.servings} מנות`);
+            bits.push(`${m.calories} קק״ל`);
+            const lines = [`- ${bits.join(' · ')}`];
+            if (Array.isArray(m.ingredients) && m.ingredients.length) {
+              lines.push('    ' + m.ingredients
+                .map(i => `${i.he} ${i.calories}`).join(' · '));
+            }
+            const mc = m.macros || {};
+            const macro = [
+              mc.protein != null ? `חלבון ${mc.protein}` : null,
+              mc.carbs   != null ? `פחמימות ${mc.carbs}` : null,
+              mc.fat     != null ? `שומן ${mc.fat}` : null,
+              mc.sugar   != null ? `סוכר ${mc.sugar}` : null,
+            ].filter(Boolean);
+            if (macro.length) lines.push('    ' + macro.join(' · '));
+            return lines.join('\n');
+          }).join('\n'),
       "",
       "== מאגר הארוחות שלו (id | שם | קלוריות | נאכל לפני) ==",
       mealsList.length === 0
@@ -724,7 +776,8 @@ app.post('/api/chat', async (req, res) => {
             `- ${m.id} | ${m.he} | ${m.calories} | ${m.lastUsedDays ?? 'מעולם'}`
           ).join('\n'),
       "",
-      `התאריך היום ${new Date().toISOString().slice(0, 10)}.`,
+      `עכשיו: ${nowInIsrael()} (שעון ישראל).`,
+      "השעה חשובה — התייחס אליה כשאתה מציע מה לאכול או שואל על ארוחה.",
     ].filter(Boolean).join('\n');
 
     const systemPrompt =
@@ -769,6 +822,7 @@ app.post('/api/chat', async (req, res) => {
     // still happens server-side before we close the stream, so a closed tab
     // mid-response loses nothing — same guarantee as the non-streaming path.
     if (req.body?.stream === true) {
+      const chosenModel = modelFor(req);
       res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache, no-transform');
       res.setHeader('Connection', 'keep-alive');
@@ -779,7 +833,7 @@ app.post('/api/chat', async (req, res) => {
       let text = '';
       try {
         const stream = anthropic.messages.stream({
-          model: modelFor(req),
+          model: chosenModel,
           max_tokens: 4000,
           system: systemPrompt,
           messages: anthropicMessages,
@@ -802,7 +856,7 @@ app.post('/api/chat', async (req, res) => {
         // "answer is ready" notification always have a real doc to point at.
         if (threadId && typeof threadId === 'string') {
           try {
-            await persistAssistantMessage({ uid, threadId, text, truncated, mode: chatMode, bucket });
+            await persistAssistantMessage({ uid, threadId, text, truncated, mode: chatMode, bucket, llmModel: finalMsg?.model });
           } catch (e) {
             console.warn('assistant persist failed', e?.message || e);
           }
@@ -811,6 +865,7 @@ app.post('/api/chat', async (req, res) => {
         res.write(`event: done\ndata: ${JSON.stringify({
           stopReason,
           truncated,
+          model: finalMsg?.model || chosenModel,
           usage: finalMsg?.usage,
           rateLimit: { remaining: rl.remaining, limit: RL_MAX },
         })}\n\n`);
@@ -819,7 +874,7 @@ app.post('/api/chat', async (req, res) => {
         // Partial text is still worth keeping — the user watched it arrive.
         if (text && threadId && typeof threadId === 'string') {
           try {
-            await persistAssistantMessage({ uid, threadId, text, truncated: true, mode: chatMode, bucket });
+            await persistAssistantMessage({ uid, threadId, text, truncated: true, mode: chatMode, bucket, llmModel: chosenModel });
           } catch (_) { /* best effort */ }
         }
         res.write(`event: error\ndata: ${JSON.stringify({ message: String(e?.message || e) })}\n\n`);
@@ -853,7 +908,7 @@ app.post('/api/chat', async (req, res) => {
     // still lands in Firestore and shows up next time the user opens the chat.
     if (threadId && typeof threadId === 'string') {
       try {
-        await persistAssistantMessage({ uid, threadId, text, truncated, mode: chatMode, bucket });
+        await persistAssistantMessage({ uid, threadId, text, truncated, mode: chatMode, bucket, llmModel: finalMsg?.model });
       } catch (e) {
         console.warn('assistant persist failed', e?.message || e);
       }
@@ -945,7 +1000,7 @@ app.post('/api/rename-suggestions', async (req, res) => {
     ].join('\n');
 
     const claudeResp = await anthropic.messages.create({
-      model: modelFor(req),
+      model: modelFor(req, 'rename'),
       max_tokens: 4000,
       system: sys,
       messages: [{ role: 'user', content: `Clean up these ${exercises.length} exercise names:\n\n${items}` }],
@@ -1071,7 +1126,7 @@ app.post('/api/onboarding/build-skeleton', async (req, res) => {
     });
 
     const claudeResp = await anthropic.messages.create({
-      model: modelFor(req),
+      model: modelFor(req, 'build-skeleton'),
       max_tokens: 1200,
       system: sys,
       messages: [{ role: 'user', content: `Profile:\n${profileSummary}\n\nReturn the skeleton JSON.` }],
@@ -1153,7 +1208,7 @@ app.post('/api/onboarding/build-day', async (req, res) => {
     ].join('\n');
 
     const claudeResp = await anthropic.messages.create({
-      model: modelFor(req),
+      model: modelFor(req, 'build-day'),
       max_tokens: 1500,
       system: sys,
       messages: [{ role: 'user', content: userMsg }],
@@ -1244,7 +1299,7 @@ app.post('/api/food/parse-meal', async (req, res) => {
       '"flags":{"highSugar":false,"emptyCarbs":true},',
       '"needsInfo":false,"question":null}',
       "",
-      `התאריך היום ${new Date().toISOString().slice(0, 10)}.`,
+      `עכשיו: ${nowInIsrael()} (שעון ישראל).`,
     ].filter(Boolean).join('\n');
 
     const userContent = [];
@@ -1264,7 +1319,7 @@ app.post('/api/food/parse-meal', async (req, res) => {
     });
 
     const claudeResp = await anthropic.messages.create({
-      model: modelFor(req),
+      model: modelFor(req, 'parse-meal'),
       max_tokens: 1000,
       system: sys,
       messages: [{ role: 'user', content: userContent }],

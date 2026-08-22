@@ -23,8 +23,8 @@ export function PasscodeScreen({ onUnlock }: Props) {
 
   return (
     <div className="page-bg flex flex-col items-center justify-center p-4">
-      <h1 className="text-xl font-bold mb-2">Workout Logger</h1>
-      <p className="text-muted text-sm mb-8">Enter your 4-digit passcode</p>
+      <h1 className="text-3xl font-black mb-1 tracking-tight" dir="rtl">מצב</h1>
+      <p className="text-muted text-sm mb-8" dir="rtl">הזן את קוד ה-4 ספרות</p>
 
       {/* Dots */}
       <div className="flex gap-3 mb-8">

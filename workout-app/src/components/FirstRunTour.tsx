@@ -21,8 +21,8 @@ type Step = {
 const STEPS: Step[] = [
   {
     target: 'place',
-    title: 'יש כאן יותר ממקום אחד',
-    body: 'אימונים זה רק חלק. מכאן עוברים לתזונה — ובהמשך גם לנשימה. הכפתור הזה תמיד באותה פינה.',
+    title: 'מצב אימון · מצב תזונה · מצב נשימה',
+    body: 'מצב הוא אפליקציה אחת עם הרבה מקומות. מצב אימון זה רק ההתחלה. מכאן עוברים למצב תזונה — ובהמשך גם למצב נשימה, שינה ועוד. הכפתור הזה תמיד באותה פינה.',
     showPlaces: true,
   },
   {
@@ -35,9 +35,17 @@ const STEPS: Step[] = [
     title: 'לחיצה ארוכה = פעולה במקום אחר',
     body: 'לחיצה רגילה עושה את מה שרלוונטי כאן. לחיצה ארוכה פותחת מניפה עם הפעולות המהירות של המקומות האחרים — בלי לצאת מכאן.',
   },
+  {
+    target: 'settings',
+    title: 'מתקינים כאפליקציה מלאה',
+    body: 'ההגדרות פה למעלה. בפנים יש "התקנה למסך הבית" עם הוראות ל-iPhone ול-Android — פעם אחת, ומצב נפתחת אצלך כמו כל אפליקציה, בלי כתובת בדפדפן.',
+  },
 ];
 
-const KEY_PREFIX = 'tourSeen:';
+// Bumped when the install step was added so existing users see the tour once
+// more and pick up the new card. Keeping the string as `tourSeen:v2:` makes
+// each future addition a one-character change here.
+const KEY_PREFIX = 'tourSeen:v2:';
 
 export function hasSeenTour(uid: string): boolean {
   try { return localStorage.getItem(KEY_PREFIX + uid) === '1'; } catch { return true; }

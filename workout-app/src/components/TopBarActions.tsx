@@ -14,6 +14,7 @@ export function SettingsGearAction({ navigate }: { navigate: (r: Route) => void 
     <button
       onClick={() => navigate({ page: target } as Route)}
       aria-label="הגדרות"
+      data-tour="settings"
       className="w-10 h-10 rounded-full flex items-center justify-center text-muted dark:hover:bg-slate-800 hover:bg-slate-100 transition-colors"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >

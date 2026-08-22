@@ -4,6 +4,7 @@ import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { FoodAiAction, SettingsGearAction } from './TopBarActions';
 import { caloriesOn, effectiveTargetOf, estimateBurn, startOfDay } from '../data/diet';
+import { DietProfileCard } from './DietProfileCard';
 
 type Props = { uid: string; navigate: (r: Route) => void; refreshKey?: number; onOpenChat: () => void };
 
@@ -181,6 +182,12 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
           <div className="text-[12px] text-muted py-8 text-center">טוען…</div>
         ) : (
           <>
+            {/* Profile access — mirrors how the training profile lives on גוף:
+                collapsed by default so it does not compete with the calorie
+                summary, expandable to edit the numbers that drive the target
+                without leaving the page. */}
+            <DietProfileCard uid={uid} />
+
             {/* Range summary — burn, goal, and where the deficit actually stands */}
             <div className="card">
               <h2 className="text-[12px] font-bold text-muted mb-3">סיכום התקופה</h2>
@@ -346,12 +353,30 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                       })}
                     </div>
                   </div>
-                  {metric === 'net' && (
-                    <div className="flex items-center justify-center gap-3 mt-2 text-[9px] text-muted" dir="rtl">
-                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500" /> נטו</span>
-                      <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-sky-500/70" /> נשרף באימון</span>
-                    </div>
-                  )}
+                  {/* Legend. The two dashed reference lines had none at all —
+                      an amber line and a grey line with a bare number on each,
+                      and nothing saying which was the target and which the
+                      average. Conditions here mirror the drawing conditions
+                      above exactly, so the legend can never name a line that
+                      isn't on the chart. */}
+                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-2 text-[9px] text-muted" dir="rtl">
+                    {metric === 'net' && (
+                      <>
+                        <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500" /> נטו</span>
+                        <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-sky-500/70" /> נשרף באימון</span>
+                      </>
+                    )}
+                    {metric !== 'burned' && target != null && target <= maxKcal && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-3.5 border-t-2 border-dashed border-amber-500/80" /> יעד יומי
+                      </span>
+                    )}
+                    {avgValue > 0 && avgValue <= maxKcal && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-3.5 border-t border-dashed border-slate-400/80" /> ממוצע בטווח
+                      </span>
+                    )}
+                  </div>
                   {series.length <= 14 && (
                     <div className="flex gap-2 mt-1" dir="ltr">
                       <span className="w-9 shrink-0" />

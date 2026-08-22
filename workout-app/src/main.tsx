@@ -26,6 +26,6 @@ createRoot(document.getElementById('root')!).render(
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/workout-app/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/matzav-app/sw.js').catch(() => {});
   });
 }

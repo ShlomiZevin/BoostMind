@@ -137,26 +137,17 @@ export function IconFork() {
   );
 }
 
-// ─── Place marks ───────────────────────────────────────────────────
-// Abstract, monoline, one weight. Not emoji: emoji are loud, inconsistent
-// across platforms, and read as decoration. These read as identity.
-
-function MarkBar() {
-  // Abstract bar-and-plates — a horizontal axis between two weights.
+// ─── Place mark — the מצב mark, one shape, tinted per place. ───────
+// A circle split by a soft S-wave with the lower half filled: two states
+// of one whole (activity/recovery, day/night). Single-colour via
+// `currentColor` so the same mark picks up each place's accent. See
+// workout-app/public/brand/mark-current.svg for the canonical source
+// (built and served from /matzav-app/brand/).
+function MarkMatzav() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <path d="M4 12h16" />
-      <path d="M7 8.5v7M17 8.5v7" />
-    </svg>
-  );
-}
-
-function MarkPlate() {
-  // Abstract plate — a ring with an inner arc, off-centre.
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 7.5a4.5 4.5 0 0 1 0 9" />
+    <svg viewBox="0 0 64 64" width="22" height="22" fill="currentColor" stroke="currentColor" aria-hidden="true">
+      <circle cx="32" cy="32" r="27" fill="none" strokeWidth="4.5" />
+      <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" />
     </svg>
   );
 }
@@ -166,8 +157,8 @@ function MarkPlate() {
 export const PLACES: Record<PlaceId, Place> = {
   exercise: {
     id: 'exercise',
-    he: 'אימונים',
-    mark: <MarkBar />,
+    he: 'מצב אימון',
+    mark: <MarkMatzav />,
     tagline: 'סטים, אירובי ויעדים שבועיים',
     tint: 'emerald',
     icon: <IconDumbbell />,
@@ -185,8 +176,8 @@ export const PLACES: Record<PlaceId, Place> = {
   },
   food: {
     id: 'food',
-    he: 'תזונה',
-    mark: <MarkPlate />,
+    he: 'מצב תזונה',
+    mark: <MarkMatzav />,
     tagline: 'מאזן קלורי ושליטה בדחפים',
     tint: 'amber',
     icon: <IconPlate />,

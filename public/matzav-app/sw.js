@@ -1,7 +1,12 @@
-const CACHE_NAME = 'workout-v1';
+// Bumped again when the app path moved from /workout-app/ to /matzav-app/
+// (the brand-rename cleanup). Any older SW registered under the /workout-app/
+// scope is stranded — the browser will pick up this file at the new scope on
+// first visit to /matzav-app/, and Firebase 301-redirects the old path so
+// installed PWAs open the new URL and re-register cleanly.
+const CACHE_NAME = 'matzav-v2';
 const PRECACHE_URLS = [
-  '/workout-app/',
-  '/workout-app/index.html',
+  '/matzav-app/',
+  '/matzav-app/index.html',
 ];
 
 self.addEventListener('install', (event) => {

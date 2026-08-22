@@ -28,6 +28,12 @@ import { LogMealModal } from './components/LogMealModal';
 import type { MealDraft } from './components/AiChatPanel';
 import { FabFan, PlaceProvider, PlacesSheet } from './components/PlaceSwitcher';
 import { FirstRunTour, TOUR_RESTART_EVENT, hasSeenTour } from './components/FirstRunTour';
+import { TrialBanner, TrialExpired } from './components/TrialGate';
+import { useTrial } from './hooks/useTrial';
+import { waLink, type TrialState } from './config/access';
+
+/** The account that owns this app. Never trial-gated, sees the admin surfaces. */
+const OWNER_UID = 'user_6724';
 import { ReportsPanel } from './components/ReportsPanel';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
@@ -88,11 +94,12 @@ function routeToHash(route: Route): string {
   }
 }
 
-function AppShell({ uid, route, navigate, doLogout }: {
+function AppShell({ uid, route, navigate, doLogout, trial }: {
   uid: string;
   route: Route;
   navigate: (r: Route) => void;
   doLogout: () => void;
+  trial: TrialState;
 }) {
   const firestore = useFirestore(uid);
   const [inProgress, setInProgress] = useState<FreeSessionType | null>(null);
@@ -412,7 +419,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
       content = <FoodMeals uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} />;
       break;
     case 'food-settings':
-      content = <FoodSettings uid={uid} navigate={navigate} />;
+      content = <FoodSettings uid={uid} navigate={navigate} onLogout={doLogout} />;
       break;
   }
 
@@ -420,6 +427,18 @@ function AppShell({ uid, route, navigate, doLogout }: {
     <PlaceProvider value={{ place, openSheet: () => setSheetOpen(true), pendingByBucket }}>
       {/* Reserve room at the bottom so tab bar never overlaps content */}
       <div className={isTabPage ? 'pb-24' : ''}>
+        {/* Only on tab pages: mid-workout or mid-meal is the wrong moment to be
+            told about billing. It scrolls away with the content by design. */}
+        {isTabPage && (
+          <TrialBanner
+            state={trial}
+            onContact={() => window.open(
+              waLink('היי שלומי, אני בתקופת ניסיון במצב ואשמח להמשיך.'),
+              '_blank',
+              'noopener',
+            )}
+          />
+        )}
         {content}
       </div>
       {isTabPage && (
@@ -606,7 +625,7 @@ function AppShell({ uid, route, navigate, doLogout }: {
 }
 
 export default function App() {
-  const { uid, loading, displayName, login, logout: doLogout } = useAuth();
+  const { uid, loading, displayName, email, login, logout: doLogout } = useAuth();
   const [route, setRoute] = useState<Route>(parseHash);
 
   useEffect(() => {
@@ -633,6 +652,7 @@ export default function App() {
     <AuthedShell
       uid={uid}
       displayName={displayName}
+      email={email}
       route={route}
       navigate={navigate}
       doLogout={doLogout}
@@ -640,15 +660,19 @@ export default function App() {
   );
 }
 
-// Wraps AppShell with the empty-account check → onboarding gate.
-function AuthedShell({ uid, displayName, route, navigate, doLogout }: {
+// Wraps AppShell with the trial gate → empty-account check → onboarding gate.
+function AuthedShell({ uid, displayName, email, route, navigate, doLogout }: {
   uid: string;
   displayName: string | null;
+  email: string | null;
   route: Route;
   navigate: (r: Route) => void;
   doLogout: () => void;
 }) {
   const firestore = useFirestore(uid);
+  // Owner is never gated — resolved synchronously, so this account never waits
+  // on a Firestore read to get into its own app.
+  const trial = useTrial(uid, uid === OWNER_UID);
   // 'checking' → probe hasn't returned yet; 'onboarding' → new user, show wizard;
   // 'ready' → normal app. We probe once per uid.
   const [status, setStatus] = useState<'checking' | 'onboarding' | 'ready'>('checking');
@@ -670,8 +694,14 @@ function AuthedShell({ uid, displayName, route, navigate, doLogout }: {
     return () => { cancelled = true; };
   }, [uid]);
 
-  if (status === 'checking') {
+  if (status === 'checking' || !trial) {
     return <div className="page-bg" />;
+  }
+
+  // Ahead of onboarding: an account whose week is up should not be walked
+  // through a wizard it cannot use at the end of.
+  if (trial.status === 'expired') {
+    return <TrialExpired email={email} onLogout={doLogout} />;
   }
 
   if (status === 'onboarding') {
@@ -685,5 +715,5 @@ function AuthedShell({ uid, displayName, route, navigate, doLogout }: {
     );
   }
 
-  return <AppShell uid={uid} route={route} navigate={navigate} doLogout={doLogout} />;
+  return <AppShell uid={uid} route={route} navigate={navigate} doLogout={doLogout} trial={trial} />;
 }

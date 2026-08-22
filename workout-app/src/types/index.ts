@@ -284,7 +284,10 @@ export type ChatMessageDoc = {
   truncated?: boolean;
   // Assistant messages carry the mode they were generated in so the UI can
   // render mode-specific badges if needed. User messages omit it.
-  mode?: 'session' | 'trainer' | 'onboarding' | 'naming';
+  mode?: 'session' | 'trainer' | 'onboarding' | 'naming' | 'dietary';
+  /** Which Claude model produced this answer. Stamped server-side so a reply
+   *  can always be traced back to the model that wrote it. */
+  llmModel?: string;
   // Optional attached image (base64 data URL). Present on user messages that
   // sent a photo ("what muscle does this machine work?" flows). Sits in the
   // same doc as `content` so a single Firestore read yields the whole turn.
