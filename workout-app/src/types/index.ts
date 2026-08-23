@@ -328,6 +328,8 @@ export type Route =
   | { page: 'exercises' }
   | { page: 'body' }
   | { page: 'install' }
+  // admin-only launch dashboard (guarded in AppShell)
+  | { page: 'admin' }
   // תזונה
   | { page: 'food-today' }
   | { page: 'food-history' }

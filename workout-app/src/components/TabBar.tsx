@@ -43,17 +43,20 @@ const TINT_FAB: Record<string, { base: string; live: string; shadow: string }> =
 };
 
 function TabButton({
-  active, label, icon, onClick, tint,
+  active, label, icon, onClick, tint, page,
 }: {
   active: boolean;
   label: string;
   icon: JSX.Element;
   onClick: () => void;
   tint: string;
+  /** Lets a tour spotlight a specific tab by page id. */
+  page: string;
 }) {
   return (
     <button
       onClick={onClick}
+      data-tour={`tab-${page}`}
       className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] transition-colors ${
         active ? TINT_ACTIVE[tint] : 'text-muted hover:text-main'
       }`}
@@ -103,8 +106,8 @@ export function TabBar({ current, place, onNavigate, hasInProgress, onFabClick, 
       dir="rtl"
     >
       <div className="max-w-lg mx-auto flex items-stretch relative">
-        <TabButton active={current === t1.page} label={t1.he} icon={t1.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t1.page } as Route)} />
-        <TabButton active={current === t2.page} label={t2.he} icon={t2.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t2.page } as Route)} />
+        <TabButton active={current === t1.page} label={t1.he} icon={t1.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t1.page } as Route)} page={t1.page} />
+        <TabButton active={current === t2.page} label={t2.he} icon={t2.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t2.page } as Route)} page={t2.page} />
 
         {/* FAB well — takes the middle slot */}
         <div className="w-16 shrink-0 relative flex justify-center">
@@ -133,8 +136,8 @@ export function TabBar({ current, place, onNavigate, hasInProgress, onFabClick, 
           </button>
         </div>
 
-        <TabButton active={current === t3.page} label={t3.he} icon={t3.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t3.page } as Route)} />
-        <TabButton active={current === t4.page} label={t4.he} icon={t4.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t4.page } as Route)} />
+        <TabButton active={current === t3.page} label={t3.he} icon={t3.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t3.page } as Route)} page={t3.page} />
+        <TabButton active={current === t4.page} label={t4.he} icon={t4.icon} tint={cfg.tint} onClick={() => onNavigate({ page: t4.page } as Route)} page={t4.page} />
       </div>
     </nav>
   );

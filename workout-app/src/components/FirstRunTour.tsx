@@ -18,7 +18,7 @@ type Step = {
   showPlaces?: boolean;
 };
 
-const STEPS: Step[] = [
+const SHELL_STEPS: Step[] = [
   {
     target: 'place',
     title: 'מצב אימון · מצב תזונה · מצב נשימה',
@@ -42,38 +42,71 @@ const STEPS: Step[] = [
   },
 ];
 
+/** Entering מצב תזונה for the first time is its own first run: the place has
+ *  its own button, its own coach and its own numbers, and none of that is
+ *  explained by the shell tour the user saw on day one. Same rule as the shell
+ *  tour — name only what is invisible, three cards, once. */
+const FOOD_STEPS: Step[] = [
+  {
+    target: 'fab',
+    title: 'כפתור אחד, ארוחה נכנסת',
+    body: 'לחיצה פותחת רישום ארוחה — ידנית מהמאגר שלך, או בשיחה. אומרים ״אכלתי פיתה עם חביתה״ והמערכת מפרקת את זה לרכיבים ולקלוריות.',
+  },
+  {
+    target: 'ai',
+    title: 'המאמן התזונתי',
+    body: 'הוא רואה מה אכלת היום, באיזו שעה, ומה נשרף באימון. אפשר לשאול אותו מה נשאר לך להיום, מה לאכול בערב, או לבקש שיתאים לך את היעד.',
+  },
+  {
+    target: 'tab-food-insights',
+    title: 'כאן רואים את הגירעון',
+    body: 'קלוריות מראה את המגמה לאורך זמן — כמה נאכל, כמה נשרף, וכמה גירעון הצטבר. שם גם מגדירים את פרופיל התזונה ואת היעד היומי.',
+  },
+];
+
+export type TourId = 'shell' | 'food';
+
+const TOURS: Record<TourId, Step[]> = { shell: SHELL_STEPS, food: FOOD_STEPS };
+
 // Bumped when the install step was added so existing users see the tour once
 // more and pick up the new card. Keeping the string as `tourSeen:v2:` makes
 // each future addition a one-character change here.
 const KEY_PREFIX = 'tourSeen:v2:';
 
-export function hasSeenTour(uid: string): boolean {
-  try { return localStorage.getItem(KEY_PREFIX + uid) === '1'; } catch { return true; }
+/** Shell keeps the bare key it has always used, so an account that already
+ *  finished that tour is not shown it again just because tours became plural. */
+function keyFor(uid: string, tour: TourId): string {
+  return tour === 'shell' ? KEY_PREFIX + uid : `${KEY_PREFIX}${uid}:${tour}`;
 }
 
-function markSeen(uid: string): void {
-  try { localStorage.setItem(KEY_PREFIX + uid, '1'); } catch { /* private mode */ }
+export function hasSeenTour(uid: string, tour: TourId = 'shell'): boolean {
+  try { return localStorage.getItem(keyFor(uid, tour)) === '1'; } catch { return true; }
+}
+
+function markSeen(uid: string, tour: TourId): void {
+  try { localStorage.setItem(keyFor(uid, tour), '1'); } catch { /* private mode */ }
 }
 
 /** Event the shell listens for, so Settings can replay the tour without a
  *  reload. Per-screen tours will reuse this same hook later. */
 export const TOUR_RESTART_EVENT = 'tour:restart';
 
-export function restartTour(uid: string): void {
-  try { localStorage.removeItem(KEY_PREFIX + uid); } catch { /* ignore */ }
-  window.dispatchEvent(new CustomEvent(TOUR_RESTART_EVENT));
+export function restartTour(uid: string, tour: TourId = 'shell'): void {
+  try { localStorage.removeItem(keyFor(uid, tour)); } catch { /* ignore */ }
+  window.dispatchEvent(new CustomEvent(TOUR_RESTART_EVENT, { detail: { tour } }));
 }
 
 type Rect = { top: number; left: number; width: number; height: number };
 
-export function FirstRunTour({ uid, onDone }: { uid: string; onDone: () => void }) {
+export function FirstRunTour({ uid, tour = 'shell', onDone }: { uid: string; tour?: TourId; onDone: () => void }) {
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   // Stays false until the first target is found (or we give up waiting). A new
   // user finishes the onboarding chat and lands on a Home screen that is still
   // fetching — opening the tour over that shows a card pointing at nothing.
   const [settled, setSettled] = useState(false);
-  const step = STEPS[i];
+  const steps = TOURS[tour];
+  const step = steps[i];
 
   // Measure the real element each step, and again on resize/rotate — a
   // hard-coded position would drift the moment anything about the bar changes.
@@ -124,12 +157,12 @@ export function FirstRunTour({ uid, onDone }: { uid: string; onDone: () => void 
   });
 
   function finish() {
-    markSeen(uid);
+    markSeen(uid, tour);
     onDone();
   }
 
   function next() {
-    if (i < STEPS.length - 1) setI(i + 1); else finish();
+    if (i < steps.length - 1) setI(i + 1); else finish();
   }
 
   function back() {
@@ -173,7 +206,7 @@ export function FirstRunTour({ uid, onDone }: { uid: string; onDone: () => void 
       >
         <div className="max-w-lg mx-auto overlay-solid rounded-2xl border border-subtle p-4 shadow-2xl">
           <div className="flex items-center gap-1.5 mb-2">
-            {STEPS.map((_, k) => (
+            {steps.map((_, k) => (
               <span
                 key={k}
                 className={`h-1 rounded-full transition-all ${k === i ? 'w-5 bg-emerald-500' : 'w-1.5 bg-slate-300 dark:bg-slate-700'}`}
@@ -207,7 +240,7 @@ export function FirstRunTour({ uid, onDone }: { uid: string; onDone: () => void 
               >חזור</button>
             )}
             <button onClick={next} className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-[13px] font-bold">
-              {i < STEPS.length - 1 ? 'הבא' : 'יאללה, בוא נתחיל'}
+              {i < steps.length - 1 ? 'הבא' : 'יאללה, בוא נתחיל'}
             </button>
           </div>
         </div>

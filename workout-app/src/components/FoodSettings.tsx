@@ -5,6 +5,7 @@ import { TopBar } from './TopBar';
 import { CloseAction } from './TopBarActions';
 import { restartTour } from './FirstRunTour';
 import { ContactCard, TrialCard } from './TrialGate';
+import { AnalyticsAdmin } from './AnalyticsAdmin';
 import { useTrial } from '../hooks/useTrial';
 import { ReportsPanel } from './ReportsPanel';
 import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId } from '../config/aiModel';
@@ -145,6 +146,21 @@ export function FoodSettings({ uid, navigate, onLogout }: Props) {
           </div>
         </button>
 
+        {/* Two tours, and this page belongs to תזונה — so the first row replays
+            the food one. The shell tour stays reachable underneath, because its
+            subject (moving between places) is not specific to any place. */}
+        <div className="card mb-4">
+          <div className="flex items-center justify-between" dir="rtl">
+            <div className="text-right">
+              <div className="font-medium">סיור קצר במצב תזונה</div>
+              <div className="text-xs text-muted">רישום ארוחה, המאמן התזונתי והגירעון</div>
+            </div>
+            <button onClick={() => restartTour(uid, 'food')} className="btn-secondary px-4 py-2 text-sm">
+              הצג שוב
+            </button>
+          </div>
+        </div>
+
         <div className="card mb-4">
           <div className="flex items-center justify-between" dir="rtl">
             <div className="text-right">
@@ -187,6 +203,7 @@ export function FoodSettings({ uid, navigate, onLogout }: Props) {
         {firestore.isAdmin && (
           <>
             <SectionHeader>מפתחים</SectionHeader>
+            <AnalyticsAdmin />
             <div className="card mb-4 border border-emerald-500/30" dir="rtl">
               <div className="text-right mb-2">
                 <div className="font-medium">מודל ה-AI</div>

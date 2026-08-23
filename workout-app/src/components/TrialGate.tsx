@@ -1,8 +1,10 @@
 import { CONTACT, daysLeftLabel, mailLink, waLink, type TrialState } from '../config/access';
 
-// The trial surface, in three pieces:
+// The trial surface, in four pieces:
 //   ContactActions — WhatsApp + mail, used by everything below and by Settings.
-//   TrialBanner    — a quiet strip while the week is running.
+//   ContactCard    — reach-a-human block in Settings, shown to everyone.
+//   TrialCard      — trial status + "continue" in the חשבון section.
+//   TrialPill      — always-on marker in the top bar, next to the gear.
 //   TrialExpired   — the stop, once it is up.
 //
 // Contact is its own export on purpose: Settings shows it to everyone, always,
@@ -96,47 +98,39 @@ export function TrialCard({ trial }: { trial?: TrialState | null }) {
   );
 }
 
-/** Below this, the banner appears. Above it, the trial is visible only in
- *  Settings — a countdown you can do nothing useful about is just nagging. */
-const NOTICE_FROM_DAYS_LEFT = 3;
-
 /**
- * Shown at the top of the app only near the end of the free week.
+ * Always-on trial marker, sitting next to the settings gear in the top bar.
  *
- * It used to appear on every tab page for all seven days, which read as a
- * permanent billing strip over a product you had only just started using. It
- * now stays quiet until the last three days, when the information is actually
- * actionable; before that the state lives in Settings, where you go to look for
- * it. It also scrolls away with the content rather than pinning.
+ * Replaces the in-page banner. The banner was a full-width strip that appeared
+ * only in the last three days and pushed the screen down; being in the layout
+ * meant it could only be tolerable by being rare, which is the opposite of what
+ * a status indicator should be. A pill in the chrome is visible on every screen
+ * at all times and costs nothing, so it can carry the day count permanently.
+ *
+ * Tapping it goes to Settings, where the trial card and the contact buttons are.
  */
-export function TrialBanner({ state, onContact }: { state: TrialState; onContact: () => void }) {
-  if (state.status !== 'active') return null;
-  if (state.daysLeft > NOTICE_FROM_DAYS_LEFT) return null;
-  const urgent = state.daysLeft <= 2;
+export function TrialPill({ trial, onOpen }: { trial?: TrialState | null; onOpen: () => void }) {
+  if (!trial || trial.status !== 'active') return null;
+  const urgent = trial.daysLeft <= 3;
 
   return (
-    <div dir="rtl" className="px-4 pt-3">
-      <div
-        className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 ${
-          urgent
-            ? 'border-amber-500/40 bg-amber-500/10'
-            : 'border-subtle bg-subtle'
-        }`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${urgent ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-        <span className="text-[12px] font-bold">תקופת ניסיון</span>
-        <span className={`text-[12px] font-semibold ${urgent ? 'text-amber-600 dark:text-amber-400' : 'text-muted'}`}>
-          {daysLeftLabel(state.daysLeft)}
-        </span>
-        <span className="flex-1" />
-        <button
-          onClick={onContact}
-          className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 px-1"
-        >
-          המשך ליווי
-        </button>
-      </div>
-    </div>
+    <button
+      onClick={onOpen}
+      aria-label={`תקופת ניסיון — ${daysLeftLabel(trial.daysLeft)}`}
+      className={`shrink-0 h-7 px-2 rounded-full border inline-flex items-center gap-1.5 transition-colors ${
+        urgent
+          ? 'border-amber-500/50 bg-amber-500/12 text-amber-700 dark:text-amber-300'
+          : 'border-subtle bg-subtle text-muted'
+      }`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${urgent ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+      <span className="text-[11px] font-bold leading-none">ניסיון</span>
+      {/* The number carries the urgency, so it keeps full contrast even when
+          the rest of the pill is deliberately quiet. */}
+      <span className={`text-[11px] font-bold leading-none tabular-nums ${urgent ? '' : 'text-main'}`}>
+        {trial.daysLeft}
+      </span>
+    </button>
   );
 }
 

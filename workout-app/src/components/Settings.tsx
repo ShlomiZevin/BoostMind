@@ -4,6 +4,7 @@ import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { restartTour } from './FirstRunTour';
 import { ContactCard, TrialCard } from './TrialGate';
+import { AnalyticsAdmin } from './AnalyticsAdmin';
 import { useTrial } from '../hooks/useTrial';
 import { ReportsPanel } from './ReportsPanel';
 import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId } from '../config/aiModel';
@@ -265,6 +266,7 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       {firestore.isAdmin && (
         <>
           <SectionHeader>מפתחים</SectionHeader>
+          <AnalyticsAdmin />
           <div className="card mb-4 border border-emerald-500/30" dir="rtl">
             <div className="text-right mb-2">
               <div className="font-medium">מודל ה-AI</div>

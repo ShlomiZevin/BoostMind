@@ -1091,5 +1091,62 @@ html[data-theme="light"] .bub.me{background:#dbeafe;color:#1e40af}
   }
 })();
 </script>
+
+<script>
+// Launch analytics — fires one `home_view` event per browser session so the
+// admin panel can count visits, referrers, UTM tags and platform mix without
+// bundling the Firebase SDK on this static page. Writes via Firestore REST
+// straight into the analytics_events collection; the rule allows create-only.
+(function(){
+  try {
+    var SESSION_KEY = 'matzavSessionId';
+    if (sessionStorage.getItem(SESSION_KEY + ':home_view_sent')) return;
+
+    function id(prefix){ return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); }
+    var visitor = localStorage.getItem('matzavVisitorId');
+    if (!visitor) { visitor = id('v'); try { localStorage.setItem('matzavVisitorId', visitor); } catch(e){} }
+    var session = sessionStorage.getItem(SESSION_KEY);
+    if (!session) { session = id('s'); try { sessionStorage.setItem(SESSION_KEY, session); } catch(e){} }
+
+    var ua = navigator.userAgent || '';
+    var platform = /iPad/.test(ua) ? 'iPad' : /iPhone/.test(ua) ? 'iPhone'
+                 : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac'
+                 : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : 'Other';
+    var browser = /CriOS|Chrome/.test(ua) ? 'Chrome' : /FxiOS|Firefox/.test(ua) ? 'Firefox'
+                : /Edg\//.test(ua) ? 'Edge' : /Safari/.test(ua) ? 'Safari' : 'Other';
+
+    var fields = {
+      type:     { stringValue: 'home_view' },
+      ts:       { integerValue: String(Date.now()) },
+      visitor:  { stringValue: visitor },
+      session:  { stringValue: session },
+      path:     { stringValue: location.pathname || '/' },
+      referrer: document.referrer ? { stringValue: document.referrer.slice(0, 400) } : { nullValue: null },
+      ua:       { stringValue: platform + ' ' + browser }
+    };
+    try {
+      var p = new URLSearchParams(location.search);
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(function(k){
+        var v = p.get(k);
+        if (v) fields[k] = { stringValue: v.slice(0, 60) };
+      });
+    } catch(e) {}
+
+    var url = 'https://firestore.googleapis.com/v1/projects/boostmind-b052c/databases/(default)/documents/analytics_events'
+            + '?key=AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90';
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: fields }),
+      // keepalive so the beacon completes even if the user immediately taps a link
+      keepalive: true,
+      mode: 'cors',
+    }).then(function(){
+      try { sessionStorage.setItem(SESSION_KEY + ':home_view_sent', '1'); } catch(e){}
+    }).catch(function(){ /* analytics MUST NOT break the page */ });
+  } catch (_) { /* swallow */ }
+})();
+</script>
 </body>
 </html>

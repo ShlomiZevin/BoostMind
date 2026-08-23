@@ -135,6 +135,14 @@ const MEAL_TYPE_HE = {
 // toISOString(), which is UTC — so between midnight and 03:00 Israel time the
 // coach believed it was still yesterday and reasoned about the wrong day's
 // meals. It also never saw the clock at all, only the date.
+/** YYYY-MM-DD in Israel, for the prompts that only need the date. */
+function todayInIsrael() {
+  const p = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date());
+  return p; // en-CA formats as YYYY-MM-DD
+}
+
 function nowInIsrael() {
   const fmt = new Intl.DateTimeFormat('he-IL', {
     timeZone: 'Asia/Jerusalem',
@@ -287,7 +295,7 @@ app.post('/api/chat', async (req, res) => {
       "lower-back, front-delts, side-delts, biceps, triceps, forearms, quads, hamstrings,",
       "glutes, adductors, abductors, calves, abs, obliques.",
       "",
-      `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
+      `Today's date is ${todayInIsrael()}.`,
       "",
       "The user's personal exercise DB (id | Hebrew | English | muscle):",
       exList.length === 0
@@ -371,7 +379,7 @@ app.post('/api/chat', async (req, res) => {
       "lower-back, front-delts, side-delts, biceps, triceps, forearms, quads, hamstrings,",
       "glutes, adductors, abductors, calves, abs, obliques.",
       "",
-      `Today's date is ${new Date().toISOString().slice(0, 10)}. When the user`,
+      `Today's date is ${todayInIsrael()}. When the user`,
       "says \"today\", \"yesterday\", \"a week ago\", interpret against this date.",
       "The dates below are the ACTUAL dates each set was logged — DO NOT assume",
       "sets happened today unless the date matches today's date.",
@@ -503,7 +511,7 @@ app.post('/api/chat', async (req, res) => {
       "daysPerWeek is an integer 2..7.",
       "   After emitting ready_to_build, add ONE short sentence like 'בונה לך תוכנית עכשיו — לחץ על הכפתור למטה'.",
       "",
-      `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
+      `Today's date is ${todayInIsrael()}.`,
     ].join('\n');
 
     // ─── Trainer-mode system prompt (home-page general AI trainer) ──
@@ -655,7 +663,7 @@ app.post('/api/chat', async (req, res) => {
       "lower-back, front-delts, side-delts, biceps, triceps, forearms, quads, hamstrings,",
       "glutes, adductors, abductors, calves, abs, obliques.",
       "",
-      `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
+      `Today's date is ${todayInIsrael()}.`,
     ].filter(Boolean).join('\n');
 
     // ─── Dietary-mode system prompt (the food coach) ───────────────
@@ -683,6 +691,33 @@ app.post('/api/chat', async (req, res) => {
       "- כשהמשתמש מספר מה הוא אכל — אתה מפרק את זה לארוחה מובנית (ראה למטה)",
       "- מעדיף ארוחות מהמאגר שלו שהוא לא אכל לאחרונה, לפני שאתה ממציא חדשות",
       "- ביום אימון כבד אפשר יותר; ביום מנוחה פחות",
+      "",
+      "== התפיסה שאתה עובד לפיה — זה הבסיס לכל תשובה שלך ==",
+      "",
+      "1) גירעון קלורי הוא המנוע.",
+      "   ירידה במשקל היא לאכול פחות ממה ששורפים, לאורך זמן. זה הכול.",
+      "   למשוואה שני צדדים, ואתה עובד עם שניהם:",
+      "     • להוריד מצד האוכל",
+      "     • להעלות מצד השריפה — אימוני כוח, אירובי, אפילו הליכה",
+      "   ביום אימון יש יותר מקום; ביום מנוחה פחות. תגיד את זה במספרים, לא בהרגשה.",
+      "   כשאתה רואה שנשרפו קלוריות באימון — תשקלל את זה במה שנשאר לו להיום.",
+      "",
+      "2) לשטח את עקומת הגלוקוז — ככה שולטים בדחפים.",
+      "   סוכר ופחמימות ריקות מקפיצים את הסוכר בדם מהר, ואז מפילים אותו.",
+      "   הנפילה הזאת היא מה שמייצר את הרעב והדחף לנשנש שעה-שעתיים אחר כך.",
+      "   אז במקום להילחם ברצון — משטחים את העקומה מראש:",
+      "     • להקדים חלבון, שומן או סיבים לפני הפחמימה באותה ארוחה",
+      "     • לא לאכול פחמימה ״עירומה״ (לחם לבד, פירות לבד, ממתק על בטן ריקה)",
+      "     • להעדיף פחמימה מלאה על מעובדת",
+      "     • תנועה קצרה אחרי ארוחה גדולה עוזרת",
+      "   זה לא ויתור ולא מוסר — זו שליטה בדחפים. תסביר את זה בדיוק ככה.",
+      "   כשהמשתמש מספר על משהו מתוק, אל תשפוט: תגיד כמה זה עלה, ומה מרכך את",
+      "   הקפיצה (לאכול את זה אחרי ארוחה ולא לבד, להוסיף חלבון לצידו).",
+      "",
+      "3) אתה מכמת, לא מטיף. מספרים, אפשרויות, וממשיכים הלאה.",
+      "",
+      "גבול אחד: אם עולה מצב רפואי — סוכרת, תרופות, הריון, הפרעת אכילה —",
+      "תגיד בפשטות שזה מעבר למה שאתה עושה, ושכדאי להתייעץ עם איש מקצוע. בלי דרמה.",
       "",
       "== ארוחה = בלוק פעולה ==",
       "בכל פעם שעולה ארוחה קונקרטית — משהו שהמשתמש אכל, או הצעה שלך —",

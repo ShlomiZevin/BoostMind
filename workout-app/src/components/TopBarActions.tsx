@@ -1,8 +1,32 @@
 import type { Route } from '../types';
 import { useStandaloneStopwatch } from '../hooks/useStandaloneStopwatch';
 import { useAiTrainerPanel } from '../hooks/useAiTrainerPanel';
+import { useAuth } from '../hooks/useAuth';
 import { usePlaceContext } from './PlaceSwitcher';
 import { PLACES } from '../places/registry';
+
+/** Admin-only launch dashboard shortcut — renders nothing for anyone else,
+ *  so the TopBar for regular users is unchanged. One tap from any tab page
+ *  jumps you to the funnel + registrations view during the launch window. */
+export function AdminDashboardAction({ navigate }: { navigate: (r: Route) => void }) {
+  const { uid } = useAuth();
+  if (uid !== 'user_6724') return null;
+  return (
+    <button
+      onClick={() => navigate({ page: 'admin' })}
+      aria-label="דשבורד השקה"
+      title="דשבורד השקה"
+      className="w-10 h-10 rounded-full flex items-center justify-center text-violet-600 dark:text-violet-400 hover:bg-violet-500/15 transition-colors"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="3" y="12" width="4" height="8" rx="1" />
+        <rect x="10" y="7" width="4" height="13" rx="1" />
+        <rect x="17" y="3" width="4" height="17" rx="1" />
+      </svg>
+    </button>
+  );
+}
 
 /** Reusable gear icon that navigates to settings — used in every tab page's TopBar.
  *  Place-aware: the gear opens the settings of the place you are IN, so tapping
@@ -97,6 +121,8 @@ function PendingDot({ n, tone }: { n: number; tone: 'emerald' | 'amber' }) {
 export function TabActions({ navigate }: { navigate: (r: Route) => void }) {
   return (
     <>
+      {/* Admin-only, renders nothing for other users. */}
+      <AdminDashboardAction navigate={navigate} />
       <AiTrainerAction />
       <StopwatchToggleAction />
       <SettingsGearAction navigate={navigate} />

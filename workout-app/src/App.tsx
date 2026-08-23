@@ -27,14 +27,15 @@ import { FoodSettings } from './components/FoodSettings';
 import { LogMealModal } from './components/LogMealModal';
 import type { MealDraft } from './components/AiChatPanel';
 import { FabFan, PlaceProvider, PlacesSheet } from './components/PlaceSwitcher';
-import { FirstRunTour, TOUR_RESTART_EVENT, hasSeenTour } from './components/FirstRunTour';
-import { TrialBanner, TrialExpired } from './components/TrialGate';
+import { FirstRunTour, TOUR_RESTART_EVENT, hasSeenTour, type TourId } from './components/FirstRunTour';
+import { TrialExpired } from './components/TrialGate';
 import { useTrial } from './hooks/useTrial';
-import { waLink, type TrialState } from './config/access';
+import type { TrialState } from './config/access';
 
 /** The account that owns this app. Never trial-gated, sees the admin surfaces. */
 const OWNER_UID = 'user_6724';
 import { ReportsPanel } from './components/ReportsPanel';
+import { AdminPage } from './components/AdminPage';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
 } from './places/registry';
@@ -67,6 +68,7 @@ function parseHash(): Route {
   if (hash === '/exercises') return { page: 'exercises' };
   if (hash === '/body') return { page: 'body' };
   if (hash === '/install') return { page: 'install' };
+  if (hash === '/admin') return { page: 'admin' };
   if (hash.startsWith('/session-view/')) {
     return { page: 'session-view', sessionId: hash.split('/')[2] };
   }
@@ -84,6 +86,7 @@ function routeToHash(route: Route): string {
     case 'exercises': return '#/exercises';
     case 'body': return '#/body';
     case 'install': return '#/install';
+    case 'admin': return '#/admin';
     case 'session': return `#/session/${route.sessionId}`;
     case 'session-view': return `#/session-view/${route.sessionId}`;
     case 'food-today': return '#/food/today';
@@ -188,6 +191,30 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
     return estimateBurn(allSessions.filter(s => (s.completedAt || s.date) >= start), profile.diet?.weightKg);
   }, [allSessions, profile.diet?.weightKg]);
 
+  // How the food coach introduces itself, once, on an empty thread. Written
+  // here rather than on the server because it must render instantly when the
+  // panel opens — a first-time user watching a spinner learns nothing.
+  //
+  // The tail branches on whether a target exists: with no profile the single
+  // most useful next step is setting one, and the coach can do it in the
+  // conversation via set_calorie_target.
+  const dietGreeting = useMemo(() => {
+    const hasTarget = !!(profile.diet?.dailyCalorieTarget || profile.diet?.weightKg);
+    return [
+      'היי. אני המאמן התזונתי שלך.',
+      '',
+      'שני דברים מניעים כאן הכול:',
+      '**גירעון קלורי** — לאכול קצת פחות ממה שאתה שורף. ולמשוואה יש שני צדדים, אז אימון ביום מסוים פותח לך יותר מקום באותו יום.',
+      '**לשטח את עקומת הגלוקוז** — סוכר ופחמימות ריקות מקפיצים את הסוכר בדם ואז מפילים אותו, והנפילה הזו היא מה שמייצר את הדחף לנשנש בערב. פחות מהם, ופחמימה אף פעם לא לבד — וזה נהיה הרבה יותר קל.',
+      '',
+      'פשוט תגיד לי מה אכלת, בשפה חופשית, ואני אפרק את זה לרכיבים ולקלוריות ואתן לך כרטיס לאישור.',
+      '',
+      hasTarget
+        ? 'אפשר גם לשאול מה נשאר לך להיום, או מה כדאי לאכול בערב.'
+        : 'רוצה שנתחיל מלקבוע לך יעד קלורי יומי? צריך רק משקל, גובה, גיל ורמת פעילות.',
+    ].join('\n');
+  }, [profile.diet?.dailyCalorieTarget, profile.diet?.weightKg]);
+
   async function addMealFromChat(d: MealDraft) {
     await firestore.logMeal({
       mealId: d.mealId,
@@ -205,13 +232,39 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   // ─── Place switching ─────────────────────────────────────────────
   // One-time orientation. Only the three things you cannot discover by
   // looking: the place switcher, the coach, and the long-press.
-  const [tourOpen, setTourOpen] = useState(() => !hasSeenTour(uid));
-  // Replayed from Settings — go home first, since that is where the tour's
-  // targets live.
+  // `null` = no tour running. Which tour matters now that there are two: the
+  // shell tour on first login, and a separate one the first time the user walks
+  // into מצב תזונה, which has its own button, coach and numbers.
+  const [tour, setTour] = useState<TourId | null>(() => (hasSeenTour(uid) ? null : 'shell'));
+
+  // True once any tour has run in this mount. Guards the one case where both
+  // would fire back to back: a brand-new user who lands straight on a תזונה tab
+  // (a shared deep link) sees the shell tour, and the moment it closes this
+  // effect would open a second one — seven cards before they have touched
+  // anything. The food tour then waits for their next visit to the place.
+  const tourRanThisMount = useRef(false);
+  useEffect(() => { if (tour) tourRanThisMount.current = true; }, [tour]);
+
+  // Entering תזונה for the first time. Deliberately checked on every route
+  // change rather than once on mount, because the user arrives here later —
+  // days after the shell tour — via the place switcher or a quick action.
   useEffect(() => {
-    function onRestart() {
-      navigate({ page: 'home' });
-      setTourOpen(true);
+    if (place !== 'food' || !isTabPage) return;
+    if (tour !== null || tourRanThisMount.current) return;
+    if (hasSeenTour(uid, 'food')) return;
+    setTour('food');
+  }, [place, isTabPage, uid, tour]);
+
+  // Replayed from Settings. The shell tour's targets live on Home, so go there
+  // first; a place tour is replayed wherever its own place is.
+  useEffect(() => {
+    function onRestart(e: Event) {
+      const which = ((e as CustomEvent).detail?.tour as TourId) || 'shell';
+      // Both replays are fired from a settings screen, which is not a tab page —
+      // and the tour only renders on tab pages, where its targets live. So each
+      // one navigates to its own home first, or the card would never appear.
+      navigate({ page: which === 'food' ? 'food-today' : 'home' });
+      setTour(which);
     }
     window.addEventListener(TOUR_RESTART_EVENT, onRestart);
     return () => window.removeEventListener(TOUR_RESTART_EVENT, onRestart);
@@ -406,6 +459,14 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
     case 'install':
       content = <Install navigate={navigate} />;
       break;
+    case 'admin':
+      // Admin-only launch dashboard. Non-admins hitting #/admin bounce home
+      // rather than see an "access denied" screen — the URL simply doesn't
+      // exist for them.
+      content = isAdmin
+        ? <AdminPage uid={uid} navigate={navigate} />
+        : (navigate({ page: 'home' }), null);
+      break;
     case 'food-today':
       content = <FoodToday uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} onAddMeal={() => setShowLogMeal(true)} />;
       break;
@@ -424,21 +485,15 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   }
 
   return (
-    <PlaceProvider value={{ place, openSheet: () => setSheetOpen(true), pendingByBucket }}>
+    <PlaceProvider value={{
+      place,
+      openSheet: () => setSheetOpen(true),
+      pendingByBucket,
+      trial,
+      openSettings: () => navigate({ page: place === 'food' ? 'food-settings' : 'settings' }),
+    }}>
       {/* Reserve room at the bottom so tab bar never overlaps content */}
       <div className={isTabPage ? 'pb-24' : ''}>
-        {/* Only on tab pages: mid-workout or mid-meal is the wrong moment to be
-            told about billing. It scrolls away with the content by design. */}
-        {isTabPage && (
-          <TrialBanner
-            state={trial}
-            onContact={() => window.open(
-              waLink('היי שלומי, אני בתקופת ניסיון במצב ואשמח להמשיך.'),
-              '_blank',
-              'noopener',
-            )}
-          />
-        )}
         {content}
       </div>
       {isTabPage && (
@@ -477,8 +532,8 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
         />
       )}
 
-      {tourOpen && isTabPage && !showLogMeal && !foodChatOpen && !aiPanelOpen && (
-        <FirstRunTour uid={uid} onDone={() => setTourOpen(false)} />
+      {tour && isTabPage && !showLogMeal && !foodChatOpen && !aiPanelOpen && (
+        <FirstRunTour uid={uid} tour={tour} onDone={() => setTour(null)} />
       )}
 
       {sheetOpen && (
@@ -514,6 +569,13 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
         <AiChatPanel
           uid={uid}
           mode="dietary"
+          /* First words of the first dietary conversation. Renders only while
+             the thread is empty (the panel drops it the moment a real message
+             exists), so it introduces the place once and never again. It states
+             the two ideas the whole place is built on — deficit, and flattening
+             the glucose curve to control cravings — because a coach that opens
+             with "מה אכלת?" reads like a form. */
+          initialAssistantMessage={dietGreeting}
           personalMeals={personalMeals}
           todayMeals={todayMeals}
           dietProfile={profile.diet}

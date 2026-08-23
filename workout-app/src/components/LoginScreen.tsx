@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { logEvent } from '../utils/analytics';
 
 type Props = {
   onLogin: () => Promise<void>;
@@ -18,6 +19,10 @@ type Props = {
 export function LoginScreen({ onLogin }: Props) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Launch analytics — fires once per session on mount. The helper dedups so
+  // a re-render from busy/err state doesn't double-count.
+  useEffect(() => { void logEvent('login_view'); }, []);
 
   async function handleClick() {
     if (busy) return;

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { resolveAppUid, resolveAppUidAsync, cachedLegacyUid, signInWithGoogle, signOutUser, subscribeToAuth } from '../config/firebase';
+import { ensureUserIndex, logEvent } from '../utils/analytics';
 
 export type AuthState = {
   uid: string | null;         // app-level uid (aliased for legacy accounts)
@@ -53,6 +54,23 @@ export function useAuth(): AuthState {
     }).catch(() => { /* keep sync answer */ });
     return () => { cancelled = true; };
   }, [user, aliasTick]);
+
+  // ─── Analytics on sign-in ─────────────────────────────────────────
+  // Fire once per authenticated user per page load. Waits until the app-level
+  // uid resolves so `users_index/{uid}` is keyed on the same identity the
+  // rest of the app uses (aliased for legacy accounts like user_6724).
+  const trackedForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!user || !uid) return;
+    if (trackedForRef.current === uid) return;
+    trackedForRef.current = uid;
+    void logEvent('sign_in', { uid, email: user.email || null });
+    void ensureUserIndex(user, uid).then(({ isNew }) => {
+      if (isNew) {
+        void logEvent('register', { uid, email: user.email || null });
+      }
+    });
+  }, [user, uid]);
 
   async function login() {
     try {

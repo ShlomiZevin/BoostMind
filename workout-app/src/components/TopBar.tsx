@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { PlacePill, usePlaceContext } from './PlaceSwitcher';
+import { TrialPill } from './TrialGate';
 
 type TintColor = 'emerald' | 'blue' | 'violet' | 'amber';
 
@@ -99,9 +100,13 @@ export function TopBar({ title, subtitle, actions, center, accent, tint = 'emera
             {center}
           </div>
         )}
-        {/* Left (RTL end): action buttons */}
-        {actions && (
+        {/* Left (RTL end): trial marker, then the action buttons. Rendered here
+            rather than passed in `actions` by each screen — it belongs to the
+            account, not to any one page, and this way it cannot be forgotten on
+            a screen. Renders nothing for exempt accounts. */}
+        {(placeCtx?.trial || actions) && (
           <div className="shrink-0 flex items-center gap-1">
+            <TrialPill trial={placeCtx?.trial} onOpen={() => placeCtx?.openSettings?.()} />
             {actions}
           </div>
         )}
