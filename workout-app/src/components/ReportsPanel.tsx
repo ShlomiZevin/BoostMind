@@ -96,6 +96,21 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
     setReports(prev => prev.map(x => (x.id === r.id ? { ...x, place: next } : x)));
   }
 
+  // Editing an existing report — text + kind (bug/feature). Same pattern as
+  // status/place so the row already has the mental model: chips for the kind,
+  // a textarea with an explicit save button for the free-form text (blur is
+  // ambiguous — the user might tap "cancel" and expect the field to revert).
+  async function changeKind(r: AppReport, kind: ReportKind) {
+    await firestoreRef.current.updateReport(r.id, { kind });
+    setReports(prev => prev.map(x => (x.id === r.id ? { ...x, kind } : x)));
+  }
+  async function changeText(r: AppReport, text: string) {
+    const clean = text.trim();
+    if (!clean) return;
+    await firestoreRef.current.updateReport(r.id, { text: clean });
+    setReports(prev => prev.map(x => (x.id === r.id ? { ...x, text: clean } : x)));
+  }
+
   return (
     <div className="fixed inset-0 z-[75] flex flex-col overlay-solid">
       <div className="flex items-center justify-between p-4 border-b border-subtle" dir="rtl">
@@ -207,7 +222,7 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
           <div className="card text-center py-10 text-[13px] text-muted">אין דיווחים בסטטוס הזה</div>
         ) : (
           shown.map(r => (
-            <ReportRow key={r.id} report={r} onSetStatus={setStatus} onSetPlace={changePlace} onDeleted={reload} uid={uid} />
+            <ReportRow key={r.id} report={r} onSetStatus={setStatus} onSetPlace={changePlace} onSetKind={changeKind} onSetText={changeText} onDeleted={reload} uid={uid} />
           ))
         )}
       </div>
@@ -216,17 +231,24 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
 }
 
 function ReportRow({
-  report, uid, onSetStatus, onSetPlace, onDeleted,
+  report, uid, onSetStatus, onSetPlace, onSetKind, onSetText, onDeleted,
 }: {
   report: AppReport;
   uid: string;
   onSetStatus: (r: AppReport, s: ReportStatus) => void | Promise<void>;
   onSetPlace: (r: AppReport, p: ReportPlaceTag) => void | Promise<void>;
+  onSetKind: (r: AppReport, k: ReportKind) => void | Promise<void>;
+  onSetText: (r: AppReport, text: string) => void | Promise<void>;
   onDeleted: () => void | Promise<void>;
 }) {
   const firestore = useFirestore(uid);
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Text editing — draft state so the user can revise freely before committing.
+  // Kept out of the parent's report list until the user clicks "שמור".
+  const [editingText, setEditingText] = useState(false);
+  const [textDraft, setTextDraft] = useState(report.text);
+  useEffect(() => { setTextDraft(report.text); }, [report.text]);
   const p = placeOf(report.place);
   const st = statusOf(report.status);
 
@@ -252,6 +274,73 @@ function ReportRow({
           {report.screenshotBase64 && (
             <img src={report.screenshotBase64} alt="" className="w-full rounded-lg border border-subtle" />
           )}
+
+          {/* Editable text — the report body itself. Draft-then-commit
+              (rep_1787488188098_sj3a); blur doesn't auto-save because the
+              user may open editing to check the raw text and back out. */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="text-[10px] text-muted-more font-semibold">טקסט</div>
+              {!editingText && (
+                <button
+                  onClick={() => { setTextDraft(report.text); setEditingText(true); }}
+                  className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold"
+                >ערוך</button>
+              )}
+            </div>
+            {editingText ? (
+              <>
+                <textarea
+                  value={textDraft}
+                  onChange={e => setTextDraft(e.target.value)}
+                  rows={4}
+                  className="w-full text-[13px] rounded-lg border border-subtle bg-transparent p-2 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 resize-none text-right"
+                  dir="rtl"
+                />
+                <div className="flex gap-2 mt-1.5">
+                  <button
+                    onClick={() => { setTextDraft(report.text); setEditingText(false); }}
+                    className="btn-secondary flex-1 py-1.5 text-[12px]"
+                  >בטל</button>
+                  <button
+                    onClick={async () => {
+                      if (!textDraft.trim()) return;
+                      await onSetText(report, textDraft);
+                      setEditingText(false);
+                    }}
+                    disabled={!textDraft.trim() || textDraft.trim() === report.text}
+                    className={`flex-1 py-1.5 rounded-xl text-[12px] font-bold ${
+                      textDraft.trim() && textDraft.trim() !== report.text
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+                        : 'bg-subtle text-muted'
+                    }`}
+                  >שמור</button>
+                </div>
+              </>
+            ) : (
+              <div className="text-[13px] leading-snug whitespace-pre-wrap">{report.text}</div>
+            )}
+          </div>
+
+          {/* Kind — same chip pattern as סטטוס/אזור, keeps the interaction
+              consistent across the three editable fields. */}
+          <div>
+            <div className="text-[10px] text-muted-more font-semibold mb-1.5">סוג</div>
+            <div className="flex flex-wrap gap-1.5">
+              {KINDS.map(k => (
+                <button
+                  key={k.id}
+                  onClick={() => void onSetKind(report, k.id)}
+                  className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold ${
+                    report.kind === k.id
+                      ? 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900 ring-1 ring-current'
+                      : 'bg-subtle text-muted'
+                  }`}
+                >{k.icon} {k.he}</button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <div className="text-[10px] text-muted-more font-semibold mb-1.5">סטטוס</div>
             <div className="flex flex-wrap gap-1.5">

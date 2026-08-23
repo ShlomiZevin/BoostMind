@@ -17,7 +17,7 @@ import { trialStateOf, type AccessFields, type TrialState } from '../config/acce
  */
 export function useTrial(uid: string | null, isOwner: boolean) {
   const [trial, setTrial] = useState<TrialState | null>(
-    isOwner ? { status: 'exempt', daysLeft: 0, endsAt: 0 } : null,
+    isOwner ? { status: 'exempt', daysLeft: 0, endsAt: 0, daysUsed: 0 } : null,
   );
   // Kept so the focus/interval re-check can recompute without re-reading.
   const fieldsRef = useRef<AccessFields | null>(null);
@@ -31,7 +31,7 @@ export function useTrial(uid: string | null, isOwner: boolean) {
 
   useEffect(() => {
     if (isOwner) {
-      setTrial({ status: 'exempt', daysLeft: 0, endsAt: 0 });
+      setTrial({ status: 'exempt', daysLeft: 0, endsAt: 0, daysUsed: 0 });
       return;
     }
     if (!uid) return;
@@ -46,7 +46,7 @@ export function useTrial(uid: string | null, isOwner: boolean) {
       } catch {
         // Offline or rules denied. Fail OPEN: a network blip must not look like
         // an expired trial to someone who is paying attention.
-        if (!cancelled) setTrial({ status: 'exempt', daysLeft: 0, endsAt: 0 });
+        if (!cancelled) setTrial({ status: 'exempt', daysLeft: 0, endsAt: 0, daysUsed: 0 });
         return;
       }
 

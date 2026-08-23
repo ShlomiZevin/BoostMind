@@ -59,22 +59,34 @@ service cloud.firestore {
     // ─── Launch analytics ────────────────────────────────────────
     // Append-only event log. Anyone (including the anonymous landing page)
     // can CREATE an event; only the owner email can read the log through
-    // the admin panel. No update / delete for anyone.
+    // the admin panel. Update stays blocked; delete is allowed to the
+    // owner so a one-shot cleanup pass in AnalyticsAdmin can prune the
+    // owner's own polluting events without any special tooling.
     match /analytics_events/{eventId} {
       allow create: if true;
-      allow read: if request.auth != null
-                    && request.auth.token.email == 'shlomi@boostart.io';
-      allow update, delete: if false;
+      allow read, delete: if request.auth != null
+                            && request.auth.token.email == 'shlomi@boostart.io';
+      allow update: if false;
     }
     // Lightweight user registry: one doc per app uid, upserted on sign-in.
-    // Any signed-in user may write (their client keys the doc by the
-    // resolved appUid, which does not always equal the raw Firebase Auth
-    // uid — Shlomi's alias maps to user_6724, for example). Read is admin
-    // only, mirroring the events collection.
+    // Any signed-in user may write their own row (client keys by resolved
+    // appUid, which does not always equal the raw Firebase Auth uid —
+    // Shlomi's alias maps to user_6724, for example). Read is admin only.
     match /users_index/{uid} {
       allow write: if request.auth != null;
       allow read: if request.auth != null
                     && request.auth.token.email == 'shlomi@boostart.io';
+    }
+    // ─── LLM usage log ───────────────────────────────────────────
+    // The Cloud Run server writes one doc per Anthropic response with
+    // per-message token counts + cost. Same shape as analytics_events:
+    // anyone can create (the server writes without an auth token), only
+    // the owner email can read from the admin dashboard.
+    match /ai_usage/{eventId} {
+      allow create: if true;
+      allow read: if request.auth != null
+                    && request.auth.token.email == 'shlomi@boostart.io';
+      allow update, delete: if false;
     }
   }
 }

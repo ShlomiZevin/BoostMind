@@ -18,8 +18,6 @@ type PlaceCtx = {
   /** Trial state, so the top bar can show the marker on every screen without
    *  each screen having to thread it through. Null for exempt accounts. */
   trial?: TrialState | null;
-  /** Where the pill goes when tapped — Settings for the place you are in. */
-  openSettings?: () => void;
   /** Unapproved proposals per chat bucket. The badge sits on the coach it
    *  concerns (its AI button), never on the shared place control. */
   pendingByBucket: Record<string, number>;

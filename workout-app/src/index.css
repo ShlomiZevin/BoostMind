@@ -8,7 +8,14 @@
 @layer base {
   :root {
     /* Total TopBar height including iOS safe-area — sticky section titles use this to sit right under it */
-    --top-bar-h: calc(env(safe-area-inset-top) + 64px);
+    /* Height of the trial strip when it is shown, 0 otherwise. Set on <html>
+       by the shell. Folded into --top-bar-h below so every sticky section
+       header in the app offsets below it without touching 12 call sites. */
+    --trial-strip-h: 0px;
+    --top-bar-h: calc(env(safe-area-inset-top) + 64px + var(--trial-strip-h));
+    /* Colour behind the top bar — used as the halo on the trial badge so the
+       text stays legible over the gear's teeth in both themes. */
+    --bar-bg: #ffffff;
   }
   html {
     -webkit-tap-highlight-color: transparent;
@@ -92,6 +99,28 @@
     @apply dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 bg-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-300 rounded-lg transition-colors;
   }
 }
+
+/* Trial badge on the settings gear. Geometry is fixed rather than utility
+   classes because it was tuned by eye against the icon: both lines anchored by
+   their RIGHT edge (in RTL that is where the text starts, so ניסיון and 7 ימים
+   begin at the same point despite different widths), 23px out from the gear's
+   right edge, 3px in from its top/bottom. The halo is what makes 9.5px text
+   readable where it crosses the gear's teeth. */
+.dark { --bar-bg: #020617; }
+.trial-badge {
+  position: absolute;
+  right: 23px;
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 9.5px;
+  line-height: 13px;
+  font-weight: 800;
+  padding: 0 2px;
+  color: #f59e0b;
+  text-shadow: 0 0 3px var(--bar-bg), 0 0 2px var(--bar-bg), 0 1px 2px var(--bar-bg);
+}
+.trial-badge-top { top: 3px; }
+.trial-badge-bottom { bottom: 3px; }
 
 /* Scoreboard-style digital numbers — dot-matrix / retro LED look (VT323 fallback stack) */
 .font-scoreboard {

@@ -326,7 +326,7 @@ export function FreeHistory({ uid, navigate }: Props) {
   );
 }
 
-function DuplicateModal({ onClose, onDuplicate }: { onClose: () => void; onDuplicate: (includeExercises: boolean) => void }) {
+export function DuplicateModal({ onClose, onDuplicate }: { onClose: () => void; onDuplicate: (includeExercises: boolean) => void }) {
   const [includeExercises, setIncludeExercises] = useState(true);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center dark:bg-black/80 bg-black/50 p-4" onClick={onClose}>

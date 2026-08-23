@@ -22,6 +22,19 @@ const PARENT_ORDER: MuscleParent[] = ['chest', 'back', 'shoulders', 'arms', 'leg
 const DOW_HE = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 const DOW_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
 
+// Age label in calendar days, never hours or minutes (rep_1787477173892_2h35).
+//   freshOverride=true → "עכשיו" for a not-yet-started session so the banner
+//   doesn't read "היום" for a session that hasn't actually done anything yet.
+function dayAgeLabel(ts: number, opts?: { freshOverride?: boolean }): string {
+  if (opts?.freshOverride) return 'עכשיו';
+  const startOfDay = (t: number) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const days = Math.max(0, Math.round((startOfDay(Date.now()) - startOfDay(ts)) / 86_400_000));
+  if (days === 0) return 'היום';
+  if (days === 1) return 'אתמול';
+  if (days === 2) return 'לפני יומיים';
+  return `לפני ${days} ימים`;
+}
+
 // Group aerobic entries by type → sum of minutes. Returns [] when no entries.
 // Used to render one solid-cyan "🏃 ריצה · 30ד" chip per unique aerobic type alongside
 // the muscle chips on session cards. Aerobic chips are visually distinct (filled cyan
@@ -1139,20 +1152,17 @@ function TodayTile({
     const plannedOnly = (active.plannedExercises || []).filter(p => !realSetList.some(s => (s.exerciseName || '').toLowerCase() === p.name.toLowerCase())).length;
     const totalExercises = uniqExercises + plannedOnly;
     const paused = !!active.pausedAt;
-    // Elapsed: frozen when paused, live otherwise
-    const elapsedMs = (paused ? (active.pausedAt as number) : Date.now()) - active.date;
-    const minutesAgo = Math.max(0, Math.floor(elapsedMs / 60000));
     // Fresh = pausedAt pinned to the session's start moment (== date). This is
     // the "new / restart" state — despite pausedAt being set, we treat it as a
     // fresh session, NOT as "paused". Fresh takes priority over paused so labels
     // and colors read as "ready to start", not "on hold".
     const fresh = paused && active.pausedAt === active.date;
     const trulyPaused = paused && !fresh;
-    const timeLabel = fresh
-      ? 'עכשיו'
-      : minutesAgo < 60 ? `לפני ${minutesAgo}׳`
-      : minutesAgo < 60 * 24 ? `לפני ${Math.floor(minutesAgo / 60)} שעות`
-      : new Date(active.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+    // Always report age in calendar days — "לפני 2 שעות" felt wrong to Shlomi
+    // when a workout started earlier the same day (rep_1787477173892_2h35).
+    // Same-day → "עכשיו" for the fresh-not-started case, "היום" once real
+    // activity landed; yesterday → "אתמול"; older → "לפני N ימים".
+    const timeLabel = dayAgeLabel(active.date, { freshOverride: fresh });
     // Visual accents shift with state so the banner announces itself:
     //   fresh          → emerald, no pulse (nothing to keep ticking about yet)
     //   active-running → emerald ring + pulse
@@ -1420,12 +1430,8 @@ function ActiveSessionBanner({ session, onDelete, onConvertToPlanned, navigate }
   const uniqExercises = new Set(realSetList.map(x => (x.exerciseName || '').toLowerCase()).filter(Boolean)).size;
   const plannedOnly = (session.plannedExercises || []).filter(p => !realSetList.some(s => (s.exerciseName || '').toLowerCase() === p.name.toLowerCase())).length;
   const totalExercises = uniqExercises + plannedOnly;
-  const started = new Date(session.date);
-  const minutesAgo = Math.max(0, Math.floor((Date.now() - session.date) / 60000));
-  const timeLabel =
-    minutesAgo < 60 ? `לפני ${minutesAgo}׳` :
-    minutesAgo < 60 * 24 ? `לפני ${Math.floor(minutesAgo / 60)} שעות` :
-    started.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+  // Always in days — see rep_1787477173892_2h35.
+  const timeLabel = dayAgeLabel(session.date);
   return (
     <div
       role="button"

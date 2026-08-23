@@ -4,13 +4,18 @@ import { useAiTrainerPanel } from '../hooks/useAiTrainerPanel';
 import { useAuth } from '../hooks/useAuth';
 import { usePlaceContext } from './PlaceSwitcher';
 import { PLACES } from '../places/registry';
+import { TrialBadge, TrialGearDot } from './TrialGate';
+import { TRIAL_INDICATOR, daysLeftLabel } from '../config/access';
 
 /** Admin-only launch dashboard shortcut — renders nothing for anyone else,
  *  so the TopBar for regular users is unchanged. One tap from any tab page
  *  jumps you to the funnel + registrations view during the launch window. */
 export function AdminDashboardAction({ navigate }: { navigate: (r: Route) => void }) {
-  const { uid } = useAuth();
-  if (uid !== 'user_6724') return null;
+  const { uid, email } = useAuth();
+  // Owner-only. Both checks — the aliased app uid and the raw email — cover
+  // any future case where the EMAIL_TO_UID mapping changes.
+  const isOwner = uid === 'user_6724' || email === 'shlomi@boostart.io';
+  if (!isOwner) return null;
   return (
     <button
       onClick={() => navigate({ page: 'admin' })}
@@ -34,18 +39,25 @@ export function AdminDashboardAction({ navigate }: { navigate: (r: Route) => voi
 export function SettingsGearAction({ navigate }: { navigate: (r: Route) => void }) {
   const placeCtx = usePlaceContext();
   const target = placeCtx ? PLACES[placeCtx.place].settingsPage : 'settings';
+  const trial = placeCtx?.trial;
+  const onTrial = trial?.status === 'active';
   return (
     <button
       onClick={() => navigate({ page: target } as Route)}
-      aria-label="הגדרות"
+      // The badge is aria-hidden (it is two decorative fragments); the label
+      // carries the meaning for anyone not looking at it.
+      aria-label={onTrial ? `הגדרות — תקופת ניסיון, ${daysLeftLabel(trial!.daysLeft)}` : 'הגדרות'}
       data-tour="settings"
-      className="w-10 h-10 rounded-full flex items-center justify-center text-muted dark:hover:bg-slate-800 hover:bg-slate-100 transition-colors"
+      className="relative w-10 h-10 rounded-full flex items-center justify-center text-muted dark:hover:bg-slate-800 hover:bg-slate-100 transition-colors"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
       </svg>
+      {TRIAL_INDICATOR === 'badge'
+        ? <TrialBadge trial={trial} />
+        : <TrialGearDot trial={trial} />}
     </button>
   );
 }

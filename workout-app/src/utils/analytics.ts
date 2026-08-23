@@ -95,7 +95,14 @@ function utmFromLocation(): Record<string, string> {
 const DEDUP_TYPES: EventType[] = ['home_view', 'login_view', 'app_open'];
 const firedThisSession = new Set<string>();
 
+// Owner uid — we do NOT want the account that runs the launch dashboard to
+// appear in the funnel it renders. Every event with this uid is dropped at
+// the source; the admin dashboard also filters it at read time as a belt.
+const OWNER_UID = 'user_6724';
+
 export async function logEvent(type: EventType, extra?: Record<string, unknown>): Promise<void> {
+  const extraUid = extra && typeof extra.uid === 'string' ? extra.uid : undefined;
+  if (extraUid === OWNER_UID) return;
   if (DEDUP_TYPES.includes(type)) {
     if (firedThisSession.has(type)) return;
     firedThisSession.add(type);
@@ -123,7 +130,11 @@ export async function logEvent(type: EventType, extra?: Record<string, unknown>)
 // Upserts the users_index row. Returns true when the row was just created
 // (i.e. this is a first-time registration) so the caller can fire a
 // distinct 'register' event on top of the 'sign_in' one.
+//
+// Skipped entirely for the owner uid — the account that runs the launch
+// dashboard is not a "registered user" and must never appear as one.
 export async function ensureUserIndex(user: User, appUid: string): Promise<{ isNew: boolean }> {
+  if (appUid === OWNER_UID) return { isNew: false };
   try {
     const ref = doc(db, 'users_index', appUid);
     const snap = await getDoc(ref);

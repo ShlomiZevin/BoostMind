@@ -12,6 +12,29 @@
 
 export const TRIAL_DAYS = 7;
 
+/**
+ * Which trial indicator the app shows. Both are fully implemented; this is the
+ * only line that has to change to switch.
+ *
+ *   'badge' — two lines on the settings gear (ניסיון / 7 ימים). Costs no layout,
+ *             nothing in the top bar moves.
+ *   'strip' — sticky amber bar above the top bar, with a המשך ליווי button and a
+ *             matching dot on the gear. Louder, and it shifts every sticky
+ *             header down (handled automatically — see docs/trial-indicator.md).
+ */
+export const TRIAL_INDICATOR: 'badge' | 'strip' = 'strip';
+
+/**
+ * The strip stays away for the first days. Someone who just arrived should be
+ * meeting the product, not a countdown — and a banner they cannot act on yet
+ * only teaches them to ignore banners. The dot on the gear covers the whole
+ * trial, so the reminder exists from day one either way.
+ */
+export const STRIP_FROM_DAYS_USED = 3;
+
+/** Height of the strip. Mirrored into --trial-strip-h so sticky offsets follow. */
+export const TRIAL_STRIP_H = 32;
+
 export const CONTACT = {
   /** As written to a human. */
   phone: '054-5567213',
@@ -45,6 +68,9 @@ export type TrialState = {
   daysLeft: number;
   /** When access ends. 0 for exempt accounts. */
   endsAt: number;
+  /** Whole days since the trial began. 0 on the first day. Drives when the
+   *  strip starts appearing — a brand-new user should not be shown billing. */
+  daysUsed: number;
 };
 
 /** Fields the gate reads off users/{uid}/profile/main. All optional — an old
@@ -71,18 +97,27 @@ export function trialStateOf(
   now: number = Date.now(),
 ): TrialState {
   if (isOwner || fields?.trialExempt) {
-    return { status: 'exempt', daysLeft: 0, endsAt: 0 };
+    return { status: 'exempt', daysLeft: 0, endsAt: 0, daysUsed: 0 };
   }
 
   // A manual extension wins over the trial window whenever it is the later date.
   const trialEnd = (fields?.trialStartedAt ?? now) + TRIAL_DAYS * DAY_MS;
   const endsAt = Math.max(trialEnd, fields?.accessUntil ?? 0);
+  const startedAt = fields?.trialStartedAt ?? now;
+  const daysUsed = Math.max(0, Math.floor((now - startedAt) / DAY_MS));
 
-  if (now >= endsAt) return { status: 'expired', daysLeft: 0, endsAt };
+  if (now >= endsAt) return { status: 'expired', daysLeft: 0, endsAt, daysUsed };
 
   // Round up: with 20 hours left you have "1 day", not "0".
   const daysLeft = Math.max(1, Math.ceil((endsAt - now) / DAY_MS));
-  return { status: 'active', daysLeft, endsAt };
+  return { status: 'active', daysLeft, endsAt, daysUsed };
+}
+
+/** Compact form for the top-bar marker. Hebrew has a dual, so "2 ימים" is wrong. */
+export function daysLeftShort(daysLeft: number): string {
+  if (daysLeft <= 1) return 'יום אחרון';
+  if (daysLeft === 2) return 'יומיים';
+  return `${daysLeft} ימים`;
 }
 
 /** "נותרו 3 ימים" / "נותר יום אחד" — Hebrew needs the singular form. */

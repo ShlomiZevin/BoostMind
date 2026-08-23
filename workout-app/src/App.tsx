@@ -19,6 +19,7 @@ import { useStandaloneStopwatch } from './hooks/useStandaloneStopwatch';
 import { useAiTrainerPanel } from './hooks/useAiTrainerPanel';
 import { AiChatPanel } from './components/AiChatPanel';
 import { useChatNotifier } from './hooks/useChatNotifier';
+import { useAnyChatOpen } from './hooks/useAnyChatOpen';
 import { FoodToday } from './components/FoodToday';
 import { FoodHistory } from './components/FoodHistory';
 import { FoodInsights } from './components/FoodInsights';
@@ -28,9 +29,9 @@ import { LogMealModal } from './components/LogMealModal';
 import type { MealDraft } from './components/AiChatPanel';
 import { FabFan, PlaceProvider, PlacesSheet } from './components/PlaceSwitcher';
 import { FirstRunTour, TOUR_RESTART_EVENT, hasSeenTour, type TourId } from './components/FirstRunTour';
-import { TrialExpired } from './components/TrialGate';
+import { TrialExpired, TrialStrip } from './components/TrialGate';
 import { useTrial } from './hooks/useTrial';
-import type { TrialState } from './config/access';
+import { STRIP_FROM_DAYS_USED, TRIAL_INDICATOR, TRIAL_STRIP_H, waLink, type TrialState } from './config/access';
 
 /** The account that owns this app. Never trial-gated, sees the admin surfaces. */
 const OWNER_UID = 'user_6724';
@@ -109,7 +110,11 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   const [allSessions, setAllSessions] = useState<FreeSessionType[]>([]);
   const [showStart, setShowStart] = useState(false);
   const [reportsOpen, setReportsOpen] = useState(false);
-  const isAdmin = uid === 'user_6724';
+  // Owner-only surfaces (admin dashboard, reports shortcut, model picker).
+  // Both checks — the aliased app uid and the raw email — so that even if
+  // EMAIL_TO_UID drifts, the gate keeps holding for shlomi@boostart.io only.
+  const authEmail = useAuth().email;
+  const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
 
   // Admin-only double-click shortcut — opens the bug/feature reports panel from
   // anywhere in the app. Reason (rep_1787310001832_4jel): the entry buried in
@@ -136,6 +141,36 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
 
   const place = placeOf(route.page);
   const isTabPage = TAB_PAGES.has(route.page);
+
+  // The strip is sticky ABOVE the top bar, so everything else that pins — the
+  // top bar itself and every `top: var(--top-bar-h)` section header — has to
+  // move down by its height. Publishing it as a CSS variable does that in one
+  // place instead of at twelve call sites. 0px when there is no strip.
+  // Dismissal is keyed to today's date, so closing the strip silences it for
+  // the rest of the day and it returns tomorrow. Stored per uid so two accounts
+  // on one device do not share the state.
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  const dismissKey = `trialStripHidden:${uid}:${todayKey}`;
+  const [stripHidden, setStripHidden] = useState(() => {
+    try { return localStorage.getItem(dismissKey) === '1'; } catch { return false; }
+  });
+  function hideStripForToday() {
+    try { localStorage.setItem(dismissKey, '1'); } catch { /* private mode */ }
+    setStripHidden(true);
+  }
+
+  const showStrip =
+    TRIAL_INDICATOR === 'strip'
+    && trial.status === 'active'
+    // Not in the first days: a countdown is noise to someone still working out
+    // what the app is. The dot on the gear carries the reminder until then.
+    && trial.daysUsed >= STRIP_FROM_DAYS_USED
+    && !stripHidden;
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--trial-strip-h', showStrip ? `${TRIAL_STRIP_H}px` : '0px');
+    return () => { document.documentElement.style.setProperty('--trial-strip-h', '0px'); };
+  }, [showStrip]);
 
   // Pull the model override down once per session so request bodies — which are
   // built synchronously — can read it without an await.
@@ -412,7 +447,14 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   const { open: aiPanelOpen, openPanel: openAiPanel, closePanel: closeAiPanel } = useAiTrainerPanel();
 
   // "The coach answered" — fires when a reply lands with the panel closed.
-  const { alert, pendingByBucket, dismiss, markAllSeen } = useChatNotifier(uid, { paused: aiPanelOpen || foodChatOpen });
+  // Session-level chats (FreeSession.chatOpen) register into a shared signal
+  // so THIS notifier can pause too — otherwise a reply landing while the
+  // in-session chat is visible raises a phantom toast on top of the answer
+  // the user is already reading (rep_1787479655949_jgp1).
+  const anyChatOpen = useAnyChatOpen();
+  const { alert, pendingByBucket, dismiss, markAllSeen } = useChatNotifier(uid, {
+    paused: aiPanelOpen || foodChatOpen || anyChatOpen,
+  });
 
   // Sitting in a conversation IS reading it. Mark on open as well as on close,
   // so an answer that arrives while you are looking at it never resurfaces as
@@ -490,8 +532,18 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
       openSheet: () => setSheetOpen(true),
       pendingByBucket,
       trial,
-      openSettings: () => navigate({ page: place === 'food' ? 'food-settings' : 'settings' }),
     }}>
+      {showStrip && (
+        <TrialStrip
+          trial={trial}
+          onDismiss={hideStripForToday}
+          onContact={() => window.open(
+            waLink('היי שלומי, אני בתקופת ניסיון במצב ואשמח להמשיך.'),
+            '_blank', 'noopener',
+          )}
+        />
+      )}
+
       {/* Reserve room at the bottom so tab bar never overlaps content */}
       <div className={isTabPage ? 'pb-24' : ''}>
         {content}

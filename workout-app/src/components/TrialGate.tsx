@@ -1,10 +1,10 @@
-import { CONTACT, daysLeftLabel, mailLink, waLink, type TrialState } from '../config/access';
+import { CONTACT, TRIAL_STRIP_H, daysLeftLabel, daysLeftShort, mailLink, waLink, type TrialState } from '../config/access';
 
 // The trial surface, in four pieces:
 //   ContactActions — WhatsApp + mail, used by everything below and by Settings.
 //   ContactCard    — reach-a-human block in Settings, shown to everyone.
 //   TrialCard      — trial status + "continue" in the חשבון section.
-//   TrialPill      — always-on marker in the top bar, next to the gear.
+//   TrialPill      — two lines of coloured text in the top bar, on every screen.
 //   TrialExpired   — the stop, once it is up.
 //
 // Contact is its own export on purpose: Settings shows it to everyone, always,
@@ -80,7 +80,9 @@ export function TrialCard({ trial }: { trial?: TrialState | null }) {
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 text-right">
           <div className="font-medium flex items-center gap-2">
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${urgent ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+            {/* Amber in both states, matching the top-bar chip — a trial is a
+                temporary state everywhere it appears, never a green "all good". */}
+            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-500" />
             <span>תקופת ניסיון</span>
           </div>
           <div className={`text-xs ${urgent ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-muted'}`}>
@@ -99,38 +101,89 @@ export function TrialCard({ trial }: { trial?: TrialState | null }) {
 }
 
 /**
- * Always-on trial marker, sitting next to the settings gear in the top bar.
+ * The chosen indicator: two lines of amber text on the settings gear.
  *
- * Replaces the in-page banner. The banner was a full-width strip that appeared
- * only in the last three days and pushed the screen down; being in the layout
- * meant it could only be tolerable by being rare, which is the opposite of what
- * a status indicator should be. A pill in the chrome is visible on every screen
- * at all times and costs nothing, so it can carry the day count permanently.
+ * Geometry lives in .trial-badge (index.css) because it was tuned against the
+ * icon by eye — both lines anchored by their right edge so they start at the
+ * same point in RTL, 23px out, 3px in from top and bottom.
  *
- * Tapping it goes to Settings, where the trial card and the contact buttons are.
+ * Absolutely positioned, so the gear keeps its exact 40px box and nothing in
+ * the top bar moves. Renders nothing outside an active trial.
  */
-export function TrialPill({ trial, onOpen }: { trial?: TrialState | null; onOpen: () => void }) {
+export function TrialBadge({ trial }: { trial?: TrialState | null }) {
   if (!trial || trial.status !== 'active') return null;
-  const urgent = trial.daysLeft <= 3;
-
   return (
-    <button
-      onClick={onOpen}
-      aria-label={`תקופת ניסיון — ${daysLeftLabel(trial.daysLeft)}`}
-      className={`shrink-0 h-7 px-2 rounded-full border inline-flex items-center gap-1.5 transition-colors ${
-        urgent
-          ? 'border-amber-500/50 bg-amber-500/12 text-amber-700 dark:text-amber-300'
-          : 'border-subtle bg-subtle text-muted'
-      }`}
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${urgent ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-      <span className="text-[11px] font-bold leading-none">ניסיון</span>
-      {/* The number carries the urgency, so it keeps full contrast even when
-          the rest of the pill is deliberately quiet. */}
-      <span className={`text-[11px] font-bold leading-none tabular-nums ${urgent ? '' : 'text-main'}`}>
-        {trial.daysLeft}
+    <>
+      <span className="trial-badge trial-badge-top" aria-hidden="true">ניסיון</span>
+      <span className="trial-badge trial-badge-bottom" aria-hidden="true">
+        {daysLeftShort(trial.daysLeft)}
       </span>
-    </button>
+    </>
+  );
+}
+
+/** Small amber dot on the gear, used only in strip mode so the gear still shows
+ *  that the trial lives behind it. */
+export function TrialGearDot({ trial }: { trial?: TrialState | null }) {
+  if (!trial || trial.status !== 'active') return null;
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute pointer-events-none rounded-full bg-amber-500"
+      style={{ top: 5, left: 5, width: 7, height: 7, boxShadow: '0 0 0 2px var(--bar-bg)' }}
+    />
+  );
+}
+
+/**
+ * The alternative indicator: a sticky amber strip above the top bar.
+ *
+ * Kept alongside the badge because both were approved. Switch with
+ * TRIAL_INDICATOR in config/access.ts. When it renders, the shell also sets
+ * --trial-strip-h, which folds into --top-bar-h so every sticky section header
+ * in the app pins below the strip instead of underneath it.
+ */
+export function TrialStrip({
+  trial, onContact, onDismiss,
+}: {
+  trial?: TrialState | null;
+  onContact: () => void;
+  onDismiss: () => void;
+}) {
+  if (!trial || trial.status !== 'active') return null;
+  return (
+    <div
+      dir="rtl"
+      className="sticky top-0 z-40 bg-amber-500 text-white"
+      style={{ height: TRIAL_STRIP_H }}
+    >
+      <div className="max-w-lg mx-auto px-3 h-full flex items-center gap-2">
+        <span className="text-[12.5px] font-semibold tracking-[.02em] whitespace-nowrap">
+          <span className="opacity-90">ניסיון</span>
+          <span className="opacity-55 mx-1.5">|</span>
+          <span className="font-bold">{daysLeftShort(trial.daysLeft)}</span>
+        </span>
+        <span className="flex-1" />
+        <button
+          onClick={onContact}
+          className="bg-white text-[11px] font-bold px-2.5 py-[3px] rounded-full shrink-0"
+          style={{ color: '#d97706' }}
+        >
+          המשך ליווי
+        </button>
+        {/* Dismissable, but only for the rest of the day — the shell keys the
+            dismissal to today's date, so it comes back tomorrow. A banner you
+            can never close becomes furniture; one that never returns stops
+            being a reminder. */}
+        <button
+          onClick={onDismiss}
+          aria-label="סגור להיום"
+          className="shrink-0 w-6 h-6 -me-1 flex items-center justify-center text-white/80 text-[17px] leading-none"
+        >
+          ×
+        </button>
+      </div>
+    </div>
   );
 }
 

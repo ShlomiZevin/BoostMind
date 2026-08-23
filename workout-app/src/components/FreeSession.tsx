@@ -4,10 +4,12 @@ import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES } from '../data/muscles';
 import { useFirestore } from '../hooks/useFirestore';
 import { useTimer } from '../hooks/useTimer';
+import { registerChatOpen } from '../hooks/useAnyChatOpen';
 import { LogSetModal } from './LogSetModal';
 import { AiChatPanel } from './AiChatPanel';
 import { AerobicModal } from './AerobicModal';
 import { MovePlanModal } from './MovePlanModal';
+import { DuplicateModal } from './FreeHistory';
 import { AnchorToggle, AnchorBadge } from './AnchorPill';
 import { findPersonalByName, exerciseIdOf, type PersonalExercise } from '../data/exercisesDB';
 import { exercisePhotoKey } from '../hooks/usePhotos';
@@ -63,6 +65,18 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
   const [photosMap, setPhotosMap] = useState<Record<string, string>>({});
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  // "שכפל אימון" from inside a historical session view (rep_1787475211018_m9y4).
+  // The button in the history list was easy to miss; users viewing a past
+  // workout expect to be able to fork it from right where they are.
+  const [dupOpen, setDupOpen] = useState(false);
+  // Tell the app-shell chat notifier that a chat is currently visible, so
+  // it won't raise a "coach answered" toast for a reply you are literally
+  // watching arrive (rep_1787479655949_jgp1). Cleanup on close bumps the
+  // counter back down; the notifier flips back to normal.
+  useEffect(() => {
+    if (!chatOpen) return;
+    return registerChatOpen();
+  }, [chatOpen]);
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string | undefined>(undefined);
   const [chatReplaceCtx, setChatReplaceCtx] = useState<{ name: string; muscle: MuscleGroup } | undefined>(undefined);
   const [chatNewThread, setChatNewThread] = useState(false);
@@ -437,18 +451,21 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
     if (shouldStartTimer) {
       timer.start(getUserDefaultRest());
     }
-    // ALWAYS scroll to top after a save (not only when the timer starts).
-    // Users' complaint: after adding a set they were left at whatever scroll
-    // depth they'd tapped from, having to scroll manually to see the update.
-    // Two RAFs — the modal (which locks body scroll via useBodyScrollLock)
-    // hasn't unmounted yet at this call site; scrolling before it unmounts is
-    // a no-op on iOS. First RAF waits for React commit, second waits for the
-    // body-overflow style to actually clear so the smooth scroll kicks in.
-    requestAnimationFrame(() => {
+    // Scroll-to-top only when a NEW set is being added — editing an existing
+    // set (rep_1787480546666_a9p1) should keep the view where it was, so the
+    // user can see the row they just corrected without having to scroll back
+    // down. Two RAFs — the modal (which locks body scroll via
+    // useBodyScrollLock) hasn't unmounted yet at this call site; scrolling
+    // before it unmounts is a no-op on iOS. First RAF waits for React commit,
+    // second waits for the body-overflow style to actually clear so the
+    // smooth scroll kicks in.
+    if (!editingId) {
       requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
       });
-    });
+    }
   }
 
   function openChatWith(
@@ -1093,8 +1110,29 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                 disabled={session.completedAt == null}
               />
             </div>
+            <button
+              onClick={() => setDupOpen(true)}
+              className="mt-3 w-full py-2.5 rounded-xl inline-flex items-center justify-center gap-2 border border-emerald-500/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 text-sm font-semibold"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="12" height="12" rx="2" />
+                <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+              </svg>
+              <span>שכפל אימון</span>
+            </button>
           </div>
         </div>
+      )}
+
+      {dupOpen && (
+        <DuplicateModal
+          onClose={() => setDupOpen(false)}
+          onDuplicate={async (includeExercises) => {
+            setDupOpen(false);
+            const newId = await firestore.duplicateFreeSession(session.id, { includeExercises });
+            if (newId) navigate({ page: 'session', sessionId: newId });
+          }}
+        />
       )}
 
       {!historical && chatOpen && (() => {
@@ -2597,11 +2635,25 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
         </div>
         {/* Always rendered so the header layout doesn't jump between read/edit modes. */}
         <button
-          onClick={() => setEditingNote(v => !v)}
+          onClick={() => {
+            // "סיים" while editing must PERSIST what's on screen, not just
+            // exit edit mode (rep_1787481635517_9swb). commitNote's 400ms
+            // debounce may still be pending; flush it and write immediately
+            // so tapping "סיים" is guaranteed to save whatever the note
+            // input shows.
+            if (editingNote && exId) {
+              if (saveNoteTimer.current) {
+                clearTimeout(saveNoteTimer.current);
+                saveNoteTimer.current = null;
+              }
+              void firestore.saveExerciseNote(exId, note);
+            }
+            setEditingNote(v => !v);
+          }}
           className={`inline-flex items-center gap-1 text-[10px] transition-colors ${
             editingNote ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted hover:text-main'
           }`}
-          title={editingNote ? 'סיים עריכה' : (note ? 'ערוך הערה' : 'הוסף הערה')}
+          title={editingNote ? 'סיים ושמור' : (note ? 'ערוך הערה' : 'הוסף הערה')}
         >
           <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -2681,14 +2733,20 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
           className="w-full text-[12px] rounded-lg border border-emerald-500/30 dark:bg-slate-900/40 bg-white p-2 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 resize-none"
         />
       ) : note ? (
+        // Personal note about the exercise — technique / cue / injury flag.
+        // Visibility bump (rep_1787481819641_t2uu): user wanted the note to
+        // catch the eye WITHOUT growing. Same 12px line-count as before, now
+        // with an amber start-edge stripe + faint amber wash + amber pin
+        // glyph so it reads as "attention" instead of quiet italic quote.
         <button
           onClick={() => setEditingNote(true)}
-          className="w-full text-right text-[12px] text-slate-600 dark:text-slate-300 italic leading-snug px-0.5 py-0.5"
+          className="w-full text-right text-[12px] leading-snug flex items-start gap-1.5 pr-2 pl-2 py-1 rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 text-slate-800 dark:text-slate-100"
           title="לחץ לעריכה"
         >
-          <span className="text-muted-most not-italic ml-1">"</span>
-          {note}
-          <span className="text-muted-most not-italic mr-1">"</span>
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" className="text-amber-600 dark:text-amber-400 shrink-0 mt-[3px]" aria-hidden="true">
+            <path d="M12 2 A5 5 0 0 0 7 7 c0 2 1 3.5 2 4.5 l0 4.5 h6 v-4.5 c1 -1 2 -2.5 2 -4.5 A5 5 0 0 0 12 2 Z M9 18 h6 v1 a2 2 0 0 1 -2 2 h-2 a2 2 0 0 1 -2 -2 v-1 z"/>
+          </svg>
+          <span className="font-medium">{note}</span>
         </button>
       ) : null}
     </div>

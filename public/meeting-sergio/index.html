@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מצב — דף עבודה משותף</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="/matzav-app/brand/mark-ink.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--surface:#0e1220;--surface2:#141a2b;
+  --border:rgba(255,255,255,.10);--border2:rgba(255,255,255,.19);
+  --text:#f4f7fc;--body:#aab4c6;--muted:#7a8496;
+  --brand:#5b4bc4;--brand2:#9b8cf5;--train:#34d399;--food:#fbbf24;--breath:#22d3ee;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--body);font-family:'Heebo',system-ui,sans-serif;
+     font-size:16.5px;line-height:1.7;-webkit-font-smoothing:antialiased;padding-bottom:70px}
+a{color:inherit}
+.wrap{max-width:840px;margin:0 auto;padding:0 20px}
+
+header{padding:32px 0 18px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.mk{width:42px;height:42px;border-radius:13px;background:var(--brand);display:grid;place-items:center;flex:none}
+.mk svg{width:25px;height:25px}
+h1{font-size:clamp(26px,4.6vw,36px);font-weight:900;letter-spacing:-.03em;color:var(--text);line-height:1.15}
+.sub{color:var(--muted);font-size:14.5px;margin-top:3px}
+
+/* purpose */
+.purpose{background:rgba(91,75,196,.11);border:1px solid rgba(155,140,245,.34);
+  border-radius:18px;padding:20px 22px;margin-top:6px}
+.purpose .l{font-size:12px;font-weight:800;letter-spacing:.13em;color:var(--brand2);
+  text-transform:uppercase;margin-bottom:8px}
+.purpose p{font-size:17px;color:var(--text);line-height:1.65;font-weight:500}
+
+.links{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.lk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;
+    padding:10px 16px;border-radius:11px;border:1px solid var(--border2);
+    color:var(--text);text-decoration:none;background:var(--surface);transition:all .16s}
+.lk:hover{border-color:var(--brand2);background:rgba(91,75,196,.14)}
+.lk i{width:8px;height:8px;border-radius:99px;font-style:normal;flex:none}
+
+.bar{position:sticky;top:0;z-index:30;background:rgba(7,9,15,.93);
+     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+     border-bottom:1px solid var(--border);padding:11px 0;margin:20px 0 8px}
+.bar .wrap{display:flex;align-items:center;gap:13px}
+.bar .t{height:6px;border-radius:99px;background:rgba(255,255,255,.09);flex:1;overflow:hidden}
+.bar .f{height:100%;width:0;background:var(--brand2);border-radius:99px;transition:width .3s ease}
+.bar .n{font-size:13.5px;font-weight:800;color:var(--muted);white-space:nowrap}
+.bar button{font-size:13px;font-weight:700;padding:7px 13px;border-radius:9px;cursor:pointer;
+  background:transparent;border:1px solid var(--border2);color:var(--body);font-family:inherit;white-space:nowrap}
+.bar button:hover{color:var(--text);border-color:var(--brand2)}
+
+.it{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+    padding:20px 22px;margin-bottom:13px;transition:opacity .2s}
+.it.done{opacity:.5}
+.it.done .hd h2{text-decoration:line-through}
+.ih{display:flex;align-items:flex-start;gap:14px}
+.num{width:30px;height:30px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);
+     color:var(--muted);font-size:14px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:2px}
+.it.done .num{background:var(--brand);border-color:var(--brand);color:#fff}
+.hd{flex:1}
+.hd h2{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;line-height:1.3}
+.hd .why{font-size:13.5px;color:var(--muted);margin-top:2px}
+.chk{width:26px;height:26px;border-radius:8px;border:1px solid var(--border2);background:transparent;
+     cursor:pointer;flex:none;display:grid;place-items:center;color:transparent;font-size:15px;margin-top:3px}
+.chk:hover{border-color:var(--brand2)}
+.it.done .chk{background:var(--brand);border-color:var(--brand);color:#fff}
+
+ul{list-style:none;margin:14px 0 0;padding:0}
+li{font-size:16px;color:var(--body);padding:5px 0;position:relative;padding-inline-start:18px;line-height:1.6}
+li::before{content:"";position:absolute;inset-inline-start:2px;top:14px;width:6px;height:6px;
+  border-radius:99px;background:var(--dot,var(--border2))}
+li b{color:var(--text);font-weight:700}
+li .m{font-variant-numeric:tabular-nums}
+.lead{font-size:16px;margin-top:12px;color:var(--body)}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:640px){.two{grid-template-columns:1fr}}
+.wordbox{border:1px solid var(--border);border-radius:13px;padding:14px 16px;background:var(--surface2)}
+.wordbox .t{font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:8px}
+.wordbox.no .t{color:#f87171}
+.wordbox.yes .t{color:var(--train)}
+.wordbox span{display:inline-block;font-size:14px;padding:3px 10px;border-radius:8px;margin:3px 3px 0 0;
+  border:1px solid var(--border);color:var(--body)}
+
+.q{margin-top:16px;background:rgba(155,140,245,.09);border:1px solid rgba(155,140,245,.28);
+   border-radius:13px;padding:13px 16px}
+.q .lbl{font-size:11.5px;font-weight:800;letter-spacing:.11em;color:var(--brand2);
+  text-transform:uppercase;margin-bottom:6px}
+.q p{font-size:16px;color:var(--text);font-weight:600;line-height:1.5}
+.q p + p{margin-top:7px}
+
+.inline-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.inline-links a{font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;
+  border:1px solid var(--border2);color:var(--body);text-decoration:none;transition:all .16s}
+.inline-links a:hover{color:#fff;background:var(--brand);border-color:var(--brand)}
+
+.nt{margin-top:15px}
+.nt label{display:block;font-size:11.5px;font-weight:800;letter-spacing:.1em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+textarea{width:100%;min-height:76px;resize:vertical;background:var(--surface2);
+  border:1px solid var(--border);border-radius:13px;padding:13px 15px;color:var(--text);
+  font-family:inherit;font-size:15.5px;line-height:1.6;outline:none;transition:border-color .16s}
+textarea:focus{border-color:var(--brand2)}
+textarea::placeholder{color:#5d6577}
+
+.big{margin-top:24px;background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:22px}
+.big h2{font-size:20px;font-weight:800;color:var(--text);margin-bottom:16px}
+.big .row{margin-bottom:14px}
+.big .row:last-child{margin-bottom:0}
+.big label{display:block;font-size:15.5px;font-weight:700;color:var(--text);margin-bottom:7px}
+.big textarea{min-height:64px}
+
+footer{padding:26px 0 16px;font-size:13.5px;color:var(--muted);text-align:center}
+.saved{position:fixed;bottom:18px;inset-inline-start:18px;background:var(--brand);color:#fff;
+  font-size:13px;font-weight:700;padding:9px 16px;border-radius:11px;opacity:0;
+  transition:opacity .25s;pointer-events:none;z-index:50}
+.saved.on{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="top">
+    <span class="mk">
+      <svg viewBox="0 0 64 64" fill="#fff" stroke="#fff" aria-hidden="true">
+        <circle cx="32" cy="32" r="27" fill="none" stroke-width="4.5"/>
+        <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" stroke="none"/>
+      </svg>
+    </span>
+    <div>
+      <h1>מצב — דף עבודה משותף</h1>
+      <div class="sub">עוברים יחד · רושמים מחשבות תוך כדי · הכול נשמר במכשיר הזה</div>
+    </div>
+  </div>
+
+  <div class="purpose">
+    <div class="l">המטרה של הפגישה</div>
+    <p>לעבור יחד על מצב, לקבל פידבק אמיתי על המוצר, השם והקריאייטיבים, ולראות אם יש כיוון קטן
+       ששווה לבדוק בהמשך. אין צורך לסגור שום דבר בפגישה.</p>
+  </div>
+
+  <div class="links">
+    <a class="lk" href="https://boostmind-b052c.web.app/matzav-app/" target="_blank"><i style="background:var(--brand2)"></i>האפליקציה</a>
+    <a class="lk" href="https://boostmind-b052c.web.app/matzav/" target="_blank"><i style="background:var(--brand2)"></i>דף הבית</a>
+    <a class="lk" href="https://boostmind-b052c.web.app/marketing-3/" target="_blank"><i style="background:var(--food)"></i>הקריאייטיבים</a>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="n" id="cnt" dir="ltr">0 / 10</span>
+    <span class="t"><span class="f" id="fill"></span></span>
+    <button id="copy">העתק את כל הרשימות</button>
+    <button id="clear">נקה</button>
+  </div>
+</div>
+
+<div class="wrap" id="agenda">
+
+  <!-- 1 -->
+  <section class="it" data-k="1">
+    <div class="ih">
+      <span class="num">1</span>
+      <div class="hd">
+        <h2>מתחילים מהאפליקציה, לא מהסבר</h2>
+        <div class="why">לראות מה עובר לבד מהמוצר</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <ul style="--dot:var(--brand2)">
+      <li>קודם לפתוח את מצב בפועל.</li>
+      <li>לתת לסרגיו להסתכל ולהגיב.</li>
+      <li>רק אחר כך להסביר את הרעיון.</li>
+      <li>סרגיו כבר נרשם — להתחיל מהחוויה שלו כמשתמש חדש.</li>
+    </ul>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="מה עלה כשפתחנו"></textarea></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="it" data-k="2">
+    <div class="ih">
+      <span class="num">2</span>
+      <div class="hd">
+        <h2>מה לבדוק במוצר</h2>
+        <div class="why">מה ברור בלי הסבר</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <ul>
+      <li>האם ברור מה עושים במסך הראשון</li>
+      <li>האם ברור מה זה מצב אימון ומה זה מצב תזונה</li>
+      <li>האם ברור שה-AI לא רק עונה אלא גם עוזר לבצע פעולות</li>
+      <li>האם ברור שה-AI גם מלווה — עוזר לחשוב מה לעשות, לבנות אימון ולהבין את היום</li>
+      <li>האם החיבור בין אימון לתזונה מובן בלי הסבר ארוך</li>
+      <li>איפה המשתמש צריך עזרה או הסבר</li>
+    </ul>
+    <div class="q">
+      <div class="lbl">שאלה</div>
+      <p>איפה היית צריך הסבר כדי להבין מה לעשות?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="איפה זה היה ברור, איפה פחות"></textarea></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="it" data-k="3">
+    <div class="ih">
+      <span class="num">3</span>
+      <div class="hd">
+        <h2>AI וליווי</h2>
+        <div class="why">לא רק צ׳אט ולא רק תיעוד</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <p class="lead">הנקודה לבדיקה: האם ברור שה-AI הוא לא רק צ׳אט לשאלות ולא רק כלי תיעוד,
+       אלא משהו שמלווה את המשתמש באימון ובתזונה.</p>
+    <ul style="--dot:var(--brand2)">
+      <li>לבנות אימון קצר</li>
+      <li>לבחור מה כדאי לעשות היום</li>
+      <li>להבין מה עשיתי השבוע</li>
+      <li>לרשום ארוחה בשיחה</li>
+      <li>לחשוב מה אפשר לאכול בערב לפי מה שנשאר היום</li>
+    </ul>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>האם זה מרגיש כמו AI מלווה, או עדיין כמו אפליקציית מעקב עם צ׳אט?</p>
+      <p>האם ברור שזה לא רק צ׳אט אלא כלי שעוזר לפעול בתוך האפליקציה?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="איך זה נקלט"></textarea></div>
+  </section>
+
+
+  <!-- approach -->
+  <section class="it" data-k="approach">
+    <div class="ih">
+      <span class="num"></span>
+      <div class="hd">
+        <h2>הגישה שמאחורי המאמן</h2>
+        <div class="why">לא רק תשובות נכונות — דרך חשיבה</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <p class="lead">היום המאמן עונה לפי הנתונים וההיסטוריה של המשתמש. הכיוון שנבדק:
+       שתהיה מאחוריו גם גישה — דרך חשיבה על אימון ועל תזונה, ולא רק תשובות כלליות.</p>
+    <ul style="--dot:var(--brand2)">
+      <li>לכל מצב יש מאמן משלו — אימון, תזונה, ובהמשך נשימה.</li>
+      <li>גישה = מה מדגישים, ממה נמנעים, ומה סדר העדיפויות.</li>
+      <li>לבדוק יחד איך זה נראה בפועל בתשובה אחת קונקרטית.</li>
+    </ul>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>איך היית מנסח את הגישה שלך לאימון בכמה משפטים?</p>
+      <p>מה מאמן טוב אומר, ומה הוא דווקא לא אומר?</p>
+      <p>מה היית רוצה שהמאמן באפליקציה ידגיש, וממה שייזהר?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="איך הוא מנסח את הגישה, מה חשוב לו"></textarea></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="it" data-k="4">
+    <div class="ih">
+      <span class="num">4</span>
+      <div class="hd">
+        <h2>חיבור בין אימון לתזונה</h2>
+        <div class="why">לבדוק אם הדוגמה עובדת</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <p class="lead">להראות את החיבור בפועל ולראות אם הוא מובן בלי הסבר ארוך.</p>
+    <ul style="--dot:var(--train)">
+      <li>אימון היום: <b class="m">28</b> סטים + <b class="m">20</b> דקות אופניים</li>
+      <li>נכנס לנתוני היום: <b class="m">+320</b> קק״ל</li>
+      <li>נשאר לאכול עולה מ-<span class="m">620</span> ל-<b class="m">940</b></li>
+    </ul>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>האם החיבור ברור מהדוגמה?</p>
+      <p>איזה חלק יכול לעזור באמת למתאמן באימון עצמו?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="מה היה ברור בדוגמה, מה חסר"></textarea></div>
+  </section>
+
+  <!-- 5 -->
+  <section class="it" data-k="5">
+    <div class="ih">
+      <span class="num">5</span>
+      <div class="hd">
+        <h2>שם ושפה</h2>
+        <div class="why">איך השם נקלט</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <ul>
+      <li>מצב · מצב אימון · מצב תזונה · מצב נשימה</li>
+      <li>סגול = מצב וה-AI · ירוק = אימון · כתום = תזונה</li>
+      <li>הסימן: עיגול שנחצה בגל.</li>
+    </ul>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>מה אתה מבין מהשם ״מצב״ בלי שאני מסביר?</p>
+      <p>האם ״מצב אימון״ ו״מצב תזונה״ מרגישים טבעיים?</p>
+      <p>האם השם נשמע מוצרי או מבלבל?</p>
+      <p>האם יש דרך שהיית מסביר את השם לאדם אחר?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="איך השם נקלט, כיוונים אחרים שעלו"></textarea></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="it" data-k="6">
+    <div class="ih">
+      <span class="num">6</span>
+      <div class="hd">
+        <h2>קריאייטיבים ושיווק</h2>
+        <div class="why">לעבור יחד ולראות מה עובר</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <ul style="--dot:var(--food)">
+      <li>סטוריז לאינסטגרם, שתי גרסאות לכל אחד — נקי לסטיקר לינק, ועם כתובת לשיתוף.</li>
+      <li>שלושת המסרים: שיחה שהופכת לפעולה · אימון שמשפיע על התזונה · AI שאפשר להתייעץ איתו.</li>
+    </ul>
+    <div class="inline-links">
+      <a href="https://boostmind-b052c.web.app/marketing-3/" target="_blank">הקריאייטיבים ←</a>
+      <a href="https://boostmind-b052c.web.app/marketing-2/" target="_blank">סבב קודם</a>
+      <a href="https://boostmind-b052c.web.app/marketing/" target="_blank">סבב ראשון</a>
+    </div>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>איזה קריאייטיב הכי ברור תוך שנייה?</p>
+      <p>איזה קריאייטיב היית מעלה ראשון לסטורי?</p>
+      <p>איזה קריאייטיב מרגיש כמו סיסמה ולא כמו משהו אמיתי?</p>
+      <p>איזה משפט היית אומר בעצמך כדי להסביר את מצב למתאמן?</p>
+      <p>מה חסר כדי שזה ירגיש מעניין מספיק ללחוץ?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="ניסוחים טבעיים שעלו בשיחה"></textarea></div>
+  </section>
+
+  <!-- 7 -->
+  <section class="it" data-k="7">
+    <div class="ih">
+      <span class="num">7</span>
+      <div class="hd">
+        <h2>תזונה ושפה זהירה</h2>
+        <div class="why">עזרה והכוונה, לא ייעוץ</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <p class="lead">לבדוק אם הניסוחים בתזונה מרגישים מספיק זהירים.</p>
+    <div class="two">
+      <div class="wordbox no">
+        <div class="t">לא</div>
+        <span>דיאטן</span><span>תזונאי</span><span>טיפול</span><span>אבחון</span>
+        <span>מה נכון לאכול</span><span>מה חייבים לאכול</span>
+      </div>
+      <div class="wordbox yes">
+        <div class="t">כן</div>
+        <span>אפשרות טובה</span><span>כיוון</span><span>הכוונה</span>
+        <span>מה נשאר היום</span><span>איך להתאים את ההמשך ליעד</span>
+      </div>
+    </div>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>האם זה נשמע כמו עזרה והכוונה, ולא כמו תחליף לאיש מקצוע?</p>
+      <p>האם הניסוחים מרגישים מספיק זהירים?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="ניסוחים לשנות, מה עבר את הגבול"></textarea></div>
+  </section>
+
+
+  <!-- audio -->
+  <section class="it" data-k="audio">
+    <div class="ih">
+      <span class="num"></span>
+      <div class="hd">
+        <h2>שמע תוך כדי אירובי</h2>
+        <div class="why">כיוון לבדוק</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <ul style="--dot:var(--breath)">
+      <li>בזמן ריצה, אופניים או כל אירובי אחר — קשה להסתכל במסך.</li>
+      <li>הכיוון: לשמוע את המידע במקום לקרוא אותו.</li>
+      <li>לבדוק יחד מה בכלל שווה לשמוע, ומתי.</li>
+    </ul>
+    <div class="q">
+      <div class="lbl">שאלות</div>
+      <p>מה היית רוצה לשמוע באוזניות באמצע ריצה?</p>
+      <p>מתי זה עוזר, ומתי זה רק מפריע?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="מה שווה לשמוע, באיזה רגע"></textarea></div>
+  </section>
+
+  <!-- 8 -->
+  <section class="it" data-k="8">
+    <div class="ih">
+      <span class="num">8</span>
+      <div class="hd">
+        <h2>אם יש חיבור — לחשוב על ניסוי קטן</h2>
+        <div class="why">בלי להתחייב לכלום</div>
+      </div>
+      <button class="chk">✓</button>
+    </div>
+    <p class="lead"><b>לא צריך לסגור שום דבר בפגישה.</b> אם יש עניין אמיתי, אפשר לחשוב על ניסוי קטן ראשון:</p>
+    <ul style="--dot:var(--breath)">
+      <li>סרטון קצר</li>
+      <li>סטורי</li>
+      <li>התנסות של סרגיו במוצר</li>
+      <li>פידבק מקצועי על אימון / תזונה</li>
+      <li>בדיקה איך מסבירים את מצב לקהל אמיתי</li>
+    </ul>
+    <p class="lead">אם זה מרגיש טבעי, אפשר לבדוק בהמשך תוכן קצר סביב סרגיו והדרך שבה הוא מסביר
+       אימון, תזונה ושימוש נכון במצב — עקרונות קצרים לאימון, תזונה ונשימה, ומה עושים איתם
+       בתוך האפליקציה.</p>
+    <div class="q">
+      <div class="lbl">שאלה</div>
+      <p>מה ניסוי קטן שהיה שווה לבדוק בלי להתחייב?</p>
+    </div>
+    <div class="nt"><label>מחשבות</label><textarea placeholder="כיוונים שעלו"></textarea></div>
+  </section>
+
+  <div class="big">
+    <h2>סיכום קצר</h2>
+    <div class="row"><label>מה היה ברור?</label><textarea data-k="s1"></textarea></div>
+    <div class="row"><label>מה היה חלש?</label><textarea data-k="s2"></textarea></div>
+    <div class="row"><label>מה שווה לבדוק?</label><textarea data-k="s3"></textarea></div>
+    <div class="row"><label>ניסוי קטן אפשרי:</label><textarea data-k="s4"></textarea></div>
+  </div>
+
+  <div class="big">
+    <h2>נקודות להמשך</h2>
+    <textarea data-k="open" placeholder="כל מה שעלה ולא שייך לסעיף מסוים"></textarea>
+  </div>
+</div>
+
+<footer>דף פרטי, לא מאונדקס. הרשימות נשמרות בדפדפן הזה בלבד.</footer>
+<div class="saved" id="saved">נשמר</div>
+
+<script>
+(function(){
+  var KEY = 'sergio-meeting-v3';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { state = {}; }
+
+  var items = [].slice.call(document.querySelectorAll('.it'));
+  var toast = document.getElementById('saved'), tmr;
+
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+    toast.classList.add('on');
+    clearTimeout(tmr);
+    tmr = setTimeout(function(){ toast.classList.remove('on'); }, 900);
+  }
+  function progress(){
+    var done = items.filter(function(i){ return i.classList.contains('done'); }).length;
+    document.getElementById('cnt').textContent = done + ' / ' + items.length;
+    document.getElementById('fill').style.width = (done / items.length * 100) + '%';
+  }
+
+  items.forEach(function(it){
+    var k = it.dataset.k;
+    var ta = it.querySelector('textarea');
+    var chk = it.querySelector('.chk');
+    if (state['note' + k]) ta.value = state['note' + k];
+    if (state['done' + k]) it.classList.add('done');
+    ta.addEventListener('input', function(){ state['note' + k] = ta.value; save(); });
+    chk.addEventListener('click', function(){
+      it.classList.toggle('done');
+      state['done' + k] = it.classList.contains('done');
+      save(); progress();
+    });
+  });
+
+  [].slice.call(document.querySelectorAll('textarea[data-k]')).forEach(function(ta){
+    var k = ta.dataset.k;
+    if (state[k]) ta.value = state[k];
+    ta.addEventListener('input', function(){ state[k] = ta.value; save(); });
+  });
+
+  items.forEach(function(it,i){ it.querySelector('.num').textContent = i + 1; });
+  progress();
+
+  document.getElementById('copy').addEventListener('click', function(){
+    var out = ['מצב — דף עבודה משותף', ''];
+    items.forEach(function(it){
+      var k = it.dataset.k;
+      var title = it.querySelector('h2').textContent.trim();
+      var note = (state['note' + k] || '').trim();
+      out.push((state['done' + k] ? '[v] ' : '[ ] ') + k + '. ' + title);
+      if (note) out.push('    ' + note.split('\n').join('\n    '));
+      out.push('');
+    });
+    var sum = [['מה היה ברור', 's1'], ['מה היה חלש', 's2'],
+               ['מה שווה לבדוק', 's3'], ['ניסוי קטן אפשרי', 's4']];
+    var any = sum.some(function(p){ return (state[p[1]] || '').trim(); });
+    if (any) {
+      out.push('סיכום קצר:');
+      sum.forEach(function(p){
+        var v = (state[p[1]] || '').trim();
+        if (v) out.push('  ' + p[0] + ': ' + v);
+      });
+      out.push('');
+    }
+    if ((state.open || '').trim()) out.push('נקודות להמשך:', state.open.trim());
+
+    var txt = out.join('\n'), btn = this;
+    function ok(){ var o = btn.textContent; btn.textContent = 'הועתק'; setTimeout(function(){ btn.textContent = o; }, 1400); }
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(ok, function(){ fallback(txt, ok); });
+    else fallback(txt, ok);
+  });
+
+  function fallback(txt, cb){
+    var t = document.createElement('textarea');
+    t.value = txt; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); cb(); } catch(e){}
+    document.body.removeChild(t);
+  }
+
+  document.getElementById('clear').addEventListener('click', function(){
+    if (!confirm('למחוק את כל הרשימות והסימונים?')) return;
+    state = {};
+    try { localStorage.removeItem(KEY); } catch(e){}
+    items.forEach(function(it){ it.classList.remove('done'); it.querySelector('textarea').value = ''; });
+    [].slice.call(document.querySelectorAll('textarea[data-k]')).forEach(function(t){ t.value = ''; });
+    progress();
+  });
+})();
+</script>
+</body>
+</html>

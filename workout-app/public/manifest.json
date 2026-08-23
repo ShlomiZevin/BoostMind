@@ -1,7 +1,7 @@
 {
   "name": "מצב",
   "short_name": "מצב",
-  "description": "מצב אימון · מצב תזונה · מצב נשימה — הכול במקום אחד, עם מאמן AI אישי לכל מצב.",
+  "description": "אימונים, תזונה ו-AI שמכיר את שניהם.",
   "start_url": "/matzav-app/",
   "scope": "/matzav-app/",
   "display": "standalone",

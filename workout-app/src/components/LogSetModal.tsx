@@ -34,9 +34,12 @@ type Props = {
   // notes/difficulty for the currently-selected exercise inline.
   sessionId?: string;
   onClose: () => void;
-  onSave: (set: Omit<FreeSet, 'id' | 'timestamp'>, editingSetId?: string) => void;
+  // Handlers are treated as async — LogSetModal awaits them so it can hold a
+  // saving state and disable the CTA until the parent finishes. Returning
+  // void still works; the modal just proceeds immediately.
+  onSave: (set: Omit<FreeSet, 'id' | 'timestamp'>, editingSetId?: string) => void | Promise<void>;
   // Called when saving as exercise-only (no weight/reps). Fires from 'exercise' or 'dual' modes.
-  onPickOnly?: (name: string, muscle: MuscleGroup, en?: string, isHoldTime?: boolean) => void;
+  onPickOnly?: (name: string, muscle: MuscleGroup, en?: string, isHoldTime?: boolean) => void | Promise<void>;
   // Called RIGHT after a photo write to Firestore, so parents holding their own
   // photosMap (FreeSession) can update in-place without waiting for a reload.
   onPhotoSaved?: (photoKey: string, dataUrl: string) => void;
@@ -115,6 +118,42 @@ export function LogSetModal({
   const [photosMap, setPhotosMap] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  // Save is guarded by a busy flag and a re-entrancy ref. Bug (rep_ez32/
+  // rep_jc8h): when a Firestore write stalled the CTA stayed enabled, so a
+  // frustrated re-tap fired the save again and produced duplicate sets. The
+  // ref catches back-to-back taps in the same tick (before `saving` state
+  // even flushes to the DOM); the state controls the button's visual busy
+  // treatment. After 10s the guard auto-releases and shows a toast, so a
+  // truly stuck request never freezes the CTA forever.
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const savingTimerRef = useRef<number | null>(null);
+  async function withSaveGuard(fn: () => void | Promise<void>) {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    if (savingTimerRef.current) window.clearTimeout(savingTimerRef.current);
+    savingTimerRef.current = window.setTimeout(() => {
+      // Give up after 10s so the user isn't stuck staring at a disabled CTA.
+      // The underlying Firestore write may still land later — the guard
+      // exists to protect against duplicate SUBMISSIONS, not to reverse the
+      // outcome of the one that hung.
+      savingRef.current = false;
+      setSaving(false);
+      console.warn('[save-guard] auto-released after 10s stall');
+    }, 10_000) as unknown as number;
+    try {
+      await Promise.resolve(fn());
+    } finally {
+      if (savingTimerRef.current) window.clearTimeout(savingTimerRef.current);
+      savingTimerRef.current = null;
+      savingRef.current = false;
+      setSaving(false);
+    }
+  }
+  useEffect(() => () => {
+    if (savingTimerRef.current) window.clearTimeout(savingTimerRef.current);
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -397,13 +436,13 @@ export function LogSetModal({
     if (!muscle) return;
     const w = Number(weight) || 0;
     const r = Number(reps) || 0;
-    onSave({
+    void withSaveGuard(() => onSave({
       muscle,
       weight: asPlaceholder ? 0 : w,
       reps: asPlaceholder ? 0 : r,
       unit: unit === 'kg' ? undefined : unit,
       exerciseName: currentName.trim() || undefined,
-    }, editingSet?.id);
+    }, editingSet?.id));
   }
 
   const hasValues = !!muscle && weight !== '' && reps !== '';
@@ -881,48 +920,52 @@ export function LogSetModal({
           <div className="flex gap-2" dir="rtl">
             <button
               onClick={() => {
-                if (!muscle || !currentName.trim()) return;
-                onPickOnly?.(currentName.trim(), muscle, selectedExercise?.en, selectedExercise?.isHoldTime);
-                onClose();
+                if (!muscle || !currentName.trim() || saving) return;
+                void withSaveGuard(async () => {
+                  await Promise.resolve(onPickOnly?.(currentName.trim(), muscle, selectedExercise?.en, selectedExercise?.isHoldTime));
+                  onClose();
+                });
               }}
-              disabled={!hasContext || !currentName.trim()}
+              disabled={!hasContext || !currentName.trim() || saving}
               className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-colors ${
-                hasContext && currentName.trim()
+                hasContext && currentName.trim() && !saving
                   ? 'dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-subtle'
                   : 'dark:bg-slate-800/60 dark:text-slate-600 bg-slate-100 text-slate-400'
               }`}
-            >שמור תרגיל</button>
+            >{saving ? '...' : 'שמור תרגיל'}</button>
             <button
-              onClick={() => doSave(false)}
-              disabled={!hasValues || !currentName.trim()}
+              onClick={() => { if (!saving) doSave(false); }}
+              disabled={!hasValues || !currentName.trim() || saving}
               className={`flex-1 py-4 rounded-xl font-semibold text-lg transition-colors ${
-                hasValues && currentName.trim()
+                hasValues && currentName.trim() && !saving
                   ? 'btn-primary'
                   : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
               }`}
-            >שמור סט</button>
+            >{saving ? '...' : 'שמור סט'}</button>
           </div>
         ) : showExercise ? (
           <button
             onClick={() => {
-              if (!muscle || !currentName.trim()) return;
-              onPickOnly?.(currentName.trim(), muscle, selectedExercise?.en, selectedExercise?.isHoldTime);
-              onClose();
+              if (!muscle || !currentName.trim() || saving) return;
+              void withSaveGuard(async () => {
+                await Promise.resolve(onPickOnly?.(currentName.trim(), muscle, selectedExercise?.en, selectedExercise?.isHoldTime));
+                onClose();
+              });
             }}
-            disabled={!hasContext || !currentName.trim()}
+            disabled={!hasContext || !currentName.trim() || saving}
             className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
-              hasContext && currentName.trim() ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
+              hasContext && currentName.trim() && !saving ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
             }`}
-          >{replacingName ? 'החלף בתרגיל הנבחר' : 'שמור תרגיל'}</button>
+          >{saving ? '...' : (replacingName ? 'החלף בתרגיל הנבחר' : 'שמור תרגיל')}</button>
         ) : showSet ? (
           <button
-            onClick={() => doSave(false)}
-            disabled={!hasValues}
+            onClick={() => { if (!saving) doSave(false); }}
+            disabled={!hasValues || saving}
             className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
-              hasValues ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
+              hasValues && !saving ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
             }`}
           >
-            {isEdit ? 'עדכן סט' : 'שמור סט'}
+            {saving ? '...' : (isEdit ? 'עדכן סט' : 'שמור סט')}
           </button>
         ) : null}
       </div>

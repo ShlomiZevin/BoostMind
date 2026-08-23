@@ -81,6 +81,36 @@ type Props = {
 };
 
 /** What a meal card hands back when you approve or edit it. */
+
+// Opening prompts, shown as tappable chips above the composer while a thread is
+// empty. They replace a block of grey example text that used to sit behind the
+// conversation: it repeated what the greeting already said, could not be tapped,
+// and read as a placeholder rather than something you could use.
+const STARTERS: Record<string, string[]> = {
+  dietary: [
+    'אכלתי שקשוקה עם 2 פיתות',
+    'מה נשאר לי היום?',
+    'בא לי משהו מתוק',
+    'ארוחת ערב של 400 קלוריות',
+  ],
+  trainer: [
+    'מה כדאי לי לאמן היום?',
+    'כמה סטים לשבוע לכל שריר?',
+    'אני חסום בסקוואט',
+    'תוכנית ל-3 ימים',
+  ],
+  session: [
+    'תן לי תרגיל שלא עשיתי החודש',
+    'מה עשיתי בפעם הקודמת?',
+    'תרגיל לחזה עליון',
+  ],
+  naming: [
+    'תסקור את כל השמות',
+    'יש שמות כפולים?',
+    'חסרים לי שמות באנגלית?',
+  ],
+};
+
 export type MealDraft = {
   /** Set when the draft came from a chat card, so saving via the manual editor
    *  still marks that card as added. */
@@ -863,9 +893,23 @@ export function AiChatPanel({
     setTimeout(() => setToast(null), 2500);
   }
 
-  // Follow the conversation down as messages land AND as the live reply grows.
+  // Follow the conversation down as messages land AND as the live reply
+  // grows. Two RAFs — layout with a fresh image / meal card lands one paint
+  // after the message enters the list, so the immediate scroll was landing
+  // BEFORE the new content actually took its final height. Waiting one
+  // frame catches the container's post-layout scrollHeight; smooth-scrolling
+  // to that lands the user reliably at the true bottom on iOS Safari too.
+  function scrollChatToBottom(smooth = true) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+      });
+    });
+  }
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    scrollChatToBottom();
   }, [messages.length, streamingText]);
 
   // Compute lastUsedDays per exercise from recentSets (best effort in short list)
@@ -889,7 +933,15 @@ export function AiChatPanel({
     const img = pendingImage;
     setInput('');
     setPendingImage(null);
+    // Explicit scroll on send (rep_1787488248691_zxm3) — the messages-length
+    // effect below fires too, but calling here also covers the case where
+    // the send doesn't actually add a message immediately (network stall).
+    scrollChatToBottom();
     await sendWith(text, img || undefined);
+    // And after the send handler resolves — new message doc, streamingText
+    // rewound. Ensures the send button click always parks the user at the
+    // bottom of the conversation.
+    scrollChatToBottom();
   }
 
   // Attach an image from file/camera. Compressed client-side so the message
@@ -1013,14 +1065,19 @@ export function AiChatPanel({
       contextParts.push(`השיחה בתוך אימון חי (עכשיו)`);
     }
     if (currentSessionExercises.length > 0) {
+      // Muscle names sent to the AI are Hebrew (rep_1787475221348_qfa7).
+      // The model mirrors what we send it — passing raw English keys made
+      // its replies read as "Chest" / "Rear Delts" in the middle of Hebrew
+      // sentences; passing "חזה" / "כתף אחורית" keeps the answer clean.
       const inSession = currentSessionExercises
-        .map(e => `${e.name} (${e.muscle}${e.hasSets ? ' · נרשם' : ' · מתוכנן'})`)
+        .map(e => `${e.name} (${MUSCLE_BY_ID[e.muscle]?.he || e.muscle}${e.hasSets ? ' · נרשם' : ' · מתוכנן'})`)
         .join('; ');
       const label = currentSessionStatus === 'planned' ? 'תרגילים בתוכנית הנוכחית' : 'תרגילים באימון הנוכחי';
       contextParts.push(`${label}: ${inSession}`);
     } else if (sessionMuscles.length > 0) {
       const label = currentSessionStatus === 'planned' ? 'פוקוס התוכנית' : 'פוקוס האימון';
-      contextParts.push(`${label}: ${sessionMuscles.join(', ')}`);
+      const muscleHe = sessionMuscles.map(m => MUSCLE_BY_ID[m]?.he || m).join(', ');
+      contextParts.push(`${label}: ${muscleHe}`);
     }
     if (currentSessionAerobicSummary) {
       contextParts.push(`אירובי בסשן: ${currentSessionAerobicSummary}`);
@@ -1202,6 +1259,19 @@ export function AiChatPanel({
     const last = messages[messages.length - 1];
     if (last && last.role === 'assistant') resetStream();
   }, [messages, streamingText]);
+
+  // If the panel closed mid-stream (user navigated away, tab backgrounded)
+  // the client saw the connection abort and stashed an error — but the
+  // server had already persisted the assistant reply, so on reopen the
+  // conversation shows the answer AND a stale red error banner beneath it
+  // (rep_1787488491121_x2p1). Clear the error whenever a persisted
+  // assistant reply arrives that's newer than any user message we were
+  // waiting on.
+  useEffect(() => {
+    if (!error) return;
+    const last = messages[messages.length - 1];
+    if (last && last.role === 'assistant') setError(null);
+  }, [messages, error]);
 
   // Keyed by message TIMESTAMP, not render index: the key has to survive a
   // reload, because it is now persisted.
@@ -1426,53 +1496,6 @@ export function AiChatPanel({
       )}
 
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-3">
-        {messages.length === 0 && (
-          <div className="text-center text-xs text-muted-most" dir="rtl">
-            {mode === 'naming' ? (
-              <>
-                <div className="mb-2">שאל על שמות של תרגילים, בקש שינוי שם, או בקש רוויזיה כללית:</div>
-                <div className="space-y-1 text-[11px]">
-                  <div>"תסקור את כל השמות ותציע שיפורים"</div>
-                  <div>"תן שם טוב יותר ל"תרגיל X""</div>
-                  <div>"אילו שמות חסרים לי אנגלית?"</div>
-                  <div>"האם יש שמות כפולים או דומים מדי?"</div>
-                </div>
-              </>
-            ) : mode === 'trainer' ? (
-              <>
-                <div className="mb-2">שאל את המאמן כל שאלה על אימונים, טכניקה, תזונה או תוכניות:</div>
-                <div className="space-y-1 text-[11px]">
-                  <div>"מה עדיף למסת חזה, לחיצה במכונה או משקולות?"</div>
-                  <div>"כמה סטים לשבוע לכל שריר?"</div>
-                  <div>"אני חסום בסקוואט — מה לעשות?"</div>
-                  <div>"תן לי תוכנית ל-3 ימים לפוקוס גב וכתפיים"</div>
-                </div>
-              </>
-            ) : mode === 'dietary' ? (
-              <>
-                <div className="mb-2">ספר מה אכלת, או שאל כל שאלה על תזונה:</div>
-                <div className="space-y-1 text-[11px]">
-                  <div>"אכלתי שקשוקה עם 2 פיתות וקפה הפוך"</div>
-                  <div>"מה נשאר לי היום עד היעד?"</div>
-                  <div>"בא לי משהו מתוק — מה הכי פחות יעלה לי?"</div>
-                  <div>"תכין לי ארוחת ערב של 400 קלוריות"</div>
-                </div>
-              </>
-            ) : mode === 'onboarding' ? (
-              <div className="mb-2">כותב...</div>
-            ) : (
-              <>
-                <div className="mb-2">תאר את התרגיל שעשית או בקש הצעה. דוגמאות:</div>
-                <div className="space-y-1 text-[11px]">
-                  <div>"עשיתי לחיצת כתפיים במכונה עם משקולת ליד"</div>
-                  <div>"תן לי משהו לחזה עליון שלא עשיתי החודש"</div>
-                  <div>"מה עשיתי בפעם הקודמת לגב?"</div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
         {(() => {
           // Prepend a LOCAL-only greeting bubble when the thread is empty and
           // the caller supplied one (naming AI, replace-context prompts, etc.).
@@ -1509,6 +1532,10 @@ export function AiChatPanel({
                     alt=""
                     className="block rounded-lg max-w-full max-h-72 object-contain bg-black/10"
                     loading="lazy"
+                    // When the image decodes, the bubble's height jumps —
+                    // pin the user to the bottom so it doesn't scroll away
+                    // (rep_1787488248691_zxm3).
+                    onLoad={() => scrollChatToBottom(false)}
                   />
                 )}
                 {chunks.map((chunk, j) => {
@@ -1933,6 +1960,19 @@ export function AiChatPanel({
             time of day. They send as a normal message, so the coach answers with
             a meal card and the conversation continues: quick access WITHOUT
             turning the chat into a list screen. */}
+        {/* Openers, only while nothing has been said yet. They vanish on the
+            first message so the composer is clean for the actual conversation. */}
+        {messages.length === 0 && suggestionChips.length === 0 && !loading && (STARTERS[mode] || []).length > 0 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" dir="rtl">
+            {(STARTERS[mode] || []).map((c, i) => (
+              <button
+                key={i}
+                onClick={() => void sendWith(c)}
+                className="shrink-0 text-[11.5px] font-semibold px-3 py-1.5 rounded-full border border-subtle bg-subtle text-muted whitespace-nowrap active:scale-[.98] transition"
+              >{c}</button>
+            ))}
+          </div>
+        )}
         {suggestionChips.length > 0 && !loading && (
           <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" dir="rtl">
             {suggestionChips.slice(0, 5).map((c, i) => (

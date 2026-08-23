@@ -91,6 +91,52 @@ async function fsPatch(path, data, { merge = false } = {}) {
   }
 }
 
+// ─── LLM usage logging ─────────────────────────────────────────────
+// Server logs every Anthropic response into `ai_usage` so the admin panel
+// can show cost per user + total (rep_1787488161165_4fo8). Pricing is in
+// USD per million tokens — approximate, kept in code (not read from a config
+// doc) so a wrong entry never silently 10x's the reported cost.
+const MODEL_PRICING = {
+  // Rounded to the closest 0.10 — cached tokens are billed differently but
+  // we only see the totals from the SDK, so we treat both as full-price input.
+  'claude-opus-5':             { input: 15, output: 75 },
+  'claude-opus-4-7':           { input: 15, output: 75 },
+  'claude-opus-4.5':           { input: 15, output: 75 },
+  'claude-sonnet-5':           { input: 3,  output: 15 },
+  'claude-haiku-4-5':          { input: 0.80, output: 4 },
+  'claude-haiku-4-5-20251001': { input: 0.80, output: 4 },
+  // Any new model slug lands at the top-tier default so we over-report cost
+  // rather than under — safer to correct downward once the real price is in.
+  _default:                    { input: 15, output: 75 },
+};
+async function logAiUsage({ uid, model, endpoint, usage }) {
+  if (!usage) return;
+  const p = MODEL_PRICING[model] || MODEL_PRICING._default;
+  const inputTokens = usage.input_tokens || 0;
+  const outputTokens = usage.output_tokens || 0;
+  const cachedRead = usage.cache_read_input_tokens || 0;
+  const cachedCreate = usage.cache_creation_input_tokens || 0;
+  const costUsd = (inputTokens * p.input + outputTokens * p.output) / 1_000_000;
+  const ts = Date.now();
+  const id = `ai_${ts}_${Math.random().toString(36).slice(2, 8)}`;
+  try {
+    await fsPatch(`ai_usage/${id}`, {
+      id,
+      uid: uid || null,
+      model: model || null,
+      endpoint: endpoint || 'chat',
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      cache_read_input_tokens: cachedRead,
+      cache_creation_input_tokens: cachedCreate,
+      cost_usd: costUsd,
+      ts,
+    });
+  } catch (e) {
+    console.warn('logAiUsage failed', endpoint, e?.message || e);
+  }
+}
+
 async function persistAssistantMessage({ uid, threadId, text, truncated, mode, bucket, llmModel }) {
   if (!uid || !threadId) return;
   const ts = Date.now();
@@ -539,6 +585,25 @@ app.post('/api/chat', async (req, res) => {
       "'נסה ככה', 'עדיף ש...', 'תרגיש חופשי'. לא 'בוא נצא למסע', לא 'המטרה שלך הינה'.",
       "בכל תשובה תיזהר מפומפוזיות. תגיב כמו בן אדם, לא כמו landing page.",
       "",
+      "== התפיסה שאתה עובד לפיה — זה הבסיס לכל תשובה שלך ==",
+      "",
+      "אלה העקרונות של מצב אימון. המשתמש יכול לקרוא אותם באפליקציה (הגדרות → השיטה),",
+      "אז אתה לא ממציא פילוסופיה בכל תשובה — אתה טוען מתוכם.",
+      "",
+      "1) קשר מוח-שריר. לפני כל סט לדעת איזה שריר אמור לעבוד, ולהרגיש אותו עובד.",
+      "   אם מרגישים את התרגיל בכל מקום חוץ מהשריר המיועד — המשקל גדול מדי או שהתנועה לא נכונה.",
+      "2) התנועה לפני המשקל. טווח מלא, ירידה מבוקרת, בלי מומנטום. הירידה היא החלק שבונה,",
+      "   ובדיוק בה רוב האנשים ממהרים.",
+      "3) בלי אגו ליפטינג. המשקל משרת את הטכניקה ולא הפוך. סט נקי עם פחות משקל שווה יותר",
+      "   מסט מכוער עם יותר. אל תשבח העלאת משקל שבאה על חשבון ביצוע.",
+      "4) לדעת על מה עובדים. כשמציעים תרגיל — תגיד איזה שריר הוא תוקף ומאיזו זווית.",
+      "5) נפח שבועי, לא אימון בודד. מה שמזיז את המחט זה כמה סטים איכותיים קיבל כל שריר",
+      "   השבוע. אימון אחד לא מציל שבוע חסר ולא הורס אותו.",
+      "6) גיוון וסבב. עוגנים קבועים, ומסביבם תרגילים מתחלפים שתוקפים מזוויות שונות.",
+      "7) חימום, מתיחות והתאוששות הם חלק מהאימון — לא משהו שעושים אם נשאר זמן.",
+      "",
+      "כשמישהו שואל 'למה הצעת את זה' — תענה מהעקרונות האלה, בשפה שלו, בלי להטיף.",
+      "",
       "== EXPLAIN THE BASICS TO BEGINNERS ==",
       "אם המשתמש מתחיל (level=beginner או שלא הוזן) — הסבר מונחים בסיסיים כשהם עולים.",
       "לדוגמה: אם שואל על 'סמית מכונה' — הסבר שזו מכונה עם מוט קבוע במסילה שנותנת יציבות.",
@@ -896,6 +961,10 @@ app.post('/api/chat', async (req, res) => {
             console.warn('assistant persist failed', e?.message || e);
           }
         }
+        // Cost log — one doc per response so the admin dashboard can
+        // aggregate per uid / per model without waiting on Anthropic's
+        // billing page.
+        await logAiUsage({ uid, model: finalMsg?.model || chosenModel, endpoint: `chat:${chatMode}`, usage: finalMsg?.usage });
 
         res.write(`event: done\ndata: ${JSON.stringify({
           stopReason,
@@ -948,6 +1017,7 @@ app.post('/api/chat', async (req, res) => {
         console.warn('assistant persist failed', e?.message || e);
       }
     }
+    await logAiUsage({ uid, model: claudeResp.model, endpoint: `chat:${chatMode}`, usage: claudeResp.usage });
 
     res.json({
       text,
@@ -1180,6 +1250,7 @@ app.post('/api/onboarding/build-skeleton', async (req, res) => {
           .slice(0, 6),
       }))
       .filter(d => d.focusMuscles.length > 0);
+    await logAiUsage({ uid: req.body?.uid, model: claudeResp.model, endpoint: 'onboarding:skeleton', usage: claudeResp.usage });
     res.json({ days, usage: claudeResp.usage });
   } catch (e) {
     console.error('build-skeleton error', e);
@@ -1262,6 +1333,7 @@ app.post('/api/onboarding/build-day', async (req, res) => {
         muscle: e.muscle,
         isHoldTime: !!e.isHoldTime,
       }));
+    await logAiUsage({ uid: req.body?.uid, model: claudeResp.model, endpoint: 'onboarding:day', usage: claudeResp.usage });
     res.json({ exercises, usage: claudeResp.usage });
   } catch (e) {
     console.error('build-day error', e);
@@ -1367,6 +1439,7 @@ app.post('/api/food/parse-meal', async (req, res) => {
     }
 
     if (parsed.needsInfo === true) {
+      await logAiUsage({ uid, model: claudeResp.model, endpoint: 'food:parse-meal:clarify', usage: claudeResp.usage });
       return res.json({
         needsInfo: true,
         question: typeof parsed.question === 'string' ? parsed.question.slice(0, 300) : 'תוכל לפרט קצת יותר?',
@@ -1402,6 +1475,7 @@ app.post('/api/food/parse-meal', async (req, res) => {
     const knownIds = new Set(known.map(m => String(m.id)));
     const mealId = typeof parsed.mealId === 'string' && knownIds.has(parsed.mealId) ? parsed.mealId : null;
 
+    await logAiUsage({ uid, model: claudeResp.model, endpoint: 'food:parse-meal', usage: claudeResp.usage });
     res.json({
       needsInfo: false,
       meal: {

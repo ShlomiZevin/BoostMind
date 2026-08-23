@@ -4,8 +4,9 @@ import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { restartTour } from './FirstRunTour';
 import { ContactCard, TrialCard } from './TrialGate';
-import { AnalyticsAdmin } from './AnalyticsAdmin';
 import { useTrial } from '../hooks/useTrial';
+import { MethodSheet } from './MethodSheet';
+import { METHOD } from '../data/method';
 import { ReportsPanel } from './ReportsPanel';
 import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId } from '../config/aiModel';
 import { CloseAction } from './TopBarActions';
@@ -38,6 +39,7 @@ function SectionHeader({ children, first }: { children: React.ReactNode; first?:
 export function Settings({ uid, navigate, onLogout }: Props) {
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
   const [reportsOpen, setReportsOpen] = useState(false);
+  const [methodOpen, setMethodOpen] = useState(false);
   const [aiModel, setAiModelState] = useState<AiModelId | undefined>(() => getAiModel());
   // Trial state lives here rather than on every screen — this is where you
   // come to look it up. Owner is exempt, so it renders nothing for Shlomi.
@@ -221,6 +223,21 @@ export function Settings({ uid, navigate, onLogout }: Props) {
         </div>
       </button>
 
+      {/* The place's method — what the coach actually goes by. */}
+      <button
+        onClick={() => setMethodOpen(true)}
+        className="w-full card mb-4 dark:hover:bg-slate-800 hover:bg-slate-50"
+        dir="rtl"
+      >
+        <div className="flex items-center justify-between">
+          <div className="text-right">
+            <div className="font-medium">{METHOD['exercise'].he}</div>
+            <div className="text-xs text-muted">העקרונות שהמאמן עובד לפיהם</div>
+          </div>
+          <span className="text-muted text-lg">←</span>
+        </div>
+      </button>
+
       <div className="card mb-4">
         <div className="flex items-center justify-between" dir="rtl">
           <div className="text-right">
@@ -266,7 +283,30 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       {firestore.isAdmin && (
         <>
           <SectionHeader>מפתחים</SectionHeader>
-          <AnalyticsAdmin />
+          {/* Dedicated full-page dashboard — same #/admin route the top-bar
+              icon uses. Gated on `firestore.isAdmin` (owner uid), which is
+              the same identity as shlomi@boostart.io via EMAIL_TO_UID. */}
+          <button
+            onClick={() => navigate({ page: 'admin' })}
+            className="w-full card mb-4 border border-emerald-500/30 dark:hover:bg-slate-800 hover:bg-slate-50"
+            dir="rtl"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-right flex-1 min-w-0">
+                <div className="font-medium flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3" y="12" width="4" height="8" rx="1" />
+                    <rect x="10" y="7" width="4" height="13" rx="1" />
+                    <rect x="17" y="3" width="4" height="17" rx="1" />
+                  </svg>
+                  <span>דשבורד השקה</span>
+                </div>
+                <div className="text-xs text-muted">משפך שיווקי · הרשמות · שימוש בפועל</div>
+              </div>
+              <span className="text-muted text-lg">←</span>
+            </div>
+          </button>
+
           <div className="card mb-4 border border-emerald-500/30" dir="rtl">
             <div className="text-right mb-2">
               <div className="font-medium">מודל ה-AI</div>
@@ -313,6 +353,25 @@ export function Settings({ uid, navigate, onLogout }: Props) {
               </button>
             </div>
           </div>
+
+          {/* Meeting prep — owner-only, like everything else in this block.
+              Lives as a static page rather than a screen because it is a
+              document to present from, not part of the product. */}
+          <a
+            href="/meeting-sergio/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block card mb-4 border border-emerald-500/30 dark:hover:bg-slate-800 hover:bg-slate-50"
+            dir="rtl"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-right">
+                <div className="font-medium">דף הכנה — פגישה עם סרגיו</div>
+                <div className="text-xs text-muted">קונספט, בראנדינג, ורעיון השותפות בווידאו</div>
+              </div>
+              <span className="text-muted text-lg">←</span>
+            </div>
+          </a>
         </>
       )}
 
@@ -335,6 +394,7 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       <ForgetMeCard onLogout={onLogout} />
 
       {reportsOpen && <ReportsPanel uid={uid} onClose={() => setReportsOpen(false)} />}
+      {methodOpen && <MethodSheet place="exercise" onClose={() => setMethodOpen(false)} />}
       </div>
     </div>
   );
