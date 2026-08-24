@@ -40,7 +40,7 @@ export function ContactActions({ message, compact }: { message: string; compact?
         <span>וואטסאפ {CONTACT.phone}</span>
       </a>
       <a
-        href={mailLink('מצב — בקשת המשך ליווי')}
+        href={mailLink('Wholos — בקשת המשך ליווי')}
         className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 rounded-xl font-bold border border-subtle bg-subtle text-muted active:scale-[.99] transition ${size}`}
       >
         {MAIL_ICON}
@@ -61,7 +61,7 @@ export function ContactCard(_props?: { trial?: TrialState | null }) {
       <div className="text-xs text-muted mb-3">
         שאלה, בקשה או משהו שנשבר — אפשר לכתוב ישירות.
       </div>
-      <ContactActions message="היי שלומי, זה לגבי מצב — " />
+      <ContactActions message="היי שלומי, זה לגבי Wholos — " />
     </div>
   );
 }
@@ -211,7 +211,7 @@ export function TrialExpired({ email, onLogout }: { email: string | null; onLogo
                 <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" />
               </svg>
             </div>
-            <h1 className="login-title">מצב</h1>
+            <h1 className="login-title">Wholos</h1>
           </div>
 
           <p className="login-sub" style={{ animationDelay: '180ms' }}>

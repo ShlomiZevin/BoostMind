@@ -4,7 +4,38 @@ service cloud.firestore {
     match /storyboards/{docId} {
       allow read, write: if true;
     }
+    // Each user reads/writes only their OWN tree. Owner (shlomi@boostart.io)
+    // sees everything for admin surfaces + the reports-admin page.
+    //
+    // Note: `request.auth.uid` is the raw Firebase Auth uid, while `userId` in
+    // the path is the app-level uid — for Shlomi they differ (EMAIL_TO_UID
+    // maps his Google account to legacy `user_6724`). The email exception
+    // keeps him working; every other user's raw uid equals their doc path.
     match /users/{userId}/{document=**} {
+      allow read, write:
+        if request.auth != null
+           && (request.auth.uid == userId
+               || request.auth.token.email == 'shlomi@boostart.io');
+    }
+    // ─── Server-written chat surfaces ────────────────────────────
+    // The Cloud Run backend persists the assistant's reply and updates thread
+    // metadata via unauthenticated Firestore REST (no service-account creds
+    // set up yet). Without a carve-out, the tightened users/{userId}/** rule
+    // above 403s the write, the reply never lands in Firestore, and the
+    // client's stream evaporates on the next send. Re-opening these two
+    // specific paths — thread doc + messages subcollection — is the smallest
+    // hole that fixes the chat. If a real service account is added later,
+    // tighten these to `request.auth.token.firebase.sign_in_provider == "custom"`
+    // or similar.
+    match /users/{userId}/chatThreads/{threadId} {
+      allow read, write: if true;
+    }
+    match /users/{userId}/chatThreads/{threadId}/messages/{msgId} {
+      allow read, write: if true;
+    }
+    // Server also writes to the applied-actions marker (which chat action was
+    // "approved") — same rationale.
+    match /users/{userId}/appliedChatActions/{key} {
       allow read, write: if true;
     }
     match /gp-products/{docId} {
@@ -52,40 +83,44 @@ service cloud.firestore {
     // Auth alias: firebaseAuthUid → legacyUid. Written from Settings when a user
     // claims an existing passcode-based account (used by shlomi@boostart.io when
     // signing in with a Google email that doesn't match the hardcoded map).
+    //
+    // A user can only claim an alias FOR THEIR OWN raw Firebase Auth uid —
+    // otherwise anyone could set `authAliases/<their_uid>.legacyUid = user_6724`
+    // and inherit Shlomi's account on next login. Read stays open so the
+    // sync-resolver can look up any alias by uid.
     match /authAliases/{authUid} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == authUid;
     }
 
     // ─── Launch analytics ────────────────────────────────────────
-    // Append-only event log. Anyone (including the anonymous landing page)
-    // can CREATE an event; only the owner email can read the log through
-    // the admin panel. Update stays blocked; delete is allowed to the
-    // owner so a one-shot cleanup pass in AnalyticsAdmin can prune the
-    // owner's own polluting events without any special tooling.
+    // Append-only event log. Anyone can CREATE an event (the anonymous
+    // landing page fires them). READ is open too so the desktop
+    // /admin-desktop and /users-admin pages work regardless of who is
+    // signed in — the URL is the secret. Update stays blocked; delete is
+    // owner-only.
     match /analytics_events/{eventId} {
       allow create: if true;
-      allow read, delete: if request.auth != null
-                            && request.auth.token.email == 'shlomi@boostart.io';
+      allow read: if true;
+      allow delete: if request.auth != null
+                       && request.auth.token.email == 'shlomi@boostart.io';
       allow update: if false;
     }
     // Lightweight user registry: one doc per app uid, upserted on sign-in.
-    // Any signed-in user may write their own row (client keys by resolved
-    // appUid, which does not always equal the raw Firebase Auth uid —
-    // Shlomi's alias maps to user_6724, for example). Read is admin only.
+    // Any signed-in user writes their own row. READ is open so the desktop
+    // admin views can render the user list from any session/device — the
+    // page URL is private, keep it that way.
     match /users_index/{uid} {
       allow write: if request.auth != null;
-      allow read: if request.auth != null
-                    && request.auth.token.email == 'shlomi@boostart.io';
+      allow read: if true;
     }
     // ─── LLM usage log ───────────────────────────────────────────
     // The Cloud Run server writes one doc per Anthropic response with
-    // per-message token counts + cost. Same shape as analytics_events:
-    // anyone can create (the server writes without an auth token), only
-    // the owner email can read from the admin dashboard.
+    // per-message token counts + cost. Read is open (admin desktop needs
+    // it and the URL is the secret); the server writes without auth.
     match /ai_usage/{eventId} {
       allow create: if true;
-      allow read: if request.auth != null
-                    && request.auth.token.email == 'shlomi@boostart.io';
+      allow read: if true;
       allow update, delete: if false;
     }
   }

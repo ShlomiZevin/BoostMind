@@ -1,4 +1,4 @@
-// Who may keep using מצב, and how they reach Shlomi.
+// Who may keep using Wholos, and how they reach Shlomi.
 //
 // A new account gets a free week. After that the app stops and offers a way to
 // ask for more. Contact details are NOT part of that gate — they are exported

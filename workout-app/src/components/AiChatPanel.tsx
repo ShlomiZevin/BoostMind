@@ -7,6 +7,7 @@ import { CHAT_API_URL } from '../config/api';
 import { getAiModel, DEFAULT_AI_MODEL } from '../config/aiModel';
 import { useFirestore } from '../hooks/useFirestore';
 import { compressImage } from '../hooks/usePhotos';
+import { ConfirmDialog } from './ConfirmDialog';
 import type { UserProfile, ChatBucket, MealFlags, MealIngredient, MealMacros, MealType, PersonalMeal, MealLog, DietProfile } from '../types';
 
 type Props = {
@@ -713,6 +714,13 @@ export function AiChatPanel({
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [appliedActionIds, setAppliedActionIds] = useState<Set<string>>(new Set());
+  // Whether we've fetched the applied-actions set for the current activeId.
+  // Cards must NOT render their "added / not-added" state until this is true,
+  // otherwise every meal card flashes "+ הוסף להיום" for a split second on
+  // conversation open before flipping to "✓ נוסף ליומן היום" once the async
+  // load resolves. Rendering a neutral card layout in the meantime avoids
+  // that wrong-state flash entirely.
+  const [appliedActionsLoaded, setAppliedActionsLoaded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [threadsMenuOpen, setThreadsMenuOpen] = useState(false);
   const autoSentRef = useRef(false);
@@ -795,9 +803,21 @@ export function AiChatPanel({
     if (bucket === 'coach') return trainerOnboardingThreadId(uid);
     return null;
   }, [bucket, uid]);
+  // Is the שיחת היכרות pinned for this bucket? User can toggle from the
+  // dropdown; Settings shortcut still opens the thread regardless.
+  const isCurrentBucketUnpinned = bucket === 'dietary'
+    ? !!userProfile.foodOnboardingUnpinned
+    : bucket === 'coach' ? !!userProfile.trainerOnboardingUnpinned
+    : true;
   const pinnedThreads = useMemo(() => {
     const persisted = threads.filter(t => isOnboardingThreadId(t.id));
     if (!canonicalOnboardingId) return persisted;
+    if (isCurrentBucketUnpinned) {
+      // User explicitly unpinned — hide both the virtual entry AND any
+      // persisted onboarding doc from the pinned section. It still exists;
+      // Settings' "שיחת היכרות" shortcut opens it directly.
+      return [];
+    }
     // Ensure the canonical שיחת היכרות is discoverable even when it hasn't been
     // persisted yet — e.g. the user skipped without ever typing, so no Firestore
     // doc exists. A "virtual" entry lets them tap in later; on their first real
@@ -809,18 +829,43 @@ export function AiChatPanel({
       { id: canonicalOnboardingId, title: virtualTitle, ts: 0, updatedAt: 0 } as Thread,
       ...persisted,
     ];
-  }, [threads, canonicalOnboardingId]);
+  }, [threads, canonicalOnboardingId, isCurrentBucketUnpinned]);
+
+  // Confirm modal for unpin — replaces the native browser confirm which
+  // renders as a "boostmind-b052c.web.app says…" alert and breaks the app's
+  // look (screenshot follow-up). All in-app now.
+  const [unpinConfirmOpen, setUnpinConfirmOpen] = useState(false);
+
+  async function performUnpinOnboarding() {
+    setUnpinConfirmOpen(false);
+    const patch = bucket === 'dietary'
+      ? { foodOnboardingUnpinned: true }
+      : { trainerOnboardingUnpinned: true };
+    try {
+      const merged = await firestoreRef.current.updateUserProfile(patch);
+      setUserProfile(merged);
+      showToast('שיחת ההיכרות הוסרה מהקבועים');
+    } catch (err) {
+      console.warn('unpin onboarding failed', err);
+    }
+  }
   const todayThreads = useMemo(
     // Defensive: fall back to updatedAt if ts is missing. Threads written by
     // the server prior to the updateMask fix may have lost their `ts` field,
     // and we still want them to surface today so no history goes dark.
     // Onboarding threads are pinned above; exclude them here so they don't
-    // render twice in the dropdown.
-    () => threads.filter(t =>
-      !isOnboardingThreadId(t.id) &&
-      Math.max(t.ts || 0, t.updatedAt || 0) >= startOfToday
-    ),
-    [threads, startOfToday],
+    // render twice in the dropdown. EXCEPT when the user unpinned them —
+    // then they fall back to acting like a regular conversation and can
+    // appear in today's threads (rep_1787561936655_fphf).
+    () => threads.filter(t => {
+      const inWindow = Math.max(t.ts || 0, t.updatedAt || 0) >= startOfToday;
+      if (!inWindow) return false;
+      if (!isOnboardingThreadId(t.id)) return true;
+      // Onboarding thread updated today. Show it here only if the user
+      // unpinned it (otherwise it lives up in the pinned section).
+      return isCurrentBucketUnpinned;
+    }),
+    [threads, startOfToday, isCurrentBucketUnpinned],
   );
   // Header count = anything the user can actually see in the dropdown.
   const historyCount = todayThreads.length + pinnedThreads.length;
@@ -849,19 +894,29 @@ export function AiChatPanel({
   // metadata (title, ts, bucket) so it shows up correctly in history.
 
   // Applied cards are persisted per thread — reopening the chat must not offer
-  // to add something you already added.
+  // to add something you already added. The loaded flag flips only after the
+  // async fetch resolves so cards can defer their state paint until we know.
   useEffect(() => {
+    setAppliedActionsLoaded(false);
     if (!uid || !activeId) return;
     let cancelled = false;
     firestoreRef.current.getAppliedActions(activeId)
-      .then(set => { if (!cancelled) setAppliedActionIds(set); })
-      .catch(() => { /* first run */ });
+      .then(set => {
+        if (cancelled) return;
+        setAppliedActionIds(set);
+        setAppliedActionsLoaded(true);
+      })
+      .catch(() => { if (!cancelled) setAppliedActionsLoaded(true); /* first run — no doc yet, treat as loaded-empty */ });
     return () => { cancelled = true; };
   }, [uid, activeId]);
 
   // ─── Subscribe to the active thread's messages ───
   useEffect(() => {
     if (!activeId) { setMessages([]); setMessagesLoaded(false); return; }
+    // Reset both — the previous thread's messages must NOT linger for the
+    // brief window between activeId flipping and the first snapshot for the
+    // new thread arriving.
+    setMessages([]);
     setMessagesLoaded(false);
     const unsub = firestoreRef.current.subscribeToChatMessages(activeId, list => {
       setMessages(list.map(m => ({
@@ -873,13 +928,26 @@ export function AiChatPanel({
     return unsub;
   }, [activeId]);
 
+  // Arm the greeting bubble only after a short beat. Firestore's snapshot
+  // pipeline can briefly deliver an empty "messages=[]" state on mount before
+  // the real cache/server data lands, and without this delay the fallback
+  // welcome bubble flashes for a frame or two on an existing conversation
+  // before the real messages replace it (rep follow-up: "for a split second
+  // the welcome message before i see my current conv").
+  const [greetingArmed, setGreetingArmed] = useState(false);
+  useEffect(() => {
+    setGreetingArmed(false);
+    const t = setTimeout(() => setGreetingArmed(true), 400);
+    return () => clearTimeout(t);
+  }, [activeId]);
+
   useEffect(() => {
     firestore.listPersonalExercises().then(setPersonalExercises);
-    // Only trainer + onboarding modes actually use the profile — cheap to load anyway
-    // and lets action-driven updates always start from fresh state.
-    if (mode === 'onboarding' || mode === 'trainer') {
-      firestore.getUserProfile().then(setUserProfile).catch(() => setUserProfile({}));
-    }
+    // Fetch the profile for ALL modes now — the unpin flags on it drive
+    // whether the pinned שיחת היכרות virtual entry shows in the history
+    // dropdown (rep_1787561936655_fphf), so dietary + session panels need
+    // it too. Still small and cached.
+    firestore.getUserProfile().then(setUserProfile).catch(() => setUserProfile({}));
   }, [uid, mode]);
 
   // Fallback greeting for an empty שיחת היכרות — the user could arrive here
@@ -932,8 +1000,13 @@ export function AiChatPanel({
 
   function startNewConversation() {
     // Lazy — the thread doc is written by sendWith on the first user message.
-    // Nothing is created in Firestore until there's actual content.
+    // Nothing is created in Firestore until there's actual content. Also clear
+    // messages + loaded synchronously so the old thread's content (or its
+    // fallback greeting bubble on an empty שיחת היכרות) doesn't flash under
+    // the new thread while the Firestore subscription is spinning up.
     setActiveId(`t_${Date.now()}`);
+    setMessages([]);
+    setMessagesLoaded(false);
     setAppliedActionIds(new Set());
     setError(null);
     setInput('');
@@ -941,7 +1014,22 @@ export function AiChatPanel({
   }
 
   function switchToThread(id: string) {
+    // Clicking the already-active thread is a no-op — otherwise the resets
+    // below wipe the messages state, the messages effect DOESN'T re-run
+    // (activeId didn't change), and the chat stays blank until you pick a
+    // different thread (rep follow-up: "clicking the selected conv unchecks
+    // it and remains a blank chat"). Close the dropdown so the click feels
+    // acknowledged.
+    if (id === activeId) {
+      setThreadsMenuOpen(false);
+      return;
+    }
+    // Same reset as above — no cross-thread leak of messages during the
+    // brief window between switching activeId and the new subscription
+    // delivering the target thread's messages.
     setActiveId(id);
+    setMessages([]);
+    setMessagesLoaded(false);
     setAppliedActionIds(new Set());
     setError(null);
     setThreadsMenuOpen(false);
@@ -1455,20 +1543,21 @@ export function AiChatPanel({
               <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
             </svg>
           </span>
-          <div className="text-right min-w-0">
+          <div className="text-right min-w-0 relative">
             <h2 className="font-bold text-base leading-tight truncate">
               {mode === 'naming' ? 'מאמן שמות' : mode === 'dietary' ? 'מאמן תזונה' : 'מאמן כושר'}
             </h2>
-            {/* The "שיחת היכרות" identity chip sits BELOW the title on its own
-                line — same slot the replaceContext hint uses. Keeps the top row
-                for actions only so the header doesn't get cramped on narrow
-                screens (rep_1787525160501_07tq follow-up). */}
+            {/* The "שיחת היכרות" identity chip is absolutely positioned so the
+                title's vertical placement stays fixed whether the chip is on or
+                off — otherwise the whole title jumped a few pixels between
+                threads and made the header feel unstable
+                (rep_1787561849829_3yh4). Small, tight, right under the title. */}
             {isOnboardingThreadId(activeId) && (
               <div
-                className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300 leading-tight mt-0.5"
+                className="absolute top-full right-0 mt-0.5 inline-flex items-center gap-1 text-[9px] font-semibold text-amber-700 dark:text-amber-300 leading-none whitespace-nowrap pointer-events-none"
                 title="שיחת ההיכרות הקבועה שלך עם המאמן — פתוחה מכל מקום, נשמרת לתמיד."
               >
-                <svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="8" height="8" fill="currentColor" aria-hidden="true">
                   <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
                 </svg>
                 <span>שיחת היכרות</span>
@@ -1595,23 +1684,21 @@ export function AiChatPanel({
                               <div className="text-[10px] text-muted mt-0.5">{subtitle}</div>
                             </div>
                           </button>
-                          {/* Delete on pinned entries is behind a confirm. Virtual
-                              entries (no persisted doc yet) can't be deleted. */}
-                          {!isVirtual && (
-                            <button
-                              onClick={() => {
-                                if (!confirm('למחוק את שיחת ההיכרות? ההיסטוריה שלה תמחק לגמרי. שיחה חדשה עם המאמן תיצור אותה מחדש.')) return;
-                                void deleteThread(t.id);
-                              }}
-                              aria-label="מחק שיחת היכרות"
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-red-500/80 hover:bg-red-500/10 shrink-0"
-                              title="מחק שיחת היכרות"
-                            >
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                              </svg>
-                            </button>
-                          )}
+                          {/* Unpin: hides שיחת ההיכרות from the pinned section.
+                              The thread itself and its messages are kept — this
+                              is a "remove from my quick list" action. Settings'
+                              "שיחת היכרות" card still opens it. Confirm modal
+                              is the app's own (not browser confirm). */}
+                          <button
+                            onClick={() => setUnpinConfirmOpen(true)}
+                            aria-label="הסר מקבועים"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-main hover:bg-slate-500/10 shrink-0"
+                            title="הסר מקבועים"
+                          >
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M6 6l12 12M6 18L18 6" />
+                            </svg>
+                          </button>
                         </div>
                       );
                     })}
@@ -1673,12 +1760,32 @@ export function AiChatPanel({
       )}
 
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-3">
-        {(() => {
+        {/* Loading placeholder — shown whenever the conversation isn't fully
+            ready to render (either messages haven't landed yet, applied
+            actions haven't loaded, or the greetingArmed timer is still
+            counting down). Prevents the bare-background flash the user sees
+            in the ~100-200ms between "messages arrive" and "cards can be
+            drawn in their final state". Positioned as an assistant bubble
+            so no layout jump when it's replaced by the real content. */}
+        {activeId && (!messagesLoaded || !appliedActionsLoaded || (!!effectiveGreeting && messages.length === 0 && !greetingArmed)) && (
+          <div className="flex justify-end">
+            <div className="dark:bg-slate-800 bg-slate-100 rounded-2xl rounded-tr-sm px-4 py-3 flex items-center gap-1.5" dir="rtl">
+              <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '900ms' }} />
+              <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '150ms', animationDuration: '900ms' }} />
+              <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '300ms', animationDuration: '900ms' }} />
+            </div>
+          </div>
+        )}
+        {/* Hold the whole conversation until both messages AND the applied-
+            actions set are loaded. Rendering text first and cards second
+            would let the layout jump as the cards materialize. When both are
+            ready, everything paints in one motion. */}
+        {activeId && messagesLoaded && appliedActionsLoaded && (() => {
           // Prepend a LOCAL-only greeting bubble when the thread is empty and
           // the caller supplied one (naming AI, replace-context prompts, etc.).
           // The bubble looks identical to a real message but isn't in Firestore,
           // so closing without replying leaves no ghost thread behind.
-          const showLocalGreeting = messagesLoaded && messages.length === 0 && !!effectiveGreeting;
+          const showLocalGreeting = greetingArmed && messagesLoaded && messages.length === 0 && !!effectiveGreeting;
           const displayMessages: Msg[] = showLocalGreeting
             ? [{ role: 'assistant', content: effectiveGreeting!, ts: Date.now() } as Msg, ...messages]
             : messages;
@@ -1727,6 +1834,13 @@ export function AiChatPanel({
                   }
                   const a = chunk.action;
                   const key = actionKey(a, m.ts, j);
+                  // Hold action cards back until we know their applied state.
+                  // Rendering them with the default (not-applied) UI first
+                  // would flash "+ הוסף להיום" on a card that was actually
+                  // already added, before flipping to the "✓ נוסף" state once
+                  // the async load resolves. Text chunks still render — only
+                  // the interactive cards wait.
+                  if (!appliedActionsLoaded) return null;
                   const applied = appliedActionIds.has(key);
 
                   if (a.type === 'update_profile') {
@@ -2139,7 +2253,7 @@ export function AiChatPanel({
             precedes the actual card just makes the user wait twice. The real
             cards appear when the finished message lands. */}
         {streamingText && (
-          <div className="flex justify-end">
+          <div className="flex flex-col items-end gap-1.5">
             <div className="w-fit max-w-[85%] rounded-2xl rounded-tr-sm px-3 py-2 text-sm dark:bg-slate-800 bg-slate-100" dir="rtl">
               <span className="whitespace-pre-wrap text-right">{visibleStreamText}</span>
               <span className="inline-flex items-center gap-0.5 align-middle ms-1">
@@ -2148,6 +2262,20 @@ export function AiChatPanel({
                 <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce" style={{ animationDelay: '300ms', animationDuration: '900ms' }} />
               </span>
             </div>
+            {/* "Building a card" hint. Fires only when the buffer is mid-way
+                through an ```action fence — the visible prose is done and the
+                model is filling in the card JSON that we're deliberately
+                hiding. Without this the panel looks stuck to the user
+                (rep_ follow-up: "getting stuck each time it builds
+                suggestions"). */}
+            {hasOpenAction(streamingText) && (
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-full px-2 py-0.5" dir="rtl">
+                <svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                </svg>
+                <span>מכין כרטיס הצעה…</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -2292,6 +2420,16 @@ export function AiChatPanel({
           >שלח</button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={unpinConfirmOpen}
+        title="להסיר את שיחת ההיכרות מהקבועים?"
+        body="היא עדיין תישאר זמינה מההגדרות ואפשר יהיה לחזור אליה מתי שבא לך."
+        confirmLabel="הסר"
+        cancelLabel="ביטול"
+        onConfirm={() => void performUnpinOnboarding()}
+        onCancel={() => setUnpinConfirmOpen(false)}
+      />
     </div>
   );
 }

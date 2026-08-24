@@ -10,19 +10,19 @@ import { db } from '../config/firebase';
 //   analytics_events/{auto}   — every page view / sign-in / register
 //   users_index/{uid}         — one row per registered user, upserted on sign-in
 //
-// The landing page (public/matzav/index.html) fires its own events over
+// The landing page (public/wholos/index.html) fires its own events over
 // Firestore REST because it has no bundled SDK. Everything inside the app
 // (login screen, sign-in) uses this helper.
 
 export type EventType =
-  | 'home_view'      // /matzav/ landing hit
+  | 'home_view'      // /wholos/ landing hit
   | 'login_view'     // login screen mounted
   | 'app_open'       // any authed screen mounted (deduped per-session)
   | 'sign_in'        // Google popup returned a user
   | 'register';      // FIRST sign-in for this uid (users_index just created)
 
-const VISITOR_KEY = 'matzavVisitorId';
-const SESSION_KEY = 'matzavSessionId';
+const VISITOR_KEY = 'wholos_vid';
+const SESSION_KEY = 'wholos_sid';
 
 // Stable per-device id — persists across sessions so we can count uniques.
 export function getVisitorId(): string {
@@ -131,10 +131,11 @@ export async function logEvent(type: EventType, extra?: Record<string, unknown>)
 // (i.e. this is a first-time registration) so the caller can fire a
 // distinct 'register' event on top of the 'sign_in' one.
 //
-// Skipped entirely for the owner uid — the account that runs the launch
-// dashboard is not a "registered user" and must never appear as one.
+// (Previously skipped the owner uid to keep him out of the launch-dashboard
+// funnel numbers — but the desktop /users-admin page now hosts a "הצג גם את
+// שלומי" checkbox that owns the filtering, so the row itself needs to exist.
+// Analytics counters still filter him out where relevant.)
 export async function ensureUserIndex(user: User, appUid: string): Promise<{ isNew: boolean }> {
-  if (appUid === OWNER_UID) return { isNew: false };
   try {
     const ref = doc(db, 'users_index', appUid);
     const snap = await getDoc(ref);

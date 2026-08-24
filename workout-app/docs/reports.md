@@ -7,6 +7,12 @@ picks them up, works them, and closes them — no copy-paste out of WhatsApp.
 **The instruction that triggers this is just:** *"read the bugs and features and
 handle them"* (optionally scoped: *"only the dietary ones"*).
 
+Shlomi's own desktop management UI lives at
+**https://boostmind-b052c.web.app/wholos-app/#/reports-admin** — table with
+filters, inline status/place/kind editing, copy text/id/#num, and delete.
+The page always targets `users/user_6724/reports` regardless of which account
+is signed in, so the same URL works from any test login.
+
 ---
 
 ## Where they live
@@ -102,8 +108,8 @@ when only the terminal was.
 |---|---|---|
 | `id` | `rep_<ts>_<rand>` | Doc id, same as the document name |
 | `kind` | `bug` · `feature` | |
-| `place` | `exercise` · `food` · `general` | **Scope your work by this.** Two sessions on two places must not touch each other's items |
-| `status` | `open` · `in-progress` · `done` · `wont-do` | |
+| `place` | `exercise` · `food` · `marketing` · `general` | **Scope your work by this.** Two sessions on two places must not touch each other's items |
+| `status` | `open` · `in-progress` · `on-hold` · `done` · `wont-do` | `on-hold` = "לא להתחיל" (deferred/backlog) — deliberately not being worked on now |
 | `text` | free text (Hebrew) | The report itself |
 | `screenshotBase64` | `data:image/...;base64,...` | Often the clearest part — **look at it** (see below) |
 | `resolution` | free text | What you did. Written by you, shown in the app |
@@ -148,6 +154,8 @@ curl -s -X PATCH \
 Statuses:
 
 - `in-progress` — claim it before a long fix, so a parallel session skips it.
+- `on-hold` — "לא להתחיל". Reviewed and consciously deferred; leave a short
+  `resolution` explaining what it's waiting on.
 - `done` — shipped. Always leave a `resolution`; Shlomi reads it in the app.
 - `wont-do` — with a `resolution` explaining why. Don't silently drop things.
 

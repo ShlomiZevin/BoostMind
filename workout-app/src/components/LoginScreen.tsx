@@ -6,7 +6,7 @@ type Props = {
 };
 
 /**
- * The way in to מצב.
+ * The way in to Wholos.
  *
  * Visual brief: the same DNA as the home page — deep, quiet surface, ambient
  * light that hints at both modes (green = מצב אימון on one side, amber =
@@ -55,15 +55,15 @@ export function LoginScreen({ onLogin }: Props) {
                 <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" />
               </svg>
             </div>
-            <h1 className="login-title">מצב</h1>
+            <h1 className="login-title">Wholos</h1>
           </div>
 
           <p className="login-sub" style={{ animationDelay: '180ms' }}>
-            מתאמנים. אוכלים. מתייעצים.
+            אימונים, תזונה ו-AI שמסתכל על היום שלך כתמונה אחת.
           </p>
 
           <p className="login-sub2" style={{ animationDelay: '220ms' }}>
-            AI שמכיר את האימונים, התזונה והיעדים שלך.
+            מכיר את האימונים, הארוחות והיעדים שלך.
           </p>
 
           <div className="login-modes" style={{ animationDelay: '270ms' }}>
@@ -71,12 +71,11 @@ export function LoginScreen({ onLogin }: Props) {
             <span><i style={{ background: '#f59e0b' }} />מצב תזונה</span>
           </div>
 
-          {/* A glimpse of the product rather than an onboarding panel: one thing
-              the coach actually gets asked, and the one fact that makes its
-              answer worth reading. Deliberately the smallest text on the card. */}
+          {/* A glimpse of the product rather than an onboarding panel: the one
+              thing the coach actually gets asked. It stands alone on purpose —
+              an answer line here only repeated login-sub2 a few millimetres above. */}
           <div className="login-ai" style={{ animationDelay: '330ms' }}>
             <span className="q">״מה כדאי לי לעשות היום?״</span>
-            <span className="a">מכיר את האימונים, התזונה והיעדים שלך.</span>
           </div>
 
           <button

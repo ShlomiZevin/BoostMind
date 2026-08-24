@@ -79,16 +79,16 @@ export function Settings({ uid, navigate, onLogout }: Props) {
   // Share the app link — uses the native Web Share sheet when available
   // (mobile Safari / Chrome), and falls back to copying to clipboard.
   // The shared URL points at the /matzav/ landing (the public face), not
-  // /workout-app/ directly — the landing tells the person what מצב is and
-  // then leads them into the app. When matzav.ai is bought, swap this
-  // string to 'https://matzav.ai/'.
+  // /workout-app/ directly — the landing tells the person what Wholos is and
+  // then leads them into the app. wholos.com already resolves to Firebase but
+  // is not attached to this site yet; swap to 'https://wholos.com/' once it is.
   async function shareApp() {
-    const url = 'https://boostmind-b052c.web.app/matzav/';
+    const url = 'https://boostmind-b052c.web.app/wholos/';
     const shareData = {
-      title: 'מצב',
+      title: 'Wholos',
       // Matches the landing page's own preview card, so the WhatsApp bubble and
       // the page it opens say the same thing.
-      text: 'מצב - האימונים שלך, התזונה שלך, ו-AI שמכיר את שניהם.',
+      text: 'Wholos — האימונים שלך, התזונה שלך, ו-AI שמכיר את שניהם.',
       url,
     };
     try {
@@ -135,22 +135,17 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       <SectionHeader first>פרופיל</SectionHeader>
       <ProfileCard uid={uid} />
 
-      {/* ─── שיחות היכרות ─── */}
-      {/* The two intro chats are the one place the coach really "knows" the user
-          from — they're persistent, pinned in the coach's chat history, and
-          re-openable from here at any time. Rendered as a paired card so it
-          reads as one thing (הכר את המאמן) with two shortcuts. */}
-      <SectionHeader>שיחות היכרות</SectionHeader>
-      <div className="card mb-4 !p-0 overflow-hidden" dir="rtl">
-        <div className="px-4 pt-3 pb-2 border-b border-subtle">
-          <div className="text-[11px] text-muted leading-snug">
-            השיחות שבהן המאמנים הכירו אותך והציעו לך יעדים. הן שמורות תמיד, מוצמדות לראש היסטוריית השיחות של כל מאמן, ואפשר לחזור אליהן מכאן בכל רגע — לעדכן משקל, מטרה, פוקוס, או כל דבר.
-          </div>
-        </div>
-        <button
-          onClick={() => openOnboardingChat('coach')}
-          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-right dark:hover:bg-slate-800/60 hover:bg-slate-50 border-b border-subtle"
-        >
+      {/* ─── שיחת היכרות (מאמן כושר בלבד — מקום זה) ─── */}
+      {/* Each place's settings surfaces ONLY its own שיחת היכרות. Food coach's
+          שיחת היכרות lives in Food → הגדרות (FoodSettings). Symmetric on both
+          sides so nothing "leaks" across places. */}
+      <SectionHeader>שיחת היכרות</SectionHeader>
+      <button
+        onClick={() => openOnboardingChat('coach')}
+        className="w-full card mb-4 dark:hover:bg-slate-800 hover:bg-slate-50"
+        dir="rtl"
+      >
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <span className="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
@@ -159,29 +154,12 @@ export function Settings({ uid, navigate, onLogout }: Props) {
             </span>
             <div className="min-w-0 text-right">
               <div className="font-medium text-sm">שיחת היכרות — מאמן כושר</div>
-              <div className="text-[11px] text-muted mt-0.5">רמה, מטרה, ימים בשבוע, פוקוס שרירים</div>
+              <div className="text-[11px] text-muted mt-0.5">רמה, מטרה, ימים בשבוע, פוקוס שרירים — לעדכן בכל עת</div>
             </div>
           </div>
           <span className="text-muted text-lg shrink-0">←</span>
-        </button>
-        <button
-          onClick={() => openOnboardingChat('dietary')}
-          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-right dark:hover:bg-slate-800/60 hover:bg-slate-50"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="w-9 h-9 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
-                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
-              </svg>
-            </span>
-            <div className="min-w-0 text-right">
-              <div className="font-medium text-sm">שיחת היכרות — מאמן תזונה</div>
-              <div className="text-[11px] text-muted mt-0.5">משקל, גובה, גיל, פעילות, יעד קלורי</div>
-            </div>
-          </div>
-          <span className="text-muted text-lg shrink-0">←</span>
-        </button>
-      </div>
+        </div>
+      </button>
 
       {/* ─── תרגילים ויעדים — domain-specific, right after profile ─── */}
       <SectionHeader>תרגילים ויעדים</SectionHeader>
@@ -436,16 +414,38 @@ export function Settings({ uid, navigate, onLogout }: Props) {
           </div>
 
           <div className="card mb-4 border border-emerald-500/30">
-            <div className="flex items-center justify-between" dir="rtl">
+            <div className="flex items-center justify-between gap-2" dir="rtl">
               <div className="text-right">
                 <div className="font-medium">דיווחי באגים ופיצ׳רים</div>
                 <div className="text-xs text-muted">רשום תוך כדי שימוש — במקום להעביר בוואטסאפ</div>
               </div>
-              <button onClick={() => setReportsOpen(true)} className="btn-secondary px-4 py-2 text-sm">
-                פתח
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => navigate({ page: 'reports-admin' })}
+                  className="btn-secondary px-3 py-2 text-xs"
+                  title="דף ניהול משימות — נראה טוב על דסקטופ, טבלה עם סטטוס, העתקה ומחיקה"
+                >ניהול (דסקטופ)</button>
+                <button onClick={() => setReportsOpen(true)} className="btn-secondary px-4 py-2 text-sm">
+                  פתח
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Combined desktop admin — users + tasks + movement + AI model. */}
+          <button
+            onClick={() => navigate({ page: 'admin-desktop' })}
+            className="w-full card mb-4 border border-emerald-500/30 dark:hover:bg-slate-800 hover:bg-slate-50"
+            dir="rtl"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-right">
+                <div className="font-medium">דשבורד ניהול (דסקטופ)</div>
+                <div className="text-xs text-muted">משתמשים · משימות · תנועה · מודל AI — הכל בעמוד אחד</div>
+              </div>
+              <span className="text-muted text-lg">←</span>
+            </div>
+          </button>
 
           {/* Meeting prep — owner-only, like everything else in this block.
               Lives as a static page rather than a screen because it is a

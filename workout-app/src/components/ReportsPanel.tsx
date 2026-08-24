@@ -17,16 +17,18 @@ const KINDS: { id: ReportKind; he: string; icon: string }[] = [
 ];
 
 const PLACES: { id: ReportPlaceTag; he: string; tone: string }[] = [
-  { id: 'exercise', he: 'אימונים', tone: 'bg-emerald-500 text-white' },
-  { id: 'food', he: 'תזונה', tone: 'bg-amber-500 text-white' },
-  { id: 'general', he: 'כללי', tone: 'bg-slate-500 text-white' },
+  { id: 'exercise',  he: 'אימונים', tone: 'bg-emerald-500 text-white' },
+  { id: 'food',      he: 'תזונה',   tone: 'bg-amber-500 text-white' },
+  { id: 'marketing', he: 'מרקטינג', tone: 'bg-violet-500 text-white' },
+  { id: 'general',   he: 'כללי',    tone: 'bg-slate-500 text-white' },
 ];
 
 const STATUSES: { id: ReportStatus; he: string; cls: string }[] = [
-  { id: 'open', he: 'פתוח', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
-  { id: 'in-progress', he: 'בטיפול', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
-  { id: 'done', he: 'הושלם', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
-  { id: 'wont-do', he: 'לא רלוונטי', cls: 'bg-slate-500/15 text-muted' },
+  { id: 'open',        he: 'פתוח',       cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+  { id: 'in-progress', he: 'בטיפול',     cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+  { id: 'on-hold',     he: 'לא להתחיל',  cls: 'bg-blue-500/15 text-blue-700 dark:text-blue-300' },
+  { id: 'done',        he: 'הושלם',      cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+  { id: 'wont-do',     he: 'לא רלוונטי', cls: 'bg-slate-500/15 text-muted' },
 ];
 
 const placeOf = (id: ReportPlaceTag) => PLACES.find(p => p.id === id)!;

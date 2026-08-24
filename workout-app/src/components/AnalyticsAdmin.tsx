@@ -333,7 +333,7 @@ export function AnalyticsAdmin({ flat }: { flat?: boolean } = {}) {
                 <div className="grid grid-cols-3 gap-2">
                   <FunnelCell
                     label="צפייה בבית"
-                    hint="פתחו את matzav.ai"
+                    hint="פתחו את wholos.com"
                     total={stats.home.length}
                     unique={stats.homeUnique}
                     tone="emerald"
@@ -597,14 +597,15 @@ function FunnelCell({
 let ownerCleanupDone = false;
 async function cleanupOwnerPollution(
   eventDocs: { id: string; data: () => any }[],
-  userDocs: { id: string; data: () => any }[],
+  _userDocs: { id: string; data: () => any }[],
 ): Promise<void> {
   if (ownerCleanupDone) return;
   ownerCleanupDone = true;
   try {
-    const ownerUsr = userDocs.find(d => d.data()?.uid === OWNER_UID || d.id === OWNER_UID);
-    if (ownerUsr) await deleteDoc(doc(db, 'users_index', OWNER_UID)).catch(() => {});
-
+    // The owner's users_index row USED to be treated as pollution and deleted
+    // on sight. It no longer is — the desktop /users-admin page hosts a
+    // "הצג גם את שלומי" toggle that owns the filtering, so the row itself is
+    // welcome to exist. Analytics events for the owner are still cleaned up.
     const ownerEvents = eventDocs.filter(d => d.data()?.uid === OWNER_UID);
     if (ownerEvents.length === 0) return;
     // Firestore batches cap at 500 writes — plenty here.

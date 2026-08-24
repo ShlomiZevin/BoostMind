@@ -1,6 +1,6 @@
 import type { PlaceId } from '../places/registry';
 
-// The method behind each place — what מצב actually believes about training and
+// The method behind each place — what Wholos actually believes about training and
 // about eating. Two jobs, one text:
 //
 //   1. It is shown to the user ("העקרונות", from each place's settings), because a

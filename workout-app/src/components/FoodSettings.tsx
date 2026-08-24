@@ -12,6 +12,7 @@ import { ReportsPanel } from './ReportsPanel';
 import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId } from '../config/aiModel';
 import { useAuth } from '../hooks/useAuth';
 import { DietProfileCard } from './DietProfileCard';
+import { openOnboardingChat } from './AiChatPanel';
 
 type Props = { uid: string; navigate: (r: Route) => void; onLogout: () => void };
 
@@ -54,10 +55,10 @@ export function FoodSettings({ uid, navigate, onLogout }: Props) {
   }
 
   async function shareApp() {
-    const url = 'https://boostmind-b052c.web.app/matzav/';
+    const url = 'https://boostmind-b052c.web.app/wholos/';
     const shareData = {
-      title: 'מצב',
-      text: 'מצב - האימונים שלך, התזונה שלך, ו-AI שמכיר את שניהם.',
+      title: 'Wholos',
+      text: 'Wholos — האימונים שלך, התזונה שלך, ו-AI שמכיר את שניהם.',
       url,
     };
     try {
@@ -98,6 +99,32 @@ export function FoodSettings({ uid, navigate, onLogout }: Props) {
         {/* ─── פרופיל ─── */}
         <SectionHeader first>פרופיל</SectionHeader>
         <DietProfileCard uid={uid} />
+
+        {/* ─── שיחת היכרות ─── */}
+        {/* Same anchor as the אימונים settings page — the שיחת ההיכרות is the
+            one place the coach really "knows" the user from, so it deserves
+            a top-level shortcut in both settings pages (rep_1787562000324_446h). */}
+        <SectionHeader>שיחת היכרות</SectionHeader>
+        <button
+          onClick={() => openOnboardingChat('dietary')}
+          className="w-full card mb-4 dark:hover:bg-slate-800 hover:bg-slate-50"
+          dir="rtl"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-9 h-9 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                </svg>
+              </span>
+              <div className="min-w-0 text-right">
+                <div className="font-medium text-sm">שיחת היכרות — מאמן תזונה</div>
+                <div className="text-[11px] text-muted mt-0.5">משקל, גובה, גיל, פעילות, יעד קלורי — לעדכן בכל עת</div>
+              </div>
+            </div>
+            <span className="text-muted text-lg shrink-0">←</span>
+          </div>
+        </button>
 
         {/* ─── המאכלים שלי — domain-specific, right after profile ─── */}
         <SectionHeader>מאכלים</SectionHeader>

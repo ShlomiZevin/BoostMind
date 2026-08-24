@@ -1,6 +1,6 @@
 {
-  "name": "מצב",
-  "short_name": "מצב",
+  "name": "Wholos",
+  "short_name": "Wholos",
   "description": "אימונים, תזונה ו-AI שמכיר את שניהם.",
   "start_url": "/matzav-app/",
   "scope": "/matzav-app/",

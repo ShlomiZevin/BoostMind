@@ -6,7 +6,7 @@ import mountMarketing from './marketing.js';
 const PORT = process.env.PORT || 8080;
 // Opus 5 for higher-quality Hebrew — the extra cost is worth it for the
 // user-facing conversational modes. Override with CLAUDE_MODEL if needed.
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5';
 
 // Per-request model override. Allow-listed on purpose: the body is client-sent,
 // and an arbitrary model string would be both a 404 waiting to happen and a way
@@ -281,11 +281,16 @@ const app = express();
 // every preview deploy. Match the project's own hosts by pattern instead, and
 // keep localhost for dev.
 const ALLOWED_ORIGIN = /^https:\/\/boostmind-b052c(--[a-z0-9-]+)?\.(web\.app|firebaseapp\.com)$/;
+// The production domain. Firebase serves the same site from wholos.com, so the
+// app calls this API from there too — without this, every request from
+// https://wholos.com fails preflight with no Access-Control-Allow-Origin.
+const ALLOWED_DOMAIN = /^https:\/\/(www\.)?wholos\.com$/;
 app.use(cors({
   origin: (origin, cb) => {
     // Same-origin / curl / server-to-server requests send no Origin header.
     if (!origin) return cb(null, true);
     if (ALLOWED_ORIGIN.test(origin)) return cb(null, true);
+    if (ALLOWED_DOMAIN.test(origin)) return cb(null, true);
     if (/^http:\/\/localhost:\d+$/.test(origin)) return cb(null, true);
     return cb(null, false);
   },

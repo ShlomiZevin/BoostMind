@@ -12,20 +12,20 @@ export type AiModelId = 'claude-opus-5' | 'claude-sonnet-5';
 
 export const AI_MODELS: { id: AiModelId; label: string; note: string }[] = [
   {
-    id: 'claude-opus-5',
-    label: 'Opus 5',
-    note: 'ברירת המחדל — הכי מדויק, הכי איטי ויקר',
-  },
-  {
     id: 'claude-sonnet-5',
     label: 'Sonnet 5',
-    note: 'מהיר יותר, כ-40% זול יותר. לבדוק אם יורדת איכות',
+    note: 'ברירת המחדל — מהיר, זול פי 5, איכות מעולה לרוב המקרים',
+  },
+  {
+    id: 'claude-opus-5',
+    label: 'Opus 5',
+    note: 'הכי מדויק — יקר פי 5, לא נחוץ ל-95% מהזרימות',
   },
 ];
 
 /** What the server uses when no override is sent. Kept here only so the UI can
  *  show which option is the current default — the server owns the real value. */
-export const DEFAULT_AI_MODEL: AiModelId = 'claude-opus-5';
+export const DEFAULT_AI_MODEL: AiModelId = 'claude-sonnet-5';
 
 const KEY = 'aiModel';
 

@@ -137,12 +137,12 @@ export function IconFork() {
   );
 }
 
-// ─── Place mark — the מצב mark, one shape, tinted per place. ───────
+// ─── Place mark — the Wholos mark, one shape, tinted per place. ───────
 // A circle split by a soft S-wave with the lower half filled: two states
 // of one whole (activity/recovery, day/night). Single-colour via
 // `currentColor` so the same mark picks up each place's accent. See
 // workout-app/public/brand/mark-current.svg for the canonical source
-// (built and served from /matzav-app/brand/).
+// (built and served from /wholos-app/brand/).
 function MarkMatzav() {
   return (
     <svg viewBox="0 0 64 64" width="22" height="22" fill="currentColor" stroke="currentColor" aria-hidden="true">

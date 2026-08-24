@@ -34,18 +34,36 @@
       },
       {
         "source": "/workout-app{,/**}",
-        "destination": "/matzav-app/",
+        "destination": "/wholos-app/",
+        "type": 301
+      },
+      {
+        "source": "/matzav-app{,/**}",
+        "destination": "/wholos-app/",
+        "type": 301
+      },
+      {
+        "source": "/matzav{,/**}",
+        "destination": "/wholos/",
         "type": 301
       }
     ],
     "rewrites": [
       {
+        "source": "/",
+        "destination": "/wholos/index.html"
+      },
+      {
         "source": "/storyboard/**",
         "destination": "/storyboard/index.html"
       },
       {
-        "source": "/matzav-app/**",
-        "destination": "/matzav-app/index.html"
+        "source": "/wholos-app/**",
+        "destination": "/wholos-app/index.html"
+      },
+      {
+        "source": "/wholos/**",
+        "destination": "/wholos/index.html"
       },
       {
         "source": "/matzav/**",

@@ -177,6 +177,11 @@ export type UserProfile = {
   // even for accounts that already have sessions/exercises. Cleared automatically
   // when the user completes or skips the reopened chat.
   forceOnboarding?: boolean;
+  // User explicitly removed the pinned "שיחת היכרות" from the coach chat's
+  // history dropdown. Still reachable from Settings — this just hides the
+  // pinned entry so the dropdown feels theirs.
+  trainerOnboardingUnpinned?: boolean;
+  foodOnboardingUnpinned?: boolean;
   // Dietary profile lives here rather than in settings/main — a second profile
   // in a different doc is a trap.
   diet?: DietProfile;
@@ -261,8 +266,8 @@ export type DietProfile = {
 // per domain and what has already been handled.
 
 export type ReportKind = 'bug' | 'feature';
-export type ReportPlaceTag = 'exercise' | 'food' | 'general';
-export type ReportStatus = 'open' | 'in-progress' | 'done' | 'wont-do';
+export type ReportPlaceTag = 'exercise' | 'food' | 'marketing' | 'general';
+export type ReportStatus = 'open' | 'in-progress' | 'on-hold' | 'done' | 'wont-do';
 
 /** One message on a report's thread. Two authors only: Shlomi writing from
  *  the app, and a Claude session writing back. Stored as an array on the
@@ -353,6 +358,12 @@ export type Route =
   | { page: 'install' }
   // admin-only launch dashboard (guarded in AppShell)
   | { page: 'admin' }
+  // admin-only desktop reports management (guarded in AppShell)
+  | { page: 'reports-admin' }
+  // admin-only desktop users management
+  | { page: 'users-admin' }
+  // admin-only combined desktop landing (users + tasks + movement)
+  | { page: 'admin-desktop' }
   // תזונה
   | { page: 'food-today' }
   | { page: 'food-history' }

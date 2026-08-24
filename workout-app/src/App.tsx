@@ -43,6 +43,9 @@ import { STRIP_FROM_DAYS_USED, TRIAL_INDICATOR, TRIAL_STRIP_H, waLink, type Tria
 const OWNER_UID = 'user_6724';
 import { ReportsPanel } from './components/ReportsPanel';
 import { AdminPage } from './components/AdminPage';
+import { ReportsAdminPage } from './components/ReportsAdminPage';
+import { UsersAdminPage } from './components/UsersAdminPage';
+import { AdminDesktopPage } from './components/AdminDesktopPage';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
 } from './places/registry';
@@ -76,6 +79,9 @@ function parseHash(): Route {
   if (hash === '/body') return { page: 'body' };
   if (hash === '/install') return { page: 'install' };
   if (hash === '/admin') return { page: 'admin' };
+  if (hash === '/reports-admin') return { page: 'reports-admin' };
+  if (hash === '/users-admin') return { page: 'users-admin' };
+  if (hash === '/admin-desktop') return { page: 'admin-desktop' };
   if (hash.startsWith('/session-view/')) {
     return { page: 'session-view', sessionId: hash.split('/')[2] };
   }
@@ -94,6 +100,9 @@ function routeToHash(route: Route): string {
     case 'body': return '#/body';
     case 'install': return '#/install';
     case 'admin': return '#/admin';
+    case 'reports-admin': return '#/reports-admin';
+    case 'users-admin': return '#/users-admin';
+    case 'admin-desktop': return '#/admin-desktop';
     case 'session': return `#/session/${route.sessionId}`;
     case 'session-view': return `#/session-view/${route.sessionId}`;
     case 'food-today': return '#/food/today';
@@ -211,6 +220,12 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   const [todayMeals, setTodayMeals] = useState<MealLog[]>([]);
   const [personalMeals, setPersonalMeals] = useState<PersonalMeal[]>([]);
   const [profile, setProfile] = useState<UserProfile>({});
+  // Guards the food-chat auto-open effect from firing before the profile has
+  // actually loaded — otherwise a first-render race lets it open the panel
+  // BEFORE profile.diet.foodOnboardingCompletedAt has a chance to arrive from
+  // Firestore, so a returning user gets ambushed by the greeting on every
+  // refresh (rep_1787562339376_nf2v).
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     if (!isTabPage) return;
@@ -224,7 +239,9 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   useEffect(() => {
     if (place !== 'food' && !foodChatOpen) return;
     firestore.listPersonalMeals().then(setPersonalMeals).catch(() => { /* empty */ });
-    firestore.getUserProfile().then(setProfile).catch(() => { /* new user */ });
+    firestore.getUserProfile()
+      .then(p => { setProfile(p); setProfileLoaded(true); })
+      .catch(() => { setProfileLoaded(true); /* new user, but we've probed */ });
   }, [place, foodChatOpen, uid, mealRefresh]);
 
   const todayBurn = useMemo(() => {
@@ -254,13 +271,13 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   // into מצב תזונה, which has its own button, coach and numbers.
   const [tour, setTour] = useState<TourId | null>(() => (hasSeenTour(uid) ? null : 'shell'));
 
-  // True once any tour has run in this mount. Guards the one case where both
-  // would fire back to back: a brand-new user who lands straight on a תזונה tab
-  // (a shared deep link) sees the shell tour, and the moment it closes this
-  // effect would open a second one — seven cards before they have touched
-  // anything. The food tour then waits for their next visit to the place.
-  const tourRanThisMount = useRef(false);
-  useEffect(() => { if (tour) tourRanThisMount.current = true; }, [tour]);
+  // (removed) The old tourRanThisMount guard was too aggressive — it fired on
+  // the first tour of the session and never reset, so after the shell tour
+  // ran on first login, the food tour was permanently blocked in the same
+  // mount. rep_1787562339376_nf2v surfaced this. Guarding on `tour !== null`
+  // (below) is enough: a fresh mount that lands directly on a תזונה tab
+  // still sees shell tour first (queued by useState initializer), and the
+  // food tour effect exits early because a tour is already active.
 
   // Marker: the food coach's first-run "let's build a diet profile" chat is
   // active RIGHT NOW. Blocks the food tour from firing on top of the chat and
@@ -273,27 +290,35 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   // own numbers earns its own greeting so the user knows they can just talk
   // instead of hunting for buttons. Marked complete on close, so it fires
   // exactly once per user. The food tour then follows on the next entry.
+  //
+  // profileLoaded is load-bearing: without it, the first render on food-today
+  // fires this effect before Firestore has answered, sees profile as {} and
+  // opens the chat even for returning users (rep_1787562339376_nf2v).
   useEffect(() => {
     if (place !== 'food' || !isTabPage) return;
     if (foodOnboardingActive || foodChatOpen) return;
+    if (!profileLoaded) return;
     if (profile.diet?.foodOnboardingCompletedAt) return;
     setFoodOnboardingActive(true);
     setFoodChatOpen(true);
-  }, [place, isTabPage, profile.diet?.foodOnboardingCompletedAt, foodOnboardingActive, foodChatOpen]);
+  }, [place, isTabPage, profileLoaded, profile.diet?.foodOnboardingCompletedAt, foodOnboardingActive, foodChatOpen]);
 
   // Entering תזונה for the first time. Deliberately checked on every route
   // change rather than once on mount, because the user arrives here later —
   // days after the shell tour — via the place switcher or a quick action.
   useEffect(() => {
     if (place !== 'food' || !isTabPage) return;
-    if (tour !== null || tourRanThisMount.current) return;
+    if (tour !== null) return;
     if (hasSeenTour(uid, 'food')) return;
     // The greeting-chat OWNS the first visit. Only after it closes does the
     // food tour get its turn — otherwise the user meets an overlay AND a coach
-    // window at the same time and neither reads cleanly.
-    if (foodOnboardingActive || (place === 'food' && !profile.diet?.foodOnboardingCompletedAt)) return;
+    // window at the same time and neither reads cleanly. Also gated on
+    // profileLoaded: firing "!completedAt" before we know is a false positive.
+    if (!profileLoaded) return;
+    if (foodOnboardingActive || foodChatOpen) return;
+    if (!profile.diet?.foodOnboardingCompletedAt) return;
     setTour('food');
-  }, [place, isTabPage, uid, tour, foodOnboardingActive, profile.diet?.foodOnboardingCompletedAt]);
+  }, [place, isTabPage, uid, tour, profileLoaded, foodOnboardingActive, foodChatOpen, profile.diet?.foodOnboardingCompletedAt]);
 
   // Replayed from Settings. The shell tour's targets live on Home, so go there
   // first; a place tour is replayed wherever its own place is.
@@ -537,6 +562,19 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
       content = isAdmin
         ? <AdminPage uid={uid} navigate={navigate} />
         : (navigate({ page: 'home' }), null);
+      break;
+    case 'reports-admin':
+      // Deliberately NOT gated on isAdmin. The page always targets Shlomi's
+      // reports collection (hardcoded inside), so it's harmless to anyone
+      // else who happens to hit the URL — they'd just see his open list.
+      // Kept private by not linking to it from anywhere shareable.
+      content = <ReportsAdminPage navigate={navigate} />;
+      break;
+    case 'users-admin':
+      content = <UsersAdminPage navigate={navigate} />;
+      break;
+    case 'admin-desktop':
+      content = <AdminDesktopPage navigate={navigate} />;
       break;
     case 'food-today':
       content = <FoodToday uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} onAddMeal={() => setShowLogMeal(true)} />;
@@ -857,6 +895,19 @@ export default function App() {
   // briefly flash the login screen on every reload even for signed-in users.
   if (loading) {
     return <div className="page-bg" />;
+  }
+
+  // Admin URLs bypass the login gate entirely — they target the owner's own
+  // collections directly and are meant to be reachable from any device/session
+  // without signing in. The URL is the secret.
+  if (route.page === 'reports-admin') {
+    return <ReportsAdminPage navigate={navigate} />;
+  }
+  if (route.page === 'users-admin') {
+    return <UsersAdminPage navigate={navigate} />;
+  }
+  if (route.page === 'admin-desktop') {
+    return <AdminDesktopPage navigate={navigate} />;
   }
 
   if (!uid) {
