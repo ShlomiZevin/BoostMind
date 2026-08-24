@@ -3,7 +3,7 @@ import type { PlaceId } from '../places/registry';
 // The method behind each place — what מצב actually believes about training and
 // about eating. Two jobs, one text:
 //
-//   1. It is shown to the user ("השיטה", from each place's settings), because a
+//   1. It is shown to the user ("העקרונות", from each place's settings), because a
 //      coach that never states its principles just looks like it has opinions.
 //   2. The same principles are written into that coach's system prompt on the
 //      server, so it argues from them instead of improvising a philosophy per
@@ -29,7 +29,7 @@ export type Method = {
 
 export const METHOD: Record<PlaceId, Method> = {
   exercise: {
-    he: 'השיטה של מצב אימון',
+    he: 'העקרונות של מצב אימון',
     essence: 'לא כמה הרמת — כמה השריר באמת עבד, ובאיזה נפח לאורך השבוע.',
     principles: [
       {
@@ -78,7 +78,7 @@ export const METHOD: Record<PlaceId, Method> = {
   },
 
   food: {
-    he: 'השיטה של מצב תזונה',
+    he: 'העקרונות של מצב תזונה',
     essence: 'גירעון קלורי הוא המנוע, ושליטה בעקומת הגלוקוז היא מה שהופכת אותו לבר־קיימא.',
     principles: [
       {

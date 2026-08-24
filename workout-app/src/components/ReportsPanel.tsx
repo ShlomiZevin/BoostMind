@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { AppReport, ReportKind, ReportPlaceTag, ReportStatus } from '../types';
+import type { AppReport, ReportComment, ReportKind, ReportPlaceTag, ReportStatus } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { compressImage } from '../hooks/usePhotos';
@@ -52,14 +52,45 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function reload() {
-    setReports(await firestoreRef.current.listReports());
+    const list = await firestoreRef.current.listReports();
+    setReports(await ensureSequentialNums(list));
     setLoaded(true);
+  }
+
+  // Backfill #NUM on any doc that predates the field. Runs at most once per
+  // mount and does nothing if every report already has a num. Assigns based
+  // on createdAt order (oldest = #1) so the numbering feels intuitive.
+  async function ensureSequentialNums(list: AppReport[]): Promise<AppReport[]> {
+    const missing = list.some(r => typeof r.num !== 'number');
+    if (!missing) return list;
+    const oldestFirst = [...list].sort((a, b) => a.createdAt - b.createdAt);
+    let n = 0;
+    const patched: AppReport[] = [];
+    const writes: Promise<void>[] = [];
+    for (const r of oldestFirst) {
+      if (typeof r.num === 'number') {
+        if (r.num > n) n = r.num;
+        patched.push(r);
+        continue;
+      }
+      n += 1;
+      const withNum = { ...r, num: n };
+      patched.push(withNum);
+      writes.push(firestoreRef.current.updateReport(r.id, { num: n }).catch(() => {}));
+    }
+    await Promise.allSettled(writes);
+    // Return in the original (newest-first) sort order that listReports gave us.
+    const byId = new Map(patched.map(r => [r.id, r] as const));
+    return list.map(r => byId.get(r.id) || r);
   }
 
   useEffect(() => {
     let cancelled = false;
     firestoreRef.current.listReports()
-      .then(r => { if (!cancelled) { setReports(r); setLoaded(true); } })
+      .then(async r => {
+        const withNums = await ensureSequentialNums(r);
+        if (!cancelled) { setReports(withNums); setLoaded(true); }
+      })
       .catch(() => { if (!cancelled) setLoaded(true); });
     return () => { cancelled = true; };
   }, [uid]);
@@ -255,16 +286,60 @@ function ReportRow({
   return (
     <div className="card py-0 overflow-hidden">
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-start gap-2.5 py-3 text-right">
-        <span className="text-base shrink-0 mt-0.5">{report.kind === 'bug' ? '🐞' : '✨'}</span>
+        {/* Memorable sequential #NUM — the whole point is "handle task 42"
+            works from memory (rep_1787499531519_juo2 sister-ask). Falls
+            back to the kind emoji only if a doc pre-dates the field AND
+            the backfill hasn't landed yet (should never happen after the
+            first admin panel open). */}
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (typeof report.num === 'number') {
+              navigator.clipboard.writeText(String(report.num)).catch(() => {});
+            }
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && typeof report.num === 'number') {
+              e.stopPropagation();
+              navigator.clipboard.writeText(String(report.num)).catch(() => {});
+            }
+          }}
+          title={typeof report.num === 'number' ? `העתק מזהה #${report.num}` : ''}
+          className="shrink-0 min-w-[36px] h-6 px-1.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-subtle inline-flex items-baseline justify-center gap-0.5 mt-0.5 cursor-pointer hover:border-emerald-500/40"
+          dir="ltr"
+        >
+          {typeof report.num === 'number' ? (
+            <>
+              <span className="text-[10px] text-muted-more font-bold leading-none">#</span>
+              <span className="text-[13px] font-bold font-mono leading-none tabular-nums text-main">{report.num}</span>
+            </>
+          ) : (
+            <span className="text-base leading-none">{report.kind === 'bug' ? '🐞' : '✨'}</span>
+          )}
+        </span>
         <div className="flex-1 min-w-0">
-          <div className={`text-[13px] leading-snug ${open ? '' : 'line-clamp-2'}`}>{report.text}</div>
+          <div dir="auto" className={`text-[13px] leading-snug ${open ? '' : 'line-clamp-2'}`}>{report.text}</div>
           <div className="flex items-center gap-1.5 mt-1.5">
+            <span className="text-[12px] leading-none">{report.kind === 'bug' ? '🐞' : '✨'}</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${p.tone}`}>{p.he}</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${st.cls}`}>{st.he}</span>
             <span className="text-[10px] text-muted-more">
               {new Date(report.createdAt).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}
             </span>
             {report.screenshotBase64 && <span className="text-[10px] text-muted-more">📷</span>}
+            {/* Thread marker — lets a task carrying a written answer be spotted
+                from the list without opening every row. Violet because that is
+                the AI/shell colour everywhere else in the app. */}
+            {!!report.comments?.length && (
+              <span className="text-[10px] font-semibold text-violet-600 dark:text-violet-400 inline-flex items-center gap-0.5">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.9 9.9 0 0 1-3.9-.8L3 21l1.9-4.6A8.4 8.4 0 0 1 3 11.5a8.4 8.4 0 0 1 9-8.4 8.4 8.4 0 0 1 9 8.4z" />
+                </svg>
+                {report.comments.length}
+              </span>
+            )}
           </div>
         </div>
       </button>
@@ -318,7 +393,7 @@ function ReportRow({
                 </div>
               </>
             ) : (
-              <div className="text-[13px] leading-snug whitespace-pre-wrap">{report.text}</div>
+              <BidiText text={report.text} className="text-[13px] leading-snug" />
             )}
           </div>
 
@@ -369,9 +444,29 @@ function ReportRow({
               ))}
             </div>
           </div>
-          {report.resolution && (
-            <div className="text-[11px] text-muted bg-subtle rounded-lg p-2">{report.resolution}</div>
-          )}
+          {/* The thread. Sits above מה תוקן because it is the live
+              conversation about the task, where the resolution is its epitaph. */}
+          <CommentsThread report={report} uid={uid} />
+
+          {/* Resolution: collapsed by default so Shlomi doesn't see a wall
+              of my technical explanation every time he expands a task
+              (rep_1787499531519_juo2). Tap "מה תוקן" to read it. */}
+          {report.resolution && <ResolutionCollapsible text={report.resolution} />}
+          {/* Long doc id — kept for reference, tucked in the footer as tiny
+              muted mono so it doesn't compete with #NUM. Tap to copy. */}
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={() => navigator.clipboard.writeText(report.id).catch(() => {})}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigator.clipboard.writeText(report.id).catch(() => {}); }}
+              title="העתק מזהה מלא"
+              className="text-[9px] font-mono text-muted-more hover:text-main cursor-pointer truncate"
+              dir="ltr"
+            >
+              {report.id}
+            </span>
+          </div>
           {confirmDelete ? (
             <div className="flex gap-2">
               <button onClick={() => setConfirmDelete(false)} className="btn-secondary flex-1 py-2 text-[12px]">ביטול</button>
@@ -384,6 +479,184 @@ function ReportRow({
             <button onClick={() => setConfirmDelete(true)} className="text-[11px] text-muted-more">מחק דיווח</button>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// Small collapsible block for the "what was fixed" note left by whoever
+// closed the report. Kept collapsed by default so opening a task doesn't
+// dump a wall of technical explanation on the user (rep_1787499531519_juo2).
+function ResolutionCollapsible({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between text-right text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 py-1"
+      >
+        <span className="inline-flex items-center gap-1">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          <span>מה תוקן</span>
+        </span>
+        <span className="text-muted-more">{open ? '▾' : '←'}</span>
+      </button>
+      {open && (
+        <BidiText text={text} className="text-[11px] text-muted bg-subtle rounded-lg p-2 leading-relaxed" />
+      )}
+    </div>
+  );
+}
+
+
+// ─── The thread ───────────────────────────────────────────────────
+//
+// Two-way notes on a task. Shlomi writes direction from the app; a Claude
+// session writes findings back over REST. It exists because reading a long
+// answer in a terminal over AnyDesk is genuinely hard — the phone is the
+// comfortable screen, so the answer has to arrive there.
+//
+// Shown expanded rather than behind a toggle: unlike מה תוקן, which is an
+// appendix you consult, the thread IS the reason you opened the task. Long
+// notes are clamped individually instead (see CommentBubble), so a wall of
+// text still never lands in one go.
+
+function CommentsThread({ report, uid }: { report: AppReport; uid: string }) {
+  const firestore = useFirestore(uid);
+  // Local copy so a newly sent note appears instantly. The panel's list state
+  // is only refreshed on reload(), and waiting for that to echo a message you
+  // just typed reads as the send having failed.
+  const [items, setItems] = useState<ReportComment[]>(report.comments || []);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  useEffect(() => { setItems(report.comments || []); }, [report.comments]);
+
+  const ordered = useMemo(
+    () => [...items].sort((a, b) => a.ts - b.ts),
+    [items],
+  );
+
+  async function send() {
+    if (sending || !draft.trim()) return;
+    setSending(true);
+    try {
+      const added = await firestore.addReportComment(report.id, 'shlomi', draft);
+      if (added) {
+        setItems(prev => [...prev, added]);
+        setDraft('');
+      }
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-2">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="text-violet-600 dark:text-violet-400" aria-hidden="true">
+          <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.9 9.9 0 0 1-3.9-.8L3 21l1.9-4.6A8.4 8.4 0 0 1 3 11.5a8.4 8.4 0 0 1 9-8.4 8.4 8.4 0 0 1 9 8.4z" />
+        </svg>
+        <span className="text-[10px] font-semibold text-violet-700 dark:text-violet-400">
+          תגובות{ordered.length ? ` · ${ordered.length}` : ''}
+        </span>
+      </div>
+
+      {ordered.length > 0 && (
+        <div className="space-y-2 mb-2">
+          {ordered.map(c => <CommentBubble key={c.id} comment={c} />)}
+        </div>
+      )}
+
+      <textarea
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        rows={2}
+        placeholder="כתוב ל-Claude — כיוון, שאלה או החלטה"
+        className="w-full text-[13px] rounded-lg border border-subtle bg-transparent p-2 focus:outline-none focus:ring-1 focus:ring-violet-500/50 resize-none text-right"
+        dir="rtl"
+      />
+      <button
+        onClick={() => void send()}
+        disabled={sending || !draft.trim()}
+        className={`w-full mt-1.5 py-2 rounded-xl text-[12px] font-bold ${
+          draft.trim() && !sending
+            ? 'bg-violet-600 text-white hover:bg-violet-500'
+            : 'bg-subtle text-muted'
+        }`}
+      >{sending ? 'שולח…' : 'שלח תגובה'}</button>
+    </div>
+  );
+}
+
+// One note. Claude wears the violet the app already uses for the AI and the
+// shell; Shlomi's own notes stay neutral so the two are never confused at a
+// glance.
+//
+// Anything past CLAMP characters is clipped with a "קרא הכול" — a written
+// answer can run to several screens, and the thread has to stay scannable
+// when it holds five of them.
+const CLAMP = 320;
+
+function CommentBubble({ comment }: { comment: ReportComment }) {
+  const [expanded, setExpanded] = useState(false);
+  const isClaude = comment.author === 'claude';
+  const long = comment.text.length > CLAMP;
+  const body = long && !expanded ? comment.text.slice(0, CLAMP).trimEnd() + '…' : comment.text;
+
+  return (
+    <div
+      className={`rounded-lg p-2.5 border ${
+        isClaude
+          ? 'border-violet-500/25 bg-violet-500/5 dark:bg-violet-500/10'
+          : 'border-subtle bg-subtle'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <span className={`text-[10px] font-bold ${isClaude ? 'text-violet-700 dark:text-violet-300' : 'text-muted'}`}>
+          {isClaude ? 'Claude' : 'שלומי'}
+        </span>
+        <span className="text-[9px] text-muted-more">
+          {new Date(comment.ts).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}
+          {' · '}
+          {new Date(comment.ts).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+        </span>
+      </div>
+      <BidiText text={body} className="text-[13px] leading-relaxed" />
+      {long && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className={`mt-1.5 text-[11px] font-semibold ${isClaude ? 'text-violet-600 dark:text-violet-400' : 'text-muted'}`}
+        >{expanded ? 'הצג פחות' : 'קרא הכול'}</button>
+      )}
+    </div>
+  );
+}
+
+
+// ─── Bilingual body text ──────────────────────────────────────────
+//
+// The panel lives inside dir="rtl", which is right for Hebrew and wrong for
+// everything else: an English line inherits RTL and its full stops, colons and
+// numbered prefixes jump to the wrong end of the line.
+//
+// A single dir="auto" on the whole block is not enough either — it resolves ONE
+// direction from the first strong character in the text, so a report that opens
+// in English renders its Hebrew paragraphs LTR, and vice versa.
+//
+// So: split on newlines and let each paragraph resolve its own direction. A
+// Hebrew line stays RTL, an English line goes LTR, and a mixed report reads
+// correctly throughout. Blank lines become spacers, which is what
+// whitespace-pre-wrap was doing for us before.
+export function BidiText({ text, className }: { text: string; className?: string }) {
+  const lines = text.split('\n');
+  return (
+    <div className={className}>
+      {lines.map((line, i) =>
+        line.trim() === ''
+          ? <div key={i} className="h-2.5" aria-hidden="true" />
+          : <div key={i} dir="auto" className="break-words">{line}</div>,
       )}
     </div>
   );

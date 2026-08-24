@@ -27,6 +27,12 @@ import { FoodMeals } from './components/FoodMeals';
 import { FoodSettings } from './components/FoodSettings';
 import { LogMealModal } from './components/LogMealModal';
 import type { MealDraft } from './components/AiChatPanel';
+import {
+  OPEN_ONBOARDING_CHAT_EVENT,
+  foodOnboardingThreadId,
+  trainerOnboardingThreadId,
+  type OpenOnboardingChatDetail,
+} from './components/AiChatPanel';
 import { FabFan, PlaceProvider, PlacesSheet } from './components/PlaceSwitcher';
 import { FirstRunTour, TOUR_RESTART_EVENT, hasSeenTour, type TourId } from './components/FirstRunTour';
 import { TrialExpired, TrialStrip } from './components/TrialGate';
@@ -113,7 +119,7 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   // Owner-only surfaces (admin dashboard, reports shortcut, model picker).
   // Both checks — the aliased app uid and the raw email — so that even if
   // EMAIL_TO_UID drifts, the gate keeps holding for shlomi@boostart.io only.
-  const authEmail = useAuth().email;
+  const { email: authEmail, displayName } = useAuth();
   const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
 
   // Admin-only double-click shortcut — opens the bug/feature reports panel from
@@ -226,30 +232,6 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
     return estimateBurn(allSessions.filter(s => (s.completedAt || s.date) >= start), profile.diet?.weightKg);
   }, [allSessions, profile.diet?.weightKg]);
 
-  // How the food coach introduces itself, once, on an empty thread. Written
-  // here rather than on the server because it must render instantly when the
-  // panel opens — a first-time user watching a spinner learns nothing.
-  //
-  // The tail branches on whether a target exists: with no profile the single
-  // most useful next step is setting one, and the coach can do it in the
-  // conversation via set_calorie_target.
-  const dietGreeting = useMemo(() => {
-    const hasTarget = !!(profile.diet?.dailyCalorieTarget || profile.diet?.weightKg);
-    return [
-      'היי. אני המאמן התזונתי שלך.',
-      '',
-      'שני דברים מניעים כאן הכול:',
-      '**גירעון קלורי** — לאכול קצת פחות ממה שאתה שורף. ולמשוואה יש שני צדדים, אז אימון ביום מסוים פותח לך יותר מקום באותו יום.',
-      '**לשטח את עקומת הגלוקוז** — סוכר ופחמימות ריקות מקפיצים את הסוכר בדם ואז מפילים אותו, והנפילה הזו היא מה שמייצר את הדחף לנשנש בערב. פחות מהם, ופחמימה אף פעם לא לבד — וזה נהיה הרבה יותר קל.',
-      '',
-      'פשוט תגיד לי מה אכלת, בשפה חופשית, ואני אפרק את זה לרכיבים ולקלוריות ואתן לך כרטיס לאישור.',
-      '',
-      hasTarget
-        ? 'אפשר גם לשאול מה נשאר לך להיום, או מה כדאי לאכול בערב.'
-        : 'רוצה שנתחיל מלקבוע לך יעד קלורי יומי? צריך רק משקל, גובה, גיל ורמת פעילות.',
-    ].join('\n');
-  }, [profile.diet?.dailyCalorieTarget, profile.diet?.weightKg]);
-
   async function addMealFromChat(d: MealDraft) {
     await firestore.logMeal({
       mealId: d.mealId,
@@ -280,6 +262,25 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   const tourRanThisMount = useRef(false);
   useEffect(() => { if (tour) tourRanThisMount.current = true; }, [tour]);
 
+  // Marker: the food coach's first-run "let's build a diet profile" chat is
+  // active RIGHT NOW. Blocks the food tour from firing on top of the chat and
+  // suppresses re-entries while the modal is up. Cleared once the user
+  // either finishes the chat or taps "דלג לעכשיו".
+  const [foodOnboardingActive, setFoodOnboardingActive] = useState(false);
+
+  // First arrival at תזונה gets the coach, not the tabs. This mirrors what
+  // happens on first login for אימונים (a full-screen chat) — a place with its
+  // own numbers earns its own greeting so the user knows they can just talk
+  // instead of hunting for buttons. Marked complete on close, so it fires
+  // exactly once per user. The food tour then follows on the next entry.
+  useEffect(() => {
+    if (place !== 'food' || !isTabPage) return;
+    if (foodOnboardingActive || foodChatOpen) return;
+    if (profile.diet?.foodOnboardingCompletedAt) return;
+    setFoodOnboardingActive(true);
+    setFoodChatOpen(true);
+  }, [place, isTabPage, profile.diet?.foodOnboardingCompletedAt, foodOnboardingActive, foodChatOpen]);
+
   // Entering תזונה for the first time. Deliberately checked on every route
   // change rather than once on mount, because the user arrives here later —
   // days after the shell tour — via the place switcher or a quick action.
@@ -287,8 +288,12 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
     if (place !== 'food' || !isTabPage) return;
     if (tour !== null || tourRanThisMount.current) return;
     if (hasSeenTour(uid, 'food')) return;
+    // The greeting-chat OWNS the first visit. Only after it closes does the
+    // food tour get its turn — otherwise the user meets an overlay AND a coach
+    // window at the same time and neither reads cleanly.
+    if (foodOnboardingActive || (place === 'food' && !profile.diet?.foodOnboardingCompletedAt)) return;
     setTour('food');
-  }, [place, isTabPage, uid, tour]);
+  }, [place, isTabPage, uid, tour, foodOnboardingActive, profile.diet?.foodOnboardingCompletedAt]);
 
   // Replayed from Settings. The shell tour's targets live on Home, so go there
   // first; a place tour is replayed wherever its own place is.
@@ -445,6 +450,30 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
 
   // AI trainer panel — opened from the TopBar action on any tab page.
   const { open: aiPanelOpen, openPanel: openAiPanel, closePanel: closeAiPanel } = useAiTrainerPanel();
+
+  // When the panel is opened via the "שיחת היכרות" shortcut (Settings), we pin
+  // it to the canonical onboarding thread instead of the usual "latest today"
+  // pick. Cleared on close so a subsequent normal open goes back to default.
+  const [aiPanelFixedThread, setAiPanelFixedThread] = useState<string | null>(null);
+  const [foodChatFixedThread, setFoodChatFixedThread] = useState<string | null>(null);
+  useEffect(() => {
+    function onOpen(e: Event) {
+      const detail = (e as CustomEvent<OpenOnboardingChatDetail>).detail;
+      const bucket = detail?.bucket;
+      if (bucket === 'dietary') {
+        setFoodChatFixedThread(foodOnboardingThreadId(uid));
+        setFoodChatOpen(true);
+        // Land the user on a food tab so context (todayMeals, dietProfile) is
+        // fetched — the fetch effect is gated on `place === 'food'`.
+        if (place !== 'food') navigate({ page: 'food-today' });
+      } else {
+        setAiPanelFixedThread(trainerOnboardingThreadId(uid));
+        openAiPanel();
+      }
+    }
+    window.addEventListener(OPEN_ONBOARDING_CHAT_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_ONBOARDING_CHAT_EVENT, onOpen);
+  }, [uid, openAiPanel, place]);
 
   // "The coach answered" — fires when a reply lands with the panel closed.
   // Session-level chats (FreeSession.chatOpen) register into a shared signal
@@ -621,18 +650,61 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
         <AiChatPanel
           uid={uid}
           mode="dietary"
-          /* First words of the first dietary conversation. Renders only while
-             the thread is empty (the panel drops it the moment a real message
-             exists), so it introduces the place once and never again. It states
-             the two ideas the whole place is built on — deficit, and flattening
-             the glucose curve to control cravings — because a coach that opens
-             with "מה אכלת?" reads like a form. */
-          initialAssistantMessage={dietGreeting}
+          /* When the panel is opened for the first-run greeting OR from the
+             Settings "שיחת היכרות" shortcut, pin it to the canonical thread
+             so it becomes a persistent pinned entry in history — the user
+             can always come back to the same conversation. */
+          fixedThreadId={(foodOnboardingActive || foodChatFixedThread) ? foodOnboardingThreadId(uid) : undefined}
+          /* First-run only: a fixed greeting bubble and a low-key "דלג לעכשיו"
+             chip beneath it — same shape as the trainer's OnboardingScreen.
+             Once the user closes or skips the panel we mark it complete and
+             the coach opens blank on every future visit. */
+          initialAssistantMessage={foodOnboardingActive ? (
+            displayName
+              ? `היי ${displayName.split(' ')[0]}! ברוך/ה הבא/ה למאמן התזונה 🥗\n\nאני כאן כדי לעזור לך לתכנן ולעקוב אחרי מה שאתה אוכל — פשוט תגיד לי בשפה חופשית ואני אפרק את זה לרכיבים ולקלוריות.\n\nנתחיל מלבנות לך פרופיל קצר כדי שאדע לחשב לך יעד קלורי מדויק — משקל, גובה, גיל, רמת פעילות ומטרה. אפשר גם לדלג ולחזור לזה מתי שבא לך.`
+              : `היי, ברוך/ה הבא/ה למאמן התזונה 🥗\n\nאני כאן כדי לעזור לך לתכנן ולעקוב אחרי מה שאתה אוכל — פשוט תגיד לי בשפה חופשית ואני אפרק את זה לרכיבים ולקלוריות.\n\nנתחיל מלבנות לך פרופיל קצר כדי שאדע לחשב לך יעד קלורי מדויק — משקל, גובה, גיל, רמת פעילות ומטרה. אפשר גם לדלג ולחזור לזה מתי שבא לך.`
+          ) : undefined}
+          earlySkipCta={foodOnboardingActive ? {
+            label: 'דלג לעכשיו',
+            onClick: () => {
+              // Optimistic: patch local profile FIRST so the auto-open effect
+              // (which watches profile.diet.foodOnboardingCompletedAt) can't
+              // fire while the network round-trip is pending and reopen the
+              // panel we just closed. Persist in the background.
+              const stamp = Date.now();
+              setProfile(p => ({ ...p, diet: { ...(p.diet || {}), foodOnboardingCompletedAt: stamp } }));
+              setFoodOnboardingActive(false);
+              setFoodChatFixedThread(null);
+              markAllSeen();
+              setFoodChatOpen(false);
+              firestore.updateDietProfile({ foodOnboardingCompletedAt: stamp } as any)
+                .then(setProfile)
+                .catch(err => console.warn('food onboarding skip persist failed', err));
+            },
+          } : undefined}
           personalMeals={personalMeals}
           todayMeals={todayMeals}
           dietProfile={profile.diet}
           todayBurn={todayBurn}
           onAddMeal={addMealFromChat}
+          /* Correcting a meal edits the TEMPLATE, so every future log of it is
+             right too — that is the whole point of the action. Past logs keep
+             the numbers they were recorded with; rewriting history would make
+             yesterday's balance change under the user. */
+          onUpdateMeal={async (a) => {
+            const existing = personalMeals.find(m => m.id === a.mealId);
+            await firestore.upsertPersonalMeal({
+              ...(existing || { id: a.mealId, createdAt: Date.now() } as any),
+              id: a.mealId,
+              he: a.he,
+              calories: a.calories,
+              ingredients: a.ingredients,
+              macros: a.macros,
+              flags: a.flags,
+              updatedAt: Date.now(),
+            });
+            setMealRefresh(k => k + 1);
+          }}
           onDietProfilePatch={async (patch) => {
             const merged = await firestore.updateDietProfile(patch as any);
             setProfile(merged);
@@ -648,7 +720,32 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
             setMealRefresh(k => k + 1);
           }}
           onEditMeal={(d) => { setMealDraft(d); setFoodChatOpen(false); setShowLogMeal(true); }}
-          onClose={() => { markAllSeen(); setFoodChatOpen(false); }}
+          onClose={() => {
+            // Optimistic close. Previously this awaited a Firestore write
+            // BEFORE flipping foodChatOpen, so the auto-open effect (guarded
+            // on profile.diet.foodOnboardingCompletedAt) would re-fire during
+            // the round-trip and reopen the panel we just closed — the "X
+            // needed to be pressed twice" bug. Now we patch local profile +
+            // close synchronously, then persist in the background.
+            //
+            // ANY first close of the food coach counts as "you've been here"
+            // — even when the panel was opened via the Settings shortcut
+            // rather than the first-run flow. Otherwise a user who used the
+            // shortcut before hitting a food tab would still be ambushed by
+            // the first-run greeting on their next food visit.
+            const alreadyMarked = !!profile.diet?.foodOnboardingCompletedAt;
+            if (!alreadyMarked) {
+              const stamp = Date.now();
+              setProfile(p => ({ ...p, diet: { ...(p.diet || {}), foodOnboardingCompletedAt: stamp } }));
+              firestore.updateDietProfile({ foodOnboardingCompletedAt: stamp } as any)
+                .then(setProfile)
+                .catch(err => console.warn('food onboarding close persist failed', err));
+            }
+            setFoodOnboardingActive(false);
+            setFoodChatFixedThread(null);
+            markAllSeen();
+            setFoodChatOpen(false);
+          }}
         />
       )}
 
@@ -667,12 +764,16 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
         <AiChatPanel
           uid={uid}
           mode="trainer"
+          // Settings "שיחת היכרות" shortcut pins the panel to the canonical
+          // onboarding thread. Cleared on close so the next normal open goes
+          // back to the default "latest today" behavior.
+          fixedThreadId={aiPanelFixedThread || undefined}
           // Feed the trainer everything it needs to answer both "מה עשיתי השבוע?"
           // and "מה מתוכנן לי" questions. Sessions in allSessions are sorted
           // newest-first — take past 30 for history + all planned for schedule.
           recentSets={allSessions.slice(0, 30).flatMap(s => s.sets || [])}
           plannedSessions={allSessions.filter(s => s.status === 'planned')}
-          onClose={() => { markAllSeen(); closeAiPanel(); }}
+          onClose={() => { setAiPanelFixedThread(null); markAllSeen(); closeAiPanel(); }}
         />
       )}
 

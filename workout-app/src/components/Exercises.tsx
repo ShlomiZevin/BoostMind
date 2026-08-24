@@ -295,15 +295,21 @@ export function Exercises({ uid, navigate }: Props) {
           <section key={parent} className="mb-4" dir="rtl">
             <div
               className="sticky z-20 -mx-4 px-4 py-2.5 mb-2 backdrop-blur bg-gradient-to-b from-white/95 to-white/80 dark:from-slate-950/95 dark:to-slate-950/85 border-b border-subtle"
-              // Stacks directly under the sticky action bar (~108px with
-              // search row + buttons) so the CURRENT muscle group header is
-              // always the one at the top of the viewport as the user
-              // scrolls between groups.
-              style={{ top: 'calc(var(--top-bar-h) + 108px)' }}
+              // Stacks flush against the sticky action bar. Its actual DOM
+              // height is py-2 (16px) + button row 40px + gap-2 8px + input
+              // row 36px + 1px border-b = 101px; the earlier 108 left an
+              // 8px band where page-bg leaked through between the two
+              // sticky rows (screenshot bug).
+              style={{ top: 'calc(var(--top-bar-h) + 101px)' }}
             >
               <div className="max-w-lg mx-auto flex items-baseline justify-between">
-                <h2 className="inline-flex items-center gap-2 text-base font-bold">
+                <h2 className="inline-flex items-baseline gap-2 text-base font-bold">
                   <span className={parentClasses.text}>{info.he}</span>
+                  {/* English label alongside Hebrew — mirrors how exercise
+                      cards show he + tiny en (rep_1787490075725_h9at). Same
+                      taxonomy source, so keys stay 'chest' / 'back' in
+                      history docs; only the label changes. */}
+                  <span className="text-[10px] text-muted-more font-medium tracking-wide" dir="ltr">{info.en}</span>
                   <span className={`w-1 h-4 rounded-full ${parentClasses.bar}`} />
                 </h2>
                 <span className="text-[10px] text-muted-most uppercase tracking-widest font-semibold">
@@ -336,7 +342,10 @@ export function Exercises({ uid, navigate }: Props) {
                       <div className="flex-1 text-right min-w-0">
                         <div className="flex items-center gap-2 justify-start flex-wrap">
                           <span className={`text-sm truncate ${ex.isAnchor ? 'font-bold' : 'font-semibold'}`}>{ex.he}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${c.bg} ${c.text}`}>{m.he}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 inline-flex items-baseline gap-1 ${c.bg} ${c.text}`}>
+                            <span>{m.he}</span>
+                            <span className="text-[9px] opacity-60" dir="ltr">{m.en}</span>
+                          </span>
                           {ex.isAnchor && <AnchorBadge size="xs" />}
                         </div>
                         {ex.en && (

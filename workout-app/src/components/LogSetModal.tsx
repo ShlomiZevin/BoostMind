@@ -521,9 +521,13 @@ export function LogSetModal({
                 const parentCls = MUSCLE_CLASSES[info.color];
                 return (
                   <div key={parent}>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className={`w-1.5 h-3 rounded-full ${parentCls?.bar || 'bg-slate-400'}`} />
+                    <div className="flex items-baseline gap-2 mb-1.5">
+                      <span className={`w-1.5 h-3 rounded-full self-center ${parentCls?.bar || 'bg-slate-400'}`} />
                       <span className={`text-[10px] uppercase tracking-widest font-bold ${parentCls?.text || 'text-muted'}`}>{info.he}</span>
+                      {/* English label paired with the Hebrew — same
+                          treatment as the muscle-group headers in Exercises
+                          (rep_1787490075725_h9at). */}
+                      <span className="text-[9px] text-muted-more font-medium tracking-wide" dir="ltr">{info.en}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-1.5">
                       {rows.map(m => (

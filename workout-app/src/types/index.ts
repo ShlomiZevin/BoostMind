@@ -248,6 +248,10 @@ export type DietProfile = {
   avoidSugar?: boolean;
   avoidEmptyCarbs?: boolean;
   constraints?: string;          // free text, read verbatim by the coach
+  // Set once the food coach greeted the user and offered the "let's build a
+  // profile" first-run flow. Present ⇒ never auto-open the food-onboarding
+  // chat again. Same shape as onboardingCompletedAt on UserProfile.
+  foodOnboardingCompletedAt?: number;
 };
 
 // ─── Bug / feature reports ─────────────────────────────────────────
@@ -260,8 +264,25 @@ export type ReportKind = 'bug' | 'feature';
 export type ReportPlaceTag = 'exercise' | 'food' | 'general';
 export type ReportStatus = 'open' | 'in-progress' | 'done' | 'wont-do';
 
+/** One message on a report's thread. Two authors only: Shlomi writing from
+ *  the app, and a Claude session writing back. Stored as an array on the
+ *  report doc rather than a subcollection — a thread is a handful of notes,
+ *  always read together with the report, and this way a session can append
+ *  one over plain REST without a second round trip. */
+export type ReportComment = {
+  id: string;
+  ts: number;
+  author: 'shlomi' | 'claude';
+  text: string;
+};
+
 export type AppReport = {
   id: string;
+  /** Human-friendly sequential number ("#42") shown on the row so Shlomi
+   *  can say "handle task 42" from memory. Allocated on create as
+   *  max(existing) + 1. Optional in the type — older docs before this
+   *  landed do not have one; the panel backfills on first load. */
+  num?: number;
   kind: ReportKind;
   place: ReportPlaceTag;
   text: string;
@@ -271,6 +292,8 @@ export type AppReport = {
   updatedAt: number;
   /** Free-text left by whoever handled it. */
   resolution?: string;
+  /** The thread. Oldest first. Absent on reports that predate it. */
+  comments?: ReportComment[];
 };
 
 // Chat persistence — moved from localStorage → Firestore so answers survive

@@ -69,6 +69,11 @@ type Props = {
   todayBurn?: number;
   /** Approve a meal card → log it. */
   onAddMeal?: (m: MealDraft) => Promise<void> | void;
+  /** Correct an existing meal template in the user's library. */
+  onUpdateMeal?: (a: {
+    mealId: string; he: string; calories: number;
+    ingredients?: MealIngredient[]; macros?: MealMacros; flags?: MealFlags;
+  }) => Promise<void> | void;
   /** Open the meal card in the manual editor instead of logging it as-is. */
   onEditMeal?: (m: MealDraft) => void;
   /** The coach learned a profile fact (weight, goal, activity…) — persist it. */
@@ -80,36 +85,35 @@ type Props = {
   onClose: () => void;
 };
 
-/** What a meal card hands back when you approve or edit it. */
+// ─── שיחת היכרות — dedicated persistent thread IDs ───────────────
+// Each coach owns exactly ONE onboarding thread per user, keyed by a stable
+// prefix so it can survive the "today only" history filter and be pinned in
+// the dropdown. Also lets Settings open the same thread by name.
+export function trainerOnboardingThreadId(uid: string): string {
+  return `onboarding_${uid}`;
+}
+export function foodOnboardingThreadId(uid: string): string {
+  return `food_onboarding_${uid}`;
+}
+export function isOnboardingThreadId(id: string): boolean {
+  return id.startsWith('food_onboarding_') || id.startsWith('onboarding_');
+}
+export function onboardingTitleFor(id: string): string | null {
+  if (id.startsWith('food_onboarding_')) return 'שיחת היכרות — תזונה';
+  if (id.startsWith('onboarding_')) return 'שיחת היכרות — אימון';
+  return null;
+}
 
-// Opening prompts, shown as tappable chips above the composer while a thread is
-// empty. They replace a block of grey example text that used to sit behind the
-// conversation: it repeated what the greeting already said, could not be tapped,
-// and read as a placeholder rather than something you could use.
-const STARTERS: Record<string, string[]> = {
-  dietary: [
-    'אכלתי שקשוקה עם 2 פיתות',
-    'מה נשאר לי היום?',
-    'בא לי משהו מתוק',
-    'ארוחת ערב של 400 קלוריות',
-  ],
-  trainer: [
-    'מה כדאי לי לאמן היום?',
-    'כמה סטים לשבוע לכל שריר?',
-    'אני חסום בסקוואט',
-    'תוכנית ל-3 ימים',
-  ],
-  session: [
-    'תן לי תרגיל שלא עשיתי החודש',
-    'מה עשיתי בפעם הקודמת?',
-    'תרגיל לחזה עליון',
-  ],
-  naming: [
-    'תסקור את כל השמות',
-    'יש שמות כפולים?',
-    'חסרים לי שמות באנגלית?',
-  ],
-};
+// Custom event the Settings screen dispatches to hand the AppShell an
+// instruction: open the AI panel for the right coach, on the pinned
+// onboarding thread. Session-only signal — no persistence.
+export const OPEN_ONBOARDING_CHAT_EVENT = 'onboarding-chat:open';
+export type OpenOnboardingChatDetail = { bucket: 'coach' | 'dietary' };
+export function openOnboardingChat(bucket: 'coach' | 'dietary'): void {
+  window.dispatchEvent(new CustomEvent(OPEN_ONBOARDING_CHAT_EVENT, { detail: { bucket } } as any));
+}
+
+/** What a meal card hands back when you approve or edit it. */
 
 export type MealDraft = {
   /** Set when the draft came from a chat card, so saving via the manual editor
@@ -206,7 +210,20 @@ type ActionSetCalorieTarget = {
   reason?: string;
 };
 
-type ChatAction = ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal | ActionUpdateDietProfile | ActionSetCalorieTarget;
+type ActionUpdateMeal = {
+  type: 'update_meal';
+  /** Must be a real id from the user's library — this edits an existing row. */
+  mealId: string;
+  he: string;
+  calories: number;
+  ingredients?: MealIngredient[];
+  macros?: MealMacros;
+  flags?: MealFlags;
+  /** One line: what changed and why. */
+  reason?: string;
+};
+
+type ChatAction = ActionUpdateMeal | ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal | ActionUpdateDietProfile | ActionSetCalorieTarget;
 
 // Very small markdown renderer for chat bubbles. Handles the shapes the coach
 // actually emits: **bold**, *italic*, `code`, `- ` / `* ` bullets, `1. ` numbered
@@ -647,7 +664,7 @@ async function migrateLocalStorageToFirestore(
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onEditMeal, onDietProfilePatch, onSetCalorieTarget, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onUpdateMeal, onEditMeal, onDietProfilePatch, onSetCalorieTarget, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
 }: Props) {
   const bucket = bucketOf(mode);
   const firestore = useFirestore(uid);
@@ -762,19 +779,51 @@ export function AiChatPanel({
 
   // Only surface today's threads in the UI — older conversations still exist in
   // Firestore (nothing is deleted) but the history menu resets each morning so
-  // it doesn't grow unbounded.
+  // it doesn't grow unbounded. The onboarding thread is the ONE exception:
+  // it stays pinned in the dropdown forever, because it's a reference — a
+  // place to revisit how the coach knows you, update your profile, or read
+  // back the intro. rep_1787525160501_07tq.
   const startOfToday = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d.getTime();
   }, [threadsLoaded]);
+  // Which onboarding thread belongs to THIS coach (bucket). Naming mode has no
+  // onboarding conversation of its own, so null there.
+  const canonicalOnboardingId = useMemo(() => {
+    if (bucket === 'dietary') return foodOnboardingThreadId(uid);
+    if (bucket === 'coach') return trainerOnboardingThreadId(uid);
+    return null;
+  }, [bucket, uid]);
+  const pinnedThreads = useMemo(() => {
+    const persisted = threads.filter(t => isOnboardingThreadId(t.id));
+    if (!canonicalOnboardingId) return persisted;
+    // Ensure the canonical שיחת היכרות is discoverable even when it hasn't been
+    // persisted yet — e.g. the user skipped without ever typing, so no Firestore
+    // doc exists. A "virtual" entry lets them tap in later; on their first real
+    // message the doc is created lazily and the virtual entry seamlessly turns
+    // into a real one on the next render.
+    if (persisted.some(t => t.id === canonicalOnboardingId)) return persisted;
+    const virtualTitle = onboardingTitleFor(canonicalOnboardingId) || 'שיחת היכרות';
+    return [
+      { id: canonicalOnboardingId, title: virtualTitle, ts: 0, updatedAt: 0 } as Thread,
+      ...persisted,
+    ];
+  }, [threads, canonicalOnboardingId]);
   const todayThreads = useMemo(
     // Defensive: fall back to updatedAt if ts is missing. Threads written by
     // the server prior to the updateMask fix may have lost their `ts` field,
     // and we still want them to surface today so no history goes dark.
-    () => threads.filter(t => Math.max(t.ts || 0, t.updatedAt || 0) >= startOfToday),
+    // Onboarding threads are pinned above; exclude them here so they don't
+    // render twice in the dropdown.
+    () => threads.filter(t =>
+      !isOnboardingThreadId(t.id) &&
+      Math.max(t.ts || 0, t.updatedAt || 0) >= startOfToday
+    ),
     [threads, startOfToday],
   );
+  // Header count = anything the user can actually see in the dropdown.
+  const historyCount = todayThreads.length + pinnedThreads.length;
 
   // ─── Pick / create the active thread once threads have loaded ───
   //   The thread DOC is created lazily — on the first user message (sendWith)
@@ -832,6 +881,26 @@ export function AiChatPanel({
       firestore.getUserProfile().then(setUserProfile).catch(() => setUserProfile({}));
     }
   }, [uid, mode]);
+
+  // Fallback greeting for an empty שיחת היכרות — the user could arrive here
+  // via the pinned dropdown or the Settings shortcut after skipping the
+  // full-screen onboarding without typing (in which case no doc was ever
+  // written, so there is literally no history to show). This gives them a
+  // friendly seed so the empty state has meaning. Never overrides a caller-
+  // supplied `initialAssistantMessage` — OnboardingScreen and the food coach's
+  // first-run still own their own copy.
+  const fallbackOnboardingGreeting = useMemo(() => {
+    if (initialAssistantMessage) return null;
+    if (!isOnboardingThreadId(activeId)) return null;
+    if (bucket === 'dietary') {
+      return 'היי! זה המקום להכיר את מאמן התזונה שלך 🥗\n\nספר לי בשפה חופשית — משקל, גובה, גיל, רמת פעילות ומטרה — ואבנה לך יעד קלורי מדויק.\n\nאפשר גם פשוט להתחיל: תגיד לי מה אכלת ואני אפרק את זה לרכיבים ולקלוריות.';
+    }
+    return 'היי! זה המקום להכיר את המאמן שלך ✨\n\nספר לי קצת על עצמך — רמה, מטרה, כמה ימים בשבוע, ואיזה שרירים אתה רוצה להדגיש. או פשוט תשאל אותי משהו על אימונים.';
+  }, [initialAssistantMessage, activeId, bucket]);
+
+  // The greeting bubble the panel actually shows / persists. Prefer the
+  // caller's copy when there is one, else the fallback above.
+  const effectiveGreeting = initialAssistantMessage || fallbackOnboardingGreeting || undefined;
 
   // Live subscribe to weekly targets in trainer mode. Two payoffs:
   //   1. Server prompt on next turn always sees the freshest goals.
@@ -974,9 +1043,9 @@ export function AiChatPanel({
     //    reflects what the conversation is actually about.
     try {
       const isFirstMessage = messages.length === 0;
-      if (isFirstMessage && initialAssistantMessage) {
+      if (isFirstMessage && effectiveGreeting) {
         await firestoreRef.current.addChatMessage(activeId, {
-          role: 'assistant', content: initialAssistantMessage, ts: now - 1,
+          role: 'assistant', content: effectiveGreeting, ts: now - 1,
         });
       }
       await firestoreRef.current.addChatMessage(activeId, {
@@ -984,9 +1053,17 @@ export function AiChatPanel({
       });
       const activeMeta = threads.find(t => t.id === activeId);
       const isFirstUserMsg = !messages.some(m => m.role === 'user');
+      // Onboarding threads carry a fixed, canonical name so they read the same
+      // way from the header, the pinned dropdown, and the Settings shortcut —
+      // regardless of what the user's first message happens to say.
+      const onboardingTitle = onboardingTitleFor(activeId);
+      const nextTitle = onboardingTitle
+        || (isFirstUserMsg
+          ? computeThreadTitle([userMsg], activeMeta?.ts ?? now)
+          : (activeMeta?.title || `שיחה · ${fmtHour(now)}`));
       await firestoreRef.current.upsertChatThread(activeId, {
         id: activeId,
-        title: isFirstUserMsg ? computeThreadTitle([userMsg], activeMeta?.ts ?? now) : (activeMeta?.title || `שיחה · ${fmtHour(now)}`),
+        title: nextTitle,
         ts: activeMeta?.ts ?? now,
         updatedAt: now,
         bucket,
@@ -1282,6 +1359,7 @@ export function AiChatPanel({
     if (a.type === 'update_profile') return `u:${mi}:${ci}`;
     if (a.type === 'set_weekly_targets') return `w:${mi}:${ci}`;
     if (a.type === 'suggest_meal') return `m:${mi}:${ci}:${a.he}`;
+    if (a.type === 'update_meal') return `um:${mi}:${ci}:${a.mealId}`;
     if (a.type === 'update_diet_profile') return `dp:${mi}:${ci}`;
     if (a.type === 'set_calorie_target') return `ct:${mi}:${ci}:${a.target}`;
     return `b:${mi}:${ci}`; // ready_to_build
@@ -1377,10 +1455,25 @@ export function AiChatPanel({
               <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
             </svg>
           </span>
-          <div className="text-right">
-            <h2 className="font-bold text-base leading-tight">
-              {mode === 'naming' ? 'מאמן שמות' : mode === 'dietary' ? 'מאמן תזונה' : 'מאמן AI'}
+          <div className="text-right min-w-0">
+            <h2 className="font-bold text-base leading-tight truncate">
+              {mode === 'naming' ? 'מאמן שמות' : mode === 'dietary' ? 'מאמן תזונה' : 'מאמן כושר'}
             </h2>
+            {/* The "שיחת היכרות" identity chip sits BELOW the title on its own
+                line — same slot the replaceContext hint uses. Keeps the top row
+                for actions only so the header doesn't get cramped on narrow
+                screens (rep_1787525160501_07tq follow-up). */}
+            {isOnboardingThreadId(activeId) && (
+              <div
+                className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300 leading-tight mt-0.5"
+                title="שיחת ההיכרות הקבועה שלך עם המאמן — פתוחה מכל מקום, נשמרת לתמיד."
+              >
+                <svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                </svg>
+                <span>שיחת היכרות</span>
+              </div>
+            )}
             {replaceContext && (
               <div className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
                 מחליף את "{replaceContext.name}"
@@ -1390,7 +1483,7 @@ export function AiChatPanel({
         </div>
         {/* Left (RTL end): actions */}
         <div className="flex items-center gap-2">
-          {todayThreads.length > 0 && (
+          {historyCount > 0 && (
             <button
               onClick={() => setThreadsMenuOpen(v => !v)}
               aria-label="שיחות"
@@ -1401,28 +1494,31 @@ export function AiChatPanel({
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               <span className="absolute -top-0.5 -right-0.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center">
-                {todayThreads.length}
+                {historyCount}
               </span>
             </button>
           )}
-          {messages.length > 0 && (
-            <button
-              onClick={startNewConversation}
-              className="inline-flex items-center gap-1.5 text-[12px] font-semibold
-                         px-3 py-2 rounded-full
-                         dark:bg-slate-800 bg-slate-100
-                         dark:text-slate-200 text-slate-700
-                         dark:hover:bg-slate-700 hover:bg-slate-200
-                         transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-              aria-label="שיחה חדשה"
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20v-8m0 0V4m0 8H4m8 0h8" />
-              </svg>
-              <span>חדש</span>
-            </button>
-          )}
+          {/* Always available. Previously gated on messages.length > 0, which
+              meant a user parked on an empty שיחת היכרות had no way to open
+              a fresh conversation without leaving the panel. Creating a new
+              thread is a lazy op (no doc until the first send), so offering
+              it from an empty thread costs nothing. */}
+          <button
+            onClick={startNewConversation}
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold
+                       px-3 py-2 rounded-full
+                       dark:bg-slate-800 bg-slate-100
+                       dark:text-slate-200 text-slate-700
+                       dark:hover:bg-slate-700 hover:bg-slate-200
+                       transition-colors"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+            aria-label="שיחה חדשה"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20v-8m0 0V4m0 8H4m8 0h8" />
+            </svg>
+            <span>חדש</span>
+          </button>
           <button
             onClick={onClose}
             aria-label="סגור"
@@ -1446,49 +1542,130 @@ export function AiChatPanel({
         <div className="absolute inset-x-0 top-[64px] z-20 mx-3">
           <div className="card !p-2 shadow-lg dark:!bg-slate-900 !bg-white" dir="rtl">
             <div className="flex items-center justify-between px-2 pb-2 mb-1 border-b border-subtle">
-              <span className="text-[10px] uppercase tracking-wider text-muted">שיחות היום</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted">שיחות</span>
               <button
                 onClick={() => setThreadsMenuOpen(false)}
                 className="text-[11px] text-muted hover:text-main"
               >סגור</button>
             </div>
-            <div className="space-y-1 max-h-72 overflow-y-auto">
-              {todayThreads.map(t => {
-                const isActive = t.id === activeId;
-                // Prefer the thread's start ts; fall back to updatedAt for
-                // legacy threads whose metadata got clobbered by an older
-                // server write (fixed since — see fsPatch merge flag).
-                const anchorTs = t.ts || t.updatedAt || Date.now();
-                const ageLabel = fmtHour(anchorTs);
-                const title = t.title || `שיחה · ${fmtHour(anchorTs)}`;
-                return (
-                  <div
-                    key={t.id}
-                    className={`flex items-center gap-2 rounded-lg px-2 py-2 ${
-                      isActive ? 'dark:bg-emerald-950/40 bg-emerald-50 border border-emerald-500/30' : 'hover:bg-slate-500/5'
-                    }`}
-                  >
-                    <button
-                      onClick={() => switchToThread(t.id)}
-                      className="flex-1 text-right min-w-0"
-                    >
-                      <div className="text-sm font-medium truncate">{title}</div>
-                      <div className="text-[10px] text-muted mt-0.5">{ageLabel}</div>
-                    </button>
-                    <button
-                      onClick={() => deleteThread(t.id)}
-                      aria-label="מחק שיחה"
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-500/10 shrink-0"
-                    >
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
-                      </svg>
-                    </button>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {/* Pinned — the שיחת היכרות. Always visible regardless of date;
+                  never deletable; renders with an amber sparkle so it reads as
+                  a reference thread, not just another chat. */}
+              {pinnedThreads.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-1.5 px-2 pt-1 pb-1.5">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" className="text-amber-500" aria-hidden="true">
+                      <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                    </svg>
+                    <span className="text-[10px] uppercase tracking-wider text-muted">מוצמד</span>
                   </div>
-                );
-              })}
-              {todayThreads.length === 0 && (
-                <div className="text-center text-xs text-muted-most py-6">אין שיחות היום</div>
+                  <div className="space-y-1">
+                    {pinnedThreads.map(t => {
+                      const isActive = t.id === activeId;
+                      const title = onboardingTitleFor(t.id) || t.title || 'שיחת היכרות';
+                      // A pinned entry with ts===0 came from the "virtual"
+                      // fallback — the underlying Firestore doc doesn't exist
+                      // yet (user hasn't sent a message). Say so subtly so a
+                      // click doesn't feel like it lost history.
+                      const isVirtual = !t.ts && !t.updatedAt;
+                      const subtitle = isVirtual
+                        ? 'טרם התחלת · לחצו כדי להיכנס ולהכיר את המאמן'
+                        : 'המקום להכיר את המאמן ולעדכן פרופיל';
+                      return (
+                        <div
+                          key={t.id}
+                          className={`flex items-center gap-2 rounded-lg px-2 py-2 ${
+                            isActive
+                              ? 'dark:bg-emerald-950/40 bg-emerald-50 border border-emerald-500/30'
+                              : 'border border-amber-500/25 dark:bg-amber-950/15 bg-amber-50/60 hover:bg-amber-500/10'
+                          }`}
+                        >
+                          <button
+                            onClick={() => switchToThread(t.id)}
+                            className="flex-1 flex items-center gap-2 min-w-0 text-right"
+                          >
+                            <span className="text-amber-500 shrink-0" aria-hidden="true">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+                              </svg>
+                            </span>
+                            <div className="flex-1 min-w-0 text-right">
+                              <div className="text-sm font-semibold truncate">{title}</div>
+                              <div className="text-[10px] text-muted mt-0.5">{subtitle}</div>
+                            </div>
+                          </button>
+                          {/* Delete on pinned entries is behind a confirm. Virtual
+                              entries (no persisted doc yet) can't be deleted. */}
+                          {!isVirtual && (
+                            <button
+                              onClick={() => {
+                                if (!confirm('למחוק את שיחת ההיכרות? ההיסטוריה שלה תמחק לגמרי. שיחה חדשה עם המאמן תיצור אותה מחדש.')) return;
+                                void deleteThread(t.id);
+                              }}
+                              aria-label="מחק שיחת היכרות"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-red-500/80 hover:bg-red-500/10 shrink-0"
+                              title="מחק שיחת היכרות"
+                            >
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Today's regular threads */}
+              {todayThreads.length > 0 && (
+                <div>
+                  <div className="px-2 pt-1 pb-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-muted">שיחות היום</span>
+                  </div>
+                  <div className="space-y-1">
+                    {todayThreads.map(t => {
+                      const isActive = t.id === activeId;
+                      // Prefer the thread's start ts; fall back to updatedAt for
+                      // legacy threads whose metadata got clobbered by an older
+                      // server write (fixed since — see fsPatch merge flag).
+                      const anchorTs = t.ts || t.updatedAt || Date.now();
+                      const ageLabel = fmtHour(anchorTs);
+                      const title = t.title || `שיחה · ${fmtHour(anchorTs)}`;
+                      return (
+                        <div
+                          key={t.id}
+                          className={`flex items-center gap-2 rounded-lg px-2 py-2 ${
+                            isActive ? 'dark:bg-emerald-950/40 bg-emerald-50 border border-emerald-500/30' : 'hover:bg-slate-500/5'
+                          }`}
+                        >
+                          <button
+                            onClick={() => switchToThread(t.id)}
+                            className="flex-1 text-right min-w-0"
+                          >
+                            <div className="text-sm font-medium truncate">{title}</div>
+                            <div className="text-[10px] text-muted mt-0.5">{ageLabel}</div>
+                          </button>
+                          <button
+                            onClick={() => deleteThread(t.id)}
+                            aria-label="מחק שיחה"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-500/10 shrink-0"
+                          >
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                            </svg>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {historyCount === 0 && (
+                <div className="text-center text-xs text-muted-most py-6">אין שיחות</div>
               )}
             </div>
           </div>
@@ -1501,12 +1678,18 @@ export function AiChatPanel({
           // the caller supplied one (naming AI, replace-context prompts, etc.).
           // The bubble looks identical to a real message but isn't in Firestore,
           // so closing without replying leaves no ghost thread behind.
-          const showLocalGreeting = messagesLoaded && messages.length === 0 && !!initialAssistantMessage;
+          const showLocalGreeting = messagesLoaded && messages.length === 0 && !!effectiveGreeting;
           const displayMessages: Msg[] = showLocalGreeting
-            ? [{ role: 'assistant', content: initialAssistantMessage!, ts: Date.now() } as Msg, ...messages]
+            ? [{ role: 'assistant', content: effectiveGreeting!, ts: Date.now() } as Msg, ...messages]
             : messages;
-          return displayMessages;
-        })().map((m, i) => {
+          // Anchor "is this the last message?" checks against displayMessages —
+          // otherwise, when the only message is the local greeting (messages.length===0),
+          // `messages.length - 1` is -1 and nothing that keys off "last message"
+          // renders (dropped the earlySkip chip under the food-coach greeting —
+          // rep_1787523595793_76ab).
+          const lastIdx = displayMessages.length - 1;
+          return displayMessages.map((m, i) => ({ m, i, isLast: i === lastIdx }));
+        })().map(({ m, i, isLast }) => {
           const chunks = m.role === 'assistant' ? parseChunks(m.content) : [{ type: 'text' as const, text: m.content }];
           const showTruncated = m.role === 'assistant' && m.truncated;
           return (
@@ -1811,6 +1994,62 @@ export function AiChatPanel({
                     );
                   }
 
+                  if (a.type === 'update_meal') {
+                    const before = personalMeals.find(m => m.id === a.mealId);
+                    return (
+                      <div
+                        key={j}
+                        dir="rtl"
+                        className="rounded-xl border border-amber-500/45 dark:bg-amber-500/[.07] bg-amber-50 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">עדכון מנה במאגר</span>
+                          {applied && <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">✓ עודכן</span>}
+                        </div>
+                        <div className="font-bold text-[14px] mb-1">{a.he}</div>
+                        {/* Old value beside the new one — the whole point of the
+                            card is that something already stored was wrong. */}
+                        <div className="flex items-baseline gap-2 mb-1.5">
+                          {before && before.calories !== a.calories && (
+                            <span className="text-[13px] text-muted line-through">{before.calories}</span>
+                          )}
+                          <span className="text-[15px] font-bold font-mono text-amber-600 dark:text-amber-400">{a.calories}</span>
+                          <span className="text-[11px] text-muted">קק״ל</span>
+                        </div>
+                        {a.reason && <p className="text-[12px] text-muted leading-relaxed mb-2">{a.reason}</p>}
+                        {(a.ingredients || []).length > 0 && (
+                          <div className="space-y-0.5 mb-2">
+                            {a.ingredients!.map((ing, k) => (
+                              <div key={k} className="flex justify-between text-[12px] text-muted">
+                                <span>{ing.he}</span><span className="font-mono">{ing.calories}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <button
+                          disabled={applied || !onUpdateMeal}
+                          onClick={async () => {
+                            if (!onUpdateMeal) return;
+                            await onUpdateMeal({
+                              mealId: a.mealId, he: a.he, calories: a.calories,
+                              ingredients: a.ingredients, macros: a.macros, flags: a.flags,
+                            });
+                            setAppliedActionIds(prev => new Set(prev).add(key));
+                            void firestoreRef.current.markActionApplied(activeId, key);
+                            showToast('המנה עודכנה במאגר');
+                          }}
+                          className={`w-full py-2 rounded-lg text-[13px] font-bold ${
+                            applied
+                              ? 'bg-subtle text-muted'
+                              : 'bg-amber-500 text-white'
+                          }`}
+                        >
+                          {applied ? 'עודכן' : 'עדכן את המנה'}
+                        </button>
+                      </div>
+                    );
+                  }
+
                   if (a.type === 'suggest_meal') {
                     return (
                       <MealActionCard
@@ -1880,7 +2119,7 @@ export function AiChatPanel({
             {/* Inline early-escape CTA — shows only under the greeting (last assistant
                 bubble AND no user reply yet). Dismisses itself the moment the user
                 sends anything, so it never lingers mid-conversation. */}
-            {earlySkipCta && m.role === 'assistant' && i === messages.length - 1
+            {earlySkipCta && m.role === 'assistant' && isLast
               && !messages.some(mm => mm.role === 'user') && (
               <button
                 onClick={earlySkipCta.onClick}
@@ -1956,23 +2195,9 @@ export function AiChatPanel({
       </div>
 
       <div className="shrink-0 p-4 border-t border-subtle dark:bg-slate-950 bg-white pb-[max(env(safe-area-inset-bottom),1rem)]">
-        {/* One-tap prompts — in dietary mode these are your usual meals for this
-            time of day. They send as a normal message, so the coach answers with
-            a meal card and the conversation continues: quick access WITHOUT
-            turning the chat into a list screen. */}
-        {/* Openers, only while nothing has been said yet. They vanish on the
-            first message so the composer is clean for the actual conversation. */}
-        {messages.length === 0 && suggestionChips.length === 0 && !loading && (STARTERS[mode] || []).length > 0 && (
-          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" dir="rtl">
-            {(STARTERS[mode] || []).map((c, i) => (
-              <button
-                key={i}
-                onClick={() => void sendWith(c)}
-                className="shrink-0 text-[11.5px] font-semibold px-3 py-1.5 rounded-full border border-subtle bg-subtle text-muted whitespace-nowrap active:scale-[.98] transition"
-              >{c}</button>
-            ))}
-          </div>
-        )}
+        {/* Data-driven one-tap prompts — in dietary mode these are your usual
+            meals for this time of day. Real data, not decoration; they send as
+            a normal message so the coach answers with a meal card. */}
         {suggestionChips.length > 0 && !loading && (
           <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" dir="rtl">
             {suggestionChips.slice(0, 5).map((c, i) => (

@@ -1,33 +1,77 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Base ink surface -->
   <rect width="1200" height="630" fill="#0a0d1c"/>
-  <rect x="0" y="0" width="10" height="630" fill="#5b4bc4"/>
 
-  <!-- Mark in a soft brand-accent chip -->
-  <rect x="112" y="150" width="240" height="240" rx="52" fill="#5b4bc4"/>
-  <g transform="translate(120,158) scale(3.5)" fill="#ffffff" stroke="#ffffff">
+  <!-- Ambient accents — the two live modes as soft washes on the corners, and
+       brand violet as a diagonal wash behind the mark. Radial gradients kept
+       subtle; the composition is otherwise flat by design. -->
+  <defs>
+    <radialGradient id="glowBrand" cx="0.2" cy="0.4" r="0.55">
+      <stop offset="0" stop-color="#5b4bc4" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#5b4bc4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowTrain" cx="0.85" cy="0.15" r="0.4">
+      <stop offset="0" stop-color="#10b981" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowFood" cx="0.75" cy="0.9" r="0.45">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glowBrand)"/>
+  <rect width="1200" height="630" fill="url(#glowTrain)"/>
+  <rect width="1200" height="630" fill="url(#glowFood)"/>
+
+  <!-- Brand-accent slab on the physical LEFT — reads as end-of-page in RTL,
+       adds a decisive edge like an app's TopBar. -->
+  <rect x="0" y="0" width="6" height="630" fill="#5b4bc4"/>
+
+  <!-- Mark tile — bigger + softer corners than v1. White circle + wave inside
+       a solid violet chip so it reads as an app icon, not clip art. -->
+  <rect x="112" y="145" width="260" height="260" rx="60" fill="#5b4bc4"/>
+  <g transform="translate(122,155) scale(3.75)" fill="#ffffff" stroke="#ffffff">
     <circle cx="32" cy="32" r="27" fill="none" stroke-width="4.5"/>
     <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" stroke="none"/>
   </g>
 
-  <!-- Wordmark -->
-  <text x="880" y="290" fill="#ffffff" font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="900" font-size="220" text-anchor="middle" letter-spacing="-4">מצב</text>
-  <text x="880" y="360" direction="rtl" fill="#b7bfd0" font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="500" font-size="36" text-anchor="middle">אימונים, תזונה ו-AI שמכיר את שניהם</text>
+  <!-- Wordmark — larger + tighter tracking than v1 so it lands as identity,
+       not a caption. Middle-anchored so librsvg RTL glitches don't shift it. -->
+  <text x="870" y="270" fill="#ffffff"
+        font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif"
+        font-weight="900" font-size="240" text-anchor="middle" letter-spacing="-6">מצב</text>
 
-  <!-- Place chips -->
+  <!-- Product line — the one from LoginScreen so WhatsApp preview and app
+       first impression say the same thing. Not the generic "הכול במקום אחד". -->
+  <text x="870" y="335" direction="rtl" fill="#eef1fb"
+        font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif"
+        font-weight="700" font-size="36" text-anchor="middle">האימונים שלך. התזונה שלך.</text>
+  <text x="870" y="378" direction="rtl" fill="#b7bfd0"
+        font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif"
+        font-weight="500" font-size="30" text-anchor="middle">AI שמכיר את שניהם.</text>
+
+  <!-- Colour-coded place chips — each mode owns its accent (green training,
+       amber nutrition, breath as an outline for "coming"). Cleaner than v1's
+       all-transparent chips. -->
   <g font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="700" font-size="28">
-    <rect x="480" y="455" width="180" height="60" rx="30" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
-    <text x="570" y="495" fill="#ffffff" text-anchor="middle">מצב אימון</text>
+    <rect x="480" y="455" width="180" height="62" rx="31" fill="#10b981" fill-opacity="0.12" stroke="#10b981" stroke-opacity="0.6" stroke-width="1.5"/>
+    <circle cx="640" cy="486" r="4" fill="#10b981"/>
+    <text x="565" y="497" fill="#ffffff" text-anchor="middle">מצב אימון</text>
 
-    <rect x="680" y="455" width="180" height="60" rx="30" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
-    <text x="770" y="495" fill="#ffffff" text-anchor="middle">מצב תזונה</text>
+    <rect x="680" y="455" width="180" height="62" rx="31" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.6" stroke-width="1.5"/>
+    <circle cx="840" cy="486" r="4" fill="#f59e0b"/>
+    <text x="765" y="497" fill="#ffffff" text-anchor="middle">מצב תזונה</text>
 
-    <rect x="880" y="455" width="180" height="60" rx="30" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
-    <text x="970" y="495" fill="#ffffff" text-anchor="middle">מצב נשימה</text>
+    <rect x="880" y="455" width="180" height="62" rx="31" fill="none" stroke="#06b6d4" stroke-opacity="0.5" stroke-width="1.5"/>
+    <circle cx="1040" cy="486" r="4" fill="#06b6d4"/>
+    <text x="965" y="497" fill="#b7bfd0" text-anchor="middle">מצב נשימה</text>
 
-    <rect x="1080" y="455" width="80" height="60" rx="30" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
-    <text x="1120" y="495" fill="#b7bfd0" text-anchor="middle">ועוד</text>
+    <rect x="1080" y="455" width="80" height="62" rx="31" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1"/>
+    <text x="1120" y="497" fill="#8a83b8" text-anchor="middle">ועוד</text>
   </g>
 
-  <!-- URL -->
-  <text x="880" y="590" fill="#8a83b8" font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif" font-weight="600" font-size="24" text-anchor="middle">matzav.ai</text>
+  <!-- URL — kept quiet, single-line, matches the actual future domain. -->
+  <text x="870" y="588" fill="#8a83b8"
+        font-family="'Heebo','Arial Hebrew','Segoe UI',sans-serif"
+        font-weight="600" font-size="24" text-anchor="middle" letter-spacing="0.5">matzav.ai</text>
 </svg>

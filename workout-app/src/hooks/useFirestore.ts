@@ -4,7 +4,7 @@ import {
   arrayUnion, Timestamp, onSnapshot, query, orderBy,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile, AppReport } from '../types';
+import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile, AppReport, ReportComment } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
@@ -1145,11 +1145,19 @@ export function useFirestore(uid: string | null) {
   const subscribeToChatMessages = useCallback((threadId: string, cb: (msgs: ChatMessageDoc[]) => void): () => void => {
     if (!uid) return () => {};
     const q = query(chatMessagesCol(threadId), orderBy('ts', 'asc'));
-    return onSnapshot(q, snap => {
-      // Same cache-race guard as subscribeToChatThreads. First fire on a
-      // fresh browser is often the empty local cache — we'd flash "no
-      // messages" before the server round-trip. Skipping cache-empty snapshots
-      // keeps the previous state until real data lands.
+    // includeMetadataChanges: true is REQUIRED for the "truly empty" case.
+    // Without it, cache-empty fires (and we skip it), server-empty produces
+    // no data change → no second callback → messagesLoaded stays false and
+    // the שיחת היכרות greeting bubble never appears (rep_1787525160501_07tq
+    // follow-up: "sometimes shows, sometimes not"). Metadata changes give us
+    // the fromCache=true→false transition even when the docs themselves
+    // haven't changed, so the "server confirmed empty" event still fires and
+    // the callback runs with [].
+    return onSnapshot(q, { includeMetadataChanges: true }, snap => {
+      // Skip only the initial cache-empty burst — once fromCache flips to
+      // false we know the server has spoken. Keeps behavior identical for
+      // threads that DO have data on the server; for empty threads, the
+      // metadata-change event now fires the empty callback correctly.
       if (snap.empty && snap.metadata && snap.metadata.fromCache) return;
       cb(snap.docs.map(d => d.data() as ChatMessageDoc));
     });
@@ -1215,6 +1223,21 @@ export function useFirestore(uid: string | null) {
       } catch (err) {
         console.warn('wipe subcollection failed', sub, err);
       }
+    }
+    // Chat threads carry a nested `messages` subcollection that Firestore does
+    // NOT cascade-delete, so a naive "just remove the thread doc" leaves orphan
+    // messages behind. Iterate + delete messages, then delete the thread doc.
+    try {
+      const threadSnap = await getDocs(collection(db, 'users', uid, 'chatThreads'));
+      for (const t of threadSnap.docs) {
+        try {
+          const msgs = await getDocs(collection(db, 'users', uid, 'chatThreads', t.id, 'messages'));
+          await Promise.all(msgs.docs.map(m => deleteDoc(m.ref)));
+        } catch (err) { console.warn('wipe thread messages failed', t.id, err); }
+        try { await deleteDoc(t.ref); } catch { /* ignore */ }
+      }
+    } catch (err) {
+      console.warn('wipe chatThreads failed', err);
     }
     // Also clear the alias binding if any — otherwise next sign-in would re-resolve
     // to the same (now-empty) app uid, which is fine but leaves stale linkage state.
@@ -1616,7 +1639,21 @@ export function useFirestore(uid: string | null) {
     if (!uid) return null;
     const now = Date.now();
     const id = `rep_${now}_${Math.random().toString(36).slice(2, 6)}`;
-    const clean: any = { ...r, id, status: r.status || 'open', createdAt: now, updatedAt: now };
+    // Allocate the next sequential #NUM by scanning current reports and
+    // taking max(num) + 1. Best-effort — a concurrent second submission
+    // could pick the same number; the panel's backfill fixes that on next
+    // load. For a single-user admin flow this is fine.
+    let nextNum = 1;
+    try {
+      const snap = await getDocs(reportsCol(uid));
+      let max = 0;
+      snap.docs.forEach(d => {
+        const n = (d.data() as any)?.num;
+        if (typeof n === 'number' && n > max) max = n;
+      });
+      nextNum = max + 1;
+    } catch { /* keep default 1 */ }
+    const clean: any = { ...r, id, num: nextNum, status: r.status || 'open', createdAt: now, updatedAt: now };
     Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
     await setDoc(doc(reportsCol(uid), id), clean);
     return id;
@@ -1627,6 +1664,38 @@ export function useFirestore(uid: string | null) {
     const clean: any = { ...patch, updatedAt: Date.now() };
     Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
     await setDoc(doc(reportsCol(uid), id), clean, { merge: true });
+  }, [uid]);
+
+  /**
+   * Append one message to a report's thread.
+   *
+   * `arrayUnion` rather than read-modify-write: a Claude session may be
+   * appending its own note over REST at the same moment Shlomi types one in
+   * the app, and a whole-array write would silently drop whichever landed
+   * first. The random suffix on the id keeps two same-millisecond notes from
+   * being deduped by arrayUnion's value equality.
+   */
+  const addReportComment = useCallback(async (
+    reportId: string,
+    author: ReportComment['author'],
+    text: string,
+  ): Promise<ReportComment | null> => {
+    if (!uid) return null;
+    const clean = text.trim();
+    if (!clean) return null;
+    const now = Date.now();
+    const comment: ReportComment = {
+      id: `c_${now}_${Math.random().toString(36).slice(2, 6)}`,
+      ts: now,
+      author,
+      text: clean,
+    };
+    await setDoc(
+      doc(reportsCol(uid), reportId),
+      { comments: arrayUnion(comment), updatedAt: now },
+      { merge: true },
+    );
+    return comment;
   }, [uid]);
 
   const deleteReport = useCallback(async (id: string): Promise<void> => {
@@ -1772,6 +1841,7 @@ export function useFirestore(uid: string | null) {
     listReports,
     addReport,
     updateReport,
+    addReportComment,
     deleteReport,
     getAppliedActions,
     markActionApplied,

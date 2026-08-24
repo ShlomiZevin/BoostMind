@@ -12,6 +12,7 @@ import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId }
 import { CloseAction } from './TopBarActions';
 import { auth } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
+import { openOnboardingChat } from './AiChatPanel';
 
 // Goals editing lives in the Body tab now (see components/GoalsCard.tsx) so this
 // screen is only for identity, appearance, and app-level toggles.
@@ -41,6 +42,11 @@ export function Settings({ uid, navigate, onLogout }: Props) {
   const [reportsOpen, setReportsOpen] = useState(false);
   const [methodOpen, setMethodOpen] = useState(false);
   const [aiModel, setAiModelState] = useState<AiModelId | undefined>(() => getAiModel());
+  // The testing-only "reset to first-run" button below is gated on this exact
+  // email so it never shows for real users, and never shows for shlomi either —
+  // he already has all the developer tooling in the מפתחים section.
+  const { email: authEmail, rawAuthUid } = useAuth();
+  const isTester = authEmail === 'shazbak@gmail.com';
   // Trial state lives here rather than on every screen — this is where you
   // come to look it up. Owner is exempt, so it renders nothing for Shlomi.
   const trial = useTrial(uid, uid === 'user_6724');
@@ -128,6 +134,54 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       {/* ─── פרופיל ─── */}
       <SectionHeader first>פרופיל</SectionHeader>
       <ProfileCard uid={uid} />
+
+      {/* ─── שיחות היכרות ─── */}
+      {/* The two intro chats are the one place the coach really "knows" the user
+          from — they're persistent, pinned in the coach's chat history, and
+          re-openable from here at any time. Rendered as a paired card so it
+          reads as one thing (הכר את המאמן) with two shortcuts. */}
+      <SectionHeader>שיחות היכרות</SectionHeader>
+      <div className="card mb-4 !p-0 overflow-hidden" dir="rtl">
+        <div className="px-4 pt-3 pb-2 border-b border-subtle">
+          <div className="text-[11px] text-muted leading-snug">
+            השיחות שבהן המאמנים הכירו אותך והציעו לך יעדים. הן שמורות תמיד, מוצמדות לראש היסטוריית השיחות של כל מאמן, ואפשר לחזור אליהן מכאן בכל רגע — לעדכן משקל, מטרה, פוקוס, או כל דבר.
+          </div>
+        </div>
+        <button
+          onClick={() => openOnboardingChat('coach')}
+          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-right dark:hover:bg-slate-800/60 hover:bg-slate-50 border-b border-subtle"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+              </svg>
+            </span>
+            <div className="min-w-0 text-right">
+              <div className="font-medium text-sm">שיחת היכרות — מאמן כושר</div>
+              <div className="text-[11px] text-muted mt-0.5">רמה, מטרה, ימים בשבוע, פוקוס שרירים</div>
+            </div>
+          </div>
+          <span className="text-muted text-lg shrink-0">←</span>
+        </button>
+        <button
+          onClick={() => openOnboardingChat('dietary')}
+          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-right dark:hover:bg-slate-800/60 hover:bg-slate-50"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-9 h-9 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.5c.3 0 .55.2.63.48l1.28 4.53a3 3 0 0 0 2.07 2.07l4.54 1.28a.66.66 0 0 1 0 1.27l-4.54 1.28a3 3 0 0 0-2.07 2.07l-1.28 4.54a.66.66 0 0 1-1.27 0l-1.28-4.54a3 3 0 0 0-2.07-2.07L3.47 12.13a.66.66 0 0 1 0-1.27l4.54-1.28A3 3 0 0 0 10.09 7.5l1.28-4.53c.08-.28.33-.47.63-.47Z"/>
+              </svg>
+            </span>
+            <div className="min-w-0 text-right">
+              <div className="font-medium text-sm">שיחת היכרות — מאמן תזונה</div>
+              <div className="text-[11px] text-muted mt-0.5">משקל, גובה, גיל, פעילות, יעד קלורי</div>
+            </div>
+          </div>
+          <span className="text-muted text-lg shrink-0">←</span>
+        </button>
+      </div>
 
       {/* ─── תרגילים ויעדים — domain-specific, right after profile ─── */}
       <SectionHeader>תרגילים ויעדים</SectionHeader>
@@ -249,6 +303,45 @@ export function Settings({ uid, navigate, onLogout }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Tester-only nuke — for shazbak@gmail.com. Not for owner (Shlomi already
+          has richer tooling in the dev block below) and not for real users.
+          Purpose: replay the full first-run experience in one tap — trainer
+          onboarding chat + shell tour + food coach greeting + food tour — with
+          nothing left over from previous tests. Wipes chats + profile + meals +
+          sessions + personal DB + localStorage caches. The Firebase Auth
+          account stays; the app just forgets it entirely. */}
+      {isTester && (
+        <div className="card mb-4 border border-amber-500/40" dir="rtl">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-right min-w-0">
+              <div className="font-medium">אפס את חוויית ההתחלה (מוחק הכל)</div>
+              <div className="text-xs text-muted mt-0.5">
+                מוחק שיחות, פרופיל, ארוחות, אימונים, מאגר תרגילים ותרגילים אישיים —
+                והתחלה נקייה: שיחת היכרות עם המאמן, מאמן תזונה, ושני הסיורים.
+                חשבון ה-Google נשאר. הפעולה בלתי הפיכה.
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                if (!uid) return;
+                if (!confirm('למחוק את כל המידע ולהתחיל מחדש? הפעולה בלתי הפיכה.')) return;
+                try {
+                  await firestoreRef.current.wipeAllUserData(rawAuthUid);
+                } catch (e) {
+                  alert(`הפעולה נכשלה: ${String((e as any)?.message || e)}`);
+                  return;
+                }
+                // wipeAllUserData already purges localStorage keys containing uid,
+                // aichat:*, and authAlias:*. That covers tour flags and cache;
+                // no extra local cleanup needed here. Reload to remount clean.
+                window.location.reload();
+              }}
+              className="btn-secondary px-4 py-2 text-sm shrink-0"
+            >אפס</button>
+          </div>
+        </div>
+      )}
 
       {/* ─── שיתוף וקשר ─── */}
       <SectionHeader>שיתוף וקשר</SectionHeader>
