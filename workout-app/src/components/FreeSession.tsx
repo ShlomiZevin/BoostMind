@@ -1187,6 +1187,26 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
             } else {
               await handleAddPlannedExercise(partial.exerciseName, partial.muscle, partial.en, partial.isHoldTime);
             }
+            // Persist the AI's how-to steps on the exercise doc so future
+            // renders show them. Only on new exercises (partial.howTo is
+            // only set by AiChatPanel when the exercise didn't already exist).
+            if (partial.howTo && partial.howTo.length > 0) {
+              try {
+                const id = exerciseIdOf(partial.exerciseName);
+                if (id) {
+                  await firestore.upsertPersonalExercise({
+                    id,
+                    he: partial.exerciseName,
+                    en: partial.en,
+                    defaultMuscle: partial.muscle,
+                    isHoldTime: partial.isHoldTime || undefined,
+                    howTo: partial.howTo,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                  });
+                }
+              } catch (e) { console.warn('persist howTo failed', e); }
+            }
           }}
         />
         );

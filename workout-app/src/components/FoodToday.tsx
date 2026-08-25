@@ -41,6 +41,11 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
   const [editing, setEditing] = useState<MealLog | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<MealLog | null>(null);
+  // Second, opt-in choice inside the delete dialog. Deleting today's entry and
+  // deleting the dish from your library are different intentions — one is "I
+  // did not eat that", the other is "I never want to see this meal again" —
+  // so the library removal is never implied by the log removal.
+  const [alsoFromLibrary, setAlsoFromLibrary] = useState(false);
   const [confirmDuplicate, setConfirmDuplicate] = useState<MealLog | null>(null);
 
   const dayStart = startOfDay();
@@ -343,13 +348,33 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
             <p className="text-sm text-muted mb-4">
               {confirmDelete.name} · {confirmDelete.calories} קק״ל
             </p>
+            {/* Only offered when the entry actually came from a saved meal —
+                a one-off has nothing in the library to remove. */}
+            {confirmDelete.mealId && (
+              <button
+                onClick={() => setAlsoFromLibrary(v => !v)}
+                className="w-full flex items-center gap-2.5 mb-4 text-right"
+                dir="rtl"
+              >
+                <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 text-[12px] ${
+                  alsoFromLibrary
+                    ? 'bg-red-500 border-red-500 text-white'
+                    : 'border-slate-300 dark:border-slate-600 text-transparent'
+                }`}>✓</span>
+                <span className="text-[13px] text-muted">למחוק גם מהמאגר, לא רק מהיום</span>
+              </button>
+            )}
             <div className="flex gap-2">
-              <button onClick={() => setConfirmDelete(null)} className="btn-secondary flex-1 py-3">ביטול</button>
+              <button onClick={() => { setConfirmDelete(null); setAlsoFromLibrary(false); }} className="btn-secondary flex-1 py-3">ביטול</button>
               <button
                 onClick={async () => {
                   const id = confirmDelete.id;
+                  const mealId = confirmDelete.mealId;
+                  const alsoLib = alsoFromLibrary;
                   setConfirmDelete(null);
+                  setAlsoFromLibrary(false);
                   await firestoreRef.current.deleteMealLog(id);
+                  if (alsoLib && mealId) await firestoreRef.current.deletePersonalMeal(mealId);
                   setLogs(prev => prev.filter(x => x.id !== id));
                 }}
                 className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold"

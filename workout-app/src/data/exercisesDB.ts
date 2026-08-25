@@ -12,6 +12,15 @@ export type PersonalExercise = {
   aliases?: string[];            // alternate names / typos that resolve here
   photoBase64?: string;          // user-uploaded photo, replaces any icon
   notes?: string;                // free-text
+  // Ordered "how to perform" steps. When present, the exercise card can
+  // expand to show them. The AI already emits `howTo` in its suggest_exercise
+  // action; now those steps persist. Also editable by the user (or coach)
+  // from the exercise detail. Absent = no expandable section is shown.
+  howTo?: string[];
+  // Optional URL to a demo video (YouTube, Vimeo, or a direct .mp4). Rendered
+  // inline in the exercise detail when present. Coaches often want to drop
+  // a link here so the trainee sees exactly the movement they mean.
+  videoUrl?: string;
   // Hold-time exercises (planks, wall-sits, dead-hangs).
   // When true, the "reps" field on each FreeSet represents seconds-held, not repetitions.
   // Undefined (default) → normal rep-based exercise. Fully backward-compatible.

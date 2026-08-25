@@ -57,12 +57,12 @@ export const MUSCLES: MuscleInfo[] = [
   { id: 'side-delts',   he: 'כתף צדדית',    en: 'Side Delts',   parent: 'shoulders', color: 'yellow' },
   { id: 'shoulders',    he: 'כתפיים (כללי)', en: 'Shoulders (all)', parent: 'shoulders', color: 'amber', legacy: true },
   // Arms
-  { id: 'biceps',       he: 'ביצפס',        en: 'Biceps',       parent: 'arms',      color: 'violet' },
-  { id: 'triceps',      he: 'טריצפס',       en: 'Triceps',      parent: 'arms',      color: 'fuchsia' },
+  { id: 'biceps',       he: 'דו ראשי',      en: 'Biceps',       parent: 'arms',      color: 'violet' },
+  { id: 'triceps',      he: 'תלת ראשי',     en: 'Triceps',      parent: 'arms',      color: 'fuchsia' },
   { id: 'forearms',     he: 'אמות',         en: 'Forearms',     parent: 'arms',      color: 'purple' },
   // Legs
-  { id: 'quads',        he: 'קוודריצפס',    en: 'Quads',        parent: 'legs',      color: 'emerald' },
-  { id: 'hamstrings',   he: 'אחוריים',      en: 'Hamstrings',   parent: 'legs',      color: 'green' },
+  { id: 'quads',        he: 'ארבע ראשי',    en: 'Quads',        parent: 'legs',      color: 'emerald' },
+  { id: 'hamstrings',   he: 'חבליים',       en: 'Hamstrings',   parent: 'legs',      color: 'green' },
   { id: 'glutes',       he: 'ישבן',         en: 'Glutes',       parent: 'legs',      color: 'teal' },
   { id: 'adductors',    he: 'מקרבי הירך',   en: 'Adductors',    parent: 'legs',      color: 'lime' },
   { id: 'abductors',    he: 'מרחיקי הירך',  en: 'Abductors',    parent: 'legs',      color: 'orange' },

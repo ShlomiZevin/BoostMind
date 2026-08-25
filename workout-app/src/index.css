@@ -425,6 +425,56 @@
 .dark .login-err{ color:#f87171; }
 
 
+/* ── Coach invite ─────────────────────────────────────────────────
+   Same shell as the login screen; only the coach block is new. The whole
+   thing has to fit one viewport with no scroll, so the spacing here is
+   tighter than LoginScreen's and nothing stacks that does not have to. */
+.inv-coach{
+  opacity:0;animation:login-in .62s cubic-bezier(.2,.75,.3,1) forwards;
+  display:flex;align-items:center;justify-content:center;gap:13px;
+  margin:0 0 18px;padding:11px 16px 11px 13px;
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.10);
+  background:rgba(15,23,42,.035);
+}
+.dark .inv-coach{ border-color:rgba(255,255,255,.11); background:rgba(255,255,255,.045); }
+.inv-ava{
+  width:44px;height:44px;flex:none;border-radius:999px;overflow:hidden;
+  display:grid;place-items:center;
+  background:var(--l-brand);color:#fff;
+  box-shadow:0 10px 24px -10px rgba(91,75,196,.65);
+}
+.inv-ava img{ width:100%;height:100%;object-fit:cover;display:block; }
+.inv-ava i{ font-style:normal;font-size:19px;font-weight:800;line-height:1; }
+.inv-who{ display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0; }
+.inv-who b{ font-size:15.5px;font-weight:800;line-height:1.2;letter-spacing:-.01em; }
+.inv-who u{
+  text-decoration:none;font-size:11.5px;font-weight:600;line-height:1.2;
+  color:#66738a;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dark .inv-who u{ color:#8e9ab0; }
+
+/* The privacy line is the one thing a trainee actually worries about, so it
+   keeps the app-fragment treatment rather than becoming fine print. */
+.inv-note{ text-align:center;margin:18px 0 20px; }
+
+.inv-state{
+  opacity:0;animation:login-in .62s cubic-bezier(.2,.75,.3,1) forwards;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.inv-state .login-sub,.inv-state .login-sub2{ opacity:1;animation:none;margin:0; }
+.inv-state .login-btn{ margin-top:12px; }
+.inv-spin{
+  width:34px;height:34px;border-radius:999px;margin-bottom:4px;
+  border:3px solid rgba(91,75,196,.24);border-top-color:var(--l-brand);
+  animation:inv-spin .9s linear infinite;
+}
+@keyframes inv-spin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){
+  .inv-spin{ animation-duration:2.4s; }
+  .inv-coach,.inv-state{ animation:none;opacity:1; }
+}
+
 /* Mobile: let the screen breathe. Less decoration, no card chrome —
    the surface itself becomes the card. */
 @media (max-width:520px){

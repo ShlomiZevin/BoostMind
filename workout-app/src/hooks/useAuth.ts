@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { resolveAppUid, resolveAppUidAsync, cachedLegacyUid, signInWithGoogle, signOutUser, subscribeToAuth } from '../config/firebase';
+import { resolveAppUid, resolveAppUidAsync, cachedLegacyUid, signInWithGoogle, signOutUser, subscribeToAuth, db } from '../config/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ensureUserIndex, logEvent } from '../utils/analytics';
+import { isCoacherEmail, presetCoachUidFor } from '../config/coaches';
 
 export type AuthState = {
   uid: string | null;         // app-level uid (aliased for legacy accounts)
@@ -70,6 +72,51 @@ export function useAuth(): AuthState {
         void logEvent('register', { uid, email: user.email || null });
       }
     });
+    // ── Auto-promote known coacher emails to role='coacher' ─────
+    // Merges `role: coacher` onto the profile doc AND the users_index row
+    // so both surfaces (impersonation + admin dashboard) see the flag. Runs
+    // once per sign-in, skipped when the profile already has that role.
+    if (isCoacherEmail(user.email)) {
+      void (async () => {
+        try {
+          const pref = doc(db, 'users', uid, 'profile', 'main');
+          const snap = await getDoc(pref);
+          if (snap.exists() && snap.data()?.role === 'coacher') return;
+          await setDoc(pref, { role: 'coacher', updatedAt: Date.now() }, { merge: true });
+          await setDoc(doc(db, 'users_index', uid), { role: 'coacher' }, { merge: true });
+        } catch (e) {
+          console.warn('[coacher promote] failed', e);
+        }
+      })();
+    }
+    // ── Preset trainee-to-coach binding ─────────────────────────
+    // For demo/testing accounts pre-declared in PRESET_TRAINEES: if the
+    // profile has no coachUid yet, apply the preset. Same effect as clicking
+    // the invite link, but without the round trip. Idempotent — skips when
+    // already bound.
+    const presetCoach = presetCoachUidFor(user.email);
+    if (presetCoach) {
+      void (async () => {
+        try {
+          const pref = doc(db, 'users', uid, 'profile', 'main');
+          const snap = await getDoc(pref);
+          const existing = snap.exists() ? (snap.data() as any)?.coachUid : undefined;
+          if (existing) return;
+          const stamp = Date.now();
+          await setDoc(pref, {
+            coachUid: presetCoach,
+            coachAcceptedAt: stamp,
+            updatedAt: stamp,
+          }, { merge: true });
+          await setDoc(doc(db, 'users_index', uid), {
+            coachUid: presetCoach,
+            coachAcceptedAt: stamp,
+          }, { merge: true });
+        } catch (e) {
+          console.warn('[preset coach] failed', e);
+        }
+      })();
+    }
   }, [user, uid]);
 
   async function login() {

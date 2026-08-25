@@ -37,6 +37,10 @@ type Props = {
     weight?: number;
     reps?: number;
     isHoldTime?: boolean;
+    /** Ordered steps the AI already knows for this exercise. Callers persist
+     *  them onto the PersonalExercise so future card renders can show them
+     *  without re-asking the AI. */
+    howTo?: string[];
   }) => Promise<void> | void;
   /** Alternative to onAddSet — saves suggested exercise to personal DB instead of a session. Used from the Exercises page's "הוסף עם AI" flow. */
   onAddToDb?: (partial: {
@@ -44,6 +48,7 @@ type Props = {
     exerciseName: string;
     en?: string;
     isHoldTime?: boolean;
+    howTo?: string[];
   }) => Promise<void> | void;
   onRename?: (id: string, patch: { he?: string; en?: string; muscle?: MuscleGroup }) => Promise<void> | void;
   initialPrompt?: string;  // Auto-send this prompt when the panel opens (as if the user typed it)
@@ -75,6 +80,13 @@ type Props = {
     mealId: string; he: string; calories: number;
     ingredients?: MealIngredient[]; macros?: MealMacros; flags?: MealFlags;
   }) => Promise<void> | void;
+  /** Change one of today's recorded entries. */
+  onUpdateMealLog?: (a: {
+    logId: string; he?: string; calories: number; servings?: number;
+    ingredients?: MealIngredient[]; macros?: MealMacros; flags?: MealFlags;
+  }) => Promise<void> | void;
+  /** Remove one of today's recorded entries. */
+  onRemoveMealLog?: (logId: string) => Promise<void> | void;
   /** Open the meal card in the manual editor instead of logging it as-is. */
   onEditMeal?: (m: MealDraft) => void;
   /** The coach learned a profile fact (weight, goal, activity…) — persist it. */
@@ -224,7 +236,27 @@ type ActionUpdateMeal = {
   reason?: string;
 };
 
-type ChatAction = ActionUpdateMeal | ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal | ActionUpdateDietProfile | ActionSetCalorieTarget;
+type ActionUpdateMealLog = {
+  type: 'update_meal_log';
+  /** Must be an id from today's log — this edits one recorded entry. */
+  logId: string;
+  he?: string;
+  calories: number;
+  servings?: number;
+  ingredients?: MealIngredient[];
+  macros?: MealMacros;
+  flags?: MealFlags;
+  reason?: string;
+};
+
+type ActionRemoveMealLog = {
+  type: 'remove_meal_log';
+  logId: string;
+  he?: string;
+  reason?: string;
+};
+
+type ChatAction = ActionUpdateMealLog | ActionRemoveMealLog | ActionUpdateMeal | ActionSuggestExercise | ActionRenameExercise | ActionQuickReplies | ActionReadyToBuild | ActionUpdateProfile | ActionSetWeeklyTargets | ActionSuggestMeal | ActionUpdateDietProfile | ActionSetCalorieTarget;
 
 // Very small markdown renderer for chat bubbles. Handles the shapes the coach
 // actually emits: **bold**, *italic*, `code`, `- ` / `* ` bullets, `1. ` numbered
@@ -665,7 +697,7 @@ async function migrateLocalStorageToFirestore(
 }
 
 export function AiChatPanel({
-  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onUpdateMeal, onEditMeal, onDietProfilePatch, onSetCalorieTarget, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
+  uid, mode = 'session', sessionMuscles = [], recentSets = [], onAddSet, onAddToDb, onRename, initialPrompt, initialAssistantMessage, replaceContext, newThreadOnMount, currentSessionExercises = [], currentSessionStatus, currentSessionPlannedFor, currentSessionAerobicSummary, plannedSessions = [], personalMeals = [], todayMeals = [], dietProfile, todayBurn, onAddMeal, onUpdateMeal, onUpdateMealLog, onRemoveMealLog, onEditMeal, onDietProfilePatch, onSetCalorieTarget, suggestionChips = [], onReadyToBuild, onProfilePatch, earlySkipCta, fixedThreadId, onClose,
 }: Props) {
   const bucket = bucketOf(mode);
   const firestore = useFirestore(uid);
@@ -1249,20 +1281,27 @@ export function AiChatPanel({
     }
     const todayLine = `[הקשר: ${contextParts.join(' | ')}]`;
     let firstUserSeen = false;
-    // Wire messages: forward only the LAST user message's image. Historical
-    // images are already persisted in Firestore for the UI, but re-sending
-    // them every turn would bloat the payload and re-consume Vision quota
-    // on the model side. If the user wants to reference an older image, they
-    // re-attach it.
-    const lastUserIdx = (() => {
-      for (let i = nextMessages.length - 1; i >= 0; i--) {
-        if (nextMessages[i].role === 'user') return i;
-      }
-      return -1;
-    })();
+    // Wire messages: forward the images from the most recent few user turns,
+    // not just the last one.
+    //
+    // It used to send only the final message's image, to keep the payload small.
+    // That made a photo un-followupable: attach a picture of a watermelon, ask
+    // "and how much is half of it?", and the coach no longer had the image — it
+    // answered confidently about something it could not see.
+    //
+    // Two images, from the last six messages, is the compromise: a conversation
+    // about a photo keeps working, while an old picture drops out of context
+    // instead of riding along forever.
+    const IMAGE_TURNS = 2;
+    const IMAGE_LOOKBACK = 6;
+    const keepImageAt = new Set<number>();
+    for (let i = nextMessages.length - 1; i >= 0 && keepImageAt.size < IMAGE_TURNS; i--) {
+      if (nextMessages.length - i > IMAGE_LOOKBACK) break;
+      if (nextMessages[i].role === 'user' && nextMessages[i].image) keepImageAt.add(i);
+    }
     const wireMessages = nextMessages.map((m, i) => {
       const base: { role: string; content: string; image?: string } = { role: m.role, content: m.content };
-      if (m.image && i === lastUserIdx) base.image = m.image;
+      if (m.image && keepImageAt.has(i)) base.image = m.image;
       if (m.role === 'user' && !firstUserSeen) {
         firstUserSeen = true;
         base.content = `${todayLine}\n${m.content}`;
@@ -1321,6 +1360,10 @@ export function AiChatPanel({
           // and is the difference between a log and something it can reason on.
           todayMeals: mode === 'dietary'
             ? todayMeals.map(m => ({
+                // The log id is what makes today's entries addressable. Without
+                // it the coach can describe a change but has nothing to point at,
+                // which is exactly why it promised updates that never happened.
+                logId: m.id,
                 name: m.name,
                 calories: m.calories,
                 mealType: m.mealType,
@@ -1448,6 +1491,8 @@ export function AiChatPanel({
     if (a.type === 'set_weekly_targets') return `w:${mi}:${ci}`;
     if (a.type === 'suggest_meal') return `m:${mi}:${ci}:${a.he}`;
     if (a.type === 'update_meal') return `um:${mi}:${ci}:${a.mealId}`;
+    if (a.type === 'update_meal_log') return `uml:${mi}:${ci}:${a.logId}`;
+    if (a.type === 'remove_meal_log') return `rml:${mi}:${ci}:${a.logId}`;
     if (a.type === 'update_diet_profile') return `dp:${mi}:${ci}`;
     if (a.type === 'set_calorie_target') return `ct:${mi}:${ci}:${a.target}`;
     return `b:${mi}:${ci}`; // ready_to_build
@@ -1491,14 +1536,17 @@ export function AiChatPanel({
     );
     const finalName = existing ? existing.he : a.name;
     const finalEn = existing?.en || a.en;
+    // Persist the AI's steps only on NEW exercises — don't clobber steps a
+    // user or coach may have edited on an existing exercise.
+    const howTo = !existing && a.howTo && a.howTo.length > 0 ? a.howTo : undefined;
     if (onAddToDb && !onAddSet) {
-      await onAddToDb({ muscle, exerciseName: finalName, en: finalEn, isHoldTime: a.isHoldTime });
+      await onAddToDb({ muscle, exerciseName: finalName, en: finalEn, isHoldTime: a.isHoldTime, howTo });
       setAppliedActionIds(prev => new Set(prev).add(key));
       showToast(existing ? `✓ ${finalName} כבר קיים ב-DB` : `✓ ${finalName} נוסף לרשימה`);
       return;
     }
     if (onAddSet) {
-      await onAddSet({ muscle, exerciseName: finalName, en: finalEn, isHoldTime: a.isHoldTime });
+      await onAddSet({ muscle, exerciseName: finalName, en: finalEn, isHoldTime: a.isHoldTime, howTo });
       setAppliedActionIds(prev => new Set(prev).add(key));
       showToast(replaceContext ? `⇄ הוחלף ל-${finalName}` : `✓ ${finalName} נוסף לאימון`);
     }
@@ -2103,6 +2151,77 @@ export function AiChatPanel({
                               isLastAssistant ? 'bg-amber-500 text-white' : 'bg-subtle text-muted-more'
                             }`}
                           >אשר יעד</button>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  if (a.type === 'update_meal_log' || a.type === 'remove_meal_log') {
+                    const isRemove = a.type === 'remove_meal_log';
+                    const entry = todayMeals.find(m => m.id === a.logId);
+                    const tone = isRemove
+                      ? 'border-red-500/45 dark:bg-red-500/[.07] bg-red-50'
+                      : 'border-amber-500/45 dark:bg-amber-500/[.07] bg-amber-50';
+                    return (
+                      <div key={j} dir="rtl" className={`rounded-xl border p-3 ${tone}`}>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={`text-[10px] font-bold ${isRemove ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            {isRemove ? 'הסרה מהיום' : 'עדכון רשומה של היום'}
+                          </span>
+                          {applied && <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">✓ בוצע</span>}
+                        </div>
+
+                        <div className="font-bold text-[14px] mb-1">{a.he || entry?.name || 'ארוחה'}</div>
+
+                        {/* Old value next to the new one — this edits something
+                            already counted, so the change has to be visible. */}
+                        {!isRemove && (
+                          <div className="flex items-baseline gap-2 mb-1.5">
+                            {entry && entry.calories !== (a as ActionUpdateMealLog).calories && (
+                              <span className="text-[13px] text-muted line-through">{entry.calories}</span>
+                            )}
+                            <span className="text-[15px] font-bold font-mono text-amber-600 dark:text-amber-400">
+                              {(a as ActionUpdateMealLog).calories}
+                            </span>
+                            <span className="text-[11px] text-muted">קק״ל</span>
+                          </div>
+                        )}
+                        {isRemove && entry && (
+                          <div className="text-[13px] text-muted line-through mb-1.5">{entry.calories} קק״ל</div>
+                        )}
+
+                        {a.reason && <p className="text-[12px] text-muted leading-relaxed mb-2">{a.reason}</p>}
+
+                        {/* An id that does not match anything in today's log means
+                            the coach guessed. Say so rather than failing silently. */}
+                        {!entry ? (
+                          <div className="text-[12px] text-muted">לא נמצאה רשומה מתאימה להיום.</div>
+                        ) : (
+                          <button
+                            disabled={applied || (isRemove ? !onRemoveMealLog : !onUpdateMealLog)}
+                            onClick={async () => {
+                              if (isRemove) {
+                                if (!onRemoveMealLog) return;
+                                await onRemoveMealLog(a.logId);
+                              } else {
+                                if (!onUpdateMealLog) return;
+                                const u = a as ActionUpdateMealLog;
+                                await onUpdateMealLog({
+                                  logId: u.logId, he: u.he, calories: u.calories, servings: u.servings,
+                                  ingredients: u.ingredients, macros: u.macros, flags: u.flags,
+                                });
+                              }
+                              setAppliedActionIds(prev => new Set(prev).add(key));
+                              void firestoreRef.current.markActionApplied(activeId, key);
+                              showToast(isRemove ? 'הוסר מהיום' : 'הרשומה עודכנה');
+                            }}
+                            className={`w-full py-2 rounded-lg text-[13px] font-bold ${
+                              applied ? 'bg-subtle text-muted'
+                                : isRemove ? 'bg-red-500 text-white' : 'bg-amber-500 text-white'
+                            }`}
+                          >
+                            {applied ? 'בוצע' : isRemove ? 'הסר מהיום' : 'עדכן את הרשומה'}
+                          </button>
                         )}
                       </div>
                     );

@@ -46,6 +46,12 @@ import { AdminPage } from './components/AdminPage';
 import { ReportsAdminPage } from './components/ReportsAdminPage';
 import { UsersAdminPage } from './components/UsersAdminPage';
 import { AdminDesktopPage } from './components/AdminDesktopPage';
+import { CoachDashboard } from './components/CoachDashboard';
+import { CoachInvitePage } from './components/CoachInvitePage';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './config/firebase';
+import { ImpersonationCtx } from './hooks/useImpersonation';
+import { isCoacherEmail } from './config/coaches';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
 } from './places/registry';
@@ -82,6 +88,15 @@ function parseHash(): Route {
   if (hash === '/reports-admin') return { page: 'reports-admin' };
   if (hash === '/users-admin') return { page: 'users-admin' };
   if (hash === '/admin-desktop') return { page: 'admin-desktop' };
+  if (hash === '/coach') return { page: 'coach' };
+  if (hash.startsWith('/coach/view/')) {
+    const traineeUid = hash.slice('/coach/view/'.length);
+    if (traineeUid) return { page: 'coach-view', traineeUid };
+  }
+  if (hash.startsWith('/coach/invite/')) {
+    const coachUid = hash.slice('/coach/invite/'.length);
+    if (coachUid) return { page: 'coach-invite', coachUid };
+  }
   if (hash.startsWith('/session-view/')) {
     return { page: 'session-view', sessionId: hash.split('/')[2] };
   }
@@ -103,6 +118,9 @@ function routeToHash(route: Route): string {
     case 'reports-admin': return '#/reports-admin';
     case 'users-admin': return '#/users-admin';
     case 'admin-desktop': return '#/admin-desktop';
+    case 'coach': return '#/coach';
+    case 'coach-view': return `#/coach/view/${route.traineeUid}`;
+    case 'coach-invite': return `#/coach/invite/${route.coachUid}`;
     case 'session': return `#/session/${route.sessionId}`;
     case 'session-view': return `#/session-view/${route.sessionId}`;
     case 'food-today': return '#/food/today';
@@ -113,14 +131,24 @@ function routeToHash(route: Route): string {
   }
 }
 
-function AppShell({ uid, route, navigate, doLogout, trial }: {
+function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
   uid: string;
   route: Route;
   navigate: (r: Route) => void;
   doLogout: () => void;
   trial: TrialState;
+  // When present, the app is being rendered as SOMEONE ELSE — a coach viewing
+  // a trainee. `uid` is already the trainee's uid; this carries the extra
+  // context (coach's own uid + trainee display info) so the shell can render
+  // the "you are viewing as X" banner and hide the chat entry points.
+  impersonation?: {
+    coachAuthUid: string;
+    traineeEmail?: string | null;
+    traineeName?: string | null;
+  };
 }) {
   const firestore = useFirestore(uid);
+  const isImpersonating = !!impersonation;
   const [inProgress, setInProgress] = useState<FreeSessionType | null>(null);
   const [allSessions, setAllSessions] = useState<FreeSessionType[]>([]);
   const [showStart, setShowStart] = useState(false);
@@ -130,14 +158,18 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   // EMAIL_TO_UID drifts, the gate keeps holding for shlomi@boostart.io only.
   const { email: authEmail, displayName } = useAuth();
   const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
+  // Coaches also get the double-click-anywhere reports shortcut — they need
+  // to file bugs / feature requests from inside the app the same way Shlomi
+  // does. Same isCoacherEmail list that gates the coach dashboard.
+  const canOpenReports = isAdmin || isCoacherEmail(authEmail);
 
-  // Admin-only double-click shortcut — opens the bug/feature reports panel from
+  // Double-click shortcut — opens the bug/feature reports panel from
   // anywhere in the app. Reason (rep_1787310001832_4jel): the entry buried in
   // Settings is easy to lose track of; catching double-clicks globally lets me
   // file a report the moment I see the thing, without leaving the screen.
-  // Gated on isAdmin so no other user ever sees this shortcut.
+  // Available to admins AND coaches (Sergio et al.).
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canOpenReports) return;
     function onDblClick(e: MouseEvent) {
       // Skip when the double-click landed on an editable target — otherwise
       // double-clicking to select a word in an input would pop the modal.
@@ -152,7 +184,7 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
     }
     window.addEventListener('dblclick', onDblClick);
     return () => window.removeEventListener('dblclick', onDblClick);
-  }, [isAdmin]);
+  }, [canOpenReports]);
 
   const place = placeOf(route.page);
   const isTabPage = TAB_PAGES.has(route.page);
@@ -348,6 +380,11 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   function runQuickAction(a: QuickAction) {
     setSheetOpen(false);
     setFanOpen(false);
+    if (isImpersonating) {
+      // window.alert — scope has a local `alert` from useChatNotifier
+      window.alert('אתה בתצוגה של המתאמן. אי אפשר לרשום עבורו — הפעולה שמורה למתאמן.');
+      return;
+    }
     if (a.id === 'food:add-meal') { setShowLogMeal(true); return; }
     if (a.id === 'exercise:start') { void handleFabClick(); return; }
   }
@@ -431,6 +468,13 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   const [sameDayPrompt, setSameDayPrompt] = useState(false);
 
   async function handleFabClick() {
+    // Coach viewing trainee — the FAB is a trainee-only action (start a
+    // session, log a meal). Toast + bail so the coach doesn't accidentally
+    // log for the trainee.
+    if (isImpersonating) {
+      window.alert('אתה בתצוגה של המתאמן. פעולות שמתאמן עושה עליו לעשות בעצמו — אבל אתה יכול להוסיף לו תרגילים / ארוחות / תוכניות דרך המסכים הרגילים.');
+      return;
+    }
     // In תזונה the centre action logs a meal.
     if (place === 'food') { setShowLogMeal(true); return; }
     // Re-fetch before deciding. Local `inProgress` can be stale — e.g. Home just deleted the
@@ -577,7 +621,10 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
       content = <AdminDesktopPage navigate={navigate} />;
       break;
     case 'food-today':
-      content = <FoodToday uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} onAddMeal={() => setShowLogMeal(true)} />;
+      content = <FoodToday uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} onAddMeal={() => {
+        if (isImpersonating) { window.alert('אתה בתצוגה של המתאמן — לא ניתן לרשום ארוחה עבורו.'); return; }
+        setShowLogMeal(true);
+      }} />;
       break;
     case 'food-history':
       content = <FoodHistory uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} />;
@@ -594,13 +641,38 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
   }
 
   return (
+    <ImpersonationCtx.Provider value={{
+      isImpersonating,
+      coachAuthUid: impersonation?.coachAuthUid,
+      traineeUid: isImpersonating ? uid : null,
+      traineeEmail: impersonation?.traineeEmail,
+      traineeName: impersonation?.traineeName,
+    }}>
     <PlaceProvider value={{
       place,
       openSheet: () => setSheetOpen(true),
       pendingByBucket,
       trial,
     }}>
-      {showStrip && (
+      {/* Persistent impersonation banner. Sticks to the top so the coach
+          can never forget which app they're touching. Amber to distinguish
+          from anything else in the header. */}
+      {isImpersonating && (
+        <div className="sticky top-0 z-40 bg-amber-500 text-slate-900 text-[12px] font-bold py-2 px-3 flex items-center justify-between gap-2" dir="rtl">
+          <span className="truncate">
+            👁 אתה צופה במתאמן:{' '}
+            <span className="font-mono" dir="ltr">
+              {impersonation!.traineeEmail || impersonation!.traineeName || uid}
+            </span>
+            {' '}— שינויים שאתה עושה נשמרים אצלו
+          </span>
+          <button
+            onClick={() => navigate({ page: 'coach' })}
+            className="shrink-0 text-[11px] font-bold px-2.5 py-1 rounded bg-slate-900 text-white hover:bg-slate-800"
+          >סגור תצוגה</button>
+        </div>
+      )}
+      {showStrip && !isImpersonating && (
         <TrialStrip
           trial={trial}
           onDismiss={hideStripForToday}
@@ -684,7 +756,7 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
       {/* The food coach — a real conversation, same panel as the trainer.
           Meal cards render inline; approving one logs it, editing one hands it
           to the manual modal. */}
-      {foodChatOpen && (
+      {foodChatOpen && !isImpersonating && (
         <AiChatPanel
           uid={uid}
           mode="dietary"
@@ -729,6 +801,25 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
              right too — that is the whole point of the action. Past logs keep
              the numbers they were recorded with; rewriting history would make
              yesterday's balance change under the user. */
+          /* Editing TODAY'S entry, not the template. The two are different
+             actions on purpose: correcting a recipe should not rewrite what you
+             already ate, and eating three-quarters of something should not
+             redefine the dish. */
+          onUpdateMealLog={async (a) => {
+            await firestore.updateMealLog(a.logId, {
+              ...(a.he ? { name: a.he } : {}),
+              calories: a.calories,
+              ...(a.servings != null ? { servings: a.servings } : {}),
+              ...(a.ingredients ? { ingredients: a.ingredients } : {}),
+              ...(a.macros ? { macros: a.macros } : {}),
+              ...(a.flags ? { flags: a.flags } : {}),
+            } as any);
+            setMealRefresh(k => k + 1);
+          }}
+          onRemoveMealLog={async (logId) => {
+            await firestore.deleteMealLog(logId);
+            setMealRefresh(k => k + 1);
+          }}
           onUpdateMeal={async (a) => {
             const existing = personalMeals.find(m => m.id === a.mealId);
             await firestore.upsertPersonalMeal({
@@ -798,7 +889,7 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
           onStart={handleStart}
         />
       )}
-      {aiPanelOpen && (
+      {aiPanelOpen && !isImpersonating && (
         <AiChatPanel
           uid={uid}
           mode="trainer"
@@ -815,8 +906,10 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
         />
       )}
 
-      {/* "The coach answered" — the reply landed while you were elsewhere. */}
-      {alert && isTabPage && (() => {
+      {/* "The coach answered" — the reply landed while you were elsewhere.
+          Suppressed during impersonation: those are the TRAINEE'S chats and
+          the coach should never see them. */}
+      {alert && isTabPage && !isImpersonating && (() => {
         // The toast wears the colour of the place whose coach spoke, and says
         // which coach it was — two coaches means "המאמן ענה" alone is ambiguous.
         const isFood = alert.bucket === 'dietary';
@@ -874,6 +967,7 @@ function AppShell({ uid, route, navigate, doLogout, trial }: {
         </div>
       )}
     </PlaceProvider>
+    </ImpersonationCtx.Provider>
   );
 }
 
@@ -910,8 +1004,32 @@ export default function App() {
     return <AdminDesktopPage navigate={navigate} />;
   }
 
+  // Coach invite is PUBLIC — a trainee lands here from a shared link and
+  // signs in there. The component owns its own auth state.
+  if (route.page === 'coach-invite') {
+    return <CoachInvitePage coachUid={route.coachUid} navigate={navigate} />;
+  }
+
   if (!uid) {
     return <LoginScreen onLogin={login} />;
+  }
+
+  // Coach dashboard requires sign-in.
+  if (route.page === 'coach') {
+    return <CoachDashboard navigate={navigate} />;
+  }
+  // Coach impersonation view: mount AppShell with the trainee's uid.
+  // AppShell + all its firestore reads run against the trainee's tree; the
+  // shared banner + gated chat panels handle the UX side.
+  if (route.page === 'coach-view') {
+    return (
+      <CoachImpersonationShell
+        traineeUid={route.traineeUid}
+        route={route}
+        navigate={navigate}
+        doLogout={doLogout}
+      />
+    );
   }
 
   return (
@@ -922,6 +1040,61 @@ export default function App() {
       route={route}
       navigate={navigate}
       doLogout={doLogout}
+    />
+  );
+}
+
+// Coach impersonation: renders AppShell as the trainee, but stamps the shell
+// with the coach's own auth uid so we know it's a view-through, not a real
+// trainee session. Owns the trainee-metadata fetch so the banner shows a
+// real name/email instead of a bare uid.
+function CoachImpersonationShell({ traineeUid, route, navigate, doLogout }: {
+  traineeUid: string;
+  route: Route;
+  navigate: (r: Route) => void;
+  doLogout: () => void;
+}) {
+  const { rawAuthUid, loading } = useAuth();
+  const trial = useTrial(traineeUid, true); // never gate the coach's view
+  const [meta, setMeta] = useState<{ email?: string | null; name?: string | null } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'users_index', traineeUid));
+        if (cancelled) return;
+        if (snap.exists()) {
+          const d = snap.data() as any;
+          setMeta({ email: d.email, name: d.displayName });
+        } else {
+          setMeta({});
+        }
+      } catch {
+        if (!cancelled) setMeta({});
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [traineeUid]);
+
+  if (loading || !trial) return <div className="page-bg" />;
+  if (!rawAuthUid) {
+    // Not signed in — force login. On return, they'll land here again.
+    return <LoginScreen onLogin={async () => {}} />;
+  }
+
+  return (
+    <AppShell
+      uid={traineeUid}
+      route={route}
+      navigate={navigate}
+      doLogout={doLogout}
+      trial={trial}
+      impersonation={{
+        coachAuthUid: rawAuthUid,
+        traineeEmail: meta?.email,
+        traineeName: meta?.name,
+      }}
     />
   );
 }

@@ -182,6 +182,18 @@ export type UserProfile = {
   // pinned entry so the dropdown feels theirs.
   trainerOnboardingUnpinned?: boolean;
   foodOnboardingUnpinned?: boolean;
+  // ─── Coach system ──────────────────────────────────────────────
+  // A "coacher" is a trusted user with extra abilities: their own dashboard
+  // of trainees, ability to plan sessions / add meals / add exercises for
+  // trainees, and impersonation view. Regular users are trainees implicitly.
+  // Undefined === 'user'.
+  role?: 'user' | 'coacher';
+  // For a trainee: the coach's raw Firebase Auth uid. Set when they accept an
+  // invite link. When set, coach queries can find this trainee, and Firestore
+  // rules let the coach read their tree (except chatThreads).
+  coachUid?: string;
+  // When the invite was accepted (ms). Empty = never claimed a coach.
+  coachAcceptedAt?: number;
   // Dietary profile lives here rather than in settings/main — a second profile
   // in a different doc is a trap.
   diet?: DietProfile;
@@ -364,6 +376,12 @@ export type Route =
   | { page: 'users-admin' }
   // admin-only combined desktop landing (users + tasks + movement)
   | { page: 'admin-desktop' }
+  // coacher-only trainee management dashboard
+  | { page: 'coach' }
+  // impersonation — coach views app through the trainee's data
+  | { page: 'coach-view'; traineeUid: string }
+  // public invite landing — trainee clicks link, signs in, is bound to coach
+  | { page: 'coach-invite'; coachUid: string }
   // תזונה
   | { page: 'food-today' }
   | { page: 'food-history' }

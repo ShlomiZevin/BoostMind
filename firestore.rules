@@ -4,8 +4,19 @@ service cloud.firestore {
     match /storyboards/{docId} {
       allow read, write: if true;
     }
+    // Helper: is the calling user the coach of this trainee?
+    // Reads the trainee's profile doc and checks coachUid. Used to grant coach
+    // read/write access to specific parts of a trainee's tree.
+    function isCoachOf(traineeId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(traineeId)/profile/main)
+        && get(/databases/$(database)/documents/users/$(traineeId)/profile/main).data.coachUid == request.auth.uid;
+    }
+
     // Each user reads/writes only their OWN tree. Owner (shlomi@boostart.io)
-    // sees everything for admin surfaces + the reports-admin page.
+    // sees everything for admin surfaces + the reports-admin page. Coaches
+    // read+write their trainees' trees too (chats excluded — separate rule
+    // below).
     //
     // Note: `request.auth.uid` is the raw Firebase Auth uid, while `userId` in
     // the path is the app-level uid — for Shlomi they differ (EMAIL_TO_UID
@@ -15,27 +26,42 @@ service cloud.firestore {
       allow read, write:
         if request.auth != null
            && (request.auth.uid == userId
-               || request.auth.token.email == 'shlomi@boostart.io');
+               || request.auth.token.email == 'shlomi@boostart.io'
+               || isCoachOf(userId));
     }
-    // ─── Server-written chat surfaces ────────────────────────────
-    // The Cloud Run backend persists the assistant's reply and updates thread
-    // metadata via unauthenticated Firestore REST (no service-account creds
-    // set up yet). Without a carve-out, the tightened users/{userId}/** rule
-    // above 403s the write, the reply never lands in Firestore, and the
-    // client's stream evaporates on the next send. Re-opening these two
-    // specific paths — thread doc + messages subcollection — is the smallest
-    // hole that fixes the chat. If a real service account is added later,
-    // tighten these to `request.auth.token.firebase.sign_in_provider == "custom"`
-    // or similar.
+    // ─── Chat threads — coach CANNOT read ────────────────────────
+    // Trainees' chat history is private. A coach can guide, plan, and add
+    // meals/exercises but cannot see what the trainee talks to the AI about.
+    // Reads locked to owner + Shlomi. Writes stay open so the Cloud Run
+    // backend can persist assistant replies without service-account creds.
     match /users/{userId}/chatThreads/{threadId} {
-      allow read, write: if true;
+      allow read:
+        if request.auth != null
+           && (request.auth.uid == userId
+               || request.auth.token.email == 'shlomi@boostart.io');
+      allow write: if true;
     }
     match /users/{userId}/chatThreads/{threadId}/messages/{msgId} {
-      allow read, write: if true;
+      allow read:
+        if request.auth != null
+           && (request.auth.uid == userId
+               || request.auth.token.email == 'shlomi@boostart.io');
+      allow write: if true;
     }
     // Server also writes to the applied-actions marker (which chat action was
-    // "approved") — same rationale.
+    // "approved") — coach can't peek either.
     match /users/{userId}/appliedChatActions/{key} {
+      allow read:
+        if request.auth != null
+           && (request.auth.uid == userId
+               || request.auth.token.email == 'shlomi@boostart.io');
+      allow write: if true;
+    }
+    // Bug/feature reports. The desktop admin page + Claude sessions both hit
+    // this collection via unauthenticated REST — the URL is the secret,
+    // same as ai_usage / analytics_events. Open read+write so a session can
+    // read the open list and close entries without an auth token.
+    match /users/{userId}/reports/{reportId} {
       allow read, write: if true;
     }
     match /gp-products/{docId} {

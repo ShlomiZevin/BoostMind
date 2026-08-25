@@ -486,6 +486,39 @@ export function Exercises({ uid, navigate }: Props) {
                         </IconBtn>
                       </div>
                     </div>
+                    {/* How-to + video expandable — renders ONLY when at least
+                        one of the two exists. The <details> tag keeps it dense
+                        when closed and gives us a native disclosure widget with
+                        zero JS. When both fields are empty, the section isn't
+                        emitted at all — cards without instructional content
+                        look exactly as they did before this feature landed. */}
+                    {((ex.howTo && ex.howTo.length > 0) || ex.videoUrl) && (
+                      <details
+                        className="mt-2 border-t border-subtle/50 pt-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <summary className="cursor-pointer list-none flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold select-none" dir="rtl">
+                          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                          <span>
+                            {ex.howTo && ex.howTo.length > 0 && ex.videoUrl ? 'צעדים + וידאו'
+                              : ex.videoUrl ? '🎥 וידאו'
+                              : `${ex.howTo!.length} שלבי ביצוע`}
+                          </span>
+                        </summary>
+                        <div className="mt-2 space-y-2" dir="rtl">
+                          {ex.howTo && ex.howTo.length > 0 && (
+                            <ol className="list-decimal list-inside text-[12px] text-main space-y-1 leading-relaxed pr-1">
+                              {ex.howTo.map((step, i) => (
+                                <li key={i} className="whitespace-pre-wrap">{step}</li>
+                              ))}
+                            </ol>
+                          )}
+                          {ex.videoUrl && <ExerciseVideo url={ex.videoUrl} />}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 );
               })}
@@ -572,8 +605,25 @@ export function Exercises({ uid, navigate }: Props) {
           }
           newThreadOnMount
           onClose={() => { setAiAddOpen(false); refresh(); }}
-          onAddToDb={async ({ exerciseName, muscle, en, isHoldTime }) => {
+          onAddToDb={async ({ exerciseName, muscle, en, isHoldTime, howTo }) => {
             await firestore.ensurePersonalExercise(exerciseName, muscle, en, isHoldTime);
+            // Merge in the AI's how-to steps if we have any — a plain
+            // ensure creates the exercise without them.
+            if (howTo && howTo.length > 0) {
+              const id = exerciseIdOf(exerciseName);
+              if (id) {
+                await firestore.upsertPersonalExercise({
+                  id,
+                  he: exerciseName,
+                  en,
+                  defaultMuscle: muscle,
+                  isHoldTime: isHoldTime || undefined,
+                  howTo,
+                  createdAt: Date.now(),
+                  updatedAt: Date.now(),
+                });
+              }
+            }
           }}
         />
       )}
@@ -763,6 +813,11 @@ function EditExerciseModal({
   const [isHoldTime, setIsHoldTime] = useState<boolean>(!!exercise.isHoldTime);
   const [isAnchor, setIsAnchor] = useState<boolean>(!!exercise.isAnchor);
   const [aiThinking, setAiThinking] = useState(false);
+  // New: how-to steps + video URL. Steps edited as a plain textarea, one line
+  // per step (blanks skipped on save). Kept optional — an exercise with
+  // neither field renders exactly as before elsewhere in the app.
+  const [howToText, setHowToText] = useState<string>((exercise.howTo || []).join('\n'));
+  const [videoUrl, setVideoUrl] = useState<string>(exercise.videoUrl || '');
 
   async function runAiSuggest() {
     if (!onAiSuggest || aiThinking) return;
@@ -850,6 +905,36 @@ function EditExerciseModal({
           <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">הערות</label>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="input-field !text-right !text-sm !py-2" dir="rtl" />
         </div>
+        {/* How-to steps — one per line. Persists as `howTo: string[]`.
+            The AI already writes these into its suggest_exercise action;
+            this is where a user (or coach) can review + edit them. */}
+        <div>
+          <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">
+            שלבי ביצוע (שורה = צעד)
+          </label>
+          <textarea
+            value={howToText}
+            onChange={e => setHowToText(e.target.value)}
+            rows={5}
+            className="input-field !text-right !text-sm !py-2"
+            dir="rtl"
+            placeholder={'לדוגמה:\nמניחים את הידיים ברוחב כתפיים\nיורדים באיטיות\nדוחפים חזרה'}
+          />
+        </div>
+        {/* Video URL — YouTube, Vimeo, or a direct .mp4. Embedded in the
+            exercise card when present. Optional. */}
+        <div>
+          <label className="block text-[10px] text-muted mb-1 text-right" dir="rtl">
+            וידאו (URL של יוטיוב / וימאו / קובץ)
+          </label>
+          <input
+            value={videoUrl}
+            onChange={e => setVideoUrl(e.target.value)}
+            className="input-field !text-left !text-sm !py-2"
+            dir="ltr"
+            placeholder="https://youtu.be/..."
+          />
+        </div>
         {/* Anchor toggle — surfaces this exercise at the TOP of every picker. */}
         <div className="card !p-3 !bg-transparent border dark:border-slate-800 border-slate-200" dir="rtl">
           <div className="flex items-start justify-between gap-3">
@@ -911,18 +996,82 @@ function EditExerciseModal({
       </div>
       <div className="p-4 border-t border-subtle">
         <button
-          onClick={() => onSave({
-            he: he.trim() || exercise.he,
-            en: en.trim() || undefined,
-            defaultMuscle: muscle,
-            aliases: aliasesText.split(',').map(s => s.trim()).filter(Boolean),
-            notes: notes.trim() || undefined,
-            isHoldTime: isHoldTime || undefined,
-            isAnchor: isAnchor || undefined,
-          })}
+          onClick={() => {
+            const steps = howToText.split('\n').map(s => s.trim()).filter(Boolean);
+            const vurl = videoUrl.trim();
+            onSave({
+              he: he.trim() || exercise.he,
+              en: en.trim() || undefined,
+              defaultMuscle: muscle,
+              aliases: aliasesText.split(',').map(s => s.trim()).filter(Boolean),
+              notes: notes.trim() || undefined,
+              isHoldTime: isHoldTime || undefined,
+              isAnchor: isAnchor || undefined,
+              howTo: steps.length > 0 ? steps : undefined,
+              videoUrl: vurl || undefined,
+            });
+          }}
           className="btn-primary w-full py-3 font-semibold"
         >שמור</button>
       </div>
     </div>
+  );
+}
+
+// Renders a video URL as either an embedded YouTube/Vimeo iframe or an
+// HTML5 <video> for direct files. Keeps the exercise card lightweight — no
+// autoplay, no autoloop, standard controls. If the URL doesn't fit a known
+// pattern, falls back to a plain link (safer than trying to embed unknown).
+function ExerciseVideo({ url }: { url: string }) {
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  const isDirect = /\.(mp4|webm|mov)(\?|$)/i.test(url);
+
+  const wrap = 'relative w-full aspect-video rounded-lg overflow-hidden bg-black/20 border border-subtle';
+
+  if (yt) {
+    return (
+      <div className={wrap}>
+        <iframe
+          src={`https://www.youtube.com/embed/${yt[1]}`}
+          title="Exercise video"
+          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full"
+        />
+      </div>
+    );
+  }
+  if (vimeo) {
+    return (
+      <div className={wrap}>
+        <iframe
+          src={`https://player.vimeo.com/video/${vimeo[1]}`}
+          title="Exercise video"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full"
+        />
+      </div>
+    );
+  }
+  if (isDirect) {
+    return (
+      <div className={wrap}>
+        <video src={url} controls playsInline preload="metadata" className="absolute inset-0 w-full h-full object-contain" />
+      </div>
+    );
+  }
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1.5 text-[12px] text-emerald-600 dark:text-emerald-400 hover:underline"
+      onClick={e => e.stopPropagation()}
+    >
+      <span>🎥 פתח וידאו</span>
+      <span className="text-[10px] text-muted truncate max-w-[180px]" dir="ltr">{url}</span>
+    </a>
   );
 }

@@ -13,6 +13,7 @@ import { CloseAction } from './TopBarActions';
 import { auth } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { openOnboardingChat } from './AiChatPanel';
+import { isCoacherEmail } from '../config/coaches';
 
 // Goals editing lives in the Body tab now (see components/GoalsCard.tsx) so this
 // screen is only for identity, appearance, and app-level toggles.
@@ -131,9 +132,34 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       />
       <div className="p-4 pb-4 max-w-lg mx-auto">
 
+      {/* ─── מאמן — surface FIRST for coacher accounts. It's the primary
+          thing they came here for. Regular users don't see this block at all. */}
+      {isCoacherEmail(authEmail) && (
+        <>
+          <SectionHeader first>מאמן</SectionHeader>
+          <button
+            onClick={() => navigate({ page: 'coach' })}
+            className="w-full card mb-4 border border-emerald-500/50 bg-emerald-500/[.03] dark:hover:bg-emerald-500/10 hover:bg-emerald-500/[.06]"
+            dir="rtl"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-right">
+                <div className="font-bold text-base flex items-center gap-2">
+                  <span>👥</span>
+                  <span>דשבורד מתאמנים</span>
+                </div>
+                <div className="text-xs text-muted mt-0.5">כל המתאמנים שלך, קישור הזמנה, וסטטוס יומי</div>
+              </div>
+              <span className="text-emerald-600 dark:text-emerald-400 text-lg">←</span>
+            </div>
+          </button>
+        </>
+      )}
+
       {/* ─── פרופיל ─── */}
-      <SectionHeader first>פרופיל</SectionHeader>
+      <SectionHeader first={!isCoacherEmail(authEmail)}>פרופיל</SectionHeader>
       <ProfileCard uid={uid} />
+      <MyCoachCard uid={uid} />
 
       {/* ─── שיחת היכרות (מאמן כושר בלבד — מקום זה) ─── */}
       {/* Each place's settings surfaces ONLY its own שיחת היכרות. Food coach's
@@ -728,6 +754,55 @@ function ForgetMeCard({ onLogout }: { onLogout: () => void }) {
           >{busy ? '...מוחק' : 'מחק את החשבון ואת כל הנתונים והתנתק'}</button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── "המאמן שלי" — shows the coach linked to this trainee ───────
+// Silent when the user has no coachUid set. When present, renders the
+// coach's name/email so the trainee knows who's guiding them, and can
+// contact them if needed.
+function MyCoachCard({ uid }: { uid: string }) {
+  const firestore = useFirestore(uid);
+  const firestoreRef = useRef(firestore);
+  firestoreRef.current = firestore;
+
+  const [coach, setCoach] = useState<{ email?: string | null; name?: string | null; photoURL?: string | null } | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const profile = await firestoreRef.current.getUserProfile();
+        const coachUid = (profile as any)?.coachUid;
+        if (!coachUid) { if (!cancelled) setLoaded(true); return; }
+        // Use the aliased-safe lookup — Shlomi's users_index doc is keyed
+        // by his APP uid (user_6724), not his raw auth uid. Same fallback
+        // as the invite page (see hooks/useCoachLookup.ts).
+        const { resolveCoachByAuthUid } = await import('../hooks/useCoachLookup');
+        const meta = await resolveCoachByAuthUid(coachUid);
+        if (cancelled) return;
+        if (meta) setCoach({ email: meta.email, name: meta.displayName, photoURL: meta.photoURL });
+      } catch { /* no coach — silent */ }
+      finally { if (!cancelled) setLoaded(true); }
+    })();
+    return () => { cancelled = true; };
+  }, [uid]);
+
+  if (!loaded || !coach) return null;
+  return (
+    <div className="card mb-4 border border-emerald-500/30" dir="rtl">
+      <div className="flex items-center gap-3">
+        {coach.photoURL
+          ? <img src={coach.photoURL} className="w-11 h-11 rounded-full object-cover shrink-0" alt="" />
+          : <div className="w-11 h-11 rounded-full bg-emerald-500/15 flex items-center justify-center text-sm font-bold text-emerald-600 dark:text-emerald-400 shrink-0">{(coach.name || coach.email || '?').slice(0, 1).toUpperCase()}</div>}
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-muted-most">המאמן שלך</div>
+          <div className="font-bold text-sm truncate">{coach.name || coach.email}</div>
+          {coach.email && <div className="text-[10px] text-muted truncate" dir="ltr">{coach.email}</div>}
+        </div>
+      </div>
     </div>
   );
 }
