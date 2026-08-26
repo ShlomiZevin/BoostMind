@@ -5,7 +5,8 @@ import { TopBar } from './TopBar';
 import { FoodAiAction, SettingsGearAction } from './TopBarActions';
 import { EditMealLogModal } from './EditMealLogModal';
 import {
-  MEAL_TYPES, caloriesOn, effectiveTargetOf, estimateBurn, startOfDay,
+  MEAL_TYPES, caloriesOn, effectiveProteinTargetOf, effectiveTargetOf, estimateBurn,
+  mealsMissingMacrosOn, proteinOn, startOfDay,
 } from '../data/diet';
 
 type Props = {
@@ -74,6 +75,7 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
 
   const eaten = useMemo(() => caloriesOn(logs, dayStart), [logs, dayStart]);
   const target = effectiveTargetOf(profile.diet);
+  const proteinTarget = effectiveProteinTargetOf(profile.diet);
   const burn = useMemo(() => {
     const todays = sessions.filter(s => (s.completedAt || s.date) >= dayStart);
     return estimateBurn(todays, profile.diet?.weightKg);
@@ -139,6 +141,8 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
             target is set yet. */}
         {(() => {
           const pct = target ? Math.min(1, Math.max(0, eaten / target)) : 0;
+          const protein = proteinOn(logs, dayStart);
+          const missingMacros = mealsMissingMacrosOn(logs, dayStart);
           const remaining = target ? Math.round(target - eaten + burn) : null;
           const over = remaining != null && remaining < 0;
           const RING = 54, STROKE = 9;
@@ -202,6 +206,42 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
                   )}
                 </div>
               </div>
+
+              {/* Protein. Calories decide whether weight moves; protein decides
+                  how much of it comes off muscle — so it earns a line of its own
+                  rather than living inside a macro breakdown you have to open. */}
+              {/* Shown from zero, not once a meal exists: a target you can only
+                  see after eating is useless for planning the day. */}
+              {proteinTarget != null && (
+                <div className="mt-4 pt-3 border-t border-subtle">
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <span className="text-[11px] text-muted">חלבון</span>
+                    <span className="text-[11px]">
+                      {/* "11 / 125" has to be ONE ltr run. Splitting the number
+                          out and leaving " / 125" in the RTL flow makes bidi
+                          reorder them, and it renders as 125 / 11. */}
+                      <span className="font-mono font-bold text-[13px]" dir="ltr">
+                        {protein} / {proteinTarget}
+                      </span>
+                      <span className="text-muted"> גרם</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-slate-500/15 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-sky-500 transition-[width] duration-500"
+                      style={{ width: `${Math.min(100, Math.round((protein / proteinTarget) * 100))}%` }}
+                    />
+                  </div>
+                  {/* A meal with no macro data is unknown, not zero — saying so
+                      keeps the bar from reading as a miss the user did not make. */}
+                  {missingMacros > 0 && (
+                    <div className="text-[10px] text-muted-more mt-1.5">
+                      {missingMacros} ארוחות היום בלי נתוני חלבון — שאל את המאמן והוא ישלים
+                    </div>
+                  )}
+                </div>
+              )}
+
 
               {(cleanDay || todayLogs.length > 0) && (
                 <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-subtle">
@@ -272,6 +312,20 @@ export function FoodToday({ uid, navigate, refreshKey, onAddMeal, onOpenChat }: 
                                 <span>{new Date(l.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
                                 {l.flags?.highSugar && <span title="עתיר סוכר">🍬</span>}
                                 {l.flags?.emptyCarbs && <span title="פחמימות ריקות">🍞</span>}
+                                {/* Protein per meal — it is a counted metric now,
+                                    so it belongs on the row next to the time, not
+                                    only inside the edit screen. Meals with no macro
+                                    data say so instead of showing a silent 0. */}
+                                {/* Labelled, not a bare "32g" — next to a clock
+                                    and a sugar icon an unlabelled number could be
+                                    anything. The digits stay one ltr run. */}
+                                {l.macros?.protein != null ? (
+                                  <span className="text-sky-600 dark:text-sky-400 font-semibold">
+                                    חלבון <span dir="ltr">{Math.round(l.macros.protein)}</span> גרם
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-more" title="אין נתוני חלבון">חלבון ?</span>
+                                )}
                               </div>
                             </div>
                             <span className="font-mono text-[13px] font-bold shrink-0" dir="ltr">{l.calories}</span>

@@ -24,6 +24,9 @@ export function EditMealLogModal({
     return `${p(d.getHours())}:${p(d.getMinutes())}`;
   });
   const [ingredients, setIngredients] = useState<MealIngredient[]>(log.ingredients || []);
+  // Protein is a counted metric now, so it is editable here rather than being
+  // something only the coach can set. Empty means unknown, not zero.
+  const [protein, setProtein] = useState(log.macros?.protein != null ? String(log.macros.protein) : '');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -37,6 +40,10 @@ export function EditMealLogModal({
     await firestore.updateMealLog(log.id, {
       name: name.trim(),
       calories: Math.max(0, Number(calories) || 0),
+      // Blank clears it back to unknown rather than recording a real 0g.
+      macros: protein.trim() === ''
+        ? { ...(log.macros || {}), protein: undefined }
+        : { ...(log.macros || {}), protein: Math.max(0, Number(protein) || 0) },
       ingredients,
       mealType,
       timestamp: base.getTime(),
@@ -44,9 +51,14 @@ export function EditMealLogModal({
     await onDone();
   }
 
+  // Same opt-in as the Today screen: removing what you ate and removing the dish
+  // from your library are different intentions, so one never implies the other.
+  const [alsoFromLibrary, setAlsoFromLibrary] = useState(false);
+
   async function remove() {
     setBusy(true);
     await firestore.deleteMealLog(log.id);
+    if (alsoFromLibrary && log.mealId) await firestore.deletePersonalMeal(log.mealId);
     await onDone();
   }
 
@@ -162,10 +174,38 @@ export function EditMealLogModal({
           />
         </div>
 
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-muted shrink-0">חלבון</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={protein}
+            onChange={e => setProtein(e.target.value)}
+            placeholder="לא ידוע"
+            className="input-field flex-1 py-2 text-base"
+          />
+          <span className="text-[12px] text-muted shrink-0">גרם</span>
+        </div>
+
+        {confirmDelete && log.mealId && (
+          <button
+            onClick={() => setAlsoFromLibrary(v => !v)}
+            className="w-full flex items-center gap-2.5 text-right pt-1"
+            dir="rtl"
+          >
+            <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 text-[12px] ${
+              alsoFromLibrary
+                ? 'bg-red-500 border-red-500 text-white'
+                : 'border-slate-300 dark:border-slate-600 text-transparent'
+            }`}>✓</span>
+            <span className="text-[13px] text-muted">למחוק גם מהמאגר, לא רק מהיום</span>
+          </button>
+        )}
+
         <div className="flex gap-2 pt-1">
           {confirmDelete ? (
             <>
-              <button onClick={() => setConfirmDelete(false)} className="btn-secondary flex-1 py-2.5">ביטול</button>
+              <button onClick={() => { setConfirmDelete(false); setAlsoFromLibrary(false); }} className="btn-secondary flex-1 py-2.5">ביטול</button>
               <button onClick={() => void remove()} disabled={busy} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold">
                 מחק
               </button>

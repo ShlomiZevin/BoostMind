@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wholos · 20 פוסטרים, שתי גרסאות מיתוג</title>
+<meta name="description" content="עשרים פוסטרים שנוצרו במודל, עם מיתוג גדול וצמוד לצד, בשתי גרסאות להשוואה.">
+<link rel="icon" type="image/svg+xml" href="/wholos-app/brand/mark-ink.svg">
+<script src="/uploads/queue.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--surface:#0e1220;--surface2:#141a2b;
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.17);
+  --text:#f4f7fc;--body:#a9b3c6;--muted:#7a8496;
+  --brand:#5b4bc4;--brand2:#9b8cf5;--train:#34d399;--food:#fbbf24;--red:#f87171;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--body);
+  font-family:Heebo,system-ui,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+header{padding:58px 0 8px}
+.mk{width:46px;height:46px;border-radius:12px;background:var(--brand);
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.mk svg{width:27px;height:27px}
+.eye{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand2);margin-bottom:12px}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.1;color:var(--text);
+  font-weight:900;letter-spacing:-.025em;margin:0}
+h2{font-size:clamp(21px,3vw,29px);line-height:1.2;color:var(--text);
+  font-weight:800;letter-spacing:-.02em;margin:0}
+.lead{font-size:16.5px;line-height:1.75;color:var(--body);max-width:72ch;margin:0}
+section{padding:42px 0;border-top:1px solid var(--border);margin-top:42px}
+header+section{border-top:none;margin-top:0}
+.vsw{position:sticky;top:0;z-index:40;display:flex;justify-content:center;align-items:center;
+  padding:10px 0 12px;background:linear-gradient(var(--bg) 62%,transparent)}
+.vsw .in{display:flex;gap:4px;padding:4px;border-radius:13px;
+  background:var(--surface2);border:1px solid var(--border)}
+.vsw button{font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;
+  padding:8px 16px;border-radius:9px;border:1px solid transparent;
+  background:none;color:var(--muted);transition:all .16s ease}
+.vsw button.on{background:var(--brand);border-color:var(--brand2);color:#fff}
+.vsw .u{font-size:12.5px;color:var(--muted);margin-inline-start:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.box{padding:17px 20px;border-radius:15px;font-size:14.5px;line-height:1.7;
+  background:var(--surface);border:1px solid var(--border)}
+.box h3{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--text)}
+.box ul{margin:0;padding-inline-start:18px} .box li{margin:3px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:20px;margin-top:24px}
+.cr{background:var(--surface);border:1px solid var(--border);border-radius:19px;
+  overflow:hidden;display:flex;flex-direction:column;transition:border-color .18s ease}
+.cr:hover{border-color:var(--border2)}
+.cr img{width:100%;display:block;background:#000}
+.b{padding:14px 16px 16px;display:flex;flex-direction:column;gap:9px}
+.hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.n{width:22px;height:22px;border-radius:7px;background:var(--surface2);
+  border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:800;color:var(--body)}
+.tag{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1px solid}
+.tag.new{color:var(--train);border-color:rgba(52,211,153,.42)}
+.tag.ref{color:#c3b6ff;border-color:rgba(195,182,255,.45)}
+.id{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);margin-inline-start:auto}
+.h{font-size:17px;font-weight:800;color:var(--text);line-height:1.35}
+.a{margin:0;font-size:13px;font-weight:700;color:var(--brand2)}
+.dl{display:flex;gap:7px;margin-top:2px}
+.dl a{flex:1;text-align:center;font-size:12.5px;font-weight:700;padding:9px 6px;
+  border-radius:10px;border:1px solid var(--border2);color:var(--body);
+  text-decoration:none;transition:all .16s ease}
+.dl a:hover{border-color:var(--brand2);color:var(--text)}
+footer{border-top:1px solid var(--border);margin-top:42px;padding:26px 0 80px;
+  color:var(--muted);font-size:13.5px}
+a{color:inherit}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;background:var(--surface2);
+  padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="mk">
+    <svg viewBox="0 0 64 64" fill="#fff" stroke="#fff" aria-hidden="true">
+      <circle cx="32" cy="32" r="27" fill="none" stroke-width="4.5"/>
+      <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" stroke="none"/>
+    </svg>
+  </div>
+  <span class="eye">Wholos · לאונרדו מלא · הרחבה</span>
+  <h1>20 פוסטרים, שתי גרסאות מיתוג</h1>
+  <p class="lead" style="margin-top:16px">
+    עשרת הפוסטרים מהסבב הקודם ועוד עשרה חדשים, כולם עם המיתוג המתוקן: גדול
+    יותר, צמוד לצד ולא במרכז. המתג למעלה מחליף את כל העמוד בין שתי הגרסאות —
+    כדאי להשוות אותן כסט, לא פוסטר אחד.
+  </p>
+
+  <div class="two">
+    <div class="box">
+      <h3>גרסה A · רצועה</h3>
+      <p style="margin:0">הלוגו על רצועה בצבע המותג מעל התמונה, עם קו מפריד.
+      התמונה נשארת שלמה ולא נחתכת, והמיתוג מופרד ממנה לגמרי.</p>
+    </div>
+    <div class="box">
+      <h3>גרסה B · על התמונה</h3>
+      <p style="margin:0">הלוגו יושב על התמונה עצמה, עם הצללה עדינה מאחוריו
+      לקריאות. התמונה ממלאת את כל הפריים.</p>
+    </div>
+  </div>
+
+  <div class="vsw">
+    <div class="in">
+      <button class="vb on" data-v="a">גרסה A · רצועה</button>
+      <button class="vb" data-v="b">גרסה B · על התמונה</button>
+    </div>
+    <span class="u">שתי הגרסאות זמינות להורדה בכל כרטיס</span>
+  </div>
+</header>
+
+<section>
+  <span class="eye">מה תוקן</span>
+  <h2>שלושה דברים</h2>
+  <div class="two">
+    <div class="box">
+      <h3>המיתוג</h3>
+      <ul>
+        <li>הסימן והשם גדולים משמעותית מקודם.</li>
+        <li>צמודים לצד ההתחלה, לא ממורכזים.</li>
+        <li>שתי גרסאות להשוואה, כפי שביקשת.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3><code>a01-exercise</code></h3>
+      <p style="margin:0">רצף ההדגמה של התרגיל יצא מוזר — שלוש דמויות קטנות
+      שחוזרות על עצמן. הפוסטר נוצר מחדש עם כרטיס תרגיל אחד ותצלום הדגמה יחיד.</p>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:16px;border-color:rgba(52,211,153,.32)">
+    <h3 style="color:var(--train)">תמונת רפרנס — צדקת, וזה עובד</h3>
+    <p style="margin:0">
+      הקוד ששלחת נכון. <code>imagePrompts</code> על <code>v1/generations</code>
+      יחד עם <code>modelId</code> עובד באמת — בדקתי עם בקרה: ״ציור שמן של חתול״
+      עם הסימן שלנו כרפרנס חזר כשהחתול מצויר <b>בתוך העיגול של הסימן</b>. מה
+      שלא עבד קודם היה <code>guidances</code>, ורק על נקודת הקצה של גרסה 2.
+      חמישה מהפוסטרים כאן (<span style="color:#c3b6ff">מסומנים ״לוגו כרפרנס״</span>)
+      נוצרו כך, עם Phoenix&nbsp;1.0.
+    </p>
+    <p style="margin:8px 0 0">
+      המגבלה שנשארה: המודל לוקח את המוטיב — עיגול, גל, הפלטה — אבל לא משחזר את
+      הסימן במדויק, וגם לא כותב עברית. לכן בחמישה האלה הכיתוב והלוגו האמיתי
+      מולבשים אחרי היצירה, והתמונה עצמה נושאת את שפת המותג.
+      <code>gpt-image-2</code>, שכן כותב עברית, לא תומך ב-<code>imagePrompts</code>.
+    </p>
+  </div>
+</section>
+
+<section>
+  <span class="eye">הסט</span>
+  <h2>20 פוסטרים</h2>
+  <div class="grid">
+      <article class="cr">
+        <a class="sh" href="img/a/a01-exercise.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a01-exercise.jpg" alt="״זה תרגיל חדש למאגר.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">1</span><span class="tag new">חדש</span><span class="id">a01-exercise</span></div>
+          <div class="h">״זה תרגיל חדש למאגר.״</div>
+          <p class="a">ה-AI ממלא שם, שריר וצעדים.</p>
+          <div class="dl">
+            <a href="img/a/a01-exercise.jpg" download>הורדה · A</a>
+            <a href="img/b/a01-exercise.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a02-workout.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a02-workout.jpg" alt="״תבנה אימון קצר לדניאל.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">2</span><span class="id">a02-workout</span></div>
+          <div class="h">״תבנה אימון קצר לדניאל.״</div>
+          <p class="a">ה-AI יוצר הצעה שאפשר לערוך.</p>
+          <div class="dl">
+            <a href="img/a/a02-workout.jpg" download>הורדה · A</a>
+            <a href="img/b/a02-workout.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a03-today.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a03-today.jpg" alt="״מי תיעד ארוחה היום?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">3</span><span class="id">a03-today</span></div>
+          <div class="h">״מי תיעד ארוחה היום?״</div>
+          <p class="a">הדשבורד מציג מה תועד היום.</p>
+          <div class="dl">
+            <a href="img/a/a03-today.jpg" download>הורדה · A</a>
+            <a href="img/b/a03-today.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a04-invite.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a04-invite.jpg" alt="״שלחתי קישור למתאמן חדש.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">4</span><span class="id">a04-invite</span></div>
+          <div class="h">״שלחתי קישור למתאמן חדש.״</div>
+          <p class="a">הוא מופיע ברשימת המתאמנים שלך.</p>
+          <div class="dl">
+            <a href="img/a/a04-invite.jpg" download>הורדה · A</a>
+            <a href="img/b/a04-invite.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a05-meal.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a05-meal.jpg" alt="״אכלתי סלמון, אורז ואבוקדו.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">5</span><span class="id">a05-meal</span></div>
+          <div class="h">״אכלתי סלמון, אורז ואבוקדו.״</div>
+          <p class="a">ה-AI מפרק לארוחה שאפשר להוסיף.</p>
+          <div class="dl">
+            <a href="img/a/a05-meal.jpg" download>הורדה · A</a>
+            <a href="img/b/a05-meal.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a06-evening.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a06-evening.jpg" alt="״מה נשאר לי לערב?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">6</span><span class="id">a06-evening</span></div>
+          <div class="h">״מה נשאר לי לערב?״</div>
+          <p class="a">ה-AI מציע אפשרויות לפי היום.</p>
+          <div class="dl">
+            <a href="img/a/a06-evening.jpg" download>הורדה · A</a>
+            <a href="img/b/a06-evening.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a07-short-workout.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a07-short-workout.jpg" alt="״אין לי זמן לאימון מלא.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">7</span><span class="id">a07-short-workout</span></div>
+          <div class="h">״אין לי זמן לאימון מלא.״</div>
+          <p class="a">ה-AI בונה אימון קצר להתחלה.</p>
+          <div class="dl">
+            <a href="img/a/a07-short-workout.jpg" download>הורדה · A</a>
+            <a href="img/b/a07-short-workout.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a08-chest.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a08-chest.jpg" alt="״כמה סטים עשיתי לחזה?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">8</span><span class="id">a08-chest</span></div>
+          <div class="h">״כמה סטים עשיתי לחזה?״</div>
+          <p class="a">ה-AI מציג נפח מול היעד.</p>
+          <div class="dl">
+            <a href="img/a/a08-chest.jpg" download>הורדה · A</a>
+            <a href="img/b/a08-chest.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a09-today-plan.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a09-today-plan.jpg" alt="״מה כדאי לעשות היום?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">9</span><span class="id">a09-today-plan</span></div>
+          <div class="h">״מה כדאי לעשות היום?״</div>
+          <p class="a">ה-AI בודק היסטוריה ויעדים.</p>
+          <div class="dl">
+            <a href="img/a/a09-today-plan.jpg" download>הורדה · A</a>
+            <a href="img/b/a09-today-plan.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/a10-machine.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/a10-machine.jpg" alt="״איזה שריר המכונה הזאת?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">10</span><span class="id">a10-machine</span></div>
+          <div class="h">״איזה שריר המכונה הזאת?״</div>
+          <p class="a">ה-AI מזהה על מה עובדים.</p>
+          <div class="dl">
+            <a href="img/a/a10-machine.jpg" download>הורדה · A</a>
+            <a href="img/b/a10-machine.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b01-superset.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b01-superset.jpg" alt="״תחבר לי את שני התרגילים.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">11</span><span class="tag new">חדש</span><span class="id">b01-superset</span></div>
+          <div class="h">״תחבר לי את שני התרגילים.״</div>
+          <p class="a">יוצר סופרסט ומציע לשמור.</p>
+          <div class="dl">
+            <a href="img/a/b01-superset.jpg" download>הורדה · A</a>
+            <a href="img/b/b01-superset.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b02-rest-timer.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b02-rest-timer.jpg" alt="״כמה מנוחה נשארה לי?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">12</span><span class="tag new">חדש</span><span class="id">b02-rest-timer</span></div>
+          <div class="h">״כמה מנוחה נשארה לי?״</div>
+          <p class="a">מציג כמה זמן נשאר למנוחה.</p>
+          <div class="dl">
+            <a href="img/a/b02-rest-timer.jpg" download>הורדה · A</a>
+            <a href="img/b/b02-rest-timer.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b03-previous.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b03-previous.jpg" alt="״מה הרמתי בתרגיל הזה?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">13</span><span class="tag new">חדש</span><span class="id">b03-previous</span></div>
+          <div class="h">״מה הרמתי בתרגיל הזה?״</div>
+          <p class="a">מציג את נתוני הפעם הקודמת.</p>
+          <div class="dl">
+            <a href="img/a/b03-previous.jpg" download>הורדה · A</a>
+            <a href="img/b/b03-previous.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b04-future-workout.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b04-future-workout.jpg" alt="״תכנן לי אימון ליום חמישי.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">14</span><span class="tag new">חדש</span><span class="id">b04-future-workout</span></div>
+          <div class="h">״תכנן לי אימון ליום חמישי.״</div>
+          <p class="a">בונה אימון עתידי שאפשר להתחיל.</p>
+          <div class="dl">
+            <a href="img/a/b04-future-workout.jpg" download>הורדה · A</a>
+            <a href="img/b/b04-future-workout.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b05-meal-photo-library.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b05-meal-photo-library.jpg" alt="״מה אכלתי בתמונה?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">15</span><span class="tag new">חדש</span><span class="id">b05-meal-photo-library</span></div>
+          <div class="h">״מה אכלתי בתמונה?״</div>
+          <p class="a">מפרק רכיבים ושומר במאגר האישי.</p>
+          <div class="dl">
+            <a href="img/a/b05-meal-photo-library.jpg" download>הורדה · A</a>
+            <a href="img/b/b05-meal-photo-library.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b06-goal-history.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b06-goal-history.jpg" alt="״על מה בנוי היעד שלי?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">16</span><span class="tag ref">לוגו כרפרנס</span><span class="id">b06-goal-history</span></div>
+          <div class="h">״על מה בנוי היעד שלי?״</div>
+          <p class="a">מציג יעד מחושב והיסטוריה כפי שנרשמה.</p>
+          <div class="dl">
+            <a href="img/a/b06-goal-history.jpg" download>הורדה · A</a>
+            <a href="img/b/b06-goal-history.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b07-coach-inactive.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b07-coach-inactive.jpg" alt="״מי לא נכנס היום?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">17</span><span class="tag ref">לוגו כרפרנס</span><span class="id">b07-coach-inactive</span></div>
+          <div class="h">״מי לא נכנס היום?״</div>
+          <p class="a">מציג מתי כל מתאמן נראה.</p>
+          <div class="dl">
+            <a href="img/a/b07-coach-inactive.jpg" download>הורדה · A</a>
+            <a href="img/b/b07-coach-inactive.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b08-coach-invite.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b08-coach-invite.jpg" alt="״שלח קישור לנועה.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">18</span><span class="tag ref">לוגו כרפרנס</span><span class="id">b08-coach-invite</span></div>
+          <div class="h">״שלח קישור לנועה.״</div>
+          <p class="a">יוצר קישור הזמנה אישי.</p>
+          <div class="dl">
+            <a href="img/a/b08-coach-invite.jpg" download>הורדה · A</a>
+            <a href="img/b/b08-coach-invite.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b09-coach-view.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b09-coach-view.jpg" alt="״פתח את רועי כמתאמן.״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">19</span><span class="tag ref">לוגו כרפרנס</span><span class="id">b09-coach-view</span></div>
+          <div class="h">״פתח את רועי כמתאמן.״</div>
+          <p class="a">מציג את מסכי האימון והתזונה שלו.</p>
+          <div class="dl">
+            <a href="img/a/b09-coach-view.jpg" download>הורדה · A</a>
+            <a href="img/b/b09-coach-view.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+      <article class="cr">
+        <a class="sh" href="img/a/b10-coach-daily-log.jpg" target="_blank">
+          <img loading="lazy" src="thumb/a/b10-coach-daily-log.jpg" alt="״כמה ארוחות תועדו היום?״"></a>
+        <div class="b">
+          <div class="hd"><span class="n">20</span><span class="tag ref">לוגו כרפרנס</span><span class="id">b10-coach-daily-log</span></div>
+          <div class="h">״כמה ארוחות תועדו היום?״</div>
+          <p class="a">מציג רישום יומי לכל מתאמן.</p>
+          <div class="dl">
+            <a href="img/a/b10-coach-daily-log.jpg" download>הורדה · A</a>
+            <a href="img/b/b10-coach-daily-log.jpg" download>הורדה · B</a>
+          </div>
+        </div>
+      </article>
+  </div>
+</section>
+
+<footer>
+  <div>Wholos · 20 פוסטרים × 2 גרסאות מיתוג = 40 קבצים</div>
+  <div style="margin-top:8px">
+    <a href="/marketing-hub/">מרכז הקריאייטיב</a> ·
+    <a href="/marketing-13/">סבב 13</a> ·
+    <a href="/uploads/">להעלאה</a> ·
+    <a href="/wholos/">עמוד הבית</a>
+  </div>
+</footer>
+
+</div>
+<script>
+
+/* One switch for the whole page: every thumbnail and link moves between the
+   two branding versions at once, so they can be judged as sets. */
+function setV(v){
+  document.querySelectorAll('.cr img').forEach(function(im){
+    im.setAttribute('src', im.getAttribute('src').replace(/thumb\/[ab]\//,'thumb/'+v+'/')); });
+  document.querySelectorAll('.cr a.sh').forEach(function(a){
+    a.setAttribute('href', a.getAttribute('href').replace(/img\/[ab]\//,'img/'+v+'/')); });
+  document.querySelectorAll('.vb').forEach(function(b){
+    b.classList.toggle('on', b.dataset.v===v); });
+}
+document.querySelectorAll('.vb').forEach(function(b){
+  b.addEventListener('click', function(){ setV(b.dataset.v); });
+});
+
+</script>
+</body>
+</html>

@@ -796,10 +796,13 @@ app.post('/api/chat', async (req, res) => {
     // A real conversation, exactly like the trainer — NOT a form. When a meal
     // comes up it emits a suggest_meal block, which the client renders as an
     // editable card inside the chat. The talking never stops for it.
-    const { dietProfile, personalMeals, todayMeals, todayBurn } = req.body || {};
+    const { dietProfile, personalMeals, todayMeals, todayBurn, proteinTarget } = req.body || {};
     const mealsList = Array.isArray(personalMeals) ? personalMeals : [];
     const todayList = Array.isArray(todayMeals) ? todayMeals : [];
     const eatenToday = todayList.reduce((a, m) => a + (Number(m.calories) || 0), 0);
+    const proteinToday = todayList.reduce((a, m) => a + (Number(m.macros && m.macros.protein) || 0), 0);
+    // Meals logged before macros were tracked, or added without them.
+    const noMacroCount = todayList.filter(m => !m.macros || m.macros.protein == null).length;
 
     const dietaryPrompt = [
       "אתה מאמן תזונה אישי של משתמש דובר עברית. אתה בשיחה — לא בטופס.",
@@ -895,6 +898,16 @@ app.post('/api/chat', async (req, res) => {
       "",
       MEAL_NAMING_RULES,
       "",
+      "== חלבון ==",
+      "חלבון נספר עכשיו לצד הקלוריות, ויש לו יעד יומי משלו. תמיד תמלא macros.protein",
+      "בכל בלוק של ארוחה — גם suggest_meal, גם update_meal וגם update_meal_log.",
+      "אם משתמש מוסיף מנה מהמאגר שאין לה נתוני מאקרו — תשלים אותם בהערכה סבירה",
+      "לפי הרכיבים, ותציע update_meal כדי שהמנה במאגר תלמד אותם לפעם הבאה.",
+      "כשאתה מדבר על מה נשאר להיום — תזכיר את החלבון לצד הקלוריות, במשפט אחד,",
+      "תמיד ביחס ליעד היומי: \"נשארו לך 620 קק״ל ו-73 גרם חלבון\". לא הרצאה, שורה.",
+      "כשנשאר לו הרבה חלבון להשלים — תציע מקורות קונקרטיים, לא הרצאה.",
+      "אל תמציא מספר מדויק כשאתה לא יודע; עדיף טווח או שאלה קצרה אחת.",
+      "",
       "== קלוריות ==",
       "פרק תמיד למרכיבים עם מספר לכל אחד; calories = הסכום שלהם.",
       "אל תמציא מספרים כשאין לך מושג — תשאל שאלה קצרה אחת במקום.",
@@ -937,6 +950,10 @@ app.post('/api/chat', async (req, res) => {
       "",
       `== היום עד עכשיו ==`,
       `נאכל: ${eatenToday} קק״ל${todayBurn ? ` · נשרף באימון: ~${Number(todayBurn) || 0} קק״ל` : ''}`,
+      proteinTarget
+        ? `חלבון: ${Math.round(proteinToday)} מתוך ${proteinTarget} גרם ליום` +
+          (noMacroCount ? ` (ל-${noMacroCount} ארוחות היום אין נתוני מאקרו — הערך בפועל גבוה יותר)` : '')
+        : null,
       // Time, slot, portion, ingredient breakdown and macros — not just a name
       // and a number. Without these the coach cannot answer "what did I have
       // this morning", "how much protein so far", or "what was in that".

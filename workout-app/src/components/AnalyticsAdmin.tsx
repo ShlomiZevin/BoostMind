@@ -53,7 +53,17 @@ type UserRow = {
   firstReferrer?: string | null;
 };
 
-type UserActivity = { sessions: number | null; meals: number | null };
+type UserActivity = {
+  sessions: number | null;
+  meals: number | null;
+  // Today-only slice for the expand-on-click summary. `null` while loading /
+  // if the query failed. `caloriesToday` is a real sum (reads today's meal
+  // docs), so the today-only enrichment costs slightly more than the counts
+  // above and only runs when the user is expanded.
+  sessionsToday?: number | null;
+  mealsToday?: number | null;
+  caloriesToday?: number | null;
+};
 
 // One row per Anthropic response, written by the Cloud Run server. Cost is
 // pre-computed on write using MODEL_PRICING in server/index.js so the client
@@ -114,6 +124,8 @@ export function AnalyticsAdmin({ flat }: { flat?: boolean } = {}) {
   const [err, setErr] = useState<string | null>(null);
   const [lastLoadAt, setLastLoadAt] = useState<number>(0);
   const loadedForRange = useRef<RangeKey | null>(null);
+  // Which user row is expanded to show today's summary. Only one at a time.
+  const [expandedUid, setExpandedUid] = useState<string | null>(null);
 
   async function load(force = false) {
     if (busy) return;
@@ -185,6 +197,64 @@ export function AnalyticsAdmin({ flat }: { flat?: boolean } = {}) {
     });
     return () => { cancelled = true; };
   }, [users]);
+
+  // On-demand: when a user row is expanded, fetch TODAY's slice — count of
+  // sessions today + list of today's meals (so we can sum calories). Runs
+  // once per uid, cached in the same activity map.
+  useEffect(() => {
+    if (!expandedUid) return;
+    const already = activity.get(expandedUid);
+    if (already && already.sessionsToday !== undefined) return;
+    let cancelled = false;
+    (async () => {
+      const startToday = (() => { const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); })();
+      try {
+        const [sessSnap, mealsSnap] = await Promise.all([
+          (async () => {
+            const q = query(collection(db, 'users', expandedUid, 'freeSessions'), where('date', '>=', startToday));
+            return getCountFromServer(q).catch(() => null);
+          })(),
+          (async () => {
+            const q = query(collection(db, 'users', expandedUid, 'mealLogs'), where('timestamp', '>=', startToday));
+            return getDocs(q).catch(() => null);
+          })(),
+        ]);
+        if (cancelled) return;
+        const sessionsToday = sessSnap ? sessSnap.data().count : null;
+        let mealsToday: number | null = null;
+        let caloriesToday: number | null = null;
+        if (mealsSnap) {
+          const docs = mealsSnap.docs;
+          mealsToday = docs.length;
+          caloriesToday = docs.reduce((sum, d) => {
+            const data = d.data() as any;
+            const cal = Number(data.calories) || 0;
+            const serv = Number(data.servings) || 1;
+            return sum + cal * serv;
+          }, 0);
+        }
+        setActivity(prev => {
+          const next = new Map(prev);
+          const prevRow = next.get(expandedUid) || { sessions: null, meals: null };
+          next.set(expandedUid, { ...prevRow, sessionsToday, mealsToday, caloriesToday });
+          return next;
+        });
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [expandedUid]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // uid → email lookup so the LLM cost list can render real emails instead of
+  // opaque uids. Anonymous events (no uid) get a friendly label.
+  const uidToEmail = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const u of users || []) if (u.email) m.set(u.uid, u.email);
+    return m;
+  }, [users]);
+  function displayForUid(uid: string): string {
+    if (uid === '(anonymous)') return 'אנונימי';
+    return uidToEmail.get(uid) || uid;
+  }
 
   useEffect(() => {
     if (expanded) void load();
@@ -461,75 +531,141 @@ export function AnalyticsAdmin({ flat }: { flat?: boolean } = {}) {
 
                     {llmTotals.users.length > 0 && (
                       <div className="border-t border-subtle">
-                        <div className="text-[10px] text-muted-more font-semibold px-3 pt-2 pb-1">משתמשים לפי הוצאה</div>
-                        {llmTotals.users.map(([uid, s], i) => (
-                          <div key={uid} className={`flex items-center gap-2 px-3 py-1.5 text-[12px] ${i > 0 ? 'border-t border-subtle' : ''}`}>
-                            <span className="flex-1 min-w-0 truncate" dir="ltr">
-                              {uid === '(anonymous)' ? 'ללא uid' : uid}
-                            </span>
-                            <span className="font-mono text-muted-more">{s.msgs} msg</span>
-                            <span className="font-mono font-bold w-16 text-left text-emerald-600 dark:text-emerald-400" dir="ltr">
-                              ${s.cost.toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
+                        <div className="text-[10px] text-muted-more font-semibold px-3 pt-2 pb-1">הוצאה לפי משתמשים</div>
+                        {llmTotals.users.map(([uid, s], i) => {
+                          const label = displayForUid(uid);
+                          const hasEmail = label.includes('@');
+                          return (
+                            <div key={uid} className={`flex items-center gap-2 px-3 py-1.5 text-[12px] ${i > 0 ? 'border-t border-subtle' : ''}`}>
+                              <span
+                                className={`flex-1 min-w-0 truncate ${hasEmail ? '' : 'text-muted-more'}`}
+                                dir={hasEmail ? 'ltr' : 'rtl'}
+                                title={uid}
+                              >
+                                {label}
+                              </span>
+                              <span className="font-mono text-muted-more">{s.msgs} msg</span>
+                              <span className="font-mono font-bold w-16 text-left text-emerald-600 dark:text-emerald-400" dir="ltr">
+                                ${s.cost.toFixed(2)}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Users who registered */}
+              {/* Users who registered — sorted by "last seen" so the most
+                  recently active ones surface first. Click a row to expand
+                  today's summary (calories eaten today + sessions logged
+                  today). Load on demand. */}
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-widest text-muted-most mb-1.5">
-                  משתמשים שנרשמו ({users?.length ?? 0})
+                  משתמשים שנרשמו ({users?.length ?? 0}) · מסודר לפי פעילות אחרונה
                 </div>
                 {(users?.length ?? 0) === 0 ? (
                   <div className="text-[12px] text-muted py-3 text-center">אף אחד עוד לא נרשם</div>
                 ) : (
                   <div className="rounded-xl border border-subtle overflow-hidden">
-                    {(users || []).map((u, i) => {
+                    {[...(users || [])]
+                      .sort((a, b) => (b.lastSeenAt || b.firstSeenAt || 0) - (a.lastSeenAt || a.firstSeenAt || 0))
+                      .map((u, i) => {
                       const act = activity.get(u.uid);
+                      const isOpen = expandedUid === u.uid;
+                      const lastAt = u.lastSeenAt || u.firstSeenAt;
                       return (
-                        <div
-                          key={u.uid}
-                          className={`flex items-center gap-3 px-3 py-2.5 ${i > 0 ? 'border-t border-subtle' : ''}`}
-                        >
-                          {u.photoURL ? (
-                            <img src={u.photoURL} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-subtle flex items-center justify-center text-muted text-sm font-bold shrink-0">
-                              {(u.displayName || u.email || '?').slice(0, 1).toUpperCase()}
+                        <div key={u.uid} className={`${i > 0 ? 'border-t border-subtle' : ''}`}>
+                          <button
+                            onClick={() => setExpandedUid(prev => prev === u.uid ? null : u.uid)}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 text-right dark:hover:bg-slate-800/40 hover:bg-slate-500/[.04]"
+                          >
+                            {u.photoURL ? (
+                              <img src={u.photoURL} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-full bg-subtle flex items-center justify-center text-muted text-sm font-bold shrink-0">
+                                {(u.displayName || u.email || '?').slice(0, 1).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0 text-right">
+                              <div className="font-bold text-[13px] truncate" dir="ltr">
+                                {u.email || u.displayName || u.uid}
+                              </div>
+                              {u.email && u.displayName && (
+                                <div className="text-[10px] text-muted truncate">{u.displayName}</div>
+                              )}
+                              {/* Total usage across all time */}
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                <UsageChip label="אימונים" value={act?.sessions} tone="emerald" />
+                                <UsageChip label="ארוחות" value={act?.meals} tone="amber" />
+                              </div>
+                            </div>
+                            <div className="text-left shrink-0">
+                              <div className="text-[11px] text-muted" title={lastAt ? new Date(lastAt).toLocaleString('he-IL') : ''}>
+                                פעיל: {fmtWhen(lastAt)}
+                              </div>
+                              <div className="text-[10px] text-muted-more">
+                                <span className="font-mono">{u.signInCount || 1}</span> כניסות
+                              </div>
+                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                {isOpen ? '▲ סגור' : '▼ סיכום היום'}
+                              </div>
+                            </div>
+                          </button>
+                          {isOpen && (
+                            <div className="px-3 pb-3 -mt-1 border-t border-subtle/50 dark:bg-slate-900/40 bg-slate-500/[.03]">
+                              <div className="text-[10px] uppercase tracking-wider text-muted-most py-2">
+                                סיכום היום
+                              </div>
+                              {(() => {
+                                const t = act?.sessionsToday;
+                                const m = act?.mealsToday;
+                                const cal = act?.caloriesToday;
+                                // AI today — computed from the already-loaded aiUsage
+                                // list. No extra fetch. `lastLoadAt` recomputed to
+                                // 00:00 local so we don't need a separate query per user.
+                                const startToday = (() => { const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); })();
+                                const aiRows = (aiUsage || []).filter(r => r.uid === u.uid && (r.ts || 0) >= startToday);
+                                const aiCost = aiRows.reduce((s, r) => s + (r.cost_usd || 0), 0);
+                                const aiCalls = aiRows.length;
+                                const loading = t === undefined || m === undefined || cal === undefined;
+                                if (loading) {
+                                  return <div className="text-[11px] text-muted-most py-1">טוען…</div>;
+                                }
+                                const active = (t || 0) + (m || 0) + aiCalls > 0;
+                                return (
+                                  <div className="grid grid-cols-4 gap-2 text-center">
+                                    <div className={`rounded-lg py-2 ${(t || 0) > 0 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-slate-500/10 text-muted-most'}`}>
+                                      <div className="text-[10px]">🏋️ אימונים</div>
+                                      <div className="font-mono font-bold text-lg">{t ?? '—'}</div>
+                                    </div>
+                                    <div className={`rounded-lg py-2 ${(m || 0) > 0 ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-slate-500/10 text-muted-most'}`}>
+                                      <div className="text-[10px]">🍽 ארוחות</div>
+                                      <div className="font-mono font-bold text-lg">{m ?? '—'}</div>
+                                    </div>
+                                    <div className={`rounded-lg py-2 ${(cal || 0) > 0 ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-slate-500/10 text-muted-most'}`}>
+                                      <div className="text-[10px]">קק״ל</div>
+                                      <div className="font-mono font-bold text-lg">{cal != null ? Math.round(cal) : '—'}</div>
+                                    </div>
+                                    <div
+                                      className={`rounded-lg py-2 ${aiCalls > 0 ? 'bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'bg-slate-500/10 text-muted-most'}`}
+                                      title={aiCalls > 0 ? `${aiCalls} קריאות · $${aiCost.toFixed(4)}` : 'אין שיחות AI היום'}
+                                    >
+                                      <div className="text-[10px]">💬 AI</div>
+                                      <div className="font-mono font-bold text-sm leading-tight">{aiCalls}</div>
+                                      <div className="text-[9px] font-mono opacity-80" dir="ltr">${aiCost < 1 ? aiCost.toFixed(3) : aiCost.toFixed(2)}</div>
+                                    </div>
+                                    {!active && (
+                                      <div className="col-span-4 text-[10px] text-muted-more mt-1">
+                                        לא נרשמה פעילות היום
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
-                          <div className="flex-1 min-w-0 text-right">
-                            <div className="font-bold text-[13px] truncate">
-                              {u.displayName || u.email || u.uid}
-                            </div>
-                            <div className="text-[11px] text-muted truncate" dir="ltr">
-                              {u.email || u.uid}
-                            </div>
-                            {/* Real usage — training sessions + meals from the
-                                app's own subcollections, not from the events log. */}
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              <UsageChip
-                                label="אימונים"
-                                value={act?.sessions}
-                                tone="emerald"
-                              />
-                              <UsageChip
-                                label="ארוחות"
-                                value={act?.meals}
-                                tone="amber"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-left shrink-0">
-                            <div className="text-[11px] text-muted">{fmtWhen(u.firstSeenAt)}</div>
-                            <div className="text-[10px] text-muted-more">
-                              <span className="font-mono">{u.signInCount || 1}</span> כניסות
-                            </div>
-                          </div>
                         </div>
                       );
                     })}

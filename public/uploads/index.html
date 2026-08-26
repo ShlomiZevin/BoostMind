@@ -104,6 +104,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;background:var(--su
     <button class="btn p" id="all">הורדת הכל</button>
     <button class="btn" id="copy">העתקת הקישורים</button>
     <button class="btn d" id="clear">ניקוי הרשימה</button>
+    <a class="btn" href="/uploads/?clear=1">ניקוי מיידי</a>
     <a class="btn" href="/marketing-6/">סבב 6</a>
     <a class="btn" href="/marketing-7/">סבב 7</a>
     <span class="n"><b id="count">0</b> פריטים</span>
@@ -133,6 +134,19 @@ var SEED = [{"id": "c01-meet-b", "key": "marketing-6:c01-meet-b", "page": "marke
 
 function read(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
 function write(q){ try { localStorage.setItem(KEY, JSON.stringify(q)); } catch(e){} }
+
+/* /uploads/?clear=1 empties the list without a confirm dialog — a link that
+   can be handed over and just works. The seeded flag is deliberately LEFT SET,
+   otherwise the original 17 would repopulate on the next load. */
+(function(){
+  if (location.search.indexOf('clear=1') === -1) return;
+  try {
+    localStorage.setItem(KEY, '{}');
+    localStorage.setItem(SEEDED, '1');
+  } catch(e){}
+  history.replaceState(null, '', location.pathname);
+  window.__wq_cleared = true;
+})();
 
 /* Seed once. Guarded by its own flag so removing an approved item does not
    bring it back on the next visit. */
@@ -227,6 +241,11 @@ document.getElementById('clear').addEventListener('click', function(){
 /* queue.js is deferred, so it has not run yet when this inline script does.
    Deferred scripts finish before DOMContentLoaded — check there. */
 document.addEventListener('DOMContentLoaded', function(){
+  if (window.__wq_cleared) {
+    var e = document.getElementById('empty');
+    if (e) e.insertAdjacentHTML('afterbegin',
+      '<div style="color:var(--train);font-weight:800;margin-bottom:10px">הרשימה נוקתה.</div>');
+  }
   if (window.WholosSave && window.WholosSave.supported) {
     document.getElementById('all').textContent = 'שמירת הכל לגלריה';
     var m = document.getElementById('mobnote'); if (m) m.style.display = '';

@@ -14,6 +14,7 @@ import { auth } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { openOnboardingChat } from './AiChatPanel';
 import { isCoacherEmail } from '../config/coaches';
+import { isBetaTesterEmail } from '../config/betaTesters';
 
 // Goals editing lives in the Body tab now (see components/GoalsCard.tsx) so this
 // screen is only for identity, appearance, and app-level toggles.
@@ -160,6 +161,34 @@ export function Settings({ uid, navigate, onLogout }: Props) {
       <SectionHeader first={!isCoacherEmail(authEmail)}>פרופיל</SectionHeader>
       <ProfileCard uid={uid} />
       <MyCoachCard uid={uid} />
+
+      {/* ─── דיווחי באגים (בטא-טסטרים) ─── prominent, not buried in a dev
+          section. Coaches see this too because they can also file. Admins
+          have the same shortcut in the מפתחים block; hidden here to avoid
+          two identical entries in his own settings. */}
+      {isBetaTesterEmail(authEmail) && !isCoacherEmail(authEmail) && (
+        <>
+          <SectionHeader>דיווחים</SectionHeader>
+          <button
+            onClick={() => setReportsOpen(true)}
+            className="w-full card mb-4 border border-violet-500/40 bg-violet-500/[.03] dark:hover:bg-violet-500/10 hover:bg-violet-500/[.06]"
+            dir="rtl"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-right">
+                <div className="font-bold text-sm flex items-center gap-2">
+                  <span>🐞 דיווחי באגים ופיצ׳רים</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/40 uppercase tracking-wider">בטא</span>
+                </div>
+                <div className="text-[11px] text-muted mt-0.5">
+                  תיעדו כל דבר תוך כדי שימוש — טיפ: דאבל-קליק בכל מקום מפתח את הטופס
+                </div>
+              </div>
+              <span className="text-muted text-lg shrink-0">←</span>
+            </div>
+          </button>
+        </>
+      )}
 
       {/* ─── שיחת היכרות (מאמן כושר בלבד — מקום זה) ─── */}
       {/* Each place's settings surfaces ONLY its own שיחת היכרות. Food coach's

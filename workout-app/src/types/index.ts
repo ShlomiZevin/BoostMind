@@ -262,6 +262,10 @@ export type DietProfile = {
   activityMultiplier?: number;   // 1.2 sedentary → 1.725 very active
   dailyCalorieTarget?: number;
   dailyCalorieTargetManual?: boolean;  // stop recomputing when stats change
+  /** Grams per day. Calories decide weight; protein decides how much of the
+   *  loss comes off muscle instead of fat, which is why it gets its own target. */
+  dailyProteinTarget?: number;
+  dailyProteinTargetManual?: boolean;
   avoidSugar?: boolean;
   avoidEmptyCarbs?: boolean;
   constraints?: string;          // free text, read verbatim by the coach
@@ -311,6 +315,12 @@ export type AppReport = {
   resolution?: string;
   /** The thread. Oldest first. Absent on reports that predate it. */
   comments?: ReportComment[];
+  /** Who filed the report. Stamped on write for reports coming from beta
+   *  testers so the admin panel can attribute them and the tester panel can
+   *  filter its own list. Absent on legacy docs authored by Shlomi (which
+   *  the admin panel treats as "authored by you"). */
+  authorUid?: string;
+  authorEmail?: string;
 };
 
 // Chat persistence — moved from localStorage → Firestore so answers survive

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { DietProfile, UserProfile } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
-import { ACTIVITY_LEVELS, bmrOf, suggestedTargetOf, tdeeOf } from '../data/diet';
+import { ACTIVITY_LEVELS, bmrOf, effectiveProteinTargetOf, suggestedProteinOf, suggestedTargetOf, tdeeOf } from '../data/diet';
 import { CalorieMathModal } from './CalorieMathModal';
 
 // Collapsible diet-profile card. Same shape as the training ProfileCard
@@ -73,6 +73,8 @@ export function DietProfileCard({ uid, defaultExpanded }: { uid: string; default
   const bmr = bmrOf(diet);
   const tdee = tdeeOf(diet);
   const suggested = suggestedTargetOf(diet);
+  const suggestedProtein = suggestedProteinOf(diet);
+  const shownProtein = effectiveProteinTargetOf(diet);
   const usingManual = !!diet.dailyCalorieTargetManual && !!diet.dailyCalorieTarget;
   const shownTarget = usingManual ? diet.dailyCalorieTarget! : (suggested ?? 0);
 
@@ -249,6 +251,41 @@ export function DietProfileCard({ uid, defaultExpanded }: { uid: string; default
                 className="w-full text-[12px] text-amber-600 dark:text-amber-400 py-1 mt-1"
               >
                 חזור לחישוב אוטומטי ({suggested})
+              </button>
+            )}
+          </div>
+
+          {/* Protein target. Second only to calories, and the one macro worth a
+              number of its own — so it gets the same manual-override shape as
+              the calorie target rather than being buried in the profile. */}
+          <div>
+            <label className={`${GROUP_LABEL} mb-1.5`}>יעד חלבון יומי</label>
+            {suggestedProtein == null ? (
+              <div className="text-[12px] text-muted">מלא משקל כדי לחשב יעד חלבון.</div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => void patchDiet({ dailyProteinTarget: Math.max(40, (shownProtein || suggestedProtein) - 5), dailyProteinTargetManual: true })}
+                  className={`w-10 h-10 rounded-xl text-lg font-bold ${SURFACE}`}
+                >−</button>
+                <div className="flex-1 text-center">
+                  <div className="text-2xl font-bold font-mono" dir="ltr">{shownProtein}</div>
+                  <div className="text-[10px] text-muted">
+                    {diet.dailyProteinTargetManual ? "ידני · גרם ליום" : "מחושב · גרם ליום"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => void patchDiet({ dailyProteinTarget: (shownProtein || suggestedProtein) + 5, dailyProteinTargetManual: true })}
+                  className={`w-10 h-10 rounded-xl text-lg font-bold ${SURFACE}`}
+                >+</button>
+              </div>
+            )}
+            {diet.dailyProteinTargetManual && suggestedProtein != null && (
+              <button
+                onClick={() => void patchDiet({ dailyProteinTargetManual: false })}
+                className="w-full text-[12px] text-amber-600 dark:text-amber-400 py-1 mt-1"
+              >
+                חזור לחישוב אוטומטי ({suggestedProtein})
               </button>
             )}
           </div>

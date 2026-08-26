@@ -14,6 +14,7 @@ import { OnboardingScreen } from './components/OnboardingScreen';
 import { TabBar } from './components/TabBar';
 import { StartSessionModal } from './components/StartSessionModal';
 import { Chronograph } from './components/Chronograph';
+import { LiveSessionBadge } from './components/LiveSessionBadge';
 import { useTimer } from './hooks/useTimer';
 import { useStandaloneStopwatch } from './hooks/useStandaloneStopwatch';
 import { useAiTrainerPanel } from './hooks/useAiTrainerPanel';
@@ -52,6 +53,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from './config/firebase';
 import { ImpersonationCtx } from './hooks/useImpersonation';
 import { isCoacherEmail } from './config/coaches';
+import { isBetaTesterEmail } from './config/betaTesters';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
 } from './places/registry';
@@ -158,10 +160,10 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
   // EMAIL_TO_UID drifts, the gate keeps holding for shlomi@boostart.io only.
   const { email: authEmail, displayName } = useAuth();
   const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
-  // Coaches also get the double-click-anywhere reports shortcut — they need
-  // to file bugs / feature requests from inside the app the same way Shlomi
-  // does. Same isCoacherEmail list that gates the coach dashboard.
-  const canOpenReports = isAdmin || isCoacherEmail(authEmail);
+  // Coaches AND beta testers get the double-click-anywhere reports shortcut —
+  // filing bugs from wherever they saw them is the whole point of beta.
+  // Admin/coacher/beta all reach the same panel (view is scoped inside).
+  const canOpenReports = isAdmin || isCoacherEmail(authEmail) || isBetaTesterEmail(authEmail);
 
   // Double-click shortcut — opens the bug/feature reports panel from
   // anywhere in the app. Reason (rep_1787310001832_4jel): the entry buried in
@@ -695,6 +697,17 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
           hasInProgress={!!inProgress}
           onFabClick={handleFabClick}
           onFabLongPress={() => setFanOpen(true)}
+        />
+      )}
+
+      {/* Live-session floating badge — visible when the user has an active
+          session but is on some other screen. Tap to jump back. Suppressed
+          on the session page itself (which shows its own Chronograph) and
+          during impersonation (coach isn't the one training). */}
+      {inProgress && route.page !== 'session' && !isImpersonating && (
+        <LiveSessionBadge
+          session={inProgress}
+          onClick={() => navigate({ page: 'session', sessionId: inProgress.id })}
         />
       )}
 

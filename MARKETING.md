@@ -191,6 +191,24 @@ matzav-marketing/code/build_cN.js    renders → outN/{no-url,with-url}/ and cam
 
 Every creative gets two variants: clean, and with `wholos.com` printed.
 
+### A2 · Real screenshots — the strongest proof, and the easiest to caption wrong
+
+When the hero is a real screen from the app, the Hebrew and the numbers are
+already true. The only thing that can lie is the caption you put above it.
+
+- **Read the screen before writing a word about it.** Open it enlarged. Do not
+  brief a model from a contact-sheet glance — `s05` shipped as
+  `״תבנה לי אימון גב.״` over a screen showing a **legs** plan, because the brief
+  said "a detailed workout plan" and never named the muscle. `s06` was wrong the
+  same way.
+- **If the screen shows a message the user typed, quote that.** It is already
+  the perfect line, it is guaranteed to match, and it is a real moment.
+- **The יי/וו constraint does not apply here.** That rule only ever governed
+  model-rendered text. This pipeline prints in HTML, so `היסטוריית` and `טווח`
+  are fine — applying the rule anyway costs good copy for nothing.
+- Duplicate screens: a screenshot folder often contains the same screen in both
+  themes. Use each screen **once**, and pick themes to balance the round.
+
 ### B · Full model — image *and* typography from the model
 Used when a different visual language is wanted. The text is baked in and
 cannot be corrected without regenerating.
@@ -206,19 +224,56 @@ The prompt shape that works, learned the hard way:
 5. **Never use two adjacent identical short letters** — `יי` or `וו`. `מתייעצים`
    failed 3 out of 3 attempts, in the same place, even when the prompt spelled
    it out letter by letter. Choose a different word; do not retry.
+   Screen every string for this *before* generating — it costs nothing and has
+   caught `שווארמה`, `בצהריים`, `אופניים` and `טיימר` on the way in.
+6. **Keep a printed line to three or four words, and proofread for missing
+   words.** Word drop is a *separate* failure from letter corruption and it
+   scales with length: a five-word line came back as `״בבוקר אכלתי וגרנולה.״`
+   with `יוגורט` gone entirely, every surviving letter perfect. A dropped word
+   still reads as fluent Hebrew, so it survives a skim — check the string you
+   asked for word by word, not just letter by letter.
+7. **If the creative shows a labelled example, name every part of it.** Asked
+   for "an exercise card", the model produced a wide lat pulldown labelled
+   *כתפיים* — a pairing that does not exist. Pin the exercise, the muscle group
+   and the movement in the prompt, and forbid the alternatives explicitly, or
+   it will invent a combination a professional will spot instantly.
 
 **Adding the logo.** The model cannot draw the mark correctly. Composite it
 afterwards: an HTML frame with the real lockup above the artwork, screenshotted
 at 1080×1920 — which also fixes `gpt-image-2`'s 2:3 output into a 9:16 story.
-Reference images *do* exist on the v1 endpoint (`init_image_id`, and
-`controlnets` with a compatible model), but not for the modern models, and
-`guidances` is rejected on both endpoints — see LEONARDO.md §6b.
+**Reference images: works, but not useful here.** `imagePrompts` on
+`v1/generations` with an explicit `modelId` genuinely applies the reference —
+proven by a control where a cat came back drawn inside the circle of our mark.
+But the models that accept it are the older family: they cannot write Hebrew,
+and given a product brief they return decorative abstraction. A batch made that
+way was discarded whole. `gpt-image-2`, the one that spells Hebrew, is v2 and
+does not accept it. So: **composite the mark, and do not spend a round on the
+reference route.** See LEONARDO.md §6a.
 
-**The current brand strip** (`gpt-5.6-sol`, on every full-model poster):
+**The approved brand lockup** (`gpt-5.6-sol` wrote the descriptor):
 
 > **Wholos**
 > אפליקציה למעקב ותיעוד אימונים ותזונה עם ליווי AI
 > **למתאמנים ולמאמנים**
+
+Two layouts exist and both are approved; **version A (the strip) is the signed-off
+default** — a 372px brand-ink band above the artwork, lockup hard against the
+start edge. Version B floats the same lockup over the picture across a soft
+gradient seam. Sizes that were accepted: mark **126px**, wordmark **104px**,
+descriptor 33px / 31px. Anything smaller reads as a caption and was rejected.
+
+Three things that took three attempts to get right, all avoidable:
+
+- **Set a colour on the lockup container.** The mark is an SVG painted with
+  `currentColor`; the container had none, so it inherited black, went invisible
+  on a dark band, and shipped that way across 40 files. The wordmark beside it
+  looked fine, which is exactly why nobody noticed.
+- **Never force a 2:3 artwork into a 9:16 frame with `cover`.** It can only do
+  that by cutting the sides off. At full width the art is 1080×1620 — place it
+  at its natural height and use the leftover 300px.
+- **Measure before overlaying anything.** Full-model posters have their headline
+  burned in. Scan for the first text row and keep the lockup clear of it; across
+  this set the earliest text starts at **0.159 of image height**.
 
 ### Proofreading generated Hebrew — the method that works
 Do not eyeball a contact sheet and do not guess crop windows; both produced
@@ -270,6 +325,10 @@ Photos, and Instagram cannot see them there.
 | 11 | introduction | nobody knew what the product was; always say both domains |
 | 12 | full model, 10 posters | GPT Image 2 beats NBP on small Hebrew |
 | 13 | same art, new brand strip | the descriptor must say *app*, *what*, *who* |
+| 14 | +10 posters, 2 branding versions | superseded — invisible mark, and the reference batch was noise |
+| 15 | the working 15, branding fixed | **approved.** Strip version signed off as the default |
+| 16 | +10, five deliberately light | tone by scene, and version B flips its seam to match the artwork |
+| 17 | six real app screenshots | read the screen before captioning it — two captions described the wrong screen |
 
 ---
 
@@ -329,6 +388,12 @@ already looked like a broken deploy when the config was fine.
 - **`gpt-image-2` rejects `quality`** and sometimes fails to queue with a
   malformed response — catch per request and retry that one.
 - **A generated image under ~5KB is an error page**, not an image. Check size.
+- **Version the filename whenever a poster's content changes.** Same URL with
+  new bytes means the reviewer is served the old image from cache and reports
+  that your fix did nothing. This cost a full round on `marketing-15`: the file
+  was correct on disk and correct on the server, and still looked unchanged.
+  The rule was already written for share cards — it applies to every image you
+  ask someone to look at twice.
 
 ---
 
@@ -339,7 +404,12 @@ already looked like a broken deploy when the config was fine.
 - [ ] One CTA, one arrow, per creative
 - [ ] Both audiences kept distinct; coach limits respected
 - [ ] Every Hebrew string in a generated image proofread letter by letter
+- [ ] …and word by word — confirm no word was dropped from the line you asked for
+- [ ] Every caption checked against the screen it sits on, enlarged, not from a thumbnail
 - [ ] Numbers with slashes pinned LTR and visually confirmed
+- [ ] The mark is actually visible in the exported file — look at it, don't assume
+- [ ] No artwork cropped to fit a frame; check the sides survived
+- [ ] Filenames versioned if a poster changed since it was last shown
 - [ ] Round staged under `public/marketing-N/`, registered in the hub manifest
 - [ ] `/uploads/queue.js` loaded on the page so creatives can be marked
 - [ ] Deployed, then verified live with a cache-buster

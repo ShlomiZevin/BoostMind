@@ -3,6 +3,7 @@ import type { FreeSet, FreeSession } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { MUSCLE_BY_ID, MUSCLE_CLASSES, ACTIVE_MUSCLES } from '../data/muscles';
 import { type PersonalExercise } from '../data/exercisesDB';
+import { effectiveProteinTargetOf } from '../data/diet';
 import { CHAT_API_URL } from '../config/api';
 import { getAiModel, DEFAULT_AI_MODEL } from '../config/aiModel';
 import { useFirestore } from '../hooks/useFirestore';
@@ -1375,6 +1376,9 @@ export function AiChatPanel({
                 macros: m.macros,
               }))
             : undefined,
+          // Protein is tracked now, so the coach needs the target to answer
+          // "how much do I have left" — not just the calorie one.
+          proteinTarget: mode === 'dietary' ? effectiveProteinTargetOf(dietProfile) : undefined,
           personalMeals: mode === 'dietary'
             ? personalMeals.slice(0, 200).map(m => ({
                 id: m.id,

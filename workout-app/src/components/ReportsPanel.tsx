@@ -3,6 +3,9 @@ import type { AppReport, ReportComment, ReportKind, ReportPlaceTag, ReportStatus
 import { useFirestore } from '../hooks/useFirestore';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { compressImage } from '../hooks/usePhotos';
+import { useAuth } from '../hooks/useAuth';
+import { isBetaTesterEmail } from '../config/betaTesters';
+import { isCoacherEmail } from '../config/coaches';
 
 // Capture notes in the app, while you are looking at the thing.
 //
@@ -39,6 +42,17 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
   const firestore = useFirestore(uid);
   const firestoreRef = useRef(firestore);
   firestoreRef.current = firestore;
+
+  // Who's viewing determines what they see. Admin/coacher = the full list
+  // (triage view). Beta tester = ONLY their own submissions (the list they
+  // filed themselves). Everyone else shouldn't have this panel open at all
+  // — the trigger is gated in App/Settings.
+  const { email: authEmail } = useAuth();
+  const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
+  const isBeta = isBetaTesterEmail(authEmail);
+  const isCoach = isCoacherEmail(authEmail);
+  // Only Shlomi + coaches see everyone's reports; beta testers see their own.
+  const viewAll = isAdmin || isCoach;
 
   const [reports, setReports] = useState<AppReport[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -102,21 +116,35 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
     return () => { cancelled = true; };
   }, [uid]);
 
+  // Beta testers see ONLY the reports they filed themselves — matched by
+  // authorEmail (falls back to authorUid). Admin + coaches see everything.
+  // The all reports live in one shared collection, so filtering here is what
+  // makes the panel personal without moving data around.
+  const mine = useMemo(() => {
+    if (viewAll) return reports;
+    return reports.filter(r =>
+      (r.authorEmail && authEmail && r.authorEmail.toLowerCase() === authEmail.toLowerCase())
+      || (r.authorUid && r.authorUid === uid)
+    );
+  }, [reports, viewAll, authEmail, uid]);
   const shown = useMemo(
-    () => (filter === 'all' ? reports : reports.filter(r => r.status === filter)),
-    [reports, filter],
+    () => (filter === 'all' ? mine : mine.filter(r => r.status === filter)),
+    [mine, filter],
   );
 
-  const openCount = reports.filter(r => r.status === 'open').length;
+  const openCount = mine.filter(r => r.status === 'open').length;
 
   async function submit() {
     if (busy || !text.trim()) return;
     setBusy(true);
     try {
+      // Stamp the author so beta-tester reports are attributable in the
+      // shared collection. Admin/Shlomi submissions also carry his email
+      // for consistency, but the filter above never restricts him.
       await firestoreRef.current.addReport({
         kind, place, text: text.trim(),
         screenshotBase64: shot || undefined,
-      });
+      }, { uid, email: authEmail });
       setText(''); setShot(null); setComposing(false);
       await reload();
     } finally {
@@ -153,8 +181,22 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
     <div className="fixed inset-0 z-[75] flex flex-col overlay-solid">
       <div className="flex items-center justify-between p-4 border-b border-subtle" dir="rtl">
         <div>
-          <h2 className="font-bold text-lg">דיווחים</h2>
-          <div className="text-[11px] text-muted">{openCount} פתוחים · {reports.length} סה״כ</div>
+          <h2 className="font-bold text-lg flex items-center gap-2">
+            <span>דיווחים</span>
+            {/* Beta tester badge — tells the tester this is their scoped view.
+                Only shows when the viewer is a tester AND not also an admin. */}
+            {isBeta && !isAdmin && (
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/40 uppercase tracking-wider"
+                title="אתה בטא-טסטר — רואה את הדיווחים שאתה שלחת"
+              >
+                בטא
+              </span>
+            )}
+          </h2>
+          <div className="text-[11px] text-muted">
+            {openCount} פתוחים · {mine.length} {viewAll ? 'סה״כ' : 'שלי'}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <button

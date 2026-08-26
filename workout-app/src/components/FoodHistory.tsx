@@ -4,7 +4,8 @@ import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { FoodAiAction, SettingsGearAction } from './TopBarActions';
 import { EditMealLogModal } from './EditMealLogModal';
-import { MEAL_TYPES, effectiveTargetOf, estimateBurn, startOfDay } from '../data/diet';
+import { LogMealModal } from './LogMealModal';
+import { MEAL_TYPES, effectiveProteinTargetOf, effectiveTargetOf, estimateBurn, proteinOn, startOfDay } from '../data/diet';
 
 type Props = { uid: string; navigate: (r: Route) => void; refreshKey?: number; onOpenChat: () => void };
 
@@ -19,6 +20,10 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [editing, setEditing] = useState<MealLog | null>(null);
+  // Which past day we are adding a meal to. Editing and deleting already worked
+  // here (tapping a row opens the same modal Today uses, and it carries מחק);
+  // adding was the missing third.
+  const [addingTo, setAddingTo] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +47,7 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
   }
 
   const target = effectiveTargetOf(profile.diet);
+  const proteinTarget = effectiveProteinTargetOf(profile.diet);
 
   // Newest day first; each day carries its own logs so a row can expand in place.
   const days = useMemo(() => {
@@ -64,6 +70,8 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
           items: items.sort((a, b) => b.timestamp - a.timestamp),
           total: items.reduce((a, x) => a + (x.calories || 0), 0),
           burn: estimateBurn(todays, profile.diet?.weightKg),
+          protein: proteinOn(items, day),
+          missingMacros: items.filter(x => x.macros?.protein == null).length,
         };
       })
       .sort((a, b) => b.day - a.day);
@@ -85,7 +93,7 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
           <div className="card text-center py-10 text-[13px] text-muted">
             עוד אין היסטוריה — כל ארוחה שתרשום תופיע כאן
           </div>
-        ) : days.map(({ day, items, total, burn }) => {
+        ) : days.map(({ day, items, total, burn, protein, missingMacros }) => {
           const key = String(day);
           // Same arithmetic as היום, so a past day reads the same way as today.
           const net = total - burn;
@@ -101,7 +109,23 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
                   <div className="font-semibold text-[13px]">
                     {new Date(day).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'short' })}
                   </div>
-                  <div className="text-[10px] text-muted">{items.length} ארוחות</div>
+                  {/* Protein rides the existing sub-line rather than joining the
+                      numeric cluster on the right — that row already carries
+                      יעד · נאכל · נשרף · גירעון, and a fifth column there would
+                      wreck it on a phone. "88 / 125" stays one ltr run so bidi
+                      does not flip it. */}
+                  <div className="text-[10px] text-muted flex items-center gap-1.5">
+                    <span>{items.length} ארוחות</span>
+                    {proteinTarget != null && (
+                      <>
+                        <span className="text-muted-more">·</span>
+                        <span className={protein >= proteinTarget ? "text-sky-600 dark:text-sky-400 font-semibold" : ""}>
+                          חלבון <span dir="ltr">{protein} / {proteinTarget}</span>
+                        </span>
+                        {missingMacros > 0 && <span className="text-muted-more" title="ארוחות בלי נתוני חלבון">({missingMacros}?)</span>}
+                      </>
+                    )}
+                  </div>
                 </div>
                 {/* goal · eaten · result — the three numbers that make a past
                     day mean something. */}
@@ -152,18 +176,46 @@ export function FoodHistory({ uid, navigate, refreshKey, onOpenChat }: Props) {
                       </span>
                       {l.flags?.highSugar && <span>🍬</span>}
                       {l.flags?.emptyCarbs && <span>🍞</span>}
+                      {/* Same label as Today — protein per meal reads the same
+                          wherever you look at a meal. */}
+                      {l.macros?.protein != null && (
+                        <span className="shrink-0 text-[10px] text-sky-600 dark:text-sky-400 font-semibold">
+                          חלבון <span dir="ltr">{Math.round(l.macros.protein)}</span>
+                        </span>
+                      )}
                       <span className="font-mono text-muted shrink-0" dir="ltr">{l.calories}</span>
                       <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-more shrink-0">
                         <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
                       </svg>
                     </button>
                   ))}
+                  <button
+                    onClick={() => setAddingTo(day)}
+                    className="w-full flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg
+                               border border-dashed border-subtle text-[12px] font-semibold text-muted
+                               dark:hover:bg-slate-800 hover:bg-slate-50"
+                  >
+                    <span className="text-[14px] leading-none">+</span>
+                    הוסף ארוחה ליום הזה
+                  </button>
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {addingTo != null && (
+        <LogMealModal
+          uid={uid}
+          forDay={addingTo}
+          onClose={() => setAddingTo(null)}
+          onSaved={async () => { setAddingTo(null); await reload(); }}
+          /* The coach only ever talks about today, so offering it from a past
+             day would hand the conversation the wrong date. */
+          onOpenChat={() => setAddingTo(null)}
+        />
+      )}
 
       {editing && (
         <EditMealLogModal

@@ -4,7 +4,7 @@ import type { MealDraft } from './AiChatPanel';
 import { useFirestore } from '../hooks/useFirestore';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { compressImage } from '../hooks/usePhotos';
-import { MEAL_TYPES, daysAgoLabel, mealTypeForNow, pickMeals } from '../data/diet';
+import { MEAL_TYPES, daysAgoLabel, mealTypeForNow, pickMeals, startOfDay } from '../data/diet';
 
 // The MANUAL path: pick from your library, or type a name and a number.
 // Fast, offline, no waiting. The conversational path is the AI button in the
@@ -30,11 +30,15 @@ type Props = {
   onSaved: () => void;
   /** Hand off to the conversational path. */
   onOpenChat: () => void;
+  /** Log onto a specific day instead of now — used from the history screen.
+   *  Start-of-day epoch ms; the time of day is kept at noon so the entry sorts
+   *  sensibly among that day's meals without pretending to a real clock time. */
+  forDay?: number | null;
 };
 
 const SERVING_STEPS = [0.5, 1, 1.5, 2];
 
-export function LogMealModal({ uid, initialDraft, onClose, onSaved, onOpenChat }: Props) {
+export function LogMealModal({ uid, initialDraft, onClose, onSaved, onOpenChat, forDay }: Props) {
   useBodyScrollLock();
   const firestore = useFirestore(uid);
   const firestoreRef = useRef(firestore);
@@ -43,6 +47,17 @@ export function LogMealModal({ uid, initialDraft, onClose, onSaved, onOpenChat }
   // Only used to bias the picker toward the current slot and to seed a new
   // draft — the user picks the actual meal type in the specifics step.
   const mealType: MealType = initialDraft?.mealType || mealTypeForNow();
+
+  // The button has to name the day it writes to. Saying "הוסף להיום" while
+  // logging onto 21.8 is a quiet way to put a meal on the wrong date.
+  // Yesterday keeps a word rather than a number — it is how people say it.
+  const addLabel = (() => {
+    if (!forDay) return 'הוסף להיום';
+    const today = startOfDay();
+    if (forDay === today) return 'הוסף להיום';
+    if (forDay === today - 24 * 60 * 60 * 1000) return 'הוסף לאתמול';
+    return `הוסף ל-${new Date(forDay).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })}`;
+  })();
   const [meals, setMeals] = useState<PersonalMeal[]>([]);
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState<Draft | null>(
@@ -108,6 +123,8 @@ export function LogMealModal({ uid, initialDraft, onClose, onSaved, onOpenChat }
         macros: draft.macros,
         flags: draft.flags,
         photoBase64: draft.photoBase64,
+        // Only set when logging onto a past day; otherwise logMeal stamps now.
+        ...(forDay ? { timestamp: forDay + 12 * 60 * 60 * 1000 } : {}),
       });
       // Saving an edited chat card still settles that card, so reopening the
       // conversation shows it as added rather than offering it again.
@@ -289,7 +306,7 @@ export function LogMealModal({ uid, initialDraft, onClose, onSaved, onOpenChat }
               disabled={saving || !draft.he.trim() || draft.caloriesPerServing <= 0}
               className="w-full py-3 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-400 disabled:opacity-40 transition-colors"
             >
-              {saving ? 'שומר…' : 'הוסף להיום'}
+              {saving ? 'שומר…' : addLabel}
             </button>
             {!draft.mealId && (
               <div className="text-[11px] text-muted text-center">ארוחה חדשה — תישמר גם למאגר שלך</div>

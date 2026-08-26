@@ -165,3 +165,41 @@ export function daysAgoLabel(ts?: number): string {
   if (d < 30) return `לפני ${Math.floor(d / 7)} שב׳`;
   return `לפני ${Math.floor(d / 30)} חוד׳`;
 }
+
+/**
+ * Suggested daily protein, in grams.
+ *
+ * Calories decide whether weight moves; protein decides how much of that comes
+ * off muscle rather than fat, which is why it is the one macro with a target of
+ * its own. ~1.8 g/kg while cutting, a little less at maintenance — the range
+ * most of the evidence lands in, without pretending to more precision than that.
+ */
+export function suggestedProteinOf(p: DietProfile | undefined): number | null {
+  const w = p?.weightKg;
+  if (!w || w <= 0) return null;
+  const perKg = p?.goal === 'lose' ? 1.8 : p?.goal === 'gain' ? 1.7 : 1.6;
+  return Math.round((w * perKg) / 5) * 5;
+}
+
+/** Manual target wins; otherwise the suggestion. */
+export function effectiveProteinTargetOf(p: DietProfile | undefined): number | null {
+  if (p?.dailyProteinTargetManual && p?.dailyProteinTarget) return p.dailyProteinTarget;
+  return suggestedProteinOf(p);
+}
+
+/** Grams of protein logged on a given day. Meals without macros contribute 0 —
+ *  they are unknown, not zero, so the UI says so rather than implying a miss. */
+export function proteinOn(logs: MealLog[], dayStart: number): number {
+  const end = dayStart + 86_400_000;
+  let g = 0;
+  for (const l of logs) {
+    if (l.timestamp >= dayStart && l.timestamp < end) g += l.macros?.protein || 0;
+  }
+  return Math.round(g);
+}
+
+/** How many of that day's meals have no macro data at all. */
+export function mealsMissingMacrosOn(logs: MealLog[], dayStart: number): number {
+  const end = dayStart + 86_400_000;
+  return logs.filter(l => l.timestamp >= dayStart && l.timestamp < end && l.macros?.protein == null).length;
+}

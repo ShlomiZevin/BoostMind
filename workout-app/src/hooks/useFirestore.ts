@@ -1533,6 +1533,13 @@ export function useFirestore(uid: string | null) {
           patch.calories = Math.max(0, Math.round(input.caloriesPerServing));
           patch.updatedAt = Date.now();
         }
+        // Macros are tracked now, and most saved meals predate them. A log
+        // that carries macros teaches them to the template, so the library
+        // fills itself in as you eat rather than needing a migration.
+        if (input.macros && input.macros.protein != null) {
+          patch.macros = input.macros;
+          patch.updatedAt = Date.now();
+        }
         await setDoc(doc(personalMealsCol(uid), templateId), patch, { merge: true });
       } catch { /* template may be global / read-only */ }
     }
@@ -1622,21 +1629,30 @@ export function useFirestore(uid: string | null) {
   }, [uid]);
 
   // ─── Bug / feature reports ────────────────────────────────────
-  // Lives under the user so the existing rules cover it, and so a session can
-  // read the whole list with one REST GET on:
-  //   users/{uid}/reports
-  function reportsCol(u: string) { return collection(db, 'users', u, 'reports'); }
+  // ALL reports land in ONE shared collection under Shlomi's tree so the
+  // admin dashboard can triage every user's bug + feature ask in one place.
+  // Beta testers file into the same collection; each doc carries
+  // `authorUid` + `authorEmail`, and the panel filters to just the caller's
+  // own reports for non-admin viewers.
+  //
+  // Firestore rules on `users/user_6724/reports/**` are open (read+write) —
+  // see firestore.rules "Bug/feature reports" carve-out. That's what lets
+  // an unauthenticated Claude session AND a signed-in beta tester both
+  // write here.
+  const REPORTS_TARGET_UID = 'user_6724';
+  function reportsCol() { return collection(db, 'users', REPORTS_TARGET_UID, 'reports'); }
 
   const listReports = useCallback(async (): Promise<AppReport[]> => {
-    if (!uid) return [];
-    const snap = await getDocs(reportsCol(uid));
+    const snap = await getDocs(reportsCol());
     return snap.docs
       .map(d => d.data() as AppReport)
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [uid]);
+  }, []);
 
-  const addReport = useCallback(async (r: Omit<AppReport, 'id' | 'createdAt' | 'updatedAt' | 'status'> & { status?: AppReport['status'] }): Promise<string | null> => {
-    if (!uid) return null;
+  const addReport = useCallback(async (
+    r: Omit<AppReport, 'id' | 'createdAt' | 'updatedAt' | 'status'> & { status?: AppReport['status'] },
+    author?: { uid?: string | null; email?: string | null },
+  ): Promise<string | null> => {
     const now = Date.now();
     const id = `rep_${now}_${Math.random().toString(36).slice(2, 6)}`;
     // Allocate the next sequential #NUM by scanning current reports and
@@ -1645,7 +1661,7 @@ export function useFirestore(uid: string | null) {
     // load. For a single-user admin flow this is fine.
     let nextNum = 1;
     try {
-      const snap = await getDocs(reportsCol(uid));
+      const snap = await getDocs(reportsCol());
       let max = 0;
       snap.docs.forEach(d => {
         const n = (d.data() as any)?.num;
@@ -1653,18 +1669,25 @@ export function useFirestore(uid: string | null) {
       });
       nextNum = max + 1;
     } catch { /* keep default 1 */ }
-    const clean: any = { ...r, id, num: nextNum, status: r.status || 'open', createdAt: now, updatedAt: now };
+    const clean: any = {
+      ...r, id, num: nextNum, status: r.status || 'open',
+      createdAt: now, updatedAt: now,
+      // Author fields — stamped from the CALLER, not from the target uid
+      // (which is always Shlomi). Fallback to the hook's own uid + provided
+      // email so a beta tester's report is attributable to them.
+      authorUid: (author?.uid ?? uid) || undefined,
+      authorEmail: author?.email || undefined,
+    };
     Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
-    await setDoc(doc(reportsCol(uid), id), clean);
+    await setDoc(doc(reportsCol(), id), clean);
     return id;
   }, [uid]);
 
   const updateReport = useCallback(async (id: string, patch: Partial<AppReport>): Promise<void> => {
-    if (!uid) return;
     const clean: any = { ...patch, updatedAt: Date.now() };
     Object.keys(clean).forEach(k => { if (clean[k] === undefined) delete clean[k]; });
-    await setDoc(doc(reportsCol(uid), id), clean, { merge: true });
-  }, [uid]);
+    await setDoc(doc(reportsCol(), id), clean, { merge: true });
+  }, []);
 
   /**
    * Append one message to a report's thread.
@@ -1691,7 +1714,7 @@ export function useFirestore(uid: string | null) {
       text: clean,
     };
     await setDoc(
-      doc(reportsCol(uid), reportId),
+      doc(reportsCol(), reportId),
       { comments: arrayUnion(comment), updatedAt: now },
       { merge: true },
     );
@@ -1699,9 +1722,8 @@ export function useFirestore(uid: string | null) {
   }, [uid]);
 
   const deleteReport = useCallback(async (id: string): Promise<void> => {
-    if (!uid) return;
-    await deleteDoc(doc(reportsCol(uid), id));
-  }, [uid]);
+    await deleteDoc(doc(reportsCol(), id));
+  }, []);
 
   // Dietary profile lives under profile/main alongside the training profile.
   const updateDietProfile = useCallback(async (patch: Partial<DietProfile>): Promise<UserProfile> => {

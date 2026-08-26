@@ -3,8 +3,9 @@ import type { FreeSession, MealLog, Route, UserProfile } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 import { TopBar } from './TopBar';
 import { FoodAiAction, SettingsGearAction } from './TopBarActions';
-import { caloriesOn, effectiveTargetOf, estimateBurn, startOfDay } from '../data/diet';
+import { caloriesOn, effectiveProteinTargetOf, effectiveTargetOf, estimateBurn, proteinOn, startOfDay } from '../data/diet';
 import { DietProfileCard } from './DietProfileCard';
+import { FatMathSheet } from './FatMathSheet';
 
 type Props = { uid: string; navigate: (r: Route) => void; refreshKey?: number; onOpenChat: () => void };
 
@@ -81,7 +82,8 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
   const [sessions, setSessions] = useState<FreeSession[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [range, setRange] = useState<RangeKey>('last-7d');
-  const [metric, setMetric] = useState<'eaten' | 'burned' | 'net'>('eaten');
+  const [metric, setMetric] = useState<'eaten' | 'burned' | 'net' | 'protein'>('eaten');
+  const [fatMathOpen, setFatMathOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +100,7 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
   }, [uid, refreshKey]);
 
   const target = effectiveTargetOf(profile.diet);
+  const proteinTarget = effectiveProteinTargetOf(profile.diet);
 
   // Burn per day, from that day's actual training.
   const burnOn = useMemo(() => {
@@ -124,6 +127,7 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
         day: d,
         kcal,
         burn,
+        protein: proteinOn(logs, d),
         net: kcal - burn,
         dow: new Date(d).toLocaleDateString('he-IL', { weekday: 'narrow' }),
       };
@@ -136,6 +140,7 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
     { id: 'eaten' as const, he: 'נאכל', pick: (d: typeof series[number]) => d.kcal },
     { id: 'burned' as const, he: 'נשרף', pick: (d: typeof series[number]) => d.burn },
     { id: 'net' as const, he: 'נטו', pick: (d: typeof series[number]) => d.net },
+    { id: 'protein' as const, he: 'חלבון', pick: (d: typeof series[number]) => d.protein },
   ];
   const activeMetric = METRICS.find(m => m.id === metric)!;
 
@@ -155,7 +160,12 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
   // A sensible ceiling even on an empty range, so the axis never reads 0/0/0.
   // 'net' draws eaten with the burned part stacked on top, so its ceiling is
   // driven by eaten — scaling by the net value alone squashed the bars.
-  const maxKcal = Math.max(
+  // Protein is grams, so it needs its own ceiling and its own reference line;
+  // reusing the calorie axis would flatten every bar to nothing.
+  const isProtein = metric === 'protein';
+  const maxKcal = isProtein
+    ? Math.max(proteinTarget || 0, ...series.map(d => d.protein), 40)
+    : Math.max(
     metric === 'burned' ? 0 : (target || 0),
     ...series.map(d => (metric === 'burned' ? d.burn : Math.max(d.kcal, Math.abs(d.net)))),
     500,
@@ -167,6 +177,17 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
     if (tracked.length === 0) return 0;
     return Math.round(tracked.reduce((a, d) => a + activeMetric.pick(d), 0) / tracked.length);
   }, [series, metric]);
+
+  // Logged days only, matching the calorie totals.
+  const avgProtein = useMemo(() => {
+    const tracked = series.filter(d => d.kcal > 0);
+    if (tracked.length === 0) return 0;
+    return Math.round(tracked.reduce((a, d) => a + d.protein, 0) / tracked.length);
+  }, [series]);
+  const proteinDaysHit = useMemo(
+    () => (proteinTarget == null ? 0 : series.filter(d => d.kcal > 0 && d.protein >= proteinTarget).length),
+    [series, proteinTarget],
+  );
 
   const deficitStreak = target != null
     ? streakOf(logs, dl => dl.reduce((a, x) => a + x.calories, 0) <= target)
@@ -220,14 +241,42 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                           {Math.abs(totals.net).toLocaleString()}
                         </span>
                         <span className="text-[11px] text-muted"> קק״ל</span>
-                        {/* ~7,700 kcal ≈ 1kg of body fat — the number people
-                            actually care about behind the calorie count. */}
+                        {/* ~7,700 kcal ≈ 1kg of body fat. Shown bare it read as
+                            a measurement — "you lost 0.44kg" — when it is only a
+                            conversion of the number above it. Now it names שומן,
+                            says הערכה, and explains itself on tap. */}
+                        <button
+                          onClick={() => setFatMathOpen(true)}
+                          className="block text-[10px] text-muted-more underline underline-offset-2 decoration-dotted"
+                        >
+                          {'≈'} {(Math.abs(totals.net) / 7700).toFixed(2)} ק״ג שומן {totals.net <= 0 ? 'ירידה' : 'עלייה'} · הערכה
+                        </button>
+                      </span>
+                    </div>
+                  )}
+                  {/* Protein across the range. Averaged over LOGGED days only —
+                      the same rule the calorie totals use, so an untracked day
+                      does not drag the average down and read as a bad week. */}
+                  {proteinTarget != null && totals.days > 0 && (
+                    <div className="mt-3 pt-3 border-t border-subtle flex items-baseline justify-between">
+                      <span className="text-[12px] text-muted">חלבון ליום (ממוצע)</span>
+                      <span className="text-right">
+                        {/* One ltr run — see the note in FoodToday: splitting
+                            the number from " / 125" flips them under bidi. */}
+                        <span
+                          className={`text-[18px] font-bold font-mono ${
+                            avgProtein >= proteinTarget ? "text-emerald-600 dark:text-emerald-400" : "text-muted"
+                          }`}
+                          dir="ltr"
+                        >{avgProtein} / {proteinTarget}</span>
+                        <span className="text-[11px] text-muted"> גרם</span>
                         <span className="block text-[10px] text-muted-more">
-                          {'\u2248'} {(Math.abs(totals.net) / 7700).toFixed(2)} ק״ג {totals.net <= 0 ? 'ירידה' : 'עלייה'}
+                          {proteinDaysHit} מתוך {totals.days} ימים ביעד
                         </span>
                       </span>
                     </div>
                   )}
+
                   {totals.net == null && (
                     <div className="mt-3 pt-3 border-t border-subtle text-[11px] text-muted text-center">
                       הגדר יעד קלורי כדי לראות את הגירעון המצטבר
@@ -251,7 +300,7 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                         series.filter(d => d.kcal > 0).reduce((a, d) => a + activeMetric.pick(d), 0)
                         / Math.max(1, series.filter(d => d.kcal > 0).length),
                       )}
-                    </span>{' '}קק״ל
+                    </span>{' '}{isProtein ? 'גרם' : 'קק״ל'}
                   </div>
                 )}
               </div>
@@ -292,7 +341,15 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                       ))}
                       {/* Target — meaningful against intake, so shown on both
                           נאכל and נטו, never against raw burn. */}
-                      {metric !== 'burned' && target != null && target <= maxKcal && (
+                      {/* Protein has its own target line, in grams. */}
+                      {isProtein && proteinTarget != null && proteinTarget <= maxKcal && (
+                        <span className="absolute left-0 right-0 border-t-2 border-dashed border-sky-500/80 pointer-events-none z-20" style={{ bottom: `${(proteinTarget / maxKcal) * 100}%` }}>
+                          <span className="absolute right-0 -top-[7px] px-1 rounded bg-sky-500 text-white text-[8px] font-bold font-mono leading-[13px]">
+                            {proteinTarget}
+                          </span>
+                        </span>
+                      )}
+                      {!isProtein && metric !== 'burned' && target != null && target <= maxKcal && (
                         <span className="absolute left-0 right-0 border-t-2 border-dashed border-amber-500/80 pointer-events-none z-20" style={{ bottom: `${(target / maxKcal) * 100}%` }}>
                           <span className="absolute right-0 -top-[7px] px-1 rounded bg-amber-500 text-white text-[8px] font-bold font-mono leading-[13px]">
                             {target}
@@ -339,6 +396,10 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                         const pct = (Math.abs(v) / maxKcal) * 100;
                         const over = metric === 'eaten' && target != null && d.kcal > target;
                         const tone = metric === 'burned' ? 'bg-sky-500'
+                          // Protein reads the opposite way to calories: more is
+                          // the goal, so a short day is muted rather than red.
+                          : isProtein
+                            ? (proteinTarget != null && d.protein >= proteinTarget ? 'bg-sky-500' : 'bg-sky-500/45')
                           : over ? 'bg-red-400'
                           : 'bg-emerald-500';
                         return (
@@ -366,7 +427,12 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
                         <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-sky-500/70" /> נשרף באימון</span>
                       </>
                     )}
-                    {metric !== 'burned' && target != null && target <= maxKcal && (
+                    {isProtein && proteinTarget != null && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-3.5 border-t-2 border-dashed border-sky-500/80" /> יעד חלבון (גרם)
+                      </span>
+                    )}
+                    {!isProtein && metric !== 'burned' && target != null && target <= maxKcal && (
                       <span className="inline-flex items-center gap-1">
                         <span className="w-3.5 border-t-2 border-dashed border-amber-500/80" /> יעד יומי
                       </span>
@@ -431,6 +497,10 @@ export function FoodInsights({ uid, navigate, refreshKey, onOpenChat }: Props) {
           </>
         )}
       </div>
+      {fatMathOpen && totals.net != null && (
+        <FatMathSheet net={totals.net} days={totals.days} onClose={() => setFatMathOpen(false)} />
+      )}
+
     </div>
   );
 }
