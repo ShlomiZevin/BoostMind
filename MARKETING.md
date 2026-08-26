@@ -83,10 +83,30 @@ Per exercise: Hebrew name, English name, muscle group, execution steps, notes,
 **a photo, and a video**. You can describe an exercise to the AI in free text
 and it drafts the name, muscle group and steps for you to edit.
 
-### The AI
-Not a detached chat. It can log a meal, build a workout you can start or edit,
-add an exercise to the library, answer "what did I do" and "what should I do
-now" from real history, goals and today's numbers.
+### The AI — and it is consistently undersold
+Not a detached chat. Round 21 was sent back once for writing "אימון מוצע" when
+this is what is actually on the screen (`C:/Users/shazbak/Downloads/app-gameplay`
+— open them before writing about the AI):
+
+- Ask for a leg day and it returns a **full plan that argues its own picks from
+  history**: `קוואדריספס, 9 ימים מאז הפעם האחרונה` · `גלוטאוס, לא בוצע לאחרונה`.
+- Every exercise arrives as a card — Hebrew name, English name, muscle tag,
+  three numbered execution steps, and **`+ הוסף לאימון`**, one tap.
+- `שתיתי אספרסו עם חלב שיבולת ובננה` becomes two items, each with its calories
+  and its own sub-ingredients, a meal-slot chip, `+ הוסף להיום` and `ערוך` —
+  then a comment weighing it against yesterday's intake and today's session.
+- A plate photo becomes a meal; a photo of a machine answers which muscle it works.
+- An exercise described in words gets drafted into the personal library, with
+  room for a photo and a video.
+- `פעם קודמת` on the next set; the AI can set weekly volume targets per muscle.
+- **Nothing enters without approval** — every output is a card to approve, edit
+  or drop. That line is what settles a nervous coach.
+
+What a coach sees through "פתח כמתאמן" is equally undersold: not just counts,
+but the **גוף** screen (sets per muscle against target, over a chosen range),
+the **קלוריות** screen (target, eaten, burned, running deficit in kg) and
+day-by-day history. Verified in `App.tsx` — only the AI chat surfaces are
+suppressed while impersonating.
 
 ### The coach product — small, real, and easy to overstate
 **Exists:** a personal invite link that binds a trainee to the coach; a
@@ -94,10 +114,16 @@ dashboard listing trainees with today's and total session and meal counts and a
 last-seen stamp; "פתח כמתאמן", which opens their training and nutrition screens
 behind a permanent banner.
 
+**Also exists, and the doc used to deny it:** while impersonating, a coach
+*can* add exercises, meals and workout plans to a trainee through the normal
+screens. `App.tsx` says so in its own words — the guard that blocks the FAB
+reads *״אתה יכול להוסיף לו תרגילים / ארוחות / תוכניות דרך המסכים הרגילים״*.
+What is blocked is **logging**: recording a set or a meal *as* the trainee.
+
 **Does not exist:** the coach cannot log a set or a meal for a trainee (blocked
 in code); the coach **never sees the trainee's AI conversations** — the app
 suppresses those panels while impersonating, and the invite screen promises it;
-no plan builder, no coach↔trainee chat, no payments, no reports.
+no coach↔trainee chat, no payments, no reports.
 
 Coach access is a hand-approved allowlist in `workout-app/src/config/coaches.ts`
 — not self-serve.
@@ -168,6 +194,38 @@ Key and full details in `matzav-marketing/LEONARDO.md`. The short version:
 | `gemini-image-2` (Nano Banana Pro) | $0.21 | true 9:16 (1536×2752). Corrupts small Hebrew. |
 | `nano-banana-2` | $0.058 | cheap workhorse for photography |
 
+### The brand-strip tool — `/brand-strip/`
+Write a prompt, pick the model, generate, and get it back wearing the real
+lockup at 1080×1920. Also takes a drag-and-drop or a paste, for anything made
+elsewhere. Everything else runs in the browser; only the generation call leaves
+it.
+
+- **The key is never in the page.** `/brand-strip/` is a public URL. The call
+  goes to `/api/marketing/image` on Cloud Run, which holds `LEONARDO_API_KEY`
+  as a secret and gates on `uid === 'user_6724'`.
+- That endpoint now takes **`model`** (`gpt-image-2` · `gemini-image-2` ·
+  `nano-banana-2`) and **`inline: true`**. Inline matters: Leonardo's CDN sends
+  no `Access-Control-Allow-Origin`, so a remote `<img>` taints the canvas and
+  `toDataURL` throws. The server returns the bytes as a data URI instead.
+- **The ratio is the whole game.** Strip mode gives the artwork 1620px under a
+  300px band — exactly 2:3, which is exactly `gpt-image-2`'s only size,
+  `1024×1536`. Corner mode is the full 1080×1920, i.e. 9:16, for `1536×2752`.
+  The page states the required ratio and measures what you loaded against it.
+- The address bar is drawn **over** the artwork by default, never subtracted
+  from it — otherwise switching it on silently changes the ratio the tool asks
+  for. That shipped once and left side bars on a perfectly sized image. A
+  *בין הרצועות* toggle holds the artwork above the bar instead, for when the
+  bar covers something: 1516px, ratio 0.712, ~35px of band each side on a 2:3.
+- **Saving on a phone goes through the share sheet**, same rule as
+  `/uploads/queue.js`: `<a download>` files it under Files on iOS, where
+  Instagram cannot see it. The canvas is baked to a PNG `File` after every
+  render and handed to `navigator.share({files})` — `share()` must be called
+  inside the user gesture, and awaiting `toBlob` first loses that gesture on
+  iOS, which is why it is baked ahead rather than on click.
+- **״הוסף כללים מנחים״** appends the standing prompt rules — no logo, leave the
+  top and bottom bands empty — to whatever is already written, never over it.
+  Those empty bands are what the strip and the address bar land on.
+
 ### Maya — the in-app marketing assistant
 `/wholos-app/#/admin` → tab **מאיה**. Admin-only (`uid === 'user_6724'`).
 Server: `workout-app/server/marketing.js`, three endpoints — `/chat` (Claude,
@@ -226,12 +284,24 @@ The prompt shape that works, learned the hard way:
    it out letter by letter. Choose a different word; do not retry.
    Screen every string for this *before* generating — it costs nothing and has
    caught `שווארמה`, `בצהריים`, `אופניים` and `טיימר` on the way in.
-6. **Keep a printed line to three or four words, and proofread for missing
-   words.** Word drop is a *separate* failure from letter corruption and it
+6. **Length: the old ceiling was wrong — proofread words, not line lengths.**
+   Round 23 put a **183-word** ad through `gpt-image-2` — headline, five
+   paragraphs, a six-item feature list and a CTA — and it printed all of it.
+   What broke was never length: it was **single words**, and the same ones each
+   time — `אמיתי` came back `אמיתיי`, `טובה` came back `טובוד`, `יותר` came
+   back `יתוד`. Spelling those words out explicitly in the prompt cleared the
+   next batch. So: long copy is fine, proofread every word against the source,
+   and pin any word that fails.
+   The older note, still true for its own reason: Word drop is a *separate* failure from letter corruption and it
    scales with length: a five-word line came back as `״בבוקר אכלתי וגרנולה.״`
    with `יוגורט` gone entirely, every surviving letter perfect. A dropped word
    still reads as fluent Hebrew, so it survives a skim — check the string you
    asked for word by word, not just letter by letter.
+   Measured on round 21's discarded batch: with the string given twice in the
+   prompt and *כל מילה חייבת להופיע* stated explicitly, `gpt-image-2` printed
+   a 3-4 word headline **and** a 5-6 word second line, 10 out of 10, with no
+   dropped word and no corrupted letter. So the ceiling is a headline plus one
+   short line — not one line total. A paragraph is still HTML's job.
 7. **If the creative shows a labelled example, name every part of it.** Asked
    for "an exercise card", the model produced a wide lat pulldown labelled
    *כתפיים* — a pairing that does not exist. Pin the exercise, the muscle group
@@ -329,6 +399,12 @@ Photos, and Instagram cannot see them there.
 | 15 | the working 15, branding fixed | **approved.** Strip version signed off as the default |
 | 16 | +10, five deliberately light | tone by scene, and version B flips its seam to match the artwork |
 | 17 | six real app screenshots | read the screen before captioning it — two captions described the wrong screen |
+| 18 | coach invitation, ten posters | **rejected** — abstract headlines that never said what the app is or what is being asked |
+| 19 | "מחפשים מאמנים", said plainly | ten near-identical phrasings of one sentence is a want-ad with no reason in it |
+| 20 | the same appeal as prose | a paragraph must be set in HTML — the model drops words long before that length |
+| 21 | **מודעת דרושים** for coaches | a notice, not a leaflet. The offer to a coach is *give your trainees access to the AI* — he is not asked to use it himself. Addressing approved first pass; the benefit rows were sent back as too generic and rewritten off the real screens, with three ads built around a live screenshot |
+| 22 | one notice, five styles | the offer is the whole ad. Benefit lists were cut — and the AI belongs to the coach too, which six rounds of coach creative never said. Five styles means five *layouts*, not five headlines over one body |
+| 23 | **the wanted-ad**, Shlomi's own copy | he wrote the ad and the prompt; the job was execution. His prompt forbids the model any branding so the real lockup can be composited after — that is what makes a generated ad brandable |
 
 ---
 

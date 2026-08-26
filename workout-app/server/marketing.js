@@ -150,9 +150,20 @@ export default function mountMarketing(app, { anthropicKey, claudeModel }) {
     if (!requireAdmin(req, res)) return;
     if (!LEO_KEY) return res.status(503).json({ error: 'no_leonardo_key' });
     try {
-      const { prompt = '', ratio = '9:16' } = req.body || {};
+      const { prompt = '', ratio = '9:16', model, inline } = req.body || {};
       if (!prompt.trim()) return res.status(400).json({ error: 'no prompt' });
-      const [w, h] = ratio === '1:1' ? [1024, 1024] : [768, 1376];
+
+      // Leonardo rejects arbitrary sizes, and each model has its own legal set.
+      // gpt-image-2 offers exactly one — 1024x1536 — which is also the exact
+      // ratio the brand-strip tool needs, so it needs no ratio at all.
+      const MODELS = {
+        'gpt-image-2':    { '2:3': [1024, 1536] },
+        'gemini-image-2': { '9:16': [1536, 2752], '1:1': [1024, 1024], '2:3': [1024, 1536] },
+        'nano-banana-2':  { '9:16': [768, 1376], '1:1': [1024, 1024], '2:3': [1024, 1536] },
+      };
+      const useModel = MODELS[model] ? model : 'nano-banana-2';
+      const sizes = MODELS[useModel];
+      const [w, h] = sizes[ratio] || sizes[Object.keys(sizes)[0]];
 
       const H = {
         authorization: 'Bearer ' + LEO_KEY,
@@ -164,7 +175,7 @@ export default function mountMarketing(app, { anthropicKey, claudeModel }) {
         headers: H,
         body: JSON.stringify({
           public: false,
-          model: 'nano-banana-2',
+          model: useModel,
           parameters: { prompt, quantity: 1, width: w, height: h, prompt_enhance: 'OFF' },
         }),
       })).json();
@@ -183,7 +194,23 @@ export default function mountMarketing(app, { anthropicKey, claudeModel }) {
         const p = g.generations_by_pk;
         if (!p) continue;
         if (p.status === 'COMPLETE') {
-          return res.json({ url: p.generated_images?.[0]?.url, cost, id });
+          const url = p.generated_images?.[0]?.url;
+          // The brand-strip tool draws the result into a canvas and exports a
+          // PNG. Leonardo's CDN sends no Access-Control-Allow-Origin, so a
+          // remote <img> would taint the canvas and toDataURL would throw.
+          // Returning the bytes inline keeps the canvas exportable.
+          if (inline && url) {
+            try {
+              const buf = Buffer.from(await (await fetch(url)).arrayBuffer());
+              return res.json({
+                url, cost, id, width: w, height: h, model: useModel,
+                dataUrl: 'data:image/jpeg;base64,' + buf.toString('base64'),
+              });
+            } catch (e) {
+              console.error('maya image inline', e);   // fall back to the URL
+            }
+          }
+          return res.json({ url, cost, id, width: w, height: h, model: useModel });
         }
         if (p.status === 'FAILED') return res.status(502).json({ error: 'leonardo_failed', id });
       }

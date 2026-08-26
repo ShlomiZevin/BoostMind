@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wholos · הלבשת מיתוג</title>
+<meta name="description" content="גוררים תמונה שנוצרה בלאונרדו ומקבלים אותה עם רצועת המיתוג של Wholos, בפורמט סטורי 1080×1920.">
+<link rel="icon" type="image/svg+xml" href="/wholos-app/brand/mark-ink.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--surface:#0e1220;--surface2:#141a2b;
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.17);
+  --text:#f4f7fc;--body:#a9b3c6;--muted:#7a8496;
+  --brand:#5b4bc4;--brand2:#9b8cf5;--ok:#34d399;--warn:#fbbf24;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--body);
+  font-family:Heebo,system-ui,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+header{padding:52px 0 6px}
+.mk{width:46px;height:46px;border-radius:12px;background:var(--brand);
+  display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.mk svg{width:27px;height:27px}
+.eye{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand2);margin-bottom:12px}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.1;color:var(--text);
+  font-weight:900;letter-spacing:-.025em;margin:0}
+h2{font-size:clamp(19px,3vw,25px);line-height:1.2;color:var(--text);
+  font-weight:800;letter-spacing:-.02em;margin:0}
+.lead{font-size:16px;line-height:1.75;color:var(--body);max-width:74ch;margin:14px 0 0}
+section{padding:34px 0;border-top:1px solid var(--border);margin-top:34px}
+header+section{border-top:none;margin-top:6px}
+
+.app{display:grid;grid-template-columns:400px 1fr;gap:26px;align-items:start;margin-top:22px}
+@media(max-width:900px){.app{grid-template-columns:1fr}}
+
+.drop{border:2px dashed var(--border2);border-radius:18px;padding:34px 22px;text-align:center;
+  background:var(--surface);cursor:pointer;transition:all .16s ease}
+.drop:hover,.drop.on{border-color:var(--brand2);background:var(--surface2)}
+.drop b{display:block;color:var(--text);font-size:17px;font-weight:800;margin-bottom:6px}
+.drop span{font-size:13.5px;color:var(--muted)}
+.panel{margin-top:16px;background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;padding:18px 20px}
+.panel h3{margin:0 0 12px;font-size:13px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted)}
+.opt{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.opt button{font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:9px 15px;
+  border-radius:11px;border:1px solid var(--border2);background:none;color:var(--body);
+  transition:all .16s ease}
+.opt button.on{background:var(--brand);border-color:var(--brand2);color:#fff}
+.chk{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--body);
+  cursor:pointer;margin-bottom:10px}
+.chk input{width:17px;height:17px;accent-color:var(--brand)}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.6;margin:2px 0 0}
+textarea{width:100%;font:inherit;font-size:14px;line-height:1.6;color:var(--text);
+  background:var(--surface2);border:1px solid var(--border2);border-radius:12px;
+  padding:12px 14px;resize:vertical;direction:rtl}
+textarea:focus{outline:none;border-color:var(--brand2)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border2);
+  border-top-color:var(--brand2);border-radius:50%;animation:sp .8s linear infinite;
+  vertical-align:-2px;margin-inline-end:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.go{display:block;width:100%;margin-top:8px;font:inherit;font-size:15px;font-weight:800;
+  cursor:pointer;padding:14px;border-radius:13px;border:1px solid var(--brand2);
+  background:var(--brand);color:#fff;transition:opacity .16s ease}
+.go[disabled]{opacity:.4;cursor:not-allowed}
+.meta{margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.7}
+.meta b{color:var(--text)}
+.meta .warn{color:var(--warn)}
+.meta .ok{color:var(--ok)}
+
+.stage{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:20px;display:flex;justify-content:center;align-items:flex-start;min-height:300px}
+canvas{max-width:100%;height:auto;border-radius:10px;background:#12121f;
+  box-shadow:0 1px 0 rgba(255,255,255,.06)}
+
+table{width:100%;border-collapse:collapse;margin-top:18px;font-size:14.5px}
+th,td{text-align:start;padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+thead th{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+td.n{white-space:nowrap;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;
+  color:var(--text);direction:ltr;width:1%}
+td.v{white-space:nowrap;width:1%;font-weight:800}
+.best{color:var(--ok)}
+.meh{color:var(--warn)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;background:var(--surface2);
+  padding:2px 6px;border-radius:6px;color:var(--text)}
+footer{border-top:1px solid var(--border);margin-top:34px;padding:24px 0 70px;
+  color:var(--muted);font-size:13.5px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="mk">
+    <svg viewBox="0 0 64 64" fill="#fff" stroke="#fff" aria-hidden="true">
+      <circle cx="32" cy="32" r="27" fill="none" stroke-width="4.5"/>
+      <path d="M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z" stroke="none"/>
+    </svg>
+  </div>
+  <span class="eye">Wholos · כלי</span>
+  <h1>הלבשת מיתוג על תמונה</h1>
+  <p class="lead">
+    כותבים פרומפט ומייצרים כאן, <b style="color:var(--text)">או מעלים תמונה
+    מוכנה</b> — מהמחשב, בגרירה או בהדבקה — ומקבלים אותה עם רצועת המיתוג של
+    Wholos, בפורמט סטורי <b style="color:var(--text)">1080×1920</b>.
+    ההלבשה עצמה קורית בדפדפן; תמונה שמעלים לא נשלחת לשום מקום.
+  </p>
+</header>
+
+<section>
+  <div class="app">
+    <div>
+      <div class="panel" style="margin-top:0">
+        <h3>ליצור כאן, בלאונרדו</h3>
+        <textarea id="prompt" rows="5" placeholder="כתבו כאן את הפרומפט. פותחים בעברית אם יש טקסט בתמונה, ומבקשים במפורש בלי לוגו ובלי מיתוג."></textarea>
+        <div class="opt" id="models" style="margin-top:12px">
+          <button data-model="gpt-image-2" data-ratio="2:3" class="on">GPT Image 2</button>
+          <button data-model="gemini-image-2" data-ratio="9:16">Nano Banana Pro</button>
+          <button data-model="nano-banana-2" data-ratio="9:16">Nano Banana 2</button>
+        </div>
+        <p class="hint" id="modelHint">
+          1024×1536 · ‎$0.15 · העברית הכי טובה, וגם היחס המדויק למצב הרצועה.
+        </p>
+        <div class="opt" style="margin-top:12px">
+          <button id="rules" style="flex:1">＋ הוסף כללים מנחים</button>
+        </div>
+        <p class="hint">
+          מוסיף לפרומפט את ההנחיות הקבועות: בלי לוגו, והשארת שטח ריק למעלה
+          ולמטה לתוספות שלכם. נכתב בסוף מה שכתבתם, לא במקומו.
+        </p>
+        <button class="go" id="gen" style="margin-top:12px">צור תמונה</button>
+        <div class="meta" id="genMeta"></div>
+      </div>
+
+      <div class="panel">
+        <h3>או להעלות תמונה מוכנה</h3>
+        <div class="drop" id="drop">
+          <b>בחרו קובץ מהמחשב</b>
+          <span>אפשר גם לגרור לכאן, או להדביק עם Ctrl+V</span>
+          <input type="file" id="file" accept="image/*" hidden>
+        </div>
+        <p class="hint" style="margin-top:10px">
+          כל תמונה מתאימה — לאונרדו, מידג׳רני, צילום מסך, צילום מהטלפון.
+          הכלי מודד את היחס שלה ואומר אם היא נכנסת בדיוק.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h3>איפה הלוגו</h3>
+        <div class="opt" id="modes">
+          <button data-mode="strip" class="on">רצועה מעל</button>
+          <button data-mode="corner">בפינה</button>
+        </div>
+        <p class="hint" id="modeHint">
+          רצועת דיו בגובה 300px מעל התמונה. התמונה נכנסת בגודלה המלא, בלי חיתוך.
+        </p>
+
+        <h3 style="margin-top:18px">רקע הרצועה</h3>
+        <div class="opt" id="grounds">
+          <button data-ground="ink" class="on">דיו</button>
+          <button data-ground="paper">נייר</button>
+        </div>
+
+        <label class="chk"><input type="checkbox" id="url" checked>
+          <span>רצועת <code>wholos.com</code> בתחתית</span></label>
+        <label class="chk"><input type="checkbox" id="between">
+          <span>התמונה נכנסת <b style="color:var(--text)">בין הרצועות</b> — הרצועה
+            התחתונה לא מכסה אותה</span></label>
+        <label class="chk"><input type="checkbox" id="cover">
+          <span>למלא את המסגרת (חותך את הצדדים)</span></label>
+
+        <button class="go" id="save" disabled>הורדת PNG · 1080×1920</button>
+        <p class="hint" id="shareNote" style="display:none;margin-top:9px">
+          נפתח סרגל השיתוף של הטלפון — משם ״שמור תמונה״ שומר ישר לגלריה,
+          ואפשר גם לשלוח ישירות לאינסטגרם.
+        </p>
+        <div class="meta" id="meta">עדיין לא נטענה תמונה.</div>
+      </div>
+    </div>
+
+    <div class="stage"><canvas id="cv" width="1080" height="1920"></canvas></div>
+  </div>
+</section>
+
+<section>
+  <span class="eye">לפני שמייצרים</span>
+  <h2>באיזה גודל ליצור בלאונרדו</h2>
+  <p class="lead">
+    הכלל היחיד שחשוב: <b style="color:var(--text)">יחס הצדדים</b>. אם הוא נכון,
+    התמונה נכנסת בשלמותה ואין מה לחתוך. הגובה שנשאר לתמונה במצב רצועה הוא
+    1620px על רוחב 1080 — כלומר יחס של 2:3 בדיוק.
+  </p>
+  <table>
+    <thead><tr><th>גודל בלאונרדו</th><th>יחס</th><th>מצב רצועה</th><th>מצב פינה</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1024 × 1536</td><td class="v">2:3</td>
+        <td class="v best">מושלם</td><td class="v meh">ייחתך למעלה ולמטה</td></tr>
+      <tr><td class="n">1536 × 2752</td><td class="v">9:16</td>
+        <td class="v meh">פסים בצדדים</td><td class="v best">מושלם</td></tr>
+      <tr><td class="n">768 × 1376</td><td class="v">9:16</td>
+        <td class="v meh">פסים בצדדים</td><td class="v best">מושלם, אבל ברזולוציה נמוכה</td></tr>
+      <tr><td class="n">1024 × 1024</td><td class="v">1:1</td>
+        <td class="v meh">הרבה שטח ריק</td><td class="v meh">הרבה שטח ריק</td></tr>
+    </tbody>
+  </table>
+  <p class="lead" style="margin-top:18px">
+    <b style="color:var(--text)">בשורה אחת:</b> אם אתם מייצרים ב-<code>gpt-image-2</code>,
+    הגודל היחיד שהוא נותן הוא <code>1024×1536</code> — וזה בדיוק היחס של מצב
+    הרצועה. אין מה לחשוב. אם אתם מייצרים ב-Nano Banana Pro ורוצים תמונה
+    שממלאת את כל הסטורי, קחו <code>1536×2752</code> ובחרו במצב פינה.
+  </p>
+  <p class="lead" style="margin-top:18px">
+    <b style="color:var(--text)">ומה עם ״בין הרצועות״?</b> ברירת המחדל היא
+    שרצועת הכתובת מצוירת <i>מעל</i> תחתית התמונה — ככה התמונה מקבלת 1620px
+    מלאים והיחס נשאר 2:3 מדויק, אבל הרצועה יכולה לכסות משהו בתחתית. כשמסמנים
+    ״בין הרצועות״, התמונה נעצרת מעל הרצועה ומקבלת 1516px, שזה יחס
+    <code>0.712</code>. אין גודל בלאונרדו שנוחת על היחס הזה, אז תמונת 2:3
+    תשאיר פס דק של כ-35px בכל צד — או שמסמנים ״למלא את המסגרת״ ונחתכים כ-3%
+    מהגובה. שתי האפשרויות בסדר; הכלי אומר בדיוק כמה.
+  </p>
+  <p class="lead" style="margin-top:14px">
+    ועוד דבר אחד, מהסבבים הקודמים: בקשו מהמודל
+    <b style="color:var(--text)">לא לצייר לוגו</b> ולהשאיר את הפינה העליונה
+    בצד שמאל שטח חלק וריק. המודל לא יודע לצייר את הסימן שלנו נכון, והפינה
+    הריקה היא מה שמאפשר להלביש אותו כאן.
+  </p>
+</section>
+
+<footer>
+  <div>Wholos · כלי הלבשת מיתוג · הכול רץ בדפדפן</div>
+  <div style="margin-top:8px">
+    <a href="/marketing-hub/">מרכז הקריאייטיב</a> ·
+    <a href="/marketing-23/">סבב 23</a> ·
+    <a href="/uploads/">להעלאה</a> ·
+    <a href="/wholos/">עמוד הבית</a>
+  </div>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var W = 1080, H = 1920, STRIP = 300, BAR = 104;
+
+  // The approved lockup, as measured on the signed-off strip: mark 104,
+  // wordmark 86, descriptor 26/25. The mark is the real path, not a font.
+  var MARK_CIRCLE = {cx:32, cy:32, r:27, sw:4.5};
+  var MARK_WAVE = 'M5 32 C14 23 23 23 32 32 C41 41 50 41 59 32 A27 27 0 0 1 5 32 Z';
+  var L1 = 'אפליקציה למעקב ותיעוד אימונים ותזונה עם ליווי AI';
+  var L2 = 'למתאמנים ולמאמנים';
+
+  var INK   = {bg:'#12121f', name:'#ffffff', l1:'#dbe1ec', l2:'#b3a6ff',
+               mark:'#ffffff', bar:'#0b0c14', url:'#8791a6', dot:'#6d5ce0',
+               rule:'rgba(255,255,255,.12)'};
+  var PAPER = {bg:'#f4f2ee', name:'#15151f', l1:'#4a4f5c', l2:'#5b4bc4',
+               mark:'#15151f', bar:'#e9e6e0', url:'#6b7280', dot:'#5b4bc4',
+               rule:'rgba(0,0,0,.12)'};
+
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var img = null, mode = 'strip', ground = 'ink';
+  var elDrop = document.getElementById('drop'), elFile = document.getElementById('file');
+  var elSave = document.getElementById('save'), elMeta = document.getElementById('meta');
+  var elUrl = document.getElementById('url'), elCover = document.getElementById('cover');
+  var elBetween = document.getElementById('between');
+  var elHint = document.getElementById('modeHint');
+
+  var HINTS = {
+    strip: 'רצועת דיו בגובה 300px מעל התמונה. התמונה נכנסת בגודלה המלא, בלי חיתוך.',
+    corner: 'התמונה ממלאת את כל הסטורי, והלוגו יושב בפינה העליונה בצד שמאל. ' +
+            'מתאים לתמונה שנוצרה ביחס 9:16 עם פינה ריקה.'
+  };
+
+  function drawMark(x, y, size, color){
+    var s = size / 64;
+    ctx.save();
+    ctx.translate(x, y); ctx.scale(s, s);
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = MARK_CIRCLE.sw;
+    ctx.beginPath();
+    ctx.arc(MARK_CIRCLE.cx, MARK_CIRCLE.cy, MARK_CIRCLE.r, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.fill(new Path2D(MARK_WAVE));
+    ctx.restore();
+  }
+
+  // The lockup is right-aligned: in RTL the start edge is the right one, and
+  // that is where every approved creative puts it.
+  function drawLockup(rightX, topY, scale, pal){
+    var markSize = 104 * scale, gap = 22 * scale;
+    var nameSize = 86 * scale, l1Size = 26 * scale, l2Size = 25 * scale;
+    ctx.save();
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+
+    var textRight = rightX - markSize - gap;
+    var nameY = topY + nameSize * 0.82;
+    ctx.font = '800 ' + nameSize + 'px Heebo, Arial, sans-serif';
+    ctx.fillStyle = pal.name;
+    ctx.direction = 'ltr';
+    ctx.fillText('Wholos', textRight, nameY);
+
+    ctx.direction = 'rtl';
+    ctx.font = '600 ' + l1Size + 'px Heebo, Arial, sans-serif';
+    ctx.fillStyle = pal.l1;
+    var l1Y = nameY + l1Size * 1.42;
+    ctx.fillText(L1, textRight, l1Y);
+
+    ctx.font = '800 ' + l2Size + 'px Heebo, Arial, sans-serif';
+    ctx.fillStyle = pal.l2;
+    ctx.fillText(L2, textRight, l1Y + l2Size * 1.36);
+
+    // mark sits to the right of the words, vertically centred on the block
+    var blockH = nameSize * 0.82 + l1Size * 1.42 + l2Size * 1.36;
+    drawMark(rightX - markSize, topY + (blockH - markSize) / 2 + 6, markSize, pal.mark);
+    ctx.restore();
+  }
+
+  function drawArt(x, y, w, h){
+    if (!img) return;
+    var ir = img.width / img.height, br = w / h, dw, dh, dx, dy;
+    if (elCover.checked ? (ir > br) : (ir < br)) { dh = h; dw = h * ir; }
+    else { dw = w; dh = w / ir; }
+    dx = x + (w - dw) / 2; dy = y + (h - dh) / 2;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.drawImage(img, dx, dy, dw, dh);
+    ctx.restore();
+  }
+
+  function render(){
+    var pal = ground === 'ink' ? INK : PAPER;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = pal.bg;
+    ctx.fillRect(0, 0, W, H);
+
+    var barH = elUrl.checked ? BAR : 0;
+    var between = elUrl.checked && elBetween.checked;
+
+    // Two ways to place the address bar, and they change what the artwork gets:
+    //   over    the artwork keeps the full 1620px (an exact 2:3) and the bar is
+    //           painted on top of its bottom edge — which can cover something.
+    //   between the artwork is held above the bar, so nothing is ever hidden.
+    //           It gets 1516px, so a 2:3 picture leaves a thin band each side.
+    if (mode === 'strip'){
+      drawArt(0, STRIP, W, H - STRIP - (between ? barH : 0));
+      ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, W, STRIP);
+      ctx.fillStyle = pal.rule; ctx.fillRect(0, STRIP - 1, W, 1);
+      drawLockup(W - 56, 78, 1, pal);
+    } else {
+      drawArt(0, 0, W, H - (between ? barH : 0));
+      drawLockup(W - 46, 46, 0.68, pal);
+    }
+
+    if (barH){
+      ctx.fillStyle = between
+        ? pal.bg
+        : (ground === 'ink' ? 'rgba(9,10,18,.88)' : 'rgba(244,242,238,.92)');
+      ctx.fillRect(0, H - barH, W, barH);
+      ctx.fillStyle = pal.rule; ctx.fillRect(0, H - barH, W, 1);
+      ctx.save();
+      ctx.direction = 'ltr'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.font = '700 31px Heebo, Arial, sans-serif';
+      ctx.fillStyle = between ? pal.url : (ground === 'ink' ? '#c9d0dd' : '#4a4f5c');
+      ctx.fillText('wholos.com', W - 62, H - barH / 2 + 2);
+      ctx.beginPath();
+      ctx.arc(W - 62 - ctx.measureText('wholos.com').width - 18, H - barH / 2 + 1, 5, 0, Math.PI*2);
+      ctx.fillStyle = pal.dot; ctx.fill();
+      ctx.restore();
+    }
+
+    bake();
+
+    if (!img){
+      ctx.save();
+      ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '600 40px Heebo, Arial, sans-serif';
+      ctx.fillStyle = ground === 'ink' ? 'rgba(255,255,255,.22)' : 'rgba(0,0,0,.24)';
+      ctx.fillText('כאן תיכנס התמונה שלכם', W/2, H/2);
+      ctx.restore();
+    }
+  }
+
+  function describe(){
+    if (!img){ elMeta.textContent = 'עדיין לא נטענה תמונה.'; return; }
+    var r = img.width / img.height;
+    var between = elUrl.checked && elBetween.checked;
+    var artH = (mode === 'strip' ? H - STRIP : H) - (between ? BAR : 0);
+    var target = W / artH;
+    var off = Math.abs(r - target) / target;
+    var verdict;
+    if (off < 0.02){
+      verdict = '<span class="ok">היחס מתאים בדיוק — שום דבר לא נחתך.</span>';
+    } else if (elCover.checked){
+      // how much actually gets cut, in pixels, rather than a vague warning
+      var cut = r > target
+        ? Math.round((1 - target / r) * 100) + '% מהרוחב'
+        : Math.round((1 - r / target) * 100) + '% מהגובה';
+      verdict = '<span class="warn">מילוי מסגרת — נחתך ' + cut + '.</span>';
+    } else {
+      var band = r > target
+        ? Math.round((artH - W / r) / 2) + 'px למעלה ולמטה'
+        : Math.round((W - artH * r) / 2) + 'px בכל צד';
+      verdict = '<span class="warn">נשאר רקע של ' + band +
+        '. אפשר לסמן ״למלא את המסגרת״.</span>';
+    }
+    elMeta.innerHTML = 'התמונה שנטענה: <b>' + img.width + '×' + img.height + '</b> · יחס ' +
+      r.toFixed(3) + '<br>שטח התמונה כאן: <b>' + W + '×' + artH + '</b> · יחס <b>' +
+      target.toFixed(3) + '</b><br>' + verdict +
+      (between ? '<br><span class="ok">הרצועה התחתונה לא מכסה את התמונה.</span>' : '');
+  }
+
+  function load(src){
+    var i = new Image();
+    i.onload = function(){ img = i; elSave.disabled = false; render(); describe(); };
+    i.onerror = function(){ elMeta.textContent = 'לא הצלחתי לפתוח את הקובץ הזה.'; };
+    i.src = src;
+  }
+  function readFile(f){
+    if (!f || !/^image\//.test(f.type)) return;
+    var fr = new FileReader();
+    fr.onload = function(e){ load(e.target.result); };
+    fr.readAsDataURL(f);
+  }
+
+  elDrop.addEventListener('click', function(){ elFile.click(); });
+  elFile.addEventListener('change', function(e){ readFile(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(function(ev){
+    elDrop.addEventListener(ev, function(e){ e.preventDefault(); elDrop.classList.add('on'); }); });
+  ['dragleave','drop'].forEach(function(ev){
+    elDrop.addEventListener(ev, function(e){ e.preventDefault(); elDrop.classList.remove('on'); }); });
+  elDrop.addEventListener('drop', function(e){
+    if (e.dataTransfer && e.dataTransfer.files) readFile(e.dataTransfer.files[0]); });
+  window.addEventListener('paste', function(e){
+    var it = (e.clipboardData || {}).items || [];
+    for (var k = 0; k < it.length; k++)
+      if (it[k].type.indexOf('image') === 0) readFile(it[k].getAsFile());
+  });
+
+  document.getElementById('modes').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    mode = b.dataset.mode;
+    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
+    elHint.textContent = HINTS[mode];
+    render(); describe();
+  });
+  document.getElementById('grounds').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    ground = b.dataset.ground;
+    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
+    render();
+  });
+  elUrl.addEventListener('change', function(){ render(); describe(); });
+  elCover.addEventListener('change', function(){ render(); describe(); });
+  elBetween.addEventListener('change', function(){ render(); describe(); });
+
+  // ── saving, and on a phone that means the share sheet ────────────────
+  // `<a download>` is the wrong tool on mobile: iOS Safari files it under
+  // Files, not Photos, so Instagram cannot see it, and Android buries it in
+  // Downloads. The native sheet is what actually offers "Save Image".
+  //
+  // navigator.share must be called inside the user gesture, and toBlob is
+  // async — awaiting it on iOS loses the gesture. So the PNG is baked after
+  // every render and is already in hand when the button is pressed.
+  var canShare = !!(navigator.canShare && navigator.share);
+  var isTouch = matchMedia('(pointer:coarse)').matches;
+  var useShare = canShare && isTouch;
+  var pending = null, bakeTimer = null;
+
+  function fileName(){ return 'wholos-story-' + Date.now() + '.png'; }
+
+  function bake(){
+    clearTimeout(bakeTimer);
+    bakeTimer = setTimeout(function(){
+      pending = null;
+      try {
+        cv.toBlob(function(b){
+          if (b) pending = new File([b], fileName(), {type: 'image/png'});
+        }, 'image/png');
+      } catch (e) { /* tainted canvas — handled on click */ }
+    }, 120);
+  }
+
+  function saveViaLink(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.download = fileName();
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+  }
+
+  function fallbackWindow(){
+    // Last resort: show the PNG on its own so it can be long-pressed and saved.
+    try {
+      cv.toBlob(function(b){
+        if (b) window.open(URL.createObjectURL(b), '_blank', 'noopener');
+      }, 'image/png');
+    } catch (e) {
+      elMeta.innerHTML = '<span class="warn">לא הצלחתי לייצא את התמונה.</span>';
+    }
+  }
+
+  elSave.addEventListener('click', function(){
+    var label = elSave.textContent;
+
+    if (useShare && pending && navigator.canShare({files: [pending]})){
+      navigator.share({files: [pending], title: 'Wholos'})
+        .catch(function(err){
+          // AbortError = the sheet was dismissed. That is a finished
+          // interaction, not something to fall back from.
+          if (!err || err.name !== 'AbortError') fallbackWindow();
+        });
+      return;
+    }
+
+    elSave.textContent = 'רגע…';
+    try {
+      cv.toBlob(function(b){
+        elSave.textContent = label;
+        if (!b) { fallbackWindow(); return; }
+        if (useShare){
+          var f = new File([b], fileName(), {type: 'image/png'});
+          if (navigator.canShare({files: [f]})){
+            navigator.share({files: [f], title: 'Wholos'}).catch(function(err){
+              if (!err || err.name !== 'AbortError') saveViaLink(b);
+            });
+            return;
+          }
+        }
+        saveViaLink(b);
+      }, 'image/png');
+    } catch (e) {
+      elSave.textContent = label;
+      elMeta.innerHTML = '<span class="warn">התמונה נטענה ממקור חיצוני ולכן אי אפשר ' +
+        'לייצא אותה. העלו אותה כקובץ במקום.</span>';
+    }
+  });
+
+  if (useShare){
+    elSave.textContent = 'שמירה לגלריה · 1080×1920';
+    document.getElementById('shareNote').style.display = 'block';
+  }
+
+  // ── generating straight from Leonardo ────────────────────────────────
+  // The key lives on Cloud Run, never in this page: it is a public URL, and a
+  // key printed here would be a key given away. The server proxies, and hands
+  // the bytes back inline so the canvas stays exportable — Leonardo's CDN
+  // sends no CORS header, and a remote <img> would taint it.
+  var API = 'https://workout-ai-463727469066.me-west1.run.app';
+  var UID = 'user_6724';
+  var MODEL_HINTS = {
+    'gpt-image-2':    '1024×1536 · ‎$0.15 · העברית הכי טובה, וגם היחס המדויק למצב הרצועה.',
+    'gemini-image-2': '1536×2752 · ‎$0.21 · 9:16 אמיתי, מתאים למצב פינה. משבש עברית קטנה.',
+    'nano-banana-2':  '768×1376 · ‎$0.058 · הזול לצילום. לא לטיפוגרפיה עברית.'
+  };
+  var model = 'gpt-image-2', ratio = '2:3';
+  var elPrompt = document.getElementById('prompt'), elGen = document.getElementById('gen');
+  var elGenMeta = document.getElementById('genMeta'), elMHint = document.getElementById('modelHint');
+
+  document.getElementById('models').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    model = b.dataset.model; ratio = b.dataset.ratio;
+    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
+    elMHint.textContent = MODEL_HINTS[model];
+    // gpt-image-2 lands exactly on the strip; the 9:16 models on the corner
+    var want = model === 'gpt-image-2' ? 'strip' : 'corner';
+    var mb = document.querySelector('#modes button[data-mode="' + want + '"]');
+    if (mb && !mb.classList.contains('on')) mb.click();
+  });
+
+  // The standing guidance, learned across the rounds: the model must not draw
+  // the mark, and the bands the tool adds must land on empty ground, not on
+  // the artwork's own type.
+  var RULES = [
+    '',
+    '--- כללים מנחים ---',
+    'אל תצייר לוגו, שם מותג, סימן מסחרי או חתימה. שום מיתוג בתמונה.',
+    'השאר את הרצועה העליונה של התמונה שטח חלק וריק לגמרי — בלי טקסט ובלי גרפיקה.',
+    'השאר גם את הרצועה התחתונה שטח חלק וריק לגמרי.',
+    'התוכן החשוב צריך להיות במרכז התמונה, לא בקצה העליון או התחתון.',
+    'אם יש טקסט — כולו בעברית, בניגודיות גבוהה, וכל מילה בדיוק כפי שנכתבה.',
+    'בלי סימני מים, בלי אייקונים של אפליקציות אחרות, בלי צילומי סטוק של אנשים מחייכים.'
+  ].join('\n');
+
+  document.getElementById('rules').addEventListener('click', function(){
+    if (elPrompt.value.indexOf('--- כללים מנחים ---') !== -1) return;
+    elPrompt.value = elPrompt.value.replace(/\s+$/, '') + '\n' + RULES;
+    elPrompt.scrollTop = elPrompt.scrollHeight;
+    elPrompt.focus();
+  });
+
+  elGen.addEventListener('click', function(){
+    var p = elPrompt.value.trim();
+    if (!p){ elGenMeta.textContent = 'צריך פרומפט.'; return; }
+    elGen.disabled = true;
+    elGenMeta.innerHTML = '<span class="spin"></span>מייצר… זה לוקח בערך חצי דקה עד דקה.';
+    fetch(API + '/api/marketing/image', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({ uid: UID, prompt: p, model: model, ratio: ratio, inline: true })
+    }).then(function(r){ return r.json().then(function(j){ return {ok: r.ok, j: j}; }); })
+      .then(function(o){
+        elGen.disabled = false;
+        if (!o.ok){
+          elGenMeta.textContent = 'לא הצליח: ' + (o.j.error || 'שגיאה') +
+            (o.j.detail ? ' · ' + o.j.detail : '');
+          return;
+        }
+        elGenMeta.innerHTML = 'נוצר · <b>' + o.j.width + '×' + o.j.height + '</b> · ' +
+          o.j.model + (o.j.cost ? ' · ‎$' + o.j.cost : '');
+        load(o.j.dataUrl || o.j.url);
+      })
+      .catch(function(e){
+        elGen.disabled = false;
+        elGenMeta.textContent = 'לא הצליח להגיע לשרת: ' + e.message;
+      });
+  });
+
+  // Heebo has to be there before the first paint, or the lockup renders in a
+  // fallback face and the whole point of the tool is lost.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+  render();
+
+  var q = new URLSearchParams(location.search).get('src');
+  if (q) load(q);
+})();
+</script>
+</body>
+</html>
