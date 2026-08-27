@@ -1619,6 +1619,166 @@ app.post('/api/food/parse-meal', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────
+// Exercise DB manager AI — turns a free-text ask from a DB manager (Sergio,
+// Shlomi) into a proposed patch on ONE global exercise. The manager approves
+// the diff in the desktop /exercises-admin page; server never writes back.
+// No auth: URL is the secret. Rate-limit keyed on 'exercise-admin'.
+// ─────────────────────────────────────────────────────────────────
+app.post('/api/exercise-review', async (req, res) => {
+  try {
+    const { messages, question, exercises } = req.body || {};
+    if (!Array.isArray(exercises) || exercises.length === 0) {
+      return res.status(400).json({ error: 'missing exercises' });
+    }
+    // Accept either a full conversation (`messages: [{role,content}]`) or the
+    // legacy single-turn `question` string. Normalise to a message array.
+    let convo;
+    if (Array.isArray(messages) && messages.length > 0) {
+      convo = messages
+        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+        .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
+    } else if (typeof question === 'string' && question.trim()) {
+      convo = [{ role: 'user', content: question.slice(0, 4000) }];
+    } else {
+      return res.status(400).json({ error: 'missing messages or question' });
+    }
+    if (convo.length === 0 || convo[convo.length - 1].role !== 'user') {
+      return res.status(400).json({ error: 'last message must be from user' });
+    }
+    const rl = rateLimit('exercise-admin');
+    if (!rl.ok) return res.status(429).json({ error: 'rate limit exceeded' });
+
+    const catalog = exercises.slice(0, 300).map(e => (
+      `- id:${e.id} | he:${e.he || ''} | en:${e.en || ''} | muscle:${e.defaultMuscle || ''}`
+    )).join('\n');
+
+    const sys = [
+      'You are the assistant that helps a certified fitness coach curate a SHARED exercise database.',
+      'You reply with STRICT JSON — no prose, no markdown, no code fences.',
+      'You have TWO possible response shapes; pick ONE per reply:',
+      '',
+      'A. TEXT reply (use for clarifying questions, greetings, refusals, or when you need more info):',
+      '   {"type":"text","text":"<short conversational reply>"}',
+      '',
+      'B. PROPOSAL (use when you have enough info to suggest a concrete change or new exercise):',
+      '   {"type":"proposal","mode":"new"|"update","id":"<catalog id OR __new__>","reasoning":"<short>","patch":{<fields>}}',
+      '',
+      '── Naming convention (Hebrew) ──',
+      'Hebrew names must be PURE HEBREW — no English letters, no transliteration in the name.',
+      'Follow this template order:  <grip/attachment> <equipment> <angle/position>',
+      '  Barbell → מוט, Dumbbell → משקולת, Cable → כבל, Machine → מכונה,',
+      '  Wide grip → אחיזה רחבה, Close grip → אחיזה צרה, Neutral → אחיזה ניטרלית,',
+      '  Incline → משופע, Decline → שיפוע שלילי, Seated → בישיבה, Standing → בעמידה,',
+      '  Single-arm → יד אחת, Single-leg → רגל אחת.',
+      'Existing names in the catalog are the source of truth for style — match their tone.',
+      '',
+      '── PROPOSAL: mode="new" (adding an exercise) ──',
+      '  • Provide the FULL exercise, not a patch: he (required), en (required), defaultMuscle (required),',
+      '    aliases (array of 2-4 common Hebrew alternatives), howTo (array of 3-6 execution steps in Hebrew, imperative tone),',
+      '    isHoldTime (boolean, true only for planks/wall-sits/dead-hangs/holds).',
+      '  • NEVER invent videoUrl / photoBase64 — leave those out entirely.',
+      '  • Set id="__new__" (the client derives the real id from he).',
+      '  • Before proposing, verify the exercise isn\'t already in the catalog (by he name OR obvious alias).',
+      '    If it exists — respond with a TEXT reply explaining you found it and asking whether the coach meant an update.',
+      '',
+      '── PROPOSAL: mode="update" (changing an existing exercise) ──',
+      '  • `id` must exactly match one from the catalog below.',
+      '  • The `patch` object holds ONLY the fields that CHANGE. Never repeat unchanged fields.',
+      '  • Allowed patch fields: he, en, defaultMuscle, notes, aliases (array), isHoldTime (boolean), howTo (array), videoUrl.',
+      '  • In `reasoning` explicitly note it is an update ("עדכון בלבד"/"update only") so the coach knows nothing else moves.',
+      '',
+      '  For BOTH modes: defaultMuscle must be ONE of: ' + Array.from(MUSCLE_KEYS).join(', ') + '.',
+      '  Keep reasoning short (1-3 sentences) and in the same language as the coach.',
+      '',
+      '── When to REFUSE / PUSH BACK (use TEXT) ──',
+      '  • Ambiguous request that could apply to more than one exercise → ask which one.',
+      '  • Requested exercise clearly already exists in the catalog → say so, ask for update or a different name.',
+      '  • Proposed name violates the pure-Hebrew rule → suggest a corrected Hebrew name and ask to confirm.',
+      '  • Invalid muscle key or nonsense request → briefly explain why and ask for clarification.',
+      '',
+      'The catalog below is the FULL current state; use it as ground truth. Answer in the language the coach used.',
+    ].join('\n');
+
+    // Turn history into Anthropic messages. Prepend the catalog as a first
+    // user turn so the model has it once, then real convo.
+    const anthropicMessages = [
+      { role: 'user', content: `Catalog:\n${catalog}` },
+      { role: 'assistant', content: 'קיבלתי את המאגר. איך אפשר לעזור?' },
+      ...convo,
+    ];
+
+    const claudeResp = await anthropic.messages.create({
+      model: modelFor(req, 'exercise-review'),
+      max_tokens: 800,
+      system: sys,
+      messages: anthropicMessages,
+    });
+    const text = claudeResp.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    const parsed = safeParseJson(text);
+    // Graceful fallback: the model sometimes ignores the JSON envelope and
+    // replies in plain prose. Treat that as a text reply instead of a hard
+    // failure so the chat keeps flowing.
+    if (!parsed || typeof parsed.type !== 'string') {
+      const fallback = text.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
+      if (fallback && !fallback.includes('{') && !fallback.includes('}')) {
+        await logAiUsage({ uid: 'exercise-admin', model: claudeResp.model, endpoint: 'exercise-review:text-fallback', usage: claudeResp.usage });
+        return res.json({ type: 'text', text: fallback.slice(0, 2000) });
+      }
+      return res.status(500).json({ error: 'invalid response', raw: text.slice(0, 800) });
+    }
+
+    if (parsed.type === 'text') {
+      const t = String(parsed.text || '').slice(0, 2000);
+      if (!t) return res.status(500).json({ error: 'empty text' });
+      await logAiUsage({ uid: 'exercise-admin', model: claudeResp.model, endpoint: 'exercise-review:text', usage: claudeResp.usage });
+      return res.json({ type: 'text', text: t });
+    }
+
+    if (parsed.type === 'proposal') {
+      const allowed = new Set(['he','en','defaultMuscle','notes','videoUrl','aliases','isHoldTime','howTo']);
+      const patch = {};
+      if (parsed.patch && typeof parsed.patch === 'object') {
+        for (const k of Object.keys(parsed.patch)) {
+          if (!allowed.has(k)) continue;
+          const v = parsed.patch[k];
+          if (k === 'defaultMuscle' && !MUSCLE_KEYS.has(v)) continue;
+          if (k === 'aliases') {
+            if (!Array.isArray(v)) continue;
+            const cleaned = v.map(s => String(s || '').trim()).filter(Boolean).slice(0, 6);
+            if (cleaned.length) patch.aliases = cleaned;
+            continue;
+          }
+          if (k === 'howTo') {
+            if (!Array.isArray(v)) continue;
+            const steps = v.map(s => String(s || '').trim()).filter(Boolean).slice(0, 8);
+            if (steps.length) patch.howTo = steps;
+            continue;
+          }
+          if (k === 'isHoldTime' && typeof v !== 'boolean') continue;
+          patch[k] = v;
+        }
+      }
+      const idStr = String(parsed.id || '');
+      const rawMode = typeof parsed.mode === 'string' ? parsed.mode : (idStr === '__new__' ? 'new' : 'update');
+      const mode = (rawMode === 'new' || rawMode === 'update') ? rawMode : (idStr === '__new__' ? 'new' : 'update');
+      await logAiUsage({ uid: 'exercise-admin', model: claudeResp.model, endpoint: `exercise-review:${mode}`, usage: claudeResp.usage });
+      return res.json({
+        type: 'proposal',
+        mode,
+        id: idStr,
+        reasoning: String(parsed.reasoning || '').slice(0, 800),
+        patch,
+      });
+    }
+
+    return res.status(500).json({ error: 'unknown response type', raw: text.slice(0, 800) });
+  } catch (e) {
+    console.error('exercise-review error', e);
+    res.status(500).json({ error: 'internal', message: String(e?.message || e) });
+  }
+});
+
 // מאיה — admin-only marketing assistant. Same service, separate module.
 mountMarketing(app, { anthropicKey: ANTHROPIC_API_KEY, claudeModel: CLAUDE_MODEL });
 

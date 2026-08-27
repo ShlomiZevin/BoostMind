@@ -47,6 +47,7 @@ import { AdminPage } from './components/AdminPage';
 import { ReportsAdminPage } from './components/ReportsAdminPage';
 import { UsersAdminPage } from './components/UsersAdminPage';
 import { AdminDesktopPage } from './components/AdminDesktopPage';
+import { ExercisesAdminPage, canOpenExercisesAdmin } from './components/ExercisesAdminPage';
 import { CoachDashboard } from './components/CoachDashboard';
 import { CoachInvitePage } from './components/CoachInvitePage';
 import { doc, getDoc } from 'firebase/firestore';
@@ -90,6 +91,7 @@ function parseHash(): Route {
   if (hash === '/reports-admin') return { page: 'reports-admin' };
   if (hash === '/users-admin') return { page: 'users-admin' };
   if (hash === '/admin-desktop') return { page: 'admin-desktop' };
+  if (hash === '/exercises-admin') return { page: 'exercises-admin' };
   if (hash === '/coach') return { page: 'coach' };
   if (hash.startsWith('/coach/view/')) {
     const traineeUid = hash.slice('/coach/view/'.length);
@@ -120,6 +122,7 @@ function routeToHash(route: Route): string {
     case 'reports-admin': return '#/reports-admin';
     case 'users-admin': return '#/users-admin';
     case 'admin-desktop': return '#/admin-desktop';
+    case 'exercises-admin': return '#/exercises-admin';
     case 'coach': return '#/coach';
     case 'coach-view': return `#/coach/view/${route.traineeUid}`;
     case 'coach-invite': return `#/coach/invite/${route.coachUid}`;
@@ -621,6 +624,12 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
       break;
     case 'admin-desktop':
       content = <AdminDesktopPage navigate={navigate} />;
+      break;
+    case 'exercises-admin':
+      // Gated to DB managers (Shlomi + Sergio et al.). Anyone else bounces home.
+      content = canOpenExercisesAdmin()
+        ? <ExercisesAdminPage navigate={navigate} />
+        : (navigate({ page: 'home' }), null);
       break;
     case 'food-today':
       content = <FoodToday uid={uid} navigate={navigate} onOpenChat={() => setFoodChatOpen(true)} refreshKey={mealRefresh} onAddMeal={() => {

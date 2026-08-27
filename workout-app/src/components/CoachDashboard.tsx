@@ -4,6 +4,7 @@ import { db } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
 import type { Route } from '../types';
 import { isCoacherEmail } from '../config/coaches';
+import { isDbManagerEmail } from '../config/dbManagers';
 
 // Coach dashboard. Lists every trainee whose profile points at the current
 // signed-in coach (`coachUid == request.auth.uid`) and gives a quick "today"
@@ -194,6 +195,28 @@ export function CoachDashboard({ navigate }: { navigate: (r: Route) => void }) {
             {inviteUrl}
           </div>
         </div>
+
+        {/* Exercise DB entry — any coach can add per-trainee. DB managers also see the shared scope inside. */}
+        <button
+          onClick={() => navigate({ page: 'exercises-admin' })}
+          className="card mb-5 w-full border border-violet-500/40 hover:bg-violet-500/[.06] transition-colors flex items-center justify-between gap-3"
+          dir="rtl"
+        >
+          <div className="text-right">
+            <div className="font-bold text-sm flex items-center gap-2">
+              💪 <span>מאגר תרגילים</span>
+              {isDbManagerEmail(email) && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40">
+                  גישה למאגר המשותף
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-muted mt-1">
+              הוסף/ערוך תרגילים למתאמנים שלך. {isDbManagerEmail(email) && 'מצב נפרד גם למאגר המשותף לכולם.'}
+            </div>
+          </div>
+          <span className="text-muted text-lg shrink-0">←</span>
+        </button>
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">

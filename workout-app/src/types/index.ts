@@ -386,6 +386,8 @@ export type Route =
   | { page: 'users-admin' }
   // admin-only combined desktop landing (users + tasks + movement)
   | { page: 'admin-desktop' }
+  // DB manager desktop page — global exercises catalog editor
+  | { page: 'exercises-admin' }
   // coacher-only trainee management dashboard
   | { page: 'coach' }
   // impersonation — coach views app through the trainee's data

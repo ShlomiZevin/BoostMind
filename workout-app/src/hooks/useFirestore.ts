@@ -44,8 +44,13 @@ function userExerciseOverridesCol(uid: string) {
 function userHiddenPersonalExercisesCol(uid: string) {
   return collection(db, 'users', uid, 'hiddenPersonalExercises');
 }
-// Users allowed to write directly to the global exercise DB.
-// Once Google-Auth lands, this becomes an email-based check on the auth token.
+// Users allowed to write directly to the global exercise DB from the REGULAR
+// exercises UI. Stays narrow on purpose — only Shlomi's legacy account. DB
+// managers who want to write global do so via the desktop /exercises-admin
+// page, which bypasses this hook and writes to `exercises/*` directly with
+// an explicit scope toggle + confirmation dialog. Adds by a DB manager from
+// the regular UI still go to their personal DB — never global — unless they
+// deliberately promote it from the admin page.
 const ADMIN_UIDS = new Set<string>(['user_6724']);
 function isAdminUid(uid: string): boolean { return ADMIN_UIDS.has(uid); }
 

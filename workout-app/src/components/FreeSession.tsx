@@ -2630,27 +2630,66 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
   if (!loaded || !exId) return null;
 
+  // Human-readable summary line for what's marked. Rendered as one sentence
+  // above the chip rows so the meaning of the picks is unambiguous.
+  //
+  // • Both reps+weight → "לשנות ל-<R> חזרות ולהעלות משקל ב-<W>"
+  // • Reps only        → "לשנות ל-<R> חזרות"
+  // • Weight only      → "להעלות משקל ב-<W>"
+  function summaryParts(
+    reps: NextReps | null,
+    weight: Difficulty | null,
+  ): React.ReactNode | null {
+    if (!reps && !weight) return null;
+    const parts: React.ReactNode[] = [];
+    if (reps) {
+      parts.push(
+        <span key="r" className={`font-semibold px-1.5 py-0.5 rounded-md border ${REPS_COLOR[reps]}`}>
+          לשנות ל-<bdi dir="ltr">{REPS_LABEL[reps]}</bdi> חזרות
+        </span>
+      );
+    }
+    if (weight) {
+      parts.push(
+        <span key="w" className={`font-semibold px-1.5 py-0.5 rounded-md border ${DIFF_COLOR[weight]}`}>
+          להעלות משקל ב-<bdi dir="ltr">{DIFF_LABEL[weight]}</bdi>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 flex-wrap">
+        {parts.map((p, i) => (
+          <span key={i} className="inline-flex items-center gap-1">
+            {i > 0 && <span className="text-muted-most">ו</span>}
+            {p}
+          </span>
+        ))}
+      </span>
+    );
+  }
+
+  const hasThis = !!(thisDiff || thisReps);
+  const hasLast = !!(lastDiff || lastReps);
+
   return (
-    <div className="mt-2 pt-2 border-t border-subtle/40 space-y-1.5" dir="rtl">
-      {/* Header row: "פעם קודמת" pill(s) if you didn't already mark THIS
-          session + note toggle. Both weight and reps get their own pill so the
-          hint mirrors what's actually stored. */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-          {lastDiff && !thisDiff && (
-            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${DIFF_COLOR[lastDiff]}`} title="מה סימנת פעם קודמת להוסיף במשקל">
-              משקל קודם: <bdi dir="ltr">{DIFF_LABEL[lastDiff]}</bdi>
+    <div className="mt-2 pt-2 border-t border-subtle/40 space-y-2" dir="rtl">
+      {/* Header row: one clear sentence describing what's marked (or the
+          "לפעם הבאה:" hint when empty) + the note toggle. Replaces the old
+          pair of tiny pills — same information, cleaner reading. */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0 text-[11px] leading-relaxed">
+          {hasThis ? (
+            <span>
+              <span className="text-muted-most">לפעם הבאה </span>
+              {summaryParts(thisReps, thisDiff)}
             </span>
-          )}
-          {lastReps && !thisReps && (
-            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${REPS_COLOR[lastReps]}`} title="מה סימנת פעם קודמת כחזרות">
-              חזרות קודם: <bdi dir="ltr">{REPS_LABEL[lastReps]}</bdi>
+          ) : hasLast ? (
+            <span>
+              <span className="text-muted-most">פעם קודמת סימנת </span>
+              {summaryParts(lastReps, lastDiff)}
             </span>
-          )}
-          {!lastDiff && !lastReps && !thisDiff && !thisReps && (
-            <span className="text-[9px] text-muted-most">
-              לפעם הבאה:
-            </span>
+          ) : (
+            <span className="text-muted-most">לפעם הבאה:</span>
           )}
         </div>
         {/* Always rendered so the header layout doesn't jump between read/edit modes. */}
@@ -2683,9 +2722,13 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
         </button>
       </div>
 
+      {/* Chip rows: weight + reps side by side. Wrapped in a subtle
+          container so the whole "next-time markers" area reads as one
+          block, and labels share a fixed width so the chip columns align. */}
+      <div className="rounded-lg border border-subtle/60 dark:bg-slate-900/30 bg-slate-500/[.03] px-2 py-1.5 space-y-1.5">
       {/* Row 1 — next-time WEIGHT bumps. */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-[9px] text-muted-most shrink-0">משקל</span>
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">משקל</span>
         <div className="flex flex-wrap gap-1">
           {(Object.keys(DIFF_LABEL) as Difficulty[]).map(d => {
             const active = thisDiff === d;
@@ -2693,7 +2736,7 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
               <button
                 key={d}
                 onClick={() => rate(d)}
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-colors ${
                   active ? DIFF_COLOR[d] : 'border-subtle text-muted hover:text-main'
                 }`}
                 title={active ? 'לחץ שוב לביטול' : undefined}
@@ -2707,8 +2750,8 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
       {/* Row 2 — next-time REPS target. Same UX as row 1. Separate storage
           field on the same doc so weight & reps can be marked independently. */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-[9px] text-muted-most shrink-0">חזרות</span>
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">חזרות</span>
         <div className="flex flex-wrap gap-1">
           {REPS_ORDER.map(r => {
             const active = thisReps === r;
@@ -2716,7 +2759,7 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
               <button
                 key={r}
                 onClick={() => rateReps(r)}
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-colors ${
                   active ? REPS_COLOR[r] : 'border-subtle text-muted hover:text-main'
                 }`}
                 title={active ? 'לחץ שוב לביטול' : undefined}
@@ -2726,6 +2769,7 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
             );
           })}
         </div>
+      </div>
       </div>
 
       {/* Note — reading mode is clean text; editing mode is a textarea */}

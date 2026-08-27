@@ -179,6 +179,21 @@ Statuses:
 
 ## Deploying after a fix
 
+**Use `./deploy.sh` from the repo root.** It wraps every target and verifies
+the live revision afterwards, so the secret-dropping failure below cannot ship
+silently again.
+
+```bash
+./deploy.sh            # hosting only — the common case
+./deploy.sh hub        # rebuild the marketing hub, then hosting
+./deploy.sh app        # typecheck + build the PWA, then hosting
+./deploy.sh server     # Cloud Run only
+./deploy.sh verify     # check the live revision's secrets without deploying
+./deploy.sh all        # everything
+```
+
+The raw commands, for when you need to see what it runs:
+
 ```bash
 cd workout-app
 npx tsc -b                    # must pass
@@ -191,9 +206,23 @@ Server changes (`workout-app/server/`) also need:
 ```bash
 cd workout-app/server
 gcloud run deploy workout-ai --source . --region me-west1 --project boostmind-b052c \
-  --allow-unauthenticated --set-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest \
+  --allow-unauthenticated \
+  --update-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,LEONARDO_API_KEY=LEONARDO_API_KEY:latest \
   --memory=512Mi --cpu=1 --max-instances=3 --timeout=300 --quiet
 ```
+
+> ### ⚠️ `--update-secrets`, never `--set-secrets`
+>
+> `--set-secrets` **replaces the entire secret set**. This file used to show it
+> with `ANTHROPIC_API_KEY` alone, and following that dropped `OPENAI_API_KEY`
+> and `LEONARDO_API_KEY` off the live revision. Nothing failed at deploy time —
+> the service came up healthy, and only the image and phrasing endpoints began
+> answering `503 {"error":"no_leonardo_key"}` / `no_openai_key`. That reads like
+> a billing problem and is not one.
+>
+> `--update-secrets` merges, so it cannot remove a secret it does not name.
+> If you ever see one of those 503s, check the revision's secrets before you
+> check any balance.
 
 > On Git Bash, `MSYS_NO_PATHCONV=1` matters on any command with a `/`-leading
 > argument — without it MSYS rewrites `/workout-app/` into a Windows path and the

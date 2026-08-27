@@ -46,7 +46,7 @@ export const MUSCLES: MuscleInfo[] = [
   { id: 'chest',        he: 'חזה (אמצע)',    en: 'Chest (mid)',  parent: 'chest',     color: 'rose' },
   { id: 'lower-chest',  he: 'חזה תחתון',    en: 'Lower Chest',  parent: 'chest',     color: 'red' },
   // Back
-  { id: 'lats',         he: 'רחב הגב',      en: 'Lats',         parent: 'back',      color: 'blue' },
+  { id: 'lats',         he: 'רחב גבי',      en: 'Lats',         parent: 'back',      color: 'blue' },
   { id: 'mid-back',     he: 'גב אמצעי',     en: 'Mid Back',     parent: 'back',      color: 'sky' },
   { id: 'traps',        he: 'טרפז',         en: 'Traps',        parent: 'back',      color: 'indigo' },
   { id: 'rear-delts',   he: 'כתף אחורית',   en: 'Rear Delts',   parent: 'back',      color: 'cyan' },
@@ -54,7 +54,7 @@ export const MUSCLES: MuscleInfo[] = [
   { id: 'back',         he: 'גב (כללי)',    en: 'Back (all)',   parent: 'back',      color: 'blue',    legacy: true },
   // Shoulders
   { id: 'front-delts',  he: 'כתף קדמית',    en: 'Front Delts',  parent: 'shoulders', color: 'amber' },
-  { id: 'side-delts',   he: 'כתף צדדית',    en: 'Side Delts',   parent: 'shoulders', color: 'yellow' },
+  { id: 'side-delts',   he: 'כתף צידית',    en: 'Side Delts',   parent: 'shoulders', color: 'yellow' },
   { id: 'shoulders',    he: 'כתפיים (כללי)', en: 'Shoulders (all)', parent: 'shoulders', color: 'amber', legacy: true },
   // Arms
   { id: 'biceps',       he: 'דו ראשי',      en: 'Biceps',       parent: 'arms',      color: 'violet' },
@@ -70,7 +70,7 @@ export const MUSCLES: MuscleInfo[] = [
   { id: 'legs',         he: 'רגליים (כללי)', en: 'Legs (all)',  parent: 'legs',      color: 'emerald', legacy: true },
   // Core
   { id: 'abs',          he: 'בטן',          en: 'Abs',          parent: 'core',      color: 'zinc' },
-  { id: 'obliques',     he: 'בטן צדדית',    en: 'Obliques',     parent: 'core',      color: 'gray' },
+  { id: 'obliques',     he: 'בטן צידית',    en: 'Obliques',     parent: 'core',      color: 'gray' },
   // Aerobic — legacy=true so it stays out of muscle-focus pickers + volume graphs;
   // exists purely so exercises can carry defaultMuscle='aerobic' and the aerobic modal
   // can pull types straight from the personal exercises DB.

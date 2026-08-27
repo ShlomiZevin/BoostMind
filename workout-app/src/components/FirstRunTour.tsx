@@ -21,8 +21,8 @@ type Step = {
 const SHELL_STEPS: Step[] = [
   {
     target: 'place',
-    title: 'מצב אימון · מצב תזונה · מצב נשימה',
-    body: 'מצב הוא אפליקציה אחת עם הרבה מקומות. מצב אימון זה רק ההתחלה. מכאן עוברים למצב תזונה — ובהמשך גם למצב נשימה, שינה ועוד. הכפתור הזה תמיד באותה פינה.',
+    title: 'הלוגו הירוק בפינה הוא הכפתור למעבר בין המקומות',
+    body: 'Wholos זו אפליקציה אחת עם כמה מקומות. עכשיו אתה בתוך מצב אימון, ולחיצה על הלוגו בפינה פותחת את הרשימה ומעבירה גם למצב תזונה (ובהמשך גם נשימה, שינה ועוד). הכפתור הזה תמיד באותה פינה — אל תפספס.',
     showPlaces: true,
   },
   {
@@ -183,17 +183,24 @@ export function FirstRunTour({ uid, tour = 'shell', onDone }: { uid: string; tou
 
   return (
     <div className="fixed inset-0 z-[80]" dir="rtl">
-      {/* Scrim with a hole punched over the target. Four panels rather than a
-          blend mode — reliable on every mobile browser. */}
+      {/* Scrim with a rounded hole punched over the target. Single element
+          with a huge box-shadow spread — the shadow follows the border-radius
+          so the hole itself is rounded, not just an inner ring hanging inside
+          a square gap. Previously used 4 flat rectangles + a rounded ring,
+          which showed the darkened corners peeking through and looked like
+          two overlapping shapes. */}
       {spot ? (
         <>
-          <div className="absolute inset-x-0 top-0 bg-black/75" style={{ height: Math.max(0, spot.top) }} onClick={next} />
-          <div className="absolute inset-x-0 bg-black/75" style={{ top: spot.top + spot.height, bottom: 0 }} onClick={next} />
-          <div className="absolute bg-black/75" style={{ top: spot.top, height: spot.height, left: 0, width: Math.max(0, spot.left) }} onClick={next} />
-          <div className="absolute bg-black/75" style={{ top: spot.top, height: spot.height, left: spot.left + spot.width, right: 0 }} onClick={next} />
+          <div className="absolute inset-0" onClick={next} />
           <div
             className="absolute rounded-2xl ring-2 ring-white/90 pointer-events-none"
-            style={{ top: spot.top, left: spot.left, width: spot.width, height: spot.height }}
+            style={{
+              top: spot.top,
+              left: spot.left,
+              width: spot.width,
+              height: spot.height,
+              boxShadow: '0 0 0 9999px rgba(0,0,0,0.75)',
+            }}
           />
         </>
       ) : (

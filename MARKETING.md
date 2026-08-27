@@ -427,13 +427,28 @@ protocol — read it.** The essentials:
 
 ## 8. Ship it
 
+**Use `./deploy.sh` from the repo root.** It wraps every target and verifies
+the live revision afterwards, so the secret-dropping failure below cannot ship
+silently again.
+
+```bash
+./deploy.sh            # hosting only — the common case
+./deploy.sh hub        # rebuild the marketing hub, then hosting
+./deploy.sh app        # typecheck + build the PWA, then hosting
+./deploy.sh server     # Cloud Run only
+./deploy.sh verify     # check the live revision's secrets without deploying
+./deploy.sh all        # everything
+```
+
+The raw commands, for when you need to see what it runs:
+
 ```bash
 cd marketing-hub && MSYS_NO_PATHCONV=1 npx vite build     # if the hub changed
 cd BoostMind && npx firebase deploy --only hosting --project boostmind-b052c
 # only if maya-context.js or server/ changed:
 cd workout-app/server && gcloud run deploy workout-ai --source . --region me-west1 \
   --project boostmind-b052c --allow-unauthenticated \
-  --set-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,LEONARDO_API_KEY=LEONARDO_API_KEY:latest \
+  --update-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,LEONARDO_API_KEY=LEONARDO_API_KEY:latest \
   --memory=512Mi --cpu=1 --max-instances=3 --timeout=300 --quiet
 ```
 

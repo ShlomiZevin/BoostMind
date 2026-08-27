@@ -4,12 +4,13 @@ import type { Route } from '../types';
 // so a click never leaves the admin surface, and it's always obvious where
 // you can jump to next.
 
-type AdminPage = 'admin-desktop' | 'users-admin' | 'reports-admin';
+type AdminPage = 'admin-desktop' | 'users-admin' | 'reports-admin' | 'exercises-admin';
 
 const TABS: { id: AdminPage; label: string; color: string }[] = [
-  { id: 'admin-desktop', label: '📊 דשבורד',  color: 'emerald' },
-  { id: 'users-admin',   label: '👥 משתמשים', color: 'emerald' },
-  { id: 'reports-admin', label: '✅ משימות',  color: 'blue' },
+  { id: 'admin-desktop',   label: '📊 דשבורד',  color: 'emerald' },
+  { id: 'users-admin',     label: '👥 משתמשים', color: 'emerald' },
+  { id: 'reports-admin',   label: '✅ משימות',  color: 'blue' },
+  { id: 'exercises-admin', label: '💪 תרגילים', color: 'violet' },
 ];
 
 export function AdminNav({
