@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>צח דוידוב — קורות חיים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS — one system, three documents
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0a0c0b;
+  --surface:#111514;
+  --surface-2:#161b19;
+  --surface-3:#1c221f;
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+  --text:#f0f3f1;
+  --text-2:#a3ada8;
+  --text-3:#6b756f;
+  --accent:#3fa46a;
+  --accent-2:#63cd8d;
+  --accent-soft:rgba(63,164,106,.10);
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  --r:12px;
+}
+:root[data-theme="light"]{
+  --bg:#f2f4f2;
+  --surface:#ffffff;
+  --surface-2:#f7f9f8;
+  --surface-3:#eef1ef;
+  --border:rgba(0,0,0,.08);
+  --border-2:rgba(0,0,0,.14);
+  --text:#0e1211;
+  --text-2:#4b5450;
+  --text-3:#79827d;
+  --accent:#1f7a45;
+  --accent-2:#1f7a45;
+  --accent-soft:rgba(31,122,69,.08);
+  --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+/* per-document accent — switching tabs shifts the whole palette */
+.doc[data-doc="notes"]{ --accent:#4a7fb5; --accent-2:#7fb0e0; --accent-soft:rgba(74,127,181,.10) }
+:root[data-theme="light"] .doc[data-doc="notes"]{ --accent:#2f5f8f; --accent-2:#2f5f8f; --accent-soft:rgba(47,95,143,.08) }
+.doc[data-doc="humor"]{
+  --accent:#9a7a3c; --accent-2:#d4ae5c; --accent-soft:rgba(154,122,60,.12);
+  --surface:#14100c; --surface-2:#1b1610; --surface-3:#241d15;
+  --border:rgba(212,174,92,.14); --border-2:rgba(212,174,92,.26);
+  --text:#f3ede1; --text-2:#b4a68d; --text-3:#7d7260;
+}
+:root[data-mode="humor"] body{background:#0a0806}
+:root[data-theme="light"] .doc[data-doc="humor"]{
+  --accent:#8a6a2c; --accent-2:#8a6a2c; --accent-soft:rgba(138,106,44,.09);
+  --surface:#fffdf8; --surface-2:#faf5ea; --surface-3:#f2ebdb;
+  --border:rgba(120,92,38,.16); --border-2:rgba(120,92,38,.28);
+  --text:#181310; --text-2:#5a5044; --text-3:#877c6b;
+}
+:root[data-theme="light"][data-mode="humor"] body{background:#efe8d8}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Heebo',-apple-system,'Segoe UI',Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  padding-bottom:64px;
+}
+::selection{background:var(--accent);color:#fff}
+
+/* ═══════════════ app bar ═══════════════ */
+.appbar{
+  position:sticky;top:0;z-index:60;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.appbar-in{
+  max-width:1000px;margin:0 auto;padding:11px 24px;
+  display:flex;align-items:center;gap:16px;justify-content:space-between;
+}
+.mark{display:flex;align-items:center;gap:10px;min-width:0}
+.mark-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.mark-txt{font-size:13.5px;font-weight:600;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar-r{display:flex;align-items:center;gap:8px}
+
+/* segmented tabs — govern the whole page */
+.seg{
+  display:inline-flex;gap:2px;padding:3px;
+  background:var(--surface-2);
+  border:1px solid var(--border);border-radius:11px;
+}
+.seg button{
+  font-family:inherit;font-size:13.5px;font-weight:600;
+  color:var(--text-3);background:transparent;
+  border:1px solid transparent;border-radius:8px;
+  padding:7px 16px;cursor:pointer;white-space:nowrap;
+  transition:color .15s ease,background .15s ease,border-color .15s ease;
+}
+.seg button:hover{color:var(--text-2)}
+.seg button.on{
+  color:var(--text);background:var(--surface);
+  border-color:var(--border);box-shadow:var(--shadow);
+}
+
+.icon-btn{
+  width:36px;height:36px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:9px;
+  background:var(--surface);color:var(--text-2);cursor:pointer;
+  transition:color .15s ease,border-color .15s ease;
+}
+.icon-btn:hover{color:var(--text);border-color:var(--border-2)}
+.icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.pdf-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:inherit;font-size:13.5px;font-weight:600;
+  background:var(--accent);color:#fff;border:1px solid var(--accent);
+  border-radius:9px;padding:8px 15px;cursor:pointer;
+  transition:opacity .15s ease;
+}
+.pdf-btn:hover{opacity:.88}
+.pdf-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ═══════════════ document shell ═══════════════ */
+.doc{display:none}
+.doc.on{display:block}
+.sheet{
+  max-width:1000px;margin:26px auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+}
+
+/* hero */
+.hero{padding:44px 52px 34px;border-bottom:1px solid var(--border)}
+.hero-top{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.avatar{
+  width:96px;height:96px;flex-shrink:0;border-radius:50%;
+  object-fit:cover;object-position:50% 15%;
+  border:1px solid var(--border-2);background:var(--surface-2);
+}
+.hero-id{flex:1;min-width:220px}
+.kicker{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11.5px;font-weight:700;letter-spacing:.1em;
+  color:var(--accent-2);background:var(--accent-soft);
+  border:1px solid var(--border);border-radius:999px;
+  padding:4px 11px;margin-bottom:12px;
+}
+h1{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1.02}
+.role{margin-top:9px;font-size:18px;font-weight:600;color:var(--accent-2)}
+.target{margin-top:5px;font-size:14.5px;color:var(--text-2)}
+.meta{margin-top:26px;display:flex;flex-wrap:wrap;gap:8px}
+.meta a,.meta span{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:13.5px;color:var(--text-2);text-decoration:none;
+  border:1px solid var(--border);border-radius:9px;
+  padding:7px 13px;background:var(--surface-2);
+  transition:color .15s ease,border-color .15s ease;
+}
+.meta a:hover{color:var(--text);border-color:var(--accent)}
+.meta svg{width:14px;height:14px;fill:none;stroke:var(--text-3);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* body + sections */
+.doc-body{padding:40px 52px 48px}
+section{margin-bottom:42px}
+section:last-child{margin-bottom:0}
+.eyebrow{
+  display:flex;align-items:center;gap:11px;
+  padding-bottom:11px;margin-bottom:22px;
+  border-bottom:1px solid var(--border);
+}
+.eyebrow .n{
+  font-size:11px;font-weight:700;color:var(--accent-2);
+  font-variant-numeric:tabular-nums;letter-spacing:.06em;
+}
+.eyebrow h2{
+  font-size:12.5px;font-weight:700;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--text-3);
+}
+.lede{font-size:16px;color:var(--text-2);line-height:1.85;max-width:68ch}
+.lede strong{color:var(--text);font-weight:600}
+
+/* fit grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tile{
+  border:1px solid var(--border);border-radius:var(--r);
+  background:var(--surface-2);padding:19px 21px;
+  transition:border-color .15s ease;
+}
+.tile:hover{border-color:var(--border-2)}
+.tile b{
+  display:flex;align-items:center;gap:9px;
+  font-size:15px;font-weight:700;color:var(--text);margin-bottom:7px;
+}
+.tile b::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--accent);flex-shrink:0;
+}
+.tile p{font-size:13.8px;color:var(--text-2);line-height:1.65}
+
+/* timeline */
+.entry{
+  position:relative;padding-inline-start:26px;padding-bottom:30px;
+  border-inline-start:1px solid var(--border);
+}
+.entry:last-child{padding-bottom:0;border-inline-start-color:transparent}
+.entry::before{
+  content:'';position:absolute;inset-inline-start:-5px;top:7px;
+  width:9px;height:9px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--surface);
+}
+.entry-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:3px}
+.entry-t{font-size:17.5px;font-weight:700;letter-spacing:-.01em}
+.entry-o{font-size:14.5px;font-weight:500;color:var(--accent-2)}
+.when{
+  font-size:12px;font-weight:600;color:var(--text-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+  border:1px solid var(--border);border-radius:7px;padding:3px 10px;
+  background:var(--surface-2);
+}
+.entry ul{list-style:none;margin-top:12px}
+.entry li{
+  position:relative;padding-inline-start:17px;
+  font-size:14.5px;color:var(--text-2);line-height:1.72;margin-bottom:7px;
+}
+.entry li::before{
+  content:'';position:absolute;inset-inline-start:0;top:11px;
+  width:6px;height:1.5px;background:var(--text-3);border-radius:1px;
+}
+.entry li strong{color:var(--text);font-weight:600}
+
+/* chips */
+.cluster{margin-bottom:19px}
+.cluster:last-child{margin-bottom:0}
+.cluster-l{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  font-size:13px;font-weight:500;color:var(--text-2);
+  border:1px solid var(--border);border-radius:8px;
+  padding:6px 12px;background:var(--surface-2);
+}
+
+/* fact cards */
+.fact{
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:15px 18px;background:var(--surface-2);margin-bottom:9px;
+}
+.fact:last-child{margin-bottom:0}
+.fact b{display:block;font-size:15px;font-weight:700;color:var(--text)}
+.fact span{font-size:13.5px;color:var(--text-2);line-height:1.6}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+
+.foot{
+  margin-top:44px;padding-top:22px;border-top:1px solid var(--border);
+  font-size:13px;color:var(--text-3);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+
+/* ═══════════════ notes ═══════════════ */
+.task{
+  display:flex;gap:13px;align-items:flex-start;
+  padding:14px 17px;border:1px solid var(--border);
+  border-radius:var(--r);background:var(--surface-2);margin-bottom:9px;
+  transition:border-color .15s ease,opacity .15s ease;
+}
+.task:hover{border-color:var(--border-2)}
+.task input{width:17px;height:17px;margin-top:3px;flex-shrink:0;accent-color:var(--accent);cursor:pointer}
+.task label{font-size:14.5px;color:var(--text-2);line-height:1.65;cursor:pointer}
+.task label b{display:block;font-size:15px;color:var(--text);font-weight:700;margin-bottom:3px}
+.task.done{opacity:.42}
+.task.done label b{text-decoration:line-through}
+.checks{list-style:none}
+.checks li{
+  position:relative;padding-inline-start:23px;
+  font-size:14.5px;color:var(--text-2);line-height:1.72;margin-bottom:7px;
+}
+.checks li::before{
+  content:'✓';position:absolute;inset-inline-start:0;top:0;
+  color:var(--accent-2);font-weight:800;font-size:13px;
+}
+#pad{
+  width:100%;min-height:230px;direction:rtl;
+  font-family:inherit;font-size:15px;line-height:1.75;
+  color:var(--text);background:var(--surface-2);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;resize:vertical;transition:border-color .15s ease;
+}
+#pad:focus{outline:none;border-color:var(--accent)}
+.hint{font-size:12.5px;color:var(--text-3);margin-top:9px}
+
+/* ═══════════════ humour ═══════════════ */
+.gallery{display:flex;gap:30px;align-items:center;flex-wrap:wrap;margin-bottom:40px}
+.frame{
+  flex-shrink:0;border:10px solid var(--accent);
+  background:var(--accent);border-radius:3px;line-height:0;
+}
+.frame img{display:block;width:230px;height:auto;border:1px solid rgba(0,0,0,.5)}
+.plaque{
+  background:var(--surface-3);border:1px solid var(--border-2);
+  border-radius:3px;padding:8px 14px;margin-top:11px;text-align:center;
+}
+.plaque b{display:block;font-size:12.5px;font-weight:800;letter-spacing:.03em;color:var(--text)}
+.plaque span{font-size:11.5px;color:var(--text-3)}
+.gallery-txt{flex:1;min-width:250px}
+.gallery-txt h3{font-size:21px;font-weight:700;letter-spacing:-.01em;margin-bottom:11px}
+.gallery-txt p{font-size:14.8px;color:var(--text-2);line-height:1.78;margin-bottom:11px}
+.gallery-txt p:last-child{margin-bottom:0}
+.gallery-txt strong{color:var(--text);font-weight:600}
+
+/* ═══════════════ humour: gallery catalogue ═══════════════ */
+.doc[data-doc="humor"] h1,
+.doc[data-doc="humor"] .entry-t,
+.doc[data-doc="humor"] .gallery-txt h3,
+.doc[data-doc="humor"] .tile b,
+.doc[data-doc="humor"] .fact b,
+.doc[data-doc="humor"] .plaque b,
+.doc[data-doc="humor"] blockquote p{
+  font-family:'Frank Ruhl Libre',Georgia,'Times New Roman',serif;
+  letter-spacing:0;
+}
+.doc[data-doc="humor"] h1{font-weight:900;font-size:52px;line-height:1.06}
+.doc[data-doc="humor"] .role{
+  font-family:'Frank Ruhl Libre',Georgia,serif;font-weight:500;
+  font-style:italic;font-size:19px;
+}
+.doc[data-doc="humor"] .lede{
+  font-family:'Frank Ruhl Libre',Georgia,serif;
+  font-size:17.5px;line-height:1.9;
+}
+.doc[data-doc="humor"] .kicker{
+  font-family:'Heebo',sans-serif;letter-spacing:.18em;
+}
+.doc[data-doc="humor"] .hero{
+  border-bottom:1px solid var(--border-2);
+}
+.doc[data-doc="humor"] .avatar{border:2px solid var(--accent)}
+
+/* exhibit tag */
+.exhibit{
+  display:block;font-family:'Heebo',sans-serif;
+  font-size:10.5px;font-weight:700;letter-spacing:.19em;
+  color:var(--accent-2);margin-bottom:5px;
+}
+.doc[data-doc="humor"] .entry::before{
+  background:var(--accent);border-color:var(--surface);
+}
+
+/* certificate */
+.cert{
+  border:1px solid var(--accent);
+  background:var(--surface-2);
+  border-radius:4px;padding:7px;margin-bottom:40px;
+}
+.cert-in{
+  border:1px solid var(--border-2);
+  border-radius:2px;padding:26px 28px;text-align:center;
+}
+.seal{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:50%;
+  border:2px solid var(--accent);color:var(--accent-2);
+  font-size:17px;margin-bottom:13px;
+}
+.cert-in b{
+  display:block;font-family:'Frank Ruhl Libre',Georgia,serif;
+  font-size:23px;font-weight:900;color:var(--text);
+  letter-spacing:.02em;margin-bottom:9px;
+}
+.cert-in p{
+  font-family:'Frank Ruhl Libre',Georgia,serif;
+  font-size:15.5px;color:var(--text-2);line-height:1.85;
+  max-width:52ch;margin:0 auto;
+}
+.cert-foot{
+  margin-top:17px;padding-top:13px;
+  border-top:1px solid var(--border);
+  font-size:11.5px;font-weight:600;letter-spacing:.13em;
+  color:var(--text-3);
+}
+
+/* press quotes */
+.quotes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+blockquote{
+  border:1px solid var(--border);border-radius:var(--r);
+  background:var(--surface-2);padding:21px 23px;
+  border-inline-start:3px solid var(--accent);
+}
+blockquote p{
+  font-size:16px;font-style:italic;color:var(--text);
+  line-height:1.7;margin-bottom:11px;
+}
+blockquote cite{
+  font-family:'Heebo',sans-serif;font-style:normal;
+  font-size:12.5px;font-weight:600;color:var(--text-3);
+  letter-spacing:.03em;
+}
+
+@media (max-width:720px){
+  .doc[data-doc="humor"] h1{font-size:36px}
+  .doc[data-doc="humor"] .lede{font-size:16px}
+  .quotes{grid-template-columns:1fr}
+  .cert-in{padding:20px 17px}
+  .cert-in b{font-size:19px}
+  .cert-in p{font-size:14.5px}
+}
+
+/* ═══════════════ responsive ═══════════════ */
+@media (max-width:860px){
+  .cols,.grid2{grid-template-columns:1fr;gap:14px}
+  .cols{gap:34px}
+}
+@media (max-width:720px){
+  .appbar-in{padding:10px 14px;gap:10px;flex-wrap:wrap}
+  .mark{order:1}
+  .appbar-r{order:2}
+  .seg{order:3;width:100%;justify-content:stretch}
+  .seg button{flex:1;padding:8px 6px;font-size:13px}
+  .sheet{margin:14px 10px;border-radius:14px}
+  .hero{padding:28px 22px 24px}
+  .hero-top{gap:18px}
+  .avatar{width:68px;height:68px}
+  h1{font-size:33px}
+  .role{font-size:16px}
+  .doc-body{padding:28px 22px 34px}
+  section{margin-bottom:34px}
+  .gallery{gap:20px;justify-content:center}
+  .gallery-txt{text-align:center}
+  .frame img{width:185px}
+  .when{align-self:flex-start}
+}
+
+/* ═══════════════ print / PDF ═══════════════ */
+@page{size:A4;margin:11mm 11mm}
+@media print{
+  /* keep frames, rules and tinted panels — browsers strip them otherwise */
+  *,*::before,*::after{
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  html,body{background:#fff!important}
+  :root,:root[data-theme]{
+    --bg:#fff;--surface:#fff;--surface-2:#fbfbfa;--surface-3:#f4f4f2;
+    --border:#dcdfdd;--border-2:#c4c9c6;
+    --text:#111;--text-2:#3c433f;--text-3:#6d756f;
+    --accent:#1c6b3d;--accent-2:#1c6b3d;--accent-soft:#eef5f0;--shadow:none;
+  }
+  .doc[data-doc="humor"]{--accent:#7d612a;--accent-2:#7d612a;--accent-soft:#f6f1e6}
+  .doc[data-doc="notes"]{--accent:#2c5885;--accent-2:#2c5885;--accent-soft:#eef2f7}
+  .appbar{display:none!important}
+  .doc:not(.on){display:none!important}
+  body{padding:0}
+  .sheet{max-width:none;margin:0;border:none;border-radius:0}
+  .hero{padding:0 0 15px}
+  .doc-body{padding:17px 0 0}
+  h1{font-size:29px}
+  .role{font-size:14.5px}
+  .kicker{padding:2px 8px;font-size:10px;margin-bottom:8px}
+  .avatar{width:64px;height:64px}
+  .meta{margin-top:13px;gap:5px}
+  .meta a,.meta span{padding:2px 8px;font-size:11px}
+  section{margin-bottom:19px;break-inside:avoid}
+  .eyebrow{margin-bottom:12px;padding-bottom:6px}
+  .lede{font-size:12.4px;line-height:1.6;max-width:none}
+  .entry{break-inside:avoid;padding-bottom:15px}
+  .entry-t{font-size:14.5px}
+  .entry li,.tile p,.fact span{font-size:12.2px;line-height:1.55}
+  .tile{padding:12px 14px}
+  .fact{padding:9px 12px}
+  .chip{padding:3px 9px;font-size:11.5px}
+  .gallery{break-inside:avoid;gap:20px;margin-bottom:22px}
+  .cert,blockquote{break-inside:avoid}
+  .cert{margin-bottom:22px}
+  .cert-in{padding:16px 18px}
+  .cert-in b{font-size:17px}
+  .cert-in p{font-size:12.4px}
+  .quotes{gap:10px}
+  blockquote{padding:12px 14px}
+  blockquote p{font-size:12.8px;margin-bottom:7px}
+  .doc[data-doc="humor"] h1{font-size:31px}
+  .doc[data-doc="humor"] .lede{font-size:12.8px;line-height:1.65}
+  .frame{border-width:7px}
+  .frame img{width:160px}
+  .foot{margin-top:22px;padding-top:12px;font-size:11px}
+
+  /* the humour document prints on warm stock */
+  .doc[data-doc="humor"] .sheet{background:#fdfaf3}
+  .doc[data-doc="humor"] .hero{border-bottom:1px solid #cbb98e;padding-bottom:13px}
+  .doc[data-doc="humor"] .avatar{border:1.5px solid #7d612a}
+  .doc[data-doc="humor"] .cert{border-color:#9a7a3c;background:#f7f0e0}
+  .doc[data-doc="humor"] .cert-in{border-color:#c9b487}
+  .doc[data-doc="humor"] .seal{border-color:#9a7a3c}
+  .doc[data-doc="humor"] .frame{border-color:#9a7a3c;background:#9a7a3c}
+  .doc[data-doc="humor"] .plaque{background:#efe5cf;border-color:#c9b487}
+  .doc[data-doc="humor"] blockquote{background:#f7f0e0;border-color:#ddcda6}
+  .doc[data-doc="humor"] .tile,
+  .doc[data-doc="humor"] .fact,
+  .doc[data-doc="humor"] .chip{background:#f9f4e8;border-color:#ddcda6}
+  .doc[data-doc="humor"] .exhibit{color:#7d612a}
+  .doc[data-doc="humor"] .entry::before{background:#9a7a3c;border-color:#fdfaf3}
+
+  /* first page of the humour doc holds the portrait + certificate */
+  .gallery{page-break-after:auto}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ app bar: tabs govern the entire page ══════════ -->
+<div class="appbar">
+  <div class="appbar-in">
+    <div class="mark">
+      <span class="mark-dot"></span>
+      <span class="mark-txt" id="markTxt">צח דוידוב · קורות חיים</span>
+    </div>
+
+    <div class="seg" role="tablist">
+      <button class="on" data-doc="cv"    data-mark="צח דוידוב · קורות חיים"     role="tab">קורות חיים</button>
+      <button          data-doc="notes"  data-mark="צח דוידוב · מסמך עבודה"     role="tab">הערות</button>
+      <button          data-doc="humor"  data-mark="צח דוידוב · פורטפוליו"    role="tab">הומוריסטי</button>
+    </div>
+
+    <div class="appbar-r">
+      <button class="icon-btn" id="themeBtn" aria-label="החלף מצב תצוגה" title="מצב כהה / בהיר">
+        <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="pdf-btn" onclick="window.print()">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ 1 · קורות חיים ══════════════════ -->
+<div class="doc on" data-doc="cv">
+  <div class="sheet">
+
+    <header class="hero">
+      <div class="hero-top">
+        <div class="hero-id">
+          <span class="kicker">מועמדות · רשות הטבע והגנים</span>
+          <h1>צח דוידוב</h1>
+          <div class="role">פקח שטח · סייר · עובד שטח</div>
+          <div class="target">ניסיון באבטחה, בעבודת שטח ובשירות לקהל</div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <a href="tel:0542642021">
+          <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+          054-2642021
+        </a>
+        <a href="mailto:zhacdavidov@gmail.com">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+          zhacdavidov@gmail.com
+        </a>
+        <span>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          יליד 08/08/1992
+        </span>
+      </div>
+    </header>
+
+    <div class="doc-body">
+
+      <section>
+        <div class="eyebrow"><span class="n">01</span><h2>תקציר מקצועי</h2></div>
+        <p class="lede">
+          בעל <strong>זיקה עמוקה לטבע, לסביבה ולעשייה ערכית</strong> — ומבקש להפוך אותה לעיסוק.
+          ניסיון באבטחת גזרה של כ־30 סניפי בנק, בעבודה פיזית עם קרקע, צמחייה ומערכות השקיה,
+          ובמתן שירות לקהל רחב. לוחם לשעבר בחטיבת כפיר, <strong>מורגל בעבודה לפי נהלים,
+          בקבלת החלטות בתנאים משתנים ובעבודה עצמאית ובצוות</strong>. מבקש להשתלב בתפקיד שטח
+          ברשות הטבע והגנים ולתרום לשמירה על השטחים הפתוחים.
+        </p>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">02</span><h2>למה רשות הטבע והגנים</h2></div>
+        <div class="grid2">
+          <div class="tile">
+            <b>שטח, לא משרד</b>
+            <p>ניסיון בעבודה פיזית בשטח פתוח — טיפול בקרקע ובצמחייה, הקמה ואחזקה של גינות, ועבודה עם מערכות השקיה וכלי עבודה.</p>
+          </div>
+          <div class="tile">
+            <b>אחריות על גזרה</b>
+            <p>אחריות על אבטחת גזרה של כ־30 סניפי בנק, עבודה לפי נהלי ביטחון והפעלת שיקול דעת בסביבה משתנה.</p>
+          </div>
+          <div class="tile">
+            <b>מול קהל מגוון</b>
+            <p>מתן מענה מקצועי, סבלני ואדיב לקהל רחב, כולל טיפול במקרים מורכבים ושמירה על קור רוח במצבי לחץ.</p>
+          </div>
+          <div class="tile">
+            <b>רקע קרבי</b>
+            <p>שלוש שנות שירות כלוחם בחטיבת כפיר — עבודה לפי נהלים, אחריות אישית, עבודת צוות ותפקוד בתנאים מאתגרים ומשתנים.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">03</span><h2>ניסיון תעסוקתי</h2></div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="entry-t">נציג מוקד אישורים</span><span class="entry-o"> · כאל</span></div>
+            <span class="when">2024 — היום</span>
+          </div>
+          <ul>
+            <li>מתן מענה מקצועי, סבלני ואדיב ל<strong>קהל רחב ומגוון</strong> של לקוחות, תוך שמירה על קור רוח והתנהלות רגועה במצבי לחץ.</li>
+            <li>טיפול מדויק ואחראי במקרים מורכבים בהתאם לנהלים, תוך הפעלת <strong>שיקול דעת מקצועי בזמן אמת</strong>.</li>
+            <li>הסתגלות מהירה לשינויים בנהלים ובמערכות, ניהול ריבוי משימות ו<strong>נכונות לעבודה בשעות לא שגרתיות</strong>.</li>
+            <li>ביצוע עצמאי של משימות לצד <strong>שיתוף פעולה פורה</strong> עם צוותים וגורמים מקצועיים נוספים.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="entry-t">מאבטח ביחידה הרכובה</span><span class="entry-o"> · אלקטרה סקיוריטי</span></div>
+            <span class="when">2018 — 2020</span>
+          </div>
+          <ul>
+            <li>אחריות כוללת על <strong>אבטחת גזרה של כ־30 סניפי בנק</strong>, בהתאם לנהלים ולהנחיות של בנק ישראל.</li>
+            <li><strong>עבודה עצמאית ובצוות</strong>, התנהלות מול גורמים שונים וקבלת החלטות בסביבה דינמית.</li>
+            <li>שמירה על רמה גבוהה של ייצוגיות מול עובדים, לקוחות וגורמי חוץ.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="entry-t">גנן — הקמה ואחזקת גינות</span><span class="entry-o"> · ארזים</span></div>
+            <span class="when">2016 — 2017</span>
+          </div>
+          <ul>
+            <li><strong>טיפול בצמחייה ובקרקע</strong>, שימוש בכלי עבודה וביצוע משימות תחזוקה שוטפת בשטח.</li>
+            <li><strong>תכנון והקמה של מערכות השקיה</strong> מגוונות במסגרת עבודות גינון בשטח.</li>
+            <li>עבודה פיזית מאומצת בשטח פתוח, תוך <strong>הסתגלות לתנאי סביבה ומזג אוויר דינמיים</strong>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">04</span><h2>שירות צבאי</h2></div>
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="entry-t">לוחם</span><span class="entry-o"> · חטיבת כפיר, גדוד דוכיפת</span></div>
+            <span class="when">2010 — 2013</span>
+          </div>
+          <ul>
+            <li>שירות קרבי מלא במסגרת הדורשת <strong>משמעת, אחריות אישית ועבודת צוות</strong> הדוקה.</li>
+            <li>עמידה בנהלים, <strong>חוסן תפקודי</strong> ויכולת פעולה בתנאים מאתגרים ומשתנים.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="cols">
+          <div>
+            <div class="eyebrow"><span class="n">05</span><h2>השכלה</h2></div>
+            <div class="fact"><b>12 שנות לימוד</b></div>
+          </div>
+          <div>
+            <div class="eyebrow"><span class="n">06</span><h2>כישורים</h2></div>
+            <div class="cluster">
+              <div class="cluster-l">שטח ותפעול</div>
+              <div class="chips">
+                <span class="chip">עבודת שטח פיזית</span><span class="chip">אחריות על גזרה</span>
+                <span class="chip">גינון ותחזוקת צמחייה</span><span class="chip">מערכות השקיה</span>
+                <span class="chip">כלי עבודה</span><span class="chip">עבודה בתנאי חוץ</span>
+              </div>
+            </div>
+            <div class="cluster">
+              <div class="cluster-l">אבטחה</div>
+              <div class="chips">
+                <span class="chip">אבטחת מתחמים</span><span class="chip">נהלי ביטחון</span>
+                <span class="chip">עמידה בנהלים</span><span class="chip">קבלת החלטות בזמן אמת</span>
+              </div>
+            </div>
+            <div class="cluster">
+              <div class="cluster-l">אישי</div>
+              <div class="chips">
+                <span class="chip">שירותיות</span><span class="chip">עבודת צוות</span>
+                <span class="chip">אחריות ועצמאות</span><span class="chip">עמידה בלחץ</span>
+                <span class="chip">אמינות</span><span class="chip">גמישות בשעות</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="foot">
+        <span>ממליצים — יימסרו לפי בקשה</span>
+        <span>054-2642021 · zhacdavidov@gmail.com</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ 2 · הערות ══════════════════ -->
+<div class="doc" data-doc="notes">
+  <div class="sheet">
+
+    <header class="hero">
+      <div class="hero-top">
+        <div class="hero-id">
+          <span class="kicker">פנימי · לא לשליחה</span>
+          <h1>מסמך עבודה</h1>
+          <div class="role">מה פתוח, מה נסגר, ומה עוד צריך מצח</div>
+          <div class="target">ההערות נשמרות בדפדפן הזה בלבד</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="doc-body">
+
+      <section>
+        <div class="eyebrow"><span class="n">01</span><h2>שאלות פתוחות מול צח</h2></div>
+        <p class="lede" style="margin-bottom:22px">
+          כל עוד יש כאן סימונים פתוחים — המסמך לא מוכן לשליחה לרשות.
+        </p>
+        <div class="task"><input type="checkbox" id="q1"><label for="q1"><b>הפער 2020–2024</b>ארבע שנים בין אלקטרה לכאל. זו השאלה הראשונה שמגייס ישאל — צריך תשובה מוכנה, לא הסבר מגומגם בראיון.</label></div>
+        <div class="task"><input type="checkbox" id="q2"><label for="q2"><b>רישיון נהיגה ורכב</b>איזו דרגה, מאיזו שנה, ויש רכב זמין? קריטי לתפקיד שטח — הוסר מהמסמך כי לא היה מקור.</label></div>
+        <div class="task"><input type="checkbox" id="q3"><label for="q3"><b>אזור מגורים וניידות</b>איפה גר, ומוכן לעבוד באילו גזרות? הרשות מציבה לפי אזורים.</label></div>
+        <div class="task"><input type="checkbox" id="q4"><label for="q4"><b>זמינות</b>משמרות, סופי שבוע, חגים, שעות לא שגרתיות. בשמורות זה הלחם והחמאה.</label></div>
+        <div class="task"><input type="checkbox" id="q5"><label for="q5"><b>הסמכות</b>עזרה ראשונה, רישיון נשק, קורסי אבטחה — יש משהו בתוקף? כל אחד שווה שורה במסמך.</label></div>
+        <div class="task"><input type="checkbox" id="q6"><label for="q6"><b>טבע באופן אישי</b>טיולים, סיירות, התנדבות. זה מה שיהפוך את "זיקה לטבע" מהצהרה לעובדה.</label></div>
+        <div class="task"><input type="checkbox" id="q7"><label for="q7"><b>השכלה — מה שנחתך</b>הצילום נקטע על "12 שנות לימוד". יש בגרות מלאה? תעודה? קורס?</label></div>
+        <div class="task"><input type="checkbox" id="q8"><label for="q8"><b>אימות טלפון</b>המספר נחתך בצילום. ההנחה היא 054-2642021 — צריך אישור.</label></div>
+        <div class="task"><input type="checkbox" id="q9"><label for="q9"><b>ת.ז בעמוד ציבורי</b>מספר הזהות הוסר מהעמוד. אם צריך אותו בגרסה הנשלחת — להוסיף רק לקובץ ה-PDF, לא לאתר.</label></div>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">02</span><h2>מה כבר טופל</h2></div>
+        <ul class="checks">
+          <li>הוסרו הסמכת מאבטח ורישיון נהיגה — נכתבו בטיוטה הראשונה בלי מקור.</li>
+          <li>תוקן "שלוש שנים" בגינון — 2016–2017 זה לא שלוש שנים.</li>
+          <li>"פיקוח ואכיפה" שונה ל"אחריות על גזרה" — הניסיון הוא אבטחה, לא אכיפה.</li>
+          <li>הוסרו "סיורים יזומים", "איתור חריגים", "מוקד ארצי", "איתור תקלות" — לא מופיעים במקור.</li>
+          <li>"מאבטח" ירד מכותרת התפקיד — מושך את המסמך לכיוון הלא נכון.</li>
+          <li>הושאר "זיקה עמוקה לטבע" — המילים של צח עצמו, והנכס הכי חזק מול המעסיק הזה.</li>
+          <li>ת.ז הוסרה מהעמוד הציבורי.</li>
+        </ul>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">03</span><h2>הערות חופשיות</h2></div>
+        <textarea id="pad" placeholder="תשובות של צח, שינויים לעשות, מי לדבר איתו ברשות..."></textarea>
+        <div class="hint">נשמר אוטומטית בדפדפן הזה בלבד. לא עולה לשרת, לא נשמר בענן.</div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ 3 · הומוריסטי ══════════════════ -->
+<div class="doc" data-doc="humor">
+  <div class="sheet">
+
+    <header class="hero">
+      <div class="hero-top">
+        <img class="avatar" src="portrait.jpg" alt="צח דוידוב">
+        <div class="hero-id">
+          <span class="kicker">פורטפוליו · 2026</span>
+          <h1>צח דוידוב</h1>
+          <div class="role">אמן במה · דוגמן ידיים · כפיל</div>
+          <div class="target">שנים על במות, בסטים של צילום ובאירועים פרטיים</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="doc-body">
+
+      <div class="gallery">
+        <div>
+          <figure class="frame"><img src="portrait.jpg" alt="דיוקן רשמי של צח דוידוב"></figure>
+          <div class="plaque">
+            <b>דיוקן המועמד בכורסתו</b>
+            <span>שמן על קנבס · אוסף פרטי</span>
+          </div>
+        </div>
+        <div class="gallery-txt">
+          <h3>על הדיוקן</h3>
+          <p>
+            הוזמן על ידי המצולם, מומן על ידי המצולם, ונתלה על ידי המצולם — בסלון של המצולם,
+            מול הכניסה, בגובה שמחייב את האורח להרים מבט.
+          </p>
+          <p>
+            הכורסה אינה שלו. הציור שברקע אינו שלו. השעון כן שלו, וזו
+            <strong>הנקודה היחידה שעליה הוא מוכן להתווכח</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="cert">
+        <div class="cert-in">
+          <span class="seal">✶</span>
+          <b>תעודת כְּפִילוּת</b>
+          <p>
+            ניתנת בזאת לצח דוידוב, המזוהה ברחוב, בתחנה המרכזית ובשלוש חתונות
+            כטונה — על סמך השיער, הפרופיל וההליכה. התעודה מאשרת דמיון מובהק,
+            עקבי ובלתי תלוי בתאורה.
+          </p>
+          <div class="cert-foot">נחתם · תל אביב · 2026</div>
+        </div>
+      </div>
+
+      <section>
+        <div class="eyebrow"><span class="n">01</span><h2>תקציר מקצועי</h2></div>
+        <p class="lede">
+          בעל יכולת גבוהה לעבודה בתנאים משתנים — בעיקר תאורה. ניסיון עשיר בהופעה מול קהל,
+          בין אם הקהל ביקש ובין אם לא. <strong>בעל זיקה עמוקה לבמה, לרפלקטור ולתשואות</strong>,
+          לצד משמעת עצמית שמתבטאת בעיקר בשמירה על תספורת. שואף להשתלב בתפקיד שבו יראו אותי,
+          ולתרום מניסיוני הרב־תחומי.
+        </p>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">02</span><h2>ניסיון תעסוקתי</h2></div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="exhibit">מוצג 01</span><span class="entry-t">יוצר תוכן עצמאי</span><span class="entry-o"> · OnlyFans</span></div>
+            <span class="when">2013 — היום</span>
+          </div>
+          <ul>
+            <li>הקמה וניהול של פלטפורמת תוכן דיגיטלית עצמאית, <strong>החל משבוע השחרור</strong>.</li>
+            <li>עבודה מול קהל מנויים בינלאומי, 24/7, ללא ימי חופשה וללא גיבוי.</li>
+            <li>צמיחה אורגנית לחלוטין. אפס תקציב שיווק. אפס בקשות מהמשפחה לצפות.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="exhibit">מוצג 02</span><span class="entry-t">דוגמן ידיים ושיניים</span><span class="entry-o"> · סופרפארם, אוראל בי</span></div>
+            <span class="when">פרילנס</span>
+          </div>
+          <ul>
+            <li>פרזנטור ידיים לקמפיין הסבונים של סופרפארם — <strong>אחיזה, שפשוף, קצף</strong>.</li>
+            <li>דוגמן שיניים לקמפיין ההלבנה של אוראל בי. חיוך בזווית 45 מעלות, שמונה שעות רצוף.</li>
+            <li>התמחות ייחודית: החזקת מוצר מול מצלמה בלי לרעוד.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="exhibit">מוצג 03</span><span class="entry-t">אמן בידור למבוגרים</span><span class="entry-o"> · מסיבות גרושות</span></div>
+            <span class="when">עונתי</span>
+          </div>
+          <ul>
+            <li>מופעי דמויות: <strong>שוטר, כבאי, מורה</strong>. הכבאי הכי מבוקש, המורה הכי שנוי במחלוקת.</li>
+            <li>התאמת המופע לקהל, לתקציב ולגובה התקרה.</li>
+            <li>עמידה בלוחות זמנים צפופים — עד שלוש מסיבות בערב, שתי תחפושות במקביל.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="exhibit">מוצג 04</span><span class="entry-t">מורה לחינוך מיני</span><span class="entry-o"> · בית ספר יסודי, כיתות א'–ו'</span></div>
+            <span class="when">4 ימים</span>
+          </div>
+          <ul>
+            <li>נכנס לתפקיד ביום ראשון בבוקר — <strong>בלי הכשרה, בלי תוכנית לימודים ובלי ספר</strong>.</li>
+            <li>העביר שיעור אחד. תוכנו לא תועד, ולבקשת בית הספר גם לא ישוחזר כאן.</li>
+            <li>ועד ההורים התכנס באותו הערב <strong>בהרכב מלא, לראשונה מזה ארבע שנים</strong>.</li>
+            <li>התפקיד הסתיים ביום חמישי. המנהלת ביקשה שלא נפרט, ואנחנו מכבדים זאת.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="exhibit">מוצג 05</span><span class="entry-t">כפיל רשמי</span><span class="entry-o"> · טונה</span></div>
+            <span class="when">2019 — היום</span>
+          </div>
+          <ul>
+            <li>שיעור זיהוי ברחוב <strong>גבוה פי 4 מהממוצע הארצי</strong> לגברים בגילי 30–35.</li>
+            <li>חתימה על מפיות, אלבומים, ופעם אחת על גבס.</li>
+            <li>בקשה לשיתוף פעולה רשמי הועברה למשרד יחסי הציבור בשנה שעברה.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="exhibit">מוצג 06</span><span class="entry-t">כותב שירים</span><span class="entry-o"> · למגירה</span></div>
+            <span class="when">2008 — היום</span>
+          </div>
+          <ul>
+            <li>כתיבה, הלחנה וביצוע. <strong>המגירה מלאה. פיזית.</strong></li>
+            <li>טרם פורסם — לא מחוסר ביקוש, אלא כי הקהל עדיין לא מוכן.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">03</span><h2>ביקורות</h2></div>
+        <div class="quotes">
+          <blockquote>
+            <p>"ראיתי אותו. הוא באמת נראה כמו טונה. מרחוק. בערפל."</p>
+            <cite>— עובר אורח, התחנה המרכזית החדשה</cite>
+          </blockquote>
+          <blockquote>
+            <p>"הידיים שלו פואטיות. הפנים — עניין נפרד לגמרי."</p>
+            <cite>— במאי פרסומות, קמפיין הסבונים</cite>
+          </blockquote>
+          <blockquote>
+            <p>"הוא הגיע בזמן. זה כל מה שאני מוכנה למסור."</p>
+            <cite>— מארגנת אירועים, ראשון לציון</cite>
+          </blockquote>
+          <blockquote>
+            <p>"לא. תודה."</p>
+            <cite>— טונה, באמצעות משרד יחסי הציבור</cite>
+          </blockquote>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">04</span><h2>שירות צבאי</h2></div>
+        <div class="entry">
+          <div class="entry-head">
+            <div><span class="entry-t">להקת הנחל</span><span class="entry-o"> · סולן מחליף</span></div>
+            <span class="when">2010 — 2013</span>
+          </div>
+          <ul>
+            <li>סולן מחליף, רקדן ליווי, ו<strong>אחראי בלעדי על כבל המיקרופון</strong>.</li>
+            <li>הופעות בבסיסים, בטקסי סיום, ובאירוע אחד שהתברר בדיעבד כחתונה של מישהו אחר.</li>
+            <li>תפקיד מכונן: "העץ" במערכון הפתיחה. שלוש שנים. אותו תפקיד.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="eyebrow"><span class="n">05</span><h2>פרטים אישיים</h2></div>
+        <div class="grid2">
+          <div class="tile">
+            <b>מצב משפחתי</b>
+            <p>רווק. נחרץ. חד־משמעי. לא פתוח לדיון, ובכל זאת עולה בכל ארוחת שישי.</p>
+          </div>
+          <div class="tile">
+            <b>ילדים</b>
+            <p>בין 3 ל־5. פרוסים על פני מזרח אירופה. הטווח משקף את מיטב הידיעה נכון להיום, והנתון מתעדכן.</p>
+          </div>
+          <div class="tile">
+            <b>זמינות לנסיעות</b>
+            <p>גבוהה במיוחד למזרח אירופה. מטעמים מקצועיים בלבד.</p>
+          </div>
+          <div class="tile">
+            <b>ניידות</b>
+            <p>דרכון בתוקף, תיק ארוז, ורשימת ערים שאליהן מוטב לא לחזור.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="cols">
+          <div>
+            <div class="eyebrow"><span class="n">06</span><h2>הישגים ושיאים</h2></div>
+            <div class="fact"><b>4 שניות בפלאנק</b><span>שיא אישי. לא נשבר מאז 2019.</span></div>
+            <div class="fact"><b>זוהה כטונה 11 פעמים</b><span>ב־2026 בלבד. שנת שיא.</span></div>
+            <div class="fact"><b>ראשון בתור בסופר</b><span>שלוש פעמים. פעם אחת בלי לריב.</span></div>
+
+            <div class="eyebrow" style="margin-top:30px"><span class="n">07</span><h2>ממליצים</h2></div>
+            <div class="fact"><b>אמא</b><span>זמינה 24/7. ממליצה בחום יוצא דופן.</span></div>
+            <div class="fact"><b>טונה</b><span>טרם הגיב.</span></div>
+            <div class="fact"><b>מנהל סניף סופרפארם</b><span>ביקש במפורש שלא נפנה אליו.</span></div>
+          </div>
+
+          <div>
+            <div class="eyebrow"><span class="n">08</span><h2>כישורים</h2></div>
+            <div class="cluster">
+              <div class="cluster-l">במה</div>
+              <div class="chips">
+                <span class="chip">אלתור</span><span class="chip">קשר עין ממושך</span>
+                <span class="chip">חיוך צד</span><span class="chip">עמידה על שולחן</span>
+                <span class="chip">יציאה מרשימה</span>
+              </div>
+            </div>
+            <div class="cluster">
+              <div class="cluster-l">טכנולוגי</div>
+              <div class="chips">
+                <span class="chip">וואטסאפ</span><span class="chip">ווייז</span>
+                <span class="chip">אינסטגרם (סטורי בלבד)</span><span class="chip">טיקטוק (צופה)</span>
+              </div>
+            </div>
+            <div class="cluster">
+              <div class="cluster-l">שפות</div>
+              <div class="chips">
+                <span class="chip">עברית — שפת אם</span>
+                <span class="chip">אנגלית — נטפליקס עם כתוביות</span>
+                <span class="chip">ערבית — "בלי חריף בבקשה"</span>
+                <span class="chip">רומנית — ברמת התנצלות</span>
+              </div>
+            </div>
+            <div class="cluster">
+              <div class="cluster-l">אישי</div>
+              <div class="chips">
+                <span class="chip">ביטחון עצמי בלתי מוסבר</span><span class="chip">ריח טוב</span>
+                <span class="chip">לחיצת יד חזקה</span><span class="chip">זמינות אחרי 10:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="foot">
+        <span>ממליצים — נמסרו כבר, לצערנו</span>
+        <span>צח דוידוב · הכפיל הרשמי של טונה</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ---- theme ---- */
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  try{ var t=localStorage.getItem('cv-theme'); if(t) root.setAttribute('data-theme',t) }catch(e){}
+  btn.addEventListener('click',function(){
+    var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme',next);
+    try{ localStorage.setItem('cv-theme',next) }catch(e){}
+  });
+})();
+
+/* ---- tabs govern the whole page ---- */
+(function(){
+  var btns=[].slice.call(document.querySelectorAll('.seg button')),
+      docs=[].slice.call(document.querySelectorAll('.doc')),
+      mark=document.getElementById('markTxt');
+
+  function show(name){
+    btns.forEach(function(b){
+      var on = b.dataset.doc===name;
+      b.classList.toggle('on',on);
+      if(on && b.dataset.mark) mark.textContent = b.dataset.mark;
+    });
+    docs.forEach(function(d){ d.classList.toggle('on', d.dataset.doc===name); });
+    document.documentElement.setAttribute('data-mode',name);
+    window.scrollTo(0,0);
+    try{ localStorage.setItem('cv-doc',name) }catch(e){}
+  }
+  btns.forEach(function(b){ b.addEventListener('click',function(){ show(b.dataset.doc) }); });
+
+  var saved=null;
+  try{ saved=localStorage.getItem('cv-doc') }catch(e){}
+  /* the humour version never restores on load — it takes a deliberate click */
+  if(saved && saved!=='humor' && btns.some(function(b){return b.dataset.doc===saved})) show(saved);
+})();
+
+/* ---- notes persistence ---- */
+(function(){
+  var pad=document.getElementById('pad');
+  if(pad){
+    try{ pad.value=localStorage.getItem('cv-notes')||'' }catch(e){}
+    pad.addEventListener('input',function(){
+      try{ localStorage.setItem('cv-notes',pad.value) }catch(e){}
+    });
+  }
+  [].slice.call(document.querySelectorAll('.task input')).forEach(function(cb){
+    var k='cv-q-'+cb.id, row=cb.closest('.task');
+    try{ cb.checked = localStorage.getItem(k)==='1' }catch(e){}
+    row.classList.toggle('done',cb.checked);
+    cb.addEventListener('change',function(){
+      row.classList.toggle('done',cb.checked);
+      try{ localStorage.setItem(k, cb.checked?'1':'0') }catch(e){}
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -856,19 +856,7 @@ function EditExerciseModal({
           )}
 
           <Field label="שריר ראשי" required>
-            <select
-              value={defaultMuscle}
-              onChange={e => setDefaultMuscle(e.target.value as MuscleGroup)}
-              className={inputCls}
-            >
-              {PARENT_ORDER.map(p => (
-                <optgroup key={p} label={PARENT_INFO[p].he}>
-                  {MUSCLES.filter(m => m.parent === p && !m.legacy).map(m => (
-                    <option key={m.id} value={m.id}>{m.he}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+            <MusclePicker value={defaultMuscle} onChange={setDefaultMuscle} />
           </Field>
 
           <Field label="שמות נוספים" hint="מופרדים בפסיק — משמשים לחיפוש. לדוגמה: פולאובר, סקווטים">
@@ -1006,6 +994,82 @@ function EditExerciseModal({
 }
 
 const inputCls = 'w-full px-3 py-2.5 text-sm rounded-xl border border-subtle bg-transparent dark:bg-slate-900/60 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-colors';
+
+// Two-level muscle picker: parent-group tabs on top, specific muscles below.
+// Beats a native <select> for four reasons:
+//   • Everything visible in one glance — no dropdown to open.
+//   • Parent tabs colored the same as the table badges, so muscle→group is
+//     immediately readable.
+//   • Handles the aerobic edge case cleanly: aerobic is its own parent AND
+//     its own leaf, so the tab click auto-selects it without a chip row.
+//   • Selecting an exercise whose defaultMuscle is 'aerobic' (or any legacy
+//     value) actually reflects on the picker, instead of the native <select>
+//     falling back to its first option because the option wasn't rendered.
+function MusclePicker({
+  value, onChange,
+}: {
+  value: MuscleGroup;
+  onChange: (m: MuscleGroup) => void;
+}) {
+  const activeParent = MUSCLE_BY_ID.get(value)?.parent ?? 'chest';
+  return (
+    <div className="rounded-xl border border-subtle bg-slate-500/[.03] p-2 space-y-2">
+      {/* Parent-group tabs */}
+      <div className="flex flex-wrap gap-1">
+        {PARENT_ORDER.map(p => {
+          const active = p === activeParent;
+          const tone = PARENT_BADGE_TONE[p];
+          // Aerobic parent = aerobic leaf. Clicking it selects aerobic
+          // directly instead of parking on the tab without a leaf choice.
+          const onClick = () => {
+            if (p === 'aerobic') { onChange('aerobic'); return; }
+            if (p === activeParent) return;
+            // Switching parent: pick the first non-legacy leaf of that group
+            // so the value never gets stuck on the OLD parent.
+            const first = MUSCLES.find(m => m.parent === p && !m.legacy);
+            if (first) onChange(first.id);
+          };
+          return (
+            <button
+              key={p}
+              onClick={onClick}
+              className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                active ? tone : 'border-subtle text-muted hover:text-main hover:bg-slate-500/10'
+              }`}
+            >
+              {PARENT_INFO[p].he}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Leaf muscles for the active parent. Aerobic has no leaves — its
+          selection is the tab itself, so we skip this row entirely. */}
+      {activeParent !== 'aerobic' && (
+        <div className="flex flex-wrap gap-1 pt-2 border-t border-subtle/60">
+          {MUSCLES
+            .filter(m => m.parent === activeParent && !m.legacy)
+            .map(m => {
+              const active = m.id === value;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => onChange(m.id)}
+                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                    active
+                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
+                      : 'border-subtle text-muted hover:text-main hover:bg-slate-500/10'
+                  }`}
+                >
+                  {m.he}
+                </button>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
