@@ -22,10 +22,15 @@ function fmt(msTotal: number): string {
 }
 
 export function LiveSessionBadge({
-  session, onClick,
+  session, onClick, restRemaining, restRunning, restDone,
 }: {
   session: FreeSession;
   onClick: () => void;
+  // Optional: rest timer state lifted from the session so the badge can show
+  // the countdown while the user is on a different screen (rep_1787909040967_tv06).
+  restRemaining?: number;
+  restRunning?: boolean;
+  restDone?: boolean;
 }) {
   // Tick every second so the digits keep moving. Paused sessions freeze at
   // (pausedAt - date), so we still render but stop ticking.
@@ -45,6 +50,9 @@ export function LiveSessionBadge({
   const elapsed = isFresh ? 0 : raw;
 
   const label = fmt(elapsed);
+
+  const showRest = !!restRunning && (restRemaining ?? 0) > 0;
+  const showDone = !!restDone && !restRunning;
 
   return (
     <button
@@ -78,6 +86,22 @@ export function LiveSessionBadge({
       </span>
       <span className="tabular-nums">{label}</span>
       {paused && <span className="text-[10px] opacity-80 ms-1">מושהה</span>}
+      {/* Rest chip: countdown while running, "מנוחה סיימה" flash when done.
+          Sits inside the same pill so the whole "you're mid-session" state
+          reads at a glance without another floating element. */}
+      {(showRest || showDone) && (
+        <span
+          className={`ms-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold border ${
+            showDone
+              ? 'bg-amber-400 text-slate-900 border-amber-300 animate-pulse'
+              : 'bg-white/15 text-white border-white/25'
+          }`}
+        >
+          {showDone
+            ? <><span>⏰</span><span>מנוחה סיימה</span></>
+            : <><span>⏱</span><span className="tabular-nums">{fmt((restRemaining ?? 0) * 1000)}</span></>}
+        </span>
+      )}
     </button>
   );
 }

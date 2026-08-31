@@ -156,6 +156,10 @@ export function EditMealLogModal({
           </div>
         </div>
 
+        {/* The two nutrition numbers share a row and equal widths; time gets its
+           own line. Protein used to be flex-1 on a row of its own, so it
+           stretched the full width of the sheet with a single digit floating in
+           the middle while calories sat in a balanced row above it. */}
         <div className="flex items-center gap-2">
           <span className="text-[12px] text-muted shrink-0">קלוריות</span>
           <input
@@ -163,28 +167,28 @@ export function EditMealLogModal({
             inputMode="numeric"
             value={calories}
             onChange={e => setCalories(e.target.value)}
-            className="input-field flex-1 py-2 text-base"
+            className="input-field flex-1 min-w-0 py-2 text-base"
           />
-          <span className="text-[12px] text-muted shrink-0">שעה</span>
-          <input
-            type="time"
-            value={when}
-            onChange={e => setWhen(e.target.value)}
-            className="input-field w-28 py-2 text-base"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
           <span className="text-[12px] text-muted shrink-0">חלבון</span>
           <input
             type="number"
             inputMode="numeric"
             value={protein}
             onChange={e => setProtein(e.target.value)}
-            placeholder="לא ידוע"
-            className="input-field flex-1 py-2 text-base"
+            placeholder="—"
+            className="input-field flex-1 min-w-0 py-2 text-base"
           />
           <span className="text-[12px] text-muted shrink-0">גרם</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-muted shrink-0">שעה</span>
+          <input
+            type="time"
+            value={when}
+            onChange={e => setWhen(e.target.value)}
+            className="input-field w-32 py-2 text-base"
+          />
         </div>
 
         {confirmDelete && log.mealId && (

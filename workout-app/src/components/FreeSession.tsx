@@ -22,6 +22,10 @@ type Props = {
   sessionId: string;
   navigate: (route: Route) => void;
   historical?: boolean;   // when true: viewing/editing a past session (no rest timer, no AI chat)
+  // App-owned rest timer. Owned above FreeSession so it survives navigating
+  // away mid-rest (rep_1787909040967_tv06). Optional for backwards compat
+  // — falls back to a local timer if the caller didn't pass one.
+  restTimer?: ReturnType<typeof useTimer>;
 };
 
 const DEFAULT_REST_SECONDS = 30;
@@ -51,9 +55,10 @@ const SS_PALETTE: SsColor[] = [
 function newSsId(): string { return `ss_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`; }
 function pairKey(a: string, b: string): string { return a < b ? `${a}__${b}` : `${b}__${a}`; }
 
-export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
+export function FreeSession({ uid, sessionId, navigate, historical, restTimer }: Props) {
   const firestore = useFirestore(uid);
-  const timer = useTimer();
+  const fallbackTimer = useTimer();
+  const timer = restTimer ?? fallbackTimer;
 
   const [session, setSession] = useState<FreeSessionType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1237,13 +1242,26 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
           saveMode={
             planning ? 'exercise' :                                         // planning: no sets exist, always exercise-only
             modal.kind === 'pick' ? 'exercise' :                           // "+ תרגיל" button → save-exercise only
-            modal.kind === 'replace' ? 'exercise' :                        // manual replace → pick new exercise, no set fields
+            modal.kind === 'replace' ? 'dual' :                            // manual replace → pick new exercise AND log first set (rep_1788078919635_fkwi)
             modal.kind === 'add' && modal.muscle && !modal.exerciseName ? 'dual' :  // muscle-tile click → both
             'set'                                                           // "+ סט" and normal set flows → save-set only
           }
           replacingName={modal.kind === 'replace' ? modal.oldName : undefined}
           onClose={() => setModal(null)}
-          onSave={handleSaveSet}
+          onSave={async (partial, editingId) => {
+            // Replace-and-log: yank the OLD planned entry before the standard
+            // logging path runs. handleSaveSet only removes the NEW name from
+            // planned, so without this the swap doesn't happen.
+            if (modal.kind === 'replace' && session) {
+              const oldKey = modal.oldName.toLowerCase();
+              const planned = session.plannedExercises || [];
+              const trimmed = planned.filter(p => p.name.toLowerCase() !== oldKey);
+              if (trimmed.length !== planned.length) {
+                await firestore.updatePlannedExercises(session.id, trimmed);
+              }
+            }
+            await handleSaveSet(partial, editingId);
+          }}
           onPhotoSaved={(photoKey, dataUrl) => {
             setPhotosMap(prev => ({ ...prev, [photoKey]: dataUrl }));
           }}
@@ -2215,15 +2233,25 @@ export function FreeSession({ uid, sessionId, navigate, historical }: Props) {
                           })}
                         </div>
 
+                        {/* Notes + next-time markers — same widget as the active
+                            card and the LogSet modal, so a done exercise carries
+                            the same context (coach's note, past choices, this
+                            session's choices). rep_1788080160530_c3ha / rep_1788078842792_cih4
+                            surfaced that these were only visible on the active
+                            card — moving them here closes the gap. */}
+                        <ExerciseInline uid={uid} exerciseName={g.exerciseName} sessionId={session.id} />
+
                         {/* "+ סט" promotes this exercise back to the active list
                             (the new set's timestamp becomes latest → group is
                             no longer marked done in groupedSets). */}
-                        <div className="mt-3 pt-3 border-t border-subtle/60">
-                          <button
-                            onClick={() => setModal({ kind: 'dup', set: g.sets[g.sets.length - 1] })}
-                            className="w-full py-2 text-sm font-semibold rounded-xl border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-500/10 hover:bg-emerald-500/5 transition-colors"
-                          >+ סט נוסף</button>
-                        </div>
+                        {!historical && (
+                          <div className="mt-3 pt-3 border-t border-subtle/60">
+                            <button
+                              onClick={() => setModal({ kind: 'dup', set: g.sets[g.sets.length - 1] })}
+                              className="w-full py-2 text-sm font-semibold rounded-xl border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-500/10 hover:bg-emerald-500/5 transition-colors"
+                            >+ סט נוסף</button>
+                          </div>
+                        )}
                       </div>
                             </Fragment>
                           );
@@ -2605,6 +2633,23 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
     saveNoteTimer.current = setTimeout(() => { firestore.saveExerciseNote(exId, v); }, 400);
   }
 
+  // Flush pending debounced note-save on unmount. Without this, closing the
+  // LogSet modal (which unmounts ExerciseInline) inside the 400ms window
+  // after a keystroke would silently drop the last chars the user typed —
+  // exactly the race in rep_1788078842792_cih4.
+  const noteRef = useRef({ note, exId, saveExerciseNote: firestore.saveExerciseNote });
+  noteRef.current = { note, exId, saveExerciseNote: firestore.saveExerciseNote };
+  useEffect(() => {
+    return () => {
+      if (saveNoteTimer.current) {
+        clearTimeout(saveNoteTimer.current);
+        saveNoteTimer.current = null;
+        const s = noteRef.current;
+        if (s.exId) { void s.saveExerciseNote(s.exId, s.note); }
+      }
+    };
+  }, []);
+
   async function rate(d: Difficulty) {
     if (!exId) return;
     if (thisDiff === d) {
@@ -2630,160 +2675,156 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
   if (!loaded || !exId) return null;
 
-  // Human-readable summary line for what's marked. Rendered as one sentence
-  // above the chip rows so the meaning of the picks is unambiguous.
+  // Inline-text summary. The sentence flows as one line whether ONE or TWO
+  // fields are marked — only the number is a colored badge, the rest is plain
+  // text. That keeps 1-field vs 2-field visually consistent (rep_1787908584709_qlrp):
   //
-  // • Both reps+weight → "לשנות ל-<R> חזרות ולהעלות משקל ב-<W>"
   // • Reps only        → "לשנות ל-<R> חזרות"
   // • Weight only      → "להעלות משקל ב-<W>"
+  // • Both             → "לשנות ל-<R> חזרות ולהעלות משקל ב-<W>"
   function summaryParts(
     reps: NextReps | null,
     weight: Difficulty | null,
   ): React.ReactNode | null {
     if (!reps && !weight) return null;
+    const numCls = 'inline-block font-bold px-1 rounded';
     const parts: React.ReactNode[] = [];
     if (reps) {
       parts.push(
-        <span key="r" className={`font-semibold px-1.5 py-0.5 rounded-md border ${REPS_COLOR[reps]}`}>
-          לשנות ל-<bdi dir="ltr">{REPS_LABEL[reps]}</bdi> חזרות
+        <span key="r">
+          לשנות ל-
+          <bdi dir="ltr" className={`${numCls} ${REPS_COLOR[reps]}`}>{REPS_LABEL[reps]}</bdi>
+          {' '}חזרות
         </span>
       );
     }
     if (weight) {
       parts.push(
-        <span key="w" className={`font-semibold px-1.5 py-0.5 rounded-md border ${DIFF_COLOR[weight]}`}>
-          להעלות משקל ב-<bdi dir="ltr">{DIFF_LABEL[weight]}</bdi>
+        <span key="w">
+          להעלות משקל ב-
+          <bdi dir="ltr" className={`${numCls} ${DIFF_COLOR[weight]}`}>{DIFF_LABEL[weight]}</bdi>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 flex-wrap">
+      <>
         {parts.map((p, i) => (
-          <span key={i} className="inline-flex items-center gap-1">
-            {i > 0 && <span className="text-muted-most">ו</span>}
+          <span key={i}>
+            {i > 0 && ' ו'}
             {p}
           </span>
         ))}
-      </span>
+      </>
     );
   }
 
+  // Layout (top → bottom), all optional except the chip rows:
+  //
+  //   [past-mark bar]    blue-edge:  "פעם קודמת סימנת …"    ← informational
+  //   [chip rows]        משקל / חזרות — interactive toggles
+  //   [next-mark bar]    emerald-edge: "לפעם הבאה …"        ← auto-appears when you tap a chip
+  //   [note pill]        amber-edge: your personal note      ← click to edit
+  //   [+ הוסף הערה] button                                   ← shown only when no note
+  //
+  // Three note-styled bars share the same visual grammar (edge stripe + faint
+  // wash + slightly larger text than before). Meaning is coded by color:
+  //   • blue    → past (what you last chose)
+  //   • emerald → future (what you just chose)
+  //   • amber   → your own note
+  //
+  // This layout works identically for active-live cards, done-in-live cards,
+  // and history cards — same component, same rendering.
+
   const hasThis = !!(thisDiff || thisReps);
   const hasLast = !!(lastDiff || lastReps);
+  const nextLine = summaryParts(thisReps, thisDiff);
+  const prevLine = summaryParts(lastReps, lastDiff);
+
+  function flushAndCloseEdit() {
+    if (saveNoteTimer.current) {
+      clearTimeout(saveNoteTimer.current);
+      saveNoteTimer.current = null;
+    }
+    if (exId) { void firestore.saveExerciseNote(exId, note); }
+    setEditingNote(false);
+  }
 
   return (
     <div className="mt-2 pt-2 border-t border-subtle/40 space-y-2" dir="rtl">
-      {/* Header row: one clear sentence describing what's marked (or the
-          "לפעם הבאה:" hint when empty) + the note toggle. Replaces the old
-          pair of tiny pills — same information, cleaner reading. */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0 text-[11px] leading-relaxed">
-          {hasThis ? (
-            <span>
-              <span className="text-muted-most">לפעם הבאה </span>
-              {summaryParts(thisReps, thisDiff)}
-            </span>
-          ) : hasLast ? (
-            <span>
-              <span className="text-muted-most">פעם קודמת סימנת </span>
-              {summaryParts(lastReps, lastDiff)}
-            </span>
-          ) : (
-            <span className="text-muted-most">לפעם הבאה:</span>
-          )}
+      {/* 1 — Past marks bar. Only when there's something to say AND the coach
+             hasn't already re-marked this session. Blue reads as "context,
+             informational, past" — not calling for action. */}
+      {hasLast && !hasThis && (
+        <div className="text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-blue-500 bg-blue-500/8 dark:bg-blue-500/12 text-slate-800 dark:text-slate-100">
+          <span className="text-blue-700 dark:text-blue-300 font-semibold ms-1">פעם קודמת סימנת</span>
+          <span> </span>
+          {prevLine}
         </div>
-        {/* Always rendered so the header layout doesn't jump between read/edit modes. */}
-        <button
-          onClick={() => {
-            // "סיים" while editing must PERSIST what's on screen, not just
-            // exit edit mode (rep_1787481635517_9swb). commitNote's 400ms
-            // debounce may still be pending; flush it and write immediately
-            // so tapping "סיים" is guaranteed to save whatever the note
-            // input shows.
-            if (editingNote && exId) {
-              if (saveNoteTimer.current) {
-                clearTimeout(saveNoteTimer.current);
-                saveNoteTimer.current = null;
-              }
-              void firestore.saveExerciseNote(exId, note);
-            }
-            setEditingNote(v => !v);
-          }}
-          className={`inline-flex items-center gap-1 text-[10px] transition-colors ${
-            editingNote ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted hover:text-main'
-          }`}
-          title={editingNote ? 'סיים ושמור' : (note ? 'ערוך הערה' : 'הוסף הערה')}
-        >
-          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-          <span>{editingNote ? 'סיים' : (note ? 'ערוך הערה' : '+ הערה')}</span>
-        </button>
-      </div>
+      )}
 
-      {/* Chip rows: weight + reps side by side. Wrapped in a subtle
-          container so the whole "next-time markers" area reads as one
-          block, and labels share a fixed width so the chip columns align. */}
+      {/* 2 — Chip rows. Always visible. This is the interactive part. */}
       <div className="rounded-lg border border-subtle/60 dark:bg-slate-900/30 bg-slate-500/[.03] px-2 py-1.5 space-y-1.5">
-      {/* Row 1 — next-time WEIGHT bumps. */}
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">משקל</span>
-        <div className="flex flex-wrap gap-1">
-          {(Object.keys(DIFF_LABEL) as Difficulty[]).map(d => {
-            const active = thisDiff === d;
-            return (
-              <button
-                key={d}
-                onClick={() => rate(d)}
-                className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-colors ${
-                  active ? DIFF_COLOR[d] : 'border-subtle text-muted hover:text-main'
-                }`}
-                title={active ? 'לחץ שוב לביטול' : undefined}
-              >
-                <bdi dir="ltr">{DIFF_LABEL[d]}</bdi>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">משקל</span>
+          <div className="flex flex-wrap gap-1">
+            {(Object.keys(DIFF_LABEL) as Difficulty[]).map(d => {
+              const active = thisDiff === d;
+              return (
+                <button
+                  key={d}
+                  onClick={() => rate(d)}
+                  className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-colors ${
+                    active ? DIFF_COLOR[d] : 'border-subtle text-muted hover:text-main'
+                  }`}
+                  title={active ? 'לחץ שוב לביטול' : undefined}
+                >
+                  <bdi dir="ltr">{DIFF_LABEL[d]}</bdi>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">חזרות</span>
+          <div className="flex flex-wrap gap-1">
+            {REPS_ORDER.map(r => {
+              const active = thisReps === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => rateReps(r)}
+                  className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-colors ${
+                    active ? REPS_COLOR[r] : 'border-subtle text-muted hover:text-main'
+                  }`}
+                  title={active ? 'לחץ שוב לביטול' : undefined}
+                >
+                  <bdi dir="ltr">{REPS_LABEL[r]}</bdi>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Row 2 — next-time REPS target. Same UX as row 1. Separate storage
-          field on the same doc so weight & reps can be marked independently. */}
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">חזרות</span>
-        <div className="flex flex-wrap gap-1">
-          {REPS_ORDER.map(r => {
-            const active = thisReps === r;
-            return (
-              <button
-                key={r}
-                onClick={() => rateReps(r)}
-                className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-colors ${
-                  active ? REPS_COLOR[r] : 'border-subtle text-muted hover:text-main'
-                }`}
-                title={active ? 'לחץ שוב לביטול' : undefined}
-              >
-                <bdi dir="ltr">{REPS_LABEL[r]}</bdi>
-              </button>
-            );
-          })}
+      {/* 3 — This-session's next-time commitment. Appears the moment a chip
+             is tapped, mirroring the past-marks bar in shape. Emerald reads
+             as "you chose this, it's committed for next time". */}
+      {hasThis && (
+        <div className="text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-emerald-500 bg-emerald-500/8 dark:bg-emerald-500/12 text-slate-800 dark:text-slate-100">
+          <span className="text-emerald-700 dark:text-emerald-300 font-semibold ms-1">לפעם הבאה</span>
+          <span> </span>
+          {nextLine}
         </div>
-      </div>
-      </div>
+      )}
 
-      {/* Note — reading mode is clean text; editing mode is a textarea */}
+      {/* 4 — Note. When present, the amber pill IS its own edit trigger.
+             When empty AND not editing, a small "+ הערה" button below the
+             stack invites you to add one. */}
       {editingNote ? (
-        // Flush any pending debounced save + exit edit mode when the user
-        // taps elsewhere. Guard against the "סיים" button race: if the blur
-        // was caused by clicking the header toggle itself (which toggles
-        // editingNote), we still want a clean exit — commitNote already ran
-        // on every keystroke so nothing is lost.
         <textarea
           value={note}
           onChange={(e) => commitNote(e.target.value)}
           onBlur={(e) => {
-            // Flush the debounced save immediately so nothing is lost.
             if (saveNoteTimer.current) {
               clearTimeout(saveNoteTimer.current);
               saveNoteTimer.current = null;
@@ -2794,25 +2835,39 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
           autoFocus
           rows={2}
           placeholder="הערה אישית לתרגיל (טכניקה, זווית, טיפ...)"
-          className="w-full text-[12px] rounded-lg border border-emerald-500/30 dark:bg-slate-900/40 bg-white p-2 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 resize-none"
+          className="w-full text-[12px] rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 p-2 focus:outline-none focus:ring-1 focus:ring-amber-500/40 resize-none"
         />
       ) : note ? (
-        // Personal note about the exercise — technique / cue / injury flag.
-        // Visibility bump (rep_1787481819641_t2uu): user wanted the note to
-        // catch the eye WITHOUT growing. Same 12px line-count as before, now
-        // with an amber start-edge stripe + faint amber wash + amber pin
-        // glyph so it reads as "attention" instead of quiet italic quote.
         <button
           onClick={() => setEditingNote(true)}
-          className="w-full text-right text-[12px] leading-snug flex items-start gap-1.5 pr-2 pl-2 py-1 rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 text-slate-800 dark:text-slate-100"
+          className="w-full text-right text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 text-slate-800 dark:text-slate-100 hover:bg-amber-500/12 dark:hover:bg-amber-500/16 transition-colors"
           title="לחץ לעריכה"
         >
-          <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" className="text-amber-600 dark:text-amber-400 shrink-0 mt-[3px]" aria-hidden="true">
-            <path d="M12 2 A5 5 0 0 0 7 7 c0 2 1 3.5 2 4.5 l0 4.5 h6 v-4.5 c1 -1 2 -2.5 2 -4.5 A5 5 0 0 0 12 2 Z M9 18 h6 v1 a2 2 0 0 1 -2 2 h-2 a2 2 0 0 1 -2 -2 v-1 z"/>
-          </svg>
+          <span className="text-amber-700 dark:text-amber-300 font-semibold ms-1">הערה:</span>
           <span className="font-medium">{note}</span>
         </button>
       ) : null}
+
+      {/* 5 — Add / finish button. Sits under the whole stack rather than
+             floating in the header — keeps hierarchy simple and the top of
+             the block occupied by the past/future context, which is what
+             the coach reads first. */}
+      {!note && !editingNote && (
+        <button
+          onClick={() => setEditingNote(true)}
+          className="text-[11px] text-muted hover:text-main flex items-center gap-1"
+        >
+          <span>+ הוסף הערה</span>
+        </button>
+      )}
+      {editingNote && (
+        <button
+          onClick={flushAndCloseEdit}
+          className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+        >
+          סיים ושמור
+        </button>
+      )}
     </div>
   );
 }

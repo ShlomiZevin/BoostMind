@@ -252,6 +252,19 @@ p{max-width:54ch}
 html[data-theme="light"] .device{
   background:linear-gradient(160deg, rgba(15,23,42,.12), rgba(15,23,42,.03) 42%, rgba(15,23,42,.07));
 }
+/* A real capture from the live app. It is a dark screen either way, so it keeps
+   its own frame rather than borrowing the page's surface — on the light theme a
+   bare dark image reads as a hole in the page. */
+.shot{
+  margin:10px auto 0;border-radius:22px;overflow:hidden;line-height:0;
+  border:1px solid var(--border);background:#0b0d16;
+  /* held to a phone's width on purpose. At the column's full 620px this is a
+     1343px-tall image and the section doubles in length — the brief was to
+     show a real screen, not to rebuild the page around it. */
+  max-width:320px;
+}
+.shot img{width:100%;height:auto;display:block}
+html[data-theme="light"] .shot{border-color:rgba(15,23,42,.14)}
 .screen{
   border-radius:31px;overflow:hidden;background:var(--surface);
   display:flex;flex-direction:column;height:100%;border:1px solid var(--border);
@@ -798,43 +811,32 @@ html[data-theme="light"] .bub.me{background:#dbeafe;color:#1e40af}
 
     <div class="ai-flow">
 
+      <!-- The two blocks that carry the AI claim are the two that show a real
+           screen. Everything else on this page is a mockup we drew; here the
+           Hebrew, the numbers and the buttons are the product's own. The quote
+           above each one is the sentence actually typed in that screenshot —
+           a caption that describes a different meal or muscle than the screen
+           shows is the fastest way to make a real screen look fake. -->
       <div class="rv ex" style="--ac:var(--food-lite)">
         <div class="convo">
-          <div class="bub me">״אכלתי פיצה על דף אורז.״</div>
-          <div class="act">
-            <div class="ah">
-              <span class="at">פיצה על דף אורז</span>
-              <span class="acal mono">220 קלוריות</span>
-            </div>
-            <div class="rows">
-              <div class="r"><span>דפי אורז</span><span class="rn mono">90</span></div>
-              <div class="r"><span>רוטב עגבניות</span><span class="rn mono">20</span></div>
-              <div class="r"><span>מוצרלה</span><span class="rn mono">110</span></div>
-            </div>
-            <div class="btns"><span>הוסף להיום</span><span>ערוך</span></div>
-          </div>
+          <div class="bub me">״שתיתי אספרסו עם חלב שיבולת ובננה לפני אימון״</div>
+          <figure class="shot">
+            <img src="/wholos/shots/ai-food-v1.jpg" width="591" height="1280" loading="lazy"
+                 alt="מסך מאמן התזונה: המשפט מפורק לשני פריטים עם קלוריות לכל רכיב">
+          </figure>
         </div>
-        <p class="caption">אומרים מה אכלנו. ה-AI הופך את זה לארוחה שאפשר להוסיף.</p>
+        <p class="caption">מפורק לפריטים, עם הקלוריות של כל רכיב ואפשרות להוסיף להיום.</p>
       </div>
 
       <div class="rv ex" style="--ac:var(--train-lite)">
         <div class="convo">
-          <div class="bub me">״תבנה לי אימון כתפיים קצר.״</div>
-          <div class="act">
-            <div class="ah">
-              <span class="at">כתפיים</span>
-              <span class="acal mono">4 תרגילים</span>
-            </div>
-            <div class="rows">
-              <div class="r"><span>לחיצת כתפיים</span><span class="rn mono">3 × 10</span></div>
-              <div class="r"><span>הרחקת יד לצד</span><span class="rn mono">3 × 12</span></div>
-              <div class="r"><span>פרפר הפוך</span><span class="rn mono">3 × 12</span></div>
-              <div class="r"><span>משיכה לסנטר</span><span class="rn mono">2 × 12</span></div>
-            </div>
-            <div class="btns"><span>התחל אימון</span><span>ערוך</span></div>
-          </div>
+          <div class="bub me">״בוא נבנה תוכנית להיום. יום רגליים״</div>
+          <figure class="shot">
+            <img src="/wholos/shots/ai-train-v1.jpg" width="591" height="1280" loading="lazy"
+                 alt="מסך מאמן הכושר: תוכנית רגליים, כל תרגיל עם נימוק מההיסטוריה ושלבי ביצוע">
+          </figure>
         </div>
-        <p class="caption">מבקשים אימון. מקבלים אימון שאפשר להתחיל.</p>
+        <p class="caption">תרגילים לפי ההיסטוריה — ״קוואדריספס, 9 ימים מאז הפעם האחרונה״.</p>
       </div>
 
       <div class="rv ex" style="--ac:var(--train-lite)">

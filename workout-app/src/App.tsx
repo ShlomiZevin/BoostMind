@@ -520,6 +520,11 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
   // (FreeSession renders its own Chronograph then).
   const { open: stopwatchOpen, set: setStopwatchOpen } = useStandaloneStopwatch();
   const standaloneTimer = useTimer();
+  // Session rest timer — lives at App level so it survives navigation away
+  // from the session page. Passed down to FreeSession (which drives it) and
+  // shown by LiveSessionBadge when it's running, so leaving mid-rest no
+  // longer wipes the countdown (rep_1787909040967_tv06).
+  const sessionRestTimer = useTimer();
   const showStandaloneStopwatch = stopwatchOpen && !inProgress && isTabPage && place === 'exercise';
 
   // AI trainer panel — opened from the TopBar action on any tab page.
@@ -584,10 +589,10 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
       content = <FreeHome uid={uid} navigate={navigate} onStartRequest={handleFabClick} />;
       break;
     case 'session':
-      content = <FreeSession key={route.sessionId} uid={uid} sessionId={route.sessionId} navigate={navigate} />;
+      content = <FreeSession key={route.sessionId} uid={uid} sessionId={route.sessionId} navigate={navigate} restTimer={sessionRestTimer} />;
       break;
     case 'session-view':
-      content = <FreeSession key={route.sessionId} uid={uid} sessionId={route.sessionId} navigate={navigate} historical />;
+      content = <FreeSession key={route.sessionId} uid={uid} sessionId={route.sessionId} navigate={navigate} restTimer={sessionRestTimer} historical />;
       break;
     case 'history':
       content = <FreeHistory uid={uid} navigate={navigate} />;
@@ -717,6 +722,9 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
         <LiveSessionBadge
           session={inProgress}
           onClick={() => navigate({ page: 'session', sessionId: inProgress.id })}
+          restRemaining={sessionRestTimer.remaining}
+          restRunning={sessionRestTimer.isRunning}
+          restDone={sessionRestTimer.isDone}
         />
       )}
 
