@@ -80,6 +80,10 @@
       {
         "source": "/corfu/**",
         "destination": "/corfu/index.html"
+      },
+      {
+        "source": "/sicilia/**",
+        "destination": "/sicilia/index.html"
       }
     ]
   },

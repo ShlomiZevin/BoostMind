@@ -3,6 +3,7 @@ import { collection, getCountFromServer, getDocs, orderBy, query, limit as fbLim
 import { db } from '../config/firebase';
 import type { Route } from '../types';
 import { AdminNav } from './AdminNav';
+import { setUserAdmin, isAdminEmail } from '../config/admins';
 
 // Desktop-only users management. Reads `users_index` directly — same
 // obscurity-as-security posture as reports-admin (the URL is the secret).
@@ -29,6 +30,9 @@ type UserRow = {
   signInCount?: number;
   firstReferrer?: string | null;
   firstUa?: string;
+  // Runtime admin flag — toggled from this page via setUserAdmin().
+  // Reflects the users_index doc's `isAdmin` field.
+  isAdmin?: boolean;
 };
 type LlmStat = { cost: number; calls: number; inputTokens: number; outputTokens: number };
 type Activity = { sessions: number | null; meals: number | null };
@@ -351,11 +355,15 @@ export function UsersAdminPage({ navigate }: { navigate: (r: Route) => void }) {
                       <td className="px-3 py-2 text-xs text-muted" title={absDate(u.firstSeenAt)} dir="ltr">{relTime(u.firstSeenAt)}</td>
                       <td className="px-3 py-2 text-xs text-muted" title={absDate(u.lastSeenAt)} dir="ltr">{relTime(u.lastSeenAt)}</td>
                       <td className="px-3 py-2">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-wrap">
                           {u.email && (
                             <button onClick={() => copy(u.email!, 'אימייל')} className="text-[10px] font-semibold px-2 py-1 rounded border border-subtle hover:bg-slate-500/10" title="העתק אימייל">אימייל</button>
                           )}
                           <button onClick={() => copy(u.uid, 'uid')} className="text-[10px] font-semibold px-2 py-1 rounded border border-subtle hover:bg-slate-500/10" title={u.uid}>uid</button>
+                          <AdminToggle
+                            user={u}
+                            onChange={(next) => setUsers(prev => prev.map(x => x.uid === u.uid ? { ...x, isAdmin: next } : x))}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -412,5 +420,54 @@ function SortTh({ label, k, cur, asc, onClick, align }: {
       <span className={active ? 'text-main' : ''}>{label}</span>
       <span className="ms-1 text-[8px]">{active ? (asc ? '▲' : '▼') : ''}</span>
     </th>
+  );
+}
+
+// Grant / revoke admin on a user_index row. Founding admins (in the
+// hardcoded ADMIN_EMAILS set) show as a locked "admin" pill — you can't
+// revoke Shlomi or Sergio from the UI on purpose.
+function AdminToggle({ user, onChange }: { user: UserRow; onChange: (isAdmin: boolean) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const hardcoded = isAdminEmail(user.email) && !user.isAdmin;
+  // "isAdmin now" = either the runtime flag OR being in the hardcoded list.
+  const isAdminNow = !!user.isAdmin || isAdminEmail(user.email);
+
+  async function toggle() {
+    if (hardcoded) return;
+    setBusy(true); setErr(null);
+    try {
+      const next = !user.isAdmin;
+      await setUserAdmin(user.uid, next);
+      onChange(next);
+    } catch (e: any) {
+      setErr(e?.message || 'שגיאה');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (hardcoded) {
+    return (
+      <span
+        className="text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10"
+        title="Founding admin — hardcoded in config/admins.ts"
+      >★ admin</span>
+    );
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      title={err || (isAdminNow ? 'לחץ להסיר הרשאת admin' : 'הענק הרשאת admin')}
+      className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors disabled:opacity-40 ${
+        isAdminNow
+          ? 'border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/15'
+          : 'border-subtle text-muted hover:text-main hover:bg-slate-500/10'
+      }`}
+    >
+      {busy ? '…' : isAdminNow ? '★ admin' : '+ admin'}
+    </button>
   );
 }

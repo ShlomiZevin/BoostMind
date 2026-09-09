@@ -236,15 +236,31 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
     // anymore — everything moves to Done, including retroactively in history.
     if (uniq.length > 0) {
       const sessionDone = session.completedAt != null;
+      // Explicit "שמור וסיים" list from LogSetModal — overrides the natural
+      // top-most rule (rep_1788850205954_ffec). A key here forces done=true.
+      const finishedKeys = new Set(session.finishedExerciseKeys || []);
       if (sessionDone) {
         for (const g of uniq) g.done = true;
       } else {
-        const topSs = (uniq[0].sets.find(s => s.supersetGroup) || {}).supersetGroup;
-        const topKey = `${uniq[0].muscle}::${uniq[0].exerciseName.toLowerCase()}`;
+        // The "current" exercise is always the MOST RECENTLY worked one
+        // (uniq is already sorted by rank timestamp desc). Explicit finishes
+        // only ever ADD to Done — they never re-anchor the pointer onto an
+        // older group, which would yank an already-finished exercise back
+        // out of the Done cluster. When the topmost group is itself marked
+        // finished, nothing is current: the whole list is done until the
+        // user logs a set on something.
+        const top = uniq[0];
+        const topKey = `${top.muscle}::${top.exerciseName.toLowerCase()}`;
+        const topFinished = finishedKeys.has(topKey);
+        const topSs = (top.sets.find(s => s.supersetGroup) || {}).supersetGroup;
         for (let i = 0; i < uniq.length; i++) {
           const g = uniq[i];
-          const gSs = (g.sets.find(s => s.supersetGroup) || {}).supersetGroup;
           const key = `${g.muscle}::${g.exerciseName.toLowerCase()}`;
+          // Explicitly finished via "שמור וסיים" → always done.
+          if (finishedKeys.has(key)) { g.done = true; continue; }
+          // Topmost was finished → no exercise is current right now.
+          if (topFinished) { g.done = true; continue; }
+          const gSs = (g.sets.find(s => s.supersetGroup) || {}).supersetGroup;
           // "Current" set = shares a superset with the top group, OR IS the top
           // group. Every other logged exercise is "done".
           const isCurrent = topSs ? gSs === topSs : key === topKey;
@@ -1273,6 +1289,20 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
               await handleAddPlannedExercise(name, muscle, en, isHoldTime);
             }
           }}
+          onFinishExercise={async (key) => {
+            if (!session) return;
+            await firestore.markExerciseFinished(session.id, key);
+            // Mirror into local state — handleSaveSet already ran its own
+            // setSession from a stale snapshot, so the Firestore write alone
+            // would not move the exercise to the Done cluster until a full
+            // reload. Functional update so we compose on top of that.
+            setSession(prev => {
+              if (!prev) return prev;
+              const cur = prev.finishedExerciseKeys || [];
+              if (cur.includes(key)) return prev;
+              return { ...prev, finishedExerciseKeys: [...cur, key] };
+            });
+          }}
         />
       )}
 
@@ -2228,6 +2258,20 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
                                     <span dir="ltr" className="inline-block font-semibold">{s.weight}<span className="text-[10px] text-muted mr-0.5">{unit}</span> × {s.reps}</span>
                                   )}
                                 </div>
+                                {/* Delete is available on done exercises too —
+                                    a mis-logged set shouldn't be un-fixable just
+                                    because the exercise moved to "בוצעו".
+                                    Same confirm dialog as the active card. */}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setConfirmDeleteSetId(s.id); }}
+                                  aria-label="מחק סט"
+                                  className="w-6 h-6 rounded-lg flex items-center justify-center text-red-500/70 hover:text-red-500 hover:bg-red-500/10 shrink-0"
+                                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                                >
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+                                  </svg>
+                                </button>
                               </div>
                             );
                           })}
@@ -2605,26 +2649,63 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
   const [lastDiff, setLastDiff] = useState<Difficulty | null>(null);   // weight chip PREVIOUS session
   const [thisReps, setThisReps] = useState<NextReps | null>(null);     // reps chip THIS session
   const [lastReps, setLastReps] = useState<NextReps | null>(null);     // reps chip PREVIOUS session
+  const [lastSessionId, setLastSessionId] = useState<string | null>(null); // which session the past-mark came from — needed to ack it
+  const [lastAcked, setLastAcked] = useState(false);                     // ack state loaded from Firestore + updated by local button; keeps history visible with strikethrough instead of erasing it
+  const [reloadTick, setReloadTick] = useState(0);                      // bump to force a re-load (event bus, mount from another card)
   const [loaded, setLoaded] = useState(false);
   const saveNoteTimer = useRef<any>(null);
 
   useEffect(() => {
     if (!exId) { setLoaded(true); return; }
+    let cancelled = false;
     Promise.all([
       firestore.getExerciseNote(exId),
       firestore.getExerciseDifficultyForSession(exId, sessionId),
-      firestore.getExerciseDifficulty(exId),
+      // Exclude the CURRENT session from the past-mark lookup so acking a
+      // past mark this session doesn't accidentally re-show what you just
+      // marked (rep_1788849647109_wmq6).
+      firestore.getExerciseDifficulty(exId, sessionId),
     ]).then(([n, thisSess, mostRecent]) => {
+      if (cancelled) return;
       setNote(n || '');
       const isValidDiff = (v: unknown): v is Difficulty => typeof v === 'string' && v in DIFF_LABEL;
       const isValidReps = (v: unknown): v is NextReps => typeof v === 'string' && v in REPS_LABEL;
-      if (thisSess?.difficulty && isValidDiff(thisSess.difficulty)) setThisDiff(thisSess.difficulty);
-      if (thisSess?.nextReps   && isValidReps(thisSess.nextReps))   setThisReps(thisSess.nextReps);
-      if (!thisSess?.difficulty && mostRecent?.difficulty && isValidDiff(mostRecent.difficulty)) setLastDiff(mostRecent.difficulty);
-      if (!thisSess?.nextReps   && mostRecent?.nextReps   && isValidReps(mostRecent.nextReps))   setLastReps(mostRecent.nextReps);
+      // Reset before applying so a re-load reflects fresh state (e.g. cleared chip).
+      setThisDiff(thisSess?.difficulty && isValidDiff(thisSess.difficulty) ? thisSess.difficulty : null);
+      setThisReps(thisSess?.nextReps   && isValidReps(thisSess.nextReps)   ? thisSess.nextReps   : null);
+      const lastD = !thisSess?.difficulty && mostRecent?.difficulty && isValidDiff(mostRecent.difficulty) ? mostRecent.difficulty : null;
+      const lastR = !thisSess?.nextReps   && mostRecent?.nextReps   && isValidReps(mostRecent.nextReps)   ? mostRecent.nextReps   : null;
+      setLastDiff(lastD);
+      setLastReps(lastR);
+      setLastSessionId(mostRecent?.sessionId || null);
+      // ackedAt on the past-mark doc → show it struck-through instead of
+      // hiding. History stays visible; user can un-ack anytime.
+      setLastAcked(typeof mostRecent?.ackedAt === 'number');
       setLoaded(true);
     });
-  }, [exId, sessionId]);
+    return () => { cancelled = true; };
+  }, [exId, sessionId, reloadTick]);
+
+  // Listen for changes fired by OTHER ExerciseInline instances (e.g. the
+  // one inside LogSetModal saved a chip / note while the list card was
+  // mounted). Same-exercise → re-load; otherwise ignore.
+  useEffect(() => {
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (!detail) return;
+      if (detail.exerciseId !== exId) return;
+      // A change in ANY session for this exercise can shift the past-mark
+      // (e.g. current-session write hides it; ack write on a prior doc
+      // hides that past-mark). Just reload — cheap.
+      setReloadTick(t => t + 1);
+    }
+    window.addEventListener('wholos:exercise-diff-changed', onChange);
+    window.addEventListener('wholos:exercise-note-changed', onChange);
+    return () => {
+      window.removeEventListener('wholos:exercise-diff-changed', onChange);
+      window.removeEventListener('wholos:exercise-note-changed', onChange);
+    };
+  }, [exId]);
 
   function commitNote(v: string) {
     setNote(v);
@@ -2671,6 +2752,21 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
       setThisReps(r);
       await firestore.saveExerciseDifficulty(exId, sessionId, { nextReps: r });
     }
+  }
+
+  // Acknowledge the past-mark: stamp `ackedAt` on THAT session's doc so it
+  // never resurfaces in future sessions. Locally we keep it visible with a
+  // strikethrough + "בטל" so the acknowledgement is reversible until the
+  // user navigates away. rep_1788849647109_wmq6 / rep_1788254495338_obge.
+  async function ackLastMark() {
+    if (!exId || !lastSessionId) return;
+    setLastAcked(true);
+    await firestore.saveExerciseDifficulty(exId, lastSessionId, { ackedAt: Date.now() });
+  }
+  async function unackLastMark() {
+    if (!exId || !lastSessionId) return;
+    setLastAcked(false);
+    await firestore.saveExerciseDifficulty(exId, lastSessionId, { ackedAt: null });
   }
 
   if (!loaded || !exId) return null;
@@ -2753,17 +2849,45 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
     <div className="mt-2 pt-2 border-t border-subtle/40 space-y-2" dir="rtl">
       {/* 1 — Past marks bar. Only when there's something to say AND the coach
              hasn't already re-marked this session. Blue reads as "context,
-             informational, past" — not calling for action. */}
+             informational, past" — not calling for action.
+             "בוצע" acknowledges the mark: this session shows it struck through
+             with an undo affordance; every future session hides it entirely.
+             The ack is persisted per past-session so it survives reloads. */}
       {hasLast && !hasThis && (
-        <div className="text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-blue-500 bg-blue-500/8 dark:bg-blue-500/12 text-slate-800 dark:text-slate-100">
-          <span className="text-blue-700 dark:text-blue-300 font-semibold ms-1">פעם קודמת סימנת</span>
-          <span> </span>
-          {prevLine}
+        <div className="text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-blue-500 bg-blue-500/8 dark:bg-blue-500/12 text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <div className={`flex-1 min-w-0 ${lastAcked ? 'line-through decoration-2 decoration-slate-500 dark:decoration-slate-400 opacity-70' : ''}`}>
+            <span className="text-blue-700 dark:text-blue-300 font-semibold me-1.5">פעם קודמת סימנת</span>
+            {prevLine}
+          </div>
+          {lastAcked ? (
+            <div className="shrink-0 flex items-center gap-1.5">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                ✓ בוצע
+              </span>
+              <button
+                onClick={unackLastMark}
+                className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 hover:underline"
+                title="בטל את סימון 'בוצע' — יחזור להיות פעולה פעילה"
+              >בטל</button>
+            </div>
+          ) : (
+            <button
+              onClick={ackLastMark}
+              className="shrink-0 text-[11px] font-bold px-2 py-1 rounded-md border border-blue-500/40 text-blue-700 dark:text-blue-300 hover:bg-blue-500/15 transition-colors"
+              title="סמן שביצעת — נשאר גלוי כהיסטוריה בקו מחיקה"
+            >✓ בוצע</button>
+          )}
         </div>
       )}
 
-      {/* 2 — Chip rows. Always visible. This is the interactive part. */}
-      <div className="rounded-lg border border-subtle/60 dark:bg-slate-900/30 bg-slate-500/[.03] px-2 py-1.5 space-y-1.5">
+      {/* 2 — Chip rows. Always visible. This is the interactive part.
+             <fieldset>+<legend> so the caption sits ON the top border —
+             browser natively cuts the border around the legend text. No
+             bg-color matching, no wasted row. */}
+      <fieldset className="rounded-lg border border-subtle/60 dark:bg-slate-900/30 bg-slate-500/[.03] px-2.5 pt-1 pb-2 space-y-1.5">
+        <legend className="px-1.5 text-[10px] font-bold text-muted-most tracking-wide">
+          לפעם הבאה
+        </legend>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-semibold text-muted-most shrink-0 w-10">משקל</span>
           <div className="flex flex-wrap gap-1">
@@ -2804,7 +2928,7 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
             })}
           </div>
         </div>
-      </div>
+      </fieldset>
 
       {/* 3 — This-session's next-time commitment. Appears the moment a chip
              is tapped, mirroring the past-marks bar in shape. Emerald reads
@@ -2843,7 +2967,11 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
           className="w-full text-right text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 text-slate-800 dark:text-slate-100 hover:bg-amber-500/12 dark:hover:bg-amber-500/16 transition-colors"
           title="לחץ לעריכה"
         >
-          <span className="text-amber-700 dark:text-amber-300 font-semibold ms-1">הערה:</span>
+          {/* me-1.5 puts a real gap between the "הערה:" label and the note
+              text — previously they were rendered flush against each other
+              (rep_1788850098233_e2rt). ms-1 only affected the label's start
+              edge, not the gap after the colon. */}
+          <span className="text-amber-700 dark:text-amber-300 font-semibold me-1.5">הערה:</span>
           <span className="font-medium">{note}</span>
         </button>
       ) : null}

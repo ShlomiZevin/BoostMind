@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="he" dir="rtl" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#120f0d" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="סיציליה" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>" />
+<title>סיציליה · מדריך הטיול</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#120f0d; --surface:#1c1815; --surface-2:#262019; --border:rgba(255,255,255,.09);
+    --text:#f2ebe2; --muted:#a1907e; --accent:#f59e0b; --accent-ink:#2b1a00;
+    --sunset:#fb7185; --good:#34d399; --warn:#f87171; --radius:16px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-t:env(safe-area-inset-top,0px);
+  }
+  html:not(.dark){
+    --bg:#faf7f2; --surface:#ffffff; --surface-2:#f4efe7; --border:rgba(60,40,20,.12);
+    --text:#211a12; --muted:#7a6a58; --accent:#c2410c; --accent-ink:#ffffff;
+    --sunset:#be123c; --good:#059669; --warn:#dc2626;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+  /* ── מעטפת אפליקציה ──────────────────────────────────────────────
+     הדף עצמו לא נגלל אף פעם. המסך הוא עמודה בגובה קבוע: כותרת למעלה,
+     ניווט למטה, ורק האזור באמצע גולל. ככה זה מרגיש אפליקציה ולא אתר,
+     והכותרת והניווט אף פעם לא בורחים מהמסך. */
+  /* position:fixed על ה-body לא כיסה את אזור ה-safe area במצב אפליקציה,
+     והרקע הלבן של הדפדפן הציץ מתחת לניווט. גובה 100% על html ועל body,
+     עם viewport-fit=cover, נותן לאפליקציה את כל המסך כולל האזור הזה.
+     הרקע נצבע גם על html כרשת ביטחון. */
+  /* dvh ולא 100% ולא vh. גובה 100% נמדד מול ה-viewport הגדול — זה שכולל
+     את שורת הכתובת — אז הפס התחתון נדחף מתחת לאזור הנראה: הוא נראה במקום
+     הלא נכון וגם לא ניתן ללחיצה. dvh הוא הגובה שבאמת נראה כרגע. */
+  html{height:100%;background:var(--bg)}
+  body{
+    margin:0;padding:0;height:100vh;height:100dvh;
+    overflow:hidden;overscroll-behavior:none;
+    font-family:'Heebo',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  #root{max-width:680px;margin:0 auto;height:100vh;height:100dvh;
+    display:flex;flex-direction:column;background:var(--bg)}
+  .screen{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .screen.noscroll{overflow:hidden}
+  button{font-family:inherit;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+
+  /* header */
+  .topbar{flex:none;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;
+    padding-top:calc(12px + var(--safe-t));display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand h1{font-size:18px;font-weight:800;margin:0;letter-spacing:-.3px}
+  .brand .sub{font-size:12px;color:var(--muted);font-weight:500}
+  .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);display:grid;place-items:center;font-size:18px;flex:none}
+  .iconbtn:active{transform:scale(.94)}
+
+  /* layout */
+  .view{padding:16px 16px 28px}
+  .hero h2{font-size:26px;font-weight:800;margin:0 0 2px;letter-spacing:-.5px}
+  .hero p{color:var(--muted);margin:0;font-size:14px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .card.tap{transition:transform .12s ease,border-color .15s}
+  .card.tap:active{transform:scale(.99);border-color:var(--accent)}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+    padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+  .pill.accent{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+  .pill.sunset{color:var(--sunset);border-color:color-mix(in srgb,var(--sunset) 40%,transparent)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  /* chips nav */
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface);color:var(--muted);font-weight:600;font-size:13px}
+  .chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+  /* day */
+  .dayhead{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+  .dayhead .dnum{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+  .dayhead h3{margin:0;font-size:17px;font-weight:800}
+  .dayhead .meta{font-size:12.5px;color:var(--muted)}
+  .progress{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin-top:12px}
+  .progress > i{display:block;height:100%;background:var(--good);border-radius:999px;transition:width .3s}
+
+  /* שורת לו״ז: שלוש עמודות קבועות — שעה, צ׳קבוקס, ומה עושים.
+     בלי פס זמן ובלי נקודות: הם התחרו על אותו מקום עם הצ׳קבוקס והשעה
+     והפכו את הרשימה לרועשת. קו מפריד דק בין שורות עושה את אותה עבודה. */
+  .timeline{margin-top:10px}
+  .ti{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .ti:last-child{border-bottom:none;padding-bottom:2px}
+  .ti .tcol{flex:none;width:44px;text-align:start;font-variant-numeric:tabular-nums;
+    font-weight:700;font-size:13px;color:var(--muted);padding-top:4px}
+  .ti.done .tcol{opacity:.5}
+  .ti .chk{flex:none;width:24px;height:24px;margin-top:1px;border-radius:7px;
+    border:1.6px solid var(--border);background:var(--surface);display:grid;place-items:center;
+    font-size:13px;color:var(--good)}
+  .ti.done .chk{background:var(--good);border-color:var(--good);color:#062e22}
+  .ti .tbody{flex:1;min-width:0}
+  .ti .title{font-weight:600;font-size:15px;line-height:1.4}
+  .ti.done .title{text-decoration:line-through;color:var(--muted)}
+  .ti .note{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.45}
+  .ti .linkrow{margin-top:8px}
+  .tlink{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 12%,transparent);padding:5px 10px;border-radius:9px;border:none}
+
+  /* place card */
+  .pcard .ph{height:84px;border-radius:12px;display:flex;align-items:flex-end;padding:10px;margin-bottom:10px;
+    background:var(--surface-2);position:relative;overflow:hidden}
+  .pcard .ph .emoji{font-size:40px;line-height:1}
+  .pcard h3{margin:0;font-size:17px;font-weight:800}
+  .pcard .en{font-size:12px;color:var(--muted);font-weight:500}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:430px){.grid{grid-template-columns:1fr}}
+
+  /* detail overlay */
+  .overlay{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;
+    animation:slideup .22s ease}
+  @keyframes slideup{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .ovbar{flex:none;background:var(--bg);border-bottom:1px solid var(--border);
+    padding:12px 16px;padding-top:calc(12px + var(--safe-t));display:flex;align-items:center;gap:12px}
+  .ovbar h2{font-size:18px;font-weight:800;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ovscroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .ovhero{height:130px;display:grid;place-items:center;font-size:66px;background:var(--surface-2)}
+  .ovbody{padding:18px 16px calc(28px + var(--safe-b));max-width:680px;margin:0 auto}
+  .sec{margin:18px 0}
+  .sec h4{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 8px;font-weight:700}
+  .kv{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14.5px}
+  .kv .k{flex:none;width:120px;color:var(--muted);font-weight:600}
+  .kv .v{flex:1}
+  .tips li{margin-bottom:7px;font-size:14.5px}
+  .body-text{font-size:15px;line-height:1.65}
+
+  /* action buttons */
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+  .abtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:13px;
+    border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;font-size:12.5px}
+  .abtn .ic{font-size:20px}
+  .abtn:active{transform:scale(.96)}
+  .abtn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .abtn.danger{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+  .abtn.ok{color:var(--good);border-color:var(--good)}
+
+  /* checklist */
+  .clitem{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:15px}
+  .clitem:last-child{border-bottom:none}
+  .clitem .cb{flex:none;width:24px;height:24px;border-radius:7px;border:1.6px solid var(--border);display:grid;place-items:center;font-size:13px;color:var(--good)}
+  .clitem.on .cb{background:var(--good);border-color:var(--good);color:#062e22}
+  .clitem.on span{text-decoration:line-through;color:var(--muted)}
+  .clcat{font-size:13px;font-weight:800;color:var(--accent);margin:18px 0 4px;letter-spacing:.3px}
+
+  /* chat */
+  .chatpane{height:100%;display:flex;flex-direction:column}
+  .chatscroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 6px}
+  .msg{max-width:88%;padding:11px 14px;border-radius:16px;font-size:15px;line-height:1.6;
+    margin-bottom:10px;white-space:pre-wrap;word-break:break-word}
+  .msg.me{margin-inline-start:auto;background:var(--accent);color:var(--accent-ink)}
+  .msg.bot{margin-inline-end:auto;background:var(--surface);border:1px solid var(--border);white-space:normal}
+
+  /* טקסט מעוצב בתשובות: מודגש, רשימות, לינקים וטלפונים לחיצים. */
+  .rp{margin:0 0 6px}
+  .rp:last-child{margin-bottom:0}
+  .rh{font-weight:800;font-size:14.5px;margin:11px 0 5px}
+  .rh:first-child{margin-top:0}
+  .rul{margin:4px 0 8px;padding-inline-start:19px}
+  .rul li{margin-bottom:5px;line-height:1.55}
+  .rgap{height:7px}
+  .bname{font:inherit;font-weight:800;background:none;border:0;padding:0;color:inherit;
+    border-bottom:1px dashed color-mix(in srgb,var(--accent) 65%,transparent)}
+  .bname:active{color:var(--accent)}
+  .sheet{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;
+    background:rgba(0,0,0,.45);animation:fadein .15s ease}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  .sheet-in{width:100%;max-width:680px;margin:0 auto;background:var(--surface);
+    border-top:1px solid var(--border);border-radius:20px 20px 0 0;
+    padding:18px 16px calc(14px + var(--safe-b))}
+  .sheet-in h3{margin:0;font-size:17px;font-weight:800;word-break:break-word}
+  .sheet-in .actions{margin-bottom:0}
+  .clink{color:var(--accent);font-weight:600;
+    border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);word-break:break-word}
+  /* המספר הוא רצף LTR בתוך פסקה RTL — בלי בידוד מפורש הדפדפן מסדר
+     מחדש את הקטעים והמספר מוצג הפוך. */
+  .phone{display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);
+    border:1px solid var(--border);border-radius:9px;padding:3px 9px;margin:2px 0;
+    font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;
+    direction:ltr;unicode-bidi:isolate}
+  .phone a{color:var(--accent)}
+  .phone .wa{color:#25d366}
+  .msg.bot.wait{color:var(--muted)}
+  .applied{margin:-4px 0 12px;padding:9px 12px;border-radius:12px;font-size:13px;font-weight:600;
+    background:color-mix(in srgb,var(--good) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--good) 40%,transparent);color:var(--text)}
+  .applied b{display:block;font-size:11.5px;color:var(--good);margin-bottom:3px;letter-spacing:.3px}
+  /* הצעה לשינוי — כלום לא נכנס לתוכנית לפני שלוחצים אישור. */
+  .proposal{margin:-4px 0 12px;padding:12px 13px;border-radius:14px;font-size:13.5px;
+    background:color-mix(in srgb,var(--accent) 10%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 42%,transparent);color:var(--text)}
+  .proposal b{display:block;font-size:11.5px;color:var(--accent);margin-bottom:6px;letter-spacing:.3px}
+  .proposal .pline{margin-bottom:4px;font-weight:600;line-height:1.5}
+  .pbtns{display:flex;gap:8px;margin-top:12px}
+  .pbtn{flex:1;padding:10px 8px;border-radius:11px;font-family:inherit;font-weight:700;font-size:13.5px;
+    border:1px solid var(--border)}
+  .pbtn.ok{background:var(--good);border-color:var(--good);color:#062e22}
+  .pbtn.no{background:var(--surface);color:var(--muted)}
+  .rejected{margin:-4px 0 12px;padding:0 4px;font-size:12.5px;color:var(--muted)}
+  .composer{flex:none;padding:10px 16px 10px;background:var(--bg);
+    border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
+  .composer textarea{flex:1;min-height:44px;max-height:110px;resize:none;padding:11px 13px;
+    border-radius:13px;border:1px solid var(--border);background:var(--surface);color:var(--text);
+    font-family:inherit;font-size:16px;line-height:1.4}
+  .composer textarea:focus{outline:none;border-color:var(--accent)}
+  .sendbtn{flex:none;width:44px;height:44px;border-radius:13px;border:none;
+    background:var(--accent);color:var(--accent-ink);font-size:19px;display:grid;place-items:center}
+  .sendbtn:disabled{opacity:.4}
+  .qchip{flex:none;padding:9px 13px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);font-weight:600;font-size:13px;text-align:start}
+
+  /* bottom nav */
+  /* צמוד לתחתית, בלי שום שריון ל-safe area. iOS מדווח 34px וכל שארית
+     ממנו נראתה כמו חור במצב אפליקציה. פס ה-home מרחף מעל הקצה בשקיפות. */
+  .bottomnav{flex:none;background:var(--bg);border-top:1px solid var(--border);display:flex;
+    padding:7px 4px 8px}
+  .nav-i{flex:1;background:none;border:none;color:var(--muted);display:flex;flex-direction:column;
+    align-items:center;gap:2px;padding:3px 2px 4px;font-weight:600;font-size:10.5px;line-height:1.15}
+  .nav-i .ic{font-size:20px;line-height:1}
+  .nav-i.on{color:var(--accent)}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  .divider{height:1px;background:var(--border);margin:16px 0}
+  .warnbox{background:color-mix(in srgb,var(--sunset) 13%,transparent);border:1px solid color-mix(in srgb,var(--sunset) 35%,transparent);
+    border-radius:12px;padding:11px 13px;font-size:13.5px;font-weight:600;color:var(--text);display:flex;gap:8px;align-items:flex-start}
+  .notebox{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ---------------- helpers ---------------- */
+const enc = encodeURIComponent;
+const gmapsDir = q => `https://www.google.com/maps/dir/?api=1&destination=${enc(q)}`;
+const gmapsView = q => `https://www.google.com/maps/search/?api=1&query=${enc(q)}`;
+const wazeNav = q => `https://waze.com/ul?q=${enc(q)}&navigate=yes`;
+// תמונות אמיתיות של המקום, לא תוצאות Maps — Google Images ישירות.
+const gimages = q => `https://www.google.com/search?tbm=isch&q=${enc(q)}`;
+const gsearch = q => `https://www.google.com/search?q=${enc(q)}`;
+const uid = () => Math.random().toString(36).slice(2, 8);
+
+const BASE = {
+  name:'Recanati · Giardini Naxos', he:'הדירה',
+  area:'Giardini Naxos · על הים, כמה דקות דרומית לטאורמינה',
+  q:'Giardini Naxos Messina',
+  note:'הכתובת המדויקת נמצאת באישור ההזמנה — שווה להדביק אותה ב-Maps ברגע שנוחתים.'
+};
+const AIRPORT = { name:'Catania Fontanarossa · CTA', q:'Catania Fontanarossa Airport' };
+
+/* ================================================================
+   התוכנית עצמה — מבנה נתונים אחד, לא טקסט קשיח.
+   לכל יום, פריט, מקום וארוחה יש מזהה יציב. זה מה שמאפשר לצ'אט
+   להוסיף, לשנות ולמחוק דברים בצורה מדויקת: הוא מקבל את ה-JSON הזה
+   ומחזיר פעולות שמצביעות על מזהים.
+   ================================================================ */
+const DEFAULT_TRIP = {
+  version: 1,
+  days: [
+    { id:'d1', d:'ד׳', label:'הגעה + טאורמינה', date:'2.9 · רביעי',
+      warn:'הטיסה ב-11:00 — בשדה ב-08:00', items:[
+      {id:'a1', t:'08:00', x:'נתב״ג · צ׳ק־אין וביטחון'},
+      {id:'a2', t:'11:00', x:'✈️ טיסה לקטניה', n:'~3 שעות · באיטליה שעה אחורה'},
+      {id:'a3', t:'13:15', x:'נחיתה בקטניה (CTA)', n:'שעון מקומי', airport:true},
+      {id:'a4', t:'14:00', x:'איסוף הרכב השכור', n:'כרטיס אשראי פיזי + רישיון'},
+      {id:'a5', t:'14:45', x:'נסיעה לג׳רדיני נאקסוס', n:'~50 דק׳', base:true},
+      {id:'a6', t:'15:45', x:'צ׳ק־אין בדירה והתארגנות', base:true},
+      {id:'a7', t:'17:15', x:'נסיעה לטאורמינה', n:'לחנות בחניון היקפי — ZTL במרכז', place:'taormina'},
+      {id:'a8', t:'17:45', x:'Corso Umberto · Piazza IX Aprile · סמטאות ותצפיות', place:'taormina'},
+      {id:'a9', t:'19:15', x:'🍹 אפריטיבו עם נוף'},
+      {id:'a10', t:'20:30', x:'ארוחת ערב סיציליאנית', meal:'m1'},
+    ]},
+    { id:'d2', d:'ה׳', label:'איזולה בלה + הערב הגדול', date:'3.9 · חמישי', warn:null, items:[
+      {id:'b1', t:'08:00', x:'🐙 שוק הדגים של קטניה', n:'אופציונלי · פתוח שני–שבת בבוקר · ~50 דק׳ נסיעה לכל כיוון', place:'pescheria', opt:true},
+      {id:'b2', t:'09:00', x:'בוקר רגוע · קפה מול הים', n:'אם מדלגים על השוק'},
+      {id:'b3', t:'11:30', x:'נסיעה לטאורמינה + רכבל למטה', n:'Funivia ל-Mazzarò'},
+      {id:'b4', t:'12:00', x:'Isola Bella + Mazzarò · ים ושחייה', place:'isolabella'},
+      {id:'b5', t:'13:30', x:'ביץ׳ קלאב · מיטות, אוכל ודרינקים', n:'עד אחה״צ'},
+      {id:'b6', t:'16:30', x:'חזרה לדירה · מנוחה והתארגנות', base:true},
+      {id:'b7', t:'19:30', x:'🍸 דרינק בטאורמינה', place:'taormina'},
+      {id:'b8', t:'20:30', x:'⭐ ארוחת ה-Fine Dining של הטיול', meal:'m2'},
+    ]},
+    { id:'d3', d:'ו׳', label:'אטנה + יקב', date:'4.9 · שישי',
+      warn:'לצאת מוקדם — הענן עולה על ההר בצהריים', items:[
+      {id:'c1', t:'08:00', x:'יציאה מהדירה', base:true},
+      {id:'c2', t:'09:30', x:'הגעה ל-Rifugio Sapienza · חניה', place:'etna'},
+      {id:'c3', t:'09:45', x:'🌋 הליכה במכתשי סילבסטרי', n:'שעה–שעה ורבע · שכבה דקה, נעליים סגורות', place:'etna'},
+      {id:'c4', t:'11:15', x:'נסיעה ל-Linguaglossa', n:'~1:15 · מהמדרון הדרומי לצפוני'},
+      {id:'c5', t:'13:30', x:'🍷 Gambino Vini · טעימה ו-Light Lunch', place:'gambino', meal:'m3'},
+      {id:'c6', t:'15:30', x:'חזרה לדירה · מנוחה', base:true},
+      {id:'c7', t:'20:00', x:'ערב קליל · פיצה, פסטה ויין', meal:'m4'},
+    ]},
+    { id:'d4', d:'ש׳', label:'חופי הדרום + מרזממי', date:'5.9 · שבת',
+      warn:'היום הארוך — לצאת מוקדם, כשעתיים נסיעה לכל כיוון', items:[
+      {id:'e1', t:'07:30', x:'יציאה דרומה', n:'~1:45–2:00', base:true},
+      {id:'e2', t:'09:30', x:'שמורת Vendicari · חניה', place:'calamosche'},
+      {id:'e3', t:'09:50', x:'🌿 הליכה ל-Calamosche', n:'~20 דק׳ · מים, כובע, נעליים סגורות', place:'calamosche'},
+      {id:'e4', t:'10:15', x:'רחצה במפרץ', n:'עד 12:30'},
+      {id:'e5', t:'13:00', x:'🏝️ San Lorenzo · מיטות, שמשייה, אוכל', place:'sanlorenzo'},
+      {id:'e6', t:'17:30', x:'נסיעה למרזממי', n:'~10 דק׳'},
+      {id:'e7', t:'18:00', x:'🐟 מרזממי · כיכר, נמל וסמטאות', place:'marzamemi'},
+      {id:'e8', t:'19:00', x:'אפריטיבו ושקיעה בנמל', place:'marzamemi'},
+      {id:'e9', t:'20:15', x:'ארוחת דגים ופירות ים', meal:'m5'},
+      {id:'e10', t:'22:00', x:'נסיעה חזרה לדירה', n:'~2 שעות', base:true},
+    ]},
+    { id:'d5', d:'א׳', label:'קטניה + הביתה', date:'6.9 · ראשון',
+      warn:'יום ראשון בקטניה — שוק הדגים והחנויות סגורים. הכיכרות, הפארק והאוכל פתוחים', items:[
+      {id:'f1', t:'09:00', x:'בוקר אחרון מול הים'},
+      {id:'f2', t:'10:15', x:'Check-out ואריזה', base:true},
+      {id:'f3', t:'11:00', x:'נסיעה לקטניה', n:'~50 דק׳ · לחנות מחוץ ל-ZTL'},
+      {id:'f4', t:'12:00', x:'🏙️ Piazza del Duomo · מזרקת הפיל', place:'catania'},
+      {id:'f5', t:'12:30', x:'Via Etnea · הטיילת של יום ראשון', n:'מסתיים בנוף לאטנה', place:'catania'},
+      {id:'f6', t:'13:00', x:'🍊 ארנצ׳ינו וגרניטה ברחוב', n:'פתוח גם בראשון'},
+      {id:'f7', t:'13:45', x:'צהריים בקטניה', meal:'m6'},
+      {id:'f8', t:'15:15', x:'תדלוק ונסיעה לשדה'},
+      {id:'f9', t:'16:00', x:'החזרת הרכב', n:'להשאיר זמן לשאטל ולביקורת', airport:true},
+      {id:'f10', t:'ערב', x:'✈️ טיסה חזרה'},
+    ]},
+  ],
+
+  places: {
+    taormina:{ emoji:'🏛️', cat:'city', must:true,
+      name:'Taormina', he:'טָאוֹרְמִינָה',
+      tag:'העיר היפה של הטיול', drive:'~10–15 דק׳ מהדירה',
+      q:'Corso Umberto Taormina',
+      desc:'עיירה על צוק מעל הים, בין הכי יפות באיטליה. רחוב ראשי אחד להולכי רגל, כיכרות עם מרפסות תצפית לים ולאטנה, וסמטאות אבן שנפתחות לגינות ולנופים. אנחנו מגיעים אליה בערבים ולא מקדישים לה יום שלם.',
+      why:'האווירה בערב היא הדבר: תאורה חמה, אפריטיבו, אנשים ברחוב, ונוף לים מכל פינה שנייה.',
+      time:'2–4 שעות בערב',
+      best:'משעה 17:00 והלאה. בצהריים חם וצפוף מדי',
+      parking:'⚠️ המרכז ההיסטורי הוא ZTL — אסור להיכנס עם רכב. חונים בחניוני ההיקף (Lumbi או Porta Catania) ונכנסים ברגל. מ-Lumbi יש שאטל',
+      facilities:'הכל: מסעדות, ברים, גלידריות, שירותים ציבוריים',
+      tips:[
+        'Corso Umberto הוא הציר — נכנסים משער אחד ויוצאים בשני.',
+        'Piazza IX Aprile — המרפסת עם הריצוף המשובץ. התצפית הכי מפורסמת בעיר.',
+        'התיאטרון היווני-רומי (Teatro Antico) — נוף לאטנה מבעד לקשתות. כרטיס בתשלום, שווה אם יש זמן.',
+        'הסמטאות והמדרגות בצדדים יפות יותר מהרחוב הראשי — שווה להיכנס פנימה.',
+        'אפריטיבו בסביבות 19:00 עם נוף — זו הפינה הכי סיציליאנית ביום.'
+      ]},
+
+    isolabella:{ emoji:'🏖️', cat:'beach', must:true,
+      name:'Isola Bella & Mazzarò', he:'אִיזוֹלָה בֶּלָה',
+      tag:'האי הקטן מתחת לטאורמינה', drive:'~10 דק׳ מהדירה',
+      q:'Isola Bella Taormina',
+      desc:'אי זעיר שמחובר לחוף ברצועת חלוקים צרה, בתוך מפרץ מוקף מצוקים. מסביב Mazzarò — חוף חלוקים עם בִּיץ׳ קלאבים, מים צלולים במיוחד וסירות קטנות. זה החוף הדרמטי של הטיול, לא חוף החול.',
+      why:'המים הכי צלולים באזור, והנוף מהמים כלפי מעלה על טאורמינה והמצוקים הוא מהיפים בסיציליה.',
+      time:'חצי יום',
+      best:'בוקר עד אחה״צ. הצל מגיע מוקדם יחסית בגלל המצוק',
+      parking:'הרכבל (Funivia) מטאורמינה ל-Mazzarò הוא הדרך הכי נוחה — יורד כל כמה דקות. בחוף עצמו החניה מוגבלת ויקרה',
+      facilities:'ביץ׳ קלאבים עם מיטות ושמשיות, ברים ומסעדות על החוף',
+      tips:[
+        'חוף חלוקים ולא חול — נעלי מים משנות את החוויה לגמרי.',
+        'אפשר לחצות ברגל לאיזולה בלה עצמה על רצועת החלוקים. האי הוא שמורת טבע עם כניסה בתשלום.',
+        'ביץ׳ קלאב הוא לא בזבוז כאן — המיטות והשמשייה שווים את הכסף על חלוקים.',
+        'הרכבל חוסך את הסיוט של החניה למטה. שווה לבדוק את שעת הנסיעה האחרונה לפני שיורדים.',
+        'המים עמוקים יחסית קרוב לחוף — נעים לשחייה אמיתית, פחות לבטן־גב.'
+      ]},
+
+    etna:{ emoji:'🌋', cat:'nature', must:true,
+      name:'Crateri Silvestri · Etna', he:'מכתשי סילבסטרי',
+      tag:'טעימה מאטנה, לא יום שלם', drive:'~1:30 מהדירה',
+      q:'Crateri Silvestri Etna',
+      desc:'מכתשים כבויים בגובה כ-1,900 מטר על המדרון הדרומי של אטנה, ליד Rifugio Sapienza. הולכים סביבם על חצץ וולקני שחור, בין שדות לבה מוקפאים ונוף שנפתח עד הים. אין צורך במדריך, בטרק או בציוד מיוחד.',
+      why:'זה הרגע שבו מבינים שאתם על הר געש פעיל. הצבע השחור, הריח, השקט והנוף — הכל אחר.',
+      time:'שעה עד שעה ורבע הליכה קלה',
+      best:'בוקר. הענן עולה על ההר אחרי הצהריים ומסתיר את הנוף',
+      parking:'חניון גדול בתשלום ליד Rifugio Sapienza, ממש בתחילת המסלול',
+      facilities:'בתי קפה, חנויות מזכרות ושירותים ב-Rifugio Sapienza',
+      tips:[
+        '⚠️ קר שם. בגובה הזה זה יכול להיות 10–15 מעלות פחות מהחוף, ועם רוח. שכבה דקה זה חובה גם באוגוסט.',
+        'נעלי ספורט סגורות מספיקות לחלוטין. החצץ הוולקני נכנס לסנדלים ולכפכפים.',
+        'משקפי שמש וקרם הגנה — בגובה הזה השמש חזקה בהרבה.',
+        'יש רכבל וג׳יפים לפסגה. זה עוד כמה שעות והרבה כסף — אנחנו מדלגים בכוונה.',
+        'הכביש למעלה מתפתל אבל סלול ונוח. רק לא למהר.'
+      ]},
+
+    gambino:{ emoji:'🍷', cat:'wine', must:true,
+      name:'Gambino Vini', he:'יקב גַמְבִּינוֹ',
+      tag:'יקב על מדרון אטנה', drive:'~1:15 מהמכתשים',
+      q:'Gambino Vini Linguaglossa',
+      desc:'יקב משפחתי באזור Linguaglossa, בגובה של כ-800 מטר על מדרון אטנה. כרמים על אדמה געשית שחורה, עם נוף אל ההר מצד אחד ואל הים מהצד השני. טעימת יינות עם Light Lunch מקומי.',
+      why:'זה הרצף שעושה את היום: אטנה, לבה, אדמה געשית, כרמים, יין. אותו הר, סוף הסיפור.',
+      time:'שעה וחצי עד שעתיים',
+      best:'סביבות 13:30, מיד אחרי אטנה',
+      parking:'חניה במקום',
+      facilities:'טרסת טעימות עם נוף, שירותים, חנות יין',
+      tips:[
+        'יינות אטנה עשויים בעיקר מ-Nerello Mascalese (אדום) ומ-Carricante (לבן) — זנים מקומיים שלא תמצאו בשום מקום אחר.',
+        'האדמה הוולקנית נותנת ליין מינרליות מלוחה מאוד מזוהה. שווה לשאול את המוזג על ההבדל בין המדרונות.',
+        'מי שנוהג — לטעום ולירוק. יש דליים בדיוק בשביל זה, וזה לגמרי מקובל.',
+        'ה-Light Lunch הוא לא מנה קטנה — לרוב גבינות, נקניקים, זיתים ולחם מקומי. לא להגיע רעבים מדי מהבוקר.',
+        'שווה לקנות בקבוק במקום. הרבה מיינות אטנה כמעט לא מיוצאים.'
+      ]},
+
+    calamosche:{ emoji:'🌿', cat:'beach',
+      name:'Calamosche', he:'קָלָמוֹשֶׁה',
+      tag:'החוף הפראי, בתוך שמורה', drive:'~1:45–2:00 מהדירה',
+      q:'Spiaggia di Calamosche Noto',
+      desc:'מפרץ קטן בתוך שמורת Vendicari, סגור בין שני זרועות סלע. חול, מים שקטים וצלולים, ואפס פיתוח. מגיעים אליו רק ברגל — כקילומטר של שביל עפר מהחניון.',
+      why:'זה ההפך הגמור מחוף מאורגן. אין ביץ׳ קלאב, אין מוזיקה, אין כלום — רק מפרץ.',
+      time:'2–3 שעות כולל ההליכה',
+      best:'מוקדם. אחרי 11:00 החניון מתמלא והשביל חשוף לשמש',
+      parking:'חניון עפר בתשלום בכניסה לשמורה, ואז ~20 דקות הליכה בשביל מישורי',
+      facilities:'⚠️ אין. אין קיוסק, אין מים, אין שירותים, אין צל',
+      tips:[
+        'מים — להביא יותר ממה שנראה לכם. אין מאיפה לקנות והדרך חשופה.',
+        'כובע וקרם הגנה חובה. ההליכה עצמה קלה אבל בלי שום צל.',
+        'נעליים סגורות או נעלי מים לשביל — הוא עפר ואבנים, לא כפכפים.',
+        'לשמורה יש כניסה בתשלום ושעות פתיחה. שווה לוודא לפני שיוצאים.',
+        'המים רדודים ורגועים בכניסה — נעים גם למי שלא בא לשחות ברצינות.'
+      ]},
+
+    sanlorenzo:{ emoji:'🏝️', cat:'beach', must:true,
+      name:'San Lorenzo', he:'סַן לוֹרֶנְצוֹ',
+      tag:'חול בהיר ומים טורקיז', drive:'~25 דק׳ מקלמושה',
+      q:'Spiaggia San Lorenzo Noto',
+      desc:'מפרץ חול רחב עם מים רדודים בגוון טורקיז, בין הכי יפים בדרום־מזרח סיציליה. יש כאן ליבים עם מיטות ושמשיות, ברים ואוכל. זה חוף הבטן־גב של הטיול.',
+      why:'אחרי קלמושה הפראי, כאן פשוט נשכבים. חול רך, מים חמימים ורדודים, ומישהו שמביא דרינק.',
+      time:'3–4 שעות',
+      best:'צהריים ואחה״צ',
+      parking:'חניונים בתשלום סמוך לחוף',
+      facilities:'ליבים עם מיטות ושמשיות, מסעדות, ברים, שירותים ומקלחות',
+      tips:[
+        'המים רדודים הרבה מטרים פנימה — אפשר לעמוד רחוק מהחוף.',
+        'להזמין מיטות עם ההגעה. בשבת אחה״צ זה מתמלא.',
+        'זה החוף שבו כדאי להישאר עד מאוחר — משם ממשיכים ישר למרזממי.',
+        'רוח מזרחית יכולה להעלות גלים קטנים. בדרך כלל שקט.'
+      ]},
+
+    marzamemi:{ emoji:'🐟', cat:'town', must:true,
+      name:'Marzamemi', he:'מַרְזָמֶמִי',
+      tag:'כפר דייגים לשקיעה', drive:'~10 דק׳ מסן לורנצו',
+      q:'Marzamemi',
+      desc:'כפר דייגים קטן על קצה הדרום־מזרח, עם כיכר אבן מרכזית, בתי דייגים נמוכים, נמל זעיר ומפעל טונה היסטורי (Tonnara). בערב הכיכר מתמלאת בשולחנות, אורות ומוזיקה.',
+      why:'זה המקום הכי אטמוספרי בטיול. מגיעים לקראת שקיעה, מסתובבים, שותים משהו ואוכלים דגים מול הים.',
+      time:'3–4 שעות, מהאפריטיבו עד סוף הארוחה',
+      best:'מ-18:00. השקיעה מהנמל היא הרגע',
+      parking:'חניונים בתשלום בכניסה לכפר. הכפר עצמו הולכתי',
+      facilities:'מסעדות דגים, ברים, חנויות מקומיות',
+      tips:[
+        'Piazza Regina Margherita — הכיכר המרכזית. שם הכל קורה בערב.',
+        'להסתובב בנמל ובסמטאות לפני שיושבים. זה קטן, עשרים דקות מספיקות.',
+        'המסעדות מתמלאות בערב בשבת — שווה לתפוס שולחן מוקדם או לשאול בכניסה.',
+        'זה מקום של פירות ים. אם רוצים משהו אחר — יש, אבל חבל.',
+        '⚠️ הנסיעה חזרה לדירה היא כשעתיים. לא להתפזר יותר מדי מאוחר.'
+      ]},
+
+    pescheria:{ emoji:'🐙', cat:'city', opt:true,
+      name:'La Pescheria', he:'שוק הדגים של קטניה',
+      tag:'אופציונלי · בוקר, ולא בראשון', drive:'~50 דק׳ מהדירה',
+      q:'La Pescheria Catania',
+      desc:'שוק הדגים ההיסטורי של קטניה, ממש מאחורי כיכר הדואומו. דוכנים בין קשתות אבן, דייגים שצועקים על טונה ודג חרב שלמים, קרח, דלי מים ופירות ים חיים. אחד השווקים הכי צבעוניים ורועשים באיטליה — וזה חוויה, לא קניות.',
+      why:'זה הרגע הכי לא־תיירותי בטיול. סיציליה כמו שהיא, בשבע וחצי בבוקר, בלי אף אחד שמנסה למכור לכם משהו.',
+      time:'45 דקות עד שעה',
+      best:'⚠️ בוקר בלבד, שני עד שבת. סגור בימי ראשון — ולכן הוא לא ביום קטניה שלנו. הכי חי לפני 10:00',
+      parking:'ZTL באזור. לחנות בחניון בתשלום מחוץ למרכז וללכת ברגל',
+      facilities:'ברים ומסעדות דגים קטנות ממש בתוך השוק ומסביבו',
+      tips:[
+        'מתי לשלב: יום חמישי בבוקר לפני החוף, או יום שבת בדרך דרומה — קטניה ממש על הציר.',
+        'נעליים סגורות. הרצפה רטובה ומלאה קרח ומים כל הבוקר.',
+        'לא לגעת בסחורה בלי לשאול, ולצלם בחיוך — רוב הדייגים אוהבים את זה.',
+        'מסביב לשוק יש דוכני אוכל — ארנצ׳ינו או פירות ים מטוגנים על הרגליים זו ארוחת הבוקר הנכונה.',
+        'הכיכר של הדואומו ומזרקת הפיל נמצאות שלושים מטר משם — אפשר לחבר בקלות.'
+      ]},
+
+    catania:{ emoji:'🏙️', cat:'city', sunday:true,
+      name:'Catania', he:'קָטָנְיָה',
+      tag:'העיר השחורה, ביום האחרון', drive:'~50 דק׳ מהדירה',
+      q:'Piazza del Duomo Catania',
+      desc:'העיר השנייה בגודלה בסיציליה, בנויה כמעט כולה מאבן לבה שחורה אחרי רעידת האדמה של 1693. עיר סואנת, קצת מרוטה, מאוד חיה — ההפך הגמור מטאורמינה.',
+      why:'טעם של סיציליה האמיתית לפני שעולים למטוס. ברוק שחור, רחוב ראשי שמסתיים באטנה, ואוכל רחוב שהוא מוסד.',
+      time:'2–3 שעות',
+      best:'ביום ראשון — מ-11:00. העיר מתעוררת מאוחר וזה דווקא בוקר נעים לטיול רגלי',
+      parking:'⚠️ יש ZTL במרכז. לחנות בחניון בתשלום מחוץ לאזור ולהיכנס ברגל',
+      facilities:'בתי קפה, מסעדות ואוכל רחוב פתוחים גם בראשון. חנויות — רובן סגורות',
+      tips:[
+        'Piazza del Duomo עם מזרקת הפיל מאבן לבה (u Liotru) — נקודת ההתחלה.',
+        'Via Etnea — הרחוב הראשי, מסתיים בנוף לאטנה. בראשון הוא רחוב הטיילת של העיר.',
+        'Villa Bellini — הפארק העירוני מעל Via Etnea. פתוח, מוצל ונעים, ומשם יש תצפית יפה.',
+        'ארנצ׳ינו וגרניטה עם בריוש ברחוב — זה הדבר שחייבים בקטניה, וזה פתוח בראשון.',
+        'הכנסייה מתפקדת בראשון — אם יש מיסה, נכנסים בשקט או ממתינים.',
+        'לתדלק את הרכב לפני החזרה לשדה — התחנות ליד השדה יקרות יותר.'
+      ]},
+  },
+
+  meals: [
+    { id:'m1', emoji:'🍝', day:'רביעי', time:'ערב', he:'סיציליאנית מקומית', name:'Taormina',
+      area:'טאורמינה', q:'trattoria Taormina',
+      desc:'הערב הראשון. טרטוריה מקומית בטאורמינה, בלי יומרות — פסטה, מנות ים או בשר, יין מקומי.',
+      look:'לחפש מקום בסמטאות הצדדיות ולא על הרחוב הראשי — יותר מקומי ופחות יקר.',
+      dishes:['Pasta alla Norma','Arancini','Caponata','Involtini'] },
+    { id:'m2', emoji:'⭐', day:'חמישי', time:'ערב', he:'ערב ה-Fine Dining', name:'Taormina',
+      area:'טאורמינה', q:'fine dining restaurant Taormina',
+      desc:'הערב הגדול של הטיול. טאורמינה מלאה במסעדות ברמה גבוהה, חלקן עם נוף לים ולאטנה.',
+      look:'לבקש שולחן עם נוף אם אפשר. להתלבש יפה. להתקשר בבוקר לתפוס מקום לערב.',
+      dishes:['תפריט טעימות','דג טרי','יינות אטנה'] },
+    { id:'m3', emoji:'🍷', day:'שישי', time:'13:30', he:'Light Lunch ביקב', name:'Gambino Vini',
+      area:'Linguaglossa', q:'Gambino Vini Linguaglossa',
+      desc:'טעימת יינות עם צלחות מקומיות על הטרסה מול אטנה.',
+      look:'זו הארוחה המרכזית של היום — הערב יהיה קליל.',
+      dishes:['גבינות מקומיות','נקניקים','זיתים','יינות אטנה'] },
+    { id:'m4', emoji:'🍕', day:'שישי', time:'ערב', he:'ערב קליל', name:'Giardini Naxos',
+      area:'ליד הדירה', q:'pizzeria Giardini Naxos',
+      desc:'אחרי אטנה ויין — פיצה או פסטה ליד הדירה, בלי לנסוע לשום מקום.',
+      look:'יש שורת מסעדות על הטיילת של ג׳רדיני נאקסוס, כמה דקות הליכה.',
+      dishes:['פיצה','פסטה','יין הבית'] },
+    { id:'m5', emoji:'🐟', day:'שבת', time:'ערב', he:'דגים ופירות ים', name:'Marzamemi',
+      area:'מרזממי', q:'seafood restaurant Marzamemi',
+      desc:'הארוחה שסוגרת את יום הדרום. דגים ופירות ים בכיכר או מול הנמל.',
+      look:'הכיכר מתמלאת בערב שבת. לתפוס שולחן מוקדם או לשאול בכניסה כמה זמן ההמתנה.',
+      dishes:['דג חרב','שרימפס אדומים','ספגטי פירות ים','טונה'] },
+    { id:'m6', emoji:'🍊', day:'ראשון', time:'צהריים', he:'אוכל מקומי אחרון', name:'Catania',
+      area:'קטניה', q:'trattoria Catania centro',
+      desc:'הארוחה האחרונה לפני השדה. אוכל קטנזי פשוט, או אוכל רחוב תוך כדי הליכה.',
+      look:'ביום ראשון החנויות סגורות אבל המסעדות ובתי הקפה פתוחים — סביב Via Etnea ובסמטאות שיוצאות ממנה. לא להיכנס למשהו כבד מדי לפני טיסה.',
+      dishes:['Arancini','Pasta alla Norma','Cannoli','Granita'] },
+  ],
+};
+
+/* ---------------- static reference (not editable) ---------------- */
+const DISHES = [
+  ['Arancini','אַרַנְצִ׳יני','כדורי אורז מטוגנים במעטה פירורים, במילוי רגו בשר ואפונה או חמאה וגבינה. בקטניה הם קוניים ולא עגולים. אוכל רחוב מספר אחת של סיציליה.'],
+  ['Pasta alla Norma','פסטה אלה נורמה','המנה של קטניה: פסטה ברוטב עגבניות, חצילים מטוגנים, בזיליקום וריקוטה מלוחה מגוררת. פשוטה ומושלמת.'],
+  ['Pesce Spada','דג חרב','נתח דג חרב בגריל עם לימון, שמן זית ואורגנו, או ברוטב עגבניות וצלפים. הדג המזוהה ביותר עם מיצר מסינה.'],
+  ['Gambero Rosso','שרימפס אדום','שרימפס אדומים של מָזָרָה — נאכלים לרוב נא או כמעט נא, עם שמן זית ולימון. אם רואים במרזממי, לקחת.'],
+  ['Caponata','קָפּוֹנָטָה','חצילים מטוגנים עם סלרי, בצל, זיתים, צלפים, עגבניות וחומץ־סוכר. מוגש בטמפרטורת החדר, חמוץ־מתוק. פותח ארוחה קלאסי.'],
+  ['Cannoli','קָנוֹלִי','גליל בצק פריך ממולא בקרם ריקוטה מתוק, עם שוקולד או פיסטוק בקצוות. חובה שימלאו אותו רק בהזמנה — אחרת הוא רך ומאבד הכל.'],
+  ['Granita con Brioche','גרניטה עם בריוש','קרח גרוס ומתוק — שקדים, לימון, תות או פיסטוק — עם לחמנייה מתוקה חמה. ארוחת בוקר סיציליאנית אמיתית, לא קינוח.'],
+  ['Pistacchio di Bronte','פיסטוק ברונטה','פיסטוק שגדל על אדמת הלבה של אטנה, ירוק כהה ועשיר במיוחד. נמצא בגלידה, בקנולי, בפסטו ובכל דבר אחר. שווה לחפש.'],
+  ['Vini dell Etna','יינות אטנה','Nerello Mascalese אדום ו-Carricante לבן, מכרמים על אדמה געשית בגובה. מינרליים, חדים, שונים מכל יין איטלקי אחר.'],
+  ['Cassata','קָסָאטָה','עוגת ריקוטה מתוקה עם מרציפן ירוק ופירות מסוכרים. מתוקה מאוד, מאוד סיציליאנית. לחלוק בשניים.'],
+];
+
+const PACKING = [
+  ['מסמכים וכסף', ['דרכונים','רישיון נהיגה','כרטיס אשראי פיזי (להשכרת הרכב)','מזומן קטן לחניונים','אישורי הזמנה בטלפון']],
+  ['טלפון', ['מטענים','Power Bank','כבל לרכב / CarPlay','eSIM או חבילת גלישה','Google Maps של מזרח סיציליה אופליין']],
+  ['ים וחוף', ['בגדי ים','נעלי מים','כפכפים / סנדלים','כובע','משקפי שמש','קרם הגנה','תיק קטן לחוף','בקבוקי מים']],
+  ['ערב ואטנה', ['בגדים יפים לערב ה-Fine Dining','נעלי ספורט סגורות לאטנה','שכבה דקה לערב ולגובה','בגדים קצרים וקלים']],
+  ['אישי', ['תרופות','דברים אישיים','משקפיים / עדשות']],
+];
+
+/* ---------------- persistence ---------------- */
+function useStore(key, init){
+  const [v,setV]=useState(()=>{ try{const s=localStorage.getItem(key);return s?JSON.parse(s):init;}catch(e){return init;} });
+  useEffect(()=>{ try{localStorage.setItem(key,JSON.stringify(v));}catch(e){} },[key,v]);
+  return [v,setV];
+}
+
+/* ================================================================
+   עריכת התוכנית — הפעולות שהצ'אט יכול לבצע.
+   כל פעולה מוחלת על עותק ומחזירה תיאור בעברית של מה שקרה, כדי
+   שהאפליקציה תראה לך בדיוק מה השתנה. פעולה שנכשלת (מזהה לא קיים,
+   שדה חסר) מדולגת בשקט — היא אף פעם לא שוברת את התוכנית.
+   ================================================================ */
+const minutesOf = t => {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(t||''));
+  return m ? Number(m[1])*60 + Number(m[2]) : 99999;
+};
+
+function insertByTime(items, item){
+  const at = items.findIndex(x => minutesOf(x.t) > minutesOf(item.t));
+  if (at < 0) items.push(item); else items.splice(at, 0, item);
+  return items;
+}
+
+const ITEM_FIELDS = ['t','x','n','place','meal','base','airport','opt'];
+const PLACE_FIELDS = ['emoji','cat','must','opt','sunday','name','he','tag','drive','q','web','phone','desc','why','time','best','parking','facilities','tips'];
+const MEAL_FIELDS = ['emoji','day','time','he','name','area','q','web','phone','desc','look','dishes'];
+
+function pick(src, fields){
+  const out = {};
+  for (const f of fields) if (src[f] !== undefined) out[f] = src[f];
+  return out;
+}
+
+function applyOps(trip, ops){
+  const t = JSON.parse(JSON.stringify(trip));
+  const log = [];
+  const dayOf = id => t.days.find(d => d.id === id);
+
+  for (const op of (Array.isArray(ops) ? ops : [])){
+    try{
+      switch(op.op){
+        case 'addItem': {
+          const day = dayOf(op.day); if(!day || !op.x) break;
+          const item = { id: uid(), ...pick(op, ITEM_FIELDS) };
+          insertByTime(day.items, item);
+          log.push(`נוסף ל${day.label}: ${item.t ? item.t+' · ' : ''}${item.x}`);
+          break;
+        }
+        case 'updateItem': {
+          const day = dayOf(op.day); if(!day) break;
+          const it = day.items.find(x => x.id === op.item); if(!it) break;
+          const before = it.x;
+          Object.assign(it, pick(op, ITEM_FIELDS));
+          // שינוי שעה מחייב סידור מחדש, אחרת הציר יוצא לא הגיוני
+          if (op.t !== undefined){
+            day.items = day.items.filter(x => x.id !== it.id);
+            insertByTime(day.items, it);
+          }
+          log.push(`עודכן ב${day.label}: ${before}`);
+          break;
+        }
+        case 'removeItem': {
+          const day = dayOf(op.day); if(!day) break;
+          const it = day.items.find(x => x.id === op.item); if(!it) break;
+          day.items = day.items.filter(x => x.id !== op.item);
+          log.push(`הוסר מ${day.label}: ${it.x}`);
+          break;
+        }
+        case 'moveItem': {
+          const from = dayOf(op.day), to = dayOf(op.toDay);
+          if(!from || !to) break;
+          const it = from.items.find(x => x.id === op.item); if(!it) break;
+          from.items = from.items.filter(x => x.id !== op.item);
+          if (op.t) it.t = op.t;
+          insertByTime(to.items, it);
+          log.push(`הועבר ל${to.label}: ${it.x}`);
+          break;
+        }
+        case 'setWarn': {
+          const day = dayOf(op.day); if(!day) break;
+          day.warn = op.warn || null;
+          log.push(`${day.label} — אזהרת היום עודכנה`);
+          break;
+        }
+        case 'setDay': {
+          const day = dayOf(op.day); if(!day) break;
+          if (op.label) day.label = op.label;
+          if (op.date) day.date = op.date;
+          log.push(`${day.label} — כותרת היום עודכנה`);
+          break;
+        }
+        case 'addPlace': {
+          const id = op.id || uid(); if(!op.he && !op.name) break;
+          t.places[id] = {
+            emoji:'📍', cat:'city', tips:[],
+            name: op.name || op.he, he: op.he || op.name,
+            q: op.q || op.name || op.he,
+            ...pick(op, PLACE_FIELDS),
+          };
+          log.push(`נוסף מקום: ${t.places[id].he}`);
+          break;
+        }
+        case 'updatePlace': {
+          const p = t.places[op.id]; if(!p) break;
+          Object.assign(p, pick(op, PLACE_FIELDS));
+          log.push(`עודכן מקום: ${p.he}`);
+          break;
+        }
+        case 'removePlace': {
+          const p = t.places[op.id]; if(!p) break;
+          delete t.places[op.id];
+          for (const d of t.days) for (const it of d.items) if (it.place === op.id) delete it.place;
+          log.push(`הוסר מקום: ${p.he}`);
+          break;
+        }
+        case 'addMeal': {
+          const id = op.id || uid(); if(!op.he) break;
+          const meal = { emoji:'🍽️', dishes:[], ...pick(op, MEAL_FIELDS), id };
+          t.meals.push(meal);
+          log.push(`נוספה לרשימת המסעדות: ${meal.he}`);
+          break;
+        }
+        case 'updateMeal': {
+          const m = t.meals.find(x => x.id === op.id); if(!m) break;
+          Object.assign(m, pick(op, MEAL_FIELDS));
+          log.push(`עודכנה ארוחה: ${m.he}`);
+          break;
+        }
+        case 'removeMeal': {
+          const m = t.meals.find(x => x.id === op.id); if(!m) break;
+          t.meals = t.meals.filter(x => x.id !== op.id);
+          for (const d of t.days) for (const it of d.items) if (it.meal === op.id) delete it.meal;
+          log.push(`הוסרה ארוחה: ${m.he}`);
+          break;
+        }
+        default: break;
+      }
+    }catch(e){ /* פעולה פגומה לא מפילה את השאר */ }
+  }
+  return { trip: t, log };
+}
+
+/* ---------------- shared components ---------------- */
+/* דפדפנים ישנים, ודפים שנטענו בלי הקשר מאובטח, לא נותנים clipboard API. */
+function copyToClipboard(text, done){
+  const fallback = () => {
+    try{
+      const el = document.createElement('textarea');
+      el.value = text; el.setAttribute('readonly','');
+      el.style.cssText = 'position:absolute;left:-9999px';
+      document.body.appendChild(el); el.select();
+      document.execCommand('copy'); document.body.removeChild(el);
+      done();
+    }catch(e){}
+  };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+  else fallback();
+}
+
+function ActionButtons({q, name, imgQ, phone, web}){
+  const [copied,setCopied]=useState(false);
+  const label = name || q;
+  const searchQ = imgQ || name || q;
+
+  function copyName(){
+    copyToClipboard(label, () => { setCopied(true); setTimeout(()=>setCopied(false), 1400); });
+  }
+
+  return (
+    <div className="actions">
+      <a className="abtn primary" href={gmapsDir(q)} target="_blank" rel="noopener">
+        <span className="ic">🧭</span>נווט</a>
+      <a className="abtn" href={wazeNav(q)} target="_blank" rel="noopener">
+        <span className="ic">🚗</span>Waze</a>
+      <a className="abtn" href={gmapsView(q)} target="_blank" rel="noopener">
+        <span className="ic">📍</span>ב-Maps</a>
+      <a className="abtn" href={gsearch(searchQ)} target="_blank" rel="noopener">
+        <span className="ic">🔎</span>גוגל</a>
+      <a className="abtn" href={gimages(searchQ)} target="_blank" rel="noopener">
+        <span className="ic">🖼️</span>תמונות</a>
+      <button className={"abtn"+(copied?' ok':'')} onClick={copyName}>
+        <span className="ic">{copied?'✓':'📋'}</span>{copied?'הועתק':'העתק שם'}</button>
+      {web && <a className="abtn" href={web} target="_blank" rel="noopener"><span className="ic">🔗</span>האתר</a>}
+      {phone && <a className="abtn" href={`tel:${String(phone).replace(/[^+\d]/g,'')}`}><span className="ic">📞</span>התקשר</a>}
+    </div>
+  );
+}
+
+function KV({k,v}){ if(!v) return null; return <div className="kv"><div className="k">{k}</div><div className="v">{v}</div></div>; }
+
+function Overlay({title, emoji, onClose, children}){
+  return (
+    <div className="overlay">
+      <div className="ovbar">
+        <button className="iconbtn" onClick={onClose}>→</button>
+        <h2>{title}</h2>
+      </div>
+      <div className="ovscroll">
+        <div className="ovhero">{emoji}</div>
+        <div className="ovbody">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function PlaceDetail({p, onClose}){
+  return (
+    <Overlay title={`${p.he} · ${p.name}`} emoji={p.emoji} onClose={onClose}>
+      <div className="row" style={{marginBottom:12}}>
+        {p.must && <span className="pill sunset">⭐ חובה</span>}
+        {p.time && <span className="pill">⏱️ {p.time}</span>}
+        {p.drive && <span className="pill">🚗 {p.drive}</span>}
+      </div>
+      {p.desc && <p className="body-text">{p.desc}</p>}
+      <ActionButtons q={p.q} name={p.name} imgQ={`${p.name} Sicily`} web={p.web} phone={p.phone} />
+      {p.why &&
+        <div className="sec">
+          <h4>למה להגיע</h4>
+          <p className="body-text" style={{margin:0}}>{p.why}</p>
+        </div>}
+      <div className="sec">
+        <h4>פרטים</h4>
+        <KV k="כמה זמן" v={p.time} />
+        <KV k="מתי הכי טוב" v={p.best} />
+        <KV k="חניה" v={p.parking} />
+        <KV k="שירותים" v={p.facilities} />
+        <KV k="נסיעה" v={p.drive} />
+      </div>
+      {p.tips && p.tips.length > 0 &&
+        <div className="sec">
+          <h4>טיפים · מה לא לפספס</h4>
+          <ul className="tips" style={{margin:0,paddingInlineStart:18}}>
+            {p.tips.map((t,i)=><li key={i}>{t}</li>)}
+          </ul>
+        </div>}
+    </Overlay>
+  );
+}
+
+function MealDetail({m, onClose}){
+  return (
+    <Overlay title={m.he} emoji={m.emoji} onClose={onClose}>
+      <div className="row" style={{marginBottom:12}}>
+        <span className="pill accent">📅 יום {m.day} · {m.time}</span>
+        {m.area && <span className="pill">📍 {m.area}</span>}
+      </div>
+      {m.desc && <p className="body-text">{m.desc}</p>}
+      {m.look && <div className="notebox" style={{marginBottom:14}}>💡 {m.look}</div>}
+      <ActionButtons q={m.q} name={m.name || m.he} imgQ={`${m.name || m.he} ${m.area || ''} Sicily`} web={m.web} phone={m.phone} />
+      {m.dishes && m.dishes.length > 0 &&
+        <div className="sec">
+          <h4>מה לחפש בתפריט</h4>
+          <div className="row">{m.dishes.map((d,i)=><span key={i} className="pill">{d}</span>)}</div>
+        </div>}
+    </Overlay>
+  );
+}
+
+/* ---------------- itinerary ---------------- */
+function ItineraryView({trip, open, done, toggle}){
+  const [expanded,setExpanded]=useState(0);
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>הלו״ז שלנו</h2>
+        <p>5 ימים · 4 לילות · סמנו מה עשיתם</p>
+      </div>
+      {trip.days.map((day,di)=>{
+        const required=day.items.filter(it=>!it.opt).length || 1;
+        const doneCount=day.items.reduce((a,it)=>a+((!it.opt&&done[it.id])?1:0),0);
+        const pct=Math.round(doneCount/required*100);
+        const isOpen=expanded===di;
+        return (
+          <div className="card" key={day.id}>
+            <div className="dayhead" onClick={()=>setExpanded(isOpen?-1:di)}>
+              <div className="row" style={{gap:12,flexWrap:'nowrap',minWidth:0}}>
+                <div className="dnum">{day.d}</div>
+                <div style={{minWidth:0}}>
+                  <h3>{day.label}</h3>
+                  <div className="meta">{doneCount}/{required} הושלמו · {day.date}</div>
+                </div>
+              </div>
+              <div className="row" style={{gap:8,flexWrap:'nowrap'}}>
+                {pct>=100 && <span className="pill" style={{color:'var(--good)'}}>✓</span>}
+                <span style={{color:'var(--muted)',fontSize:18}}>{isOpen?'▾':'▸'}</span>
+              </div>
+            </div>
+            <div className="progress"><i style={{width:Math.min(pct,100)+'%'}}></i></div>
+            {day.warn && isOpen && <div className="warnbox" style={{marginTop:14}}>⚠️ {day.warn}</div>}
+            {isOpen &&
+              <div className="timeline">
+                {day.items.map(it=>{
+                  const isDone=!!done[it.id];
+                  const place = it.place ? trip.places[it.place] : null;
+                  const meal = it.meal ? trip.meals.find(m=>m.id===it.meal) : null;
+                  return (
+                    <div className={"ti"+(isDone?' done':'')} key={it.id}>
+                      <div className="tcol">{it.t}</div>
+                      <button className="chk" onClick={()=>toggle(it.id)}>{isDone?'✓':''}</button>
+                      <div className="tbody">
+                        <div className="title">
+                          {it.x}
+                          {it.opt && <span className="pill accent" style={{fontSize:10,padding:'1px 7px',marginInlineStart:7}}>אופציונלי</span>}
+                        </div>
+                        {it.n && <div className="note">{it.n}</div>}
+                        {(place||meal||it.base||it.airport) &&
+                          <div className="linkrow row">
+                            {place && <button className="tlink" onClick={()=>open.place(it.place)}>{place.emoji} {place.he}</button>}
+                            {meal && <button className="tlink" onClick={()=>open.meal(it.meal)}>{meal.emoji} {meal.he}</button>}
+                            {it.base && <a className="tlink" href={gmapsDir(BASE.q)} target="_blank" rel="noopener">🏠 נווט לדירה</a>}
+                            {it.airport && <a className="tlink" href={gmapsDir(AIRPORT.q)} target="_blank" rel="noopener">✈️ נווט לשדה</a>}
+                          </div>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            }
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- what's left ---------------- */
+function LeftView({trip, done, toggle, open}){
+  const all = trip.days.flatMap(d => d.items.filter(it=>!it.opt));
+  const remaining = all.filter(it => !done[it.id]).length;
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>מה נשאר</h2>
+        <p>{remaining} מתוך {all.length} עדיין לא סומנו</p>
+      </div>
+      {remaining===0 &&
+        <div className="card" style={{textAlign:'center',padding:'44px 16px'}}>
+          <div style={{fontSize:54}}>🎉</div>
+          <h3 style={{margin:'12px 0 4px'}}>עשיתם הכל!</h3>
+          <div className="small muted">כל הטיול סומן. חזרה בשלום 🌋</div>
+        </div>
+      }
+      {trip.days.map(day=>{
+        const items=day.items.filter(it=>!it.opt&&!done[it.id]);
+        if(!items.length) return null;
+        return (
+          <div className="card" key={day.id}>
+            <div className="row" style={{justifyContent:'space-between',marginBottom:4}}>
+              <h3 style={{margin:0,fontSize:16}}>{day.label} <span className="muted small">· {day.date}</span></h3>
+              <span className="pill">{items.length}</span>
+            </div>
+            {items.map((it,idx)=>(
+              <div className="clitem" key={it.id} onClick={()=>toggle(it.id)}
+                   style={{borderBottom:idx===items.length-1?'none':'1px solid var(--border)'}}>
+                <div className="cb"></div>
+                <div style={{flex:1,minWidth:0}}>
+                  <span>{it.t?it.t+' · ':''}{it.x}</span>
+                  {it.n && <div className="small muted">{it.n}</div>}
+                </div>
+                {it.place && trip.places[it.place] &&
+                  <button className="tlink" style={{flex:'none'}} onClick={e=>{e.stopPropagation();open.place(it.place);}}>{trip.places[it.place].emoji}</button>}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- places ---------------- */
+function PlacesView({trip, openPlace}){
+  const [filter,setFilter]=useState('all');
+  const filters=[['all','הכל'],['beach','חופים'],['city','ערים'],['nature','טבע'],['town','כפרים'],['wine','יין'],['food','אוכל']];
+  const list=Object.entries(trip.places).filter(([id,p])=>filter==='all'||p.cat===filter);
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 10px'}}>
+        <h2>מקומות</h2>
+        <p>טאורמינה · אטנה · חופים · מרזממי · קטניה</p>
+      </div>
+      <div className="chips">
+        {filters.map(([k,l])=><button key={k} className={"chip"+(filter===k?' on':'')} onClick={()=>setFilter(k)}>{l}</button>)}
+      </div>
+      <div className="grid">
+        {list.map(([id,p])=>(
+          <div className="card tap pcard" key={id} onClick={()=>openPlace(id)} style={{marginBottom:0}}>
+            <div className="ph"><span className="emoji">{p.emoji}</span></div>
+            <div className="row" style={{gap:6,marginBottom:6}}>
+              {p.must && <span className="pill sunset" style={{fontSize:11,padding:'2px 8px'}}>⭐</span>}
+              {p.sunday && <span className="pill accent" style={{fontSize:11,padding:'2px 8px'}}>יום ראשון</span>}
+              {p.opt && <span className="pill accent" style={{fontSize:11,padding:'2px 8px'}}>אופציונלי</span>}
+            </div>
+            <h3>{p.he}</h3>
+            <div className="en">{p.name}</div>
+            {p.tag && <div className="small muted" style={{marginTop:6}}>{p.tag}</div>}
+            {p.drive && <div className="small muted" style={{marginTop:2}}>🚗 {p.drive}</div>}
+            <a className="tlink" style={{marginTop:10}} href={gimages(`${p.name} Sicily`)} target="_blank" rel="noopener"
+               onClick={e=>e.stopPropagation()}>🖼️ תמונות</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- food ---------------- */
+function FoodView({trip, openMeal}){
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>אוכל</h2>
+        <p>המסעדות של הטיול + מה חייבים לטעום</p>
+      </div>
+      <div className="clcat">המסעדות והארוחות</div>
+      {trip.meals.map(m=>(
+        <div className="card tap" key={m.id} onClick={()=>openMeal(m.id)}>
+          <div className="row" style={{justifyContent:'space-between',flexWrap:'nowrap',gap:10}}>
+            <div className="row" style={{gap:12,flexWrap:'nowrap',minWidth:0}}>
+              <div style={{fontSize:32,flex:'none'}}>{m.emoji}</div>
+              <div style={{minWidth:0}}>
+                <h3 style={{margin:0,fontSize:17}}>{m.he}</h3>
+                <div className="small muted" style={{marginTop:2}}>{m.area}</div>
+                <div className="row" style={{marginTop:7,gap:6}}>
+                  <span className="pill accent" style={{fontSize:11,padding:'3px 9px'}}>יום {m.day} · {m.time}</span>
+                </div>
+              </div>
+            </div>
+            <span style={{color:'var(--muted)',fontSize:18,flex:'none'}}>‹</span>
+          </div>
+        </div>
+      ))}
+
+      <div className="clcat" style={{marginTop:26}}>מה חייבים לטעום</div>
+      <div className="notebox" style={{marginBottom:14}}>🍊 סיציליה היא לא איטליה רגילה — יש כאן ערבים, נורמנים ויוונים בצלחת.</div>
+      {DISHES.map(([en,he,d],i)=>(
+        <div className="card" key={i} style={{padding:'14px 16px'}}>
+          <h3 style={{margin:'0 0 4px',fontSize:16}}>{he} <span className="muted small">· {en}</span></h3>
+          <div className="small" style={{color:'var(--muted)',lineHeight:1.6}}>{d}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ================================================================
+   הצ'אט. המפתח יושב ב-Cloud Run ולא כאן — אתר סטטי לא יכול להחזיק
+   מפתח API, הוא היה גלוי לכל מי שפותח את הדף.
+   השרת מקבל את התוכנית העדכנית בכל בקשה, אז הצ'אט תמיד מדבר על מה
+   שבאמת רשום אצלך — כולל שינויים שהוא עצמו עשה קודם.
+   ================================================================ */
+const CHAT_API = 'https://workout-ai-463727469066.me-west1.run.app/api/trip/chat';
+
+const SUGGESTIONS = [
+  'מה עושים היום?',
+  'תוסיף מסעדה שאנחנו רוצים בטאורמינה ליום רביעי',
+  'כמה זמן נסיעה למרזממי?',
+  'תזיז את שוק הדגים לשבת בבוקר',
+];
+
+const ACTION_RE = /```action\s*([\s\S]*?)```/;
+// המודל לא תמיד שם את הבלוק בסוף. מסירים בלוק שלם בכל מקום, וגם בלוק
+// שעדיין נכתב ברגע זה — כדי שבתצוגה החיה אף פעם לא יוצג JSON גולמי.
+const stripAction = s => s.replace(ACTION_RE,'').replace(/```action[\s\S]*$/,'').trim();
+
+function splitAction(raw){
+  const m = ACTION_RE.exec(raw);
+  if(!m) return { text: raw.trim(), ops: [] };
+  const text = raw.replace(ACTION_RE,'').trim();
+  try{
+    const parsed = JSON.parse(m[1].trim());
+    const ops = Array.isArray(parsed) ? parsed : (parsed.ops || []);
+    return { text, ops: Array.isArray(ops) ? ops : [] };
+  }catch(e){
+    return { text, ops: [] };
+  }
+}
+
+/* ================================================================
+   עיצוב תשובות הצ'אט. אין כאן ספריית markdown — היא הייתה מוסיפה
+   תלות חיצונית לאפליקציה שצריכה לעבוד אופליין. זה מטפל בדיוק במה
+   שהמודל מייצר בפועל: מודגש, רשימות, כותרות, לינקים וטלפונים.
+   טלפון מוצג כצ'יפ עם חיוג ו-WhatsApp — לחיצה ארוכה על המספר
+   בטלפון עצמו נותנת גם "הוסף לאנשי קשר".
+   ================================================================ */
+/* הסדר בתוך התבנית קובע: קודם קישור markdown, אחר כך URL מלא, אחר כך
+   מייל — ורק אז דומיין חשוף, כדי ש-alice.it בתוך כתובת מייל לא ייחטף.
+   שתי צורות טלפון: בינלאומית (+39 …) ואיטלקית מקומית (0942 …), כי המודל
+   מחזיר את שתיהן ולסמוך עליו שיקפיד זה לבקש תקלה. */
+const INLINE_RE = new RegExp([
+  '(\\[[^\\]\\n]+\\]\\([^)\\s]+\\))',
+  '(\\*\\*[^*\\n]+\\*\\*)',
+  '(https?:\\/\\/[^\\s<>"\'\\)\\]]+)',
+  '([\\w.+-]+@[\\w-]+\\.[\\w.]{2,})',
+  '((?:[a-z0-9][a-z0-9-]*\\.)+(?:com|it|org|net|eu|info|co\\.uk|co\\.il)(?:\\/[^\\s<>"\'\\)\\]]*)?)',
+  '(\\+\\d[\\d\\s().\\-]{6,}\\d)',
+  '(\\b0\\d{1,3}[\\s.\\-]?\\d{6,8}\\b)',
+].join('|'), 'gi');
+
+const shortUrl = u => u.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'').slice(0,42);
+
+function phoneNode(raw, key){
+  const clean = raw.trim();
+  const digits = clean.replace(/[^+\d]/g,'');
+  // מספר מקומי איטלקי מתחיל ב-0, ובניגוד לרוב המדינות האפס הזה נשמר גם
+  // בחיוג בינלאומי — מוסיפים 39+ בלי להסיר אותו.
+  const dial = digits.startsWith('+') ? digits : '+39' + digits;
+  return (
+    <span key={key} className="phone" dir="ltr">
+      <a href={'tel:' + dial}>📞&nbsp;<bdi>{clean}</bdi></a>
+      <a className="wa" href={'https://wa.me/' + dial.replace(/\D/g,'')} target="_blank" rel="noopener">💬</a>
+    </span>
+  );
+}
+
+function inlineNodes(text, base, onName){
+  const out = [];
+  let last = 0, k = 0, m;
+  // עותק מקומי, לא הרג'קס המשותף: לרג'קס עם דגל g יש lastIndex משלו,
+  // והקריאה הרקורסיבית מתוך טקסט מודגש הייתה מאפסת אותו באמצע הלולאה
+  // החיצונית — מה שהחזיר אותה לאותו טוקן שוב ושוב ותקע את הדפדפן.
+  const re = new RegExp(INLINE_RE.source, 'gi');
+  while ((m = re.exec(text))){
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const tok = m[0];
+    const key = base + '-' + (k++);
+    if (m[1]){
+      const mm = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);
+      out.push(<a key={key} className="clink" href={mm[2]} target="_blank" rel="noopener">{mm[1]} ↗</a>);
+    } else if (m[2]){
+      const inner = tok.slice(2, -2);
+      // שם של מקום הוא כמעט תמיד מודגש ובאותיות לטיניות. כותרת עברית
+      // ("חשוב לדעת") נשארת מודגשת רגילה, ומודגש שעוטף לינק או טלפון
+      // ממשיך לרקורסיה כדי שהוא יישאר לחיץ.
+      const probe = new RegExp(INLINE_RE.source, 'gi');
+      const nameLike = /[A-Za-z]{3}/.test(inner) && !probe.test(inner);
+      if (nameLike && onName){
+        out.push(<button key={key} className="bname" onClick={()=>onName(inner)}>{inner}</button>);
+      } else {
+        out.push(<b key={key}>{inlineNodes(inner, key, onName)}</b>);
+      }
+    } else if (m[3]){
+      out.push(<a key={key} className="clink" href={tok} target="_blank" rel="noopener">{shortUrl(tok)} ↗</a>);
+    } else if (m[4]){
+      out.push(<a key={key} className="clink" href={'mailto:' + tok}>✉️ {tok}</a>);
+    } else if (m[5]){
+      out.push(<a key={key} className="clink" href={'https://' + tok} target="_blank" rel="noopener">{tok} ↗</a>);
+    } else {
+      out.push(phoneNode(tok, key));
+    }
+    last = m.index + tok.length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+function renderRich(text, onName){
+  const lines = String(text || '').split('\n');
+  const blocks = [];
+  let list = null;
+  const flush = () => { if (list){ blocks.push({type:'ul', items:list}); list = null; } };
+
+  for (const ln of lines){
+    const li = /^\s*[-*•]\s+(.*)$/.exec(ln);
+    if (li){ (list || (list = [])).push(li[1]); continue; }
+    flush();
+    if (!ln.trim()){ blocks.push({type:'gap'}); continue; }
+    const h = /^\s*#{1,6}\s+(.*)$/.exec(ln);
+    if (h){ blocks.push({type:'h', text:h[1]}); continue; }
+    // שורה שכולה מודגשת מתנהגת ככותרת — ככה המודל מסמן קטגוריות
+    const bold = /^\s*\*\*([^*]+)\*\*:?\s*$/.exec(ln);
+    blocks.push(bold ? {type:'h', text:bold[1]} : {type:'p', text:ln});
+  }
+  flush();
+
+  return blocks.map((b,i)=>{
+    if (b.type === 'gap') return <div key={i} className="rgap"></div>;
+    if (b.type === 'h') return <div key={i} className="rh">{inlineNodes(b.text, i, onName)}</div>;
+    if (b.type === 'ul') return (
+      <ul key={i} className="rul">
+        {b.items.map((it,j)=><li key={j}>{inlineNodes(it, i+'-'+j, onName)}</li>)}
+      </ul>
+    );
+    return <div key={i} className="rp">{inlineNodes(b.text, i, onName)}</div>;
+  });
+}
+
+/* לחיצה על שם מקום בתוך השיחה. אותן פעולות שיש בכרטיס מקום — בלי לצאת
+   מהצ'אט ובלי שהמקום צריך להיות כבר בתוכנית. */
+function NameSheet({name, onClose}){
+  const [copied,setCopied]=useState(false);
+  if(!name) return null;
+  return (
+    <div className="sheet" onClick={onClose}>
+      <div className="sheet-in" onClick={e=>e.stopPropagation()}>
+        <h3>{name}</h3>
+        <div className="actions">
+          <button className={"abtn"+(copied?' ok':'')}
+            onClick={()=>copyToClipboard(name, ()=>{ setCopied(true); setTimeout(()=>setCopied(false),1400); })}>
+            <span className="ic">{copied?'✓':'📋'}</span>{copied?'הועתק':'העתק שם'}</button>
+          <a className="abtn primary" href={gsearch(name)} target="_blank" rel="noopener">
+            <span className="ic">🔎</span>גוגל</a>
+          <a className="abtn" href={gimages(name)} target="_blank" rel="noopener">
+            <span className="ic">🖼️</span>תמונות</a>
+          <a className="abtn" href={gmapsView(name)} target="_blank" rel="noopener">
+            <span className="ic">📍</span>ב-Maps</a>
+          <a className="abtn" href={gmapsDir(name)} target="_blank" rel="noopener">
+            <span className="ic">🧭</span>נווט</a>
+          <button className="abtn" onClick={onClose}><span className="ic">✕</span>סגור</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatView({trip, setTrip, msgs, setMsgs}){
+  const [input,setInput]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [live,setLive]=useState('');
+  const [err,setErr]=useState('');
+  const [sheet,setSheet]=useState(null);
+  const endRef=useRef(null);
+
+  useEffect(()=>{ endRef.current?.scrollIntoView({behavior:'smooth',block:'end'}); },[msgs,live,busy]);
+
+  /* הבלוק המובנה מגיע בתוך התשובה. מפרידים אותו מהטקסט ומריצים אותו
+     על עותק בלבד — כדי לקבל תיאור בעברית של מה ישתנה. שום דבר לא נכנס
+     לתוכנית האמיתית עד שלוחצים "אשר". */
+  function finish(raw){
+    const { text, ops } = splitAction(raw);
+    const msg = { role:'assistant', content: text || 'הנה מה שאני מציע:' };
+    if (ops.length){
+      msg.ops = ops;
+      msg.preview = applyOps(trip, ops).log;
+      msg.status = 'pending';
+    }
+    setMsgs(m=>[...m, msg]);
+  }
+
+  /* האישור מריץ את הפעולות מחדש על התוכנית כפי שהיא ברגע הלחיצה,
+     ולא על זו שהייתה כשההצעה נוצרה. */
+  function approve(i){
+    const msg = msgs[i];
+    if(!msg || msg.status!=='pending') return;
+    const res = applyOps(trip, msg.ops);
+    setTrip(res.trip);
+    setMsgs(ms=>ms.map((x,j)=> j===i ? {...x, status:'applied', log:res.log, ops:undefined, preview:undefined} : x));
+  }
+
+  function reject(i){
+    setMsgs(ms=>ms.map((x,j)=> j===i && x.status==='pending'
+      ? {...x, status:'rejected', ops:undefined, preview:undefined} : x));
+  }
+
+  async function ask(text){
+    const q=(text||'').trim();
+    if(!q||busy) return;
+    const next=[...msgs,{role:'user',content:q}];
+    setMsgs(next); setInput(''); setBusy(true); setLive(''); setErr('');
+
+    let acc='';
+    try{
+      const r=await fetch(CHAT_API,{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({
+          messages: next.map(m=>({role:m.role,content:m.content})),
+          trip,
+        }),
+      });
+      if(!r.ok || !r.body) throw new Error('bad status '+r.status);
+
+      const reader=r.body.getReader();
+      const dec=new TextDecoder();
+      let buf='';
+      while(true){
+        const {value,done}=await reader.read();
+        if(done) break;
+        buf+=dec.decode(value,{stream:true});
+        const frames=buf.split('\n\n');
+        buf=frames.pop();
+        for(const f of frames){
+          const ev=(f.match(/^event: (.+)$/m)||[])[1];
+          const data=(f.match(/^data: (.+)$/m)||[])[1];
+          if(!data) continue;
+          let d; try{ d=JSON.parse(data); }catch(e){ continue; }
+          if(ev==='error') throw new Error('server');
+          if(ev==='delta' && d.t){ acc+=d.t; setLive(stripAction(acc)); }
+        }
+      }
+      if(!acc) throw new Error('empty');
+      finish(acc);
+    }catch(e){
+      if(acc) finish(acc);
+      else setErr('אין חיבור לשרת. הצ׳אט הוא החלק היחיד שצריך אינטרנט.');
+    }finally{
+      setBusy(false); setLive('');
+    }
+  }
+
+  return (
+    <div className="chatpane">
+      <NameSheet name={sheet} onClose={()=>setSheet(null)} />
+      <div className="chatscroll">
+        {msgs.length===0 && !busy &&
+          <div className="card">
+            <h3 style={{margin:'0 0 6px',fontSize:16}}>💬 שאל, או תגיד לי מה לשנות</h3>
+            <div className="small muted" style={{lineHeight:1.7,marginBottom:14}}>
+              אני מכיר את כל הטיול — הלו״ז, המקומות, זמני הנסיעה והאוכל, ויש לי
+              חיפוש באינטרנט להמלצות עדכניות.
+              כשתרצו לשנות משהו או להוסיף מסעדה, אני אציע ואתם תאשרו — כלום לא
+              נכנס לתוכנית בלי אישור שלכם.
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {SUGGESTIONS.map((q,i)=>(
+                <button key={i} className="qchip" onClick={()=>ask(q)}>{q}</button>
+              ))}
+            </div>
+          </div>
+        }
+
+        {msgs.map((m,i)=>(
+          <React.Fragment key={i}>
+            <div className={'msg '+(m.role==='user'?'me':'bot')}>
+              {m.role==='user' ? m.content : renderRich(m.content, setSheet)}
+            </div>
+
+            {m.status==='pending' &&
+              <div className="proposal">
+                <b>הצעה לשינוי — עדיין לא בוצע</b>
+                {(m.preview||[]).map((l,j)=><div className="pline" key={j}>· {l}</div>)}
+                <div className="pbtns">
+                  <button className="pbtn ok" onClick={()=>approve(i)}>✓ אשר ועדכן</button>
+                  <button className="pbtn no" onClick={()=>reject(i)}>ביטול</button>
+                </div>
+              </div>}
+
+            {m.status==='applied' && m.log && m.log.length>0 &&
+              <div className="applied">
+                <b>✓ התוכנית עודכנה</b>
+                {m.log.map((l,j)=><div key={j}>· {l}</div>)}
+              </div>}
+
+            {m.status==='rejected' &&
+              <div className="rejected">✕ לא בוצע שינוי בתוכנית</div>}
+          </React.Fragment>
+        ))}
+
+        {busy && <div className="msg bot wait">{live ? renderRich(live, setSheet) : 'רגע…'}</div>}
+        {err && <div className="warnbox">⚠️ {err}</div>}
+        <div ref={endRef}></div>
+      </div>
+
+      <div className="composer">
+        <textarea
+          rows={1}
+          placeholder="שאל משהו, או תגיד מה לשנות…"
+          value={input}
+          onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); ask(input); } }}
+        />
+        <button className="sendbtn" onClick={()=>ask(input)} disabled={busy||!input.trim()}>↑</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- info ---------------- */
+function InfoView({packed, togglePack, resetTrip, edited}){
+  return (
+    <div className="view">
+      <div className="hero" style={{padding:'4px 0 14px'}}>
+        <h2>מידע</h2>
+        <p>ציוד, הדירה, רכב ונהיגה, מזג אוויר</p>
+      </div>
+
+      <div className="clcat">🎒 צ׳קליסט ציוד</div>
+      <div className="card">
+        {PACKING.map(([cat,items],ci)=>(
+          <div key={ci}>
+            <div className="clcat" style={{marginTop:ci?16:0,fontSize:12}}>{cat}</div>
+            {items.map((it,ii)=>{
+              const k='p_'+ci+'_'+ii; const on=!!packed[k];
+              return (
+                <div key={ii} className={"clitem"+(on?' on':'')} onClick={()=>togglePack(k)}>
+                  <div className="cb">{on?'✓':''}</div><span>{it}</span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🏠 הדירה</div>
+      <div className="card">
+        <h3 style={{margin:'0 0 2px',fontSize:16}}>{BASE.name}</h3>
+        <div className="small muted">{BASE.area}</div>
+        <KV k="לטאורמינה" v="~10–15 דק׳" />
+        <KV k="לשדה קטניה" v="~50 דק׳" />
+        <KV k="לאטנה" v="~1:30" />
+        <KV k="לדרום (מרזממי)" v="~2 שעות" />
+        <div className="notebox" style={{marginTop:12}}>📍 {BASE.note}</div>
+        <ActionButtons q={BASE.q} name={BASE.name} imgQ="Giardini Naxos Sicily" />
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🚗 רכב ונהיגה</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.8}}>
+          <b>⚠️ ZTL — הדבר הכי חשוב לדעת.</b> במרכזי טאורמינה וקטניה יש אזורים סגורים לתנועה עם מצלמות. הקנס מגיע הביתה חודשים אחר כך, דרך חברת ההשכרה, עם דמי טיפול. חונים בחניוני ההיקף ונכנסים ברגל — תמיד.<br/><br/>
+          <b>רכב קטן.</b> Fiat 500 / Panda או דומה. הכבישים בעיירות צרים באמת והחניה קטנה.<br/><br/>
+          <b>נהיגה סיציליאנית</b> אסרטיבית. פחות סימון, יותר אלתור. לא להילחץ, לזרום.<br/><br/>
+          <b>חניה בצבעים:</b> כחול = בתשלום, לבן = חינם, צהוב = אסור.<br/><br/>
+          <b>דלק:</b> Servito = מתדלקים בשבילכם ויקר יותר, Fai da te = עצמי וזול יותר. למלא לפני החזרת הרכב.<br/><br/>
+          <b>Maps</b> לפעמים מנווט לסמטאות הולכי רגל. אם זה נראה צר מדי — זה צר מדי.
+        </div>
+        <div className="row" style={{marginTop:14,gap:8}}>
+          <a className="abtn primary" style={{flex:1,flexDirection:'row'}} href={gmapsDir(AIRPORT.q)} target="_blank" rel="noopener"><span className="ic">✈️</span>נווט לשדה</a>
+          <a className="abtn" style={{flex:1,flexDirection:'row'}} href={gmapsView('Parcheggio Lumbi Taormina')} target="_blank" rel="noopener"><span className="ic">🅿️</span>חניון טאורמינה</a>
+        </div>
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>🌤️ מזג אוויר</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.8,color:'var(--muted)'}}>
+          תחילת ספטמבר בסיציליה: חם ושמשי, בערך 28–32° בחוף, והים בשיא החום שלו.<br/><br/>
+          <b>אטנה זה סיפור אחר.</b> בגובה 1,900 מטר יכולות להיות 10–15 מעלות פחות, ועם רוח. שכבה דקה בתיק — לא ויכוח.
+        </div>
+        <div className="row" style={{marginTop:12,gap:8}}>
+          <a className="abtn primary" style={{flex:1,flexDirection:'row'}} href="https://www.google.com/search?q=taormina+weather" target="_blank" rel="noopener"><span className="ic">☀️</span>תחזית</a>
+          <a className="abtn" style={{flex:1,flexDirection:'row'}} href="https://www.windy.com/?37.851,15.288,9" target="_blank" rel="noopener"><span className="ic">🌬️</span>Windy</a>
+        </div>
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>💡 קטנות שעוזרות</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.8}}>
+          <b>Coperto</b> — דמי כיסוי לסועד (1–3 יורו) מופיעים בחשבון. זה נורמלי.<br/><br/>
+          <b>טיפ</b> — לא חובה באיטליה. מעגלים כלפי מעלה אם היה טוב.<br/><br/>
+          <b>שעות ארוחות</b> — צהריים 13:00–15:00, ערב מ-19:30 והלאה.<br/><br/>
+          <b>קפה</b> — עומדים בבר, שותים אספרסו, משלמים פחות.<br/><br/>
+          <b>מזומן</b> — לחניונים ולקיוסקים קטנים כדאי מזומן.<br/><br/>
+          <b>מים</b> — acqua naturale (רגילים) או frizzante (מוגזים).
+        </div>
+      </div>
+
+      <div className="clcat" style={{marginTop:24}}>♻️ התוכנית</div>
+      <div className="card">
+        <div className="small" style={{lineHeight:1.8,color:'var(--muted)'}}>
+          הצ׳אט יכול לערוך את הלו״ז, המקומות והמסעדות. כל שינוי נשמר בטלפון הזה בלבד.
+          {edited ? ' יש כרגע שינויים מהתוכנית המקורית.' : ' התוכנית כרגע זהה למקורית.'}
+        </div>
+        <div className="row" style={{marginTop:14}}>
+          <button className="abtn danger" style={{flex:1,flexDirection:'row'}} onClick={resetTrip}>
+            <span className="ic">↺</span>שחזר את התוכנית המקורית
+          </button>
+        </div>
+      </div>
+
+      <div className="divider"></div>
+      <div className="small muted" style={{textAlign:'center',lineHeight:1.7,paddingBottom:8}}>
+        מדריך הטיול לסיציליה 🌋<br/>
+        2–6 בספטמבר · זמני נסיעה ושעות פתיחה משוערים
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- app ---------------- */
+function App(){
+  const [tab,setTab]=useState('itin');
+  const [dark,setDark]=useStore('sicilia_dark',true);
+  const [done,setDone]=useStore('sicilia_done',{});
+  const [packed,setPacked]=useStore('sicilia_packed',{});
+  const [chat,setChat]=useStore('sicilia_chat',[]);
+  const [trip,setTrip]=useStore('sicilia_trip',DEFAULT_TRIP);
+  const [place,setPlace]=useState(null);
+  const [meal,setMeal]=useState(null);
+
+  useEffect(()=>{
+    document.documentElement.classList.toggle('dark',dark);
+    const m=document.querySelector('meta[name=theme-color]');
+    if(m) m.setAttribute('content',dark?'#120f0d':'#faf7f2');
+  },[dark]);
+
+  const toggleDone=k=>setDone(d=>({...d,[k]:!d[k]}));
+  const togglePack=k=>setPacked(p=>({...p,[k]:!p[k]}));
+  const open={ place:setPlace, meal:setMeal };
+  const mealObj = meal ? trip.meals.find(m=>m.id===meal) : null;
+  const placeObj = place ? trip.places[place] : null;
+  const edited = JSON.stringify(trip) !== JSON.stringify(DEFAULT_TRIP);
+
+  const tabs=[
+    ['itin','🗓️','לו״ז'],['left','📋','נשאר'],['places','📍','מקומות'],
+    ['food','🍝','אוכל'],['chat','💬','צ׳אט'],['info','🎒','מידע']
+  ];
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <div className="brand">
+          <span style={{fontSize:24}}>🌋</span>
+          <div>
+            <h1>סיציליה</h1>
+            <div className="sub">2–6 בספטמבר · 5 ימים</div>
+          </div>
+        </div>
+        <div className="row" style={{gap:8,flexWrap:'nowrap'}}>
+          {tab==='chat' && chat.length>0 &&
+            <button className="iconbtn" title="שיחה חדשה" onClick={()=>{ if(confirm('להתחיל שיחה חדשה?')) setChat([]); }}>✎</button>}
+          <button className="iconbtn" onClick={()=>setDark(!dark)}>{dark?'☀️':'🌙'}</button>
+        </div>
+      </div>
+
+      <div className={'screen'+(tab==='chat'?' noscroll':'')}>
+        {tab==='itin' && <ItineraryView trip={trip} open={open} done={done} toggle={toggleDone} />}
+        {tab==='left' && <LeftView trip={trip} done={done} toggle={toggleDone} open={open} />}
+        {tab==='places' && <PlacesView trip={trip} openPlace={setPlace} />}
+        {tab==='food' && <FoodView trip={trip} openMeal={setMeal} />}
+        {tab==='chat' && <ChatView trip={trip} setTrip={setTrip} msgs={chat} setMsgs={setChat} />}
+        {tab==='info' && <InfoView packed={packed} togglePack={togglePack} edited={edited}
+          resetTrip={()=>{ if(confirm('לשחזר את התוכנית המקורית? כל השינויים שהצ׳אט עשה יימחקו.')) setTrip(DEFAULT_TRIP); }} />}
+      </div>
+
+      {placeObj && <PlaceDetail p={placeObj} onClose={()=>setPlace(null)} />}
+      {mealObj && <MealDetail m={mealObj} onClose={()=>setMeal(null)} />}
+
+      <div className="bottomnav">
+        {tabs.map(([k,ic,l])=>(
+          <button key={k} className={"nav-i"+(tab===k?' on':'')} onClick={()=>setTab(k)}>
+            <span className="ic">{ic}</span>{l}
+          </button>
+        ))}
+      </div>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

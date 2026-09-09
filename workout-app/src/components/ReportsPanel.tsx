@@ -6,6 +6,7 @@ import { compressImage } from '../hooks/usePhotos';
 import { useAuth } from '../hooks/useAuth';
 import { isBetaTesterEmail } from '../config/betaTesters';
 import { isCoacherEmail } from '../config/coaches';
+import { isAdminEmail } from '../config/admins';
 
 // Capture notes in the app, while you are looking at the thing.
 //
@@ -48,7 +49,7 @@ export function ReportsPanel({ uid, onClose }: { uid: string; onClose: () => voi
   // filed themselves). Everyone else shouldn't have this panel open at all
   // — the trigger is gated in App/Settings.
   const { email: authEmail } = useAuth();
-  const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
+  const isAdmin = uid === 'user_6724' || isAdminEmail(authEmail);
   const isBeta = isBetaTesterEmail(authEmail);
   const isCoach = isCoacherEmail(authEmail);
   // Only Shlomi + coaches see everyone's reports; beta testers see their own.

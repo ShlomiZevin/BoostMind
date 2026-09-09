@@ -6,6 +6,7 @@ import { usePlaceContext } from './PlaceSwitcher';
 import { PLACES } from '../places/registry';
 import { TrialBadge, TrialGearDot } from './TrialGate';
 import { TRIAL_INDICATOR, daysLeftLabel } from '../config/access';
+import { isAdminEmail } from '../config/admins';
 
 /** Admin-only launch dashboard shortcut — renders nothing for anyone else,
  *  so the TopBar for regular users is unchanged. One tap from any tab page
@@ -14,7 +15,7 @@ export function AdminDashboardAction({ navigate }: { navigate: (r: Route) => voi
   const { uid, email } = useAuth();
   // Owner-only. Both checks — the aliased app uid and the raw email — cover
   // any future case where the EMAIL_TO_UID mapping changes.
-  const isOwner = uid === 'user_6724' || email === 'shlomi@boostart.io';
+  const isOwner = uid === 'user_6724' || isAdminEmail(email);
   if (!isOwner) return null;
   return (
     <button

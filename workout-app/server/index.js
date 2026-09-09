@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import Anthropic from '@anthropic-ai/sdk';
 import mountMarketing from './marketing.js';
+import mountTrip from './trip.js';
 
 const PORT = process.env.PORT || 8080;
 // Opus 5 for higher-quality Hebrew — the extra cost is worth it for the
@@ -1781,5 +1782,6 @@ app.post('/api/exercise-review', async (req, res) => {
 
 // מאיה — admin-only marketing assistant. Same service, separate module.
 mountMarketing(app, { anthropicKey: ANTHROPIC_API_KEY, claudeModel: CLAUDE_MODEL });
+mountTrip(app, anthropic);
 
 app.listen(PORT, () => console.log(`workout-ai listening on :${PORT}`));

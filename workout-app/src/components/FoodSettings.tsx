@@ -11,6 +11,7 @@ import { METHOD } from '../data/method';
 import { ReportsPanel } from './ReportsPanel';
 import { AI_MODELS, DEFAULT_AI_MODEL, cacheAiModel, getAiModel, type AiModelId } from '../config/aiModel';
 import { useAuth } from '../hooks/useAuth';
+import { isAdminEmail } from '../config/admins';
 import { DietProfileCard } from './DietProfileCard';
 import { openOnboardingChat } from './AiChatPanel';
 
@@ -40,12 +41,14 @@ export function FoodSettings({ uid, navigate, onLogout }: Props) {
   const firestoreRef = useRef(firestore);
   firestoreRef.current = firestore;
 
+  const { email: authEmail } = useAuth();
+
   // ── Shared app-level state (matches Settings.tsx) ──────────
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
   const [reportsOpen, setReportsOpen] = useState(false);
   const [methodOpen, setMethodOpen] = useState(false);
   const [aiModel, setAiModelState] = useState<AiModelId | undefined>(() => getAiModel());
-  const trial = useTrial(uid, uid === 'user_6724');
+  const trial = useTrial(uid, uid === 'user_6724' || isAdminEmail(authEmail));
 
   async function chooseModel(m: AiModelId) {
     const override = m === DEFAULT_AI_MODEL ? null : m;

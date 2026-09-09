@@ -3,7 +3,8 @@ import {
   collection, doc, setDoc, updateDoc, getDoc, getDocs, deleteDoc,
   arrayUnion, Timestamp, onSnapshot, query, orderBy,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
+import { isAdminEmail } from '../config/admins';
 import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile, AppReport, ReportComment } from '../types';
 import type { MuscleGroup } from '../data/muscles';
 import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
@@ -45,14 +46,17 @@ function userHiddenPersonalExercisesCol(uid: string) {
   return collection(db, 'users', uid, 'hiddenPersonalExercises');
 }
 // Users allowed to write directly to the global exercise DB from the REGULAR
-// exercises UI. Stays narrow on purpose — only Shlomi's legacy account. DB
-// managers who want to write global do so via the desktop /exercises-admin
-// page, which bypasses this hook and writes to `exercises/*` directly with
-// an explicit scope toggle + confirmation dialog. Adds by a DB manager from
-// the regular UI still go to their personal DB — never global — unless they
-// deliberately promote it from the admin page.
+// exercises UI. Two paths in:
+//   • Legacy uid check for Shlomi's aliased account (user_6724).
+//   • Email check for admin roster (isAdminEmail) — so Sergio and any
+//     runtime-granted admin write global from the normal UI too, matching
+//     Shlomi's behavior. DB managers who aren't admin still route through
+//     the desktop /exercises-admin page with its scope toggle + confirms.
 const ADMIN_UIDS = new Set<string>(['user_6724']);
-function isAdminUid(uid: string): boolean { return ADMIN_UIDS.has(uid); }
+function isAdminUid(uid: string): boolean {
+  if (ADMIN_UIDS.has(uid)) return true;
+  return isAdminEmail(auth.currentUser?.email);
+}
 
 function toSession(id: string, data: any): Session {
   return {
@@ -346,7 +350,7 @@ export function useFirestore(uid: string | null) {
   // `nextReps`   = next-time target reps chip (8/10/12/15).
   // Both are opaque strings in Firestore so the schema doesn't churn every time
   // we swap chip semantics. Either can be null (cleared).
-  type DifficultyPatch = { difficulty?: string | null; nextReps?: string | null };
+  type DifficultyPatch = { difficulty?: string | null; nextReps?: string | null; ackedAt?: number | null };
   const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, patch: DifficultyPatch) => {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
@@ -354,16 +358,30 @@ export function useFirestore(uid: string | null) {
     const body: any = { exerciseId, sessionId, timestamp: Date.now() };
     if (patch.difficulty !== undefined) body.difficulty = patch.difficulty;
     if (patch.nextReps !== undefined) body.nextReps = patch.nextReps;
+    if (patch.ackedAt !== undefined) body.ackedAt = patch.ackedAt;
     await setDoc(ref, body, { merge: true });
+    // Broadcast so every mounted ExerciseInline for this exercise re-loads
+    // its chip state — fixes rep_1788849697313_0qip where marks made inside
+    // the LogSetModal didn't propagate to the exercise-list card because
+    // each ExerciseInline held its own useState.
+    try {
+      window.dispatchEvent(new CustomEvent('wholos:exercise-diff-changed', {
+        detail: { exerciseId, sessionId },
+      }));
+    } catch { /* SSR / no-window — safe to ignore */ }
   }, [uid]);
 
-  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty?: string; nextReps?: string } | null> => {
+  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty?: string; nextReps?: string; ackedAt?: number } | null> => {
     if (!uid) return null;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
     const snap = await getDoc(ref);
     if (!snap.exists()) return null;
     const d = snap.data();
-    return { difficulty: d.difficulty || undefined, nextReps: d.nextReps || undefined };
+    return {
+      difficulty: d.difficulty || undefined,
+      nextReps: d.nextReps || undefined,
+      ackedAt: typeof d.ackedAt === 'number' ? d.ackedAt : undefined,
+    };
   }, [uid]);
 
   const deleteExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string): Promise<void> => {
@@ -371,15 +389,26 @@ export function useFirestore(uid: string | null) {
     await deleteDoc(doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`));
   }, [uid]);
 
-  const getExerciseDifficulty = useCallback(async (exerciseId: string): Promise<{ difficulty?: string; nextReps?: string } | null> => {
+  // "Past-mark" lookup for the current session. Returns the most-recent chip
+  // choices from a PRIOR session (excludeSessionId). Includes the ackedAt
+  // flag so the caller can render acked marks as struck-through history —
+  // the user still needs to see what they marked done, not have it disappear
+  // (rep_1789..._ackvisible follow-up on rep_1788849647109_wmq6).
+  const getExerciseDifficulty = useCallback(async (exerciseId: string, excludeSessionId?: string): Promise<{ difficulty?: string; nextReps?: string; sessionId?: string; ackedAt?: number } | null> => {
     if (!uid) return null;
-    // Get most recent chip choices for this exercise across all sessions.
     const snap = await getDocs(collection(db, 'users', uid, 'exerciseDifficulty'));
     const ratings = snap.docs
       .map(d => d.data())
       .filter(d => d.exerciseId === exerciseId)
+      .filter(d => !excludeSessionId || d.sessionId !== excludeSessionId)
       .sort((a, b) => b.timestamp - a.timestamp);
-    return ratings[0] ? { difficulty: ratings[0].difficulty || undefined, nextReps: ratings[0].nextReps || undefined } : null;
+    if (!ratings[0]) return null;
+    return {
+      difficulty: ratings[0].difficulty || undefined,
+      nextReps: ratings[0].nextReps || undefined,
+      sessionId: ratings[0].sessionId,
+      ackedAt: typeof ratings[0].ackedAt === 'number' ? ratings[0].ackedAt : undefined,
+    };
   }, [uid]);
 
   // ─── Free (muscle-based) sessions ───────────────────────────────
@@ -403,6 +432,7 @@ export function useFirestore(uid: string | null) {
       aerobicEntries: Array.isArray(data.aerobicEntries) ? data.aerobicEntries : [],
       restartedAt: data.restartedAt?.toMillis?.() ?? data.restartedAt ?? undefined,
       pausedAt: data.pausedAt?.toMillis?.() ?? data.pausedAt ?? undefined,
+      finishedExerciseKeys: Array.isArray(data.finishedExerciseKeys) ? data.finishedExerciseKeys : [],
     };
   };
 
@@ -591,6 +621,22 @@ export function useFirestore(uid: string | null) {
   const updatePlannedExercises = useCallback(async (sessionId: string, planned: PlannedExercise[]) => {
     if (!uid) return;
     await updateDoc(doc(freeSessionsCol(uid), sessionId), { plannedExercises: planned });
+  }, [uid]);
+
+  // Explicit "finish this exercise now" — for the "שמור וסיים" split in
+  // LogSetModal (rep_1788850205954_ffec). Appends the exercise key to the
+  // session's finishedExerciseKeys array; groupedSets treats keys in that
+  // list as done regardless of timestamp order, so the exercise moves to
+  // the Done cluster right away instead of waiting for another exercise
+  // to naturally become the topmost.
+  const markExerciseFinished = useCallback(async (sessionId: string, exerciseKey: string) => {
+    if (!uid) return;
+    const ref = doc(freeSessionsCol(uid), sessionId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const current = (snap.data().finishedExerciseKeys as string[] | undefined) || [];
+    if (current.includes(exerciseKey)) return;
+    await updateDoc(ref, { finishedExerciseKeys: [...current, exerciseKey] });
   }, [uid]);
 
   const duplicateFreeSession = useCallback(async (sessionId: string, opts?: { includeExercises?: boolean }): Promise<string | null> => {
@@ -1762,6 +1808,15 @@ export function useFirestore(uid: string | null) {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'exerciseNotes', exerciseId);
     await setDoc(ref, { note, updatedAt: Date.now() });
+    // Broadcast so every mounted ExerciseInline for this exercise re-loads
+    // its note. Same pattern as saveExerciseDifficulty — fixes
+    // rep_1788850098233_e2rt where a note edited in the LogSetModal didn't
+    // show up on the exercise-list card without a manual refresh.
+    try {
+      window.dispatchEvent(new CustomEvent('wholos:exercise-note-changed', {
+        detail: { exerciseId },
+      }));
+    } catch { /* SSR / no-window */ }
   }, [uid]);
 
   const getExerciseNote = useCallback(async (exerciseId: string): Promise<string> => {
@@ -1826,6 +1881,7 @@ export function useFirestore(uid: string | null) {
     updateFreeSessionDates,
     updateFreeSessionMuscles,
     updatePlannedExercises,
+    markExerciseFinished,
     duplicateFreeSession,
     getWeeklyTargets,
     setWeeklyTargets,

@@ -15,6 +15,7 @@ import { useAuth } from '../hooks/useAuth';
 import { openOnboardingChat } from './AiChatPanel';
 import { isCoacherEmail } from '../config/coaches';
 import { isBetaTesterEmail } from '../config/betaTesters';
+import { isAdminEmail } from '../config/admins';
 
 // Goals editing lives in the Body tab now (see components/GoalsCard.tsx) so this
 // screen is only for identity, appearance, and app-level toggles.
@@ -51,7 +52,7 @@ export function Settings({ uid, navigate, onLogout }: Props) {
   const isTester = authEmail === 'shazbak@gmail.com';
   // Trial state lives here rather than on every screen — this is where you
   // come to look it up. Owner is exempt, so it renders nothing for Shlomi.
-  const trial = useTrial(uid, uid === 'user_6724');
+  const trial = useTrial(uid, uid === 'user_6724' || isAdminEmail(authEmail));
 
   async function chooseModel(m: AiModelId) {
     // Selecting the default clears the override entirely, so the request goes

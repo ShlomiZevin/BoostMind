@@ -12,6 +12,8 @@ import { MigrateNames } from './MigrateNames';
 import { TopBar } from './TopBar';
 import { TabActions } from './TopBarActions';
 import { AnchorToggle, AnchorBadge } from './AnchorPill';
+import { useAuth } from '../hooks/useAuth';
+import { isAdminEmail } from '../config/admins';
 
 type Props = {
   uid: string;
@@ -44,7 +46,8 @@ export function Exercises({ uid, navigate }: Props) {
   const [search, setSearch] = useState('');
   const [historyStats, setHistoryStats] = useState<Map<string, { count: number; lastTs: number; sessionsCount: number }>>(new Map());
   const [defaultKeys, setDefaultKeys] = useState<Set<string>>(new Set());
-  const isAdmin = uid === 'user_6724';
+  const { email: authEmail } = useAuth();
+  const isAdmin = uid === 'user_6724' || isAdminEmail(authEmail);
 
   // Anchor is a per-user flag — for shared/global exercises it's written to
   // `userExerciseOverrides/{id}` so different users hold different anchor sets

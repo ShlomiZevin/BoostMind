@@ -55,6 +55,7 @@ import { db } from './config/firebase';
 import { ImpersonationCtx } from './hooks/useImpersonation';
 import { isCoacherEmail } from './config/coaches';
 import { isBetaTesterEmail } from './config/betaTesters';
+import { isAdminEmail, refreshRuntimeAdmins } from './config/admins';
 import {
   PLACES, TAB_PAGES, entryPageFor, placeOf, rememberPage, type PlaceId,
 } from './places/registry';
@@ -159,10 +160,11 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
   const [showStart, setShowStart] = useState(false);
   const [reportsOpen, setReportsOpen] = useState(false);
   // Owner-only surfaces (admin dashboard, reports shortcut, model picker).
-  // Both checks — the aliased app uid and the raw email — so that even if
-  // EMAIL_TO_UID drifts, the gate keeps holding for shlomi@boostart.io only.
+  // Reads from `isAdminEmail` which handles both hardcoded seed admins
+  // (Shlomi, Sergio) AND the runtime `users_index.isAdmin` flag toggled
+  // from the users-admin page — so admin can be granted without a deploy.
   const { email: authEmail, displayName } = useAuth();
-  const isAdmin = uid === 'user_6724' || authEmail === 'shlomi@boostart.io';
+  const isAdmin = uid === 'user_6724' || isAdminEmail(authEmail);
   // Coaches AND beta testers get the double-click-anywhere reports shortcut —
   // filing bugs from wherever they saw them is the whole point of beta.
   // Admin/coacher/beta all reach the same panel (view is scoped inside).
@@ -231,6 +233,12 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
       .then(v => cacheAiModel(isValidAiModel(v) ? v : undefined))
       .catch(() => { /* keep whatever is cached */ });
   }, [uid]);
+
+  // Load the runtime admin roster once. isAdminEmail() consults both the
+  // hardcoded seed and this cache, so hardcoded admins work before the
+  // fetch completes; runtime admins (granted from /users-admin) light up
+  // as soon as this resolves.
+  useEffect(() => { void refreshRuntimeAdmins(); }, []);
 
   // Remember the last tab per place so switching back resumes where you were.
   useEffect(() => { rememberPage(route.page); }, [route.page]);
@@ -1140,8 +1148,10 @@ function AuthedShell({ uid, displayName, email, route, navigate, doLogout }: {
 }) {
   const firestore = useFirestore(uid);
   // Owner is never gated — resolved synchronously, so this account never waits
-  // on a Firestore read to get into its own app.
-  const trial = useTrial(uid, uid === OWNER_UID);
+  // on a Firestore read to get into its own app. Sergio + any runtime-granted
+  // admin are exempt the same way via isAdminEmail() — otherwise the trial
+  // gate at line ~1180 shows them the "expired" wall on day 8.
+  const trial = useTrial(uid, uid === OWNER_UID || isAdminEmail(email));
   // 'checking' → probe hasn't returned yet; 'onboarding' → new user, show wizard;
   // 'ready' → normal app. We probe once per uid.
   const [status, setStatus] = useState<'checking' | 'onboarding' | 'ready'>('checking');

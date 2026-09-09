@@ -146,6 +146,12 @@ export type FreeSession = {
   // Set while the session is paused — elapsed freezes at (pausedAt − date).
   // Cleared on resume; `date` is shifted forward to preserve elapsed.
   pausedAt?: number;
+  // Keys ("muscle::exerciseNameLower") of exercises the user explicitly
+  // marked done via "שמור וסיים" in LogSetModal. groupedSets treats these
+  // as done regardless of timestamp order, so the exercise moves to the
+  // Done cluster immediately instead of waiting for another exercise to
+  // become the topmost by natural ordering.
+  finishedExerciseKeys?: string[];
 };
 
 // Two exercises historically done together as a superset. Used to suggest partners when

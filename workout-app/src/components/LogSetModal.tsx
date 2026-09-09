@@ -13,6 +13,8 @@ import {
 } from '../data/exercisesDB';
 import { prepareMedia, exercisePhotoKey } from '../hooks/usePhotos';
 import { useFirestore } from '../hooks/useFirestore';
+import { useAuth } from '../hooks/useAuth';
+import { isAdminEmail } from '../config/admins';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 type Props = {
@@ -46,6 +48,10 @@ type Props = {
   // Exercise names (Hebrew, canonical) to hide from the picker — used to avoid
   // offering exercises that are already in the current session (live or planned).
   excludeExerciseNames?: string[];
+  // Called by "שמור וסיים" — save the set AND mark the exercise finished
+  // so it moves to the Done cluster immediately (rep_1788850205954_ffec).
+  // Optional; when absent the split button hides and only "שמור סט" shows.
+  onFinishExercise?: (exerciseKey: string) => void | Promise<void>;
 };
 
 // Section separator inside the picker list. Anchors and "everything else"
@@ -100,7 +106,7 @@ export function LogSetModal({
   saveMode = 'set',
   replacingName,
   sessionId,
-  onClose, onSave, onPickOnly, onPhotoSaved,
+  onClose, onSave, onPickOnly, onPhotoSaved, onFinishExercise,
   excludeExerciseNames,
 }: Props) {
   const showSet = saveMode === 'set' || saveMode === 'dual';
@@ -201,7 +207,8 @@ export function LogSetModal({
   const [holdStartMs, setHoldStartMs] = useState(0);
   const [holdElapsedTick, setHoldElapsedTick] = useState(0);
   const [defaultKeys, setDefaultKeys] = useState<Set<string>>(new Set());
-  const isAdmin = uid === 'user_6724';
+  const { email: authEmail } = useAuth();
+  const isAdmin = uid === 'user_6724' || isAdminEmail(authEmail);
 
   useEffect(() => {
     if (!holdRunning) return;
@@ -432,17 +439,26 @@ export function LogSetModal({
     setPickerOpen(true);
   }
 
-  function doSave(asPlaceholder: boolean) {
+  function doSave(asPlaceholder: boolean, alsoFinish: boolean = false) {
     if (!muscle) return;
     const w = Number(weight) || 0;
     const r = Number(reps) || 0;
-    void withSaveGuard(() => onSave({
-      muscle,
-      weight: asPlaceholder ? 0 : w,
-      reps: asPlaceholder ? 0 : r,
-      unit: unit === 'kg' ? undefined : unit,
-      exerciseName: currentName.trim() || undefined,
-    }, editingSet?.id));
+    const name = currentName.trim();
+    void withSaveGuard(async () => {
+      await onSave({
+        muscle,
+        weight: asPlaceholder ? 0 : w,
+        reps: asPlaceholder ? 0 : r,
+        unit: unit === 'kg' ? undefined : unit,
+        exerciseName: name || undefined,
+      }, editingSet?.id);
+      // Mark the exercise finished AFTER the set write lands so groupedSets
+      // has the new set and the finish flag in the same render pass.
+      if (alsoFinish && onFinishExercise && name) {
+        const key = `${muscle}::${name.toLowerCase()}`;
+        await onFinishExercise(key);
+      }
+    });
   }
 
   const hasValues = !!muscle && weight !== '' && reps !== '';
@@ -962,15 +978,50 @@ export function LogSetModal({
             }`}
           >{saving ? '...' : (replacingName ? 'החלף בתרגיל הנבחר' : 'שמור תרגיל')}</button>
         ) : showSet ? (
-          <button
-            onClick={() => { if (!saving) doSave(false); }}
-            disabled={!hasValues || saving}
-            className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
-              hasValues && !saving ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
-            }`}
-          >
-            {saving ? '...' : (isEdit ? 'עדכן סט' : 'שמור סט')}
-          </button>
+          // Split the save into 2/3 "שמור סט" + 1/3 "שמור וסיים"
+          // (rep_1788850205954_ffec). "וסיים" appends this exercise's key to
+          // the session's finishedExerciseKeys so it moves straight to the
+          // Done cluster — no need to wait for another exercise to catch up
+          // in timestamp. The split hides for edits (the "finish" concept
+          // doesn't apply when you're correcting a past set) and when the
+          // parent didn't pass an onFinishExercise handler.
+          isEdit || !onFinishExercise ? (
+            <button
+              onClick={() => { if (!saving) doSave(false); }}
+              disabled={!hasValues || saving}
+              className={`w-full py-4 rounded-xl font-semibold text-lg transition-colors ${
+                hasValues && !saving ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
+              }`}
+            >
+              {saving ? '...' : (isEdit ? 'עדכן סט' : 'שמור סט')}
+            </button>
+          ) : (
+            <div className="flex gap-2" dir="rtl">
+              <button
+                onClick={() => { if (!saving) doSave(false); }}
+                disabled={!hasValues || saving}
+                className={`py-4 rounded-xl font-semibold text-lg transition-colors ${
+                  hasValues && !saving ? 'btn-primary' : 'dark:bg-slate-800 dark:text-slate-600 bg-slate-200 text-slate-400'
+                }`}
+                style={{ flex: '2 1 0' }}
+              >
+                {saving ? '...' : 'שמור סט'}
+              </button>
+              <button
+                onClick={() => { if (!saving) doSave(false, true); }}
+                disabled={!hasValues || saving}
+                className={`py-4 rounded-xl font-semibold text-sm transition-colors border ${
+                  hasValues && !saving
+                    ? 'border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10'
+                    : 'border-subtle text-muted-most'
+                }`}
+                style={{ flex: '1 1 0' }}
+                title="שמור את הסט וסיים עם התרגיל — עובר ל-'בוצעו'"
+              >
+                {saving ? '...' : 'שמור וסיים'}
+              </button>
+            </div>
+          )
         ) : null}
       </div>
 
