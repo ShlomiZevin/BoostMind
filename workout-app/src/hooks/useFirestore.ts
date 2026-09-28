@@ -350,15 +350,37 @@ export function useFirestore(uid: string | null) {
   // `nextReps`   = next-time target reps chip (8/10/12/15).
   // Both are opaque strings in Firestore so the schema doesn't churn every time
   // we swap chip semantics. Either can be null (cleared).
-  type DifficultyPatch = { difficulty?: string | null; nextReps?: string | null; ackedAt?: number | null };
+  type DifficultyPatch = {
+    difficulty?: string | null;
+    nextReps?: string | null;
+    // Absolute target weight SNAPSHOTTED at the moment the bump chip was
+    // tapped (base + delta). Never recomputed on read — otherwise lifting the
+    // new weight would push the target up again (75 → +5 shows 80; do 80 →
+    // it would show 85). Re-tapping the chip takes a fresh snapshot.
+    // rep_1789362385669_uelt
+    targetWeight?: number | null;
+    targetUnit?: string | null;
+    ackedAt?: number | null;
+    // Which workout the "בוצע" happened in. The mark stays visible (struck
+    // through) in THAT workout only and disappears from every later one.
+    // rep_1789362464869_dy5w
+    ackedInSessionId?: string | null;
+  };
   const saveExerciseDifficulty = useCallback(async (exerciseId: string, sessionId: string, patch: DifficultyPatch) => {
     if (!uid) return;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
     // Merge so setting nextReps doesn't wipe difficulty and vice versa.
-    const body: any = { exerciseId, sessionId, timestamp: Date.now() };
+    const body: any = { exerciseId, sessionId };
+    // Only a change to the MARK itself moves its timestamp. An ack/un-ack is
+    // bookkeeping on an old mark — bumping the timestamp there would re-rank
+    // it above newer marks in the "most recent" lookup.
+    if (patch.difficulty !== undefined || patch.nextReps !== undefined) body.timestamp = Date.now();
     if (patch.difficulty !== undefined) body.difficulty = patch.difficulty;
     if (patch.nextReps !== undefined) body.nextReps = patch.nextReps;
+    if (patch.targetWeight !== undefined) body.targetWeight = patch.targetWeight;
+    if (patch.targetUnit !== undefined) body.targetUnit = patch.targetUnit;
     if (patch.ackedAt !== undefined) body.ackedAt = patch.ackedAt;
+    if (patch.ackedInSessionId !== undefined) body.ackedInSessionId = patch.ackedInSessionId;
     await setDoc(ref, body, { merge: true });
     // Broadcast so every mounted ExerciseInline for this exercise re-loads
     // its chip state — fixes rep_1788849697313_0qip where marks made inside
@@ -371,7 +393,7 @@ export function useFirestore(uid: string | null) {
     } catch { /* SSR / no-window — safe to ignore */ }
   }, [uid]);
 
-  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty?: string; nextReps?: string; ackedAt?: number } | null> => {
+  const getExerciseDifficultyForSession = useCallback(async (exerciseId: string, sessionId: string): Promise<{ difficulty?: string; nextReps?: string; ackedAt?: number; targetWeight?: number; targetUnit?: string } | null> => {
     if (!uid) return null;
     const ref = doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`);
     const snap = await getDoc(ref);
@@ -381,6 +403,8 @@ export function useFirestore(uid: string | null) {
       difficulty: d.difficulty || undefined,
       nextReps: d.nextReps || undefined,
       ackedAt: typeof d.ackedAt === 'number' ? d.ackedAt : undefined,
+      targetWeight: typeof d.targetWeight === 'number' ? d.targetWeight : undefined,
+      targetUnit: typeof d.targetUnit === 'string' ? d.targetUnit : undefined,
     };
   }, [uid]);
 
@@ -389,25 +413,42 @@ export function useFirestore(uid: string | null) {
     await deleteDoc(doc(db, 'users', uid, 'exerciseDifficulty', `${exerciseId}_${sessionId}`));
   }, [uid]);
 
-  // "Past-mark" lookup for the current session. Returns the most-recent chip
-  // choices from a PRIOR session (excludeSessionId). Includes the ackedAt
-  // flag so the caller can render acked marks as struck-through history —
-  // the user still needs to see what they marked done, not have it disappear
-  // (rep_1789..._ackvisible follow-up on rep_1788849647109_wmq6).
-  const getExerciseDifficulty = useCallback(async (exerciseId: string, excludeSessionId?: string): Promise<{ difficulty?: string; nextReps?: string; sessionId?: string; ackedAt?: number } | null> => {
+  // "Past-mark" lookup for the workout `currentSessionId`.
+  //
+  // Lifecycle (rep_1789362464869_dy5w): a mark made in workout S keeps
+  // reminding you in every later workout — S+1, S+2, … — until you tap
+  // "בוצע". In the workout where you tapped it, it stays visible struck
+  // through (so you can see it / undo). From the NEXT workout on it's gone.
+  //
+  // Rules:
+  //   • Only docs that actually carry a mark count (a doc whose chips were
+  //     cleared back to null must not mask an older live mark).
+  //   • The newest such mark wins — a newer intention supersedes older ones.
+  //   • If that newest mark was acked in a DIFFERENT workout → nothing to
+  //     show. We deliberately don't fall back to an older mark: it was
+  //     superseded, and resurfacing it would be wrong.
+  const getExerciseDifficulty = useCallback(async (exerciseId: string, currentSessionId?: string): Promise<{ difficulty?: string; nextReps?: string; sessionId?: string; ackedAt?: number; targetWeight?: number; targetUnit?: string } | null> => {
     if (!uid) return null;
     const snap = await getDocs(collection(db, 'users', uid, 'exerciseDifficulty'));
     const ratings = snap.docs
       .map(d => d.data())
       .filter(d => d.exerciseId === exerciseId)
-      .filter(d => !excludeSessionId || d.sessionId !== excludeSessionId)
-      .sort((a, b) => b.timestamp - a.timestamp);
-    if (!ratings[0]) return null;
+      .filter(d => !currentSessionId || d.sessionId !== currentSessionId)
+      .filter(d => !!d.difficulty || !!d.nextReps)
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    const top = ratings[0];
+    if (!top) return null;
+    const acked = typeof top.ackedAt === 'number';
+    // Acked somewhere other than the workout we're rendering → closed.
+    // (Legacy acks with no ackedInSessionId are treated as closed too.)
+    if (acked && top.ackedInSessionId !== currentSessionId) return null;
     return {
-      difficulty: ratings[0].difficulty || undefined,
-      nextReps: ratings[0].nextReps || undefined,
-      sessionId: ratings[0].sessionId,
-      ackedAt: typeof ratings[0].ackedAt === 'number' ? ratings[0].ackedAt : undefined,
+      difficulty: top.difficulty || undefined,
+      nextReps: top.nextReps || undefined,
+      sessionId: top.sessionId,
+      ackedAt: acked ? top.ackedAt : undefined,
+      targetWeight: typeof top.targetWeight === 'number' ? top.targetWeight : undefined,
+      targetUnit: typeof top.targetUnit === 'string' ? top.targetUnit : undefined,
     };
   }, [uid]);
 
@@ -436,23 +477,40 @@ export function useFirestore(uid: string | null) {
     };
   };
 
+  // ─── Session clock model (rep_1789364101088_2jvl) ───────────────
+  // ONE rule, used by every writer below and every view that renders time:
+  //   not-started : pausedAt === date  → 00:00, frozen ("מוכן")
+  //   paused      : pausedAt  >  date  → frozen at pausedAt − date ("מושהה")
+  //   running     : pausedAt unset     → now − date
+  // Transitions:
+  //   create / start planned / duplicate / "התחל" / "המשך" → running
+  //   pause                                                 → paused
+  //   reset timer (restart)                                 → not-started (sets kept)
+  //   reactivate a finished workout                         → running, continuing its elapsed
+  //   log a set while not-started/paused                    → running
+  //
+  // Every lifecycle write broadcasts, so views holding their own copy of the
+  // active session (App → floating badge, Home) re-fetch instead of ticking
+  // on a stale `date` — the badge used to keep counting after a restart.
+  function notifySessionsChanged() {
+    try { window.dispatchEvent(new CustomEvent('wholos:sessions-changed')); } catch { /* no window */ }
+  }
+
   const createFreeSession = useCallback(async (muscleGroups: MuscleGroup[]): Promise<string> => {
     if (!uid) throw new Error('No uid');
     const sessionId = `free_${Date.now()}`;
     const ref = doc(freeSessionsCol(uid), sessionId);
-    // pausedAt = date pins a "fresh" state — the elapsed clock stays at 0 until
-    // the user explicitly hits "התחל" (which calls resumeFreeSession) or logs a
-    // set (which auto-resumes). This keeps the tile's "התחל" ↔ "המשך" label
-    // consistent with actual timer activity.
-    const nowTs = Timestamp.now();
+    // Starting a new workout from the FAB means "I'm training now" → running.
+    // (It used to be created not-started, which the in-session clock treated
+    // as running while Home and the badge showed 00:00 — two clocks.)
     await setDoc(ref, {
-      date: nowTs,
-      pausedAt: nowTs,
+      date: Timestamp.now(),
       muscleGroups,
       sets: [],
       completed: false,
       status: 'active',
     });
+    notifySessionsChanged();
     return sessionId;
   }, [uid]);
 
@@ -482,48 +540,56 @@ export function useFirestore(uid: string | null) {
     return sessionId;
   }, [uid]);
 
-  // "Restart from scratch": clear ALL logged sets, zero the timer, and pin
-  // pausedAt = date so the timer stays frozen at 0 until the user explicitly
-  // taps "התחל" again (which resumes via resumeFreeSession). Planned exercises
-  // stay put — this is "start over the sets", not "delete the workout plan".
+  // Reset TIMER: back to not-started (00:00, "מוכן"). Sets are KEPT — the
+  // confirm dialog promises "הסטים שכבר רשמת נשארים", and wiping them here was
+  // silent data loss. The clock starts again on "התחל" or the next logged set.
   const restartFreeSession = useCallback(async (sessionId: string): Promise<void> => {
     if (!uid) return;
     const nowTs = Timestamp.now();
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
       date: nowTs,
       restartedAt: nowTs,
-      pausedAt: nowTs,   // frozen at 0 elapsed — fresh state
-      sets: [],
+      pausedAt: nowTs,   // not-started sentinel
     });
+    notifySessionsChanged();
   }, [uid]);
 
   // Pause the elapsed-time clock on an active session. `pausedAt` marks WHEN we
   // paused; while it's set, the UI shows the frozen elapsed = pausedAt − date.
-  const pauseFreeSession = useCallback(async (sessionId: string): Promise<void> => {
-    if (!uid) return;
+  // Returns the written value so callers can update local state without a refetch.
+  const pauseFreeSession = useCallback(async (sessionId: string): Promise<{ pausedAt: number } | null> => {
+    if (!uid) return null;
+    const pausedAt = Date.now();
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
-      pausedAt: Timestamp.fromMillis(Date.now()),
+      pausedAt: Timestamp.fromMillis(pausedAt),
     });
+    notifySessionsChanged();
+    return { pausedAt };
   }, [uid]);
 
-  // Resume from pause: shift `date` forward by the time we were paused, so the
-  // ongoing "elapsed = now − date" formula picks up right where it stopped.
-  const resumeFreeSession = useCallback(async (sessionId: string): Promise<void> => {
-    if (!uid) return;
+  // Start (from not-started) or resume (from paused): shift `date` forward by
+  // the frozen gap so "elapsed = now − date" continues where it stopped. From
+  // not-started the gap equals the whole wait, so date lands on now → 00:00.
+  // Returns the new `date` so callers can update local state immediately.
+  const resumeFreeSession = useCallback(async (sessionId: string): Promise<{ date: number } | null> => {
+    if (!uid) return null;
     const snap = await getDoc(doc(freeSessionsCol(uid), sessionId));
-    if (!snap.exists()) return;
+    if (!snap.exists()) return null;
     const data = snap.data() as any;
     const pausedAt: number | undefined = data.pausedAt?.toMillis?.() ?? data.pausedAt;
     const startedAt: number | undefined = data.date?.toMillis?.() ?? data.date;
     if (!pausedAt || !startedAt) {
       await updateDoc(doc(freeSessionsCol(uid), sessionId), { pausedAt: null });
-      return;
+      notifySessionsChanged();
+      return { date: startedAt ?? Date.now() };
     }
-    const gap = Date.now() - pausedAt;
+    const newDate = startedAt + (Date.now() - pausedAt);
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
-      date: Timestamp.fromMillis(startedAt + gap),
+      date: Timestamp.fromMillis(newDate),
       pausedAt: null,
     });
+    notifySessionsChanged();
+    return { date: newDate };
   }, [uid]);
 
   // Move a planned session to a different date. Rewrites both `plannedFor` (the
@@ -555,14 +621,14 @@ export function useFirestore(uid: string | null) {
     if (!target) return null;
     if (target.status === 'active') return sessionId;
     if (target.status === 'completed') return sessionId;
-    // pausedAt = date so the promoted session lands in "fresh, not started"
-    // state — user still has to tap "התחל" to kick off the timer.
-    const nowTs = Timestamp.now();
+    // The user tapped "התחל" on the plan → running now. It used to land
+    // not-started, so the user had to press "התחל" a second time.
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
       status: 'active',
-      date: nowTs,
-      pausedAt: nowTs,
+      date: Timestamp.now(),
+      pausedAt: null,
     });
+    notifySessionsChanged();
     return sessionId;
   }, [uid]);
 
@@ -616,6 +682,7 @@ export function useFirestore(uid: string | null) {
       status: 'completed',
       muscleGroups: pruned.length > 0 ? pruned : originalMuscles,
     });
+    notifySessionsChanged();
   }, [uid]);
 
   const updatePlannedExercises = useCallback(async (sessionId: string, planned: PlannedExercise[]) => {
@@ -639,6 +706,34 @@ export function useFirestore(uid: string | null) {
     await updateDoc(ref, { finishedExerciseKeys: [...current, exerciseKey] });
   }, [uid]);
 
+  // Re-open a finished exercise — called when a NEW set is logged on it (e.g.
+  // "+ סט נוסף" on a card in בוצעו). Without this the finished flag would pin
+  // the exercise to Done forever, even while you're actively adding sets.
+  const unmarkExercisesFinished = useCallback(async (sessionId: string, exerciseKeys: string[]) => {
+    if (!uid || exerciseKeys.length === 0) return;
+    const ref = doc(freeSessionsCol(uid), sessionId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const current = (snap.data().finishedExerciseKeys as string[] | undefined) || [];
+    const drop = new Set(exerciseKeys);
+    const next = current.filter(k => !drop.has(k));
+    if (next.length === current.length) return;
+    await updateDoc(ref, { finishedExerciseKeys: next });
+  }, [uid]);
+
+  // Finish several exercises in ONE write — "סיימתי סופרסט" marks every
+  // member at once, so they can't end up half-finished.
+  const markExercisesFinished = useCallback(async (sessionId: string, exerciseKeys: string[]) => {
+    if (!uid || exerciseKeys.length === 0) return;
+    const ref = doc(freeSessionsCol(uid), sessionId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const current = (snap.data().finishedExerciseKeys as string[] | undefined) || [];
+    const next = Array.from(new Set([...current, ...exerciseKeys]));
+    if (next.length === current.length) return;
+    await updateDoc(ref, { finishedExerciseKeys: next });
+  }, [uid]);
+
   const duplicateFreeSession = useCallback(async (sessionId: string, opts?: { includeExercises?: boolean }): Promise<string | null> => {
     if (!uid) return null;
     const includeExercises = opts?.includeExercises ?? true;
@@ -658,6 +753,30 @@ export function useFirestore(uid: string | null) {
         planned.push({ name, muscle: s.muscle, addedAt: Date.now() });
       }
     }
+    // Never create a SECOND active workout — two actives made every "which
+    // session is live" lookup pick one arbitrarily (and the badge/Home could
+    // show a different clock than the page you're on). If one is already
+    // running, the copy lands as today's plan instead.
+    const all = await getDocs(freeSessionsCol(uid));
+    const hasActive = all.docs.some(d => toFreeSession(d.id, d.data()).status === 'active');
+    if (hasActive) {
+      const now = new Date();
+      const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const planId = `plan_${ymd.replace(/-/g, '')}_${Date.now()}`;
+      await setDoc(doc(freeSessionsCol(uid), planId), {
+        date: Timestamp.fromMillis(midnight),
+        muscleGroups: data.muscleGroups || [],
+        sets: [],
+        plannedExercises: planned,
+        completed: false,
+        status: 'planned',
+        plannedFor: ymd,
+      });
+      notifySessionsChanged();
+      return planId;
+    }
+    // Duplicating into a fresh workout = training now → running (same as create).
     const newId = `free_${Date.now()}`;
     await setDoc(doc(freeSessionsCol(uid), newId), {
       date: Timestamp.now(),
@@ -667,6 +786,7 @@ export function useFirestore(uid: string | null) {
       completed: false,
       status: 'active',
     });
+    notifySessionsChanged();
     return newId;
   }, [uid]);
 
@@ -701,23 +821,42 @@ export function useFirestore(uid: string | null) {
       completedAt: null,
       sets: [],
       plannedExercises: planned,
+      // A plan has no clock — drop any leftover pause sentinel.
+      pausedAt: null,
     });
+    notifySessionsChanged();
   }, [uid]);
 
   const deleteFreeSession = useCallback(async (sessionId: string) => {
     if (!uid) return;
     await deleteDoc(doc(freeSessionsCol(uid), sessionId));
+    notifySessionsChanged();
   }, [uid]);
 
   // Reactivate a completed session — flip it back to active so the user can add more sets today
   // instead of holding two separate sessions for the same day.
+  //
+  // Clock: continue from the duration the workout had when it ended, running
+  // from now. Previously `date`/`pausedAt` were left untouched, so the timer
+  // jumped to "time since the workout originally started" — hours, including
+  // the whole gap after finishing.
   const reactivateFreeSession = useCallback(async (sessionId: string): Promise<void> => {
     if (!uid) return;
+    const snap = await getDoc(doc(freeSessionsCol(uid), sessionId));
+    if (!snap.exists()) return;
+    const s = toFreeSession(snap.id, snap.data());
+    const wasPaused = s.pausedAt != null && s.pausedAt !== s.date;
+    const wasNotStarted = s.pausedAt != null && s.pausedAt === s.date;
+    const end = wasPaused ? (s.pausedAt as number) : (s.completedAt ?? s.date);
+    const priorElapsed = wasNotStarted ? 0 : Math.max(0, end - s.date);
     await updateDoc(doc(freeSessionsCol(uid), sessionId), {
       completed: false,
       completedAt: null,
       status: 'active',
+      date: Timestamp.fromMillis(Date.now() - priorElapsed),
+      pausedAt: null,
     });
+    notifySessionsChanged();
   }, [uid]);
 
   // Aerobic entries on a session — replaces the whole array (add/edit/delete all use this).
@@ -1882,6 +2021,8 @@ export function useFirestore(uid: string | null) {
     updateFreeSessionMuscles,
     updatePlannedExercises,
     markExerciseFinished,
+    unmarkExercisesFinished,
+    markExercisesFinished,
     duplicateFreeSession,
     getWeeklyTargets,
     setWeeklyTargets,

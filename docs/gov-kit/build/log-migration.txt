@@ -1,0 +1,26 @@
+  in_progress 6s
+  in_progress 11s
+  in_progress 17s
+  in_progress 22s
+  in_progress 27s
+  in_progress 33s
+  in_progress 38s
+  in_progress 44s
+  in_progress 49s
+  in_progress 55s
+  in_progress 60s
+  in_progress 65s
+  in_progress 71s
+  in_progress 76s
+  in_progress 82s
+  in_progress 87s
+  in_progress 93s
+  in_progress 98s
+  in_progress 104s
+  in_progress 109s
+  in_progress 115s
+  in_progress 120s
+  completed 126s
+OK -> out/migration.md  (13562 chars, gpt-5.6-terra, 24261 tokens)
+  input 18751 · output 5510 (reasoning 453)
+Read it with the Read tool — printing Hebrew to this console will mangle it.

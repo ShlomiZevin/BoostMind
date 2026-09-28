@@ -1,0 +1,3 @@
+OK -> out/hub.md  (1396 chars, gpt-5.6-terra, 3205 tokens)
+  input 2471 · output 734 (reasoning 215)
+Read it with the Read tool — printing Hebrew to this console will mangle it.

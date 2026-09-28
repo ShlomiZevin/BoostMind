@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "x-ads": {
+      "type": "http",
+      "url": "https://ads-api.x.com/mcp"
+    }
+  }
+}

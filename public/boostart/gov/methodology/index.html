@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>מתודולוגיית פיתוח מבוססת Agentic AI ו-Spec-Driven Development · Boostart</title>
+<meta name="description" content="פרוטוקול AI-Assisted SDLC, שערי איכות, בקרה אנושית ו-Traceability לאורך מחזור חיי הפיתוח">
+<link rel="icon" href="../../boostart-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0F3; --paper:#FFFFFF; --tint:#F5F7FA; --tint-2:#EAF0F8;
+  --line:rgba(20,22,26,.10); --line-2:rgba(20,22,26,.18);
+  --text:#14161A; --text-2:#353A44; --muted:#6A707C;
+  --accent:#3F6FB0; --chip:#FFFFFF; --maxw:860px;
+}
+:root[data-theme="dark"]{
+  --bg:#0B0C0E; --paper:#131519; --tint:#1A1D22; --tint-2:#1C2430;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.17);
+  --text:#EEF0F3; --text-2:#BCC2CC; --muted:#8A919C;
+  --accent:#7AA7E0; --chip:#F4F6F9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Heebo',system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;padding:0 16px 64px;transition:background .18s,color .18s}
+a{color:inherit}
+
+.bar{position:sticky;top:0;z-index:20;max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;background:var(--bg)}
+.bar a.back{font-size:14px;color:var(--muted);text-decoration:none}
+.bar a.back:hover{color:var(--text)}
+.actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;font:600 14px 'Heebo',sans-serif;text-decoration:none;cursor:pointer;border:1px solid var(--line-2);background:var(--paper);color:var(--text);transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--text);border-color:var(--text);color:var(--paper)}
+.btn svg{width:16px;height:16px}
+.icon{width:36px;padding:0;justify-content:center}
+
+.doc{max-width:var(--maxw);margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:52px 64px 48px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line-2)}
+.logo-chip{background:var(--chip);border-radius:4px;padding:6px 8px;display:inline-flex}
+.logo-chip img{display:block;height:26px;width:auto}
+.from{text-align:end;font-size:13px;line-height:1.55;color:var(--muted)}
+.from b{display:block;color:var(--text);font-size:14.5px;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 24px;font-size:13px;color:var(--muted);padding-top:16px}
+.kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--accent);margin:34px 0 8px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin-top:30px}
+.sub{font-size:17px;color:var(--text-2);margin:10px 0 0;padding-bottom:26px;border-bottom:1px solid var(--line)}
+
+.toc{margin:26px 0 6px;padding:18px 20px;background:var(--tint);border:1px solid var(--line);border-radius:4px}
+.toc b{display:block;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+.toc ol{list-style:none;columns:2;column-gap:28px}
+.toc li{break-inside:avoid;font-size:14px;line-height:1.5;padding:4px 0}
+.toc a{color:var(--text-2);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+
+h2{font-size:19px;font-weight:700;color:var(--text);letter-spacing:-.01em;margin:44px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line-2);scroll-margin-top:70px}
+h3{font-size:16px;font-weight:700;color:var(--text);margin:26px 0 10px}
+p{color:var(--text-2);margin-bottom:14px}
+strong{color:var(--text);font-weight:600}
+p.chain{font-size:15px;font-weight:600;color:var(--text);background:var(--tint-2);border:1px solid var(--line);border-radius:4px;padding:12px 16px;text-align:center}
+p.chain strong{font-weight:600}
+
+ul.bul,ol.num{margin:2px 0 18px;padding-inline-start:22px}
+ul.bul li,ol.num li{color:var(--text-2);margin-bottom:6px;padding-inline-start:4px}
+ul.bul li::marker{color:var(--accent)}
+ol.num li::marker{color:var(--accent);font-weight:600}
+
+.incl{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin:2px 0 20px}
+.incl li{position:relative;padding:8px 16px 8px 0;font-size:15px;color:var(--text-2);line-height:1.5;border-bottom:1px solid var(--line)}
+.incl li::before{content:"";position:absolute;inset-inline-start:0;top:16px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.incl li b{display:block;color:var(--text);font-weight:600}
+.incl li span{font-size:14px;color:var(--muted)}
+
+.tbl-wrap{margin:6px 0 22px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:start;padding:10px 12px;border:1px solid var(--line-2);vertical-align:top;line-height:1.55}
+thead th{background:var(--tint);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap}
+tbody td{color:var(--text-2)}
+tbody td:first-child{font-weight:600;color:var(--text)}
+table.wide{font-size:13.5px}
+
+.callout{background:var(--tint);border:1px solid var(--line);border-inline-start:3px solid var(--accent);border-radius:4px;padding:14px 18px;margin:6px 0 18px}
+.callout p{margin:0;color:var(--text-2)}
+
+.sign{margin-top:44px;padding-top:22px;border-top:1px solid var(--line-2);font-size:14px;color:var(--muted);line-height:1.7;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sign b{display:block;color:var(--text);font-size:15.5px;font-weight:600}
+.sign a{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.sign a:hover{color:var(--accent)}
+
+/* hub */
+.docs{list-style:none;margin:10px 0 8px}
+.docs li{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
+.docs li:last-child{border-bottom:none}
+.docs .n{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.06em}
+.docs h3{margin:2px 0 4px;font-size:17px}
+.docs h3 a{text-decoration:none}
+.docs h3 a:hover{color:var(--accent)}
+.docs p{margin:0;font-size:15px}
+.docs .row-actions{display:flex;gap:8px;flex-shrink:0;padding-top:18px}
+
+@media(max-width:720px){
+  body{padding:0 12px 40px}
+  .doc{padding:26px 18px 30px}
+  h1{font-size:23px}
+  .sub{font-size:15.5px}
+  h2{font-size:17px;margin-top:34px}
+  .head{flex-direction:column;gap:12px}
+  .from{text-align:start}
+  .toc ol{columns:1}
+  .incl{grid-template-columns:1fr;gap:0}
+  .btn .lbl-long{display:none}
+  .docs li{flex-direction:column;gap:8px}
+  .docs .row-actions{padding-top:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line-2);border-radius:4px;margin-bottom:10px;overflow:hidden}
+  td{border:none;border-bottom:1px solid var(--line);padding:9px 12px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:1px}
+  .tbl-wrap{overflow:visible}
+}
+
+@media print{
+  @page{size:A4;margin:14mm 13mm 16mm}
+  body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.55}
+  .bar{display:none}
+  .doc{max-width:none;border:none;border-radius:0;padding:0;background:#fff}
+  .kicker{color:#3F6FB0;margin-top:18pt}
+  h1{font-size:20pt}
+  .sub{font-size:11.5pt;color:#333}
+  h2{font-size:13pt;color:#000;border-bottom:1px solid #999;margin:18pt 0 8pt;page-break-after:avoid;break-after:avoid}
+  h3{font-size:11pt;page-break-after:avoid;break-after:avoid}
+  p,li,td{color:#222}
+  .meta,.from,.sign{color:#555}
+  .toc{background:#f6f7f9;border:1px solid #ccc;page-break-inside:avoid}
+  .toc a{color:#222}
+  table{font-size:8.8pt}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid;break-inside:avoid}
+  th,td{border:1px solid #999;padding:5pt 6pt}
+  thead th{background:#eef1f5;color:#000}
+  .tbl-wrap{overflow:visible}
+  .incl li{border-bottom:1px solid #e3e3e3;page-break-inside:avoid}
+  .incl li::before,ul.bul li::marker{background:#3F6FB0}
+  .callout,p.chain{background:#f4f6f9;border:1px solid #bbb;page-break-inside:avoid}
+  .callout{border-inline-start:3px solid #3F6FB0}
+  .sign{page-break-inside:avoid;border-top:1px solid #999}
+  .logo-chip{padding:0}
+  a{text-decoration:none;color:#000}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="../">→ ערכת המענה</a>
+  <div class="actions">
+    <a class="btn primary" href="Boostart-Agentic-SDD-Methodology.pdf" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>PDF</span><span class="lbl-long">&nbsp;להורדה</span></a>
+    <button class="btn icon" id="themeBtn" aria-label="החלפת מצב תצוגה">☾</button>
+  </div>
+</div>
+<main class="doc">
+  <div class="head">
+    <div class="logo-chip"><img src="../../boostart-logo.png" alt="Boostart"></div>
+    <div class="from"><b>שלומי זוין</b>Boostart · CTO as a Service<br>shlomi@boostart.io · 054-5567213</div>
+  </div>
+  <div class="meta"><div>ערכת מענה · תיחורי Agentic AI ו-SDD · מערך הדיגיטל הלאומי</div><div>ספטמבר 2026 · גרסה 1.0</div></div>
+  <h1>מתודולוגיית פיתוח מבוססת Agentic AI ו-Spec-Driven Development</h1>
+  <p class="sub">פרוטוקול AI-Assisted SDLC, שערי איכות, בקרה אנושית ו-Traceability לאורך מחזור חיי הפיתוח</p>
+<nav class="toc"><b>תוכן העניינים</b><ol><li><a href="#s1">1. מטרת המסמך ועקרונות יסוד</a></li><li><a href="#s2">2. מחזור החיים (SDLC) מבוסס Spec</a></li><li><a href="#s3">3. ארכיטקטורת הסוכנים (Multi-Agent)</a></li><li><a href="#s4">4. חלוקת תפקידים בין הצוות האנושי לסוכנים</a></li><li><a href="#s5">5. שערי אישור (HITL) ושער איכות</a></li><li><a href="#s6">6. החוקה הפרויקטלית, Project Context ו-Skills</a></li><li><a href="#s7">7. Guardrails לסוכני הפיתוח</a></li><li><a href="#s8">8. ניהול זיכרון וקונטקסט</a></li><li><a href="#s9">9. תיעוד, Observability ו-Traceability של עבודת הסוכנים</a></li><li><a href="#s10">10. פרטיות ואבטחת מידע בעבודה עם AI</a></li><li><a href="#s11">11. כלים וסביבות מאושרים ובחירת framework</a></li><li><a href="#s12">12. איכות קוד שנוצר ב-AI</a></li><li><a href="#s13">13. שכבת ה-AI במערכות שנמסרות</a></li><li><a href="#s14">14. Best Practices לפיתוח עם AI</a></li><li><a href="#s15">15. העברת ידע והטמעה במשרד</a></li></ol></nav>
+<h2 id="s1">1. מטרת המסמך ועקרונות יסוד</h2>
+<p>מסמך זה מגדיר את שיטת העבודה של Boostart לפיתוח אפליקציות WEB באמצעות Agentic AI ו-Spec-Driven Development, להלן SDD. השיטה מיועדת לסביבות ממשלתיות וארגוניות שבהן נדרשים בקרה, אבטחת מידע, תיעוד, תחזוקתיות ויכולת ביקורת מלאה.</p>
+<ul class="bul"><li>ה-Spec הוא מקור האמת. קוד, בדיקות, תיעוד ותצורות נגזרים ממנו.</li><li>אדם מוסמך מחזיק באחריות לכל החלטה ולכל שורת קוד שנמסרת.</li><li>מידע אמיתי, מידע רגיש וסודות אינם מועברים למודלים מחוץ לסביבה המבודדת והמאושרת.</li><li>השיטה Tool-agnostic. התוצרים נשמרים ב-Repository ואינם תלויים בכלי AI מסוים.</li><li>לכל שינוי קיימת שרשרת Traceability מדרישה עסקית ועד PR, בדיקה ואישור אנושי.</li><li>הקוד הנמסר קריא, מתועד וניתן לתחזוקה על ידי צוות המשרד גם ללא כלי AI.</li><li>סוכן AI אינו בעל סמכות לאשר את עבודתו, לשנות סביבת ייצור או להחליף שיקול דעת מקצועי.</li><li>תיקון קוד מתחיל בעדכון ה-Spec. אין תיקוני קוד ישירים שיוצרים פער בין הדרישה לבין המימוש.</li></ul>
+<div class="callout"><p>השימוש ב-Agentic AI נועד להאיץ עבודה מובנית ומבוקרת. הוא אינו משנה את חובת התכנון, הבדיקה, הסקירה והאישור האנושי.</p></div>
+<h2 id="s2">2. מחזור החיים (SDLC) מבוסס Spec</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שלב</th><th>מה קורה</th><th>תוצר</th><th>שער אישור</th></tr></thead><tbody><tr><td data-l="שלב">היערכות וחוקה</td><td data-l="מה קורה">הגדרת חוקה פרויקטלית, כלים, הרשאות, סביבות, כללי אבטחה ו-Traceability</td><td data-l="תוצר">Constitution, Project Context, ADR ראשוני</td><td data-l="שער אישור">G0</td></tr><tr><td data-l="שלב">Discovery למערכת קיימת</td><td data-l="מה קורה">מיפוי קוד, APIs, בסיסי נתונים, תלויות, תהליכים עסקיים ופערי תיעוד</td><td data-l="תוצר">Discovery Report, מפת רכיבים, רשימת סיכונים</td><td data-l="שער אישור">אישור ארכיטקט</td></tr><tr><td data-l="שלב">Spec עסקי</td><td data-l="מה קורה">הגדרת מטרות, משתמשים, תרחישים, כללים, תהליכים, חריגים וקריטריוני קבלה</td><td data-l="תוצר">Requirements.md בעברית קריאה</td><td data-l="שער אישור">G1</td></tr><tr><td data-l="שלב">Spec עיצובי וטכנולוגי</td><td data-l="מה קורה">תכנון UX, דיזיין סיסטם ממשלתי, נגישות AA, HLD/LLD, מודל נתונים, APIs ואינטגרציות</td><td data-l="תוצר">Design Spec, HLD/LLD, ADRs</td><td data-l="שער אישור">G2</td></tr><tr><td data-l="שלב">תכנון משימות</td><td data-l="מה קורה">פירוק ה-Spec למשימות קטנות, תלויות, בדיקות ותנאי קבלה</td><td data-l="תוצר">Plan.md, Tasks.md</td><td data-l="שער אישור">אישור מוביל פיתוח</td></tr><tr><td data-l="שלב">מימוש</td><td data-l="מה קורה">Agent מממש משימה אחת בכל Session, בענף או Worktree מבודד</td><td data-l="תוצר">קוד, בדיקות, תיעוד, PR</td><td data-l="שער אישור">G3</td></tr><tr><td data-l="שלב">בדיקות ו-Evals</td><td data-l="מה קורה">הרצת בדיקות אוטומטיות, סריקות אבטחה, Code Review ובדיקות תרחיש</td><td data-l="תוצר">דוחות CI/CD, תוצאות Evals</td><td data-l="שער אישור">שער איכות</td></tr><tr><td data-l="שלב">מסירה, CI/CD ועלייה לאוויר</td><td data-l="מה קורה">קידום מבוקר בין סביבות, אישור פריסה ותיעוד מסירה</td><td data-l="תוצר">Release Notes, Runbook, תיעוד תפעולי</td><td data-l="שער אישור">G5</td></tr><tr><td data-l="שלב">שו"ש, Spec Change</td><td data-l="מה קורה">ניתוח בקשת שינוי, עדכון דרישה, תכנון השפעה ומימוש מחדש</td><td data-l="תוצר">Spec Change, עדכון Specs ומשימות</td><td data-l="שער אישור">אישור לפי השפעה</td></tr></tbody></table></div>
+<p>בקשת שו"ש אינה נפתחת ישירות כמשימת קוד. תחילה מתועדת הסיבה לשינוי, ההשפעה על הדרישות, הנתונים, האינטגרציות, האבטחה והבדיקות.</p>
+<p>לאחר אישור ה-Spec Change, מעודכנים Requirements.md, Plan.md ו-Tasks.md. רק לאחר מכן נפתח מימוש חדש, והבדיקות מתעדכנות בהתאם לתנאי הקבלה החדשים.</p>
+<h2 id="s3">3. ארכיטקטורת הסוכנים (Multi-Agent)</h2>
+<div class="tbl-wrap"><table class="tbl wide"><thead><tr><th>סוכן</th><th>אחריות</th><th>קלט</th><th>פלט</th><th>מה אסור לו</th></tr></thead><tbody><tr><td data-l="סוכן">Discovery Agent</td><td data-l="אחריות">מיפוי מערכת קיימת ותלויות</td><td data-l="קלט">קוד, תיעוד, סכמות, לוגים מאושרים</td><td data-l="פלט">מפת רכיבים ופערים</td><td data-l="מה אסור לו">לשנות קוד או נתונים</td></tr><tr><td data-l="סוכן">Spec Agent</td><td data-l="אחריות">ניסוח והשלמת Specs</td><td data-l="קלט">צורך עסקי, תבניות, החלטות</td><td data-l="פלט">Requirements.md וקריטריוני קבלה</td><td data-l="מה אסור לו">לאשר דרישות בעצמו</td></tr><tr><td data-l="סוכן">Design Agent</td><td data-l="אחריות">תכנון מסכים, זרימות ונגישות</td><td data-l="קלט">Spec עסקי, דיזיין סיסטם</td><td data-l="פלט">Design Spec ותסריטי UI</td><td data-l="מה אסור לו">להחליף אישור UX אנושי</td></tr><tr><td data-l="סוכן">Architect Agent</td><td data-l="אחריות">HLD/LLD, APIs, נתונים ואינטגרציות</td><td data-l="קלט">Specs, מגבלות ענן ואבטחה</td><td data-l="פלט">תכנון טכני ו-ADRs</td><td data-l="מה אסור לו">לשנות תשתית או IaC</td></tr><tr><td data-l="סוכן">Planner Agent</td><td data-l="אחריות">פירוק עבודה למשימות קטנות</td><td data-l="קלט">Spec מאושר ותכנון טכני</td><td data-l="פלט">Plan.md ו-Tasks.md</td><td data-l="מה אסור לו">להחליט על עדיפויות עסקיות</td></tr><tr><td data-l="סוכן">Coder Agents</td><td data-l="אחריות">מימוש משימה בודדת במקביל</td><td data-l="קלט">משימה, Context Pack, קוד רלוונטי</td><td data-l="פלט">קוד, בדיקות וטיוטת PR</td><td data-l="מה אסור לו">לעבוד על ענף משותף או לפרוס</td></tr><tr><td data-l="סוכן">Reviewer Agent</td><td data-l="אחריות">בדיקת התאמה, איכות וסיכונים</td><td data-l="קלט">Diff, Spec, בדיקות ותיעוד</td><td data-l="פלט">הערות Review ורשימת ממצאים</td><td data-l="מה אסור לו">לאשר את הקוד שכתב</td></tr><tr><td data-l="סוכן">Test Agent</td><td data-l="אחריות">יצירת והרצת בדיקות תרחיש</td><td data-l="קלט">תנאי קבלה, APIs, UI וקוד</td><td data-l="פלט">Unit, API, E2E ותוצאות</td><td data-l="מה אסור לו">לקבוע לבדו שהכיסוי מספיק</td></tr><tr><td data-l="סוכן">Security &amp; License Agent</td><td data-l="אחריות">איתור חולשות, סודות ורישיונות</td><td data-l="קלט">קוד, תלויות, SBOM</td><td data-l="פלט">דוח אבטחה ורישוי</td><td data-l="מה אסור לו">להחריג ממצא אבטחה</td></tr><tr><td data-l="סוכן">Documentation Agent</td><td data-l="אחריות">עדכון תיעוד מפתחים ותפעול</td><td data-l="קלט">Spec, קוד מאושר, APIs</td><td data-l="פלט">README, Runbook ותיעוד API</td><td data-l="מה אסור לו">לתעד התנהגות שלא אושרה</td></tr></tbody></table></div>
+<p>כל Coder Agent עובד על משימה מוגדרת אחת בלבד, ב-branch או Worktree מבודד. עבודות מקבילות מתמזגות רק לאחר בדיקות, Code Review ואישור אנושי.</p>
+<p>סוכן Reviewer אינו הסוכן שכתב את הקוד. סוכנים אינם מאשרים את עבודתם, אינם עוקפים שערי איכות, ואינם מבצעים פעולות קריטיות. האישור הסופי נשאר בידי גורם אנושי מוסמך.</p>
+<h2 id="s4">4. חלוקת תפקידים בין הצוות האנושי לסוכנים</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>תפקיד אנושי</th><th>אחריות</th><th>מאשר את</th></tr></thead><tbody><tr><td data-l="תפקיד אנושי">מנהל מוצר מטעם המשרד</td><td data-l="אחריות">מטרות, סדרי עדיפויות, תהליכים עסקיים ותנאי קבלה</td><td data-l="מאשר את">Spec עסקי, שו"ש וקבלת תוצר</td></tr><tr><td data-l="תפקיד אנושי">ארכיטקט המשרד או ארכיטקט הענן של המערך</td><td data-l="אחריות">התאמה לחוקה ממשלתית, Nimbus, אזור נחיתה ואינטגרציות</td><td data-l="מאשר את">HLD, LLD, ארכיטקטורה ושינויי ענן</td></tr><tr><td data-l="תפקיד אנושי">מוביל Agentic SDD מטעם הספק</td><td data-l="אחריות">ניהול שיטת העבודה, Context, Agents, איכות ו-Traceability</td><td data-l="מאשר את">Plan, הקצאת משימות והכנה לשערים</td></tr><tr><td data-l="תפקיד אנושי">מפתח סוקר, Human Reviewer</td><td data-l="אחריות">סקירת קוד, הבנת לוגיקה, קריאות ותחזוקתיות</td><td data-l="מאשר את">כל PR וקוד שנוצר ב-AI</td></tr><tr><td data-l="תפקיד אנושי">DevOps</td><td data-l="אחריות">CI/CD, סביבות, הרשאות, IaC, תצפיתיות ופריסה</td><td data-l="מאשר את">קידום סביבות ופעולות תשתית</td></tr><tr><td data-l="תפקיד אנושי">נציג אבטחת מידע</td><td data-l="אחריות">אבטחת מידע, פרטיות, סודות, הרשאות ותלויות</td><td data-l="מאשר את">חריגי אבטחה, מסלולי מידע ועלייה לאוויר</td></tr></tbody></table></div>
+<p>הסוכנים מבצעים עבודת ניתוח, ניסוח, מימוש ובדיקה. הם אינם מחליפים את בעלי התפקידים האנושיים בקבלת החלטות עסקיות, ארכיטקטוניות, אבטחתיות או תפעוליות.</p>
+<h2 id="s5">5. שערי אישור (HITL) ושער איכות</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שער</th><th>מתי</th><th>מי מאשר</th><th>מה נבדק</th></tr></thead><tbody><tr><td data-l="שער">G0 חוקה ו-framework</td><td data-l="מתי">לפני תחילת פיתוח</td><td data-l="מי מאשר">המשרד, ארכיטקט ענן ומוביל SDD</td><td data-l="מה נבדק">כלים, הרשאות, מודל עבודה, לוגים וסביבות</td></tr><tr><td data-l="שער">G1 Spec עסקי</td><td data-l="מתי">לפני תכנון מפורט</td><td data-l="מי מאשר">מנהל מוצר מטעם המשרד</td><td data-l="מה נבדק">תרחישים, חריגים, מדדי קבלה וסדרי עדיפויות</td></tr><tr><td data-l="שער">G2 Spec עיצובי וטכנולוגי</td><td data-l="מתי">לפני פירוק למימוש</td><td data-l="מי מאשר">ארכיטקט, מוצר, UX ואבטחת מידע לפי צורך</td><td data-l="מה נבדק">UX, AA, HLD/LLD, APIs, נתונים ואינטגרציות</td></tr><tr><td data-l="שער">G3 כל PR</td><td data-l="מתי">לפני מיזוג לענף מאושר</td><td data-l="מי מאשר">Human Reviewer ומוביל פיתוח</td><td data-l="מה נבדק">התאמה ל-Spec, בדיקות, אבטחה, רישוי ותיעוד</td></tr><tr><td data-l="שער">G4 פעולות קריטיות</td><td data-l="מתי">לפני ביצוע פעולה בסביבה רגישה</td><td data-l="מי מאשר">גורם אנושי מורשה</td><td data-l="מה נבדק">כתיבה ל-DB בייצור, מחיקת משאבים ושינויי IaC</td></tr><tr><td data-l="שער">G5 מסירה ועלייה לאוויר</td><td data-l="מתי">לפני קידום לייצור</td><td data-l="מי מאשר">גורמי המשרד, DevOps ואבטחת מידע</td><td data-l="מה נבדק">תוצאות CI/CD, Runbook, ניטור, הרשאות ותוכנית חזרה לאחור</td></tr></tbody></table></div>
+<p>שער איכות הוא תנאי למיזוג PR ולקידום Release. תוצאות השער מתועדות במערכת ה-CI/CD, בדוח ה-PR ובשרשרת ה-Traceability.</p>
+<ul class="incl"><li>בדיקות אוטומטיות עוברות</li><li>תרחישי קבלה מכוסים</li><li>סריקת אבטחה נקייה</li><li>סריקת רישיונות נקייה</li><li>התאמה מלאה ל-Spec</li><li>Code Review אנושי</li><li>ללא קוד מת</li><li>ללא שכפול מהותי</li><li>בדיקת יעילות DB ו-API</li><li>תיעוד מתודה מעודכן</li><li>Traceability מלאה לדרישה</li><li>אישור פריסה נדרש</li></ul>
+<p>כשל בשער איכות אינו נסגר באמצעות חריגה לא מתועדת. הוא מחזיר את העבודה לתיקון ב-Spec, בקוד, בבדיקות או בתצורה, לפי מקור הפער.</p>
+<h2 id="s6">6. החוקה הפרויקטלית, Project Context ו-Skills</h2>
+<p>החוקה הפרויקטלית היא מסמך מחייב שנמצא ב-Repository ונקרא בתחילת כל Session של Agent. היא מגדירה את כללי העבודה שהסוכנים והמפתחים נדרשים לפעול לפיהם.</p>
+<ul class="bul"><li>מטרות המערכת, גבולותיה ובעלי התפקידים המאשרים.</li><li>החוקה הממשלתית והחוקה של המשרד, לאחר קבלתן והטמעתן בפרויקט.</li><li>כללי אבטחת מידע, פרטיות, יה"ב, הרשאות וטיפול בסודות.</li><li>כללי פיתוח, ארכיטקטורה, naming, Code Review ותיעוד.</li><li>מדיניות שימוש בכלי AI, מודלים, Context ונתונים.</li><li>כללי עבודה מול Nimbus, אזור נחיתה, CI/CD ו-IaC.</li><li>כללי נגישות AA ודיזיין סיסטם ממשלתי.</li><li>כללי רישוי, SBOM, סריקות אבטחה וניהול תלויות.</li><li>שערי HITL, פעולות אסורות ותנאי עצירה.</li><li>מבנה ה-Repository, שיטת ניהול ADRs ומזהי דרישות.</li></ul>
+<p>Project Context הוא אוסף ממוקד של מסמכים, החלטות, קוד ודוגמאות המועבר לסוכן עבור משימה מוגדרת. הוא קטן ככל האפשר, מעודכן, ומכיל רק מידע שנדרש להשלמת המשימה באופן מדויק.</p>
+<p>Skills הם הוראות עבודה חוזרות, גרסאות ומבוקרות, עבור משימה מקצועית מוגדרת. Skill מתאר קלט, שלבים, כללי איכות, פלט צפוי ותנאי עצירה.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Skill</th><th>שימוש</th></tr></thead><tbody><tr><td data-l="Skill">כתיבת Spec בעברית</td><td data-l="שימוש">ניסוח דרישות לפי תבנית, כולל חריגים ותנאי קבלה</td></tr><tr><td data-l="Skill">דיזיין סיסטם ממשלתי</td><td data-l="שימוש">בחירת רכיבים, RTL, נגישות AA ותיעוד התנהגות</td></tr><tr><td data-l="Skill">בדיקות API</td><td data-l="שימוש">יצירת בדיקות API אוטומטיות לפי חוזה ותרחישים</td></tr><tr><td data-l="Skill">IaC באזור נחיתה</td><td data-l="שימוש">שינוי מבוקר של תשתית לפי כללי Nimbus והרשאות</td></tr><tr><td data-l="Skill">Spec Change</td><td data-l="שימוש">ניתוח השפעה, אישור, עדכון Specs ובדיקות</td></tr><tr><td data-l="Skill">Code Review</td><td data-l="שימוש">בדיקת התאמה ל-Spec, אבטחה, קריאות ותיעוד</td></tr></tbody></table></div>
+<ul class="incl"><li>תבנית Requirements.md</li><li>תבנית Design Spec</li><li>תבנית HLD ו-LLD</li><li>תבנית Plan.md</li><li>תבנית Tasks.md</li><li>תבנית ADR</li><li>תבנית Spec Change</li><li>תבנית PR</li><li>תבנית Test Plan</li><li>תבנית Runbook</li><li>תבנית Release Notes</li></ul>
+<h2 id="s7">7. Guardrails לסוכני הפיתוח</h2>
+<ul class="bul"><li>כל Agent פועל בהרשאת least privilege ובסביבה מבודדת.</li><li>לסוכנים אין credentials לייצור, ואין להם גישה ישירה ל-Production DB.</li><li>כתיבה ל-Production DB מתבצעת רק דרך Pipeline מאושר ובאישור אנושי מפורש.</li><li>מחיקת משאבים, שינויי IaC ופעולות בלתי הפיכות מחייבים G4.</li><li>רק כלים, פקודות, Repositories וחבילות שנכללו ב-allow-list זמינים לסוכן.</li><li>סודות, מפתחות, tokens וקבצי credentials אינם נכנסים ל-Context של מודל.</li><li>נתיבים רגישים, קבצי תצורה והגדרות הרשאה מוגנים מפני שינוי אוטומטי.</li><li>תעבורת רשת יוצאת מוגבלת ליעדים ולשירותים שאושרו מראש.</li><li>מוגדרים תקציב tokens, מגבלת זמן ומגבלת פעולות לכל משימה.</li><li>תנאי עצירה מחייבים את הסוכן לעצור במקרה של אי-ודאות, חריגת הרשאה, כשל בדיקה או סתירה ב-Spec.</li><li>שינוי שאינו ניתן להסבר באמצעות Spec, Diff ובדיקה אינו מתקדם למיזוג.</li><li>אין שימוש בפקודות הרסניות ללא אישור אנושי מפורש ותיעוד הפעולה.</li></ul>
+<h2 id="s8">8. ניהול זיכרון וקונטקסט</h2>
+<p>ניהול Context הוא רכיב מרכזי בפיתוח ארוך טווח באמצעות Agents. חלון הקונטקסט של מודל אינו משמש כמקור זיכרון יחיד, ולכן הזיכרון נשמר במבנים מבוקרים ב-Repository ובמערכות מאושרות.</p>
+<ul class="bul"><li>ה-Repository הוא הזיכרון ארוך הטווח: החוקה, Specs, ADRs, החלטות, בדיקות, תיעוד ו-PRs.</li><li>במערכות Legacy גדולות ניתן להקים אינדקס Vector של קוד ומסמכים לצורכי Discovery וחיפוש מבוקר.</li><li>לכל משימה נבנה Context Pack הכולל רק את הדרישה, הקוד, החוזים וההחלטות הרלוונטיים.</li><li>כל Session מסתיים ב-Handoff Note המתעד מה בוצע, מה נותר, אילו החלטות התקבלו ואילו סיכונים זוהו.</li><li>החלטות ארכיטקטוניות אינן נשמרות רק ב-Chat. הן מתועדות ב-ADR בעל מזהה וסטטוס.</li><li>מידע שהתיישן מסומן ככזה או מוסר מה-Context כדי למנוע שימוש בהנחות ישנות.</li></ul>
+<p>מבנה זה מונע אובדן הקשר בין Sessions, הפקת קוד על בסיס החלטות שהתבטלו, וסטייה הדרגתית בין ה-Spec לבין המימוש. הוא מאפשר לצוות אנושי להמשיך עבודה גם אם הוחלף כלי AI או מודל.</p>
+<h2 id="s9">9. תיעוד, Observability ו-Traceability של עבודת הסוכנים</h2>
+<p>כל פעולת Agent מתועדת לצורך ביקורת תקציבית, אבטחתית ומקצועית. הלוגים נשמרים בסביבת הענן של המשרד, בהתאם למדיניות השמירה והגישה שתוגדר בפרויקט, לדוגמה CloudWatch ב-AWS או Cloud Logging ב-GCP.</p>
+<ul class="bul"><li>מזהה Session, מזהה Agent, מזהה משימה ומזהה דרישה.</li><li>גרסת החוקה, ה-Spec, ה-Skill וה-Context Pack ששימשו לפעולה.</li><li>Prompt שנשלח, בכפוף להסרת סודות ומידע שאסור לתעד.</li><li>Tool calls, פקודות שבוצעו, קבצים שנקראו וקבצים ששונו.</li><li>תשובת המודל, פלט מעובד, שגיאות ותנאי עצירה.</li><li>ספק המודל, שם המודל, גרסה, tokens, משך פעולה ועלות.</li><li>branch, Worktree, Diff, PR ותוצאות בדיקות קשורות.</li><li>זהות הסוקר האנושי, החלטת האישור והסבר במקרה של דחייה.</li><li>פעולות חריגות, ניסיונות גישה חסומים והפרות Guardrails.</li></ul>
+<p class="chain"><strong>מזהה דרישה → משימה → סשן סוכן → PR → סוקר אנושי → בדיקות</strong></p>
+<p>שרשרת זו מאפשרת לאתר במהירות מדוע נכתב רכיב מסוים, על איזה Spec הוא מבוסס, איזה Agent סייע ביצירתו, ומי קיבל את החלטת האישור. היא גם מאפשרת ניתוח עלויות AI לפי רכיב, משימה, מודל או צוות.</p>
+<p>ניסיון בבניית מערכות multi-agent כולל תיעוד Prompts ופלטים, כללים דטרמיניסטיים לצד המודל, וזיהוי ספק המודל, המודל, ה-tokens ומשך הפעולה. עיקרון זה מיושם גם בפרוטוקול הפיתוח, בהתאמות הנדרשות למדיניות המשרד.</p>
+<h2 id="s10">10. פרטיות ואבטחת מידע בעבודה עם AI</h2>
+<ul class="bul"><li>מודלים נצרכים רק דרך חשבון הענן של המשרד, באמצעות Bedrock, Vertex AI או מסלול Nimbus מאושר אחר.</li><li>אין הזנת מידע סודי, אישי, רגיש או מידע אמיתי לכלי SaaS חיצוני שאינו מבודד ומאושר.</li><li>סביבות Development ו-Test אינן כוללות נתוני ייצור. הן משתמשות בנתונים סינתטיים.</li><li>מידע אישי עובר PII redaction לפני תיעוד, אינדוקס, Eval או העברה למודל.</li><li>קבצי secrets, מפתחות API, certificates ו-credentials אינם נכללים ב-Prompt, בלוגים או ב-Vector DB.</li><li>כל כלי AI, Plugin, MCP Server ומודל עוברים allow-list לפני שימוש.</li><li>נלמד ונפעל לפי מדיניות יה"ב לסוכנים, לאחר קבלתה בפרויקט, ולפי החוקה הממשלתית הרלוונטית.</li><li>הרשאות גישה, retention של לוגים ומיקום נתונים מוגדרים יחד עם גורמי אבטחת המידע.</li><li>פעולות Agent ניתנות לאיתור, לביקורת ולחסימה באמצעות Guardrails ותצפיתיות.</li><li>במקרה של חשד לחשיפת מידע, ה-Agent נעצר, האירוע מתועד ומטופל לפי נוהל אירועי אבטחה של המשרד.</li></ul>
+<h2 id="s11">11. כלים וסביבות מאושרים ובחירת framework</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>כלי</th><th>סביבה</th><th>מתאים ל</th><th>הערות</th></tr></thead><tbody><tr><td data-l="כלי">Claude Code</td><td data-l="סביבה">סביבת פיתוח מאושרת בחשבון המשרד</td><td data-l="מתאים ל">עבודה Agentic, Specs, קוד, בדיקות ו-Review</td><td data-l="הערות">הכלי שבו אנו עובדים ומציעים. המודלים נצרכים דרך Amazon Bedrock או Vertex AI, בכפוף לאישור Nimbus.</td></tr><tr><td data-l="כלי">Kiro, Antigravity, Spec-kit, BMAD</td><td data-l="סביבה">לפי אישור המשרד ו-Nimbus</td><td data-l="מתאים ל">תאימות ארטיפקטים</td><td data-l="הערות">המכרז מפרט כלים אלה. הארטיפקטים נשמרים ב-Markdown במבנה Requirements, Plan ו-Tasks.</td></tr></tbody></table></div>
+<p>ההחלטה על framework מתקבלת ומתועדת בשער G0 יחד עם המשרד, ארכיטקט הענן וגורמי אבטחת המידע. הבחירה תהיה רק מתוך כלים המאושרים לעבודה ב-Nimbus ובסביבה הספציפית של הפרויקט.</p>
+<p>הארטיפקטים נשמרים כקבצים קריאים ב-Repository: Constitution, Requirements.md, Plan.md, Tasks.md, ADRs, בדיקות ותיעוד. הם תואמים למבנה Requirements, Plan ו-Tasks שבו משתמשות המסגרות המפורטות במכרז, ולכן המשרד אינו נעול ל-Claude Code ויכול להמשיך בכל כלי מאושר בהמשך.</p>
+<h2 id="s12">12. איכות קוד שנוצר ב-AI</h2>
+<h3>בדיקות</h3>
+<p>כל מימוש כולל בדיקות הנגזרות מקריטריוני הקבלה ב-Spec. הבדיקות נכתבות ומורצות ב-CI/CD, אך התרחישים, מקרי הקצה והמשמעות העסקית שלהם מאושרים גם על ידי גורם אנושי.</p>
+<ul class="bul"><li>Unit tests ללוגיקה, כללים, המרות וחריגים.</li><li>API tests אוטומטיים בסגנון Postman או כלי מקביל, לפי חוזי API.</li><li>UI ו-E2E tests לתרחישים עסקיים מרכזיים.</li><li>Visual tests לרכיבי UI, RTL, דיזיין סיסטם ונגישות.</li><li>Integration tests לאינטגרציות, תורים, תהליכים אסינכרוניים והרשאות.</li><li>Regression tests לכל תקלה שתוקנה ולכל שו"ש משמעותי.</li></ul>
+<p>כיסוי אינו נמדד רק כאחוז שורות קוד. הוא נמדד גם לפי תרחישים עסקיים, חריגים, הרשאות, מעברי מצב, כשלי אינטגרציה ומקרי קצה. Human Reviewer בודק במיוחד שבדיקות שנוצרו ב-AI אינן בודקות רק את ההתנהגות שהקוד עצמו מימש.</p>
+<h3>חולשות אופייניות לקוד AI</h3>
+<p>קוד שנוצר על ידי מודל עלול לכלול API מיושן, תלות לא מתועדת, טיפול חסר בשגיאות, לוגיקה שנראית תקינה אך נכשלת במקרי קצה, או שימוש בלתי בטוח בקלט משתמש. לכן נדרשת בדיקה ייעודית מעבר להרצת tests.</p>
+<ul class="incl"><li>שימוש ב-API מיושן</li><li>SQL או command injection</li><li>הרשאה חסרה או רחבה</li><li>טיפול שגיאות חלקי</li><li>לוגיקה סמויה לא מתועדת</li><li>תלות לא מאושרת</li><li>קוד שלא נקרא</li><li>שכפול קוד גנרטיבי</li><li>race conditions</li><li>ולידציה חסרה לקלט</li></ul>
+<p>Reviewer Agent מסמן ממצאים, אך Human Reviewer מחויב להבין את הלוגיקה, את השפעתה ואת התיקון. קוד שלא ניתן להסבר על ידי הסוקר אינו מאושר.</p>
+<h3>יעילות ועלות ענן</h3>
+<p>בכל PR נבדקת יעילות בסיסית של גישות למסד הנתונים, APIs, cache, streaming, פעולות רקע ושימוש במשאבי ענן. Agentic AI עלול לייצר קריאות חוזרות או שכבות מיותרות שנראות תקינות פונקציונלית אך מגדילות עלויות ותלות.</p>
+<p>נבדקים בין היתר שאילתות ללא אינדקס, N+1 queries, polling מיותר, קריאות API כפולות, טעינת מידע עודף, retries לא מבוקרים ולולאות ללא גבול. ממצאים מהותיים נרשמים ב-PR או ב-ADR.</p>
+<h3>תחזוקתיות ותיעוד ברמת המתודה</h3>
+<p>נבדקים קריאות קוד, הפרדת אחריות, naming, גבולות בין שכבות, טיפול בשגיאות, testability, ומדדי תחזוקתיות שייקבעו בפרויקט. אין להשאיר קוד מת, פיצול לא מוסבר של לוגיקה, או שכפול שנוצר כתוצאה מעבודה מקבילית של Agents.</p>
+<p>מתודות ציבוריות, חוזי API, כללים עסקיים ותהליכים מורכבים מתועדים ברמת המתודה או הרכיב, כאשר התיעוד מוסיף הסבר שאינו מובן מאליו מהקוד. התיעוד מתעד את ה"למה", ולא רק את ה"מה".</p>
+<h3>זכויות יוצרים ורישוי</h3>
+<p>כל תלות חדשה עוברת בדיקת רישוי. קוד ותלויות בעלי רישיון מגביל כגון GPL או AGPL אינם נכנסים לפרויקט ללא החלטה מפורשת של המשרד והגורמים המוסמכים.</p>
+<p>מופק SBOM כחלק מתהליך המסירה וה-Release. סריקת רישוי ב-CI/CD בודקת גם תלות טרנזיטיבית, גרסאות פגיעות והכנסת חבילות לא מאושרות.</p>
+<h2 id="s13">13. שכבת ה-AI במערכות שנמסרות</h2>
+<p>כאשר המערכת הנמסרת כוללת Agents או יכולות GenAI, שכבת ה-AI מתוכננת כרכיב מערכת מבוקר ולא כאוסף קריאות ישירות למודל. היא כוללת הפרדה בין לוגיקה עסקית, ספקי מודלים, מידע, הרשאות, מדידה ובקרה.</p>
+<h3>AI Gateway</h3>
+<ul class="bul"><li>ניתוב מודלים לפי משימה, מדיניות, עלות, זמינות ורגישות מידע.</li><li>fallback ו-retry מבוקרים, עם מגבלות למניעת לולאות ועלויות בלתי צפויות.</li><li>ניהול מפתחות והרשאות ללא חשיפתם ללקוח או ל-Agent.</li><li>rate limits לפי משתמש, שירות, Agent או תהליך.</li><li>caching כאשר התשובה מותרת לשימוש חוזר ואינה כוללת מידע אישי.</li><li>token tracking, עלות לפי בקשה, תקציב והתראות.</li><li>PII redaction לפני שליחה למודל ולפני שמירת לוגים.</li><li>Tracing של בקשות, מודלים, כלים, Latency, עלות ותוצאות.</li></ul>
+<h3>MCP Gateway/Registry ו-Guardrails</h3>
+<p>MCP Gateway או Registry מרכזים את הגישה לכלים חיצוניים. כל MCP Server נרשם, עובר בדיקת אבטחה, מוגדר עם הרשאות מצומצמות, ומנוהל לפי allow-list.</p>
+<p>Guardrails נאכפים לפני ואחרי קריאת המודל. הם כוללים בדיקת הרשאות, סינון מידע רגיש, הגבלת כלי פעולה, ולידציה של פלט מובנה, כללים עסקיים, חסימת הוראות אסורות וניתוב לאישור אנושי במקרים נדרשים.</p>
+<h3>Evals ו-Eval Suite</h3>
+<p>Eval Suite כולל Test Dataset גרסאי, הכולל תרחישים רגילים, מקרי קצה, קלטים בעייתיים, שיחות מדומות ודוגמאות מאושרות. כל שינוי ב-Spec, Prompt, Agent, מודל או כלי מחייב הרצת Evals רלוונטיים.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>מדד</th><th>הגדרה</th><th>שימוש</th></tr></thead><tbody><tr><td data-l="מדד">דיוק</td><td data-l="הגדרה">שיעור תשובות תואמות אמת או מקור מאושר</td><td data-l="שימוש">בדיקת איכות תשובה</td></tr><tr><td data-l="מדד">עמידה בכללים</td><td data-l="הגדרה">התאמה לכללים עסקיים ולמדיניות</td><td data-l="שימוש">חסימת התנהגות אסורה</td></tr><tr><td data-l="מדד">שיעור הזיה</td><td data-l="הגדרה">מידע שלא נתמך במקור או בתהליך</td><td data-l="שימוש">איתור סטייה עובדתית</td></tr><tr><td data-l="מדד">שיעור סטייה</td><td data-l="הגדרה">חריגה מה-Spec או מהפורמט הנדרש</td><td data-l="שימוש">בדיקת נאמנות לדרישה</td></tr><tr><td data-l="מדד">הצלחת כלי</td><td data-l="הגדרה">הצלחת קריאות Tool או MCP</td><td data-l="שימוש">בדיקת תהליך Agent</td></tr><tr><td data-l="מדד">זמן תגובה</td><td data-l="הגדרה">Latency לפי תרחיש ומודל</td><td data-l="שימוש">תכנון חוויית משתמש</td></tr><tr><td data-l="מדד">עלות לתרחיש</td><td data-l="הגדרה">tokens ועלות קריאה מלאה</td><td data-l="שימוש">FinOps ובחירת מודל</td></tr><tr><td data-l="מדד">שיעור escalation</td><td data-l="הגדרה">העברה לאדם או לתהליך חלופי</td><td data-l="שימוש">כיול Guardrails</td></tr></tbody></table></div>
+<p>Evals משמשים Quality Gate ב-CI/CD עבור רכיבי AI. שינוי שאינו עומד בספי האיכות שנקבעו לפרויקט אינו מתקדם לפרסום או לייצור ללא החלטה אנושית מתועדת.</p>
+<p>Specs, Prompts, Agents וכללי Guardrails הם גרסאות מנוהלות. פרסום שינוי הוא פעולה נפרדת משמירה. ניתן לשמור Draft, לבצע Review, להריץ Evals, ורק לאחר אישור לבצע publish לגרסה פעילה.</p>
+<p>FinOps כולל תקציבי tokens, מגבלות עלות, התראות על חריגה, דוחות שימוש ו-kill-switch להשבתת Agent, כלי, מודל או מסלול פעולה. פעולות בעלות השפעה גבוהה מוגדרות מראש עם fallback אנושי.</p>
+<p>ניסיון בבניית מערכות multi-agent כולל תפקידים מופרדים, Agents משורשרים, Context מופעל, מערכות זיכרון, RAG, כללים דטרמיניסטיים לצד מודל, תיעוד Prompts ופלטים, וניתוב בין מספר ספקי מודלים.</p>
+<h2 id="s14">14. Best Practices לפיתוח עם AI</h2>
+<ul class="bul"><li>מפרקים עבודה למשימות קטנות וברורות.</li><li>מקצים משימה אחת לכל Session של Agent.</li><li>כותבים קריטריוני קבלה לפני כתיבת קוד.</li><li>מצרפים לכל משימה Context Pack ממוקד.</li><li>לא מקבלים קוד שלא ניתן להסביר ולתחזק.</li><li>לא נותנים ל-Agent לאשר את עבודתו.</li><li>מעדכנים Spec לפני כל תיקון מהותי.</li><li>מריצים בדיקות לפני Code Review.</li><li>בודקים מקרי קצה אנושיים לבדיקות שנוצרו ב-AI.</li><li>שומרים החלטות ב-ADR ולא רק בשיחה.</li><li>משתמשים ב-branch או Worktree מבודד לכל עבודה מקבילה.</li><li>חוסמים סודות, נתונים אמיתיים ופעולות ייצור מה-Context.</li><li>מודדים עלות, tokens ומשך פעולה של Agents.</li><li>מעדכנים תיעוד יחד עם הקוד ולא לאחר המסירה.</li><li>מבצעים publish נפרד משמירת Draft ברכיבי AI.</li><li>מעדיפים כללים דטרמיניסטיים כאשר ניתן להגדיר כלל עסקי מפורש.</li></ul>
+<h2 id="s15">15. העברת ידע והטמעה במשרד</h2>
+<p>העברת הידע מתבצעת תחילה בהדרכה פרונטלית לצוותי המשרד והספקים המעורבים, בהתאם להעדפת המכרז. לאחר מכן היא נמשכת בעבודה משותפת על Specs, PRs, שערי איכות ותרחישי מסירה.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>נושא הדרכה</th><th>אופן העברה</th><th>תוצר</th></tr></thead><tbody><tr><td data-l="נושא הדרכה">מבנה ה-Spec</td><td data-l="אופן העברה">הדרכה ועבודה על דוגמה מהפרויקט</td><td data-l="תוצר">תבניות ו-Spec מאושר</td></tr><tr><td data-l="נושא הדרכה">אישור Specs</td><td data-l="אופן העברה">סימולציית G1 ו-G2</td><td data-l="תוצר">רשימת בדיקות מאשרים</td></tr><tr><td data-l="נושא הדרכה">סקירת PR שנוצר ב-AI</td><td data-l="אופן העברה">Code Review מודרך</td><td data-l="תוצר">Checklist לסוקר אנושי</td></tr><tr><td data-l="נושא הדרכה">ניהול Project Context</td><td data-l="אופן העברה">עבודה על Context Pack ו-Handoff</td><td data-l="תוצר">נוהל Context ו-ADRs</td></tr><tr><td data-l="נושא הדרכה">הפעלת CI/CD ושערים</td><td data-l="אופן העברה">מעבר על Pipeline אמיתי</td><td data-l="תוצר">Runbook ושגרת Release</td></tr><tr><td data-l="נושא הדרכה">ניהול Agents במערכת</td><td data-l="אופן העברה">הדרכה על גרסאות, Evals ו-publish</td><td data-l="תוצר">נוהל תפעול Agent</td></tr><tr><td data-l="נושא הדרכה">אבטחת מידע ופרטיות</td><td data-l="אופן העברה">עבודה מול גורמי המשרד</td><td data-l="תוצר">כללי שימוש והסלמה</td></tr><tr><td data-l="נושא הדרכה">שו"ש מבוסס Spec</td><td data-l="אופן העברה">תרגול בקשת שינוי מלאה</td><td data-l="תוצר">תבנית Spec Change</td></tr></tbody></table></div>
+<p>התוצרים כוללים חוקה פרויקטלית, תבניות, Skills, מדריכי עבודה, Runbooks, דוגמאות PR, רשימות בדיקה, ADRs ותיעוד תפעולי. כל תוצר נשמר ב-Repository של הפרויקט ומנוהל בגרסאות.</p>
+<p>במשרד שבו טרם קיימים תהליכי AI מוסדרים, נתחיל בהכנת תשתית העבודה: מיפוי בעלי תפקידים, בחירת סביבה מאושרת, הגדרת הרשאות, לוגים, מדיניות נתונים, כללי HITL, תהליך אישור כלים והקמת תבניות עבודה. המטרה היא לאפשר לצוות המשרד להמשיך לתחזק, לפתח ולבקר את המוצר באופן עצמאי.</p>
+  <div class="sign">
+    <div><b>שלומי זוין</b>Boostart · CTO as a Service</div>
+    <div><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a></div>
+  </div>
+</main>
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('themeBtn'),K='boostart-gov-theme';
+  function set(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'☀':'☾';try{localStorage.setItem(K,t)}catch(e){}}
+  var s=null;try{s=localStorage.getItem(K)}catch(e){}
+  set(s||'light');
+  btn.addEventListener('click',function(){set(root.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>

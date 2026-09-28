@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הצעת ליווי ופיתוח — EYE LOVE YOU</title>
+<meta name="description" content="הצעת ליווי ופיתוח להקמת סוכן AI באתר EYE LOVE YOU.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EBE7DF; --paper:#FFFFFF; --tint:#F6F3ED;
+  --line:rgba(17,17,17,.10); --line-2:rgba(17,17,17,.20);
+  --text:#14110D; --text-2:#38342E; --muted:#6D665E;
+  --accent:#1E8478; --cream:#FFFFFF;
+  --maxw:800px;
+}
+:root[data-theme="dark"]{
+  --bg:#0C100F; --paper:#121716; --tint:#1A211F;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+  --text:#E9EEEC; --text-2:#B6C1BE; --muted:#8B9693;
+  --accent:#6FC7BB; --cream:#EFE7DA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Heebo',system-ui,-apple-system,sans-serif;
+  font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;
+  padding:36px 18px 64px;
+}
+.doc{
+  max-width:var(--maxw); margin:0 auto; background:var(--paper);
+  border:1px solid var(--line); border-radius:3px; padding:52px 60px 46px;
+}
+
+/* letterhead */
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--line-2)}
+.logo-chip{background:var(--cream);border-radius:4px;padding:8px 12px;display:inline-flex}
+.logo-chip img{display:block;height:24px;width:auto}
+.from{text-align:end;font-size:13px;line-height:1.55;color:var(--muted)}
+.from b{display:block;color:var(--text);font-size:14.5px;font-weight:600}
+
+.meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 30px;font-size:13.5px;color:var(--muted);padding:18px 0 0}
+.meta div b{color:var(--text-2);font-weight:600}
+
+h1{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:28px 0 6px}
+.client{font-size:13.5px;font-weight:600;letter-spacing:.16em;color:var(--accent);padding-bottom:24px;border-bottom:1px solid var(--line)}
+
+.intro{padding:28px 0 2px}
+p{color:var(--text-2);margin-bottom:15px}
+p:last-child{margin-bottom:0}
+
+h2{
+  font-size:16.5px;font-weight:700;color:var(--text);letter-spacing:-.01em;
+  margin:40px 0 18px;padding-bottom:9px;border-bottom:1px solid var(--line-2);
+}
+
+/* included list */
+.incl{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin:4px 0 22px}
+.incl li{
+  position:relative;padding:9px 18px 9px 0;font-size:15px;color:var(--text-2);
+  line-height:1.5;border-bottom:1px solid var(--line);
+}
+.incl li::before{content:"";position:absolute;inset-inline-start:0;top:17px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+
+/* terms table */
+.tbl-wrap{margin:6px 0 20px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:start;padding:13px 14px;border:1px solid var(--line-2);vertical-align:top}
+thead th{background:var(--tint);font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap}
+tbody td:first-child{font-weight:600;color:var(--text);white-space:nowrap}
+tbody td:nth-child(2){font-weight:600;color:var(--text);white-space:nowrap}
+tbody td:last-child{color:var(--text-2);line-height:1.6}
+
+.callout{
+  background:var(--tint);border:1px solid var(--line);border-inline-start:3px solid var(--accent);
+  border-radius:4px;padding:16px 18px;margin-top:4px;
+}
+.callout p{margin:0;color:var(--text-2)}
+
+.close{margin-top:38px;padding-top:24px;border-top:1px solid var(--line-2);font-size:16px;color:var(--text);font-weight:500}
+.sign{margin-top:26px;font-size:14px;color:var(--muted);line-height:1.7}
+.sign b{display:block;color:var(--text);font-size:15.5px;font-weight:600}
+.sign a{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.sign a:hover{color:var(--accent)}
+
+.theme-btn{
+  position:fixed;top:16px;inset-inline-end:16px;z-index:10;
+  width:36px;height:36px;border-radius:8px;cursor:pointer;
+  background:var(--paper);border:1px solid var(--line-2);color:var(--muted);
+  font-size:15px;display:flex;align-items:center;justify-content:center;
+}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+@media(max-width:700px){
+  body{padding:18px 12px 40px}
+  .doc{padding:26px 20px 32px}
+  h1{font-size:22px}
+  h2{font-size:15.5px;margin-top:32px}
+  .head{flex-direction:column;gap:14px}
+  .from{text-align:start}
+  .incl{grid-template-columns:1fr;gap:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line-2);border-radius:4px;margin-bottom:12px;overflow:hidden}
+  td{border:none;border-bottom:1px solid var(--line);padding:11px 14px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.05em;margin-bottom:2px}
+  tbody td:first-child,tbody td:nth-child(2){white-space:normal}
+}
+
+@media print{
+  @page{size:A4;margin:15mm 14mm}
+  body{background:#fff;color:#000;padding:0;font-size:10.5pt;line-height:1.55}
+  .doc{max-width:none;border:none;border-radius:0;padding:0;background:#fff}
+  .theme-btn{display:none}
+  h1{font-size:19pt;margin:14pt 0 4pt}
+  h2{font-size:12.5pt;color:#000;border-bottom:1px solid #999;margin-top:16pt;page-break-after:avoid}
+  .client{color:#000;border-bottom:1px solid #ddd}
+  p,.incl li,td{color:#222}
+  .meta,.from,.sign{color:#555}
+  .head{border-bottom:1px solid #999}
+  .incl li{border-bottom:1px solid #e6e6e6;page-break-inside:avoid}
+  .incl li::before{background:#000}
+  table{font-size:9.5pt;page-break-inside:avoid}
+  th,td{border:1px solid #999}
+  thead th{background:#f2f2f2;color:#000}
+  tbody td:first-child,tbody td:nth-child(2){color:#000}
+  .callout{background:#f7f7f7;border:1px solid #bbb;border-inline-start:2px solid #555;page-break-inside:avoid}
+  .close,.sign{page-break-inside:avoid}
+  .close{border-top:1px solid #999;color:#000}
+  .logo-chip{background:#fff;padding:0}
+  a{color:#000}
+}
+</style>
+</head>
+<body>
+
+<button class="theme-btn" id="themeBtn" aria-label="החלפת מצב תצוגה">☾</button>
+
+<div class="doc">
+
+  <div class="head">
+    <div class="logo-chip"><img src="assets/logo.webp" alt="EYE LOVE YOU"></div>
+    <div class="from">
+      <b>שלומי זוין</b>
+      CTO as a Service · Boostart<br>
+      shlomi@boostart.io · 054-5567213
+    </div>
+  </div>
+
+  <div class="meta">
+    <div><b>לכבוד:</b> איתי שרף · ע.ר.מ עיניים בע"מ</div>
+    <div><b>תאריך:</b> 20 בספטמבר 2026</div>
+  </div>
+
+  <h1>הצעת ליווי ופיתוח</h1>
+  <div class="client">EYE LOVE YOU</div>
+
+  <div class="intro">
+    <p>בהמשך לשיחה שלנו, אני מציע להיכנס לתקופת ליווי שבה אקח אחריות על האפיון, הפיתוח וההטמעה של סוכן AI באתר EYE LOVE YOU.</p>
+    <p>המטרה היא לבנות סוכן שילווה את הלקוחות באתר, ינהל איתם שיחה טבעית, יבין בצורה רחבה את הצורך וההקשר, ישאל שאלות כשצריך ויסייע להם להבין אילו מוצרים יכולים להיות רלוונטיים עבורם.</p>
+    <p>הכוונה היא לא לבנות שאלון קשיח או צ'אטבוט עם תשובות מוכנות מראש, אלא מערכת חכמה שנוכל ללמוד, לדייק ולשפר לאורך זמן בהתאם לשימוש בפועל. כחלק מזה, גם הצ'אט ואופן הצגת ההמלצות יעוצבו בצורה ייחודית ומותאמת ל-EYE LOVE YOU, ולא כתבנית AI גנרית. את עבודת העיצוב אני מבצע כחלק מהתהליך, באמצעות כלי עיצוב ומודלי תמונה מתקדמים, עם עיצובים מלאים שמוצגים לכם לאורך הדרך לאישור ודיוק, או בהתבסס על חומרים ושפה עיצובית שתספקו.</p>
+  </div>
+
+  <h2>אופן העבודה</h2>
+  <p>אני עובד בצורה גמישה, בהתאם למה שנכון לפרויקט ולדרך העבודה שנוחה לכם.</p>
+  <p>אפשר לעבוד על בסיס אפיון שאתם מספקים, על בסיס אפיון שאני אבנה יחד איתכם, או בצורה איטרטיבית שבה מתחילים מהיעדים והצרכים המרכזיים ומתקדמים תוך כדי דיוק והתאמה לאורך הדרך.</p>
+  <p>העבודה מתבצעת בשיתוף ובשקיפות מלאה. אם עולים תוך כדי צרכים חדשים, שינויים או רעיונות, בוחנים אותם יחד, מבינים את המשמעויות ומחליטים איך נכון להתקדם.</p>
+  <p>גם בצד העיצובי העבודה תהיה מותאמת למוצר וללקוח ולא תישאר במראה גנרי של מערכת AI. הצ'אט, המסכים ואופן הצגת ההמלצות יעוצבו בצורה ייחודית ומותאמת לשפה של המותג. במקומות שבהם נכון להציג ללקוח תוצרים או הצעות בצורה ויזואלית, ניתן לשלב גם יצירת עיצובים ותכנים באמצעות מודלי תמונה מתקדמים, על בסיס עיצובים שאצור ואציג לכם לאורך הדרך, או על בסיס חומרים ושפה עיצובית שתספקו.</p>
+  <p>לאורך הפרויקט נקיים פגישות סנכרון בזום לפי הצורך. בדרך כלל פגישה אחת עד שתיים בשבוע, כשעה בכל פעם, מספיקה כדי לשמור על קצב, ליישר קו ולקבל החלטות.</p>
+
+  <h2>מה כלול בליווי</h2>
+  <p>במסגרת הליווי אטפל בכל הצד הטכנולוגי הנדרש לפרויקט, כולל:</p>
+  <ul class="incl">
+    <li>אפיון המערכת והתהליכים</li>
+    <li>בניית הסוכן והלוגיקה שמאחוריו</li>
+    <li>פיתוח Backend ו-Frontend ככל שנדרש</li>
+    <li>בניית בסיסי נתונים</li>
+    <li>אינטגרציות עם שירותים חיצוניים</li>
+    <li>חיבור למודלי AI</li>
+    <li>הקמה וניהול של סביבת Cloud</li>
+    <li>שרתים, APIs, אחסון ושירותי תשתית</li>
+    <li>הטמעה באתר</li>
+    <li>ניטור, תיקונים ושיפורים</li>
+    <li>התאמות ושינויים שעולים תוך כדי העבודה</li>
+    <li>טיפול שוטף בצד הטכנולוגי של המערכת</li>
+  </ul>
+  <p>הליווי כולל אחריות מלאה על הצד הטכנולוגי של הפרויקט מקצה לקצה - אפיון טכנולוגי, ארכיטקטורה, פיתוח, אינטגרציות, תשתיות, AI, DevOps, העלאה לפרודקשן וכל צורך טכנולוגי נוסף שיעלה במהלך העבודה.</p>
+  <p>כחלק מהליווי כלולה גם עבודת העיצוב של המערכת - הצ'אט, המסכים ואופן הצגת ההמלצות והתוצרים ללקוח. העבודה נעשית בצורה איטרטיבית באמצעות כלי עיצוב ומודלי תמונה מתקדמים, עם עיצובים מלאים שמוצגים לכם, מדויקים יחד ומיושמים בפועל, או על בסיס חומרים ועיצובים שתספקו. כך גם החוויה עצמה וגם ההצעות שהסוכן מציג ללקוח יכולות להיות מוצגות בצורה ברורה, ויזואלית ומותאמת לשפה של המותג.</p>
+  <p>המטרה מבחינתי היא שלא תצטרכו לנהל בנפרד ספקים או אנשי מקצוע טכנולוגיים. אני לוקח אחריות על התמונה המלאה ומוודא שבסוף יש מוצר עובד, יציב, נראה טוב וניתן להמשך פיתוח.</p>
+
+  <h2>עלויות תשתית ושירותים חיצוניים</h2>
+  <p>ככל שנדרש לרכוש שרתים, שירותי Cloud או שירותים חיצוניים, העדיפות היא לפתוח אותם ישירות על חשבון הלקוח, כך שהבעלות והגישה נשארות אצלכם באופן מלא.</p>
+  <p>ברוב המקרים עלויות השרתים, בסיסי הנתונים, האחסון ושאר תשתיות ה-Cloud הן נמוכות יחסית, בוודאי בשלבים הראשונים של המוצר, ולכן בדרך כלל מדובר בעלות שולית ביחס לפרויקט עצמו.</p>
+  <p>העלות שכן חשוב לקחת בחשבון היא שימוש במודלי ה-AI עצמם.</p>
+  <p>מודלים עובדים לפי צריכה, בדרך כלל לפי Tokens ולעיתים לפי תמונות, אודיו או שירותים נוספים. העלות משתנה בהתאם לכמות המשתמשים, אורך השיחות וסוג המודלים שנבחר להשתמש בהם.</p>
+  <p>במהלך העבודה אבנה את המערכת כך שנשתמש במודלים בצורה יעילה ונבחר בכל חלק את המודל המתאים, כדי לשמור על יחס נכון בין איכות לעלות.</p>
+  <p>כל עלות חיצונית תהיה שקופה ותהיה על חשבון הלקוח ישירות. אם נוח לכם אחרת, אין לי בעיה להוסיף את השירותים על החשבונות הקיימים שלי ולהעביר אליכם את החיוב, לפי מה שתעדיפו.</p>
+
+  <h2>מסגרת הליווי ותקופת ההתקשרות</h2>
+  <p>המחיר כולל את העבודה והליווי שלי במסגרת הפרויקט ואינו מבוסס על ספירת שעות.</p>
+  <p>המטרה היא שאקח אחריות על הפרויקט ואקדם אותו באופן שוטף, בלי צורך לפתוח הצעת מחיר חדשה סביב כל שינוי קטן או התאמה שעולה במהלך העבודה.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>תקופה</th><th>עלות</th><th>תנאים</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-l="תקופה">חודש ראשון</td>
+          <td data-l="עלות">30,000 ₪ + מע"מ</td>
+          <td data-l="תנאים">30% בתחילת העבודה ו-70% בסוף החודש. במהלך השבועיים הראשונים ניתן להפסיק את ההתקשרות ללא התחייבות להמשך.</td>
+        </tr>
+        <tr>
+          <td data-l="תקופה">חודש שני</td>
+          <td data-l="עלות">30,000 ₪ + מע"מ</td>
+          <td data-l="תנאים">במידה שממשיכים מעבר לשבועיים הראשונים, ההתחייבות היא עד לסיום החודש השני.</td>
+        </tr>
+        <tr>
+          <td data-l="תקופה">לאחר חודשיים</td>
+          <td data-l="עלות">30,000 ₪ + מע"מ לחודש</td>
+          <td data-l="תנאים">אין התחייבות להמשך. במידה ושני הצדדים מעוניינים, ממשיכים על בסיס חודשי.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <p>כלומר, במהלך השבועיים הראשונים ניתן לעצור ללא התחייבות נוספת. אם ממשיכים מעבר לנקודה הזו, ההתחייבות היא לתקופה כוללת של חודשיים בלבד. בתום החודש השני ניתן לסיים את ההתקשרות, ואין כל התחייבות להמשך.</p>
+  </div>
+
+  <h2>תנאי תשלום ועלויות נלוות</h2>
+  <p>כל המחירים הם לפני מע"מ ואינם כוללים עלויות צד ג' כפי שמפורט בהצעה.</p>
+  <p>עלויות שרתים, בסיסי נתונים ותשתיות הן בדרך כלל נמוכות יחסית בהיקפים של MVP. העלות שיכולה להיות גבוהה יותר ולהשתנות בהתאם לשימוש היא עלות מודלי ה-AI והטוקנים.</p>
+  <p>בחודש הראשון התשלום יהיה 30% מראש ו-70% בסוף החודש.</p>
+  <p>מהחודש השני, ובמידה שנמשיך גם בחודשים הבאים, אוציא חשבונית בסוף כל חודש לתשלום עד ה-10 בחודש העוקב.</p>
+
+  <p class="close">אם ההצעה מתאימה, נקבע פגישת פתיחה ונצא לדרך.</p>
+
+  <div class="sign">
+    <b>שלומי זוין</b>
+    CTO as a Service<br>
+    <a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  function set(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'☀':'☾';try{localStorage.setItem('elu-doc-theme',t)}catch(e){}}
+  var saved=null;try{saved=localStorage.getItem('elu-doc-theme')}catch(e){}
+  set(saved||'light');
+  btn.addEventListener('click',function(){set(root.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>

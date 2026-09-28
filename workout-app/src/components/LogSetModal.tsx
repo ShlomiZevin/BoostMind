@@ -887,7 +887,16 @@ export function LogSetModal({
             uses, so ratings/notes attached here appear on the card later. Only shows
             once an exercise is selected AND we know the current session id. */}
         {sessionId && currentName && (
-          <ExerciseInline uid={uid} exerciseName={currentName} sessionId={sessionId} />
+          <ExerciseInline
+            uid={uid}
+            exerciseName={currentName}
+            sessionId={sessionId}
+            // Base for the "העלה ל-X" target: what's typed in the weight
+            // field right now, falling back to the last logged set for this
+            // exercise so the target is meaningful before you type anything.
+            baseWeight={Number(weight) || lastSetForExercise?.weight || undefined}
+            unit={unit}
+          />
         )}
 
         {/* Hold-time timer — scoreboard-style tool for hold-time exercises */}

@@ -1,0 +1,3 @@
+OK -> out/email-yifat.md  (1645 chars, gpt-5.6-terra, 3753 tokens)
+  input 2625 · output 1128 (reasoning 516)
+Read it with the Read tool — printing Hebrew to this console will mangle it.

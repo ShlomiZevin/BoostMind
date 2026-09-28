@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Share preview. Title and description are Hebrew ONLY — a single Latin
+     character makes WhatsApp pick the wrong direction and scramble the order.
+     The brand name lives in the image instead. -->
+<title>יועצת העיניים שלך</title>
+<meta name="description" content="ספרו מה מרגיש לכם בעיניים, וקבלו התאמה של מוצרים.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:url" content="https://boostmind-b052c.web.app/eyeloveyou-chat/">
+<meta property="og:title" content="יועצת העיניים שלך">
+<meta property="og:description" content="ספרו מה מרגיש לכם בעיניים, וקבלו התאמה של מוצרים.">
+<meta property="og:image" content="https://boostmind-b052c.web.app/eyeloveyou-chat/share.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="לוגו של המותג">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Oswald:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ── system ──────────────────────────────────────────────────────────────
+   One language for desktop and mobile, from the Sunburst concepts:
+   cream page · white panels · mint = the advisor · sky = the customer ·
+   deep teal = actions · flat brand circles as the only decoration. */
+:root{
+  --bg:#F7F4EE; --panel:#FFFFFF;
+  --mint:#CDE7DF; --mint-soft:#E6F3EE;
+  --sky:#D3E6F2;  --sky-soft:#E6F0F7;
+  --sand:#E9DCC4; --sand-soft:#F3ECDF;
+  --ink:#151210; --ink-2:#3E3A34; --muted:#716B63;
+  --teal:#1D6C68; --teal-ink:#FFFFFF;
+  --line:rgba(21,18,16,.09); --line-2:rgba(21,18,16,.16);
+  --r-panel:22px; --r-card:16px; --r-bubble:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Heebo',system-ui,-apple-system,sans-serif;
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+button{font-family:inherit}
+
+/* decorative circles — flat, solid, behind everything */
+.deco{position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+
+/* the advisor's mark: the wordmark stacked on a mint circle, as on the labels */
+.mark{
+  flex:0 0 auto;border-radius:50%;background:var(--mint);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:'Oswald',sans-serif;font-weight:600;color:var(--ink);
+  line-height:.86;letter-spacing:-.01em;direction:ltr;
+}
+.mark span{display:block}
+.me{
+  flex:0 0 auto;border-radius:50%;background:var(--sky);color:var(--teal);
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── page frame ── */
+.page{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 36px;border-bottom:1px solid var(--line);background:var(--bg);
+  position:relative;overflow:hidden;flex:0 0 auto;
+}
+.topbar .brand img{height:34px;width:auto;display:block}
+.topbar .brand small{display:block;font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.02em}
+.topbar .tag{font-size:14px;color:var(--ink-2);font-weight:500;position:relative;z-index:1}
+.topbar .c1{position:absolute;width:150px;height:150px;border-radius:50%;background:var(--mint);right:-40px;top:-70px}
+.topbar .c2{position:absolute;width:90px;height:90px;border-radius:50%;background:var(--sand);right:80px;top:-52px}
+
+.m-head{display:none}
+
+.shell{
+  flex:1;min-height:0;width:100%;max-width:1240px;margin:0 auto;
+  padding:22px 28px 26px;
+  display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:22px;
+}
+
+/* ── chat panel ── */
+.chat{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);
+  display:flex;flex-direction:column;overflow:hidden;min-width:0;
+}
+.chat-head{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--line)}
+.chat-head .mark{width:54px;height:54px;font-size:12px}
+.chat-head b{display:block;font-size:16px;font-weight:700;line-height:1.35}
+.chat-head span{font-size:13px;color:var(--muted)}
+
+.log{flex:1;min-width:0;overflow-y:auto;overflow-x:hidden;padding:26px 22px;display:flex;flex-direction:column;gap:16px}
+
+.row{display:flex;align-items:flex-start;gap:10px;max-width:100%}
+.row.user{justify-content:flex-start}
+.row.bot{justify-content:flex-end}
+.row .mark{width:40px;height:40px;font-size:9.5px}
+.row .me{width:40px;height:40px}
+.stack{display:flex;flex-direction:column;max-width:min(560px,78%);min-width:0}
+.row.bot .stack{align-items:flex-end}
+.time{font-size:11.5px;color:var(--muted);margin-top:5px;padding:0 6px}
+
+.msg{padding:13px 18px;border-radius:var(--r-bubble);font-size:15.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.msg b{font-weight:700}
+.row.user .msg{background:var(--sky-soft);border-start-start-radius:6px}
+.row.bot .msg{background:var(--mint-soft);border-start-end-radius:6px}
+.msg.err{background:#FDECEA;color:#8A2B20}
+
+.typing{display:flex;gap:5px;padding:16px 18px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.4;animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:.8;transform:translateY(-3px)}}
+
+.starters{display:flex;flex-wrap:wrap;gap:8px;padding:0 22px 14px}
+.starter{
+  background:var(--panel);border:1px solid var(--line-2);color:var(--ink-2);
+  font-size:13.5px;padding:8px 15px;border-radius:100px;cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
+}
+.starter:hover{background:var(--mint-soft);border-color:var(--teal)}
+
+.compose{display:flex;align-items:center;gap:12px;padding:14px 18px 18px;border-top:1px solid var(--line)}
+.compose input{
+  flex:1;min-width:0;font-family:inherit;font-size:16px;padding:14px 20px;color:var(--ink);
+  background:var(--panel);border:1px solid var(--line-2);border-radius:16px;outline:none;
+  transition:border-color .15s ease;
+}
+.compose input:focus{border-color:var(--teal)}
+.send{
+  flex:0 0 auto;width:54px;height:54px;border-radius:16px;border:none;cursor:pointer;
+  background:var(--teal);color:var(--teal-ink);display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s ease;
+}
+.send:disabled{opacity:.4;cursor:default}
+.send svg{transform:scaleX(-1)}
+
+/* ── recommendation rail (desktop) ── */
+.rail{
+  background:var(--mint-soft);border-radius:var(--r-panel);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.rail-head{padding:22px 24px 6px}
+.rail-head h2{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.rail-head span{font-size:13px;color:var(--muted)}
+.rail-body{flex:1;overflow-y:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px;position:relative}
+
+.empty{margin:auto;text-align:center;color:var(--muted);font-size:14px;line-height:1.75;padding:20px}
+.empty .dots{display:flex;justify-content:center;margin-bottom:14px}
+.empty .dots i{width:34px;height:34px;border-radius:50%;display:block;margin-inline-start:-10px}
+.empty .dots i:first-child{margin:0}
+
+/* ── product card: one component, horizontal, both surfaces ── */
+.card{
+  background:var(--panel);border-radius:var(--r-card);overflow:hidden;
+  border:1px solid var(--line);animation:rise .28s ease;flex:0 0 auto;
+}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card .body{display:grid;grid-template-columns:minmax(0,1fr) 42%;gap:14px;padding:16px}
+.card .pic{position:relative;border-radius:12px;overflow:hidden;background:#fff;aspect-ratio:1/1;align-self:start}
+.card .pic img{width:100%;height:100%;object-fit:cover;display:block}
+.card .badge{
+  position:absolute;top:8px;inset-inline-end:8px;
+  font-size:11.5px;font-weight:700;color:var(--teal-ink);background:var(--teal);
+  padding:4px 11px;border-radius:100px;
+}
+.card h3{font-size:18px;font-weight:800;line-height:1.3;letter-spacing:-.01em;margin-bottom:5px}
+.card .blurb{font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.card .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.card .chips span{font-size:12px;color:var(--teal);background:var(--mint-soft);padding:3px 10px;border-radius:100px}
+.card .price{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:10px;line-height:1.2}
+.card .price s{display:block;font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0}
+.card a.go{
+  display:block;text-align:center;margin-top:12px;
+  font-size:14.5px;font-weight:700;text-decoration:none;color:var(--teal-ink);background:var(--teal);
+  padding:10px 16px;border-radius:100px;transition:opacity .15s ease;
+}
+.card a.go:hover{opacity:.88}
+.card .perks{display:none}
+
+/* lead card on desktop: bigger, with a benefits row under it */
+.rail .card.lead .perks{
+  display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);
+}
+.rail .card.lead .chips{display:none}
+.perks div{padding:12px 8px 14px;text-align:center;font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.perks div + div{border-inline-start:1px solid var(--line)}
+.perks svg{display:block;margin:0 auto 6px;color:var(--teal)}
+/* secondary cards in the rail stay compact */
+.rail .card:not(.lead) .blurb,.rail .card:not(.lead) .chips{display:none}
+.rail .card:not(.lead) .price{font-size:22px}
+
+/* reasoning note */
+.why{
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--sky-soft);border-radius:var(--r-card);padding:14px 16px;
+  font-size:13.5px;color:var(--ink-2);line-height:1.65;
+}
+.why .ico{flex:0 0 auto;width:36px;height:36px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--teal)}
+.why .ico .leaf{display:none}
+.why b{display:block;font-size:15px;font-weight:800;color:var(--ink);margin-bottom:2px}
+
+/* ── inline recommendations (mobile only) ── */
+.inline-recs{display:none}
+
+/* ═════════════════════════════ mobile ═════════════════════════════ */
+@media(max-width:860px){
+  body{overflow:hidden}
+  .topbar,.rail,.chat-head,.deco{display:none}
+  .shell{display:block;padding:0;max-width:none;min-height:0}
+  .chat{border:none;border-radius:0;height:100%}
+
+  /* Thin bar: the brand in one slim line so the conversation gets the
+     screen. Mark + title on the right, wordmark on the left. */
+  .m-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    position:relative;flex:0 0 auto;overflow:hidden;
+    padding:calc(8px + env(safe-area-inset-top)) 14px 8px;
+    background:var(--bg);border-bottom:1px solid var(--line);
+  }
+  .m-head .who{display:flex;align-items:center;gap:9px;position:relative;z-index:1}
+  .m-head .who .mark{width:38px;height:38px;font-size:8.5px}
+  .m-head .who b{font-size:15px;font-weight:700;line-height:1.2;display:block}
+  .m-head .who small{font-size:11.5px;color:var(--muted);display:block}
+  .m-head img{height:20px;width:auto;display:block;position:relative;z-index:1}
+
+  .log{padding:18px 14px;gap:14px}
+  .row.user .me{display:none}
+  .row .mark{width:36px;height:36px;font-size:8.5px}
+  .stack{max-width:84%}
+  .msg{font-size:15.5px;padding:12px 16px}
+
+  .starters{padding:0 14px 12px}
+  .compose{padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
+  .compose input{padding:13px 18px;border-radius:100px}
+  .send{width:50px;height:50px;border-radius:50%}
+
+  .inline-recs{
+    display:block;align-self:stretch;min-width:0;max-width:100%;
+    background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-panel);
+    padding:16px 0 14px;animation:rise .28s ease;
+  }
+  .inline-recs .head{display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px}
+  .inline-recs .head b{font-size:21px;font-weight:800;letter-spacing:-.01em}
+  .inline-recs .nav{display:flex;align-items:center;gap:10px}
+  .inline-recs .pager{display:flex;gap:6px}
+  .inline-recs .pager i{width:9px;height:9px;border-radius:50%;background:var(--sand);display:block;transition:background .2s ease}
+  .inline-recs .pager i.on{background:var(--teal)}
+  .inline-recs .next{
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--line-2);background:var(--panel);
+    display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;
+  }
+  .inline-recs .strip{
+    display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;
+    scroll-snap-type:x mandatory;scrollbar-width:none;
+  }
+  .inline-recs .strip::-webkit-scrollbar{display:none}
+  .inline-recs .card{width:88%;scroll-snap-align:start}
+  .inline-recs .strip .card:only-child{width:100%}
+  .inline-recs .card .body{padding:14px;gap:12px}
+  .inline-recs .card h3{font-size:17px}
+  .inline-recs .card .price{font-size:24px}
+  .inline-recs .why{margin:12px 16px 0;background:var(--mint-soft)}
+  .inline-recs .why .bulb{display:none}
+  .inline-recs .why .leaf{display:block}
+}
+</style>
+</head>
+<body>
+
+<!-- desktop decoration -->
+<div class="deco" style="width:260px;height:260px;background:var(--mint);right:-70px;bottom:-60px"></div>
+<div class="deco" style="width:190px;height:190px;background:var(--sky);right:120px;bottom:-110px"></div>
+<div class="deco" style="width:120px;height:120px;background:var(--ink);right:-30px;bottom:150px"></div>
+
+<div class="page">
+
+  <header class="topbar">
+    <div class="tag">יועצת דיגיטלית לבריאות העיניים</div>
+    <div class="brand"><img src="../eyeloveyou/assets/logo.webp" alt="EYE LOVE YOU"></div>
+    <div class="c1"></div><div class="c2"></div>
+  </header>
+
+  <header class="m-head">
+    <div class="who">
+      <div class="mark"><div><span>EYE</span><span>LOVE</span><span>YOU</span></div></div>
+      <div><b>יועצת דיגיטלית</b><small>שואלת. מקשיבה. מתאימה.</small></div>
+    </div>
+    <img src="../eyeloveyou/assets/logo.webp" alt="EYE LOVE YOU">
+  </header>
+
+  <div class="shell">
+
+    <section class="chat">
+      <div class="chat-head">
+        <div class="mark"><div><span>EYE</span><span>LOVE</span><span>YOU</span></div></div>
+        <div>
+          <b>יועצת העיניים של EYE LOVE YOU</b>
+          <span>שואלת. מקשיבה. מתאימה עבורכם.</span>
+        </div>
+      </div>
+
+      <div class="log" id="log"></div>
+
+      <div class="starters" id="starters">
+        <button class="starter">יש לי יובש בעיניים כבר כמה שבועות</button>
+        <button class="starter">ניסיתי טיפות וזה לא עזר</button>
+        <button class="starter">יש לי דלקות שחוזרות כל כמה שבועות</button>
+        <button class="starter">המסקרה שלי מגרה לי את העיניים</button>
+      </div>
+
+      <form class="compose" id="form" autocomplete="off">
+        <input id="input" placeholder="ספרו מה מרגיש לכם בעיניים" />
+        <button class="send" id="send" type="submit" aria-label="שליחה">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.1 2-12.1 2z"/></svg>
+        </button>
+      </form>
+    </section>
+
+    <aside class="rail" id="rail">
+      <div class="rail-head">
+        <h2>ההתאמה עבורך</h2>
+        <span>נבנית תוך כדי השיחה</span>
+      </div>
+      <div class="rail-body" id="railBody">
+        <div class="empty" id="empty">
+          <div class="dots"><i style="background:var(--mint)"></i><i style="background:var(--ink)"></i><i style="background:var(--sky)"></i></div>
+          כאן יופיעו המוצרים שמתאימים לכם<br>לפי מה שסיפרתם
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+const API  = 'https://aspect-agent-server-1018338671074.europe-west1.run.app';
+const SLUG = 'test-project';
+const USER = 'demo-' + Math.random().toString(36).slice(2, 10);
+
+// Mirrors the agent's product_catalog Targeted KB, keyed by the same ids the
+// thinkers return. Images from eyeloveyou.co.il; tags use the KB's own words.
+const CATALOG = {
+  eyelids_cleaning_mousse: { name:'מוס לניקוי עפעפיים', price:89, blurb:'ניקוי שולי העפעף והריסים. שמן עץ התה וחוחובה, ללא בושם ו-SLS.', tags:['היגיינת עפעפיים','דלקות חוזרות','מתאים לעדשות'], url:'https://eyeloveyou.co.il/product/eyelids-cleaning-mousse/' },
+  heating_eye_masks:       { name:'מסיכות חימום לעיניים', price:89, from:true, blurb:'מתחממת מעצמה ל-40° למשך כ-10 דקות. סטרילית וחד-פעמית.', tags:['הקלה מיידית','יובש וגירוי','עייפות ממסכים'], url:'https://eyeloveyou.co.il/product/%D7%9E%D7%A1%D7%99%D7%9B%D7%AA-%D7%97%D7%99%D7%9E%D7%95%D7%9D-%D7%9C%D7%A2%D7%99%D7%A0%D7%99%D7%99%D7%9D/' },
+  dry_away:                { name:'DRY AWAY', price:159, blurb:'תמצית צמחים לשתייה ליובש, צריבה ועייפות.', tags:['יובש','צריבה','שעות מסך'], url:'https://eyeloveyou.co.il/product/dry-away/' },
+  dry_away_kit:            { name:'ערכה בלי עין יבשה', price:299, was:337, blurb:'הפרוטוקול המלא ליובש: מסכות חימום, מוס ניקוי ו-DRY AWAY.', tags:['יובש מתמשך','חימום וניקוי','תמצית צמחים'], url:'https://eyeloveyou.co.il/%D7%A2%D7%A8%D7%9B%D7%94-%D7%91%D7%9C%D7%99-%D7%A2%D7%99%D7%9F-%D7%99%D7%91%D7%A9%D7%94/' },
+  coolgo:                  { name:'COOL&GO', price:159, blurb:'תמצית צמחים לדלקות עיניים ועפעפיים, כולל דלקות חוזרות.', tags:['דלקות חוזרות','אודם ונפיחות','בלפריטיס'], url:'https://eyeloveyou.co.il/product/coolgo/' },
+  coolgo_kit:              { name:'ערכה בעין קרירה', price:299, was:337, blurb:'הפרוטוקול המלא לדלקת: מסכות חימום, מוס ניקוי ו-COOL&GO.', tags:['דלקות חוזרות','חימום וניקוי','תמצית צמחים'], url:'https://eyeloveyou.co.il/%D7%A2%D7%A8%D7%9B%D7%94-%D7%91%D7%A2%D7%99%D7%9F-%D7%A7%D7%A8%D7%99%D7%A8%D7%94/' },
+  easy_go_boost:           { name:'EASY GO BOOST', price:159, blurb:'תמצית צמחים לשעורה ולשעורה כלואה.', tags:['שעורה','שעורה כלואה','נפיחות'], url:'https://eyeloveyou.co.il/product/easy-go-boost/' },
+  easy_eye_kit:            { name:'ערכה לעין קלה', price:299, was:337, blurb:'הפרוטוקול המלא לשעורה: מסכות חימום, מוס ניקוי ו-EASY GO BOOST.', tags:['שעורה','חימום וניקוי','תמצית צמחים'], url:'https://eyeloveyou.co.il/%D7%A2%D7%A8%D7%9B%D7%94-%D7%9C%D7%A2%D7%99%D7%9F-%D7%A7%D7%9C%D7%94/' },
+  cleaning_brush:          { name:'מברשת ניקוי', price:119, blurb:'מברשת סיליקון רב-פעמית לניקוי יסודי עם המוס.', tags:['ניקוי יסודי','ריסים מלאכותיים','רב-פעמית'], url:'https://eyeloveyou.co.il/product/cleaning-brush/' },
+  micellar_water:          { name:'מים מיסלריים', price:109, blurb:'הסרת איפור ייעודית לאזור העין. ללא אלכוהול, ללא בושם.', tags:['הסרת איפור','ללא אלכוהול','עור רגיש'], url:'https://eyeloveyou.co.il/product/mycelial-water/' },
+  fresh_eye_kit_upgraded:  { name:'ערכת עין רעננה משודרגת', price:255, was:288, blurb:'30 מסכות חימום ומוס ניקוי — מלאי לשגרה קבועה.', tags:['שגרה קבועה','30 מסכות','ניקוי עפעפיים'], url:'https://eyeloveyou.co.il/%D7%A2%D7%A8%D7%9B%D7%AA-%D7%A2%D7%99%D7%9F-%D7%A8%D7%A2%D7%A0%D7%A0%D7%94-%D7%9E%D7%A9%D7%95%D7%93%D7%A8%D7%92%D7%AA/' },
+  blinkless_kit:           { name:'ערכת בלי למצמץ', price:180, was:198, blurb:'מוס ניקוי ומים מיסלריים — ניקוי והסרת איפור יחד.', tags:['הסרת איפור','ניקוי עפעפיים','עור רגיש'], url:'https://eyeloveyou.co.il/eyekit2/' },
+};
+
+// Three simple line icons for the desktop benefits row (eye · drop · leaf).
+const PERK_ICONS = [
+  '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>',
+  '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19 13 11"/></svg>',
+];
+const ICON_BULB = '<svg class="bulb" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>';
+const ICON_LEAF = '<svg class="leaf" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19 13 11"/></svg>';
+const ICON_ME = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5z"/></svg>';
+const MARK = '<div class="mark"><div><span>EYE</span><span>LOVE</span><span>YOU</span></div></div>';
+
+const log=document.getElementById('log'), railBody=document.getElementById('railBody'),
+      form=document.getElementById('form'), input=document.getElementById('input'),
+      sendBtn=document.getElementById('send'), starters=document.getElementById('starters');
+
+let convId=null, busy=false, shown=new Set(), railWhy=null;
+
+const scroll = () => { log.scrollTop = log.scrollHeight; };
+const now = () => new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+
+// Mixed Hebrew + English breaks number order: in "DRY AWAY — 159 ש״ח" the
+// browser glues 159 onto the English run and flips it. Wrapping each English
+// run in <bdi> isolates it, so numbers stay in the Hebrew flow. Runs are
+// letters/digits with internal & or - (COOL&GO, EYE CLEAN&GO) — never a
+// trailing period, which belongs to the Hebrew sentence.
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function iso(text){
+  const re = /[A-Za-z][A-Za-z0-9&\-]*(?:[ \t]+[A-Za-z][A-Za-z0-9&\-]*)*/g;
+  let out = '', last = 0, m;
+  while((m = re.exec(text))){
+    out += esc(text.slice(last, m.index)) + '<bdi>' + esc(m[0]) + '</bdi>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(text.slice(last));
+}
+// Talker replies use **bold**. Isolate and escape first, then allow only that.
+function md(text){
+  return iso(text).replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>');
+}
+
+// A chat row: avatar + bubble + time. Returns the bubble so a streaming reply
+// can keep writing into it.
+function bubble(text, who, err){
+  const row=document.createElement('div');
+  row.className='row '+(who==='user'?'user':'bot');
+  const stack=document.createElement('div'); stack.className='stack';
+  const msg=document.createElement('div'); msg.className='msg'+(err?' err':'');
+  msg.innerHTML = who==='user' ? iso(text) : md(text);
+  const t=document.createElement('div'); t.className='time'; t.textContent=now();
+  stack.append(msg,t);
+  if(who==='user'){ const me=document.createElement('div'); me.className='me'; me.innerHTML=ICON_ME; row.append(me,stack); }
+  else { const w=document.createElement('div'); w.innerHTML=MARK; row.append(stack,w.firstChild); }
+  log.appendChild(row); scroll(); return msg;
+}
+
+function showTyping(){
+  const row=document.createElement('div'); row.className='row bot';
+  const stack=document.createElement('div'); stack.className='stack';
+  const msg=document.createElement('div'); msg.className='msg typing';
+  msg.innerHTML='<i></i><i></i><i></i>';
+  stack.appendChild(msg);
+  const w=document.createElement('div'); w.innerHTML=MARK;
+  row.append(stack,w.firstChild);
+  log.appendChild(row); scroll(); return row;
+}
+
+function makeCard(id, isLead){
+  const p = CATALOG[id];
+  const el = document.createElement('div');
+  el.className = 'card' + (isLead ? ' lead' : '');
+  el.innerHTML =
+    '<div class="body">'+
+      '<div class="txt"><h3></h3><div class="blurb"></div><div class="chips"></div>'+
+        '<div class="price"><bdi>'+(p.from?'מ-':'')+p.price+' ₪</bdi>'+(p.was?'<s><bdi>'+p.was+' ₪</bdi></s>':'')+'</div>'+
+        '<a class="go" target="_blank" rel="noopener">לצפייה במוצר</a></div>'+
+      '<div class="pic"><img alt="" loading="lazy">'+(isLead?'<span class="badge">ההמלצה שלי</span>':'')+'</div>'+
+    '</div>'+
+    '<div class="perks"></div>';
+  el.querySelector('h3').textContent = p.name;
+  el.querySelector('.blurb').innerHTML = iso(p.blurb);
+  el.querySelector('.pic img').src = 'img/' + id + '.webp';
+  el.querySelector('.pic img').alt = p.name;
+  el.querySelector('a.go').href = p.url;
+  const chips = el.querySelector('.chips'), perks = el.querySelector('.perks');
+  p.tags.forEach((t,i) => {
+    const c=document.createElement('span'); c.textContent=t; chips.appendChild(c);
+    const d=document.createElement('div'); d.innerHTML=PERK_ICONS[i%3];
+    d.appendChild(document.createTextNode(t)); perks.appendChild(d);
+  });
+  return el;
+}
+
+function makeWhy(text){
+  const w=document.createElement('div');
+  w.className='why';
+  w.innerHTML='<div class="ico">'+ICON_BULB+ICON_LEAF+'</div><div><b>למה דווקא זה?</b>'+iso(text)+'</div>';
+  return w;
+}
+
+// Desktop: the rail updates the moment the thinker decides.
+// Mobile: the same picks are collected and dropped into the chat as one box,
+// after the reply, so the conversation reads in order.
+function collectRecs(ids, why, turn){
+  const fresh = ids.filter(id => CATALOG[id] && !shown.has(id));
+  if(!fresh.length) return;
+
+  document.getElementById('empty')?.remove();
+  let firstNew = null;
+  fresh.forEach(id => {
+    const isLead = shown.size === 0;
+    shown.add(id);
+    const card = makeCard(id, isLead);
+    railBody.appendChild(card);
+    firstNew = firstNew || card;
+    turn.ids.push({ id, isLead });
+  });
+  if(why){
+    railWhy?.remove();
+    railWhy = makeWhy(why);
+    railBody.appendChild(railWhy);
+    turn.why = why;
+  }
+  // Bring the first new card into view, not the bottom of the rail.
+  railBody.scrollTop = firstNew.offsetTop - 14;
+}
+
+function flushInline(turn){
+  if(!turn.ids.length) return;
+  const box=document.createElement('div');
+  box.className='inline-recs';
+  const multi = turn.ids.length > 1;
+  box.innerHTML='<div class="head"><b>ההתאמה עבורך</b>'+
+    (multi ? '<div class="nav"><div class="pager"></div><button class="next" aria-label="הבא">'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button></div>' : '')+
+    '</div>';
+  const strip=document.createElement('div'); strip.className='strip';
+  turn.ids.forEach(({id,isLead}) => strip.appendChild(makeCard(id,isLead)));
+  box.appendChild(strip);
+  if(turn.why) box.appendChild(makeWhy(turn.why));
+
+  if(multi){
+    const pager=box.querySelector('.pager');
+    turn.ids.forEach((_,i)=>{ const d=document.createElement('i'); if(!i) d.className='on'; pager.appendChild(d); });
+    const step = () => strip.firstChild.getBoundingClientRect().width + 10;
+    strip.addEventListener('scroll', () => {
+      const i = Math.round(Math.abs(strip.scrollLeft) / step());
+      pager.querySelectorAll('i').forEach((d,k)=>d.classList.toggle('on', k===i));
+    }, { passive:true });
+    // RTL: the next card sits to the left, so scrolling "forward" is negative.
+    box.querySelector('.next').addEventListener('click', () => {
+      const atEnd = Math.abs(strip.scrollLeft) + strip.clientWidth >= strip.scrollWidth - 4;
+      strip.scrollTo({ left: atEnd ? 0 : strip.scrollLeft - step(), behavior:'smooth' });
+    });
+  }
+  log.appendChild(box); scroll();
+}
+
+// Phones only open the keyboard from a real tap. A programmatic focus()
+// leaves the input focused WITHOUT a keyboard, and tapping an already-focused
+// input then opens nothing — so auto-focus only where there is a mouse.
+const FINE_POINTER = window.matchMedia('(pointer:fine)').matches;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// A phone kills the open stream when the user switches apps, but the server
+// finishes the turn anyway. Read the finished reply back from history, and
+// the product picks back from that message's addon runs.
+async function recover(userText, turn){
+  let missing = 0;
+  for(let i=0; i<45; i++){
+    await sleep(2000);
+    let msgs;
+    try{
+      msgs=(await (await fetch(API+'/api/agents/'+SLUG+'/conversations/'+convId+'/messages')).json()).messages||[];
+    }catch{ continue; }
+
+    let ui=-1;
+    for(let k=msgs.length-1;k>=0;k--){ if(msgs[k].role==='user' && msgs[k].content===userText){ ui=k; break; } }
+    if(ui<0) continue;
+
+    const after = msgs.slice(ui+1).filter(m => m.role==='assistant');
+    const done  = after.find(m => m.content && m.content.trim());
+    if(!done){
+      // The server keeps an empty placeholder while the turn runs and deletes
+      // it if the turn produced nothing. No row at all, repeatedly = gave up.
+      if(!after.length && ++missing >= 3) return null;
+      continue;
+    }
+    try{
+      const runs=(await (await fetch(API+'/api/agents/'+SLUG+'/messages/'+done.id+'/runs')).json()).runs||[];
+      for(const run of runs){
+        const o = run.runData && run.runData.parsedOutput;
+        if(o && Array.isArray(o.product_ids) && o.product_ids.length){
+          collectRecs(o.product_ids, o.why_this || o.key_message || '', turn);
+        }
+      }
+    }catch{ /* the reply alone is still worth showing */ }
+    return done.content;
+  }
+  return null;
+}
+
+async function send(text){
+  if(busy || !text.trim()) return;
+  busy=true; sendBtn.disabled=true; input.value=''; starters.style.display='none';
+  // They've told us what they feel — from here on the hint invites the rest.
+  input.placeholder='המשיכו, שאלו או ספרו';
+  bubble(text,'user');
+  const dots=showTyping();
+  const turn={ ids:[], why:'' };
+  let reply=null, raw='', failed=null, sent=false;
+
+  try{
+    if(!convId){
+      const r=await fetch(API+'/api/agents/'+SLUG+'/conversations',{
+        method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({ownerUserId:USER,source:'live'})});
+      if(!r.ok) throw new Error('לא הצלחתי לפתוח שיחה ('+r.status+')');
+      convId=(await r.json()).conversationId;
+    }
+
+    const res=await fetch(API+'/api/agents/'+SLUG+'/conversations/'+convId+'/messages',{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({ownerUserId:USER,userMessage:text,version:'published'})});
+    if(!res.ok || !res.body) throw new Error('השרת לא הגיב ('+res.status+')');
+    sent=true;
+
+    const reader=res.body.getReader(), dec=new TextDecoder();
+    let buf='';
+
+    for(;;){
+      const {value,done}=await reader.read();
+      if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const parts=buf.split('\n'); buf=parts.pop();
+
+      for(const line of parts){
+        if(!line.startsWith('data: ')) continue;
+        let ev; try{ ev=JSON.parse(line.slice(6)); }catch{ continue; }
+
+        if(ev.type==='addon.token' && ev.token){
+          if(!reply){ dots.remove(); reply=bubble('','bot'); }
+          raw += ev.token; reply.innerHTML = md(raw); scroll();
+        }
+        else if(ev.type==='assistant.message'){
+          dots.remove();
+          if(!reply) reply=bubble('','bot');
+          raw = ev.text; reply.innerHTML = md(raw); scroll();
+        }
+        else if(ev.type==='addon.output'){
+          const o=ev.parsedOutput;
+          if(o && Array.isArray(o.product_ids) && o.product_ids.length){
+            collectRecs(o.product_ids, o.why_this || o.key_message || '', turn);
+          }
+        }
+        else if(ev.type==='addon.error' && ev.instanceId===null){
+          failed = (ev.error && ev.error.message) || 'משהו השתבש';
+        }
+      }
+    }
+  }catch(err){
+    // Before the message reached the server there is nothing to recover.
+    if(!sent) failed = err.message || 'שגיאת תקשורת';
+  }
+
+  // No complete reply: the stream was cut (app switch, network blip) or ended
+  // early. The turn usually still finished server-side — go and get it.
+  if(!raw && sent && !failed){
+    const text2 = await recover(text, turn);
+    if(text2){ dots.remove(); reply = reply || bubble('','bot'); raw = text2; reply.innerHTML = md(raw); scroll(); }
+  }
+
+  dots.remove();
+  if(!raw) bubble(failed || 'לא התקבלה תשובה. נסו שוב.','bot',true);
+  flushInline(turn);
+
+  busy=false; sendBtn.disabled=false;
+  if(FINE_POINTER) input.focus();
+}
+
+form.addEventListener('submit', e => { e.preventDefault(); send(input.value); });
+starters.addEventListener('click', e => {
+  if(e.target.classList.contains('starter')) send(e.target.textContent);
+});
+
+bubble('היי, אני היועצת של EYE LOVE YOU. ספרו לי מה מרגיש לכם בעיניים, ואעזור למצוא מה מתאים.','bot');
+if(FINE_POINTER) input.focus();
+</script>
+</body>
+</html>

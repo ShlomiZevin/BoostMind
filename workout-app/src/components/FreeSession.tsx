@@ -379,13 +379,27 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
     setSession({ ...session, plannedExercises: newPlanned });
   }
 
-  async function handleSaveSet(partial: Omit<FreeSet, 'id' | 'timestamp'>, editingId?: string) {
+  // `alsoRemovePlanned` — name of an ADDITIONAL planned exercise to drop in the
+  // same write. Used by the replace-and-log-first-set flow: the planned entry
+  // being replaced has to come out in the SAME plannedExercises write as the
+  // new exercise, otherwise this function rebuilds the list from its stale
+  // closure and puts the old one back (rep_1788852490779_tney).
+  async function handleSaveSet(
+    partial: Omit<FreeSet, 'id' | 'timestamp'>,
+    editingId?: string,
+    alsoRemovePlanned?: string,
+  ) {
     if (!session) return;
 
-    // Logging a set implicitly "starts" the workout — if the session is still in
-    // the fresh/paused state, resume the timer so the elapsed clock starts now.
+    // Logging a set implicitly "starts" the workout — if the session is still
+    // not-started/paused, resume the clock. Capture the new `date` so local
+    // state follows: the setSession below spreads the stale snapshot, which
+    // left the in-page clock frozen (or counting from the wrong start) until
+    // a reload.
+    let resumedDate: number | null = null;
     if (session.pausedAt) {
-      await firestore.resumeFreeSession(session.id);
+      const r = await firestore.resumeFreeSession(session.id);
+      if (r) resumedDate = r.date;
     }
 
     // Auto-add muscle to session focus if new
@@ -400,14 +414,21 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
       await firestore.ensurePersonalExercise(partial.exerciseName.trim(), partial.muscle);
     }
 
-    // Remove from planned list if it was there (now becomes a real logged exercise)
+    // Remove from planned list if it was there (now becomes a real logged
+    // exercise), plus any explicitly-requested extra removal (the exercise
+    // being replaced). Both drops happen in ONE write so neither can be
+    // undone by the other.
     let newPlanned = session.plannedExercises || [];
-    if (partial.exerciseName) {
-      const nameKey = partial.exerciseName.trim().toLowerCase();
-      const before = newPlanned.length;
-      newPlanned = newPlanned.filter(p => p.name.toLowerCase() !== nameKey);
-      if (newPlanned.length !== before) {
-        await firestore.updatePlannedExercises(session.id, newPlanned);
+    {
+      const drop = new Set<string>();
+      if (partial.exerciseName) drop.add(partial.exerciseName.trim().toLowerCase());
+      if (alsoRemovePlanned) drop.add(alsoRemovePlanned.trim().toLowerCase());
+      if (drop.size > 0) {
+        const before = newPlanned.length;
+        newPlanned = newPlanned.filter(p => !drop.has(p.name.trim().toLowerCase()));
+        if (newPlanned.length !== before) {
+          await firestore.updatePlannedExercises(session.id, newPlanned);
+        }
       }
     }
 
@@ -440,7 +461,31 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
       await firestore.logFreeSet(session.id, set);
     }
 
-    setSession({ ...session, muscleGroups: sessionMuscles, sets: newSets, plannedExercises: newPlanned });
+    // A NEW set on an exercise marked finished re-opens it, so "+ סט נוסף" on
+    // a card in בוצעו actually brings it back to the active list. (For
+    // "שמור וסיים" the finish is applied right after this, so it still ends
+    // up finished.)
+    let finishedKeys = session.finishedExerciseKeys || [];
+    if (!editingId && partial.exerciseName) {
+      const k = `${partial.muscle}::${partial.exerciseName.trim().toLowerCase()}`;
+      if (finishedKeys.includes(k)) {
+        // Finishing is superset-level, so re-opening is too: a new set on one
+        // member brings the whole superset back to the active list.
+        const reopen = new Set(finishKeysFor(k));
+        const toRemove = finishedKeys.filter(x => reopen.has(x));
+        finishedKeys = finishedKeys.filter(x => !reopen.has(x));
+        await firestore.unmarkExercisesFinished(session.id, toRemove);
+      }
+    }
+
+    setSession({
+      ...session,
+      muscleGroups: sessionMuscles,
+      sets: newSets,
+      plannedExercises: newPlanned,
+      finishedExerciseKeys: finishedKeys,
+      ...(resumedDate != null ? { date: resumedDate, pausedAt: undefined } : {}),
+    });
     setModal(null);
 
     // Start timer when: new real set OR completing a placeholder into a real set.
@@ -487,6 +532,161 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
         });
       });
     }
+  }
+
+  // Most recent real set for an exercise across PREVIOUS workouts.
+  function lastPastSetFor(nameLc: string): FreeSet | null {
+    let best: FreeSet | null = null;
+    for (const s of allPastSets) {
+      if ((s.exerciseName || '').trim().toLowerCase() !== nameLc) continue;
+      if (!(s.weight > 0 || s.reps > 0)) continue;
+      if (!best || s.timestamp > best.timestamp) best = s;
+    }
+    return best;
+  }
+
+  // Every member of a superset, in link order — logged ones AND ones still
+  // only planned — each with the set a round should copy: its last set in
+  // THIS workout, else its last set from a previous workout, else none.
+  function supersetRoundPlan(ssId: string): Array<{ name: string; muscle: MuscleGroup; order: number; source: FreeSet | null; planned: boolean }> {
+    if (!session) return [];
+    const out: Array<{ name: string; muscle: MuscleGroup; order: number; source: FreeSet | null; planned: boolean }> = [];
+    const seen = new Set<string>();
+    for (const g of groupedSets) {
+      if (!g.sets.some(s => s.supersetGroup === ssId)) continue;
+      const nameLc = g.exerciseName.trim().toLowerCase();
+      seen.add(nameLc);
+      const inSession = [...g.sets].reverse().find(s => s.weight > 0 || s.reps > 0) || null;
+      out.push({
+        name: g.exerciseName,
+        muscle: g.muscle,
+        order: g.sets.find(s => typeof s.supersetOrder === 'number')?.supersetOrder ?? 9999,
+        source: inSession || lastPastSetFor(nameLc),
+        planned: false,
+      });
+    }
+    for (const p of session.plannedExercises || []) {
+      if (p.supersetGroup !== ssId) continue;
+      const nameLc = p.name.trim().toLowerCase();
+      if (seen.has(nameLc)) continue;
+      seen.add(nameLc);
+      out.push({ name: p.name, muscle: p.muscle, order: p.supersetOrder ?? 9999, source: lastPastSetFor(nameLc), planned: true });
+    }
+    return out.sort((a, b) => a.order - b.order);
+  }
+
+  // "ביצעתי סיבוב" on a superset (rep_1789461135224_jgat): the user finished
+  // the current round, so append ONE row to every member, copied from that
+  // member's last set — from this workout, or from a previous one when the
+  // member hasn't been done yet today (so it works before the first set too).
+  // Members with no set anywhere are skipped.
+  async function handleLogSupersetRound(ssId: string) {
+    if (!session) return;
+    const plan = supersetRoundPlan(ssId).filter(m => m.source);
+    if (plan.length === 0) return;
+    // Logging implicitly starts/resumes the workout clock, same as a single set.
+    let resumedDate: number | null = null;
+    if (session.pausedAt) {
+      const r = await firestore.resumeFreeSession(session.id);
+      if (r) resumedDate = r.date;
+    }
+    const base = Date.now();
+    const added: FreeSet[] = plan.map((m, i) => {
+      const src = m.source!;
+      return {
+        id: `s_${base}_${i}`,
+        // 1ms steps in superset order so rows keep their order.
+        timestamp: base + i,
+        muscle: m.muscle,
+        weight: src.weight,
+        reps: src.reps,
+        exerciseName: m.name,
+        supersetGroup: ssId,
+        ...(src.unit ? { unit: src.unit } : {}),
+        ...(m.order !== 9999 ? { supersetOrder: m.order } : {}),
+      };
+    });
+    const newSets = [...session.sets, ...added];
+    // Planned members that just got their first row leave the plan — same as
+    // logging their first set by hand.
+    const loggedNow = new Set(plan.filter(m => m.planned).map(m => m.name.trim().toLowerCase()));
+    const oldPlanned = session.plannedExercises || [];
+    const newPlanned = oldPlanned.filter(p => !loggedNow.has(p.name.trim().toLowerCase()));
+    const newMuscles = Array.from(new Set([...session.muscleGroups, ...plan.map(m => m.muscle)]));
+
+    await firestore.updateFreeSets(session.id, newSets);
+    if (newPlanned.length !== oldPlanned.length) await firestore.updatePlannedExercises(session.id, newPlanned);
+    if (newMuscles.length !== session.muscleGroups.length) await firestore.updateFreeSessionMuscles(session.id, newMuscles);
+    setSession(prev => (prev ? {
+      ...prev,
+      sets: newSets,
+      plannedExercises: newPlanned,
+      muscleGroups: newMuscles,
+      ...(resumedDate != null ? { date: resumedDate, pausedAt: undefined } : {}),
+    } : prev));
+    // A full round is exactly when rest belongs.
+    timer.start(getUserDefaultRest());
+  }
+
+  // Superset action row — ONE component for both the logged and the planned
+  // superset headers, so the buttons look and behave the same everywhere.
+  // Primary (solid, 2/3): "ביצעתי סיבוב". Secondary (quiet, 1/3): "סיימתי
+  // סופרסט". Same 2/3 + 1/3 grammar as "שמור סט / שמור וסיים".
+  function renderSupersetActions(ssId: string, color: SsColor) {
+    if (planning || historical) return null;
+    const canRound = supersetRoundPlan(ssId).some(m => m.source);
+    const ssGroups = groupedSets.filter(x => x.sets.some(s => s.supersetGroup === ssId));
+    const canFinish = ssGroups.some(x => x.sets.some(s => s.weight > 0 || s.reps > 0));
+    if (!canRound && !canFinish) return null;
+    return (
+      <div className="flex gap-2 mt-2" dir="rtl">
+        {canRound && (
+          <button
+            onClick={() => handleLogSupersetRound(ssId)}
+            className={`h-9 rounded-xl text-[13px] font-bold text-white ${color.stripe} hover:opacity-90 active:opacity-80 transition-opacity`}
+            style={{ flex: canFinish ? '2 1 0' : '1 1 0', WebkitTapHighlightColor: 'transparent' }}
+            title="ביצעתי את כל הסיבוב — מוסיף שורה לכל תרגיל בסופרסט לפי הסט האחרון שלו"
+          >✓ ביצעתי סיבוב</button>
+        )}
+        {canFinish && (
+          <button
+            onClick={() => handleFinishGroups(ssGroups.map(x => `${x.muscle}::${x.exerciseName.toLowerCase()}`))}
+            className="h-9 rounded-xl text-[12px] font-semibold border border-subtle bg-white/70 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900 transition-colors"
+            style={{ flex: '1 1 0', WebkitTapHighlightColor: 'transparent' }}
+            title="סיימתי את הסופרסט — עובר לתרגילים שבוצעו"
+          >סיימתי סופרסט</button>
+        )}
+      </div>
+    );
+  }
+
+  // The keys a "finish" applies to. A regular exercise → just itself. A
+  // superset member → EVERY member of that superset: finishing (and
+  // re-opening) is always superset-level, never one exercise out of the group.
+  function finishKeysFor(key: string): string[] {
+    if (!session) return [key];
+    const keyOf = (x: SetGroup) => `${x.muscle}::${x.exerciseName.toLowerCase()}`;
+    const own = groupedSets.find(x => keyOf(x) === key);
+    const nameLc = key.split('::').slice(1).join('::');
+    const ss = own?.sets.find(s => s.supersetGroup)?.supersetGroup
+      || (session.plannedExercises || []).find(p => p.name.trim().toLowerCase() === nameLc)?.supersetGroup;
+    if (!ss) return [key];
+    const keys = new Set<string>([key]);
+    for (const x of groupedSets) if (x.sets.some(s => s.supersetGroup === ss)) keys.add(keyOf(x));
+    return Array.from(keys);
+  }
+
+  // "סיימתי" / "סיימתי סופרסט": move to בוצעו without adding any set.
+  async function handleFinishGroups(keys: string[]) {
+    if (!session || keys.length === 0) return;
+    await firestore.markExercisesFinished(session.id, keys);
+    // Functional update so it composes with a setSession already queued by
+    // handleSaveSet (the "שמור וסיים" path).
+    setSession(prev => {
+      if (!prev) return prev;
+      const next = Array.from(new Set([...(prev.finishedExerciseKeys || []), ...keys]));
+      return { ...prev, finishedExerciseKeys: next };
+    });
   }
 
   function openChatWith(
@@ -1084,6 +1284,16 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
         <Chronograph
           sessionStartMs={session.date}
           pausedAtMs={session.pausedAt}
+          // Pause/start inside the widget persist to Firestore (they used to be
+          // local-only, so Home + the badge kept running while this said paused).
+          onPauseSession={async () => {
+            const r = await firestore.pauseFreeSession(session.id);
+            if (r) setSession(prev => (prev ? { ...prev, pausedAt: r.pausedAt } : prev));
+          }}
+          onResumeSession={async () => {
+            const r = await firestore.resumeFreeSession(session.id);
+            if (r) setSession(prev => (prev ? { ...prev, date: r.date, pausedAt: undefined } : prev));
+          }}
           restRemaining={timer.remaining}
           restIsRunning={timer.isRunning}
           restIsDone={timer.isDone}
@@ -1265,18 +1475,15 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
           replacingName={modal.kind === 'replace' ? modal.oldName : undefined}
           onClose={() => setModal(null)}
           onSave={async (partial, editingId) => {
-            // Replace-and-log: yank the OLD planned entry before the standard
-            // logging path runs. handleSaveSet only removes the NEW name from
-            // planned, so without this the swap doesn't happen.
-            if (modal.kind === 'replace' && session) {
-              const oldKey = modal.oldName.toLowerCase();
-              const planned = session.plannedExercises || [];
-              const trimmed = planned.filter(p => p.name.toLowerCase() !== oldKey);
-              if (trimmed.length !== planned.length) {
-                await firestore.updatePlannedExercises(session.id, trimmed);
-              }
-            }
-            await handleSaveSet(partial, editingId);
+            // Replace-and-log: hand the OLD planned name to handleSaveSet so
+            // it drops both entries in the same plannedExercises write. Doing
+            // it as a separate write beforehand got clobbered by the rebuild
+            // inside handleSaveSet (rep_1788852490779_tney).
+            await handleSaveSet(
+              partial,
+              editingId,
+              modal.kind === 'replace' ? modal.oldName : undefined,
+            );
           }}
           onPhotoSaved={(photoKey, dataUrl) => {
             setPhotosMap(prev => ({ ...prev, [photoKey]: dataUrl }));
@@ -1290,18 +1497,9 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
             }
           }}
           onFinishExercise={async (key) => {
-            if (!session) return;
-            await firestore.markExerciseFinished(session.id, key);
-            // Mirror into local state — handleSaveSet already ran its own
-            // setSession from a stale snapshot, so the Firestore write alone
-            // would not move the exercise to the Done cluster until a full
-            // reload. Functional update so we compose on top of that.
-            setSession(prev => {
-              if (!prev) return prev;
-              const cur = prev.finishedExerciseKeys || [];
-              if (cur.includes(key)) return prev;
-              return { ...prev, finishedExerciseKeys: [...cur, key] };
-            });
+            // "שמור וסיים" on a superset member finishes the whole superset —
+            // same rule as the header's "סיימתי סופרסט".
+            await handleFinishGroups(finishKeysFor(key));
           }}
         />
       )}
@@ -1445,24 +1643,29 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
                 )}
                 {/* Superset header — appears above the first card in the group */}
                 {isFirstInSs && ssColor && (
-                  <div className={`px-3 py-1.5 rounded-t-2xl border-2 border-b-0 ${ssColor.border} ${ssColor.badgeBg} flex items-center justify-between`} dir="rtl">
-                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${ssColor.badgeText}`}>
-                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                      </svg>
-                      <span>
-                        <span>סופרסט </span>
-                        <bdi>{ssColor.label}</bdi>
-                        <span> · </span>
-                        <bdi>{ssTotal}</bdi>
-                        <span> תרגילים</span>
+                  <div className={`px-3 pt-2 pb-2.5 rounded-t-2xl border-2 border-b-0 ${ssColor.border} ${ssColor.badgeBg}`} dir="rtl">
+                    {/* Row 1: identity on the right, the quiet unlink link on the left. */}
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${ssColor.badgeText}`}>
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        <span>
+                          <span>סופרסט </span>
+                          <bdi>{ssColor.label}</bdi>
+                          <span> · </span>
+                          <bdi>{ssTotal}</bdi>
+                          <span> תרגילים</span>
+                        </span>
                       </span>
-                    </span>
-                    <button
-                      onClick={() => unlinkWholeSuperset(ssId!)}
-                      className={`text-[10px] font-semibold ${ssColor.badgeText} opacity-70 hover:opacity-100`}
-                    >בטל קישור</button>
+                      <button
+                        onClick={() => unlinkWholeSuperset(ssId!)}
+                        className={`text-[10px] font-semibold ${ssColor.badgeText} opacity-70 hover:opacity-100`}
+                      >בטל קישור</button>
+                    </div>
+                    {/* Row 2: the actions, full width. */}
+                    {renderSupersetActions(ssId!, ssColor)}
                   </div>
                 )}
               {(() => {
@@ -1666,18 +1869,33 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
                     );
                   })}
                 </div>
-                <div className="flex gap-2 mt-3 pt-3 border-t border-subtle/60" dir="rtl">
+                {/* Card actions — one height, one radius, clear hierarchy:
+                    "+ סט נוסף" primary (2/3), "סיימתי" quiet secondary (1/3),
+                    AI a compact fixed-width chip. */}
+                <div className="flex items-stretch gap-2 mt-3 pt-3 border-t border-subtle/60" dir="rtl">
                   <button
                     onClick={() => setModal({ kind: 'dup', set: g.sets[g.sets.length - 1] })}
-                    className="flex-1 py-2.5 text-sm font-semibold rounded-xl border-2 dark:border-emerald-500/60 border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-500/10 hover:bg-emerald-500/5 transition-colors"
+                    className="h-10 rounded-xl text-sm font-bold border border-emerald-500/50 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                    style={{ flex: '2 1 0', WebkitTapHighlightColor: 'transparent' }}
                   >+ סט נוסף</button>
+                  {/* "סיימתי" → בוצעו, no set added. Regular exercises only:
+                      inside a superset the finish lives on the superset header
+                      and applies to all members. Needs at least one real set. */}
+                  {!ssId && !planning && !historical && g.sets.some(s => s.weight > 0 || s.reps > 0) && (
+                    <button
+                      onClick={() => handleFinishGroups([`${g.muscle}::${g.exerciseName.toLowerCase()}`])}
+                      className="h-10 rounded-xl text-[13px] font-semibold border border-subtle text-slate-600 dark:text-slate-300 hover:bg-slate-500/10 transition-colors"
+                      style={{ flex: '1 1 0', WebkitTapHighlightColor: 'transparent' }}
+                      title="סיימתי עם התרגיל — עובר לתרגילים שבוצעו"
+                    >✓ סיימתי</button>
+                  )}
                   <button
                     onClick={() => openChatWith(
                       `תציע לי תרגיל נוסף/משלים ל"${displayName}" (${m.he}), משהו שיוסיף לאימון של היום.`,
                       undefined,
                       true, // start fresh chat
                     )}
-                    className="inline-flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 font-bold text-xs"
+                    className="h-10 w-14 shrink-0 inline-flex items-center justify-center gap-1 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 font-bold text-xs transition-colors"
                     aria-label="הוסף עוד עם AI"
                     title="הוסף עוד עם AI"
                   >
@@ -1732,7 +1950,9 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
                   );
                 })}
                 {/* Notes + difficulty rating — quiet, expandable */}
-                <ExerciseInline uid={uid} exerciseName={g.exerciseName} sessionId={session.id} />
+                <ExerciseInline uid={uid} exerciseName={g.exerciseName} sessionId={session.id}
+                  baseWeight={[...g.sets].reverse().find(s => s.weight > 0)?.weight}
+                  unit={[...g.sets].reverse().find(s => s.weight > 0)?.unit || 'kg'} />
               </div>
                 );
               })()}
@@ -1836,24 +2056,30 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
                     </div>
                   )}
                   {showSsHeader && (
-                    <div className={`px-3 py-1.5 rounded-t-2xl border-2 border-b-0 ${pSsColor.border} ${pSsColor.badgeBg} flex items-center justify-between`} dir="rtl">
-                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${pSsColor.badgeText}`}>
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                        </svg>
-                        <span>
-                          <span>סופרסט </span>
-                          <bdi>{pSsColor.label}</bdi>
-                          <span> · </span>
-                          <bdi>{pTotal}</bdi>
-                          <span> תרגילים</span>
+                    <div className={`px-3 pt-2 pb-2.5 rounded-t-2xl border-2 border-b-0 ${pSsColor.border} ${pSsColor.badgeBg}`} dir="rtl">
+                      <div className="flex items-center justify-between">
+                        <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${pSsColor.badgeText}`}>
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </svg>
+                          <span>
+                            <span>סופרסט </span>
+                            <bdi>{pSsColor.label}</bdi>
+                            <span> · </span>
+                            <bdi>{pTotal}</bdi>
+                            <span> תרגילים</span>
+                          </span>
                         </span>
-                      </span>
-                      <button
-                        onClick={() => unlinkWholeSuperset(pSs!)}
-                        className={`text-[10px] font-semibold ${pSsColor.badgeText} opacity-70 hover:opacity-100`}
-                      >בטל קישור</button>
+                        <button
+                          onClick={() => unlinkWholeSuperset(pSs!)}
+                          className={`text-[10px] font-semibold ${pSsColor.badgeText} opacity-70 hover:opacity-100`}
+                        >בטל קישור</button>
+                      </div>
+                      {/* Same action row as the logged header — here the round
+                          copies each exercise's last set from previous workouts,
+                          so it works before a single set is done today. */}
+                      {renderSupersetActions(pSs!, pSsColor!)}
                     </div>
                   )}
                 {(() => {
@@ -2283,7 +2509,9 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
                             session's choices). rep_1788080160530_c3ha / rep_1788078842792_cih4
                             surfaced that these were only visible on the active
                             card — moving them here closes the gap. */}
-                        <ExerciseInline uid={uid} exerciseName={g.exerciseName} sessionId={session.id} />
+                        <ExerciseInline uid={uid} exerciseName={g.exerciseName} sessionId={session.id}
+                  baseWeight={[...g.sets].reverse().find(s => s.weight > 0)?.weight}
+                  unit={[...g.sets].reverse().find(s => s.weight > 0)?.unit || 'kg'} />
 
                         {/* "+ סט" promotes this exercise back to the active list
                             (the new set's timestamp becomes latest → group is
@@ -2611,6 +2839,12 @@ type Difficulty = 'plus-1.25' | 'plus-2.5' | 'plus-5' | 'plus-10';
 const DIFF_LABEL: Record<Difficulty, string> = {
   'plus-10': '+10', 'plus-5': '+5', 'plus-2.5': '+2.5', 'plus-1.25': '+1.25',
 };
+// Numeric deltas — so the summary can show the TARGET weight (current + bump)
+// instead of only the increment. "להעלות ל-63.5" is actionable at the rack;
+// "להעלות ב-+5" makes you do the math mid-set (rep_1788939697366_a21j).
+const DIFF_DELTA: Record<Difficulty, number> = {
+  'plus-10': 10, 'plus-5': 5, 'plus-2.5': 2.5, 'plus-1.25': 1.25,
+};
 const DIFF_COLOR: Record<Difficulty, string> = {
   // Cool → warm gradient across the four deltas — small bumps read as safe,
   // big bumps as ambitious. Keeps the visual language of the old chips.
@@ -2640,7 +2874,16 @@ const REPS_COLOR: Record<NextReps, string> = {
   '8':  'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40',
 };
 
-export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; exerciseName: string; sessionId: string }) {
+export function ExerciseInline({ uid, exerciseName, sessionId, baseWeight, unit }: {
+  uid: string;
+  exerciseName: string;
+  sessionId: string;
+  // Weight of the most recent set for this exercise. When known, the
+  // "העלאת משקל" line shows the resulting TARGET weight rather than just the
+  // increment, so the number reads straight onto the bar.
+  baseWeight?: number;
+  unit?: string;
+}) {
   const firestore = useFirestore(uid);
   const exId = useMemo(() => exerciseIdOf(exerciseName), [exerciseName]);
   const [note, setNote] = useState('');
@@ -2651,9 +2894,18 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
   const [lastReps, setLastReps] = useState<NextReps | null>(null);     // reps chip PREVIOUS session
   const [lastSessionId, setLastSessionId] = useState<string | null>(null); // which session the past-mark came from — needed to ack it
   const [lastAcked, setLastAcked] = useState(false);                     // ack state loaded from Firestore + updated by local button; keeps history visible with strikethrough instead of erasing it
+  // Target weights SNAPSHOTTED when the bump chip was tapped — read back as
+  // stored, never recomputed from the current bar weight (rep_1789362385669_uelt).
+  const [thisTarget, setThisTarget] = useState<{ w: number; u: string } | null>(null);
+  const [lastTarget, setLastTarget] = useState<{ w: number; u: string } | null>(null);
   const [reloadTick, setReloadTick] = useState(0);                      // bump to force a re-load (event bus, mount from another card)
   const [loaded, setLoaded] = useState(false);
   const saveNoteTimer = useRef<any>(null);
+  // Quick-delete of the note (rep_1789370106952_4s2v): one tap removes it, and
+  // the previous text is held for a few seconds so an accidental tap can be
+  // undone — fast without being unforgiving.
+  const [deletedNote, setDeletedNote] = useState<string | null>(null);
+  const undoNoteTimer = useRef<any>(null);
 
   useEffect(() => {
     if (!exId) { setLoaded(true); return; }
@@ -2678,8 +2930,12 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
       setLastDiff(lastD);
       setLastReps(lastR);
       setLastSessionId(mostRecent?.sessionId || null);
-      // ackedAt on the past-mark doc → show it struck-through instead of
-      // hiding. History stays visible; user can un-ack anytime.
+      setThisTarget(typeof thisSess?.targetWeight === 'number'
+        ? { w: thisSess.targetWeight, u: thisSess.targetUnit || 'kg' } : null);
+      setLastTarget(lastD && typeof mostRecent?.targetWeight === 'number'
+        ? { w: mostRecent.targetWeight, u: mostRecent.targetUnit || 'kg' } : null);
+      // The lookup only returns an acked mark when it was acked in THIS
+      // workout — so acked here means "show struck through, offer undo".
       setLastAcked(typeof mostRecent?.ackedAt === 'number');
       setLoaded(true);
     });
@@ -2714,6 +2970,27 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
     saveNoteTimer.current = setTimeout(() => { firestore.saveExerciseNote(exId, v); }, 400);
   }
 
+  function quickDeleteNote() {
+    if (!exId) return;
+    if (saveNoteTimer.current) { clearTimeout(saveNoteTimer.current); saveNoteTimer.current = null; }
+    const prev = note;
+    setNote('');
+    setEditingNote(false);
+    setDeletedNote(prev);
+    void firestore.saveExerciseNote(exId, '');
+    if (undoNoteTimer.current) clearTimeout(undoNoteTimer.current);
+    undoNoteTimer.current = setTimeout(() => setDeletedNote(null), 6000);
+  }
+
+  function undoDeleteNote() {
+    if (!exId || deletedNote == null) return;
+    if (undoNoteTimer.current) { clearTimeout(undoNoteTimer.current); undoNoteTimer.current = null; }
+    const restored = deletedNote;
+    setDeletedNote(null);
+    setNote(restored);
+    void firestore.saveExerciseNote(exId, restored);
+  }
+
   // Flush pending debounced note-save on unmount. Without this, closing the
   // LogSet modal (which unmounts ExerciseInline) inside the 400ms window
   // after a keystroke would silently drop the last chars the user typed —
@@ -2735,11 +3012,22 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
     if (!exId) return;
     if (thisDiff === d) {
       setThisDiff(null);
-      // Clear just the weight chip, keep the reps chip if any.
-      await firestore.saveExerciseDifficulty(exId, sessionId, { difficulty: null });
+      setThisTarget(null);
+      // Clear just the weight chip (and its snapshot), keep the reps chip if any.
+      await firestore.saveExerciseDifficulty(exId, sessionId, { difficulty: null, targetWeight: null, targetUnit: null });
     } else {
+      // Snapshot the target NOW, from whatever is on the bar at the moment
+      // of tapping. Stored as an absolute number so it never drifts when the
+      // user later lifts the heavier weight (rep_1789362385669_uelt).
+      const hasBase = typeof baseWeight === 'number' && baseWeight > 0;
+      const snap = hasBase ? { w: +(baseWeight! + DIFF_DELTA[d]).toFixed(2), u: unit || 'kg' } : null;
       setThisDiff(d);
-      await firestore.saveExerciseDifficulty(exId, sessionId, { difficulty: d });
+      setThisTarget(snap);
+      await firestore.saveExerciseDifficulty(exId, sessionId, {
+        difficulty: d,
+        targetWeight: snap ? snap.w : null,
+        targetUnit: snap ? snap.u : null,
+      });
     }
   }
 
@@ -2761,12 +3049,14 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
   async function ackLastMark() {
     if (!exId || !lastSessionId) return;
     setLastAcked(true);
-    await firestore.saveExerciseDifficulty(exId, lastSessionId, { ackedAt: Date.now() });
+    // Record WHICH workout the ack happened in: struck-through here, gone in
+    // every later workout (rep_1789362464869_dy5w).
+    await firestore.saveExerciseDifficulty(exId, lastSessionId, { ackedAt: Date.now(), ackedInSessionId: sessionId });
   }
   async function unackLastMark() {
     if (!exId || !lastSessionId) return;
     setLastAcked(false);
-    await firestore.saveExerciseDifficulty(exId, lastSessionId, { ackedAt: null });
+    await firestore.saveExerciseDifficulty(exId, lastSessionId, { ackedAt: null, ackedInSessionId: null });
   }
 
   if (!loaded || !exId) return null;
@@ -2776,11 +3066,13 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
   // text. That keeps 1-field vs 2-field visually consistent (rep_1787908584709_qlrp):
   //
   // • Reps only        → "לשנות ל-<R> חזרות"
-  // • Weight only      → "להעלות משקל ב-<W>"
-  // • Both             → "לשנות ל-<R> חזרות ולהעלות משקל ב-<W>"
+  // • Weight only      → "להעלות משקל ל-<TARGET> (<+W>)"   ← snapshot stored at tap time
+  //                      "להעלות משקל ב-<+W>"              ← no snapshot (legacy mark / no base)
+  // • Both             → the two joined with " ו"
   function summaryParts(
     reps: NextReps | null,
     weight: Difficulty | null,
+    target: { w: number; u: string } | null,
   ): React.ReactNode | null {
     if (!reps && !weight) return null;
     const numCls = 'inline-block font-bold px-1 rounded';
@@ -2795,10 +3087,23 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
       );
     }
     if (weight) {
+      // Show the STORED target (snapshot from tap time). Deliberately never
+      // derived from the current bar weight — that would drift upward every
+      // time the user actually lifts the new weight.
       parts.push(
         <span key="w">
-          להעלות משקל ב-
-          <bdi dir="ltr" className={`${numCls} ${DIFF_COLOR[weight]}`}>{DIFF_LABEL[weight]}</bdi>
+          {target ? (
+            <>
+              להעלות משקל ל-
+              <bdi dir="ltr" className={`${numCls} ${DIFF_COLOR[weight]}`}>{target.w}{target.u}</bdi>
+              <span className="text-muted-most"> ({DIFF_LABEL[weight]})</span>
+            </>
+          ) : (
+            <>
+              להעלות משקל ב-
+              <bdi dir="ltr" className={`${numCls} ${DIFF_COLOR[weight]}`}>{DIFF_LABEL[weight]}</bdi>
+            </>
+          )}
         </span>
       );
     }
@@ -2833,8 +3138,8 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
 
   const hasThis = !!(thisDiff || thisReps);
   const hasLast = !!(lastDiff || lastReps);
-  const nextLine = summaryParts(thisReps, thisDiff);
-  const prevLine = summaryParts(lastReps, lastDiff);
+  const nextLine = summaryParts(thisReps, thisDiff, thisTarget);
+  const prevLine = summaryParts(lastReps, lastDiff, lastTarget);
 
   function flushAndCloseEdit() {
     if (saveNoteTimer.current) {
@@ -2962,9 +3267,10 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
           className="w-full text-[12px] rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 p-2 focus:outline-none focus:ring-1 focus:ring-amber-500/40 resize-none"
         />
       ) : note ? (
+        <div className="flex items-stretch gap-1">
         <button
           onClick={() => setEditingNote(true)}
-          className="w-full text-right text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 text-slate-800 dark:text-slate-100 hover:bg-amber-500/12 dark:hover:bg-amber-500/16 transition-colors"
+          className="flex-1 min-w-0 text-right text-[12px] leading-relaxed pr-2 pl-2 py-1 rounded-md border-r-2 border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 text-slate-800 dark:text-slate-100 hover:bg-amber-500/12 dark:hover:bg-amber-500/16 transition-colors"
           title="לחץ לעריכה"
         >
           {/* me-1.5 puts a real gap between the "הערה:" label and the note
@@ -2974,6 +3280,19 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
           <span className="text-amber-700 dark:text-amber-300 font-semibold me-1.5">הערה:</span>
           <span className="font-medium">{note}</span>
         </button>
+        {/* Quick delete — same trash glyph as set rows, muted until hover. */}
+        <button
+          onClick={quickDeleteNote}
+          aria-label="מחק הערה"
+          title="מחק הערה"
+          className="shrink-0 w-8 rounded-md flex items-center justify-center text-red-500/70 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" />
+          </svg>
+        </button>
+        </div>
       ) : null}
 
       {/* 5 — Add / finish button. Sits under the whole stack rather than
@@ -2981,12 +3300,22 @@ export function ExerciseInline({ uid, exerciseName, sessionId }: { uid: string; 
              the block occupied by the past/future context, which is what
              the coach reads first. */}
       {!note && !editingNote && (
-        <button
-          onClick={() => setEditingNote(true)}
-          className="text-[11px] text-muted hover:text-main flex items-center gap-1"
-        >
-          <span>+ הוסף הערה</span>
-        </button>
+        deletedNote != null ? (
+          <div className="text-[11px] text-muted flex items-center gap-2">
+            <span>ההערה נמחקה</span>
+            <button
+              onClick={undoDeleteNote}
+              className="font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+            >בטל</button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditingNote(true)}
+            className="text-[11px] text-muted hover:text-main flex items-center gap-1"
+          >
+            <span>+ הוסף הערה</span>
+          </button>
+        )
       )}
       {editingNote && (
         <button

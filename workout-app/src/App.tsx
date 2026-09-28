@@ -255,6 +255,26 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
     })();
   }, [route, uid]);
 
+  // Re-fetch whenever ANY session lifecycle write happens (restart, pause,
+  // resume, start, finish, delete…). The route-change poll above misses
+  // actions taken on the same screen — e.g. resetting the timer on Home left
+  // `inProgress` holding the old `date`, so the floating badge kept counting
+  // up after the reset (rep_1789364101088_2jvl).
+  useEffect(() => {
+    let cancelled = false;
+    async function onSessionsChanged() {
+      const list = await firestore.getFreeSessions();
+      if (cancelled) return;
+      setAllSessions(list);
+      setInProgress(list.find(s => s.status === 'active') || null);
+    }
+    window.addEventListener('wholos:sessions-changed', onSessionsChanged);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('wholos:sessions-changed', onSessionsChanged);
+    };
+  }, [uid]);
+
   // ─── Food ────────────────────────────────────────────────────────
   // Bumping this key is how a save anywhere (modal, quick action) tells the
   // food tabs to refetch.
@@ -498,6 +518,14 @@ function AppShell({ uid, route, navigate, doLogout, trial, impersonation }: {
     const freshActive = list.find(s => s.status === 'active') || null;
     setInProgress(freshActive);
     if (freshActive) {
+      // ▶ means "go train" — the SAME as the Home tile's "התחל"/"המשך": if the
+      // clock is not-started or paused, start it, then open the workout.
+      // Previously the FAB only navigated, so it left the clock frozen while
+      // the tile button started it — two buttons, two behaviors
+      // (rep_1789365229949_qsto).
+      if (freshActive.pausedAt) {
+        await firestore.resumeFreeSession(freshActive.id);
+      }
       navigate({ page: 'session', sessionId: freshActive.id });
       return;
     }

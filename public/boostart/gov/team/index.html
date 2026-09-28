@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>צוות וניסיון: שלומי זוין, Boostart · Boostart</title>
+<meta name="description" content="יכולת מקצועית וניסיון מעשי ב-Agentic SDD, במחזור חיים מלא של SDLC ובמערכות Agentic AI">
+<link rel="icon" href="../../boostart-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0F3; --paper:#FFFFFF; --tint:#F5F7FA; --tint-2:#EAF0F8;
+  --line:rgba(20,22,26,.10); --line-2:rgba(20,22,26,.18);
+  --text:#14161A; --text-2:#353A44; --muted:#6A707C;
+  --accent:#3F6FB0; --chip:#FFFFFF; --maxw:860px;
+}
+:root[data-theme="dark"]{
+  --bg:#0B0C0E; --paper:#131519; --tint:#1A1D22; --tint-2:#1C2430;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.17);
+  --text:#EEF0F3; --text-2:#BCC2CC; --muted:#8A919C;
+  --accent:#7AA7E0; --chip:#F4F6F9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Heebo',system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;padding:0 16px 64px;transition:background .18s,color .18s}
+a{color:inherit}
+
+.bar{position:sticky;top:0;z-index:20;max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;background:var(--bg)}
+.bar a.back{font-size:14px;color:var(--muted);text-decoration:none}
+.bar a.back:hover{color:var(--text)}
+.actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;font:600 14px 'Heebo',sans-serif;text-decoration:none;cursor:pointer;border:1px solid var(--line-2);background:var(--paper);color:var(--text);transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--text);border-color:var(--text);color:var(--paper)}
+.btn svg{width:16px;height:16px}
+.icon{width:36px;padding:0;justify-content:center}
+
+.doc{max-width:var(--maxw);margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:52px 64px 48px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line-2)}
+.logo-chip{background:var(--chip);border-radius:4px;padding:6px 8px;display:inline-flex}
+.logo-chip img{display:block;height:26px;width:auto}
+.from{text-align:end;font-size:13px;line-height:1.55;color:var(--muted)}
+.from b{display:block;color:var(--text);font-size:14.5px;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 24px;font-size:13px;color:var(--muted);padding-top:16px}
+.kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--accent);margin:34px 0 8px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin-top:30px}
+.sub{font-size:17px;color:var(--text-2);margin:10px 0 0;padding-bottom:26px;border-bottom:1px solid var(--line)}
+
+.toc{margin:26px 0 6px;padding:18px 20px;background:var(--tint);border:1px solid var(--line);border-radius:4px}
+.toc b{display:block;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+.toc ol{list-style:none;columns:2;column-gap:28px}
+.toc li{break-inside:avoid;font-size:14px;line-height:1.5;padding:4px 0}
+.toc a{color:var(--text-2);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+
+h2{font-size:19px;font-weight:700;color:var(--text);letter-spacing:-.01em;margin:44px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line-2);scroll-margin-top:70px}
+h3{font-size:16px;font-weight:700;color:var(--text);margin:26px 0 10px}
+p{color:var(--text-2);margin-bottom:14px}
+strong{color:var(--text);font-weight:600}
+p.chain{font-size:15px;font-weight:600;color:var(--text);background:var(--tint-2);border:1px solid var(--line);border-radius:4px;padding:12px 16px;text-align:center}
+p.chain strong{font-weight:600}
+
+ul.bul,ol.num{margin:2px 0 18px;padding-inline-start:22px}
+ul.bul li,ol.num li{color:var(--text-2);margin-bottom:6px;padding-inline-start:4px}
+ul.bul li::marker{color:var(--accent)}
+ol.num li::marker{color:var(--accent);font-weight:600}
+
+.incl{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin:2px 0 20px}
+.incl li{position:relative;padding:8px 16px 8px 0;font-size:15px;color:var(--text-2);line-height:1.5;border-bottom:1px solid var(--line)}
+.incl li::before{content:"";position:absolute;inset-inline-start:0;top:16px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.incl li b{display:block;color:var(--text);font-weight:600}
+.incl li span{font-size:14px;color:var(--muted)}
+
+.tbl-wrap{margin:6px 0 22px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:start;padding:10px 12px;border:1px solid var(--line-2);vertical-align:top;line-height:1.55}
+thead th{background:var(--tint);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap}
+tbody td{color:var(--text-2)}
+tbody td:first-child{font-weight:600;color:var(--text)}
+table.wide{font-size:13.5px}
+
+.callout{background:var(--tint);border:1px solid var(--line);border-inline-start:3px solid var(--accent);border-radius:4px;padding:14px 18px;margin:6px 0 18px}
+.callout p{margin:0;color:var(--text-2)}
+
+.sign{margin-top:44px;padding-top:22px;border-top:1px solid var(--line-2);font-size:14px;color:var(--muted);line-height:1.7;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sign b{display:block;color:var(--text);font-size:15.5px;font-weight:600}
+.sign a{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.sign a:hover{color:var(--accent)}
+
+/* hub */
+.docs{list-style:none;margin:10px 0 8px}
+.docs li{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
+.docs li:last-child{border-bottom:none}
+.docs .n{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.06em}
+.docs h3{margin:2px 0 4px;font-size:17px}
+.docs h3 a{text-decoration:none}
+.docs h3 a:hover{color:var(--accent)}
+.docs p{margin:0;font-size:15px}
+.docs .row-actions{display:flex;gap:8px;flex-shrink:0;padding-top:18px}
+
+@media(max-width:720px){
+  body{padding:0 12px 40px}
+  .doc{padding:26px 18px 30px}
+  h1{font-size:23px}
+  .sub{font-size:15.5px}
+  h2{font-size:17px;margin-top:34px}
+  .head{flex-direction:column;gap:12px}
+  .from{text-align:start}
+  .toc ol{columns:1}
+  .incl{grid-template-columns:1fr;gap:0}
+  .btn .lbl-long{display:none}
+  .docs li{flex-direction:column;gap:8px}
+  .docs .row-actions{padding-top:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line-2);border-radius:4px;margin-bottom:10px;overflow:hidden}
+  td{border:none;border-bottom:1px solid var(--line);padding:9px 12px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:1px}
+  .tbl-wrap{overflow:visible}
+}
+
+@media print{
+  @page{size:A4;margin:14mm 13mm 16mm}
+  body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.55}
+  .bar{display:none}
+  .doc{max-width:none;border:none;border-radius:0;padding:0;background:#fff}
+  .kicker{color:#3F6FB0;margin-top:18pt}
+  h1{font-size:20pt}
+  .sub{font-size:11.5pt;color:#333}
+  h2{font-size:13pt;color:#000;border-bottom:1px solid #999;margin:18pt 0 8pt;page-break-after:avoid;break-after:avoid}
+  h3{font-size:11pt;page-break-after:avoid;break-after:avoid}
+  p,li,td{color:#222}
+  .meta,.from,.sign{color:#555}
+  .toc{background:#f6f7f9;border:1px solid #ccc;page-break-inside:avoid}
+  .toc a{color:#222}
+  table{font-size:8.8pt}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid;break-inside:avoid}
+  th,td{border:1px solid #999;padding:5pt 6pt}
+  thead th{background:#eef1f5;color:#000}
+  .tbl-wrap{overflow:visible}
+  .incl li{border-bottom:1px solid #e3e3e3;page-break-inside:avoid}
+  .incl li::before,ul.bul li::marker{background:#3F6FB0}
+  .callout,p.chain{background:#f4f6f9;border:1px solid #bbb;page-break-inside:avoid}
+  .callout{border-inline-start:3px solid #3F6FB0}
+  .sign{page-break-inside:avoid;border-top:1px solid #999}
+  .logo-chip{padding:0}
+  a{text-decoration:none;color:#000}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="../">→ ערכת המענה</a>
+  <div class="actions">
+    <a class="btn primary" href="Boostart-Team-and-Experience.pdf" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>PDF</span><span class="lbl-long">&nbsp;להורדה</span></a>
+    <button class="btn icon" id="themeBtn" aria-label="החלפת מצב תצוגה">☾</button>
+  </div>
+</div>
+<main class="doc">
+  <div class="head">
+    <div class="logo-chip"><img src="../../boostart-logo.png" alt="Boostart"></div>
+    <div class="from"><b>שלומי זוין</b>Boostart · CTO as a Service<br>shlomi@boostart.io · 054-5567213</div>
+  </div>
+  <div class="meta"><div>ערכת מענה · תיחורי Agentic AI ו-SDD · מערך הדיגיטל הלאומי</div><div>ספטמבר 2026 · גרסה 1.0</div></div>
+  <h1>צוות וניסיון: שלומי זוין, Boostart</h1>
+  <p class="sub">יכולת מקצועית וניסיון מעשי ב-Agentic SDD, במחזור חיים מלא של SDLC ובמערכות Agentic AI</p>
+
+<h2 id="s1">1. תקציר</h2>
+<p>שלומי זוין הוא CTO as a Service, ארכיטקט תוכנה ומוביל פיתוח עם 20+ שנות ניסיון בפיתוח מערכות תוכנה. בפרויקטים מסוג זה הוא מוצע כמוביל Agentic SDD וכארכיטקט הראשי. הוא אחראי על המתודולוגיה, החוקה הפרויקטלית, ה-Specs, שערי האיכות, עבודת ה-Agents וה-Human Reviewers. שלומי ישתתף בריאיון ובמפגשי העבודה המקצועיים מול המשרד, וילווה את הצוות עד למסירה, הטמעה והעברת ידע.</p>
+<h2 id="s2">2. התאמה לקריטריוני התיחור</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>דרישה בתיחור</th><th>מה יש לנו</th></tr></thead><tbody><tr><td data-l="דרישה בתיחור">ניסיון בניהול ובביצוע SDLC מלא</td><td data-l="מה יש לנו">שלומי הוביל בנייה של 50+ מוצרים מאפס, משלב אפיון ו-Spec, דרך ארכיטקטורה, פיתוח, DevOps ועלייה לאוויר, ועד תחזוקה והרחבת מוצר. הוא כיהן כ-CTO במספר חברות הזנק.</td></tr><tr><td data-l="דרישה בתיחור">ניסיון מעשי בפיתוח והטמעה של Agentic AI</td><td data-l="מה יש לנו">2+ שנות עבודה עמוקה עם סוכני AI. שלומי בנה מערכות Agentic AI למוצרים, הכוללות ארכיטקטורות רב-סוכניות, תפקידים נפרדים, זיכרון, RAG, כללים דטרמיניסטיים, Logging וניתוב בין ספקי מודלים.</td></tr><tr><td data-l="דרישה בתיחור">שילוב כלי AI בתהליכי הפיתוח</td><td data-l="מה יש לנו">עבודה יומיומית בשיטת Agentic SDD עם Claude Code, חוקה פרויקטלית, Specs, Skills, Hooks, Worktrees, PR ו-Code Review אנושי. שלומי גם מלמד את השיטה לצוותי פיתוח.</td></tr><tr><td data-l="דרישה בתיחור">מינימום שנה עם Agentic AI</td><td data-l="מה יש לנו">כן. לשלומי 2+ שנות ניסיון מעשי ומעמיק בתכנון, בנייה, תפעול ושיפור של מערכות Agentic AI.</td></tr><tr><td data-l="דרישה בתיחור">ענן, CI/CD ו-IaC</td><td data-l="מה יש לנו">ניסיון מעשי ב-AWS, GCP ו-Azure, לצד Docker, Kubernetes, CI/CD, Cloud Run ותהליכי פריסה מבוקרים. בפרויקט הממשלתי העבודה תותאם לכלים ולמדיניות המאושרים ב-Nimbus.</td></tr><tr><td data-l="דרישה בתיחור">הסטאק של "עולים לענן"</td><td data-l="מה יש לנו">ניסיון ב-Next.js, React, TypeScript ובבניית ממשקי Web מורכבים. ניסיון בפיתוח ובדיקות אוטומטיות, לרבות Playwright לפי צורכי הפרויקט.</td></tr><tr><td data-l="דרישה בתיחור">מערכות רגולציה ופרטיות</td><td data-l="מה יש לנו">ניסיון בפלטפורמות פרטיות, GDPR, ניהול נתונים ומערכות Enterprise מונחות רגולציה.</td></tr><tr><td data-l="דרישה בתיחור">הערכת איכות מודלים</td><td data-l="מה יש לנו">רקע מחקרי בבניית ואימון רשתות נוירונים ומודלי חיזוי, בניתוח הסיבות לחיזוי ובאלגוריתמי אופטימיזציה. ניסיון זה משמש בסיס לתכנון Evals ולמדידת איכות.</td></tr></tbody></table></div>
+<h2 id="s3">3. ניסיון מקצועי</h2>
+<p>שלומי זוין עוסק בפיתוח תוכנה מקצה לקצה. ניסיונו כולל מערכות B2B ו-B2C, בעיקר מוצרי SaaS עם לוגיקה עסקית מורכבת בצד השרת, ממשקי Web, אינטגרציות, תהליכים אסינכרוניים, נתונים בזמן אמת ותפעול בענן.</p>
+<p>במסגרת תפקידיו הוביל החלטות ארכיטקטורה, תכנון מודלי נתונים, פיתוח Backend ו-Frontend, הקמת תהליכי CI/CD, שיפור ביצועים, ניהול חובות טכנולוגיים והעברת מערכות ממצב רעיון למערכת עובדת ומתוחזקת. העבודה נעשית מתוך אחריות לקוד קריא, לבדיקות, ל-Observability וליכולת של צוות נוסף להמשיך את התחזוקה.</p>
+<p>במערכות Agentic AI שלומי מתמקד בהפרדה בין החלטות הסתברותיות של מודל לבין בקרות דטרמיניסטיות. הוא מתכנן חלוקת תפקידים בין Agents, זיכרון, RAG, כללים, מעברי מצב, Tracing, רגרסיות ו-HITL. הגישה אינה מסתפקת בכתיבת Prompts, אלא מגדירה מנגנוני שליטה, מדידה ושחזור של התנהגות המערכת.</p>
+<ul class="incl"><li><b>Backend</b><span>Node.js, Express, Python</span></li><li><b>APIs</b><span>REST, GraphQL</span></li><li><b>Frontend</b><span>React, Next.js, TypeScript</span></li><li><b>בסיסי נתונים</b><span>PostgreSQL, MongoDB, Redis</span></li><li><b>ביצועי נתונים</b><span>אינדקסים ואופטימיזציית שאילתות</span></li><li><b>ענן</b><span>AWS, GCP, Azure</span></li><li><b>תפעול</b><span>Docker, Kubernetes, Cloud Run</span></li><li><b>CI/CD</b><span>Pipelines ופריסה מבוקרת</span></li><li><b>זמן אמת</b><span>WebSockets, SSE</span></li><li><b>בדיקות</b><span>Playwright ובדיקות רגרסיה</span></li><li><b>Agentic AI</b><span>RAG, Memory, Routing</span></li><li><b>איכות AI</b><span>Evals, Tracing, HITL</span></li></ul>
+<div class="callout"><p>שלומי עובד לפי עיקרון של אחריות אנושית מלאה על הקוד. Agent יכול להציע, לייצר או לעדכן מימוש, אך כל שינוי מהותי נבדק, מאושר ומנוהל על ידי מהנדס אנושי.</p></div>
+<h2 id="s4">4. פרויקטים נבחרים</h2>
+<h3>מערכות סוכני AI למוצרים</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>היבט</th><th>תיאור</th></tr></thead><tbody><tr><td data-l="היבט">מהו הפרויקט</td><td data-l="תיאור">מערכות סוכני AI ששלומי בנה למוצרים במשך 2+ שנים, בתחומי onboarding בנקאי, ניהול משא ומתן במכירות, ליווי בתחום הרווחה ושיחות AI לצרכנים. המערכות כוללות ארכיטקטורות רב-סוכניות.</td></tr><tr><td data-l="היבט">מה בוצע והרלוונטיות</td><td data-l="תיאור">העבודה כללה הפרדת תפקידים בין Agents, זיכרון, RAG, כללים דטרמיניסטיים לצד המודל, Logging של Prompts ופלטים, וניתוב בין מספר ספקי מודלים. זו ארכיטקטורת ה-Agentic AI הנדרשת בתיחור.</td></tr></tbody></table></div>
+<h3>פיתוח יומיומי ב-Agentic SDD עם Claude Code</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>היבט</th><th>תיאור</th></tr></thead><tbody><tr><td data-l="היבט">מהו הפרויקט</td><td data-l="תיאור">שלומי מפתח מדי יום עם Claude Code בסביבת עבודה המבוססת על Spec תחילה, חוקה פרויקטלית, Skills, Hooks וסשנים מקבילים ב-Worktrees מבודדים. כל שינוי עובר Human Review.</td></tr><tr><td data-l="היבט">מה בוצע והרלוונטיות</td><td data-l="תיאור">שיטת העבודה כוללת ניהול Context, עבודה מקבילית, PR ו-Code Review אנושי לכל שינוי. זו שיטת ה-AI-Assisted SDLC הנדרשת בתיחור, הנעשית בפועל מדי יום.</td></tr></tbody></table></div>
+<h3>פלטפורמות פרטיות ורגולציה</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>היבט</th><th>תיאור</th></tr></thead><tbody><tr><td data-l="היבט">מהו הפרויקט</td><td data-l="תיאור">שלומי עסק בפיתוח פלטפורמות לניהול פרטיות, GDPR, נתונים ודרישות רגולטוריות בארגונים. אלו מערכות Enterprise שבהן המדיניות העסקית והרגולטורית היא חלק מהלוגיקה התפעולית.</td></tr><tr><td data-l="היבט">מה בוצע והרלוונטיות</td><td data-l="תיאור">העבודה כללה תרגום דרישות רגולציה לחוקי מערכת, סיווגים, תהליכי בקרה וניהול נתונים. ניסיון זה רלוונטי למערכת "עולים לענן", שבה נדרש לתרגם מדיניות, הנחיות ותנאי סף לכללים ותהליכים מבוקרים.</td></tr></tbody></table></div>
+<h3>פלטפורמה מבוססת AI בתחום הבריאות</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>היבט</th><th>תיאור</th></tr></thead><tbody><tr><td data-l="היבט">מהו הפרויקט</td><td data-l="תיאור">פלטפורמה מבוססת AI למטפלים העובדים עם ילדים על הרצף האוטיסטי. המערכת עסקה בניתוח התנהגות, ניהול מפגשים והצגת המלצות לצוות המטפל.</td></tr><tr><td data-l="היבט">מה בוצע והרלוונטיות</td><td data-l="תיאור">העבודה עסקה במערכת המשלבת נתונים רגישים, תהליכי עבודה מקצועיים ותמיכה בקבלת החלטות. הרלוונטיות לתיחור היא בתכנון AI ככלי מסייע תחת בקרה אנושית, ולא כתחליף לאישור מקצועי או תפעולי.</td></tr></tbody></table></div>
+<h3>ניתוח מערכות ERP</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>היבט</th><th>תיאור</th></tr></thead><tbody><tr><td data-l="היבט">מהו הפרויקט</td><td data-l="תיאור">שלומי עבד בחברה שהתמחתה בניתוח מערכות ERP. העבודה כללה הבנה של מערכות עסקיות ותיקות, מבני נתונים ותהליכים חוצי ארגון.</td></tr><tr><td data-l="היבט">מה בוצע והרלוונטיות</td><td data-l="תיאור">הניסיון כלל זיהוי זרימות עסקיות, ניתוח תלות בין רכיבים והבנת לוגיקה שאינה תמיד מתועדת באופן מלא. יכולת זו רלוונטית לגילוי ידע במערכות Legacy ולהמרתו ל-Specs, כללים ותהליכי עבודה.</td></tr></tbody></table></div>
+<h3>אלגוריתמיקה ומחקר</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>היבט</th><th>תיאור</th></tr></thead><tbody><tr><td data-l="היבט">מהו הפרויקט</td><td data-l="תיאור">לשלומי רקע מחקרי בבניית ואימון רשתות נוירונים, מודלי חיזוי, עצי החלטה ואלגוריתמים גנטיים ואבולוציוניים. בין היתר עסק באופטימיזציית מסלולים בלוגיסטיקה ובאופטימיזציית צוותים.</td></tr><tr><td data-l="היבט">מה בוצע והרלוונטיות</td><td data-l="תיאור">העבודה כללה בחינת איכות חיזוי והבנת הגורמים להחלטות מודל, ולא רק הפעלת מודלים קיימים. ניסיון זה רלוונטי לתכנון Evals, בדיקות רגרסיה והגדרת מדדים לאיכות של רכיבי AI.</td></tr></tbody></table></div>
+<h2 id="s5">5. הרצאת "מקלוד לפרוד"</h2>
+<p>שלומי מעביר הרצאה בת 2.5 שעות למפתחים ולצוותי פיתוח בשם "מקלוד לפרוד". ההרצאה עוסקת בעבודה הנדסית עם Claude Code, בארכיטקטורה לפני קוד, בחוקה פרויקטלית, בבקרת איכות, בניהול Context ועלויות, ובעבודה מקבילית ב-Worktrees ובסשנים מבודדים.</p>
+<p>ההרצאה כוללת בנייה חיה של רעיון, משלב ה-Spec ועד מערכת הפועלת בענן, עם Git, תהליך פריסה ובקרות לאורך הדרך. היא מדגימה כי מתודולוגיית Agentic SDD המוצעת אינה תאורטית, וכי ניתן להעביר אותה לצוות פיתוח במסגרת משימת העברת הידע.</p>
+<h2 id="s6">6. תפקיד מוצע ומבנה צוות</h2>
+<p>שלומי זוין מוביל את העבודה המקצועית מקצה לקצה, מן ה-Spec והארכיטקטורה ועד הפיתוח, ה-DevOps וניהול המשימות. הספק המוביל מספק את התפקידים הנדרשים לממשק החוזי, לזמינות השירות, לרציפות ולתמיכה בהיקפי עבודה מקבילים.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>תפקיד</th><th>מי</th><th>אחריות</th></tr></thead><tbody><tr><td data-l="תפקיד">מוביל Agentic SDD, ארכיטקט ופיתוח</td><td data-l="מי">שלומי זוין</td><td data-l="אחריות">הובלת מתודולוגיית SDD, ארכיטקטורה, פיתוח, Code Review ואיכות התוצרים.</td></tr><tr><td data-l="תפקיד">DevOps וענן (GCP / AWS)</td><td data-l="מי">שלומי זוין</td><td data-l="אחריות">תשתיות פיתוח, CI/CD, IaC, סביבות עבודה ותהליכי פריסה, בהתאם לאישורים הנדרשים.</td></tr><tr><td data-l="תפקיד">ניהול הפיתוח והמשימות</td><td data-l="מי">שלומי זוין</td><td data-l="אחריות">פירוק ה-Spec למשימות, תיעדוף, מעקב ביצוע ותיאום העבודה הטכנית.</td></tr><tr><td data-l="תפקיד">מנהל פרויקט וממשק חוזי</td><td data-l="מי">מטעם הספק המוביל</td><td data-l="אחריות">ניהול חוזי, דיווחים, ממשק מול המזמין וניהול התחייבויות הספק.</td></tr><tr><td data-l="תפקיד">מוקד שירות וזמינות לפי ה-SLA</td><td data-l="מי">מטעם הספק המוביל</td><td data-l="אחריות">מענה אנושי, טיפול בפניות ועמידה בדרישות הזמינות והשירות.</td></tr><tr><td data-l="תפקיד">גיבוי ורציפות, ועבודה מקבילית</td><td data-l="מי">מפתח מטעם הספק המוביל, מוכשר בשיטה</td><td data-l="אחריות">גיבוי מקצועי, רציפות תפעולית ותמיכה במשימות מקבילות לפי הצורך.</td></tr><tr><td data-l="תפקיד">QA קבלה ואבטחת מידע</td><td data-l="מי">מטעם הספק המוביל, לפי הצורך</td><td data-l="אחריות">בדיקות קבלה, תיאום דרישות אבטחת מידע וליווי תהליכי אישור.</td></tr></tbody></table></div>
+<p>כל חברי הצוות עובדים לפי חוקה פרויקטלית אחת ומערך שערים אחד.</p>
+<h2 id="s7">7. פרויקטים דומים וממליצים</h2>
+<p>פרטי שני הפרויקטים שיוצגו כפרויקטים דומים, וכן פרטי הממליצים הרלוונטיים, יימסרו במסגרת ההגשה הפורמלית ובהתאם לדרישות התיחור ולכללי הסודיות החלים על הלקוחות.</p>
+<h2 id="s8">8. פרטי קשר</h2>
+<p>שלומי זוין, Boostart. דוא"ל: shlomi@boostart.io. טלפון: 054-5567213. אתר: boostart.io.</p>
+  <div class="sign">
+    <div><b>שלומי זוין</b>Boostart · CTO as a Service</div>
+    <div><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a></div>
+  </div>
+</main>
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('themeBtn'),K='boostart-gov-theme';
+  function set(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'☀':'☾';try{localStorage.setItem(K,t)}catch(e){}}
+  var s=null;try{s=localStorage.getItem(K)}catch(e){}
+  set(s||'light');
+  btn.addEventListener('click',function(){set(root.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>

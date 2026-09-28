@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>מענה מקצועי: המשך פיתוח מערכת עולים לענן · Boostart</title>
+<meta name="description" content="גישת Boostart להמשך פיתוח מבוסס Agentic AI ו-Spec-Driven Development">
+<link rel="icon" href="../../boostart-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0F3; --paper:#FFFFFF; --tint:#F5F7FA; --tint-2:#EAF0F8;
+  --line:rgba(20,22,26,.10); --line-2:rgba(20,22,26,.18);
+  --text:#14161A; --text-2:#353A44; --muted:#6A707C;
+  --accent:#3F6FB0; --chip:#FFFFFF; --maxw:860px;
+}
+:root[data-theme="dark"]{
+  --bg:#0B0C0E; --paper:#131519; --tint:#1A1D22; --tint-2:#1C2430;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.17);
+  --text:#EEF0F3; --text-2:#BCC2CC; --muted:#8A919C;
+  --accent:#7AA7E0; --chip:#F4F6F9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Heebo',system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;padding:0 16px 64px;transition:background .18s,color .18s}
+a{color:inherit}
+
+.bar{position:sticky;top:0;z-index:20;max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;background:var(--bg)}
+.bar a.back{font-size:14px;color:var(--muted);text-decoration:none}
+.bar a.back:hover{color:var(--text)}
+.actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;font:600 14px 'Heebo',sans-serif;text-decoration:none;cursor:pointer;border:1px solid var(--line-2);background:var(--paper);color:var(--text);transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--text);border-color:var(--text);color:var(--paper)}
+.btn svg{width:16px;height:16px}
+.icon{width:36px;padding:0;justify-content:center}
+
+.doc{max-width:var(--maxw);margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:52px 64px 48px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line-2)}
+.logo-chip{background:var(--chip);border-radius:4px;padding:6px 8px;display:inline-flex}
+.logo-chip img{display:block;height:26px;width:auto}
+.from{text-align:end;font-size:13px;line-height:1.55;color:var(--muted)}
+.from b{display:block;color:var(--text);font-size:14.5px;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 24px;font-size:13px;color:var(--muted);padding-top:16px}
+.kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--accent);margin:34px 0 8px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin-top:30px}
+.sub{font-size:17px;color:var(--text-2);margin:10px 0 0;padding-bottom:26px;border-bottom:1px solid var(--line)}
+
+.toc{margin:26px 0 6px;padding:18px 20px;background:var(--tint);border:1px solid var(--line);border-radius:4px}
+.toc b{display:block;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+.toc ol{list-style:none;columns:2;column-gap:28px}
+.toc li{break-inside:avoid;font-size:14px;line-height:1.5;padding:4px 0}
+.toc a{color:var(--text-2);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+
+h2{font-size:19px;font-weight:700;color:var(--text);letter-spacing:-.01em;margin:44px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line-2);scroll-margin-top:70px}
+h3{font-size:16px;font-weight:700;color:var(--text);margin:26px 0 10px}
+p{color:var(--text-2);margin-bottom:14px}
+strong{color:var(--text);font-weight:600}
+p.chain{font-size:15px;font-weight:600;color:var(--text);background:var(--tint-2);border:1px solid var(--line);border-radius:4px;padding:12px 16px;text-align:center}
+p.chain strong{font-weight:600}
+
+ul.bul,ol.num{margin:2px 0 18px;padding-inline-start:22px}
+ul.bul li,ol.num li{color:var(--text-2);margin-bottom:6px;padding-inline-start:4px}
+ul.bul li::marker{color:var(--accent)}
+ol.num li::marker{color:var(--accent);font-weight:600}
+
+.incl{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin:2px 0 20px}
+.incl li{position:relative;padding:8px 16px 8px 0;font-size:15px;color:var(--text-2);line-height:1.5;border-bottom:1px solid var(--line)}
+.incl li::before{content:"";position:absolute;inset-inline-start:0;top:16px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.incl li b{display:block;color:var(--text);font-weight:600}
+.incl li span{font-size:14px;color:var(--muted)}
+
+.tbl-wrap{margin:6px 0 22px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:start;padding:10px 12px;border:1px solid var(--line-2);vertical-align:top;line-height:1.55}
+thead th{background:var(--tint);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap}
+tbody td{color:var(--text-2)}
+tbody td:first-child{font-weight:600;color:var(--text)}
+table.wide{font-size:13.5px}
+
+.callout{background:var(--tint);border:1px solid var(--line);border-inline-start:3px solid var(--accent);border-radius:4px;padding:14px 18px;margin:6px 0 18px}
+.callout p{margin:0;color:var(--text-2)}
+
+.sign{margin-top:44px;padding-top:22px;border-top:1px solid var(--line-2);font-size:14px;color:var(--muted);line-height:1.7;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sign b{display:block;color:var(--text);font-size:15.5px;font-weight:600}
+.sign a{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.sign a:hover{color:var(--accent)}
+
+/* hub */
+.docs{list-style:none;margin:10px 0 8px}
+.docs li{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
+.docs li:last-child{border-bottom:none}
+.docs .n{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.06em}
+.docs h3{margin:2px 0 4px;font-size:17px}
+.docs h3 a{text-decoration:none}
+.docs h3 a:hover{color:var(--accent)}
+.docs p{margin:0;font-size:15px}
+.docs .row-actions{display:flex;gap:8px;flex-shrink:0;padding-top:18px}
+
+@media(max-width:720px){
+  body{padding:0 12px 40px}
+  .doc{padding:26px 18px 30px}
+  h1{font-size:23px}
+  .sub{font-size:15.5px}
+  h2{font-size:17px;margin-top:34px}
+  .head{flex-direction:column;gap:12px}
+  .from{text-align:start}
+  .toc ol{columns:1}
+  .incl{grid-template-columns:1fr;gap:0}
+  .btn .lbl-long{display:none}
+  .docs li{flex-direction:column;gap:8px}
+  .docs .row-actions{padding-top:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line-2);border-radius:4px;margin-bottom:10px;overflow:hidden}
+  td{border:none;border-bottom:1px solid var(--line);padding:9px 12px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:1px}
+  .tbl-wrap{overflow:visible}
+}
+
+@media print{
+  @page{size:A4;margin:14mm 13mm 16mm}
+  body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.55}
+  .bar{display:none}
+  .doc{max-width:none;border:none;border-radius:0;padding:0;background:#fff}
+  .kicker{color:#3F6FB0;margin-top:18pt}
+  h1{font-size:20pt}
+  .sub{font-size:11.5pt;color:#333}
+  h2{font-size:13pt;color:#000;border-bottom:1px solid #999;margin:18pt 0 8pt;page-break-after:avoid;break-after:avoid}
+  h3{font-size:11pt;page-break-after:avoid;break-after:avoid}
+  p,li,td{color:#222}
+  .meta,.from,.sign{color:#555}
+  .toc{background:#f6f7f9;border:1px solid #ccc;page-break-inside:avoid}
+  .toc a{color:#222}
+  table{font-size:8.8pt}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid;break-inside:avoid}
+  th,td{border:1px solid #999;padding:5pt 6pt}
+  thead th{background:#eef1f5;color:#000}
+  .tbl-wrap{overflow:visible}
+  .incl li{border-bottom:1px solid #e3e3e3;page-break-inside:avoid}
+  .incl li::before,ul.bul li::marker{background:#3F6FB0}
+  .callout,p.chain{background:#f4f6f9;border:1px solid #bbb;page-break-inside:avoid}
+  .callout{border-inline-start:3px solid #3F6FB0}
+  .sign{page-break-inside:avoid;border-top:1px solid #999}
+  .logo-chip{padding:0}
+  a{text-decoration:none;color:#000}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="../">→ ערכת המענה</a>
+  <div class="actions">
+    <a class="btn primary" href="Boostart-Olim-Laanan-Approach.pdf" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>PDF</span><span class="lbl-long">&nbsp;להורדה</span></a>
+    <button class="btn icon" id="themeBtn" aria-label="החלפת מצב תצוגה">☾</button>
+  </div>
+</div>
+<main class="doc">
+  <div class="head">
+    <div class="logo-chip"><img src="../../boostart-logo.png" alt="Boostart"></div>
+    <div class="from"><b>שלומי זוין</b>Boostart · CTO as a Service<br>shlomi@boostart.io · 054-5567213</div>
+  </div>
+  <div class="meta"><div>ערכת מענה · תיחורי Agentic AI ו-SDD · מערך הדיגיטל הלאומי</div><div>ספטמבר 2026 · גרסה 1.0</div></div>
+  <h1>מענה מקצועי: המשך פיתוח מערכת עולים לענן</h1>
+  <p class="sub">גישת Boostart להמשך פיתוח מבוסס Agentic AI ו-Spec-Driven Development</p>
+<nav class="toc"><b>תוכן העניינים</b><ol><li><a href="#s1">1. תקציר</a></li><li><a href="#s2">2. הבנת המערכת והצורך</a></li><li><a href="#s3">3. עקרונות הגישה שלנו</a></li><li><a href="#s4">4. שלב ראשון: היערכות ותכנון</a></li><li><a href="#s5">5. שלב ראשון: מימוש ועלייה לאוויר</a></li><li><a href="#s6">6. ממשקים למערכות ממשלתיות</a></li><li><a href="#s7">7. יכולות AI בתהליכים העסקיים</a></li><li><a href="#s8">8. שלב שני: תפוקות ושו"שים</a></li><li><a href="#s9">9. ניהול, דיווח ושקיפות</a></li><li><a href="#s10">10. למה אנחנו</a></li><li><a href="#s11">11. סיכונים והתמודדות</a></li></ol></nav>
+<h2 id="s1">1. תקציר</h2>
+<p>אנו מציעים להמשיך את פיתוח מערכת "עולים לענן" כתהליך מבוקר של SDD, המשלב סוכני AI בכל שלבי ה-SDLC, לצד שערי איכות ואישור אנושי בנקודות החלטה. העבודה תבוצע בתיאום מלא עם צוות מערך הדיגיטל הלאומי, ה-CCoE, מנהל המוצר, ארכיטקט המשרד ונציגי אבטחת המידע.</p>
+<p>נקודת המוצא היא המערכת הקיימת. נמשיך את בסיס הקוד הקיים ב-Next.js וב-React, את תשתית הבדיקות ב-Playwright ואת הפריסה על AWS בנימבוס. לא נחליף את המערכת ולא נבצע כתיבה מחדש ללא צורך מוכח ואישור המשרד. כל הרחבה תתבסס על Discovery, הבנת המודולים והאינטגרציות הקיימים, ואישור Spec לפני מימוש.</p>
+<p>המערך יקבל קוד מקור מתועד, בדיקות אוטומטיות, מסמכי Spec קריאים בעברית, תיעוד ארכיטקטוני ותהליך CI/CD מלא. הידע והתוצרים יישארו בסביבה המשותפת ובבעלות המשרד. הקוד יישאר קריא ותחזוקתי גם לצוות שיבחר להמשיך לפתח אותו ללא כלי AI.</p>
+<h2 id="s2">2. הבנת המערכת והצורך</h2>
+<p>מערכת "עולים לענן" היא כלי תפעולי ומקצועי למימוש מפת הדרכים הממשלתית לשנים 2025–2029 ולהחלטת ממשלה 231. היא מרכזת את נתוני המערכות המיועדות למעבר לנימבוס, ומאפשרת לנהל תהליך אחיד, מתועד ומבוקר עבור משרדי הממשלה, יחידות הסמך והגופים הרלוונטיים.</p>
+<p>ליבת המערכת היא התאמת דרישות המעבר למאפייני כל מערכת. המערכת אוספת נתונים לצורך סיווג מידע וקביעת רמת ההגנה הנדרשת. על בסיס הסיווג, מאפייני המערכת והסיכונים, היא מפיקה בקרות אבטחת מידע מותאמות. היא מנהלת גם את תהליך ועדת הענן, כולל הגשות, חוות דעת, החלטות, פרוטוקולים אוטומטיים או ידניים, מעקב והיסטוריית החלטות.</p>
+<p>המערכת כבר כוללת רכיבים המלווים את המשתמש במסע לענן. רכיבים אלה כוללים הנחיות FinOps ותגיות, סימולטור להפקת ארכיטקטורה מוצעת, וניהול תפוקות, אישורים ואבני דרך למערכות העולות לנימבוס. שלב ההמשך נדרש להרחיב כיסוי זה כך שיתמוך במסע המלא, מהערכת המוכנות ועד למעקב אחר המימוש.</p>
+<p>הרחבה זו מחייבת חיבור בין תהליכים עסקיים, נתוני מקור והנחיות ממשלתיות. בין היתר, נדרשות אינטגרציות למרכב"ה, מערכת איתם, ה-IDP הממשלתי, קטלוג מוצרי נימבוס ומאגר מפת הדרכים. כל חיבור ישפיע על תהליך עסקי, הרשאות, איכות נתונים ותיעוד החלטות, ולכן יטופל כחלק מה-Spec ולא כפעילות טכנית מבודדת.</p>
+<p>יכולות AI יכולות לסייע בתוך תהליכים אלה, אך אינן תחליף לשיקול דעת מקצועי, למדיניות או לאישור גורם מוסמך. תפקידן יהיה לאסוף הקשר, להציע טיוטה, להסביר דרישה ולהפנות למקור. החלטות, נתונים מחייבים ופעולות בעלות השפעה יישארו בשליטה אנושית ובהתאם למדיניות המשרד.</p>
+<h2 id="s3">3. עקרונות הגישה שלנו</h2>
+<ul class="bul"><li>נמשיך את הקוד הקיים ואת הארכיטקטורה הקיימת, ונבצע שינוי מבני רק לאחר ניתוח צורך, חלופות ואישור.</li><li>לפני כל שינוי ראשון, Agent יבצע Discovery של בסיס הקוד, מודולי Next.js ו-React, בדיקות Playwright, אינטגרציות, תלויות ומודל הנתונים.</li><li>ה-Spec יהיה מסמך עברי קריא למנהל המוצר. הוא יהיה החוזה בין הצורך העסקי, העיצוב, המימוש, הבדיקות והקבלה.</li><li>כללים עסקיים, משקלים, פרמטרים ותוכן מאושר ינוהלו ככל הניתן כנתונים ולא כקוד. כך, לדוגמה, שאלות ומשקלים במחשבון ינוהלו בטבלה חיצונית עם מנגנון ניהול מתאים.</li><li>במקרים מתאימים, ניישם דפוס Rules-as-Data עם כללים ופרמטרים דטרמיניסטיים. היישום יותאם למודל הממשלתי, להרשאות ולבקרות הנדרשות.</li><li>הדיזיין סיסטם הממשלתי, נגישות AA והתאמה ל-Mobile ייכללו מהמסך הראשון ולא כשלב תיקון מאוחר.</li><li>תיקונים ותוספות יתחילו בעדכון Spec, Plan, Tasks ובדיקות. הקוד יותאם לאחר מכן, כדי למנוע סטייה בין התיעוד לבין היישום.</li><li>כל PR יעבור Code Review אנושי. Agent אינו מאשר קוד של עצמו, ואינו מחליף אחריות מקצועית של מפתח או מאשר מטעם המשרד.</li><li>כל רכיב יהיה עקיב מדרישה ועד מסירה: מזהה דרישה, משימה, תיעוד הפעלת Agent, PR, בודק אנושי ותוצאות בדיקות.</li></ul>
+<div class="callout"><p>שיטת העבודה המפורטת, מבנה מסמכי ה-Spec, שערי האיכות, ניהול ההקשר והעבודה עם סוכנים מפורטים במסמך המתודולוגיה המצורף. במסמך זה אנו מיישמים את השיטה לצורכי מערכת "עולים לענן".</p></div>
+<h2 id="s4">4. שלב ראשון: היערכות ותכנון</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>פעילות</th><th>איך מתבצעת</th><th>תוצר</th><th>מאשר</th></tr></thead><tbody><tr><td data-l="פעילות">תכנית עבודה מפורטת</td><td data-l="איך מתבצעת">פירוק התכולה למודולים, תלויות, סביבות, אבני דרך ושערי החלטה. התכנית תתואם עם צוות המערך.</td><td data-l="תוצר">תכנית עבודה, סדרי עדיפויות ותלויות</td><td data-l="מאשר">מנהל הפרויקט מטעם המשרד</td></tr><tr><td data-l="פעילות">חוקה פרויקטלית לעבודת סוכנים</td><td data-l="איך מתבצעת">הטמעת החוקה הממשלתית והנחיות המשרד, לצד Project Context, Skills ממשלתיים שיפורסמו ו-Skills ייעודיים לפרויקט.</td><td data-l="תוצר">חוקה פרויקטלית, Skills ו-Quality Gates</td><td data-l="מאשר">המערך ונציגי אבטחת מידע</td></tr><tr><td data-l="פעילות">Discovery לקוד הקיים</td><td data-l="איך מתבצעת">מיפוי מודולי Next.js ו-React, בדיקות Playwright, ממשקים, תלויות, חוב טכני, כיסוי בדיקות ופגיעויות. יבוצע גם reverse-engineering למודל הנתונים.</td><td data-l="תוצר">דוח Discovery, תרשימי זרימה, HLD ראשוני ומפת סיכונים</td><td data-l="מאשר">מנהל המוצר והגורמים הטכנולוגיים</td></tr><tr><td data-l="פעילות">אשרור מסמך הדרישות כ-Spec בעברית</td><td data-l="איך מתבצעת">הפיכת האפיון למסמך הכולל תרחישים, חריגים, דרישות לא-פונקציונליות, קריטריוני קבלה ו-DoD.</td><td data-l="תוצר">Spec עסקי ופונקציונלי מאושר</td><td data-l="מאשר">מנהל המוצר מטעם המשרד, HITL</td></tr><tr><td data-l="פעילות">אפיון ועיצוב טכני כולל UI/UX</td><td data-l="איך מתבצעת">תכנון זרימות, מסכים, נגישות, Mobile, מודל נתונים, APIs ותכנון בדיקות. העיצוב יתבסס על הדיזיין סיסטם הממשלתי.</td><td data-l="תוצר">Spec עיצובי ו-Spec טכנולוגי</td><td data-l="מאשר">המערך</td></tr><tr><td data-l="פעילות">מסמך ארכיטקטורת פתרון</td><td data-l="איך מתבצעת">הגדרת רכיבים, שירותים, זמינות, שרידות, אבטחה, הפרדת סביבות, IaC ו-CI/CD באזור הנחיתה.</td><td data-l="תוצר">HLD/LLD ומסמך ארכיטקטורה</td><td data-l="מאשר">ארכיטקט המשרד, HITL</td></tr><tr><td data-l="פעילות">אפיון ממשקים</td><td data-l="איך מתבצעת">הגדרת מקור הנתונים, חוזה API או Agent, הרשאות, טיפול בשגיאות, קצב קריאות, נתוני בדיקה ועקיבות.</td><td data-l="תוצר">Spec ממשק לכל אינטגרציה</td><td data-l="מאשר">בעל המערכת המקורית והמערך</td></tr></tbody></table></div>
+<p>החוקה הפרויקטלית תגדיר גם את גבולות פעולת הסוכנים. היא תכלול שימוש רק בכלים ובמודלים המאושרים בסביבה, ניהול עלויות, כללי אבטחת מידע, תיעוד פעולות, הפרדת תפקידים ו-HITL. בחירת Claude Code כסביבת העבודה המוצעת תתועד עם המשרד ב-G0, בכפוף לאישור נימבוס.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>כלי</th><th>אופן שימוש</th></tr></thead><tbody><tr><td data-l="כלי">Claude Code</td><td data-l="אופן שימוש">כלי ההנדסה Agentic שבו אנו עובדים ומציעים. המודלים ייצרכו דרך Amazon Bedrock ב-AWS או Vertex AI ב-GCP, בתוך חשבון הענן של המשרד ובכפוף לאישור נימבוס.</td></tr><tr><td data-l="כלי">Kiro, Antigravity, Spec-kit, BMAD</td><td data-l="אופן שימוש">התיחור מונה כלים אלה. מסמכי החוקה, Requirements.md, Plan.md, Tasks.md וה-ADRs נשמרים כקובצי Markdown במאגר הפרויקט, באותו מבנה, ולכן המשרד אינו נעול ל-Claude Code ויוכל להמשיך בכל כלי מאושר בהמשך.</td></tr></tbody></table></div>
+<h2 id="s5">5. שלב ראשון: מימוש ועלייה לאוויר</h2>
+<h3>קידוד מתוך Spec מאושר</h3>
+<p>המימוש יתחיל רק לאחר אישור ה-Spec העסקי ומסמך ארכיטקטורת הפתרון. Agent יפעל על מסמכים מאושרים ועל ההקשר הפרויקטלי. המפתח האנושי יוודא שהקוד נותן כיסוי מלא לדרישות, לתרחישי הקצה ולדרישות הלא-פונקציונליות.</p>
+<p>כל שינוי יבוצע בענף עבודה מבודד ויוגש כ-PR. ה-PR יכלול קישור לדרישה, לשינוי ב-Spec, לבדיקות ולתיעוד. לא יתבצע מיזוג ללא Code Review אנושי ובדיקות נדרשות.</p>
+<h3>בדיקות</h3>
+<p>תכנית הבדיקות תגזור לכל דרישה תרחישי מסירה וקבלה. היא תכלול בדיקות יחידה, API, אינטגרציה, פונקציונליות, E2E ב-Playwright, בדיקות ויזואליות, בדיקות ידניות לפי סטנדרט המערך ובדיקות אבטחת מידע. נרחיב את תשתית Playwright הקיימת במקום ליצור תשתית מקבילה ללא צורך.</p>
+<p>כל פיתוח חדש יכלול בדיקות רגרסיה. הבדיקות יורצו ב-CI/CD ויתועדו עם תוצאות, כיסוי, קריטריוני מעבר ודירוג קריטיות לתקלות. תאימות Mobile תיבדק בהתאם לסטנדרט המערך, לרבות iOS ו-Android עד שלושה דורות אחורה.</p>
+<p>בכל יכולת AI, נגדיר Evals לפני שחרור. מערך הבדיקות יכלול דוגמאות ייצוגיות, מקרי קצה, ניסיונות להפקת מידע לא מורשה, בדיקת הפניות למקורות ובדיקת עקביות. ציון Evals לא יהיה תחליף לאישור אנושי בתהליך עסקי רגיש.</p>
+<h3>CI/CD בין סביבות</h3>
+<p>הפריסה תנוהל בין סביבות dev, test, pre-prod ו-prod, בהתאם לאזור הנחיתה, למדיניות המשרד ולתשתיות שיועמדו לפרויקט. סביבות פיתוח ובדיקה לא יכילו נתוני אמת. לצורכי פיתוח, בדיקות והדגמות נשתמש בנתונים סינתטיים.</p>
+<p>קידום גרסה יתבצע דרך CI/CD בלבד, עם בדיקות, סריקות, ניהול גרסאות ותיעוד תצורה. כתיבה לייצור, מחיקת משאבים ושינויים ב-IaC יחייבו שלב Pipeline עם אישור אנושי מפורש. לאף Agent לא יהיו הרשאות ייצור ישירות.</p>
+<h3>ליווי בדיקות קבלה ובדיקות חדירה</h3>
+<p>נכין תסריטי בדיקות מסירה וקבלה לאישור המערך לפני ההרצה. נסייע בבדיקות שהמערך או צד שלישי מטעמו יבצעו, לרבות Code Review, בדיקות ביצועים, בדיקות אבטחת מידע ומבדקי חדירה.</p>
+<p>ממצאים יתועדו, יתועדפו ויטופלו בתהליך מבוקר. תיקון יתחיל בעדכון ה-Spec הרלוונטי, יכלול בדיקת רגרסיה, ויעבור שוב את שערי האיכות הנדרשים לפני קידום.</p>
+<h3>תיעוד וקוד מקור</h3>
+<p>המסירה תכלול את קוד המקור, היסטוריית הגרסאות, מסמכי Spec, ארכיטקטורה, תיעוד ממשקים, תיעוד IaC, תיעוד בדיקות, תיעוד תצורה ותיעוד שינויים. קוד יתועד ברמת המתודה או הסקריפט, בהתאם לסטנדרט המשרד.</p>
+<p>התיעוד יתעדכן כחלק מכל PR ולא בדיעבד. כלל החומרים ינוהלו בסביבת הפרויקט המשותפת למערך ולספק, בהתאם להנחיות המשרד.</p>
+<h2 id="s6">6. ממשקים למערכות ממשלתיות</h2>
+<p>כל ממשק יוגדר תחילה ב-Spec נפרד ויאושר לפני פיתוח. החיבור יבוצע באמצעות API או Agent שיונגש למערכת "עולים לענן", בהתאם לממשק שיסופק, להרשאות ולמדיניות המשרד.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>מערכת</th><th>מטרה</th><th>אופן חיבור</th><th>הערות</th></tr></thead><tbody><tr><td data-l="מערכת">IDP ממשלתי</td><td data-l="מטרה">הזדהות, תפקידים והרשאות</td><td data-l="אופן חיבור">SAML או OIDC, בהתאם לממשק המאושר</td><td data-l="הערות">מיפוי Roles והרשאות יאושר ב-Spec</td></tr><tr><td data-l="מערכת">מרכב"ה</td><td data-l="מטרה">קבלת נתוני תקציב פרויקט</td><td data-l="אופן חיבור">API או Agent חשוף למערכת</td><td data-l="הערות">הגדרת מקור אמת, תדירות ורישום שגיאות</td></tr><tr><td data-l="מערכת">מערכת איתם</td><td data-l="מטרה">קבלת מידע תפעולי או פרויקטלי לפי הצורך</td><td data-l="אופן חיבור">API או Agent חשוף למערכת</td><td data-l="הערות">חוזה הממשק יגדיר שדות, הרשאות וטיפול בכשל</td></tr><tr><td data-l="מערכת">קטלוג מוצרי נימבוס</td><td data-l="מטרה">הצגת שירותים ומוצרים זמינים לתהליכי תכנון</td><td data-l="אופן חיבור">API או Agent חשוף למערכת</td><td data-l="הערות">ניהול גרסה ותוקף נתוני הקטלוג</td></tr><tr><td data-l="מערכת">מאגר מפת הדרכים</td><td data-l="מטרה">קבלת מידע על פרויקטים ומערכות</td><td data-l="אופן חיבור">API או Agent חשוף למערכת</td><td data-l="הערות">התאמת מזהים, סטטוסים ומנגנון סנכרון</td></tr></tbody></table></div>
+<h2 id="s7">7. יכולות AI בתהליכים העסקיים</h2>
+<p>היכולות הבאות הן כיוונים לבחינה משותפת עם מנהל המוצר. מימושן, היקפן וסדרי העדיפויות ייקבעו רק לאחר אפיון, בדיקת מקורות נתונים, אישור אבטחת מידע והגדרת קריטריוני קבלה.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>יכולת</th><th>מה היא עושה</th><th>בקרה אנושית</th></tr></thead><tbody><tr><td data-l="יכולת">סיוע במילוי שאלון סיווג מידע</td><td data-l="מה היא עושה">קוראת מסמכי מערכת שמעלה המשתמש ומציעה מילוי ראשוני לשאלון.</td><td data-l="בקרה אנושית">המשתמש מאשר או מתקן כל שדה לפני שמירה</td></tr><tr><td data-l="יכולת">טיוטת פרוטוקול ועדת ענן</td><td data-l="מה היא עושה">מסכמת מידע שהוזן ומכינה טיוטת פרוטוקול או החלטה.</td><td data-l="בקרה אנושית">עורך מוסמך מאשר כל נוסח לפני הפצה</td></tr><tr><td data-l="יכולת">העשרת סימולטור ארכיטקטורה</td><td data-l="מה היא עושה">מנתחת צרכים מול קטלוג מוצרי נימבוס ומסמכי מדיניות. התשובה תכלול ציטוטים למקור.</td><td data-l="בקרה אנושית">ארכיטקט או גורם מקצועי מאשר את ההמלצה</td></tr><tr><td data-l="יכולת">יועץ FinOps</td><td data-l="מה היא עושה">מציע תגיות, שאלות בקרה והמלצות על בסיס מאפייני המערכת.</td><td data-l="בקרה אנושית">המשתמש מאשר תגיות והחלטות תקציביות</td></tr><tr><td data-l="יכולת">מסביר בקרות אבטחת מידע</td><td data-l="מה היא עושה">מסביר למשתמש מדוע בקרה מסוימת חלה על המערכת.</td><td data-l="בקרה אנושית">הבקרה המחייבת נשארת זו שנקבעה בחוקים המאושרים</td></tr><tr><td data-l="יכולת">שאלות ותשובות בעברית</td><td data-l="מה היא עושה">מאפשר מענה על מדיניות ענן, סייבר ורכש מתוך מאגר מסמכים מאושר.</td><td data-l="בקרה אנושית">הצגת מקור, תוקף מסמך והפניה להליך מקצועי</td></tr></tbody></table></div>
+<p>יכולות אלה ינוהלו דרך AI Gateway שייבחר ויאושר בארכיטקטורה. לפני שחרור יבוצעו Evals על מערך בדיקה מוגדר, יישמרו לוגים ו-Tracing, ותוגדר מדיניות עלויות, מכסות, ניתוב מודלים ויכולת עצירה.</p>
+<p>נתוני אמת לא יישלחו מחוץ לסביבה המאושרת. שימוש במודלים, מאגרי ידע ו-RAG יותנה בבדיקת מקור הנתונים, הרשאות, צמצום מידע, מנגנוני redaction והנחיות אבטחת המידע של המערך.</p>
+<h2 id="s8">8. שלב שני: תפוקות ושו"שים</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>תפוקה</th><th>SLA בתיחור</th><th>איך מתבצע אצלנו</th><th>שער אישור</th></tr></thead><tbody><tr><td data-l="תפוקה">היערכות לתשתית Agentic AI</td><td data-l="SLA בתיחור">10 ימים</td><td data-l="איך מתבצע אצלנו">חוקה, Project Context, Skills, Guardrails, HITL ו-Quality Gate</td><td data-l="שער אישור">המערך</td></tr><tr><td data-l="תפוקה">discovery קטן</td><td data-l="SLA בתיחור">7 ימים</td><td data-l="איך מתבצע אצלנו">מיפוי עד 20 תהליכים, קוד, נתונים, בדיקות, סיכונים ותלויות</td><td data-l="שער אישור">אישור לקוח למסמכי Discovery</td></tr><tr><td data-l="תפוקה">discovery גדול</td><td data-l="SLA בתיחור">13 ימים</td><td data-l="איך מתבצע אצלנו">מיפוי 21–40 תהליכים, כולל HLD, חוב טכני וסריקת תלויות</td><td data-l="שער אישור">אישור לקוח למסמכי Discovery</td></tr><tr><td data-l="תפוקה">תכנון עסקי ופונקציונלי</td><td data-l="SLA בתיחור">7 ימים</td><td data-l="איך מתבצע אצלנו">Spec עברי, דרישות, חריגים, DoD וקריטריוני קבלה</td><td data-l="שער אישור">מנהל מוצר, HITL</td></tr><tr><td data-l="תפוקה">תכנון טכנולוגי ועיצוב</td><td data-l="SLA בתיחור">7 ימים</td><td data-l="איך מתבצע אצלנו">Spec UI/UX ו-Spec טכנולוגי, HLD/LLD, API ומודל נתונים</td><td data-l="שער אישור">המערך והארכיטקט</td></tr><tr><td data-l="תפוקה">תהליך חדש פשוט</td><td data-l="SLA בתיחור">5 ימים</td><td data-l="איך מתבצע אצלנו">עד 3 תהליכים, Spec, מימוש, בדיקות ו-PR</td><td data-l="שער אישור">Review עסקי וטכנולוגי</td></tr><tr><td data-l="תפוקה">תהליך חדש בינוני</td><td data-l="SLA בתיחור">10 ימים</td><td data-l="איך מתבצע אצלנו">4–6 תהליכים, אינטגרציות ובדיקות שכבתיות</td><td data-l="שער אישור">Review עסקי וטכנולוגי</td></tr><tr><td data-l="תפוקה">תהליך חדש מורכב</td><td data-l="SLA בתיחור">19 ימים</td><td data-l="איך מתבצע אצלנו">7–10 תהליכים, תכנון מדורג, Evals לפי צורך ובדיקות E2E</td><td data-l="שער אישור">שערי Spec, איכות וקבלה</td></tr><tr><td data-l="תפוקה">שו"ש תשתיתי פשוט</td><td data-l="SLA בתיחור">2 ימים</td><td data-l="איך מתבצע אצלנו">Spec Change, בדיקות תקינות, רגרסיה ואבטחה</td><td data-l="שער אישור">אישור טכני</td></tr><tr><td data-l="תפוקה">שו"ש תשתיתי בינוני</td><td data-l="SLA בתיחור">5 ימים</td><td data-l="איך מתבצע אצלנו">שינוי ברכיבים או סביבות, כולל IaC לפי הצורך</td><td data-l="שער אישור">אישור טכני ואבטחת מידע</td></tr><tr><td data-l="תפוקה">שו"ש תשתיתי מורכב</td><td data-l="SLA בתיחור">8 ימים</td><td data-l="איך מתבצע אצלנו">תכנון רב-שלבי, עדכון ארכיטקטורה ובדיקות מלאות</td><td data-l="שער אישור">ארכיטקט המשרד</td></tr><tr><td data-l="תפוקה">שו"ש אפליקטיבי פשוט</td><td data-l="SLA בתיחור">יום אחד</td><td data-l="איך מתבצע אצלנו">עד שני שינויים, Spec Change ובדיקות רגרסיה</td><td data-l="שער אישור">גורם עסקי</td></tr><tr><td data-l="תפוקה">שו"ש אפליקטיבי בינוני</td><td data-l="SLA בתיחור">2 ימים</td><td data-l="איך מתבצע אצלנו">3–6 שינויים בשני מסמכי Spec לכל היותר</td><td data-l="שער אישור">גורם עסקי</td></tr><tr><td data-l="תפוקה">שו"ש אפליקטיבי מורכב</td><td data-l="SLA בתיחור">3 ימים</td><td data-l="איך מתבצע אצלנו">שינוי מהותי במספר מסמכי Spec ובדיקות מקצה לקצה</td><td data-l="שער אישור">גורם עסקי וטכנולוגי</td></tr><tr><td data-l="תפוקה">הקמת/שדרוג מערכת בענן כולל CI/CD</td><td data-l="SLA בתיחור">16 ימים</td><td data-l="איך מתבצע אצלנו">סביבות, IaC, CI/CD, ממשקים, גיבוי, הקשחות, AI Gateway לפי צורך ותיקון ממצאי PT</td><td data-l="שער אישור">המערך, אבטחת מידע וארכיטקט</td></tr><tr><td data-l="תפוקה">העברת ידע</td><td data-l="SLA בתיחור">3 ימים</td><td data-l="איך מתבצע אצלנו">מעבר על Specs, PRs, Project Context, תחזוקה וקוד</td><td data-l="שער אישור">צוות המשרד</td></tr><tr><td data-l="תפוקה">תחזוקה לשנה</td><td data-l="SLA בתיחור">12%</td><td data-l="איך מתבצע אצלנו">טיפול בתקלות, תחזוקה מונעת, תיקוני קוד ותיעוד</td><td data-l="שער אישור">לפי אמנת השירות</td></tr></tbody></table></div>
+<p>ה-SLA הקצרים אפשריים רק כאשר ה-Spec, הבדיקות ותהליך ה-CI/CD כבר קיימים בכל מודול. זהו בדיוק התוצר המצטבר של שיטת העבודה: שינוי קטן מתחיל בהקשר, בתיעוד ובבדיקות קיימים ולא בניתוח מחדש של המערכת.</p>
+<h2 id="s9">9. ניהול, דיווח ושקיפות</h2>
+<p>נקיים ישיבות עבודה שבועיות עם צוות הפיתוח ומנהל הפרויקט מטעם המערך. אחת לחודש נקיים ישיבת סטטוס הכוללת התקדמות מול תכנית העבודה, סיכונים, החלטות נדרשות, איכות, תקלות, תלויות ושינויים צפויים.</p>
+<p>למערך תינתן גישה למערכת ניהול המשימות של הפרויקט. כל משימה תכלול סטטוס, בעלות, קישור ל-Spec, PR, תוצאות בדיקות והחלטות רלוונטיות. לאחר פגישות יופץ סיכום הכולל החלטות, פעולות, אחראים ומועדים.</p>
+<p>העבודה תתבצע ביחס של כ-70% מרחוק וכ-30% באתר, בהתאם לצורך בפגישות בעלי עניין, ראיונות עסקיים, סדנאות אפיון והעברת ידע. כלל חומרי הפרויקט ינוהלו בסביבה משותפת. הידע יישאר אצל המשרד באמצעות מסמכים, קוד, תיעוד, מפגשי העברת ידע ועבודה שקופה לאורך הפרויקט.</p>
+<h2 id="s10">10. למה אנחנו</h2>
+<ul class="bul"><li>התאמה ישירה לבסיס הטכנולוגי המבוקש: Next.js, React, TypeScript, AWS, CI/CD ובדיקות E2E עם Playwright.</li><li>ניסיון בבניית פלטפורמות פרטיות ועמידה ברגולציה, שבהן דרישות מדיניות מתורגמות לכללים, תהליכים, הרשאות ובקרות. זהו עיקרון מרכזי במערכת "עולים לענן".</li><li>ניסיון בשילוב כללים ופרמטרים דטרמיניסטיים לצד מודלים, באופן המאפשר להפריד בין מדיניות, תהליכים ומימוש.</li><li>ניסיון בבניית מערכות multi-agent למוצרים, עם תפקידים מופרדים, זיכרון, RAG, כללים דטרמיניסטיים, לוגים של Prompts ותוצרים, Tracing וניתוב בין ספקי מודלים.</li><li>יותר משנתיים של עבודה עמוקה עם סוכני AI, ופיתוח יומיומי בשיטת SDD הכוללת חוקה פרויקטלית, עבודה מתוך Spec, Sessions מקבילים מבודדים ו-Review אנושי לכל שינוי.</li><li>ניסיון של מעל 20 שנים בפיתוח תוכנה ומעל 50 מוצרים שנבנו מאפס, לצד רקע מחקרי בהערכת מודלים, הסבר תחזיות ואופטימיזציה. רקע זה תומך בהגדרת Evals ובמדידת איכות AI מעבר לבדיקת Prompt בודד.</li></ul>
+<h2 id="s11">11. סיכונים והתמודדות</h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>סיכון</th><th>התמודדות</th></tr></thead><tbody><tr><td data-l="סיכון">סטייה בין Spec לקוד</td><td data-l="התמודדות">כל שינוי מתחיל ב-Spec Change. העקיבות בין דרישה, משימה, PR ובדיקות נבדקת ב-Quality Gate.</td></tr><tr><td data-l="סיכון">הזיה ביכולות AI</td><td data-l="התמודדות">שימוש ב-RAG עם מקורות מצוטטים, כללים דטרמיניסטיים היכן שנדרש, Evals לפני שחרור ואישור אנושי להחלטות.</td></tr><tr><td data-l="סיכון">דליפת מידע לכלי AI חיצוני</td><td data-l="התמודדות">שימוש רק בכלים ובמודלים המאושרים, בסביבה מבודדת ובחשבון המאושר. נתוני פיתוח ובדיקות יהיו סינתטיים.</td></tr><tr><td data-l="סיכון">תלות בכלי AI יחיד</td><td data-l="התמודדות">מסמכי ה-Spec והחוקה נשמרים במאגר. ניתן להחליף כלי או framework ללא אובדן ההקשר והידע.</td></tr><tr><td data-l="סיכון">ידע שנשאר אצל הספק</td><td data-l="התמודדות">תיעוד רציף, גישת המערך לכלי הניהול ולמאגר, Code Review משותף והעברת ידע לאורך העבודה.</td></tr><tr><td data-l="סיכון">עיכוב באינטגרציות ממשלתיות</td><td data-l="התמודדות">אפיון מוקדם של חוזי הממשק, עבודה עם Mock או Stub מאושר, זיהוי תלויות בתכנית העבודה ומעקב בישיבות הסטטוס.</td></tr></tbody></table></div>
+  <div class="sign">
+    <div><b>שלומי זוין</b>Boostart · CTO as a Service</div>
+    <div><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a></div>
+  </div>
+</main>
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('themeBtn'),K='boostart-gov-theme';
+  function set(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'☀':'☾';try{localStorage.setItem(K,t)}catch(e){}}
+  var s=null;try{s=localStorage.getItem(K)}catch(e){}
+  set(s||'light');
+  btn.addEventListener('click',function(){set(root.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>

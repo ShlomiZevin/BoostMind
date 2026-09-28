@@ -1,0 +1,15 @@
+  in_progress 5s
+  in_progress 11s
+  in_progress 16s
+  in_progress 22s
+  in_progress 28s
+  in_progress 33s
+  in_progress 38s
+  in_progress 44s
+  in_progress 50s
+  in_progress 55s
+  in_progress 61s
+  completed 67s
+OK -> out/team.md  (7720 chars, gpt-5.6-terra, 8848 tokens)
+  input 5466 · output 3382 (reasoning 516)
+Read it with the Read tool — printing Hebrew to this console will mangle it.

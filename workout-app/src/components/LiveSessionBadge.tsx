@@ -32,23 +32,26 @@ export function LiveSessionBadge({
   restRunning?: boolean;
   restDone?: boolean;
 }) {
-  // Tick every second so the digits keep moving. Paused sessions freeze at
-  // (pausedAt - date), so we still render but stop ticking.
+  // Same three-state clock rule as the in-session Chronograph and Home tiles
+  // (rep_1789364101088_2jvl):
+  //   not-started : pausedAt === date → 00:00, frozen, "מוכן"
+  //   paused      : pausedAt  >  date → frozen at pausedAt − date, "מושהה"
+  //   running     : no pausedAt       → now − date, ticking
+  // `session` comes from App, which re-fetches on every lifecycle write, so a
+  // reset/pause done on Home is reflected here immediately.
+  const notStarted = session.pausedAt != null && session.pausedAt === session.date;
+  const paused = session.pausedAt != null && !notStarted;
+  const frozen = notStarted || paused;
+
   const [tick, setTick] = useState(0);
-  const paused = session.pausedAt != null && session.pausedAt !== session.date;
   useEffect(() => {
-    if (paused) return;
+    if (frozen) return;
     const id = window.setInterval(() => setTick(t => t + 1), 1000);
     return () => window.clearInterval(id);
-  }, [paused]);
+  }, [frozen]);
   void tick;
 
-  const end = paused ? (session.pausedAt as number) : Date.now();
-  // Sentinel for a "fresh" session that never actually started ticking.
-  const raw = end - session.date;
-  const isFresh = session.pausedAt != null && session.pausedAt === session.date;
-  const elapsed = isFresh ? 0 : raw;
-
+  const elapsed = notStarted ? 0 : (paused ? (session.pausedAt as number) : Date.now()) - session.date;
   const label = fmt(elapsed);
 
   const showRest = !!restRunning && (restRemaining ?? 0) > 0;
@@ -58,7 +61,7 @@ export function LiveSessionBadge({
     <button
       onClick={onClick}
       className={`fixed left-4 z-40 flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full shadow-lg font-mono font-bold text-sm border transition-colors ${
-        paused
+        frozen
           ? 'bg-slate-600 hover:bg-slate-500 text-white border-slate-500'
           : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
       }`}
@@ -69,7 +72,7 @@ export function LiveSessionBadge({
         // Subtle pulse only when running — a still pill would look inert next
         // to the animated FAB, and users would miss the "you're still in a
         // workout" cue.
-        boxShadow: paused
+        boxShadow: frozen
           ? '0 6px 20px -4px rgba(0,0,0,0.4)'
           : '0 6px 20px -4px rgba(16, 185, 129, 0.55)',
       }}
@@ -77,14 +80,15 @@ export function LiveSessionBadge({
       title="חזרה לאימון החי"
       dir="ltr"
     >
-      {/* Animated dot when running / static grey when paused */}
+      {/* Animated dot only while running */}
       <span className="relative flex h-2.5 w-2.5">
-        {!paused && (
+        {!frozen && (
           <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-70 animate-ping" />
         )}
-        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${paused ? 'bg-slate-300' : 'bg-white'}`} />
+        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${frozen ? 'bg-slate-300' : 'bg-white'}`} />
       </span>
       <span className="tabular-nums">{label}</span>
+      {notStarted && <span className="text-[10px] opacity-80 ms-1">מוכן</span>}
       {paused && <span className="text-[10px] opacity-80 ms-1">מושהה</span>}
       {/* Rest chip: countdown while running, "מנוחה סיימה" flash when done.
           Sits inside the same pill so the whole "you're mid-session" state

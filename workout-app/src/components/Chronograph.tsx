@@ -6,6 +6,10 @@ type Props = {
   // Undefined means the timer is running (or the session is fresh with no
   // meaningful start yet, in which case the caller can pass sessionStartMs = now).
   pausedAtMs?: number;
+  // Persisted session clock controls. The widget never keeps its own pause
+  // state — it asks the store, and re-renders from the resulting pausedAtMs.
+  onPauseSession?: () => void;
+  onResumeSession?: () => void;
   restRemaining: number;
   restIsRunning: boolean;
   restIsDone: boolean;
@@ -72,7 +76,7 @@ function saveDefaultRest(v: number) { try { localStorage.setItem(DEFAULT_REST_KE
  *   • Position persists across sessions (localStorage)
  */
 export function Chronograph({
-  sessionStartMs, pausedAtMs, restRemaining, restIsRunning, restIsDone, onRestSkip, onRestAdd, onRestStart,
+  sessionStartMs, pausedAtMs, onPauseSession, onResumeSession, restRemaining, restIsRunning, restIsDone, onRestSkip, onRestAdd, onRestStart,
   standalone, onDismiss,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -80,10 +84,6 @@ export function Chronograph({
   const [now, setNow] = useState<number>(() => Date.now());
   const [focusMode, setFocusMode] = useState<FocusMode>(standalone ? 'stopwatch' : 'session');
 
-  // Session pause
-  const [sessionPaused, setSessionPaused] = useState(false);
-  const [sessionPauseStartMs, setSessionPauseStartMs] = useState(0);
-  const [sessionAccumPauseMs, setSessionAccumPauseMs] = useState(0);
 
   // Stopwatch
   const [swRunning, setSwRunning] = useState(false);
@@ -142,32 +142,26 @@ export function Chronograph({
     return () => clearInterval(id);
   }, [swRunning]);
 
-  // If the session is paused at the store level (pausedAtMs from Firestore), the
-  // elapsed clock freezes at pausedAtMs - sessionStartMs. Local Chronograph pause
-  // (sessionPaused) still stacks on top of that in case the user pauses inside
-  // the widget too.
-  //
-  // Special case: a "fresh" session pins pausedAtMs === sessionStartMs as a
-  // sentinel so home tiles can render a "ready to start" label. Treat that
-  // sentinel as LIVE — otherwise the widget shows 00:00 forever until the
-  // user logs a first set (which is the bug the user hit: the clock only
-  // started ticking after the first save, even though elapsed was correct).
-  const isFreshSentinel = pausedAtMs != null && pausedAtMs === sessionStartMs;
-  const effectiveNow = pausedAtMs != null && !isFreshSentinel ? pausedAtMs : now;
-  const sessionRawElapsedMs = effectiveNow - sessionStartMs;
-  const activePauseMs = sessionPaused ? (effectiveNow - sessionPauseStartMs) : 0;
-  const sessionElapsedSec = Math.max(0, Math.floor((sessionRawElapsedMs - sessionAccumPauseMs - activePauseMs) / 1000));
+  // Session clock — the SAME three-state rule as Home tiles and the floating
+  // badge, derived only from the persisted doc (rep_1789364101088_2jvl):
+  //   not-started : pausedAt === start → 00:00 frozen, button "התחל"
+  //   paused      : pausedAt  >  start → frozen at pausedAt − start, button "המשך"
+  //   running     : no pausedAt        → now − start, button "השהה"
+  // Previously this widget counted a not-started session as running (while
+  // Home showed "מוכן" and the badge 00:00) and kept a local-only pause that
+  // Home and the badge never saw.
+  const sessionNotStarted = pausedAtMs != null && pausedAtMs === sessionStartMs;
+  const sessionPaused = pausedAtMs != null && !sessionNotStarted;
+  const sessionFrozen = sessionNotStarted || sessionPaused;
+  const sessionElapsedSec = sessionNotStarted
+    ? 0
+    : Math.max(0, Math.floor(((sessionPaused ? (pausedAtMs as number) : now) - sessionStartMs) / 1000));
 
   const swElapsedMs = swAccumMs + (swRunning ? (now - swStartMs) : 0);
 
   function toggleSessionPause() {
-    if (sessionPaused) {
-      setSessionAccumPauseMs(a => a + (Date.now() - sessionPauseStartMs));
-      setSessionPaused(false);
-    } else {
-      setSessionPauseStartMs(Date.now());
-      setSessionPaused(true);
-    }
+    if (sessionFrozen) onResumeSession?.();
+    else onPauseSession?.();
   }
   function toggleStopwatch() {
     if (swRunning) {
@@ -307,7 +301,7 @@ export function Chronograph({
     primaryMode === 'rest' && restIsDone ? 'text-emerald-300 animate-pulse' :
     primaryMode === 'rest' && restUrgent ? 'text-red-400' :
     primaryMode === 'stopwatch' && swRunning ? 'text-blue-300' :
-    sessionPaused ? 'text-white/40' : 'text-emerald-300';
+    sessionFrozen ? 'text-white/40' : 'text-emerald-300';
 
   return (
     <div
@@ -339,8 +333,8 @@ export function Chronograph({
               const sw = swRunning;
               const showN = 1 + (rest ? 1 : 0) + (sw ? 1 : 0);
               const sessionCls = showN === 1
-                ? 'text-xl text-emerald-300'
-                : `text-[13px] ${sessionPaused ? 'text-white/40' : 'text-emerald-300/80'}`;
+                ? `text-xl ${sessionFrozen ? 'text-white/40' : 'text-emerald-300'}`
+                : `text-[13px] ${sessionFrozen ? 'text-white/40' : 'text-emerald-300/80'}`;
               return (
                 <div className={`font-scoreboard ${sessionCls}`}>{fmtHMS(sessionElapsedSec)}</div>
               );
@@ -399,15 +393,15 @@ export function Chronograph({
             <div className="text-center">
               <div className={`font-scoreboard text-[30px] leading-none tabular-nums ${primaryTone}`}>{primaryValue}</div>
               <div className="text-[9px] text-emerald-300/70 uppercase tracking-widest mt-1">
-                {primaryMode === 'session' ? 'משך אימון' : primaryMode === 'rest' ? (restIsDone ? 'קדימה!' : restIsRunning ? 'ספירה לאחור' : 'ברירת מחדל') : 'שעון עצר'}
+                {primaryMode === 'session' ? (sessionNotStarted ? 'לא התחיל' : sessionPaused ? 'מושהה' : 'משך אימון') : primaryMode === 'rest' ? (restIsDone ? 'קדימה!' : restIsRunning ? 'ספירה לאחור' : 'ברירת מחדל') : 'שעון עצר'}
               </div>
             </div>
 
             {/* Controls per mode — bigger, better proportioned */}
             <div className="flex items-center gap-2 justify-center">
               {focusMode === 'session' && (
-                <RoundBtn primary onClick={toggleSessionPause} aria-label={sessionPaused ? 'המשך' : 'השהה'}>
-                  {sessionPaused
+                <RoundBtn primary onClick={toggleSessionPause} aria-label={sessionNotStarted ? 'התחל' : sessionPaused ? 'המשך' : 'השהה'}>
+                  {sessionFrozen
                     ? <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                     : <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></svg>}
                 </RoundBtn>

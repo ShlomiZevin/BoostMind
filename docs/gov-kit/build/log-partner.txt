@@ -1,0 +1,12 @@
+  in_progress 5s
+  in_progress 11s
+  in_progress 16s
+  in_progress 22s
+  in_progress 27s
+  in_progress 33s
+  in_progress 38s
+  in_progress 44s
+  completed 50s
+OK -> out/partner.md  (4882 chars, gpt-5.6-terra, 4998 tokens)
+  input 2972 · output 2026 (reasoning 224)
+Read it with the Read tool — printing Hebrew to this console will mangle it.
