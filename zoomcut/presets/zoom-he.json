@@ -1,0 +1,29 @@
+{
+  "accent": "#2BD45E",
+  "ui": {
+    "app": "Zoom",
+    "end": "סיום",
+    "recording": "מקליט...",
+    "mute": "השתקה",
+    "video": "עצירת וידאו",
+    "share": "שיתוף",
+    "participants": "משתתפים",
+    "more": "עוד",
+    "removed": "המארח הסיר את {name} מהפגישה"
+  },
+  "captions": {
+    "max_words": 7
+  },
+  "timing": {
+    "first_line": 0.3,
+    "victim_answer": -0.08,
+    "handover_overlap": 0.3,
+    "same_speaker_gap": 0.15,
+    "tail": 1.0,
+    "tail_after_removal": 1.6,
+    "interrupt_overlap": 0.15,
+    "interrupted_tail": 0.3,
+    "attempt_overlap": 1.4,
+    "attempt_after": 0.9
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "title": "סנכרון אסטרטגי | AI",
+  "preset": "zoom-he",
+  "subtitles": true,
+  "characters": [
+    {
+      "id": "amir",
+      "name": "אמיר",
+      "aliases": [
+        "amir",
+        "אמיר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "ofer",
+      "name": "עופר",
+      "aliases": [
+        "ofer",
+        "offer",
+        "עופר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "daniel",
+      "name": "דניאל",
+      "aliases": [
+        "daniel",
+        "dani",
+        "דניאל"
+      ],
+      "role": "victim",
+      "look": {
+        "saturate": 1.45,
+        "contrast": 1.06,
+        "brightness": 1.03
+      },
+      "frame": {
+        "zoom": 1.08,
+        "y": 0
+      }
+    }
+  ],
+  "files": {},
+  "input_dir": "C:/Users/shazbak/Downloads/zoom-meeting",
+  "overlays": [
+    {
+      "text": "פוב: העלו אותך לשיחת הנהלה בנושא AI כדי לתת חוו״ד מקצועית",
+      "start": 0,
+      "end": null,
+      "style": "pov",
+      "theme": "dark",
+      "y": 276,
+      "opacity": 0.6
+    }
+  ]
+}

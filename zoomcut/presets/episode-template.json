@@ -1,0 +1,49 @@
+{
+  "title": "TITLE — שם הפגישה",
+  "preset": "zoom-he",
+  "subtitles": true,
+  "input_dir": "",
+  "overlays": [
+    {
+      "text": "פוב: ...",
+      "start": 0,
+      "end": null,
+      "style": "pov",
+      "font": "assistant",
+      "theme": "light",
+      "opacity": 1
+    }
+  ],
+  "characters": [
+    {
+      "id": "amir",
+      "name": "אמיר",
+      "aliases": [
+        "amir",
+        "אמיר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "ofer",
+      "name": "עופר",
+      "aliases": [
+        "ofer",
+        "offer",
+        "עופר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "daniel",
+      "name": "דניאל",
+      "aliases": [
+        "daniel",
+        "dani",
+        "דניאל"
+      ],
+      "role": "victim"
+    }
+  ],
+  "files": {}
+}

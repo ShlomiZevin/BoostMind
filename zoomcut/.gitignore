@@ -1,0 +1,9 @@
+.venv/
+models/
+render/node_modules/
+episodes/*/work/
+episodes/*/out/
+episodes/*/input/
+episodes/*-test/
+__pycache__/
+*.pyc

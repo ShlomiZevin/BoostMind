@@ -1,0 +1,8 @@
+[
+  { "id": "system",        "name": "Segoe UI (Zoom default)", "file": null,                          "weight": 700 },
+  { "id": "assistant",     "name": "Assistant",               "file": "Assistant.ttf",               "weight": 800 },
+  { "id": "arimo",         "name": "Arimo",                   "file": "Arimo.ttf",                   "weight": 700 },
+  { "id": "abraham",       "name": "Abraham",                 "file": "Abraham-Regular.ttf",         "weight": 400 },
+  { "id": "stam-ashkenaz", "name": "Stam Ashkenaz",           "file": "stamashkenazclm-webfont.ttf", "weight": 400 },
+  { "id": "stam-sefarad",  "name": "Stam Sefarad",            "file": "stamsefaradclm-webfont.ttf",  "weight": 400 }
+]

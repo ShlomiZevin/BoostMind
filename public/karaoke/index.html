@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#151413" />
+  <title>Karaoke Booth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Heebo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./booth.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span>Karaoke Booth</div>
+    <div class="vsep"></div>
+    <div class="song-title" id="song-title">No song yet</div>
+    <nav class="steps" id="steps">
+      <button data-step="1"><span>1</span>Song</button><i></i>
+      <button data-step="2"><span>2</span>Record</button><i></i>
+      <button data-step="3"><span>3</span>Make it a song</button>
+    </nav>
+    <div class="grow"></div>
+    <nav class="apps"><a class="on" href="#">Karaoke</a><a id="app-editor" href="http://localhost:4747/" title="Sketch Studio — the video editor on your PC">Video editor</a></nav>
+    <button class="ibtn" id="open-projects" title="Your projects"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Projects</span></button>
+    <button class="ibtn icon" id="open-setup" title="Microphone, headphones & sync"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <button class="ibtn icon" id="theme" title="Light / dark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    <button class="btn primary" id="open-export" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg>Export song</button>
+  </header>
+
+  <main class="grid">
+    <!-- LEFT: video + song + setup -->
+    <aside class="col-left">
+      <section class="card video-card" id="screen">
+        <div class="empty-video" id="empty-video">
+          <div class="big-note"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></div>
+          <b>Start with a song</b>
+          <span>An original song or a karaoke video — with the lyrics on screen</span>
+          <label class="btn primary" for="file">Choose song or video</label>
+        </div>
+        <video id="kv" playsinline muted preload="auto" class="hidden"></video>
+        <div class="cnt" id="vcount"></div>
+      </section>
+      <input type="file" id="file" accept="audio/*,video/*,.mp3,.m4a,.wav,.aac,.mp4,.mov" class="hidden" />
+
+      <section class="card" id="song-card">
+        <div class="card-title">Song</div>
+        <div class="song-row">
+          <div class="thumb" id="thumb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></div>
+          <div class="grow"><b id="song-name">No song yet</b><span class="sub" id="song-kind">Choose one to start</span><span class="sub" id="song-len"></span></div>
+          <label class="chip" for="file">Change</label>
+        </div>
+        <div class="row-item" id="split-row">
+          <div class="grow"><b>Singers removed</b><span class="sub" id="split-sub">Removes the original singers from the music (AI, ~2 min)</span></div>
+          <button class="toggle" id="split-go" role="switch" aria-checked="false"></button>
+        </div>
+        <div class="progress hidden" id="split-bar"><i id="split-fill"></i></div>
+        <div class="note hidden" id="split-note"></div>
+        <div id="split-ctl" class="hidden">
+          <div class="knob">
+            <div class="knob-h"><b>Hear singers while recording</b><span id="v-guide">100%</span></div>
+            <span class="sub">The original singers in your ears so you stay on the melody</span>
+            <input type="range" id="m-guide" min="0" max="100" step="1" value="100" />
+          </div>
+          <div class="row-item"><div class="grow"><b>Singers in the final song</b><span class="sub">Off = only the music and your voice</span></div><button class="toggle" id="m-guide-play" role="switch" aria-checked="false"></button></div>
+        </div>
+        <div class="knob">
+          <div class="knob-h"><b>Music volume</b><span id="v-sng">80%</span></div>
+          <input type="range" id="m-sng" min="0" max="150" step="1" value="80" />
+        </div>
+      </section>
+
+      <section class="card" id="setup-card">
+        <div class="card-title">Microphone & sync <button class="link" id="setup-more">Settings</button></div>
+        <button class="btn" id="mic-on">Turn on the microphone</button>
+        <div id="mic-ui" class="hidden">
+          <div class="mic-line"><span class="dot-ok"></span><span id="mic-name">Microphone</span></div>
+          <div class="meter"><i id="meter"></i></div>
+          <div class="sub" id="meter-note">Sing at full voice: the bar should move well, and never turn red.</div>
+          <div class="mic-line" style="margin-top:10px"><span id="sync-dot" class="dot-warn"></span><span id="sync-text">Sync not calibrated</span></div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="test">Test 3 s</button>
+            <button class="btn" id="calib">Calibrate sync</button>
+          </div>
+          <div class="note hidden" id="calib-note"></div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER: tracks + transport -->
+    <section class="col-center">
+      <section class="card tracks-card" id="tracks-card">
+        <div class="ruler-row"><div class="lane-head-space"></div><canvas id="ruler" class="ruler"></canvas></div>
+        <div class="lanes" id="lanes"></div>
+        <button class="add-lane" id="add-layer"><span>+</span><div><b>Add another vocal track</b><span class="sub">Harmony, a duet part, ad-libs — anything you like</span></div></button>
+        <div class="playhead" id="playhead"></div>
+        <div class="empty-tracks" id="empty-tracks">Choose a song on the left — its music appears here, and every recording becomes a track under it.</div>
+      </section>
+      <section class="card transport-card">
+        <div class="transport">
+          <button class="tbtn" id="t-start" title="Back to start (Home)"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.4" height="14" rx="1"/><path d="M19 5v14L8.5 12z"/></svg>Back to start</button>
+          <button class="tbtn" id="t-back" title="Back 5 seconds (←)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/></svg>−5s</button>
+          <button class="play" id="t-play" title="Play / pause (Space)"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>
+          <button class="tbtn" id="t-fwd" title="Forward 5 seconds (→)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/></svg>+5s</button>
+          <div class="tsep"></div>
+          <div class="clock"><b id="pos">0:00.0</b><span id="dur">/ 0:00</span></div>
+          <button class="rec" id="t-rec" title="Record / stop (R)"><span class="rec-dot"></span><span class="rec-label"><b id="rec-title">Record</b><span id="rec-sub">into Lead vocal</span></span></button>
+        </div>
+        <div class="hint" id="rec-hint">Recording starts at the playhead and goes into the selected track. Stop, then press Record again to carry on.</div>
+      </section>
+    </section>
+
+    <!-- RIGHT: voice style -->
+    <aside class="col-right">
+      <section class="card style-card" id="style-card">
+        <div class="card-title big">Voice style <span class="for" id="style-for"></span></div>
+        <div class="sub" style="margin-top:-6px">Pick a style to shape your voice — then fine-tune below</div>
+        <div class="styles" id="styles"></div>
+        <div class="style-hint" id="style-hint"></div>
+        <div id="knobs"></div>
+        <div class="knob" id="key-row">
+          <div class="knob-h"><b>Song key</b><span class="sub" style="margin:0">for Autotune</span></div>
+          <select id="l-key"></select>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button class="link" id="style-reset">Reset to Natural</button>
+          <button class="link" id="style-all">Use this style on all tracks</button>
+        </div>
+        <button class="btn magic" id="magic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8l1.4 1.4M17.8 6.2l1.4-1.4M12.2 6.2l-1.4-1.4M3 21l9-9"/></svg>Make it a song (auto mix)</button>
+        <div class="sub center" id="magic-sub">Balances your voice against the music, adds the style, cleans noise and checks sync</div>
+        <div class="note hidden" id="magic-note"></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- drawers & dialogs -->
+  <div class="scrim hidden" id="scrim"></div>
+  <aside class="drawer hidden" id="drawer-setup">
+    <div class="drawer-h"><b>Microphone, headphones & sync</b><button class="ibtn icon" data-close>✕</button></div>
+    <div class="knob"><div class="knob-h"><b>Record from</b></div><span class="sub">A USB mic or headset mic sounds far better than a laptop's built-in one</span><select id="mic-list"></select></div>
+    <div class="knob hidden" id="out-ctl"><div class="knob-h"><b>Listen on</b></div><span class="sub">Your headphones — so the music doesn't leak into the recording</span><select id="out-list"></select></div>
+    <div class="row-item"><div class="grow"><b>Hear myself</b><span class="sub">Your own voice in the headphones (adds a tiny delay)</span></div><button class="toggle" id="monitor" role="switch" aria-checked="false"></button></div>
+    <div class="note hidden" id="mic-warn"></div>
+    <div class="explain">
+      <b>Why calibrate sync?</b>
+      <p>Headphones (especially Bluetooth) play the music a little late, so you sing a little late. Calibrating measures that delay once — clap along to 8 clicks — and every recording is placed exactly on the beat from then on.</p>
+    </div>
+    <div class="keys"><b>Keyboard</b> Space play/pause · R record/stop · Home start · ←/→ 5 s · N new track</div>
+  </aside>
+
+  <aside class="drawer hidden" id="drawer-projects">
+    <div class="drawer-h"><b>Projects</b><button class="ibtn icon" data-close>✕</button></div>
+    <label class="btn primary" for="file">New project — choose a song</label>
+    <div id="projects" class="projects"></div>
+  </aside>
+
+  <div class="dialog hidden" id="dialog-export">
+    <div class="dialog-h"><b>Export song</b><button class="ibtn icon" data-close>✕</button></div>
+    <div class="sub" id="export-sum"></div>
+    <button class="export-opt" id="exp-mp3"><b>Song — MP3</b><span>Small and easy to share — WhatsApp, Instagram, TikTok</span></button>
+    <button class="export-opt" id="exp-wav"><b>Song — WAV</b><span>Full quality, for editing in another app</span></button>
+    <button class="export-opt" id="exp-voc"><b>Vocals only — WAV</b><span>Your voice with its style, no music</span></button>
+    <div class="note hidden" id="export-note"></div>
+  </div>
+
+  <div class="menu hidden" id="lane-menu"></div>
+  <div class="toast hidden" id="toast"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
