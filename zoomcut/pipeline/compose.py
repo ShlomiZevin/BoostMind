@@ -152,6 +152,7 @@ def export(ep, props, props_path, silent_out, concurrency=8):
     """Render the interface frames, composite every shot, concat. Returns the silent video path."""
     t_start = time.time()
     ui_dir = ep.work("ui")
+    os.makedirs(ui_dir, exist_ok=True)  # first export of a new episode
     for fn in os.listdir(ui_dir):
         os.remove(os.path.join(ui_dir, fn))
     ui_props = props_path.replace(".json", ".ui.json")

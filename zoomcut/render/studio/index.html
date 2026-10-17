@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch Studio</title>
+<style>
+/* Sketch Studio shell: one rail that never reloads, the tools live beside it (each keeps its state). */
+:root { --app: #131211; --panel: #1a1918; --panel-3: #2a2826; --edge: rgba(255,255,255,0.07); --text: #f2f0ed; --dim: #aaa59f; --faint: #78736d; --accent: #ff6b57; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--app); color: var(--text); font: 600 11px/1.2 Inter, "Segoe UI", system-ui, sans-serif; }
+.shell { display: grid; grid-template-columns: 72px 1fr; height: 100%; }
+.rail { background: var(--panel); border-right: 1px solid var(--edge); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 6px; }
+.mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: #fff; display: grid; place-items: center; font: 800 18px Inter, sans-serif; margin-bottom: 14px; }
+.tool { position: relative; width: 60px; padding: 9px 0 7px; border-radius: 10px; border: 0; background: transparent; color: var(--dim); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 5px; font: inherit; transition: background .15s, color .15s; }
+.tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tool:hover { background: var(--panel-3); color: var(--text); }
+.tool.on { background: var(--panel-3); color: var(--text); }
+.tool.on svg { stroke: var(--accent); }
+.tool.on::before { content: ""; position: absolute; left: -6px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
+.grow { flex: 1; }
+.ver { color: var(--faint); font-weight: 500; font-size: 10px; }
+main { position: relative; }
+iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--app); display: none; }
+iframe.on { display: block; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="rail" id="rail">
+    <div class="mark" title="Sketch Studio">S</div>
+  </nav>
+  <main id="main"></main>
+</div>
+<script>
+// tools: each opens once and stays alive while you switch (a playing reader / a karaoke take keeps its place)
+const TOOLS = [
+  { id: 'video', label: 'Editor', src: '/editor.html', icon: '<rect x="3" y="5" width="13" height="14" rx="2"/><path d="M16 10l5-3v10l-5-3"/>' },
+  { id: 'karaoke', label: 'Karaoke', src: '/karaoke/', icon: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4"/>' },
+  { id: 'reader', label: 'Reader', src: '/reader/', icon: '<path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3z"/><path d="M8 9h6M8 13h6"/>' },
+];
+const rail = document.getElementById('rail'), main = document.getElementById('main');
+const frames = {};
+for (const t of TOOLS) {
+  const b = document.createElement('button');
+  b.className = 'tool'; b.dataset.id = t.id; b.title = t.label;
+  b.innerHTML = `<svg viewBox="0 0 24 24">${t.icon}</svg>${t.label}`;
+  b.onclick = () => { location.hash = t.id; };
+  rail.appendChild(b);
+}
+rail.insertAdjacentHTML('beforeend', '<div class="grow"></div><div class="ver">studio</div>');
+function show() {
+  const id = (location.hash.slice(1) || 'video');
+  const t = TOOLS.find((x) => x.id === id) || TOOLS[0];
+  if (!frames[t.id]) {
+    const f = document.createElement('iframe');
+    f.src = t.src; f.allow = 'microphone; camera; autoplay; fullscreen; speaker-selection';
+    main.appendChild(f); frames[t.id] = f;
+  }
+  for (const [k, f] of Object.entries(frames)) f.classList.toggle('on', k === t.id);
+  rail.querySelectorAll('.tool').forEach((b) => b.classList.toggle('on', b.dataset.id === t.id));
+  document.title = `${t.label} · Sketch Studio`;
+  frames[t.id].focus();
+}
+addEventListener('hashchange', show);
+show();
+</script>
+</body>
+</html>

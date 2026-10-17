@@ -18,7 +18,7 @@ export type EditProps = {
   active: { from: number; dur: number; id: string }[];
   captions: { from: number; dur: number; name: string; text: string }[];
   events: { at: number; type: string; id: string; name: string }[];
-  overlays?: { text: string; style: string; from: number; dur: number; font?: string; theme?: string; opacity?: number; y?: number | null }[];
+  overlays?: { text: string; style: string; from: number; dur: number; font?: string; theme?: string; opacity?: number; y?: number | null; size?: number }[];
   fonts?: { id: string; family: string; url: string; weight: number }[];
 };
 
@@ -154,7 +154,20 @@ function useFonts(p: EditProps) {
   }, []);
 }
 
-const OV_FONT = (p: EditProps, id?: string) => {
+// one look for "text on video" in every template (the editor draws the same box live):
+// light = white box / black text, dark = black box / white text, gold = yellow text in a black outline (religious look)
+export const ovBoxStyle = (o: { theme?: string; opacity?: number; size?: number }, font: React.CSSProperties): React.CSSProperties => {
+  const op = o.opacity ?? 1, size = o.size || 46, gold = o.theme === 'gold';
+  return {
+    background: o.theme === 'light' || !o.theme ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`,
+    color: gold ? '#FFD60A' : o.theme === 'dark' ? '#fff' : '#000', fontSize: size, lineHeight: 1.25, padding: '12px 24px',
+    borderRadius: 14, direction: 'rtl', textAlign: 'center', maxWidth: 940, letterSpacing: gold ? '0.045em' : undefined, ...font,
+    ...(gold ? { WebkitTextStroke: `${Math.round(size * 0.17)}px #000`, paintOrder: 'stroke fill' } as any : {}),
+    textShadow: op < 0.6 ? (o.theme === 'light' || !o.theme ? '0 1px 4px rgba(255,255,255,0.7)' : '0 2px 6px rgba(0,0,0,0.8)') : undefined,
+  };
+};
+
+export const OV_FONT = (p: { fonts?: any[] }, id?: string) => {
   const f = (p.fonts || []).find((x) => x.id === id);
   return f ? { fontFamily: `"${f.family}", ${FONT}`, fontWeight: f.weight >= 600 ? 800 : 400 } : { fontFamily: FONT, fontWeight: 700 };
 };
@@ -179,6 +192,10 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
   const TOAST = Math.round(3.5 * p.fps);
   const LEAVE = Math.round(0.5 * p.fps); // the removed tile flashes red before it disappears
   const toast = p.events.find((e) => e.type === 'remove' && frame >= e.at && frame < e.at + TOAST);
+  // the removal notice goes under the POV box, however many lines the POV wraps to (~36 chars a line at 46px)
+  const povBottom = Math.max(0, ...(p.overlays || []).filter((o, i) => frame >= o.from && frame < o.from + o.dur && ovY(o, i) < POV_TOP)
+    .map((o, i) => ovY(o, i) + Math.ceil(o.text.length / 36) * 58 + 24));
+  const toastTop = Math.max((hasPov ? POV_TOP : TOP) + 40, povBottom + 28);
   // small tiles are drawn last so a floating pip sits on top
   const ids = Object.keys(rects).sort((a, b) => Number(!!rects[a].small) - Number(!!rects[b].small));
 
@@ -222,7 +239,7 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
       )}
 
       {toast && (
-        <div style={{ position: 'absolute', top: (hasPov ? POV_TOP : TOP) + 40, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 40,
+        <div style={{ position: 'absolute', top: toastTop, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 40,
           opacity: interpolate(frame - toast.at, [0, 4, TOAST - 10, TOAST], [0, 1, 1, 0], { extrapolateRight: 'clamp' }) }}>
           <div style={{ background: 'rgba(30,30,30,0.96)', color: '#fff', borderRadius: 16, padding: '24px 34px', fontSize: 44, fontWeight: 600,
             border: '1px solid rgba(255,255,255,0.14)', direction: 'rtl', display: 'flex', alignItems: 'center', gap: 18,
@@ -237,10 +254,7 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
       {(p.overlays || []).filter((o) => frame >= o.from && frame < o.from + o.dur).map((o, i) => (
         <div key={i} style={{ position: 'absolute', top: ovY(o, i), left: 60, right: 60,
           display: 'flex', justifyContent: 'center', zIndex: 30 }}>
-          <div style={{ background: o.theme === 'dark' ? `rgba(0,0,0,${o.opacity ?? 1})` : `rgba(255,255,255,${o.opacity ?? 1})`,
-            color: o.theme === 'dark' ? '#fff' : '#000', fontSize: 46, lineHeight: 1.25, padding: '12px 24px',
-            borderRadius: 14, direction: 'rtl', textAlign: 'center', maxWidth: 940, ...OV_FONT(p, o.font),
-            textShadow: (o.opacity ?? 1) < 0.6 ? (o.theme === 'dark' ? '0 2px 6px rgba(0,0,0,0.8)' : '0 1px 4px rgba(255,255,255,0.7)') : undefined }}>
+          <div style={ovBoxStyle(o, OV_FONT(p, o.font))}>
             {o.text}
           </div>
         </div>

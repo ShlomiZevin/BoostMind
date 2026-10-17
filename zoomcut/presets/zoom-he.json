@@ -18,6 +18,8 @@
     "first_line": 0.3,
     "victim_answer": -0.08,
     "handover_overlap": 0.3,
+    "quick_overlap": 0.4,
+    "quick_line": 1.8,
     "same_speaker_gap": 0.15,
     "tail": 1.0,
     "tail_after_removal": 1.6,

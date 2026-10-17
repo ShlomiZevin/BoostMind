@@ -128,6 +128,9 @@ def cmd_build(ep, args):
     for v in (corrections.get("lines") or {}).values():
         if "clip" in v and v["clip"] in rel2id:
             v["clip"] = rel2id[v["clip"]]
+    # no unscripted last try at the end of his take → point the attempt at another bit of it
+    for cid, a in (corrections.get("attempts") or {}).items():
+        attempts[cid] = {**a, "clip": rel2id.get(a["clip"], a["clip"]), "heard": a.get("heard", "")}
 
     log("④ planning the edit")
     props, mixplan, beats, missing, total = build_plan(ep, items, matches, attempts, pools,

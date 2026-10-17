@@ -194,6 +194,16 @@ class Env:
             x -= self.hop
         return x if x > limit else t
 
+    def first_voice(self, t, limit):
+        """First moment after t that is clearly voice (not breath or room tone), or None."""
+        level = (self.thr + self.voice) / 2
+        x = t
+        while x < limit:
+            if self.at(x) > level:
+                return x
+            x += self.hop
+        return None
+
     def sound_start(self, t, lo, max_back=1.5, gap=0.15):
         """Walk back from t over voice and short breaths until a real pause (>= gap) or lo.
         Catches the short loud bursts the voice detector misses ("רגע,", a quick "נכון")."""
@@ -248,6 +258,10 @@ def refine(win, stream, env, duration, interrupted, regions=None):
 
     # never start mid-word: include any voice running straight into the start point
     t_in = max(lo, min(t_in, env.sound_start(t_in + 0.06, lo) - 0.05))
+    # ...and never with dead air: skip breath / room tone before the voice (keeps a soft "ה" onset)
+    v = env.first_voice(t_in, w0["s"] + 0.4)
+    if v is not None:
+        t_in = max(t_in, v - 0.1)
 
     cut = w1["e"]
     r1 = _region(regions, w1["e"] - 0.03)

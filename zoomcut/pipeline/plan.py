@@ -34,7 +34,11 @@ def default_gap(prev, cur, tm):
     if cur["role"] == "victim":
         return tm.get("victim_answer", -0.08)  # answers the moment he is asked, a hair early
     if prev["speaker"] != cur["speaker"]:
-        return -tm.get("handover_overlap", 0.12)  # natural talk: the next one starts a touch early
+        overlap = tm.get("handover_overlap", 0.12)  # natural talk: the next one starts a touch early
+        if prev["role"] == "exec" and cur["role"] == "exec" and                 min(prev["end_t"] - prev["start"], cur.get("dur", 9)) <= tm.get("quick_line", 1.8):
+            # ping-pong ("היא תפיסתית." / "היא ארגונית."): they jump on each other's last syllable
+            overlap = max(overlap, min(tm.get("quick_overlap", 0.4), 0.4 * (prev["end_t"] - prev["start"])))
+        return -overlap
     return tm.get("same_speaker_gap", 0.15)
 
 
@@ -108,8 +112,8 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
                 m["cut"] = max(m["in"] + 0.2, m["out"] - 0.35)
             m["cut"] = max(m["cut"], m["in"] + 0.2)
             dur = clips.get(m["clip"], {}).get("duration", 1e9)
-            m["out"] = min(dur, m["cut"] + tm.get("interrupted_tail", 0.6))
-        cur = {**it, "role": roles[it["speaker"]]}
+            m["out"] = min(dur, m["cut"] + fx.get("tail", tm.get("interrupted_tail", 0.6)))  # "tail": less mumbling after the cut
+        cur = {**it, "role": roles[it["speaker"]], "dur": m["out"] - m["in"]}
         gap = fx["pause_before"] if "pause_before" in fx else default_gap(prev, cur, tm) + pending_pause
         if prev is None:
             start = gap
@@ -211,6 +215,10 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
         a, z = b["start"], (b["cut_t"] if b["interrupted"] else b["end_t"])
         for chunk_text, c0, c1 in _chunks(b["text"], a, z, ep.preset.get("captions", {}).get("max_words", 7)):
             captions.append({"from": f(c0), "dur": max(1, f(c1) - f(c0)), "name": names[b["speaker"]], "text": chunk_text})
+    # overlapping lines: the subtitle switches with the speaker, the previous one never stays on top
+    captions.sort(key=lambda c: c["from"])
+    for c, nxt in zip(captions, captions[1:]):
+        c["dur"] = max(1, min(c["dur"], nxt["from"] - c["from"]))
 
     events = [{"at": f(at), "type": "remove", "id": cid, "name": names[cid]} for cid, at in removed.items()]
 

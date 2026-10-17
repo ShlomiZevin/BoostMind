@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Script Reader</title>
+<script src="/studio/bar.js"></script>
+<style>
+/* Sketch Studio's look: warm off-black, one coral accent. Built for reading while filming yourself. */
+@font-face { font-family: "Assistant"; src: url("/fonts/Assistant.ttf"); font-weight: 200 800; }
+:root {
+  --app: #131211; --panel: #1a1918; --panel-2: #211f1e; --panel-3: #2a2826; --hover: #302d2b;
+  --edge: rgba(255,255,255,0.07); --edge-2: rgba(255,255,255,0.12);
+  --text: #f2f0ed; --dim: #aaa59f; --faint: #78736d; --accent: #ff6b57; --accent-soft: rgba(255,107,87,0.12);
+  --r: 8px; --fs: 30px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--app); color: var(--text); font: 14px/1.45 Inter, Assistant, system-ui, sans-serif; }
+button, select, textarea { font: inherit; color: inherit; }
+.hdr { position: sticky; top: 0; z-index: 5; }
+.top { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--edge); background: var(--panel); flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; }
+.mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 800; }
+.apps { display: flex; gap: 4px; margin-left: 6px; }
+.apps a { color: var(--dim); text-decoration: none; padding: 6px 11px; border-radius: 7px; border: 1px solid transparent; font-weight: 600; font-size: 13px; }
+.apps a.on { color: var(--text); background: var(--panel-3); border-color: var(--edge-2); }
+.apps a:hover { color: var(--text); }
+.vsep { width: 1px; height: 22px; background: var(--edge-2); }
+select { background: transparent; border: 0; font-size: 14px; font-weight: 600; cursor: pointer; outline: none; }
+select option { background: var(--panel); color: var(--text); }
+.grow { flex: 1; }
+.btn { height: 32px; padding: 0 12px; border-radius: var(--r); border: 1px solid var(--edge-2); background: var(--panel-2); cursor: pointer; font-weight: 600; font-size: 13px; transition: background .15s; }
+.btn:hover { background: var(--hover); }
+.btn.on { border-color: var(--accent); background: var(--accent-soft); }
+.roles { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--edge); background: var(--panel); flex-wrap: wrap; align-items: center; direction: rtl; }
+.roles .lbl { color: var(--dim); font-weight: 600; margin-left: 4px; }
+.role { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--edge-2); background: var(--panel-2); cursor: pointer; font-size: 17px; font-weight: 700; transition: background .15s, border-color .15s; }
+.role .dot { width: 12px; height: 12px; border-radius: 50%; }
+.role small { color: var(--faint); font-weight: 600; font-size: 12px; }
+.role kbd { font: 11px Inter, sans-serif; color: var(--faint); border: 1px solid var(--edge-2); border-radius: 4px; padding: 0 5px; }
+.role.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+.script { max-width: 980px; margin: 0 auto; padding: 30vh 20px 60vh; direction: rtl; }
+.ln { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 12px 18px; margin: 4px 0; border-radius: 12px; border: 2px solid transparent; cursor: pointer; transition: opacity .15s, background .15s; }
+.ln .who { font-size: calc(var(--fs) * 0.48); font-weight: 700; color: var(--faint); }
+.ln .t { font-size: calc(var(--fs) * 0.82); color: var(--dim); font-weight: 500; }
+.ln.other { opacity: 0.55; }
+.ln.mine { background: color-mix(in srgb, var(--c) 16%, transparent); border-right: 6px solid var(--c); opacity: 1; }
+.ln.mine .who { color: var(--c); font-size: calc(var(--fs) * 0.55); }
+.ln.mine .t { font-size: var(--fs); color: var(--text); font-weight: 700; line-height: 1.35; }
+.ln.cur { border-color: var(--accent); opacity: 1; }
+.ln.cur.other .t { color: var(--text); }
+.ln.dir { padding: 6px 18px; }
+.ln.dir .t { font-size: calc(var(--fs) * 0.55); color: var(--faint); font-style: italic; }
+.btn.play { min-width: 92px; background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.play:hover { background: #ff8270; }
+.pace { display: flex; align-items: center; gap: 6px; color: var(--dim); font-weight: 600; font-size: 13px; }
+.pace input { width: 96px; accent-color: var(--accent); }
+.pace input:disabled { opacity: .45; }
+.pace #paceV { min-width: 64px; color: var(--text); font-variant-numeric: tabular-nums; }
+.btn.lock.on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+.ln { position: relative; overflow: hidden; }
+.ln .bar { position: absolute; right: 0; bottom: 0; height: 4px; background: var(--accent); width: 0; }
+.ln .bar.run { transition: width linear; }
+.badge { display: inline-block; margin-top: 6px; font-size: calc(var(--fs) * 0.42); font-weight: 700; color: #1a1300; background: #f0b44c; border-radius: 6px; padding: 1px 8px; width: max-content; }
+.cue { margin-top: 26px; }
+.foot { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 18px; align-items: center; justify-content: center; padding: 10px 16px; background: rgba(26,25,24,0.92); border-top: 1px solid var(--edge); color: var(--dim); font-weight: 600; direction: rtl; }
+.foot b { color: var(--text); }
+.keys { color: var(--faint); font-size: 12px; direction: ltr; }
+.empty { text-align: center; color: var(--faint); padding: 80px 20px; font-size: 18px; }
+dialog { background: var(--panel); color: var(--text); border: 1px solid var(--edge-2); border-radius: 12px; width: min(760px, 92vw); padding: 18px; }
+dialog::backdrop { background: rgba(0,0,0,0.6); }
+dialog textarea { width: 100%; height: 50vh; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; padding: 12px; direction: rtl; font-size: 16px; resize: vertical; }
+@media (max-width: 640px) { .script { padding: 20vh 10px 60vh; } }
+</style>
+</head>
+<body>
+<header class="hdr">
+<div class="top studio-top">
+  <studio-nav app="reader"></studio-nav>
+  <select id="ep" title="Episode script"></select>
+  <button class="btn" id="paste" title="Paste a script">Paste</button>
+  <div class="grow"></div>
+  <button class="btn play" id="play" title="Play / pause (Enter)">▶ Play</button>
+  <button class="btn" id="restart" title="From the start: back to the first line and play">⏮</button>
+  <label class="pace" title="Reading pace in words per minute">Pace <input type="range" id="pace" min="120" max="500" step="5"><span id="paceV"></span></label>
+  <button class="btn lock" id="lock" title="Keep this pace for this script">🔓 Lock</button>
+  <button class="btn" id="cues" title="My lines + cues: only your lines, each with the line before it">Cues</button>
+  <button class="btn" id="smaller" title="Smaller text">A−</button>
+  <button class="btn" id="bigger" title="Bigger text">A+</button>
+</div>
+<div class="roles" id="roles"></div>
+</header>
+<div class="script" id="script"><div class="empty">Pick an episode or paste a script.</div></div>
+<div class="foot" id="foot"></div>
+
+<dialog id="dlg">
+  <div style="font-weight:700;margin-bottom:8px">Paste the script — one line each, "Name: text"</div>
+  <textarea id="txt" placeholder="אמיר: טוב, דניאל, קודם כול...&#10;עופר: חד משמעית."></textarea>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+    <button class="btn" id="cancel">Cancel</button><button class="btn on" id="use">Use this script</button>
+  </div>
+</dialog>
+
+<script>
+// Reader for filming: the whole script in order, the character you're playing lit up, a cursor that keeps
+// your place. Keys: 1-9 pick the character · Space/↓ next line · ↑ back · → your next line · ← your previous line.
+const KNOWN = { 'אמיר': '#4a86e8', 'עופר': '#8a5cd6', 'דניאל': '#45a86a' };
+const PALETTE = ['#4a86e8', '#8a5cd6', '#45a86a', '#d9822b', '#c2507a', '#2bb3c0', '#b8b23a'];
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
+const $ = (id) => document.getElementById(id);
+let lines = [], chars = [], me = null, cur = 0, src = '', cues = false;
+let fs = +(store.get('reader-fs') || 30);
+
+// Splits a pasted script into speakers and lines. Understands "Name: text", "**Name:** text", lines that
+// wrap onto the next line, [stage directions], and screenplay layout (the name alone on a line, the text under it).
+function parse(text) {
+  const out = [];
+  let pending = null;  // a name standing alone on its line, waiting for its text
+  for (let raw of text.split(/\r?\n/)) {
+    raw = raw.trim();
+    if (!raw || raw.startsWith('#')) { continue; }
+    if (/^\[.*\]$/.test(raw) || /^\(.*\)$/.test(raw)) { out.push({ dir: true, text: raw.slice(1, -1) }); continue; }
+    const clean = raw.replace(/\*\*/g, '');
+    const m = clean.match(/^([^:：]{1,24})[:：]\s*(.*)$/);
+    if (m && m[1].trim().split(/\s+/).length <= 3) {
+      if (m[2].trim()) { out.push({ who: m[1].trim(), text: m[2].trim() }); pending = null; }
+      else pending = m[1].trim();  // "Name:" alone - the text comes next
+      continue;
+    }
+    if (pending) { out.push({ who: pending, text: clean }); pending = null; continue; }
+    const words = clean.split(/\s+/);
+    if (words.length <= 2 && !/[.!?,—–-]$/.test(clean) && clean.length <= 18) { pending = clean; continue; }  // screenplay name
+    if (out.length && !out[out.length - 1].dir) out[out.length - 1].text += ' ' + clean;  // a wrapped line
+  }
+  return out;
+}
+
+function load(text, key) {
+  src = key;
+  lines = parse(text);
+  chars = [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
+  const saved = JSON.parse(store.get('reader-' + src) || '{}');
+  me = chars.includes(saved.me) ? saved.me : null;
+  cur = Math.min(saved.cur || 0, Math.max(0, lines.length - 1));
+  locked = !!saved.locked;
+  wpm = saved.locked && saved.wpm ? saved.wpm : (saved.wpm || +(store.get('reader-wpm') || DEFAULT_WPM));
+  setPlay(false);
+  showPace();
+  render();
+}
+
+const color = (who) => KNOWN[who] || PALETTE[chars.indexOf(who) % PALETTE.length];
+const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked })); if (!locked) store.set('reader-wpm', wpm); };
+const hash = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+
+function render() {
+  const roles = $('roles');
+  roles.innerHTML = chars.length ? '<span class="lbl">אני משחק את:</span>' : '';
+  chars.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'role' + (me === c ? ' on' : '');
+    b.style.setProperty('--c', color(c));
+    const n = lines.filter((l) => l.who === c).length;
+    b.innerHTML = `<span class="dot" style="background:${color(c)}"></span>${c} <small>${n} שורות</small>${i < 9 ? `<kbd>${i + 1}</kbd>` : ''}`;
+    b.onclick = () => pick(c);
+    roles.appendChild(b);
+  });
+  const box = $('script');
+  if (!lines.length) { box.innerHTML = '<div class="empty">Pick an episode or paste a script.</div>'; foot(); return; }
+  box.innerHTML = '';
+  lines.forEach((l, i) => {
+    if (cues && me) {  // only my lines, each with the line before it as the cue
+      const mine = l.who === me, nextMine = lines[i + 1] && lines[i + 1].who === me;
+      if (!mine && !nextMine) return;
+    }
+    const d = document.createElement('div');
+    const mine = !l.dir && me && l.who === me;
+    d.className = 'ln' + (l.dir ? ' dir' : mine ? ' mine' : me ? ' other' : '') + (i === cur ? ' cur' : '') + (cues && !mine ? ' cue' : '');
+    d.dataset.i = i;
+    if (!l.dir) d.style.setProperty('--c', color(l.who));
+    const cut = /[—–-]\s*$/.test(l.text);
+    d.innerHTML = l.dir ? `<div class="t">[${esc(l.text)}]</div>`
+      : `<div class="who">${esc(l.who)}</div><div class="t">${esc(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
+    d.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
+    d.onclick = () => go(i);
+    box.appendChild(d);
+  });
+  document.documentElement.style.setProperty('--fs', fs + 'px');
+  $('cues').classList.toggle('on', cues);
+  center();
+  foot();
+}
+
+function foot() {
+  const f = $('foot');
+  if (!lines.length) { f.innerHTML = ''; return; }
+  const mineIdx = lines.map((l, i) => (l.who === me ? i : -1)).filter((i) => i >= 0);
+  const done = mineIdx.filter((i) => i < cur).length;
+  const next = mineIdx.find((i) => i >= cur);
+  f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span>` +
+    (me ? `<span>${me}: <b>${Math.min(done + 1, mineIdx.length)}</b> מתוך ${mineIdx.length}</span>` +
+      `<span>${next == null ? 'סיימת את השורות שלך 🎬' : next === cur ? '<b>עכשיו את/ה</b>' : `עוד ${next - cur} שורות עד שלך`}</span>` : '<span>בחר/י דמות למעלה (1-9)</span>') +
+    `<span class="keys">Enter play/pause (continues from here) · Space/↓ next · ← my next line · → my previous · ↑ back · Home start</span>`;
+}
+
+function center() {
+  const el = document.querySelector(`.ln[data-i="${cur}"]`) || [...document.querySelectorAll('.ln')].find((x) => +x.dataset.i > cur);
+  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function go(i) { cur = Math.max(0, Math.min(lines.length - 1, i)); save(); render(); if (playing) schedule(); }
+
+// Play: moves from bubble to bubble at the script's pace (words per minute) plus a short beat; a stage
+// direction a moment, your own lines a little longer (room to act).
+// pace = words per minute (a general measure, not "1x of something"); each script can lock its own
+const DEFAULT_WPM = 270;
+let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
+function lineSeconds(l) {
+  if (l.dir) return 0.8;
+  const words = l.text.split(/\s+/).filter(Boolean).length;
+  const base = 0.3 + words / (wpm / 60);
+  return l.who === me ? base * 1.1 + 0.15 : base;
+}
+function schedule() {
+  clearTimeout(timer);
+  if (!playing || !lines.length) return;
+  const secs = lineSeconds(lines[cur]);
+  const bar = document.querySelector(`.ln[data-i="${cur}"] .bar`);
+  if (bar) {  // fill the current bubble's bar over its time
+    bar.classList.remove('run'); bar.style.width = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.classList.add('run'); bar.style.transitionDuration = secs + 's'; bar.style.width = '100%'; }));
+  }
+  timer = setTimeout(() => {
+    if (cur >= lines.length - 1) return setPlay(false);
+    let n = cur + 1;
+    if (cues && me) while (n < lines.length - 1 && lines[n].who !== me && lines[n + 1]?.who !== me) n++;  // cue mode skips hidden lines
+    go(n);
+  }, secs * 1000);
+}
+function setPlay(on) {
+  playing = on;
+  $('play').textContent = on ? '❚❚ Pause' : '▶ Play';
+  if (on) schedule(); else { clearTimeout(timer); document.querySelectorAll('.ln .bar').forEach((b) => { b.classList.remove('run'); b.style.width = '0'; }); }
+}
+function pick(c) { me = me === c ? null : c; save(); render(); }
+function myStep(d) {
+  for (let i = cur + d; i >= 0 && i < lines.length; i += d) if (lines[i].who === me) return go(i);
+}
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+document.addEventListener('keydown', (e) => {
+  if ($('dlg').open || e.target.tagName === 'TEXTAREA') return;
+  if (/^[1-9]$/.test(e.key) && chars[+e.key - 1]) return pick(chars[+e.key - 1]);
+  if (e.key === 'Enter') { e.preventDefault(); return setPlay(!playing); }
+  if (e.code === 'Space' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); }
+  else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); me ? myStep(-1) : go(cur - 1); }  // RTL: right = back
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); me ? myStep(1) : go(cur + 1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(lines.length - 1); }
+});
+$('bigger').onclick = () => { fs = Math.min(64, fs + 3); store.set('reader-fs', fs); render(); };
+$('smaller').onclick = () => { fs = Math.max(16, fs - 3); store.set('reader-fs', fs); render(); };
+$('cues').onclick = () => { cues = !cues; render(); if (playing) schedule(); };
+$('play').onclick = () => setPlay(!playing);
+function showPace() {
+  $('pace').value = wpm; $('paceV').textContent = `${wpm} wpm`;
+  $('pace').disabled = locked;
+  $('lock').classList.toggle('on', locked);
+  $('lock').textContent = locked ? '🔒' : '🔓';
+  $('lock').title = locked ? `Locked: this script reads at ${wpm} words/min — click to unlock` : 'Lock this pace (words per minute) for this script';
+}
+$('pace').oninput = (e) => { wpm = +e.target.value; showPace(); save(); if (playing) schedule(); };
+$('lock').onclick = () => { locked = !locked; save(); showPace(); };
+$('restart').onclick = () => { go(0); setPlay(true); };
+$('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('dlg').showModal(); };
+$('cancel').onclick = () => $('dlg').close();
+$('use').onclick = () => {
+  const t = $('txt').value; store.set('reader-pasted', t); $('dlg').close();
+  $('ep').value = ''; store.set('reader-src', 'pasted'); load(t, 'pasted:' + hash(t));
+};
+$('ep').onchange = async () => {
+  const id = $('ep').value;
+  if (!id) return;
+  store.set('reader-src', id);
+  const r = await fetch(`/api/ep/${id}/script`);
+  load(r.ok ? await r.text() : '', id);
+};
+
+(async () => {
+  const eps = await fetch('/api/episodes').then((r) => r.json()).catch(() => []);
+  $('ep').innerHTML = '<option value="">— episode —</option>' + eps.filter((e) => !e.id.endsWith('-test'))
+    .map((e) => `<option value="${e.id}">${e.id}</option>`).join('');
+  const last = store.get('reader-src');
+  if (last === 'pasted') { const t = store.get('reader-pasted') || ''; load(t, 'pasted:' + hash(t)); }
+  else if (last && eps.some((e) => e.id === last)) { $('ep').value = last; $('ep').onchange(); }
+})();
+// the right arrow goes back in a right-to-left script, the left arrow goes forward (like turning pages)
+</script>
+</body>
+</html>

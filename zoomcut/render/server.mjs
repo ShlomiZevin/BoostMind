@@ -35,7 +35,10 @@ function runJob(id, args, onSuccess) {
   if (prev?.running) return prev;
   const job = { running: true, kind: args.includes('--preview') ? 'preview' : 'export', log: [], code: null, started: Date.now() };
   jobs[id] = job;
-  const p = (job.proc = spawn(PY, ['zoomcut.py', 'build', `episodes/${id}`, ...args], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' } }));
+  // the lesson template (one speaker, takes in order) has its own pipeline
+  const lesson = readJson(path.join(EPS, id, 'episode.json'), {}).type === 'lesson';
+  const cmd = lesson ? ['lesson.py', `episodes/${id}`, ...args.filter((a) => a === '--preview')] : ['zoomcut.py', 'build', `episodes/${id}`, ...args];
+  const p = (job.proc = spawn(PY, cmd, { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' } }));
   const take = (b) => {
     for (const line of b.toString('utf8').split(/\r?\n|\r/)) {
       if (!line.trim()) continue;
@@ -59,6 +62,22 @@ app.get('/api/ep/:id', (q, res) => {
   const d = epDir(q.params.id);
   const w = (f) => path.join(d, 'work', f);
   const dialogue = w('public/dialogue.wav');
+  const episode = readJson(path.join(d, 'episode.json'));
+  if (episode?.type === 'lesson') {
+    const out = path.join(d, 'out', `${q.params.id}.mp4`);
+    const prev = w('public/preview.mp4');
+    const layer = (f) => (fs.existsSync(w('public/' + f)) ? { url: `/media/${q.params.id}/${f}`, v: fs.statSync(w('public/' + f)).mtimeMs } : null);
+    return res.json({
+      layers: { person: layer('person.webm'), scene: layer('scene.png'), plaque: layer('plaque.png') },
+      preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
+      previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
+      episode, lesson: { captions: fs.existsSync(path.join(d, 'captions.txt')) ? fs.readFileSync(path.join(d, 'captions.txt'), 'utf8') : '', edit: readJson(w('edit.json')) },
+      state: null, edit: null, footage: null, corrections: { lines: {} },
+      output: fs.existsSync(out) ? `/media/${q.params.id}/out` : null,
+      outputVersion: fs.existsSync(out) ? fs.statSync(out).mtimeMs : null,
+      job: pub(jobs[q.params.id]),
+    });
+  }
   res.json({
     episode: readJson(path.join(d, 'episode.json')),
     corrections: readJson(path.join(d, 'corrections.json'), { lines: {} }),
@@ -69,6 +88,39 @@ app.get('/api/ep/:id', (q, res) => {
     output: fs.existsSync(path.join(d, 'out', `${q.params.id}.mp4`)) ? `/media/${q.params.id}/out` : null,
     job: pub(jobs[q.params.id]),
   });
+});
+
+// lesson template: save subtitles / title / plaque and rebuild — {captions?, title?, plaque?}
+app.post('/api/ep/:id/lesson', (q, res) => {
+  const d = epDir(q.params.id);
+  const b = q.body || {};
+  if (typeof b.captions === 'string') fs.writeFileSync(path.join(d, 'captions.txt'), b.captions, 'utf8');
+  const cfg = readJson(path.join(d, 'episode.json'));
+  if (typeof b.title === 'string') cfg.title = b.title;
+  if (Array.isArray(b.plaque)) cfg.plaque = b.plaque;
+  if (b.speed) cfg.speed = Math.min(1.3, Math.max(1, Number(b.speed)));
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json(pub(runJob(q.params.id, ['--preview'])));
+});
+
+// lesson layout (background zoom/position, his size/position): saved only - the editor shows it live, Export uses it
+app.post('/api/ep/:id/layout', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  if (q.body?.bg) cfg.bg = q.body.bg;
+  if (q.body?.person) cfg.person = q.body.person;
+  if (q.body?.captions_y != null) cfg.captions_y = q.body.captions_y;
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json({ ok: true });
+});
+
+// lesson speed: saved only — the editor plays the preview at this speed live, Export burns it in
+app.post('/api/ep/:id/speed', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  cfg.speed = Math.min(1.3, Math.max(1, Number(q.body?.speed) || 1));
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json({ speed: cfg.speed });
 });
 
 // one line's fix: {n, fix: {...} | null}
@@ -146,13 +198,13 @@ app.post('/api/ep/:id/overlays', (q, res) => {
   writeJson(path.join(d, 'episode.json'), e);
   const editPath = path.join(d, 'work', 'edit.json');
   const edit = readJson(editPath);
-  if (edit) {
+  if (edit?.fps) { // a Zoom edit; a lesson draws its text from episode.json
     const fps = edit.fps, total = edit.durationInFrames;
     edit.overlays = e.overlays.filter((o) => (o.text || '').trim()).map((o) => {
       const from = Math.round((o.start || 0) * fps);
       const end = o.end ? Math.min(total, Math.round(o.end * fps)) : total;
       return { text: o.text, style: o.style || 'pov', from, dur: Math.max(1, end - from), font: o.font || 'system',
-        theme: o.theme || 'light', opacity: o.opacity ?? 1, y: o.y ?? null };
+        theme: o.theme || 'light', opacity: o.opacity ?? 1, y: o.y ?? null, size: o.size ?? null };
     });
     writeJson(editPath, edit);
   }
@@ -161,6 +213,15 @@ app.post('/api/ep/:id/overlays', (q, res) => {
 app.use('/fonts', express.static(path.join(ROOT, 'fonts')));
 // Karaoke Booth lives in the BoostMind site; served here too so both tools sit behind one menu on the PC
 app.use('/karaoke', express.static('C:/workspace/BoostMind/public/karaoke'));
+// Script Reader: read the whole script while filming, with the character you're playing lit up
+app.use('/reader', express.static(path.join(HERE, 'reader')));
+app.use('/studio', express.static(path.join(HERE, 'studio')));  // the shared top bar + the shell
+app.get(['/', '/index.html'], (_q, res) => res.sendFile(path.join(HERE, 'studio', 'index.html')));  // Sketch Studio: rail + tools
+app.get('/api/ep/:id/script', (q, res) => {
+  const f = path.join(epDir(q.params.id), 'script.txt');
+  if (!fs.existsSync(f)) return res.status(404).end();
+  res.type('text/plain; charset=utf-8').send(fs.readFileSync(f, 'utf8'));
+});
 // a character's look (framing / colour): patch episode.json and the current edit — no rebuild
 app.post('/api/ep/:id/character', (q, res) => {
   const d = epDir(q.params.id);

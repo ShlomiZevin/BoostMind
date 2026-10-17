@@ -43,21 +43,31 @@ export async function sizedCopy(master, channel, log) {
   const dur = parseFloat(execFileSync(ff('ffprobe'), ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', master]).toString());
   const out = master.replace(/\.mp4$/, `.${channel}.mp4`);
   if (fs.existsSync(out) && fs.statSync(out).mtimeMs > fs.statSync(master).mtimeMs && mb(out) <= limit) return out;  // already made for this export
-  let factor = 0.92;
+  let factor = channel === 'telegram' ? 0.96 : 0.92;  // two-pass hits its target closely
   for (let attempt = 0; attempt < 3; attempt++) {
     const kbps = Math.floor((limit * 8 * 1024 * factor) / dur - 128);
     const label = channel === 'email' ? 'email' : 'Telegram';
     log(`Compressing for ${label} · 0%`, true);
-    await new Promise((res, rej) => {
-      const p = spawn(ff('ffmpeg'), ['-y', '-v', 'error', '-nostats', '-progress', 'pipe:1', '-i', master, '-c:v', 'libx264', '-preset', 'medium',
-        '-b:v', `${kbps}k`, '-maxrate', `${Math.floor(kbps * 1.3)}k`, '-bufsize', `${kbps * 2}k`, '-pix_fmt', 'yuv420p',
-        '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out]);
-      p.stdout.on('data', (b) => {
-        const m = [...b.toString().matchAll(/out_time_us=(\d+)/g)].pop();
-        if (m) log(`Compressing for ${label} · ${Math.min(99, Math.round((+m[1] / 1e6 / dur) * 100))}%`, true);
+    // Telegram: two passes at the slow preset - the best picture that fits the bot's 50 MB (Telegram's limit)
+    const passes = channel === 'telegram' ? [1, 2] : [0];
+    const plog = out.replace(/\.mp4$/, '.2pass');
+    for (const pass of passes) {
+      await new Promise((res, rej) => {
+        const args = ['-y', '-v', 'error', '-nostats', '-progress', 'pipe:1', '-i', master, '-c:v', 'libx264', '-preset', pass ? 'slow' : 'medium',
+          '-b:v', `${kbps}k`, '-maxrate', `${Math.floor(kbps * 1.5)}k`, '-bufsize', `${kbps * 2}k`, '-pix_fmt', 'yuv420p'];
+        if (pass) args.push('-pass', String(pass), '-passlogfile', plog);
+        if (pass === 1) args.push('-an', '-f', 'mp4', process.platform === 'win32' ? 'NUL' : '/dev/null');
+        else args.push('-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out);
+        const p = spawn(ff('ffmpeg'), args);
+        p.stdout.on('data', (buf) => {
+          const m = [...buf.toString().matchAll(/out_time_us=(\d+)/g)].pop();
+          const pct = Math.min(99, Math.round((+(m?.[1] || 0) / 1e6 / dur) * 100));
+          if (m) log(`Compressing for ${label}${pass ? ` · pass ${pass}/2` : ''} · ${pct}%`, true);
+        });
+        p.on('close', (c) => (c ? rej(new Error('ffmpeg failed')) : res()));
       });
-      p.on('close', (c) => (c ? rej(new Error('ffmpeg failed')) : res()));
-    });
+    }
+    for (const f of [`${plog}-0.log`, `${plog}-0.log.mbtree`]) fs.rmSync(f, { force: true });  // keep the export folder to the videos
     if (mb(out) <= limit) return out;
     factor *= 0.85;
   }

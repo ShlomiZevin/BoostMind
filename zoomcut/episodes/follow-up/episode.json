@@ -1,0 +1,58 @@
+{
+  "title": "סנכרון אסטרטגי | פגישת המשך",
+  "preset": "zoom-he",
+  "subtitles": true,
+  "input_dir": "C:/Users/shazbak/Downloads/zoom-meeting/2",
+  "overlays": [
+    {
+      "text": "פוב: פגישת המשך על ה-AI עם הגאונים מההנהלה. בפעם הקודמת דיברו, הפעם עוברים לביצוע",
+      "start": 0,
+      "end": null,
+      "style": "pov",
+      "theme": "dark",
+      "y": 276,
+      "opacity": 0.6
+    }
+  ],
+  "characters": [
+    {
+      "id": "amir",
+      "name": "אמיר",
+      "aliases": [
+        "amir",
+        "אמיר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "ofer",
+      "name": "עופר",
+      "aliases": [
+        "ofer",
+        "offer",
+        "עופר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "daniel",
+      "name": "דניאל",
+      "aliases": [
+        "daniel",
+        "dani",
+        "דניאל"
+      ],
+      "role": "victim",
+      "look": {
+        "saturate": 1.45,
+        "contrast": 1.06,
+        "brightness": 1.03
+      },
+      "frame": {
+        "zoom": 1.08,
+        "y": 0
+      }
+    }
+  ],
+  "files": {}
+}

@@ -1,0 +1,89 @@
+{
+  "type": "lesson",
+  "input_dir": "C:/Users/shazbak/Downloads/דמוקרטוביץ-בחירות",
+  "takes": "IMG_*.MP4",
+  "background": "../_assets/demokratovich/synagogue.jpg",
+  "plaque": [
+    "בית המדרש ״שערי בג״ץ״",
+    "בנשיאות כבוד הרב",
+    "דמוקרטוביץ שליט״א"
+  ],
+  "captions_font": "stam-ashkenaz",
+  "person": {
+    "scale": 1,
+    "y": 450
+  },
+  "captions_y": 1470,
+  "matte_engine": "quality",
+  "matte_cut": 30,
+  "title": "שיעורו של הגאון דמוקרטוביץ",
+  "overlays": [
+    {
+      "text": "שיעורו של הגאון דמוקרטוביץ בנושא בחירות ודמוקרטיה לקראת הימים הנוראים",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 533,
+      "size": 50,
+      "start": 0,
+      "end": null
+    }
+  ],
+  "sounds": [
+    {
+      "take": "IMG_9945",
+      "sound": "../_assets/demokratovich/phone-ring3.mp3",
+      "from_word": "רגע",
+      "from_offset": -2,
+      "to_word": "נו",
+      "to_offset": -0.15,
+      "gain": 0.45,
+      "fade_out": 0.03
+    },
+    {
+      "take": "IMG_9945",
+      "sound": "../_assets/demokratovich/wife-call.mp3",
+      "phone": true,
+      "from_word": "נו",
+      "from_edge": "end",
+      "from_offset": 0.05,
+      "to_word": "ביי",
+      "gain": 0.5,
+      "fade_out": 0.15,
+      "pitch": 1.2
+    }
+  ],
+  "bg": {
+    "zoom": 1.46,
+    "x": -76,
+    "y": 218
+  },
+  "speed": 1.2,
+  "plaque_bg": {
+    "cx": 570,
+    "top": 168,
+    "w": 290,
+    "size": 36,
+    "flat_size": 74
+  },
+  "plaque_quad": [
+    [
+      403,
+      239
+    ],
+    [
+      738,
+      218
+    ],
+    [
+      738,
+      361
+    ],
+    [
+      403,
+      375
+    ]
+  ],
+  "plaque_inset": 0.9
+}
