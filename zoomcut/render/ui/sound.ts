@@ -11,6 +11,7 @@ export const VOICE_PRESETS: Record<string, any> = {
   radio: { denoise: true, lowcut: 120, warmth: 3, box: -3, presence: 4, deess: 0.5, comp: 0.9 },
   warm: { denoise: true, lowcut: 70, warmth: 3, box: -1.5, presence: 1, deess: 0.3, comp: 0.4 },
   bright: { denoise: true, lowcut: 100, warmth: 0, box: -2, presence: 5, deess: 0.6, comp: 0.5 },
+  news: { denoise: true, lowcut: 95, warmth: 2, box: -3, presence: 3.5, deess: 0.45, comp: 0.75 },  // a studio anchor
 };
 
 /** episode.json "voice" (a preset name, the editor's settings, or nothing) -> the full settings. */

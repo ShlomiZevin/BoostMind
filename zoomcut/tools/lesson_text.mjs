@@ -49,6 +49,36 @@ for (const it of spec.items) {
       const sp = document.createElement('span');
       sp.textContent = it.text;
       d.appendChild(sp);
+    } else if (it.kind === 'overlay' && it.style === 'image') {
+      // a story's picture in a framed box (the same look as the editor's)
+      const im = document.createElement('img');
+      im.src = 'file:///' + it.image_abs;
+      Object.assign(im.style, { position: 'absolute', left: `${it.x ?? 60}px`, top: `${it.y ?? 380}px`, width: `${it.w ?? 960}px`, height: `${it.h ?? 540}px`,
+        objectFit: 'cover', boxSizing: 'border-box' },
+        it.behind ? { borderRadius: '4px', filter: 'blur(1.2px) brightness(0.93) saturate(1.05)' }
+          : { border: '6px solid #fff', borderRadius: '14px', boxShadow: '0 12px 34px rgba(0,0,0,0.55)' });
+      d.appendChild(im);
+      if (it.tag) {
+        const tg = document.createElement('div');
+        tg.textContent = it.tag;
+        Object.assign(tg.style, { position: 'absolute', left: `${(it.x ?? 60) + 12}px`, top: `${(it.y ?? 380) + 12}px`, background: 'rgba(0,0,0,0.6)',
+          color: '#fff', font: '700 22px "zc-assistant", "Segoe UI", sans-serif', padding: '3px 10px', borderRadius: '6px', direction: 'rtl' });
+        d.appendChild(tg);
+      }
+    } else if (it.kind === 'overlay' && it.style === 'band') {
+      // a news lower third: a red tag (before "|") and a deep-blue band (after it), across the frame
+      const [tag, ...rest] = String(it.text).split('|');
+      const size = it.size || 46, hgt = Math.round(size * 1.9);
+      Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 1450}px`, left: '0', right: '0', height: `${hgt}px`, display: 'flex',
+        direction: 'rtl', fontFamily: '"zc-assistant", "Segoe UI", sans-serif', fontWeight: '800', fontSize: `${size}px`, color: '#fff',
+        borderTop: '4px solid #ffffff' });
+      const t1 = document.createElement('div'), t2 = document.createElement('div');
+      Object.assign(t1.style, { background: '#d0121b', padding: `0 ${Math.round(size * 0.6)}px`, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' });
+      Object.assign(t2.style, { background: `rgba(10,38,92,${it.opacity ?? 0.94})`, flex: '1', padding: `0 ${Math.round(size * 0.55)}px`, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden' });
+      t1.textContent = rest.length ? tag.trim() : '';
+      t2.textContent = (rest.length ? rest.join('|') : tag).trim();
+      if (!rest.length) t1.style.display = 'none';
+      d.append(t1, t2);
     } else if (it.kind === 'overlay') {
       // the same box as ZoomCall's ovBoxStyle: light / dark / gold, box opacity, size
       const op = it.opacity ?? 1, size = it.size || 46, gold = it.theme === 'gold', light = it.theme === 'light' || !it.theme;
@@ -102,6 +132,9 @@ for (const it of spec.items) {
       }
     }
   }, it);
+  if (it.kind === 'overlay' && it.style === 'image') {  // the picture loaded before the shot
+    await p.waitForFunction(() => { const i = document.querySelector('#stage img'); return i && i.complete && i.naturalWidth > 0; }, { timeout: 15000 });
+  }
   if (it.kind === 'overlay' && it.style === 'ticker') {
     const el = await p.$('#tick');
     await el.screenshot({ path: it.out, omitBackground: true });  // just the strip

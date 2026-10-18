@@ -39,6 +39,10 @@ select option { background: var(--panel); color: var(--text); }
 .role small { color: var(--faint); font-weight: 600; font-size: 12px; }
 .role kbd { font: 11px Inter, sans-serif; color: var(--faint); border: 1px solid var(--edge-2); border-radius: 4px; padding: 0 5px; }
 .role.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+.rolewrap { display: inline-flex; align-items: center; gap: 4px; }
+.rp { width: 56px; height: 40px; padding: 0 4px; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 10px; font: 600 13px Inter, sans-serif; font-variant-numeric: tabular-nums; }
+.rp::placeholder { color: var(--faint); }
+.rp:focus { outline: none; border-color: var(--accent); }
 .script { max-width: 980px; margin: 0 auto; padding: 30vh 20px 60vh; direction: rtl; }
 .ln { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 12px 18px; margin: 4px 0; border-radius: 12px; border: 2px solid transparent; cursor: pointer; transition: opacity .15s, background .15s; }
 .ln .who { font-size: calc(var(--fs) * 0.48); font-weight: 700; color: var(--faint); }
@@ -129,6 +133,7 @@ const PALETTE = ['#4a86e8', '#8a5cd6', '#45a86a', '#d9822b', '#c2507a', '#2bb3c0
 const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 const $ = (id) => document.getElementById(id);
 let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
+let paces = {};  // a character's own pace (wpm) in this script - when you play, each line waits at its speaker's pace
 let fs = +(store.get('reader-fs') || 30);
 
 // Splits a pasted script into speakers and lines. Understands "Name: text", "**Name:** text", lines that
@@ -170,6 +175,7 @@ function load(text, key) {
   me = chars.includes(saved.me) ? saved.me : null;
   cur = Math.min(saved.cur || 0, Math.max(0, lines.length - 1));
   locked = !!saved.locked;
+  paces = saved.paces || {};
   wpm = saved.locked && saved.wpm ? saved.wpm : (saved.wpm || +(store.get('reader-wpm') || DEFAULT_WPM));
   setPlay(false);
   showPace();
@@ -177,7 +183,7 @@ function load(text, key) {
 }
 
 const color = (who) => KNOWN[who] || PALETTE[chars.indexOf(who) % PALETTE.length];
-const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked })); if (!locked) store.set('reader-wpm', wpm); };
+const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces })); if (!locked) store.set('reader-wpm', wpm); };
 const hash = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
 
 function render() {
@@ -191,7 +197,21 @@ function render() {
     const n = lines.filter((l) => l.who === c).length;
     b.innerHTML = `<span class="dot" style="background:${color(c)}"></span>${c} <small>${n} שורות</small>${i < 9 ? `<kbd>${i + 1}</kbd>` : ''}`;
     b.onclick = () => pick(c);
-    roles.appendChild(b);
+    const wrap = document.createElement('span');
+    wrap.className = 'rolewrap';
+    const pi = document.createElement('input');
+    pi.type = 'number'; pi.min = 60; pi.max = 600; pi.step = 5; pi.className = 'rp';
+    pi.value = paces[c] || ''; pi.placeholder = wpm;
+    pi.title = `${c}'s pace (words per minute) - empty = the general pace`;
+    pi.onchange = () => {
+      const v = Math.round(+pi.value);
+      if (v) paces[c] = Math.max(60, Math.min(600, v)); else delete paces[c];
+      pi.value = paces[c] || '';
+      save(); foot(); if (playing) schedule();
+    };
+    pi.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); pi.blur(); } };
+    wrap.append(b, pi);
+    roles.appendChild(wrap);
   });
   const box = $('script');
   if (!lines.length) { box.innerHTML = '<div class="empty">Pick an episode or paste a script.</div>'; foot(); return; }
@@ -253,7 +273,7 @@ let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
 function lineSeconds(l) {
   if (l.dir) return 0.8;
   const words = l.text.split(/\s+/).filter(Boolean).length;
-  const base = 0.3 + words / (wpm / 60);
+  const base = 0.3 + words / (((l.who && paces[l.who]) || wpm) / 60);  // the speaker's own pace, if set
   return l.who === me ? base * 1.1 + 0.15 : base;
 }
 function schedule() {
@@ -319,6 +339,7 @@ $('play').onclick = () => toggle();
 $('cd').onchange = () => { cdSecs = +$('cd').value; store.set('reader-cd', cdSecs); $('cd').blur(); };
 showCd();
 function showPace() {
+  document.querySelectorAll('.rp').forEach((x) => (x.placeholder = wpm));
   $('pace').value = wpm;
   if (document.activeElement !== $('paceN')) $('paceN').value = wpm;  // not while you're typing in it
   $('pace').disabled = $('paceN').disabled = locked;

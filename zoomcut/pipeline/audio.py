@@ -22,6 +22,44 @@ def speech_gain(x, target_db=-20.0):
     return float(np.clip(10 ** ((target_db - level) / 20), 0.25, 8.0))
 
 
+def _biquad(x, b, a):
+    y = np.zeros_like(x)
+    x1 = x2 = y1 = y2 = 0.0
+    b0, b1, b2 = b
+    _, a1, a2 = a
+    for i, v in enumerate(x):
+        o = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+        x2, x1, y2, y1 = x1, v, y1, o
+        y[i] = o
+    return y
+
+
+def _rbj(kind, f0, gain_db, q, sr):
+    A, w = 10 ** (gain_db / 40), 2 * np.pi * f0 / sr
+    al, c = np.sin(w) / (2 * q), np.cos(w)
+    if kind == "peak":
+        b, a = [1 + al * A, -2 * c, 1 - al * A], [1 + al / A, -2 * c, 1 - al / A]
+    else:  # high shelf
+        sq = 2 * np.sqrt(A) * al
+        b = [A * ((A + 1) + (A - 1) * c + sq), -2 * A * ((A - 1) + (A + 1) * c), A * ((A + 1) + (A - 1) * c - sq)]
+        a = [(A + 1) - (A - 1) * c + sq, 2 * ((A - 1) - (A + 1) * c), (A + 1) - (A - 1) * c - sq]
+    return [v / a[0] for v in b], [1.0, a[1] / a[0], a[2] / a[0]]
+
+
+def soften(x, sr=SR):
+    """A shouted / too-close line made easier on the ear: less of the harsh 2-5 kHz, the top rounded off, the peaks
+    evened out (a gentle compressor) - then back to the level it had, so it does not drop out of the mix."""
+    rms0 = np.sqrt(np.mean(x ** 2)) + 1e-9
+    y = _biquad(x.astype(np.float64), *_rbj("peak", 3200, -5.0, 0.9, sr))
+    y = _biquad(y, *_rbj("shelf", 7000, -5.0, 0.7, sr))
+    win = max(1, int(0.02 * sr))
+    env = np.sqrt(np.convolve(y ** 2, np.ones(win) / win, mode="same")) + 1e-9
+    thr = np.percentile(env, 60)
+    g = np.where(env > thr, (thr / env) ** 0.5, 1.0)  # ~2:1 above the line's typical level
+    y = y * g
+    return (y * (rms0 / (np.sqrt(np.mean(y ** 2)) + 1e-9))).astype(np.float32)
+
+
 def mix(ep, plan, total, out_wav):
     cache, gains = {}, {}
     buf = np.zeros(int((total + 1) * SR), dtype=np.float32)
@@ -38,6 +76,9 @@ def mix(ep, plan, total, out_wav):
         x = cache[cid]
         a, z = int(seg["in"] * SR), int(seg["out"] * SR)
         piece = x[a:z].copy() * gains[cid]
+        if seg.get("soften"):
+            piece = soften(piece)
+        piece = piece * seg.get("gain", 1.0)  # an aside is quieter; any line can be turned up or down
         if len(piece) == 0:
             continue
         fi = min(len(piece), int(0.012 * SR))

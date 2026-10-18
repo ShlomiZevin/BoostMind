@@ -59,7 +59,8 @@ def name(take):
 
 
 def ff(*args):
-    r = subprocess.run([FFMPEG, "-y", "-v", "error", *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    r = subprocess.run([FFMPEG, "-y", "-v", "error", *args], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                       cwd=ROOT)  # from the studio folder: model paths in filters stay relative (a drive's ':' breaks filter syntax)
     if r.returncode:
         raise RuntimeError(r.stderr[-1500:])
 
@@ -308,6 +309,9 @@ def plan(ls):
         sp = spans(ls, n)
         cuts, after = [], 0.0
         for ins in [i for i in ls.cfg.get("inserts", []) if i["take"] == n]:
+            if ins.get("at_start"):  # before anything is said (an opening): at the first spoken part's start
+                cuts.append((sp[0][0], ins))
+                continue
             at = find_word(words, ins.get("before") or ins["after"], after, before="before" in ins)
             cuts.append((at, ins))
             after = at
@@ -450,7 +454,11 @@ def overlays(ls):
     ov = ls.cfg.get("overlays")
     if ov is None and ls.cfg.get("title"):
         ov = [{"text": ls.cfg["title"], "style": "pov", "font": "stam-ashkenaz", "theme": "gold", "opacity": 0, "y": 270, "size": 64}]
-    return [o for o in (ov or []) if (o.get("text") or "").strip()]
+    out = [o for o in (ov or []) if (o.get("text") or "").strip() or o.get("image")]
+    for o in out:
+        if o.get("image"):
+            o["image_abs"] = ls.asset(o["image"]).replace("\\", "/")
+    return out
 
 
 def bg_place(ls):
@@ -552,10 +560,13 @@ def ramp_png(ls):
     return ramp
 
 
-def grade(ls):
-    """Blend him into the set: warm him toward the room's light (episode.json "grade")."""
+def grade(ls, width=1080):
+    """Blend him into the set: warm him toward the room's light (episode.json "grade"); "smooth" 0..1 = a skin
+    smoothing that keeps edges (bilateral), scaled to the picture's size so the preview and the export match."""
     g = ls.cfg.get("grade", {})
-    return (f"eq=brightness={g.get('brightness', 0.0)}:contrast={g.get('contrast', 1.05)}:saturation={g.get('saturation', 1.08)},"
+    sm = float(g.get("smooth", 0) or 0)
+    smooth = f"bilateral=sigmaS={max(0.5, 7 * sm * width / 1080):.2f}:sigmaR={0.03 + 0.07 * sm:.3f}," if sm > 0.01 else ""
+    return (f"{smooth}eq=brightness={g.get('brightness', 0.0)}:contrast={g.get('contrast', 1.05)}:saturation={g.get('saturation', 1.08)},"
             f"colorbalance=rs={g.get('warm', 0.06)}:gs={g.get('warm', 0.06) / 3}:bs={-g.get('warm', 0.06)}:"
             f"rm={g.get('warm', 0.06)}:bm={-g.get('warm', 0.06)}")
 
@@ -581,6 +592,10 @@ def piece(ls, it, out_v, out_m, gaze=False):
         t = it["a"]
         ff("-ss", f"{t:.3f}", "-i", take, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2}", "-frames:v", str(n), *enc, out_v)
         ff("-ss", f"{t:.3f}", "-i", mk, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2},format=gray", "-frames:v", str(n), *enc, out_m)
+    elif (it.get("insert") or {}).get("hide"):  # an opening / a cutaway: he is not in the picture at all
+        ff("-ss", f"{it['t']:.3f}", "-i", take, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2},loop=loop={n}:size=1:start=0",
+           "-frames:v", str(n), *enc, out_v)
+        ff("-f", "lavfi", "-i", f"color=c=black:s={MATTE_W * 2}x{MATTE_H * 2}:r={FPS}", "-vf", "format=gray", "-frames:v", str(n), *enc, out_m)
     else:  # hold on him (the other side talks): a frozen frame
         for src, out, fmt in ((take, out_v, ""), (mk, out_m, ",format=gray")):
             ff("-ss", f"{it['t']:.3f}", "-i", src, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2}{fmt},loop=loop={n}:size=1:start=0",
@@ -609,14 +624,26 @@ def load_sound(path, phone=False, pitch=1.0):
 DENOISE = "afftdn=nf=-28:tn=1"
 
 
+def denoise_filter(ls):
+    """The noise reduction for this episode: the default, or stronger (episode.json "denoise": {"nr": 24, "nf": -30})."""
+    d = ls.cfg.get("denoise")
+    if not d:
+        return DENOISE
+    if d.get("rnn"):  # RNNoise, trained on speech: takes out steady noise (an air conditioner, a fan) the FFT one leaves
+        return f"arnndn=m={d['rnn']}"
+    return f"afftdn=nr={float(d.get('nr', 12)):.0f}:nf={float(d.get('nf', -28)):.0f}:tn=1"
+
+
 def take_audio(ls, take, denoise=False):
     """His raw voice for a take, or the same through noise reduction (both are offered to the editor)."""
     raw = ls.work("audio", take + ".wav")
     if not denoise:
         return raw
-    out = ls.work("audio", f"{take}.dn.wav")
+    import hashlib
+    sig = "" if denoise_filter(ls) == DENOISE else "." + hashlib.md5(denoise_filter(ls).encode()).hexdigest()[:6]
+    out = ls.work("audio", f"{take}.dn{sig}.wav")
     if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(raw):
-        ff("-i", raw, "-af", DENOISE, "-ar", str(SR), "-ac", "1", out)
+        ff("-i", raw, "-af", denoise_filter(ls), "-ar", str(SR), "-ac", "1", out)
     return out
 
 
@@ -687,12 +714,23 @@ def fx_and_music(ls, items, total):
             snd = load_sound(ls.asset(ins["sound"]), ins.get("phone"))
             lead = int(ins.get("lead", 0) * SR)
             start = int(ins.get("from", 0) * SR)
-            seg = snd[start:start + n + lead].copy() * ins.get("gain", 0.55 if ins.get("phone") else 0.8)
-            f2 = int(0.08 * SR)
+            tail = int(ins.get("tail", 0) * SR)  # e.g. the opening theme carrying on under his first words
+            seg = snd[start:start + n + lead + tail].copy() * ins.get("gain", 0.55 if ins.get("phone") else 0.8)
+            f2, fo = int(0.08 * SR), int(ins.get("fade_out", 0.08) * SR)
             seg[:f2] *= np.linspace(0, 1, len(seg[:f2]))
-            seg[-f2:] *= np.linspace(1, 0, len(seg[-f2:]))
+            seg[-fo:] *= np.linspace(1, 0, len(seg[-fo:]))
             o0 = max(0, o - lead)
             out[o0:o0 + len(seg)] += seg
+    # an opening sound from the very first frame ("intro_sound": {sound, from, seconds, gain, fade_out}): the theme
+    # under the opening video and his first words - no pause is opened for it
+    isd = ls.cfg.get("intro_sound")
+    if isd:
+        snd = load_sound(ls.asset(isd["sound"]))
+        a0 = int(isd.get("from", 0) * SR)
+        seg = snd[a0:a0 + int(isd.get("seconds", 4) * SR)].copy() * isd.get("gain", 0.8)
+        fo = int(isd.get("fade_out", 1.5) * SR)
+        seg[-fo:] *= np.linspace(1, 0, len(seg[-fo:]))
+        out[:len(seg)] += seg[: len(out)]
     # sounds that run under him while he keeps talking (episode.json "sounds"): a phone ringing until he
     # answers, the wife mumbling through the phone for the whole call - nothing waits for them
     for snd_cfg in ls.cfg.get("sounds", []):
@@ -757,6 +795,10 @@ def build(ls, still_at=None, preview=False):
         import shutil
         for k, path in st.items():  # the editor plays these together and filters the voice live - the very files the export mixes
             shutil.copyfile(path, ls.work("public", f"{k}.wav"))
+        if ls.cfg.get("intro_video"):  # the opening video, for the editor (the export reads the original)
+            ff("-ss", str(ls.cfg["intro_video"].get("from", 0)), "-i", ls.asset(ls.cfg["intro_video"]["file"]), "-t", str(ls.cfg["intro_video"].get("seconds", 5)), "-an",
+               "-vf", "scale=540:960:force_original_aspect_ratio=increase,crop=540:960", "-c:v", "libx264", "-crf", "23",
+               "-pix_fmt", "yuv420p", ls.work("public", "intro.mp4"))
         import cv2
         ph_, pw_ = cv2.imread(ls.asset(ls.cfg["background"])).shape[:2]
         save_json(ls.work("edit.json"), {"items": items, "total": total, "captions": caps, "speed": 1.0, "photo": [pw_, ph_],
@@ -789,7 +831,7 @@ def person_preview(ls, person, mask, name="person.webm"):
     cut = ls.cfg.get("matte_cut", 175)
     ff("-i", person, "-i", mask, "-filter_complex",
        f"[1:v]lutyuv=y='clip((val-{cut})*255/{255 - cut},0,255)',scale=540:960:flags=bicubic,gblur=sigma=0.7,format=gray[m];"
-       f"[0:v]scale=540:960,{grade(ls)},format=yuva420p[p];[p][m]alphamerge[v]",
+       f"[0:v]scale=540:960,{grade(ls, 540)},format=yuva420p[p];[p][m]alphamerge[v]",
        "-map", "[v]", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8",
        "-row-mt", "1", "-b:v", "2500k", "-auto-alt-ref", "0", "-an", out)
     open(stamp, "w").write(sig)
@@ -806,6 +848,7 @@ def person_layer(ls, items, gaze=False):
         gz = ls.work("gaze", f"{it.get('take')}.{gaze_sig(ls)}.mp4") if gaze and it.get("take") else None
         src_v = int(os.path.getmtime(gz)) if gz and os.path.exists(gz) else 0
         key = hashlib.md5(json.dumps({**{k: it[k] for k in ("kind", "take", "a", "t", "n") if k in it}, "src": tag, "src_v": src_v,
+                                      "hide": bool((it.get("insert") or {}).get("hide")),
                                       "matte": ls.cfg.get("matte_engine", "fast")}, sort_keys=True).encode()).hexdigest()[:16]
         v, m = ls.work("pieces", f"{key}.v.mp4"), ls.work("pieces", f"{key}.m.mp4")
         vids.append(v)
@@ -858,13 +901,30 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
     first_ov = 6 if ramp else 5
     for o in ovs:
         inputs += ["-loop", "1", "-i", o["png"]]
+    iv = ls.cfg.get("intro_video")
+    iv_in = None
+    if iv:
+        iv_in = first_ov + len(ovs)
+        inputs += ["-ss", f"{float(iv.get('from', 0)):.3f}", "-t", f"{float(iv.get('seconds', 5)):.3f}", "-i", ls.asset(iv["file"])]
     fc = (matte_filter(ls, pw, ph, 5 if ramp else None) + ";"
-          f"[0:v]scale={pw}:{ph},{grade(ls)},format=yuva420p[p];[p][m]alphamerge[fg];"
-          f"[2:v]scale={w}:{h}[b];[b][fg]overlay={x}:{y}:shortest=1:format=auto[s];"
+          f"[0:v]scale={pw}:{ph},{grade(ls, pw)},format=yuva420p[p];[p][m]alphamerge[fg];"
+          + "".join(f"[{first_ov + k}:v]scale={w}:{h}[ob{k}];" for k, o in enumerate(ovs) if o.get("behind")) +
+          f"[2:v]scale={w}:{h}[b]" +
+          "".join(f";[b][ob{k}]overlay=enable='between(t,{float(o.get('start') or 0):.3f},{float(o.get('end') or total / FPS):.3f})'[b]"
+                  for k, o in enumerate(ovs) if o.get("behind")) +
+          f";[b][fg]overlay={x}:{y}:shortest=1:format=auto[s];"
           f"[3:v]fps={FPS},scale={w}:{h},format=rgba[c];[s][c]overlay=eof_action=pass[v0]")
     last = "v0"
+    if iv_in is not None:
+        ivs, ivf = float(iv.get("seconds", 5)), float(iv.get("fade", 0))
+        fade = f",format=yuva420p,fade=t=out:st={max(0.0, ivs - ivf):.3f}:d={ivf:.3f}:alpha=1" if ivf > 0 else ""
+        fc += (f";[{iv_in}:v]fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setpts=PTS-STARTPTS{fade}[iv]"
+               f";[v0][iv]overlay=eof_action=pass[vi]")
+        last = "vi"
     for k, o in enumerate(ovs):
         a, b = float(o.get("start") or 0), float(o.get("end") or total / FPS)
+        if o.get("behind"):  # already on the set, under him
+            continue
         if o.get("style") == "ticker":
             # a ticker: a band across the frame, the strip scrolling through it in the direction Hebrew reads (to the
             # right), looping - the same formula as the editor's live preview

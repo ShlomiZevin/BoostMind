@@ -181,8 +181,16 @@ def cmd_build(ep, args):
     final = ep.p("out", f"{ep.id}.mp4")
     run([FFMPEG, "-y", "-v", "error", "-i", silent, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
          "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", final])
+    spd = float(ep.cfg.get("speed") or 1)
+    if abs(spd - 1) > 1e-3:  # the editor's Speed: the whole video, every layer together
+        fast = final[:-4] + ".speed.mp4"
+        run([FFMPEG, "-y", "-v", "error", "-i", final, "-filter_complex", f"[0:v]setpts=PTS/{spd},fps={props['fps']}[v];[0:a]atempo={spd}[a]",
+             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p",
+             "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", fast])
+        os.replace(fast, final)
+        log(f"  · speed x{spd}")
     log("⑦ validating")
-    v = validate(ep, final, props["durationInFrames"] / props["fps"], props["shots"])
+    v = validate(ep, final, props["durationInFrames"] / props["fps"] / spd, props["shots"], spd)
     if v["problems"]:
         log("⚠ problems: " + "; ".join(v["problems"]))
     log(f"✔ {final}  ({v['duration']}s, {v['lufs']} LUFS)  stills: {v['stills']}")

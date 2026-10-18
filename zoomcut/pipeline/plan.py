@@ -113,6 +113,17 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
             m["cut"] = max(m["cut"], m["in"] + 0.2)
             dur = clips.get(m["clip"], {}).get("duration", 1e9)
             m["out"] = min(dur, m["cut"] + fx.get("tail", tm.get("interrupted_tail", 0.6)))  # "tail": less mumbling after the cut
+        if fx.get("aside") and prev is not None:
+            # said on the side while someone else talks ("aside": true, "at": seconds into that line): quieter, its own
+            # small subtitle, a quick look at the one saying it - and the conversation goes on as if it took no time
+            start = prev["start"] + fx.get("at", 1.0) + fx.get("shift", 0.0)
+            b = {"kind": "line", "n": it["n"], "speaker": it["speaker"], "role": roles[it["speaker"]],
+                 "clip": m["clip"], "in": m["in"], "out": m["out"], "start": start, "interrupted": False,
+                 "text": it["text"], "show_text": True, "layout": None,
+                 "aside": True, "gain": fx.get("gain", 0.45), "show": fx.get("show", 0.9)}
+            b["end_t"] = b["cut_t"] = start + (m["out"] - m["in"])
+            beats.append(b)
+            continue
         cur = {**it, "role": roles[it["speaker"]], "dur": m["out"] - m["in"]}
         gap = fx["pause_before"] if "pause_before" in fx else default_gap(prev, cur, tm) + pending_pause
         if prev is None:
@@ -125,10 +136,13 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
             start = prev["end_t"] + gap
         if prev is not None:
             start = max(start, prev["start"] + 0.3)
+        if prev is not None and it["text"].strip().startswith("חד משמעית"):
+            start -= tm.get("eager_extra", 0.25)  # "חד משמעית" lands on the previous speaker's last word
         start += fx.get("shift", 0.0)  # moved by hand on the timeline
         b = {"kind": "line", "n": it["n"], "speaker": it["speaker"], "role": roles[it["speaker"]],
              "clip": m["clip"], "in": m["in"], "out": m["out"], "start": start,
-             "interrupted": it["interrupted"], "text": it["text"], "show_text": True, "layout": fx.get("layout")}
+             "interrupted": it["interrupted"], "text": it["text"], "show_text": True, "layout": fx.get("layout"),
+             "gain": fx.get("gain", 1.0), "soften": bool(fx.get("soften"))}
         b["end_t"] = start + (m["out"] - m["in"])
         b["cut_t"] = start + (m.get("cut", m["out"]) - m["in"])
         beats.append(b)
@@ -149,15 +163,23 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
         return [spk] + [x for x in present(at) if x != spk]
 
     shots = []
+    on_screen = None
     for k, b in enumerate(beats):
         at = 0.0 if k == 0 else b.get("shot_at", b["start"])
         spk = b["speaker"]
+        if b.get("aside"):  # a quick look at who said it, then back
+            shots.append({"t": b["start"], "layout": "speaker", "order": on(spk, b["start"])})
+            if on_screen:
+                back = b["start"] + b.get("show", 0.9)
+                shots.append({"t": back, "layout": "speaker", "order": on(on_screen, back)})
+            continue
         if b.get("layout"):
             shots.append({"t": at, "layout": b["layout"], "order": on(spk, at)})
-        elif k == 0 or spk != beats[k - 1]["speaker"]:
+        elif k == 0 or spk != on_screen:
             shots.append({"t": at, "layout": "speaker", "order": on(spk, at)})
         elif shots and shots[-1]["layout"] != "speaker":  # back to auto after a forced layout
             shots.append({"t": at, "layout": "speaker", "order": on(spk, at)})
+        on_screen = spk
     for c, at in removed.items():
         rest = present(at + 0.01)
         shots.append({"t": at, "layout": "gallery" if len(rest) != 1 else "speaker", "order": rest})
@@ -213,11 +235,17 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
         if not b["show_text"] or not b["text"]:
             continue
         a, z = b["start"], (b["cut_t"] if b["interrupted"] else b["end_t"])
+        if b.get("aside"):
+            captions.append({"from": f(a), "dur": max(1, f(z) - f(a)), "name": names[b["speaker"]], "text": b["text"], "side": True,
+                             "id": b["speaker"]})
+            continue
         for chunk_text, c0, c1 in _chunks(b["text"], a, z, ep.preset.get("captions", {}).get("max_words", 7)):
-            captions.append({"from": f(c0), "dur": max(1, f(c1) - f(c0)), "name": names[b["speaker"]], "text": chunk_text})
+            captions.append({"from": f(c0), "dur": max(1, f(c1) - f(c0)), "name": names[b["speaker"]], "text": chunk_text,
+                             "id": b["speaker"]})
     # overlapping lines: the subtitle switches with the speaker, the previous one never stays on top
     captions.sort(key=lambda c: c["from"])
-    for c, nxt in zip(captions, captions[1:]):
+    main = [c for c in captions if not c.get("side")]
+    for c, nxt in zip(main, main[1:]):
         c["dur"] = max(1, min(c["dur"], nxt["from"] - c["from"]))
 
     events = [{"at": f(at), "type": "remove", "id": cid, "name": names[cid]} for cid, at in removed.items()]
@@ -247,7 +275,8 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
         if not b["clip"]:
             continue
         hard = b["kind"] == "attempt"
-        mix.append({"clip": b["clip"], "in": b["in"], "out": b["out"], "at": b["start"],
+        mix.append({"clip": b["clip"], "in": b["in"], "out": b["out"], "at": b["start"], "gain": b.get("gain", 1.0),
+                    "soften": b.get("soften", False),
                     "fade_out": 0.012 if hard else (0.07 if b["interrupted"] else 0.12)})
     for cid, at in removed.items():
         mix.append({"sfx": "remove", "at": at})

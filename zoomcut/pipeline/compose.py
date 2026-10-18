@@ -16,7 +16,7 @@ from .common import FFMPEG, FPS, ROOT, log, run
 
 TOP, POV_TOP, BAR, PAD, GAP = 150, 300, 1752, 16, 12
 SW = 1080 - 2 * PAD
-POV_Y = 158
+POV_Y = 270  # below the Reels / TikTok header - the same default as the editor (ZoomCall.tsx)
 
 
 def layout(name, order, top):
@@ -25,6 +25,14 @@ def layout(name, order, top):
     n = len(order)
     if n == 1:
         r[order[0]] = dict(x=PAD, y=top, w=SW, h=sh_total, small=False)
+    elif name == "gallery" and n >= 3:
+        # Zoom's phone gallery: two columns (the first on the right), an odd last tile centred
+        cols, rows = 2, (n + 1) // 2
+        w, h = (SW - GAP) / 2, (sh_total - GAP * (rows - 1)) / rows
+        for i, pid in enumerate(order):
+            row, col = divmod(i, cols)
+            x = PAD + (SW - w) / 2 if (n % 2 and i == n - 1) else PAD + SW - (col + 1) * w - col * GAP
+            r[pid] = dict(x=x, y=top + row * (h + GAP), w=w, h=h, small=False)
     elif name == "gallery" or (name == "duo" and n == 2):
         h = (sh_total - GAP * (n - 1)) / n
         for i, pid in enumerate(order):
@@ -122,7 +130,8 @@ def render_chunk(ep, k, ch, ui_dir, pad):
     fc, last, idx = [], "[0:v]", 2
     for j, it in enumerate(ch["items"]):
         r = it["rect"]
-        w, h = int(round(r["w"])), int(round(r["h"]))
+        # even sizes: the video goes through yuva420p, which can't be odd (3 thumbnails of 341.3 px -> 340 vs a 341 mask)
+        w, h = int(r["w"]) // 2 * 2, int(r["h"]) // 2 * 2
         left, top, vw, vh = video_box(it["clip"], r, it["frame"])
         vw, vh = int(round(vw / 2) * 2), int(round(vh / 2) * 2)
         cx, cy = min(max(0, int(round(-left))), vw - w), min(max(0, int(round(-top))), vh - h)

@@ -16,7 +16,7 @@ export type EditProps = {
   tiles: Record<string, Seg[]>;
   shots: { from: number; dur: number; layout: string; order: string[] }[];
   active: { from: number; dur: number; id: string }[];
-  captions: { from: number; dur: number; name: string; text: string }[];
+  captions: { from: number; dur: number; name: string; text: string; side?: boolean; id?: string }[];
   events: { at: number; type: string; id: string; name: string }[];
   overlays?: { text: string; style: string; from: number; dur: number; font?: string; theme?: string; opacity?: number; y?: number | null; size?: number }[];
   fonts?: { id: string; family: string; url: string; weight: number }[];
@@ -37,6 +37,14 @@ function layout(name: string, order: string[], TOP: number): Record<string, Rect
   const n = order.length;
   if (n === 1 || (name === 'speaker' && n === 1)) {
     r[order[0]] = { x: PAD, y: TOP, w: SW, h: SH };
+  } else if (name === 'gallery' && n >= 3) {
+    // Zoom's phone gallery: two columns (the first on the right), an odd last tile centred
+    const rows = Math.ceil(n / 2), w = (SW - GAP) / 2, h = (SH - GAP * (rows - 1)) / rows;
+    order.forEach((id, i) => {
+      const row = Math.floor(i / 2), col = i % 2;
+      const x = n % 2 && i === n - 1 ? PAD + (SW - w) / 2 : PAD + SW - (col + 1) * w - col * GAP;
+      r[id] = { x, y: TOP + row * (h + GAP), w, h };
+    });
   } else if (name === 'gallery' || (name === 'duo' && n === 2)) {
     const h = (SH - GAP * (n - 1)) / n;
     order.forEach((id, i) => (r[id] = { x: PAD, y: TOP + i * (h + GAP), w: SW, h }));
@@ -188,7 +196,8 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
   const count = p.participants.length - removed.length;
   const secs = p.timerStart + Math.floor(frame / p.fps);
   const timer = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
-  const cap = p.subtitles ? p.captions.find((c) => frame >= c.from && frame < c.from + c.dur) : undefined;
+  const cap = p.subtitles ? p.captions.find((c) => !c.side && frame >= c.from && frame < c.from + c.dur) : undefined;
+  const side = p.subtitles ? p.captions.find((c) => c.side && frame >= c.from && frame < c.from + c.dur) : undefined;  // said on the side
   const TOAST = Math.round(3.5 * p.fps);
   const LEAVE = Math.round(0.5 * p.fps); // the removed tile flashes red before it disappears
   const toast = p.events.find((e) => e.type === 'remove' && frame >= e.at && frame < e.at + TOAST);
@@ -229,14 +238,29 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
           leaving={ev ? (frame - (ev.at - LEAVE)) / LEAVE : undefined} />;
       })}
 
-      {cap && (
-        <div style={{ position: 'absolute', left: 70, right: 70, bottom: 1920 - BAR + 96, display: 'flex', justifyContent: 'center', zIndex: 10 }}>
-          <div style={{ background: 'rgba(18,18,18,0.86)', borderRadius: 12, padding: '16px 28px', color: '#fff', fontSize: 46,
-            lineHeight: 1.3, fontWeight: 500, direction: 'rtl', textAlign: 'right', maxWidth: 900 }}>
-            <span style={{ color: '#b9b9b9', fontWeight: 600 }}>{cap.name}: </span>{cap.text}
+      {(cap || side) && (() => {
+        // subtitles live inside the main (big) tile, above its name tag - the thumbnails underneath stay clear, so the
+        // others' reactions are always seen. Something said on the side sits on top of the main subtitle.
+        const big = Object.values(rects).filter((r) => !r.small).sort((a, b) => b.w * b.h - a.w * a.h);
+        const own = cap?.id && rects[cap.id] && !rects[cap.id].small ? rects[cap.id] : null;
+        const r = shot?.layout === 'gallery' ? own : big[0] || own;
+        const narrow = !!r && r.w < 600;
+        const pos = r ? { left: r.x + 20, right: 1080 - (r.x + r.w) + 20, bottom: 1920 - (r.y + r.h) + (narrow ? 64 : 84) }
+          : { left: 70, right: 70, bottom: 1920 - BAR + 96 };
+        const fs = narrow ? 32 : 46;
+        return (
+          <div style={{ position: 'absolute', ...pos, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, zIndex: 10 }}>
+            {side && <div style={{ background: 'rgba(14,14,14,0.88)', borderRadius: 12, padding: narrow ? '8px 14px' : '14px 26px', color: '#ffc94d',
+              fontSize: fs, lineHeight: 1.3, fontWeight: 600, direction: 'rtl', textAlign: 'right', maxWidth: 900, border: '1px solid rgba(255,201,77,0.35)' }}>
+              <span style={{ color: '#d9a93a', fontWeight: 700 }}>{side.name}: </span>{side.text}
+            </div>}
+            {cap && <div style={{ background: 'rgba(18,18,18,0.86)', borderRadius: 12, padding: narrow ? '10px 16px' : '16px 28px', color: '#fff', fontSize: fs,
+              lineHeight: 1.3, fontWeight: 500, direction: 'rtl', textAlign: 'right', maxWidth: 900 }}>
+              <span style={{ color: '#b9b9b9', fontWeight: 600 }}>{cap.name}: </span>{cap.text}
+            </div>}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {toast && (
         <div style={{ position: 'absolute', top: toastTop, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 40,

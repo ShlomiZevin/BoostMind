@@ -1,0 +1,72 @@
+{
+  "title": "סנכרון אסטרטגי | יישור קו",
+  "preset": "zoom-he",
+  "subtitles": true,
+  "input_dir": "C:/Users/shazbak/Downloads/zoom-meeting/3",
+  "overlays": [
+    {
+      "text": "פוב: עוד פגישה על ה-AI עם הגאונים מההנהלה. דיברו, עברו לביצוע, ועכשיו רונית הצטרפה כדי לבדוק אם בכלל צריך.",
+      "start": 0,
+      "end": null,
+      "style": "pov",
+      "theme": "dark",
+      "y": 276,
+      "opacity": 0.6
+    }
+  ],
+  "characters": [
+    {
+      "id": "amir",
+      "name": "אמיר",
+      "aliases": [
+        "amir",
+        "אמיר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "ofer",
+      "name": "עופר",
+      "aliases": [
+        "ofer",
+        "offer",
+        "עופר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "daniel",
+      "name": "דניאל",
+      "aliases": [
+        "daniel",
+        "dani",
+        "דניאל"
+      ],
+      "role": "victim",
+      "look": {
+        "saturate": 1.45,
+        "contrast": 1.06,
+        "brightness": 1.03
+      },
+      "frame": {
+        "zoom": 1.08,
+        "y": 0
+      }
+    },
+    {
+      "id": "ronit",
+      "name": "רונית",
+      "aliases": [
+        "ronit",
+        "רונית"
+      ],
+      "role": "exec"
+    }
+  ],
+  "files": {
+    "ofer2-1.MP4": {
+      "skip": true
+    }
+  },
+  "speed": 1.1
+}

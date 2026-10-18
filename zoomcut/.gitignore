@@ -1,5 +1,6 @@
 .venv/
-models/
+models/*
+!models/rnnoise/
 render/node_modules/
 episodes/*/work/
 episodes/*/out/

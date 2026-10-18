@@ -26,6 +26,8 @@ def scan(ep):
             spec = explicit.get(rel.lower()) or explicit.get(fn.lower())
             if isinstance(spec, str):
                 spec = {"char": spec}
+            if (spec or {}).get("skip"):  # e.g. a retake that replaced this file
+                continue
             char = (spec or {}).get("char") or _guess_char(rel, ep.characters)
             kind = (spec or {}).get("kind") or ("listen" if any(w in rel.lower() for w in LISTEN_WORDS) else "lines")
             if not char:

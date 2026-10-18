@@ -70,7 +70,7 @@ app.get('/api/ep/:id', (q, res) => {
     const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
       layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), scene: layer('scene.png'), plaque: layer('plaque.png'),
-        voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music') },
+        voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music'), intro: layer('intro.mp4') },
       preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
       previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
       episode, lesson: { captions: fs.existsSync(path.join(d, 'captions.txt')) ? fs.readFileSync(path.join(d, 'captions.txt'), 'utf8') : '', edit: readJson(w('edit.json')) },
@@ -279,6 +279,12 @@ app.get('/api/ep/:id/script', (q, res) => {
   const f = path.join(epDir(q.params.id), 'script.txt');
   if (!fs.existsSync(f)) return res.status(404).end();
   res.type('text/plain; charset=utf-8').send(fs.readFileSync(f, 'utf8'));
+});
+// a file the episode points at (e.g. a story's picture "../_assets/news/x.jpg"), for the editor - only under episodes/
+app.get('/api/ep/:id/file', (q, res) => {
+  const f = path.resolve(epDir(q.params.id), String(q.query.p || ''));
+  if (!f.startsWith(path.resolve(ROOT, 'episodes')) || !fs.existsSync(f)) return res.status(404).end();
+  res.sendFile(f);
 });
 // a line edited in the Reader: the whole text comes back (only that line changed in it)
 app.put('/api/scripts/:id', (q, res) => {

@@ -6,7 +6,7 @@ import subprocess
 from .common import FFMPEG, ffprobe, run
 
 
-def validate(ep, mp4, expected_s, shots):
+def validate(ep, mp4, expected_s, shots, speed=1.0):
     problems = []
     info = ffprobe(mp4)
     v = next((s for s in info["streams"] if s["codec_type"] == "video"), None)
@@ -30,7 +30,9 @@ def validate(ep, mp4, expected_s, shots):
     for fn in os.listdir(stills):
         os.remove(os.path.join(stills, fn))
     for i, s in enumerate(shots):
-        t = (s["from"] + min(s["dur"] // 2, 20)) / 30
+        t = (s["from"] + min(s["dur"] // 2, 20)) / 30 / speed  # the file may be sped up (editor's Speed)
+        if t >= dur - 0.05:
+            continue
         run([FFMPEG, "-y", "-v", "error", "-ss", f"{t:.3f}", "-i", mp4, "-frames:v", "1", "-vf", "scale=540:-1",
              os.path.join(stills, f"{i:02d}_{s['layout']}.jpg")])
     return {"duration": round(dur, 2), "lufs": lufs, "problems": problems, "stills": stills}

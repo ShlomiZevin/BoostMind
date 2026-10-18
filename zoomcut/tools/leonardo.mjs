@@ -88,6 +88,22 @@ if (cmd === 'balance') {
   console.log(`queued ${q.id}  quoted $${q.usd}`);
   const r = await collect(q.id, AUD, out);
   console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
+} else if (cmd === 'video') {
+  // node tools/leonardo.mjs video <prompt.txt> <out.mp4> [model] [seconds] [WxH] [start.jpg|-] [end.jpg|-] [ref.jpg|-]
+  // cheapest: seedance-2.0-mini, low resolution, no audio
+  const [promptFile, out, model = 'seedance-2.0-mini', secs = '5', size = '480x864', start = '-', end = '-'] = a;
+  const [w, h] = size.split('x').map(Number);
+  const parameters = { prompt: fs.readFileSync(promptFile, 'utf8').trim(), quantity: 1, duration: Number(secs), width: w, height: h, motion_has_audio: false };
+  const g = {};
+  if (start !== '-') g.start_frame = [{ image: { id: await upload(start), type: 'UPLOADED' } }];
+  if (end !== '-') g.end_frame = [{ image: { id: await upload(end), type: 'UPLOADED' } }];
+  const ref = a[7];  // a look to follow (Mini takes no end frame): image_reference
+  if (ref && ref !== '-') g.image_reference = [{ image: { id: await upload(ref), type: 'UPLOADED' }, strength: 'MID' }];
+  if (Object.keys(g).length) parameters.guidances = g;
+  const q = await queue({ public: false, model, parameters });
+  console.log(`queued ${q.id}  quoted $${q.usd}`);
+  const r = await collect(q.id, /^https?:\/\/\S+\.(mp4|webm|mov)(\?\S*)?$/i, out);
+  console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
 } else {
-  console.log('balance | portrait | image | loop | sfx');
+  console.log('balance | portrait | image | loop | sfx | video');
 }

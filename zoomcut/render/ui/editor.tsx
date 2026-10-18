@@ -5,7 +5,7 @@ import { ZoomCall, ovBoxStyle } from '../src/ZoomCall';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
-type Fix = { clip?: string; in?: number; out?: number; cut?: number; layout?: string; pause_before?: number; skip?: boolean; shift?: number };
+type Fix = { clip?: string; in?: number; out?: number; cut?: number; layout?: string; pause_before?: number; skip?: boolean; shift?: number; gain?: number; soften?: boolean };
 type Take = { clip: string; in: number; out: number; cut?: number; score?: number; heard?: string };
 type Line = {
   n: number; speaker: string; name: string; text: string; interrupted: boolean;
@@ -109,6 +109,9 @@ function Editor() {
   // text on video is edited live: a local draft drives the preview, saved in the background
   const [ovDraft, setOvDraft] = useState<Overlay[]>([]);
   useEffect(() => setOvDraft(data?.episode?.overlays || []), [data?.episode]);
+  const [speed, setSpeed] = useState(1);
+  useEffect(() => setSpeed(data?.episode?.speed || 1), [data?.episode]);
+  const changeSpeed = (v: number) => { setSpeed(v); api(`/api/ep/${ep}/speed`, { speed: v }); };  // no rebuild needed
   const saveTimer = useRef<any>(null);
   const saveOverlays = (next: Overlay[]) => {
     clearTimeout(saveTimer.current);
@@ -321,7 +324,7 @@ function Editor() {
               {sel?.kind === 'text' && ovDraft[sel.i] && <TextHandle o={ovDraft[sel.i]} i={sel.i} scale={(frameRef.current?.clientHeight || 1920) / 1920}
                 onMove={(y, done) => changeOverlays(ovDraft.map((x, k) => (k === sel.i ? { ...x, y } : x)), done)} />}
               {props && <Player ref={player} component={ZoomCall as any} inputProps={props} durationInFrames={props.durationInFrames}
-                fps={props.fps} compositionWidth={1080} compositionHeight={1920} controls={false} clickToPlay
+                fps={props.fps} compositionWidth={1080} compositionHeight={1920} controls={false} clickToPlay playbackRate={speed}
                 style={{ width: '100%', height: '100%' }} />}
             </div>
           </div>
@@ -340,7 +343,7 @@ function Editor() {
           <div className="pane-h">Inspector</div>
           <div className="scroll">
             <Inspector data={data} sel={sel} busy={busy} job={job} chars={chars} onFix={changeLine} onSettings={changeSettings}
-              participants={liveParticipants} onChar={changeChar}
+              participants={liveParticipants} onChar={changeChar} speed={speed} onSpeed={changeSpeed}
               overlays={ovDraft} onOverlays={changeOverlays} onSelText={(i) => setSel({ kind: 'text', i })} />
           </div>
         </div>
@@ -389,8 +392,8 @@ function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string; busy:
 }
 
 // ---------- inspector --------------------------------------------------------------------
-function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, onOverlays, onSelText, participants, onChar }: {
-  participants: any[]; onChar: (id: string, patch: { look?: any; frame?: any }) => void;
+function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, onOverlays, onSelText, participants, onChar, speed, onSpeed }: {
+  participants: any[]; onChar: (id: string, patch: { look?: any; frame?: any }) => void; speed: number; onSpeed: (v: number) => void;
   data: Data | null; sel: Sel; busy: boolean; job: Job | null; chars: any[];
   onFix: (n: number, f: Fix) => void; onSettings: (p: any) => void; onSelText: (i: number) => void;
   overlays: Overlay[]; onOverlays: (o: Overlay[], commit?: boolean) => void;
@@ -417,6 +420,13 @@ function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, o
           <div className="sec" style={{ marginBottom: 8 }}>Text on video</div>
           {ov.map((o, i) => <div key={i} className="ln he" style={{ gridTemplateColumns: '1fr', padding: '8px 10px', marginBottom: 4 }} onClick={() => onSelText(i)}><div className="t" style={{ color: 'var(--text)' }}>{o.text}</div></div>)}
           <button className="btn" style={{ marginTop: 4 }} onClick={() => { onOverlays([...ov, { text: 'פוב: ', start: 0, end: null, style: 'pov', font: 'assistant', theme: 'light', opacity: 1 }]); onSelText(ov.length); }}>+ Add text</button>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <div className="sec" style={{ marginBottom: 8 }}>Speed</div>
+          <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)` }}>
+            {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => onSpeed(v)}>{v === 1 ? '1×' : `${v}×`}</button>)}
+          </div>
+          <div className="help">The whole video, every layer together - plays live at this speed (voices keep their pitch); Export makes the file at it.</div>
         </div>
       </div>
       {runLog}
@@ -493,6 +503,8 @@ function LineProps({ l, busy, chars, onFix }: { l: Line; busy: boolean; chars: a
         <div className="row2"><label>Pause</label><Num value={fix.pause_before} placeholder="auto" step={0.1} disabled={busy} onCommit={(v) => set({ pause_before: v })} /></div>
       </div>
 
+      <LineSound fix={fix} busy={busy} set={set} />
+
       <div className="card">
         <div className="sec">Layout</div>
         <div className="seg">{LAYOUTS.map(([k, label]) => <button key={k} className={lay === k ? 'on' : ''} disabled={busy} onClick={() => set({ layout: k || undefined })}>{label}</button>)}</div>
@@ -504,6 +516,27 @@ function LineProps({ l, busy, chars, onFix }: { l: Line; busy: boolean; chars: a
         <button className="btn block" disabled={busy || !Object.keys(fix).length} onClick={() => onFix({})}>{I.reset}Reset</button>
       </div>
     </>
+  );
+}
+
+// a line's sound: its volume and a softener for a shouted / too-close line (applied in the mix, editor and export alike)
+function LineSound({ fix, busy, set }: { fix: Fix; busy: boolean; set: (p: Fix) => void }) {
+  const [vol, setVol] = useState(Math.round((fix.gain ?? 1) * 100));
+  useEffect(() => setVol(Math.round((fix.gain ?? 1) * 100)), [fix.gain]);
+  const commit = () => { const g = vol / 100; if (Math.abs(g - (fix.gain ?? 1)) > 0.004) set({ gain: Math.abs(g - 1) < 0.004 ? undefined : g }); };
+  return (
+    <div className="card">
+      <div className="sec">Sound{(fix.gain != null || fix.soften) && <span style={{ color: 'var(--accent)', marginLeft: 8 }}>edited</span>}</div>
+      <div className="row2"><label>Volume</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input type="range" min={0} max={150} step={5} value={vol} disabled={busy} style={{ flex: 1, accentColor: 'var(--accent)' }}
+            onChange={(e) => setVol(+e.target.value)} onMouseUp={commit} onKeyUp={commit} onTouchEnd={commit} />
+          <span style={{ minWidth: 44, textAlign: 'right', color: 'var(--dim)' }}>{vol}%</span>
+        </div></div>
+      <div className="check-row"><span>Soften (shouted / too close to the mic)</span>
+        <div className={`switch ${fix.soften ? 'on' : ''}`} onClick={() => !busy && set({ soften: fix.soften ? undefined : true })} /></div>
+      <div className="help">Rebuilds the sound in a few seconds. Soften takes the harshness out and evens the peaks; Volume turns the line up or down.</div>
+    </div>
   );
 }
 
@@ -1007,7 +1040,17 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
     };
     window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
   };
-  const liveOv = ov.filter((o) => (o.text || '').trim() && t >= (o.start || 0) && (o.end == null || t < o.end));
+  const liveOv = ov.filter((o) => ((o.text || '').trim() || (o as any).image) && t >= (o.start || 0) && (o.end == null || t < o.end));
+  // the opening video: full frame over the set, under the texts, in step with the clock
+  const introRef = useRef<HTMLVideoElement>(null);
+  const introSecs = data.episode.intro_video?.seconds ?? 5;
+  const introFade = data.episode.intro_video?.fade ?? 0;
+  useEffect(() => {
+    const v = introRef.current;
+    if (!v) return;
+    if (Math.abs(v.currentTime - t) > 0.15) v.currentTime = Math.min(t, introSecs);
+    if (playing && t < introSecs) v.play().catch(() => {}); else v.pause();
+  }, [t, playing]);
 
   return (
     <div className="ed" style={{ ['--tl-h' as any]: '290px' }}>
@@ -1061,6 +1104,14 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                       filter: 'blur(2.2px) brightness(0.96) saturate(0.95)' }} />
                   {data.layers.plaque && <img src={`${data.layers.plaque.url}?v=${data.layers.plaque.v}`} draggable={false}
                     style={{ position: 'absolute', left: -bgBox.cx, top: -bgBox.cy, width: bgBox.sw, height: bgBox.sh, pointerEvents: 'none' }} />}
+                  {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'image' && o.behind && (
+                    // a story's picture on the studio's screen, behind him - the same look as the export
+                    <img key={'b' + i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false}
+                      style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: 'cover',
+                        borderRadius: 4, filter: 'blur(1.2px) brightness(0.93) saturate(1.05)', pointerEvents: 'none' }} />))}
+                  {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'image' && o.behind && o.tag && (
+                    <div key={'t' + i} style={{ position: 'absolute', left: (o.x ?? 60) + 12, top: (o.y ?? 380) + 12, background: 'rgba(0,0,0,0.6)', color: '#fff',
+                      font: `700 22px ${fontCss('assistant')}`, padding: '3px 10px', borderRadius: 6, direction: 'rtl', pointerEvents: 'none' }}>{o.tag}</div>))}
                   <video ref={video} key={data.layers.person.v} src={`${data.layers.person.url}?v=${data.layers.person.v}`} onMouseDown={(e) => dragLayer(e, 'person')} muted={!!L.voice}
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !L.person_raw || eyeOn ? 1 : 0 }}
                     onTimeUpdate={(e) => { setT(e.currentTarget.currentTime); const r = rawVideo.current; if (r && Math.abs(r.currentTime - e.currentTarget.currentTime) > 0.1) r.currentTime = e.currentTarget.currentTime; }}
@@ -1069,6 +1120,9 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     onSeeked={() => { syncAudio(); if (rawVideo.current && video.current) rawVideo.current.currentTime = video.current.currentTime; }} />
                   {L.person_raw && <video ref={rawVideo} key={'raw' + L.person_raw.v} src={`${L.person_raw.url}?v=${L.person_raw.v}`} muted
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1 }} />}
+                  {L.intro && t < introSecs && <video ref={introRef} key={'intro' + L.intro.v} src={`${L.intro.url}?v=${L.intro.v}`} muted playsInline
+                    style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, objectFit: 'cover', pointerEvents: 'none',
+                      opacity: introFade > 0 && t > introSecs - introFade ? Math.max(0, (introSecs - t) / introFade) : 1 }} />}
                   {capNow && (() => {
                     const st = capStyle || {};  // the series' subtitle look (default: yellow Stam)
                     return <div className="he" onMouseDown={dragCap} style={{ position: 'absolute', top: capY, left: 50, right: 50, textAlign: 'center', direction: 'rtl', cursor: 'ns-resize',
@@ -1094,7 +1148,25 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     onMouseDown={(e) => dragText(e, i)}>
                     <TickerStrip o={o} clock={clock} />
                   </div>))}
-                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && (
+                {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'image' && !o.behind && (
+                  // a story's picture in a framed box - the same look as the export (lesson_text.mjs)
+                  <img key={i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false} onMouseDown={(e) => dragText(e, i)}
+                    style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: 'cover',
+                      border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)', boxSizing: 'border-box',
+                      pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />))}
+                {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'band' && (() => {
+                  // a news lower third: red tag (before "|"), deep-blue band (after it)
+                  const [tag, ...rest] = String(o.text).split('|'), size = o.size || 46;
+                  return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 1450, left: 0, right: 0,
+                    height: Math.round(size * 1.9), display: 'flex', direction: 'rtl', font: `800 ${size}px ${fontCss('assistant')}`, color: '#fff',
+                    borderTop: '4px solid #fff', pointerEvents: 'auto', cursor: 'move',
+                    outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }}>
+                    {rest.length > 0 && <div style={{ background: '#d0121b', padding: `0 ${Math.round(size * 0.6)}px`, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>{tag.trim()}</div>}
+                    <div style={{ background: `rgba(10,38,92,${o.opacity ?? 0.94})`, flex: 1, padding: `0 ${Math.round(size * 0.55)}px`, display: 'flex', alignItems: 'center',
+                      whiteSpace: 'nowrap', overflow: 'hidden' }}>{(rest.length ? rest.join('|') : tag).trim()}</div>
+                  </div>;
+                })())}
+                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && (
                   <div key={i} style={{ position: 'absolute', top: o.y ?? 270, left: 60, right: 60, display: 'flex', justifyContent: 'center' }}>
                     {/* click to select, drag to move; the outline hugs the text whatever its size */}
                     <div className="he" onMouseDown={(e) => dragText(e, i)}
@@ -1180,7 +1252,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
               </div>}
               {L.voice && <div className="card">
                 <div className="card-h"><div className="title grow">Voice</div><span className="help" style={{ margin: 0 }}>live</span></div>
-                <div className="seg" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                <div className="seg" style={{ gridTemplateColumns: `repeat(${Object.keys(VOICE_PRESETS).length}, 1fr)` }}>
                   {Object.keys(VOICE_PRESETS).map((k) => <button key={k} className={voice.preset === k ? 'on' : ''}
                     onClick={() => changeVoice({ preset: k, ...VOICE_PRESETS[k] })}>{k[0].toUpperCase() + k.slice(1)}</button>)}
                 </div>

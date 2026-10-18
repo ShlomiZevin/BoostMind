@@ -1,0 +1,254 @@
+{
+  "type": "lesson",
+  "series": "news",
+  "title": "חדשות הערב",
+  "input_dir": "C:/Users/shazbak/Downloads/חדשות",
+  "takes": "news1.MP4",
+  "background": "../_assets/news/studio.jpg",
+  "plaque": [],
+  "eye_contact": {
+    "on": true
+  },
+  "matte_engine": "hybrid",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1.12,
+    "x": -4,
+    "y": 272
+  },
+  "bg": {
+    "zoom": 1,
+    "x": 0,
+    "y": 0
+  },
+  "captions_y": 1605,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 64,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "overlays": [
+    {
+      "text": "🔴 שידור חי · חדשות הערב",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.75,
+      "y": 290,
+      "size": 40,
+      "start": 4.5,
+      "end": null
+    },
+    {
+      "text": "🔴 מבזק: בנט בדרך לפריז לתווך בין הצדדים ● לשכת רה״מ: יוקר המחיה באיטליה אינו באחריות ממשלת ישראל ● ריאל מדריד שוב מאבדת נקודות - בליכוד מאשימים את המאמן ● סופה עזה בצפון־מזרח ארה״ב: נתניהו טרם התייחס ● חשיפה: סינוואר הזהיר כבר ב-2018 מהתפרצות אלימה בפריז ●",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.85,
+      "y": 1775,
+      "size": 40,
+      "speed": 140,
+      "start": 0.6,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_paris.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 0.6,
+      "end": 15.8,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "band",
+      "text": "צרפת | המהומות נמשכות · מה ידע נתניהו?",
+      "y": 1500,
+      "size": 44,
+      "opacity": 0.94,
+      "start": 0.6,
+      "end": 15.8,
+      "story": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_bennett2.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 15.85,
+      "end": 18.2,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_bennett3.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 18.2,
+      "end": 20.55,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_bennett.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 20.55,
+      "end": 22.9,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "band",
+      "text": "פריז | בנט בדרך לתווך בין הצדדים",
+      "y": 1500,
+      "size": 44,
+      "opacity": 0.94,
+      "start": 15.85,
+      "end": 22.9,
+      "story": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_italy.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 23.55,
+      "end": 37.8,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "band",
+      "text": "איטליה | מחאה נגד יוקר המחיה",
+      "y": 1500,
+      "size": 44,
+      "opacity": 0.94,
+      "start": 23.55,
+      "end": 37.8,
+      "story": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_spain.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 37.9,
+      "end": 48.3,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "band",
+      "text": "ספרד | ריאל מדריד שוב מאבדת נקודות",
+      "y": 1500,
+      "size": 44,
+      "opacity": 0.94,
+      "start": 37.9,
+      "end": 48.3,
+      "story": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/news/his_newyork.jpg",
+      "x": 105,
+      "y": 352,
+      "w": 870,
+      "h": 490,
+      "start": 48.35,
+      "end": 59.1,
+      "story": true,
+      "text": "",
+      "behind": true,
+      "tag": "תמונת AI"
+    },
+    {
+      "style": "band",
+      "text": "ארה״ב | סופה עזה בצפון־מזרח",
+      "y": 1500,
+      "size": 44,
+      "opacity": 0.94,
+      "start": 48.35,
+      "end": 59.1,
+      "story": true
+    },
+    {
+      "text": "פוב: אתה צופה בחדשות בישראל",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.8,
+      "y": 262,
+      "size": 44,
+      "start": 0,
+      "end": 4.5,
+      "hook": true
+    }
+  ],
+  "cut": {
+    "silence": false
+  },
+  "voice": {
+    "preset": "podcast",
+    "denoise": true,
+    "lowcut": 85,
+    "warmth": 1.5,
+    "box": -2.5,
+    "presence": 2.5,
+    "deess": 0.4,
+    "comp": 0.6
+  },
+  "grade": {
+    "smooth": 0.6,
+    "brightness": 0.03,
+    "contrast": 1.05,
+    "saturation": 1.05,
+    "warm": 0.04
+  },
+  "intro_video": {
+    "file": "../_assets/news/intro30.mp4",
+    "from": 1,
+    "seconds": 0.96,
+    "fade": 0.96
+  },
+  "denoise": {
+    "rnn": "models/rnnoise/cb.rnnn"
+  },
+  "intro_sound": {
+    "sound": "C:/Users/shazbak/Downloads/חדשות/חדשות 12 המוזיקה המלאה.mp3",
+    "from": 7.46,
+    "seconds": 3.6,
+    "gain": 0.8,
+    "fade_out": 2.4
+  },
+  "speed": 1.2
+}
