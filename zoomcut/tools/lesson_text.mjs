@@ -34,6 +34,7 @@ fs.writeFileSync(page_file, html);
 const b = await puppeteer.launch({ executablePath: chrome, args: ['--allow-file-access-from-files'] });
 const p = await b.newPage();
 await p.setViewport({ width: 1080, height: 1920 });
+await p.evaluate(() => { document.body.style.width = 'auto'; document.documentElement.style.width = 'auto'; });
 await p.goto('file:///' + page_file.replace(/\\/g, '/'));
 await p.evaluate(async (ids) => { await document.fonts.load('64px Stam'); for (const id of ids) await document.fonts.load(`46px "zc-${id}"`); }, fontList.filter((f) => f.file).map((f) => f.id));
 await p.evaluate(() => document.fonts.ready);
@@ -51,7 +52,7 @@ for (const it of spec.items) {
     } else if (it.kind === 'overlay') {
       // the same box as ZoomCall's ovBoxStyle: light / dark / gold, box opacity, size
       const op = it.opacity ?? 1, size = it.size || 46, gold = it.theme === 'gold', light = it.theme === 'light' || !it.theme;
-      Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 158}px`, left: '60px', right: '60px', display: 'flex', justifyContent: 'center' });
+      Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 270}px`, left: '60px', right: '60px', display: 'flex', justifyContent: 'center' });
       const b = document.createElement('div');
       Object.assign(b.style, {
         background: light ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`, color: gold ? '#FFD60A' : it.theme === 'dark' ? '#fff' : '#000',
@@ -59,7 +60,14 @@ for (const it of spec.items) {
         fontFamily: it.font && it.font !== 'system' ? `"zc-${it.font}", "Segoe UI", sans-serif` : '"Segoe UI", Arial, sans-serif',
         fontWeight: ['system', 'arimo', 'assistant'].includes(it.font || 'system') ? '800' : '400',
         letterSpacing: gold ? '0.045em' : '', textShadow: op < 0.6 ? (light ? '0 1px 4px rgba(255,255,255,0.7)' : '0 2px 6px rgba(0,0,0,0.8)') : '',
+        whiteSpace: 'pre-line',  // the line breaks you typed stay
       });
+      if (it.style === 'ticker') {  // one line, as long as it needs to be - it scrolls across the frame
+        Object.assign(d.style, { left: '0', right: 'auto', top: '0', display: 'block' });
+        Object.assign(b.style, { whiteSpace: 'nowrap', maxWidth: 'none', background: 'transparent', padding: '0 40px', borderRadius: '0',
+          fontFamily: `"zc-${it.font || 'assistant'}", "Segoe UI Emoji", "Segoe UI", sans-serif` });
+        b.id = 'tick';
+      }
       if (gold) { b.style.webkitTextStroke = `${Math.round(size * 0.17)}px #000`; b.style.paintOrder = 'stroke fill'; }
       b.textContent = it.text;
       d.appendChild(b);
@@ -76,6 +84,13 @@ for (const it of spec.items) {
     } else {
       d.className = 'caption';
       d.style.top = `${it.y}px`;
+      const st = it.style || {};  // per series: {font, color, stroke, size, weight} - default is the yellow Stam
+      if (st.font) d.style.fontFamily = `"zc-${st.font}", "Segoe UI", sans-serif`;
+      if (st.size) d.style.fontSize = `${st.size}px`;
+      if (st.weight) d.style.fontWeight = String(st.weight);
+      if (st.color) d.style.color = st.color;
+      if (st.stroke != null) d.style.webkitTextStroke = `${st.stroke}px #000`;
+      if (st.font) d.style.letterSpacing = '0';
       d.textContent = it.text;
     }
     s.appendChild(d);
@@ -87,7 +102,12 @@ for (const it of spec.items) {
       }
     }
   }, it);
-  await p.screenshot({ path: it.out, omitBackground: true });
+  if (it.kind === 'overlay' && it.style === 'ticker') {
+    const el = await p.$('#tick');
+    await el.screenshot({ path: it.out, omitBackground: true });  // just the strip
+  } else {
+    await p.screenshot({ path: it.out, omitBackground: true });
+  }
 }
 await b.close();
 console.log(`rendered ${spec.items.length} text layers`);

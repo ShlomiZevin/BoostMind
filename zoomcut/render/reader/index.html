@@ -50,26 +50,42 @@ select option { background: var(--panel); color: var(--text); }
 .ln.cur { border-color: var(--accent); opacity: 1; }
 .ln.cur.other .t { color: var(--text); }
 .ln.dir { padding: 6px 18px; }
+.ln.past { opacity: 0.28; }
+.solo .ln .who { display: none; }
+.solo .ln.mine { --c: #ff6b57; }
+dialog input { width: 100%; height: 38px; margin-bottom: 10px; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; padding: 0 12px; direction: rtl; font-size: 15px; }
 .ln.dir .t { font-size: calc(var(--fs) * 0.55); color: var(--faint); font-style: italic; }
 .btn.play { min-width: 92px; background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.play:hover { background: #ff8270; }
 .pace { display: flex; align-items: center; gap: 6px; color: var(--dim); font-weight: 600; font-size: 13px; }
 .pace input { width: 96px; accent-color: var(--accent); }
 .pace input:disabled { opacity: .45; }
-.pace #paceV { min-width: 64px; color: var(--text); font-variant-numeric: tabular-nums; }
+.pace #paceN { width: 62px; height: 28px; padding: 0 6px; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 6px; font: inherit; font-variant-numeric: tabular-nums; }
+.pace #paceN:focus { outline: none; border-color: var(--accent); }
+.pace .unit { color: var(--dim); }
 .btn.lock.on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
 .ln { position: relative; overflow: hidden; }
 .ln .bar { position: absolute; right: 0; bottom: 0; height: 4px; background: var(--accent); width: 0; }
 .ln .bar.run { transition: width linear; }
+.count { position: fixed; inset: 0; display: none; place-items: center; z-index: 50; background: rgba(19,18,17,0.55); pointer-events: none; }
+.count.on { display: grid; }
+.count b { font: 800 34vh/1 Inter, Assistant, sans-serif; color: #ff6b57; text-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: pop .9s ease-out; }
+@keyframes pop { from { transform: scale(1.25); opacity: .2; } to { transform: scale(1); opacity: 1; } }
 .badge { display: inline-block; margin-top: 6px; font-size: calc(var(--fs) * 0.42); font-weight: 700; color: #1a1300; background: #f0b44c; border-radius: 6px; padding: 1px 8px; width: max-content; }
 .cue { margin-top: 26px; }
 .foot { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 18px; align-items: center; justify-content: center; padding: 10px 16px; background: rgba(26,25,24,0.92); border-top: 1px solid var(--edge); color: var(--dim); font-weight: 600; direction: rtl; }
 .foot b { color: var(--text); }
 .keys { color: var(--faint); font-size: 12px; direction: ltr; }
 .empty { text-align: center; color: var(--faint); padding: 80px 20px; font-size: 18px; }
+.ln .t.editing { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; background: var(--panel-2); cursor: text; }
 dialog { background: var(--panel); color: var(--text); border: 1px solid var(--edge-2); border-radius: 12px; width: min(760px, 92vw); padding: 18px; }
 dialog::backdrop { background: rgba(0,0,0,0.6); }
-dialog textarea { width: 100%; height: 50vh; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; padding: 12px; direction: rtl; font-size: 16px; resize: vertical; }
+dialog textarea { display: block; width: 100%; height: 50vh; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; padding: 12px; direction: rtl; font-size: 16px; line-height: 1.6; resize: none; }
+/* a dark page: native scrollbars dark too (Windows drew a white one inside the paste box), slim like the editor's */
+:root { color-scheme: dark; }
+dialog textarea::-webkit-scrollbar { width: 10px; }
+dialog textarea::-webkit-scrollbar-thumb { background: var(--panel-3, #3a3836); border-radius: 10px; border: 2px solid var(--panel-2); }
+dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
 @media (max-width: 640px) { .script { padding: 20vh 10px 60vh; } }
 </style>
 </head>
@@ -80,9 +96,10 @@ dialog textarea { width: 100%; height: 50vh; background: var(--panel-2); border:
   <select id="ep" title="Episode script"></select>
   <button class="btn" id="paste" title="Paste a script">Paste</button>
   <div class="grow"></div>
-  <button class="btn play" id="play" title="Play / pause (Enter)">▶ Play</button>
+  <button class="btn play" id="play" title="Play / pause (Space)">▶ Play</button>
+  <select id="cd" title="Countdown before it starts"><option value="0">⏱ No countdown</option><option value="3">⏱ 3 s</option><option value="5">⏱ 5 s</option><option value="10">⏱ 10 s</option></select>
   <button class="btn" id="restart" title="From the start: back to the first line and play">⏮</button>
-  <label class="pace" title="Reading pace in words per minute">Pace <input type="range" id="pace" min="120" max="500" step="5"><span id="paceV"></span></label>
+  <label class="pace" title="Reading pace in words per minute">Pace <input type="range" id="pace" min="120" max="500" step="5"><input type="number" id="paceN" min="60" max="600" step="5" title="Type the pace (words per minute) - Enter to apply"><span class="unit">wpm</span></label>
   <button class="btn lock" id="lock" title="Keep this pace for this script">🔓 Lock</button>
   <button class="btn" id="cues" title="My lines + cues: only your lines, each with the line before it">Cues</button>
   <button class="btn" id="smaller" title="Smaller text">A−</button>
@@ -92,10 +109,13 @@ dialog textarea { width: 100%; height: 50vh; background: var(--panel-2); border:
 </header>
 <div class="script" id="script"><div class="empty">Pick an episode or paste a script.</div></div>
 <div class="foot" id="foot"></div>
+<div class="count" id="count"><b id="countN"></b></div>
 
 <dialog id="dlg">
-  <div style="font-weight:700;margin-bottom:8px">Paste the script — one line each, "Name: text"</div>
-  <textarea id="txt" placeholder="אמיר: טוב, דניאל, קודם כול...&#10;עופר: חד משמעית."></textarea>
+  <div style="font-weight:700;margin-bottom:4px">Paste a script</div>
+  <div style="color:var(--dim);margin-bottom:10px;font-size:13px">A dialogue ("Name: text") or a monologue (just the text, one line each — it becomes a prompter). Give it a name to keep it in the list.</div>
+  <input id="nm" placeholder="Name (optional) — e.g. תודעה גבוהה">
+  <textarea id="txt" placeholder="אמיר: טוב, דניאל, קודם כול...&#10;עופר: חד משמעית.&#10;&#10;— or just the text of a monologue, one line each"></textarea>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
     <button class="btn" id="cancel">Cancel</button><button class="btn on" id="use">Use this script</button>
   </div>
@@ -108,12 +128,17 @@ const KNOWN = { 'אמיר': '#4a86e8', 'עופר': '#8a5cd6', 'דניאל': '#45
 const PALETTE = ['#4a86e8', '#8a5cd6', '#45a86a', '#d9822b', '#c2507a', '#2bb3c0', '#b8b23a'];
 const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 const $ = (id) => document.getElementById(id);
-let lines = [], chars = [], me = null, cur = 0, src = '', cues = false;
+let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
 let fs = +(store.get('reader-fs') || 30);
 
 // Splits a pasted script into speakers and lines. Understands "Name: text", "**Name:** text", lines that
 // wrap onto the next line, [stage directions], and screenplay layout (the name alone on a line, the text under it).
 function parse(text) {
+  // a monologue (no "Name:" anywhere): every line is its own bubble - the reader becomes a prompter
+  const rows = text.split(/\r?\n/).map((r) => r.trim()).filter((r) => r && !r.startsWith('#'));
+  const named = rows.filter((r) => { const m = r.replace(/\*\*/g, '').match(/^([^:：]{1,24})[:：]/); return m && m[1].trim().split(/\s+/).length <= 3; });
+  if (rows.length && named.length === 0)
+    return rows.map((r) => (/^\[.*\]$/.test(r) ? { dir: true, text: r.slice(1, -1) } : { who: '', text: r, solo: true }));
   const out = [];
   let pending = null;  // a name standing alone on its line, waiting for its text
   for (let raw of text.split(/\r?\n/)) {
@@ -137,8 +162,10 @@ function parse(text) {
 
 function load(text, key) {
   src = key;
+  raw = text;
   lines = parse(text);
-  chars = [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
+  solo = lines.some((l) => l.solo);
+  chars = solo ? [] : [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
   const saved = JSON.parse(store.get('reader-' + src) || '{}');
   me = chars.includes(saved.me) ? saved.me : null;
   cur = Math.min(saved.cur || 0, Math.max(0, lines.length - 1));
@@ -155,7 +182,8 @@ const hash = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 
 
 function render() {
   const roles = $('roles');
-  roles.innerHTML = chars.length ? '<span class="lbl">אני משחק את:</span>' : '';
+  roles.innerHTML = chars.length ? '<span class="lbl">אני משחק את:</span>' : solo ? `<span class="lbl">פרומפטר · ${lines.length} שורות</span>` : '';
+  document.body.classList.toggle('solo', solo);
   chars.forEach((c, i) => {
     const b = document.createElement('button');
     b.className = 'role' + (me === c ? ' on' : '');
@@ -174,8 +202,9 @@ function render() {
       if (!mine && !nextMine) return;
     }
     const d = document.createElement('div');
-    const mine = !l.dir && me && l.who === me;
-    d.className = 'ln' + (l.dir ? ' dir' : mine ? ' mine' : me ? ' other' : '') + (i === cur ? ' cur' : '') + (cues && !mine ? ' cue' : '');
+    const mine = solo ? i === cur && !l.dir : !l.dir && me && l.who === me;
+    const cls = solo ? (i < cur ? ' past' : i === cur ? ' mine' : ' other') : l.dir ? ' dir' : mine ? ' mine' : me ? ' other' : '';
+    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur ? ' cur' : '') + (cues && !mine && !solo ? ' cue' : '');
     d.dataset.i = i;
     if (!l.dir) d.style.setProperty('--c', color(l.who));
     const cut = /[—–-]\s*$/.test(l.text);
@@ -183,6 +212,7 @@ function render() {
       : `<div class="who">${esc(l.who)}</div><div class="t">${esc(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
     d.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
     d.onclick = () => go(i);
+    d.ondblclick = (e) => { e.preventDefault(); editLine(i); };
     box.appendChild(d);
   });
   document.documentElement.style.setProperty('--fs', fs + 'px');
@@ -194,13 +224,19 @@ function render() {
 function foot() {
   const f = $('foot');
   if (!lines.length) { f.innerHTML = ''; return; }
+  if (solo) {
+    const left = lines.slice(cur).reduce((t, l) => t + lineSeconds(l), 0);
+    f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span><span>עוד ~${Math.max(1, Math.round(left / 60))} דק׳</span>` +
+      `<span class="keys">Space play/pause · Home start · ↓ next · ↑ back</span>`;
+    return;
+  }
   const mineIdx = lines.map((l, i) => (l.who === me ? i : -1)).filter((i) => i >= 0);
   const done = mineIdx.filter((i) => i < cur).length;
   const next = mineIdx.find((i) => i >= cur);
   f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span>` +
     (me ? `<span>${me}: <b>${Math.min(done + 1, mineIdx.length)}</b> מתוך ${mineIdx.length}</span>` +
       `<span>${next == null ? 'סיימת את השורות שלך 🎬' : next === cur ? '<b>עכשיו את/ה</b>' : `עוד ${next - cur} שורות עד שלך`}</span>` : '<span>בחר/י דמות למעלה (1-9)</span>') +
-    `<span class="keys">Enter play/pause (continues from here) · Space/↓ next · ← my next line · → my previous · ↑ back · Home start</span>`;
+    `<span class="keys">Space play/pause · Home start · ↓ next · ← my next line · → my previous · ↑ back</span>`;
 }
 
 function center() {
@@ -236,6 +272,22 @@ function schedule() {
     go(n);
   }, secs * 1000);
 }
+// a countdown before it starts (off / 3 / 5 / 10 s) - time to get into position; Space again cancels it
+let cdSecs = +(store.get('reader-cd') ?? 3), cdTimer = null;
+function showCd() { $('cd').value = String(cdSecs); }  // the studio picker follows the select by itself
+function cancelCd() { clearInterval(cdTimer); cdTimer = null; $('count').classList.remove('on'); }
+function startWithCountdown() {
+  if (!cdSecs) return setPlay(true);
+  let n = cdSecs;
+  const tick = () => {
+    if (n <= 0) { cancelCd(); return setPlay(true); }
+    $('countN').textContent = n; $('countN').style.animation = 'none'; void $('countN').offsetWidth; $('countN').style.animation = '';
+    $('count').classList.add('on'); n--;
+  };
+  tick(); cdTimer = setInterval(tick, 1000);
+  $('play').textContent = '✕ Cancel';
+}
+function toggle() { if (cdTimer) { cancelCd(); setPlay(false); } else if (playing) setPlay(false); else startWithCountdown(); }
 function setPlay(on) {
   playing = on;
   $('play').textContent = on ? '❚❚ Pause' : '▶ Play';
@@ -248,10 +300,12 @@ function myStep(d) {
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 document.addEventListener('keydown', (e) => {
-  if ($('dlg').open || e.target.tagName === 'TEXTAREA') return;
+  if ($('dlg').open || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;  // typing: no shortcuts
+  if ((e.key === 'e' || e.key === 'E' || e.key === 'ק') && lines[cur]) { e.preventDefault(); return editLine(cur); }
   if (/^[1-9]$/.test(e.key) && chars[+e.key - 1]) return pick(chars[+e.key - 1]);
-  if (e.key === 'Enter') { e.preventDefault(); return setPlay(!playing); }
-  if (e.code === 'Space' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'Enter') { e.preventDefault(); return toggle(); }
+  if (e.code === 'Space') { e.preventDefault(); return toggle(); }  // Space = play (after the countdown) / pause; Home first = from the start
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); }
   else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); me ? myStep(-1) : go(cur - 1); }  // RTL: right = back
   else if (e.key === 'ArrowLeft') { e.preventDefault(); me ? myStep(1) : go(cur + 1); }
@@ -261,38 +315,131 @@ document.addEventListener('keydown', (e) => {
 $('bigger').onclick = () => { fs = Math.min(64, fs + 3); store.set('reader-fs', fs); render(); };
 $('smaller').onclick = () => { fs = Math.max(16, fs - 3); store.set('reader-fs', fs); render(); };
 $('cues').onclick = () => { cues = !cues; render(); if (playing) schedule(); };
-$('play').onclick = () => setPlay(!playing);
+$('play').onclick = () => toggle();
+$('cd').onchange = () => { cdSecs = +$('cd').value; store.set('reader-cd', cdSecs); $('cd').blur(); };
+showCd();
 function showPace() {
-  $('pace').value = wpm; $('paceV').textContent = `${wpm} wpm`;
-  $('pace').disabled = locked;
+  $('pace').value = wpm;
+  if (document.activeElement !== $('paceN')) $('paceN').value = wpm;  // not while you're typing in it
+  $('pace').disabled = $('paceN').disabled = locked;
   $('lock').classList.toggle('on', locked);
   $('lock').textContent = locked ? '🔒' : '🔓';
   $('lock').title = locked ? `Locked: this script reads at ${wpm} words/min — click to unlock` : 'Lock this pace (words per minute) for this script';
 }
 $('pace').oninput = (e) => { wpm = +e.target.value; showPace(); save(); if (playing) schedule(); };
+// the pace typed as a number: applied on Enter or when you click away (60-600 words per minute)
+const typedPace = () => {
+  const v = Math.round(+$('paceN').value);
+  if (v) { wpm = Math.max(60, Math.min(600, v)); save(); if (playing) schedule(); }
+  $('paceN').value = wpm; showPace();
+};
+$('paceN').onchange = typedPace;
+showPace();  // the number is there before any script is picked
+$('paceN').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); typedPace(); $('paceN').blur(); } if (e.key === 'Escape') { $('paceN').value = wpm; $('paceN').blur(); } };
 $('lock').onclick = () => { locked = !locked; save(); showPace(); };
-$('restart').onclick = () => { go(0); setPlay(true); };
-$('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('dlg').showModal(); };
+$('restart').onclick = () => { cancelCd(); setPlay(false); go(0); startWithCountdown(); };
+$('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('nm').value = ''; $('dlg').showModal(); };
 $('cancel').onclick = () => $('dlg').close();
-$('use').onclick = () => {
-  const t = $('txt').value; store.set('reader-pasted', t); $('dlg').close();
+$('use').onclick = async () => {
+  const t = $('txt').value, name = $('nm').value.trim();
+  $('dlg').close();
+  if (name) {  // keep it: it shows up in the project list from now on
+    const r = await fetch('/api/scripts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, text: t }) });
+    const { id } = await r.json();
+    await fillPicker();
+    $('ep').value = 'script:' + id; store.set('reader-src', 'script:' + id); load(t, 'script:' + id);
+    return;
+  }
+  store.set('reader-pasted', t);
   $('ep').value = ''; store.set('reader-src', 'pasted'); load(t, 'pasted:' + hash(t));
 };
 $('ep').onchange = async () => {
   const id = $('ep').value;
   if (!id) return;
   store.set('reader-src', id);
-  const r = await fetch(`/api/ep/${id}/script`);
+  const r = await fetch(id.startsWith('script:') ? `/api/scripts/${encodeURIComponent(id.slice(7))}` : `/api/ep/${id}/script`);
   load(r.ok ? await r.text() : '', id);
 };
 
-(async () => {
+// ---- edit a line: double-click it (or E for the current one), Enter saves, Esc cancels --------------------------
+function editLine(i) {
+  if (!lines[i] || document.querySelector('.t.editing')) return;
+  setPlay(false);
+  cancelCd();
+  if (cur !== i) go(i);  // go() redraws the script - so the line is picked up after it
+  const el = document.querySelector(`.ln[data-i="${i}"] .t`);
+  if (!el) return;
+  const before = lines[i].text;
+  el.textContent = before;  // without the [ ] of a stage direction
+  el.contentEditable = 'plaintext-only';
+  el.classList.add('editing');
+  el.focus();
+  document.getSelection().selectAllChildren(el);
+  let done = false;
+  const finish = async (keep) => {
+    if (done) return;
+    done = true;
+    el.contentEditable = 'false';
+    const after = el.textContent.replace(/\s+/g, ' ').trim();
+    if (keep && after && after !== before) await saveLine(i, before, after);
+    render();
+  };
+  el.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  };
+  el.onblur = () => finish(true);
+}
+
+async function saveLine(i, before, after) {
+  // the line in the original text: the n-th raw line holding this text (n = how many lines before it say the same)
+  const nth = lines.slice(0, i).filter((l) => l.text === before).length;
+  const rows = raw.split(/\r?\n/);
+  let seen = 0, at = -1;
+  for (let r = 0; r < rows.length; r++) {
+    if (rows[r].trim().startsWith('#') || !rows[r].includes(before)) continue;
+    if (seen++ === nth) { at = r; break; }
+  }
+  let next;
+  if (at >= 0) {
+    rows[at] = rows[at].replace(before, after);
+    next = rows.join('\n');
+  } else {  // the line was wrapped over several rows in the file: write the script out again, line by line
+    lines[i].text = after;
+    const head = raw.split(/\r?\n/).filter((r) => r.trim().startsWith('#'));
+    next = [...head, ...lines.map((l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`))].join('\n');
+  }
+  lines[i].text = after;
+  raw = next;
+  try {
+    if (src.startsWith('script:')) {
+      await fetch(`/api/scripts/${encodeURIComponent(src.slice(7))}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: next }) });
+    } else if (src.startsWith('pasted:')) {
+      const key = 'pasted:' + hash(next);  // the pasted script's state (character, place, pace) moves with it
+      store.set('reader-' + key, store.get('reader-' + src) || '{}');
+      store.set('reader-pasted', next);
+      src = key;
+    } else if (src) {
+      await fetch(`/api/ep/${src}/script`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: next }) });
+    }
+  } catch {}
+}
+
+let known = [];
+async function fillPicker() {  // episodes (their script.txt) and saved scripts (prompter texts, pasted dialogues)
   const eps = await fetch('/api/episodes').then((r) => r.json()).catch(() => []);
-  $('ep').innerHTML = '<option value="">— episode —</option>' + eps.filter((e) => !e.id.endsWith('-test'))
-    .map((e) => `<option value="${e.id}">${e.id}</option>`).join('');
+  const scripts = await fetch('/api/scripts').then((r) => r.json()).catch(() => []);
+  known = [...eps.filter((e) => !e.id.endsWith('-test')).map((e) => e.id), ...scripts.map((x) => 'script:' + x.id)];
+  $('ep').innerHTML = '<option value="">— script —</option>' +
+    scripts.map((x) => `<option value="script:${x.id}">📄 ${x.name}</option>`).join('') +
+    eps.filter((e) => !e.id.endsWith('-test')).map((e) => `<option value="${e.id}">🎬 ${e.id}</option>`).join('');
+}
+(async () => {
+  await fillPicker();
   const last = store.get('reader-src');
   if (last === 'pasted') { const t = store.get('reader-pasted') || ''; load(t, 'pasted:' + hash(t)); }
-  else if (last && eps.some((e) => e.id === last)) { $('ep').value = last; $('ep').onchange(); }
+  else if (last && known.includes(last)) { $('ep').value = last; $('ep').onchange(); }
 })();
 // the right arrow goes back in a right-to-left script, the left arrow goes forward (like turning pages)
 </script>

@@ -1,0 +1,53 @@
+{
+  "type": "lesson",
+  "series": "tadar",
+  "title": "תדר — תודעה גבוהה",
+  "input_dir": "C:/Users/shazbak/Downloads/תדר",
+  "takes": "IMG_9979.MP4",
+  "background": "../_assets/tadar/studio.jpg",
+  "plaque": [],
+  "music": {
+    "sound": "../_assets/tadar/music/1 - Calm frequency pad.mp3",
+    "gain": 0.8
+  },
+  "eye_contact": {
+    "mode": "center",
+    "strength": 1.0,
+    "dy": 0.6,
+    "on": true
+  },
+  "grade": {
+    "warm": 0.07,
+    "saturation": 1.1,
+    "brightness": 0.025,
+    "contrast": 1.05
+  },
+  "matte_engine": "quality",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 142
+  },
+  "bg": {
+    "zoom": 1.63,
+    "x": 4,
+    "y": 506
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 70,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "overlays": [],
+  "speed": 1,
+  "voice": {
+    "preset": "natural"
+  },
+  "cut": {
+    "silence": false
+  }
+}

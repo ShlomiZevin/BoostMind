@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.mp4
+# a copy of zoomcut/models/face_landmarker.task (models are not kept in git) - copy it here before a build
+face_landmarker.task

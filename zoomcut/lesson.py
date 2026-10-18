@@ -83,8 +83,56 @@ def prepare(ls):
             words = [{"w": w.word.strip(), "s": round(w.start, 3), "e": round(w.end, 3)} for s in segs for w in (s.words or [])]
             save_json(wj, words)
             log(f"  · words {n}: {len(words)}")
+        ec = eye_cfg(ls)
+        named = (ec or {}).get("file")  # episode.json "eye_contact": {"file": "goodone.mp4"} - CapCut's export, by name
+        outside = [os.path.join(ls.cfg["input_dir"], named)] if named else             sorted(glob.glob(os.path.join(ls.cfg["input_dir"], n + "*eye*.*")))  # or e.g. IMG_9980_eyes.mp4
+        if ec and outside:
+            # CapCut's (or any app's) eye-contact export: it must be the same video, frame for frame
+            dur = lambda f: float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f],
+                                                 capture_output=True, text=True).stdout.strip() or 0)
+            d0, d1 = dur(t), dur(outside[0])
+            if abs(d0 - d1) > 0.15:
+                raise SystemExit(f"{os.path.basename(outside[0])} is {d1:.2f}s but {n} is {d0:.2f}s - export it from CapCut "
+                                 f"without trimming (same length, 30 fps), or the mouth will not match the voice")
+            g = ls.work("gaze", f"{n}.{gaze_sig(ls)}.mp4")
+            if not os.path.exists(g) or os.path.getmtime(g) < os.path.getmtime(outside[0]):
+                ff("-i", outside[0], "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "15", "-pix_fmt", "yuv420p", g)
+                log(f"  · eye contact {n}: using {os.path.basename(outside[0])}")
+        elif ec:  # you read off to the side: the eyes are brought back to the lens before anything is cut
+            g = ls.work("gaze", f"{n}.{gaze_sig(ls)}.mp4")
+            mode = ec.get("mode", "nvidia")
+            fell_back = g + ".fallback"  # made by v6 because NVIDIA failed - try NVIDIA again next time
+            if not os.path.exists(g) or (mode == "nvidia" and os.path.exists(fell_back)):
+                done = False
+                if mode == "nvidia":  # NVIDIA Maxine's eye contact + our blink handling (tools/eyes_nvidia.py) - beat CapCut
+                    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "eyes_nvidia.py"), t, g[:-4] + ".part.mp4"],
+                                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+                    if r.returncode == 0 and os.path.exists(g[:-4] + ".part.mp4"):
+                        os.replace(g[:-4] + ".part.mp4", g)
+                        if os.path.exists(fell_back):
+                            os.remove(fell_back)
+                        log(f"  · eye contact {n} (NVIDIA)")
+                        done = True
+                    else:  # out of trial credits, endpoint changed, offline... - never stop the build for it
+                        log(f"  · NVIDIA eye contact failed for {n} - using our own (v6) instead: {(r.stdout + r.stderr).strip()[-300:]}")
+                if not done and not os.path.exists(g):
+                    args = [sys.executable, os.path.join(ROOT, "tools", "gaze_video.py"), t, g[:-4] + ".part.mp4",
+                            "--mode", "neural" if mode == "nvidia" else mode,
+                            "--strength", str(ec.get("strength", 1.0)), "--dy", str(ec.get("dy", 0.6))]
+                    if ec.get("nudge"):
+                        args.append("--nudge=" + ",".join(str(v) for v in ec["nudge"]))
+                    r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace")
+                    if r.returncode:
+                        raise RuntimeError("eye contact failed: " + r.stderr[-800:])
+                    os.replace(g[:-4] + ".part.mp4", g)
+                    if mode == "nvidia":
+                        open(fell_back, "w").close()
+                    log(f"  · eye contact {n} ({'v6, NVIDIA fallback' if mode == 'nvidia' else mode})")
         mk = matte_path(ls, n)
-        if not os.path.exists(mk):
+        if not os.path.exists(mk) and ls.cfg.get("matte_engine") == "hybrid":
+            hybrid_matte(ls, t, n)
+            log(f"  · cut out {n} (hybrid: quality + the head kept)")
+        elif not os.path.exists(mk):
             matte(t, mk[:-4] + ".part.mkv", ls.cfg.get("matte_engine", "fast"))
             os.replace(mk[:-4] + ".part.mkv", mk)  # a stopped run never leaves a half cut-out that looks finished
             log(f"  · cut out {n}")
@@ -93,6 +141,74 @@ def prepare(ls):
 def matte_path(ls, n):
     eng = ls.cfg.get("matte_engine", "fast")
     return ls.work("matte", n + (".mkv" if eng == "fast" else f".{eng}.mkv"))
+
+
+def face_boxes(src, out_json):
+    """Per frame: the face's box (in 0-1 coordinates), from MediaPipe's face landmarks - where the head is."""
+    import mediapipe as mp
+    from mediapipe.tasks import python as mpt
+    from mediapipe.tasks.python import vision
+    det = vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(
+        base_options=mpt.BaseOptions(model_asset_path=os.path.join(ROOT, "models", "face_landmarker.task")),
+        running_mode=vision.RunningMode.VIDEO, num_faces=1))
+    dec = subprocess.Popen([FFMPEG, "-v", "error", "-i", src, "-vf", f"scale={MATTE_W}:{MATTE_H},fps={FPS}",
+                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+    size, boxes, n = MATTE_W * MATTE_H * 3, [], 0
+    while True:
+        buf = dec.stdout.read(size)
+        if len(buf) < size:
+            break
+        r = det.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB, data=np.frombuffer(buf, np.uint8).reshape(MATTE_H, MATTE_W, 3)),
+                                 int(n * 1000 / FPS))
+        if r.face_landmarks:
+            xs = [p.x for p in r.face_landmarks[0]]
+            ys = [p.y for p in r.face_landmarks[0]]
+            boxes.append([min(xs), min(ys), max(xs), max(ys)])
+        else:
+            boxes.append(boxes[-1] if boxes else None)
+        n += 1
+    dec.wait()
+    save_json(out_json, boxes)
+    return boxes
+
+
+def hybrid_matte(ls, t, n):
+    """The quality cut-out everywhere, and around the head the fast one too: a white wig against a white wall
+    can make the quality model drop the whole head for a moment; the fast model knows a head is a head."""
+    q = ls.work("matte", n + ".quality.mkv")
+    f = ls.work("matte", n + ".mkv")
+    for path, engine in ((q, "quality"), (f, "fast")):
+        if not os.path.exists(path):
+            matte(t, path[:-4] + ".part.mkv", engine)
+            os.replace(path[:-4] + ".part.mkv", path)
+    fj = ls.work("matte", n + ".faces.json")
+    boxes = load_json(fj) if os.path.exists(fj) else face_boxes(t, fj)
+    out = ls.work("matte", n + ".hybrid.part.mkv")
+    rd = lambda p: subprocess.Popen([FFMPEG, "-v", "error", "-i", p, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE)
+    dq, df = rd(q), rd(f)
+    enc = subprocess.Popen([FFMPEG, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", f"{MATTE_W}x{MATTE_H}",
+                            "-r", str(FPS), "-i", "-", "-c:v", "ffv1", out], stdin=subprocess.PIPE)
+    size, k = MATTE_W * MATTE_H, 0
+    while True:
+        a, b = dq.stdout.read(size), df.stdout.read(size)
+        if len(a) < size or len(b) < size:
+            break
+        mq = np.frombuffer(a, np.uint8).reshape(MATTE_H, MATTE_W).copy()
+        box = boxes[k] if k < len(boxes) else None
+        if box:  # the head: the face box, wide for the hair, high for a wig, down to the chin
+            x0, y0, x1, y1 = box
+            w, h = x1 - x0, y1 - y0
+            X0, X1 = int(max(0, x0 - 0.45 * w) * MATTE_W), int(min(1, x1 + 0.45 * w) * MATTE_W)
+            Y0, Y1 = int(max(0, y0 - 0.75 * h) * MATTE_H), int(min(1, y1 + 0.15 * h) * MATTE_H)
+            mf = np.frombuffer(b, np.uint8).reshape(MATTE_H, MATTE_W)
+            mq[Y0:Y1, X0:X1] = np.maximum(mq[Y0:Y1, X0:X1], mf[Y0:Y1, X0:X1])
+        enc.stdin.write(mq.tobytes())
+        k += 1
+    enc.stdin.close()
+    enc.wait()
+    dq.wait()
+    df.wait()
+    os.replace(out, ls.work("matte", n + ".hybrid.mkv"))
 
 
 def matte(src, out, engine="fast"):
@@ -158,6 +274,8 @@ def spans(ls, n):
         if len(loud):
             a, b = (i0 + loud[0]) * hop, (i0 + loud[-1] + 1) * hop
         tight.append([max(0.0, a - c["pad_in"]), min(dur, b + c["pad_out"])])
+    if tight and c.get("silence") is False:  # keep his pauses: one piece from his first word to his last
+        tight = [[tight[0][0], tight[-1][1]]]
     words = load_json(ls.work("words", n + ".json"), [])
     if words and tight:
         # the take ends where his voice after the last word stops - a held / sung last word stays whole,
@@ -331,7 +449,7 @@ def overlays(ls):
     """Text on video - the same items (text, font, theme, opacity, y, size, start/end) the Zoom template uses."""
     ov = ls.cfg.get("overlays")
     if ov is None and ls.cfg.get("title"):
-        ov = [{"text": ls.cfg["title"], "style": "pov", "font": "stam-ashkenaz", "theme": "gold", "opacity": 0, "y": 150, "size": 64}]
+        ov = [{"text": ls.cfg["title"], "style": "pov", "font": "stam-ashkenaz", "theme": "gold", "opacity": 0, "y": 270, "size": 64}]
     return [o for o in (ov or []) if (o.get("text") or "").strip()]
 
 
@@ -395,10 +513,11 @@ def text_layers(ls, caps):
     cap_y = ls.cfg.get("captions_y", 1330)  # (not "cy": that is the background's crop, used below)
     import hashlib
     for c in caps:  # a subtitle image is named after its own text: an edit re-renders only that one
-        key = hashlib.md5(f"{TEXT_STYLE}|{c['text']}|{cap_y}".encode("utf-8")).hexdigest()[:14]
+        style = ls.cfg.get("captions_style") or {}
+        key = hashlib.md5(f"{TEXT_STYLE}|{c['text']}|{cap_y}|{json.dumps(style, sort_keys=True)}".encode("utf-8")).hexdigest()[:14]
         c["png"] = ls.work("text", "caps", f"{key}.png")
         if not os.path.exists(c["png"]):
-            spec["items"].append({"out": c["png"], "kind": "caption", "text": c["text"], "y": cap_y})
+            spec["items"].append({"out": c["png"], "kind": "caption", "text": c["text"], "y": cap_y, "style": style})
     sp = ls.work("text", "spec.json")
     json.dump(spec, open(sp, "w", encoding="utf-8"), ensure_ascii=False)
     r = subprocess.run(["node", os.path.join(ROOT, "tools", "lesson_text.mjs"), sp], capture_output=True, text=True)
@@ -441,10 +560,20 @@ def grade(ls):
             f"rm={g.get('warm', 0.06)}:bm={-g.get('warm', 0.06)}")
 
 
-def piece(ls, it, out_v, out_m):
+def gaze_sig(ls):
+    import hashlib
+    e = dict(eye_cfg(ls) or {})
+    e.pop("on", None)  # switching it on / off must not redo the corrected copy
+    e["v"] = 3  # 3: the source's own colour format kept (full range)
+    return hashlib.md5(json.dumps(e, sort_keys=True).encode()).hexdigest()[:8]
+
+
+def piece(ls, it, out_v, out_m, gaze=False):
     """One cut piece of the person layer: his own video and his mask, frame for frame - no background,
     no position, no text. Those are layers too, put together in one pass at the end."""
     take = os.path.join(ls.cfg["input_dir"], it["take"] + os.path.splitext(ls.takes[0])[1])
+    if gaze:
+        take = ls.work("gaze", f"{it['take']}.{gaze_sig(ls)}.mp4")  # the eye-contact copy (same frames, same timing)
     mk = matte_path(ls, it["take"])
     enc = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "15", "-g", "30", "-pix_fmt", "yuv420p", "-an"]
     n = it["n"]
@@ -458,9 +587,9 @@ def piece(ls, it, out_v, out_m):
                "-frames:v", str(n), *enc, out)
 
 
-def piece_atomic(ls, it, out_v, out_m):
+def piece_atomic(ls, it, out_v, out_m, gaze=False):
     pv, pm = out_v[:-4] + ".part.mp4", out_m[:-4] + ".part.mp4"  # a stopped run never leaves a half piece
-    piece(ls, it, pv, pm)
+    piece(ls, it, pv, pm, gaze)
     os.replace(pv, out_v)
     os.replace(pm, out_m)
 
@@ -476,22 +605,83 @@ def load_sound(path, phone=False, pitch=1.0):
     return read_wav(tmp)[0]
 
 
-def mix(ls, items, total):
+# the voice filters, presets and loudness live in render/ui/sound.ts - one chain for the editor and the export
+DENOISE = "afftdn=nf=-28:tn=1"
+
+
+def take_audio(ls, take, denoise=False):
+    """His raw voice for a take, or the same through noise reduction (both are offered to the editor)."""
+    raw = ls.work("audio", take + ".wav")
+    if not denoise:
+        return raw
+    out = ls.work("audio", f"{take}.dn.wav")
+    if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(raw):
+        ff("-i", raw, "-af", DENOISE, "-ar", str(SR), "-ac", "1", out)
+    return out
+
+
+def write_wav(path, x):
+    import wave
+    with wave.open(path, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SR)
+        wf.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
+    return path
+
+
+def voice_stem(ls, items, total, denoise=False):
+    """His voice alone along the cut (joins crossfaded) - raw or noise-reduced."""
     out = np.zeros(int(total / FPS * SR) + SR, np.float32)
     takes = {}
     fade = int(0.012 * SR)
     for it in items:
+        if it["kind"] != "clip":
+            continue
+        o = int(it["out"] / FPS * SR)
+        n = int(it.get("an", it["n"]) / FPS * SR)
+        x = takes.setdefault(it["take"], read_wav(take_audio(ls, it["take"], denoise))[0])
+        a = int(it["a"] * SR)
+        seg = x[a:a + n].copy()
+        seg[:fade] *= np.linspace(0, 1, min(fade, len(seg)))[:len(seg[:fade])]
+        tail = int((it["an"] - it["n"]) / FPS * SR) if "an" in it else fade  # crossfade under the next part
+        tail = max(fade, min(tail, len(seg)))
+        seg[-tail:] *= np.linspace(1, 0, tail)
+        out[o:o + len(seg)] += seg
+    return out[:int(total / FPS * SR)]
+
+
+def stems(ls, items, total):
+    """The sound as separate tracks, so the editor can change voice filters and music volume live:
+    voice (raw and noise-reduced), effects (phone, the other side of a call), music (at full level)."""
+    voice = voice_stem(ls, items, total)
+    voice_dn = voice_stem(ls, items, total, denoise=True)
+    fx, music = fx_and_music(ls, items, total)
+    return {"voice": write_wav(ls.work("stems", "voice.wav"), voice), "voice_dn": write_wav(ls.work("stems", "voice_dn.wav"), voice_dn),
+            "fx": write_wav(ls.work("stems", "fx.wav"), fx), "music": write_wav(ls.work("stems", "music.wav"), music)}
+
+
+def mix(ls, items, total):
+    """The export's sound, made by the editor's own audio code (render/ui/sound.ts run in headless Chrome by
+    tools/mixdown.mjs): voice through the chosen filters + effects + music + the loudness step - identical to the editor."""
+    st = stems(ls, items, total)
+    job = ls.work("mixdown.json")
+    final = ls.work("mix.wav")
+    save_json(job, {"stems": st, "seconds": total / FPS, "voice": ls.cfg.get("voice"), "music": ls.cfg.get("music"), "out": final})
+    r = subprocess.run(["node", os.path.join(ROOT, "tools", "mixdown.mjs"), job], capture_output=True, text=True, encoding="utf-8")
+    if r.returncode != 0:
+        raise SystemExit(f"mixdown failed:\n{r.stdout}\n{r.stderr}")
+    log("  · " + r.stdout.strip().splitlines()[-1])
+    return final
+
+
+def fx_and_music(ls, items, total):
+    out = np.zeros(int(total / FPS * SR) + SR, np.float32)
+    for it in items:
         o = int(it["out"] / FPS * SR)
         n = int(it.get("an", it["n"]) / FPS * SR)
         if it["kind"] == "clip":
-            x = takes.setdefault(it["take"], read_wav(ls.work("audio", it["take"] + ".wav"))[0])
-            a = int(it["a"] * SR)
-            seg = x[a:a + n].copy()
-            seg[:fade] *= np.linspace(0, 1, min(fade, len(seg)))[:len(seg[:fade])]
-            tail = int((it["an"] - it["n"]) / FPS * SR) if "an" in it else fade  # crossfade under the next part
-            tail = max(fade, min(tail, len(seg)))
-            seg[-tail:] *= np.linspace(1, 0, tail)
-            out[o:o + len(seg)] += seg
+            continue
         else:
             ins = it["insert"]
             snd = load_sound(ls.asset(ins["sound"]), ins.get("phone"))
@@ -525,16 +715,16 @@ def mix(ls, items, total):
         out[a:a + len(seg)] += seg
         ls.placed = getattr(ls, "placed", []) + [{"name": os.path.basename(snd_cfg["sound"]).rsplit(".", 1)[0],
                                                   "from": round(o0, 3), "to": round(o1, 3)}]
-    raw = ls.work("mix.raw.wav")
-    import wave
-    with wave.open(raw, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(SR)
-        wf.writeframes((np.clip(out[:int(total / FPS * SR)], -1, 1) * 32767).astype(np.int16).tobytes())
-    final = ls.work("mix.wav")
-    ff("-i", raw, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-ar", str(SR), final)
-    return final
+    n = int(total / FPS * SR)
+    music = np.zeros(n, np.float32)
+    mus = ls.cfg.get("music")
+    if mus:  # a bed under him for the whole video (a short loop repeats seamlessly); its volume is set later
+        bed = load_sound(ls.asset(mus["sound"]))
+        music = np.tile(bed, n // max(1, len(bed)) + 1)[:n].copy()
+        f_in, f_out = int(mus.get("fade_in", 1.5) * SR), int(mus.get("fade_out", 2.5) * SR)
+        music[:f_in] *= np.linspace(0, 1, len(music[:f_in]))
+        music[-f_out:] *= np.linspace(1, 0, len(music[-f_out:]))
+    return out[:n], music
 
 
 # ---- 6. assemble -----------------------------------------------------------------------------------
@@ -545,63 +735,90 @@ def build(ls, still_at=None, preview=False):
     log(f"  · cut: {sum(1 for i in items if i['kind'] == 'clip')} pieces, {total / FPS:.1f}s "
         f"(raw {sum(len(read_wav(ls.work('audio16', name(t) + '.wav'))[0]) / 16000 for t in ls.takes):.1f}s)")
     caps = captions(ls, items, total)
-    save_json(ls.work("edit.json"), {"items": items, "total": total, "captions": caps})
+    # keep what the editor needs from the last preview (photo size, sounds) - a still or an export must not wipe it
+    prev_edit = load_json(ls.work("edit.json"), {}) or {}
+    save_json(ls.work("edit.json"), {**{k: prev_edit[k] for k in ("photo", "sounds", "speed") if k in prev_edit},
+                                     "items": items, "total": total, "captions": caps})
     bg = text_layers(ls, caps)
     if still_at is not None:
-        person, mask = person_layer(ls, items)
+        person, mask = person_layer(ls, items, gaze=eye_on(ls))
         audio = mix(ls, items, total)
         out = compose(ls, items, total, caps, bg, person, mask, audio, False, still_frame=int(still_at * FPS))
         log(f"✔ still → {out}")
         return
-    person, mask = person_layer(ls, items)
-    audio = mix(ls, items, total)
     if preview:
-        person_preview(ls, person, mask, audio)
+        eyes = eye_cfg(ls) is not None
+        person, mask = person_layer(ls, items, gaze=eyes)
+        person_preview(ls, person, mask, "person.webm")
+        if eyes:  # the original too: the editor's Eye contact switch flips between them live
+            raw_p, raw_m = person_layer(ls, items, gaze=False)
+            person_preview(ls, raw_p, raw_m, "person_raw.webm")
+        st = stems(ls, items, total)
+        import shutil
+        for k, path in st.items():  # the editor plays these together and filters the voice live - the very files the export mixes
+            shutil.copyfile(path, ls.work("public", f"{k}.wav"))
         import cv2
         ph_, pw_ = cv2.imread(ls.asset(ls.cfg["background"])).shape[:2]
         save_json(ls.work("edit.json"), {"items": items, "total": total, "captions": caps, "speed": 1.0, "photo": [pw_, ph_],
                                          "sounds": getattr(ls, "placed", [])})
         log(f"✔ layers ready ({total / FPS:.1f}s) — the editor puts them together live")
         return
+    person, mask = person_layer(ls, items, gaze=eye_on(ls))
+    audio = mix(ls, items, total)
     compose(ls, items, total, caps, bg, person, mask, audio, preview)
 
 
-def person_preview(ls, person, mask, audio):
+def eye_cfg(ls):
+    """episode.json "eye_contact": {mode, strength, dy, nudge, on} - present = both versions are prepared."""
+    return ls.cfg.get("eye_contact") or None
+
+
+def eye_on(ls):
+    e = eye_cfg(ls)
+    return bool(e) and e.get("on", True)
+
+
+def person_preview(ls, person, mask, name="person.webm"):
     """The person layer for the editor: his video with its mask as transparency (VP9 alpha) and the sound.
     Background, size, position, subtitles and text are stacked on it live; Export uses the same numbers."""
     import hashlib
-    sig = hashlib.md5("|".join([str(os.path.getmtime(x)) for x in (person, mask, audio)] + [grade(ls), str(ls.cfg.get("matte_cut", 175))]).encode()).hexdigest()[:12]
-    out, stamp = ls.work("public", "person.webm"), ls.work("public", "person.stamp")
+    sig = hashlib.md5("|".join([str(os.path.getmtime(x)) for x in (person, mask)] + [grade(ls), str(ls.cfg.get("matte_cut", 175))]).encode()).hexdigest()[:12]
+    out, stamp = ls.work("public", name), ls.work("public", name + ".stamp")
     if os.path.exists(out) and os.path.exists(stamp) and open(stamp).read() == sig:
         return out
     cut = ls.cfg.get("matte_cut", 175)
-    ff("-i", person, "-i", mask, "-i", audio, "-filter_complex",
+    ff("-i", person, "-i", mask, "-filter_complex",
        f"[1:v]lutyuv=y='clip((val-{cut})*255/{255 - cut},0,255)',scale=540:960:flags=bicubic,gblur=sigma=0.7,format=gray[m];"
        f"[0:v]scale=540:960,{grade(ls)},format=yuva420p[p];[p][m]alphamerge[v]",
-       "-map", "[v]", "-map", "2:a", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8",
-       "-row-mt", "1", "-b:v", "2500k", "-auto-alt-ref", "0", "-c:a", "libopus", "-b:a", "128k", out)
+       "-map", "[v]", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8",
+       "-row-mt", "1", "-b:v", "2500k", "-auto-alt-ref", "0", "-an", out)
     open(stamp, "w").write(sig)
     return out
 
 
-def person_layer(ls, items):
-    """The person layer for the whole video: cut pieces (cached by their cut only), joined."""
+def person_layer(ls, items, gaze=False):
+    """The person layer for the whole video: cut pieces (cached by their cut and source), joined."""
     import hashlib
+    tag = ("gaze-" + gaze_sig(ls)) if gaze else "orig"
     vids, masks, todo = [], [], []
     for it in items:
-        key = hashlib.md5(json.dumps({k: it[k] for k in ("kind", "take", "a", "t", "n") if k in it}, sort_keys=True).encode()).hexdigest()[:16]
+        # the eye-contact copy can be redone (NVIDIA retried after a v6 fallback): its time is part of the key
+        gz = ls.work("gaze", f"{it.get('take')}.{gaze_sig(ls)}.mp4") if gaze and it.get("take") else None
+        src_v = int(os.path.getmtime(gz)) if gz and os.path.exists(gz) else 0
+        key = hashlib.md5(json.dumps({**{k: it[k] for k in ("kind", "take", "a", "t", "n") if k in it}, "src": tag, "src_v": src_v,
+                                      "matte": ls.cfg.get("matte_engine", "fast")}, sort_keys=True).encode()).hexdigest()[:16]
         v, m = ls.work("pieces", f"{key}.v.mp4"), ls.work("pieces", f"{key}.m.mp4")
         vids.append(v)
         masks.append(m)
         if not (os.path.exists(v) and os.path.exists(m)):
-            todo.append((it, v, m))
+            todo.append((it, v, m, gaze))
     if todo:
         log(f"  · cutting {len(todo)} new pieces of {len(items)}")
         with ThreadPoolExecutor(max_workers=6) as pool:
             for fu in [pool.submit(piece_atomic, ls, *x) for x in todo]:
                 fu.result()
     out = []
-    for name_, files in (("person", vids), ("mask", masks)):
+    for name_, files in ((f"person.{tag}", vids), (f"mask.{tag}", masks)):
         lst = ls.work("pieces", f"{name_}.txt")
         with open(lst, "w", encoding="utf-8") as fh:
             fh.writelines(f"file '{f.replace(os.sep, '/')}'\n" for f in files)
@@ -648,12 +865,24 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
     last = "v0"
     for k, o in enumerate(ovs):
         a, b = float(o.get("start") or 0), float(o.get("end") or total / FPS)
-        fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]"
+        if o.get("style") == "ticker":
+            # a ticker: a band across the frame, the strip scrolling through it in the direction Hebrew reads (to the
+            # right), looping - the same formula as the editor's live preview
+            import cv2
+            sh_, sw_ = cv2.imread(o["png"], cv2.IMREAD_UNCHANGED).shape[:2]
+            tw, th, ty = int(sw_ * f), int(sh_ * f), int((o.get("y") or 1560) * f)
+            v = float(o.get("speed") or 120) * f
+            band = f"black@{float(o.get('opacity') if o.get('opacity') is not None else 0.55):.2f}"
+            fc += (f";[{last}]drawbox=x=0:y={ty - int(10 * f)}:w=iw:h={th + int(20 * f)}:color={band}:t=fill:enable='between(t,{a:.3f},{b:.3f})'[d{k}]"
+                   f";[{first_ov + k}:v]scale={tw}:{th}[o{k}];[d{k}][o{k}]overlay=x='mod({v:.2f}*t,{w}+{tw})-{tw}':y={ty}:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
+        else:
+            fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]"
         last = f"v{k + 1}"
     fc += f";[{last}]setpts=PTS/{spd},fps={FPS},format=yuv420p[v];[4:a]atempo={spd}[a]"
     if still_frame is not None:
         out = ls.work("still.png")
-        ff(*inputs, "-filter_complex", fc, "-map", "[v]", "-vf" if False else "-ss", f"{still_frame / FPS:.3f}", "-frames:v", "1", out)
+        fc_still = fc.replace(f";[4:a]atempo={spd}[a]", "")  # a frame needs no sound
+        ff(*inputs, "-filter_complex", fc_still, "-map", "[v]", "-ss", f"{still_frame / FPS:.3f}", "-frames:v", "1", out)
         return out
     if preview:
         out, enc = ls.work("public", "preview.mp4"), ["-preset", "veryfast", "-crf", "26"]
@@ -667,7 +896,42 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
     log(f"✔ {out}  ({frames / FPS:.1f}s{f', x{spd}' if spd != 1 else ''})")
 
 
+def new_from(dst, src_slug, input_dir, script=None, takes=None):
+    """episodes/<new> with every setting of an earlier episode of the series (background, music, voice, eye
+    contact, grade, layout, subtitle style, speed) - only the takes and the subtitle text are new."""
+    src = os.path.join(os.path.dirname(os.path.abspath(dst)), src_slug)
+    cfg = load_json(os.path.join(src, "episode.json"))
+    cfg["input_dir"] = input_dir.replace("\\", "/")
+    cfg["takes"] = takes or "IMG_*.MP4"  # the new video's files, not the old episode's
+    if cfg.get("eye_contact"):  # eye contact stays on - by the default (NVIDIA), never an old take's CapCut file or mode
+        cfg["eye_contact"] = {"on": cfg["eye_contact"].get("on", True)}
+    os.makedirs(dst, exist_ok=True)
+    save_json(os.path.join(dst, "episode.json"), cfg)
+    takes = sorted(glob.glob(os.path.join(input_dir, cfg.get("takes", "*.MP4"))))
+    text = ""
+    if script:  # a Reader script (zoomcut/scripts/<id>.txt): its lines become the subtitles
+        lines = open(os.path.join(ROOT, "scripts", script + ".txt"), encoding="utf-8").read().splitlines()
+        text = " ".join(l.strip() for l in lines if l.strip() and not l.startswith("#"))
+    with open(os.path.join(dst, "captions.txt"), "w", encoding="utf-8") as fh:
+        fh.write("# Subtitles, one block per take (in order). Timing is aligned to the audio automatically.\n")
+        for i, t in enumerate(takes):
+            fh.write(f"== {name(t)}\n{text if i == 0 else ''}\n")
+    print(f"✔ {dst}: {len(takes)} takes, settings from {src_slug}" + (f", subtitles from {script}" if script else " - put the text in captions.txt"))
+
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "new":  # lesson.py new episodes/tadar-2 --from tadar-1 --input <folder> [--script <id>]
+        nap = argparse.ArgumentParser()
+        nap.add_argument("cmd")
+        nap.add_argument("episode")
+        nap.add_argument("--from", dest="src", required=True)
+        nap.add_argument("--input", required=True)
+        nap.add_argument("--script")
+        nap.add_argument("--takes", help="which files in the folder, e.g. IMG_9980.MP4 (default: all IMG_*.MP4)")
+        n = nap.parse_args()
+        sys.stdout.reconfigure(encoding="utf-8")
+        new_from(n.episode, n.src, n.input, n.script, n.takes)
+        sys.exit(0)
     ap = argparse.ArgumentParser()
     ap.add_argument("episode")
     ap.add_argument("--still", type=float)

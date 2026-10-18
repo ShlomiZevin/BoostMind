@@ -67,8 +67,10 @@ app.get('/api/ep/:id', (q, res) => {
     const out = path.join(d, 'out', `${q.params.id}.mp4`);
     const prev = w('public/preview.mp4');
     const layer = (f) => (fs.existsSync(w('public/' + f)) ? { url: `/media/${q.params.id}/${f}`, v: fs.statSync(w('public/' + f)).mtimeMs } : null);
+    const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
-      layers: { person: layer('person.webm'), scene: layer('scene.png'), plaque: layer('plaque.png') },
+      layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), scene: layer('scene.png'), plaque: layer('plaque.png'),
+        voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music') },
       preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
       previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
       episode, lesson: { captions: fs.existsSync(path.join(d, 'captions.txt')) ? fs.readFileSync(path.join(d, 'captions.txt'), 'utf8') : '', edit: readJson(w('edit.json')) },
@@ -112,6 +114,41 @@ app.post('/api/ep/:id/layout', (q, res) => {
   if (q.body?.captions_y != null) cfg.captions_y = q.body.captions_y;
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json({ ok: true });
+});
+
+// lesson enhancements (Enhance card): podcast voice, eye contact, music volume, subtitle style - saved; Re-analyze applies them
+app.post('/api/ep/:id/options', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const b = q.body || {};
+  if ('voice' in b) cfg.voice = b.voice || null;
+  if ('eye_contact' in b) cfg.eye_contact = b.eye_contact || null;
+  if ('eye_on' in b && cfg.eye_contact) cfg.eye_contact.on = !!b.eye_on;  // live switch: both versions exist
+  if ('music_gain' in b && cfg.music) cfg.music.gain = Math.max(0, Math.min(1, Number(b.music_gain) || 0));
+  if (b.music_sound && cfg.music) cfg.music.sound = String(b.music_sound);  // the track chosen in the editor
+  if ('captions_style' in b) cfg.captions_style = b.captions_style || null;
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json({ ok: true });
+});
+
+// background music choices: every track in the folder of the episode's current music (live switch in the editor)
+app.get('/api/ep/:id/music', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  if (!cfg.music?.sound) return res.json([]);
+  const dir = path.dirname(path.resolve(d, cfg.music.sound));
+  const rel = path.relative(d, dir).split(path.sep).join('/');
+  res.json(fs.readdirSync(dir).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f) && !/\.(mp3|m4a|ogg|wav)\.[^.]+$/i.test(f)).sort().map((f) => ({
+    name: f.replace(/\.[^.]+$/, ''), sound: `${rel}/${f}`, url: `/api/ep/${q.params.id}/music/${encodeURIComponent(f)}`,
+    on: path.resolve(d, cfg.music.sound) === path.join(dir, f),
+  })));
+});
+app.get('/api/ep/:id/music/:file', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const f = path.join(path.dirname(path.resolve(d, cfg.music?.sound || '.')), path.basename(q.params.file));
+  if (!fs.existsSync(f)) return res.status(404).end();
+  res.sendFile(f);
 });
 
 // lesson speed: saved only — the editor plays the preview at this speed live, Export burns it in
@@ -217,10 +254,45 @@ app.use('/karaoke', express.static('C:/workspace/BoostMind/public/karaoke'));
 app.use('/reader', express.static(path.join(HERE, 'reader')));
 app.use('/studio', express.static(path.join(HERE, 'studio')));  // the shared top bar + the shell
 app.get(['/', '/index.html'], (_q, res) => res.sendFile(path.join(HERE, 'studio', 'index.html')));  // Sketch Studio: rail + tools
+// saved scripts for the Reader (prompter texts, pasted dialogues): zoomcut/scripts/<id>.txt, first line "# name"
+const SCRIPTS = path.join(ROOT, 'scripts');
+const scriptId = (name) => name.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '-').slice(0, 60) || 'script';
+app.get('/api/scripts', (_q, res) => {
+  if (!fs.existsSync(SCRIPTS)) return res.json([]);
+  res.json(fs.readdirSync(SCRIPTS).filter((f) => f.endsWith('.txt')).map((f) => {
+    const first = fs.readFileSync(path.join(SCRIPTS, f), 'utf8').split(/\r?\n/)[0];
+    return { id: f.slice(0, -4), name: first.startsWith('# ') ? first.slice(2) : f.slice(0, -4) };
+  }));
+});
+app.get('/api/scripts/:id', (q, res) => {
+  const f = path.join(SCRIPTS, path.basename(q.params.id) + '.txt');
+  if (!fs.existsSync(f)) return res.status(404).end();
+  res.type('text/plain; charset=utf-8').send(fs.readFileSync(f, 'utf8'));
+});
+app.post('/api/scripts', (q, res) => {
+  const name = String(q.body?.name || '').trim(), id = scriptId(name);
+  fs.mkdirSync(SCRIPTS, { recursive: true });
+  fs.writeFileSync(path.join(SCRIPTS, id + '.txt'), `# ${name}\n${String(q.body?.text || '')}`, 'utf8');
+  res.json({ id });
+});
 app.get('/api/ep/:id/script', (q, res) => {
   const f = path.join(epDir(q.params.id), 'script.txt');
   if (!fs.existsSync(f)) return res.status(404).end();
   res.type('text/plain; charset=utf-8').send(fs.readFileSync(f, 'utf8'));
+});
+// a line edited in the Reader: the whole text comes back (only that line changed in it)
+app.put('/api/scripts/:id', (q, res) => {
+  const f = path.join(SCRIPTS, path.basename(q.params.id) + '.txt');
+  if (!fs.existsSync(f)) return res.status(404).end();
+  fs.writeFileSync(f, String(q.body?.text ?? ''), 'utf8');
+  res.json({ ok: true });
+});
+app.put('/api/ep/:id/script', (q, res) => {
+  const f = path.join(epDir(q.params.id), 'script.txt');
+  if (!fs.existsSync(f)) return res.status(404).end();
+  fs.copyFileSync(f, f + '.bak');  // the version before this edit, just in case
+  fs.writeFileSync(f, String(q.body?.text ?? ''), 'utf8');
+  res.json({ ok: true });
 });
 // a character's look (framing / colour): patch episode.json and the current edit — no rebuild
 app.post('/api/ep/:id/character', (q, res) => {

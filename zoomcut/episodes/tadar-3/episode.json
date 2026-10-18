@@ -1,0 +1,83 @@
+{
+  "type": "lesson",
+  "series": "tadar",
+  "title": "תדר — תודעה גבוהה (3)",
+  "input_dir": "C:/Users/shazbak/Downloads/תדר",
+  "takes": "IMG_9984.MP4",
+  "background": "../_assets/tadar/studio.jpg",
+  "plaque": [],
+  "music": {
+    "sound": "../_assets/tadar/music/2 - Dreamy harp.mp3",
+    "gain": 0.2
+  },
+  "eye_contact": {
+    "file": "goodone.mp4",
+    "on": true
+  },
+  "grade": {
+    "warm": 0.07,
+    "saturation": 1.1,
+    "brightness": 0.025,
+    "contrast": 1.05
+  },
+  "matte_engine": "hybrid",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 200
+  },
+  "bg": {
+    "zoom": 1.62,
+    "x": 0,
+    "y": 580
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 70,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "overlays": [
+    {
+      "text": "אף אחת:\nנשים רוחניות שמסבירות על היקום, תדרים, תודעות, קבלה ופיזיקה קוונטית, כשאפשר להבין כל מילה שהן אומרות אבל לא משפט אחד שלם.",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.45,
+      "y": 270,
+      "size": 42,
+      "start": 0,
+      "end": null
+    },
+    {
+      "text": "✨ מוזמנות לסדנת ״מעבר לתדר״ 🔮 חיבור לתודעה הגבוהה דרך עשר הספירות, תדרים אנרגטיים ודואליות קוונטית 🌙 מסע לשחרור החסימות שמונעות מאיתנו לקבל את מה שעוד לא נתנו לעצמנו לשחרר 🕯️ מספר המקומות מוגבל 🤍 להרשמה שלחו ״תדר״ בפרטי 💫",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.55,
+      "y": 1560,
+      "size": 40,
+      "speed": 130,
+      "start": 0,
+      "end": null
+    }
+  ],
+  "speed": 1.05,
+  "voice": {
+    "denoise": true,
+    "lowcut": 120,
+    "warmth": 3,
+    "box": -3,
+    "presence": 4,
+    "deess": 0.5,
+    "comp": 0.9,
+    "preset": "radio",
+    "boost": 0
+  },
+  "cut": {
+    "silence": false
+  }
+}

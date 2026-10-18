@@ -161,7 +161,7 @@ export const ovBoxStyle = (o: { theme?: string; opacity?: number; size?: number 
   return {
     background: o.theme === 'light' || !o.theme ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`,
     color: gold ? '#FFD60A' : o.theme === 'dark' ? '#fff' : '#000', fontSize: size, lineHeight: 1.25, padding: '12px 24px',
-    borderRadius: 14, direction: 'rtl', textAlign: 'center', maxWidth: 940, letterSpacing: gold ? '0.045em' : undefined, ...font,
+    borderRadius: 14, direction: 'rtl', textAlign: 'center', maxWidth: 940, letterSpacing: gold ? '0.045em' : undefined, whiteSpace: 'pre-line', ...font,
     ...(gold ? { WebkitTextStroke: `${Math.round(size * 0.17)}px #000`, paintOrder: 'stroke fill' } as any : {}),
     textShadow: op < 0.6 ? (o.theme === 'light' || !o.theme ? '0 1px 4px rgba(255,255,255,0.7)' : '0 2px 6px rgba(0,0,0,0.8)') : undefined,
   };
@@ -179,7 +179,7 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
   const t = (k: string, d: string) => (p.ui && p.ui[k]) || d;
   const shot = p.shots.find((s) => frame >= s.from && frame < s.from + s.dur) || p.shots[p.shots.length - 1];
   // the POV band: a top caption that sits between the Zoom bar and the tiles pushes the call down
-  const POV_Y = 158;
+  const POV_Y = 270;  // below the app's own header (Reels / TikTok tabs cover the top ~250px)
   const ovY = (o: { style: string; y?: number | null }, i: number) => o.y ?? (o.style === 'label' ? 1180 : POV_Y + i * 150);
   const hasPov = (p.overlays || []).some((o, i) => o.style === 'pov' && ovY(o, i) < POV_TOP - 40);
   const rects = shot ? layout(shot.layout, shot.order, hasPov ? POV_TOP : TOP) : {};
