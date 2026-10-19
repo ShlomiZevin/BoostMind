@@ -1202,7 +1202,19 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                       whiteSpace: 'nowrap', overflow: 'hidden' }}>{(rest.length ? rest.join('|') : tag).trim()}</div>
                   </div>;
                 })())}
-                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && (
+                {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'question' && (() => {
+                  // a follower's question, the way a story shows it - the same card as the export (lesson_text.mjs)
+                  const w = o.w || 880, size = o.size || 44;
+                  return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 300, left: o.x ?? (1080 - w) / 2, width: w,
+                    background: '#fff', borderRadius: 34, padding: '28px 40px 34px', boxSizing: 'border-box', textAlign: 'center', direction: 'rtl',
+                    boxShadow: '0 14px 40px rgba(0,0,0,0.35)', fontFamily: fontCss('assistant'), pointerEvents: 'auto', cursor: 'move',
+                    outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>
+                    <div style={{ display: 'inline-block', background: o.accent || '#8b5cf6', color: '#fff', fontWeight: 700, fontSize: Math.round(size * 0.6),
+                      padding: `${Math.round(size * 0.14)}px ${Math.round(size * 0.45)}px`, borderRadius: 999, marginBottom: Math.round(size * 0.35) }}>{o.label || 'שאלה מהעוקבות'}</div>
+                    <div style={{ color: '#111', fontWeight: 800, fontSize: size, lineHeight: 1.3 }}>{o.text}</div>
+                  </div>;
+                })())}
+                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && (
                   <div key={i} style={{ position: 'absolute', top: o.y ?? 270, left: 60, right: 60, display: 'flex', justifyContent: 'center' }}>
                     {/* click to select, drag to move; the outline hugs the text whatever its size */}
                     <div className="he" onMouseDown={(e) => dragText(e, i)}

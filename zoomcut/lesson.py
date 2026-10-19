@@ -574,6 +574,59 @@ def layout(ls):
     return pw, ph, (W - pw) // 2 + p.get("x", 0), H - ph + p.get("y", 0)
 
 
+def find_phrase(words, phrase, after=0.0, last=False):
+    """Where he says a phrase (its first words, or with last=True its last ones): (start, end) in the take, or None."""
+    want = [norm(t) for t in phrase.split() if norm(t)]
+    want = want[-4:] if last else want[:4]
+    have = [norm(w["w"]) for w in words]
+    best, at = 0.0, None
+    for i in range(len(words) - len(want) + 1):
+        if words[i]["s"] < after - 0.01:
+            continue
+        r = difflib.SequenceMatcher(a=want, b=have[i:i + len(want)], autojunk=False).ratio()
+        if r > best + 1e-6:
+            best, at = r, i
+    if at is None or best < 0.6:
+        return None
+    return words[at]["s"], words[at + len(want) - 1]["e"]
+
+
+def time_overlays(ls, items, total):
+    """Overlays tied to what he says ("from_words", "to_words", "take"): their start / end follow the cut. One with
+    no "to_words" stays until the next one tied to words starts (a question until the next question), or the end."""
+    ov = ls.cfg.get("overlays") or []
+    tied = [o for o in ov if o.get("from_words")]
+    if not tied:
+        return
+    after = {}
+    for o in tied:
+        take = o.get("take") or name(ls.takes[0])
+        words = load_json(ls.work("words", take + ".json"), [])
+        hit = None  # "from_words" may list alternatives: the question read aloud, else the answer's first words
+        for ph in (o["from_words"] if isinstance(o["from_words"], list) else [o["from_words"]]):
+            hit = find_phrase(words, ph, after.get(take, 0.0))
+            if hit:
+                break
+        if not hit:
+            log(f"  · overlay words not heard: {str(o['from_words'])[:60]}")
+            continue
+        after[take] = hit[0]
+        o["start"] = round(out_time(items, take, hit[0]) or 0.0, 2)
+        if o.get("to_words"):
+            end = find_phrase(words, o["to_words"], hit[0], last=True)
+            o["end"] = round(out_time(items, take, end[1]) + o.get("hold", 0.4), 2) if end else None
+        else:
+            o["end"] = None
+    timed = sorted([o for o in tied if o.get("start") is not None], key=lambda o: o["start"])
+    for o, nxt in zip(timed, timed[1:] + [None]):
+        if o.get("end") is None:
+            o["end"] = round(nxt["start"] - 0.1, 2) if nxt else round(total / FPS, 2)
+    p = ls.p("episode.json")  # the editor shows them where they now are
+    cfg = load_json(p)
+    cfg["overlays"] = ov
+    save_json(p, cfg)
+
+
 def overlays(ls):
     """Text on video - the same items (text, font, theme, opacity, y, size, start/end) the Zoom template uses."""
     ov = ls.cfg.get("overlays")
@@ -1001,6 +1054,7 @@ def build(ls, still_at=None, preview=False):
     items, total = plan(ls)
     log(f"  · cut: {sum(1 for i in items if i['kind'] == 'clip')} pieces, {total / FPS:.1f}s "
         f"(raw {sum(len(read_wav(ls.work('audio16', name(t) + '.wav'))[0]) / 16000 for t in ls.takes):.1f}s)")
+    time_overlays(ls, items, total)
     caps = captions(ls, items, total)
     # keep what the editor needs from the last preview (photo size, sounds) - a still or an export must not wipe it
     prev_edit = load_json(ls.work("edit.json"), {}) or {}

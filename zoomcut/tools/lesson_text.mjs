@@ -65,6 +65,19 @@ for (const it of spec.items) {
           color: '#fff', font: '700 22px "zc-assistant", "Segoe UI", sans-serif', padding: '3px 10px', borderRadius: '6px', direction: 'rtl' });
         d.appendChild(tg);
       }
+    } else if (it.kind === 'overlay' && it.style === 'question') {
+      // a follower's question, the way a story shows it (a white card, a small label, the question in black)
+      const w = it.w || 880, size = it.size || 44;
+      Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 300}px`, left: `${it.x ?? (1080 - w) / 2}px`, width: `${w}px`,
+        background: '#ffffff', borderRadius: '34px', padding: '28px 40px 34px', boxSizing: 'border-box', textAlign: 'center', direction: 'rtl',
+        boxShadow: '0 14px 40px rgba(0,0,0,0.35)', fontFamily: '"zc-assistant", "Segoe UI", sans-serif' });
+      const lb = document.createElement('div'), q = document.createElement('div');
+      Object.assign(lb.style, { display: 'inline-block', background: it.accent || '#8b5cf6', color: '#fff', fontWeight: '700', fontSize: `${Math.round(size * 0.6)}px`,
+        padding: `${Math.round(size * 0.14)}px ${Math.round(size * 0.45)}px`, borderRadius: '999px', marginBottom: `${Math.round(size * 0.35)}px` });
+      Object.assign(q.style, { color: '#111111', fontWeight: '800', fontSize: `${size}px`, lineHeight: '1.3' });
+      lb.textContent = it.label || 'שאלה מהעוקבות';
+      q.textContent = it.text;
+      d.append(lb, q);
     } else if (it.kind === 'overlay' && it.style === 'band') {
       // a news lower third: a red tag (before "|") and a deep-blue band (after it), across the frame
       const [tag, ...rest] = String(it.text).split('|');

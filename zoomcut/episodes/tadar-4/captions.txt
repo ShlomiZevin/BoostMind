@@ -1,0 +1,1 @@
+# Subtitles, one block per take (in order). Filled from the video + the spiritual-2 script.

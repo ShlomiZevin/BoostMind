@@ -1,0 +1,116 @@
+{
+  "type": "lesson",
+  "series": "tadar",
+  "title": "תדר — שאלות מהעוקבות (spiritual-2)",
+  "input_dir": "C:/Users/shazbak/Downloads/תדר",
+  "takes": "NEW_VIDEO.MP4",
+  "background": "../_assets/tadar/studio.jpg",
+  "plaque": [],
+  "music": {
+    "sound": "../_assets/tadar/music/2 - Dreamy harp.mp3",
+    "gain": 0.2
+  },
+  "eye_contact": {
+    "on": true
+  },
+  "grade": {
+    "warm": 0.07,
+    "saturation": 1.1,
+    "brightness": 0.025,
+    "contrast": 1.05
+  },
+  "matte_engine": "hybrid",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 200
+  },
+  "bg": {
+    "zoom": 1.62,
+    "x": 0,
+    "y": 580
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 70,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "overlays": [
+    {
+      "style": "question",
+      "text": "אני כבר שנתיים בתהליך של התעוררות רוחנית, עזבתי את העבודה, ניתקתי קשר עם המשפחה ואני מרגישה שהיקום לא מחזיר לי את האנרגיה שאני משקיעה. יכול להיות שאני בתדר גבוה מדי?",
+      "label": "שאלה מהעוקבות",
+      "from_words": [
+        "אני כבר שנתיים בתהליך",
+        "קודם כול תביני שתדר"
+      ],
+      "y": 230,
+      "w": 860,
+      "size": 40,
+      "start": null,
+      "end": null
+    },
+    {
+      "style": "question",
+      "text": "בן הזוג שלי אומר שאני לא מחוברת למציאות. אבל אני מרגישה שהוא פשוט נמצא בתדר נמוך ולא מצליח להכיל את ההתפתחות שלי. איך אני משחררת אותו בלי לפגוע בקארמה שלנו?",
+      "label": "שאלה מהעוקבות",
+      "from_words": [
+        "בן הזוג שלי אומר",
+        "זו שאלה מאוד מאוד מדויקת"
+      ],
+      "y": 230,
+      "w": 860,
+      "size": 40,
+      "start": null,
+      "end": null
+    },
+    {
+      "style": "question",
+      "text": "אני כבר שמונה חודשים עושה זימונים לשפע, אבל המינוס רק גדל. יכול להיות שהחשבון שלי עדיין נמצא בתודעת מחסור?",
+      "label": "שאלה מהעוקבות",
+      "from_words": [
+        "אני כבר שמונה חודשים",
+        "וואו את נוגעת פה"
+      ],
+      "y": 230,
+      "w": 860,
+      "size": 40,
+      "start": null,
+      "end": null
+    },
+    {
+      "text": "✨ מוזמנות לסדנת ״מעבר לתדר״ 🔮 חיבור לתודעה הגבוהה דרך עשר הספירות, תדרים אנרגטיים ודואליות קוונטית 🌙 מסע לשחרור החסימות שמונעות מאיתנו לקבל את מה שעוד לא נתנו לעצמנו לשחרר 🕯️ מספר המקומות מוגבל 🤍 להרשמה שלחו ״תדר״ בפרטי 💫",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.55,
+      "y": 1560,
+      "size": 40,
+      "speed": 130,
+      "start": 0,
+      "end": null
+    }
+  ],
+  "speed": 1.05,
+  "voice": {
+    "denoise": true,
+    "lowcut": 120,
+    "warmth": 3,
+    "box": -3,
+    "presence": 4,
+    "deess": 0.5,
+    "comp": 0.9,
+    "preset": "radio",
+    "boost": 0
+  },
+  "cut": {
+    "silence": false
+  },
+  "denoise": {
+    "rnn": "models/rnnoise/cb.rnnn"
+  }
+}
