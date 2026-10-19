@@ -857,7 +857,9 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   const frameRef = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [tab, setTab] = useState<'script' | 'media' | 'templates'>('script');
+  const [tab, setTab] = useState<'script' | 'media' | 'templates'>('media');
+  const [subView, setSubView] = useState<'read' | 'lines'>('read');
+  const [wide, setWide] = useState(false);
   type Layer = 'captions' | 'speaker' | 'background' | 'music';
   const [sel, setSel] = useState<{ kind: 'take'; k: number } | { kind: 'text'; i: number } | { kind: 'layer'; id: Layer } | null>(null);
   const [caps, setCaps] = useState<string>(data.lesson?.captions || '');
@@ -1018,7 +1020,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   const [txtEdit, setTxtEdit] = useState<{ n: number; text: string } | null>(null);
   const nowCap = (edit?.captions || []).findIndex((c: any) => !c.over && t * fps * k >= c.from && t * fps * k < c.to);
   useEffect(() => {  // the reading view follows the video
-    const el = document.querySelector('.rd-w.now');
+    const el = document.querySelector('.rd-w.now, .sl-row.now');
     if (el && playing) (el as HTMLElement).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [nowCap]);
   const saveTake = async (n: number, text: string) => {
@@ -1158,15 +1160,37 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   return (
     <div className="ed" style={{ ['--tl-h' as any]: '290px' }}>
       {top}
-      <div className="work">
+      <div className={`work ${wide && tab === 'script' ? 'wide' : ''}`}>
         <div className="pane left">
           <div className="tabs">
-            {(['script', 'media', 'templates'] as const).map((x) => (
-              <div key={x} className={`tab ${tab === x ? 'on' : ''}`} onClick={() => setTab(x)}>{x === 'script' ? 'Script' : x === 'media' ? 'Media' : '+ New video'}</div>))}
+            {(['media', 'script', 'templates'] as const).map((x) => (
+              <div key={x} className={`tab ${tab === x ? 'on' : ''}`} onClick={() => setTab(x)}>{x === 'script' ? 'Subtitles' : x === 'media' ? 'Media' : '+ New video'}</div>))}
             <div className="grow" />
           </div>
+          {tab === 'script' && <div className="sub-bar">
+            <div className="seg" style={{ gridTemplateColumns: '1fr 1fr', width: 170 }}>
+              <button className={subView === 'read' ? 'on' : ''} onClick={() => setSubView('read')}>Read</button>
+              <button className={subView === 'lines' ? 'on' : ''} onClick={() => setSubView('lines')}>Lines</button>
+            </div>
+            <span className="sub-count">{(edit?.captions || []).length} lines</span>
+            <button className="btn ghost icon" title={wide ? 'Narrow' : 'Widen the dock'} onClick={() => setWide(!wide)}>{wide ? '⇤' : '⇥'}</button>
+          </div>}
           <div className="scroll">
-            {tab === 'script' && (
+            {tab === 'script' && subView === 'lines' && (
+              <div className="sl">
+                {(edit?.captions || []).map((c: any, ci: number) => { const on = t * fps * k >= c.from && t * fps * k < c.to;
+                  return <div key={ci} className={`sl-row rd-w-line ${on ? 'now' : ''} ${c.over || c.who ? 'other' : ''}`} onClick={() => capEdit?.i !== ci && seek(c.from / fps / k)}>
+                    <span className="sl-t">{mmss(c.from / fps / k)}</span>
+                    {capEdit?.i === ci
+                      ? <input className="field he" dir="rtl" autoFocus value={capEdit.text} onChange={(e) => setCapEdit({ i: ci, text: e.target.value })}
+                          onKeyDown={(e) => { if (e.key === 'Enter') editCaption(ci, capEdit.text); if (e.key === 'Escape') setCapEdit(null); }} onBlur={() => setCapEdit(null)} />
+                      : <span className="sl-x he">{c.text}</span>}
+                    {!(c.over || c.who) && capEdit?.i !== ci && <button className="cap-ed" title="Fix the words of this line" disabled={busy}
+                      onClick={(e) => { e.stopPropagation(); setCapEdit({ i: ci, text: c.text }); }}>✎</button>}
+                  </div>; })}
+                <div className="help" style={{ padding: '10px 18px' }}>Click a line to go there · ✎ fixes its words (Enter saves; the timing follows your voice) · blue = the other side.</div>
+              </div>)}
+            {tab === 'script' && subView === 'read' && (
               <div className="rd">
                 {blocks.map((b, n) => {
                   const its = (edit?.items || []).filter((x: any) => x.take === b.take && x.kind === 'clip');
@@ -1392,7 +1416,9 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <Slider label="Height" v={capY} min={900} max={1700} step={5} fmt={(v) => `${v}`} onChange={(v) => { setCapY(v); saveLayout({ captions_y: v }); }} />
               </div>
               <div className="card">
-                <div className="card-h"><div className="title grow">All subtitles</div><span className="help" style={{ margin: 0 }}>{(edit?.captions || []).length} lines · click = go there</span></div>
+                <button className="btn" style={{ width: '100%' }} onClick={() => { setTab('script'); setSubView('lines'); }}>Review all subtitles ({(edit?.captions || []).length} lines) →</button>
+              </div>
+              {false && <div className="card">
                 <div className="cap-list" ref={capRef}>
                   {(edit?.captions || []).map((c: any, ci: number) => { const on = t * fps * k >= c.from && t * fps * k < c.to;
                     return <div key={ci} className={`cap-row ${on ? 'on' : ''} ${c.who ? 'other' : ''}`} onClick={() => capEdit?.i !== ci && seek(c.from / fps / k)}>
@@ -1405,8 +1431,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                         onClick={(e) => { e.stopPropagation(); setCapEdit({ i: ci, text: c.text }); }}>✎</button>}
                     </div>; })}
                 </div>
-                <div className="help" style={{ marginTop: 6 }}>✎ fixes one line (Enter saves, the timing follows your voice). Blue lines are the other side's.</div>
-              </div>
+              </div>}
               <div className="card">
                 <div className="sec">Wording</div>
                 <div className="help" style={{ marginBottom: 8 }}>The subtitles follow your script, timed to your voice. Pick a take to edit its words.</div>
