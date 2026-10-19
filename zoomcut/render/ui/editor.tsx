@@ -78,12 +78,10 @@ const I = {
 
 // ---------- app ------------------------------------------------------------------------
 function Editor() {
-  const [eps, setEps] = useState<{ id: string; title: string; done?: boolean }[]>([]);
-  const toggleDone = async () => {
-    const cur = eps.find((e) => e.id === ep);
-    if (!cur) return;
-    await api(`/api/ep/${ep}/done`, { done: !cur.done });
-    setEps(eps.map((e) => (e.id === ep ? { ...e, done: !cur.done } : e)));
+  const [eps, setEps] = useState<Proj[]>([]);
+  const setDone = async (id: string, done: boolean) => {
+    setEps((l) => l.map((e) => (e.id === id ? { ...e, done } : e)));
+    await api(`/api/ep/${id}/done`, { done });
   };
   const [ep, setEp] = useState(store.get('zc-ep') || '');
   const [data, setData] = useState<Data | null>(null);
@@ -266,12 +264,8 @@ function Editor() {
         {/* @ts-ignore - the shared studio bar (render/studio/bar.js) */}
         <studio-nav app="video"></studio-nav>
         <div className="proj">
-          <select value={ep} onChange={(e) => setEp(e.target.value)} style={{ color: eps.find((e) => e.id === ep)?.done ? 'var(--dim)' : undefined }}>
-            {eps.map((e) => <option key={e.id} value={e.id} style={{ color: e.done ? '#7d7d7d' : undefined }}>{e.done ? `✓ ${e.id} · done` : e.id}</option>)}
-          </select>
+          <ProjectPicker eps={eps} ep={ep} onPick={setEp} onDone={setDone} />
         </div>
-        <button className="btn ghost" title="Mark this project done - it shows with a ✓ in the list" onClick={toggleDone}
-          style={eps.find((e) => e.id === ep)?.done ? { color: 'var(--accent)' } : undefined}>{eps.find((e) => e.id === ep)?.done ? '✓ Done' : 'Mark done'}</button>
         <div className="chip">Template: {lessonData ? 'Rabbi Lesson' : 'Zoom Call'}</div>
         <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>
         <div className="grow" />
@@ -1449,6 +1443,56 @@ function TickerStrip({ o, clock }: { o: Overlay; clock: () => number }) {
   return (
     <div ref={ref} className="he" style={{ position: 'relative', display: 'inline-block', whiteSpace: 'nowrap', padding: '10px 40px', willChange: 'transform',
       font: `800 ${size}px/1.25 ${fontCss(o.font || 'assistant')}, "Segoe UI Emoji"`, color: o.theme === 'gold' ? '#FFD60A' : '#fff', direction: 'rtl' }}>{o.text}</div>
+  );
+}
+
+type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
+
+// the project menu: in progress first (newest on top), then Done (dimmed); a ✓ on each row marks it done in place
+function ProjectPicker({ eps, ep, onPick, onDone }: { eps: Proj[]; ep: string; onPick: (id: string) => void; onDone: (id: string, done: boolean) => void }) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('mousedown', away); window.addEventListener('keydown', esc);
+    return () => { window.removeEventListener('mousedown', away); window.removeEventListener('keydown', esc); };
+  }, [open]);
+  const cur = eps.find((e) => e.id === ep);
+  const match = (e: Proj) => !q || `${e.id} ${e.title}`.toLowerCase().includes(q.toLowerCase());
+  const day = (ms?: number) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
+  const row = (e: Proj) => (
+    <div key={e.id} className={`pp-row ${e.id === ep ? 'on' : ''} ${e.done ? 'done' : ''}`} onClick={() => { onPick(e.id); setOpen(false); setQ(''); }}>
+      <button className={`pp-check ${e.done ? 'on' : ''}`} title={e.done ? 'Done - click to reopen' : 'Mark as done'}
+        onClick={(ev) => { ev.stopPropagation(); onDone(e.id, !e.done); }}>{e.done ? '✓' : ''}</button>
+      <div className="pp-main">
+        <div className="pp-id">{e.id}{e.test && <span className="pp-tag">test</span>}</div>
+        {e.title && e.title !== e.id && <div className="pp-title he">{e.title}</div>}
+      </div>
+      <div className="pp-meta"><span>{e.template}</span><span>{day(e.created)}</span></div>
+    </div>
+  );
+  const active = eps.filter((e) => !e.done && match(e)), done = eps.filter((e) => e.done && match(e));
+  return (
+    <div className="pp" ref={box}>
+      <button className="pp-btn" onClick={() => setOpen(!open)}>
+        <span className="pp-label">PROJECT</span>
+        <span className={cur?.done ? 'pp-cur done' : 'pp-cur'}>{cur?.done ? '✓ ' : ''}{ep}</span>
+        <span className="pp-caret">▾</span>
+      </button>
+      {open && <div className="pp-pop">
+        <input className="field pp-search" autoFocus placeholder="Search projects" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="pp-list">
+          {active.length > 0 && <div className="pp-sec">In progress · {active.length}</div>}
+          {active.map(row)}
+          {done.length > 0 && <div className="pp-sec">Done · {done.length}</div>}
+          {done.map(row)}
+          {!active.length && !done.length && <div className="pp-empty">No project matches.</div>}
+        </div>
+      </div>}
+    </div>
   );
 }
 

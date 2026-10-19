@@ -58,7 +58,8 @@ app.get('/api/episodes', (_q, res) => {
   const list = fs.readdirSync(EPS).filter((d) => fs.existsSync(path.join(EPS, d, 'episode.json')));
   res.json(list.map((id) => {
     const cfg = readJson(path.join(EPS, id, 'episode.json'), {});
-    return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs };
+    return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs,
+      template: cfg.type === 'lesson' ? 'Lesson' : 'Zoom', test: id.endsWith('-test') };
   }).sort((a, b) => b.created - a.created));
 });
 
