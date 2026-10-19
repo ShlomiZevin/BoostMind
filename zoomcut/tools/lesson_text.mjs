@@ -82,16 +82,17 @@ for (const it of spec.items) {
         d.appendChild(c);
       });
     } else if (it.kind === 'overlay' && it.style === 'question') {
-      // a follower's question, the way a story shows it (a white card, a small label, the question in black)
-      const w = it.w || 880, size = it.size || 44;
+      // a follower's question as Instagram's question sticker: a dark bar with the small prompt, a white body
+      const w = it.w || 860, size = it.size || 44;
       Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 300}px`, left: `${it.x ?? (1080 - w) / 2}px`, width: `${w}px`,
-        background: '#ffffff', borderRadius: '34px', padding: '28px 40px 34px', boxSizing: 'border-box', textAlign: 'center', direction: 'rtl',
-        boxShadow: '0 14px 40px rgba(0,0,0,0.35)', fontFamily: '"zc-assistant", "Segoe UI", sans-serif' });
+        borderRadius: `${Math.round(size * 0.5)}px`, overflow: 'hidden', textAlign: 'center', direction: 'rtl',
+        boxShadow: '0 6px 18px rgba(0,0,0,0.18)', fontFamily: '"Segoe UI", "zc-assistant", sans-serif' });
       const lb = document.createElement('div'), q = document.createElement('div');
-      Object.assign(lb.style, { display: 'inline-block', background: it.accent || '#8b5cf6', color: '#fff', fontWeight: '700', fontSize: `${Math.round(size * 0.6)}px`,
-        padding: `${Math.round(size * 0.14)}px ${Math.round(size * 0.45)}px`, borderRadius: '999px', marginBottom: `${Math.round(size * 0.35)}px` });
-      Object.assign(q.style, { color: '#111111', fontWeight: '800', fontSize: `${size}px`, lineHeight: '1.3' });
-      lb.textContent = it.label || 'שאלה מהעוקבות';
+      Object.assign(lb.style, { background: it.accent || '#262626', color: '#ffffff', fontWeight: '500', fontSize: `${Math.round(size * 0.62)}px`,
+        padding: `${Math.round(size * 0.55)}px ${Math.round(size * 0.6)}px` });
+      Object.assign(q.style, { background: '#ffffff', color: '#262626', fontWeight: '500', fontSize: `${size}px`, lineHeight: '1.32',
+        padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` });
+      lb.textContent = it.label || 'שאלו אותי שאלה';
       q.textContent = it.text;
       d.append(lb, q);
     } else if (it.kind === 'overlay' && it.style === 'band') {

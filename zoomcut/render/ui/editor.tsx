@@ -1066,7 +1066,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
     };
     window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
   };
-  const liveOv = ov.filter((o) => ((o.text || '').trim() || (o as any).image) && t >= (o.start || 0) && (o.end == null || t < o.end));
+  const untimed = (o: any) => (o.from_words || o.sound != null) && o.start == null;  // tied to words / a sound: shown once a build has placed it
+  const liveOv = ov.filter((o) => ((o.text || '').trim() || (o as any).image) && !untimed(o) && t >= (o.start || 0) && (o.end == null || t < o.end));
   // the opening video: full frame over the set, under the texts, in step with the clock
   const introRef = useRef<HTMLVideoElement>(null);
   const introSecs = data.episode.intro_video?.seconds ?? 5;
@@ -1215,15 +1216,16 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                   </div>;
                 })())}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'question' && (() => {
-                  // a follower's question, the way a story shows it - the same card as the export (lesson_text.mjs)
-                  const w = o.w || 880, size = o.size || 44;
+                  // a follower's question as Instagram's question sticker - the same card as the export (lesson_text.mjs)
+                  const w = o.w || 860, size = o.size || 44;
                   return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 300, left: o.x ?? (1080 - w) / 2, width: w,
-                    background: '#fff', borderRadius: 34, padding: '28px 40px 34px', boxSizing: 'border-box', textAlign: 'center', direction: 'rtl',
-                    boxShadow: '0 14px 40px rgba(0,0,0,0.35)', fontFamily: fontCss('assistant'), pointerEvents: 'auto', cursor: 'move',
+                    borderRadius: Math.round(size * 0.5), overflow: 'hidden', textAlign: 'center', direction: 'rtl', boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+                    fontFamily: `"Segoe UI", ${fontCss('assistant')}`, pointerEvents: 'auto', cursor: 'move',
                     outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>
-                    <div style={{ display: 'inline-block', background: o.accent || '#8b5cf6', color: '#fff', fontWeight: 700, fontSize: Math.round(size * 0.6),
-                      padding: `${Math.round(size * 0.14)}px ${Math.round(size * 0.45)}px`, borderRadius: 999, marginBottom: Math.round(size * 0.35) }}>{o.label || 'שאלה מהעוקבות'}</div>
-                    <div style={{ color: '#111', fontWeight: 800, fontSize: size, lineHeight: 1.3 }}>{o.text}</div>
+                    <div style={{ background: o.accent || '#262626', color: '#fff', fontWeight: 500, fontSize: Math.round(size * 0.62),
+                      padding: `${Math.round(size * 0.55)}px ${Math.round(size * 0.6)}px` }}>{o.label || 'שאלו אותי שאלה'}</div>
+                    <div style={{ background: '#fff', color: '#262626', fontWeight: 500, fontSize: size, lineHeight: 1.32,
+                      padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` }}>{o.text}</div>
                   </div>;
                 })())}
                 {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && (

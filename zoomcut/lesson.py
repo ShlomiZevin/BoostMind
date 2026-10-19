@@ -648,7 +648,8 @@ def overlays(ls):
     ov = ls.cfg.get("overlays")
     if ov is None and ls.cfg.get("title"):
         ov = [{"text": ls.cfg["title"], "style": "pov", "font": "stam-ashkenaz", "theme": "gold", "opacity": 0, "y": 270, "size": 64}]
-    out = [o for o in (ov or []) if (o.get("text") or "").strip() or o.get("image")]
+    out = [o for o in (ov or []) if ((o.get("text") or "").strip() or o.get("image"))
+           and not ((o.get("from_words") or o.get("sound") is not None) and o.get("start") is None)]  # not placed yet: not drawn
     for o in out:
         if o.get("image"):
             o["image_abs"] = ls.asset(o["image"]).replace("\\", "/")
