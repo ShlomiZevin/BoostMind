@@ -147,6 +147,8 @@ def prepare(ls):
                         open(fell_back, "w").close()
                     log(f"  · eye contact {n} ({'v6, NVIDIA fallback' if mode == 'nvidia' else mode})")
         mk = matte_path(ls, n)
+        if ls.cfg.get("cutout") is False:  # their own place stays: no cut-out needed
+            continue
         if not os.path.exists(mk) and ls.cfg.get("matte_engine") == "hybrid":
             hybrid_matte(ls, t, n)
             log(f"  · cut out {n} (hybrid: quality + the head kept)")
@@ -343,6 +345,8 @@ def spans(ls, n):
         if len(loud):
             a, b = (i0 + loud[0]) * hop, (i0 + loud[-1] + 1) * hop
         tight.append([max(0.0, a - c["pad_in"]), min(dur, b + c["pad_out"])])
+    if c.get("whole"):  # nobody talks in it (a reaction, a stare): the whole take
+        tight = [[0.0, dur]]
     keep = (c.get("keep_pauses") or {}).get(n, [])  # {"<take>": [[from, to], ...]}: he is listening there - never cut
     if keep and tight:
         joined = [tight[0]]
@@ -535,10 +539,10 @@ def captions(ls, items, total):
                     caps.append({"from": int(a), "text": text, "take": n, "end_hint": to_out(items, n, times[chunk[-1]][1])})
                 chunk = []
     other = []
-    for s in ls.cfg.get("sounds", []):
-        if s.get("captions") and ("end_word" in s or "start_word" in s):
-            o0, _ = sound_place(ls, items, s)
-            o0 -= s.get("from", 0.0)
+    pl = placed_sounds(ls, items)
+    for si, s in enumerate(ls.cfg.get("sounds", [])):
+        if s.get("captions") and si in pl:
+            o0 = pl[si][0] - s.get("from", 0.0)
             other += [{"from": int((o0 + a) * FPS), "to": int((o0 + b) * FPS), "text": tx, "who": "other", "over": True}
                       for a, b, tx in s["captions"]]
     for it in items:
@@ -595,8 +599,20 @@ def time_overlays(ls, items, total):
     """Overlays tied to what he says ("from_words", "to_words", "take"): their start / end follow the cut. One with
     no "to_words" stays until the next one tied to words starts (a question until the next question), or the end."""
     ov = ls.cfg.get("overlays") or []
+    by_sound = [o for o in ov if o.get("sound") is not None]
+    if by_sound:
+        pl = placed_sounds(ls, items)
+        for o in by_sound:
+            if o["sound"] in pl:
+                a, b = pl[o["sound"]]
+                o["start"], o["end"] = round(max(0.0, a - 0.05), 2), round(b + o.get("hold", 0.35), 2)
     tied = [o for o in ov if o.get("from_words")]
     if not tied:
+        if by_sound:
+            p = ls.p("episode.json")
+            cfg = load_json(p)
+            cfg["overlays"] = ov
+            save_json(p, cfg)
         return
     after = {}
     for o in tied:
@@ -828,6 +844,9 @@ def piece(ls, it, out_v, out_m, gaze=False):
 
 def mask_piece(ls, take, t, n, enc, out_m, freeze=False):
     """His mask for a piece, with the desk's still mask (keep_png) added - the real desk stays in front of the set."""
+    if ls.cfg.get("cutout") is False:  # the whole frame is the person layer
+        ff("-f", "lavfi", "-i", f"color=c=white:s={MATTE_W * 2}x{MATTE_H * 2}:r={FPS}", "-vf", "format=gray", "-frames:v", str(n), *enc, out_m)
+        return
     mk = matte_path(ls, take)
     vf = f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2},format=gray" + (f",loop=loop={n}:size=1:start=0" if freeze else "")
     keep = keep_png(ls, take)
@@ -850,6 +869,9 @@ def piece_atomic(ls, it, out_v, out_m, gaze=False):
 # how a voice sounds coming out of a device in the room (insert / sound "filter": "phone" | "speaker")
 SOUND_FILTERS = {
     "phone": "highpass=f=380,lowpass=f=3000,acompressor",
+    # an inner voice, as films do it: very close, a little warmth, a soft short echo around it, even level
+    "thought": ("highpass=f=95,lowpass=f=9000,equalizer=f=220:t=q:w=1:g=2,equalizer=f=3000:t=q:w=1.2:g=1.5,"
+                "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,aecho=0.85:0.6:38|77|121:0.24|0.14|0.08"),
     # a laptop's small speakers: no lows, a boxy mid bump, a little crunch, then his room around it
     "speaker": ("highpass=f=330,highpass=f=330,lowpass=f=7000,equalizer=f=1200:t=q:w=1.1:g=5,equalizer=f=3200:t=q:w=1.4:g=3,"
                 "equalizer=f=500:t=q:w=1:g=-3,acompressor=threshold=-22dB:ratio=5:attack=4:release=60,"
@@ -931,6 +953,18 @@ def stems(ls, items, total):
     voice (raw and noise-reduced), effects (phone, the other side of a call), music (at full level)."""
     voice = voice_stem(ls, items, total)
     voice_dn = voice_stem(ls, items, total, denoise=True)
+    ducks = [(pl, s["duck"]) for i, (s, pl) in enumerate((s, placed_sounds(ls, items).get(i)) for i, s in enumerate(ls.cfg.get("sounds", [])))
+             if s.get("duck") and pl]
+    if ducks:  # films lower the room while we hear a thought
+        g = np.ones(len(voice), np.float32)
+        r = int(0.08 * SR)
+        for (a, b), db in ducks:
+            i0, i1 = max(0, int(a * SR) - r), min(len(g), int(b * SR) + r)
+            env = np.ones(i1 - i0, np.float32) * (10 ** (db / 20))
+            env[:r] = np.linspace(1, env[r] if len(env) > r else 1, min(r, len(env)))
+            env[-r:] = np.linspace(env[-r - 1] if len(env) > r else 1, 1, min(r, len(env)))
+            g[i0:i1] = np.minimum(g[i0:i1], env)
+        voice, voice_dn = voice * g, voice_dn * g[:len(voice_dn)]
     fx, music = fx_and_music(ls, items, total)
     return {"voice": write_wav(ls.work("stems", "voice.wav"), voice), "voice_dn": write_wav(ls.work("stems", "voice_dn.wav"), voice_dn),
             "fx": write_wav(ls.work("stems", "fx.wav"), fx), "music": write_wav(ls.work("stems", "music.wav"), music)}
@@ -950,9 +984,32 @@ def mix(ls, items, total):
     return final
 
 
-def sound_place(ls, items, s):
+PLACED = ("end_word", "start_word", "at", "after_prev")
+
+
+def placed_sounds(ls, items):
+    """{index in "sounds": (start, end) in seconds of the video} for every sound placed on the cut, in order
+    (a thought "after_prev" follows the one before it)."""
+    out, prev = {}, None
+    for i, s in enumerate(ls.cfg.get("sounds", [])):
+        if any(k in s for k in PLACED):
+            out[i] = sound_place(ls, items, s, prev)
+            prev = out[i][1]
+    return out
+
+
+def sound_place(ls, items, s, prev_end=None):
     """A sound that ends where he reacts: {"take", "end_word", "end_after" (seconds in his take, to find the right one),
     "end_offset", "from"/"to" (the part of the sound file)} -> (start, end) in seconds of the video."""
+    dur = (s["to"] if s.get("to") is not None else len(load_sound(ls.asset(s["sound"]), s.get("filter"))) / SR) - s.get("from", 0.0)
+    if "after_prev" in s:  # a gap (seconds) after the previous placed sound ends
+        o = (prev_end or 0.0) + float(s["after_prev"])
+        return o, o + dur
+    if "at" in s:  # a moment of the take (seconds)
+        o = out_time(items, s.get("take") or name(ls.takes[0]), float(s["at"]))
+        if o is None:
+            raise SystemExit(f"sound {s} could not be placed")
+        return o, o + dur
     words = load_json(ls.work("words", s["take"] + ".json"), [])
     end = "end_word" in s
     key = "end" if end else "start"
@@ -960,7 +1017,6 @@ def sound_place(ls, items, s):
     o = out_time(items, s["take"], t)
     if o is None:
         raise SystemExit(f"sound {s} could not be placed")
-    dur = (s["to"] if s.get("to") is not None else len(load_sound(ls.asset(s["sound"]), s.get("filter"))) / SR) - s.get("from", 0.0)
     return (o - dur, o) if end else (o, o + dur)
 
 
@@ -1000,9 +1056,15 @@ def fx_and_music(ls, items, total):
         out[:len(seg)] += seg[: len(out)]
     # sounds that run under him while he keeps talking (episode.json "sounds"): a phone ringing until he
     # answers, the wife mumbling through the phone for the whole call - nothing waits for them
-    for snd_cfg in ls.cfg.get("sounds", []):
-        if "end_word" in snd_cfg or "start_word" in snd_cfg:
-            o0, o1 = sound_place(ls, items, snd_cfg)
+    pl = placed_sounds(ls, items)
+    for si, snd_cfg in enumerate(ls.cfg.get("sounds", [])):
+        if si in pl:
+            o0, o1 = pl[si]
+            if snd_cfg.get("chime"):  # an effect with it (a whoosh / pop as a thought bubble appears)
+                ch = snd_cfg["chime"]
+                cs = load_sound(ls.asset(ch["sound"])) * ch.get("gain", 0.6)
+                ca = max(0, int((o0 + ch.get("at", 0.0)) * SR))
+                out[ca:ca + len(cs)] += cs[:max(0, len(out) - ca)]
             snd = load_sound(ls.asset(snd_cfg["sound"]), snd_cfg.get("filter") or snd_cfg.get("phone"))
             a0 = int(snd_cfg.get("from", 0) * SR)
             seg = snd[a0:a0 + int((o1 - o0) * SR)].copy() * snd_cfg.get("gain", 0.8)
@@ -1134,7 +1196,8 @@ def person_layer(ls, items, gaze=False):
                                       "hide": bool((it.get("insert") or {}).get("hide")),
                                       "footage": (it.get("insert") or {}).get("footage"),
                                       "keep": (ls.cfg.get("keep") or {}).get(((it.get("insert") or {}).get("footage") or {}).get("take") or it.get("take")),
-                                      "matte": ls.cfg.get("matte_engine", "fast")}, sort_keys=True).encode()).hexdigest()[:16]
+                                      "matte": ls.cfg.get("matte_engine", "fast") if ls.cfg.get("cutout") is not False else "none"},
+                                     sort_keys=True).encode()).hexdigest()[:16]
         v, m = ls.work("pieces", f"{key}.v.mp4"), ls.work("pieces", f"{key}.m.mp4")
         vids.append(v)
         masks.append(m)
@@ -1238,6 +1301,10 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
             band = f"black@{float(o.get('opacity') if o.get('opacity') is not None else 0.55):.2f}"
             fc += (f";[{last}]drawbox=x=0:y={ty - int(10 * f)}:w=iw:h={th + int(20 * f)}:color={band}:t=fill:enable='between(t,{a:.3f},{b:.3f})'[d{k}]"
                    f";[{first_ov + k}:v]scale={tw}:{th}[o{k}];[d{k}][o{k}]overlay=x='mod({v:.2f}*t,{w}+{tw})-{tw}':y={ty}:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
+        elif o.get("style") == "thought":
+            fd = 0.15
+            fc += (f";[{first_ov + k}:v]scale={w}:{h},format=rgba,fade=t=in:st={a:.3f}:d={fd}:alpha=1,"
+                   f"fade=t=out:st={max(a, b - fd):.3f}:d={fd}:alpha=1[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
         else:
             fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]"
         last = f"v{k + 1}"

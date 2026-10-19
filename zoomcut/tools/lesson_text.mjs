@@ -65,6 +65,22 @@ for (const it of spec.items) {
           color: '#fff', font: '700 22px "zc-assistant", "Segoe UI", sans-serif', padding: '3px 10px', borderRadius: '6px', direction: 'rtl' });
         d.appendChild(tg);
       }
+    } else if (it.kind === 'overlay' && it.style === 'thought') {
+      // a comic thought bubble: a soft white cloud, the thought inside, small circles trailing down toward the head
+      const w = it.w || 760, size = it.size || 46, right = it.tail === 'right';
+      Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 260}px`, left: `${it.x ?? (1080 - w) / 2}px`, width: `${w}px` });
+      const b = document.createElement('div');
+      Object.assign(b.style, { background: '#ffffff', borderRadius: '999px', padding: `${Math.round(size * 0.8)}px ${Math.round(size * 1.3)}px`, textAlign: 'center',
+        direction: 'rtl', color: '#1a1a1a', fontFamily: '"zc-assistant", "Segoe UI", sans-serif', fontWeight: '700', fontSize: `${size}px`, lineHeight: '1.25',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.30)' });
+      b.textContent = it.text;
+      d.appendChild(b);
+      [[34, 30, 26], [22, 70, 18], [14, 100, 12]].forEach(([s, dy, x]) => {
+        const c = document.createElement('div');
+        Object.assign(c.style, { position: 'absolute', width: `${s}px`, height: `${s}px`, borderRadius: '50%', background: '#ffffff', top: `calc(100% + ${dy - s}px)`,
+          [right ? 'right' : 'left']: `${x}%`, boxShadow: '0 4px 12px rgba(0,0,0,0.25)' });
+        d.appendChild(c);
+      });
     } else if (it.kind === 'overlay' && it.style === 'question') {
       // a follower's question, the way a story shows it (a white card, a small label, the question in black)
       const w = it.w || 880, size = it.size || 44;

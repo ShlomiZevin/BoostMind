@@ -1,0 +1,66 @@
+{
+  "type": "lesson",
+  "series": "gym",
+  "title": "המכון — הבלונים של סיגל",
+  "input_dir": "C:/Users/shazbak/Downloads/מכון",
+  "takes": "*.MP4",
+  "background": "../_assets/gym/gym.jpg",
+  "plaque": [],
+  "music": {
+    "sound": "../_assets/gym/bed.mp3",
+    "gain": 0.3
+  },
+  "matte_engine": "hybrid",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1.0,
+    "x": 0,
+    "y": 0
+  },
+  "bg": {
+    "zoom": 1.15,
+    "x": 0,
+    "y": 200
+  },
+  "captions_y": 1330,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 66,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "voice": "natural",
+  "denoise": {
+    "rnn": "models/rnnoise/cb.rnnn"
+  },
+  "cut": {
+    "merge": 0.6,
+    "pad_in": 0.08,
+    "pad_out": 0.35,
+    "join": 0.08,
+    "above_floor": 28,
+    "voice_above_floor": 38
+  },
+  "overlays": [
+    {
+      "text": "POV: הבחור במכון שמנהל את העסק של הבלונים מההליכון, וכל המכון כבר יודע מה סיגל לוקחת.",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.75,
+      "y": 270,
+      "size": 48,
+      "padX": 40,
+      "padY": 14,
+      "start": 0,
+      "end": null
+    }
+  ],
+  "sounds": [],
+  "_todo": [
+    "beep.mp3 (treadmill speed up) right after 'בהכול' - (מעלה מהירות בהליכון)",
+    "the pause after 'בקשת!' and before 'סיגל, אני אגיד לך' are listening beats: keep_pauses",
+    "eye contact off: he talks on the phone, not to the camera"
+  ]
+}

@@ -1202,6 +1202,18 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                       whiteSpace: 'nowrap', overflow: 'hidden' }}>{(rest.length ? rest.join('|') : tag).trim()}</div>
                   </div>;
                 })())}
+                {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'thought' && (() => {
+                  // a comic thought bubble - the same cloud as the export (lesson_text.mjs), fading in and out like it
+                  const w = o.w || 760, size = o.size || 46, right = o.tail === 'right';
+                  const op = Math.max(0, Math.min(1, (t - (o.start || 0)) / 0.15, o.end == null ? 1 : (o.end - t) / 0.15));
+                  return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 260, left: o.x ?? (1080 - w) / 2, width: w,
+                    opacity: op, pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }}>
+                    <div style={{ background: '#fff', borderRadius: 999, padding: `${Math.round(size * 0.8)}px ${Math.round(size * 1.3)}px`, textAlign: 'center', direction: 'rtl',
+                      color: '#1a1a1a', fontFamily: fontCss('assistant'), fontWeight: 700, fontSize: size, lineHeight: 1.25, boxShadow: '0 10px 30px rgba(0,0,0,0.30)' }}>{o.text}</div>
+                    {[[34, 30, 26], [22, 70, 18], [14, 100, 12]].map(([s, dy, x], k) => <div key={k} style={{ position: 'absolute', width: s, height: s, borderRadius: '50%', background: '#fff',
+                      top: `calc(100% + ${dy - s}px)`, [right ? 'right' : 'left']: `${x}%`, boxShadow: '0 4px 12px rgba(0,0,0,0.25)' }} />)}
+                  </div>;
+                })())}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'question' && (() => {
                   // a follower's question, the way a story shows it - the same card as the export (lesson_text.mjs)
                   const w = o.w || 880, size = o.size || 44;
@@ -1214,7 +1226,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     <div style={{ color: '#111', fontWeight: 800, fontSize: size, lineHeight: 1.3 }}>{o.text}</div>
                   </div>;
                 })())}
-                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && (
+                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && (
                   <div key={i} style={{ position: 'absolute', top: o.y ?? 270, left: 60, right: 60, display: 'flex', justifyContent: 'center' }}>
                     {/* click to select, drag to move; the outline hugs the text whatever its size */}
                     <div className="he" onMouseDown={(e) => dragText(e, i)}

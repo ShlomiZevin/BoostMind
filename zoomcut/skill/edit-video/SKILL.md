@@ -250,3 +250,17 @@ same buttons (Re-analyze = layers, Export, Export & send). What he signed off on
   `voice_above_floor` 38); light trims (`pad_out` 0.35) - his faces/gestures live in the pauses; `keep_pauses` where the
   other side talks; `lead_in` = 1-2 s before his first word (the take's first seconds are him starting the phone);
   `end_at` = a hard cut mid-word on the punchline. Eye contact OFF (he looks at the screen / a colleague).
+
+### Building blocks added 2026-10-19 (lesson template) - use them, don't rebuild them
+- **Follower question** (story-style card): overlay `style: "question"` {text, label, y, w, size, accent}; timed by
+  `from_words` (a list of alternatives: the question read aloud, else the answer's first words) - stays until the next
+  question. Lives in tools/lesson_text.mjs + editor.tsx (same numbers). Series "tadar" (spiritual-2 / tadar-4).
+- **Thoughts** (Gen Z): `sounds` with `"filter": "thought"` (close inner voice, soft echo), `"duck": -12` (the room goes
+  down under it), placed `"at"` (take seconds) or `"after_prev"` (gap after the previous sound), `"chime"` (whoosh / pop
+  as it starts); overlay `style: "thought"` with `"sound": <index>` = a comic cloud that fades in/out with that sound.
+- **No cut-out**: `"cutout": false` keeps the person's own place (no background swap, no matte run).
+  `"cut": {"whole": true}` keeps the whole take (a stare - no speech to cut on).
+- Overlays tied to words or sounds get their start/end written back into episode.json at every build (the editor
+  shows them in place); `_todo` / `sounds_pending` keys are notes for the next session, ignored by the code.
+- Gym series (gym-1): `_assets/gym/` set + `bed.mp3` (gym music through ceiling speakers + treadmill ambience, one
+  music bed) + `beep.mp3` (treadmill speed-up). Gen Z series (genz-1): `_assets/genz/` whoosh, pop, black.jpg.
