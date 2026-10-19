@@ -267,7 +267,8 @@ function Editor() {
         <div className="proj">
           <ProjectPicker eps={eps} ep={ep} onPick={setEp} onDone={setDone} />
         </div>
-        <div className="chip">Template: {lessonData ? 'Rabbi Lesson' : 'Zoom Call'}</div>
+        <div className="chip" title={lessonData ? 'One person to camera: monologues, Q&A, a desk sketch with an off-screen voice' : 'Several people in a video meeting'}>
+          {lessonData ? 'Solo · one person' : 'Zoom call · several people'}</div>
         <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>
         <div className="grow" />
         {busy && <button className="btn" onClick={async () => setJob(await api(`/api/ep/${ep}/cancel`, {}))}>{I.stop} Stop</button>}
@@ -956,6 +957,71 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   const [capStyle, setCapStyle] = useState<any>(data.episode.captions_style || null);
   const optTimer = useRef<any>(null);
   const saveOpt = (body: any) => { clearTimeout(optTimer.current); optTimer.current = setTimeout(() => api(`/api/ep/${ep}/options`, body), 250); };
+  // tool buttons that change how the layers are made: saved, then the layers are rebuilt (a slider waits until you stop)
+  const cfgTimer = useRef<any>(null);
+  const setConfig = (patch: any, rebuild = true, wait = 0) => {
+    clearTimeout(cfgTimer.current);
+    cfgTimer.current = setTimeout(async () => { const j = await api(`/api/ep/${ep}/config`, { patch, rebuild }); if (rebuild && j) setJob(j); }, wait);
+  };
+  const [lib, setLib] = useState<{ sets: any[]; effects: any[] }>({ sets: [], effects: [] });
+  useEffect(() => { api('/api/library').then((l) => l && setLib(l)); }, []);
+  const [fx, setFx] = useState<any[]>(data.episode.sounds || []);
+  useEffect(() => setFx(data.episode.sounds || []), [ep]);
+  const changeFx = (next: any[]) => { setFx(next); setConfig({ sounds: next }, true, 900); };
+  const [addingFx, setAddingFx] = useState(false);
+  const takeAt = (sec: number) => {  // a moment of the video -> the take and its own time (effects are pinned to the take)
+    const f = sec * fps * k;
+    const it = (edit?.items || []).find((x: any) => x.kind === 'clip' && f >= x.out && f < x.out + x.n) || (edit?.items || []).find((x: any) => x.kind === 'clip');
+    return it ? { take: it.take, t: +(it.a + Math.max(0, f - it.out) / fps).toFixed(2) } : null;
+  };
+  const cutPreset = (() => { const c = data.episode.cut || {}; return c.whole ? 'whole' : c.silence === false ? 'keep' : (c.pad_out ?? 0.1) >= 0.3 ? 'light' : 'tight'; })();
+  const CUTS: Record<string, any> = { tight: { merge: 0.25, pad_in: 0.05, pad_out: 0.1, join: 0.18 }, light: { merge: 0.6, pad_in: 0.08, pad_out: 0.35, join: 0.08 },
+    keep: { silence: false }, whole: { whole: true } };
+  const setCut = (name: string) => {
+    const c = { ...(data.episode.cut || {}) };
+    for (const key of ['merge', 'pad_in', 'pad_out', 'join', 'silence', 'whole']) delete c[key];
+    setConfig({ cut: { ...c, ...CUTS[name] } });
+  };
+  const keepFrac = (() => { const kp = data.episode.keep?.['*']; return kp ? Math.round((1 - (kp.below_frac ?? 1)) * 100) : 0; })();
+  const [keepPct, setKeepPct] = useState(keepFrac);
+  const noise = !voice.denoise ? 'off' : data.episode.denoise?.rnn ? 'strong' : 'standard';
+  const setNoise = (m: string) => {
+    changeVoice({ denoise: m !== 'off' });
+    if (m === 'strong' && !data.episode.denoise?.rnn) setConfig({ denoise: { rnn: 'models/rnnoise/cb.rnnn' } });
+    if (m === 'standard' && data.episode.denoise?.rnn) setConfig({ denoise: null });
+  };
+  const addOverlay = (kind: string) => {
+    const now = +t.toFixed(2);
+    const base: Record<string, any> = {
+      hook: { text: 'פוב: ', style: 'pov', font: 'assistant', theme: 'dark', opacity: 0.75, y: 270, size: 48, padX: 40, padY: 14, start: 0, end: null },
+      question: { text: 'השאלה של העוקבת', style: 'question', label: 'יש לכן שאלות? אני כאן', y: 240, w: 820, size: 34, label_size: 32, start: now, end: +(now + 6).toFixed(2) },
+      thought: { text: 'מחשבה...', style: 'thought', y: 1150, size: 70, start: now, end: +(now + 3).toFixed(2) },
+      band: { text: 'כותרת | טקסט', style: 'band', y: 1500, size: 44, opacity: 0.94, start: now, end: +(now + 5).toFixed(2) },
+      ticker: { text: 'טקסט רץ ●', style: 'ticker', font: 'assistant', theme: 'dark', opacity: 0.55, y: 1560, size: 40, speed: 130, start: 0, end: null },
+    };
+    const next = [...ov, base[kind] as any];
+    changeOv(next); setSel({ kind: 'text', i: next.length - 1 });
+  };
+  // one subtitle line edited in place: its words are swapped inside its take's text, then the layers rebuild
+  const [capEdit, setCapEdit] = useState<{ i: number; text: string } | null>(null);
+  const editCaption = async (ci: number, text: string) => {
+    const c = edit?.captions?.[ci];
+    const n = blocks.findIndex((b) => b.take === c?.take);
+    if (!c || n < 0 || !text.trim() || text.trim() === c.text) { setCapEdit(null); return; }
+    const toks = blocks[n].text.split(/\s+/), want = c.text.split(' ');
+    const same = (edit.captions as any[]).filter((x, j) => j < ci && x.take === c.take && x.text === c.text).length;  // the n-th time these words appear
+    let hit = -1, seen = 0;
+    for (let i = 0; i + want.length <= toks.length; i++) {
+      if (toks.slice(i, i + want.length).join(' ') === c.text) { if (seen === same) { hit = i; break; } seen++; }
+    }
+    if (hit < 0) { setCapEdit(null); return; }
+    const nextText = [...toks.slice(0, hit), text.trim(), ...toks.slice(hit + want.length)].join(' ');
+    const next = head + blocks.map((b, i) => `== ${b.take}\n${i === n ? nextText : b.text}\n`).join('');
+    setCaps(next); setCapEdit(null);
+    setJob(await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) }));
+  };
+  const capRef = useRef<HTMLDivElement>(null);
+  const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture' };
   const changeVoice = (patch: any) => { const v = { ...voice, ...patch }; setVoice(v); saveOpt({ voice: v }); };
 
   // the live sound: the video is the clock; voice (raw + noise-reduced), effects and music play beside it
@@ -1110,15 +1176,34 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 {!blocks.length && <div className="empty" style={{ padding: 16 }}>No captions.txt yet.</div>}
               </div>)}
             {tab === 'media' && (
-              <div className="lines">
-                {blocks.map((b, n) => (
-                  <div key={b.take} className="ln" onClick={() => { setTab('script'); setSel({ kind: 'take', k: n }); seek(takeStart(b.take)); }}>
-                    <div className="n">{n + 1}</div><div style={{ minWidth: 0 }}><div className="t">{b.take}</div></div>
-                  </div>))}
+              <div className="media">
+                <div className="m-sec">Footage <span>{data.episode.input_dir?.split('/').pop()}</span></div>
+                {blocks.map((b, n) => { const its = (edit?.items || []).filter((x: any) => x.take === b.take && x.kind === 'clip');
+                  const used = its.reduce((s: number, x: any) => s + x.n, 0) / fps;
+                  return <div key={b.take} className="m-row" onClick={() => { setSel({ kind: 'take', k: n }); seek(takeStart(b.take)); }}>
+                    <div className="m-ic">{I.phone}</div>
+                    <div className="m-main"><div className="m-name he">{b.take}</div><div className="m-sub">uses {mmss(used)} · {its.length} pieces</div></div>
+                  </div>; })}
+                <div className="m-sec">Set</div>
+                <div className="m-row" onClick={() => setSel({ kind: 'layer', id: 'background' as Layer })}>
+                  {data.episode.cutout === false ? <><div className="m-ic">{I.layout}</div><div className="m-main"><div className="m-name">Original place</div><div className="m-sub">no background swap</div></div></>
+                    : <><img className="m-thumb" src={`/api/ep/${ep}/file?p=${encodeURIComponent(data.episode.background || '')}`} />
+                      <div className="m-main"><div className="m-name">{(data.episode.background || '').split('/').pop()}</div><div className="m-sub">change it in Background</div></div></>}
+                </div>
+                <div className="m-sec">Sound</div>
+                <div className="m-row" onClick={() => setSel({ kind: 'layer', id: 'music' as Layer })}>
+                  <div className="m-ic">♪</div>
+                  <div className="m-main"><div className="m-name">{data.episode.music ? String(data.episode.music.sound).split('/').pop() : 'No music'}</div>
+                    <div className="m-sub">{data.episode.music ? `${Math.round(musicGain * 100)}% · ` : ''}{(data.episode.sounds || []).length} effects / voices</div></div>
+                </div>
+                {(data.episode.sounds || []).map((s: any, n: number) => <div key={n} className="m-row sm" onClick={() => setSel({ kind: 'layer', id: 'music' as Layer })}>
+                  <div className="m-dot" /><div className="m-main"><div className="m-sub" style={{ color: 'var(--dim)' }}>{String(s.sound).split('/').pop()}{s.filter ? ` · ${s.filter}` : ''}</div></div></div>)}
+                <div className="m-sec">Library <span>{lib.sets.length} sets · {lib.effects.length} effects</span></div>
+                <div className="help" style={{ padding: '0 12px' }}>Everything made for earlier videos is here for this one: sets in Background, effects in Music &amp; sounds.</div>
               </div>)}
             {tab === 'templates' && (
               <>
-                <div className="tpl"><h4>Rabbi Lesson</h4><p>One speaker, takes in order: tight cut with overlapping joins, his background removed and a set behind him, holy-style subtitles, sounds under his speech (phone, off-screen voices).</p></div>
+                <div className="tpl"><h4>Solo · one person</h4><p>One person to camera, takes in order: monologues, Q&amp;A, a desk sketch with an off-screen voice. Cut, background removal or the original place, subtitles, voice filters, effects, question cards and animated thoughts - all as buttons in the panels.</p></div>
                 <div className="tpl"><h4>Zoom Call</h4><p>A corporate video call in vertical format: gallery, speaker and duo layouts, interruptions, reaction shots, live captions, host events.</p></div>
               </>)}
           </div>
@@ -1269,15 +1354,43 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
 
             {sel?.kind === 'layer' && sel.id === 'captions' && <>
               <div className="card">
-                <div className="sec">Style</div>
+                <div className="card-h"><div className="title grow">Style</div><span className="help" style={{ margin: 0 }}>live</span></div>
                 <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                  <button className={!capStyle ? 'on' : ''} onClick={() => { setCapStyle(null); saveOpt({ captions_style: null }); }}>Holy yellow</button>
-                  <button className={capStyle ? 'on' : ''} onClick={() => { setCapStyle(CAP_STYLES.clean); saveOpt({ captions_style: CAP_STYLES.clean }); }}>Clean white</button>
+                  <button className={!capStyle ? 'on' : ''} onClick={() => { setCapStyle(null); saveOpt({ captions_style: null }); }}>Yellow · Stam</button>
+                  <button className={capStyle ? 'on' : ''} onClick={() => { setCapStyle(CAP_STYLES.clean); saveOpt({ captions_style: CAP_STYLES.clean }); }}>White · Assistant</button>
                 </div>
+                {capStyle && <>
+                  <div className="row2" style={{ marginTop: 10 }}><label>Font</label>
+                    <select className="field" value={capStyle.font || 'assistant'} onChange={(e) => { const v = { ...capStyle, font: e.target.value }; setCapStyle(v); saveOpt({ captions_style: v }); }}>
+                      {['assistant', 'arimo', 'abraham', 'stam-ashkenaz', 'stam-sefarad'].map((f) => <option key={f} value={f}>{f.replace('-', ' ')}</option>)}
+                    </select></div>
+                  <Slider label="Size" v={capStyle.size || 64} min={40} max={100} step={2} fmt={(v) => `${v}px`} onChange={(v) => { const n = { ...capStyle, size: v }; setCapStyle(n); saveOpt({ captions_style: n }); }} />
+                  <div className="row2"><label>Colour</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['#ffffff', '#FFD60A', '#8fd3ff', '#ff8fb1'].map((c) => <button key={c} title={c} onClick={() => { const n = { ...capStyle, color: c }; setCapStyle(n); saveOpt({ captions_style: n }); }}
+                        style={{ width: 26, height: 26, borderRadius: '50%', background: c, cursor: 'pointer', border: (capStyle.color || '#ffffff').toLowerCase() === c.toLowerCase() ? '2px solid var(--accent)' : '1px solid var(--edge-2)', outline: 'none' }} />)}
+                    </div></div>
+                </>}
               </div>
               <div className="card">
                 <div className="sec">Position</div>
                 <Slider label="Height" v={capY} min={900} max={1700} step={5} fmt={(v) => `${v}`} onChange={(v) => { setCapY(v); saveLayout({ captions_y: v }); }} />
+              </div>
+              <div className="card">
+                <div className="card-h"><div className="title grow">All subtitles</div><span className="help" style={{ margin: 0 }}>{(edit?.captions || []).length} lines · click = go there</span></div>
+                <div className="cap-list" ref={capRef}>
+                  {(edit?.captions || []).map((c: any, ci: number) => { const on = t * fps * k >= c.from && t * fps * k < c.to;
+                    return <div key={ci} className={`cap-row ${on ? 'on' : ''} ${c.who ? 'other' : ''}`} onClick={() => capEdit?.i !== ci && seek(c.from / fps / k)}>
+                      <span className="cap-t">{mmss(c.from / fps / k)}</span>
+                      {capEdit?.i === ci
+                        ? <input className="field he" dir="rtl" autoFocus value={capEdit.text} onChange={(e) => setCapEdit({ i: ci, text: e.target.value })}
+                            onKeyDown={(e) => { if (e.key === 'Enter') editCaption(ci, capEdit.text); if (e.key === 'Escape') setCapEdit(null); }} onBlur={() => setCapEdit(null)} />
+                        : <span className="cap-x he">{c.text}</span>}
+                      {!c.who && capEdit?.i !== ci && <button className="cap-ed" title="Fix the words of this line" disabled={busy}
+                        onClick={(e) => { e.stopPropagation(); setCapEdit({ i: ci, text: c.text }); }}>✎</button>}
+                    </div>; })}
+                </div>
+                <div className="help" style={{ marginTop: 6 }}>✎ fixes one line (Enter saves, the timing follows your voice). Blue lines are the other side's.</div>
               </div>
               <div className="card">
                 <div className="sec">Wording</div>
@@ -1306,6 +1419,19 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <div className="help">Or drag yourself on the preview.</div>
               </div>
               <div className="card">
+                <div className="card-h"><div className="title grow">Background removal</div><span className="help" style={{ margin: 0 }}>rebuilds</span></div>
+                <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                  <button className={data.episode.cutout !== false ? 'on' : ''} disabled={busy} onClick={() => setConfig({ cutout: null })}>Cut out · new set</button>
+                  <button className={data.episode.cutout === false ? 'on' : ''} disabled={busy} onClick={() => setConfig({ cutout: false })}>Keep original place</button>
+                </div>
+                {data.episode.cutout !== false && <>
+                  <Slider label="Keep desk" v={keepPct} min={0} max={45} step={1} fmt={(v) => (v ? `bottom ${v}%` : 'off')}
+                    onChange={(v) => { setKeepPct(v); const kp = { ...(data.episode.keep || {}) }; if (v) kp['*'] = { below_frac: +(1 - v / 100).toFixed(3), objects: true }; else delete kp['*'];
+                      setConfig({ keep: Object.keys(kp).length ? kp : null }, true, 1200); }} />
+                  <div className="help">The bottom of your real footage (desk, keyboard, props) stays in front of the new set.</div>
+                </>}
+              </div>
+              <div className="card">
                 <div className="card-h"><div className="title grow">Look</div><span className="help" style={{ margin: 0 }}>live · Export uses the same</span></div>
                 {!look && <button className="btn" style={{ width: '100%' }} onClick={() => changeLook({ smooth: 0.5, warm: 0.06, brightness: 0.03, saturation: 1.06 })}>Turn on the live look</button>}
                 {look && <>
@@ -1315,6 +1441,11 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                   <Slider label="Saturation" v={look.saturation ?? 1} min={0.6} max={1.5} step={0.02} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => changeLook({ saturation: v })} />
                 </>}
               </div>
+              {!L.person_raw && <div className="card">
+                <div className="card-h"><div className="title grow">Eye contact</div><span className="help" style={{ margin: 0 }}>off</span></div>
+                <button className="btn" style={{ width: '100%' }} disabled={busy} onClick={() => setConfig({ eye_contact: { on: true } })}>Make eye contact (NVIDIA)</button>
+                <div className="help" style={{ marginTop: 6 }}>Turns your eyes to the lens; takes about 2 minutes per minute of video. Not for scenes where you look at a screen or someone else.</div>
+              </div>}
               {L.person_raw && <div className="card">
                 <div className="sec">Eye contact</div>
                 <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -1334,10 +1465,11 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                   {Object.keys(VOICE_PRESETS).map((k) => <button key={k} className={voice.preset === k ? 'on' : ''}
                     onClick={() => changeVoice({ preset: k, ...VOICE_PRESETS[k] })}>{k[0].toUpperCase() + k.slice(1)}</button>)}
                 </div>
-                <div className="row2"><label>Noise reduction</label>
-                  <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <button className={voice.denoise ? 'on' : ''} onClick={() => changeVoice({ denoise: true })}>On</button>
-                    <button className={!voice.denoise ? 'on' : ''} onClick={() => changeVoice({ denoise: false })}>Off</button>
+                <div className="row2"><label>Noise</label>
+                  <div className="seg" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                    <button className={noise === 'off' ? 'on' : ''} onClick={() => setNoise('off')}>Off</button>
+                    <button className={noise === 'standard' ? 'on' : ''} disabled={busy} onClick={() => setNoise('standard')}>Standard</button>
+                    <button className={noise === 'strong' ? 'on' : ''} disabled={busy} title="RNNoise - takes out air conditioner / fan hum" onClick={() => setNoise('strong')}>Strong</button>
                   </div></div>
                 <Slider label="Boost" v={voice.boost ?? 0} min={-6} max={12} step={0.5} fmt={(v) => `${v > 0 ? '+' : ''}${v} dB`} onChange={(v) => changeVoice({ boost: v })} />
                 <Slider label="Low cut" v={voice.lowcut ?? 60} min={30} max={200} step={5} fmt={(v) => `${v} Hz`} onChange={(v) => changeVoice({ lowcut: v })} />
@@ -1356,6 +1488,15 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <Slider label="Left / right" v={bgL.x} min={-500} max={500} step={2} fmt={(v) => `${v}`} onChange={(v) => setBg({ ...bgL, x: v })} />
                 <Slider label="Up / down" v={bgL.y} min={-700} max={700} step={2} fmt={(v) => `${v}`} onChange={(v) => setBg({ ...bgL, y: v })} />
                 <div className="help">{(data.episode.background || '').split('/').pop()} — or drag it on the preview.</div>
+              </div>
+              <div className="card">
+                <div className="card-h"><div className="title grow">Set</div><span className="help" style={{ margin: 0 }}>click = rebuilds</span></div>
+                <div className="set-grid">
+                  {lib.sets.map((s) => { const on = (data.episode.background || '').endsWith(s.rel);
+                    return <button key={s.rel} className={`set ${on ? 'on' : ''}`} title={`${s.folder} / ${s.name}`} disabled={busy}
+                      onClick={() => !on && setConfig({ background: `../_assets/${s.rel}` })}>
+                      <img src={`/api/asset?p=${encodeURIComponent(s.rel)}`} loading="lazy" /><span>{s.folder}</span></button>; })}
+                </div>
               </div>
               {data.episode.plaque_quad && <div className="card">
                 <div className="sec">Plaque (one line each)</div>
@@ -1381,32 +1522,76 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     onChange={(v) => { setMusicGain(v); saveOpt({ music_gain: v }); }} />
                 </div>
               </> : <div className="empty" style={{ padding: 16 }}>No background music in this episode.</div>}
-              {(edit?.sounds || []).length > 0 && <div className="card">
-                <div className="sec">Sound effects</div>
-                {(edit.sounds || []).map((x: any, n: number) => <div key={n} className="help">{x.name} · {mmss(x.from / k)}–{mmss(x.to / k)}</div>)}
-              </div>}
+              <div className="card">
+                <div className="card-h"><div className="title grow">Sound effects & voices</div><span className="help" style={{ margin: 0 }}>{fx.length}</span></div>
+                {fx.map((s: any, n: number) => { const pl = (edit?.sounds || [])[n];
+                  return <div key={n} className="fx-row">
+                    <div className="fx-top"><button className="fx-play" title="Go there" onClick={() => pl && seek(pl.from / k)}>▶</button>
+                      <span className="fx-name">{String(s.sound).split('/').pop()?.replace(/\.[^.]+$/, '')}</span>
+                      <span className="fx-time">{pl ? mmss(pl.from / k) : ''}</span>
+                      <button className="fx-x" title="Remove" onClick={() => changeFx(fx.filter((_: any, j: number) => j !== n))}>✕</button></div>
+                    <div className="fx-ctl">
+                      <select className="field" value={s.filter || ''} onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, filter: e.target.value || undefined } : x)))}>
+                        <option value="">As recorded</option><option value="speaker">Laptop speaker</option><option value="phone">Phone</option><option value="thought">Thought (inner voice)</option>
+                      </select>
+                      <input type="range" min={0} max={1.5} step={0.05} value={s.gain ?? 0.8} title="Volume" style={{ flex: 1, accentColor: 'var(--accent)' }}
+                        onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, gain: +e.target.value } : x)))} />
+                      <span className="fx-time" style={{ width: 38, textAlign: 'right' }}>{Math.round((s.gain ?? 0.8) * 100)}%</span>
+                    </div>
+                  </div>; })}
+                {!addingFx && <button className="btn" style={{ width: '100%', marginTop: 6 }} disabled={busy} onClick={() => setAddingFx(true)}>+ Add effect at {mmss(t)}</button>}
+                {addingFx && <div className="fx-lib">
+                  <div className="help" style={{ marginBottom: 6 }}>Pick one - it plays from {mmss(t)} (the playhead).</div>
+                  {lib.effects.map((e) => <div key={e.rel} className="fx-lib-row">
+                    <button className="fx-play" title="Listen" onClick={() => { const a = new Audio(`/api/asset?p=${encodeURIComponent(e.rel)}`); a.play(); }}>▶</button>
+                    <button className="fx-pick" onClick={() => { const at = takeAt(t); if (at) changeFx([...fx, { sound: `../_assets/${e.rel}`, take: at.take, at: at.t, gain: 0.6 }]); setAddingFx(false); }}>
+                      {e.name}<span>{e.folder}</span></button></div>)}
+                  <button className="btn ghost" style={{ width: '100%', marginTop: 4 }} onClick={() => setAddingFx(false)}>Cancel</button>
+                </div>}
+              </div>
             </>}
 
             {!sel && <>
               <div className="card">
-                <div className="sec">Layers — click one to edit it</div>
-                <div style={{ display: 'grid', gap: 4 }}>
-                  {ov.map((o, i) => <button key={i} className="btn" style={{ justifyContent: 'flex-start', overflow: 'hidden' }} onClick={() => setSel({ kind: 'text', i })}>
-                    <span style={{ display: 'flex', width: 16 }}>{I.text}</span><span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(o as any).image ? `🖼 ${String((o as any).image).split('/').pop()}` : o.text.split('\n')[0] || 'Text'}</span></button>)}
-                  {([['captions', I.cc, 'Captions'], ['speaker', I.phone, 'Speaker — picture, eyes, voice'], ['background', I.layout, 'Background'], ['music', null, 'Music & sounds']] as const).map(([id, ic, name]) => (
-                    <button key={id} className="btn" style={{ justifyContent: 'flex-start' }} onClick={() => setSel({ kind: 'layer', id: id as Layer })}>
-                      <span style={{ display: 'flex', width: 16 }}>{ic || '♪'}</span>{name}</button>))}
-                  <button className="btn" onClick={addText}>+ Add text</button>
+                <div className="card-h"><div className="title grow">Layers</div><span className="help" style={{ margin: 0 }}>click one to edit it</span></div>
+                <div className="ly-list">
+                  {ov.map((o: any, i) => (
+                    <button key={i} className="ly" onClick={() => setSel({ kind: 'text', i })}>
+                      <span className="ly-ic">{I.text}</span>
+                      <span className="ly-main"><span className="ly-name he">{o.image ? String(o.image).split('/').pop() : (o.text || '').split('\n')[0] || 'Text'}</span>
+                        <span className="ly-sub">{STYLE_NAMES[o.style || 'pov'] || 'Text'} · {o.start == null && (o.from_words || o.sound != null) ? 'placed by the build' : `${mmss(o.start || 0)}${o.end != null ? `–${mmss(o.end)}` : ' → end'}`}</span></span>
+                      <span className="ly-go">›</span>
+                    </button>))}
+                  {([
+                    ['captions', I.cc, 'Captions', `${capStyle?.color === '#ffffff' ? 'White' : capStyle?.color ? 'Colour' : 'Yellow'} · ${(capStyle?.font || 'stam-ashkenaz').replace('-', ' ')} · ${capStyle?.size || 84}px`],
+                    ['speaker', I.phone, 'Speaker', `${voice.preset || 'natural'} voice · ${data.episode.cutout === false ? 'original place' : 'cut out'}${eyeOn && L.person_raw ? ' · eye contact' : ''}${look ? ' · look' : ''}`],
+                    ['background', I.layout, 'Background', data.episode.cutout === false ? 'not used (original place)' : (data.episode.background || '').split('/').pop()],
+                    ['music', null, 'Music & sounds', `${data.episode.music ? `${String(data.episode.music.sound).split('/').pop()?.replace(/\.[^.]+$/, '')} · ${Math.round(musicGain * 100)}%` : 'no music'} · ${(data.episode.sounds || []).length} effects`],
+                  ] as const).map(([id, ic, name, sub]) => (
+                    <button key={id} className="ly" onClick={() => setSel({ kind: 'layer', id: id as Layer })}>
+                      <span className="ly-ic">{ic || '♪'}</span>
+                      <span className="ly-main"><span className="ly-name">{name}</span><span className="ly-sub">{sub}</span></span>
+                      <span className="ly-go">›</span>
+                    </button>))}
+                </div>
+                <div className="add-row"><span className="add-k">Add</span>
+                  {([['hook', 'Hook text'], ['question', 'Question card'], ['thought', 'Thought'], ['band', 'Lower third'], ['ticker', 'Ticker']] as const).map(([kd, nm]) =>
+                    <button key={kd} className="add-chip" onClick={() => addOverlay(kd)}>+ {nm}</button>)}
                 </div>
               </div>
               <div className="card">
+                <div className="card-h"><div className="title grow">Video</div>{edit?.total ? <span className="kv-v">{mmss(edit.total / fps / speed)}</span> : null}</div>
+                <div className="sec">Cut</div>
+                <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                  {([['tight', 'Tight'], ['light', 'Light'], ['keep', 'Keep pauses'], ['whole', 'Whole take']] as const).map(([kc, nm]) =>
+                    <button key={kc} className={cutPreset === kc ? 'on' : ''} disabled={busy} onClick={() => setCut(kc)}>{nm}</button>)}
+                </div>
+                <div className="help" style={{ margin: '6px 0 12px' }}>Tight cuts every pause · Light keeps a breath for faces and gestures · drag any piece's edge on the timeline to pull footage back.</div>
                 <div className="sec">Speed</div>
                 <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)` }}>
                   {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => { setSpeed(v); api(`/api/ep/${ep}/speed`, { speed: v }); }}>{v === 1 ? '1×' : `${v}×`}</button>)}
                 </div>
-                {edit?.total ? <div className="row2" style={{ margin: '8px 0 12px' }}><label>Final video</label>
-                  <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{mmss(edit.total / fps / speed)}{speed !== 1 ? <span style={{ color: 'var(--faint)', fontWeight: 400 }}> · {mmss(edit.total / fps)} at 1×</span> : null}</span></div> : null}
-                <div className="help">Plays live at this speed (the voice keeps its pitch); Export makes the file at this speed.</div>
+                <div className="help" style={{ marginTop: 6 }}>{speed !== 1 && edit?.total ? `${mmss(edit.total / fps)} at 1× → ${mmss(edit.total / fps / speed)}. ` : ''}Plays live at this speed; Export makes the file at it.</div>
               </div>
             </>}
           </div>

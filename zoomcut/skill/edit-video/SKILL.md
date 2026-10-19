@@ -266,3 +266,18 @@ same buttons (Re-analyze = layers, Export, Export & send). What he signed off on
   music bed) + `beep.mp3` (treadmill speed-up). Gen Z series (genz-1): `_assets/genz/` whoosh, pop, black.jpg.
 - **Hook text wording (2026-10-19):** write "פוב:" - never "POV:" - at the start of the hook text. Some videos take no
   prefix at all, only the line itself (Gen Z: "מחשבות של גן זי כשהם תוקעים בך מבט של עז בי לייק:"); use his words as given.
+
+## The editor is the tool - every feature is a button (review round, 2026-10-19)
+Templates are named for what they are: **Solo · one person** (lesson.py: monologue, Q&A, desk sketch with an off-screen
+voice) and **Zoom call · several people**. Never a series name. Anything you add for one video must land as a generic
+button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" chips) - not as a hand-edited setting only.
+- Project panel: Layers list (each with its state) · Add: Hook text / Question card / Thought / Lower third / Ticker ·
+  Video card: Cut (Tight / Light / Keep pauses / Whole take), Speed, final length.
+- Captions: Yellow·Stam / White·Assistant, font, size, colour, height · **All subtitles** list (click = go there, ✎ = fix
+  one line; rebuilds) · per-take text.
+- Speaker: size/position · Background removal (Cut out / Keep original place) + Keep desk (bottom %) · Look ·
+  Eye contact (Make eye contact = NVIDIA, or the On/Off switch once made) · Voice presets incl. Raw · Noise Off / Standard / Strong (RNNoise).
+- Background: zoom/position · Set library (every upright picture in _assets).
+- Music & sounds: beds list + volume · Sound effects & voices: per effect filter (as recorded / laptop speaker / phone /
+  thought), volume, remove, ▶ go there · + Add effect at the playhead from the library (all _assets audio).
+- Media tab: footage used per take, the set, the sound, the library counts. Projects menu: newest first, Done section.

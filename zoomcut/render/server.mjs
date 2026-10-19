@@ -3,6 +3,7 @@
 // and a small API that rewrites corrections.json / episode.json and re-runs the planner.
 import express from 'express';
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -135,6 +136,50 @@ app.post('/api/ep/:id/trim', (q, res) => {
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
 
+// the editor's tool buttons: change a project setting, rebuild the layers when the picture or sound depends on it
+const CONFIG_KEYS = ['cutout', 'keep', 'denoise', 'cut', 'background', 'sounds', 'eye_contact', 'captions_style', 'voice'];
+app.post('/api/ep/:id/config', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const patch = q.body?.patch || {};
+  for (const k of Object.keys(patch)) {
+    if (!CONFIG_KEYS.includes(k)) continue;
+    if (patch[k] === null) delete cfg[k]; else cfg[k] = patch[k];
+  }
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json(q.body?.rebuild ? pub(runJob(q.params.id, ['--preview'])) : { ok: true });
+});
+
+// the library: every set picture and sound effect made so far (episodes/_assets), for any project
+const ASSETS = path.join(EPS, '_assets');
+let libCache = null;
+app.get('/api/library', (_q, res) => {
+  if (!libCache) {
+    const sets = [], effects = [];
+    const walk = (dir, depth) => {
+      for (const f of fs.readdirSync(dir)) {
+        const p = path.join(dir, f), rel = path.relative(ASSETS, p).split(path.sep).join('/');
+        if (fs.statSync(p).isDirectory()) { if (depth < 2) walk(p, depth + 1); continue; }
+        if (/\.(mp3|m4a|ogg|wav)\.[^.]+$/i.test(f) || /^his_|_cut\.|_SOURCE|netanyahu/i.test(f)) continue;
+        const folder = rel.split('/')[0];
+        if (/\.(jpe?g|png)$/i.test(f)) {
+          let v = false;
+          try { const o = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', p]).toString().trim().split(','); v = +o[1] > +o[0]; } catch {}
+          if (v) sets.push({ name: f.replace(/\.[^.]+$/, ''), folder, rel });  // a set = an upright picture (9:16)
+        } else if (/\.(mp3|wav|m4a)$/i.test(f) && !/music\//.test(rel)) effects.push({ name: f.replace(/\.[^.]+$/, ''), folder, rel });
+      }
+    };
+    walk(ASSETS, 0);
+    libCache = { sets, effects };
+  }
+  res.json(libCache);
+});
+app.get('/api/asset', (q, res) => {
+  const f = path.resolve(ASSETS, String(q.query.p || ''));
+  if (!f.startsWith(ASSETS) || !fs.existsSync(f)) return res.status(404).end();
+  res.sendFile(f);
+});
+
 // lesson layout (background zoom/position, his size/position): saved only - the editor shows it live, Export uses it
 app.post('/api/ep/:id/layout', (q, res) => {
   const d = epDir(q.params.id);
@@ -169,7 +214,8 @@ app.get('/api/ep/:id/music', (q, res) => {
   if (!cfg.music?.sound) return res.json([]);
   const dir = path.dirname(path.resolve(d, cfg.music.sound));
   const rel = path.relative(d, dir).split(path.sep).join('/');
-  res.json(fs.readdirSync(dir).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f) && !/\.(mp3|m4a|ogg|wav)\.[^.]+$/i.test(f)).sort().map((f) => ({
+  const effect = /^(sfx_|beep|pop|whoosh|join|phone|ring|wife|intro)/i;  // one-shot effects are not music beds
+  res.json(fs.readdirSync(dir).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f) && !/\.(mp3|m4a|ogg|wav)\.[^.]+$/i.test(f) && !effect.test(f)).sort().map((f) => ({
     name: f.replace(/\.[^.]+$/, ''), sound: `${rel}/${f}`, url: `/api/ep/${q.params.id}/music/${encodeURIComponent(f)}`,
     on: path.resolve(d, cfg.music.sound) === path.join(dir, f),
   })));

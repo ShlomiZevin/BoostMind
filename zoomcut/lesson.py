@@ -192,12 +192,18 @@ def face_boxes(src, out_json):
     return boxes
 
 
+def keep_cfg(ls, take):
+    """The desk / props kept for a take: its own setting, else the one for every take ("*")."""
+    kp = ls.cfg.get("keep") or {}
+    return kp.get(take) or kp.get("*")
+
+
 def keep_png(ls, take):
     """The real things on his desk stay in front of the new set (episode.json "keep": {"<take>": {"below": y,
     "bright_in": [x0, y0, x1, y1]}}, in the take's own pixels): everything under the desk's front edge, and the
     bright objects (a white lamp / mouse) standing on it inside the box. A still mask - the camera does not move -
     OR-ed into his matte, so the desk, the keyboard and the mouse are the take's own pixels, his hands too."""
-    k = (ls.cfg.get("keep") or {}).get(take)
+    k = keep_cfg(ls, take)
     if not k:
         return None
     import hashlib
@@ -217,7 +223,11 @@ def keep_png(ls, take):
     img = np.median(np.stack(frames), axis=0).astype(np.uint8)
     h, w = img.shape[:2]
     m = np.zeros((h, w), np.uint8)
-    m[int(k["below"]):, :] = 255
+    below = int(k["below"]) if "below" in k else int(h * float(k.get("below_frac", 1.0)))
+    k = {**k, "below": below}
+    if k.get("objects") and not k.get("bright_in"):  # the editor's slider: bright things standing on the desk are kept too
+        k["bright_in"] = [0, max(0, below - int(0.22 * h)), w, below]
+    m[below:, :] = 255
     if k.get("bright_in"):
         x0, y0, x1, y1 = k["bright_in"]
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -1221,7 +1231,7 @@ def person_layer(ls, items, gaze=False):
         key = hashlib.md5(json.dumps({**{k: it[k] for k in ("kind", "take", "a", "t", "n") if k in it}, "src": tag, "src_v": src_v,
                                       "hide": bool((it.get("insert") or {}).get("hide")),
                                       "footage": (it.get("insert") or {}).get("footage"),
-                                      "keep": (ls.cfg.get("keep") or {}).get(((it.get("insert") or {}).get("footage") or {}).get("take") or it.get("take")),
+                                      "keep": keep_cfg(ls, ((it.get("insert") or {}).get("footage") or {}).get("take") or it.get("take")),
                                       "matte": ls.cfg.get("matte_engine", "fast") if ls.cfg.get("cutout") is not False else "none"},
                                      sort_keys=True).encode()).hexdigest()[:16]
         v, m = ls.work("pieces", f"{key}.v.mp4"), ls.work("pieces", f"{key}.m.mp4")
