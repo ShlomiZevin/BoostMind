@@ -365,3 +365,19 @@ a { color: inherit; text-decoration: none; }
 .fx-play, .fx-x, .cap-ed, .fx-pick { border-radius: 4px; }
 .fx-lib, .pp-pop { border-radius: 6px; }
 .pp-check { border-radius: 4px; }
+
+/* ---- Script tab: each take read as a paragraph ---- */
+.rd { padding: 4px 0 24px; }
+.rd-take { padding: 14px 18px 16px; border-bottom: 1px solid var(--edge); }
+.rd-h { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.rd-n { width: 20px; height: 20px; border-radius: 4px; background: var(--panel-3); color: var(--dim); font-size: 11px; display: grid; place-items: center; flex: none; }
+.rd-take.now .rd-n { background: var(--accent); color: #fff; }
+.rd-name { flex: 1; font-weight: 700; font-size: 13.5px; cursor: pointer; text-align: left; unicode-bidi: plaintext; }
+.rd-len { font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.rd-ed { height: 26px; padding: 0 10px; font-size: 12px; }
+.rd-p { margin: 0; font-size: 15px; line-height: 1.85; color: var(--dim); text-align: right; }
+.rd-w { cursor: pointer; border-radius: 3px; padding: 1px 0; transition: background .12s, color .12s; }
+.rd-w:hover { color: var(--text); background: var(--panel-3); }
+.rd-w.now { color: var(--text); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); }
+.rd-w.other { color: #8fd3ff; }
+.rd-area { width: 100%; min-height: 320px; height: 52vh; resize: vertical; font-size: 15px; line-height: 1.8; padding: 12px; user-select: text; }

@@ -267,8 +267,6 @@ function Editor() {
         <div className="proj">
           <ProjectPicker eps={eps} ep={ep} onPick={setEp} onDone={setDone} />
         </div>
-        <div className="chip" title={lessonData ? 'One person to camera: monologues, Q&A, a desk sketch with an off-screen voice' : 'Several people in a video meeting'}>
-          {lessonData ? 'Solo · one person' : 'Zoom call · several people'}</div>
         <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>
         <div className="grow" />
         {busy && <button className="btn" onClick={async () => setJob(await api(`/api/ep/${ep}/cancel`, {}))}>{I.stop} Stop</button>}
@@ -1017,6 +1015,17 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
     setJob(await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) }));
   };
   const capRef = useRef<HTMLDivElement>(null);
+  const [txtEdit, setTxtEdit] = useState<{ n: number; text: string } | null>(null);
+  const nowCap = (edit?.captions || []).findIndex((c: any) => !c.over && t * fps * k >= c.from && t * fps * k < c.to);
+  useEffect(() => {  // the reading view follows the video
+    const el = document.querySelector('.rd-w.now');
+    if (el && playing) (el as HTMLElement).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [nowCap]);
+  const saveTake = async (n: number, text: string) => {
+    const next = head + blocks.map((b, i) => `== ${b.take}\n${i === n ? text.trim() : b.text}\n`).join('');
+    setCaps(next); setTxtEdit(null);
+    setJob(await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) }));
+  };
   const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture' };
   const changeVoice = (patch: any) => { const v = { ...voice, ...patch }; setVoice(v); saveOpt({ voice: v }); };
 
@@ -1158,18 +1167,32 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
           </div>
           <div className="scroll">
             {tab === 'script' && (
-              <div className="lines">
-                {blocks.map((b, n) => (
-                  <div key={b.take} className={`ln ${sel?.kind === 'take' && sel.k === n ? 'on' : ''} ${nowTake === b.take ? 'now' : ''}`} onClick={() => { setSel({ kind: 'take', k: n }); seek(takeStart(b.take)); }}>
-                    <div className="n">{n + 1}</div>
-                    <div className="av" style={{ background: 'var(--daniel)' }}>ד</div>
-                    <div style={{ minWidth: 0 }}>
-                      <div className="who he" style={{ textAlign: 'left' }}>{b.take}</div>
-                      <div className="t he">{b.text}</div>
+              <div className="rd">
+                {blocks.map((b, n) => {
+                  const its = (edit?.items || []).filter((x: any) => x.take === b.take && x.kind === 'clip');
+                  const o0 = its.length ? its[0].out : 0, o1 = its.length ? its[its.length - 1].out + its[its.length - 1].n : 0;
+                  const lines = (edit?.captions || []).map((c: any, ci: number) => ({ c, ci }))
+                    .filter(({ c }: any) => c.take === b.take || (c.over && c.from >= o0 && c.from < o1));
+                  return <div key={b.take} className={`rd-take ${nowTake === b.take ? 'now' : ''}`}>
+                    <div className="rd-h">
+                      <span className="rd-n">{n + 1}</span>
+                      <span className="rd-name he" onClick={() => seek(takeStart(b.take))}>{b.take}</span>
+                      <span className="rd-len">{mmss(its.reduce((s: number, x: any) => s + x.n, 0) / fps)}</span>
+                      {txtEdit?.n !== n && <button className="btn ghost rd-ed" disabled={busy} onClick={() => setTxtEdit({ n, text: b.text })}>Edit</button>}
                     </div>
-                    <div className="sdot" style={{ background: 'var(--ok)' }} />
-                  </div>))}
-                {!blocks.length && <div className="empty" style={{ padding: 16 }}>No captions.txt yet.</div>}
+                    {txtEdit?.n === n ? <>
+                      <textarea className="field he rd-area" dir="rtl" autoFocus value={txtEdit.text} onChange={(e) => setTxtEdit({ n, text: e.target.value })} />
+                      <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                        <button className="btn primary" style={{ flex: 1 }} disabled={busy || txtEdit.text.trim() === b.text} onClick={() => saveTake(n, txtEdit.text)}>Save & rebuild</button>
+                        <button className="btn ghost" onClick={() => setTxtEdit(null)}>Cancel</button>
+                      </div>
+                      <div className="help" style={{ marginTop: 8 }}>Words only - the timing follows your voice.</div>
+                    </> : <p className="rd-p he" dir="rtl">
+                      {lines.length ? lines.map(({ c, ci }: any) => <span key={ci} className={`rd-w ${ci === nowCap ? 'now' : ''} ${c.over || c.who ? 'other' : ''}`}
+                        onClick={() => seek(c.from / fps / k)}>{c.text} </span>) : b.text}
+                    </p>}
+                  </div>; })}
+                {!blocks.length && <div className="empty" style={{ padding: 16 }}>No subtitles yet - press Re-analyze.</div>}
               </div>)}
             {tab === 'media' && (
               <div className="media">
