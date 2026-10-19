@@ -150,6 +150,57 @@ app.post('/api/ep/:id/config', (q, res) => {
   res.json(q.body?.rebuild ? pub(runJob(q.params.id, ['--preview'])) : { ok: true });
 });
 
+// "New video": the folders in Downloads that hold footage, and a project made from a template (optionally with an
+// earlier project's settings - same series: set, music, voice, subtitle style)
+const DOWNLOADS = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', 'Downloads');
+const VIDEO = /\.(mp4|mov|m4v)$/i;
+app.get('/api/downloads', (_q, res) => {
+  const out = [];
+  for (const f of fs.readdirSync(DOWNLOADS)) {
+    const p = path.join(DOWNLOADS, f);
+    try {
+      if (!fs.statSync(p).isDirectory()) continue;
+      const vids = fs.readdirSync(p).filter((x) => VIDEO.test(x));
+      if (vids.length) out.push({ name: f, path: p.split(path.sep).join('/'), videos: vids.length, files: vids.slice(0, 8), mtime: fs.statSync(p).mtimeMs });
+    } catch {}
+  }
+  res.json(out.sort((a, b) => b.mtime - a.mtime));
+});
+app.post('/api/new', (q, res) => {
+  const { name, template, folder, from } = q.body || {};
+  const id = String(name || '').trim().toLowerCase().replace(/[^a-z0-9א-ת-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!id || fs.existsSync(path.join(EPS, id))) return res.status(400).json({ error: id ? 'A project with this name exists' : 'Give it a name' });
+  if (!folder || !fs.existsSync(folder)) return res.status(400).json({ error: 'Pick the footage folder' });
+  const dst = path.join(EPS, id);
+  const py = path.join(ROOT, '.venv', 'Scripts', 'python.exe');
+  try {
+    if (template === 'zoom') {
+      execFileSync(py, ['zoomcut.py', 'new', `episodes/${id}`], { cwd: ROOT });
+      const cfg = readJson(path.join(dst, 'episode.json'));
+      cfg.input_dir = folder; cfg.title = name;
+      writeJson(path.join(dst, 'episode.json'), cfg);
+    } else if (from) {
+      execFileSync(py, ['lesson.py', 'new', `episodes/${id}`, '--from', from, '--input', folder, '--takes', '*.[mM][pPoO][4vV]'], { cwd: ROOT });
+      const cfg = readJson(path.join(dst, 'episode.json'));
+      cfg.title = name; delete cfg.done; delete cfg.placeholder; delete cfg._todo;
+      for (const k of ['sounds', 'sounds_pending', 'keep']) delete cfg[k];          // those belong to the earlier video's takes
+      cfg.overlays = (cfg.overlays || []).filter((o) => o.style === 'ticker');         // a series ticker stays; that video's texts do not
+      if (cfg.cut) for (const k of ['edges', 'keep_pauses', 'lead_in', 'end_at']) delete cfg.cut[k];
+      writeJson(path.join(dst, 'episode.json'), cfg);
+    } else {
+      fs.mkdirSync(dst, { recursive: true });
+      writeJson(path.join(dst, 'episode.json'), { type: 'lesson', title: name, input_dir: folder, takes: '*.[mM][pPoO][4vV]',
+        background: '../_assets/tadar/studio.jpg', plaque: [], matte_engine: 'hybrid', matte_cut: 70, person: { scale: 1, x: 0, y: 0 },
+        captions_y: 1330, captions_style: { font: 'assistant', weight: 800, size: 64, color: '#ffffff', stroke: 10 }, voice: 'natural',
+        cut: { merge: 0.6, pad_in: 0.08, pad_out: 0.35, join: 0.08 }, overlays: [] });
+      const vids = fs.readdirSync(folder).filter((x) => VIDEO.test(x)).sort();
+      fs.writeFileSync(path.join(dst, 'captions.txt'), '# Subtitles, one block per take (in order). Timing is aligned to the audio automatically.\n'
+        + vids.map((v) => `== ${v.replace(/\.[^.]+$/, '')}\n\n`).join(''));
+    }
+  } catch (e) { return res.status(500).json({ error: String(e.stderr || e.message).slice(-400) }); }
+  res.json({ ok: true, id });
+});
+
 // the library: every set picture and sound effect made so far (episodes/_assets), for any project
 const ASSETS = path.join(EPS, '_assets');
 let libCache = null;

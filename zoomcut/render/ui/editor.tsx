@@ -293,7 +293,7 @@ function Editor() {
           <div className="tabs">
             {(['script', 'media', 'templates'] as const).map((t) => (
               <div key={t} className={`tab ${tab === t ? 'on' : ''}`} onClick={() => setTab(t)}>
-                {t === 'script' ? 'Script' : t === 'media' ? `Media${data?.footage?.unassigned?.length ? ' •' : ''}` : 'Templates'}
+                {t === 'script' ? 'Script' : t === 'media' ? `Media${data?.footage?.unassigned?.length ? ' •' : ''}` : '+ New video'}
               </div>))}
             <div className="grow" />
             {tab === 'script' && <button className="btn ghost icon" title="Search lines" onClick={() => setQuery(query == null ? '' : null)}>{I.search}</button>}
@@ -316,11 +316,7 @@ function Editor() {
                 {!lines.length && <div className="empty" style={{ padding: 16 }}>{busy ? 'Analyzing your footage…' : 'Press Re-analyze to start.'}</div>}
               </div>)}
             {tab === 'media' && <Media data={data} ep={ep} busy={busy} onJob={setJob} />}
-            {tab === 'templates' && (
-              <>
-                <div className="tpl"><h4>Zoom Call</h4><p>A corporate video call in vertical format: gallery, speaker and duo layouts, interruptions, reaction shots, live captions, host events.</p></div>
-                <div className="tpl soon"><h4>Your next format</h4><p>New sketch formats plug in here as templates — same script → takes → edit pipeline, a different look and set of editing rules.</p></div>
-              </>)}
+            {tab === 'templates' && <NewVideo />}
           </div>
         </div>
 
@@ -1157,7 +1153,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
         <div className="pane left">
           <div className="tabs">
             {(['script', 'media', 'templates'] as const).map((x) => (
-              <div key={x} className={`tab ${tab === x ? 'on' : ''}`} onClick={() => setTab(x)}>{x === 'script' ? 'Script' : x === 'media' ? 'Media' : 'Templates'}</div>))}
+              <div key={x} className={`tab ${tab === x ? 'on' : ''}`} onClick={() => setTab(x)}>{x === 'script' ? 'Script' : x === 'media' ? 'Media' : '+ New video'}</div>))}
             <div className="grow" />
           </div>
           <div className="scroll">
@@ -1201,11 +1197,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <div className="m-sec">Library <span>{lib.sets.length} sets · {lib.effects.length} effects</span></div>
                 <div className="help" style={{ padding: '0 12px' }}>Everything made for earlier videos is here for this one: sets in Background, effects in Music &amp; sounds.</div>
               </div>)}
-            {tab === 'templates' && (
-              <>
-                <div className="tpl"><h4>Solo · one person</h4><p>One person to camera, takes in order: monologues, Q&amp;A, a desk sketch with an off-screen voice. Cut, background removal or the original place, subtitles, voice filters, effects, question cards and animated thoughts - all as buttons in the panels.</p></div>
-                <div className="tpl"><h4>Zoom Call</h4><p>A corporate video call in vertical format: gallery, speaker and duo layouts, interruptions, reaction shots, live captions, host events.</p></div>
-              </>)}
+            {tab === 'templates' && <NewVideo />}
           </div>
         </div>
 
@@ -1651,6 +1643,57 @@ function TickerStrip({ o, clock }: { o: Overlay; clock: () => number }) {
   return (
     <div ref={ref} className="he" style={{ position: 'relative', display: 'inline-block', whiteSpace: 'nowrap', padding: '10px 40px', willChange: 'transform',
       font: `800 ${size}px/1.25 ${fontCss(o.font || 'assistant')}, "Segoe UI Emoji"`, color: o.theme === 'gold' ? '#FFD60A' : '#fff', direction: 'rtl' }}>{o.text}</div>
+  );
+}
+
+// "New video": a template, the footage folder, optionally an earlier project's settings - then it opens
+function NewVideo() {
+  const [folders, setFolders] = useState<any[]>([]);
+  const [eps, setEps] = useState<any[]>([]);
+  const [tpl, setTpl] = useState<'solo' | 'zoom'>('solo');
+  const [folder, setFolder] = useState('');
+  const [from, setFrom] = useState('');
+  const [name, setName] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { api('/api/downloads').then((l) => l && setFolders(l)); api('/api/episodes').then((l) => l && setEps(l.filter((e: any) => !e.test))); }, []);
+  const create = async () => {
+    setBusy(true); setErr('');
+    const r = await fetch('/api/new', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, template: tpl, folder, from: tpl === 'solo' ? from : '' }) }).then((x) => x.json()).catch(() => ({ error: 'Could not create it' }));
+    setBusy(false);
+    if (r.error) return setErr(r.error);
+    store.set('zc-ep', r.id);
+    location.reload();
+  };
+  return (
+    <div className="nv">
+      <div className="nv-sec">1 · Template</div>
+      <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <button className={tpl === 'solo' ? 'on' : ''} onClick={() => setTpl('solo')}>Solo · one person</button>
+        <button className={tpl === 'zoom' ? 'on' : ''} onClick={() => setTpl('zoom')}>Zoom call</button>
+      </div>
+      <div className="help" style={{ marginTop: 6 }}>{tpl === 'solo' ? 'One person to camera: monologue, Q&A, a desk sketch with an off-screen voice.' : 'Several people in a video meeting, one file per person.'}</div>
+      <div className="nv-sec">2 · Footage folder <span>in Downloads</span></div>
+      <div className="nv-list">
+        {folders.map((f) => <button key={f.path} className={`nv-f ${folder === f.path ? 'on' : ''}`} onClick={() => { setFolder(f.path); if (!name) setName(f.name); }}>
+          <span className="nv-fn he">{f.name}</span><span className="nv-fc">{f.videos} video{f.videos > 1 ? 's' : ''}</span></button>)}
+        {!folders.length && <div className="help">No folder with videos in Downloads.</div>}
+      </div>
+      {tpl === 'solo' && <>
+        <div className="nv-sec">3 · Settings from <span>optional</span></div>
+        <select className="field" value={from} onChange={(e) => setFrom(e.target.value)}>
+          <option value="">Fresh (default look)</option>
+          {eps.filter((e) => e.template !== 'Zoom').map((e) => <option key={e.id} value={e.id}>{e.id} · {e.title}</option>)}
+        </select>
+        <div className="help" style={{ marginTop: 6 }}>Same series? Its set, music, voice and subtitle style come along; its texts, effects and cuts do not.</div>
+      </>}
+      <div className="nv-sec">{tpl === 'solo' ? '4' : '3'} · Name</div>
+      <input className="field" value={name} placeholder="e.g. gym-2" onChange={(e) => setName(e.target.value)} />
+      {err && <div className="nv-err">{err}</div>}
+      <button className="btn primary" style={{ width: '100%', marginTop: 14 }} disabled={busy || !folder || !name.trim()} onClick={create}>{busy ? 'Creating…' : 'Create and open'}</button>
+      <div className="help" style={{ marginTop: 8 }}>Then press Re-analyze: it transcribes, cuts and builds the layers.</div>
+    </div>
   );
 }
 

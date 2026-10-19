@@ -333,3 +333,35 @@ a { color: inherit; text-decoration: none; }
 .m-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .m-name.he { direction: rtl; text-align: left; unicode-bidi: plaintext; }
 .m-sub { font-size: 11.5px; color: var(--faint); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- flat inspector: sections divided by a hairline, no rounded boxes (his note, 2026-10-19) ---- */
+.pane.right .card, .pane.right .insp .card { border: 0; border-radius: 0; background: transparent; border-bottom: 1px solid var(--edge); padding: 18px 18px 20px; }
+.pane.right .insp { padding: 0; gap: 0; }
+.pane.right .card-h .title { font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+.ly-list { grid-template-columns: minmax(0, 1fr); }
+.ly { min-width: 0; }
+.ly-name.he { direction: rtl; text-align: right; }
+/* ---- New video ---- */
+.nv { padding: 4px 16px 20px; }
+.nv-sec { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
+.nv-sec span { text-transform: none; letter-spacing: 0; }
+.nv-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; max-height: 260px; overflow: auto; }
+.nv-f { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
+.nv-f:hover { background: var(--panel-3); }
+.nv-f.on { background: var(--accent-soft); border-color: var(--accent); }
+.nv-fn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 13.5px; direction: rtl; text-align: right; }
+.nv-fc { flex: none; font-size: 11.5px; color: var(--faint); }
+.nv-err { margin-top: 10px; color: #ff8a7a; font-size: 12.5px; }
+/* ---- no rounded boxes inside the panels either: square-ish corners, no tray behind option buttons ---- */
+:root { --r: 4px; }
+.pane .seg { background: transparent; border: 0; padding: 0; gap: 4px; border-radius: 0; }
+.pane .seg button { border: 1px solid var(--edge-2); border-radius: 4px; height: 32px; }
+.pane .seg button.on { background: var(--accent-soft); border-color: var(--accent); }
+.pane .btn, .pane .field, .pp-btn, .pp-pop .field { border-radius: 4px; }
+.add-chip { border-radius: 4px; }
+.ly, .m-row, .cap-row, .nv-f, .pp-row { border-radius: 4px; }
+.ly-ic, .m-ic { border-radius: 4px; }
+.set, .m-thumb { border-radius: 3px; }
+.fx-play, .fx-x, .cap-ed, .fx-pick { border-radius: 4px; }
+.fx-lib, .pp-pop { border-radius: 6px; }
+.pp-check { border-radius: 4px; }

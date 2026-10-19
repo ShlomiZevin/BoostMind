@@ -281,3 +281,6 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
 - Music & sounds: beds list + volume · Sound effects & voices: per effect filter (as recorded / laptop speaker / phone /
   thought), volume, remove, ▶ go there · + Add effect at the playhead from the library (all _assets audio).
 - Media tab: footage used per take, the set, the sound, the library counts. Projects menu: newest first, Done section.
+- **Editor look (his note):** flat panels - sections divided by hairlines, no rounded boxes, no tray behind option
+  buttons, square-ish corners (4px). Keep new panels in that style. "+ New video" tab (left pane) creates a project:
+  template, footage folder from Downloads, optional settings from an earlier project (POST /api/new) - prefer it to the CLI.
