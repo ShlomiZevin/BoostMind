@@ -264,3 +264,5 @@ same buttons (Re-analyze = layers, Export, Export & send). What he signed off on
   shows them in place); `_todo` / `sounds_pending` keys are notes for the next session, ignored by the code.
 - Gym series (gym-1): `_assets/gym/` set + `bed.mp3` (gym music through ceiling speakers + treadmill ambience, one
   music bed) + `beep.mp3` (treadmill speed-up). Gen Z series (genz-1): `_assets/genz/` whoosh, pop, black.jpg.
+- **Hook text wording (2026-10-19):** write "פוב:" - never "POV:" - at the start of the hook text. Some videos take no
+  prefix at all, only the line itself (Gen Z: "מחשבות של גן זי כשהם תוקעים בך מבט של עז בי לייק:"); use his words as given.
