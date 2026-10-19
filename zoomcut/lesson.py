@@ -606,6 +606,10 @@ def time_overlays(ls, items, total):
             if o["sound"] in pl:
                 a, b = pl[o["sound"]]
                 o["start"], o["end"] = round(max(0.0, a - 0.05), 2), round(b + o.get("hold", 0.35), 2)
+        seq = sorted([o for o in by_sound if o.get("start") is not None], key=lambda o: o["start"])
+        for o, nxt in zip(seq, seq[1:]):  # one bubble at a time: it is gone before the next one appears
+            if nxt.get("style") == o.get("style"):
+                o["end"] = round(min(o["end"], nxt["start"] - 0.03), 2)
     tied = [o for o in ov if o.get("from_words")]
     if not tied:
         if by_sound:

@@ -88,8 +88,9 @@ for (const it of spec.items) {
         borderRadius: `${Math.round(size * 0.5)}px`, overflow: 'hidden', textAlign: 'center', direction: 'rtl',
         boxShadow: '0 6px 18px rgba(0,0,0,0.18)', fontFamily: '"Segoe UI", "zc-assistant", sans-serif' });
       const lb = document.createElement('div'), q = document.createElement('div');
-      Object.assign(lb.style, { background: it.accent || '#262626', color: '#ffffff', fontWeight: '500', fontSize: `${Math.round(size * 0.62)}px`,
-        padding: `${Math.round(size * 0.55)}px ${Math.round(size * 0.6)}px` });
+      const ls = it.label_size || Math.round(size * 0.85);
+      Object.assign(lb.style, { background: it.accent || '#262626', color: '#ffffff', fontWeight: '600', fontSize: `${ls}px`,
+        padding: `${Math.round(ls * 0.62)}px ${Math.round(ls * 0.7)}px` });
       Object.assign(q.style, { background: '#ffffff', color: '#262626', fontWeight: '500', fontSize: `${size}px`, lineHeight: '1.32',
         padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` });
       lb.textContent = it.label || 'שאלו אותי שאלה';

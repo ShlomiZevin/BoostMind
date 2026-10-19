@@ -78,7 +78,13 @@ const I = {
 
 // ---------- app ------------------------------------------------------------------------
 function Editor() {
-  const [eps, setEps] = useState<{ id: string; title: string }[]>([]);
+  const [eps, setEps] = useState<{ id: string; title: string; done?: boolean }[]>([]);
+  const toggleDone = async () => {
+    const cur = eps.find((e) => e.id === ep);
+    if (!cur) return;
+    await api(`/api/ep/${ep}/done`, { done: !cur.done });
+    setEps(eps.map((e) => (e.id === ep ? { ...e, done: !cur.done } : e)));
+  };
   const [ep, setEp] = useState(store.get('zc-ep') || '');
   const [data, setData] = useState<Data | null>(null);
   const [job, setJob] = useState<Job | null>(null);
@@ -260,8 +266,12 @@ function Editor() {
         {/* @ts-ignore - the shared studio bar (render/studio/bar.js) */}
         <studio-nav app="video"></studio-nav>
         <div className="proj">
-          <select value={ep} onChange={(e) => setEp(e.target.value)}>{eps.map((e) => <option key={e.id} value={e.id}>{e.id}</option>)}</select>
+          <select value={ep} onChange={(e) => setEp(e.target.value)} style={{ color: eps.find((e) => e.id === ep)?.done ? 'var(--dim)' : undefined }}>
+            {eps.map((e) => <option key={e.id} value={e.id} style={{ color: e.done ? '#7d7d7d' : undefined }}>{e.done ? `✓ ${e.id} · done` : e.id}</option>)}
+          </select>
         </div>
+        <button className="btn ghost" title="Mark this project done - it shows with a ✓ in the list" onClick={toggleDone}
+          style={eps.find((e) => e.id === ep)?.done ? { color: 'var(--accent)' } : undefined}>{eps.find((e) => e.id === ep)?.done ? '✓ Done' : 'Mark done'}</button>
         <div className="chip">Template: {lessonData ? 'Rabbi Lesson' : 'Zoom Call'}</div>
         <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>
         <div className="grow" />
@@ -1222,8 +1232,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     borderRadius: Math.round(size * 0.5), overflow: 'hidden', textAlign: 'center', direction: 'rtl', boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
                     fontFamily: `"Segoe UI", ${fontCss('assistant')}`, pointerEvents: 'auto', cursor: 'move',
                     outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>
-                    <div style={{ background: o.accent || '#262626', color: '#fff', fontWeight: 500, fontSize: Math.round(size * 0.62),
-                      padding: `${Math.round(size * 0.55)}px ${Math.round(size * 0.6)}px` }}>{o.label || 'שאלו אותי שאלה'}</div>
+                    <div style={{ background: o.accent || '#262626', color: '#fff', fontWeight: 600, fontSize: o.label_size || Math.round(size * 0.85),
+                      padding: `${Math.round((o.label_size || Math.round(size * 0.85)) * 0.62)}px ${Math.round((o.label_size || Math.round(size * 0.85)) * 0.7)}px` }}>{o.label || 'שאלו אותי שאלה'}</div>
                     <div style={{ background: '#fff', color: '#262626', fontWeight: 500, fontSize: size, lineHeight: 1.32,
                       padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` }}>{o.text}</div>
                   </div>;

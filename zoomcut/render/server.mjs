@@ -53,9 +53,22 @@ function runJob(id, args, onSuccess) {
   return job;
 }
 
+// the projects, newest first (by when the folder was made); "done" ones are marked
 app.get('/api/episodes', (_q, res) => {
   const list = fs.readdirSync(EPS).filter((d) => fs.existsSync(path.join(EPS, d, 'episode.json')));
-  res.json(list.map((id) => ({ id, title: readJson(path.join(EPS, id, 'episode.json'), {}).title || id })));
+  res.json(list.map((id) => {
+    const cfg = readJson(path.join(EPS, id, 'episode.json'), {});
+    return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs };
+  }).sort((a, b) => b.created - a.created));
+});
+
+// mark a project done / not done (the dropdown shows it differently)
+app.post('/api/ep/:id/done', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  cfg.done = !!q.body?.done;
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json({ ok: true, done: cfg.done });
 });
 
 app.get('/api/ep/:id', (q, res) => {
