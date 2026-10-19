@@ -168,7 +168,7 @@ export const ovBoxStyle = (o: { theme?: string; opacity?: number; size?: number 
   const op = o.opacity ?? 1, size = o.size || 46, gold = o.theme === 'gold';
   return {
     background: o.theme === 'light' || !o.theme ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`,
-    color: gold ? '#FFD60A' : o.theme === 'dark' ? '#fff' : '#000', fontSize: size, lineHeight: 1.25, padding: '12px 24px',
+    color: gold ? '#FFD60A' : o.theme === 'dark' ? '#fff' : '#000', fontSize: size, lineHeight: 1.25, padding: `${(o as any).padY ?? 12}px ${(o as any).padX ?? 24}px`,
     borderRadius: 14, direction: 'rtl', textAlign: 'center', maxWidth: 940, letterSpacing: gold ? '0.045em' : undefined, whiteSpace: 'pre-line', ...font,
     ...(gold ? { WebkitTextStroke: `${Math.round(size * 0.17)}px #000`, paintOrder: 'stroke fill' } as any : {}),
     textShadow: op < 0.6 ? (o.theme === 'light' || !o.theme ? '0 1px 4px rgba(255,255,255,0.7)' : '0 2px 6px rgba(0,0,0,0.8)') : undefined,

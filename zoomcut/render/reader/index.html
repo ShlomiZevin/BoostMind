@@ -99,6 +99,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <studio-nav app="reader"></studio-nav>
   <select id="ep" title="Episode script"></select>
   <button class="btn" id="paste" title="Paste a script">Paste</button>
+  <button class="btn" id="copy" title="Copy the whole script (names and lines, as written)">Copy</button>
   <div class="grow"></div>
   <button class="btn play" id="play" title="Play / pause (Space)">▶ Play</button>
   <select id="cd" title="Countdown before it starts"><option value="0">⏱ No countdown</option><option value="3">⏱ 3 s</option><option value="5">⏱ 5 s</option><option value="10">⏱ 10 s</option></select>
@@ -231,7 +232,7 @@ function render() {
     d.innerHTML = l.dir ? `<div class="t">[${esc(l.text)}]</div>`
       : `<div class="who">${esc(l.who)}</div><div class="t">${esc(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
     d.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
-    d.onclick = () => go(i);
+    d.onclick = () => { if (!String(window.getSelection() || '').trim()) go(i); };  // selecting text to copy is not a jump
     d.ondblclick = (e) => { e.preventDefault(); editLine(i); };
     box.appendChild(d);
   });
@@ -361,6 +362,15 @@ $('lock').onclick = () => { locked = !locked; save(); showPace(); };
 $('restart').onclick = () => { cancelCd(); setPlay(false); go(0); startWithCountdown(); };
 $('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('nm').value = ''; $('dlg').showModal(); };
 $('cancel').onclick = () => $('dlg').close();
+// Copy: the whole script as it is written (names, lines, notes) - or the lines as shown if there is no source text
+$('copy').onclick = async () => {
+  const text = raw || lines.map((l) => (l.dir ? `[${l.text}]` : l.who ? `${l.who}: ${l.text}` : l.text)).join('\n');
+  if (!text.trim()) return;
+  try { await navigator.clipboard.writeText(text); }
+  catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  $('copy').textContent = '✓ Copied';
+  setTimeout(() => ($('copy').textContent = 'Copy'), 1500);
+};
 $('use').onclick = async () => {
   const t = $('txt').value, name = $('nm').value.trim();
   $('dlg').close();

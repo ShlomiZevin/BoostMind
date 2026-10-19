@@ -55,7 +55,7 @@ for (const it of spec.items) {
       im.src = 'file:///' + it.image_abs;
       Object.assign(im.style, { position: 'absolute', left: `${it.x ?? 60}px`, top: `${it.y ?? 380}px`, width: `${it.w ?? 960}px`, height: `${it.h ?? 540}px`,
         objectFit: 'cover', boxSizing: 'border-box' },
-        it.behind ? { borderRadius: '4px', filter: 'blur(1.2px) brightness(0.93) saturate(1.05)' }
+        it.plain ? { objectFit: 'contain' } : it.behind ? { borderRadius: '4px', filter: 'blur(1.2px) brightness(0.93) saturate(1.05)' }
           : { border: '6px solid #fff', borderRadius: '14px', boxShadow: '0 12px 34px rgba(0,0,0,0.55)' });
       d.appendChild(im);
       if (it.tag) {
@@ -86,7 +86,7 @@ for (const it of spec.items) {
       const b = document.createElement('div');
       Object.assign(b.style, {
         background: light ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`, color: gold ? '#FFD60A' : it.theme === 'dark' ? '#fff' : '#000',
-        fontSize: `${size}px`, lineHeight: '1.25', padding: '12px 24px', borderRadius: '14px', textAlign: 'center', maxWidth: '940px',
+        fontSize: `${size}px`, lineHeight: '1.25', padding: `${it.padY ?? 12}px ${it.padX ?? 24}px`, borderRadius: '14px', textAlign: 'center', maxWidth: '940px',
         fontFamily: it.font && it.font !== 'system' ? `"zc-${it.font}", "Segoe UI", sans-serif` : '"Segoe UI", Arial, sans-serif',
         fontWeight: ['system', 'arimo', 'assistant'].includes(it.font || 'system') ? '800' : '400',
         letterSpacing: gold ? '0.045em' : '', textShadow: op < 0.6 ? (light ? '0 1px 4px rgba(255,255,255,0.7)' : '0 2px 6px rgba(0,0,0,0.8)') : '',

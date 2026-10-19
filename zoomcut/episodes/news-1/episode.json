@@ -38,7 +38,7 @@
       "opacity": 0.75,
       "y": 290,
       "size": 40,
-      "start": 4.5,
+      "start": 6.0,
       "end": null
     },
     {
@@ -64,8 +64,7 @@
       "end": 15.8,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "band",
@@ -88,8 +87,7 @@
       "end": 18.2,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "image",
@@ -102,8 +100,7 @@
       "end": 20.55,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "image",
@@ -116,8 +113,7 @@
       "end": 22.9,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "band",
@@ -140,8 +136,7 @@
       "end": 37.8,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "band",
@@ -164,8 +159,7 @@
       "end": 48.3,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "band",
@@ -188,8 +182,7 @@
       "end": 59.1,
       "story": true,
       "text": "",
-      "behind": true,
-      "tag": "תמונת AI"
+      "behind": true
     },
     {
       "style": "band",
@@ -202,16 +195,18 @@
       "story": true
     },
     {
-      "text": "פוב: אתה צופה בחדשות בישראל",
+      "text": "פוב: אתה צופה\nבחדשות בישראל",
       "style": "pov",
       "font": "assistant",
-      "theme": "dark",
-      "opacity": 0.8,
-      "y": 262,
-      "size": 44,
+      "theme": "light",
+      "opacity": 0.82,
+      "y": 255,
+      "size": 80,
       "start": 0,
-      "end": 4.5,
-      "hook": true
+      "end": 6.0,
+      "hook": true,
+      "padX": 70,
+      "padY": 16
     }
   ],
   "cut": {
@@ -227,18 +222,11 @@
     "deess": 0.4,
     "comp": 0.6
   },
-  "grade": {
-    "smooth": 0.6,
-    "brightness": 0.03,
-    "contrast": 1.05,
-    "saturation": 1.05,
-    "warm": 0.04
-  },
   "intro_video": {
     "file": "../_assets/news/intro30.mp4",
-    "from": 1,
-    "seconds": 0.96,
-    "fade": 0.96
+    "from": 0.45,
+    "seconds": 0.93,
+    "fade": 0.93
   },
   "denoise": {
     "rnn": "models/rnnoise/cb.rnnn"
@@ -250,5 +238,11 @@
     "gain": 0.8,
     "fade_out": 2.4
   },
-  "speed": 1.2
+  "speed": 1.2,
+  "look": {
+    "smooth": 0.6,
+    "warm": 0.1,
+    "brightness": 0.04,
+    "saturation": 1.08
+  }
 }

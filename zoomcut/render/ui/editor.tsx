@@ -426,6 +426,8 @@ function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, o
           <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)` }}>
             {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => onSpeed(v)}>{v === 1 ? '1×' : `${v}×`}</button>)}
           </div>
+          {data?.state?.total ? <div className="row2" style={{ margin: '8px 0 12px' }}><label>Final video</label>
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{mmss(data.state.total / speed)}{speed !== 1 ? <span style={{ color: 'var(--faint)', fontWeight: 400 }}> · {mmss(data.state.total)} at 1×</span> : null}</span></div> : null}
           <div className="help">The whole video, every layer together - plays live at this speed (voices keep their pitch); Export makes the file at it.</div>
         </div>
       </div>
@@ -625,6 +627,27 @@ function TextHandle({ o, i, scale, onMove }: { o: Overlay; i: number; scale: num
     window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
   };
   return <div className="text-handle" style={{ top: y * scale - 6, height: 150 * scale }} onMouseDown={down} title="Drag to move" />;
+}
+
+// the live look: the same colour matrix as lesson.py look_matrix, and the same soft focus (sigma, mix)
+function lookMatrix(lk: any): number[][] {
+  const w = lk?.warm || 0, b = lk?.brightness || 0, s = lk?.saturation ?? 1;
+  const L = [0.2126, 0.7152, 0.0722], g = [1 + w, 1 + w / 3, 1 - w];
+  return [0, 1, 2].map((i) => [0, 1, 2].map((j) => (1 + b) * g[i] * ((1 - s) * L[j] + (i === j ? s : 0))));
+}
+function LookFilter({ id, lk }: { id: string; lk: any }) {
+  const m = lookMatrix(lk), sm = lk?.smooth || 0, sigma = 4 * sm, amt = 0.65 * sm;
+  const vals = `${m[0].join(' ')} 0 0 ${m[1].join(' ')} 0 0 ${m[2].join(' ')} 0 0 0 0 0 1 0`;
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }}>
+      <filter id={id} colorInterpolationFilters="sRGB" x="0" y="0" width="100%" height="100%">
+        <feColorMatrix in="SourceGraphic" type="matrix" values={vals} result="c" />
+        <feGaussianBlur in="c" stdDeviation={sigma} result="b" />
+        <feComposite in="b" in2="c" operator="arithmetic" k1={0} k2={amt} k3={1 - amt} k4={0} result="mix" />
+        <feComposite in="mix" in2="SourceAlpha" operator="in" />
+      </filter>
+    </svg>
+  );
 }
 
 function Slider({ label, v, min, max, step, fmt, onChange }: { label: string; v: number; min: number; max: number; step: number; fmt: (v: number) => string; onChange: (v: number) => void }) {
@@ -907,6 +930,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   };
   const [voice, setVoice] = useState<any>(voiceSettings(data.episode.voice));
   const [eyeOn, setEyeOn] = useState<boolean>(!!data.episode.eye_contact && data.episode.eye_contact.on !== false);
+  const [look, setLook] = useState<any>(data.episode.look || null);  // live: drawn by the editor, applied by Export
+  const changeLook = (patch: any) => { const v = { warm: 0, brightness: 0, saturation: 1, smooth: 0, ...(look || {}), ...patch }; setLook(v); saveOpt({ look: v }); };
   const [musicGain, setMusicGain] = useState<number>(musicVolume(data.episode.music));
   const [musicSrc, setMusicSrc] = useState<string | null>(null);  // a track picked here (played raw, looped)
   // the music choices (every track in the series' music folder) - switching is live
@@ -991,7 +1016,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
     return { sw, sh, cx: clamp((sw - 1080) / 2 - (bgL.x || 0), sw - 1080), cy: clamp((sh - 1920) / 2 - (bgL.y || 0), sh - 1920) };
   })();
   const pBox = (() => { const w = 1080 * pL.scale, h = 1920 * pL.scale; return { w, h, x: (1080 - w) / 2 + (pL.x || 0), y: 1920 - h + (pL.y || 0) }; })();
-  const capNow = (edit?.captions || []).find((c: any) => t * fps >= c.from && t * fps < c.to);
+  const capNow = (edit?.captions || []).find((c: any) => !c.over && t * fps >= c.from && t * fps < c.to);
+  const capOver = (edit?.captions || []).find((c: any) => c.over && t * fps >= c.from && t * fps < c.to);  // said over him (the other side)
   const layoutTimer = useRef<any>(null);
   const saveLayout = (patch: any) => { clearTimeout(layoutTimer.current); layoutTimer.current = setTimeout(() => api(`/api/ep/${ep}/layout`, patch), 300); };
   const setBg = (v: any) => { setBgL(v); saveLayout({ bg: v }); };
@@ -1107,24 +1133,34 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                   {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'image' && o.behind && (
                     // a story's picture on the studio's screen, behind him - the same look as the export
                     <img key={'b' + i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false}
-                      style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: 'cover',
-                        borderRadius: 4, filter: 'blur(1.2px) brightness(0.93) saturate(1.05)', pointerEvents: 'none' }} />))}
+                      style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: o.plain ? 'contain' : 'cover',
+                        ...(o.plain ? {} : { borderRadius: 4, filter: 'blur(1.2px) brightness(0.93) saturate(1.05)' }), pointerEvents: 'none' }} />))}
                   {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'image' && o.behind && o.tag && (
                     <div key={'t' + i} style={{ position: 'absolute', left: (o.x ?? 60) + 12, top: (o.y ?? 380) + 12, background: 'rgba(0,0,0,0.6)', color: '#fff',
                       font: `700 22px ${fontCss('assistant')}`, padding: '3px 10px', borderRadius: 6, direction: 'rtl', pointerEvents: 'none' }}>{o.tag}</div>))}
+                  {look && <LookFilter id="zc-look" lk={look} />}
                   <video ref={video} key={data.layers.person.v} src={`${data.layers.person.url}?v=${data.layers.person.v}`} onMouseDown={(e) => dragLayer(e, 'person')} muted={!!L.voice}
-                    style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !L.person_raw || eyeOn ? 1 : 0 }}
+                    style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !L.person_raw || eyeOn ? 1 : 0,
+                      filter: look ? 'url(#zc-look)' : undefined }}
                     onTimeUpdate={(e) => { setT(e.currentTarget.currentTime); const r = rawVideo.current; if (r && Math.abs(r.currentTime - e.currentTarget.currentTime) > 0.1) r.currentTime = e.currentTarget.currentTime; }}
                     onPlay={() => { setPlaying(true); graph(); applyAudio(); audioRef.current?.ctx?.resume(); syncAudio(true); rawVideo.current?.play().catch(() => {}); }}
                     onPause={() => { setPlaying(false); syncAudio(false); rawVideo.current?.pause(); }}
                     onSeeked={() => { syncAudio(); if (rawVideo.current && video.current) rawVideo.current.currentTime = video.current.currentTime; }} />
                   {L.person_raw && <video ref={rawVideo} key={'raw' + L.person_raw.v} src={`${L.person_raw.url}?v=${L.person_raw.v}`} muted
-                    style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1 }} />}
+                    style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
+                      filter: look ? 'url(#zc-look)' : undefined }} />}
                   {L.intro && t < introSecs && <video ref={introRef} key={'intro' + L.intro.v} src={`${L.intro.url}?v=${L.intro.v}`} muted playsInline
                     style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, objectFit: 'cover', pointerEvents: 'none',
                       opacity: introFade > 0 && t > introSecs - introFade ? Math.max(0, (introSecs - t) / introFade) : 1 }} />}
+                  {capOver && (() => {
+                    const st = { ...(capStyle || {}), ...(data.episode.captions_other || {}) };
+                    return <div className="he" style={{ position: 'absolute', top: data.episode.captions_other?.y ?? capY - 150, left: 50, right: 50, textAlign: 'center', direction: 'rtl', pointerEvents: 'none',
+                      font: `${st.weight || 400} ${st.size || 84}px/1.18 ${fontCss(st.font || 'stam-ashkenaz')}`, color: st.color || '#FFD60A',
+                      WebkitTextStroke: `${st.stroke ?? 14}px #000`, paintOrder: 'stroke fill',
+                      textShadow: '0 6px 14px rgba(0,0,0,0.55)', letterSpacing: st.font ? 0 : '0.045em' } as any}>{capOver.text}</div>;
+                  })()}
                   {capNow && (() => {
-                    const st = capStyle || {};  // the series' subtitle look (default: yellow Stam)
+                    const st = { ...(capStyle || {}), ...(capNow.who === 'other' ? data.episode.captions_other || {} : {}) };  // the series' look; the other side's in its colour
                     return <div className="he" onMouseDown={dragCap} style={{ position: 'absolute', top: capY, left: 50, right: 50, textAlign: 'center', direction: 'rtl', cursor: 'ns-resize',
                       outline: sel?.kind === 'layer' && sel.id === 'captions' ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none',
                       font: `${st.weight || 400} ${st.size || 84}px/1.18 ${fontCss(st.font || 'stam-ashkenaz')}`, color: st.color || '#FFD60A',
@@ -1151,8 +1187,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'image' && !o.behind && (
                   // a story's picture in a framed box - the same look as the export (lesson_text.mjs)
                   <img key={i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false} onMouseDown={(e) => dragText(e, i)}
-                    style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: 'cover',
-                      border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)', boxSizing: 'border-box',
+                    style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: o.plain ? 'contain' : 'cover',
+                      ...(o.plain ? {} : { border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)' }), boxSizing: 'border-box',
                       pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />))}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'band' && (() => {
                   // a news lower third: red tag (before "|"), deep-blue band (after it)
@@ -1237,6 +1273,16 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <Slider label="Up / down" v={pL.y} min={-600} max={1000} step={2} fmt={(v) => `${v}`} onChange={(v) => setP({ ...pL, y: v })} />
                 <div className="help">Or drag yourself on the preview.</div>
               </div>
+              <div className="card">
+                <div className="card-h"><div className="title grow">Look</div><span className="help" style={{ margin: 0 }}>live · Export uses the same</span></div>
+                {!look && <button className="btn" style={{ width: '100%' }} onClick={() => changeLook({ smooth: 0.5, warm: 0.06, brightness: 0.03, saturation: 1.06 })}>Turn on the live look</button>}
+                {look && <>
+                  <Slider label="Smooth" v={look.smooth ?? 0} min={0} max={1} step={0.05} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => changeLook({ smooth: v })} />
+                  <Slider label="Warmth" v={look.warm ?? 0} min={-0.15} max={0.25} step={0.01} fmt={(v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`} onChange={(v) => changeLook({ warm: v })} />
+                  <Slider label="Brightness" v={look.brightness ?? 0} min={-0.2} max={0.3} step={0.01} fmt={(v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`} onChange={(v) => changeLook({ brightness: v })} />
+                  <Slider label="Saturation" v={look.saturation ?? 1} min={0.6} max={1.5} step={0.02} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => changeLook({ saturation: v })} />
+                </>}
+              </div>
               {L.person_raw && <div className="card">
                 <div className="sec">Eye contact</div>
                 <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -1252,7 +1298,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
               </div>}
               {L.voice && <div className="card">
                 <div className="card-h"><div className="title grow">Voice</div><span className="help" style={{ margin: 0 }}>live</span></div>
-                <div className="seg" style={{ gridTemplateColumns: `repeat(${Object.keys(VOICE_PRESETS).length}, 1fr)` }}>
+                <div className="seg" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                   {Object.keys(VOICE_PRESETS).map((k) => <button key={k} className={voice.preset === k ? 'on' : ''}
                     onClick={() => changeVoice({ preset: k, ...VOICE_PRESETS[k] })}>{k[0].toUpperCase() + k.slice(1)}</button>)}
                 </div>
@@ -1314,7 +1360,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <div className="sec">Layers — click one to edit it</div>
                 <div style={{ display: 'grid', gap: 4 }}>
                   {ov.map((o, i) => <button key={i} className="btn" style={{ justifyContent: 'flex-start', overflow: 'hidden' }} onClick={() => setSel({ kind: 'text', i })}>
-                    <span style={{ display: 'flex', width: 16 }}>{I.text}</span><span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.text.split('\n')[0] || 'Text'}</span></button>)}
+                    <span style={{ display: 'flex', width: 16 }}>{I.text}</span><span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(o as any).image ? `🖼 ${String((o as any).image).split('/').pop()}` : o.text.split('\n')[0] || 'Text'}</span></button>)}
                   {([['captions', I.cc, 'Captions'], ['speaker', I.phone, 'Speaker — picture, eyes, voice'], ['background', I.layout, 'Background'], ['music', null, 'Music & sounds']] as const).map(([id, ic, name]) => (
                     <button key={id} className="btn" style={{ justifyContent: 'flex-start' }} onClick={() => setSel({ kind: 'layer', id: id as Layer })}>
                       <span style={{ display: 'flex', width: 16 }}>{ic || '♪'}</span>{name}</button>))}
@@ -1326,6 +1372,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)` }}>
                   {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => { setSpeed(v); api(`/api/ep/${ep}/speed`, { speed: v }); }}>{v === 1 ? '1×' : `${v}×`}</button>)}
                 </div>
+                {edit?.total ? <div className="row2" style={{ margin: '8px 0 12px' }}><label>Final video</label>
+                  <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{mmss(edit.total / fps / speed)}{speed !== 1 ? <span style={{ color: 'var(--faint)', fontWeight: 400 }}> · {mmss(edit.total / fps)} at 1×</span> : null}</span></div> : null}
                 <div className="help">Plays live at this speed (the voice keeps its pitch); Export makes the file at this speed.</div>
               </div>
             </>}
@@ -1337,7 +1385,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
       <LessonTimeline edit={edit} fps={fps} k={k} t={t} total={total} onSeek={seek} overlays={ov} sel={sel?.kind === 'text' ? sel.i : null}
         onSelText={(i) => setSel({ kind: 'text', i })} layer={sel?.kind === 'layer' ? sel.id : sel?.kind === 'take' ? 'captions' : null}
         onLayer={(id) => setSel({ kind: 'layer', id: id as any })}
-        bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`} />
+        bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
+        busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))} />
     </div>
   );
 }
@@ -1367,11 +1416,30 @@ function TickerStrip({ o, clock }: { o: Overlay; clock: () => number }) {
   );
 }
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
-  layer: string | null; onLayer: (id: string) => void;
+  layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number) => void; busy: boolean;
 }) {
   const lanesRef = useRef<HTMLDivElement>(null);
+  // dragging a piece's edge: the block follows the mouse, the cut is redone from the original take on release
+  const [drag, setDrag] = useState<{ i: number; side: 'in' | 'out'; dx: number } | null>(null);
+  const grabEdge = (e: React.MouseEvent, i: number, side: 'in' | 'out') => {
+    e.stopPropagation(); e.preventDefault();
+    if (busy) return;
+    const it = edit.items[i], x0 = e.clientX;
+    let dx = 0;
+    setDrag({ i, side, dx: 0 });
+    const mv = (m: MouseEvent) => { dx = m.clientX - x0; setDrag({ i, side, dx }); };
+    const up = () => {
+      window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up);
+      setDrag(null);
+      if (Math.abs(dx) < 3) return;
+      const ds = (dx / pps) * k;  // timeline seconds -> seconds of his take
+      const from = side === 'in' ? it.a : it.a + (it.an ?? it.n) / fps;
+      onTrim(it.take, +from.toFixed(3), +Math.max(0, from + ds).toFixed(3));
+    };
+    window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+  };
   const [width, setWidth] = useState(1000);
   const [zoom, setZoom] = useState(1);
   useEffect(() => {
@@ -1426,10 +1494,18 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                   onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('captions')}>{c.text}</div>))}
             </div>
             <div className={`lane ${layer === 'speaker' ? 'sel' : ''}`} onMouseDown={scrub}>
-              {(edit?.items || []).map((it: any, i: number) => it.kind === 'clip'
-                ? <div key={i} className="blk" style={{ left: x(sec(it.out)), width: Math.max(2, sec(it.n) * pps - 2), background: 'var(--daniel)', cursor: 'pointer' }} title={it.take}
-                    onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('speaker')}>{sec(it.n) * pps > 70 ? it.take.replace('IMG_', '') : ''}</div>
-                : <div key={i} className="idle" style={{ left: x(sec(it.out)), width: Math.max(2, sec(it.n) * pps - 1) }} />)}
+              {(edit?.items || []).map((it: any, i: number) => {
+                if (it.kind !== 'clip') return <div key={i} className="idle" style={{ left: x(sec(it.out)), width: Math.max(2, sec(it.n) * pps - 1) }} />;
+                const d = drag?.i === i ? drag : null, w0 = sec(it.n) * pps;
+                const left = x(sec(it.out)) + (d?.side === 'in' ? d.dx : 0), width = Math.max(4, w0 - 2 + (d ? (d.side === 'in' ? -d.dx : d.dx) : 0));
+                const hd = (side: 'in' | 'out') => <div onMouseDown={(e) => grabEdge(e, i, side)} title={side === 'in' ? 'Drag left: more before it (from the original take)' : 'Drag right: more after it (from the original take)'}
+                  style={{ position: 'absolute', top: 0, bottom: 0, [side === 'in' ? 'left' : 'right']: 0, width: 7, cursor: 'ew-resize', background: d?.side === side ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.18)', borderRadius: 3 }} />;
+                return <div key={i} className="blk" style={{ left, width, background: 'var(--daniel)', cursor: 'pointer', position: 'absolute', outline: d ? '2px solid var(--accent)' : 'none', zIndex: d ? 2 : undefined }}
+                  title={`${it.take} · ${it.a.toFixed(2)}s - ${(it.a + (it.an ?? it.n) / fps).toFixed(2)}s of the take · drag an edge to take more / less`}
+                  onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('speaker')}>
+                  {hd('in')}{width > 70 ? <span style={{ padding: '0 10px' }}>{d ? `${d.dx > 0 === (d.side === 'out') ? '+' : '−'}${Math.abs((d.dx / pps) * k).toFixed(2)}s` : it.take.replace('IMG_', '')}</span> : null}{hd('out')}
+                </div>;
+              })}
             </div>
             <div className={`lane ${layer === 'background' ? 'sel' : ''}`} onMouseDown={scrub}>
               <div className="shot" style={{ left: x(0), width: Math.max(10, total * pps - 2), cursor: 'pointer' }}

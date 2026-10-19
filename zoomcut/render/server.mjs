@@ -105,6 +105,22 @@ app.post('/api/ep/:id/lesson', (q, res) => {
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
 
+// lesson: a cut piece's edge dragged on the timeline - more (or less) of the original take before / after it
+app.post('/api/ep/:id/trim', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const { take, from, to } = q.body || {};
+  if (!take || !Number.isFinite(+from) || !Number.isFinite(+to)) return res.status(400).json({ error: 'take, from, to' });
+  cfg.cut = cfg.cut || {};
+  cfg.cut.edges = cfg.cut.edges || {};
+  const list = (cfg.cut.edges[take] = cfg.cut.edges[take] || []);
+  const moved = list.find((e) => Math.abs(e[1] - from) < 0.04);  // an edge dragged before: it moves again
+  if (moved) moved[1] = +(+to).toFixed(3);
+  else list.push([+(+from).toFixed(3), +(+to).toFixed(3)]);
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json(pub(runJob(q.params.id, ['--preview'])));
+});
+
 // lesson layout (background zoom/position, his size/position): saved only - the editor shows it live, Export uses it
 app.post('/api/ep/:id/layout', (q, res) => {
   const d = epDir(q.params.id);
@@ -127,6 +143,7 @@ app.post('/api/ep/:id/options', (q, res) => {
   if ('music_gain' in b && cfg.music) cfg.music.gain = Math.max(0, Math.min(1, Number(b.music_gain) || 0));
   if (b.music_sound && cfg.music) cfg.music.sound = String(b.music_sound);  // the track chosen in the editor
   if ('captions_style' in b) cfg.captions_style = b.captions_style || null;
+  if ('look' in b) cfg.look = b.look || null;  // the live look (smooth / warmth / brightness / saturation)
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json({ ok: true });
 });

@@ -6,6 +6,7 @@
 //   music  -> volume ───────────────────────────────────────────────────────────────────────────────────────────┘
 
 export const VOICE_PRESETS: Record<string, any> = {
+  raw: { raw: true, boost: 0, denoise: false, lowcut: 0, warmth: 0, box: 0, presence: 0, deess: 0, comp: 0 },  // the recording as it is (no low cut, no lift, no loudness, no limiter) - the sliders still work on it
   natural: { denoise: false, lowcut: 60, warmth: 0, box: 0, presence: 0, deess: 0, comp: 0 },
   podcast: { denoise: true, lowcut: 85, warmth: 1.5, box: -2.5, presence: 2.5, deess: 0.4, comp: 0.6 },
   radio: { denoise: true, lowcut: 120, warmth: 3, box: -3, presence: 4, deess: 0.5, comp: 0.9 },
@@ -54,14 +55,15 @@ export function applyMix(ctx: BaseAudioContext, n: MixNodes, voice: any, musicGa
   const at = ctx.currentTime;
   const set = (p: AudioParam, v: number) => (glide ? p.setTargetAtTime(v, at, 0.04) : (p.value = v));
   set(n.gRaw.gain, voice.denoise ? 0 : 1); set(n.gDn.gain, voice.denoise ? 1 : 0);
-  set(n.hp.frequency, voice.lowcut || 60);
+  set(n.hp.frequency, voice.lowcut || (voice.raw ? 10 : 60));
   set(n.warm.gain, voice.warmth || 0); set(n.box.gain, voice.box || 0); set(n.pres.gain, voice.presence || 0);
   set(n.ess.gain, -8 * (voice.deess || 0));
   const c = voice.comp || 0;
   set(n.comp.threshold, c > 0.02 ? -12 - 14 * c : 0); set(n.comp.ratio, 1 + 3 * c);
-  set(n.makeup.gain, Math.pow(10, ((c > 0.02 ? 1 + 3 * c : 0) + (voice.boost || 0)) / 20) * 1.6);  // the raw take is quiet: a little lift
+  set(n.makeup.gain, Math.pow(10, ((c > 0.02 ? 1 + 3 * c : 0) + (voice.boost || 0)) / 20) * (voice.raw ? 1 : 1.6));  // the raw take is quiet: a little lift
   set(n.mg.gain, musicGain);
-  set(n.master.gain, masterGain);
+  set(n.master.gain, voice.raw ? 1 : masterGain);
+  set(n.lim.ratio, voice.raw ? 1 : 20); set(n.lim.threshold, voice.raw ? 0 : -3.5);
 }
 
 /** Integrated loudness (ITU BS.1770: K-weighting, 400 ms blocks, gated) of mono 48 kHz samples, and the peak. */
@@ -117,7 +119,7 @@ export async function renderMix(b: Bufs, length: number, voice: any, musicGain: 
 /** The full mix as the export makes it: measured, then brought to the target through the master + limiter. */
 export async function finalMix(b: Bufs, length: number, voice: any, musicGain: number) {
   const pre = await renderMix(b, length, voice, musicGain, 1);
-  const master = masterFor(loudness(pre.getChannelData(0)));
+  const master = voice.raw ? 1 : masterFor(loudness(pre.getChannelData(0)));
   // NB: measured with the limiter in (it never acts at master 1 on these levels), so the two renders agree
   return { master, out: await renderMix(b, length, voice, musicGain, master) };
 }
