@@ -710,14 +710,34 @@ def cap_y_of(ls, c):
     return (ls.cfg.get("captions_other") or {}).get("y", y - 150) if c.get("over") else y
 
 
+THOUGHT_V = 2  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
+
+
 def text_layers(ls, caps):
     spec = {"fontsDir": os.path.join(ROOT, "fonts"), "items": []}
     c, sw, sh, cx, cy = bg_place(ls)
     pb = ls.cfg.get("plaque_bg", {"cx": 570, "top": 222, "w": 300, "size": 40})  # in the photo's own pixels
     pl = {"x": pb["cx"] * c - cx, "y": pb["top"] * c - cy, "w": pb["w"] * c, "size": pb["size"] * c}
+    anims = []
     for i, o in enumerate(overlays(ls)):
         o["png"] = ls.work("text", f"ov{i}.png")
+        if o.get("style") == "thought":  # animated (render/ui/thought_anim.js): a transparent clip, made once per text and timing
+            import hashlib
+            k = {f: o.get(f) for f in ("text", "y", "size", "start", "end")}
+            o["anim"] = ls.work("text", "anim", hashlib.md5(json.dumps([THOUGHT_V, k], ensure_ascii=False).encode()).hexdigest()[:14] + ".mov")
+            o["anim_y"] = max(0, round(float(o.get("y") or 1150) - 220))  # the clip's top (tools/thought_frames.mjs)
+            if not os.path.exists(o["anim"]):
+                anims.append({"out": o["anim"], "text": o["text"], "y": float(o.get("y") or 1150), "size": o.get("size") or 70,
+                              "start": float(o["start"]), "end": float(o["end"])})
+            continue
         spec["items"].append({"out": o["png"], "kind": "overlay", **{k: v for k, v in o.items() if k != "png"}})
+    if anims:
+        asp = ls.work("text", "anim", "spec.json")
+        json.dump({"fontsDir": os.path.join(ROOT, "fonts"), "fps": FPS, "items": anims}, open(asp, "w", encoding="utf-8"), ensure_ascii=False)
+        log(f"  · animating {len(anims)} thoughts")
+        r = subprocess.run(["node", os.path.join(ROOT, "tools", "thought_frames.mjs"), asp], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if r.returncode:
+            raise RuntimeError(r.stderr[-1500:])
     quad = ls.cfg.get("plaque_quad")  # the plate's corners in the photo (TL, TR, BR, BL): text follows its angle
     if quad and c:
         spec["items"].append({"out": ls.work("text", "plaque_flat.png"), "kind": "plaque", "lines": ls.cfg.get("plaque", []),
@@ -876,7 +896,8 @@ SOUND_FILTERS = {
     "phone": "highpass=f=380,lowpass=f=3000,acompressor",
     # an inner voice, as films do it: very close, a little warmth, a soft short echo around it, even level
     "thought": ("highpass=f=95,lowpass=f=9000,equalizer=f=220:t=q:w=1:g=2,equalizer=f=3000:t=q:w=1.2:g=1.5,"
-                "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,aecho=0.85:0.6:38|77|121:0.24|0.14|0.08"),
+                "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,aecho=0.85:0.6:38|77|121:0.24|0.14|0.08,"
+                "loudnorm=I=-16:TP=-2:LRA=9"),  # every thought at one level, however it was recorded
     # a laptop's small speakers: no lows, a boxy mid bump, a little crunch, then his room around it
     "speaker": ("highpass=f=330,highpass=f=330,lowpass=f=7000,equalizer=f=1200:t=q:w=1.1:g=5,equalizer=f=3200:t=q:w=1.4:g=3,"
                 "equalizer=f=500:t=q:w=1:g=-3,acompressor=threshold=-22dB:ratio=5:attack=4:release=60,"
@@ -1265,7 +1286,10 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
         inputs += ["-loop", "1", "-framerate", str(FPS), "-i", ramp]
     first_ov = 6 if ramp else 5
     for o in ovs:
-        inputs += ["-loop", "1", "-i", o["png"]]
+        if o.get("anim"):  # an animated thought: its clip starts at its moment
+            inputs += ["-itsoffset", f"{float(o['start']):.3f}", "-i", o["anim"]]
+        else:
+            inputs += ["-loop", "1", "-i", o["png"]]
     ov_in = None
     if over:
         ov_in = first_ov + len(ovs)
@@ -1306,10 +1330,9 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
             band = f"black@{float(o.get('opacity') if o.get('opacity') is not None else 0.55):.2f}"
             fc += (f";[{last}]drawbox=x=0:y={ty - int(10 * f)}:w=iw:h={th + int(20 * f)}:color={band}:t=fill:enable='between(t,{a:.3f},{b:.3f})'[d{k}]"
                    f";[{first_ov + k}:v]scale={tw}:{th}[o{k}];[d{k}][o{k}]overlay=x='mod({v:.2f}*t,{w}+{tw})-{tw}':y={ty}:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
-        elif o.get("style") == "thought":
-            fd = 0.15
-            fc += (f";[{first_ov + k}:v]scale={w}:{h},format=rgba,fade=t=in:st={a:.3f}:d={fd}:alpha=1,"
-                   f"fade=t=out:st={max(a, b - fd):.3f}:d={fd}:alpha=1[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
+        elif o.get("anim"):
+            fc += (f";[{first_ov + k}:v]format=rgba,scale={w}:-2[o{k}];"
+                   f"[{last}][o{k}]overlay=x=0:y={int(o['anim_y'] * f)}:eof_action=pass:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
         else:
             fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]"
         last = f"v{k + 1}"

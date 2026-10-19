@@ -3,15 +3,12 @@
   "series": "tadar",
   "title": "תדר — שאלות מהעוקבות (spiritual-2)",
   "input_dir": "C:/Users/shazbak/Downloads/תדר",
-  "takes": "NEW_VIDEO.MP4",
+  "takes": "IMG_9984.MP4",
   "background": "../_assets/tadar/studio.jpg",
   "plaque": [],
   "music": {
     "sound": "../_assets/tadar/music/2 - Dreamy harp.mp3",
     "gain": 0.2
-  },
-  "eye_contact": {
-    "on": true
   },
   "grade": {
     "warm": 0.07,
@@ -43,47 +40,62 @@
     {
       "style": "question",
       "text": "אני כבר שנתיים בתהליך של התעוררות רוחנית, עזבתי את העבודה, ניתקתי קשר עם המשפחה ואני מרגישה שהיקום לא מחזיר לי את האנרגיה שאני משקיעה. יכול להיות שאני בתדר גבוה מדי?",
-      "label": "שאלו אותי שאלה",
+      "label": "יש לכן שאלות? אני כאן",
       "from_words": [
         "אני כבר שנתיים בתהליך",
-        "קודם כול תביני שתדר"
+        "קודם כול תביני שתדר",
+        "קודם כל תבינו שתודעה"
       ],
       "y": 240,
       "w": 820,
       "size": 34,
-      "start": null,
-      "end": null,
-      "label_size": 32
+      "start": 6.31,
+      "end": 29.53,
+      "label_size": 32,
+      "accent": "#262626",
+      "user": "@shir.haneshama",
+      "avatar_color": "#b07a9e",
+      "variant": "instagram"
     },
     {
       "style": "question",
       "text": "בן הזוג שלי אומר שאני לא מחוברת למציאות. אבל אני מרגישה שהוא פשוט נמצא בתדר נמוך ולא מצליח להכיל את ההתפתחות שלי. איך אני משחררת אותו בלי לפגוע בקארמה שלנו?",
-      "label": "שאלו אותי שאלה",
+      "label": "יש לכן שאלות? אני כאן",
       "from_words": [
         "בן הזוג שלי אומר",
-        "זו שאלה מאוד מאוד מדויקת"
+        "זו שאלה מאוד מאוד מדויקת",
+        "אם אנחנו חוזרים רגע"
       ],
       "y": 240,
       "w": 820,
       "size": 34,
-      "start": null,
-      "end": null,
-      "label_size": 32
+      "start": 29.63,
+      "end": 69.63,
+      "label_size": 32,
+      "accent": "#262626",
+      "user": "@maya_or_pnimi",
+      "avatar_color": "#7a9eb0",
+      "variant": "instagram"
     },
     {
       "style": "question",
       "text": "אני כבר שמונה חודשים עושה זימונים לשפע, אבל המינוס רק גדל. יכול להיות שהחשבון שלי עדיין נמצא בתודעת מחסור?",
-      "label": "שאלו אותי שאלה",
+      "label": "יש לכן שאלות? אני כאן",
       "from_words": [
         "אני כבר שמונה חודשים",
-        "וואו את נוגעת פה"
+        "וואו את נוגעת פה",
+        "וזה בדיוק מה שבקבלה"
       ],
       "y": 240,
       "w": 820,
       "size": 34,
-      "start": null,
-      "end": null,
-      "label_size": 32
+      "start": 69.73,
+      "end": 97.17,
+      "label_size": 32,
+      "accent": "#262626",
+      "user": "@noa.shefa.888",
+      "avatar_color": "#c4a35a",
+      "variant": "instagram"
     },
     {
       "text": "✨ מוזמנות לסדנת ״מעבר לתדר״ 🔮 חיבור לתודעה הגבוהה דרך עשר הספירות, תדרים אנרגטיים ודואליות קוונטית 🌙 מסע לשחרור החסימות שמונעות מאיתנו לקבל את מה שעוד לא נתנו לעצמנו לשחרר 🕯️ מספר המקומות מוגבל 🤍 להרשמה שלחו ״תדר״ בפרטי 💫",
@@ -115,5 +127,15 @@
   },
   "denoise": {
     "rnn": "models/rnnoise/cb.rnnn"
-  }
+  },
+  "done": false,
+  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so",
+  "eye_contact": {
+    "file": "goodone.mp4",
+    "on": true
+  },
+  "_todo": [
+    "replace: input_dir/takes = his video; eye_contact = {\"on\": true} (NVIDIA)",
+    "question bubbles: from_words find his questions/answers; drop the stand-in anchors (last item of each list)"
+  ]
 }

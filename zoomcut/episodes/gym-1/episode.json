@@ -2,8 +2,8 @@
   "type": "lesson",
   "series": "gym",
   "title": "המכון — הבלונים של סיגל",
-  "input_dir": "C:/Users/shazbak/Downloads/מכון",
-  "takes": "*.MP4",
+  "input_dir": "C:/Users/shazbak/Downloads/סיקיוריטי שבור",
+  "takes": "יניב1.MP4",
   "background": "../_assets/gym/gym.jpg",
   "plaque": [],
   "music": {
@@ -13,7 +13,7 @@
   "matte_engine": "hybrid",
   "matte_cut": 70,
   "person": {
-    "scale": 1.0,
+    "scale": 1,
     "x": 0,
     "y": 0
   },
@@ -40,7 +40,13 @@
     "pad_out": 0.35,
     "join": 0.08,
     "above_floor": 28,
-    "voice_above_floor": 38
+    "voice_above_floor": 38,
+    "lead_in": {
+      "יניב1": [
+        7.45,
+        8.95
+      ]
+    }
   },
   "overlays": [
     {
@@ -57,10 +63,37 @@
       "end": null
     }
   ],
-  "sounds": [],
+  "sounds": [
+    {
+      "sound": "../_assets/gym/beep.mp3",
+      "take": "יניב1",
+      "start_word": "רגילה",
+      "start_after": 40,
+      "start_offset": 0.5,
+      "gain": 0.8
+    },
+    {
+      "sound": "../_assets/gym/sfx_rack.mp3",
+      "take": "יניב1",
+      "at": 16.0,
+      "gain": 0.45
+    },
+    {
+      "sound": "../_assets/gym/sfx_drop.mp3",
+      "take": "יניב1",
+      "at": 31.0,
+      "gain": 0.4
+    },
+    {
+      "sound": "../_assets/gym/sfx_plates.mp3",
+      "take": "יניב1",
+      "at": 52.0,
+      "gain": 0.4
+    }
+  ],
   "_todo": [
-    "beep.mp3 (treadmill speed up) right after 'בהכול' - (מעלה מהירות בהליכון)",
-    "the pause after 'בקשת!' and before 'סיגל, אני אגיד לך' are listening beats: keep_pauses",
-    "eye contact off: he talks on the phone, not to the camera"
-  ]
+    "replace: input_dir/takes = his video; place beep after בהכול and the 3 gym sfx in his pauses / under lines (they are at stand-in times now)"
+  ],
+  "done": false,
+  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so"
 }

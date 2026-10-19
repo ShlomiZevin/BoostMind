@@ -279,5 +279,6 @@
       ]
     }
   ],
-  "speed": 1.2
+  "speed": 1.2,
+  "done": true
 }

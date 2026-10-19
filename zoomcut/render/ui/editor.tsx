@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client';
 import { Player, PlayerRef } from '@remotion/player';
 import { ZoomCall, ovBoxStyle } from '../src/ZoomCall';
+import { thoughtWords, wordState, lineDrift, THOUGHT_STYLE } from './thought_anim.js';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -1207,21 +1208,22 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                       whiteSpace: 'nowrap', overflow: 'hidden' }}>{(rest.length ? rest.join('|') : tag).trim()}</div>
                   </div>;
                 })())}
-                {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'thought' && (() => {
-                  // a comic thought bubble - the same cloud as the export (lesson_text.mjs), fading in and out like it
-                  const w = o.w || 760, size = o.size || 46, right = o.tail === 'right';
-                  const op = Math.max(0, Math.min(1, (t - (o.start || 0)) / 0.15, o.end == null ? 1 : (o.end - t) / 0.15));
-                  return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 260, left: o.x ?? (1080 - w) / 2, width: w,
-                    opacity: op, pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }}>
-                    <div style={{ background: '#fff', borderRadius: 999, padding: `${Math.round(size * 0.8)}px ${Math.round(size * 1.3)}px`, textAlign: 'center', direction: 'rtl',
-                      color: '#1a1a1a', fontFamily: fontCss('assistant'), fontWeight: 700, fontSize: size, lineHeight: 1.25, boxShadow: '0 10px 30px rgba(0,0,0,0.30)' }}>{o.text}</div>
-                    {[[34, 30, 26], [22, 70, 18], [14, 100, 12]].map(([s, dy, x], k) => <div key={k} style={{ position: 'absolute', width: s, height: s, borderRadius: '50%', background: '#fff',
-                      top: `calc(100% + ${dy - s}px)`, [right ? 'right' : 'left']: `${x}%`, boxShadow: '0 4px 12px rgba(0,0,0,0.25)' }} />)}
-                  </div>;
-                })())}
+                {ov.map((o: any, i) => o.style === 'thought' && <ThoughtText key={'th' + i} o={o} clock={clock} />)}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'question' && (() => {
                   // a follower's question as Instagram's question sticker - the same card as the export (lesson_text.mjs)
                   const w = o.w || 860, size = o.size || 44;
+                  if (o.variant === 'tiktok') return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 300,
+                    left: o.x ?? (1080 - w) / 2, width: w, background: '#fff', borderRadius: Math.round(size * 0.6), textAlign: 'right', direction: 'rtl',
+                    padding: `${Math.round(size * 0.55)}px ${Math.round(size * 0.7)}px ${Math.round(size * 0.65)}px`, boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+                    fontFamily: `"Segoe UI", ${fontCss('assistant')}`, pointerEvents: 'auto', cursor: 'move', boxSizing: 'border-box',
+                    outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: Math.round(size * 0.35), marginBottom: Math.round(size * 0.35) }}>
+                      <div style={{ width: Math.round(size * 1.5), height: Math.round(size * 1.5), borderRadius: '50%', flex: 'none', background: o.avatar_color || '#c58b6b', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: Math.round(size * 0.75) }}>{(o.user || 'ש').replace('@', '').slice(0, 1).toUpperCase()}</div>
+                      <div style={{ color: '#8a8b91', fontWeight: 500, fontSize: Math.round(size * 0.72) }}>השבה לתגובה של {o.user || '@user'}</div>
+                    </div>
+                    <div style={{ color: '#161823', fontWeight: 600, fontSize: size, lineHeight: 1.32 }}>{o.text}</div>
+                  </div>;
                   return <div key={i} className="he" onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', top: o.y ?? 300, left: o.x ?? (1080 - w) / 2, width: w,
                     borderRadius: Math.round(size * 0.5), overflow: 'hidden', textAlign: 'center', direction: 'rtl', boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
                     fontFamily: `"Segoe UI", ${fontCss('assistant')}`, pointerEvents: 'auto', cursor: 'move',
@@ -1423,6 +1425,27 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
 
 // the ticker strip, positioned from the video's time exactly as the export's ffmpeg formula does - moved on every
 // screen frame straight from the video clock (the 4-a-second time updates made it jump)
+// an animated thought, live: the same motion as the export (render/ui/thought_anim.js)
+function ThoughtText({ o, clock }: { o: any; clock: () => number }) {
+  const [t, setT] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const step = () => { setT(clock()); raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [clock]);
+  const words = useMemo(() => thoughtWords(o.text, o.size || 70), [o.text, o.size]);
+  if (o.start == null || o.end == null || t < o.start || t > o.end) return null;
+  return (
+    <div className="he" style={{ position: 'absolute', top: o.y ?? 1150, left: 60, right: 60, display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+      alignItems: 'baseline', gap: '4px 20px', direction: 'rtl', fontFamily: fontCss('assistant'), ...THOUGHT_STYLE, transform: lineDrift(t, o.start, o.text), pointerEvents: 'none' }}>
+      {words.map((w, i) => { const s = wordState(i, words.length, t, o.start, o.end);
+        return <span key={i} style={{ display: 'inline-block', whiteSpace: 'nowrap', fontSize: w.size, marginTop: w.dy, opacity: s.opacity, filter: s.filter,
+          transform: `rotate(${w.rot.toFixed(2)}deg) ${s.transform}` }}>{w.w}</span>; })}
+    </div>
+  );
+}
+
 function TickerStrip({ o, clock }: { o: Overlay; clock: () => number }) {
   const ref = useRef<HTMLDivElement>(null);
   const v = (o as any).speed || 120;

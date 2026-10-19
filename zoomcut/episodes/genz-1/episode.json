@@ -2,8 +2,8 @@
   "type": "lesson",
   "series": "genz",
   "title": "מחשבות של גן זי",
-  "input_dir": "C:/Users/shazbak/Downloads/גן זי",
-  "takes": "*.MP4",
+  "input_dir": "C:/tmp/zc-peek/dummy/genz40",
+  "takes": "STARE.MP4",
   "background": "../_assets/genz/black.jpg",
   "plaque": [],
   "cutout": false,
@@ -20,7 +20,10 @@
     "color": "#ffffff",
     "stroke": 10
   },
-  "voice": "natural",
+  "voice": {
+    "preset": "natural",
+    "boost": -10
+  },
   "cut": {
     "whole": true
   },
@@ -42,233 +45,207 @@
       "style": "thought",
       "text": "וואט... רגע, מה זה?",
       "sound": 0,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 0.95,
+      "end": 4.75
     },
     {
       "style": "thought",
       "text": "דמות בתלת־ממד?",
       "sound": 1,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 4.78,
+      "end": 7.74
     },
     {
       "style": "thought",
       "text": "איך היא יצאה מהמסך?",
       "sound": 2,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 7.77,
+      "end": 11.11
     },
     {
       "style": "thought",
       "text": "רגע, היא כאילו... קיימת גם מחוץ למסך?",
       "sound": 3,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 11.14,
+      "end": 17.15
     },
     {
       "style": "thought",
       "text": "והיא זזה... והיא מדברת...",
       "sound": 4,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 17.18,
+      "end": 22.87
     },
     {
       "style": "thought",
       "text": "רגע, למה היא מדברת אליי?",
       "sound": 5,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 22.9,
+      "end": 28.26
     },
     {
       "style": "thought",
       "text": "איפה הדמות השנייה שאמורה לענות לה?",
       "sound": 6,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 28.29,
+      "end": 33.1
     },
     {
       "style": "thought",
       "text": "וואט... אני הדמות השנייה?",
       "sound": 7,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
+      "y": 1150,
+      "size": 70,
+      "start": 33.13,
+      "end": 36.83
     },
     {
       "style": "thought",
       "text": "אמאלה, היא מחכה לתגובה שלי.",
       "sound": 8,
-      "y": 230,
-      "w": 760,
-      "size": 46,
-      "tail": "left",
-      "start": null,
-      "end": null
-    }
-  ],
-  "sounds_pending": [
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "at": 1.0,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/whoosh.mp3",
-        "gain": 0.5,
-        "at": -0.25
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
-    },
-    {
-      "sound": "../_assets/genz/THOUGHTS.wav",
-      "filter": "thought",
-      "gain": 1.0,
-      "duck": -12,
-      "after_prev": 0.35,
-      "from": null,
-      "to": null,
-      "chime": {
-        "sound": "../_assets/genz/pop.mp3",
-        "gain": 0.35,
-        "at": -0.05
-      }
+      "y": 1150,
+      "size": 70,
+      "start": 36.86,
+      "end": 41.39
     }
   ],
   "_todo": [
     "his thoughts recording -> _assets/genz/THOUGHTS.wav, split by the transcript into from/to per line",
     "move sounds_pending -> sounds; check the bubble height against the face (y), tail side",
     "the adult's everyday question (in the Gen Z video's own sound, or a separate file) plays before the first thought"
-  ]
+  ],
+  "sounds": [
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_01.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "at": 1.0,
+      "chime": {
+        "sound": "../_assets/genz/whoosh.mp3",
+        "gain": 0.5,
+        "at": -0.25
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_02.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_03.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_04.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_05.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_06.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_07.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_08.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    },
+    {
+      "sound": "C:/tmp/zc-peek/dummy/thoughts/thought_09.mp3",
+      "filter": "thought",
+      "gain": 1.0,
+      "duck": -12,
+      "after_prev": 0.3,
+      "chime": {
+        "sound": "../_assets/genz/pop.mp3",
+        "gain": 0.35,
+        "at": -0.05
+      },
+      "take": "STARE"
+    }
+  ],
+  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so"
 }

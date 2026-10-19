@@ -85,5 +85,6 @@
       375
     ]
   ],
-  "plaque_inset": 0.9
+  "plaque_inset": 0.9,
+  "done": true
 }

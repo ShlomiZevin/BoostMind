@@ -38,7 +38,7 @@
       "opacity": 0.75,
       "y": 290,
       "size": 40,
-      "start": 6.0,
+      "start": 6,
       "end": null
     },
     {
@@ -203,7 +203,7 @@
       "y": 255,
       "size": 80,
       "start": 0,
-      "end": 6.0,
+      "end": 6,
       "hook": true,
       "padX": 70,
       "padY": 16
@@ -244,5 +244,6 @@
     "warm": 0.1,
     "brightness": 0.04,
     "saturation": 1.08
-  }
+  },
+  "done": true
 }

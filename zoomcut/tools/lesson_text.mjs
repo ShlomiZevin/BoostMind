@@ -86,7 +86,7 @@ for (const it of spec.items) {
       const w = it.w || 860, size = it.size || 44;
       Object.assign(d.style, { position: 'absolute', top: `${it.y ?? 300}px`, left: `${it.x ?? (1080 - w) / 2}px`, width: `${w}px`,
         borderRadius: `${Math.round(size * 0.5)}px`, overflow: 'hidden', textAlign: 'center', direction: 'rtl',
-        boxShadow: '0 6px 18px rgba(0,0,0,0.18)', fontFamily: '"Segoe UI", "zc-assistant", sans-serif' });
+        boxShadow: '0 6px 18px rgba(0,0,0,0.18)', fontFamily: '"Segoe UI", "zc-assistant", "Segoe UI Emoji", sans-serif' });
       const lb = document.createElement('div'), q = document.createElement('div');
       const ls = it.label_size || Math.round(size * 0.85);
       Object.assign(lb.style, { background: it.accent || '#262626', color: '#ffffff', fontWeight: '600', fontSize: `${ls}px`,
@@ -95,7 +95,24 @@ for (const it of spec.items) {
         padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` });
       lb.textContent = it.label || 'שאלו אותי שאלה';
       q.textContent = it.text;
-      d.append(lb, q);
+      if (it.variant === 'tiktok') {
+        // TikTok's reply-to-comment sticker: a white bubble, the asker's round avatar and name, the comment in black
+        Object.assign(d.style, { background: '#ffffff', borderRadius: `${Math.round(size * 0.6)}px`, overflow: 'visible', textAlign: 'right',
+          padding: `${Math.round(size * 0.55)}px ${Math.round(size * 0.7)}px ${Math.round(size * 0.65)}px`, boxShadow: '0 6px 18px rgba(0,0,0,0.18)' });
+        const hd = document.createElement('div'), av = document.createElement('div'), nm = document.createElement('div'), q2 = document.createElement('div');
+        Object.assign(hd.style, { display: 'flex', alignItems: 'center', gap: `${Math.round(size * 0.35)}px`, marginBottom: `${Math.round(size * 0.35)}px` });
+        Object.assign(av.style, { width: `${Math.round(size * 1.5)}px`, height: `${Math.round(size * 1.5)}px`, borderRadius: '50%', flex: 'none', background: it.avatar_color || '#c58b6b',
+          color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: `${Math.round(size * 0.75)}px` });
+        Object.assign(nm.style, { color: '#8a8b91', fontWeight: '500', fontSize: `${Math.round(size * 0.72)}px` });
+        Object.assign(q2.style, { color: '#161823', fontWeight: '600', fontSize: `${size}px`, lineHeight: '1.32' });
+        av.textContent = (it.user || 'ש').replace('@', '').slice(0, 1).toUpperCase();
+        nm.textContent = `השבה לתגובה של ${it.user || '@user'}`;
+        q2.textContent = it.text;
+        hd.append(av, nm);
+        d.append(hd, q2);
+      } else {
+        d.append(lb, q);
+      }
     } else if (it.kind === 'overlay' && it.style === 'band') {
       // a news lower third: a red tag (before "|") and a deep-blue band (after it), across the frame
       const [tag, ...rest] = String(it.text).split('|');
