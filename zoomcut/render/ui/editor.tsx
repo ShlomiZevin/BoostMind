@@ -955,6 +955,16 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   // the music choices (every track in the series' music folder) - switching is live
   const [tracks, setTracks] = useState<any[]>([]);
   useEffect(() => { if (data.episode.music) api(`/api/ep/${ep}/music`).then((ts: any[]) => setTracks(ts.filter((x) => !/\.(mp3|m4a|ogg|wav)$/i.test(x.name)))).catch(() => setTracks([])); }, [ep]);
+  // listen to a track (or an effect) on its own, without switching to it
+  const [hearing, setHearing] = useState<string | null>(null);
+  const hearRef = useRef<HTMLAudioElement | null>(null);
+  const hear = (url: string) => {
+    hearRef.current?.pause();
+    if (hearing === url) { setHearing(null); return; }
+    const a = new Audio(url); hearRef.current = a; a.onended = () => setHearing(null);
+    a.play().catch(() => setHearing(null)); setHearing(url);
+  };
+  useEffect(() => () => hearRef.current?.pause(), []);
   const pickTrack = (tr: any) => {
     setTracks((ts) => ts.map((x) => ({ ...x, on: x.sound === tr.sound })));
     saveOpt({ music_sound: tr.sound });
@@ -1569,9 +1579,12 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                   <div className="card-h"><div className="title grow">Track</div><span className="help" style={{ margin: 0 }}>click = switches now</span></div>
                   <div style={{ display: 'grid', gap: 4 }}>
                     {tracks.map((tr) => (
-                      <button key={tr.sound} className={`btn ${tr.on ? 'primary' : ''}`} style={{ justifyContent: 'flex-start', height: 32 }} onClick={() => pickTrack(tr)}>
-                        {tr.on ? '♪ ' : '▸ '}{tr.name}
-                      </button>))}
+                      <div key={tr.sound} className="trk">
+                        <button className={`fx-play ${hearing === tr.url ? 'on' : ''}`} title={hearing === tr.url ? 'Stop' : 'Listen'} onClick={() => hear(tr.url)}>{hearing === tr.url ? '■' : '▶'}</button>
+                        <button className={`btn ${tr.on ? 'primary' : ''}`} style={{ justifyContent: 'flex-start', height: 32, flex: 1 }} onClick={() => pickTrack(tr)}>
+                          {tr.on ? '♪ ' : ''}{tr.name}
+                        </button>
+                      </div>))}
                   </div>
                 </div>
                 <div className="card">
@@ -1601,7 +1614,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 {addingFx && <div className="fx-lib">
                   <div className="help" style={{ marginBottom: 6 }}>Pick one - it plays from {mmss(t)} (the playhead).</div>
                   {lib.effects.map((e) => <div key={e.rel} className="fx-lib-row">
-                    <button className="fx-play" title="Listen" onClick={() => { const a = new Audio(`/api/asset?p=${encodeURIComponent(e.rel)}`); a.play(); }}>▶</button>
+                    <button className={`fx-play ${hearing === `/api/asset?p=${encodeURIComponent(e.rel)}` ? 'on' : ''}`} title="Listen" onClick={() => hear(`/api/asset?p=${encodeURIComponent(e.rel)}`)}>{hearing === `/api/asset?p=${encodeURIComponent(e.rel)}` ? '■' : '▶'}</button>
                     <button className="fx-pick" onClick={() => { const at = takeAt(t); if (at) changeFx([...fx, { sound: `../_assets/${e.rel}`, take: at.take, at: at.t, gain: 0.6 }]); setAddingFx(false); }}>
                       {e.name}<span>{e.folder}</span></button></div>)}
                   <button className="btn ghost" style={{ width: '100%', marginTop: 4 }} onClick={() => setAddingFx(false)}>Cancel</button>
