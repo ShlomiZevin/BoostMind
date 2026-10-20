@@ -186,7 +186,7 @@
       <div class="turn" id="turn" role="img" aria-label="Homo Useless, hardcover. Drag to turn the book.">
         <canvas id="book3d" width="900" height="900"></canvas>
       </div>
-      <div class="hint" id="hint">DRAG TO TURN THE BOOK</div>
+      <div class="hint" id="hint">DRAG TO TURN THE BOOK · ALL THE WAY ROUND</div>
     </div>
   </div>
 </div>
@@ -313,17 +313,19 @@
     root.dataset.theme = dark ? 'light' : 'dark';
     try { localStorage.setItem('hu-theme', root.dataset.theme); } catch (e) {}
   };
-  // the book: frames of a Blender render, turned by drag / pointer / scroll, a slow sway until you touch it
+  // the book: a full turn of a Blender render (90 frames, 4 degrees apart), turned by drag / pointer / scroll,
+  // a slow sway until you touch it. Dragging right turns it the way your hand goes (front to the right, spine, back...)
   (() => {
-    const N = 61, FRONT = 32, cv = document.getElementById('book3d'), ctx = cv.getContext('2d');
+    const N = 90, FRONT = 5, cv = document.getElementById('book3d'), ctx = cv.getContext('2d');
     const box = document.getElementById('turn'), hint = document.getElementById('hint');
     const frames = new Array(N), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const wrap = (i) => ((Math.round(i) % N) + N) % N;
     let cur = FRONT, shown = -1, touched = false, t0 = performance.now();
     const src = (i) => `book3d/f_${String(i + 1).padStart(2, '0')}.webp`;
     const draw = (i) => {
-      i = Math.max(0, Math.min(N - 1, Math.round(i)));
+      i = wrap(i);
       let k = -1;  // the nearest frame already loaded
-      for (let d = 0; d < N && k < 0; d++) for (const j of [i - d, i + d]) if (k < 0 && j >= 0 && j < N && frames[j] && frames[j].naturalWidth) k = j;
+      for (let d = 0; d <= N / 2 && k < 0; d++) for (const j of [wrap(i - d), wrap(i + d)]) if (k < 0 && frames[j] && frames[j].naturalWidth) k = j;
       if (k < 0 || k === shown) return;
       ctx.clearRect(0, 0, cv.width, cv.height);
       const im = frames[k], f = Math.min(cv.width / im.naturalWidth, cv.height / im.naturalHeight);  // fit, never stretch
@@ -333,25 +335,23 @@
     };
     const load = (i) => { const im = new Image(); im.decoding = 'async'; im.onload = () => draw(cur); im.src = src(i); frames[i] = im; };
     load(FRONT);
-    for (let d = 1; d < N; d++) { const a = FRONT + d, b = FRONT - d; if (a < N) load(a); if (b >= 0) load(b); }
+    for (let d = 1; d <= N / 2; d++) { load(wrap(FRONT + d)); if (d < N / 2) load(wrap(FRONT - d)); }
     const stop = () => { if (!touched) { touched = true; hint.classList.add('gone'); } };
     let drag = null;
     box.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, f: cur }; box.classList.add('grab'); box.setPointerCapture(e.pointerId); stop(); });
-    box.addEventListener('pointermove', (e) => {
-      if (drag) { cur = Math.max(0, Math.min(N - 1, drag.f - (e.clientX - drag.x) / 7)); draw(cur); }
-    });
+    box.addEventListener('pointermove', (e) => { if (drag) { cur = drag.f + (e.clientX - drag.x) / 6; draw(cur); } });
     const up = () => { drag = null; box.classList.remove('grab'); };
     box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
-    // on a desktop the book follows the mouse across the hero (before anyone drags it)
+    // on a desktop the book turns toward the mouse (before anyone drags it)
     document.querySelector('.hero').addEventListener('mousemove', (e) => {
       if (drag || touched) return;
       const r = box.getBoundingClientRect(), x = (e.clientX - (r.left + r.width / 2)) / innerWidth;
-      cur = FRONT - x * 30; draw(cur);
+      cur = FRONT + x * 12; draw(cur);
     });
-    // scrolling past the hero turns it a little, like it's being handed to you
-    addEventListener('scroll', () => { if (!drag && touched) return; const y = Math.min(1, scrollY / 600); if (y > 0.02) { cur = FRONT - y * 30; draw(cur); } }, { passive: true });
+    // scrolling past the hero turns it a little
+    addEventListener('scroll', () => { if (drag || touched) return; const y = Math.min(1, scrollY / 600); if (y > 0.02) { cur = FRONT + y * 10; draw(cur); } }, { passive: true });
     const sway = (t) => {
-      if (!touched && !drag && !still && scrollY < 20) { cur = FRONT - 6 - Math.sin((t - t0) / 1600) * 9; draw(cur); }
+      if (!touched && !drag && !still && scrollY < 20) { cur = FRONT - Math.sin((t - t0) / 1600) * 4; draw(cur); }
       requestAnimationFrame(sway);
     };
     requestAnimationFrame(sway);
