@@ -487,3 +487,18 @@ a { color: inherit; text-decoration: none; }
 .cap.snd.on { outline: 2px solid var(--accent); z-index: 3; }
 .snd-x { margin-left: auto; width: 18px; height: 18px; border: 0; border-radius: 3px; background: rgba(0,0,0,.25); color: #2a2000; font-size: 11px; cursor: pointer; padding: 0; }
 .snd-x:hover { background: rgba(0,0,0,.45); color: #fff; }
+
+/* ---- sounds and music on the timeline: ends to drag (shorter / longer), picked = outlined; Delete removes the pick ---- */
+.cap.snd .ov-h { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; background: rgba(0,0,0,.14); }
+.cap.snd .ov-h.l { left: 0; } .cap.snd .ov-h.r { right: 0; }
+.cap.snd:hover .ov-h, .cap.snd.on .ov-h { background: rgba(0,0,0,.3); }
+.cap.snd .snd-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 9px; pointer-events: none; }
+.cap.snd.mus { background: var(--panel-3); color: var(--text); border: 1px solid var(--edge-2); }
+.cap.snd.mus .ov-h { background: rgba(255,255,255,.08); }
+.cap.snd.mus:hover .ov-h, .cap.snd.mus.on .ov-h { background: rgba(255,255,255,.22); }
+
+/* ---- Music & sounds: each effect a row that opens its Sound panel ---- */
+.fx-open { display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 8px; border: 0; border-bottom: 1px solid var(--edge); background: transparent; color: var(--text); cursor: pointer; text-align: left; font: inherit; }
+.fx-open:hover { background: var(--panel-3); }
+.fx-open .fx-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-open .fx-go { color: var(--faint); font-size: 16px; }

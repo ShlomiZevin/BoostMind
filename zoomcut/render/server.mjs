@@ -374,6 +374,21 @@ app.post('/api/ep/:id/sounds', (q, res) => {
   p.stderr.on('data', (b) => (err += b));
   p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, sounds: readJson(path.join(d, 'work', 'edit.json'), {}).sounds || [] }));
 });
+// the music bed moved / its ends dragged / taken off on its lane: saved, then only the sound layers are made again
+app.post('/api/ep/:id/music-time', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  if (!cfg.music) return res.json({ error: 'no music in this project' });
+  const b = q.body || {};
+  if ('start' in b) cfg.music.start = Math.max(0, +(+b.start || 0).toFixed(2));
+  if ('end' in b) cfg.music.end = b.end == null ? null : +(+b.end).toFixed(2);
+  if ('off' in b) { if (b.off) cfg.music.off = true; else delete cfg.music.off; }
+  writeJson(path.join(d, 'episode.json'), cfg);
+  const p = spawn(PY, ['lesson.py', `episodes/${q.params.id}`, '--stems'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  let err = '';
+  p.stderr.on('data', (x) => (err += x));
+  p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, music: cfg.music }));
+});
 // the plain copy of his footage, made now if a project was built before it existed (from its cut person layer)
 app.post('/api/ep/:id/plain', (q, res) => {
   const w = path.join(epDir(q.params.id), 'work');
@@ -435,7 +450,7 @@ app.post('/api/ep/:id/options', (q, res) => {
   if ('eye_contact' in b) cfg.eye_contact = b.eye_contact || null;
   if ('eye_on' in b && cfg.eye_contact) cfg.eye_contact.on = !!b.eye_on;  // live switch: both versions exist
   if ('music_gain' in b && cfg.music) cfg.music.gain = Math.max(0, Math.min(1, Number(b.music_gain) || 0));
-  if (b.music_sound && cfg.music) cfg.music.sound = String(b.music_sound);  // the track chosen in the editor
+  if (b.music_sound && cfg.music) { cfg.music.sound = String(b.music_sound); delete cfg.music.off; }  // the track chosen in the editor (puts music back on)
   if ('captions_style' in b) cfg.captions_style = b.captions_style || null;
   if ('look' in b) cfg.look = b.look || null;  // the live look (smooth / warmth / brightness / saturation)
   writeJson(path.join(d, 'episode.json'), cfg);

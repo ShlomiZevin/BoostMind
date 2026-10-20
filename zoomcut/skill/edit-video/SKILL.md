@@ -66,6 +66,13 @@ start/end must show **at once**, with the real footage already there. How it wor
   `/trim` and `/cutop` (split / remove / start / end / clear-ends / restore) answer `{live: true}` and the editor reloads;
   meanwhile it already shows the change locally (`trimPiece`). Sounds moved = `--stems`. Layout, look, voice, music,
   keep desk %, cut-out on/off, eye switch, text overlays are drawn live and saved.
+- **Sounds and music are layers like the video** (his ask, 2026-10-20): on their lanes a sound is dragged to move it
+  and its ends dragged to make it shorter / longer (episode.json sound `trim_in` = seconds left out at its start,
+  `len` = seconds it plays; a sound never plays past its file's end); the music bed is a block too (`music.start`,
+  `music.end` - no end = to the end, `music.off` = taken off; picking a track puts it back; POST /music-time). Clicking a
+  sound opens its **Sound** panel (voice / Clean / volume / fades / speed / swap / remove). **One Delete** for whatever is
+  picked on the timeline (a piece, a sound, the music): the toolbar button or the Delete key - never a ✕ on a block
+  (he called it terrible). Each change remakes only the sound layers (`--stems`, about a second).
 - **What still rebuilds** (a real job): Re-analyze, cut presets (Tight/Light/...), matte engine, Make eye contact,
   Strong noise reduction, new footage. Keep it that way - don't add new jobs for things the editor can draw.
 - **Preparing a project (do it, so he never waits):** build it through the server (Re-analyze) - that makes the takes'
