@@ -4,6 +4,7 @@ import { Player, PlayerRef } from '@remotion/player';
 import { ZoomCall, ovBoxStyle } from '../src/ZoomCall';
 import { thoughtWords, wordState, lineDrift, THOUGHT_STYLE } from './thought_anim.js';
 import { fxCss } from './fx.js';
+import { LiveClock } from './liveplayer';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -777,7 +778,7 @@ function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRe
         e.preventDefault();
         const r = el.getBoundingClientRect(), px = e.clientX - r.left;
         anchor.current = { t: (px + el.scrollLeft - 8) / pps, px };
-        setZoom((z) => Math.max(1, Math.min(40, z * (e.deltaY < 0 ? 1.25 : 0.8))));
+        setZoom((z) => Math.max(0.25, Math.min(40, z * (e.deltaY < 0 ? 1.25 : 0.8))));
       } else if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         e.preventDefault();
         el.scrollLeft += e.deltaY;
@@ -841,8 +842,8 @@ function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRe
         <button className="btn ghost icon" title="Undo (Ctrl+Z)" disabled={!canUndo} onClick={onUndo}>{I.undo}</button>
         <button className="btn ghost icon" title="Redo (Ctrl+Shift+Z)" disabled={!canRedo} onClick={onRedo}>{I.redo}</button>
         <div className="grow" />
-        <button className="btn ghost icon" title="Zoom out" onClick={() => setZoom(Math.max(1, zoom / 1.5))}>{I.zoomOut}</button>
-        <input type="range" min={1} max={40} step={0.1} value={zoom} onChange={(e) => setZoom(+e.target.value)} title="Ctrl + mouse wheel on the timeline zooms too" />
+        <button className="btn ghost icon" title="Zoom out" onClick={() => setZoom(Math.max(0.25, zoom / 1.5))}>{I.zoomOut}</button>
+        <input type="range" min={0.25} max={40} step={0.05} value={zoom} onChange={(e) => setZoom(+e.target.value)} title="Ctrl + mouse wheel on the timeline zooms too" />
         <button className="btn ghost icon" title="Zoom in" onClick={() => setZoom(Math.min(40, zoom * 1.5))}>{I.zoomIn}</button>
         <button className="btn" style={{ marginLeft: 6 }} onClick={() => setZoom(1)}>Fit</button>
       </div>
@@ -920,7 +921,9 @@ const SPEEDS = [1, 1.05, 1.1, 1.2, 1.3];
 
 function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: string; data: any; top: React.ReactNode; busy: boolean; setJob: (j: Job) => void; jobLine?: string; reload?: () => void }) {
   const fps = 30;
-  const edit = data.lesson?.edit;
+  const [editLive, setEditLive] = useState<any>(null);  // the cut as just changed here, until the server's re-plan answers
+  useEffect(() => setEditLive(null), [data.lesson?.edit]);
+  const edit = editLive || data.lesson?.edit;
   const [tlH, setTlH] = useState(+(store.get('zc-tl-h') || 330));
   const dragTl = (e: React.MouseEvent) => {  // the line above the timeline: drag it to make the timeline taller / shorter
     e.preventDefault();
@@ -948,7 +951,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   const [ov, setOv] = useState<Overlay[]>(data.episode.overlays || []);
   const [fh, setFh] = useState(800);
   useEffect(() => { setCaps(data.lesson?.captions || ''); setPlaque((data.episode.plaque || []).join('\n')); setOv(data.episode.overlays || []); },
-    [ep, data.outputVersion, data.previewVersion]);
+    [ep, data.outputVersion, data.previewVersion, JSON.stringify(data.episode.overlays || [])]);
   useEffect(() => {
     const el = frameRef.current; if (!el) return;
     const ro = new ResizeObserver(() => setFh(el.clientHeight)); ro.observe(el);
@@ -1173,6 +1176,23 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   // the live sound: the video is the clock; voice (raw + noise-reduced), effects and music play beside it
   const audioRef = useRef<any>(null);
   const L = data.layers || {};
+  // the cut, played live over the takes' whole videos: an edge dragged, a split, a piece deleted change it at once
+  // (a project made before them: its takes are made once, quietly, and the built preview plays meanwhile)
+  const takesL = (L as any).takes as Record<string, any> | null;
+  const clockRef = useRef<LiveClock | null>(null);
+  const liveCut = !!(takesL && layered && edit?.items);
+  if (liveCut && !clockRef.current) clockRef.current = new LiveClock();
+  if (liveCut) { (video as any).current = clockRef.current; (window as any).__zcClock = clockRef.current; }  // (window: for tests)
+  useEffect(() => { if (liveCut) (video as any).current = clockRef.current; });  // (after an old video element let go of the ref)
+  useEffect(() => () => clockRef.current?.dispose(), []);
+  useEffect(() => { if (liveCut) clockRef.current!.setItems(edit.items, fps, total); }, [liveCut, edit]);
+  useEffect(() => { if (layered && !takesL) api(`/api/ep/${ep}/takes`, {}).then((r: any) => r?.ok && reload?.()); }, [ep, layered, !!takesL]);
+  const refFns = useRef<Record<string, (el: HTMLVideoElement | null) => void>>({});
+  const liveRef = (tk: string, slot: number, kind: 'cut' | 'plain' | 'raw') =>
+    (refFns.current[`${tk}|${slot}|${kind}`] ??= (el) => clockRef.current?.register(tk, slot, kind, el));
+  const lastTick = useRef(0);
+  const boxFns = useRef<Record<string, (el: HTMLDivElement | null) => void>>({});
+  const boxRef = (tk: string, slot: number) => (boxFns.current[`${tk}|${slot}`] ??= (el) => clockRef.current?.box(tk, slot, el));
   useEffect(() => {
     if (!L.voice) return;
     const mk = (l: any) => { if (!l) return null; const a = new Audio(`${l.url}?v=${l.v}`); a.preload = 'auto'; a.crossOrigin = 'anonymous'; return a; };
@@ -1226,6 +1246,36 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     }
   };
   useEffect(() => { const t = setInterval(() => { if (video.current && !video.current.paused) syncAudio(); }, 500); return () => clearInterval(t); }, []);
+  if (clockRef.current) clockRef.current.on = {  // the live cut's clock: the same as the single video's events
+    time: (s) => { const now = performance.now(); if (clockRef.current?.paused || now - lastTick.current > 50) { lastTick.current = now; setT(s); } },
+    play: () => { setPlaying(true); graph(); applyAudio(); audioRef.current?.ctx?.resume(); syncAudio(true); },
+    pause: () => { setPlaying(false); syncAudio(false); },
+    seeked: () => syncAudio(),
+  };
+  // a piece's edge dragged: the cut changes here at once (the picture is in the take's whole video), the server
+  // re-plans the subtitles and the sound beside it (about a second) and the editor takes its answer
+  const trimPiece = async (take: string, from: number, to: number, i?: number, side?: 'in' | 'out') => {
+    to = +Math.min(to, (clockRef.current?.takeLength(take) ?? Infinity) - 0.05).toFixed(3);  // the take ends there
+    if (Math.abs(to - from) < 0.02) return;
+    if (liveCut && edit && i != null && side) {
+      const it = edit.items[i], sp = it.sp ?? 1;
+      const dn = Math.round(((to - from) / sp) * fps), grow = side === 'out' ? dn : -dn;
+      const n = Math.max(1, it.n + grow), d = n - it.n, endF = it.out + it.n;
+      const after = (f: number) => f >= endF - 0.5;
+      const items = edit.items.map((x: any, j: number) => (j === i
+        ? { ...x, n, ...(x.an != null ? { an: Math.max(1, x.an + d) } : {}), ...(side === 'in' ? { a: +Math.max(0, x.a + (to - from)).toFixed(3) } : {}) }
+        : j > i ? { ...x, out: x.out + d } : x));
+      const next = { ...edit, items, total: edit.total + d,
+        captions: (edit.captions || []).map((c: any) => (after(c.from) ? { ...c, from: c.from + d, to: c.to + d } : c)),
+        sounds: (edit.sounds || []).map((x: any) => (after(x.from * fps) ? { ...x, from: x.from + d / fps, to: x.to + d / fps } : x)) };
+      setEditLive(next);
+      clockRef.current!.setItems(items, fps, next.total / fps);
+      seek(side === 'in' ? it.out / fps : (it.out + n - 1) / fps);  // on the edge: what was added is right there
+    }
+    const r = await api(`/api/ep/${ep}/trim`, { take, from, to });
+    if (r?.live) reload?.(); else if (r?.error) setEditLive(null); else setJob(r);
+  };
+
   const bgBox = (() => {
     const [bw, bh] = edit?.photo || [1080, 1920];
     const c = Math.max(1080 / bw, 1920 / bh) * (bgL.zoom || 1), sw = bw * c, sh = bh * c;
@@ -1435,6 +1485,18 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                     <div key={'t' + i} style={{ position: 'absolute', left: (o.x ?? 60) + 12, top: (o.y ?? 380) + 12, background: 'rgba(0,0,0,0.6)', color: '#fff',
                       font: `700 22px ${fontCss('assistant')}`, padding: '3px 10px', borderRadius: 6, direction: 'rtl', pointerEvents: 'none' }}>{o.tag}</div>))}
                   {look && <LookFilter id="zc-look" lk={look} />}
+                  {liveCut ? Object.entries(takesL!).flatMap(([tk, l]: [string, any]) => [0, 1].map((slot) => (
+                    <div key={tk + slot} ref={boxRef(tk, slot)} style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, pointerEvents: 'none', opacity: 0 }}>
+                      {l.cut && <video ref={liveRef(tk, slot, 'cut')} src={`${l.cut.url}?v=${l.cut.v}`} muted playsInline preload="auto" onMouseDown={(e) => dragLayer(e, 'person')}
+                        style={{ position: 'absolute', pointerEvents: 'auto', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !l.raw || eyeOn ? 1 : 0,
+                          filter: look ? 'url(#zc-look)' : undefined }} />}
+                      {l.plain && needPlain && <video ref={liveRef(tk, slot, 'plain')} src={`${l.plain.url}?v=${l.plain.v}`} muted playsInline preload="auto"
+                        style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', zIndex: 1,
+                          clipPath: cutout ? `inset(${100 - keepPct}% 0 0 0)` : undefined, filter: look ? 'url(#zc-look)' : undefined }} />}
+                      {l.raw && <video ref={liveRef(tk, slot, 'raw')} src={`${l.raw.url}?v=${l.raw.v}`} muted playsInline preload="auto"
+                        style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
+                          filter: look ? 'url(#zc-look)' : undefined }} />}
+                    </div>))) : <>
                   <video ref={video} key={data.layers.person.v} src={`${data.layers.person.url}?v=${data.layers.person.v}`} onMouseDown={(e) => dragLayer(e, 'person')} muted={!!L.voice}
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !L.person_raw || eyeOn ? 1 : 0,
                       filter: look ? 'url(#zc-look)' : undefined }}
@@ -1450,6 +1512,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   {L.person_raw && <video ref={rawVideo} key={'raw' + L.person_raw.v} src={`${L.person_raw.url}?v=${L.person_raw.v}`} muted
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
                       filter: look ? 'url(#zc-look)' : undefined }} />}
+                  </>}
                   </div>
                   {film && <FilmFx fx={film} clock={clock} camRef={camRef} />}
                   {L.intro && t < introSecs && <video ref={introRef} key={'intro' + L.intro.v} src={`${L.intro.url}?v=${L.intro.v}`} muted playsInline
@@ -1875,7 +1938,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
         onSelText={(i) => setSel({ kind: 'text', i })} layer={sel?.kind === 'layer' ? sel.id : sel?.kind === 'take' ? 'captions' : null}
         onLayer={(id) => setSel({ kind: 'layer', id: id as any })}
         bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
-        busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))}
+        busy={busy} onTrim={trimPiece} onPeek={liveCut ? (tk, at) => clockRef.current?.peek(tk, at) : undefined}
         onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
         onCut={async (op) => { const r = await api(`/api/ep/${ep}/cutop`, op); if (r?.live) reload?.(); else setJob(r); }} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)}
         onSoundMove={moveSound} onSoundRemove={removeSound} fxBusy={fxBusy} film={film}
@@ -2069,9 +2132,10 @@ const hexA = (c: string, a: number) => { const n = parseInt(c.slice(1), 16); ret
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy, film, soundNames }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, onPeek, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy, film, soundNames }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
-  layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number) => void; busy: boolean;
+  layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number, i?: number, side?: 'in' | 'out') => void; busy: boolean;
+  onPeek?: (take: string, at: number) => void;
   onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void; hasEnds?: boolean;
   onSoundMove?: (i: number, startOut: number) => void; onSoundRemove?: (i: number) => void; fxBusy?: boolean; film?: any; soundNames?: string[];
 }) {
@@ -2163,7 +2227,7 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
       e.preventDefault();
       const r = el.getBoundingClientRect(), px = e.clientX - r.left;
       zoomAnchor.current = { t: (px + el.scrollLeft - 12) / pps, px };
-      setZoom((z) => Math.max(1, Math.min(40, z * (e.deltaY < 0 ? 1.18 : 1 / 1.18))));
+      setZoom((z) => Math.max(0.25, Math.min(40, z * (e.deltaY < 0 ? 1.18 : 1 / 1.18))));
     };
     el.addEventListener('wheel', wheel, { passive: false });
     return () => el.removeEventListener('wheel', wheel);
@@ -2181,16 +2245,19 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
     e.stopPropagation(); e.preventDefault();
     if (busy) return;
     const it = edit.items[i], x0 = e.clientX;
+    const from = side === 'in' ? it.a : it.a + (it.an ?? it.n) / fps * (it.sp ?? 1);
     let dx = 0;
     setDrag({ i, side, dx: 0 });
-    const mv = (m: MouseEvent) => { dx = m.clientX - x0; setDrag({ i, side, dx }); };
+    const ds = () => (dx / pps) * k * (it.sp ?? 1);  // timeline seconds -> seconds of his take (a slow-motion piece shows less of it)
+    const mv = (m: MouseEvent) => {
+      dx = m.clientX - x0; setDrag({ i, side, dx });
+      onPeek?.(it.take, Math.max(0, from + ds() - (side === 'out' ? 1 / fps : 0)));  // the frame under the edge, from the whole take
+    };
     const up = () => {
       window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up);
       setDrag(null);
       if (Math.abs(dx) < 3) return;
-      const ds = (dx / pps) * k * (it.sp ?? 1);  // timeline seconds -> seconds of his take (a slow-motion piece shows less of it)
-      const from = side === 'in' ? it.a : it.a + (it.an ?? it.n) / fps * (it.sp ?? 1);
-      onTrim(it.take, +from.toFixed(3), +Math.max(0, from + ds).toFixed(3));
+      onTrim(it.take, +from.toFixed(3), +Math.max(0, from + ds()).toFixed(3), i, side);
     };
     window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
   };
@@ -2228,8 +2295,8 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
         <button className="btn" disabled={busy || !atPlayhead()} title="Split the video at the playhead (S)" onClick={split}>✂ Split</button>
         <button className="btn" disabled={busy || piece == null} title="Remove the picked piece - the rest closes up (Delete)" onClick={del}>Delete piece</button>
         <span className="help" style={{ margin: '0 10px 0 4px' }}>{piece != null ? 'piece picked' : 'click a piece to pick it'}</span>
-        <button className="btn ghost icon" title="Zoom out" onClick={() => setZoom(Math.max(1, zoom / 1.5))}>{I.zoomOut}</button>
-        <input type="range" min={1} max={40} step={0.1} value={zoom} onChange={(e) => setZoom(+e.target.value)} />
+        <button className="btn ghost icon" title="Zoom out" onClick={() => setZoom(Math.max(0.25, zoom / 1.5))}>{I.zoomOut}</button>
+        <input type="range" min={0.25} max={40} step={0.05} value={zoom} onChange={(e) => setZoom(+e.target.value)} />
         <button className="btn ghost icon" title="Zoom in" onClick={() => setZoom(Math.min(40, zoom * 1.5))}>{I.zoomIn}</button>
         <button className="btn" style={{ marginLeft: 6 }} onClick={() => setZoom(1)}>Fit</button>
       </div>

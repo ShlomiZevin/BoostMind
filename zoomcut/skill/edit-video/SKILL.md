@@ -22,7 +22,8 @@ argument-hint: "[footage folder in Downloads] [what the sketch is]"
    (or write episode.json by hand from the closest series). `input_dir` points at his folder - never copy footage.
    Subtitles: transcribe, then fix with his script's spelling - the subtitle follows what he SAID, not the script.
 5. **Build through the server** (`curl -X POST localhost:4747/api/ep/<slug>/analyze`, poll `/api/ep/<slug>/job`), never a
-   parallel CLI run while he may be exporting.
+   parallel CLI run while he may be exporting. The build also makes the takes' whole videos the editor plays the cut
+   over - check `layers.takes` in `GET /api/ep/<slug>` lists every take, or his edge drags won't be instant ("The live cut").
 6. **Self-review**: stills (`lesson.py episodes/<slug> --still <s>` / remotion still), placements, lost words; fix first.
 7. **Hand over**: the link, the length at 1x, 2-4 timestamps worth his ear, which pauses you trimmed/kept, and a reminder
    that he can drag any cut edge to pull back footage. Then iterate on his timestamped notes; export when he says.
@@ -43,11 +44,40 @@ be pulled back by him, without asking you. Today this is:
 - Zoom Call: line blocks have edge handles + drag-to-move (`startTrim` → `corrections.json` in/out/shift).
 - Lesson (one speaker): Speaker lane pieces have edge handles (`LessonTimeline` `grabEdge` → POST
   `/api/ep/:id/trim` → episode.json `cut.edges: {"<take>": [[computed edge, his edge], ...]}` → `spans()`
-  applies them last, merging pieces dragged into each other) and rebuilds the layers in seconds.
+  applies them, merging pieces dragged into each other; `plan()` applies them again past a `sequence` part's own
+  from/to, never past the take's end). **It is instant** - see "The live cut" below: no job, no "Updating preview".
 - Any new template or timeline: build this in from day one, and when you change `spans()` / the plan, keep
   his `cut.edges` / `corrections.json` working (they are keyed by the computed edge time, ±0.12 s).
 When you hand over, remind him in one line that he can drag the edges. Your own cut choices are a starting
 point; tell him which pauses you trimmed or kept so he knows where to pull.
+
+## The live cut — every change is instant, the whole take is always behind the cut (his #1 rule, 2026-10-20)
+He hates background processes and "Updating preview": dragging an edge, splitting, deleting a piece, moving the
+start/end must show **at once**, with the real footage already there. How it works (Solo / lesson.py):
+- **The takes, whole, for the editor** - `work/public/takes/<take>.webm` (him cut out, VP9 alpha, keyframe every 0.5 s),
+  `<take>.plain.mp4` (as filmed: Keep desk / Keep original place) and `<take>.raw.webm` (original eyes, only when eye
+  contact is prepared). `lesson.py --preview` makes them (`take_proxies`), cached by a stamp (source, matte, keep mask,
+  look). `lesson.py episodes/<id> --takes` makes only them (~30 s a take).
+- **The editor plays the cut itself** (`render/ui/liveplayer.ts` `LiveClock`): edit.json `items` are parts of takes; the
+  clock moves each take's video to its part, two copies per take so the next part waits ready (seamless cuts). It stands in
+  for the preview `<video>` (currentTime / paused / play / pause / playbackRate), so sound, subtitles and the film look
+  follow it unchanged. While an edge is dragged it shows the take's frame under the edge (`peek`).
+- **Cut changes = `lesson.py --replan`** (~1.5 s, no picture work: plan + subtitles + overlay/fx timing + sound stems):
+  `/trim` and `/cutop` (split / remove / start / end / clear-ends / restore) answer `{live: true}` and the editor reloads;
+  meanwhile it already shows the change locally (`trimPiece`). Sounds moved = `--stems`. Layout, look, voice, music,
+  keep desk %, cut-out on/off, eye switch, text overlays are drawn live and saved.
+- **What still rebuilds** (a real job): Re-analyze, cut presets (Tight/Light/...), matte engine, Make eye contact,
+  Strong noise reduction, new footage. Keep it that way - don't add new jobs for things the editor can draw.
+- **Preparing a project (do it, so he never waits):** build it through the server (Re-analyze) - that makes the takes'
+  videos too. For a project built before them, run `--takes` yourself (an old project opened in the editor makes them
+  once on its own and plays the built preview meanwhile). Check: `GET /api/ep/<id>` → `layers.takes` lists every take.
+- **When you change the code:** anything that only changes *which parts of takes play* must stay a re-plan, never a
+  picture rebuild. A new template must play its cut over whole takes the same way. The export is separate (lesson.py
+  cuts real pieces in one pass), so a preview glitch never reaches the file - but the preview must still be smooth.
+- **Testing it:** `window.__zcClock` is the live clock (set `currentTime`, call `play()`); a puppeteer script that logs
+  every animation frame which box is shown (opacity 1) and whether its video is seeking / readyState < 2 catches
+  flicker at the cuts. Waiting copies are hidden by opacity, never `visibility: hidden` (Chrome drops a hidden video's
+  frame - that was the flicker), and the switch waits until the next copy's frame is ready.
 
 ## 0. Episode-day runbook — he sends videos + a script; you deliver a preview he only fine-tunes
 Goal set by Shlomi after episode 1: **fewer review rounds** — everything he taught us is in the code

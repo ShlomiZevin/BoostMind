@@ -512,6 +512,11 @@ def plan(ls):
     for n, s0, s1 in segments(ls):
         words = load_json(ls.work("words", n + ".json"), [])
         sp = [[max(a, s0), min(b, s1)] for a, b in spans(ls, n) if b > s0 and a < s1]  # this segment's part of the take
+        for was, now in (cut_cfg(ls).get("edges") or {}).get(n, []):  # an edge dragged past this part's own from / to
+            for x in sp:
+                for k_, lim in ((0, s0), (1, s1)):
+                    if abs(x[k_] - lim) < 1e-6 and abs(was - lim) < 0.12:  # (never past the take's own end)
+                        x[k_] = min(max(0.0, float(now)), len(read_wav(ls.work("audio16", n + ".wav"))[0]) / 16000 - 0.05)
         sp = [x for x in sp if x[1] - x[0] >= 0.05]
         cuts, after = [], 0.0
         for ins in [i for i in ls.cfg.get("inserts", []) if i["take"] == n]:
@@ -1514,6 +1519,7 @@ def build(ls, still_at=None, preview=False):
         person, mask = person_layer(ls, items, gaze=eyes)
         person_preview(ls, person, mask, "person.webm")
         plain_preview(ls, person)
+        take_proxies(ls)
         if eyes:  # the original too: the editor's Eye contact switch flips between them live
             raw_p, raw_m = person_layer(ls, items, gaze=False)
             person_preview(ls, raw_p, raw_m, "person_raw.webm")
@@ -1556,6 +1562,84 @@ def plain_preview(ls, person):
         return out
     ff("-i", person, "-vf", "scale=540:960", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-an", out)
     return out
+
+
+def take_src(ls, n, gaze):
+    """A take's video file: the original, or its eye-contact copy (same frames, same timing)."""
+    g = ls.work("gaze", f"{n}.{gaze_sig(ls)}.mp4")
+    return g if gaze and os.path.exists(g) else os.path.join(ls.cfg["input_dir"], n + os.path.splitext(ls.takes[0])[1])
+
+
+def take_proxy(ls, n, gaze, kind):
+    """One take, whole, for the editor (540x960, a keyframe every half second so it seeks at once):
+    "cut" = him cut out (VP9 alpha, his matte + the kept desk), "plain" = as filmed. Made again only when its source,
+    cut-out or look changes."""
+    import hashlib
+    src = take_src(ls, n, gaze)
+    cutout = ls.cfg.get("cutout") is not False
+    mk, keep = (matte_path(ls, n), keep_png(ls, n)) if kind == "cut" and cutout else (None, None)
+    if mk and not os.path.exists(mk):
+        return None
+    look = "null" if ls.cfg.get("look") else grade(ls, 540)
+    sig = hashlib.md5("|".join([src, str(os.path.getmtime(src)), str(mk and os.path.getmtime(mk)), str(keep), look,
+                                str(ls.cfg.get("matte_cut", 175)), kind, "v1"]).encode()).hexdigest()[:12]
+    name_ = f"{n}{'.raw' if kind == 'cut' and not gaze and eye_cfg(ls) else ''}.{'webm' if kind == 'cut' else 'mp4'}"
+    if kind == "plain":
+        name_ = f"{n}.plain.mp4"
+    out, stamp = ls.work("public", "takes", name_), ls.work("public", "takes", name_ + ".stamp")
+    if os.path.exists(out) and os.path.exists(stamp) and open(stamp).read() == sig:
+        return out
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    part = out[:-5] + ".part" + out[-5:] if out.endswith(".webm") else out[:-4] + ".part.mp4"
+    pic = f"fps={FPS},scale=540:960,{look}"
+    if kind == "plain":
+        ff("-i", src, "-vf", pic, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-g", "15", "-pix_fmt", "yuv420p", "-an", part)
+    elif not mk:  # no cut-out: the whole frame is him
+        ff("-i", src, "-vf", pic, "-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1", "-b:v", "2000k",
+           "-g", "15", "-an", part)
+    else:
+        cut = ls.cfg.get("matte_cut", 175)
+        m = f"[1:v]fps={FPS},scale=540:960,format=gray"
+        fc = (f"{m}[a];[2:v]scale=540:960,format=gray[k];[a][k]blend=all_mode=lighten,format=gray" if keep else m)
+        fc += (f",lutyuv=y='clip((val-{cut})*255/{255 - cut},0,255)',gblur=sigma=0.7,format=gray[m];"
+               f"[0:v]{pic},format=yuva420p[p];[p][m]alphamerge[v]")
+        ff("-i", src, "-i", mk, *(["-loop", "1", "-i", keep] if keep else []), "-filter_complex", fc, "-map", "[v]", "-shortest",
+           "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1", "-b:v", "2000k",
+           "-g", "15", "-auto-alt-ref", "0", "-an", part)
+    os.replace(part, out)
+    open(stamp, "w").write(sig)
+    return out
+
+
+def take_proxies(ls):
+    """Every take whole, for the editor, which plays the cut over them: a piece's edge dragged shows the new part
+    at once, because the whole take is always there behind the cut. Him cut out, him as filmed (Keep desk / no
+    cut-out, live) and, when eye contact is prepared, his original eyes too (the live switch)."""
+    eyes = eye_cfg(ls) is not None
+    jobs = [(name(t), eyes, k) for t in ls.takes for k in ("cut", "plain")] + ([(name(t), False, "cut") for t in ls.takes] if eyes else [])
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        list(pool.map(lambda j: take_proxy(ls, *j), jobs))
+    log(f"  · the takes, whole, for the editor ({len(ls.takes)})")
+
+
+def replan(ls):
+    """The edit again without any picture work (a piece's edge dragged in the editor): the cut, the subtitles, the
+    sound layers - about a second. The editor plays the cut over the takes' full videos, so the picture is already there."""
+    items, total = plan(ls)
+    sync_captions(ls)
+    time_overlays(ls, items, total)
+    time_fx(ls, items, total)
+    caps = captions(ls, items, total)
+    st = stems(ls, items, total)
+    import shutil
+    for k, path in st.items():
+        shutil.copyfile(path, ls.work("public", f"{k}.wav"))
+    if os.path.exists(ls.work("edit.full.json")):  # (plan() applies the End mark itself)
+        os.remove(ls.work("edit.full.json"))
+    e = load_json(ls.work("edit.json"), {}) or {}
+    e.update({"items": items, "total": total, "captions": caps, "sounds": getattr(ls, "placed", [])})
+    save_json(ls.work("edit.json"), e)
+    log(f"✔ cut ready ({total / FPS:.1f}s)")
 
 
 def build_stems(ls):
@@ -1791,6 +1875,15 @@ if __name__ == "__main__":
     ap.add_argument("--still", type=float)
     ap.add_argument("--preview", action="store_true", help="quick 540p copy for the editor instead of the final export")
     ap.add_argument("--stems", action="store_true", help="only the sound layers (a sound moved / removed in the editor)")
+    ap.add_argument("--replan", action="store_true", help="the cut, subtitles and sound again - no picture work (an edge dragged)")
+    ap.add_argument("--takes", action="store_true", help="only the takes' full videos the editor plays the cut over")
     a = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
-    build_stems(Lesson(a.episode)) if a.stems else build(Lesson(a.episode), a.still, a.preview)
+    if a.stems:
+        build_stems(Lesson(a.episode))
+    elif a.replan:
+        replan(Lesson(a.episode))
+    elif a.takes:
+        take_proxies(Lesson(a.episode))
+    else:
+        build(Lesson(a.episode), a.still, a.preview)

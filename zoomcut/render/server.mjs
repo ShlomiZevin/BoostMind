@@ -132,6 +132,32 @@ app.post('/api/ep/:id/done', (q, res) => {
   res.json({ ok: true, done: cfg.done });
 });
 
+// every take whole (work/public/takes): {take: {cut, plain, raw}} - the editor plays the cut over these, so a piece's
+// edge dragged shows the new part at once; null until they are made (an older project: /takes makes them)
+const takeLayers = (id, layer) => {
+  const dir = path.join(EPS, id, 'work', 'public', 'takes');
+  if (!fs.existsSync(dir)) return null;
+  const out = {};
+  for (const f of fs.readdirSync(dir)) {
+    const m = /^(.+?)(\.raw\.webm|\.plain\.mp4|\.webm)$/.exec(f);
+    if (!m) continue;
+    (out[m[1]] = out[m[1]] || {})[m[2] === '.webm' ? 'cut' : m[2] === '.raw.webm' ? 'raw' : 'plain'] = layer('takes/' + f);
+  }
+  return Object.keys(out).length ? out : null;
+};
+const making = {};  // projects whose take videos are being made now (once per project)
+app.post('/api/ep/:id/takes', (q, res) => {
+  const id = q.params.id;
+  if (making[id]) return making[id].then((r) => res.json(r));
+  making[id] = new Promise((done) => {
+    const p = spawn(PY, ['lesson.py', `episodes/${id}`, '--takes'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+    let err = '';
+    p.stderr.on('data', (b) => (err += b));
+    p.on('close', (code) => { delete making[id]; done(code ? { error: err.slice(-400) } : { ok: true }); });
+  });
+  making[id].then((r) => res.json(r));
+});
+
 app.get('/api/ep/:id', (q, res) => {
   const d = epDir(q.params.id);
   const w = (f) => path.join(d, 'work', f);
@@ -144,7 +170,7 @@ app.get('/api/ep/:id', (q, res) => {
     const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
       layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), plain: layer('plain.mp4'), scene: layer('scene.png'), plaque: layer('plaque.png'),
-        voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music'), intro: layer('intro.mp4') },
+        voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music'), intro: layer('intro.mp4'), takes: takeLayers(q.params.id, layer) },
       preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
       previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
       episode, lesson: { captions: fs.existsSync(path.join(d, 'captions.txt')) ? fs.readFileSync(path.join(d, 'captions.txt'), 'utf8') : '', edit: readJson(w('edit.json')) },
@@ -189,7 +215,12 @@ app.post('/api/ep/:id/cutop', (q, res) => {
   else if (op === 'remove' && Number.isFinite(+a) && Number.isFinite(+b)) (cfg.cut.removes = cfg.cut.removes || {})[take] = [...((cfg.cut.removes || {})[take] || []), [+(+a).toFixed(3), +(+b).toFixed(3)]];
   else if ((op === 'start' || op === 'end') && Number.isFinite(+t)) cfg.cut[`video_${op}`] = { take, t: +(+t).toFixed(3) };
   else if (op === 'clear-ends') { delete cfg.cut.video_start; delete cfg.cut.video_end; }
-  // the end of the video is only a stop point: shorten the edit in place, no rebuild (Export applies the same end)
+  else if (op === 'restore') { if (cfg.cut.removes) delete cfg.cut.removes[take]; if (cfg.cut.splits) delete cfg.cut.splits[take]; }
+  else return res.status(400).json({ error: 'op' });
+  writeJson(path.join(d, 'episode.json'), cfg);
+  // the cut is only a list of parts of the takes: with the takes' full videos in the editor, it changes at once
+  if (takeLayers(q.params.id, () => 1)) return replanNow(q.params.id, res);
+  // (an older project without them: End here / Reset shorten the built edit in place, the rest rebuilds)
   const ef = path.join(d, 'work', 'edit.json'), full = path.join(d, 'work', 'edit.full.json');
   if (op === 'end' && fs.existsSync(ef)) {
     const e = readJson(ef);
@@ -202,21 +233,23 @@ app.post('/api/ep/:id/cutop', (q, res) => {
         items: src.items.filter((x) => x.out < endF).map((x) => (x.out + x.n > endF ? { ...x, n: endF - x.out } : x)),
         captions: (src.captions || []).filter((c) => c.from < endF).map((c) => ({ ...c, to: Math.min(c.to, endF) })) });
       writeJson(ef, e);
-      writeJson(path.join(d, 'episode.json'), cfg);
       return res.json({ ok: true, live: true });
     }
   }
   if (op === 'clear-ends' && fs.existsSync(full) && !cfg.cut.video_start) {
     fs.copyFileSync(full, ef);
     fs.rmSync(full);
-    writeJson(path.join(d, 'episode.json'), cfg);
     return res.json({ ok: true, live: true });
   }
-  else if (op === 'restore') { if (cfg.cut.removes) delete cfg.cut.removes[take]; if (cfg.cut.splits) delete cfg.cut.splits[take]; }
-  else return res.status(400).json({ error: 'op' });
-  writeJson(path.join(d, 'episode.json'), cfg);
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
+// the cut, subtitles and sound again, no picture work (about a second): the answer comes when it is done
+const replanNow = (id, res) => {
+  const p = spawn(PY, ['lesson.py', `episodes/${id}`, '--replan'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  let err = '';
+  p.stderr.on('data', (b) => (err += b));
+  p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, live: true }));
+};
 
 // lesson: a cut piece's edge dragged on the timeline - more (or less) of the original take before / after it
 app.post('/api/ep/:id/trim', (q, res) => {
@@ -231,7 +264,8 @@ app.post('/api/ep/:id/trim', (q, res) => {
   if (moved) moved[1] = +(+to).toFixed(3);
   else list.push([+(+from).toFixed(3), +(+to).toFixed(3)]);
   writeJson(path.join(d, 'episode.json'), cfg);
-  res.json(pub(runJob(q.params.id, ['--preview'])));
+  if (!takeLayers(q.params.id, () => 1)) return res.json(pub(runJob(q.params.id, ['--preview'])));  // (no take videos yet: the old way)
+  replanNow(q.params.id, res);
 });
 
 // the editor's tool buttons: change a project setting, rebuild the layers when the picture or sound depends on it
