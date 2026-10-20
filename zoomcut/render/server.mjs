@@ -28,18 +28,44 @@ const epDir = (id) => {
 const readJson = (p, d = null) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return d; } };
 const writeJson = (p, v) => fs.writeFileSync(p, JSON.stringify(v, null, 2), 'utf8');
 
-// one job per episode at a time; the UI polls its log
+// one job per episode at a time; the UI polls its log. A job runs detached from this server (tools/jobwrap.mjs):
+// its log and exit code live in episodes/<id>/work/job.log + job.json, so a page refresh or a server restart never
+// loses it - the server attaches to it again on start, and sends the export where it was asked to when it finishes.
 const jobs = {};
+// an export file the editor offers (Open MP4 / Email / Telegram): there, and not one being written or a failed one
+const exportDone = (id) => {
+  if (!fs.existsSync(path.join(EPS, id, 'out', `${id}.mp4`))) return false;
+  const s = readJson(path.join(EPS, id, 'work', 'job.json'), null);
+  return !(s && s.kind === 'export' && (s.running || s.code !== 0));
+};
 const pub = (j) => j && { running: j.running, kind: j.kind, log: j.log, code: j.code, send: j.send || [] };
-function runJob(id, args, onSuccess) {
+const jobFiles = (id) => { const w = path.join(EPS, id, 'work'); fs.mkdirSync(w, { recursive: true }); return { log: path.join(w, 'job.log'), state: path.join(w, 'job.json') }; };
+const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+function runJob(id, args, _onSuccess, send = []) {
   const prev = jobs[id];
   if (prev?.running) return prev;
-  const job = { running: true, kind: args.includes('--preview') ? 'preview' : 'export', log: [], code: null, started: Date.now() };
-  jobs[id] = job;
+  const kind = args.includes('--preview') ? 'preview' : 'export';
   // the lesson template (one speaker, takes in order) has its own pipeline
   const lesson = readJson(path.join(EPS, id, 'episode.json'), {}).type === 'lesson';
   const cmd = lesson ? ['lesson.py', `episodes/${id}`, ...args.filter((a) => a === '--preview')] : ['zoomcut.py', 'build', `episodes/${id}`, ...args];
-  const p = (job.proc = spawn(PY, cmd, { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' } }));
+  const f = jobFiles(id);
+  fs.writeFileSync(f.log, '');
+  writeJson(f.state, { kind, send, sent: false, running: true, code: null, started: Date.now() });
+  const out = fs.openSync(f.log, 'a');
+  const p = spawn(process.execPath, [path.join(ROOT, 'tools', 'jobwrap.mjs'), f.state, PY, ...cmd],
+    { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, detached: true, stdio: ['ignore', out, out], windowsHide: true });
+  p.unref();
+  fs.closeSync(out);
+  const st = readJson(f.state, {});
+  writeJson(f.state, { ...st, pid: p.pid });
+  return attach(id);
+}
+// follow a job from its files (a new one, or one still running from before a restart)
+function attach(id) {
+  const f = jobFiles(id);
+  const st = readJson(f.state, {});
+  const job = (jobs[id] = { running: !!st.running, kind: st.kind, log: [], code: st.code ?? null, send: st.send || [], pid: st.pid, started: st.started });
+  let pos = 0;
   const take = (b) => {
     for (const line of b.toString('utf8').split(/\r?\n|\r/)) {
       if (!line.trim()) continue;
@@ -48,11 +74,37 @@ function runJob(id, args, onSuccess) {
     }
     if (job.log.length > 400) job.log.splice(0, job.log.length - 400);
   };
-  p.stdout.on('data', take);
-  p.stderr.on('data', take);
-  p.on('close', (code) => { job.running = false; job.code = code; job.ended = Date.now(); if (!code && onSuccess) onSuccess(); });
+  const tick = () => {
+    try { const b = fs.readFileSync(f.log); if (b.length > pos) { take(b.subarray(pos)); pos = b.length; } } catch {}
+    const s = readJson(f.state, {});
+    if (s.running && s.pid && !alive(s.pid)) Object.assign(s, { running: false, code: s.code ?? -1, ended: Date.now() }), writeJson(f.state, s);
+    if (s.running) return;
+    clearInterval(iv);
+    job.running = false; job.code = s.code; job.ended = s.ended;
+    finishSends(id);
+  };
+  const iv = setInterval(tick, 500);
+  tick();
   return job;
 }
+// an export that ended well: send it where it was asked to (once)
+async function finishSends(id) {
+  const f = jobFiles(id), s = readJson(f.state, {});
+  if (s.kind !== 'export' || s.code !== 0 || s.sent || !(s.send || []).length) return;
+  writeJson(f.state, { ...s, sent: true });
+  for (const ch of s.send) {
+    const sh = startShare(id, ch);
+    while (sh.running) await new Promise((r) => setTimeout(r, 500));
+  }
+}
+// on start: jobs still running from before (or finished while the server was down) are picked up again
+setTimeout(() => {
+  for (const id of fs.readdirSync(EPS)) {
+    const s = readJson(path.join(EPS, id, 'work', 'job.json'), null);
+    if (!s) continue;
+    if (s.running || (s.kind === 'export' && s.code === 0 && !s.sent && Date.now() - (s.ended || 0) < 3 * 3600e3)) attach(id);
+  }
+}, 500);
 
 // the projects, newest first (by when the folder was made); "done" ones are marked
 app.get('/api/episodes', (_q, res) => {
@@ -90,7 +142,7 @@ app.get('/api/ep/:id', (q, res) => {
       previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
       episode, lesson: { captions: fs.existsSync(path.join(d, 'captions.txt')) ? fs.readFileSync(path.join(d, 'captions.txt'), 'utf8') : '', edit: readJson(w('edit.json')) },
       state: null, edit: null, footage: null, corrections: { lines: {} },
-      output: fs.existsSync(out) ? `/media/${q.params.id}/out` : null,
+      output: exportDone(q.params.id) ? `/media/${q.params.id}/out` : null,
       outputVersion: fs.existsSync(out) ? fs.statSync(out).mtimeMs : null,
       job: pub(jobs[q.params.id]),
     });
@@ -102,7 +154,7 @@ app.get('/api/ep/:id', (q, res) => {
     edit: readJson(w('edit.json')),
     footage: readJson(w('footage.json')),
     audioVersion: fs.existsSync(dialogue) ? fs.statSync(dialogue).mtimeMs : null,
-    output: fs.existsSync(path.join(d, 'out', `${q.params.id}.mp4`)) ? `/media/${q.params.id}/out` : null,
+    output: exportDone(q.params.id) ? `/media/${q.params.id}/out` : null,
     job: pub(jobs[q.params.id]),
   });
 });
@@ -128,6 +180,8 @@ app.post('/api/ep/:id/cutop', (q, res) => {
   cfg.cut = cfg.cut || {};
   if (op === 'split' && Number.isFinite(+t)) (cfg.cut.splits = cfg.cut.splits || {})[take] = [...((cfg.cut.splits || {})[take] || []), +(+t).toFixed(3)];
   else if (op === 'remove' && Number.isFinite(+a) && Number.isFinite(+b)) (cfg.cut.removes = cfg.cut.removes || {})[take] = [...((cfg.cut.removes || {})[take] || []), [+(+a).toFixed(3), +(+b).toFixed(3)]];
+  else if ((op === 'start' || op === 'end') && Number.isFinite(+t)) cfg.cut[`video_${op}`] = { take, t: +(+t).toFixed(3) };
+  else if (op === 'clear-ends') { delete cfg.cut.video_start; delete cfg.cut.video_end; }
   else if (op === 'restore') { if (cfg.cut.removes) delete cfg.cut.removes[take]; if (cfg.cut.splits) delete cfg.cut.splits[take]; }
   else return res.status(400).json({ error: 'op' });
   writeJson(path.join(d, 'episode.json'), cfg);
@@ -499,22 +553,16 @@ app.post('/api/ep/:id/analyze', (q, res) => res.json(pub(runJob(epDir(q.params.i
 app.post('/api/ep/:id/export', (q, res) => {
   const id = epDir(q.params.id) && q.params.id;
   const send = (q.body && q.body.send) || [];
-  const job = runJob(id, ['--concurrency', '16'], async () => {
-    for (const ch of send) {
-      const s = startShare(id, ch);
-      while (s.running) await new Promise((r) => setTimeout(r, 500));
-    }
-  });
-  job.send = send;
+  const job = runJob(id, ['--concurrency', '16'], null, send);  // sent by the server when it ends well, even after a restart
   res.json(pub(job));
 });
 app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id])));
 // Stop button: kill the run and everything it started (ffmpeg, renderer)
 app.post('/api/ep/:id/cancel', (q, res) => {
   const job = jobs[q.params.id];
-  if (job?.running && job.proc) {
+  if (job?.running && (job.pid || job.proc)) {
     job.log.push('■ stopped by you');
-    spawn('taskkill', ['/PID', String(job.proc.pid), '/T', '/F']);
+    spawn('taskkill', ['/PID', String(job.pid || job.proc.pid), '/T', '/F']);
   }
   res.json(pub(job));
 });

@@ -80,6 +80,7 @@ const I = {
 // ---------- app ------------------------------------------------------------------------
 function Editor() {
   const [eps, setEps] = useState<Proj[]>([]);
+  const [expOpen, setExpOpen] = useState(false);
   const setDone = async (id: string, done: boolean) => {
     setEps((l) => l.map((e) => (e.id === id ? { ...e, done } : e)));
     await api(`/api/ep/${id}/done`, { done });
@@ -113,6 +114,10 @@ function Editor() {
     addEventListener('storage', on);
     return () => removeEventListener('storage', on);
   }, []);
+  useEffect(() => {  // a job already running (another tab, before a refresh): follow it
+    if (!ep) return;
+    api(`/api/ep/${ep}/job`).then((j: any) => { if (j?.running) setJob(j); });
+  }, [ep]);
   useEffect(() => {
     if (!job?.running) return;
     const t = setInterval(async () => { const j: Job = await api(`/api/ep/${ep}/job`); setJob(j); if (!j.running) { clearInterval(t); load(); if (!j.code && j.send?.length) followSends(j.send); } }, 700);
@@ -291,9 +296,16 @@ function Editor() {
         {data?.output && !busy && <a href={`${data.output}?v=${Date.now()}`} target="_blank"><button className="btn">Open MP4</button></a>}
         {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Email the video to shlomi@boostart.io" onClick={() => send('email')}>{I.mail} Email</button>}
         {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Send the video to your Telegram" onClick={() => send('telegram')}>{I.tg} Telegram</button>}
-        <button className="btn" disabled={busy || !ready} onClick={async () => setJob(await api(`/api/ep/${ep}/export`, {}))}>{I.export} Export</button>
-        <button className="btn primary" disabled={busy || !ready} title="Export, then send it to your email and Telegram"
-          onClick={async () => { setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send: ['telegram', 'email'] })); }}>{I.export} Export & send</button>
+        <div className="exp">
+          <button className="btn primary" disabled={busy || !ready} onClick={() => setExpOpen(!expOpen)} title="Export the video - pick where it goes first">{I.export} Export ▾</button>
+          {expOpen && <div className="exp-pop" onMouseLeave={() => setExpOpen(false)}>
+            <div className="exp-h">When it's done, send it to…</div>
+            {([[['telegram'], 'Telegram', I.tg], [['email'], 'Email', I.mail], [['telegram', 'email'], 'Telegram + Email', null], [[], 'Nowhere - just make the file', null]] as const).map(([send, nm, ic]) => (
+              <button key={nm} className="exp-it" onClick={async () => { setExpOpen(false); setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send })); }}>
+                {ic || <span style={{ width: 16 }} />}{nm}</button>))}
+            <div className="exp-f">Export takes a few minutes - it sends by itself when it finishes.</div>
+          </div>}
+        </div>
       </div>
   );
   if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} />;
@@ -1758,7 +1770,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
         bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
         busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))}
         onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
-        onCut={async (op) => setJob(await api(`/api/ep/${ep}/cutop`, op))} />
+        onCut={async (op) => setJob(await api(`/api/ep/${ep}/cutop`, op))} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)} />
     </div>
   );
 }
@@ -1864,10 +1876,10 @@ const hexA = (c: string, a: number) => { const n = parseInt(c.slice(1), 16); ret
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut, hasEnds }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
   layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number) => void; busy: boolean;
-  onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void;
+  onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void; hasEnds?: boolean;
 }) {
   // the cut tool: a piece picked on the Speaker lane; Split at the playhead (S), Delete the piece (Delete)
   const [piece, setPiece] = useState<number | null>(null);
@@ -1980,6 +1992,10 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
     <div className="tl" style={{ ['--th' as any]: `${TH}px` }}>
       <div className="tl-bar">
         <div className="grow" />
+        <button className="btn" disabled={busy || !atPlayhead()} title="The video starts here - everything before it goes, in every layer" onClick={() => { const at = atPlayhead(); if (at) onCut({ op: 'start', ...at }); }}>⇤ Start here</button>
+        <button className="btn" disabled={busy || !atPlayhead()} title="The video ends here - everything after it goes, in every layer" onClick={() => { const at = atPlayhead(); if (at) onCut({ op: 'end', ...at }); }}>End here ⇥</button>
+        {hasEnds && <button className="btn ghost" disabled={busy} title="Back to the full length" onClick={() => onCut({ op: 'clear-ends' })}>Reset start/end</button>}
+        <span className="vsep" />
         <button className="btn" disabled={busy || !atPlayhead()} title="Split the video at the playhead (S)" onClick={split}>✂ Split</button>
         <button className="btn" disabled={busy || piece == null} title="Remove the picked piece - the rest closes up (Delete)" onClick={del}>Delete piece</button>
         <span className="help" style={{ margin: '0 10px 0 4px' }}>{piece != null ? 'piece picked' : 'click a piece to pick it'}</span>

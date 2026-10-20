@@ -487,6 +487,20 @@ def plan(ls):
         missed = [ins for at, ins in cuts if not any(a <= at <= b for a, b in sp)]
         for ins in missed:
             raise SystemExit(f"insert {ins} falls in a cut pause")
+    # the whole video's start / end, marked in the editor (cut "video_start" / "video_end": {take, t}) - every layer follows
+    c = cut_cfg(ls)
+    vs, ve = c.get("video_start"), c.get("video_end")
+    if vs:
+        k = next((i for i, it in enumerate(items) if it["kind"] == "clip" and it["take"] == vs["take"] and it["a"] <= vs["t"] < it["a"] + it["n"] / FPS), None)
+        if k is not None:
+            it = items[k]
+            cut_f = round((vs["t"] - it["a"]) * FPS)
+            items = [{**it, "a": vs["t"], "n": it["n"] - cut_f}] + items[k + 1:]
+    if ve:
+        k = next((i for i, it in enumerate(items) if it["kind"] == "clip" and it["take"] == ve["take"] and it["a"] < ve["t"] <= it["a"] + it["n"] / FPS + 0.02), None)
+        if k is not None:
+            it = items[k]
+            items = items[:k] + [{**it, "n": max(1, round((ve["t"] - it["a"]) * FPS))}]
     # jump cuts: the picture cuts `join` early and the next part starts there, while the previous part's
     # sound runs on underneath for that moment (crossfaded) - no gap, the next word lands on the last one
     ov = round(cut_cfg(ls)["join"] * FPS)
