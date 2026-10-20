@@ -240,6 +240,26 @@ def keep_png(ls, take):
         for j in range(1, n_):  # the objects standing on the desk: the parts that reach down to its edge
             if st[j, cv2.CC_STAT_TOP] + st[j, cv2.CC_STAT_HEIGHT] >= int(k["below"]) - 4 and st[j, cv2.CC_STAT_AREA] > 400:
                 m[lab == j] = 255
+    for x0, y0, x1, y1 in k.get("boxes", []):  # a fixed object in front (a mic on its stand): its box stays, in fractions
+        m[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)] = 255
+    if k.get("stable"):  # things that never move (a microphone on its stand): whatever the cut-out keeps in almost
+        # every frame of the take is kept in all of them - the cut-out loses a mic now and then, it is not a person
+        mc = cv2.VideoCapture(matte_path(ls, take))
+        mn = int(mc.get(cv2.CAP_PROP_FRAME_COUNT)) or 1
+        acc, cnt = None, 0
+        for fi in np.linspace(0, mn - 1, 48).astype(int):
+            mc.set(cv2.CAP_PROP_POS_FRAMES, int(fi))
+            ok, fr = mc.read()
+            if not ok:
+                continue
+            g = cv2.resize(fr[..., 0] if fr.ndim == 3 else fr, (w, h)) > 128
+            acc = g.astype(np.float32) if acc is None else acc + g
+            cnt += 1
+        if cnt:
+            st = (acc / cnt) >= float(k["stable"])
+            st[: int(h * float(k.get("stable_from", 0.45))), :] = False  # only the lower part (the desk / the mic), not the head
+            st = cv2.morphologyEx(st.astype(np.uint8) * 255, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+            m = np.maximum(m, st)
     m = cv2.GaussianBlur(m, (0, 0), k.get("feather", 2.0))
     # (cv2.imwrite cannot write a Hebrew path on Windows - it garbles the name)
     cv2.imencode(".png", cv2.resize(m, (MATTE_W * 2, MATTE_H * 2), interpolation=cv2.INTER_AREA))[1].tofile(out)

@@ -2,8 +2,8 @@
   "type": "lesson",
   "series": "tadar",
   "title": "איילת השחר – שאלות ותשובות (spiritual-2)",
-  "input_dir": "C:/Users/shazbak/Downloads/תדר",
-  "takes": "IMG_9984.MP4",
+  "input_dir": "C:/Users/shazbak/Downloads/תדר/2",
+  "takes": "ayelete-*.MP4",
   "background": "../_assets/tadar/studio.jpg",
   "plaque": [],
   "music": {
@@ -44,14 +44,13 @@
       "from_words": [
         "כותבת לי צופית",
         "שאלה ראשונה כותבת",
-        "קודם כול תביני שתדר",
-        "קודם כל תבינו שתודעה"
+        "קודם כול תביני שתדר"
       ],
       "y": 240,
       "w": 820,
       "size": 34,
-      "start": 6.31,
-      "end": 29.53,
+      "start": 10.76,
+      "end": 74.53,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#b07a9e",
@@ -64,14 +63,13 @@
       "label": "יש לכן שאלות? אני כאן",
       "from_words": [
         "לוטם שואלת אותי",
-        "זו שאלה מאוד מאוד מדויקת",
-        "אם אנחנו חוזרים רגע"
+        "זו שאלה מאוד מאוד מדויקת"
       ],
       "y": 240,
       "w": 820,
       "size": 34,
-      "start": 29.63,
-      "end": 69.63,
+      "start": 74.63,
+      "end": 108.84,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#7a9eb0",
@@ -85,14 +83,13 @@
       "from_words": [
         "ושיבולת אהובה",
         "שיבולת אהובה",
-        "וואו את נוגעת פה",
-        "וזה בדיוק מה שבקבלה"
+        "וואו את נוגעת פה"
       ],
       "y": 240,
       "w": 820,
       "size": 34,
-      "start": 69.73,
-      "end": 97.17,
+      "start": 108.94,
+      "end": 148.6,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#c4a35a",
@@ -110,6 +107,18 @@
       "speed": 130,
       "start": 0,
       "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/logo/logo_2_morningstar.png",
+      "plain": true,
+      "x": 800,
+      "y": 272,
+      "w": 230,
+      "h": 230,
+      "start": 0,
+      "end": null,
+      "text": ""
     }
   ],
   "speed": 1.05,
@@ -125,26 +134,59 @@
     "boost": 0
   },
   "cut": {
-    "silence": false
+    "merge": 1.1,
+    "pad_in": 0.12,
+    "pad_out": 0.45,
+    "join": 0.06,
+    "above_floor": 28,
+    "voice_above_floor": 38
   },
   "denoise": {
     "rnn": "models/rnnoise/cb.rnnn"
   },
   "done": false,
-  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so",
   "eye_contact": {
-    "file": "goodone.mp4",
     "on": true
   },
-  "_todo": [
-    "replace: input_dir/takes = his video; eye_contact = {\"on\": true} (NVIDIA)",
-    "question bubbles: from_words find his questions/answers; drop the stand-in anchors (last item of each list)"
-  ],
   "speaker_name": "איילת השחר",
   "script": "spiritual-2",
   "media": [
     "../_assets/tadar/logo/logo_1_lotus.png",
     "../_assets/tadar/logo/logo_2_morningstar.png",
     "../_assets/tadar/logo/logo_3_everything.png"
-  ]
+  ],
+  "keep": {
+    "ayelete-1": {
+      "boxes": [
+        [
+          0.455,
+          0.395,
+          0.715,
+          0.56
+        ],
+        [
+          0.4,
+          0.56,
+          0.78,
+          1.0
+        ]
+      ]
+    },
+    "ayelete-2": {
+      "boxes": [
+        [
+          0.395,
+          0.395,
+          0.655,
+          0.56
+        ],
+        [
+          0.34,
+          0.56,
+          0.7,
+          1.0
+        ]
+      ]
+    }
+  }
 }

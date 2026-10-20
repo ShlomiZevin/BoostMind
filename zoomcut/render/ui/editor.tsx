@@ -845,7 +845,8 @@ Drag the middle to move it · drag an edge to take more or less of the recording
                 {(edit.overlays || []).map((o: any, i: number) => (
                   <div key={i} className={`txt he ${sel?.kind === 'text' && sel.i === i ? 'sel' : ''}`}
                     style={{ left: x(o.from / fps), width: Math.max(10, o.dur / fps * pps - 2) }}
-                    onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelText(i)}>{o.text}</div>))}
+                    onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelText(i)}>
+                  {(o as any).image ? `🖼 ${String((o as any).image).split('/').pop()}` : (o as any).asker ? `${(o as any).asker} שואלת · ${o.text}` : o.text}</div>))}
               </div>
             </>}
             <div className="playhead" style={{ left: x(frame / fps), height: 30 + tracks.length * TH }} />
@@ -1471,7 +1472,17 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                       <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} /></button>)}
                   </div>
                   <Slider label="Size" v={o.w || 230} min={80} max={700} step={5} fmt={(v) => `${v}px`} onChange={(v) => set({ w: v, h: v }, false)} />
-                  <div className="help">Drag it on the preview to move it.</div>
+                  <div className="sec" style={{ marginTop: 4 }}>Place</div>
+                  <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                    {([['tl', 'Top left'], ['tr', 'Top right'], ['bl', 'Bottom left'], ['br', 'Bottom right']] as const).map(([k, nm]) => {
+                      const w = o.w || 230, h = o.h || w;  // inside the safe area: the app's own buttons cover the edges
+                      const pos = { x: k[1] === 'l' ? 40 : 1080 - 40 - w, y: k[0] === 't' ? 290 : 1920 - 330 - h };
+                      const on = Math.abs((o.x ?? 0) - pos.x) < 4 && Math.abs((o.y ?? 0) - pos.y) < 4;
+                      return <button key={k} className={on ? 'on' : ''} onClick={() => set(pos)}>{nm}</button>; })}
+                  </div>
+                  <Slider label="Left / right" v={o.x ?? 800} min={0} max={1080 - (o.w || 230)} step={2} fmt={(v) => `${v}`} onChange={(v) => set({ x: v }, false)} />
+                  <Slider label="Up / down" v={o.y ?? 300} min={0} max={1920 - (o.h || o.w || 230)} step={2} fmt={(v) => `${v}`} onChange={(v) => set({ y: v }, false)} />
+                  <div className="help">Or drag it on the preview.</div>
                   <button className="btn ghost" style={{ width: '100%' }} onClick={() => { changeOv(ov.filter((_: any, j) => j !== sel.i)); setSel(null); }}>Remove the logo from the video</button>
                 </div>
               </>; })()}
@@ -1907,7 +1918,8 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
             <div className="lane" onMouseDown={(e) => e.target === e.currentTarget && scrub(e)}>
               {overlays.map((o, i) => (
                 <div key={i} className={`txt he ${sel === i ? 'sel' : ''}`} style={{ left: x(o.start || 0), width: Math.max(10, ((o.end ?? total) - (o.start || 0)) * pps - 2) }}
-                  onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelText(i)}>{o.text}</div>))}
+                  onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelText(i)}>
+                  {(o as any).image ? `🖼 ${String((o as any).image).split('/').pop()}` : (o as any).asker ? `${(o as any).asker} שואלת · ${o.text}` : o.text}</div>))}
             </div>
             <div className={`lane ${layer === 'captions' ? 'sel' : ''}`} onMouseDown={scrub}>
               {(edit?.captions || []).map((c: any, i: number) => (

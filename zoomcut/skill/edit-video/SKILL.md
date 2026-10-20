@@ -295,3 +295,6 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
 - **Project media (Media tab → Logos & pictures):** episode.json "media" lists the project's own files (logos,
   pictures); "+ Add file" uploads into episodes/<id>/media/ (POST /api/ep/:id/media); "Put on video" adds a plain image
   overlay (a corner logo, draggable). Anything generated for a project goes on its media list.
+- **A fixed object in front of him (a mic on its stand) that the cut-out loses:** episode.json "keep": {"<take>":
+  {"boxes": [[x0, y0, x1, y1]]}} in fractions of the frame - that box stays from the real footage (tight around the
+  object; a box only holds things in front of him). "stable": 0.9 keeps whatever the cut-out keeps in 90% of frames.
