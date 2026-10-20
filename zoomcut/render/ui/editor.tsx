@@ -255,6 +255,19 @@ function Editor() {
       }
     }
   };
+  // sends run by the server (after an export, after a restart, from another tab) show here too
+  useEffect(() => {
+    if (!ep) return;
+    let stop = false;
+    const look = async () => {
+      const all = (await Promise.all(['telegram', 'email'].map((c) => api(`/api/ep/${ep}/share/${c}`).catch(() => null)))).filter(Boolean) as any[];
+      const now = all.find((x) => x.running) || all.sort((x, y) => (y.ended || 0) - (x.ended || 0))[0];
+      if (!stop && now && (now.running || !share?.running)) setShare(now);
+      if (!stop) setTimeout(look, all.some((x) => x.running) ? 1500 : 6000);
+    };
+    look();
+    return () => { stop = true; };
+  }, [ep]);
   const shareText = share && (share.running ? (share.log[share.log.length - 1] || 'Preparing…')
     : share.ok ? (share.channel === 'email' ? '✓ Sent by email' : '✓ Sent to Telegram') : `Send failed: ${share.error}`);
 

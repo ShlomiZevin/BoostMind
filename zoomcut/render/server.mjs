@@ -442,7 +442,7 @@ Exported by Sketch Studio. Full-quality master: ${master}` });
     }
     job.ok = true;
   })().catch((e) => { job.ok = false; job.error = e.message; log('failed: ' + e.message); })
-    .finally(() => { job.running = false; });
+    .finally(() => { job.running = false; job.ended = Date.now(); });  // (ended: the editor shows the latest send)
   return job;
 }
 app.post('/api/ep/:id/share', (q, res) => {
