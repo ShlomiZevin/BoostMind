@@ -941,7 +941,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   const [tab, setTab] = useState<'script' | 'media' | 'templates'>('media');
   const [subView, setSubView] = useState<'read' | 'lines'>('read');
   const [wide, setWide] = useState(false);
-  type Layer = 'captions' | 'speaker' | 'background' | 'music';
+  type Layer = 'captions' | 'speaker' | 'background' | 'music' | 'filters';
   const [sel, setSel] = useState<{ kind: 'take'; k: number } | { kind: 'text'; i: number } | { kind: 'layer'; id: Layer } | null>(null);
   const [caps, setCaps] = useState<string>(data.lesson?.captions || '');
   const [plaque, setPlaque] = useState<string>((data.episode.plaque || []).join('\n'));
@@ -1654,10 +1654,12 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
 
             {sel?.kind === 'layer' && sel.id === 'speaker' && <>
               <div className="card">
-                <div className="sec">Picture</div>
-                <Slider label="Size" v={pL.scale} min={0.5} max={1.4} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => setP({ ...pL, scale: v })} />
-                <Slider label="Left / right" v={pL.x} min={-600} max={600} step={2} fmt={(v) => `${v}`} onChange={(v) => setP({ ...pL, x: v })} />
-                <Slider label="Up / down" v={pL.y} min={-600} max={1000} step={2} fmt={(v) => `${v}`} onChange={(v) => setP({ ...pL, y: v })} />
+                <div className="card-h"><div className="sec grow" style={{ margin: 0 }}>Picture</div>
+                  <button className="btn ghost" style={{ height: 26, padding: '0 10px', fontSize: 12 }} title="Back to the original size and place"
+                    disabled={pL.scale === 1 && !pL.x && !pL.y} onClick={() => setP({ scale: 1, x: 0, y: 0 })}>Reset</button></div>
+                <Slider label="Size" v={pL.scale} min={0.5} max={3} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => setP({ ...pL, scale: v })} />
+                <Slider label="Left / right" v={pL.x} min={-1500} max={1500} step={2} fmt={(v) => `${v}`} onChange={(v) => setP({ ...pL, x: v })} />
+                <Slider label="Up / down" v={pL.y} min={-1500} max={2000} step={2} fmt={(v) => `${v}`} onChange={(v) => setP({ ...pL, y: v })} />
                 <div className="help">Or drag yourself on the preview.</div>
               </div>
               <div className="card">
@@ -1727,10 +1729,12 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
 
             {sel?.kind === 'layer' && sel.id === 'background' && <>
               <div className="card">
-                <div className="sec">Picture</div>
-                <Slider label="Zoom" v={bgL.zoom} min={1} max={1.8} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => setBg({ ...bgL, zoom: v })} />
-                <Slider label="Left / right" v={bgL.x} min={-500} max={500} step={2} fmt={(v) => `${v}`} onChange={(v) => setBg({ ...bgL, x: v })} />
-                <Slider label="Up / down" v={bgL.y} min={-700} max={700} step={2} fmt={(v) => `${v}`} onChange={(v) => setBg({ ...bgL, y: v })} />
+                <div className="card-h"><div className="sec grow" style={{ margin: 0 }}>Picture</div>
+                  <button className="btn ghost" style={{ height: 26, padding: '0 10px', fontSize: 12 }} title="Back to the original zoom and place"
+                    disabled={bgL.zoom === 1 && !bgL.x && !bgL.y} onClick={() => setBg({ zoom: 1, x: 0, y: 0 })}>Reset</button></div>
+                <Slider label="Zoom" v={bgL.zoom} min={1} max={3} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => setBg({ ...bgL, zoom: v })} />
+                <Slider label="Left / right" v={bgL.x} min={-1500} max={1500} step={2} fmt={(v) => `${v}`} onChange={(v) => setBg({ ...bgL, x: v })} />
+                <Slider label="Up / down" v={bgL.y} min={-2500} max={2500} step={2} fmt={(v) => `${v}`} onChange={(v) => setBg({ ...bgL, y: v })} />
                 <div className="help">{(data.episode.background || '').split('/').pop()} — or drag it on the preview.</div>
               </div>
               <div className="card">
@@ -1749,6 +1753,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
               </div>}
             </>}
 
+            {sel?.kind === 'layer' && sel.id === 'filters' && <FilterLayers fx={film} t={t * k} onChange={changeFilm} />}
             {sel?.kind === 'layer' && sel.id === 'music' && <>
               {data.episode.music ? <>
                 <div className="card">
@@ -1787,6 +1792,15 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                         onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, gain: +e.target.value } : x)))} />
                       <span className="fx-time" style={{ width: 38, textAlign: 'right' }}>{Math.round((s.gain ?? 0.8) * 100)}%</span>
                     </div>
+                    {s.filter === 'echo' && <div className="fx-ctl">
+                      <span className="fx-time" style={{ width: 36 }}>Echo</span>
+                      <input type="range" min={0} max={2} step={0.1} value={s.echo ?? 1} title="Echo amount" style={{ flex: 1, accentColor: 'var(--accent)' }}
+                        onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, echo: +e.target.value } : x)))} />
+                      <span className="fx-time" style={{ width: 36 }}>Speed</span>
+                      <input type="range" min={0.8} max={1.4} step={0.02} value={s.tempo ?? 1} title="Faster / slower speech, same pitch" style={{ flex: 1, accentColor: 'var(--accent)' }}
+                        onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, tempo: +e.target.value } : x)))} />
+                      <span className="fx-time" style={{ width: 38, textAlign: 'right' }}>{(s.tempo ?? 1).toFixed(2)}×</span>
+                    </div>}
                   </div>; })}
                 {!addingFx && <button className="btn" style={{ width: '100%', marginTop: 6 }} disabled={busy} onClick={() => setAddingFx(true)}>+ Add effect at {mmss(t)}</button>}
                 {addingFx && <div className="fx-lib">
@@ -1815,10 +1829,11 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                     ['captions', I.cc, 'Captions', `${capStyle?.color === '#ffffff' ? 'White' : capStyle?.color ? 'Colour' : 'Yellow'} · ${(capStyle?.font || 'stam-ashkenaz').replace('-', ' ')} · ${capStyle?.size || 84}px`],
                     ['speaker', I.phone, 'Speaker', `${voice.preset || 'natural'} voice · ${data.episode.cutout === false ? 'original place' : 'cut out'}${eyeOn && L.person_raw ? ' · eye contact' : ''}${look ? ' · look' : ''}`],
                     ['background', I.layout, 'Background', data.episode.cutout === false ? 'not used (original place)' : (data.episode.background || '').split('/').pop()],
+                    ['filters', null, 'Filters', filtersOn(film).length ? filtersOn(film).map((F) => `${F.name} ${Math.round(F.get(film) * 100)}%`).join(' · ') : 'raw picture'],
                     ['music', null, 'Music & sounds', `${data.episode.music ? `${String(data.episode.music.sound).split('/').pop()?.replace(/\.[^.]+$/, '')} · ${Math.round(musicGain * 100)}%` : 'no music'} · ${(data.episode.sounds || []).length} effects`],
                   ] as const).map(([id, ic, name, sub]) => (
                     <button key={id} className="ly" onClick={() => setSel({ kind: 'layer', id: id as Layer })}>
-                      <span className="ly-ic">{ic || '♪'}</span>
+                      <span className="ly-ic">{ic || (id === 'filters' ? '◐' : '♪')}</span>
                       <span className="ly-main"><span className="ly-name">{name}</span><span className="ly-sub">{sub}</span></span>
                       <span className="ly-go">›</span>
                     </button>))}
@@ -1850,7 +1865,6 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                 </div>
                 <div className="help" style={{ marginTop: 6 }}>{Object.entries(data.episode.cut?.slow || {}).map(([tk, r]: any) => r.map((x: any) => `${tk} ${x[0].toFixed(1)}s→${x[1] > 999 ? 'end' : x[1].toFixed(1) + 's'} at ${x[2]}×`).join(' · ')).join(' · ') || 'The take plays at its own speed.'} Eases in, frames made up between the real ones.</div>
               </div>
-              <FilmLook fx={film} t={t * k} onChange={changeFilm} />
             </>}
           </div>
         </div>
@@ -1864,47 +1878,59 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
         busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))}
         onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
         onCut={async (op) => { const r = await api(`/api/ep/${ep}/cutop`, op); if (r?.live) reload?.(); else setJob(r); }} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)}
-        onSoundMove={moveSound} onSoundRemove={removeSound} fxBusy={fxBusy} />
+        onSoundMove={moveSound} onSoundRemove={removeSound} fxBusy={fxBusy} film={film}
+        soundNames={(data.episode.sounds || []).map((s: any, i: number) => { const th = ov.find((o: any) => o.style === 'thought' && o.sound === i);
+          return th ? `💭 ${th.text}` : String(s.sound).split('/').pop()!.replace(/\.[^.]+$/, ''); })} />
     </div>
   );
 }
 
-// the Film look card: a preset, the knobs, hits at the playhead - every change plays live (no rebuild)
-const HORROR = { center: [0.5, 0.36], push: [[0, 45, 1.04, 1.22]], drift: 0.6, flicker: 0.5, vignette: 0.75, grain: 0.45,
-  grade: { saturation: 0.55, contrast: 1.15, brightness: -0.08 } };
-function FilmLook({ fx, t, onChange }: { fx: any; t: number; onChange: (fx: any) => void }) {
-  const f = fx || {}, g = f.grade || {};
+// the filters, each a layer with a strength bar: the picture stays raw until a filter is turned up. One table for the
+// panel, the Layers list and the timeline lanes; the values land in episode.json "fx" (render/ui/fx.js applies them)
+const pushEnd = (fx: any) => { const p = fx?.push || []; return p.length ? p[p.length - 1][3] : 1; };
+const FILTERS: { id: string; name: string; def: number; max?: number; get: (fx: any) => number; set: (fx: any, v: number) => any }[] = [
+  { id: 'grade', name: 'Movie colour', def: 0.4, get: (fx) => fx?.grade_amount ?? 0,
+    set: (fx, v) => ({ ...fx, grade_amount: v, grade: { saturation: +(1 - 0.35 * v).toFixed(3), contrast: +(1 + 0.15 * v).toFixed(3), brightness: +(-0.06 * v).toFixed(3) } }) },
+  { id: 'vignette', name: 'Vignette', def: 0.3, get: (fx) => fx?.vignette || 0, set: (fx, v) => ({ ...fx, vignette: v }) },
+  { id: 'grain', name: 'Film grain', def: 0.12, get: (fx) => fx?.grain || 0, set: (fx, v) => ({ ...fx, grain: v }) },
+  { id: 'zoom', name: 'Slow zoom in', def: 0.35, get: (fx) => Math.max(0, (pushEnd(fx) - 1.02) / 0.25),
+    set: (fx, v) => { const p = (fx?.push?.length ? fx.push : [[0, 0.1, 1.02, 1.02], [0.1, 999, 1.02, 1.02]]).map((x: any) => [...x]);
+      p[p.length - 1][3] = +(1.02 + 0.25 * v).toFixed(3); return { ...fx, push: p }; } },
+  { id: 'drift', name: 'Handheld', def: 0.2, get: (fx) => fx?.drift || 0, set: (fx, v) => ({ ...fx, drift: v }) },
+  { id: 'flicker', name: 'Light flicker', def: 0.3, get: (fx) => fx?.flicker || 0, set: (fx, v) => ({ ...fx, flicker: v }) },
+];
+const filtersOn = (fx: any) => FILTERS.filter((f) => f.get(fx) > 0.001);
+
+function FilterLayers({ fx, t, onChange }: { fx: any; t: number; onChange: (fx: any) => void }) {
+  const f = fx || {};
   const set = (patch: any) => onChange({ ...f, ...patch });
-  const pct = (v: number) => (v ? `${Math.round(v * 100)}%` : 'off');
   return (
-    <div className="card">
-      <div className="card-h"><div className="title grow">Film look</div><span className="help" style={{ margin: 0 }}>{fx ? `${(f.hits || []).length} hits` : 'off'}</span></div>
-      <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        <button className={!fx ? 'on' : ''} onClick={() => onChange(null)}>Off</button>
-        <button className={fx ? 'on' : ''} onClick={() => onChange({ ...HORROR, ...(fx ? { hits: f.hits, black: f.black, blackouts: f.blackouts } : {}) })}>Horror</button>
+    <>
+      <div className="card">
+        <div className="card-h"><div className="title grow">Filters</div><span className="help" style={{ margin: 0 }}>{filtersOn(fx).length} on · raw picture underneath</span></div>
+        {FILTERS.map((F) => { const v = F.get(f), on = v > 0.001;
+          return <div key={F.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+            <button className={`btn ${on ? 'primary' : ''}`} style={{ height: 26, width: 44, padding: 0, flex: 'none' }} title={on ? 'Turn it off' : 'Turn it on'}
+              onClick={() => onChange(F.set(f, on ? 0 : F.def))}>{on ? 'On' : 'Off'}</button>
+            <span style={{ width: 96, flex: 'none', color: on ? 'var(--fg)' : 'var(--dim)' }}>{F.name}</span>
+            <input type="range" min={0} max={F.max ?? 1} step={0.01} value={v} style={{ flex: 1, accentColor: 'var(--accent)' }} onChange={(e) => onChange(F.set(f, +e.target.value))} />
+            <span className="fx-time" style={{ width: 38, textAlign: 'right' }}>{on ? `${Math.round(v * 100)}%` : 'off'}</span>
+          </div>; })}
+        <div className="help" style={{ marginTop: 6 }}>Each filter is a layer: On / Off, and the bar is its strength. Everything plays live; Export uses the same numbers.</div>
       </div>
-      {fx && <>
-        <Slider label="Vignette" v={f.vignette || 0} min={0} max={1} step={0.05} fmt={pct} onChange={(v) => set({ vignette: v })} />
-        <Slider label="Grain" v={f.grain || 0} min={0} max={1} step={0.05} fmt={pct} onChange={(v) => set({ grain: v })} />
-        <Slider label="Flicker" v={f.flicker || 0} min={0} max={1} step={0.05} fmt={pct} onChange={(v) => set({ flicker: v })} />
-        <Slider label="Handheld" v={f.drift || 0} min={0} max={1.5} step={0.05} fmt={pct} onChange={(v) => set({ drift: v })} />
-        <Slider label="Colour" v={g.saturation ?? 1} min={0} max={1.3} step={0.05} fmt={pct} onChange={(v) => set({ grade: { ...g, saturation: v } })} />
-        <Slider label="Contrast" v={g.contrast ?? 1} min={0.7} max={1.5} step={0.05} fmt={pct} onChange={(v) => set({ grade: { ...g, contrast: v } })} />
-        <Slider label="Light" v={g.brightness ?? 0} min={-0.4} max={0.2} step={0.02} fmt={(v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`} onChange={(v) => set({ grade: { ...g, brightness: v } })} />
-        <Slider label="Zoom in to" v={(f.push || [[0, 45, 1, 1]])[0][3]} min={1} max={1.6} step={0.02} fmt={(v) => `${Math.round((v - 1) * 100)}%`}
-          onChange={(v) => set({ push: [[...((f.push || [[0, 45, 1.04, 1.22]])[0]).slice(0, 3), v], ...(f.push || []).slice(1)] })} />
-        <div className="sec" style={{ marginTop: 10 }}>Hits <span className="help" style={{ margin: 0 }}>zoom kick · shake · white flash</span></div>
+      <div className="card">
+        <div className="card-h"><div className="title grow">Hits & ending</div><span className="help" style={{ margin: 0 }}>{(f.hits || []).length} hits</span></div>
         {(f.hits || []).map((h: any, i: number) => <div key={i} className="fx-top" style={{ gap: 6 }}>
           <span className="fx-time">{h.at != null ? `${Math.floor(h.at / 60)}:${(h.at % 60).toFixed(1).padStart(4, '0')}` : '-'}</span>
-          <span className="fx-name">{h.sound != null ? `with sound ${h.sound + 1}` : 'at its moment'} · kick {Math.round((h.kick || 0) * 100)}% · flash {Math.round((h.flash || 0) * 100)}%</span>
+          <span className="fx-name">kick {Math.round((h.kick || 0) * 100)}% · shake {Math.round((h.shake || 0) * 100)}% · flash {Math.round((h.flash || 0) * 100)}%</span>
           <button className="fx-x" title="Remove" onClick={() => set({ hits: f.hits.filter((_: any, j: number) => j !== i) })}>✕</button></div>)}
         <div className="seg" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
-          <button onClick={() => set({ hits: [...(f.hits || []), { at: +t.toFixed(2), kick: 0.08, shake: 0.7, flash: 0.5 }].sort((a: any, b: any) => (a.at ?? 0) - (b.at ?? 0)) })}>+ Hit here</button>
+          <button onClick={() => set({ hits: [...(f.hits || []), { at: +t.toFixed(2), kick: 0.04, shake: 0.3, flash: 0 }].sort((a: any, b: any) => (a.at ?? 0) - (b.at ?? 0)) })}>+ Hit here</button>
           <button onClick={() => set({ blackouts: [{ at: +t.toFixed(2) }] })}>Black from here</button>
         </div>
         {(f.blackouts || []).length > 0 && <div className="help" style={{ marginTop: 6 }}>Cuts to black at {(f.blackouts[0].at ?? 0).toFixed(1)}s · <a onClick={() => set({ blackouts: [] })} style={{ cursor: 'pointer' }}>remove</a></div>}
-      </>}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -2043,12 +2069,18 @@ const hexA = (c: string, a: number) => { const n = parseInt(c.slice(1), 16); ret
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy, film, soundNames }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
   layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number) => void; busy: boolean;
   onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void; hasEnds?: boolean;
-  onSoundMove?: (i: number, startOut: number) => void; onSoundRemove?: (i: number) => void; fxBusy?: boolean;
+  onSoundMove?: (i: number, startOut: number) => void; onSoundRemove?: (i: number) => void; fxBusy?: boolean; film?: any; soundNames?: string[];
 }) {
+  // the filter and sound groups: collapsed = one lane, open = a lane each (like the text layers)
+  const [fltOpen, setFltOpen] = useState(store.get('zc-flt-open') === '1');
+  const [sndOpen, setSndOpen] = useState(store.get('zc-snd-open') !== '0');
+  const toggleFlt = () => { store.set('zc-flt-open', fltOpen ? '0' : '1'); setFltOpen(!fltOpen); };
+  const toggleSnd = () => { store.set('zc-snd-open', sndOpen ? '0' : '1'); setSndOpen(!sndOpen); };
+  const fOn = filtersOn(film);
   // sounds: pick one (click), drag it to move it, Delete / ✕ to remove it
   const [snd, setSnd] = useState<number | null>(null);
   const [sndDrag, setSndDrag] = useState<{ i: number; dx: number } | null>(null);
@@ -2209,8 +2241,16 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
           {textOpen && overlays.map((o: any, i) => <div key={'oh' + i} className={`h pick sub ${sel === i ? 'on' : ''}`} onClick={() => onSelText(i)} title={o.text || o.image}>
             {o.image ? '🖼' : I.text}<span className="h-name">{ovName(o)}</span></div>)}
           {([['captions', <>{I.cc}Captions</>], ['speaker', <><div className="av sm" style={{ background: 'var(--daniel)' }}>{I.phone}</div><span>Speaker</span></>],
-            ['background', <>{I.layout}Background</>], ['music', <>♪&nbsp;Music &amp; sounds</>]] as const).map(([id, label]) => (
+            ['background', <>{I.layout}Background</>]] as const).map(([id, label]) => (
             <div key={id} className={`h pick ${layer === id ? 'on' : ''}`} onClick={() => onLayer(id)} title="Click to edit this layer">{label}</div>))}
+          <div className={`h pick grp ${layer === 'filters' ? 'on' : ''}`} onClick={() => { toggleFlt(); onLayer('filters'); }} title={fltOpen ? 'Collapse the filters into one lane' : 'Show each filter on its own lane'}>
+            <span className="caret">{fltOpen ? '▾' : '▸'}</span>◐<span className="h-name">Filters · {fOn.length}</span></div>
+          {fltOpen && FILTERS.map((F) => <div key={'fh' + F.id} className={`h pick sub ${layer === 'filters' ? 'on' : ''}`} onClick={() => onLayer('filters')}>
+            <span className="h-name">{F.name}</span></div>)}
+          <div className={`h pick grp ${layer === 'music' ? 'on' : ''}`} onClick={() => { toggleSnd(); onLayer('music'); }} title={sndOpen ? 'Collapse the sounds into one lane' : 'Show each sound on its own lane'}>
+            <span className="caret">{sndOpen ? '▾' : '▸'}</span>♪<span className="h-name">Sounds · {(edit?.sounds || []).length}</span></div>
+          {sndOpen && (edit?.sounds || []).map((s: any, i: number) => <div key={'sh' + i} className={`h pick sub ${snd === i ? 'on' : ''}`} onClick={() => { setSnd(i); onLayer('music'); }}
+            title={soundNames?.[i] || s.name}><span className="h-name he">{soundNames?.[i] || s.name}</span></div>)}
         </div>
         <div className="lanes" ref={lanesRef} onScroll={syncHeads}>
           <div className="lanes-in" style={{ width: W }}>
@@ -2254,17 +2294,34 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
               <div className="shot" style={{ left: x(0), width: Math.max(10, total * pps - 2), cursor: 'pointer' }}
                 onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('background')}>{bgName}</div>
             </div>
-            <div className={`lane ${layer === 'music' ? 'sel' : ''}`} onMouseDown={scrub}>
-              <div className="cap" style={{ left: x(0), width: Math.max(10, total * pps - 2), background: 'transparent', border: '1px dashed var(--edge-2)', color: 'var(--dim)', cursor: 'pointer' }}
-                onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('music')}>♪ {bgName.includes('music') ? 'music' : 'no music'}</div>
-              {(edit?.sounds || []).map((s: any, i: number) => { const st = (sndMoved[i] ?? s.from / k) + (sndDrag?.i === i ? sndDrag.dx / pps : 0);
-                return <div key={i} className={`cap snd ${snd === i ? 'on' : ''}`} style={{ left: x(st), width: Math.max(14, ((s.to - s.from) / k) * pps - 2), background: 'var(--gold)', color: '#2a2000', cursor: 'grab', opacity: fxBusy && sndMoved[i] != null ? 0.7 : 1 }}
-                  title={`${s.name} - drag to move it, click and press Delete to remove it`} onMouseDown={(e) => grabSound(e, i)}>
-                  {s.name.includes('ring') ? '☎ ring' : s.name.includes('wife') ? 'the wife (phone)' : s.name}
-                  {snd === i && <button className="snd-x" title="Remove this sound" onMouseDown={(e) => { e.stopPropagation(); onSoundRemove?.(i); setSnd(null); }}>✕</button>}
-                </div>; })}
+            <div className={`lane grp-lane ${layer === 'filters' ? 'sel' : ''}`} onMouseDown={scrub}>
+              {fOn.length > 0 && <div className="shot" style={{ left: x(0), width: Math.max(10, total * pps - 2), cursor: 'pointer', opacity: fltOpen ? 0.45 : 0.85 }}
+                onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('filters')}>{fOn.map((F) => `${F.name} ${Math.round(F.get(film) * 100)}%`).join(' · ')}</div>}
             </div>
-            <div className="playhead" style={{ left: x(t), height: 30 + (5 + (textOpen ? overlays.length : 0)) * TH }} />
+            {fltOpen && FILTERS.map((F) => { const v = F.get(film);
+              return <div key={'fl' + F.id} className={`lane ${layer === 'filters' ? 'sel' : ''}`} onMouseDown={scrub}>
+                {v > 0.001 && <div className="shot" style={{ left: x(0), width: Math.max(10, total * pps - 2), cursor: 'pointer' }}
+                  onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('filters')}>{F.name} · {Math.round(v * 100)}%</div>}
+              </div>; })}
+            {(() => {
+              const block = (s: any, i: number) => { const st = (sndMoved[i] ?? s.from / k) + (sndDrag?.i === i ? sndDrag.dx / pps : 0);
+                const nm = soundNames?.[i] || s.name, thought = nm.startsWith('💭');
+                return <div key={i} className={`cap snd he ${snd === i ? 'on' : ''}`} style={{ left: x(st), width: Math.max(14, ((s.to - s.from) / k) * pps - 2),
+                  background: thought ? 'var(--daniel)' : 'var(--gold)', color: thought ? '#fff' : '#2a2000', cursor: 'grab', opacity: fxBusy && sndMoved[i] != null ? 0.7 : 1 }}
+                  title={`${nm} - drag to move it, click and press Delete to remove it`} onMouseDown={(e) => grabSound(e, i)}>
+                  {nm}
+                  {snd === i && <button className="snd-x" title="Remove this sound" onMouseDown={(e) => { e.stopPropagation(); onSoundRemove?.(i); setSnd(null); }}>✕</button>}
+                </div>; };
+              return <>
+                <div className={`lane grp-lane ${layer === 'music' ? 'sel' : ''}`} onMouseDown={scrub}>
+                  <div className="cap" style={{ left: x(0), width: Math.max(10, total * pps - 2), background: 'transparent', border: '1px dashed var(--edge-2)', color: 'var(--dim)', cursor: 'pointer' }}
+                    onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('music')}>♪ {bgName.includes('music') ? 'music' : 'no music'}</div>
+                  {!sndOpen && (edit?.sounds || []).map(block)}
+                </div>
+                {sndOpen && (edit?.sounds || []).map((s: any, i: number) => <div key={'sl' + i} className={`lane ${snd === i ? 'sel' : ''}`} onMouseDown={scrub}>{block(s, i)}</div>)}
+              </>;
+            })()}
+            <div className="playhead" style={{ left: x(t), height: 30 + (6 + (textOpen ? overlays.length : 0) + (fltOpen ? FILTERS.length : 0) + (sndOpen ? (edit?.sounds || []).length : 0)) * TH }} />
           </div>
         </div>
       </div>
