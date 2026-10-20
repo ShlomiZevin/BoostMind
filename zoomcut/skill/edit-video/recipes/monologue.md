@@ -45,6 +45,17 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
 - Set: on-stage view with NO audience seats; the slide BAKED into the set photo (an image overlay doesn't follow the
   bg zoom); content where his head is not. Final `set5.jpg`: the photo's own screen edges, bg zoom 1.15 y 144, one big
   book on the right, BOOK LAUNCH tag + WORLD PREMIERE title + a made-up QR on the left. `bg_blur` 0.8.
+  Now `set6.jpg`: the same, saved at 2x with a REAL QR to the book page (segno, error L) - it decodes from a still
+  frame even at half size. Make sets with small detail at 2x (bg_place covers the frame the same way).
+- **Never the real person's name** (he does not want to be sued): the character is **Yuval Know All Harari** (Hebrew
+  hook: his own "יובל (כסא) נוח הררי" - keep his wording). No real book titles (Sapiens / Homo Deus), and no
+  "parody" anywhere - it plays as a real author with a similar name.
+- **Something outside the video (a site, a product) needs a loud CTA** - viewers don't leave TikTok, and a QR can't
+  be scanned on the phone they watch on. The hook hands its top slot to a gold CTA box for the last ~5 s ("הספר
+  באמת קיים 😳 / הלינק בביו ⬆️"); the bio hub (/links/) gets a button; caption + pinned comment carry the URL.
+  Overlay start/end are timeline seconds (before speed); `--still` takes output seconds.
+- The book site: `public/homo-useless/` (boostmind-b052c.web.app/homo-useless) - publisher-style page, pre-order
+  opens a joke (nothing collected).
 
 ## Eye contact (he called it perfect, 2026-10-17)
 Default for a talking-to-camera video: `"eye_contact": {"on": true}` = NVIDIA Maxine + our blink handling
