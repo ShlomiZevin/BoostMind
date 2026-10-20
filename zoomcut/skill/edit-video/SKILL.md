@@ -303,3 +303,7 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
   matte 4 s with both engines (lesson.matte on a clip) and look at the composite on green; pick by the body.
 - Two takes that overlap (he restarts a line in take 2): cut "end_at" on take 1 before the repeated words; overlays
   tied to words search every take and only count words inside the cut.
+- **A re-take of a passage (he re-records a part in a new file):** episode.json "sequence": [{"take", "from"?, "to"?}, ...]
+  = the edit order of take segments. Find the passage's first/last words in both takes; cut the old take at a sentence
+  boundary before it and resume after it. Subtitles remake by themselves when the order changes (captions.txt carries
+  an order signature), and a subtitle whose words were cut out is dropped, never piled at the next cut.

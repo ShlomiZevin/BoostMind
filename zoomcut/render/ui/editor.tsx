@@ -1028,7 +1028,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
   const takeAt = (sec: number) => {  // a moment of the video -> the take and its own time (effects are pinned to the take)
     const f = sec * fps * k;
     const it = (edit?.items || []).find((x: any) => x.kind === 'clip' && f >= x.out && f < x.out + x.n) || (edit?.items || []).find((x: any) => x.kind === 'clip');
-    return it ? { take: it.take, t: +(it.a + Math.max(0, f - it.out) / fps).toFixed(2) } : null;
+    return it ? { take: it.take, t: +(it.a + Math.max(0, f - it.out) / fps * (it.sp ?? 1)).toFixed(2) } : null;
   };
   const cutPreset = (() => { const c = data.episode.cut || {}; return c.whole ? 'whole' : c.silence === false ? 'keep' : (c.pad_out ?? 0.1) >= 0.3 ? 'light' : 'tight'; })();
   const CUTS: Record<string, any> = { tight: { merge: 0.25, pad_in: 0.05, pad_out: 0.1, join: 0.18 }, light: { merge: 0.6, pad_in: 0.08, pad_out: 0.35, join: 0.08 },
@@ -1710,8 +1710,10 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                       <button className="fx-x" title="Remove" onClick={() => changeFx(fx.filter((_: any, j: number) => j !== n))}>✕</button></div>
                     <div className="fx-ctl">
                       <select className="field" value={s.filter || ''} onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, filter: e.target.value || undefined } : x)))}>
-                        <option value="">As recorded</option><option value="speaker">Laptop speaker</option><option value="phone">Phone</option><option value="thought">Thought (inner voice)</option>
+                        <option value="">As recorded</option><option value="speaker">Laptop speaker</option><option value="phone">Phone</option><option value="thought">Thought (inner voice)</option><option value="echo">Thought + echo (dark)</option>
                       </select>
+                      <button className={`btn ${s.denoise ? 'primary' : ''}`} style={{ height: 28, padding: '0 8px' }} title="Noise reduction (RNNoise) on this recording"
+                        onClick={() => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, denoise: !x.denoise || undefined } : x)))}>Clean</button>
                       <input type="range" min={0} max={1.5} step={0.05} value={s.gain ?? 0.8} title="Volume" style={{ flex: 1, accentColor: 'var(--accent)' }}
                         onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, gain: +e.target.value } : x)))} />
                       <span className="fx-time" style={{ width: 38, textAlign: 'right' }}>{Math.round((s.gain ?? 0.8) * 100)}%</span>
@@ -1899,13 +1901,13 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
   const atPlayhead = () => {
     const f = t * fps * k;
     const it = (edit?.items || []).find((x: any) => x.kind === 'clip' && f > x.out && f < x.out + x.n);
-    return it ? { take: it.take, t: +(it.a + (f - it.out) / fps).toFixed(3) } : null;
+    return it ? { take: it.take, t: +(it.a + (f - it.out) / fps * (it.sp ?? 1)).toFixed(3) } : null;
   };
   const split = () => { const at = atPlayhead(); if (at && !busy) onCut({ op: 'split', ...at }); };
   const del = () => {
     const it = piece != null ? edit?.items?.[piece] : null;
     if (!it || busy) return;
-    onCut({ op: 'remove', take: it.take, a: +it.a.toFixed(3), b: +(it.a + (it.an ?? it.n) / fps).toFixed(3) });
+    onCut({ op: 'remove', take: it.take, a: +it.a.toFixed(3), b: +(it.a + (it.an ?? it.n) / fps * (it.sp ?? 1)).toFixed(3) });
     setPiece(null);
   };
   useEffect(() => {
@@ -1972,8 +1974,8 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
       window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up);
       setDrag(null);
       if (Math.abs(dx) < 3) return;
-      const ds = (dx / pps) * k;  // timeline seconds -> seconds of his take
-      const from = side === 'in' ? it.a : it.a + (it.an ?? it.n) / fps;
+      const ds = (dx / pps) * k * (it.sp ?? 1);  // timeline seconds -> seconds of his take (a slow-motion piece shows less of it)
+      const from = side === 'in' ? it.a : it.a + (it.an ?? it.n) / fps * (it.sp ?? 1);
       onTrim(it.take, +from.toFixed(3), +Math.max(0, from + ds).toFixed(3));
     };
     window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
@@ -2060,7 +2062,7 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                 const hd = (side: 'in' | 'out') => <div onMouseDown={(e) => grabEdge(e, i, side)} title={side === 'in' ? 'Drag left: more before it (from the original take)' : 'Drag right: more after it (from the original take)'}
                   style={{ position: 'absolute', top: 0, bottom: 0, [side === 'in' ? 'left' : 'right']: 0, width: 7, cursor: 'ew-resize', background: d?.side === side ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.18)', borderRadius: 3 }} />;
                 return <div key={i} className="blk" style={{ left, width, background: 'var(--daniel)', cursor: 'pointer', position: 'absolute', outline: d || piece === i ? '2px solid var(--accent)' : 'none', zIndex: d || piece === i ? 2 : undefined, filter: piece === i ? 'brightness(1.15)' : undefined }}
-                  title={`${it.take} · ${it.a.toFixed(2)}s - ${(it.a + (it.an ?? it.n) / fps).toFixed(2)}s of the take · drag an edge to take more / less`}
+                  title={`${it.take} · ${it.a.toFixed(2)}s - ${(it.a + (it.an ?? it.n) / fps * (it.sp ?? 1)).toFixed(2)}s of the take${it.sp ? ` · slow motion ${it.sp}x` : ''} · drag an edge to take more / less`}
                   onMouseDown={(e) => e.stopPropagation()} onClick={() => { onLayer('speaker'); setPiece(piece === i ? null : i); }}>
                   {hd('in')}{width > 70 ? <span style={{ padding: '0 10px' }}>{d ? `${d.dx > 0 === (d.side === 'out') ? '+' : '−'}${Math.abs((d.dx / pps) * k).toFixed(2)}s` : it.take.replace('IMG_', '')}</span> : null}{hd('out')}
                 </div>;

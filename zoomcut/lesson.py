@@ -443,6 +443,45 @@ def spans(ls, n):
     return [sp for sp in tight if sp[1] - sp[0] >= 0.05]
 
 
+def take_len(it, an=False):
+    """How much of his take a piece shows (seconds): its frames x its speed (a slow-motion piece shows less)."""
+    return (it.get("an", it["n"]) if an else it["n"]) * it.get("sp", 1.0) / FPS
+
+
+def speed_steps(ls, n, p, q):
+    """The part [p, q] of a take as [(from, to, speed)]: episode.json cut "slow": {"<take>": [[from, to, speed], ...]}
+    (take seconds; 0.5 = half speed), eased in and out over cut "slow_ramp" seconds of the take in a few steps."""
+    c = cut_cfg(ls)
+    rngs = (c.get("slow") or {}).get(n, [])
+    if not rngs:
+        return [(p, q, 1.0)]
+    ramp = float(c.get("slow_ramp", 0.4))
+
+    def at(t):
+        v = 1.0
+        for a, b, f in rngs:
+            if a <= t < b:
+                r = min(ramp, (b - a) / 2)
+                k = 1.0 if r <= 0 else min(1.0, (t - a) / r, (b - t) / r)
+                v = 1 + (float(f) - 1) * k
+        return v
+    marks = {p, q}
+    for a, b, _ in rngs:
+        r = min(ramp, (b - a) / 2)
+        marks |= {a + r * i / 4 for i in range(5)} | {b - r * i / 4 for i in range(5)}
+    marks = sorted(m for m in marks if p <= m <= q)
+    out = []
+    for a, b in zip(marks, marks[1:]):
+        if b - a < 0.02:
+            continue
+        sp = round(at((a + b) / 2), 3)
+        if out and out[-1][2] == sp:
+            out[-1] = (out[-1][0], b, sp)
+        else:
+            out.append((a, b, sp))
+    return out
+
+
 def find_word(words, key, after, before=False):
     k = norm(key)
     for w in words:
@@ -451,13 +490,22 @@ def find_word(words, key, after, before=False):
     raise SystemExit(f"insert: word '{key}' not found after {after:.2f}s")
 
 
+def segments(ls):
+    """The edit order: episode.json "sequence": [{"take", "from"?, "to"?}, ...] - parts of takes in the order they are
+    shown (a re-take of a passage placed in the middle of another take); without it, every take whole, in name order."""
+    seq = ls.cfg.get("sequence")
+    if not seq:
+        return [(name(t), 0.0, 1e9) for t in ls.takes]
+    return [(s["take"], float(s.get("from", 0.0)), float(s.get("to", 1e9))) for s in seq]
+
+
 def plan(ls):
     """Timeline items in frames: {'kind': 'clip', take, a, n} | {'kind': 'hold', take, t, n, insert}."""
     items, out_f = [], 0
-    for t in ls.takes:
-        n = name(t)
+    for n, s0, s1 in segments(ls):
         words = load_json(ls.work("words", n + ".json"), [])
-        sp = spans(ls, n)
+        sp = [[max(a, s0), min(b, s1)] for a, b in spans(ls, n) if b > s0 and a < s1]  # this segment's part of the take
+        sp = [x for x in sp if x[1] - x[0] >= 0.05]
         cuts, after = [], 0.0
         for ins in [i for i in ls.cfg.get("inserts", []) if i["take"] == n]:
             if ins.get("at_start"):  # before anything is said (an opening): at the first spoken part's start
@@ -474,38 +522,41 @@ def plan(ls):
             at = find_word(words, ins.get("before") or ins["after"], max(after, ins.get("search_from", 0)), before="before" in ins)
             cuts.append((at, ins))
             after = at
+        def clip(p, q):  # a kept part of the take, in pieces of one speed each (slow motion: more frames than it shows)
+            for a_, b_, s_ in speed_steps(ls, n, p, q):
+                items.append({"kind": "clip", "take": n, "a": a_, "n": round((b_ - a_) / s_ * FPS), **({"sp": s_} if s_ != 1 else {})})
         for a, b in sp:
             inside = [(at, ins) for at, ins in cuts if a <= at <= b]
             pos = a
             for at, ins in inside:
                 if at - pos > 0.05:
-                    items.append({"kind": "clip", "take": n, "a": pos, "n": round((at - pos) * FPS)})
+                    clip(pos, at)
                 items.append({"kind": "hold", "take": n, "t": at, "n": round(ins["seconds"] * FPS), "insert": ins})
                 pos = at
             if b - pos > 0.05:
-                items.append({"kind": "clip", "take": n, "a": pos, "n": round((b - pos) * FPS)})
-        missed = [ins for at, ins in cuts if not any(a <= at <= b for a, b in sp)]
+                clip(pos, b)
+        missed = [ins for at, ins in cuts if not any(a <= at <= b for a, b in sp) and s0 <= at <= s1]
         for ins in missed:
             raise SystemExit(f"insert {ins} falls in a cut pause")
     # the whole video's start / end, marked in the editor (cut "video_start" / "video_end": {take, t}) - every layer follows
     c = cut_cfg(ls)
     vs, ve = c.get("video_start"), c.get("video_end")
     if vs:
-        k = next((i for i, it in enumerate(items) if it["kind"] == "clip" and it["take"] == vs["take"] and it["a"] <= vs["t"] < it["a"] + it["n"] / FPS), None)
+        k = next((i for i, it in enumerate(items) if it["kind"] == "clip" and it["take"] == vs["take"] and it["a"] <= vs["t"] < it["a"] + take_len(it)), None)
         if k is not None:
             it = items[k]
-            cut_f = round((vs["t"] - it["a"]) * FPS)
+            cut_f = round((vs["t"] - it["a"]) / it.get("sp", 1.0) * FPS)
             items = [{**it, "a": vs["t"], "n": it["n"] - cut_f}] + items[k + 1:]
     if ve:
-        k = next((i for i, it in enumerate(items) if it["kind"] == "clip" and it["take"] == ve["take"] and it["a"] < ve["t"] <= it["a"] + it["n"] / FPS + 0.02), None)
+        k = next((i for i, it in enumerate(items) if it["kind"] == "clip" and it["take"] == ve["take"] and it["a"] < ve["t"] <= it["a"] + take_len(it) + 0.02), None)
         if k is not None:
             it = items[k]
-            items = items[:k] + [{**it, "n": max(1, round((ve["t"] - it["a"]) * FPS))}]
+            items = items[:k] + [{**it, "n": max(1, round((ve["t"] - it["a"]) / it.get("sp", 1.0) * FPS))}]
     # jump cuts: the picture cuts `join` early and the next part starts there, while the previous part's
     # sound runs on underneath for that moment (crossfaded) - no gap, the next word lands on the last one
     ov = round(cut_cfg(ls)["join"] * FPS)
     for prev, nxt in zip(items, items[1:]):
-        follows = nxt.get("take") == prev.get("take") and abs(nxt.get("a", -9) - (prev.get("a", 0) + prev["n"] / FPS)) < 0.04
+        follows = nxt.get("take") == prev.get("take") and abs(nxt.get("a", -9) - (prev.get("a", 0) + take_len(prev))) < 0.04
         if prev["kind"] == "clip" and nxt["kind"] == "clip" and prev["n"] > ov + 6 and not follows:
             prev["an"] = prev["n"]
             prev["n"] -= ov
@@ -539,9 +590,9 @@ def to_out(items, take, t):
     for it in items:
         if it["take"] != take or it["kind"] != "clip":
             continue
-        a, b = it["a"], it["a"] + it["n"] / FPS
+        a, b = it["a"], it["a"] + take_len(it)
         if a <= t <= b:
-            return it["out"] + (t - a) * FPS
+            return it["out"] + (t - a) / it.get("sp", 1.0) * FPS
         if t < a and best is None:
             best = it["out"]
     return best
@@ -587,7 +638,7 @@ def script_blocks(ls):
     """The script's words per take, matched to what he says: a passage he skipped is left out, a longer ad-lib
     comes in as he said it; small words the recogniser misses stay."""
     toks = script_tokens(ls)
-    heard = [(name(t), w) for t in ls.takes for w in load_json(ls.work("words", name(t) + ".json"), [])]
+    heard = [(n, w) for n, s0, s1 in segments(ls) for w in load_json(ls.work("words", n + ".json"), []) if s0 - 0.05 <= w["s"] < s1]
     blocks = {name(t): [] for t in ls.takes}
     if not heard:
         return blocks
@@ -615,12 +666,15 @@ def sync_captions(ls):
     if not sp or not os.path.exists(sp) or ls.cfg.get("captions_from") == "file":
         return
     cp = ls.p("captions.txt")
-    has_words = os.path.exists(cp) and any(l.strip() and not l.startswith(("#", "==")) for l in open(cp, encoding="utf-8"))
-    if has_words and os.path.getmtime(cp) >= os.path.getmtime(sp):
+    import hashlib
+    sig = hashlib.md5(json.dumps([segments(ls), [name(t) for t in ls.takes]]).encode()).hexdigest()[:10]  # the edit order
+    body = open(cp, encoding="utf-8").read() if os.path.exists(cp) else ""
+    has_words = any(l.strip() and not l.startswith(("#", "==")) for l in body.splitlines())
+    if has_words and os.path.getmtime(cp) >= os.path.getmtime(sp) and f"order:{sig}" in body:
         return
     blocks = script_blocks(ls)
     with open(cp, "w", encoding="utf-8") as fh:
-        fh.write(f"# Subtitles from scripts/{ls.cfg['script']}.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes)\n")
+        fh.write(f"# Subtitles from scripts/{ls.cfg['script']}.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes) order:{sig}\n")
         for t in ls.takes:
             fh.write(f"== {name(t)}\n{' '.join(blocks[name(t)])}\n")
     log(f"  · subtitles from the script ({sum(len(b) for b in blocks.values())} words)")
@@ -673,7 +727,9 @@ def captions(ls, items, total):
             end_punct = re.search(r"[.?!:,—]$", tok) and len(chunk) >= 2
             if len(chunk) >= 4 or len(text) >= 22 or end_punct or i == len(toks) - 1:
                 a = to_out(items, n, times[chunk[0]][0])
-                if a is not None:
+                kept = any(it["kind"] == "clip" and it["take"] == n and it["a"] - 0.35 <= times[chunk[0]][0] <= it["a"] + take_len(it, an=True) + 0.35
+                           for it in items)
+                if a is not None and kept:
                     caps.append({"from": int(a), "text": text, "take": n, "end_hint": to_out(items, n, times[chunk[-1]][1])})
                 chunk = []
     other = []
@@ -763,7 +819,7 @@ def time_overlays(ls, items, total):
             for tk in ([o["take"]] if o.get("take") else [name(t) for t in ls.takes]):
                 words = load_json(ls.work("words", tk + ".json"), [])
                 h = find_phrase(words, ph, after.get(tk, 0.0))
-                if h and to_out(items, tk, h[0]) is not None and any(it["kind"] == "clip" and it["take"] == tk and it["a"] <= h[0] <= it["a"] + it["n"] / FPS for it in items):
+                if h and to_out(items, tk, h[0]) is not None and any(it["kind"] == "clip" and it["take"] == tk and it["a"] <= h[0] <= it["a"] + take_len(it) for it in items):
                     hit, take = h, tk
                     break
             if hit:
@@ -981,6 +1037,17 @@ def gaze_sig(ls):
     return hashlib.md5(json.dumps(e, sort_keys=True).encode()).hexdigest()[:8]
 
 
+def slow_vf(ls, sp, mask=False):
+    """Slow motion for a piece (sp < 1): its frames spread out, the missing ones made up - motion-compensated for the
+    picture (cut "slow_mode": "mci" | "blend" | "dup"), blended for the mask."""
+    if not sp or sp == 1:
+        return ""
+    mode = "blend" if mask else cut_cfg(ls).get("slow_mode", "mci")
+    fill = {"mci": f"minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1",
+            "blend": f"minterpolate=fps={FPS}:mi_mode=blend", "dup": f"fps={FPS}"}[mode]
+    return f",setpts=(PTS-STARTPTS)/{sp},{fill}"
+
+
 def piece(ls, it, out_v, out_m, gaze=False):
     """One cut piece of the person layer: his own video and his mask, frame for frame - no background,
     no position, no text. Those are layers too, put together in one pass at the end."""
@@ -992,7 +1059,8 @@ def piece(ls, it, out_v, out_m, gaze=False):
     n = it["n"]
     if it["kind"] == "clip":
         t = it["a"]
-        ff("-ss", f"{t:.3f}", "-i", take, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2}", "-frames:v", str(n), *enc, out_v)
+        ff("-ss", f"{t:.3f}", "-i", take, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2}{slow_vf(ls, it.get('sp'))}",
+           "-frames:v", str(n), *enc, out_v)
     elif (it.get("insert") or {}).get("hide"):  # an opening / a cutaway: he is not in the picture at all
         ff("-ss", f"{it['t']:.3f}", "-i", take, "-vf", f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2},loop=loop={n}:size=1:start=0",
            "-frames:v", str(n), *enc, out_v)
@@ -1011,16 +1079,17 @@ def piece(ls, it, out_v, out_m, gaze=False):
         mask_piece(ls, it["take"], it["t"], n, enc, out_m, freeze=True)
         return
     if it["kind"] == "clip":
-        mask_piece(ls, it["take"], it["a"], n, enc, out_m)
+        mask_piece(ls, it["take"], it["a"], n, enc, out_m, sp=it.get("sp"))
 
 
-def mask_piece(ls, take, t, n, enc, out_m, freeze=False):
+def mask_piece(ls, take, t, n, enc, out_m, freeze=False, sp=None):
     """His mask for a piece, with the desk's still mask (keep_png) added - the real desk stays in front of the set."""
     if ls.cfg.get("cutout") is False:  # the whole frame is the person layer
         ff("-f", "lavfi", "-i", f"color=c=white:s={MATTE_W * 2}x{MATTE_H * 2}:r={FPS}", "-vf", "format=gray", "-frames:v", str(n), *enc, out_m)
         return
     mk = matte_path(ls, take)
-    vf = f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2},format=gray" + (f",loop=loop={n}:size=1:start=0" if freeze else "")
+    vf = (f"fps={FPS},scale={MATTE_W * 2}:{MATTE_H * 2},format=gray" + (f",loop=loop={n}:size=1:start=0" if freeze else "")
+          + slow_vf(ls, sp, mask=True))
     keep = keep_png(ls, take)
     if not keep:
         ff("-ss", f"{t:.3f}", "-i", mk, "-vf", vf, "-frames:v", str(n), *enc, out_m)
@@ -1045,6 +1114,10 @@ SOUND_FILTERS = {
     "thought": ("highpass=f=95,lowpass=f=9000,equalizer=f=220:t=q:w=1:g=2,equalizer=f=3000:t=q:w=1.2:g=1.5,"
                 "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,aecho=0.85:0.6:38|77|121:0.24|0.14|0.08,"
                 "loudnorm=I=-16:TP=-2:LRA=9"),  # every thought at one level, however it was recorded
+    # an inner voice in a dark scene (a horror moment): close, darker, a long hall of echoes behind it
+    "echo": ("highpass=f=90,lowpass=f=7500,equalizer=f=180:t=q:w=1:g=2.5,equalizer=f=2600:t=q:w=1.2:g=1.5,"
+             "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,"
+             "aecho=0.8:0.72:70|150|260|410|620:0.32|0.24|0.17|0.11|0.07,loudnorm=I=-16:TP=-2:LRA=9"),
     # a laptop's small speakers: no lows, a boxy mid bump, a little crunch, then his room around it
     "speaker": ("highpass=f=330,highpass=f=330,lowpass=f=7000,equalizer=f=1200:t=q:w=1.1:g=5,equalizer=f=3200:t=q:w=1.4:g=3,"
                 "equalizer=f=500:t=q:w=1:g=-3,acompressor=threshold=-22dB:ratio=5:attack=4:release=60,"
@@ -1052,13 +1125,19 @@ SOUND_FILTERS = {
 }
 
 
-def load_sound(path, phone=False, pitch=1.0):
+RNN_MODEL = "models/rnnoise/cb.rnnn"
+
+
+def load_sound(path, phone=False, pitch=1.0, denoise=False):
+    """A sound file through its filter; "denoise" = RNNoise first (a voice note recorded on the phone: hum, hiss)."""
     filt = phone if isinstance(phone, str) else ("phone" if phone else None)
-    tmp = path + (f".{filt}" if filt else "") + (f".p{pitch}" if pitch != 1 else "") + ".wav"
-    if not os.path.exists(tmp):
+    tmp = path + (".rnn" if denoise else "") + (f".{filt}" if filt else "") + (f".p{pitch}" if pitch != 1 else "") + ".wav"
+    if not os.path.exists(tmp) or os.path.getmtime(tmp) < os.path.getmtime(path):
         af = SOUND_FILTERS[filt] if filt else "anull"
         if pitch != 1:
             af = f"asetrate={int(SR * pitch)},aresample={SR}," + af
+        if denoise:  # (at 48 kHz, the rate RNNoise is trained at)
+            af = f"aresample=48000,arnndn=m={RNN_MODEL}," + af
         ff("-i", path, "-ac", "1", "-ar", str(SR), "-af", af, tmp)
     return read_wav(tmp)[0]
 
@@ -1112,7 +1191,9 @@ def voice_stem(ls, items, total, denoise=False):
         n = int(it.get("an", it["n"]) / FPS * SR)
         x = takes.setdefault(it["take"], read_wav(take_audio(ls, it["take"], denoise))[0])
         a = int(it["a"] * SR)
-        seg = x[a:a + n].copy()
+        seg = x[a:a + int(n * it.get("sp", 1.0))].copy()
+        if it.get("sp", 1.0) != 1 and len(seg) > 1:  # slow motion: its sound stretched with it (slower, lower)
+            seg = np.interp(np.linspace(0, len(seg) - 1, n), np.arange(len(seg)), seg).astype(np.float32)
         seg[:fade] *= np.linspace(0, 1, min(fade, len(seg)))[:len(seg[:fade])]
         tail = int((it["an"] - it["n"]) / FPS * SR) if "an" in it else fade  # crossfade under the next part
         tail = max(fade, min(tail, len(seg)))
@@ -1174,7 +1255,7 @@ def placed_sounds(ls, items):
 def sound_place(ls, items, s, prev_end=None):
     """A sound that ends where he reacts: {"take", "end_word", "end_after" (seconds in his take, to find the right one),
     "end_offset", "from"/"to" (the part of the sound file)} -> (start, end) in seconds of the video."""
-    dur = (s["to"] if s.get("to") is not None else len(load_sound(ls.asset(s["sound"]), s.get("filter"))) / SR) - s.get("from", 0.0)
+    dur = (s["to"] if s.get("to") is not None else len(load_sound(ls.asset(s["sound"]), s.get("filter"), denoise=s.get("denoise"))) / SR) - s.get("from", 0.0)
     if "after_prev" in s:  # a gap (seconds) after the previous placed sound ends
         o = (prev_end or 0.0) + float(s["after_prev"])
         return o, o + dur
@@ -1238,7 +1319,10 @@ def fx_and_music(ls, items, total):
                 cs = load_sound(ls.asset(ch["sound"])) * ch.get("gain", 0.6)
                 ca = max(0, int((o0 + ch.get("at", 0.0)) * SR))
                 out[ca:ca + len(cs)] += cs[:max(0, len(out) - ca)]
-            snd = load_sound(ls.asset(snd_cfg["sound"]), snd_cfg.get("filter") or snd_cfg.get("phone"))
+            snd = load_sound(ls.asset(snd_cfg["sound"]), snd_cfg.get("filter") or snd_cfg.get("phone"), snd_cfg.get("pitch", 1.0),
+                             denoise=snd_cfg.get("denoise"))
+            if snd_cfg.get("reverse"):  # backwards (a muffled voice nobody can make out)
+                snd = snd[::-1].copy()
             a0 = int(snd_cfg.get("from", 0) * SR)
             seg = snd[a0:a0 + int((o1 - o0) * SR)].copy() * snd_cfg.get("gain", 0.8)
             fi, fo = int(snd_cfg.get("fade_in", 0.02) * SR), int(snd_cfg.get("fade_out", 0.06) * SR)
@@ -1366,7 +1450,7 @@ def person_layer(ls, items, gaze=False):
         # the eye-contact copy can be redone (NVIDIA retried after a v6 fallback): its time is part of the key
         gz = ls.work("gaze", f"{it.get('take')}.{gaze_sig(ls)}.mp4") if gaze and it.get("take") else None
         src_v = int(os.path.getmtime(gz)) if gz and os.path.exists(gz) else 0
-        key = hashlib.md5(json.dumps({**{k: it[k] for k in ("kind", "take", "a", "t", "n") if k in it}, "src": tag, "src_v": src_v,
+        key = hashlib.md5(json.dumps({**{k: it[k] for k in ("kind", "take", "a", "t", "n", "sp") if k in it}, "src": tag, "src_v": src_v,
                                       "hide": bool((it.get("insert") or {}).get("hide")),
                                       "footage": (it.get("insert") or {}).get("footage"),
                                       "keep": keep_cfg(ls, ((it.get("insert") or {}).get("footage") or {}).get("take") or it.get("take")),
