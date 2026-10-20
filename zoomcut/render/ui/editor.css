@@ -428,6 +428,11 @@ a { color: inherit; text-decoration: none; }
 .pm-add { min-height: 0; aspect-ratio: 1; font-size: 11.5px; }
 .pm-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; }
 .pm-box { background: var(--panel); border: 1px solid var(--edge-2); border-radius: 6px; padding: 14px; max-width: min(80vw, 760px); }
+/* the sound picker window */
+.sp-box { width: min(92vw, 560px); max-width: none; }
+.sp-title { font-weight: 700; font-size: 15px; }
+.sp-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.sp-list { height: min(56vh, 460px); overflow: auto; border-top: 1px solid var(--edge-2); border-bottom: 1px solid var(--edge-2); padding: 6px 0; }
 .pm-box img { display: block; max-width: 100%; max-height: 70vh; margin: 0 auto 12px; background: repeating-conic-gradient(#2a2826 0% 25%, #211f1e 0% 50%) 50% / 16px 16px; }
 .pm-bar { display: flex; align-items: center; gap: 8px; }
 .pm-bn { flex: 1; font-size: 12.5px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

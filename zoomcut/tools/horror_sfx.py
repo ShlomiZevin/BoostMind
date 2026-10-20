@@ -4,6 +4,7 @@ a screech stinger, an accelerating heartbeat, a tinnitus whine, a soft sub pulse
     .venv\\Scripts\\python tools/horror_sfx.py episodes/_assets/genz/horror
 """
 import os
+import subprocess
 import sys
 import wave
 
@@ -135,6 +136,15 @@ def heartbeat(sec=24.0, bpm0=62, bpm1=128):
     return band(x, 0, 400)
 
 
+def heartbeat_climax(sec=24.0):
+    """The ending's heartbeat: 70 -> 155 bpm, deeper, and swelling over its last seconds into the final boom."""
+    x = heartbeat(sec, 70, 155)
+    t = t_(sec)[: len(x)]
+    swell = 0.55 + 0.45 * (t / sec) ** 2 + 0.6 * np.clip((t - (sec - 4)) / 4, 0, 1) ** 2
+    sub = band(x, 0, 120) * 0.8  # more chest in it
+    return (x + sub) * swell
+
+
 def whine(sec=5.0):
     t = t_(sec)
     k = t / sec
@@ -149,6 +159,80 @@ def pulse(sec=1.6):
     return reverb(sub + air, 1.6, 0.25, 2500)[: len(t)]
 
 
+def hum(sec=60.0):
+    """A store's fluorescent tubes: the 100 Hz buzz and its harmonics, a ballast whine, a crackle now and then."""
+    t = t_(sec)
+    x = sum(np.sin(2 * np.pi * 100 * k * t + k) / k ** 1.3 for k in range(1, 9))
+    x = np.tanh(x * 1.5) * (0.85 + 0.15 * np.sin(2 * np.pi * t / 9.0))
+    x += np.sin(2 * np.pi * 9600 * t) * 0.02
+    crackle = band(rng.standard_normal(len(t)), 1500, 8000) * (rng.random(len(t)) > 0.99995).astype(float)
+    crackle = conv(crackle, np.exp(-t_(0.04) / 0.006))[: len(t)] * 3
+    return band(x, 90, 6000) * 0.5 + crackle
+
+
+def phone_drop(sec=1.0):
+    """A phone dropped onto someone's lap, clear: each impact has the case's plastic click on top of a short, tight
+    thud (no low mud, almost no room), then two smaller bounces and a short slide on the fabric."""
+    t = t_(sec)
+    x = np.zeros(len(t))
+
+    def hit(at, g):
+        i = int(at * SR)
+        u = t_(0.08)
+        thud = band(rng.standard_normal(len(u)), 140, 900) * env(u, 0.001, 0.018)
+        body = np.sin(2 * np.pi * 190 * u) * env(u, 0.0008, 0.022) * 0.5
+        click = band(rng.standard_normal(len(u)), 2200, 9000) * env(u, 0.0003, 0.004)
+        case = (np.sin(2 * np.pi * 2350 * u) + 0.7 * np.sin(2 * np.pi * 3480 * u) + 0.4 * np.sin(2 * np.pi * 5100 * u)) * env(u, 0.0003, 0.012)
+        h = thud / (np.max(np.abs(thud)) + 1e-9) * 0.7 + body + click / (np.max(np.abs(click)) + 1e-9) * 0.75 + case * 0.3
+        x[i:i + len(h)] += h[: len(x) - i] * g
+    hit(0.0, 1.0)
+    hit(0.15, 0.5)
+    hit(0.25, 0.26)
+    slide = band(rng.standard_normal(len(t)), 1500, 6000) * np.clip((t - 0.27) / 0.02, 0, 1) * np.exp(-np.maximum(0, t - 0.27) / 0.07) * 0.1
+    return reverb(x + slide, 0.3, 0.05, 8000)[: len(t)]
+
+
+def typing(sec=4.0):
+    """Typing on an iPhone keyboard: each key the system's short crisp "tock" (a damped ~2 kHz click, nearly the same
+    every time), the space bar a touch lower, an uneven human rhythm with little pauses."""
+    t = t_(sec)
+    x = np.zeros(len(t))
+    pos = 0.05
+    u = t_(0.04)
+    while pos < sec - 0.1:
+        i = int(pos * SR)
+        space = rng.random() < 0.15
+        f0 = (1650 if space else 2050) * (1 + (rng.random() - 0.5) * 0.02)
+        tock = np.sin(2 * np.pi * f0 * u) * np.exp(-u / 0.0028) + 0.3 * np.sin(2 * np.pi * 2.03 * f0 * u) * np.exp(-u / 0.0015)
+        snap = band(rng.standard_normal(len(u)), 3000, 12000) * np.exp(-u / 0.0006) * 0.25
+        h = (tock + snap) * (0.92 + 0.08 * rng.random())
+        x[i:i + len(h)] += h[: len(x) - i]
+        pos += 0.11 + 0.09 * rng.random() + (0.3 * rng.random() if rng.random() < 0.1 else 0)
+    return x
+
+
+def impact(sec=4.5):
+    """A superhero landing: a short falling whoosh, then at 0.30 s a deep boom - sub drop, a punchy slam, a low rumble
+    rolling outward - and a long dark tail spreading through the place."""
+    t = t_(sec)
+    at = 0.30
+    x = np.zeros(len(t))
+    w = t_(at)
+    whoosh = band(rng.standard_normal(len(w)), 300, 4000) * (w / at) ** 3 * 0.35
+    x[:len(w)] += whoosh
+    u = t_(sec - at)
+    sub = np.sin(2 * np.pi * np.cumsum(28 + 50 * np.exp(-u / 0.12)) / SR) * np.exp(-u / 0.7)
+    slam = band(rng.standard_normal(len(u)), 50, 400) * env(u, 0.002, 0.11)
+    crack = band(rng.standard_normal(len(u)), 400, 3000) * env(u, 0.0008, 0.025) * 0.6  # the hit itself, short
+    # the shock spreading through the place: a smooth low rumble rolling out (no crackle - that read as TV static)
+    rumble = band(rng.standard_normal(len(u)), 40, 320) * env(u, 0.04, 0.9) * (1 + 0.3 * np.sin(2 * np.pi * 3.1 * u))
+    body = slam / (np.max(np.abs(slam)) + 1e-9) * 0.9 + sub * 1.1 + crack / (np.max(np.abs(crack)) + 1e-9) * 0.35 + \
+        rumble / (np.max(np.abs(rumble)) + 1e-9) * 0.45
+    i = int(at * SR)
+    x[i:i + len(body)] += np.tanh(body * 1.4)[: len(x) - i]
+    return reverb(x, 3.2, 0.38, 3500)[: len(t)]
+
+
 def end_boom(sec=7.0):
     b = braam(sec)
     t = t_(sec)
@@ -159,6 +243,16 @@ def end_boom(sec=7.0):
 if __name__ == "__main__":
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
+    only = sys.argv[2:]  # names to make (default: all)
     for name_, fn, pk in (("drone", drone, 0.7), ("braam", braam, 0.89), ("riser", riser, 0.8), ("stinger", stinger, 0.89),
-                          ("heartbeat", heartbeat, 0.89), ("whine", whine, 0.5), ("pulse", pulse, 0.85), ("end_boom", end_boom, 0.89)):
-        save(os.path.join(out, name_ + ".wav"), fn(), pk)
+                          ("heartbeat", heartbeat, 0.89), ("whine", whine, 0.5), ("pulse", pulse, 0.85), ("end_boom", end_boom, 0.89),
+                          ("hum", hum, 0.5), ("phone_drop", phone_drop, 0.8),
+                          ("typing", typing, 0.7), ("impact", impact, 0.95),
+                          ("heartbeat_climax", heartbeat_climax, 0.95)):
+        if only and name_ not in only:
+            continue
+        wav = os.path.join(out, name_ + ".wav")
+        save(wav, fn(), pk)
+        # kept as mp3 (in git, in the editor's library); the .wav is only the intermediate
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", wav, "-c:a", "libmp3lame", "-b:a", "192k", wav[:-4] + ".mp3"], check=True)
+        os.remove(wav)

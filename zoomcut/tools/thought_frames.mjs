@@ -24,17 +24,30 @@ html, body { margin: 0; background: transparent; width: 1080px; height: 1920px; 
 window.setup = (it) => {
   const box = document.getElementById('box');
   box.style.top = it.y + 'px';
-  Object.assign(box.style, { color: THOUGHT_STYLE.color, fontWeight: THOUGHT_STYLE.fontWeight, lineHeight: THOUGHT_STYLE.lineHeight, textShadow: THOUGHT_STYLE.textShadow });
+  Object.assign(box.style, { color: THOUGHT_STYLE.color, fontWeight: THOUGHT_STYLE.fontWeight, lineHeight: THOUGHT_STYLE.lineHeight, textShadow: THOUGHT_STYLE.textShadow,
+    webkitTextStroke: THOUGHT_STYLE.WebkitTextStroke, paintOrder: THOUGHT_STYLE.paintOrder });
+  if (it.w) Object.assign(box.style, { left: (it.x ?? 540) - it.w / 2 + 'px', right: 'auto', width: it.w + 'px' });  // its own place on screen
+  else Object.assign(box.style, { left: '60px', right: '60px', width: 'auto' });
   window.W = thoughtWords(it.text, it.size || 70);
   box.innerHTML = '';
-  for (const w of W) { const s = document.createElement('span'); s.textContent = w.w; s.style.fontSize = w.size + 'px'; s.style.marginTop = w.dy + 'px'; box.appendChild(s); }
+  window.D = W.map((w, i) => wordDust(i, w.w));
+  W.forEach((w, i) => {  // a word: its text, and its atoms beside it (they must not fade with it)
+    const s = document.createElement('span'); Object.assign(s.style, { display: 'inline-block', position: 'relative', whiteSpace: 'nowrap', fontSize: w.size + 'px', marginTop: w.dy + 'px', transform: 'rotate(' + w.rot.toFixed(2) + 'deg)' });
+    const tx = document.createElement('span'); tx.style.display = 'inline-block'; tx.textContent = w.w; s.appendChild(tx);
+    if (it.motion === 'horror') for (const p of D[i]) { const d = document.createElement('span');
+      Object.assign(d.style, { position: 'absolute', left: p.x + '%', top: p.y + '%', width: p.size + 'px', height: p.size + 'px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 4px rgba(0,0,0,0.9)', opacity: 0, webkitTextStroke: '0' });
+      s.appendChild(d); }
+    box.appendChild(s);
+  });
   window.IT = it;
 };
 window.at = (t) => {
   const box = document.getElementById('box');
-  box.style.transform = lineDrift(t, IT.start, IT.text, IT.motion);
-  [...box.children].forEach((s, i) => { const st = wordState(i, W.length, t, IT.start, IT.end, IT.motion);
-    s.style.opacity = st.opacity; s.style.filter = st.filter; s.style.transform = 'rotate(' + W[i].rot.toFixed(2) + 'deg) ' + st.transform; });
+  box.style.transform = lineDrift(t, IT.start, IT.text, IT.motion, !!IT.w, IT.end, IT.hold, IT.grow);
+  [...box.children].forEach((s, i) => { const st = wordState(i, W.length, t, IT.start, IT.end, IT.motion, IT.hold);
+    const [tx, ...dots] = s.children;
+    tx.style.opacity = st.opacity; tx.style.filter = st.filter; tx.style.transform = st.transform;
+    dots.forEach((d, k) => { const ds = dustState(D[i][k], i, W.length, t, IT.start, IT.end, IT.motion); d.style.opacity = ds.opacity; d.style.transform = ds.transform; }); });
 };
 </script></body></html>`;
 const page_file = path.join(path.dirname(path.resolve(process.argv[2])), '_thought.html');

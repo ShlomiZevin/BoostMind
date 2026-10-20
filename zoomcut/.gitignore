@@ -10,3 +10,6 @@ __pycache__/
 *.pyc
 episodes/_assets/**/*.wav
 *.bak
+# a project's own voice recordings and the filtered copies made from them stay on this computer (public repo)
+episodes/*/media/*.ogg
+episodes/*/media/*.wav

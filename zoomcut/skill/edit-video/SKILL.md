@@ -233,7 +233,8 @@ same buttons (Re-analyze = layers, Export, Export & send). What he signed off on
 - **Rhythm**: cut every pause > 0.25s; each join starts 0.18s on top of the last word; a take ends where the voice
   after its last word stops (keeps a sung/held last word, drops a phone thud after a gap).
 - **Sounds under his speech, never pauses**: ring from ~2s before he reacts until the moment he answers; the other side
-  of a call mumbles (pitch 1.2, phone EQ) the whole call, even while he talks.
+  of a call mumbles (pitch 1.2, phone EQ) the whole call, even while he talks - THAT worked only because he was mostly
+  quiet in that call. When he talks non-stop (a phone rant), see "The other side of a phone call" below.
 - Title = gold Stam on a ~45% black box; subtitles yellow Stam with black outline (letter-spacing — the outline fuses
   "זו"). Speed 1.2× is his choice. Background cut-out: quality engine only when hands go up against a white wall.
 - Telegram gets a 2-pass copy under the bot's 50 MB; the out/ folder keeps only the master and the telegram copy.
@@ -299,8 +300,44 @@ same buttons (Re-analyze = layers, Export, Export & send). What he signed off on
   `"cut": {"whole": true}` keeps the whole take (a stare - no speech to cut on).
 - Overlays tied to words or sounds get their start/end written back into episode.json at every build (the editor
   shows them in place); `_todo` / `sounds_pending` keys are notes for the next session, ignored by the code.
-- Gym series (gym-1): `_assets/gym/` set + `bed.mp3` (gym music through ceiling speakers + treadmill ambience, one
-  music bed) + `beep.mp3` (treadmill speed-up). Gen Z series (genz-1): `_assets/genz/` whoosh, pop, black.jpg.
+- Gym series (gym-1, his footage 2026-10-20): `_assets/gym/` set + `bed_crowd.mp3` (busy-gym crowd: chatter, weights,
+  grunts - NO treadmill, he is not on one; gym music soft as from ceiling speakers) at 0.45 + one-shots spread every ~5 s
+  (sfx_rack / sfx_drop / sfx_plates / sfx_grunt) under his speech. No beep (he hated it). Voice preset **hall** = talking
+  in a large room (sound.ts room reverb, seeded impulse response, same in editor and export; Room / Room size sliders).
+  Cut he wants for a phone rant: continuous - merge 0.15, pad_out 0.15 (the word's tail rings under the next), join 0.18.
+  Cut-out: RVM "quality" (fast kept the black wall hexagon and dropped the phone). He called gym-1 perfect (2026-10-20):
+  3 takes in a `sequence` (a re-take file of one line replaces the same line at the end of the main take), subtitles
+  as SAID (he ad-libs "רגע רגע רגע רגע", "סיגל נשמה") frozen with `"captions_from": "file"`, Sigal as below.
+- **The other side of a phone call on speaker (Sigal, gym-1 - he called it perfect after 6 rounds):**
+  - NOT a continuous mumble under him ("too much on top of each other"), NOT a clean voice ("doesn't sound like it comes
+    out of his phone"), NOT too quiet. A FEW placed lines (5 in 31 s), each 0.8-1.1 s, at the END of his sentences where
+    he drops or pauses, running a little into his next words - so he cuts her off: as the video opens (she is mid-
+    sentence), before each "רגע רגע", in his listening pause, between takes.
+  - Source: `_assets/gym/sigal-mumble.mp3` (= demokratovich wife-call, the mumble he likes). Each line a different
+    phrase of it (`from`/`to` are seconds of the PROCESSED sound - after pitch/tempo - pick voiced runs, never a gap).
+  - Sound settings: `"filter": "speakerphone"` (Phone on speaker: 8 kHz line, small-speaker honk, codec crunch, a short
+    bounce), `"pitch": 1.25, "tempo": 1.15` (quicker and higher, "cartoon but real"), `"room": true` (the same room as
+    his Hall voice - lesson.py with_room = sound.ts roomIR), gain 1.9 (2.4 in his pause) -> 5-8 dB under his voice.
+    A phone voice needs 150-250 %: the Volume slider goes to 300 %.
+  - Measure, don't guess: fx.wav vs voice_dn.wav dB over each line's window (`work/public/`).
+- Gen Z series (genz-1): `_assets/genz/` whoosh, pop, black.jpg.
+- **Yuval / conference keynote (yuval-1, 2026-10-20)** - Harari parody in ENGLISH launching "Homo Useless" on an AI stage:
+  - `"language": "en"` in episode.json = transcribe as English (default he; the Hebrew model TRANSLATES English speech).
+    English subtitles render left to right by themselves (`unicode-bidi: plaintext` in editor + lesson_text.mjs).
+  - Voice preset **stage** = his mic close + the hall's PA: big-hall tail + `pa` (PA echo slider: band-limited ~110 ms
+    slap with repeats, sound.ts). Additive - his own voice stays. Bed `_assets/yuval/room.mp3` (quiet hall) at 0.35.
+  - **Voice Pitch** (Voice card slider, semitones; episode.json voice `pitch`): rubberband on the takes' voice, formants
+    kept, same timing; POST /voice-pitch remakes only the sound layers (~1 s, first time per take ~6 s). He mimics high
+    voices (Yuval) and tries a little extra on top: +1.5 st was the starting point.
+  - Audience: they ADMIRE him - amazed, never laughter (he took the laugh out) and never a falling "ohh" (`ooh.mp3`
+    sounded disappointed - moved to `rejected/`). A generated crowd reaction usually starts with ONE voice - he wants
+    the whole room at once: `crowd-gasp-stack.mp3` (he called it great) = 3 generated crowd gasps + 1 more, each
+    pitch-shifted 0.94-1.04 and offset 0-60 ms, mixed, a short echo, -14 LUFS. Build reactions that way. Applause comes
+    in during his last words; the video ends exactly on his last word (`cut.after_last_word` 0.1).
+  - Set: on-stage view with NO audience seats (he is on stage, his body fills the bottom - seats behind him looked wrong).
+    The slide is BAKED into the set photo (`set2.jpg` = stage2.jpg + slide2.jpg on the measured screen rect), so zooming
+    / moving the background keeps it in place (an image overlay does not follow the bg). `bg_blur` 0.8 keeps it legible.
+    Content goes where his head is not: the cover on both sides of the screen, the title above his head.
 - **Hook text wording (2026-10-19):** write "פוב:" - never "POV:" - at the start of the hook text. Some videos take no
   prefix at all, only the line itself (Gen Z: "מחשבות של גן זי כשהם תוקעים בך מבט של עז בי לייק:"); use his words as given.
 
@@ -318,6 +355,10 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
 - Music & sounds: beds list + volume · Sound effects & voices: per effect filter (as recorded / laptop speaker / phone /
   thought), volume, remove, ▶ go there · + Add effect at the playhead from the library (all _assets audio).
 - Media tab: footage used per take, the set, the sound, the library counts. Projects menu: newest first, Done section.
+- **Pickers are windows, never inside the panel** (he hates in-panel lists): `SoundPicker` (Add effect / Swap) opens
+  on "This project" - GET /api/ep/:id/sound-lib: the series' `_assets` folder, every folder its sounds / music / intro
+  come from, its own media/ - and "All sounds" one tab away, read fresh (a sound made a minute ago is there).
+  Sounds he rejects go to `_assets/<series>/rejected/` (out of the project list, still in All).
 - **Editor look (his note):** flat panels - sections divided by hairlines, no rounded boxes, no tray behind option
   buttons, square-ish corners (4px). Keep new panels in that style. "+ New video" tab (left pane) creates a project:
   template, footage folder from Downloads, optional settings from an earlier project (POST /api/new) - prefer it to the CLI.
@@ -344,3 +385,39 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
   = the edit order of take segments. Find the passage's first/last words in both takes; cut the old take at a sentence
   boundary before it and resume after it. Subtitles remake by themselves when the order changes (captions.txt carries
   an order signature), and a subtitle whose words were cut out is dropped, never piled at the next cut.
+
+### Series: "genz" (the stare + her thoughts, cinematic) — episodes/genz-1, 2026-10-20, 12 rounds, he called it almost perfect
+What he signed off on, to start every next one from (`lesson.py new episodes/genz-N --from genz-1 --input <folder>`):
+- **The scene, not a Saw movie:** her raw video (no person look, `"grade"` neutral) on a normally lit set
+  (`_assets/genz/store_lit.jpg`, `"bg_dim": false`, `"bg_blur": 1.2`); the movie look comes only as **filter layers**
+  that fade in when someone speaks to her (fx.times) - Movie colour 50, Darken 35, Vignette 35, Grain 12, Slow zoom 35,
+  Handheld 20, Ghost trail 35. No shake / flashes / zoom kicks (he hated them). Never a pre-darkened background.
+- **Timing rules:** start on her typing (his marker), the person's line right away, she looks up right after his
+  last word (braam + first thought together on the look); slow motion only after he speaks (cut "slow" from the look,
+  1x before so the typing sound matches her thumbs); "וואט" on her eye snap (a thought placed `at` a take time);
+  the last lines connected (after_prev ~0, the breath / tail of each recording trimmed); the boom ON the last word
+  (end_boom after_prev -0.6) and black at the word's end; ~1.5 s of black. Everything tight: 0.09-0.15 s between lines.
+- **Her thoughts:** his voice notes cut on the audio envelope (whisper's times drift ~0.4 s inside long notes:
+  transcribe each voiced region on its own), `filter: echo` + `echo` 1.35 + `denoise` + `tempo` 1.1, pauses inside a
+  line taken out with `skip`; `voice_bed` fills the gaps with the recording's own room noise (continuous). Text:
+  motion "horror" (slam in, grow to `grow` 1.45 once said, stay `hold` 1.4, dissolve word by word into atoms),
+  black outline, sized by length (84 / 74 / 64), alternating two bands (y 960 / 1330) with `overlap` - never the next
+  one on top of the one still dissolving.
+- **The person who talks to her:** his own recording, clear (no RNNoise - it ate his last word), yellow subtitles
+  (`captions` on the sound, `captions_other`); later lines very slow and low (`pitch` 0.6-0.65 + `tempo` 0.5-0.8,
+  echo) split into phrases placed between her thoughts, the last one ending right as she snaps.
+- **Sound kit (synthesized, tools/horror_sfx.py -> _assets/genz/horror, _assets/genz):** hum (store tubes), riser,
+  braam, drone, heartbeat_climax (70->155 bpm, stops on the boom via `until`), stinger, whine, end_boom, impact
+  (superhero landing for a phone drop - no crackle, it read as TV static), typing (iPhone "tock"), phone_drop, pulse.
+
+### The studio's export rules (2026-10-20, his rule: "what I see is what I export, and export fast")
+- The editor build (`--preview`) makes only what the editor shows (takes + stems, seconds); the export's heavy layers -
+  the person in 2 s take-grid chunks (slow motion = frame interpolation), the animated thoughts, person.webm - render in
+  a detached low-priority `lesson.py <ep> --warm` started at its end (work/warm.pid, warm.log). A newer edit stops it;
+  Export waits for it, then reuses everything. A cut / end mark / split re-renders only the chunk it touches.
+- Export: the picture streams into the film pass (no picture.mp4), the film pass runs on a thread pool, then
+  `check_export` (length vs the edit at its speed, 1080x1920, 30 fps, sound - fails loudly) and `tidy` (anims / subtitle
+  images of earlier versions, the project's unused filtered sound copies, pieces unused for 24 h).
+- Every cache is written to a `.part` file and renamed (an interrupted run once left an empty .wav that broke builds).
+- Studio rail → **Jobs**: every project's build / export, progress and step, click to open the project.
+- His own voice recordings (episodes/*/media/*.ogg) stay out of git (public repo).

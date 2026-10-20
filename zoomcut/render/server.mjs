@@ -383,6 +383,8 @@ app.post('/api/ep/:id/music-time', (q, res) => {
   if ('start' in b) cfg.music.start = Math.max(0, +(+b.start || 0).toFixed(2));
   if ('end' in b) cfg.music.end = b.end == null ? null : +(+b.end).toFixed(2);
   if ('off' in b) { if (b.off) cfg.music.off = true; else delete cfg.music.off; }
+  if ('duck' in b) cfg.music.duck = Math.max(-18, Math.min(0, Math.round((+b.duck || 0) * 2) / 2));  // dB under his voice
+  if (b.sound) { cfg.music.sound = String(b.sound); delete cfg.music.off; }  // a track picked: its bed is made (ducked) now
   writeJson(path.join(d, 'episode.json'), cfg);
   const p = spawn(PY, ['lesson.py', `episodes/${q.params.id}`, '--stems'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
   let err = '';
@@ -403,7 +405,44 @@ app.post('/api/ep/:id/plain', (q, res) => {
 // the library: every set picture and sound effect made so far (episodes/_assets), for any project
 const ASSETS = path.join(EPS, '_assets');
 let libCache = null;
+// every sound in the library, read fresh each time: a sound made a minute ago must be there (the old list was read
+// once at start). Not the processed copies (x.mp3.phone.wav) and not the music folders.
+const DERIVED = /\.(mp3|m4a|ogg|wav)\..+$/i;
+function librarySounds() {
+  const out = [];
+  const walk = (dir, depth) => {
+    for (const f of fs.readdirSync(dir)) {
+      const p = path.join(dir, f);
+      if (fs.statSync(p).isDirectory()) { if (depth < 2) walk(p, depth + 1); continue; }
+      if (DERIVED.test(f) || !/\.(mp3|wav|m4a|ogg)$/i.test(f)) continue;
+      const rel = path.relative(ASSETS, p).split(path.sep).join('/');
+      if (/music\//.test(rel)) continue;
+      out.push({ name: f.replace(/\.[^.]+$/, ''), folder: rel.split('/')[0], rel, sound: `../_assets/${rel}`, url: `/api/asset?p=${encodeURIComponent(rel)}` });
+    }
+  };
+  walk(ASSETS, 0);
+  return out;
+}
+// the sound picker: this project's sounds first - its series' folder, every folder its sounds / music / intro already
+// come from, and its own files (media/) - and the whole library one tab away
+app.get('/api/ep/:id/sound-lib', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const all = librarySounds();
+  const used = [...(cfg.sounds || []).map((s) => s.sound), cfg.music?.sound, cfg.intro_sound?.sound].filter(Boolean)
+    .map((s) => path.resolve(d, s)).filter((p) => p.startsWith(ASSETS))
+    .map((p) => path.relative(ASSETS, path.dirname(p)).split(path.sep).join('/'));
+  const folders = new Set([cfg.series, ...used].filter(Boolean));
+  const project = all.filter((e) => folders.has(path.posix.dirname(e.rel)));
+  const md = path.join(d, 'media');
+  if (fs.existsSync(md)) for (const f of fs.readdirSync(md)) {
+    if (DERIVED.test(f) || !/\.(mp3|wav|m4a|ogg)$/i.test(f)) continue;
+    project.push({ name: f.replace(/\.[^.]+$/, ''), folder: 'media', sound: `media/${f}`, url: `/api/ep/${q.params.id}/file?p=${encodeURIComponent(`media/${f}`)}` });
+  }
+  res.json({ project, all });
+});
 app.get('/api/library', (_q, res) => {
+  if (libCache) libCache.effects = librarySounds();
   if (!libCache) {
     const sets = [], effects = [];
     const walk = (dir, depth) => {
@@ -420,7 +459,7 @@ app.get('/api/library', (_q, res) => {
       }
     };
     walk(ASSETS, 0);
-    libCache = { sets, effects };
+    libCache = { sets, effects: librarySounds() };
   }
   res.json(libCache);
 });
@@ -449,12 +488,25 @@ app.post('/api/ep/:id/options', (q, res) => {
   if ('voice' in b) cfg.voice = b.voice || null;
   if ('eye_contact' in b) cfg.eye_contact = b.eye_contact || null;
   if ('eye_on' in b && cfg.eye_contact) cfg.eye_contact.on = !!b.eye_on;  // live switch: both versions exist
-  if ('music_gain' in b && cfg.music) cfg.music.gain = Math.max(0, Math.min(1, Number(b.music_gain) || 0));
+  if ('music_gain' in b && cfg.music) cfg.music.gain = Math.max(0, Math.min(2, Number(b.music_gain) || 0));
   if (b.music_sound && cfg.music) { cfg.music.sound = String(b.music_sound); delete cfg.music.off; }  // the track chosen in the editor (puts music back on)
   if ('captions_style' in b) cfg.captions_style = b.captions_style || null;
   if ('look' in b) cfg.look = b.look || null;  // the live look (smooth / warmth / brightness / saturation)
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json({ ok: true });
+});
+
+// the voice's pitch (semitones, the Voice card's Pitch slider): saved, then only the sound layers are made again
+app.post('/api/ep/:id/voice-pitch', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const st = Math.max(-6, Math.min(6, Math.round((Number(q.body?.pitch) || 0) * 4) / 4));
+  cfg.voice = { ...(typeof cfg.voice === 'object' && cfg.voice ? cfg.voice : { preset: cfg.voice || 'natural' }), pitch: st };
+  writeJson(path.join(d, 'episode.json'), cfg);
+  const p = spawn(PY, ['lesson.py', `episodes/${q.params.id}`, '--stems'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  let err = '';
+  p.stderr.on('data', (x) => (err += x));
+  p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, pitch: st }));
 });
 
 // background music choices: every track in the folder of the episode's current music (live switch in the editor)

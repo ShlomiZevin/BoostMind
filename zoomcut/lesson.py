@@ -97,7 +97,7 @@ def prepare(ls):
                 from pipeline.transcribe import _get_model
                 model = _get_model()
             x, _ = read_wav(a16)
-            segs, _ = model.transcribe(x, language="he", word_timestamps=True, vad_filter=True, beam_size=5)
+            segs, _ = model.transcribe(x, language=ls.cfg.get("language", "he"), word_timestamps=True, vad_filter=True, beam_size=5)  # "language": "en" - he speaks English
             words = [{"w": w.word.strip(), "s": round(w.start, 3), "e": round(w.end, 3)} for s in segs for w in (s.words or [])]
             save_json(wj, words)
             log(f"  · words {n}: {len(words)}")
@@ -336,7 +336,7 @@ def matte(src, out, engine="fast"):
 def norm(w):
     w = re.sub(r"[֑-ׇ]", "", w)  # niqqud
     w = re.sub(r"[^\w֐-׿]", "", w)
-    return w.translate(str.maketrans("ךםןףץ", "כמנפצ"))
+    return w.lower().translate(str.maketrans("ךםןףץ", "כמנפצ"))
 
 
 def cut_cfg(ls):
@@ -457,25 +457,26 @@ def take_len(it, an=False):
 
 def speed_steps(ls, n, p, q):
     """The part [p, q] of a take as [(from, to, speed)]: episode.json cut "slow": {"<take>": [[from, to, speed], ...]}
-    (take seconds; 0.5 = half speed), eased in and out over cut "slow_ramp" seconds of the take in a few steps."""
+    (take seconds; 0.5 = half speed; ranges may touch, e.g. 0.8 then 0.58), every change eased over cut "slow_ramp"
+    seconds of the take in a few steps."""
     c = cut_cfg(ls)
     rngs = (c.get("slow") or {}).get(n, [])
     if not rngs:
         return [(p, q, 1.0)]
     ramp = float(c.get("slow_ramp", 0.4))
 
-    def at(t):
-        v = 1.0
+    def target(t):
         for a, b, f in rngs:
             if a <= t < b:
-                r = min(ramp, (b - a) / 2)
-                k = 1.0 if r <= 0 else min(1.0, (t - a) / r, (b - t) / r)
-                v = 1 + (float(f) - 1) * k
-        return v
+                return float(f)
+        return 1.0
+
+    def at(t):  # the speed eased across every change (1 -> slow, or one slow speed into another) over `ramp` seconds
+        return sum(target(t + ramp * (j / 8 - 0.5)) for j in range(9)) / 9 if ramp > 0 else target(t)
     marks = {p, q}
     for a, b, _ in rngs:
-        r = min(ramp, (b - a) / 2)
-        marks |= {a + r * i / 4 for i in range(5)} | {b - r * i / 4 for i in range(5)}
+        for e in (a, b):
+            marks |= {e + ramp * (i / 4 - 0.5) for i in range(5)}
     marks = sorted(m for m in marks if p <= m <= q)
     out = []
     for a, b in zip(marks, marks[1:]):
@@ -748,8 +749,9 @@ def captions(ls, items, total):
     pl = placed_sounds(ls, items)
     for si, s in enumerate(ls.cfg.get("sounds", [])):
         if s.get("captions") and si in pl:
-            o0 = pl[si][0] - s.get("from", 0.0)
-            other += [{"from": int((o0 + a) * FPS), "to": int((o0 + b) * FPS), "text": tx, "who": "other", "over": True}
+            rate = float(s.get("tempo", 1.0) or 1.0) * float(s.get("pitch", 1.0) or 1.0)  # file seconds -> video seconds
+            o0, f0 = pl[si][0], s.get("from", 0.0)
+            other += [{"from": int((o0 + (a - f0) / rate) * FPS), "to": int((o0 + (b - f0) / rate) * FPS), "text": tx, "who": "other", "over": True}
                       for a, b, tx in s["captions"]]
     for it in items:
         ins = it.get("insert") or {}
@@ -773,7 +775,7 @@ def captions(ls, items, total):
     return sorted(caps + other, key=lambda c: c["from"])
 
 
-TEXT_STYLE = 2  # bump when lesson_text.mjs changes how captions look, so cached images are redrawn
+TEXT_STYLE = 3  # bump when lesson_text.mjs changes how captions look, so cached images are redrawn
 
 
 # ---- 4. pictures -----------------------------------------------------------------------------------
@@ -814,7 +816,7 @@ def time_overlays(ls, items, total):
                 o["start"], o["end"] = round(max(0.0, a - 0.05), 2), round(b + o.get("hold", 0.35), 2)
         seq = sorted([o for o in by_sound if o.get("start") is not None], key=lambda o: o["start"])
         for o, nxt in zip(seq, seq[1:]):  # one bubble at a time: it is gone before the next one appears
-            if nxt.get("style") == o.get("style"):
+            if nxt.get("style") == o.get("style") and not o.get("overlap"):  # ("overlap": it lingers on in its own spot)
                 o["end"] = round(min(o["end"], nxt["start"] - 0.03), 2)
     tied = [o for o in ov if o.get("from_words")]
     if not tied:
@@ -925,10 +927,12 @@ def cap_y_of(ls, c):
     return (ls.cfg.get("captions_other") or {}).get("y", y - 150) if c.get("over") else y
 
 
-THOUGHT_V = 3  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
+THOUGHT_V = 6  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
 
 
-def text_layers(ls, caps):
+def text_layers(ls, caps, anims_too=True):
+    """The text as images for the export (the editor draws it live). anims_too=False: not the animated thoughts -
+    a frame-by-frame browser render, left to the background render and the export."""
     spec = {"fontsDir": os.path.join(ROOT, "fonts"), "items": []}
     c, sw, sh, cx, cy = bg_place(ls)
     pb = ls.cfg.get("plaque_bg", {"cx": 570, "top": 222, "w": 300, "size": 40})  # in the photo's own pixels
@@ -938,12 +942,14 @@ def text_layers(ls, caps):
         o["png"] = ls.work("text", f"ov{i}.png")
         if o.get("style") == "thought":  # animated (render/ui/thought_anim.js): a transparent clip, made once per text and timing
             import hashlib
-            k = {f: o.get(f) for f in ("text", "y", "size", "start", "end", "motion")}
+            k = {f: o.get(f) for f in ("text", "y", "size", "start", "end", "motion", "x", "w", "hold", "grow")}
             o["anim"] = ls.work("text", "anim", hashlib.md5(json.dumps([THOUGHT_V, k], ensure_ascii=False).encode()).hexdigest()[:14] + ".mov")
             o["anim_y"] = max(0, round(float(o.get("y") or 1150) - 220))  # the clip's top (tools/thought_frames.mjs)
-            if not os.path.exists(o["anim"]):
-                anims.append({"out": o["anim"], "text": o["text"], "y": float(o.get("y") or 1150), "size": o.get("size") or 70,
-                              "start": float(o["start"]), "end": float(o["end"]), "motion": o.get("motion")})
+            ls.anims_used = getattr(ls, "anims_used", []) + [o["anim"]]
+            if not os.path.exists(o["anim"]) and anims_too:
+                anims.append({"out": o["anim"][:-4] + f".{os.getpid()}.part.mov", "final": o["anim"], "text": o["text"], "y": float(o.get("y") or 1150), "size": o.get("size") or 70,
+                              "start": float(o["start"]), "end": float(o["end"]), "motion": o.get("motion"), "x": o.get("x"), "w": o.get("w"),
+                              "hold": o.get("hold", 0.35), "grow": o.get("grow", 1)})
             continue
         spec["items"].append({"out": o["png"], "kind": "overlay", **{k: v for k, v in o.items() if k != "png"}})
     if anims:
@@ -953,6 +959,8 @@ def text_layers(ls, caps):
         r = subprocess.run(["node", os.path.join(ROOT, "tools", "thought_frames.mjs"), asp], capture_output=True, text=True, encoding="utf-8", errors="replace")
         if r.returncode:
             raise RuntimeError(r.stderr[-1500:])
+        for it in anims:  # done: in place in one step (a stopped run never leaves a half clip that looks finished)
+            os.replace(it["out"], it["final"])
     quad = ls.cfg.get("plaque_quad")  # the plate's corners in the photo (TL, TR, BR, BL): text follows its angle
     if quad and c:
         spec["items"].append({"out": ls.work("text", "plaque_flat.png"), "kind": "plaque", "lines": ls.cfg.get("plaque", []),
@@ -973,18 +981,26 @@ def text_layers(ls, caps):
         raise RuntimeError(r.stderr[-1500:])
     scene, plaque = scene_png(ls)
     bg = ls.work("bg.png")
-    depth = f"gblur=sigma={ls.cfg.get('bg_blur', 2.2)},eq=brightness=-0.04:saturation=0.95"  # the set sits behind him
+    # the set sits behind him: a little out of focus and a touch darker ("bg_dim": false = the photo's own light)
+    blur = float(ls.cfg.get("bg_blur", 2.2))
+    depth = ",".join(([f"gblur=sigma={blur}"] if blur > 0 else []) + (["eq=brightness=-0.04:saturation=0.95"] if ls.cfg.get("bg_dim", True) else [])) or "null"
     ff("-i", scene, "-i", plaque, "-filter_complex",
        f"[0]scale={sw}:{sh},crop={W}:{H}:{cx}:{cy},{depth}[b];[1]scale={sw}:{sh},crop={W}:{H}:{cx}:{cy}[t];[b][t]overlay=0:0",
        "-frames:v", "1", bg)
     return bg
 
 
+def mask_curve(cut):
+    """The mask's values -> how solid he is: the mask videos are stored in TV range (black 16, white 235), so first to
+    0..255, then everything under "matte_cut" drops away. (Read straight, white 235 made him 70-75% solid - see-through.)"""
+    return f"clip(((val-16)*255/219-{cut})*255/{255 - cut},0,255)"
+
+
 def matte_filter(ls, pw, ph, ramp_in):
     """His mask, sized for the frame: drop the half-sure halo (white wall around raised hands), soften,
     and fade the sides of his picture when it does not reach the frame's edges."""
     cut = ls.cfg.get("matte_cut", 175)
-    f = (f"[1:v]lutyuv=y='clip((val-{cut})*255/{255 - cut},0,255)',scale={pw}:{ph}:flags=bicubic,"
+    f = (f"[1:v]lutyuv=y='{mask_curve(cut)}',scale={pw}:{ph}:flags=bicubic,"
          f"gblur=sigma={1.4 * pw / W:.2f},format=gray")
     if ramp_in is None:
         return f + "[m]"
@@ -1112,7 +1128,8 @@ def mask_piece(ls, take, t, n, enc, out_m, freeze=False, sp=None):
 
 
 def piece_atomic(ls, it, out_v, out_m, gaze=False):
-    pv, pm = out_v[:-4] + ".part.mp4", out_m[:-4] + ".part.mp4"  # a stopped run never leaves a half piece
+    tag = f".{os.getpid()}.part.mp4"  # a stopped run never leaves a half piece (and two runs never share a part file)
+    pv, pm = out_v[:-4] + tag, out_m[:-4] + tag
     piece(ls, it, pv, pm, gaze)
     os.replace(pv, out_v)
     os.replace(pm, out_m)
@@ -1122,6 +1139,13 @@ def piece_atomic(ls, it, out_v, out_m, gaze=False):
 # how a voice sounds coming out of a device in the room (insert / sound "filter": "phone" | "speaker")
 SOUND_FILTERS = {
     "phone": "highpass=f=380,lowpass=f=3000,acompressor",
+    # the other side of a call on speaker, the phone held in front of him: a phone line (8 kHz), a tiny speaker's
+    # honk around 1.7 kHz and no body below 500 Hz, a little codec crunch and speaker strain, the room right around it
+    "speakerphone": ("aresample=8000,highpass=f=480,highpass=f=480,lowpass=f=3300,lowpass=f=3300,"
+                     "equalizer=f=1700:t=q:w=1.1:g=7,equalizer=f=800:t=q:w=1:g=-3,"
+                     "acompressor=threshold=-24dB:ratio=5:attack=3:release=60:makeup=4,"
+                     "acrusher=bits=9:mode=log:aa=1:mix=0.3,asoftclip=type=tanh:threshold=0.5,"
+                     "aresample=48000,aecho=0.85:0.45:17|31|53|89:0.28|0.2|0.13|0.08"),
     # an inner voice, as films do it: very close, a little warmth, a soft short echo around it, even level
     "thought": ("highpass=f=95,lowpass=f=9000,equalizer=f=220:t=q:w=1:g=2,equalizer=f=3000:t=q:w=1.2:g=1.5,"
                 "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,aecho=0.85:0.6:38|77|121:0.24|0.14|0.08,"
@@ -1144,17 +1168,32 @@ SOUND_FILTERS = {
 RNN_MODEL = "models/rnnoise/cb.rnnn"
 
 
-def load_sound(path, phone=False, pitch=1.0, denoise=False):
-    """A sound file through its filter; "denoise" = RNNoise first (a voice note recorded on the phone: hum, hiss)."""
+def echo_filter(amount):
+    """The dark inner voice with its echo scaled (sound "echo": 0 = none, 1 = as tuned, 2 = a big hall)."""
+    a = max(0.0, float(amount))
+    taps = "|".join(f"{min(0.95, d * a):.3f}" for d in (0.32, 0.24, 0.17, 0.11, 0.07))
+    echo = f"aecho=0.8:0.72:70|150|260|410|620:{taps}," if a > 0.01 else ""
+    return SOUND_FILTERS["echo"].replace("aecho=0.8:0.72:70|150|260|410|620:0.32|0.24|0.17|0.11|0.07,", echo)
+
+
+def load_sound(path, phone=False, pitch=1.0, denoise=False, tempo=1.0, echo=None):
+    """A sound file through its filter; "denoise" = RNNoise first (a voice note recorded on the phone: hum, hiss);
+    "tempo" = faster / slower speech at the same pitch; "echo" = the echo filter's amount."""
     filt = phone if isinstance(phone, str) else ("phone" if phone else None)
-    tmp = path + (".rnn" if denoise else "") + (f".{filt}" if filt else "") + (f".p{pitch}" if pitch != 1 else "") + ".wav"
-    if not os.path.exists(tmp) or os.path.getmtime(tmp) < os.path.getmtime(path):
-        af = SOUND_FILTERS[filt] if filt else "anull"
+    tempo = float(tempo or 1.0)
+    tag = (".rnn" if denoise else "") + (f".{filt}" if filt else "") + (f".e{float(echo):g}" if filt == "echo" and echo is not None else "") + \
+        (f".p{pitch}" if pitch != 1 else "") + (f".t{tempo:g}" if tempo != 1 else "")
+    tmp = path + tag + ".wav"
+    if not os.path.exists(tmp) or os.path.getsize(tmp) == 0 or os.path.getmtime(tmp) < os.path.getmtime(path):
+        af = (echo_filter(echo) if filt == "echo" and echo is not None else SOUND_FILTERS[filt]) if filt else "anull"
+        if tempo != 1:  # before the room / echo: the words faster, the echo as it is
+            af = f"atempo={tempo}," + af
         if pitch != 1:
             af = f"asetrate={int(SR * pitch)},aresample={SR}," + af
         if denoise:  # (at 48 kHz, the rate RNNoise is trained at)
             af = f"aresample=48000,arnndn=m={RNN_MODEL}," + af
-        ff("-i", path, "-ac", "1", "-ar", str(SR), "-af", af, tmp)
+        ff("-i", path, "-ac", "1", "-ar", str(SR), "-af", af, tmp[:-4] + ".part.wav")
+        os.replace(tmp[:-4] + ".part.wav", tmp)  # (a stopped run never leaves an empty file that looks finished)
     return read_wav(tmp)[0]
 
 
@@ -1185,6 +1224,25 @@ def take_audio(ls, take, denoise=False):
     return out
 
 
+def voice_pitch(ls):
+    """episode.json voice "pitch": semitones up (+) or down (-) for his voice - the editor's Pitch slider."""
+    v = ls.cfg.get("voice")
+    return round(float((v or {}).get("pitch") or 0), 2) if isinstance(v, dict) else 0.0
+
+
+def pitched(ls, path):
+    """A take's voice at his chosen pitch: higher or lower, same timing (the lips stay in sync), the formants kept so it
+    is still his voice, not a chipmunk (rubberband). Cached per take, noise version and pitch."""
+    st = voice_pitch(ls)
+    if not st:
+        return path
+    out = f"{path[:-4]}.p{st:+g}.wav"
+    if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(path):
+        ff("-i", path, "-af", f"rubberband=pitch={2 ** (st / 12):.6f}:formant=preserved:pitchq=quality:transients=smooth",
+           "-ar", str(SR), "-ac", "1", out)
+    return out
+
+
 def write_wav(path, x):
     import wave
     with wave.open(path, "wb") as wf:
@@ -1205,7 +1263,7 @@ def voice_stem(ls, items, total, denoise=False):
             continue
         o = int(it["out"] / FPS * SR)
         n = int(it.get("an", it["n"]) / FPS * SR)
-        x = takes.setdefault(it["take"], read_wav(take_audio(ls, it["take"], denoise))[0])
+        x = takes.setdefault(it["take"], read_wav(pitched(ls, take_audio(ls, it["take"], denoise)))[0])
         a = int(it["a"] * SR)
         seg = x[a:a + int(n * it.get("sp", 1.0))].copy()
         if it.get("sp", 1.0) != 1 and len(seg) > 1:  # slow motion: its sound stretched with it (slower, lower)
@@ -1216,6 +1274,26 @@ def voice_stem(ls, items, total, denoise=False):
         seg[-tail:] *= np.linspace(1, 0, tail)
         out[o:o + len(seg)] += seg
     return out[:int(total / FPS * SR)]
+
+
+def duck_curve(voice, db, hop=0.01, attack=0.12, release=0.6, hold=0.35):
+    """The music under his voice, the way an editor mixes a talk: down by `db` while he speaks, back up in his pauses
+    (it waits `hold` seconds after a word before coming up, so it doesn't pump between words)."""
+    h = int(hop * SR)
+    nf = len(voice) // h + 1
+    fr = np.pad(voice, (0, nf * h - len(voice))).reshape(nf, h)
+    lv = 20 * np.log10(np.sqrt((fr ** 2).mean(1)) + 1e-9)
+    on = lv > np.percentile(lv, 95) - 24
+    k = int(hold / hop)
+    if k:
+        on = np.convolve(on.astype(float), np.ones(k + 1))[:nf] > 0
+    tgt = np.where(on, 10 ** (db / 20), 1.0)
+    g, cur = np.empty(nf), 1.0
+    ka, kr = 1 - np.exp(-hop / attack), 1 - np.exp(-hop / release)
+    for i, t in enumerate(tgt):
+        cur += (t - cur) * (ka if t < cur else kr)
+        g[i] = cur
+    return np.interp(np.arange(len(voice)), np.arange(nf) * h + h / 2, g).astype(np.float32)
 
 
 def stems(ls, items, total):
@@ -1236,6 +1314,9 @@ def stems(ls, items, total):
             g[i0:i1] = np.minimum(g[i0:i1], env)
         voice, voice_dn = voice * g, voice_dn * g[:len(voice_dn)]
     fx, music = fx_and_music(ls, items, total)
+    duck = float((ls.cfg.get("music") or {}).get("duck") or 0)  # music "duck": dB under his voice (the Music card)
+    if duck < 0 and music.any():
+        music = music * duck_curve(voice_dn[:len(music)], duck)[:len(music)]
     return {"voice": write_wav(ls.work("stems", "voice.wav"), voice), "voice_dn": write_wav(ls.work("stems", "voice_dn.wav"), voice_dn),
             "fx": write_wav(ls.work("stems", "fx.wav"), fx), "music": write_wav(ls.work("stems", "music.wav"), music)}
 
@@ -1261,17 +1342,25 @@ def placed_sounds(ls, items):
     """{index in "sounds": (start, end) in seconds of the video} for every sound placed on the cut, in order
     (a thought "after_prev" follows the one before it)."""
     out, prev = {}, None
-    for i, s in enumerate(ls.cfg.get("sounds", [])):
+    S = ls.cfg.get("sounds", [])
+    for i, s in enumerate(S):
         if any(k in s for k in PLACED):
             out[i] = sound_place(ls, items, s, prev)
             prev = out[i][1]
+    for i, s in enumerate(S):  # "until": {"sound": j, "offset": s} - it ends where that one starts (a bed stopping on the boom)
+        u = s.get("until")
+        if i in out and u and u.get("sound") in out:
+            out[i] = (out[i][0], max(out[i][0] + 0.05, min(out[i][1], out[u["sound"]][0] + float(u.get("offset", 0.0)))))
     return out
 
 
 def sound_place(ls, items, s, prev_end=None):
     """A sound that ends where he reacts: {"take", "end_word", "end_after" (seconds in his take, to find the right one),
     "end_offset", "from"/"to" (the part of the sound file)} -> (start, end) in seconds of the video."""
-    dur = (s["to"] if s.get("to") is not None else len(load_sound(ls.asset(s["sound"]), s.get("filter"), denoise=s.get("denoise"))) / SR) - s.get("from", 0.0)
+    dur = sum(b - a for a, b in sound_parts(ls, s))
+    dur = max(0.05, dur - float(s.get("trim_in", 0) or 0))  # its ends dragged in the editor: less of its start / end
+    if s.get("len"):
+        dur = min(dur, float(s["len"]))
     if "after_prev" in s:  # a gap (seconds) after the previous placed sound ends
         o = (prev_end or 0.0) + float(s["after_prev"])
         return o, o + dur
@@ -1288,6 +1377,114 @@ def sound_place(ls, items, s, prev_end=None):
     if o is None:
         raise SystemExit(f"sound {s} could not be placed")
     return (o - dur, o) if end else (o, o + dur)
+
+
+def sound_parts(ls, s):
+    """The parts of a placed sound's file that play, in seconds of the processed sound: from..to (file seconds) without
+    its "skip" ranges (a pause inside the recording taken out), all divided by its tempo."""
+    tp = float(s.get("tempo", 1.0) or 1.0) * float(s.get("pitch", 1.0) or 1.0)  # (a lower pitch plays slower too: a slowed tape)
+    a0 = float(s.get("from", 0.0))
+    a1 = float(s["to"]) if s.get("to") is not None else \
+        len(load_sound(ls.asset(s["sound"]), s.get("filter"), s.get("pitch", 1.0), s.get("denoise"), s.get("tempo", 1.0), s.get("echo"))) / SR * tp
+    parts, pos = [], a0
+    for k0, k1 in sorted(s.get("skip", [])):
+        if k0 > pos and k0 < a1:
+            parts.append((pos, k0))
+        pos = max(pos, k1)
+    if a1 > pos:
+        parts.append((pos, a1))
+    return [(a / tp, b / tp) for a, b in parts]
+
+
+def voice_bed(ls, pl, out):
+    """episode.json "voice_bed": {"sounds": [indices] (default: every thought), "gain": 1}: the voice-over's own room
+    noise between its lines - taken from the quiet parts of the very same processed recording - so the voice-over never
+    drops into dead silence between thoughts (you would hear each one start and stop)."""
+    vb = ls.cfg.get("voice_bed")
+    if not vb:
+        return
+    S = ls.cfg.get("sounds", [])
+    idx = [i for i in (vb.get("sounds") or [i for i, s in enumerate(S) if s.get("filter") in ("thought", "echo")]) if i in pl]
+    if not idx:
+        return
+    s0 = S[idx[0]]
+    x = load_sound(ls.asset(s0["sound"]), s0.get("filter"), s0.get("pitch", 1.0), s0.get("denoise"), s0.get("tempo", 1.0), s0.get("echo"))
+    hop = int(0.02 * SR)
+    db = np.array([20 * np.log10(np.sqrt(np.mean(x[i:i + hop] ** 2)) + 1e-9) for i in range(0, len(x) - hop, hop)])
+    quiet = db < np.percentile(db, 25) + 4
+    bank, run, xf = [], [], int(0.01 * SR)
+    for k, q in enumerate(np.append(quiet, False)):  # quiet runs of 0.12 s or more, their edges trimmed
+        if q:
+            run.append(k)
+            continue
+        if len(run) * hop >= 0.12 * SR:
+            seg = x[(run[0] + 2) * hop:(run[-1] - 1) * hop].astype(np.float32).copy()
+            if len(seg) > 2 * xf:
+                seg[:xf] *= np.linspace(0, 1, xf)
+                seg[-xf:] *= np.linspace(1, 0, xf)
+                bank.append(seg)
+        run = []
+    if not bank:
+        return
+    noise = np.concatenate(bank)
+    a, b = int(min(pl[i][0] for i in idx) * SR), int(max(pl[i][1] for i in idx) * SR)
+    b = min(b, len(out))
+    if b <= a:
+        return
+    bed = np.tile(noise, (b - a) // max(1, len(noise)) + 1)[:b - a]
+    gate = np.ones(b - a, np.float32)
+    f = int(0.08 * SR)
+    for i in idx:  # the lines have their own noise: the bed only in the gaps, crossfaded
+        i0, i1 = max(0, int(pl[i][0] * SR) - a), min(b - a, int(pl[i][1] * SR) - a)
+        if i1 <= i0:
+            continue
+        gate[i0:i1] = 0
+        gate[max(0, i0 - f):i0] = np.minimum(gate[max(0, i0 - f):i0], np.linspace(1, 0, i0 - max(0, i0 - f)))
+        gate[i1:i1 + f] = np.minimum(gate[i1:i1 + f], np.linspace(0, 1, len(gate[i1:i1 + f])))
+    out[a:b] += bed * gate * float(vb.get("gain", 1.0)) * float(s0.get("gain", 1.0))
+
+
+_IRS = {}
+
+
+def room_ir(rt60):
+    """A large room's answer (impulse response) - the same room as render/ui/sound.ts roomIR (his voice's Room):
+    early reflections, a tail that dies over rt60 seconds and loses its highs, the wet path's 220 Hz-5.5 kHz band and
+    22 ms pre-delay. Seeded, so every build sounds the same."""
+    if rt60 in _IRS:
+        return _IRS[rt60]
+    n = max(1, int(SR * min(4.0, rt60 * 1.1)))
+    t = np.arange(n) / SR
+    env = np.exp(-6.91 * t / rt60) * np.minimum(1, t / 0.012)
+    a = np.minimum(0.92, 0.25 + t / rt60 * 0.7)
+    noise = np.random.default_rng(0x9E3779B9).uniform(-1, 1, n)
+    d, lp = np.zeros(n), 0.0
+    for i in range(n):  # more and more low-passed as it decays
+        lp = lp * a[i] + noise[i] * (1 - a[i])
+        d[i] = lp
+    d *= env * (1 + a * 1.5)
+    for ms, g in ((11, 0.55), (19, -0.42), (27, 0.36), (38, -0.3), (52, 0.24), (67, -0.2)):
+        d[int(ms / 1000 * SR)] += g
+    f = np.fft.rfftfreq(2 * n, 1 / SR)
+    band = 1 / np.sqrt(1 + (220 / np.maximum(f, 1)) ** 4) / np.sqrt(1 + (f / 5500) ** 4)
+    d = np.fft.irfft(np.fft.rfft(d, 2 * n) * band)[:n]
+    d /= np.sqrt(np.sum(d ** 2)) or 1
+    _IRS[rt60] = np.concatenate([np.zeros(int(0.022 * SR)), d]).astype(np.float32)
+    return _IRS[rt60]
+
+
+def with_room(ls, s, x):
+    """A sound in the same room as his voice (sounds "room": true - his Room amount and size - or a number = amount)."""
+    v = ls.cfg.get("voice")
+    vs = v if isinstance(v, dict) else ({"room": 0.45, "roomSize": 1.8} if v == "hall" else {})
+    r = s.get("room")
+    amt = float(r) if not isinstance(r, bool) else float(vs.get("room") or 0.3)
+    ir = room_ir(round(float(s.get("roomSize") or vs.get("roomSize") or 1.6), 2))
+    m = 1 << int(np.ceil(np.log2(len(x) + len(ir))))
+    wet = np.fft.irfft(np.fft.rfft(x, m) * np.fft.rfft(ir, m), m)[:len(x) + len(ir)]
+    out = wet * 1.1 * amt
+    out[:len(x)] += x * (1 - 0.45 * amt)
+    return out.astype(np.float32)
 
 
 def fx_and_music(ls, items, total):
@@ -1336,11 +1533,23 @@ def fx_and_music(ls, items, total):
                 ca = max(0, int((o0 + ch.get("at", 0.0)) * SR))
                 out[ca:ca + len(cs)] += cs[:max(0, len(out) - ca)]
             snd = load_sound(ls.asset(snd_cfg["sound"]), snd_cfg.get("filter") or snd_cfg.get("phone"), snd_cfg.get("pitch", 1.0),
-                             denoise=snd_cfg.get("denoise"))
+                             denoise=snd_cfg.get("denoise"), tempo=snd_cfg.get("tempo", 1.0), echo=snd_cfg.get("echo"))
+            if snd_cfg.get("room"):  # in his room, like his voice
+                snd = with_room(ls, snd_cfg, snd)
             if snd_cfg.get("reverse"):  # backwards (a muffled voice nobody can make out)
                 snd = snd[::-1].copy()
-            a0 = int(snd_cfg.get("from", 0) * SR)
-            seg = snd[a0:a0 + int((o1 - o0) * SR)].copy() * snd_cfg.get("gain", 0.8)
+            xf = int(0.015 * SR)
+            seg = np.zeros(0, np.float32)
+            for pa, pb in sound_parts(ls, snd_cfg):  # a skipped pause: the two sides joined with a short crossfade
+                piece_ = snd[int(pa * SR):int(pb * SR)].astype(np.float32).copy()
+                if len(seg) > xf and len(piece_) > xf:
+                    piece_[:xf] *= np.linspace(0, 1, xf)
+                    seg[-xf:] *= np.linspace(1, 0, xf)
+                    seg = np.concatenate([seg[:-xf], seg[-xf:] + piece_[:xf], piece_[xf:]])
+                else:
+                    seg = np.concatenate([seg, piece_])
+            seg = seg[int(float(snd_cfg.get("trim_in", 0) or 0) * SR):]  # (its start dragged in: that part is left out)
+            seg = seg[:int((o1 - o0) * SR)] * snd_cfg.get("gain", 0.8)
             fi, fo = int(snd_cfg.get("fade_in", 0.02) * SR), int(snd_cfg.get("fade_out", 0.06) * SR)
             seg[:fi] *= np.linspace(0, 1, len(seg[:fi]))
             seg[-fo:] *= np.linspace(1, 0, len(seg[-fo:]))
@@ -1359,7 +1568,10 @@ def fx_and_music(ls, items, total):
         if o0 is None or o1 is None or o1 <= o0:
             raise SystemExit(f"sound {snd_cfg} could not be placed")
         n = int((o1 - o0) * SR)
-        snd = load_sound(ls.asset(snd_cfg["sound"]), snd_cfg.get("filter") or snd_cfg.get("phone"), snd_cfg.get("pitch", 1.0))
+        snd = load_sound(ls.asset(snd_cfg["sound"]), snd_cfg.get("filter") or snd_cfg.get("phone"), snd_cfg.get("pitch", 1.0),
+                         denoise=snd_cfg.get("denoise"), tempo=snd_cfg.get("tempo", 1.0), echo=snd_cfg.get("echo"))
+        if snd_cfg.get("room"):  # in his room, like his voice
+            snd = with_room(ls, snd_cfg, snd)
         if len(snd) < n:  # loop a short recording
             snd = np.tile(snd, n // len(snd) + 1)
         seg = snd[:n].copy() * snd_cfg.get("gain", 0.5)
@@ -1370,15 +1582,21 @@ def fx_and_music(ls, items, total):
         out[a:a + len(seg)] += seg
         ls.placed = getattr(ls, "placed", []) + [{"name": os.path.basename(snd_cfg["sound"]).rsplit(".", 1)[0],
                                                   "from": round(o0, 3), "to": round(o1, 3)}]
+    voice_bed(ls, pl, out)
     n = int(total / FPS * SR)
     music = np.zeros(n, np.float32)
     mus = ls.cfg.get("music")
-    if mus:  # a bed under him for the whole video (a short loop repeats seamlessly); its volume is set later
+    # a bed under him (a short loop repeats seamlessly); its volume is set later. Its time on the video is moved / its
+    # ends dragged on its lane in the editor ("start", "end" seconds of the video; no end = to the end), "off" = taken off
+    a0 = int(max(0.0, float((mus or {}).get("start") or 0)) * SR)
+    a1 = n if (mus or {}).get("end") is None else min(n, int(float(mus["end"]) * SR))
+    if mus and not mus.get("off") and a1 - a0 > SR // 10:
         bed = load_sound(ls.asset(mus["sound"]))
-        music = np.tile(bed, n // max(1, len(bed)) + 1)[:n].copy()
+        m = np.tile(bed, (a1 - a0) // max(1, len(bed)) + 1)[:a1 - a0].copy()
         f_in, f_out = int(mus.get("fade_in", 1.5) * SR), int(mus.get("fade_out", 2.5) * SR)
-        music[:f_in] *= np.linspace(0, 1, len(music[:f_in]))
-        music[-f_out:] *= np.linspace(1, 0, len(music[-f_out:]))
+        m[:f_in] *= np.linspace(0, 1, len(m[:f_in]))
+        m[-f_out:] *= np.linspace(1, 0, len(m[-f_out:]))
+        music[a0:a1] = m
     return out[:n], music
 
 
@@ -1428,19 +1646,28 @@ class FxFrame:
         fx = ls.cfg.get("fx") or {}
         self.w, self.h = w, h
         self.cx, self.cy = [float(v) for v in fx.get("center", [0.5, 0.36])]
-        g = fx.get("grade") or {}
-        self.sat, self.con, self.bri = float(g.get("saturation", 1)), float(g.get("contrast", 1)), 1 + float(g.get("brightness", 0))
-        v = float(fx.get("vignette", 0))
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
         r = np.sqrt(((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2) / np.sqrt(2)  # CSS ellipse, farthest-corner
-        self.vig = (1 - v * np.clip((r - 0.45) / 0.55, 0, 1))[..., None].astype(np.float32)  # = the editor's radial overlay
-        self.grain = float(fx.get("grain", 0))
+        self.vshape = np.clip((r - 0.45) / 0.55, 0, 1)[..., None].astype(np.float32)  # = the editor's radial overlay at full
         rng = np.random.default_rng(3)
-        self.noise = [rng.standard_normal((h // 2, w // 2)).astype(np.float32) for _ in range(6)] if self.grain else []
+        # the grain: a few full-size fields (made once, twice as tall) - each frame takes a window of one (no copy)
+        self.noise = [cv2.resize(rng.standard_normal((h, w // 2)).astype(np.float32), (w, 2 * h), interpolation=cv2.INTER_LINEAR)
+                      for _ in range(4)] if fx.get("grain") else []
+        self.lag = max(1, round(float(fx.get("ghost_lag", 0.2)) * FPS)) if fx.get("ghost") else 0
+        self.hist = []  # the last frames, for the ghost (= the editor's lagged copy of him)
 
-    def __call__(self, img, s, f):
+    def __call__(self, img, s, f, prev=False):
+        """prev: the picture ghost_lag frames back (given by fx_pass, which works on several frames at once);
+        not given = kept here, frame by frame."""
         cv2 = self.cv2
         h, w = self.h, self.w
+        if self.lag and prev is False:
+            self.hist.append(img)
+            if len(self.hist) > self.lag + 1:
+                self.hist.pop(0)
+            prev = self.hist[0] if len(self.hist) > self.lag else None
+        if self.lag and prev is not None and s.get("ghost", 0) > 1e-3:
+            img = cv2.addWeighted(img, 1 - s["ghost"], prev, s["ghost"], 0)
         if abs(s["z"] - 1) > 1e-4 or abs(s["dx"]) > 0.01 or abs(s["dy"]) > 0.01 or abs(s["rot"]) > 1e-4:
             ox, oy = self.cx * w, self.cy * h
             sc = w / 1080  # the curve is in 1080-wide pixels
@@ -1449,18 +1676,21 @@ class FxFrame:
             t = np.array([ox + s["dx"] * sc, oy + s["dy"] * sc]) - m @ np.array([ox, oy])
             img = cv2.warpAffine(img, np.hstack([m, t[:, None]]).astype(np.float32), (w, h), flags=cv2.INTER_LINEAR,
                                  borderMode=cv2.BORDER_REFLECT)
-        x = img.astype(np.float32) / 255
-        if self.sat != 1:  # CSS saturate(): the luminance matrix
-            L = x[..., 0] * 0.0722 + x[..., 1] * 0.7152 + x[..., 2] * 0.2126  # (BGR)
-            x = L[..., None] + (x - L[..., None]) * self.sat
-        if self.con != 1:
-            x = (x - 0.5) * self.con + 0.5
-        x *= self.bri * s["light"]
-        x *= self.vig
-        if self.grain:
-            n = cv2.resize(self.noise[f % len(self.noise)], (w, h), interpolation=cv2.INTER_LINEAR)
-            n = np.roll(n, (f * 37) % h, axis=0)
-            x += (n * (0.075 * self.grain))[..., None] * (0.35 + 0.65 * np.clip(x, 0, 1))  # finer and stronger in the light
+        x = img.astype(np.float32) * (1 / 255)
+        sat, con, bri = s.get("sat", 1), s.get("con", 1), 1 + s.get("bri", 0)  # each filter as much as its layer is on now
+        b = bri * s["light"]
+        if abs(sat - 1) > 1e-3 or abs(con - 1) > 1e-3 or abs(b - 1) > 1e-3:
+            # CSS saturate -> contrast -> brightness as one colour matrix with an offset, applied in one pass (BGR)
+            wts = np.array([0.0722, 0.7152, 0.2126], np.float32)
+            S = np.tile(wts, (3, 1)) * (1 - sat) + np.eye(3, dtype=np.float32) * sat
+            M = np.hstack([b * con * S, np.full((3, 1), b * 0.5 * (1 - con), np.float32)])
+            x = cv2.transform(x, M)
+        if s.get("vig", 0) > 1e-3:
+            x *= 1 - s["vig"] * self.vshape
+        if s.get("grain", 0) > 1e-3 and self.noise:
+            off = (f * 37) % h
+            n = self.noise[f % len(self.noise)][off:off + h]
+            x += (n * (0.075 * s["grain"]))[..., None] * (0.35 + 0.65 * np.clip(x, 0, 1))  # finer and stronger in the light
         if s["flash"] > 0.002:
             x = x + (1 - x) * min(1.0, s["flash"])
         if s["black"]:
@@ -1469,21 +1699,35 @@ class FxFrame:
 
 
 def fx_pass(ls, src, dst, frames, w, h):
-    """The picture (set + person) through the camera and the film look, frame by frame."""
+    """The picture (set + person) through the camera and the film look, frame by frame. src: a video file, or the
+    ffmpeg arguments that draw the picture (it is read straight from that ffmpeg - no picture file in between)."""
     curve = fx_curve(ls, frames)
     fxf = FxFrame(ls, w, h)
-    dec = subprocess.Popen([FFMPEG, "-v", "error", "-i", src, "-f", "rawvideo", "-pix_fmt", "bgr24", "-"], stdout=subprocess.PIPE)
+    cmd = [FFMPEG, "-v", "error", "-i", src] if isinstance(src, str) else [FFMPEG, "-v", "error", *src]
+    dec = subprocess.Popen(cmd + ["-f", "rawvideo", "-pix_fmt", "bgr24", "-"], stdout=subprocess.PIPE, cwd=ROOT)
     enc = subprocess.Popen([FFMPEG, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{w}x{h}", "-r", str(FPS), "-i", "-",
                             "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p", dst], stdin=subprocess.PIPE, cwd=ROOT)
-    size, f = w * h * 3, 0
-    while f < frames:
-        buf = dec.stdout.read(size)
-        if len(buf) < size:
-            break
-        enc.stdin.write(fxf(np.frombuffer(buf, np.uint8).reshape(h, w, 3), curve[min(f, len(curve) - 1)], f).tobytes())
-        f += 1
-        if f % 60 == 0:
-            log(f"Rendered {f}/{frames} (camera & film)")
+    size, f, hist, todo = w * h * 3, 0, [], []
+    from collections import deque
+    todo = deque()
+    with ThreadPoolExecutor(max_workers=max(2, min(6, (os.cpu_count() or 4) - 2))) as pool:  # (OpenCV / numpy free the GIL)
+        while f < frames:
+            buf = dec.stdout.read(size)
+            if len(buf) < size:
+                break
+            img = np.frombuffer(buf, np.uint8).reshape(h, w, 3)
+            hist.append(img)
+            if len(hist) > fxf.lag + 1:
+                hist.pop(0)
+            prev = hist[0] if fxf.lag and len(hist) > fxf.lag else None
+            todo.append(pool.submit(fxf, img, curve[min(f, len(curve) - 1)], f, prev))
+            f += 1
+            while len(todo) > 8 or (todo and todo[0].done()):
+                enc.stdin.write(todo.popleft().result().tobytes())
+            if f % 60 == 0:
+                log(f"Rendered {f}/{frames} (camera & film)")
+        while todo:
+            enc.stdin.write(todo.popleft().result().tobytes())
     enc.stdin.close()
     enc.wait()
     dec.stdout.close()
@@ -1507,7 +1751,11 @@ def build(ls, still_at=None, preview=False):
     prev_edit = load_json(ls.work("edit.json"), {}) or {}
     save_json(ls.work("edit.json"), {**{k: prev_edit[k] for k in ("photo", "sounds", "speed") if k in prev_edit},
                                      "items": items, "total": total, "captions": caps})
-    bg = text_layers(ls, caps)
+    if preview:
+        stop_warm(ls)  # (a newer edit: the background render starts again from it at the end)
+    elif still_at is None:
+        wait_warm(ls)  # the export: let the background render finish what it started (the same work)
+    bg = text_layers(ls, caps, anims_too=not preview)
     if still_at is not None:
         person, mask = person_layer(ls, items, gaze=eye_on(ls))
         audio = mix(ls, items, total)
@@ -1516,13 +1764,7 @@ def build(ls, still_at=None, preview=False):
         return
     if preview:
         eyes = eye_cfg(ls) is not None
-        person, mask = person_layer(ls, items, gaze=eyes)
-        person_preview(ls, person, mask, "person.webm")
-        plain_preview(ls, person)
-        take_proxies(ls)
-        if eyes:  # the original too: the editor's Eye contact switch flips between them live
-            raw_p, raw_m = person_layer(ls, items, gaze=False)
-            person_preview(ls, raw_p, raw_m, "person_raw.webm")
+        take_proxies(ls)  # the editor plays the cut over these, live - the cut person layer is the export's (background)
         st = stems(ls, items, total)
         import shutil
         for k, path in st.items():  # the editor plays these together and filters the voice live - the very files the export mixes
@@ -1538,10 +1780,152 @@ def build(ls, still_at=None, preview=False):
         save_json(ls.work("edit.json"), {"items": items, "total": total, "captions": caps, "speed": 1.0, "photo": [pw_, ph_],
                                          "sounds": getattr(ls, "placed", [])})
         log(f"✔ layers ready ({total / FPS:.1f}s) — the editor puts them together live")
+        spawn_warm(ls)
         return
     person, mask = person_layer(ls, items, gaze=eye_on(ls))
     audio = mix(ls, items, total)
     compose(ls, items, total, caps, bg, person, mask, audio, preview)
+    check_export(ls, total)
+    tidy(ls, items, caps)
+
+
+# ---- the background render: after every edit, the export's heavy layers (the cut person in slow-motion chunks, the
+# animated thoughts, the fallback preview) are made at low priority, so Export finds them ready -------------------
+def _alive(pid):
+    """Is this process still running? (Never os.kill on Windows - signal 0 terminates it there.)"""
+    if os.name != "nt":
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+    import ctypes
+    k = ctypes.windll.kernel32
+    h = k.OpenProcess(0x1000, False, pid)
+    if not h:
+        return False
+    code = ctypes.c_ulong()
+    k.GetExitCodeProcess(h, ctypes.byref(code))
+    k.CloseHandle(h)
+    return code.value == 259
+
+
+def warm_pid(ls):
+    try:
+        pid = int(open(ls.work("warm.pid")).read().strip())
+        return pid if pid != os.getpid() and _alive(pid) else None
+    except (OSError, ValueError):
+        return None
+
+
+def spawn_warm(ls):
+    stop_warm(ls)
+    flags = (0x00000008 | 0x00000200 | 0x00004000) if os.name == "nt" else 0  # detached, own group, below-normal priority
+    p = subprocess.Popen([sys.executable, os.path.abspath(__file__), ls.dir, "--warm"], cwd=ROOT, creationflags=flags,
+                         stdout=open(ls.work("warm.log"), "w", encoding="utf-8"), stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+    open(ls.work("warm.pid"), "w").write(str(p.pid))
+    log("  · the export's layers render in the background (Export uses them)")
+
+
+def stop_warm(ls):
+    pid = warm_pid(ls)
+    if pid:
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"] if os.name == "nt" else ["kill", str(pid)], capture_output=True)
+
+
+def wait_warm(ls):
+    import time
+    if warm_pid(ls):
+        log("  · finishing the background render (the same work the export needs)")
+        while warm_pid(ls):
+            time.sleep(1)
+
+
+def warm(ls):
+    """The background render itself: what the export will need, from the edit as it is now."""
+    open(ls.work("warm.pid"), "w").write(str(os.getpid()))
+    items, total = plan(ls)
+    caps = captions(ls, items, total)
+    text_layers(ls, caps)
+    person, mask = person_layer(ls, items, gaze=eye_on(ls))
+    person_preview(ls, person, mask, "person.webm")  # (the editor's fallback when it cannot play the takes)
+    plain_preview(ls, person)
+    if eye_cfg(ls) is not None:
+        raw_p, raw_m = person_layer(ls, items, gaze=False)
+        person_preview(ls, raw_p, raw_m, "person_raw.webm")
+    log("✔ background render done")
+
+
+# ---- after an export: is the file what the edit says? then the work folder keeps only what this edit uses -------
+def check_export(ls, total):
+    out = ls.p("out", ls.slug + ".mp4")
+    spd = min(1.3, max(1.0, float(ls.cfg.get("speed", 1.0))))
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration:stream=codec_type,width,height,r_frame_rate",
+                        "-of", "json", out], capture_output=True, text=True)
+    info = json.loads(r.stdout or "{}")
+    st = info.get("streams", [])
+    v = next((x for x in st if x.get("codec_type") == "video"), {})
+    dur, want = float(info.get("format", {}).get("duration", 0)), round(total / spd) / FPS
+    problems = []
+    if (v.get("width"), v.get("height")) != (W, H):
+        problems.append(f"size {v.get('width')}x{v.get('height')}")
+    if v.get("r_frame_rate") != f"{FPS}/1":
+        problems.append(f"frame rate {v.get('r_frame_rate')}")
+    if not any(x.get("codec_type") == "audio" for x in st):
+        problems.append("no sound")
+    if abs(dur - want) > 0.25:
+        problems.append(f"{dur:.2f}s long, the edit is {want:.2f}s")
+    if problems:
+        raise SystemExit("the exported file is wrong: " + ", ".join(problems))
+    log(f"  · checked: {dur:.1f}s, {W}x{H}, {FPS} fps, with sound - as the edit")
+
+
+def tidy(ls, items, caps):
+    """Delete what this edit no longer uses: animated thoughts and subtitle images of earlier versions, the camera
+    pass's picture, filtered copies of the project's own sounds; person pieces unused for a day (undo stays cheap)."""
+    import time
+    keep = {os.path.normcase(os.path.abspath(x)) for x in getattr(ls, "anims_used", [])}
+    keep |= {os.path.normcase(os.path.abspath(c["png"])) for c in caps if c.get("png")}
+    freed = 0
+
+    def rm(p):
+        nonlocal freed
+        try:
+            freed += os.path.getsize(p)
+            os.remove(p)
+        except OSError:
+            pass
+    for d, ext in ((ls.work("text", "anim"), ".mov"), (ls.work("text", "caps"), ".png")):
+        for f in os.listdir(d) if os.path.isdir(d) else []:
+            p = os.path.join(d, f)
+            if f.endswith(ext) and os.path.normcase(os.path.abspath(p)) not in keep:
+                rm(p)
+    for f in ("picture.mp4", "picture_fx.mp4", "picture.mp4.png", "picture_fx.mp4.png"):
+        rm(ls.work("fx", f))
+    used = set()
+    for s in ls.cfg.get("sounds", []):  # the filtered copies this edit uses (load_sound's names)
+        filt = s.get("filter") or s.get("phone")
+        filt = filt if isinstance(filt, str) else ("phone" if filt else None)
+        tempo, pitch, echo = float(s.get("tempo", 1.0) or 1.0), s.get("pitch", 1.0), s.get("echo")
+        tag = (".rnn" if s.get("denoise") else "") + (f".{filt}" if filt else "") + (f".e{float(echo):g}" if filt == "echo" and echo is not None else "") + \
+            (f".p{pitch}" if pitch != 1 else "") + (f".t{tempo:g}" if tempo != 1 else "")
+        used.add(os.path.normcase(os.path.abspath(ls.asset(s["sound"]) + tag + ".wav")))
+    own = {os.path.basename(ls.asset(x["sound"])) for x in ls.cfg.get("sounds", [])}
+    for root, _, files in os.walk(ls.dir):  # the project's own folder only - shared library sounds stay
+        if os.path.normcase(root).startswith(os.path.normcase(ls.p("work"))):
+            continue
+        for f in files:  # a filtered copy of one of its sounds ("<sound>.<filters>.wav") that this edit does not use
+            p = os.path.join(root, f)
+            if f.endswith(".wav") and any(f.startswith(o + ".") for o in own) and os.path.normcase(os.path.abspath(p)) not in used:
+                rm(p)
+    pieces = ls.work("pieces")
+    live = {os.path.basename(x) for x in ls.__dict__.get("pieces_used", [])}
+    for f in os.listdir(pieces) if os.path.isdir(pieces) else []:
+        p = os.path.join(pieces, f)
+        if f.endswith(".mp4") and f not in live and time.time() - os.path.getmtime(p) > 86400:
+            rm(p)
+    if freed:
+        log(f"  · tidied the work folder: {freed / 1e6:.0f} MB of earlier versions removed")
 
 
 def eye_cfg(ls):
@@ -1659,13 +2043,13 @@ def person_preview(ls, person, mask, name="person.webm"):
     """The person layer for the editor: his video with its mask as transparency (VP9 alpha) and the sound.
     Background, size, position, subtitles and text are stacked on it live; Export uses the same numbers."""
     import hashlib
-    sig = hashlib.md5("|".join([str(os.path.getmtime(x)) for x in (person, mask)] + ["live" if ls.cfg.get("look") else grade(ls), str(ls.cfg.get("matte_cut", 175))]).encode()).hexdigest()[:12]
+    sig = hashlib.md5("|".join([str(os.path.getmtime(x)) for x in (person, mask)] + ["live" if ls.cfg.get("look") else grade(ls), str(ls.cfg.get("matte_cut", 175)), "mask-tv"]).encode()).hexdigest()[:12]
     out, stamp = ls.work("public", name), ls.work("public", name + ".stamp")
     if os.path.exists(out) and os.path.exists(stamp) and open(stamp).read() == sig:
         return out
     cut = ls.cfg.get("matte_cut", 175)
     ff("-i", person, "-i", mask, "-filter_complex",
-       f"[1:v]lutyuv=y='clip((val-{cut})*255/{255 - cut},0,255)',scale=540:960:flags=bicubic,gblur=sigma=0.7,format=gray[m];"
+       f"[1:v]lutyuv=y='{mask_curve(cut)}',scale=540:960:flags=bicubic,gblur=sigma=0.7,format=gray[m];"
        f"[0:v]scale=540:960,{'null' if ls.cfg.get('look') else grade(ls, 540)},format=yuva420p[p];[p][m]alphamerge[v]",
        "-map", "[v]", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8",
        "-row-mt", "1", "-b:v", "2500k", "-auto-alt-ref", "0", "-an", out)
@@ -1673,12 +2057,33 @@ def person_preview(ls, person, mask, name="person.webm"):
     return out
 
 
+CHUNK = 2.0  # seconds of a take per cached person piece
+
+
+def chunks(it):
+    """A clip rendered in chunks on a fixed 2 s grid of its take: a cut, an end mark or a split re-renders only the chunk it
+    falls in (a slow-motion piece is minutes of frame interpolation - never all of it again). The chunks inside sit exactly
+    on the grid, so their cache keys never change; the frames add up to the clip's own."""
+    if it["kind"] != "clip":
+        return [it]
+    sp, a, n = it.get("sp", 1.0), it["a"], it["n"]
+    t1 = a + n * sp / FPS
+    grid = [k * CHUNK for k in range(int(a // CHUNK) + 1, int(t1 // CHUNK) + 1) if a + 0.05 < k * CHUNK < t1 - 0.05]
+    if not grid:
+        return [it]
+    starts = [a] + grid
+    ns = [round((grid[0] - a) / sp * FPS)] + [round(CHUNK / sp * FPS)] * (len(grid) - 1) + [0]
+    ns[-1] = n - sum(ns[:-1])  # the last one takes what is left: the frames add up exactly
+    return [{**it, "a": round(st, 4), "n": k} for st, k in zip(starts, ns) if k > 0]
+
+
 def person_layer(ls, items, gaze=False):
-    """The person layer for the whole video: cut pieces (cached by their cut and source), joined."""
+    """The person layer for the whole video: cut pieces in chunks (cached by their cut and source), joined."""
     import hashlib
     tag = ("gaze-" + gaze_sig(ls)) if gaze else "orig"
     vids, masks, todo = [], [], []
-    for it in items:
+    parts = [c for x in items for c in chunks(x)]
+    for it in parts:
         # the eye-contact copy can be redone (NVIDIA retried after a v6 fallback): its time is part of the key
         gz = ls.work("gaze", f"{it.get('take')}.{gaze_sig(ls)}.mp4") if gaze and it.get("take") else None
         src_v = int(os.path.getmtime(gz)) if gz and os.path.exists(gz) else 0
@@ -1691,10 +2096,11 @@ def person_layer(ls, items, gaze=False):
         v, m = ls.work("pieces", f"{key}.v.mp4"), ls.work("pieces", f"{key}.m.mp4")
         vids.append(v)
         masks.append(m)
+        ls.pieces_used = getattr(ls, "pieces_used", []) + [v, m]
         if not (os.path.exists(v) and os.path.exists(m)):
             todo.append((it, v, m, gaze))
     if todo:
-        log(f"  · cutting {len(todo)} new pieces of {len(items)}")
+        log(f"  · cutting {len(todo)} new pieces of {len(parts)}")
         with ThreadPoolExecutor(max_workers=6) as pool:
             for fu in [pool.submit(piece_atomic, ls, *x) for x in todo]:
                 fu.result()
@@ -1780,10 +2186,8 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
             cv2.imwrite(pic_fx + ".png", FxFrame(ls, w, h)(cv2.imread(pic + ".png"), curve[still_frame], still_frame))
             inputs += ["-loop", "1", "-framerate", str(FPS), "-i", pic_fx + ".png"]
         else:
-            log("  · picture (set + person)")
-            ff_progress(total, *inputs, "-filter_complex", fc + ";[s]format=yuv420p[pv]", "-map", "[pv]", "-frames:v", str(total),
-                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", pic)
-            fx_pass(ls, pic, pic_fx, total, w, h)
+            log("  · picture (set + person) -> camera & film")
+            fx_pass(ls, [*inputs, "-filter_complex", fc + ";[s]format=bgr24[pv]", "-map", "[pv]", "-frames:v", str(total)], pic_fx, total, w, h)
             inputs += ["-i", pic_fx]
         fc = f"[{sum(1 for a in inputs if a == '-i') - 1}:v]setpts=PTS-STARTPTS,format=yuv420p[s]"
     fc += f";[3:v]fps={FPS},scale={w}:{h},format=rgba[c];[s][c]overlay=eof_action=pass[v0]"
@@ -1877,6 +2281,7 @@ if __name__ == "__main__":
     ap.add_argument("--stems", action="store_true", help="only the sound layers (a sound moved / removed in the editor)")
     ap.add_argument("--replan", action="store_true", help="the cut, subtitles and sound again - no picture work (an edge dragged)")
     ap.add_argument("--takes", action="store_true", help="only the takes' full videos the editor plays the cut over")
+    ap.add_argument("--warm", action="store_true", help="the background render: the export's heavy layers, ready before Export")
     a = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
     if a.stems:
@@ -1885,5 +2290,7 @@ if __name__ == "__main__":
         replan(Lesson(a.episode))
     elif a.takes:
         take_proxies(Lesson(a.episode))
+    elif a.warm:
+        warm(Lesson(a.episode))
     else:
         build(Lesson(a.episode), a.still, a.preview)

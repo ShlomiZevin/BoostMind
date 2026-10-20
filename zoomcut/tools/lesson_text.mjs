@@ -26,7 +26,8 @@ html, body { margin: 0; width: 1080px; height: 1920px; background: transparent; 
 .plaque { position: absolute; text-align: center; color: #1f1103; font-family: Stam; line-height: 1.12; letter-spacing: 0.03em;
   text-shadow: 0 2px 0 rgba(255,236,170,0.65), 0 -1px 0 rgba(60,35,5,0.5); }  /* engraved: dark letters, light lower edge */
 .caption { position: absolute; left: 50px; right: 50px; text-align: center; font: 84px/1.18 Stam; color: #FFD60A;
-  -webkit-text-stroke: 14px #000; paint-order: stroke fill; text-shadow: 0 6px 14px rgba(0,0,0,0.55); }
+  -webkit-text-stroke: 14px #000; paint-order: stroke fill; text-shadow: 0 6px 14px rgba(0,0,0,0.55);
+  unicode-bidi: plaintext; }  /* an English subtitle reads left to right, a Hebrew one right to left */
 </style></head><body><div id="stage"></div></body></html>`;
 const page_file = path.join(path.dirname(path.resolve(process.argv[2])), '_text.html');
 fs.writeFileSync(page_file, html);

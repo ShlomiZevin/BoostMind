@@ -24,6 +24,29 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--app); 
 main { position: relative; }
 iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--app); display: none; }
 iframe.on { display: block; }
+/* the job queue: every project's build / export, whatever project or tool is open */
+.jobs-btn .badge { position: absolute; top: 4px; right: 8px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--accent);
+  color: #fff; font: 800 10px/16px Inter, sans-serif; text-align: center; }
+.jobs-btn.busy svg { animation: jspin 1.6s linear infinite; }
+@keyframes jspin { to { transform: rotate(360deg); } }
+.jobs-pop { position: fixed; left: 80px; bottom: 12px; z-index: 50; width: 420px; max-height: 70vh; overflow: auto; background: var(--panel);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,0.45); padding: 8px; font: 500 13px Inter, "Segoe UI", sans-serif; display: none; }
+.jobs-pop.on { display: block; }
+.jobs-h { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 10px; font: 700 13px Inter, sans-serif; }
+.jobs-h span { color: var(--faint); font-weight: 600; font-size: 11px; }
+.jobs-sec { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 10px 8px 4px; }
+.job { padding: 9px 8px; border-top: 1px solid var(--edge); cursor: pointer; border-radius: 4px; }
+.job:hover { background: #211f1e; }
+.job-top { display: flex; align-items: center; gap: 8px; }
+.job-name { font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-kind { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: var(--panel-3); color: var(--dim); }
+.job-kind.export { color: #ffb3a8; }
+.job-st { font-size: 12px; color: var(--dim); }
+.job-st.ok { color: #7fd29a; } .job-st.err { color: #ff8a7a; }
+.job-line { margin-top: 5px; color: var(--faint); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-bar { margin-top: 6px; height: 3px; background: var(--panel-3); border-radius: 2px; overflow: hidden; }
+.job-bar div { height: 100%; background: var(--accent); transition: width .4s; }
+.jobs-empty { padding: 14px 8px; color: var(--faint); }
 </style>
 </head>
 <body>
@@ -49,7 +72,10 @@ for (const t of TOOLS) {
   b.onclick = () => { location.hash = t.id; };
   rail.appendChild(b);
 }
-rail.insertAdjacentHTML('beforeend', '<div class="grow"></div><div class="ver">studio</div>');
+rail.insertAdjacentHTML('beforeend', '<div class="grow"></div>'
+  + '<button class="tool jobs-btn" id="jobsBtn" title="Jobs - every project"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Jobs</button>'
+  + '<div class="ver">studio</div>');
+document.body.insertAdjacentHTML('beforeend', '<div class="jobs-pop" id="jobsPop"></div>');
 function show() {
   const id = (location.hash.slice(1) || 'video');
   const t = TOOLS.find((x) => x.id === id) || TOOLS[0];
@@ -65,6 +91,61 @@ function show() {
 }
 addEventListener('hashchange', show);
 show();
+
+// ---- the job queue: every project's build / export, from the server's own job records (it keeps them per project) ----
+const jobsBtn = document.getElementById('jobsBtn'), jobsPop = document.getElementById('jobsPop');
+const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let eps = [], jobs = {}, lastFull = 0;
+const progress = (log) => {  // the last "Rendered n/total" line, and what step it is
+  for (let i = (log || []).length - 1; i >= 0; i--) {
+    const m = /Rendered (\d+)\/(\d+)(.*)/.exec(log[i]);
+    if (m) return { pct: Math.min(100, Math.round(+m[1] / Math.max(1, +m[2]) * 100)), step: m[3].trim().replace(/[()]/g, '') };
+  }
+  return null;
+};
+const lastLine = (log) => [...(log || [])].reverse().find((l) => l && !/^W0000|InitGoogle|^Rendered/.test(l)) || '';
+async function poll() {
+  try {
+    if (Date.now() - lastFull > 15000 || !eps.length) { eps = await (await fetch('/api/episodes')).json(); lastFull = Date.now(); }
+    const ids = eps.map((e) => e.id);
+    const res = await Promise.all(ids.map((id) => fetch(`/api/ep/${id}/job`).then((r) => r.json()).catch(() => null)));
+    ids.forEach((id, i) => { if (res[i]) jobs[id] = res[i]; });
+  } catch {}
+  draw();
+}
+function draw() {
+  const title = (id) => (eps.find((e) => e.id === id) || {}).title || id;
+  const all = Object.entries(jobs).filter(([, j]) => j && j.kind);
+  const run = all.filter(([, j]) => j.running), fin = all.filter(([, j]) => !j.running);
+  jobsBtn.classList.toggle('busy', run.length > 0);
+  jobsBtn.querySelector('.badge')?.remove();
+  if (run.length) jobsBtn.insertAdjacentHTML('beforeend', `<span class="badge">${run.length}</span>`);
+  if (!jobsPop.classList.contains('on')) return;
+  const row = ([id, j]) => {
+    const p = j.running ? progress(j.log) : null;
+    const st = j.running ? (p ? `${p.pct}%` : 'working') : j.code === 0 ? 'done' : 'failed';
+    return `<div class="job" data-id="${esc(id)}">
+      <div class="job-top"><span class="job-name">${esc(id)}</span><span class="job-kind ${j.kind}">${j.kind === 'export' ? 'Export' : 'Build'}</span>
+        <span class="job-st ${j.running ? '' : j.code === 0 ? 'ok' : 'err'}">${st}</span></div>
+      <div class="job-line" dir="auto">${esc(title(id))}${p && p.step ? ' · ' + esc(p.step) : ''} · ${esc(lastLine(j.log))}</div>
+      ${j.running ? `<div class="job-bar"><div style="width:${p ? p.pct : 8}%"></div></div>` : ''}
+    </div>`;
+  };
+  jobsPop.innerHTML = `<div class="jobs-h">Jobs <span>every project · click one to open it</span></div>`
+    + (run.length ? `<div class="jobs-sec">Running · ${run.length}</div>` + run.map(row).join('') : '')
+    + (fin.length ? `<div class="jobs-sec">Finished · ${fin.length}</div>` + fin.map(row).join('') : '')
+    + (all.length ? '' : '<div class="jobs-empty">No jobs since the studio started.</div>');
+}
+jobsBtn.onclick = (e) => { e.stopPropagation(); jobsPop.classList.toggle('on'); draw(); };
+jobsPop.onclick = (e) => {
+  e.stopPropagation();
+  const r = e.target.closest('.job'); if (!r) return;
+  try { sessionStorage.setItem('zc-ep', r.dataset.id); localStorage.setItem('zc-ep', r.dataset.id); } catch {}  // the editor follows (one project, every tool)
+  location.hash = 'video'; jobsPop.classList.remove('on');
+};
+document.addEventListener('click', () => jobsPop.classList.remove('on'));
+poll();
+setInterval(poll, 3000);
 </script>
 </body>
 </html>

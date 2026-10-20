@@ -1,7 +1,9 @@
 // The lesson's sound, one chain for both places: the editor plays it live, and the export renders it offline with the
 // very same code (tools/mixdown.mjs runs this file in headless Chrome). So what you hear in the editor is the export.
 //
-//   voice (raw | noise-reduced) -> low cut -> warmth -> boxiness -> presence -> soft s's -> compressor -> make-up ┐
+//   voice (raw | noise-reduced) -> low cut -> warmth -> boxiness -> presence -> soft s's -> compressor -> make-up ┬ dry ┐
+//                                                                         room: pre-delay -> reverb -> band ────┘ wet ┤
+//                                                                         PA: slap delay (+ repeats) -> PA band ───────┤
 //   effects ────────────────────────────────────────────────────────────────────────────────────────────────────┤-> master -> limiter -> out
 //   music  -> volume ───────────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -13,7 +15,35 @@ export const VOICE_PRESETS: Record<string, any> = {
   warm: { denoise: true, lowcut: 70, warmth: 3, box: -1.5, presence: 1, deess: 0.3, comp: 0.4 },
   bright: { denoise: true, lowcut: 100, warmth: 0, box: -2, presence: 5, deess: 0.6, comp: 0.5 },
   news: { denoise: true, lowcut: 95, warmth: 2, box: -3, presence: 3.5, deess: 0.45, comp: 0.75 },  // a studio anchor
+  // talking in a large room (a gym, a hall): no close-mic bass, the voice a few metres away, hard walls answering it
+  hall: { denoise: true, lowcut: 130, warmth: -1.5, box: -1, presence: 1.5, deess: 0.35, comp: 0.5, room: 0.45, roomSize: 1.8 },
+  // a speaker on a conference stage: his own mic stays close and clear, the hall's PA throws it back - a long big-hall
+  // tail and the slap of the far speakers (PA)
+  stage: { denoise: true, lowcut: 110, warmth: 1, box: -2.5, presence: 3, deess: 0.4, comp: 0.7, room: 0.32, roomSize: 2.4, pa: 0.5 },
 };
+
+/** A large room's answer to a voice (impulse response), the same every time (seeded): a few early reflections off
+ *  the near walls, then a dense tail that dies over `rt60` seconds and loses its highs as it goes (air, soft bodies). */
+export function roomIR(ctx: BaseAudioContext, rt60: number) {
+  const sr = ctx.sampleRate, len = Math.max(1, Math.round(sr * Math.min(4, rt60 * 1.1)));
+  const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  let seed = 0x9e3779b9;
+  const rnd = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  let lp = 0;
+  for (let i = 0; i < len; i++) {
+    const t = i / sr;
+    const env = Math.exp(-6.91 * t / rt60) * Math.min(1, t / 0.012);  // a soft onset: no click at the start of the tail
+    const a = Math.min(0.92, 0.25 + t / rt60 * 0.7);  // more and more low-passed as it decays
+    lp = lp * a + (rnd() * 2 - 1) * (1 - a);
+    d[i] = lp * env * (1 + a * 1.5);
+  }
+  for (const [ms, g] of [[11, 0.55], [19, -0.42], [27, 0.36], [38, -0.3], [52, 0.24], [67, -0.2]]) d[Math.round(ms / 1000 * sr)] += g;
+  let e = 0;
+  for (let i = 0; i < len; i++) e += d[i] * d[i];
+  const k = 1 / Math.sqrt(e || 1);
+  for (let i = 0; i < len; i++) d[i] *= k;
+  return buf;
+}
 
 /** episode.json "voice" (a preset name, the editor's settings, or nothing) -> the full settings. */
 export function voiceSettings(v0: any) {
@@ -38,15 +68,29 @@ export function buildMix(ctx: BaseAudioContext, inp: Inputs) {
   const ess = ctx.createBiquadFilter(); ess.type = 'highshelf'; ess.frequency.value = 6500;
   const comp = ctx.createDynamicsCompressor(); comp.attack.value = 0.006; comp.release.value = 0.09; comp.knee.value = 6;
   const makeup = ctx.createGain();
+  const dry = ctx.createGain(), pre = ctx.createDelay(0.2), rev = ctx.createConvolver(), wet = ctx.createGain();
+  rev.normalize = false; pre.delayTime.value = 0.022;
+  const wLo = ctx.createBiquadFilter(); wLo.type = 'highpass'; wLo.frequency.value = 220;
+  const wHi = ctx.createBiquadFilter(); wHi.type = 'lowpass'; wHi.frequency.value = 5500;
+  // the PA: the voice coming back from the hall's far speakers - a band-limited slap ~110 ms later, a few fading repeats
+  const slap = ctx.createDelay(0.5), slapFb = ctx.createGain(), paG = ctx.createGain();
+  slap.delayTime.value = 0.11; slapFb.gain.value = 0.28; paG.gain.value = 0;
+  const pLo = ctx.createBiquadFilter(); pLo.type = 'highpass'; pLo.frequency.value = 320;
+  const pHi = ctx.createBiquadFilter(); pHi.type = 'lowpass'; pHi.frequency.value = 4200;
   const mg = ctx.createGain();
+  // room for the voice: the music a little lower where speech lives (2-3 kHz), so it can be louder without covering him
+  const carve = ctx.createBiquadFilter(); carve.type = 'peaking'; carve.frequency.value = 2500; carve.Q.value = 0.9; carve.gain.value = -3.5;
   const master = ctx.createGain();
   // a safety limiter: catches the odd peak the loudness gain pushes over -1 dB
   const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
   gRaw.connect(hp); gDn.connect(hp); hp.connect(warm); warm.connect(box); box.connect(pres); pres.connect(ess); ess.connect(comp); comp.connect(makeup);
-  makeup.connect(master); inp.fx?.connect(master);
-  inp.music?.connect(mg); mg.connect(master);
+  makeup.connect(dry); dry.connect(master);
+  makeup.connect(pre); pre.connect(rev); rev.connect(wLo); wLo.connect(wHi); wHi.connect(wet); wet.connect(master);
+  makeup.connect(slap); slap.connect(pLo); pLo.connect(pHi); pHi.connect(slapFb); slapFb.connect(slap); pHi.connect(paG); paG.connect(master);
+  inp.fx?.connect(master);
+  inp.music?.connect(mg); mg.connect(carve); carve.connect(master);
   master.connect(lim); lim.connect(ctx.destination);
-  return { gRaw, gDn, hp, warm, box, pres, ess, comp, makeup, mg, master, lim };
+  return { gRaw, gDn, hp, warm, box, pres, ess, comp, makeup, dry, rev, wet, paG, mg, master, lim, irSize: 0 };
 }
 export type MixNodes = ReturnType<typeof buildMix>;
 
@@ -61,6 +105,11 @@ export function applyMix(ctx: BaseAudioContext, n: MixNodes, voice: any, musicGa
   const c = voice.comp || 0;
   set(n.comp.threshold, c > 0.02 ? -12 - 14 * c : 0); set(n.comp.ratio, 1 + 3 * c);
   set(n.makeup.gain, Math.pow(10, ((c > 0.02 ? 1 + 3 * c : 0) + (voice.boost || 0)) / 20) * (voice.raw ? 1 : 1.6));  // the raw take is quiet: a little lift
+  const room = voice.raw ? 0 : Math.max(0, Math.min(1, voice.room || 0));  // 0 = close to the mic, 1 = far in a big room
+  const size = Math.max(0.3, Math.min(3.5, voice.roomSize || 1.6));
+  if (room > 0 && n.irSize !== size) { n.rev.buffer = roomIR(ctx, size); n.irSize = size; }
+  set(n.dry.gain, 1 - 0.45 * room); set(n.wet.gain, room > 0 ? 1.1 * room : 0);
+  set(n.paG.gain, voice.raw ? 0 : 0.45 * Math.max(0, Math.min(1, voice.pa || 0)));
   set(n.mg.gain, musicGain);
   set(n.master.gain, voice.raw ? 1 : masterGain);
   set(n.lim.ratio, voice.raw ? 1 : 20); set(n.lim.threshold, voice.raw ? 0 : -3.5);
