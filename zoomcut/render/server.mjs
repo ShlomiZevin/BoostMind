@@ -209,8 +209,16 @@ app.post('/api/ep/:id/media', express.raw({ type: '*/*', limit: '60mb' }), (q, r
   if (!/\.(png|jpe?g|webp|gif|mp3|wav|m4a|mp4|mov)$/i.test(name)) return res.status(400).json({ error: 'A picture, sound or video file' });
   fs.mkdirSync(path.join(d, 'media'), { recursive: true });
   fs.writeFileSync(path.join(d, 'media', name), q.body);
+  let rel = `media/${name}`;
+  if (/\.(jpe?g|png|webp)$/i.test(name) && q.query.cutout !== '0') {  // a logo on a white / cream sheet: cut it out
+    const out = path.join(d, 'media', name.replace(/\.[^.]+$/, '') + '.cut.png');
+    try {
+      execFileSync(path.join(ROOT, '.venv', 'Scripts', 'python.exe'), [path.join(ROOT, 'tools', 'cutout_logo.py'), path.join(d, 'media', name), out], { cwd: ROOT });
+      rel = `media/${path.basename(out)}`;
+    } catch {}
+  }
   const cfg = readJson(path.join(d, 'episode.json'));
-  cfg.media = [...new Set([...(cfg.media || []), `media/${name}`])];
+  cfg.media = [...new Set([...(cfg.media || []), rel])];
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json({ ok: true, media: cfg.media });
 });

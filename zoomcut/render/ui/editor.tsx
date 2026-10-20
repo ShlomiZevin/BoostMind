@@ -1064,6 +1064,12 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
     }
   };
   const removeMedia = async (m: string) => { const r = await api(`/api/ep/${ep}/media/remove`, { path: m }); if (r?.media) setMedia(r.media); };
+  const logoAt = ov.findIndex((o: any) => o.style === 'image' && o.plain);
+  const [bigMedia, setBigMedia] = useState<string | null>(null);
+  const useOnVideo = (m: string) => {  // a logo already on the video: swap the picture in place; else put it on
+    if (logoAt < 0) return putOnVideo(m);
+    changeOv(ov.map((o: any, i) => (i === logoAt ? { ...o, image: m } : o)));
+  };
   const putOnVideo = (m: string) => {  // a corner logo: drag it on the preview, size it in Text
     const next = [...ov, { style: 'image', image: m, plain: true, x: 800, y: 300, w: 230, h: 230, start: 0, end: null, text: '' } as any];
     changeOv(next); setSel({ kind: 'text', i: next.length - 1 });
@@ -1284,20 +1290,28 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 <div className="m-sec">Logos &amp; pictures <span>{media.length}</span></div>
                 <div className="pm-grid">
                   {media.map((m) => { const on = ov.some((o: any) => o.image === m);
-                    return <div key={m} className={`pm ${on ? 'on' : ''}`}>
-                      <a href={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} target="_blank" rel="noreferrer" title="Open it big">
-                        <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} loading="lazy" /></a>
-                      <div className="pm-name" title={m}>{m.split('/').pop()}</div>
-                      <div className="pm-act">
-                        <button className="add-chip" disabled={on} onClick={() => putOnVideo(m)}>{on ? 'On the video' : 'Put on video'}</button>
-                        <button className="fx-x" title="Take it off this project's list" onClick={() => removeMedia(m)}>✕</button>
-                      </div>
+                    return <div key={m} className={`pm ${on ? 'on' : ''}`} title={m.split('/').pop()}>
+                      <button className="pm-img" onClick={() => setBigMedia(m)}><img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} loading="lazy" /></button>
+                      {on ? <span className="pm-on">On video</span>
+                        : <button className="pm-use" onClick={() => useOnVideo(m)}>{logoAt >= 0 ? 'Swap in' : 'Use'}</button>}
                     </div>; })}
                   <label className="pm pm-add" title="Add a logo or picture from your computer">
                     <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addMedia(e.target.files); e.target.value = ''; }} />
                     <span>+ Add file</span>
                   </label>
                 </div>
+                {bigMedia && <div className="pm-modal" onClick={() => setBigMedia(null)}>
+                  <div className="pm-box" onClick={(e) => e.stopPropagation()}>
+                    <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(bigMedia)}`} />
+                    <div className="pm-bar">
+                      <span className="pm-bn">{bigMedia.split('/').pop()}</span>
+                      {ov.some((o: any) => o.image === bigMedia) ? <span className="pm-on">On the video</span>
+                        : <button className="btn primary" onClick={() => { useOnVideo(bigMedia); setBigMedia(null); }}>{logoAt >= 0 ? 'Swap it in on the video' : 'Use on the video'}</button>}
+                      <button className="btn ghost" title="Take it off this project's list" onClick={() => { removeMedia(bigMedia); setBigMedia(null); }}>Remove</button>
+                      <button className="btn ghost" onClick={() => setBigMedia(null)}>Close</button>
+                    </div>
+                  </div>
+                </div>}
                 <div className="m-sec">Library <span>{lib.sets.length} sets · {lib.effects.length} effects</span></div>
                 <div className="help" style={{ padding: '0 12px' }}>Everything made for earlier videos is here for this one: sets in Background, effects in Music &amp; sounds.</div>
               </div>)}
@@ -1447,7 +1461,21 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
             {sel && <button className="btn ghost icon" title="Back to the project (Esc)" onClick={() => setSel(null)}>✕</button>}
           </div>
           <div className="scroll">
-            {sel?.kind === 'text' && ov[sel.i] && (
+            {sel?.kind === 'text' && (ov[sel.i] as any)?.style === 'image' && (ov[sel.i] as any)?.plain && (() => { const o: any = ov[sel.i];
+              const set = (patch: any, commit = true) => changeOv(ov.map((x: any, j) => (j === sel.i ? { ...x, ...patch } : x)), commit);
+              return <>
+                <div className="card">
+                  <div className="card-h"><div className="title grow">Logo</div><span className="help" style={{ margin: 0 }}>click one to swap</span></div>
+                  <div className="pm-strip">
+                    {media.filter((m) => /\.(png|jpe?g|webp|gif)$/i.test(m)).map((m) => <button key={m} className={`pm-sw ${o.image === m ? 'on' : ''}`} title={m.split('/').pop()} onClick={() => set({ image: m })}>
+                      <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} /></button>)}
+                  </div>
+                  <Slider label="Size" v={o.w || 230} min={80} max={700} step={5} fmt={(v) => `${v}px`} onChange={(v) => set({ w: v, h: v }, false)} />
+                  <div className="help">Drag it on the preview to move it.</div>
+                  <button className="btn ghost" style={{ width: '100%' }} onClick={() => { changeOv(ov.filter((_: any, j) => j !== sel.i)); setSel(null); }}>Remove the logo from the video</button>
+                </div>
+              </>; })()}
+            {sel?.kind === 'text' && ov[sel.i] && !((ov[sel.i] as any).style === 'image' && (ov[sel.i] as any).plain) && (
               <TextProps all={ov} i={sel.i} onChange={(next, commit) => { changeOv(next, commit); if (next.length < ov.length) setSel(null); }} />)}
 
             {sel?.kind === 'layer' && sel.id === 'captions' && <>

@@ -143,8 +143,8 @@
   "speaker_name": "איילת השחר",
   "script": "spiritual-2",
   "media": [
-    "../_assets/tadar/logo/logo_1_lotus.jpg",
-    "../_assets/tadar/logo/logo_2_morningstar.jpg",
-    "../_assets/tadar/logo/logo_3_everything.jpg"
+    "../_assets/tadar/logo/logo_1_lotus.png",
+    "../_assets/tadar/logo/logo_2_morningstar.png",
+    "../_assets/tadar/logo/logo_3_everything.png"
   ]
 }
