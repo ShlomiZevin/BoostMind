@@ -9,3 +9,4 @@ episodes/*-test/
 __pycache__/
 *.pyc
 episodes/_assets/**/*.wav
+*.bak
