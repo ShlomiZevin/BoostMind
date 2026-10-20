@@ -944,7 +944,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   const [tab, setTab] = useState<'script' | 'media' | 'templates'>('media');
   const [subView, setSubView] = useState<'read' | 'lines'>('read');
   const [wide, setWide] = useState(false);
-  type Layer = 'captions' | 'speaker' | 'background' | 'music' | 'filters';
+  type Layer = 'captions' | 'speaker' | 'background' | 'music' | 'sounds' | 'filters';
   const [sel, setSel] = useState<{ kind: 'take'; k: number } | { kind: 'text'; i: number } | { kind: 'layer'; id: Layer } | { kind: 'sound'; i: number } | null>(null);
   const [caps, setCaps] = useState<string>(data.lesson?.captions || '');
   const [plaque, setPlaque] = useState<string>((data.episode.plaque || []).join('\n'));
@@ -1067,6 +1067,11 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   useEffect(() => setFx(data.episode.sounds || []), [ep, fxSig]);
   const fxTimer = useRef<any>(null);
   const [fxBusy, setFxBusy] = useState(false);
+  const allLevel = (db: number) => {  // the Sounds group: every sound and the music, each by the same dB
+    const f = Math.pow(10, db / 20);
+    changeFx(fx.map((x: any) => ({ ...x, gain: +Math.min(3, (x.gain ?? 0.8) * f).toFixed(3) })));
+    if (data.episode.music && !data.episode.music.off) { const g = +Math.min(2, musicGain * f).toFixed(3); setMusicGain(g); saveOpt({ music_gain: g }); }
+  };
   const changeFx = (next: any[], overlays?: any[]) => {  // sounds: saved, then only the sound layers are remade (seconds)
     setFx(next);
     clearTimeout(fxTimer.current);
@@ -1203,6 +1208,14 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   const [duckDb, setDuckDb] = useState<number>(data.episode.music?.duck ?? 0);
   useEffect(() => setDuckDb(data.episode.music?.duck ?? 0), [ep]);
   const duckTimer = useRef<any>(null);
+  const [lift, setLift] = useState<{ db: number; fade: number }>({ db: data.episode.music?.lift?.db ?? 0, fade: data.episode.music?.lift?.fade ?? 1.2 });
+  const [musFadeOut, setMusFadeOut] = useState<number>(data.episode.music?.fade_out ?? 2.5);
+  useEffect(() => { setLift({ db: data.episode.music?.lift?.db ?? 0, fade: data.episode.music?.lift?.fade ?? 1.2 }); setMusFadeOut(data.episode.music?.fade_out ?? 2.5); }, [ep]);
+  const musTimer = useRef<any>(null);
+  const changeMusicEnd = (body: any) => {  // the music's end: lift / fade out - saved, then only the sound layers (about a second)
+    clearTimeout(musTimer.current);
+    musTimer.current = setTimeout(async () => { setFxBusy(true); await api(`/api/ep/${ep}/music-time`, body); setFxBusy(false); reload?.(); }, 450);
+  };
   const changeDuck = (db: number) => {
     setDuckDb(db);
     clearTimeout(duckTimer.current);
@@ -1872,6 +1885,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
               const secs = (v: number) => `${v.toFixed(2)}s`;
               return <>
                 <div className="card">
+                  <div className="scope">Affects: this sound only</div>
                   <div className="card-h"><div className="title grow">{name}</div>
                     <span className="help" style={{ margin: 0 }}>{pl ? `${mmss(pl.from / k)} · ${(pl.to - pl.from).toFixed(1)}s` : ''}</span></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -1914,6 +1928,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
               </>;
             })()}
             {sel?.kind === 'layer' && sel.id === 'music' && <>
+              <div className="card" style={{ paddingBottom: 0 }}><div className="scope">Affects: the music only</div></div>
               {data.episode.music ? <>
                 <div className="card">
                   <div className="card-h"><div className="title grow">Track</div><span className="help" style={{ margin: 0 }}>click = switches now</span></div>
@@ -1933,8 +1948,34 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                     onChange={(v) => { setMusicGain(v); saveOpt({ music_gain: v }); }} />
                   <Slider label="Duck under voice" v={duckDb} min={-18} max={0} step={0.5} fmt={(v) => (v ? `${v} dB` : 'off')} onChange={changeDuck} />
                   <div className="help">Ducking: the music goes down while he talks and comes back up in his pauses.</div>
+                  <div className="sec" style={{ marginTop: 10 }}>The end</div>
+                  <Slider label="Lift at the end" v={lift.db} min={0} max={18} step={0.5} fmt={(v) => (v ? `+${v} dB` : 'off')}
+                    onChange={(v) => { const l = { ...lift, db: v }; setLift(l); changeMusicEnd({ lift: l }); }} />
+                  {lift.db > 0 && <Slider label="Lift over" v={lift.fade} min={0.1} max={4} step={0.1} fmt={(v) => `${v.toFixed(1)}s`}
+                    onChange={(v) => { const l = { ...lift, fade: v }; setLift(l); changeMusicEnd({ lift: l }); }} />}
+                  <Slider label="Fade out" v={musFadeOut} min={0} max={6} step={0.1} fmt={(v) => `${v.toFixed(1)}s`}
+                    onChange={(v) => { setMusFadeOut(v); changeMusicEnd({ fade_out: v }); }} />
+                  <div className="help">Lift: the music rises once he stops talking for good (the end card). Fade out: how it ends.</div>
                 </div>
               </> : <div className="empty" style={{ padding: 16 }}>No background music in this episode.</div>}
+            </>}
+            {sel?.kind === 'layer' && sel.id === 'sounds' && <>
+              <div className="card">
+                <div className="scope">Affects: every sound and the music together</div>
+                <div className="card-h"><div className="title grow">All sounds</div><span className="help" style={{ margin: 0 }}>{fx.length + (data.episode.music && !data.episode.music.off ? 1 : 0)} layers</span></div>
+                <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                  <button disabled={busy} onClick={() => allLevel(-2)}>Quieter (−2 dB)</button>
+                  <button disabled={busy} onClick={() => allLevel(2)}>Louder (+2 dB)</button>
+                </div>
+                <div className="help" style={{ marginTop: 6 }}>Moves every layer below by the same amount - each keeps its own balance. Click one to change only it.</div>
+              </div>
+              <div className="card">
+                <div className="card-h"><div className="title grow">Music</div></div>
+                <button className="fx-open" onClick={() => setSel({ kind: 'layer', id: 'music' })} title="Open the music's settings">
+                  <span className="fx-name">♪ {data.episode.music && !data.episode.music.off ? String(data.episode.music.sound).split('/').pop()?.replace(/\.[^.]+$/, '') : 'no music'}</span>
+                  <span className="fx-time">{data.episode.music && !data.episode.music.off ? `${Math.round(musicGain * 100)}%` : ''}</span><span className="fx-go">›</span>
+                </button>
+              </div>
               <div className="card">
                 <div className="card-h"><div className="title grow">Sound effects & voices</div><span className="help" style={{ margin: 0 }}>{fx.length}</span></div>
                 {fx.map((s: any, n: number) => { const pl = (edit?.sounds || [])[n];
@@ -1965,10 +2006,11 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                     ['speaker', I.phone, 'Speaker', `${voice.preset || 'natural'} voice · ${data.episode.cutout === false ? 'original place' : 'cut out'}${eyeOn && L.person_raw ? ' · eye contact' : ''}${look ? ' · look' : ''}`],
                     ['background', I.layout, 'Background', data.episode.cutout === false ? 'not used (original place)' : (data.episode.background || '').split('/').pop()],
                     ['filters', null, 'Filters', filtersOn(film).length ? filtersOn(film).map((F) => `${F.name} ${Math.round(F.get(film) * 100)}%`).join(' · ') : 'raw picture'],
-                    ['music', null, 'Music & sounds', `${data.episode.music ? `${String(data.episode.music.sound).split('/').pop()?.replace(/\.[^.]+$/, '')} · ${Math.round(musicGain * 100)}%` : 'no music'} · ${(data.episode.sounds || []).length} effects`],
+                    ['music', null, 'Music', data.episode.music && !data.episode.music.off ? `${String(data.episode.music.sound).split('/').pop()?.replace(/\.[^.]+$/, '')} · ${Math.round(musicGain * 100)}%` : 'no music'],
+                    ['sounds', null, 'All sounds', `${(data.episode.sounds || []).length} effects & voices${data.episode.music && !data.episode.music.off ? ' + the music' : ''}`],
                   ] as const).map(([id, ic, name, sub]) => (
                     <button key={id} className="ly" onClick={() => setSel({ kind: 'layer', id: id as Layer })}>
-                      <span className="ly-ic">{ic || (id === 'filters' ? '◐' : '♪')}</span>
+                      <span className="ly-ic">{ic || (id === 'filters' ? '◐' : id === 'sounds' ? '♫' : '♪')}</span>
                       <span className="ly-main"><span className="ly-name">{name}</span><span className="ly-sub">{sub}</span></span>
                       <span className="ly-go">›</span>
                     </button>))}
@@ -2007,7 +2049,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
 
       <div className="split" onMouseDown={dragTl} title="Drag to make the timeline taller or shorter" />
       <LessonTimeline edit={edit} fps={fps} k={k} t={t} total={total} onSeek={seek} overlays={ov} sel={sel?.kind === 'text' ? sel.i : null}
-        onSelText={(i) => setSel({ kind: 'text', i })} layer={sel?.kind === 'layer' ? sel.id : sel?.kind === 'take' ? 'captions' : sel?.kind === 'sound' ? 'music' : null}
+        onSelText={(i) => setSel({ kind: 'text', i })} layer={sel?.kind === 'layer' ? sel.id : sel?.kind === 'take' ? 'captions' : null}
         onSoundPick={(i) => setSel({ kind: 'sound', i })}
         onLayer={(id) => setSel({ kind: 'layer', id: id as any })}
         bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
@@ -2524,11 +2566,11 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
             <span className="caret">{fltOpen ? '▾' : '▸'}</span>◐<span className="h-name">Filters · {fOn.length}</span></div>
           {fltOpen && FILTERS.map((F) => <div key={'fh' + F.id} className={`h pick sub ${layer === 'filters' ? 'on' : ''}`} onClick={() => onLayer('filters')}>
             <span className="h-name">{F.name}</span></div>)}
-          <div className={`h pick grp ${layer === 'music' ? 'on' : ''}`} onClick={() => { toggleSnd(); onLayer('music'); }} title={sndOpen ? 'Collapse the sounds into one lane' : 'Show each sound on its own lane'}>
+          <div className={`h pick grp ${layer === 'sounds' ? 'on' : ''}`} onClick={() => { toggleSnd(); onLayer('sounds'); }} title={`All sounds: their panel - and ${sndOpen ? 'collapse them into one lane' : 'a lane each'}`}>
             <span className="caret">{sndOpen ? '▾' : '▸'}</span>♪<span className="h-name">Sounds · {(edit?.sounds || []).length}</span></div>
           {sndOpen && <div className={`h pick sub ${musSel ? 'on' : ''}`} onClick={() => { if (musOn) pick({ music: true }); onLayer('music'); }}
             title="The background music"><span className="h-name">♪ {musOn ? String(music.sound || 'music').split('/').pop()!.replace(/\.[^.]+$/, '') : 'Music'}</span></div>}
-          {sndOpen && (edit?.sounds || []).map((s: any, i: number) => <div key={'sh' + i} className={`h pick sub ${snd === i ? 'on' : ''}`} onClick={() => { setSnd(i); onLayer('music'); }}
+          {sndOpen && (edit?.sounds || []).map((s: any, i: number) => <div key={'sh' + i} className={`h pick sub ${snd === i ? 'on' : ''}`} onClick={() => { pick({ snd: i }); onSoundPick?.(i); }}
             title={soundNames?.[i] || s.name}><span className="h-name he">{soundNames?.[i] || s.name}</span></div>)}
           <div style={{ height: sbH }} />
         </div>
@@ -2615,7 +2657,7 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                     onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('music')} title="No music - pick a track in Music & sounds">♪ no music</div>}
                 </>;
               return <>
-                <div className={`lane grp-lane ${layer === 'music' ? 'sel' : ''}`} onMouseDown={scrub}>
+                <div className={`lane grp-lane ${layer === 'sounds' ? 'sel' : ''}`} onMouseDown={scrub}>
                   {!sndOpen && musLane}
                   {!sndOpen && (edit?.sounds || []).map(block)}
                 </div>

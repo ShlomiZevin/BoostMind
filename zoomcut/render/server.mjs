@@ -383,7 +383,9 @@ app.post('/api/ep/:id/music-time', (q, res) => {
   if ('start' in b) cfg.music.start = Math.max(0, +(+b.start || 0).toFixed(2));
   if ('end' in b) cfg.music.end = b.end == null ? null : +(+b.end).toFixed(2);
   if ('off' in b) { if (b.off) cfg.music.off = true; else delete cfg.music.off; }
+  if ('lift' in b) { const l = +(b.lift?.db ?? b.lift) || 0; if (l) cfg.music.lift = { db: Math.max(0, Math.min(18, l)), fade: Math.max(0.1, Math.min(4, +(b.lift?.fade ?? 1.2))) }; else delete cfg.music.lift; }  // up at the end card
   if ('duck' in b) cfg.music.duck = Math.max(-18, Math.min(0, Math.round((+b.duck || 0) * 2) / 2));  // dB under his voice
+  if ('fade_out' in b) cfg.music.fade_out = Math.max(0, Math.min(6, +(+b.fade_out || 0).toFixed(2)));  // how the music ends
   if (b.sound) { cfg.music.sound = String(b.sound); delete cfg.music.off; }  // a track picked: its bed is made (ducked) now
   writeJson(path.join(d, 'episode.json'), cfg);
   const p = spawn(PY, ['lesson.py', `episodes/${q.params.id}`, '--stems'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });

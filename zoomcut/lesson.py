@@ -1296,6 +1296,23 @@ def duck_curve(voice, db, hop=0.01, attack=0.12, release=0.6, hold=0.35):
     return np.interp(np.arange(len(voice)), np.arange(nf) * h + h / 2, g).astype(np.float32)
 
 
+def lift_curve(voice, db, fade, hop=0.01, after=0.15):
+    """The music up by `db` once he has stopped talking for good (an end card, a poster): flat until his last word,
+    then a smooth rise over `fade` seconds."""
+    h = int(hop * SR)
+    nf = len(voice) // h + 1
+    fr = np.pad(voice, (0, nf * h - len(voice))).reshape(nf, h)
+    lv = 20 * np.log10(np.sqrt((fr ** 2).mean(1)) + 1e-9)
+    on = np.nonzero(lv > np.percentile(lv, 95) - 24)[0]
+    g = np.ones(len(voice), np.float32)
+    if not len(on):
+        return g
+    a = int(((on[-1] + 1) * hop + after) * SR)
+    n = max(1, int(fade * SR))
+    x = np.clip((np.arange(len(voice)) - a) / n, 0, 1)
+    return (1 + (10 ** (db / 20) - 1) * x * x * (3 - 2 * x)).astype(np.float32)
+
+
 def stems(ls, items, total):
     """The sound as separate tracks, so the editor can change voice filters and music volume live:
     voice (raw and noise-reduced), effects (phone, the other side of a call), music (at full level)."""
@@ -1317,6 +1334,9 @@ def stems(ls, items, total):
     duck = float((ls.cfg.get("music") or {}).get("duck") or 0)  # music "duck": dB under his voice (the Music card)
     if duck < 0 and music.any():
         music = music * duck_curve(voice_dn[:len(music)], duck)[:len(music)]
+    lift = (ls.cfg.get("music") or {}).get("lift")  # music "lift": {"db", "fade"} - up when he stops talking for good
+    if lift and float(lift.get("db") or 0) and music.any():
+        music = music * lift_curve(voice_dn[:len(music)], float(lift["db"]), float(lift.get("fade", 1.0)))[:len(music)]
     return {"voice": write_wav(ls.work("stems", "voice.wav"), voice), "voice_dn": write_wav(ls.work("stems", "voice_dn.wav"), voice_dn),
             "fx": write_wav(ls.work("stems", "fx.wav"), fx), "music": write_wav(ls.work("stems", "music.wav"), music)}
 
