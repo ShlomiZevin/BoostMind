@@ -60,7 +60,7 @@ app.get('/api/episodes', (_q, res) => {
   res.json(list.map((id) => {
     const cfg = readJson(path.join(EPS, id, 'episode.json'), {});
     return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs,
-      template: cfg.type === 'lesson' ? 'Lesson' : 'Zoom', test: id.endsWith('-test') };
+      template: cfg.type === 'lesson' ? 'Solo' : 'Zoom', test: id.endsWith('-test') };
   }).sort((a, b) => b.created - a.created));
 });
 

@@ -84,6 +84,13 @@ function Editor() {
     setEps((l) => l.map((e) => (e.id === id ? { ...e, done } : e)));
     await api(`/api/ep/${id}/done`, { done });
   };
+  const projSel = useRef<HTMLSelectElement>(null);
+  useEffect(() => {  // the shared menu's ✓
+    const el = projSel.current; if (!el) return;
+    const on = (e: any) => setDone(e.detail.value, e.detail.done);
+    el.addEventListener('studio-done', on);
+    return () => el.removeEventListener('studio-done', on);
+  });
   const [ep, setEp] = useState(store.get('zc-ep') || '');
   const [data, setData] = useState<Data | null>(null);
   const [job, setJob] = useState<Job | null>(null);
@@ -265,7 +272,11 @@ function Editor() {
         {/* @ts-ignore - the shared studio bar (render/studio/bar.js) */}
         <studio-nav app="video"></studio-nav>
         <div className="proj">
-          <ProjectPicker eps={eps} ep={ep} onPick={setEp} onDone={setDone} />
+          {/* the shared project menu (render/studio/bar.js) draws this - the same one in every tool */}
+          <select data-picker="project" ref={projSel} value={ep} onChange={(e) => setEp(e.target.value)}>
+            {eps.map((e) => <option key={e.id} value={e.id} data-sub={e.title} data-done={e.done ? '1' : '0'} data-tag={e.test ? 'test' : undefined}
+              data-meta={`${e.template || ''} · ${e.created ? new Date(e.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}`}>{e.id}</option>)}
+          </select>
         </div>
         <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>
         <div className="grow" />
@@ -1746,54 +1757,6 @@ function NewVideo() {
 }
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
-
-// the project menu: in progress first (newest on top), then Done (dimmed); a ✓ on each row marks it done in place
-function ProjectPicker({ eps, ep, onPick, onDone }: { eps: Proj[]; ep: string; onPick: (id: string) => void; onDone: (id: string, done: boolean) => void }) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState('');
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    window.addEventListener('mousedown', away); window.addEventListener('keydown', esc);
-    return () => { window.removeEventListener('mousedown', away); window.removeEventListener('keydown', esc); };
-  }, [open]);
-  const cur = eps.find((e) => e.id === ep);
-  const match = (e: Proj) => !q || `${e.id} ${e.title}`.toLowerCase().includes(q.toLowerCase());
-  const day = (ms?: number) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
-  const row = (e: Proj) => (
-    <div key={e.id} className={`pp-row ${e.id === ep ? 'on' : ''} ${e.done ? 'done' : ''}`} onClick={() => { onPick(e.id); setOpen(false); setQ(''); }}>
-      <button className={`pp-check ${e.done ? 'on' : ''}`} title={e.done ? 'Done - click to reopen' : 'Mark as done'}
-        onClick={(ev) => { ev.stopPropagation(); onDone(e.id, !e.done); }}>{e.done ? '✓' : ''}</button>
-      <div className="pp-main">
-        <div className="pp-id">{e.id}{e.test && <span className="pp-tag">test</span>}</div>
-        {e.title && e.title !== e.id && <div className="pp-title he">{e.title}</div>}
-      </div>
-      <div className="pp-meta"><span>{e.template}</span><span>{day(e.created)}</span></div>
-    </div>
-  );
-  const active = eps.filter((e) => !e.done && match(e)), done = eps.filter((e) => e.done && match(e));
-  return (
-    <div className="pp" ref={box}>
-      <button className="pp-btn" onClick={() => setOpen(!open)}>
-        <span className="pp-label">PROJECT</span>
-        <span className={cur?.done ? 'pp-cur done' : 'pp-cur'}>{cur?.done ? '✓ ' : ''}{ep}</span>
-        <span className="pp-caret">▾</span>
-      </button>
-      {open && <div className="pp-pop">
-        <input className="field pp-search" autoFocus placeholder="Search projects" value={q} onChange={(e) => setQ(e.target.value)} />
-        <div className="pp-list">
-          {active.length > 0 && <div className="pp-sec">In progress · {active.length}</div>}
-          {active.map(row)}
-          {done.length > 0 && <div className="pp-sec">Done · {done.length}</div>}
-          {done.map(row)}
-          {!active.length && !done.length && <div className="pp-empty">No project matches.</div>}
-        </div>
-      </div>}
-    </div>
-  );
-}
 
 function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;

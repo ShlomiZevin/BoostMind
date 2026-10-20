@@ -97,7 +97,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
 <header class="hdr">
 <div class="top studio-top">
   <studio-nav app="reader"></studio-nav>
-  <select id="ep" title="Episode script"></select>
+  <select id="ep" title="Episode script" data-picker="project" data-label="Script"></select>
   <button class="btn" id="paste" title="Paste a script">Paste</button>
   <button class="btn" id="copy" title="Copy the whole script (names and lines, as written)">Copy</button>
   <div class="grow"></div>
@@ -384,6 +384,9 @@ $('use').onclick = async () => {
   store.set('reader-pasted', t);
   $('ep').value = ''; store.set('reader-src', 'pasted'); load(t, 'pasted:' + hash(t));
 };
+$('ep').addEventListener('studio-done', async (e) => {  // the menu's ✓ - the same flag the video editor shows
+  await fetch(`/api/ep/${encodeURIComponent(e.detail.value)}/done`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ done: e.detail.done }) });
+});
 $('ep').onchange = async () => {
   const id = $('ep').value;
   if (!id) return;
@@ -462,9 +465,11 @@ async function fillPicker() {  // episodes (their script.txt) and saved scripts 
   const eps = await fetch('/api/episodes').then((r) => r.json()).catch(() => []);
   const scripts = await fetch('/api/scripts').then((r) => r.json()).catch(() => []);
   known = [...eps.filter((e) => !e.id.endsWith('-test')).map((e) => e.id), ...scripts.map((x) => 'script:' + x.id)];
-  $('ep').innerHTML = '<option value="">— script —</option>' +
-    scripts.map((x) => `<option value="script:${x.id}">📄 ${x.name}</option>`).join('') +
-    eps.filter((e) => !e.id.endsWith('-test')).map((e) => `<option value="${e.id}">🎬 ${e.id}</option>`).join('');
+  const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const day = (ms) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
+  $('ep').innerHTML = '<option value="">— script —</option>' +   // the same project menu as the video editor (studio/bar.js)
+    eps.filter((e) => !e.id.endsWith('-test')).map((e) => `<option value="${esc(e.id)}" data-sub="${esc(e.title)}" data-done="${e.done ? 1 : 0}" data-meta="${esc(e.template || '')} · ${day(e.created)}">${esc(e.id)}</option>`).join('') +
+    scripts.map((x) => `<option value="script:${esc(x.id)}" data-group="Saved scripts" data-icon="📄" data-meta="script">${esc(x.name)}</option>`).join('');
 }
 (async () => {
   await fillPicker();

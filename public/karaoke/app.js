@@ -871,6 +871,16 @@ async function openProject(rec) {
 async function listProjects() {
   const all = ((await store('projects', 'readonly', (s) => s.getAll()).catch(() => [])) || []).sort((a, b) => (b.updated || b.created) - (a.updated || a.created));
   const el = $('projects');
+  // the studio's project menu (the same one as the video editor and the Reader) lists them too
+  const pk = $('kb-proj');
+  if (pk) {
+    const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    pk.innerHTML = '<option value="">—</option>' + all.map((p) => `<option value="${p.id}" data-del="1" data-sub="${p.layers.length} track${p.layers.length > 1 ? 's' : ''}"
+      data-meta="${new Date(p.updated || p.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}">${esc((p.songName || 'Song').replace(/\.[^.]+$/, ''))}</option>`).join('');
+    pk.value = S.proj ? String(S.proj.id) : '';
+    pk.onchange = () => { const rec = all.find((x) => String(x.id) === pk.value); if (rec && (!S.proj || S.proj.id !== rec.id)) openProject(rec); };
+    pk.onstudiodelete = null;
+  }
   if (!all.length) { el.innerHTML = '<div class="sub" style="padding:12px 0">No projects yet — choose a song to start one.</div>'; return; }
   el.innerHTML = all.map((p) => `<div class="proj"><div class="grow"><b>${(p.songName || '').replace(/\.[^.]+$/, '')}</b>
     <span class="sub">${new Date(p.updated || p.created).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })} · ${p.layers.length} track${p.layers.length > 1 ? 's' : ''}</span></div>
@@ -884,6 +894,14 @@ async function listProjects() {
   }));
 }
 $('open-projects').onclick = () => { listProjects(); openPanel('drawer-projects'); };
+$('kb-proj')?.addEventListener('studio-delete', async (e) => {  // the menu's ✕
+  if (!confirm('Delete this project and all its tracks?')) return;
+  const id = +e.detail.value;
+  await store('projects', 'readwrite', (s) => s.delete(id));
+  if (S.proj && S.proj.id === id) { S.proj = null; renderLanes(); showStyle(); updateSteps(); }
+  listProjects();
+});
+listProjects();  // fills the studio's project menu on load
 
 // ---------- keys ----------
 window.addEventListener('keydown', (e) => {

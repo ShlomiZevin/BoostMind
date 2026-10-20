@@ -37,6 +37,40 @@
     .sp-item .ck { width: 14px; color: #ff6b57; font-weight: 800; }
     .sp-item.on { font-weight: 700; }
     .sp-item.ph { color: #78736d; }
+    /* the project menu - one look in every tool (video editor, Reader, Karaoke) */
+    .pp-btn { height: 34px; display: inline-flex; align-items: center; gap: 10px; padding: 0 12px; background: #211f1e; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px; color: #f2f0ed; cursor: pointer; max-width: 320px; font: 600 14px Inter, Assistant, "Segoe UI", sans-serif; transition: border-color .15s, background .15s; }
+    .pp-btn:hover, .pp-btn.open { border-color: rgba(255,255,255,0.22); background: #2a2826; }
+    .pp-btn .pp-label { font-size: 11px; letter-spacing: .08em; color: #78736d; text-transform: uppercase; font-weight: 600; }
+    .pp-btn .pp-cur { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pp-btn .pp-cur.done { color: #aaa59f; }
+    .pp-btn svg { width: 14px; height: 14px; flex: none; stroke: #aaa59f; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .pp-pop { position: fixed; z-index: 9999; width: 380px; background: #1a1918; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45); padding: 8px; font: 500 13.5px Inter, Assistant, "Segoe UI", sans-serif; color: #f2f0ed; }
+    .pp-search { width: 100%; box-sizing: border-box; height: 34px; margin-bottom: 6px; background: #131211; border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+      color: #f2f0ed; padding: 0 10px; outline: none; font: inherit; }
+    .pp-search:focus { border-color: #ff6b57; }
+    .pp-list { max-height: min(62vh, 560px); overflow: auto; }
+    .pp-list::-webkit-scrollbar { width: 8px; } .pp-list::-webkit-scrollbar-thumb { background: #2a2826; border-radius: 4px; }
+    .pp-sec { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #78736d; padding: 10px 10px 4px; }
+    .pp-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 4px; cursor: pointer; border-left: 2px solid transparent; }
+    .pp-row:hover { background: #211f1e; }
+    .pp-row.on { background: #2a2826; border-left-color: #ff6b57; }
+    .pp-row.done .pp-id, .pp-row.done .pp-title { color: #78736d; }
+    .pp-check { flex: none; width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.12); background: transparent; color: #131211;
+      font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    .pp-check:hover { border-color: #ff6b57; }
+    .pp-check.on { background: #ff6b57; border-color: #ff6b57; }
+    .pp-ic { flex: none; width: 20px; text-align: center; color: #78736d; }
+    .pp-main { flex: 1; min-width: 0; }
+    .pp-id { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .pp-tag { font-size: 10px; font-weight: 600; color: #aaa59f; background: #2a2826; border: 1px solid rgba(255,255,255,0.07); border-radius: 3px; padding: 1px 5px; }
+    .pp-title { font-size: 12px; color: #aaa59f; direction: rtl; text-align: left; unicode-bidi: plaintext; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+    .pp-meta { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 11px; color: #78736d; }
+    .pp-del { flex: none; width: 22px; height: 22px; border-radius: 4px; border: 1px solid transparent; background: transparent; color: #78736d; cursor: pointer; padding: 0; }
+    .pp-row:hover .pp-del { border-color: rgba(255,255,255,0.12); }
+    .pp-del:hover { color: #ff8a7a; border-color: #ff8a7a !important; }
+    .pp-empty { padding: 14px 10px; color: #78736d; font-size: 13px; }
     @media (max-width: 700px) { .studio-top { height: auto !important; flex-wrap: wrap !important; padding: 8px 12px !important; } }`;
   document.head.appendChild(css);
 
@@ -67,9 +101,79 @@
   }
   if (!customElements.get('studio-nav')) customElements.define('studio-nav', StudioNav);
 
+  // ---- the project menu: <select data-picker="project"> - each <option> may carry data-sub (title), data-meta
+  // (right side), data-tag, data-done="1" (a Done section + a ✓ to toggle: fires "studio-done" on the select),
+  // data-group (a section of its own) and data-del="1" (a ✕: fires "studio-delete"). The tool keeps its own list.
+  const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function enhanceProject(sel) {
+    if (sel.classList.contains('studio-enhanced')) return;
+    sel.classList.add('studio-enhanced');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'pp-btn';
+    sel.after(btn);
+    const label = () => {
+      const o = sel.options[sel.selectedIndex];
+      const done = o && o.dataset.done === '1';
+      btn.innerHTML = `<span class="pp-label">${esc(sel.dataset.label || 'Project')}</span><span class="pp-cur ${done ? 'done' : ''}">${done ? '✓ ' : ''}${esc(o && o.value ? o.textContent : '—')}</span>${chev}`;
+    };
+    label();
+    sel.addEventListener('change', label);
+    setInterval(() => { const sig = sel.value + '|' + [...sel.options].map((o) => o.value + (o.dataset.done || '')).join(','); if (btn.dataset.v !== sig) { btn.dataset.v = sig; label(); } }, 400);
+    btn.onclick = (e) => { e.stopPropagation(); if (pop) return close(); openProjectMenu(sel, btn, label); };
+  }
+  function openProjectMenu(sel, btn, label) {
+    btn.classList.add('open');
+    pop = document.createElement('div');
+    pop.className = 'pp-pop';
+    pop.innerHTML = `<input class="pp-search" placeholder="Search" /><div class="pp-list"></div>`;
+    const list = pop.querySelector('.pp-list'), search = pop.querySelector('input');
+    const draw = () => {
+      const q = search.value.trim().toLowerCase();
+      const opts = [...sel.options].filter((o) => o.value && (!q || `${o.textContent} ${o.dataset.sub || ''}`.toLowerCase().includes(q)));
+      const groups = [];
+      const group = (o) => o.dataset.group || (o.dataset.done === '1' ? 'Done' : 'In progress');
+      for (const o of opts) { const g = group(o); let G = groups.find((x) => x.name === g); if (!G) groups.push((G = { name: g, items: [] })); G.items.push(o); }
+      groups.sort((a, b) => (a.name === 'Done') - (b.name === 'Done'));  // Done sinks to the bottom
+      list.innerHTML = groups.map((G) => `<div class="pp-sec">${esc(G.name)} · ${G.items.length}</div>` + G.items.map((o) => {
+        const done = o.dataset.done === '1', canDone = 'done' in o.dataset;
+        return `<div class="pp-row ${o.value === sel.value ? 'on' : ''} ${done ? 'done' : ''}" data-v="${esc(o.value)}">
+          ${canDone ? `<button class="pp-check ${done ? 'on' : ''}" data-done-toggle title="${done ? 'Done - click to reopen' : 'Mark as done'}">${done ? '✓' : ''}</button>` : `<span class="pp-ic">${esc(o.dataset.icon || '')}</span>`}
+          <div class="pp-main"><div class="pp-id">${esc(o.textContent)}${o.dataset.tag ? `<span class="pp-tag">${esc(o.dataset.tag)}</span>` : ''}</div>
+            ${o.dataset.sub && o.dataset.sub !== o.textContent ? `<div class="pp-title">${esc(o.dataset.sub)}</div>` : ''}</div>
+          <div class="pp-meta">${(o.dataset.meta || '').split('·').map((m) => `<span>${esc(m.trim())}</span>`).join('')}</div>
+          ${o.dataset.del === '1' ? '<button class="pp-del" data-del title="Delete">✕</button>' : ''}
+        </div>`; }).join('')).join('') || `<div class="pp-empty">${search.value.trim() ? 'Nothing matches.' : 'No projects yet.'}</div>`;
+    };
+    draw();
+    search.oninput = draw;
+    list.onclick = (e) => {
+      const row = e.target.closest('.pp-row'); if (!row) return;
+      const v = row.dataset.v, o = [...sel.options].find((x) => x.value === v);
+      if (e.target.closest('[data-done-toggle]')) {
+        e.stopPropagation();
+        const done = o.dataset.done !== '1';
+        o.dataset.done = done ? '1' : '0';
+        sel.dispatchEvent(new CustomEvent('studio-done', { detail: { value: v, done } }));
+        draw(); label(); return;
+      }
+      if (e.target.closest('[data-del]')) { e.stopPropagation(); sel.dispatchEvent(new CustomEvent('studio-delete', { detail: { value: v } })); close(); return; }
+      const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+      setter.call(sel, v);  // so React's controlled select sees it too
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      label(); close();
+    };
+    pop.addEventListener('click', (e) => e.stopPropagation());
+    document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect();
+    pop.style.top = `${r.bottom + 6}px`;
+    pop.style.left = `${Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8))}px`;
+    search.focus();
+  }
+
   // ---- the studio picker in place of native dropdowns ----
   const chev = '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
   function enhance(sel) {
+    if (sel.dataset.picker === 'project') return enhanceProject(sel);
     if (sel.classList.contains('studio-enhanced')) return;
     sel.classList.add('studio-enhanced');
     const btn = document.createElement('button');
@@ -111,7 +215,8 @@
   }
   document.addEventListener('click', (e) => { if (pop && !pop.contains(e.target)) close(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-  const scan = () => document.querySelectorAll('.studio-top select').forEach(enhance);
+  const scan = () => document.querySelectorAll('.studio-top select, select[data-picker="project"]').forEach(enhance);
+  document.documentElement.classList.add('in-studio');  // a tool can hide its own project button inside the studio
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   addEventListener('DOMContentLoaded', scan);
 })();
