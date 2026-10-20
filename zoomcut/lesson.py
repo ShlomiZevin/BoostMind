@@ -424,7 +424,23 @@ def spans(ls, n):
             else:
                 merged.append([a, b])
         tight = merged
-    return tight
+    for r0, r1 in (c.get("removes") or {}).get(n, []):  # parts taken out in the editor (split twice, delete the piece)
+        kept = []
+        for a, b in tight:
+            if b <= r0 or a >= r1:
+                kept.append([a, b])
+                continue
+            if a < r0:
+                kept.append([a, r0])
+            if b > r1:
+                kept.append([r1, b])
+        tight = kept
+    for sp in sorted((c.get("splits") or {}).get(n, [])):  # split points: a piece in two, nothing lost
+        out = []
+        for a, b in tight:
+            out += [[a, sp], [sp, b]] if a + 0.05 < sp < b - 0.05 else [[a, b]]
+        tight = out
+    return [sp for sp in tight if sp[1] - sp[0] >= 0.05]
 
 
 def find_word(words, key, after, before=False):
@@ -475,7 +491,8 @@ def plan(ls):
     # sound runs on underneath for that moment (crossfaded) - no gap, the next word lands on the last one
     ov = round(cut_cfg(ls)["join"] * FPS)
     for prev, nxt in zip(items, items[1:]):
-        if prev["kind"] == "clip" and nxt["kind"] == "clip" and prev["n"] > ov + 6:
+        follows = nxt.get("take") == prev.get("take") and abs(nxt.get("a", -9) - (prev.get("a", 0) + prev["n"] / FPS)) < 0.04
+        if prev["kind"] == "clip" and nxt["kind"] == "clip" and prev["n"] > ov + 6 and not follows:
             prev["an"] = prev["n"]
             prev["n"] -= ov
     for it in items:

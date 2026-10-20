@@ -120,6 +120,20 @@ app.post('/api/ep/:id/lesson', (q, res) => {
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
 
+// the cut tool: split a piece at a moment of its take, or remove a piece - the rest closes up; rebuild
+app.post('/api/ep/:id/cutop', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  const { op, take, t, a, b } = q.body || {};
+  cfg.cut = cfg.cut || {};
+  if (op === 'split' && Number.isFinite(+t)) (cfg.cut.splits = cfg.cut.splits || {})[take] = [...((cfg.cut.splits || {})[take] || []), +(+t).toFixed(3)];
+  else if (op === 'remove' && Number.isFinite(+a) && Number.isFinite(+b)) (cfg.cut.removes = cfg.cut.removes || {})[take] = [...((cfg.cut.removes || {})[take] || []), [+(+a).toFixed(3), +(+b).toFixed(3)]];
+  else if (op === 'restore') { if (cfg.cut.removes) delete cfg.cut.removes[take]; if (cfg.cut.splits) delete cfg.cut.splits[take]; }
+  else return res.status(400).json({ error: 'op' });
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json(pub(runJob(q.params.id, ['--preview'])));
+});
+
 // lesson: a cut piece's edge dragged on the timeline - more (or less) of the original take before / after it
 app.post('/api/ep/:id/trim', (q, res) => {
   const d = epDir(q.params.id);

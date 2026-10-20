@@ -68,7 +68,7 @@
       "avatar_color": "#b07a9e",
       "variant": "instagram",
       "asker": "צופית",
-      "opacity": 1
+      "opacity": 0.7
     },
     {
       "style": "question",
@@ -82,7 +82,7 @@
       "w": 820,
       "size": 34,
       "start": 74.72,
-      "end": 109.11,
+      "end": 107.91,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#7a9eb0",
@@ -101,8 +101,8 @@
       "y": 180,
       "w": 820,
       "size": 34,
-      "start": 109.21,
-      "end": 143.33,
+      "start": 108.01,
+      "end": 142.13,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#c4a35a",
@@ -131,10 +131,11 @@
       "h": 230,
       "start": 0,
       "end": null,
-      "text": ""
+      "text": "",
+      "opacity": 0.95
     }
   ],
-  "speed": 1.1,
+  "speed": 1.2,
   "voice": {
     "denoise": true,
     "lowcut": 70,
@@ -154,7 +155,27 @@
     "above_floor": 28,
     "voice_above_floor": 38,
     "end_at": {
-      "ayelete-1": 114.55
+      "ayelete-1": 114.3
+    },
+    "edges": {
+      "ayelete-1": [
+        [
+          113.743,
+          113.488
+        ],
+        [
+          96.98,
+          100.975
+        ]
+      ]
+    },
+    "removes": {
+      "ayelete-1": [
+        [
+          96.28,
+          96.98
+        ]
+      ]
     }
   },
   "done": false,

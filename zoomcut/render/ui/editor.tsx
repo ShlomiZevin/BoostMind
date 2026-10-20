@@ -296,7 +296,7 @@ function Editor() {
           onClick={async () => { setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send: ['telegram', 'email'] })); }}>{I.export} Export & send</button>
       </div>
   );
-  if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} />;
+  if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} />;
 
   return (
     <div className="ed" style={{ ['--tl-h' as any]: `${tlH}px` }}>
@@ -862,9 +862,17 @@ createRoot(document.getElementById('root')!).render(<Editor />);
 // ---------- lesson template: one speaker, takes in order — same editor, same panes ---------
 const SPEEDS = [1, 1.05, 1.1, 1.2, 1.3];
 
-function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; top: React.ReactNode; busy: boolean; setJob: (j: Job) => void }) {
+function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data: any; top: React.ReactNode; busy: boolean; setJob: (j: Job) => void; jobLine?: string }) {
   const fps = 30;
   const edit = data.lesson?.edit;
+  const [tlH, setTlH] = useState(+(store.get('zc-tl-h') || 330));
+  const dragTl = (e: React.MouseEvent) => {  // the line above the timeline: drag it to make the timeline taller / shorter
+    e.preventDefault();
+    const y0 = e.clientY, h0 = tlH;
+    const mv = (m: MouseEvent) => setTlH(Math.max(180, Math.min(innerHeight - 260, h0 + (y0 - m.clientY))));
+    const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); setTlH((h) => { store.set('zc-tl-h', String(h)); return h; }); };
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
   const [speed, setSpeed] = useState<number>(data.episode.speed || 1);
   useEffect(() => { if (video.current) video.current.playbackRate = speed; });  // live: the browser keeps the voice's pitch
   const k = (edit?.speed || 1);  // the preview was built at this speed: timeline positions shrink with it
@@ -1205,7 +1213,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
   }, [t, playing]);
 
   return (
-    <div className="ed" style={{ ['--tl-h' as any]: '290px' }}>
+    <div className="ed" style={{ ['--tl-h' as any]: `${tlH}px` }}>
       {top}
       <div className={`work ${wide && tab === 'script' ? 'wide' : ''}`}>
         <div className="pane left">
@@ -1323,6 +1331,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
         <div className="pane viewer">
           <div className="monitor">
             <div className="frame" ref={frameRef} style={{ position: 'relative', background: '#000', overflow: 'hidden' }}>
+              {busy && <div className="upd"><div className="upd-bar" /></div>}
               {layered ? (
                 // layers, put together live: the set photo, him (transparent video, carries the sound), subtitles
                 <div style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, transform: `scale(${scale})`, transformOrigin: '0 0', overflow: 'hidden' }}
@@ -1445,7 +1454,8 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
             </div>
           </div>
           <div className="transport">
-            <div><span className="chip">{I.phone}&nbsp;9:16</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}><span className="chip">{I.phone}&nbsp;9:16</span>
+              {busy && <span className="upd-note"><b>Updating</b>{(jobLine || 'the preview').replace(/^Updating preview…$/, 'the preview')} · your change is saved</span>}</div>
             <div className="mid">
               <button className="btn ghost icon" title="Previous take (↑)" onClick={() => jump(-1)}>{I.prev}</button>
               <button className="play" title="Play / pause (space)" onClick={toggle}>{playing ? I.pause : I.play}</button>
@@ -1741,12 +1751,14 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
         </div>
       </div>
 
-      <div className="split" />
+      <div className="split" onMouseDown={dragTl} title="Drag to make the timeline taller or shorter" />
       <LessonTimeline edit={edit} fps={fps} k={k} t={t} total={total} onSeek={seek} overlays={ov} sel={sel?.kind === 'text' ? sel.i : null}
         onSelText={(i) => setSel({ kind: 'text', i })} layer={sel?.kind === 'layer' ? sel.id : sel?.kind === 'take' ? 'captions' : null}
         onLayer={(id) => setSel({ kind: 'layer', id: id as any })}
         bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
-        busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))} />
+        busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))}
+        onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
+        onCut={async (op) => setJob(await api(`/api/ep/${ep}/cutop`, op))} />
     </div>
   );
 }
@@ -1852,10 +1864,75 @@ const hexA = (c: string, a: number) => { const n = parseInt(c.slice(1), 16); ret
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
   layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number) => void; busy: boolean;
+  onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void;
 }) {
+  // the cut tool: a piece picked on the Speaker lane; Split at the playhead (S), Delete the piece (Delete)
+  const [piece, setPiece] = useState<number | null>(null);
+  const atPlayhead = () => {
+    const f = t * fps * k;
+    const it = (edit?.items || []).find((x: any) => x.kind === 'clip' && f > x.out && f < x.out + x.n);
+    return it ? { take: it.take, t: +(it.a + (f - it.out) / fps).toFixed(3) } : null;
+  };
+  const split = () => { const at = atPlayhead(); if (at && !busy) onCut({ op: 'split', ...at }); };
+  const del = () => {
+    const it = piece != null ? edit?.items?.[piece] : null;
+    if (!it || busy) return;
+    onCut({ op: 'remove', take: it.take, a: +it.a.toFixed(3), b: +(it.a + (it.an ?? it.n) / fps).toFixed(3) });
+    setPiece(null);
+  };
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const tg = e.target as HTMLElement;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName) || tg.isContentEditable) return;
+      if (e.key === 's' || e.key === 'S' || e.key === 'ד') { e.preventDefault(); split(); }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && piece != null) { e.preventDefault(); del(); }
+    };
+    addEventListener('keydown', key);
+    return () => removeEventListener('keydown', key);
+  });
+  // a text layer moved / its ends dragged on its own lane
+  const [ovDrag, setOvDrag] = useState<{ i: number; mode: 'm' | 'l' | 'r'; dx: number } | null>(null);
+  const grabOv = (e: React.MouseEvent, i: number, mode: 'm' | 'l' | 'r') => {
+    e.stopPropagation(); e.preventDefault();
+    onSelText(i);
+    const x0 = e.clientX; let dx = 0;
+    setOvDrag({ i, mode, dx: 0 });
+    const mv = (m: MouseEvent) => { dx = m.clientX - x0; setOvDrag({ i, mode, dx }); };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up); setOvDrag(null);
+      if (Math.abs(dx) < 3) return;
+      const o: any = overlays[i], ds = dx / pps, s0 = o.start || 0, e0 = o.end ?? total;
+      const s1 = mode === 'r' ? s0 : Math.max(0, Math.min(e0 - 0.2, s0 + ds));
+      const e1 = mode === 'l' ? e0 : Math.max(s1 + 0.2, Math.min(total, e0 + ds));
+      onOvTime(i, +s1.toFixed(2), mode === 'm' && o.end == null ? null : +e1.toFixed(2));
+    };
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
+  const [textOpen, setTextOpen] = useState(store.get('zc-text-open') !== '0');
+  const toggleText = () => { store.set('zc-text-open', textOpen ? '0' : '1'); setTextOpen(!textOpen); };
+  const headsRef = useRef<HTMLDivElement>(null);
+  const zoomAnchor = useRef<{ t: number; px: number } | null>(null);
+  useEffect(() => {  // Ctrl + wheel = zoom, the moment under the mouse stays where it is; the wheel alone scrolls
+    const el = lanesRef.current; if (!el) return;
+    const wheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const r = el.getBoundingClientRect(), px = e.clientX - r.left;
+      zoomAnchor.current = { t: (px + el.scrollLeft - 12) / pps, px };
+      setZoom((z) => Math.max(1, Math.min(40, z * (e.deltaY < 0 ? 1.18 : 1 / 1.18))));
+    };
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => el.removeEventListener('wheel', wheel);
+  });
+  useEffect(() => {
+    const el = lanesRef.current, a = zoomAnchor.current;
+    if (el && a) { el.scrollLeft = Math.max(0, 12 + a.t * pps - a.px); zoomAnchor.current = null; }
+  });  // (after every render: the anchor is set only by a Ctrl+wheel zoom)
+  const syncHeads = () => { if (headsRef.current && lanesRef.current) headsRef.current.scrollTop = lanesRef.current.scrollTop; };
+  const ovName = (o: any) => o.image ? 'Logo' : o.asker ? `${o.asker}` : ({ pov: 'Hook', question: 'Question', thought: 'Thought', band: 'Lower third', ticker: 'Ticker' } as any)[o.style || 'pov'] || 'Text';
   const lanesRef = useRef<HTMLDivElement>(null);
   // dragging a piece's edge: the block follows the mouse, the cut is redone from the original take on release
   const [drag, setDrag] = useState<{ i: number; side: 'in' | 'out'; dx: number } | null>(null);
@@ -1903,28 +1980,44 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
     <div className="tl" style={{ ['--th' as any]: `${TH}px` }}>
       <div className="tl-bar">
         <div className="grow" />
+        <button className="btn" disabled={busy || !atPlayhead()} title="Split the video at the playhead (S)" onClick={split}>✂ Split</button>
+        <button className="btn" disabled={busy || piece == null} title="Remove the picked piece - the rest closes up (Delete)" onClick={del}>Delete piece</button>
+        <span className="help" style={{ margin: '0 10px 0 4px' }}>{piece != null ? 'piece picked' : 'click a piece to pick it'}</span>
         <button className="btn ghost icon" title="Zoom out" onClick={() => setZoom(Math.max(1, zoom / 1.5))}>{I.zoomOut}</button>
         <input type="range" min={1} max={40} step={0.1} value={zoom} onChange={(e) => setZoom(+e.target.value)} />
         <button className="btn ghost icon" title="Zoom in" onClick={() => setZoom(Math.min(40, zoom * 1.5))}>{I.zoomIn}</button>
         <button className="btn" style={{ marginLeft: 6 }} onClick={() => setZoom(1)}>Fit</button>
       </div>
       <div className="tl-body">
-        <div className="heads">
+        <div className="heads" ref={headsRef}>
           <div className="h ruler" />
-          <div className="h">{I.text}Text</div>
+          <div className="h pick grp" onClick={toggleText} title={textOpen ? 'Collapse the text layers into one lane' : 'Show each text layer on its own lane'}>
+            <span className="caret">{textOpen ? '▾' : '▸'}</span>{I.text}<span className="h-name">Text · {overlays.length}</span></div>
+          {textOpen && overlays.map((o: any, i) => <div key={'oh' + i} className={`h pick sub ${sel === i ? 'on' : ''}`} onClick={() => onSelText(i)} title={o.text || o.image}>
+            {o.image ? '🖼' : I.text}<span className="h-name">{ovName(o)}</span></div>)}
           {([['captions', <>{I.cc}Captions</>], ['speaker', <><div className="av sm" style={{ background: 'var(--daniel)' }}>{I.phone}</div><span>Speaker</span></>],
             ['background', <>{I.layout}Background</>], ['music', <>♪&nbsp;Music &amp; sounds</>]] as const).map(([id, label]) => (
             <div key={id} className={`h pick ${layer === id ? 'on' : ''}`} onClick={() => onLayer(id)} title="Click to edit this layer">{label}</div>))}
         </div>
-        <div className="lanes" ref={lanesRef}>
+        <div className="lanes" ref={lanesRef} onScroll={syncHeads}>
           <div className="lanes-in" style={{ width: W }}>
             <div className="ruler" onMouseDown={scrub}>{ticks}</div>
-            <div className="lane" onMouseDown={(e) => e.target === e.currentTarget && scrub(e)}>
-              {overlays.map((o, i) => (
-                <div key={i} className={`txt he ${sel === i ? 'sel' : ''}`} style={{ left: x(o.start || 0), width: Math.max(10, ((o.end ?? total) - (o.start || 0)) * pps - 2) }}
-                  onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelText(i)}>
-                  {(o as any).image ? `🖼 ${String((o as any).image).split('/').pop()}` : (o as any).asker ? `${(o as any).asker} שואלת · ${o.text}` : o.text}</div>))}
+            {/* the text group: collapsed = all of them on one lane, open = a lane each (below) */}
+            <div className="lane grp-lane" onMouseDown={(e) => e.target === e.currentTarget && scrub(e)}>
+              {overlays.map((o: any, i) => (o.start != null || !(o.from_words || o.sound != null)) && <div key={'g' + i} className={`txt he ${sel === i ? 'sel' : ''}`}
+                style={{ left: x(o.start || 0), width: Math.max(10, ((o.end ?? total) - (o.start || 0)) * pps - 2), position: 'absolute', opacity: textOpen ? 0.45 : 0.85, cursor: 'pointer' }}
+                onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelText(i)}>{o.image ? '🖼' : o.asker || o.text}</div>)}
             </div>
+            {textOpen && overlays.map((o: any, i) => { const d = ovDrag?.i === i ? ovDrag : null, ds = d ? d.dx / pps : 0;
+              const s0 = (o.start || 0) + (d && d.mode !== 'r' ? ds : 0), e0 = (o.end ?? total) + (d && d.mode !== 'l' ? ds : 0);
+              return <div key={'ol' + i} className="lane" onMouseDown={(e) => e.target === e.currentTarget && scrub(e)}>
+                {(o.start != null || !(o.from_words || o.sound != null)) && <div className={`txt he ${sel === i ? 'sel' : ''}`} style={{ left: x(s0), width: Math.max(10, (e0 - s0) * pps - 2), cursor: 'grab', position: 'absolute' }}
+                  onMouseDown={(e) => grabOv(e, i, 'm')} title="Drag to move it · drag an end to change when it shows">
+                  <span className="ov-h l" onMouseDown={(e) => grabOv(e, i, 'l')} />
+                  {o.image ? `🖼 ${String(o.image).split('/').pop()}` : o.asker ? `${o.asker} שואלת · ${o.text}` : o.text}
+                  <span className="ov-h r" onMouseDown={(e) => grabOv(e, i, 'r')} />
+                </div>}
+              </div>; })}
             <div className={`lane ${layer === 'captions' ? 'sel' : ''}`} onMouseDown={scrub}>
               {(edit?.captions || []).map((c: any, i: number) => (
                 <div key={i} className="cap he" style={{ left: x(sec(c.from)), width: Math.max(2, sec(c.to - c.from) * pps - 2), cursor: 'pointer' }}
@@ -1937,9 +2030,9 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                 const left = x(sec(it.out)) + (d?.side === 'in' ? d.dx : 0), width = Math.max(4, w0 - 2 + (d ? (d.side === 'in' ? -d.dx : d.dx) : 0));
                 const hd = (side: 'in' | 'out') => <div onMouseDown={(e) => grabEdge(e, i, side)} title={side === 'in' ? 'Drag left: more before it (from the original take)' : 'Drag right: more after it (from the original take)'}
                   style={{ position: 'absolute', top: 0, bottom: 0, [side === 'in' ? 'left' : 'right']: 0, width: 7, cursor: 'ew-resize', background: d?.side === side ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.18)', borderRadius: 3 }} />;
-                return <div key={i} className="blk" style={{ left, width, background: 'var(--daniel)', cursor: 'pointer', position: 'absolute', outline: d ? '2px solid var(--accent)' : 'none', zIndex: d ? 2 : undefined }}
+                return <div key={i} className="blk" style={{ left, width, background: 'var(--daniel)', cursor: 'pointer', position: 'absolute', outline: d || piece === i ? '2px solid var(--accent)' : 'none', zIndex: d || piece === i ? 2 : undefined, filter: piece === i ? 'brightness(1.15)' : undefined }}
                   title={`${it.take} · ${it.a.toFixed(2)}s - ${(it.a + (it.an ?? it.n) / fps).toFixed(2)}s of the take · drag an edge to take more / less`}
-                  onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('speaker')}>
+                  onMouseDown={(e) => e.stopPropagation()} onClick={() => { onLayer('speaker'); setPiece(piece === i ? null : i); }}>
                   {hd('in')}{width > 70 ? <span style={{ padding: '0 10px' }}>{d ? `${d.dx > 0 === (d.side === 'out') ? '+' : '−'}${Math.abs((d.dx / pps) * k).toFixed(2)}s` : it.take.replace('IMG_', '')}</span> : null}{hd('out')}
                 </div>;
               })}
@@ -1955,7 +2048,7 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                 <div key={i} className="cap" style={{ left: x(s.from / k), width: Math.max(4, ((s.to - s.from) / k) * pps - 2), background: 'var(--gold)', color: '#2a2000' }}
                   title={s.name}>{s.name.includes('ring') ? '☎ ring' : s.name.includes('wife') ? 'the wife (phone)' : s.name}</div>))}
             </div>
-            <div className="playhead" style={{ left: x(t), height: 30 + 5 * TH }} />
+            <div className="playhead" style={{ left: x(t), height: 30 + (5 + (textOpen ? overlays.length : 0)) * TH }} />
           </div>
         </div>
       </div>

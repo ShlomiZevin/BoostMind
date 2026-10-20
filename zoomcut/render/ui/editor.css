@@ -435,3 +435,30 @@ a { color: inherit; text-decoration: none; }
 .pm-sw { padding: 3px; border: 1px solid var(--edge-2); border-radius: 4px; background: transparent; cursor: pointer; }
 .pm-sw img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; }
 .pm-sw.on { border-color: var(--accent); background: var(--accent-soft); }
+
+/* ---- a lane per text layer; drag ends ---- */
+.heads .h .h-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.txt { position: absolute; }
+.txt .ov-h { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; background: rgba(0,0,0,.18); }
+.txt .ov-h.l { left: 0; } .txt .ov-h.r { right: 0; }
+.txt:hover .ov-h { background: rgba(0,0,0,.32); }
+
+/* ---- timeline: lanes scroll under a fixed ruler, heads follow; the text group ---- */
+.lanes .ruler { position: sticky; top: 0; z-index: 6; }
+.heads { overflow: hidden; }
+.heads .h.ruler { position: sticky; top: 0; z-index: 2; background: var(--panel); }
+.heads .h.grp { font-weight: 700; }
+.heads .h.grp .caret { width: 12px; color: var(--faint); font-size: 11px; }
+.heads .h.sub { padding-left: 30px; color: var(--dim); }
+.heads .h.sub.on { color: var(--text); }
+.grp-lane { background: rgba(255,255,255,0.015); }
+/* ---- updating the preview: shown on the picture itself ---- */
+.upd { position: absolute; left: 0; right: 0; top: 0; z-index: 20; pointer-events: none; }
+.upd-bar { position: relative; height: 3px; overflow: hidden; background: rgba(255,107,87,0.18); }
+.upd-bar::after { content: ''; position: absolute; top: 0; left: -40%; width: 40%; height: 100%; background: var(--accent); animation: upd 1.2s linear infinite; }
+@keyframes upd { to { left: 100%; } }
+.upd-chip { margin: 10px auto 0; width: max-content; max-width: 90%; background: rgba(19,18,17,0.88); border: 1px solid var(--accent); color: var(--text); font-size: 12.5px; padding: 6px 12px; border-radius: 4px; }
+.upd-chip b { color: var(--accent); margin-right: 6px; }
+
+.upd-note { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid var(--accent); border-radius: 4px; padding: 4px 10px; }
+.upd-note b { color: var(--accent); margin-right: 6px; }
