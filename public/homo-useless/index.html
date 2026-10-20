@@ -66,13 +66,13 @@
   .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
   .meta { margin-top: 22px; font-size: 13.5px; color: var(--faint); }
 
-  /* the book, standing */
-  .stage { display: flex; justify-content: center; perspective: 1600px; }
-  .book { position: relative; width: min(340px, 78vw); aspect-ratio: 2 / 3; transform: rotateY(-22deg) rotateX(2deg); transform-style: preserve-3d; transition: transform .4s ease; }
-  .book:hover { transform: rotateY(-8deg) rotateX(1deg); }
-  .book img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 2px 6px 6px 2px; box-shadow: 0 30px 50px rgba(0,0,0,0.35); }
-  .book::before { content: ""; position: absolute; top: 0; left: 0; width: 34px; height: 100%; background: #e7dfcd; transform: translateX(-34px) rotateY(-90deg); transform-origin: right center; border-radius: 3px 0 0 3px; }
-  .book::after { content: ""; position: absolute; top: 3px; right: -14px; width: 14px; height: calc(100% - 6px); background: #fbf8f0; transform: rotateY(90deg); transform-origin: left center; }
+  /* the book: a real 3D render (Blender), turned by hand - 61 frames, pages side to spine */
+  .stage { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .turn { width: min(540px, 92vw); aspect-ratio: 1 / 1; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .turn.grab { cursor: grabbing; }
+  .turn canvas, .turn img { width: 100%; height: 100%; display: block; }
+  .hint { margin-top: 6px; font-size: 12.5px; letter-spacing: 0.1em; color: var(--faint); transition: opacity .4s; }
+  .hint.gone { opacity: 0; }
 
   /* sections */
   section { padding: 84px 0; border-top: 1px solid var(--line); }
@@ -150,7 +150,7 @@
     .nav { display: none; }
     .ev { grid-template-columns: 1fr; gap: 6px; }
     section { padding: 60px 0; }
-    .book { width: min(250px, 64vw); }
+    .turn { width: min(420px, 94vw); }
   }
 </style>
 </head>
@@ -182,7 +182,12 @@
       </div>
       <div class="meta">Hardcover · E-book · Audiobook &nbsp;—&nbsp; The new international bestseller</div>
     </div>
-    <div class="stage"><div class="book"><img src="cover.jpg" alt="Homo Useless book cover: a cave painting of a bored human standing next to a Wi-Fi router"></div></div>
+    <div class="stage">
+      <div class="turn" id="turn" role="img" aria-label="Homo Useless, hardcover. Drag to turn the book.">
+        <canvas id="book3d" width="900" height="900"></canvas>
+      </div>
+      <div class="hint" id="hint">DRAG TO TURN THE BOOK</div>
+    </div>
   </div>
 </div>
 
@@ -308,6 +313,49 @@
     root.dataset.theme = dark ? 'light' : 'dark';
     try { localStorage.setItem('hu-theme', root.dataset.theme); } catch (e) {}
   };
+  // the book: frames of a Blender render, turned by drag / pointer / scroll, a slow sway until you touch it
+  (() => {
+    const N = 61, FRONT = 32, cv = document.getElementById('book3d'), ctx = cv.getContext('2d');
+    const box = document.getElementById('turn'), hint = document.getElementById('hint');
+    const frames = new Array(N), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cur = FRONT, shown = -1, touched = false, t0 = performance.now();
+    const src = (i) => `book3d/f_${String(i + 1).padStart(2, '0')}.webp`;
+    const draw = (i) => {
+      i = Math.max(0, Math.min(N - 1, Math.round(i)));
+      let k = -1;  // the nearest frame already loaded
+      for (let d = 0; d < N && k < 0; d++) for (const j of [i - d, i + d]) if (k < 0 && j >= 0 && j < N && frames[j] && frames[j].naturalWidth) k = j;
+      if (k < 0 || k === shown) return;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      const im = frames[k], f = Math.min(cv.width / im.naturalWidth, cv.height / im.naturalHeight);  // fit, never stretch
+      const w = im.naturalWidth * f, h = im.naturalHeight * f;
+      ctx.drawImage(im, (cv.width - w) / 2, (cv.height - h) / 2, w, h);
+      shown = k;
+    };
+    const load = (i) => { const im = new Image(); im.decoding = 'async'; im.onload = () => draw(cur); im.src = src(i); frames[i] = im; };
+    load(FRONT);
+    for (let d = 1; d < N; d++) { const a = FRONT + d, b = FRONT - d; if (a < N) load(a); if (b >= 0) load(b); }
+    const stop = () => { if (!touched) { touched = true; hint.classList.add('gone'); } };
+    let drag = null;
+    box.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, f: cur }; box.classList.add('grab'); box.setPointerCapture(e.pointerId); stop(); });
+    box.addEventListener('pointermove', (e) => {
+      if (drag) { cur = Math.max(0, Math.min(N - 1, drag.f - (e.clientX - drag.x) / 7)); draw(cur); }
+    });
+    const up = () => { drag = null; box.classList.remove('grab'); };
+    box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+    // on a desktop the book follows the mouse across the hero (before anyone drags it)
+    document.querySelector('.hero').addEventListener('mousemove', (e) => {
+      if (drag || touched) return;
+      const r = box.getBoundingClientRect(), x = (e.clientX - (r.left + r.width / 2)) / innerWidth;
+      cur = FRONT - x * 30; draw(cur);
+    });
+    // scrolling past the hero turns it a little, like it's being handed to you
+    addEventListener('scroll', () => { if (!drag && touched) return; const y = Math.min(1, scrollY / 600); if (y > 0.02) { cur = FRONT - y * 30; draw(cur); } }, { passive: true });
+    const sway = (t) => {
+      if (!touched && !drag && !still && scrollY < 20) { cur = FRONT - 6 - Math.sin((t - t0) / 1600) * 9; draw(cur); }
+      requestAnimationFrame(sway);
+    };
+    requestAnimationFrame(sway);
+  })();
   // the pre-order: a joke, nothing is collected
   const modal = document.getElementById('modal'), steps = [...document.querySelectorAll('#steps li')];
   document.querySelectorAll('[data-buy]').forEach((b) => b.onclick = () => {

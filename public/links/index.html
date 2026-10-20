@@ -3,109 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>שלומי זוין · יותם — הלינקים</title>
-<meta name="description" content="פניות בנושא שיתופי פעולה · החנות של יותם">
-<meta property="og:title" content="שלומי זוין · יותם">
-<meta property="og:description" content="פניות בנושא שת״פ · החנות של יותם">
+<title>שלומי זוין</title>
+<meta name="description" content="מערכונים קומיים קצרים בטיקטוק ובאינסטגרם">
+<meta property="og:title" content="שלומי זוין">
+<meta property="og:description" content="מערכונים קומיים קצרים בטיקטוק ובאינסטגרם">
+<meta property="og:image" content="https://boostmind-b052c.web.app/links/shlomi.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#08060f;
-    --surface:#150e26;
-    --surface-2:#1d1433;
-    --border:rgba(255,255,255,.10);
-    --green:#7df53d;
-    --pink:#ff4fd8;
-    --text:#f1ecff;
-    --muted:#a99fc4;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    background:var(--bg);color:var(--text);
-    font-family:'Heebo',sans-serif;
-    min-height:100svh;
-    display:flex;align-items:center;justify-content:center;
-    padding:32px 20px calc(32px + env(safe-area-inset-bottom));
-    -webkit-tap-highlight-color:transparent;
-    overflow-x:hidden;
-  }
-  .stars{position:fixed;inset:0;pointer-events:none;z-index:0}
-  .star{position:absolute;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
-  @keyframes tw{0%,100%{opacity:.12}50%{opacity:.8}}
-
-  .wrap{position:relative;z-index:1;width:100%;max-width:400px;text-align:center}
-
-  .avatar{
-    width:104px;height:104px;border-radius:50%;
-    margin:0 auto 18px;overflow:hidden;
-    background:var(--surface-2);border:1px solid var(--border);
-    box-shadow:0 0 30px rgba(125,245,61,.18);
-  }
-  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-  h1{
-    font-family:'Heebo',sans-serif;font-weight:900;letter-spacing:-.01em;
-    font-size:2.3rem;color:var(--green);
-    text-shadow:2px 2px 0 #3a1d63;line-height:1.1;
-  }
-  .sub{color:var(--muted);font-size:1rem;margin-top:10px;font-weight:500}
-
-  .links{display:flex;flex-direction:column;gap:14px;margin-top:30px}
-  .link{
-    display:flex;align-items:center;gap:14px;
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:16px;
-    padding:18px 20px;
-    text-decoration:none;color:var(--text);
-    font-size:1.1rem;font-weight:700;
-    transition:transform .15s, border-color .15s, box-shadow .15s;
-    text-align:right;
-  }
-  .link:hover{transform:translateY(-2px)}
-  .link .ico{
-    width:46px;height:46px;flex:0 0 46px;border-radius:12px;
-    display:flex;align-items:center;justify-content:center;font-size:1.5rem;
-    background:var(--surface-2);
-  }
-  .link .txt{flex:1;display:flex;flex-direction:column;gap:2px}
-  .link .txt small{color:var(--muted);font-size:.85rem;font-weight:400}
-  .link .arr{color:var(--muted);font-size:1.2rem;transition:transform .15s}
-  .link:hover .arr{transform:translateX(-4px)}
-
-  .link.shop{border-color:rgba(125,245,61,.4)}
-  .link.shop:hover{border-color:var(--green);box-shadow:0 10px 34px rgba(0,0,0,.5),0 0 26px rgba(125,245,61,.16)}
-  .link.shop .ico{background:rgba(125,245,61,.12)}
-  .link.collab{border-color:rgba(255,79,216,.35)}
-  .link.collab:hover{border-color:var(--pink);box-shadow:0 10px 34px rgba(0,0,0,.5),0 0 26px rgba(255,79,216,.16)}
-  .link.collab .ico{background:rgba(255,79,216,.12)}
-  .link.book{border-color:rgba(255,106,61,.5)}
-  .link.book:hover{border-color:#ff6a3d}
-  .link.book .ico{background:rgba(255,106,61,.14)}
-
-  footer{margin-top:34px;color:var(--muted);font-size:.85rem}
-  footer a{color:var(--green);text-decoration:none;font-weight:600}
+  :root { --bg: #0b0b0d; --card: #151518; --line: rgba(255,255,255,0.09); --text: #f4f3f0; --dim: #a3a1a8; --accent: #ff7a45; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; min-height: 100svh; display: flex; justify-content: center; padding: 28px 18px 40px; }
+  .wrap { width: 100%; max-width: 440px; text-align: center; }
+  .photo { width: 100%; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin-top: 18px; }
+  .sub { color: var(--dim); font-size: 1.05rem; margin-top: 6px; }
+  .social { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+  .social a { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: .95rem; font-weight: 500; transition: border-color .15s; }
+  .social a:hover { border-color: var(--dim); }
+  .social svg { width: 17px; height: 17px; fill: currentColor; }
+  .links { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
+  .link { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); color: var(--text); text-decoration: none; text-align: right; transition: border-color .15s, transform .15s; }
+  .link:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .link .ico { width: 46px; height: 46px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: rgba(255,255,255,0.05); overflow: hidden; }
+  .link .ico img { width: 100%; height: 100%; object-fit: cover; }
+  .link .txt { flex: 1; display: flex; flex-direction: column; gap: 1px; font-size: 1.08rem; font-weight: 700; }
+  .link .txt small { color: var(--dim); font-size: .86rem; font-weight: 400; }
+  .link .arr { color: var(--dim); font-size: 1.15rem; }
+  .link.collab { flex-wrap: wrap; }
+  .link.collab:hover { transform: none; border-color: var(--line); }
+  .acts { display: flex; gap: 8px; width: 100%; }
+  .acts a { flex: 1; justify-content: center; height: 42px; padding: 0 14px; border-radius: 9px; display: inline-flex; align-items: center; font-size: .92rem; font-weight: 700; text-decoration: none; color: var(--text); border: 1px solid var(--line); transition: border-color .15s; }
+  .acts a:first-child { background: var(--accent); color: #1a0d06; border-color: var(--accent); }
+  .acts a:hover { border-color: var(--accent); }
+  footer { margin-top: 30px; color: var(--dim); font-size: .85rem; }
 </style>
 </head>
 <body>
-<div class="stars" id="stars"></div>
 <div class="wrap">
-  <div class="avatar"><img src="profile.jpg" alt="שלומי זוין"></div>
+  <div class="photo"><img src="shlomi.jpg" alt="שלומי זוין בסטודיו"></div>
   <h1>שלומי זוין</h1>
+  <p class="sub">מערכונים קומיים קצרים</p>
+
+  <div class="social">
+    <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
+      TikTok</a>
+    <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3.1 0-4.1.06-1.1.05-1.8.22-2.4.46-.7.27-1.2.62-1.8 1.18-.56.57-.91 1.1-1.18 1.8-.24.6-.41 1.3-.46 2.4C2 8.9 2 9.3 2 12s0 3.1.06 4.1c.05 1.1.22 1.8.46 2.4.27.7.62 1.2 1.18 1.8.57.56 1.1.91 1.8 1.18.6.24 1.3.41 2.4.46 1 .05 1.4.06 4.1.06s3.1 0 4.1-.06c1.1-.05 1.8-.22 2.4-.46.7-.27 1.2-.62 1.8-1.18.56-.57.91-1.1 1.18-1.8.24-.6.41-1.3.46-2.4.05-1 .06-1.4.06-4.1s0-3.1-.06-4.1c-.05-1.1-.22-1.8-.46-2.4a4.9 4.9 0 0 0-1.18-1.8 4.9 4.9 0 0 0-1.8-1.18c-.6-.24-1.3-.41-2.4-.46C15.1 2 14.7 2 12 2zm0 1.8c2.67 0 2.99 0 4.04.06.98.04 1.5.2 1.86.34.47.18.8.4 1.15.75.35.35.57.68.75 1.15.14.35.3.88.34 1.86.05 1.05.06 1.37.06 4.04s0 2.99-.06 4.04c-.04.98-.2 1.5-.34 1.86-.18.47-.4.8-.75 1.15-.35.35-.68.57-1.15.75-.35.14-.88.3-1.86.34-1.05.05-1.37.06-4.04.06s-2.99 0-4.04-.06c-.98-.04-1.5-.2-1.86-.34a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.35-.3-.88-.34-1.86C3.8 14.99 3.8 14.67 3.8 12s0-2.99.06-4.04c.04-.98.2-1.5.34-1.86.18-.47.4-.8.75-1.15.35-.35.68-.57 1.15-.75.35-.14.88-.3 1.86-.34C9.01 3.8 9.33 3.8 12 3.8z"/></svg>
+      Instagram</a>
+  </div>
 
   <div class="links">
-    <a class="link book" href="/homo-useless/">
-      <span class="ico">📖</span>
-      <span class="txt">הספר החדש של יובל כסא נוח הררי<small>Homo Useless · מהסרטון</small></span>
-      <span class="arr">←</span>
-    </a>
-    <a class="link collab" href="/micro-comedy/">
+    <div class="link collab">
       <span class="ico">🤝</span>
-      <span class="txt">פניות בנושא שת״פ<small>שיתופי פעולה, קמפיינים ומותגים</small></span>
+      <span class="txt">שיתופי פעולה<small>מותגים וקמפיינים</small></span>
+      <span class="acts">
+        <a href="https://wa.me/972545567213?text=%D7%94%D7%99%D7%99%20%D7%A9%D7%9C%D7%95%D7%9E%D7%99%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="mailto:shlomi@boostart.io?subject=%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94">מייל</a>
+      </span>
+    </div>
+    <a class="link" href="/homo-useless/">
+      <span class="ico"><img src="book.jpg" alt=""></span>
+      <span class="txt">Homo Useless<small>הספר החדש של יובל כסא נוח הררי</small></span>
       <span class="arr">←</span>
     </a>
-    <a class="link shop" href="/yotamverse/">
+    <a class="link" href="/yotamverse/">
       <span class="ico">🛒</span>
       <span class="txt">החנות של יותם<small>חולצות ועוד</small></span>
       <span class="arr">←</span>
@@ -114,17 +80,5 @@
 
   <footer>נעים להכיר 👋</footer>
 </div>
-
-<script>
-(function(){
-  var box=document.getElementById('stars');
-  for(var i=0;i<70;i++){
-    var s=document.createElement('div');s.className='star';
-    var sz=Math.random()*2+.8;
-    s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+(Math.random()*100)+'%;right:'+(Math.random()*100)+'%;animation-delay:'+(Math.random()*3)+'s;animation-duration:'+(2+Math.random()*4)+'s';
-    box.appendChild(s);
-  }
-})();
-</script>
 </body>
 </html>
