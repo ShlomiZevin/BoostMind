@@ -556,7 +556,7 @@ app.post('/api/ep/:id/export', (q, res) => {
   const job = runJob(id, ['--concurrency', '16'], null, send);  // sent by the server when it ends well, even after a restart
   res.json(pub(job));
 });
-app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id])));
+app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id]) || null));
 // Stop button: kill the run and everything it started (ffmpeg, renderer)
 app.post('/api/ep/:id/cancel', (q, res) => {
   const job = jobs[q.params.id];

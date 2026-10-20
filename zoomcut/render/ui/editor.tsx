@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Player, PlayerRef } from '@remotion/player';
 import { ZoomCall, ovBoxStyle } from '../src/ZoomCall';
 import { thoughtWords, wordState, lineDrift, THOUGHT_STYLE } from './thought_anim.js';
+import { fxCss } from './fx.js';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -116,7 +117,7 @@ function Editor() {
   }, []);
   useEffect(() => {  // a job already running (another tab, before a refresh): follow it
     if (!ep) return;
-    api(`/api/ep/${ep}/job`).then((j: any) => { if (j?.running) setJob(j); });
+    api(`/api/ep/${ep}/job`).then((j: any) => { if (j?.running) setJob(j); }).catch(() => {});  // (no job yet: an empty answer)
   }, [ep]);
   useEffect(() => {
     if (!job?.running) return;
@@ -301,7 +302,19 @@ function Editor() {
               data-meta={`${e.template || ''} · ${e.created ? new Date(e.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}`}>{e.id}</option>)}
           </select>
         </div>
-        <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>
+        {job?.kind === 'export' && (busy || share?.running) ? (() => {
+          // the export, step by step: preparing -> rendering n% -> sending -> done
+          const rendered = /Rendered (\d+)\/(\d+)/.exec((job?.log || []).filter((l: string) => l.startsWith('Rendered')).at(-1) || '');
+          const p = rendered ? +rendered[1] / +rendered[2] : 0;
+          const stage = !busy ? (share?.log?.at(-1) || 'Sending…') : rendered ? `Rendering ${Math.round(p * 100)}%` : 'Preparing the layers and the sound…';
+          const dest = (job?.send || []).map((c: string) => (c === 'email' ? 'Email' : 'Telegram')).join(' + ');
+          return <div className="xp">
+            <span className="xp-k">Exporting {ep}</span>
+            <div className="xp-bar"><div style={{ width: `${Math.round((busy ? (rendered ? 0.08 + 0.92 * p : 0.04) : 1) * 100)}%` }} /></div>
+            <span className="xp-s">{stage}</span>
+            <span className="xp-d">{busy ? (dest ? `then → ${dest}` : 'then → the file only') : ''}</span>
+          </div>;
+        })() : <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>}
         <div className="grow" />
         {busy && <button className="btn" onClick={async () => setJob(await api(`/api/ep/${ep}/cancel`, {}))}>{I.stop} Stop</button>}
         <button className="btn" disabled={busy} onClick={async () => setJob(await api(`/api/ep/${ep}/analyze`, {}))}>Re-analyze</button>
@@ -970,6 +983,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
   const inspIcon = !sel ? I.layout : sel.kind === 'text' ? I.text : sel.kind === 'take' ? I.cc
     : sel.id === 'captions' ? I.cc : sel.id === 'speaker' ? I.phone : sel.id === 'background' ? I.layout : <span>♪</span>;
   const clock = useCallback(() => video.current?.currentTime ?? 0, []);
+  const camRef = useRef<HTMLDivElement>(null);
   const layered = !!(data.layers?.person && data.layers?.scene && edit?.photo);
   const [bgL, setBgL] = useState<{ zoom: number; x: number; y: number }>({ zoom: 1, x: 0, y: 0, ...(data.episode.bg || {}) });
   const [pL, setPL] = useState<{ scale: number; x: number; y: number }>({ scale: 1, x: 0, y: 0, ...(data.episode.person || {}) });
@@ -1361,6 +1375,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                 // layers, put together live: the set photo, him (transparent video, carries the sound), subtitles
                 <div style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, transform: `scale(${scale})`, transformOrigin: '0 0', overflow: 'hidden' }}
                   onMouseDown={(e) => { if (e.target === e.currentTarget) { if (sel?.kind === 'text') setSel(null); else toggle(); } }}>
+                  <div ref={camRef} style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920 }}>
                   <img src={`${data.layers.scene.url}?v=${data.layers.scene.v}`} draggable={false} onMouseDown={(e) => dragLayer(e, 'bg')}
                     style={{ position: 'absolute', left: -bgBox.cx, top: -bgBox.cy, width: bgBox.sw, height: bgBox.sh, cursor: 'grab',
                       filter: 'blur(2.2px) brightness(0.96) saturate(0.95)' }} />
@@ -1385,6 +1400,8 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                   {L.person_raw && <video ref={rawVideo} key={'raw' + L.person_raw.v} src={`${L.person_raw.url}?v=${L.person_raw.v}`} muted
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
                       filter: look ? 'url(#zc-look)' : undefined }} />}
+                  </div>
+                  {data.episode.fx && <FilmFx fx={data.episode.fx} clock={clock} camRef={camRef} />}
                   {L.intro && t < introSecs && <video ref={introRef} key={'intro' + L.intro.v} src={`${L.intro.url}?v=${L.intro.v}`} muted playsInline
                     style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, objectFit: 'cover', pointerEvents: 'none',
                       opacity: introFade > 0 && t > introSecs - introFade ? Math.max(0, (introSecs - t) / introFade) : 1 }} />}
@@ -1710,7 +1727,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                       <button className="fx-x" title="Remove" onClick={() => changeFx(fx.filter((_: any, j: number) => j !== n))}>✕</button></div>
                     <div className="fx-ctl">
                       <select className="field" value={s.filter || ''} onChange={(e) => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, filter: e.target.value || undefined } : x)))}>
-                        <option value="">As recorded</option><option value="speaker">Laptop speaker</option><option value="phone">Phone</option><option value="thought">Thought (inner voice)</option><option value="echo">Thought + echo (dark)</option>
+                        <option value="">As recorded</option><option value="speaker">Laptop speaker</option><option value="phone">Phone</option><option value="thought">Thought (inner voice)</option><option value="echo">Thought + echo (dark)</option><option value="muffled">Muffled (not listening)</option>
                       </select>
                       <button className={`btn ${s.denoise ? 'primary' : ''}`} style={{ height: 28, padding: '0 8px' }} title="Noise reduction (RNNoise) on this recording"
                         onClick={() => changeFx(fx.map((x: any, j: number) => (j === n ? { ...x, denoise: !x.denoise || undefined } : x)))}>Clean</button>
@@ -1790,6 +1807,40 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
   );
 }
 
+// camera & film (episode.json "fx"), live: the same curve as the export (render/ui/fx.js) - the camera moves the set and
+// him, the light and grade filter them, the vignette / grain / flash lie on top of the picture and under the text
+function FilmFx({ fx, clock, camRef }: { fx: any; clock: () => number; camRef: React.RefObject<HTMLDivElement> }) {
+  const flash = useRef<HTMLDivElement>(null), black = useRef<HTMLDivElement>(null), grain = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    let raf = 0, f = 0;
+    const black_ = [...(fx.black || []), ...(fx.blackouts || []).filter((b: any) => b.at != null).map((b: any) => [b.at, 1e6])];
+    const step = () => {
+      const s = fxCss({ ...fx, black: black_ }, clock());
+      const cam = camRef.current;
+      if (cam) { cam.style.transformOrigin = s.transformOrigin; cam.style.transform = s.transform; cam.style.filter = s.filter; }
+      if (flash.current) flash.current.style.opacity = String(Math.min(1, s.flash));
+      if (black.current) black.current.style.opacity = String(s.black);
+      const c = grain.current;
+      if (c && fx.grain && (f++ % 2 === 0)) {  // fresh grain every other screen frame
+        const g = c.getContext('2d')!, img = g.createImageData(c.width, c.height);
+        for (let i = 0; i < img.data.length; i += 4) { const v = 128 + (Math.random() + Math.random() + Math.random() - 1.5) * 120; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+        g.putImageData(img, 0, 0);
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => { cancelAnimationFrame(raf); const cam = camRef.current; if (cam) { cam.style.transform = ''; cam.style.filter = ''; } };
+  }, [fx, clock]);
+  const v = fx.vignette || 0;
+  return <>
+    {v > 0 && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `radial-gradient(ellipse farthest-corner at center, rgba(0,0,0,0) 45%, rgba(0,0,0,${v}) 100%)` }} />}
+    {fx.grain > 0 && <canvas ref={grain} width={270} height={480} style={{ position: 'absolute', inset: 0, width: 1080, height: 1920, pointerEvents: 'none',
+      mixBlendMode: 'overlay', opacity: Math.min(1, fx.grain * 0.55) }} />}
+    <div ref={flash} style={{ position: 'absolute', inset: 0, background: '#fff', opacity: 0, pointerEvents: 'none' }} />
+    <div ref={black} style={{ position: 'absolute', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none' }} />
+  </>;
+}
+
 // the ticker strip, positioned from the video's time exactly as the export's ffmpeg formula does - moved on every
 // screen frame straight from the video clock (the 4-a-second time updates made it jump)
 // an animated thought, live: the same motion as the export (render/ui/thought_anim.js)
@@ -1805,8 +1856,8 @@ function ThoughtText({ o, clock }: { o: any; clock: () => number }) {
   if (o.start == null || o.end == null || t < o.start || t > o.end) return null;
   return (
     <div className="he" style={{ position: 'absolute', top: o.y ?? 1150, left: 60, right: 60, display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
-      alignItems: 'baseline', gap: '4px 20px', direction: 'rtl', fontFamily: fontCss('assistant'), ...THOUGHT_STYLE, transform: lineDrift(t, o.start, o.text), pointerEvents: 'none' }}>
-      {words.map((w, i) => { const s = wordState(i, words.length, t, o.start, o.end);
+      alignItems: 'baseline', gap: '4px 20px', direction: 'rtl', fontFamily: fontCss('assistant'), ...THOUGHT_STYLE, transform: lineDrift(t, o.start, o.text, o.motion), pointerEvents: 'none' }}>
+      {words.map((w, i) => { const s = wordState(i, words.length, t, o.start, o.end, o.motion);
         return <span key={i} style={{ display: 'inline-block', whiteSpace: 'nowrap', fontSize: w.size, marginTop: w.dy, opacity: s.opacity, filter: s.filter,
           transform: `rotate(${w.rot.toFixed(2)}deg) ${s.transform}` }}>{w.w}</span>; })}
     </div>

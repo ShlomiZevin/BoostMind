@@ -32,8 +32,8 @@ window.setup = (it) => {
 };
 window.at = (t) => {
   const box = document.getElementById('box');
-  box.style.transform = lineDrift(t, IT.start, IT.text);
-  [...box.children].forEach((s, i) => { const st = wordState(i, W.length, t, IT.start, IT.end);
+  box.style.transform = lineDrift(t, IT.start, IT.text, IT.motion);
+  [...box.children].forEach((s, i) => { const st = wordState(i, W.length, t, IT.start, IT.end, IT.motion);
     s.style.opacity = st.opacity; s.style.filter = st.filter; s.style.transform = 'rotate(' + W[i].rot.toFixed(2) + 'deg) ' + st.transform; });
 };
 </script></body></html>`;

@@ -913,7 +913,7 @@ def cap_y_of(ls, c):
     return (ls.cfg.get("captions_other") or {}).get("y", y - 150) if c.get("over") else y
 
 
-THOUGHT_V = 2  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
+THOUGHT_V = 3  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
 
 
 def text_layers(ls, caps):
@@ -926,12 +926,12 @@ def text_layers(ls, caps):
         o["png"] = ls.work("text", f"ov{i}.png")
         if o.get("style") == "thought":  # animated (render/ui/thought_anim.js): a transparent clip, made once per text and timing
             import hashlib
-            k = {f: o.get(f) for f in ("text", "y", "size", "start", "end")}
+            k = {f: o.get(f) for f in ("text", "y", "size", "start", "end", "motion")}
             o["anim"] = ls.work("text", "anim", hashlib.md5(json.dumps([THOUGHT_V, k], ensure_ascii=False).encode()).hexdigest()[:14] + ".mov")
             o["anim_y"] = max(0, round(float(o.get("y") or 1150) - 220))  # the clip's top (tools/thought_frames.mjs)
             if not os.path.exists(o["anim"]):
                 anims.append({"out": o["anim"], "text": o["text"], "y": float(o.get("y") or 1150), "size": o.get("size") or 70,
-                              "start": float(o["start"]), "end": float(o["end"])})
+                              "start": float(o["start"]), "end": float(o["end"]), "motion": o.get("motion")})
             continue
         spec["items"].append({"out": o["png"], "kind": "overlay", **{k: v for k, v in o.items() if k != "png"}})
     if anims:
@@ -1118,6 +1118,10 @@ SOUND_FILTERS = {
     "echo": ("highpass=f=90,lowpass=f=7500,equalizer=f=180:t=q:w=1:g=2.5,equalizer=f=2600:t=q:w=1.2:g=1.5,"
              "acompressor=threshold=-22dB:ratio=3:attack=5:release=80,"
              "aecho=0.8:0.72:70|150|260|410|620:0.32|0.24|0.17|0.11|0.07,loudnorm=I=-16:TP=-2:LRA=9"),
+    # someone talking to you while you are not listening: low, far, through cotton - no word comes through
+    "muffled": ("highpass=f=110,lowpass=f=420,lowpass=f=420,equalizer=f=250:t=q:w=1:g=3,"
+                "acompressor=threshold=-24dB:ratio=3:attack=10:release=120,aecho=0.8:0.55:45|95|170:0.3|0.2|0.12,"
+                "loudnorm=I=-20:TP=-3:LRA=11"),
     # a laptop's small speakers: no lows, a boxy mid bump, a little crunch, then his room around it
     "speaker": ("highpass=f=330,highpass=f=330,lowpass=f=7000,equalizer=f=1200:t=q:w=1.1:g=5,equalizer=f=3200:t=q:w=1.4:g=3,"
                 "equalizer=f=500:t=q:w=1:g=-3,acompressor=threshold=-22dB:ratio=5:attack=4:release=60,"
@@ -1366,6 +1370,116 @@ def fx_and_music(ls, items, total):
     return out[:n], music
 
 
+# ---- 6b. camera & film (episode.json "fx", render/ui/fx.js) -------------------------------------------
+def time_fx(ls, items, total):
+    """Hits and blackouts tied to a sound ({"sound": i, "offset": s}) get their moment from where that sound landed;
+    written back into episode.json so the editor shows them in place."""
+    fx = ls.cfg.get("fx")
+    if not fx:
+        return
+    pl = placed_sounds(ls, items)
+    changed = False
+    for h in fx.get("hits", []) + fx.get("blackouts", []):
+        if "sound" in h and h["sound"] in pl:
+            at = round(pl[h["sound"]][0] + float(h.get("offset", 0.0)), 3)
+            if h.get("at") != at:
+                h["at"], changed = at, True
+    if changed:
+        cfg = load_json(ls.p("episode.json"))
+        cfg["fx"] = fx
+        save_json(ls.p("episode.json"), cfg)
+
+
+def fx_spec(ls):
+    """The fx for render/ui/fx.js: blackouts ("from this moment on") become black ranges."""
+    fx = dict(ls.cfg.get("fx") or {})
+    fx["black"] = list(fx.get("black", [])) + [[b["at"], 1e6] for b in fx.get("blackouts", []) if b.get("at") is not None]
+    return fx
+
+
+def fx_curve(ls, frames):
+    spec = ls.work("fx", "curve_spec.json")
+    out = ls.work("fx", "curve.json")
+    save_json(spec, {"fx": fx_spec(ls), "frames": frames, "fps": FPS, "out": out})
+    r = subprocess.run(["node", os.path.join(ROOT, "tools", "fx_curve.mjs"), spec], capture_output=True, text=True, encoding="utf-8")
+    if r.returncode:
+        raise RuntimeError("fx curve: " + r.stderr[-800:])
+    return load_json(out)
+
+
+class FxFrame:
+    """The film look on one frame, exactly as the editor's CSS does it: transform around the centre, then
+    saturate -> contrast -> brightness x light, the vignette, the grain, the flash, black."""
+    def __init__(self, ls, w, h):
+        import cv2
+        self.cv2 = cv2
+        fx = ls.cfg.get("fx") or {}
+        self.w, self.h = w, h
+        self.cx, self.cy = [float(v) for v in fx.get("center", [0.5, 0.36])]
+        g = fx.get("grade") or {}
+        self.sat, self.con, self.bri = float(g.get("saturation", 1)), float(g.get("contrast", 1)), 1 + float(g.get("brightness", 0))
+        v = float(fx.get("vignette", 0))
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        r = np.sqrt(((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2) / np.sqrt(2)  # CSS ellipse, farthest-corner
+        self.vig = (1 - v * np.clip((r - 0.45) / 0.55, 0, 1))[..., None].astype(np.float32)  # = the editor's radial overlay
+        self.grain = float(fx.get("grain", 0))
+        rng = np.random.default_rng(3)
+        self.noise = [rng.standard_normal((h // 2, w // 2)).astype(np.float32) for _ in range(6)] if self.grain else []
+
+    def __call__(self, img, s, f):
+        cv2 = self.cv2
+        h, w = self.h, self.w
+        if abs(s["z"] - 1) > 1e-4 or abs(s["dx"]) > 0.01 or abs(s["dy"]) > 0.01 or abs(s["rot"]) > 1e-4:
+            ox, oy = self.cx * w, self.cy * h
+            sc = w / 1080  # the curve is in 1080-wide pixels
+            a = np.deg2rad(s["rot"])
+            m = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]]) * s["z"]
+            t = np.array([ox + s["dx"] * sc, oy + s["dy"] * sc]) - m @ np.array([ox, oy])
+            img = cv2.warpAffine(img, np.hstack([m, t[:, None]]).astype(np.float32), (w, h), flags=cv2.INTER_LINEAR,
+                                 borderMode=cv2.BORDER_REFLECT)
+        x = img.astype(np.float32) / 255
+        if self.sat != 1:  # CSS saturate(): the luminance matrix
+            L = x[..., 0] * 0.0722 + x[..., 1] * 0.7152 + x[..., 2] * 0.2126  # (BGR)
+            x = L[..., None] + (x - L[..., None]) * self.sat
+        if self.con != 1:
+            x = (x - 0.5) * self.con + 0.5
+        x *= self.bri * s["light"]
+        x *= self.vig
+        if self.grain:
+            n = cv2.resize(self.noise[f % len(self.noise)], (w, h), interpolation=cv2.INTER_LINEAR)
+            n = np.roll(n, (f * 37) % h, axis=0)
+            x += (n * (0.075 * self.grain))[..., None] * (0.35 + 0.65 * np.clip(x, 0, 1))  # finer and stronger in the light
+        if s["flash"] > 0.002:
+            x = x + (1 - x) * min(1.0, s["flash"])
+        if s["black"]:
+            x[:] = 0
+        return (np.clip(x, 0, 1) * 255).astype(np.uint8)
+
+
+def fx_pass(ls, src, dst, frames, w, h):
+    """The picture (set + person) through the camera and the film look, frame by frame."""
+    curve = fx_curve(ls, frames)
+    fxf = FxFrame(ls, w, h)
+    dec = subprocess.Popen([FFMPEG, "-v", "error", "-i", src, "-f", "rawvideo", "-pix_fmt", "bgr24", "-"], stdout=subprocess.PIPE)
+    enc = subprocess.Popen([FFMPEG, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{w}x{h}", "-r", str(FPS), "-i", "-",
+                            "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p", dst], stdin=subprocess.PIPE, cwd=ROOT)
+    size, f = w * h * 3, 0
+    while f < frames:
+        buf = dec.stdout.read(size)
+        if len(buf) < size:
+            break
+        enc.stdin.write(fxf(np.frombuffer(buf, np.uint8).reshape(h, w, 3), curve[min(f, len(curve) - 1)], f).tobytes())
+        f += 1
+        if f % 60 == 0:
+            log(f"Rendered {f}/{frames} (camera & film)")
+    enc.stdin.close()
+    enc.wait()
+    dec.stdout.close()
+    dec.wait()
+    return dst
+
+
+
 # ---- 6. assemble -----------------------------------------------------------------------------------
 def build(ls, still_at=None, preview=False):
     log(f"▶ {ls.slug} — {len(ls.takes)} takes")
@@ -1375,6 +1489,7 @@ def build(ls, still_at=None, preview=False):
         f"(raw {sum(len(read_wav(ls.work('audio16', name(t) + '.wav'))[0]) / 16000 for t in ls.takes):.1f}s)")
     sync_captions(ls)
     time_overlays(ls, items, total)
+    time_fx(ls, items, total)
     caps = captions(ls, items, total)
     # keep what the editor needs from the last preview (photo size, sounds) - a still or an export must not wipe it
     prev_edit = load_json(ls.work("edit.json"), {}) or {}
@@ -1537,8 +1652,24 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
           f"[2:v]scale={w}:{h}[b]" +
           "".join(f";[b][ob{k}]overlay=enable='between(t,{float(o.get('start') or 0):.3f},{float(o.get('end') or total / FPS):.3f})'[b]"
                   for k, o in enumerate(ovs) if o.get("behind")) +
-          f";[b][fg]overlay={x}:{y}:shortest=1:format=auto[s];"
-          f"[3:v]fps={FPS},scale={w}:{h},format=rgba[c];[s][c]overlay=eof_action=pass[v0]")
+          f";[b][fg]overlay={x}:{y}:shortest=1:format=auto[s]")
+    if ls.cfg.get("fx"):  # camera & film: the picture alone, through fx_pass (OpenCV), then the text on top of it
+        import cv2
+        pic, pic_fx = ls.work("fx", "picture.mp4"), ls.work("fx", "picture_fx.mp4")
+        if still_frame is not None:
+            ff(*inputs, "-filter_complex", fc + ";[s]format=yuv420p[pv]", "-map", "[pv]", "-ss", f"{still_frame / FPS:.3f}",
+               "-frames:v", "1", pic + ".png")
+            curve = fx_curve(ls, still_frame + 1)
+            cv2.imwrite(pic_fx + ".png", FxFrame(ls, w, h)(cv2.imread(pic + ".png"), curve[still_frame], still_frame))
+            inputs += ["-loop", "1", "-framerate", str(FPS), "-i", pic_fx + ".png"]
+        else:
+            log("  · picture (set + person)")
+            ff_progress(total, *inputs, "-filter_complex", fc + ";[s]format=yuv420p[pv]", "-map", "[pv]", "-frames:v", str(total),
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", pic)
+            fx_pass(ls, pic, pic_fx, total, w, h)
+            inputs += ["-i", pic_fx]
+        fc = f"[{sum(1 for a in inputs if a == '-i') - 1}:v]setpts=PTS-STARTPTS,format=yuv420p[s]"
+    fc += f";[3:v]fps={FPS},scale={w}:{h},format=rgba[c];[s][c]overlay=eof_action=pass[v0]"
     if ov_in is not None:
         fc += f";[{ov_in}:v]fps={FPS},scale={w}:{h},format=rgba[c2];[v0][c2]overlay=eof_action=pass[v0b]"
     last = "v0b" if ov_in is not None else "v0"

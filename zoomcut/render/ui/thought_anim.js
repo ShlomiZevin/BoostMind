@@ -23,8 +23,11 @@ export function thoughtWords(text, base = 70) {
   });
 }
 
-/** One word at time t (seconds of the video) of a thought shown from start to end. */
-export function wordState(i, n, t, start, end) {
+/** One word at time t (seconds of the video) of a thought shown from start to end.
+ *  motion "horror": the words slam in as he says them (a flicker, a scale-down, sharp), shiver while held, a glitch
+ *  frame now and then, and dissolve into the dark at the end. */
+export function wordState(i, n, t, start, end, motion) {
+  if (motion === 'horror') return horrorWord(i, n, t, start, end);
   const dur = Math.max(0.6, end - start);
   const spread = Math.min(0.55 * dur, 0.12 * n + 0.15);  // the words arrive over the first part of the thought
   const a = start + (n > 1 ? (i / (n - 1)) * spread : 0);
@@ -38,9 +41,33 @@ export function wordState(i, n, t, start, end) {
   };
 }
 
+function horrorWord(i, n, t, start, end) {
+  const dur = Math.max(0.6, end - start);
+  const spread = Math.min(0.72 * dur, 0.35 * n);  // with his voice: the words arrive about as he says them
+  const a = start + (n > 1 ? (i / (n - 1)) * spread : 0);
+  const k = (t - a) / 0.16;
+  if (k < 0) return { opacity: 0, transform: 'scale(1.35)', filter: 'blur(10px)' };
+  const e = ease(clamp(k));
+  const f = Math.floor(t * 30);
+  const flick = k < 1.6 && (f % 3 === 1) ? 0.35 : 1;  // two frames of flicker as it lands
+  const out = clamp((t - (end - 0.5)) / 0.5);
+  const glitch = rnd(f * 0.37 + i * 5.1) > 0.975 ? 1 : 0;
+  const jx = (rnd(Math.floor(t * 15) + i * 9.7) - 0.5) * 5 + glitch * 14, jy = (rnd(Math.floor(t * 15) * 1.3 + i * 4.1) - 0.5) * 4;
+  const blur = (1 - e) * 10 + out * 9;
+  return {
+    opacity: e * flick * (1 - out) * (glitch ? 0.6 : 1),
+    transform: `translate(${jx.toFixed(1)}px, ${(jy - out * 20).toFixed(1)}px) scale(${(1.35 - 0.35 * e + 0.1 * out).toFixed(3)})`,
+    filter: blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none',
+  };
+}
+
 /** Each thought in its own spot (a little left / right, higher / lower), floating up while it is heard. */
-export function lineDrift(t, start, text = '') {
+export function lineDrift(t, start, text = '', motion) {
   const n = String(text).length;
+  if (motion === 'horror') {  // closer to the middle, creeping toward us
+    const dx = (rnd(n * 1.7 + 4) - 0.5) * 90, dy = (rnd(n * 2.3 + 9) - 0.5) * 110;
+    return `translate(${dx.toFixed(1)}px, ${(dy - Math.max(0, t - start) * 5).toFixed(1)}px) scale(${(1 + Math.min(0.08, Math.max(0, t - start) * 0.016)).toFixed(4)})`;
+  }
   const dx = (rnd(n * 1.7 + 4) - 0.5) * 170, dy = (rnd(n * 2.3 + 9) - 0.5) * 190;
   return `translate(${dx.toFixed(1)}px, ${(dy - Math.max(0, t - start) * 9).toFixed(1)}px)`;
 }
