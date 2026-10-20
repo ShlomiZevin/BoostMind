@@ -95,6 +95,12 @@ for (const it of spec.items) {
         padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` });
       lb.textContent = it.label || 'שאלו אותי שאלה';
       q.textContent = it.text;
+      if (it.asker && it.variant !== 'tiktok') {  // who asked, above the question
+        const nm0 = document.createElement('div');
+        Object.assign(nm0.style, { fontWeight: '700', fontSize: `${Math.round(size * 0.8)}px`, color: '#8e8e8e', marginBottom: `${Math.round(size * 0.25)}px` });
+        nm0.textContent = `${it.asker} שואלת:`;
+        q.prepend(nm0);
+      }
       if (it.variant === 'tiktok') {
         // TikTok's reply-to-comment sticker: a white bubble, the asker's round avatar and name, the comment in black
         Object.assign(d.style, { background: '#ffffff', borderRadius: `${Math.round(size * 0.6)}px`, overflow: 'visible', textAlign: 'right',
@@ -106,7 +112,7 @@ for (const it of spec.items) {
         Object.assign(nm.style, { color: '#8a8b91', fontWeight: '500', fontSize: `${Math.round(size * 0.72)}px` });
         Object.assign(q2.style, { color: '#161823', fontWeight: '600', fontSize: `${size}px`, lineHeight: '1.32' });
         av.textContent = (it.user || 'ש').replace('@', '').slice(0, 1).toUpperCase();
-        nm.textContent = `השבה לתגובה של ${it.user || '@user'}`;
+        nm.textContent = `השבה לתגובה של ${it.asker || it.user || '@user'}`;
         q2.textContent = it.text;
         hd.append(av, nm);
         d.append(hd, q2);

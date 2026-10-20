@@ -1355,7 +1355,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     <div style={{ display: 'flex', alignItems: 'center', gap: Math.round(size * 0.35), marginBottom: Math.round(size * 0.35) }}>
                       <div style={{ width: Math.round(size * 1.5), height: Math.round(size * 1.5), borderRadius: '50%', flex: 'none', background: o.avatar_color || '#c58b6b', color: '#fff',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: Math.round(size * 0.75) }}>{(o.user || 'ש').replace('@', '').slice(0, 1).toUpperCase()}</div>
-                      <div style={{ color: '#8a8b91', fontWeight: 500, fontSize: Math.round(size * 0.72) }}>השבה לתגובה של {o.user || '@user'}</div>
+                      <div style={{ color: '#8a8b91', fontWeight: 500, fontSize: Math.round(size * 0.72) }}>השבה לתגובה של {o.asker || o.user || '@user'}</div>
                     </div>
                     <div style={{ color: '#161823', fontWeight: 600, fontSize: size, lineHeight: 1.32 }}>{o.text}</div>
                   </div>;
@@ -1366,7 +1366,9 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     <div style={{ background: o.accent || '#262626', color: '#fff', fontWeight: 600, fontSize: o.label_size || Math.round(size * 0.85),
                       padding: `${Math.round((o.label_size || Math.round(size * 0.85)) * 0.62)}px ${Math.round((o.label_size || Math.round(size * 0.85)) * 0.7)}px` }}>{o.label || 'שאלו אותי שאלה'}</div>
                     <div style={{ background: '#fff', color: '#262626', fontWeight: 500, fontSize: size, lineHeight: 1.32,
-                      padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` }}>{o.text}</div>
+                      padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` }}>
+                      {o.asker && <div style={{ fontWeight: 700, fontSize: Math.round(size * 0.8), color: '#8e8e8e', marginBottom: Math.round(size * 0.25) }}>{o.asker} שואלת:</div>}
+                      {o.text}</div>
                   </div>;
                 })())}
                 {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && (
