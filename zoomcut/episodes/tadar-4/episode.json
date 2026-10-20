@@ -16,7 +16,7 @@
     "brightness": 0.025,
     "contrast": 1.05
   },
-  "matte_engine": "hybrid",
+  "matte_engine": "fast",
   "matte_cut": 70,
   "person": {
     "scale": 1,
@@ -38,6 +38,18 @@
   },
   "overlays": [
     {
+      "text": "אף אחת:\nנשים רוחניות שמסבירות על היקום, תדרים, תודעות, קבלה ופיזיקה קוונטית, כשאפשר להבין כל מילה שהן אומרות אבל לא משפט אחד שלם.",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.45,
+      "y": 270,
+      "size": 42,
+      "start": 0,
+      "end": 10.8,
+      "until": "question"
+    },
+    {
       "style": "question",
       "text": "אני כבר שנתיים בתהליך של התעוררות רוחנית, עזבתי את העבודה, ניתקתי קשר עם המשפחה ואני מרגישה שהיקום לא מחזיר לי את האנרגיה שאני משקיעה. יכול להיות שאני בתדר גבוה מדי?",
       "label": "יש לכן שאלות? אני כאן",
@@ -46,16 +58,17 @@
         "שאלה ראשונה כותבת",
         "קודם כול תביני שתדר"
       ],
-      "y": 240,
+      "y": 208,
       "w": 820,
-      "size": 34,
-      "start": 10.76,
-      "end": 74.53,
+      "size": 31,
+      "start": 10.85,
+      "end": 74.62,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#b07a9e",
       "variant": "instagram",
-      "asker": "צופית"
+      "asker": "צופית",
+      "opacity": 1
     },
     {
       "style": "question",
@@ -65,11 +78,11 @@
         "לוטם שואלת אותי",
         "זו שאלה מאוד מאוד מדויקת"
       ],
-      "y": 240,
+      "y": 176,
       "w": 820,
       "size": 34,
-      "start": 74.63,
-      "end": 108.84,
+      "start": 74.72,
+      "end": 109.11,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#7a9eb0",
@@ -85,11 +98,11 @@
         "שיבולת אהובה",
         "וואו את נוגעת פה"
       ],
-      "y": 240,
+      "y": 180,
       "w": 820,
       "size": 34,
-      "start": 108.94,
-      "end": 148.6,
+      "start": 109.21,
+      "end": 143.33,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#c4a35a",
@@ -112,8 +125,8 @@
       "style": "image",
       "image": "../_assets/tadar/logo/logo_2_morningstar.png",
       "plain": true,
-      "x": 800,
-      "y": 272,
+      "x": 40,
+      "y": 938,
       "w": 230,
       "h": 230,
       "start": 0,
@@ -121,17 +134,17 @@
       "text": ""
     }
   ],
-  "speed": 1.05,
+  "speed": 1.1,
   "voice": {
     "denoise": true,
-    "lowcut": 120,
+    "lowcut": 70,
     "warmth": 3,
-    "box": -3,
-    "presence": 4,
-    "deess": 0.5,
-    "comp": 0.9,
-    "preset": "radio",
-    "boost": 0
+    "box": -1.5,
+    "presence": 1,
+    "deess": 0.3,
+    "comp": 0.4,
+    "preset": "warm",
+    "boost": -1.5
   },
   "cut": {
     "merge": 1.1,
@@ -139,10 +152,10 @@
     "pad_out": 0.45,
     "join": 0.06,
     "above_floor": 28,
-    "voice_above_floor": 38
-  },
-  "denoise": {
-    "rnn": "models/rnnoise/cb.rnnn"
+    "voice_above_floor": 38,
+    "end_at": {
+      "ayelete-1": 114.55
+    }
   },
   "done": false,
   "eye_contact": {
@@ -154,39 +167,5 @@
     "../_assets/tadar/logo/logo_1_lotus.png",
     "../_assets/tadar/logo/logo_2_morningstar.png",
     "../_assets/tadar/logo/logo_3_everything.png"
-  ],
-  "keep": {
-    "ayelete-1": {
-      "boxes": [
-        [
-          0.455,
-          0.395,
-          0.715,
-          0.56
-        ],
-        [
-          0.4,
-          0.56,
-          0.78,
-          1.0
-        ]
-      ]
-    },
-    "ayelete-2": {
-      "boxes": [
-        [
-          0.395,
-          0.395,
-          0.655,
-          0.56
-        ],
-        [
-          0.34,
-          0.56,
-          0.7,
-          1.0
-        ]
-      ]
-    }
-  }
+  ]
 }

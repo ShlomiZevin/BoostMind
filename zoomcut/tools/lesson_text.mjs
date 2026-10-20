@@ -55,7 +55,7 @@ for (const it of spec.items) {
       im.src = 'file:///' + it.image_abs;
       Object.assign(im.style, { position: 'absolute', left: `${it.x ?? 60}px`, top: `${it.y ?? 380}px`, width: `${it.w ?? 960}px`, height: `${it.h ?? 540}px`,
         objectFit: 'cover', boxSizing: 'border-box' },
-        it.plain ? { objectFit: 'contain' } : it.behind ? { borderRadius: '4px', filter: 'blur(1.2px) brightness(0.93) saturate(1.05)' }
+        it.plain ? { objectFit: 'contain', opacity: String(it.opacity ?? 1) } : it.behind ? { borderRadius: '4px', filter: 'blur(1.2px) brightness(0.93) saturate(1.05)' }
           : { border: '6px solid #fff', borderRadius: '14px', boxShadow: '0 12px 34px rgba(0,0,0,0.55)' });
       d.appendChild(im);
       if (it.tag) {
@@ -89,9 +89,12 @@ for (const it of spec.items) {
         boxShadow: '0 6px 18px rgba(0,0,0,0.18)', fontFamily: '"Segoe UI", "zc-assistant", "Segoe UI Emoji", sans-serif' });
       const lb = document.createElement('div'), q = document.createElement('div');
       const ls = it.label_size || Math.round(size * 0.85);
-      Object.assign(lb.style, { background: it.accent || '#262626', color: '#ffffff', fontWeight: '600', fontSize: `${ls}px`,
+      const op = it.opacity ?? 1, hex = (c, a) => { const n = parseInt(c.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+      Object.assign(lb.style, { background: hex(it.accent || '#262626', op), color: '#ffffff', fontWeight: '600', fontSize: `${ls}px`,
         padding: `${Math.round(ls * 0.62)}px ${Math.round(ls * 0.7)}px` });
-      Object.assign(q.style, { background: '#ffffff', color: '#262626', fontWeight: '500', fontSize: `${size}px`, lineHeight: '1.32',
+      if (op < 1) d.style.boxShadow = 'none';
+      Object.assign(q.style, { background: `rgba(255,255,255,${op})`, color: '#262626', fontWeight: '500', fontSize: `${size}px`, lineHeight: '1.32',
+        textShadow: op < 0.6 ? '0 0 6px rgba(255,255,255,0.9)' : '',
         padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` });
       lb.textContent = it.label || 'שאלו אותי שאלה';
       q.textContent = it.text;

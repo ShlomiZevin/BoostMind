@@ -298,3 +298,8 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
 - **A fixed object in front of him (a mic on its stand) that the cut-out loses:** episode.json "keep": {"<take>":
   {"boxes": [[x0, y0, x1, y1]]}} in fractions of the frame - that box stays from the real footage (tight around the
   object; a box only holds things in front of him). "stable": 0.9 keeps whatever the cut-out keeps in 90% of frames.
+- **Cut-out engine - check the body, not just the face:** on tadar-4 (black top + a mic in front) the hybrid/quality
+  engine (RVM) dropped the whole torso and the mic; MediaPipe "fast" kept everything. Before building a new set-up,
+  matte 4 s with both engines (lesson.matte on a clip) and look at the composite on green; pick by the body.
+- Two takes that overlap (he restarts a line in take 2): cut "end_at" on take 1 before the repeated words; overlays
+  tied to words search every take and only count words inside the cut.

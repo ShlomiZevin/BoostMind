@@ -1390,7 +1390,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                   // a story's picture in a framed box - the same look as the export (lesson_text.mjs)
                   <img key={i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false} onMouseDown={(e) => dragText(e, i)}
                     style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: o.plain ? 'contain' : 'cover',
-                      ...(o.plain ? {} : { border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)' }), boxSizing: 'border-box',
+                      ...(o.plain ? { opacity: o.opacity ?? 1 } : { border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)' }), boxSizing: 'border-box',
                       pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />))}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'band' && (() => {
                   // a news lower third: red tag (before "|"), deep-blue band (after it)
@@ -1424,9 +1424,10 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                     borderRadius: Math.round(size * 0.5), overflow: 'hidden', textAlign: 'center', direction: 'rtl', boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
                     fontFamily: `"Segoe UI", ${fontCss('assistant')}`, pointerEvents: 'auto', cursor: 'move',
                     outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>
-                    <div style={{ background: o.accent || '#262626', color: '#fff', fontWeight: 600, fontSize: o.label_size || Math.round(size * 0.85),
+                    <div style={{ background: hexA(o.accent || '#262626', o.opacity ?? 1), color: '#fff', fontWeight: 600, fontSize: o.label_size || Math.round(size * 0.85),
                       padding: `${Math.round((o.label_size || Math.round(size * 0.85)) * 0.62)}px ${Math.round((o.label_size || Math.round(size * 0.85)) * 0.7)}px` }}>{o.label || 'שאלו אותי שאלה'}</div>
-                    <div style={{ background: '#fff', color: '#262626', fontWeight: 500, fontSize: size, lineHeight: 1.32,
+                    <div style={{ background: `rgba(255,255,255,${o.opacity ?? 1})`, color: '#262626', fontWeight: 500, fontSize: size, lineHeight: 1.32,
+                      textShadow: (o.opacity ?? 1) < 0.6 ? '0 0 6px rgba(255,255,255,0.9)' : undefined,
                       padding: `${Math.round(size * 0.85)}px ${Math.round(size * 1.0)}px ${Math.round(size * 0.95)}px` }}>
                       {o.asker && <div style={{ fontWeight: 700, fontSize: Math.round(size * 0.8), color: '#8e8e8e', marginBottom: Math.round(size * 0.25) }}>{o.asker} שואלת:</div>}
                       {o.text}</div>
@@ -1472,6 +1473,7 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                       <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} /></button>)}
                   </div>
                   <Slider label="Size" v={o.w || 230} min={80} max={700} step={5} fmt={(v) => `${v}px`} onChange={(v) => set({ w: v, h: v }, false)} />
+                  <Slider label="Opacity" v={o.opacity ?? 1} min={0.1} max={1} step={0.05} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => set({ opacity: v }, false)} />
                   <div className="sec" style={{ marginTop: 4 }}>Place</div>
                   <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
                     {([['tl', 'Top left'], ['tr', 'Top right'], ['bl', 'Bottom left'], ['br', 'Bottom right']] as const).map(([k, nm]) => {
@@ -1845,6 +1847,8 @@ function NewVideo() {
     </div>
   );
 }
+
+const hexA = (c: string, a: number) => { const n = parseInt(c.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
 

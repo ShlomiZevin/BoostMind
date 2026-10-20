@@ -727,17 +727,21 @@ def time_overlays(ls, items, total):
         return
     after = {}
     for o in tied:
-        take = o.get("take") or name(ls.takes[0])
-        words = load_json(ls.work("words", take + ".json"), [])
-        hit = None  # "from_words" may list alternatives: the question read aloud, else the answer's first words
-        for ph in (o["from_words"] if isinstance(o["from_words"], list) else [o["from_words"]]):
-            hit = find_phrase(words, ph, after.get(take, 0.0))
+        hit = take = None  # "from_words" may list alternatives: the question read aloud, else the answer's first words;
+        for ph in (o["from_words"] if isinstance(o["from_words"], list) else [o["from_words"]]):  # in any take, inside the cut
+            for tk in ([o["take"]] if o.get("take") else [name(t) for t in ls.takes]):
+                words = load_json(ls.work("words", tk + ".json"), [])
+                h = find_phrase(words, ph, after.get(tk, 0.0))
+                if h and to_out(items, tk, h[0]) is not None and any(it["kind"] == "clip" and it["take"] == tk and it["a"] <= h[0] <= it["a"] + it["n"] / FPS for it in items):
+                    hit, take = h, tk
+                    break
             if hit:
                 break
         if not hit:
             log(f"  · overlay words not heard: {str(o['from_words'])[:60]}")
             continue
         after[take] = hit[0]
+        words = load_json(ls.work("words", take + ".json"), [])
         o["start"] = round(out_time(items, take, hit[0]) or 0.0, 2)
         if o.get("to_words"):
             end = find_phrase(words, o["to_words"], hit[0], last=True)
@@ -748,6 +752,11 @@ def time_overlays(ls, items, total):
     for o, nxt in zip(timed, timed[1:] + [None]):
         if o.get("end") is None:
             o["end"] = round(nxt["start"] - 0.1, 2) if nxt else round(total / FPS, 2)
+    for o in ov:  # "until": "question" - shown until the first of those appears (a hook until the first question)
+        if o.get("until"):
+            firsts = [x["start"] for x in ov if x.get("style") == o["until"] and x.get("start") is not None]
+            if firsts:
+                o["end"] = round(min(firsts) - 0.05, 2)
     p = ls.p("episode.json")  # the editor shows them where they now are
     cfg = load_json(p)
     cfg["overlays"] = ov
