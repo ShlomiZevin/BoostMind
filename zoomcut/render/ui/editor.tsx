@@ -1054,6 +1054,20 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
     setCaps(next); setTxtEdit(null);
     setJob(await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) }));
   };
+  // the project's own media (logos, pictures): add a file, put one on the video
+  const [media, setMedia] = useState<string[]>(data.episode.media || []);
+  useEffect(() => setMedia(data.episode.media || []), [ep]);
+  const addMedia = async (files: FileList | null) => {
+    for (const f of Array.from(files || [])) {
+      const r = await fetch(`/api/ep/${ep}/media?name=${encodeURIComponent(f.name)}`, { method: 'POST', body: f }).then((x) => x.json()).catch(() => null);
+      if (r?.media) setMedia(r.media);
+    }
+  };
+  const removeMedia = async (m: string) => { const r = await api(`/api/ep/${ep}/media/remove`, { path: m }); if (r?.media) setMedia(r.media); };
+  const putOnVideo = (m: string) => {  // a corner logo: drag it on the preview, size it in Text
+    const next = [...ov, { style: 'image', image: m, plain: true, x: 800, y: 300, w: 230, h: 230, start: 0, end: null, text: '' } as any];
+    changeOv(next); setSel({ kind: 'text', i: next.length - 1 });
+  };
   const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture' };
   const changeVoice = (patch: any) => { const v = { ...voice, ...patch }; setVoice(v); saveOpt({ voice: v }); };
 
@@ -1267,6 +1281,23 @@ function LessonView({ ep, data, top, busy, setJob }: { ep: string; data: any; to
                 </div>
                 {(data.episode.sounds || []).map((s: any, n: number) => <div key={n} className="m-row sm" onClick={() => setSel({ kind: 'layer', id: 'music' as Layer })}>
                   <div className="m-dot" /><div className="m-main"><div className="m-sub" style={{ color: 'var(--dim)' }}>{String(s.sound).split('/').pop()}{s.filter ? ` · ${s.filter}` : ''}</div></div></div>)}
+                <div className="m-sec">Logos &amp; pictures <span>{media.length}</span></div>
+                <div className="pm-grid">
+                  {media.map((m) => { const on = ov.some((o: any) => o.image === m);
+                    return <div key={m} className={`pm ${on ? 'on' : ''}`}>
+                      <a href={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} target="_blank" rel="noreferrer" title="Open it big">
+                        <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} loading="lazy" /></a>
+                      <div className="pm-name" title={m}>{m.split('/').pop()}</div>
+                      <div className="pm-act">
+                        <button className="add-chip" disabled={on} onClick={() => putOnVideo(m)}>{on ? 'On the video' : 'Put on video'}</button>
+                        <button className="fx-x" title="Take it off this project's list" onClick={() => removeMedia(m)}>✕</button>
+                      </div>
+                    </div>; })}
+                  <label className="pm pm-add" title="Add a logo or picture from your computer">
+                    <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addMedia(e.target.files); e.target.value = ''; }} />
+                    <span>+ Add file</span>
+                  </label>
+                </div>
                 <div className="m-sec">Library <span>{lib.sets.length} sets · {lib.effects.length} effects</span></div>
                 <div className="help" style={{ padding: '0 12px' }}>Everything made for earlier videos is here for this one: sets in Background, effects in Music &amp; sounds.</div>
               </div>)}

@@ -141,5 +141,10 @@
     "question bubbles: from_words find his questions/answers; drop the stand-in anchors (last item of each list)"
   ],
   "speaker_name": "איילת השחר",
-  "script": "spiritual-2"
+  "script": "spiritual-2",
+  "media": [
+    "../_assets/tadar/logo/logo_1_lotus.jpg",
+    "../_assets/tadar/logo/logo_2_morningstar.jpg",
+    "../_assets/tadar/logo/logo_3_everything.jpg"
+  ]
 }

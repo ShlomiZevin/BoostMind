@@ -75,19 +75,19 @@
     {
       "sound": "../_assets/gym/sfx_rack.mp3",
       "take": "יניב1",
-      "at": 16.0,
+      "at": 16,
       "gain": 0.45
     },
     {
       "sound": "../_assets/gym/sfx_drop.mp3",
       "take": "יניב1",
-      "at": 31.0,
+      "at": 31,
       "gain": 0.4
     },
     {
       "sound": "../_assets/gym/sfx_plates.mp3",
       "take": "יניב1",
-      "at": 52.0,
+      "at": 52,
       "gain": 0.4
     }
   ],
@@ -96,5 +96,6 @@
   ],
   "done": false,
   "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so",
-  "script": "gym"
+  "script": "gym",
+  "media": []
 }

@@ -292,3 +292,6 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
   from the script whenever the script is newer - only the on-camera speaker's lines, no notes / [directions] /
   on-screen questions, a skipped passage left out, a longer ad-lib as said. A line fixed in the editor stays until the
   script changes. "captions_from": "file" freezes captions.txt (finished videos, Gen Z thoughts).
+- **Project media (Media tab → Logos & pictures):** episode.json "media" lists the project's own files (logos,
+  pictures); "+ Add file" uploads into episodes/<id>/media/ (POST /api/ep/:id/media); "Put on video" adds a plain image
+  overlay (a corner logo, draggable). Anything generated for a project goes on its media list.

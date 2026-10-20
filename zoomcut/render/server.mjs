@@ -201,6 +201,27 @@ app.post('/api/new', (q, res) => {
   res.json({ ok: true, id });
 });
 
+// a project's own media (its logos, pictures): episode.json "media" lists them; a file added in the editor is saved
+// in episodes/<id>/media/ (raw body, name in ?name=)
+app.post('/api/ep/:id/media', express.raw({ type: '*/*', limit: '60mb' }), (q, res) => {
+  const d = epDir(q.params.id);
+  const name = path.basename(String(q.query.name || 'file')).replace(/[^\w.\-א-ת ]+/g, '_');
+  if (!/\.(png|jpe?g|webp|gif|mp3|wav|m4a|mp4|mov)$/i.test(name)) return res.status(400).json({ error: 'A picture, sound or video file' });
+  fs.mkdirSync(path.join(d, 'media'), { recursive: true });
+  fs.writeFileSync(path.join(d, 'media', name), q.body);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  cfg.media = [...new Set([...(cfg.media || []), `media/${name}`])];
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json({ ok: true, media: cfg.media });
+});
+app.post('/api/ep/:id/media/remove', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  cfg.media = (cfg.media || []).filter((m) => m !== q.body?.path);  // off the project's list (the file stays)
+  writeJson(path.join(d, 'episode.json'), cfg);
+  res.json({ ok: true, media: cfg.media });
+});
+
 // the library: every set picture and sound effect made so far (episodes/_assets), for any project
 const ASSETS = path.join(EPS, '_assets');
 let libCache = null;
