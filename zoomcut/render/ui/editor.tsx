@@ -1059,7 +1059,24 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   useEffect(() => { api('/api/library').then((l) => l && setLib(l)); }, []);
   const [fx, setFx] = useState<any[]>(data.episode.sounds || []);
   useEffect(() => setFx(data.episode.sounds || []), [ep]);
-  const changeFx = (next: any[]) => { setFx(next); setConfig({ sounds: next }, true, 900); };
+  const fxTimer = useRef<any>(null);
+  const [fxBusy, setFxBusy] = useState(false);
+  const changeFx = (next: any[], overlays?: any[]) => {  // sounds: saved, then only the sound layers are remade (seconds)
+    setFx(next);
+    clearTimeout(fxTimer.current);
+    fxTimer.current = setTimeout(async () => { setFxBusy(true); await api(`/api/ep/${ep}/sounds`, { sounds: next, overlays }); setFxBusy(false); reload?.(); }, 350);
+  };
+  const moveSound = (i: number, startOut: number) => {  // dragged on its lane: placed at that moment of the take
+    const at = takeAt(Math.max(0, startOut));
+    if (!at) return;
+    const { end_word, end_after, end_offset, start_word, start_after, start_offset, after_prev, at: _a, ...rest } = fx[i] || {};
+    changeFx(fx.map((s: any, j: number) => (j === i ? { ...rest, take: at.take, at: at.t } : s)));
+  };
+  const removeSound = (i: number) => {  // a thought bubble tied to a later sound keeps its own sound
+    const ovs = ov.filter((o: any) => o.sound !== i).map((o: any) => (o.sound != null && o.sound > i ? { ...o, sound: o.sound - 1 } : o));
+    if (ovs.length !== ov.length || ovs.some((o, j) => o !== ov[j])) setOv(ovs);
+    changeFx(fx.filter((_: any, j: number) => j !== i), ovs);
+  };
   const [addingFx, setAddingFx] = useState(false);
   const takeAt = (sec: number) => {  // a moment of the video -> the take and its own time (effects are pinned to the take)
     const f = sec * fps * k;
@@ -1076,6 +1093,12 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   };
   const keepFrac = (() => { const kp = data.episode.keep?.['*']; return kp ? Math.round((1 - (kp.below_frac ?? 1)) * 100) : 0; })();
   const [keepPct, setKeepPct] = useState(keepFrac);
+  const [cutout, setCutout] = useState<boolean>(data.episode.cutout !== false);  // live: the plain footage is drawn instead
+  const plainVideo = useRef<HTMLVideoElement>(null);
+  const needPlain = !cutout || keepPct > 0;
+  useEffect(() => {  // a project built before the plain copy existed: make it once (seconds), then show it
+    if (needPlain && !(data.layers as any)?.plain) api(`/api/ep/${ep}/plain`, {}).then((r: any) => r?.ok && reload?.());
+  }, [needPlain]);
   const noise = !voice.denoise ? 'off' : data.episode.denoise?.rnn ? 'strong' : 'standard';
   const setNoise = (m: string) => {
     changeVoice({ denoise: m !== 'off' });
@@ -1417,10 +1440,13 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                       filter: look ? 'url(#zc-look)' : undefined }}
                     onTimeUpdate={(e) => { const v = e.currentTarget;
                       if (total && v.currentTime >= total) { v.pause(); v.currentTime = total; }  // the video's end (End here) - nothing plays past it
-                      setT(v.currentTime); const r = rawVideo.current; if (r && Math.abs(r.currentTime - v.currentTime) > 0.1) r.currentTime = v.currentTime; }}
-                    onPlay={() => { setPlaying(true); graph(); applyAudio(); audioRef.current?.ctx?.resume(); syncAudio(true); rawVideo.current?.play().catch(() => {}); }}
-                    onPause={() => { setPlaying(false); syncAudio(false); rawVideo.current?.pause(); }}
-                    onSeeked={() => { syncAudio(); if (rawVideo.current && video.current) rawVideo.current.currentTime = video.current.currentTime; }} />
+                      setT(v.currentTime); for (const r of [rawVideo.current, plainVideo.current]) if (r && Math.abs(r.currentTime - v.currentTime) > 0.1) r.currentTime = v.currentTime; }}
+                    onPlay={() => { setPlaying(true); graph(); applyAudio(); audioRef.current?.ctx?.resume(); syncAudio(true); rawVideo.current?.play().catch(() => {}); plainVideo.current?.play().catch(() => {}); }}
+                    onPause={() => { setPlaying(false); syncAudio(false); rawVideo.current?.pause(); plainVideo.current?.pause(); }}
+                    onSeeked={() => { syncAudio(); for (const r of [rawVideo.current, plainVideo.current]) if (r && video.current) r.currentTime = video.current.currentTime; }} />
+                  {(L as any).plain && needPlain && <video ref={plainVideo} key={'plain' + (L as any).plain.v} src={`${(L as any).plain.url}?v=${(L as any).plain.v}`} muted playsInline
+                    style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', zIndex: 1,
+                      clipPath: cutout ? `inset(${100 - keepPct}% 0 0 0)` : undefined, filter: look ? 'url(#zc-look)' : undefined }} />}
                   {L.person_raw && <video ref={rawVideo} key={'raw' + L.person_raw.v} src={`${L.person_raw.url}?v=${L.person_raw.v}`} muted
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
                       filter: look ? 'url(#zc-look)' : undefined }} />}
@@ -1635,15 +1661,15 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                 <div className="help">Or drag yourself on the preview.</div>
               </div>
               <div className="card">
-                <div className="card-h"><div className="title grow">Background removal</div><span className="help" style={{ margin: 0 }}>rebuilds</span></div>
+                <div className="card-h"><div className="title grow">Background removal</div><span className="help" style={{ margin: 0 }}>live · Export uses the same</span></div>
                 <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                  <button className={data.episode.cutout !== false ? 'on' : ''} disabled={busy} onClick={() => setConfig({ cutout: null })}>Cut out · new set</button>
-                  <button className={data.episode.cutout === false ? 'on' : ''} disabled={busy} onClick={() => setConfig({ cutout: false })}>Keep original place</button>
+                  <button className={cutout ? 'on' : ''} onClick={() => { setCutout(true); setConfig({ cutout: null }, false); }}>Cut out · new set</button>
+                  <button className={!cutout ? 'on' : ''} onClick={() => { setCutout(false); setConfig({ cutout: false }, false); }}>Keep original place</button>
                 </div>
-                {data.episode.cutout !== false && <>
+                {cutout && <>
                   <Slider label="Keep desk" v={keepPct} min={0} max={45} step={1} fmt={(v) => (v ? `bottom ${v}%` : 'off')}
                     onChange={(v) => { setKeepPct(v); const kp = { ...(data.episode.keep || {}) }; if (v) kp['*'] = { below_frac: +(1 - v / 100).toFixed(3), objects: true }; else delete kp['*'];
-                      setConfig({ keep: Object.keys(kp).length ? kp : null }, true, 1200); }} />
+                      setConfig({ keep: Object.keys(kp).length ? kp : null }, false, 400); }} />
                   <div className="help">The bottom of your real footage (desk, keyboard, props) stays in front of the new set.</div>
                 </>}
               </div>
@@ -1687,13 +1713,15 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                     <button className={noise === 'standard' ? 'on' : ''} disabled={busy} onClick={() => setNoise('standard')}>Standard</button>
                     <button className={noise === 'strong' ? 'on' : ''} disabled={busy} title="RNNoise - takes out air conditioner / fan hum" onClick={() => setNoise('strong')}>Strong</button>
                   </div></div>
-                <Slider label="Boost" v={voice.boost ?? 0} min={-6} max={12} step={0.5} fmt={(v) => `${v > 0 ? '+' : ''}${v} dB`} onChange={(v) => changeVoice({ boost: v })} />
+                <Slider label="Boost" v={voice.boost ?? 0} min={-30} max={12} step={0.5} fmt={(v) => `${v > 0 ? '+' : ''}${v} dB`} onChange={(v) => changeVoice({ boost: v })} />
                 <Slider label="Low cut" v={voice.lowcut ?? 60} min={30} max={200} step={5} fmt={(v) => `${v} Hz`} onChange={(v) => changeVoice({ lowcut: v })} />
                 <Slider label="Warmth" v={voice.warmth ?? 0} min={-6} max={6} step={0.5} fmt={(v) => `${v > 0 ? '+' : ''}${v} dB`} onChange={(v) => changeVoice({ warmth: v })} />
                 <Slider label="Boxiness" v={voice.box ?? 0} min={-6} max={3} step={0.5} fmt={(v) => `${v > 0 ? '+' : ''}${v} dB`} onChange={(v) => changeVoice({ box: v })} />
                 <Slider label="Presence" v={voice.presence ?? 0} min={-3} max={8} step={0.5} fmt={(v) => `${v > 0 ? '+' : ''}${v} dB`} onChange={(v) => changeVoice({ presence: v })} />
                 <Slider label="Soft s's" v={voice.deess ?? 0} min={0} max={1} step={0.05} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => changeVoice({ deess: v })} />
                 <Slider label="Compression" v={voice.comp ?? 0} min={0} max={1} step={0.05} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => changeVoice({ comp: v })} />
+                <Slider label="Room" v={voice.room ?? 0} min={0} max={1} step={0.05} fmt={(v) => v ? `${Math.round(v * 100)}%` : 'off'} onChange={(v) => changeVoice({ room: v })} />
+                {(voice.room ?? 0) > 0 && <Slider label="Room size" v={voice.roomSize ?? 1.6} min={0.4} max={3} step={0.1} fmt={(v) => `${v.toFixed(1)} s`} onChange={(v) => changeVoice({ roomSize: v })} />}
               </div>}
             </>}
 
@@ -1835,7 +1863,8 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
         bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
         busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))}
         onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
-        onCut={async (op) => { const r = await api(`/api/ep/${ep}/cutop`, op); if (r?.live) reload?.(); else setJob(r); }} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)} />
+        onCut={async (op) => { const r = await api(`/api/ep/${ep}/cutop`, op); if (r?.live) reload?.(); else setJob(r); }} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)}
+        onSoundMove={moveSound} onSoundRemove={removeSound} fxBusy={fxBusy} />
     </div>
   );
 }
@@ -2014,11 +2043,41 @@ const hexA = (c: string, a: number) => { const n = parseInt(c.slice(1), 16); ret
 
 type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut, hasEnds }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
   layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number) => void; busy: boolean;
   onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void; hasEnds?: boolean;
+  onSoundMove?: (i: number, startOut: number) => void; onSoundRemove?: (i: number) => void; fxBusy?: boolean;
 }) {
+  // sounds: pick one (click), drag it to move it, Delete / ✕ to remove it
+  const [snd, setSnd] = useState<number | null>(null);
+  const [sndDrag, setSndDrag] = useState<{ i: number; dx: number } | null>(null);
+  const [sndMoved, setSndMoved] = useState<Record<number, number>>({});  // where a moved sound shows until its layer is remade
+  useEffect(() => setSndMoved({}), [edit?.sounds]);
+  const grabSound = (e: React.MouseEvent, i: number) => {
+    e.stopPropagation(); e.preventDefault();
+    setSnd(i);
+    const x0 = e.clientX; let dx = 0;
+    setSndDrag({ i, dx: 0 });
+    const mv = (m: MouseEvent) => { dx = m.clientX - x0; setSndDrag({ i, dx }); };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up); setSndDrag(null);
+      if (Math.abs(dx) < 3) return;
+      const s = edit.sounds[i], start = (sndMoved[i] ?? s.from / k) + dx / pps;
+      setSndMoved({ ...sndMoved, [i]: start });
+      onSoundMove?.(i, start);
+    };
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const tg = e.target as HTMLElement;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName) || tg.isContentEditable) return;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && snd != null) { e.preventDefault(); onSoundRemove?.(snd); setSnd(null); }
+    };
+    addEventListener('keydown', key);
+    return () => removeEventListener('keydown', key);
+  });
   // the cut tool: a piece picked on the Speaker lane; Split at the playhead (S), Delete the piece (Delete)
   const [piece, setPiece] = useState<number | null>(null);
   const atPlayhead = () => {
@@ -2198,9 +2257,12 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
             <div className={`lane ${layer === 'music' ? 'sel' : ''}`} onMouseDown={scrub}>
               <div className="cap" style={{ left: x(0), width: Math.max(10, total * pps - 2), background: 'transparent', border: '1px dashed var(--edge-2)', color: 'var(--dim)', cursor: 'pointer' }}
                 onMouseDown={(e) => e.stopPropagation()} onClick={() => onLayer('music')}>♪ {bgName.includes('music') ? 'music' : 'no music'}</div>
-              {(edit?.sounds || []).map((s: any, i: number) => (
-                <div key={i} className="cap" style={{ left: x(s.from / k), width: Math.max(4, ((s.to - s.from) / k) * pps - 2), background: 'var(--gold)', color: '#2a2000' }}
-                  title={s.name}>{s.name.includes('ring') ? '☎ ring' : s.name.includes('wife') ? 'the wife (phone)' : s.name}</div>))}
+              {(edit?.sounds || []).map((s: any, i: number) => { const st = (sndMoved[i] ?? s.from / k) + (sndDrag?.i === i ? sndDrag.dx / pps : 0);
+                return <div key={i} className={`cap snd ${snd === i ? 'on' : ''}`} style={{ left: x(st), width: Math.max(14, ((s.to - s.from) / k) * pps - 2), background: 'var(--gold)', color: '#2a2000', cursor: 'grab', opacity: fxBusy && sndMoved[i] != null ? 0.7 : 1 }}
+                  title={`${s.name} - drag to move it, click and press Delete to remove it`} onMouseDown={(e) => grabSound(e, i)}>
+                  {s.name.includes('ring') ? '☎ ring' : s.name.includes('wife') ? 'the wife (phone)' : s.name}
+                  {snd === i && <button className="snd-x" title="Remove this sound" onMouseDown={(e) => { e.stopPropagation(); onSoundRemove?.(i); setSnd(null); }}>✕</button>}
+                </div>; })}
             </div>
             <div className="playhead" style={{ left: x(t), height: 30 + (5 + (textOpen ? overlays.length : 0)) * TH }} />
           </div>

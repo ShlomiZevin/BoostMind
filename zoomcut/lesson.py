@@ -149,9 +149,9 @@ def prepare(ls):
         mk = matte_path(ls, n)
         if ls.cfg.get("cutout") is False:  # their own place stays: no cut-out needed
             continue
-        if not os.path.exists(mk) and ls.cfg.get("matte_engine") == "hybrid":
-            hybrid_matte(ls, t, n)
-            log(f"  · cut out {n} (hybrid: quality + the head kept)")
+        if not os.path.exists(mk) and ls.cfg.get("matte_engine") in ("hybrid", "body"):
+            hybrid_matte(ls, t, n, ls.cfg["matte_engine"])
+            log(f"  · cut out {n} ({'hybrid: quality + the head kept' if ls.cfg['matte_engine'] == 'hybrid' else 'body: quality head, fast below the chin'})")
         elif not os.path.exists(mk):
             matte(t, mk[:-4] + ".part.mkv", ls.cfg.get("matte_engine", "fast"))
             os.replace(mk[:-4] + ".part.mkv", mk)  # a stopped run never leaves a half cut-out that looks finished
@@ -266,9 +266,11 @@ def keep_png(ls, take):
     return out
 
 
-def hybrid_matte(ls, t, n):
+def hybrid_matte(ls, t, n, mode="hybrid"):
     """The quality cut-out everywhere, and around the head the fast one too: a white wig against a white wall
-    can make the quality model drop the whole head for a moment; the fast model knows a head is a head."""
+    can make the quality model drop the whole head for a moment; the fast model knows a head is a head.
+    mode "body" - the other way round: the quality one for the head and hair (clean edge, nothing of the room kept
+    above the wig), the fast one too below the chin, where the quality model drops hands and a phone held up."""
     q = ls.work("matte", n + ".quality.mkv")
     f = ls.work("matte", n + ".mkv")
     for path, engine in ((q, "quality"), (f, "fast")):
@@ -289,6 +291,11 @@ def hybrid_matte(ls, t, n):
             break
         mq = np.frombuffer(a, np.uint8).reshape(MATTE_H, MATTE_W).copy()
         box = boxes[k] if k < len(boxes) else None
+        if mode == "body":
+            mf = np.frombuffer(b, np.uint8).reshape(MATTE_H, MATTE_W)
+            chin = int(min(1, box[3] + 0.05 * (box[3] - box[1])) * MATTE_H) if box else int(0.45 * MATTE_H)
+            mq[chin:] = np.maximum(mq[chin:], mf[chin:])
+            box = None
         if box:  # the head: the face box, wide for the hair, high for a wig, down to the chin
             x0, y0, x1, y1 = box
             w, h = x1 - x0, y1 - y0
@@ -302,7 +309,7 @@ def hybrid_matte(ls, t, n):
     enc.wait()
     dq.wait()
     df.wait()
-    os.replace(out, ls.work("matte", n + ".hybrid.mkv"))
+    os.replace(out, ls.work("matte", n + f".{mode}.mkv"))
 
 
 def matte(src, out, engine="fast"):
@@ -1506,6 +1513,7 @@ def build(ls, still_at=None, preview=False):
         eyes = eye_cfg(ls) is not None
         person, mask = person_layer(ls, items, gaze=eyes)
         person_preview(ls, person, mask, "person.webm")
+        plain_preview(ls, person)
         if eyes:  # the original too: the editor's Eye contact switch flips between them live
             raw_p, raw_m = person_layer(ls, items, gaze=False)
             person_preview(ls, raw_p, raw_m, "person_raw.webm")
@@ -1538,6 +1546,29 @@ def eye_cfg(ls):
 def eye_on(ls):
     e = eye_cfg(ls)
     return bool(e) and e.get("on", True)
+
+
+def plain_preview(ls, person):
+    """His footage as it was filmed (no cut-out), for the editor: Keep desk shows its bottom band over the set and
+    Keep original place shows all of it - live, no rebuild (Export applies the real masks)."""
+    out = ls.work("public", "plain.mp4")
+    if os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(person):
+        return out
+    ff("-i", person, "-vf", "scale=540:960", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-an", out)
+    return out
+
+
+def build_stems(ls):
+    """Only the sound layers (a sound moved / removed in the editor): seconds, no picture work."""
+    items, total = plan(ls)
+    st = stems(ls, items, total)
+    import shutil
+    for k, path in st.items():
+        shutil.copyfile(path, ls.work("public", f"{k}.wav"))
+    e = load_json(ls.work("edit.json"), {}) or {}
+    e["sounds"] = getattr(ls, "placed", [])
+    save_json(ls.work("edit.json"), e)
+    log(f"✔ sounds ready ({len(e['sounds'])})")
 
 
 def person_preview(ls, person, mask, name="person.webm"):
@@ -1759,6 +1790,7 @@ if __name__ == "__main__":
     ap.add_argument("episode")
     ap.add_argument("--still", type=float)
     ap.add_argument("--preview", action="store_true", help="quick 540p copy for the editor instead of the final export")
+    ap.add_argument("--stems", action="store_true", help="only the sound layers (a sound moved / removed in the editor)")
     a = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
-    build(Lesson(a.episode), a.still, a.preview)
+    build_stems(Lesson(a.episode)) if a.stems else build(Lesson(a.episode), a.still, a.preview)

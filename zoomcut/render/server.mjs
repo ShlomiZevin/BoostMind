@@ -143,7 +143,7 @@ app.get('/api/ep/:id', (q, res) => {
     const layer = (f) => (fs.existsSync(w('public/' + f)) ? { url: `/media/${q.params.id}/${f}`, v: fs.statSync(w('public/' + f)).mtimeMs } : null);
     const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
-      layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), scene: layer('scene.png'), plaque: layer('plaque.png'),
+      layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), plain: layer('plain.mp4'), scene: layer('scene.png'), plaque: layer('plaque.png'),
         voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music'), intro: layer('intro.mp4') },
       preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
       previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
@@ -326,6 +326,29 @@ app.post('/api/ep/:id/media/remove', (q, res) => {
   cfg.media = (cfg.media || []).filter((m) => m !== q.body?.path);  // off the project's list (the file stays)
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json({ ok: true, media: cfg.media });
+});
+
+// sounds moved / removed in the editor: saved, then only the sound layers are made again (seconds) - no job, no picture work
+app.post('/api/ep/:id/sounds', (q, res) => {
+  const d = epDir(q.params.id);
+  const cfg = readJson(path.join(d, 'episode.json'));
+  cfg.sounds = Array.isArray(q.body?.sounds) ? q.body.sounds : [];
+  if (Array.isArray(q.body?.overlays)) cfg.overlays = q.body.overlays;  // (thought bubbles tied to a sound follow its index)
+  writeJson(path.join(d, 'episode.json'), cfg);
+  const p = spawn(PY, ['lesson.py', `episodes/${q.params.id}`, '--stems'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  let err = '';
+  p.stderr.on('data', (b) => (err += b));
+  p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, sounds: readJson(path.join(d, 'work', 'edit.json'), {}).sounds || [] }));
+});
+// the plain copy of his footage, made now if a project was built before it existed (from its cut person layer)
+app.post('/api/ep/:id/plain', (q, res) => {
+  const w = path.join(epDir(q.params.id), 'work');
+  const out = path.join(w, 'public', 'plain.mp4');
+  if (fs.existsSync(out)) return res.json({ ok: true });
+  const src = fs.readdirSync(w).filter((f) => /^person\..+\.mp4$/.test(f)).map((f) => path.join(w, f)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
+  if (!src) return res.json({ error: 'not built yet' });
+  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-i', src, '-vf', 'scale=540:960', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26', '-pix_fmt', 'yuv420p', '-an', out], { windowsHide: true });
+  p.on('close', (code) => res.json(code ? { error: 'ffmpeg' } : { ok: true }));
 });
 
 // the library: every set picture and sound effect made so far (episodes/_assets), for any project
