@@ -52,6 +52,8 @@ select option { background: var(--panel); color: var(--text); }
 .ln.mine .who { color: var(--c); font-size: calc(var(--fs) * 0.55); }
 .ln.mine .t { font-size: var(--fs); color: var(--text); font-weight: 700; line-height: 1.35; }
 .ln.cur { border-color: var(--accent); opacity: 1; }
+.ln.mark { box-shadow: inset 0 0 0 2px #ffd60a; opacity: 1; }
+.ln .flag { position: absolute; left: 10px; top: 8px; font-size: 13px; font-weight: 700; color: #1a1400; background: #ffd60a; border-radius: 4px; padding: 1px 8px; }
 .ln.cur.other .t { color: var(--text); }
 .ln.dir { padding: 6px 18px; }
 .ln.past { opacity: 0.28; }
@@ -104,6 +106,8 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <button class="btn play" id="play" title="Play / pause (Space)">▶ Play</button>
   <select id="cd" title="Countdown before it starts"><option value="0">⏱ No countdown</option><option value="3">⏱ 3 s</option><option value="5">⏱ 5 s</option><option value="10">⏱ 10 s</option></select>
   <button class="btn" id="restart" title="From the start: back to the first line and play">⏮</button>
+  <button class="btn" id="mark" title="Checkpoint: mark this line to start from (M) - again on the marked line clears it">⚑</button>
+  <button class="btn" id="tomark" title="Back to the checkpoint and play (B)" disabled>↩ ⚑</button>
   <label class="pace" title="Reading pace in words per minute">Pace <input type="range" id="pace" min="120" max="500" step="5"><input type="number" id="paceN" min="60" max="600" step="5" title="Type the pace (words per minute) - Enter to apply"><span class="unit">wpm</span></label>
   <button class="btn lock" id="lock" title="Keep this pace for this script">🔓 Lock</button>
   <button class="btn" id="cues" title="My lines + cues: only your lines, each with the line before it">Cues</button>
@@ -134,6 +138,7 @@ const PALETTE = ['#4a86e8', '#8a5cd6', '#45a86a', '#d9822b', '#c2507a', '#2bb3c0
 const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 const $ = (id) => document.getElementById(id);
 let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
+let mark = null;  // the checkpoint line (per script)
 let paces = {};  // a character's own pace (wpm) in this script - when you play, each line waits at its speaker's pace
 let fs = +(store.get('reader-fs') || 30);
 
@@ -177,6 +182,7 @@ function load(text, key) {
   cur = Math.min(saved.cur || 0, Math.max(0, lines.length - 1));
   locked = !!saved.locked;
   paces = saved.paces || {};
+  mark = Number.isInteger(saved.mark) && saved.mark < lines.length ? saved.mark : null;  // the checkpoint
   wpm = saved.locked && saved.wpm ? saved.wpm : (saved.wpm || +(store.get('reader-wpm') || DEFAULT_WPM));
   setPlay(false);
   showPace();
@@ -184,7 +190,7 @@ function load(text, key) {
 }
 
 const color = (who) => KNOWN[who] || PALETTE[chars.indexOf(who) % PALETTE.length];
-const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces })); if (!locked) store.set('reader-wpm', wpm); };
+const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces, mark })); if (!locked) store.set('reader-wpm', wpm); };
 const hash = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
 
 function render() {
@@ -225,18 +231,20 @@ function render() {
     const d = document.createElement('div');
     const mine = solo ? i === cur && !l.dir : !l.dir && me && l.who === me;
     const cls = solo ? (i < cur ? ' past' : i === cur ? ' mine' : ' other') : l.dir ? ' dir' : mine ? ' mine' : me ? ' other' : '';
-    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur ? ' cur' : '') + (cues && !mine && !solo ? ' cue' : '');
+    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur ? ' cur' : '') + (i === mark ? ' mark' : '') + (cues && !mine && !solo ? ' cue' : '');
     d.dataset.i = i;
     if (!l.dir) d.style.setProperty('--c', color(l.who));
     const cut = /[—–-]\s*$/.test(l.text);
     d.innerHTML = l.dir ? `<div class="t">[${esc(l.text)}]</div>`
       : `<div class="who">${esc(l.who)}</div><div class="t">${esc(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
-    d.insertAdjacentHTML('beforeend', '<div class="bar"></div>');
+    d.insertAdjacentHTML('beforeend', '<div class="bar"></div>' + (i === mark ? '<span class="flag">⚑ נקודת התחלה</span>' : ''));
     d.onclick = () => { if (!String(window.getSelection() || '').trim()) go(i); };  // selecting text to copy is not a jump
     d.ondblclick = (e) => { e.preventDefault(); editLine(i); };
     box.appendChild(d);
   });
   document.documentElement.style.setProperty('--fs', fs + 'px');
+  $('tomark').disabled = mark == null;
+  $('mark').classList.toggle('on', mark != null && mark === cur);
   $('cues').classList.toggle('on', cues);
   center();
   foot();
@@ -324,6 +332,8 @@ document.addEventListener('keydown', (e) => {
   if ($('dlg').open || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;  // typing: no shortcuts
   if ((e.key === 'e' || e.key === 'E' || e.key === 'ק') && lines[cur]) { e.preventDefault(); return editLine(cur); }
   if (/^[1-9]$/.test(e.key) && chars[+e.key - 1]) return pick(chars[+e.key - 1]);
+  if (e.code === 'KeyM') { e.preventDefault(); return setMark(); }
+  if (e.code === 'KeyB') { e.preventDefault(); return toMark(); }
   if (e.key === 'Enter') { e.preventDefault(); return toggle(); }
   if (e.code === 'Space') { e.preventDefault(); return toggle(); }  // Space = play (after the countdown) / pause; Home first = from the start
   if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); }
@@ -360,6 +370,11 @@ showPace();  // the number is there before any script is picked
 $('paceN').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); typedPace(); $('paceN').blur(); } if (e.key === 'Escape') { $('paceN').value = wpm; $('paceN').blur(); } };
 $('lock').onclick = () => { locked = !locked; save(); showPace(); };
 $('restart').onclick = () => { cancelCd(); setPlay(false); go(0); startWithCountdown(); };
+// ---- the checkpoint: a line to start again from when you stop ----
+function setMark() { mark = mark === cur ? null : cur; save(); render(); }
+function toMark() { if (mark == null) return; cancelCd(); setPlay(false); go(mark); startWithCountdown(); }
+$('mark').onclick = setMark;
+$('tomark').onclick = toMark;
 $('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('nm').value = ''; $('dlg').showModal(); };
 $('cancel').onclick = () => $('dlg').close();
 // Copy: the whole script as it is written (names, lines, notes) - or the lines as shown if there is no source text
