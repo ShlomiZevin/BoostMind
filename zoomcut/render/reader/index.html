@@ -97,7 +97,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
 <header class="hdr">
 <div class="top studio-top">
   <studio-nav app="reader"></studio-nav>
-  <select id="ep" title="Episode script" data-picker="project" data-label="Script"></select>
+  <select id="ep" title="Project" data-picker="project" data-label="Project"></select>
   <button class="btn" id="paste" title="Paste a script">Paste</button>
   <button class="btn" id="copy" title="Copy the whole script (names and lines, as written)">Copy</button>
   <div class="grow"></div>
@@ -112,7 +112,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
 </div>
 <div class="roles" id="roles"></div>
 </header>
-<div class="script" id="script"><div class="empty">Pick an episode or paste a script.</div></div>
+<div class="script" id="script"><div class="empty">Pick a project - its script shows here.</div></div>
 <div class="foot" id="foot"></div>
 <div class="count" id="count"><b id="countN"></b></div>
 
@@ -215,7 +215,7 @@ function render() {
     roles.appendChild(wrap);
   });
   const box = $('script');
-  if (!lines.length) { box.innerHTML = '<div class="empty">Pick an episode or paste a script.</div>'; foot(); return; }
+  if (!lines.length) { box.innerHTML = '<div class="empty">Pick a project - its script shows here.</div>'; foot(); return; }
   box.innerHTML = '';
   lines.forEach((l, i) => {
     if (cues && me) {  // only my lines, each with the line before it as the cue
@@ -374,6 +374,12 @@ $('copy').onclick = async () => {
 $('use').onclick = async () => {
   const t = $('txt').value, name = $('nm').value.trim();
   $('dlg').close();
+  const cur = $('ep').value;
+  if (cur && !cur.startsWith('script:')) {  // the current project's script (one project, every tool)
+    await fetch(`/api/ep/${encodeURIComponent(cur)}/script`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: t }) });
+    store.set('reader-src', cur); load(t, cur);
+    return;
+  }
   if (name) {  // keep it: it shows up in the project list from now on
     const r = await fetch('/api/scripts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, text: t }) });
     const { id } = await r.json();
@@ -391,9 +397,14 @@ $('ep').onchange = async () => {
   const id = $('ep').value;
   if (!id) return;
   store.set('reader-src', id);
+  if (!id.startsWith('script:')) store.set('zc-ep', id);  // the project for every tool
   const r = await fetch(id.startsWith('script:') ? `/api/scripts/${encodeURIComponent(id.slice(7))}` : `/api/ep/${id}/script`);
   load(r.ok ? await r.text() : '', id);
+  if (!r.ok) $('script').innerHTML = '<div class="empty">This project has no script yet - press Paste to add it.</div>';
 };
+addEventListener('storage', (e) => {  // a project picked in the editor or Karaoke: its script here
+  if (e.key === 'zc-ep' && e.newValue && e.newValue !== $('ep').value) { $('ep').value = e.newValue; $('ep').onchange(); }
+});
 
 // ---- edit a line: double-click it (or E for the current one), Enter saves, Esc cancels --------------------------
 function editLine(i) {
@@ -467,14 +478,14 @@ async function fillPicker() {  // episodes (their script.txt) and saved scripts 
   known = [...eps.filter((e) => !e.id.endsWith('-test')).map((e) => e.id), ...scripts.map((x) => 'script:' + x.id)];
   const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const day = (ms) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
-  $('ep').innerHTML = '<option value="">— script —</option>' +   // the same project menu as the video editor (studio/bar.js)
-    eps.filter((e) => !e.id.endsWith('-test')).map((e) => `<option value="${esc(e.id)}" data-sub="${esc(e.title)}" data-done="${e.done ? 1 : 0}" data-meta="${esc(e.template || '')} · ${day(e.created)}">${esc(e.id)}</option>`).join('') +
-    scripts.map((x) => `<option value="script:${esc(x.id)}" data-group="Saved scripts" data-icon="📄" data-meta="script">${esc(x.name)}</option>`).join('');
+  $('ep').innerHTML = '<option value="">—</option>' +   // the same projects as the video editor (studio/bar.js): one project, every tool
+    eps.filter((e) => !e.id.endsWith('-test')).map((e) => `<option value="${esc(e.id)}" data-sub="${esc(e.title)}" data-done="${e.done ? 1 : 0}" data-meta="${esc(e.template || '')} · ${day(e.created)}">${esc(e.id)}</option>`).join('');
 }
 (async () => {
   await fillPicker();
   const last = store.get('reader-src');
   if (last === 'pasted') { const t = store.get('reader-pasted') || ''; load(t, 'pasted:' + hash(t)); }
+  else if (store.get('zc-ep') && known.includes(store.get('zc-ep'))) { $('ep').value = store.get('zc-ep'); $('ep').onchange(); }  // the studio's project
   else if (last && known.includes(last)) { $('ep').value = last; $('ep').onchange(); }
 })();
 // the right arrow goes back in a right-to-left script, the left arrow goes forward (like turning pages)

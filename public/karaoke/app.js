@@ -102,7 +102,8 @@ $('file').onchange = async (e) => {
   closePanels();
   if (!(await loadSong(f, f.name))) return;
   store('songs', 'readwrite', (s) => s.put({ key: S.songKey, name: f.name, blob: f })).catch(() => {});
-  S.proj = { id: Date.now(), songKey: S.songKey, songName: f.name, created: Date.now(), settings: { sng: 80, guide: 100, guidePlay: false }, layers: [] };
+  S.proj = { id: Date.now(), songKey: S.songKey, songName: f.name, created: Date.now(), settings: { sng: 80, guide: 100, guidePlay: false }, layers: [],
+    studio: studioProject() || undefined };  // inside Sketch Studio: the project this song belongs to
   addLayer();
   openStudio();
   save();
@@ -872,15 +873,7 @@ async function listProjects() {
   const all = ((await store('projects', 'readonly', (s) => s.getAll()).catch(() => [])) || []).sort((a, b) => (b.updated || b.created) - (a.updated || a.created));
   const el = $('projects');
   // the studio's project menu (the same one as the video editor and the Reader) lists them too
-  const pk = $('kb-proj');
-  if (pk) {
-    const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    pk.innerHTML = '<option value="">—</option>' + all.map((p) => `<option value="${p.id}" data-del="1" data-sub="${p.layers.length} track${p.layers.length > 1 ? 's' : ''}"
-      data-meta="${new Date(p.updated || p.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}">${esc((p.songName || 'Song').replace(/\.[^.]+$/, ''))}</option>`).join('');
-    pk.value = S.proj ? String(S.proj.id) : '';
-    pk.onchange = () => { const rec = all.find((x) => String(x.id) === pk.value); if (rec && (!S.proj || S.proj.id !== rec.id)) openProject(rec); };
-    pk.onstudiodelete = null;
-  }
+  KB_ALL = all;
   if (!all.length) { el.innerHTML = '<div class="sub" style="padding:12px 0">No projects yet — choose a song to start one.</div>'; return; }
   el.innerHTML = all.map((p) => `<div class="proj"><div class="grow"><b>${(p.songName || '').replace(/\.[^.]+$/, '')}</b>
     <span class="sub">${new Date(p.updated || p.created).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })} · ${p.layers.length} track${p.layers.length > 1 ? 's' : ''}</span></div>
@@ -894,14 +887,36 @@ async function listProjects() {
   }));
 }
 $('open-projects').onclick = () => { listProjects(); openPanel('drawer-projects'); };
-$('kb-proj')?.addEventListener('studio-delete', async (e) => {  // the menu's ✕
-  if (!confirm('Delete this project and all its tracks?')) return;
-  const id = +e.detail.value;
-  await store('projects', 'readwrite', (s) => s.delete(id));
-  if (S.proj && S.proj.id === id) { S.proj = null; renderLanes(); showStyle(); updateSteps(); }
-  listProjects();
-});
-listProjects();  // fills the studio's project menu on load
+// ---------- one project for every tool (inside Sketch Studio) ----------
+// The top bar shows the studio's projects (the same menu as the video editor and the Reader); the song recording of
+// the picked project opens here - its latest one - and a new song recording belongs to it.
+let KB_ALL = [];
+function studioProject() { try { return location.port === '4747' ? localStorage.getItem('zc-ep') || '' : ''; } catch { return ''; } }
+async function followStudio(ep) {
+  if (!ep) return;
+  const pk = $('kb-proj');
+  if (pk) pk.value = ep;
+  if (S.proj && S.proj.studio === ep) return;
+  if (!KB_ALL.length) await listProjects();
+  const rec = KB_ALL.find((p) => p.studio === ep);  // newest first
+  if (rec) openProject(rec);
+  else if (S.proj && S.mode === 'idle') { S.proj = null; renderLanes(); showStyle(); updateSteps(); }
+}
+(async () => {
+  const pk = $('kb-proj');
+  if (!pk || location.port !== '4747') return;
+  const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const day = (ms) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
+  const eps = await fetch('/api/episodes').then((r) => r.json()).catch(() => []);
+  pk.innerHTML = '<option value="">—</option>' + eps.filter((e) => !e.test).map((e) => `<option value="${esc(e.id)}" data-sub="${esc(e.title)}"
+    data-done="${e.done ? 1 : 0}" data-meta="${esc(e.template || '')} · ${day(e.created)}">${esc(e.id)}</option>`).join('');
+  pk.onchange = () => { try { localStorage.setItem('zc-ep', pk.value); } catch {} followStudio(pk.value); };
+  pk.addEventListener('studio-done', (e) => fetch(`/api/ep/${encodeURIComponent(e.detail.value)}/done`, { method: 'POST',
+    headers: { 'content-type': 'application/json' }, body: JSON.stringify({ done: e.detail.done }) }));
+  addEventListener('storage', (e) => { if (e.key === 'zc-ep' && e.newValue) followStudio(e.newValue); });
+  await listProjects();
+  followStudio(studioProject());
+})();
 
 // ---------- keys ----------
 window.addEventListener('keydown', (e) => {

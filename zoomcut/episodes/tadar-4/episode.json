@@ -140,5 +140,6 @@
     "replace: input_dir/takes = his video; eye_contact = {\"on\": true} (NVIDIA)",
     "question bubbles: from_words find his questions/answers; drop the stand-in anchors (last item of each list)"
   ],
-  "speaker_name": "איילת השחר"
+  "speaker_name": "איילת השחר",
+  "script": "spiritual-2"
 }

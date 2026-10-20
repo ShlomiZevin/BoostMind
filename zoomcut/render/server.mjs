@@ -403,8 +403,14 @@ app.post('/api/scripts', (q, res) => {
   fs.writeFileSync(path.join(SCRIPTS, id + '.txt'), `# ${name}\n${String(q.body?.text || '')}`, 'utf8');
   res.json({ id });
 });
+// a project's script: the one it links to ("script": "<id>" -> scripts/<id>.txt) or its own script.txt
+function scriptFile(id) {
+  const d = epDir(id);
+  const cfg = readJson(path.join(d, 'episode.json'), {});
+  return cfg.script ? path.join(ROOT, 'scripts', `${cfg.script}.txt`) : path.join(d, 'script.txt');
+}
 app.get('/api/ep/:id/script', (q, res) => {
-  const f = path.join(epDir(q.params.id), 'script.txt');
+  const f = scriptFile(q.params.id);
   if (!fs.existsSync(f)) return res.status(404).end();
   res.type('text/plain; charset=utf-8').send(fs.readFileSync(f, 'utf8'));
 });
@@ -422,9 +428,8 @@ app.put('/api/scripts/:id', (q, res) => {
   res.json({ ok: true });
 });
 app.put('/api/ep/:id/script', (q, res) => {
-  const f = path.join(epDir(q.params.id), 'script.txt');
-  if (!fs.existsSync(f)) return res.status(404).end();
-  fs.copyFileSync(f, f + '.bak');  // the version before this edit, just in case
+  const f = scriptFile(q.params.id);  // (a project without one gets its own script.txt)
+  if (fs.existsSync(f)) fs.copyFileSync(f, f + '.bak');  // the version before this edit, just in case
   fs.writeFileSync(f, String(q.body?.text ?? ''), 'utf8');
   res.json({ ok: true });
 });

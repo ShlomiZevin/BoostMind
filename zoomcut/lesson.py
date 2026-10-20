@@ -497,6 +497,83 @@ def to_out(items, take, t):
 
 
 # ---- 3. captions -----------------------------------------------------------------------------------
+def script_path(ls):
+    """The project's script (episode.json "script": "<id>" -> scripts/<id>.txt) - the one the Reader shows."""
+    s = ls.cfg.get("script")
+    return os.path.join(ROOT, "scripts", f"{s}.txt") if s else None
+
+
+def script_tokens(ls):
+    """The words said on camera, from the script: no notes (#), no directions ([..] / (..)) or on-screen texts;
+    with several speakers, only the on-camera one's lines (the one with the most lines)."""
+    from collections import Counter
+    rows, last = [], None
+    raw_rows = [r.strip() for r in open(script_path(ls), encoding="utf-8").read().splitlines()]
+    pref = lambda r: re.match(r"^([^:：]{1,24})[:：]\s*(.*)$", r.replace("**", ""))
+    named = Counter(m.group(1).strip() for m in map(pref, raw_rows) if m and len(m.group(1).split()) <= 3)
+    for r in raw_rows:
+        if not r or r.startswith("#") or re.fullmatch(r"\[.*\]|\(.*\)", r):
+            continue
+        r = re.sub(r"\[[^\]]*\]|\([^)]*\)", " ", r)
+        m = pref(r)
+        who, text = None, r.replace("**", "")
+        if m and (named[m.group(1).strip()] >= 2 or r.startswith("**")):  # a speaker's name (seen more than once, or bold)
+            who, text = m.group(1).strip(), m.group(2)
+        who = who or last
+        last = who
+        rows.append((who, text))
+    speakers = Counter(w for w, _ in rows if w)
+    main = speakers.most_common(1)[0][0] if speakers else None
+    toks = []
+    for who, text in rows:
+        if main and who and who != main:
+            continue
+        toks += [t for t in re.sub(r'["“”]', "", text).split() if t.strip(".,!?:;-–—")]
+    return toks
+
+
+def script_blocks(ls):
+    """The script's words per take, matched to what he says: a passage he skipped is left out, a longer ad-lib
+    comes in as he said it; small words the recogniser misses stay."""
+    toks = script_tokens(ls)
+    heard = [(name(t), w) for t in ls.takes for w in load_json(ls.work("words", name(t) + ".json"), [])]
+    blocks = {name(t): [] for t in ls.takes}
+    if not heard:
+        return blocks
+    sm = difflib.SequenceMatcher(a=[norm(x) for x in toks], b=[norm(w["w"]) for _, w in heard], autojunk=False)
+    take_at = lambda j: heard[min(max(j, 0), len(heard) - 1)][0]
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal" or (tag == "replace" and i2 - i1 == j2 - j1):
+            for i, j in zip(range(i1, i2), range(j1, j2)):
+                blocks[take_at(j)].append(toks[i])
+        elif tag == "replace":  # wording close to the script: the script's words, in the take where they are said
+            blocks[take_at(j1)] += toks[i1:i2]
+        elif tag == "delete" and i2 - i1 <= 2:  # a word or two the recogniser dropped
+            blocks[take_at(j1 - 1)] += toks[i1:i2]
+        elif tag == "insert" and j2 - j1 >= 3:  # an ad-lib: what he said
+            for j in range(j1, j2):
+                blocks[take_at(j)].append(heard[j][1]["w"])
+    return blocks
+
+
+def sync_captions(ls):
+    """The script is the source of the subtitles: when it changed after captions.txt (or captions.txt has no
+    words), captions.txt is made again from it. A line fixed in the editor stays until the script changes again.
+    episode.json "captions_from": "file" keeps captions.txt as it is (finished videos)."""
+    sp = script_path(ls)
+    if not sp or not os.path.exists(sp) or ls.cfg.get("captions_from") == "file":
+        return
+    cp = ls.p("captions.txt")
+    has_words = os.path.exists(cp) and any(l.strip() and not l.startswith(("#", "==")) for l in open(cp, encoding="utf-8"))
+    if has_words and os.path.getmtime(cp) >= os.path.getmtime(sp):
+        return
+    blocks = script_blocks(ls)
+    with open(cp, "w", encoding="utf-8") as fh:
+        fh.write(f"# Subtitles from scripts/{ls.cfg['script']}.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes)\n")
+        for t in ls.takes:
+            fh.write(f"== {name(t)}\n{' '.join(blocks[name(t)])}\n")
+    log(f"  · subtitles from the script ({sum(len(b) for b in blocks.values())} words)")
+
 def captions(ls, items, total):
     blocks, cur = {}, None
     for line in open(ls.p("captions.txt"), encoding="utf-8"):
@@ -1152,6 +1229,7 @@ def build(ls, still_at=None, preview=False):
     items, total = plan(ls)
     log(f"  · cut: {sum(1 for i in items if i['kind'] == 'clip')} pieces, {total / FPS:.1f}s "
         f"(raw {sum(len(read_wav(ls.work('audio16', name(t) + '.wav'))[0]) / 16000 for t in ls.takes):.1f}s)")
+    sync_captions(ls)
     time_overlays(ls, items, total)
     caps = captions(ls, items, total)
     # keep what the editor needs from the last preview (photo size, sounds) - a still or an export must not wipe it

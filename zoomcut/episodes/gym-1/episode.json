@@ -95,5 +95,6 @@
     "replace: input_dir/takes = his video; place beep after בהכול and the 3 gym sfx in his pauses / under lines (they are at stand-in times now)"
   ],
   "done": false,
-  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so"
+  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so",
+  "script": "gym"
 }

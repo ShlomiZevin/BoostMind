@@ -80,5 +80,7 @@
   "cut": {
     "silence": false
   },
-  "done": true
+  "done": true,
+  "script": "echar-תודעה-גבוהה",
+  "captions_from": "file"
 }

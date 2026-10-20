@@ -108,6 +108,11 @@ function Editor() {
   useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep)) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
   const load = useCallback(async () => { if (!ep) return; const d: Data = await api(`/api/ep/${ep}`); setData(d); setJob(d.job); }, [ep]);
   useEffect(() => { if (ep) { store.set('zc-ep', ep); setData(null); setSel(null); setUndo([]); setRedo([]); load(); } }, [ep]);
+  useEffect(() => {  // one project for every tool: picked in the Reader or Karaoke -> opened here too
+    const on = (e: StorageEvent) => { if (e.key === 'zc-ep' && e.newValue) setEp(e.newValue); };
+    addEventListener('storage', on);
+    return () => removeEventListener('storage', on);
+  }, []);
   useEffect(() => {
     if (!job?.running) return;
     const t = setInterval(async () => { const j: Job = await api(`/api/ep/${ep}/job`); setJob(j); if (!j.running) { clearInterval(t); load(); if (!j.code && j.send?.length) followSends(j.send); } }, 700);

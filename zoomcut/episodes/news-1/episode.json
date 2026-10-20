@@ -245,5 +245,7 @@
     "brightness": 0.04,
     "saturation": 1.08
   },
-  "done": true
+  "done": true,
+  "script": "חדשות-מעודכן",
+  "captions_from": "file"
 }

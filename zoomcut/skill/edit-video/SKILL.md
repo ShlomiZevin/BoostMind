@@ -284,3 +284,11 @@ button (POST /api/ep/:id/config with a whitelisted key, or the overlay "+ Add" c
 - **Editor look (his note):** flat panels - sections divided by hairlines, no rounded boxes, no tray behind option
   buttons, square-ish corners (4px). Keep new panels in that style. "+ New video" tab (left pane) creates a project:
   template, footage folder from Downloads, optional settings from an earlier project (POST /api/new) - prefer it to the CLI.
+- **One project, every tool (his rule, 2026-10-20):** the project is the same in the video editor, the Reader and
+  Karaoke - pick it in any tool and the others follow (localStorage "zc-ep" + storage events; studio/bar.js
+  StudioProject). The Reader shows the project's script (episode.json "script": "<id>" -> scripts/<id>.txt, or the
+  Zoom project's own script.txt); Paste saves into it. Karaoke opens the project's latest song recording.
+- **Subtitles come from the project's script** (he keeps updating it): lesson.py sync_captions remakes captions.txt
+  from the script whenever the script is newer - only the on-camera speaker's lines, no notes / [directions] /
+  on-screen questions, a skipped passage left out, a longer ad-lib as said. A line fixed in the editor stays until the
+  script changes. "captions_from": "file" freezes captions.txt (finished videos, Gen Z thoughts).
