@@ -219,9 +219,9 @@
   document.documentElement.classList.add('in-studio');
   // one project for every tool: the editor, the Reader and Karaoke all show the project picked in any of them
   window.StudioProject = {
-    get: () => { try { return localStorage.getItem('zc-ep') || ''; } catch { return ''; } },
-    set: (id) => { try { localStorage.setItem('zc-ep', id); } catch {} },
-    onChange: (fn) => addEventListener('storage', (e) => { if (e.key === 'zc-ep' && e.newValue) fn(e.newValue); }),
+    get: () => { try { return sessionStorage.getItem('zc-ep') || localStorage.getItem('zc-ep') || ''; } catch { return ''; } },
+    set: (id) => { try { sessionStorage.setItem('zc-ep', id); localStorage.setItem('zc-ep', id); } catch {} },
+    onChange: (fn) => addEventListener('storage', (e) => { if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage) fn(e.newValue); }),
   };  // a tool can hide its own project button inside the studio
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   addEventListener('DOMContentLoaded', scan);

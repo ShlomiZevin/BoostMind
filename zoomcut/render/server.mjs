@@ -32,6 +32,13 @@ const writeJson = (p, v) => fs.writeFileSync(p, JSON.stringify(v, null, 2), 'utf
 // its log and exit code live in episodes/<id>/work/job.log + job.json, so a page refresh or a server restart never
 // loses it - the server attaches to it again on start, and sends the export where it was asked to when it finishes.
 const jobs = {};
+// the export is older than the project's latest change (settings, subtitles, the edit) - the editor asks before sending it
+const exportStale = (id) => {
+  const out = path.join(EPS, id, 'out', `${id}.mp4`);
+  if (!fs.existsSync(out)) return false;
+  const t = fs.statSync(out).mtimeMs;
+  return ['episode.json', 'captions.txt', 'work/edit.json'].some((f) => { try { return fs.statSync(path.join(EPS, id, f)).mtimeMs > t + 2000; } catch { return false; } });
+};
 // an export file the editor offers (Open MP4 / Email / Telegram): there, and not one being written or a failed one
 const exportDone = (id) => {
   if (!fs.existsSync(path.join(EPS, id, 'out', `${id}.mp4`))) return false;
@@ -142,7 +149,7 @@ app.get('/api/ep/:id', (q, res) => {
       previewVersion: fs.existsSync(prev) ? fs.statSync(prev).mtimeMs : null,
       episode, lesson: { captions: fs.existsSync(path.join(d, 'captions.txt')) ? fs.readFileSync(path.join(d, 'captions.txt'), 'utf8') : '', edit: readJson(w('edit.json')) },
       state: null, edit: null, footage: null, corrections: { lines: {} },
-      output: exportDone(q.params.id) ? `/media/${q.params.id}/out` : null,
+      output: exportDone(q.params.id) ? `/media/${q.params.id}/out` : null, outputStale: exportStale(q.params.id),
       outputVersion: fs.existsSync(out) ? fs.statSync(out).mtimeMs : null,
       job: pub(jobs[q.params.id]),
     });
@@ -154,7 +161,7 @@ app.get('/api/ep/:id', (q, res) => {
     edit: readJson(w('edit.json')),
     footage: readJson(w('footage.json')),
     audioVersion: fs.existsSync(dialogue) ? fs.statSync(dialogue).mtimeMs : null,
-    output: exportDone(q.params.id) ? `/media/${q.params.id}/out` : null,
+    output: exportDone(q.params.id) ? `/media/${q.params.id}/out` : null, outputStale: exportStale(q.params.id),
     job: pub(jobs[q.params.id]),
   });
 });
@@ -182,6 +189,29 @@ app.post('/api/ep/:id/cutop', (q, res) => {
   else if (op === 'remove' && Number.isFinite(+a) && Number.isFinite(+b)) (cfg.cut.removes = cfg.cut.removes || {})[take] = [...((cfg.cut.removes || {})[take] || []), [+(+a).toFixed(3), +(+b).toFixed(3)]];
   else if ((op === 'start' || op === 'end') && Number.isFinite(+t)) cfg.cut[`video_${op}`] = { take, t: +(+t).toFixed(3) };
   else if (op === 'clear-ends') { delete cfg.cut.video_start; delete cfg.cut.video_end; }
+  // the end of the video is only a stop point: shorten the edit in place, no rebuild (Export applies the same end)
+  const ef = path.join(d, 'work', 'edit.json'), full = path.join(d, 'work', 'edit.full.json');
+  if (op === 'end' && fs.existsSync(ef)) {
+    const e = readJson(ef);
+    if (!fs.existsSync(full)) fs.copyFileSync(ef, full);
+    const src = readJson(full);
+    const it = (src.items || []).find((x) => x.kind === 'clip' && x.take === take && x.a <= +t && +t <= x.a + (x.an ?? x.n) / 30 + 0.02);
+    if (it) {
+      const endF = Math.round(it.out + (+t - it.a) * 30);
+      Object.assign(e, src, { total: endF,
+        items: src.items.filter((x) => x.out < endF).map((x) => (x.out + x.n > endF ? { ...x, n: endF - x.out } : x)),
+        captions: (src.captions || []).filter((c) => c.from < endF).map((c) => ({ ...c, to: Math.min(c.to, endF) })) });
+      writeJson(ef, e);
+      writeJson(path.join(d, 'episode.json'), cfg);
+      return res.json({ ok: true, live: true });
+    }
+  }
+  if (op === 'clear-ends' && fs.existsSync(full) && !cfg.cut.video_start) {
+    fs.copyFileSync(full, ef);
+    fs.rmSync(full);
+    writeJson(path.join(d, 'episode.json'), cfg);
+    return res.json({ ok: true, live: true });
+  }
   else if (op === 'restore') { if (cfg.cut.removes) delete cfg.cut.removes[take]; if (cfg.cut.splits) delete cfg.cut.splits[take]; }
   else return res.status(400).json({ error: 'op' });
   writeJson(path.join(d, 'episode.json'), cfg);
@@ -205,7 +235,7 @@ app.post('/api/ep/:id/trim', (q, res) => {
 });
 
 // the editor's tool buttons: change a project setting, rebuild the layers when the picture or sound depends on it
-const CONFIG_KEYS = ['cutout', 'keep', 'denoise', 'cut', 'background', 'sounds', 'eye_contact', 'captions_style', 'voice'];
+const CONFIG_KEYS = ['cutout', 'keep', 'denoise', 'cut', 'background', 'sounds', 'eye_contact', 'captions_style', 'voice', 'fx'];
 app.post('/api/ep/:id/config', (q, res) => {
   const d = epDir(q.params.id);
   const cfg = readJson(path.join(d, 'episode.json'));

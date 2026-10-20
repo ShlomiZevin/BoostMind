@@ -143,6 +143,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
 // your place. Keys: 1-9 pick the character · Space/↓ next line · ↑ back · → your next line · ← your previous line.
 const KNOWN = { 'אמיר': '#4a86e8', 'עופר': '#8a5cd6', 'דניאל': '#45a86a' };
 const PALETTE = ['#4a86e8', '#8a5cd6', '#45a86a', '#d9822b', '#c2507a', '#2bb3c0', '#b8b23a'];
+const tabEp = () => { try { return sessionStorage.getItem('zc-ep') || localStorage.getItem('zc-ep') || ''; } catch { return ''; } };
 const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 const $ = (id) => document.getElementById(id);
 let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
@@ -425,13 +426,13 @@ $('ep').onchange = async () => {
   const id = $('ep').value;
   if (!id) return;
   store.set('reader-src', id);
-  if (!id.startsWith('script:')) store.set('zc-ep', id);  // the project for every tool
+  if (!id.startsWith('script:')) { try { sessionStorage.setItem('zc-ep', id); localStorage.setItem('zc-ep', id); } catch {} }  // this tab's project, for its tools
   const r = await fetch(id.startsWith('script:') ? `/api/scripts/${encodeURIComponent(id.slice(7))}` : `/api/ep/${id}/script`);
   load(r.ok ? await r.text() : '', id);
   if (!r.ok) $('script').innerHTML = '<div class="empty">This project has no script yet - press Paste to add it.</div>';
 };
 addEventListener('storage', (e) => {  // a project picked in the editor or Karaoke: its script here
-  if (e.key === 'zc-ep' && e.newValue && e.newValue !== $('ep').value) { $('ep').value = e.newValue; $('ep').onchange(); }
+  if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage && e.newValue !== $('ep').value) { $('ep').value = e.newValue; $('ep').onchange(); }
 });
 
 // ---- edit a line: double-click it (or E for the current one), Enter saves, Esc cancels --------------------------
@@ -513,7 +514,7 @@ async function fillPicker() {  // episodes (their script.txt) and saved scripts 
   await fillPicker();
   const last = store.get('reader-src');
   if (last === 'pasted') { const t = store.get('reader-pasted') || ''; load(t, 'pasted:' + hash(t)); }
-  else if (store.get('zc-ep') && known.includes(store.get('zc-ep'))) { $('ep').value = store.get('zc-ep'); $('ep').onchange(); }  // the studio's project
+  else if (tabEp() && known.includes(tabEp())) { $('ep').value = tabEp(); $('ep').onchange(); }  // this tab's project
   else if (last && known.includes(last)) { $('ep').value = last; $('ep').onchange(); }
 })();
 // the right arrow goes back in a right-to-left script, the left arrow goes forward (like turning pages)

@@ -1519,6 +1519,8 @@ def build(ls, still_at=None, preview=False):
                "-pix_fmt", "yuv420p", ls.work("public", "intro.mp4"))
         import cv2
         ph_, pw_ = cv2.imread(ls.asset(ls.cfg["background"])).shape[:2]
+        if os.path.exists(ls.work("edit.full.json")):  # (End here keeps the full edit beside the shortened one)
+            os.remove(ls.work("edit.full.json"))
         save_json(ls.work("edit.json"), {"items": items, "total": total, "captions": caps, "speed": 1.0, "photo": [pw_, ph_],
                                          "sounds": getattr(ls, "placed", [])})
         log(f"✔ layers ready ({total / FPS:.1f}s) — the editor puts them together live")

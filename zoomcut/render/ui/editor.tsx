@@ -51,6 +51,11 @@ const STATUS: Record<string, string> = { ok: 'Matched', check: 'Check', missing:
 const DOT: Record<string, string> = { ok: 'var(--ok)', check: 'var(--warn)', missing: 'var(--bad)', skipped: 'var(--faint)' };
 const f2 = (t?: number | null) => (t == null ? '' : t.toFixed(2));
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+// the project of this browser tab: shared by its tools (editor, Reader, Karaoke), not by other tabs
+const tabProject = {
+  get: () => { try { return sessionStorage.getItem('zc-ep') || localStorage.getItem('zc-ep') || ''; } catch { return ''; } },
+  set: (id: string) => { try { sessionStorage.setItem('zc-ep', id); localStorage.setItem('zc-ep', id); } catch {} },
+};
 const store = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} } };
 const clean = (f: any) => Object.fromEntries(Object.entries(f || {}).filter(([, v]) => v !== undefined && v !== null && v !== ''));
 
@@ -82,6 +87,7 @@ const I = {
 function Editor() {
   const [eps, setEps] = useState<Proj[]>([]);
   const [expOpen, setExpOpen] = useState(false);
+  const [stalePick, setStalePick] = useState<'email' | 'telegram' | null>(null);
   const setDone = async (id: string, done: boolean) => {
     setEps((l) => l.map((e) => (e.id === id ? { ...e, done } : e)));
     await api(`/api/ep/${id}/done`, { done });
@@ -93,7 +99,7 @@ function Editor() {
     el.addEventListener('studio-done', on);
     return () => el.removeEventListener('studio-done', on);
   });
-  const [ep, setEp] = useState(store.get('zc-ep') || '');
+  const [ep, setEp] = useState(tabProject.get());  // this tab's project (another tab can hold another video)
   const [data, setData] = useState<Data | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [sel, setSel] = useState<Sel>(null);
@@ -109,9 +115,9 @@ function Editor() {
 
   useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep)) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
   const load = useCallback(async () => { if (!ep) return; const d: Data = await api(`/api/ep/${ep}`); setData(d); setJob(d.job); }, [ep]);
-  useEffect(() => { if (ep) { store.set('zc-ep', ep); setData(null); setSel(null); setUndo([]); setRedo([]); load(); } }, [ep]);
+  useEffect(() => { if (ep) { tabProject.set(ep); setData(null); setSel(null); setUndo([]); setRedo([]); load(); } }, [ep]);
   useEffect(() => {  // one project for every tool: picked in the Reader or Karaoke -> opened here too
-    const on = (e: StorageEvent) => { if (e.key === 'zc-ep' && e.newValue) setEp(e.newValue); };
+    const on = (e: StorageEvent) => { if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage) setEp(e.newValue); };  // this tab's tools only
     addEventListener('storage', on);
     return () => removeEventListener('storage', on);
   }, []);
@@ -239,6 +245,7 @@ function Editor() {
 
   // ---- share the exported video ----
   const [share, setShare] = useState<{ channel: string; running: boolean; ok: boolean | null; log: string[]; error: string | null } | null>(null);
+  const sendOrAsk = (channel: 'email' | 'telegram') => ((data as any)?.outputStale ? setStalePick(channel) : send(channel));  // an old export: ask first
   const send = async (channel: 'email' | 'telegram') => {
     let j = await api(`/api/ep/${ep}/share`, { channel });
     if (j.error && !j.channel) { setShare({ channel, running: false, ok: false, log: [], error: j.error }); return; }
@@ -320,8 +327,19 @@ function Editor() {
         <button className="btn" disabled={busy} onClick={async () => setJob(await api(`/api/ep/${ep}/analyze`, {}))}>Re-analyze</button>
         {shareText && <div className="state" style={{ color: share!.ok === false ? 'var(--bad)' : share!.ok ? 'var(--ok)' : 'var(--dim)' }}>{shareText}</div>}
         {data?.output && !busy && <a href={`${data.output}?v=${Date.now()}`} target="_blank"><button className="btn">Open MP4</button></a>}
-        {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Email the video to shlomi@boostart.io" onClick={() => send('email')}>{I.mail} Email</button>}
-        {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Send the video to your Telegram" onClick={() => send('telegram')}>{I.tg} Telegram</button>}
+        {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Email the video to shlomi@boostart.io" onClick={() => sendOrAsk('email')}>{I.mail} Email</button>}
+        {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Send the video to your Telegram" onClick={() => sendOrAsk('telegram')}>{I.tg} Telegram</button>}
+        {stalePick && <div className="pm-modal" onClick={() => setStalePick(null)}>
+          <div className="pm-box" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>The video changed after the last export</div>
+            <div className="help" style={{ margin: '0 0 14px' }}>The file you'd send doesn't have your latest changes.</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <button className="btn primary" onClick={async () => { const ch = stalePick; setStalePick(null); setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send: [ch] })); }}>Export again, then send it</button>
+              <button className="btn" onClick={() => { const ch = stalePick; setStalePick(null); send(ch); }}>Send the old file anyway</button>
+              <button className="btn ghost" onClick={() => setStalePick(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>}
         <div className="exp">
           <button className="btn primary" disabled={busy || !ready} onClick={() => setExpOpen(!expOpen)} title="Export the video - pick where it goes first">{I.export} Export ▾</button>
           {expOpen && <div className="exp-pop" onMouseLeave={() => setExpOpen(false)}>
@@ -334,7 +352,7 @@ function Editor() {
         </div>
       </div>
   );
-  if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} />;
+  if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} reload={load} />;
 
   return (
     <div className="ed" style={{ ['--tl-h' as any]: `${tlH}px` }}>
@@ -900,7 +918,7 @@ createRoot(document.getElementById('root')!).render(<Editor />);
 // ---------- lesson template: one speaker, takes in order — same editor, same panes ---------
 const SPEEDS = [1, 1.05, 1.1, 1.2, 1.3];
 
-function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data: any; top: React.ReactNode; busy: boolean; setJob: (j: Job) => void; jobLine?: string }) {
+function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: string; data: any; top: React.ReactNode; busy: boolean; setJob: (j: Job) => void; jobLine?: string; reload?: () => void }) {
   const fps = 30;
   const edit = data.lesson?.edit;
   const [tlH, setTlH] = useState(+(store.get('zc-tl-h') || 330));
@@ -1033,6 +1051,10 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
     clearTimeout(cfgTimer.current);
     cfgTimer.current = setTimeout(async () => { const j = await api(`/api/ep/${ep}/config`, { patch, rebuild }); if (rebuild && j) setJob(j); }, wait);
   };
+  const [film, setFilm] = useState<any>(data.episode.fx || null);  // the film look: live, saved without a rebuild
+  const filmKey = JSON.stringify(data.episode.fx || null);
+  useEffect(() => setFilm(data.episode.fx || null), [ep, filmKey]);
+  const changeFilm = (fx: any) => { setFilm(fx); setConfig({ fx }, false, 300); };
   const [lib, setLib] = useState<{ sets: any[]; effects: any[] }>({ sets: [], effects: [] });
   useEffect(() => { api('/api/library').then((l) => l && setLib(l)); }, []);
   const [fx, setFx] = useState<any[]>(data.episode.sounds || []);
@@ -1393,7 +1415,9 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                   <video ref={video} key={data.layers.person.v} src={`${data.layers.person.url}?v=${data.layers.person.v}`} onMouseDown={(e) => dragLayer(e, 'person')} muted={!!L.voice}
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !L.person_raw || eyeOn ? 1 : 0,
                       filter: look ? 'url(#zc-look)' : undefined }}
-                    onTimeUpdate={(e) => { setT(e.currentTarget.currentTime); const r = rawVideo.current; if (r && Math.abs(r.currentTime - e.currentTarget.currentTime) > 0.1) r.currentTime = e.currentTarget.currentTime; }}
+                    onTimeUpdate={(e) => { const v = e.currentTarget;
+                      if (total && v.currentTime >= total) { v.pause(); v.currentTime = total; }  // the video's end (End here) - nothing plays past it
+                      setT(v.currentTime); const r = rawVideo.current; if (r && Math.abs(r.currentTime - v.currentTime) > 0.1) r.currentTime = v.currentTime; }}
                     onPlay={() => { setPlaying(true); graph(); applyAudio(); audioRef.current?.ctx?.resume(); syncAudio(true); rawVideo.current?.play().catch(() => {}); }}
                     onPause={() => { setPlaying(false); syncAudio(false); rawVideo.current?.pause(); }}
                     onSeeked={() => { syncAudio(); if (rawVideo.current && video.current) rawVideo.current.currentTime = video.current.currentTime; }} />
@@ -1401,7 +1425,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                     style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
                       filter: look ? 'url(#zc-look)' : undefined }} />}
                   </div>
-                  {data.episode.fx && <FilmFx fx={data.episode.fx} clock={clock} camRef={camRef} />}
+                  {film && <FilmFx fx={film} clock={clock} camRef={camRef} />}
                   {L.intro && t < introSecs && <video ref={introRef} key={'intro' + L.intro.v} src={`${L.intro.url}?v=${L.intro.v}`} muted playsInline
                     style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, objectFit: 'cover', pointerEvents: 'none',
                       opacity: introFade > 0 && t > introSecs - introFade ? Math.max(0, (introSecs - t) / introFade) : 1 }} />}
@@ -1789,7 +1813,16 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
                   {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => { setSpeed(v); api(`/api/ep/${ep}/speed`, { speed: v }); }}>{v === 1 ? '1×' : `${v}×`}</button>)}
                 </div>
                 <div className="help" style={{ marginTop: 6 }}>{speed !== 1 && edit?.total ? `${mmss(edit.total / fps)} at 1× → ${mmss(edit.total / fps / speed)}. ` : ''}Plays live at this speed; Export makes the file at it.</div>
+                <div className="sec" style={{ marginTop: 12 }}>Slow motion</div>
+                <div className="seg" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                  {[0.5, 0.35].map((v) => <button key={v} disabled={busy} onClick={() => { const at = takeAt(t); if (!at) return;
+                    const c = { ...(data.episode.cut || {}) }; c.slow = { ...(c.slow || {}), [at.take]: [...((c.slow || {})[at.take] || []).filter((r: any) => r[1] <= at.t), [at.t, 9999, v]] };
+                    setConfig({ cut: c }); }}>{v}× from here</button>)}
+                  <button disabled={busy || !data.episode.cut?.slow} onClick={() => { const c = { ...(data.episode.cut || {}) }; delete c.slow; setConfig({ cut: c }); }}>Normal</button>
+                </div>
+                <div className="help" style={{ marginTop: 6 }}>{Object.entries(data.episode.cut?.slow || {}).map(([tk, r]: any) => r.map((x: any) => `${tk} ${x[0].toFixed(1)}s→${x[1] > 999 ? 'end' : x[1].toFixed(1) + 's'} at ${x[2]}×`).join(' · ')).join(' · ') || 'The take plays at its own speed.'} Eases in, frames made up between the real ones.</div>
               </div>
+              <FilmLook fx={film} t={t * k} onChange={changeFilm} />
             </>}
           </div>
         </div>
@@ -1802,7 +1835,46 @@ function LessonView({ ep, data, top, busy, setJob, jobLine }: { ep: string; data
         bgName={`Background · ${(data.episode.background || '').split('/').pop()}${data.episode.music ? ' · music' : ''}`}
         busy={busy} onTrim={async (take, from, to) => setJob(await api(`/api/ep/${ep}/trim`, { take, from, to }))}
         onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
-        onCut={async (op) => setJob(await api(`/api/ep/${ep}/cutop`, op))} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)} />
+        onCut={async (op) => { const r = await api(`/api/ep/${ep}/cutop`, op); if (r?.live) reload?.(); else setJob(r); }} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)} />
+    </div>
+  );
+}
+
+// the Film look card: a preset, the knobs, hits at the playhead - every change plays live (no rebuild)
+const HORROR = { center: [0.5, 0.36], push: [[0, 45, 1.04, 1.22]], drift: 0.6, flicker: 0.5, vignette: 0.75, grain: 0.45,
+  grade: { saturation: 0.55, contrast: 1.15, brightness: -0.08 } };
+function FilmLook({ fx, t, onChange }: { fx: any; t: number; onChange: (fx: any) => void }) {
+  const f = fx || {}, g = f.grade || {};
+  const set = (patch: any) => onChange({ ...f, ...patch });
+  const pct = (v: number) => (v ? `${Math.round(v * 100)}%` : 'off');
+  return (
+    <div className="card">
+      <div className="card-h"><div className="title grow">Film look</div><span className="help" style={{ margin: 0 }}>{fx ? `${(f.hits || []).length} hits` : 'off'}</span></div>
+      <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <button className={!fx ? 'on' : ''} onClick={() => onChange(null)}>Off</button>
+        <button className={fx ? 'on' : ''} onClick={() => onChange({ ...HORROR, ...(fx ? { hits: f.hits, black: f.black, blackouts: f.blackouts } : {}) })}>Horror</button>
+      </div>
+      {fx && <>
+        <Slider label="Vignette" v={f.vignette || 0} min={0} max={1} step={0.05} fmt={pct} onChange={(v) => set({ vignette: v })} />
+        <Slider label="Grain" v={f.grain || 0} min={0} max={1} step={0.05} fmt={pct} onChange={(v) => set({ grain: v })} />
+        <Slider label="Flicker" v={f.flicker || 0} min={0} max={1} step={0.05} fmt={pct} onChange={(v) => set({ flicker: v })} />
+        <Slider label="Handheld" v={f.drift || 0} min={0} max={1.5} step={0.05} fmt={pct} onChange={(v) => set({ drift: v })} />
+        <Slider label="Colour" v={g.saturation ?? 1} min={0} max={1.3} step={0.05} fmt={pct} onChange={(v) => set({ grade: { ...g, saturation: v } })} />
+        <Slider label="Contrast" v={g.contrast ?? 1} min={0.7} max={1.5} step={0.05} fmt={pct} onChange={(v) => set({ grade: { ...g, contrast: v } })} />
+        <Slider label="Light" v={g.brightness ?? 0} min={-0.4} max={0.2} step={0.02} fmt={(v) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`} onChange={(v) => set({ grade: { ...g, brightness: v } })} />
+        <Slider label="Zoom in to" v={(f.push || [[0, 45, 1, 1]])[0][3]} min={1} max={1.6} step={0.02} fmt={(v) => `${Math.round((v - 1) * 100)}%`}
+          onChange={(v) => set({ push: [[...((f.push || [[0, 45, 1.04, 1.22]])[0]).slice(0, 3), v], ...(f.push || []).slice(1)] })} />
+        <div className="sec" style={{ marginTop: 10 }}>Hits <span className="help" style={{ margin: 0 }}>zoom kick · shake · white flash</span></div>
+        {(f.hits || []).map((h: any, i: number) => <div key={i} className="fx-top" style={{ gap: 6 }}>
+          <span className="fx-time">{h.at != null ? `${Math.floor(h.at / 60)}:${(h.at % 60).toFixed(1).padStart(4, '0')}` : '-'}</span>
+          <span className="fx-name">{h.sound != null ? `with sound ${h.sound + 1}` : 'at its moment'} · kick {Math.round((h.kick || 0) * 100)}% · flash {Math.round((h.flash || 0) * 100)}%</span>
+          <button className="fx-x" title="Remove" onClick={() => set({ hits: f.hits.filter((_: any, j: number) => j !== i) })}>✕</button></div>)}
+        <div className="seg" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+          <button onClick={() => set({ hits: [...(f.hits || []), { at: +t.toFixed(2), kick: 0.08, shake: 0.7, flash: 0.5 }].sort((a: any, b: any) => (a.at ?? 0) - (b.at ?? 0)) })}>+ Hit here</button>
+          <button onClick={() => set({ blackouts: [{ at: +t.toFixed(2) }] })}>Black from here</button>
+        </div>
+        {(f.blackouts || []).length > 0 && <div className="help" style={{ marginTop: 6 }}>Cuts to black at {(f.blackouts[0].at ?? 0).toFixed(1)}s · <a onClick={() => set({ blackouts: [] })} style={{ cursor: 'pointer' }}>remove</a></div>}
+      </>}
     </div>
   );
 }
@@ -1904,7 +1976,7 @@ function NewVideo() {
       body: JSON.stringify({ name, template: tpl, folder, from: tpl === 'solo' ? from : '' }) }).then((x) => x.json()).catch(() => ({ error: 'Could not create it' }));
     setBusy(false);
     if (r.error) return setErr(r.error);
-    store.set('zc-ep', r.id);
+    tabProject.set(r.id);
     location.reload();
   };
   return (

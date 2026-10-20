@@ -891,7 +891,7 @@ $('open-projects').onclick = () => { listProjects(); openPanel('drawer-projects'
 // The top bar shows the studio's projects (the same menu as the video editor and the Reader); the song recording of
 // the picked project opens here - its latest one - and a new song recording belongs to it.
 let KB_ALL = [];
-function studioProject() { try { return location.port === '4747' ? localStorage.getItem('zc-ep') || '' : ''; } catch { return ''; } }
+function studioProject() { try { return location.port === '4747' ? sessionStorage.getItem('zc-ep') || localStorage.getItem('zc-ep') || '' : ''; } catch { return ''; } }
 async function followStudio(ep) {
   if (!ep) return;
   const pk = $('kb-proj');
@@ -910,10 +910,10 @@ async function followStudio(ep) {
   const eps = await fetch('/api/episodes').then((r) => r.json()).catch(() => []);
   pk.innerHTML = '<option value="">—</option>' + eps.filter((e) => !e.test).map((e) => `<option value="${esc(e.id)}" data-sub="${esc(e.title)}"
     data-done="${e.done ? 1 : 0}" data-meta="${esc(e.template || '')} · ${day(e.created)}">${esc(e.id)}</option>`).join('');
-  pk.onchange = () => { try { localStorage.setItem('zc-ep', pk.value); } catch {} followStudio(pk.value); };
+  pk.onchange = () => { try { sessionStorage.setItem('zc-ep', pk.value); localStorage.setItem('zc-ep', pk.value); } catch {} followStudio(pk.value); };
   pk.addEventListener('studio-done', (e) => fetch(`/api/ep/${encodeURIComponent(e.detail.value)}/done`, { method: 'POST',
     headers: { 'content-type': 'application/json' }, body: JSON.stringify({ done: e.detail.done }) }));
-  addEventListener('storage', (e) => { if (e.key === 'zc-ep' && e.newValue) followStudio(e.newValue); });
+  addEventListener('storage', (e) => { if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage) followStudio(e.newValue); });  // this tab's tools only
   await listProjects();
   followStudio(studioProject());
 })();
