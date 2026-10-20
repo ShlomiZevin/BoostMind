@@ -9,10 +9,15 @@
   "plaque": [],
   "music": {
     "sound": "../_assets/yuval/music/Keynote piano.mp3",
-    "gain": 1.08,
+    "gain": 0.9,
     "start": 0,
     "end": null,
-    "duck": 0
+    "duck": 0,
+    "lift": {
+      "db": 9,
+      "fade": 1.2
+    },
+    "fade_out": 0.8
   },
   "matte_engine": "quality",
   "matte_cut": 70,
@@ -72,7 +77,25 @@
         ]
       ]
     },
-    "after_last_word": 0.1
+    "after_last_word": 0.1,
+    "edges": {
+      "IMG_0093": [
+        [
+          37.913,
+          39.05
+        ]
+      ]
+    },
+    "slow": {
+      "IMG_0093": [
+        [
+          37.95,
+          39.05,
+          0.3
+        ]
+      ]
+    },
+    "slow_ramp": 0.05
   },
   "overlays": [
     {
@@ -86,21 +109,20 @@
       "padX": 36,
       "padY": 14,
       "start": 0,
-      "end": 26.4
+      "end": 31.93
     },
     {
-      "text": "הספר החדש Homo Useless\nזמין להזמנה מוקדמת · לינק בפרופיל",
-      "style": "pov",
-      "font": "assistant",
-      "theme": "gold",
-      "opacity": 0.85,
-      "y": 253,
-      "size": 64,
-      "padX": 40,
-      "padY": 16,
-      "start": 26.4,
+      "style": "image",
+      "image": "media/poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 31.93,
       "end": null,
-      "cta": true
+      "text": "",
+      "poster": true
     }
   ],
   "sounds": [
@@ -120,7 +142,9 @@
     }
   ],
   "media": [
-    "media/book.jpg"
+    "media/book.jpg",
+    "media/poster.jpg",
+    "media/book-3d.png"
   ],
   "speed": 1.1,
   "bg_blur": 0.8
