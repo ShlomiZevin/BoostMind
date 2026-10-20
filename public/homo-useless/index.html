@@ -90,7 +90,7 @@
 
   .about { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
   .about p { color: var(--dim); margin: 0 0 18px; font-size: 18px; }
-  .about p:first-of-type::first-letter { font-family: "Source Serif 4", serif; float: left; font-size: 66px; line-height: 0.85; padding: 6px 10px 0 0; color: var(--text); }
+  .about > div:last-child p:first-of-type::first-letter { font-family: "Source Serif 4", serif; float: left; font-size: 66px; line-height: 0.85; padding: 6px 10px 0 0; color: var(--text); }
   .pull { font-family: "Source Serif 4", serif; font-size: clamp(26px, 3vw, 34px); line-height: 1.25; color: var(--text); border-left: 3px solid var(--accent); padding-left: 24px; margin: 0; }
 
   .praise { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -144,16 +144,39 @@
   .box .btn { width: 100%; }
 
   @media (max-width: 880px) {
-    .hero { padding: 40px 0 56px; }
+    .hero { padding: 8px 0 48px; }
     .hero .wrap, .about, .toc { grid-template-columns: 1fr; gap: 36px; }
-    .stage { order: -1; }
+    .stage { order: -1; margin: -8px 0 -18px; }
+    .tag { flex-wrap: wrap; gap: 8px; font-size: 11px; letter-spacing: .1em; }
+    .tag b { white-space: nowrap; }
+    h1 { margin: 16px 0 10px; }
+    .lede { font-size: 17px; margin-bottom: 26px; }
+    .ctas { flex-direction: column; }
+    .ctas .btn { width: 100%; }
+    .meta { font-size: 13px; }
+    .strip { grid-template-columns: repeat(3, 1fr); border-radius: 12px; }
+    .strip div { padding: 16px 12px; }
+    .strip div + div { border-left: 1px solid var(--line); border-top: 0; }
+    .strip b { font-size: 26px; margin-bottom: 4px; }
+    .strip span { font-size: 12.5px; line-height: 1.35; display: block; }
+    .about > div:last-child p:first-of-type::first-letter { font-size: 54px; }
+    .pull { font-size: 24px; padding-left: 18px; }
+    .q { padding: 22px; gap: 12px; }
+    .q p { font-size: 19px; }
+    .fmt { padding: 20px; }
+    .fmt .price { font-size: 28px; margin: 2px 0; }
+    .fmt p { margin-bottom: 14px; }
+    .pill { justify-self: start; margin-top: 4px; }
+    .ev { padding: 18px 0; }
+    .excerpt .serif { font-size: 21px; }
+    .hint { margin-top: -6px; }
+    .bar .wrap { gap: 10px; }
+    .bar .btn.primary { margin-left: 0; }
     .praise, .formats { grid-template-columns: 1fr; }
-    .strip { grid-template-columns: 1fr; }
-    .strip div + div { border-left: 0; border-top: 1px solid var(--line); }
     .nav { display: none; }
     .ev { grid-template-columns: 1fr; gap: 6px; }
     section { padding: 60px 0; }
-    .turn { width: min(420px, 94vw); }
+    .turn { width: min(400px, 92vw); }
   }
 </style>
 </head>
@@ -331,7 +354,7 @@
       for (let d = 0; d <= N / 2 && k < 0; d++) for (const j of [wrap(i - d), wrap(i + d)]) if (k < 0 && frames[j] && frames[j].naturalWidth) k = j;
       if (k < 0 || k === shown) return;
       ctx.clearRect(0, 0, cv.width, cv.height);
-      const im = frames[k], f = Math.min(cv.width / im.naturalWidth, cv.height / im.naturalHeight);  // fit, never stretch
+      const im = frames[k], f = 1.5 * Math.min(cv.width / im.naturalWidth, cv.height / im.naturalHeight);  // fit (x1.5: the render's margin), never stretch
       const w = im.naturalWidth * f, h = im.naturalHeight * f;
       ctx.drawImage(im, (cv.width - w) / 2, (cv.height - h) / 2, w, h);
       shown = k;
