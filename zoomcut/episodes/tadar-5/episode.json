@@ -67,6 +67,10 @@
   "speaker_name": "איילת השחר",
   "script": "spiritual-3",
   "media": [
+    "media/poster.jpg",
+    "media/polaroid.png",
+    "media/ayelet-flare.jpg",
+    "media/ayelet-sunburst.jpg",
     "../_assets/tadar/logo/logo_1_lotus.png",
     "../_assets/tadar/logo/logo_2_morningstar.png",
     "../_assets/tadar/logo/logo_3_everything.png",

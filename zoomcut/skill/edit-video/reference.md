@@ -63,6 +63,8 @@
 - An `.ogg` voice note's filtered copies are written next to it (`<file>.<filters>.wav`) - keep notes in the project's
   media/, never in Downloads.
 - Report to the fleet board when asked (alias `video-editing`).
+- A picture you make for a video (poster, sticker, portrait) only shows in the editor's Media tab when its path is
+  in episode.json `"media"` - add it there whenever you drop a file in `media/` or `_assets/`.
 - Run lesson.py with `.venv/Scripts/python` (system python lacks rapidfuzz: `--still` fails silently in a loop and
   leaves the OLD still.png - every frame looked the same). A still costs ~60 s: batch few, pick timestamps well.
 - Phone takes that open in digital silence (floor ~-80 dB): the first soft consonant ("כ" of "כי", "ה") is below
