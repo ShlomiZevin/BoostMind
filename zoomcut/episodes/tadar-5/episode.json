@@ -315,9 +315,9 @@
       "y": 0,
       "w": 1080,
       "h": 1920,
-      "start": 112.25,
+      "start": 110.2,
       "end": null,
-      "fade_in": 0.7,
+      "fade_in": 1.5,
       "text": "",
       "poster": true
     },
@@ -329,9 +329,9 @@
       "y": 0,
       "w": 1080,
       "h": 1920,
-      "start": 116.3,
+      "start": 114.4,
       "end": null,
-      "fade_in": 0.6,
+      "fade_in": 0.5,
       "text": "",
       "end_black": true
     }
@@ -381,7 +381,7 @@
     {
       "take": "IMG_0113",
       "at": 20.3,
-      "seconds": 5.0,
+      "seconds": 3.0,
       "end_card": true
     }
   ]

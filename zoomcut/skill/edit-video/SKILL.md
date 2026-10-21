@@ -60,7 +60,7 @@ the footage; never name things after a series in the UI.
   built the way THEY would build it - Ayelet's 2009 healer site (/ayelet/), Yuval's publisher page
   (/homo-useless/), Yotam's shop (/yotamverse/). Never "parody", never Shlomi's name on it, first person in the
   character's voice, made from his scripts (their lines, misquotes, followers' questions). Forms collect nothing
-  (a line in their voice instead). Every such site gets: a button on the bio hub (public/links/), the character's
+  (a line in their voice instead). Every such site gets: a button on his links page / Linktree (public/links/ = boostmind-b052c.web.app/links/), the character's
   finished videos (his recordings in `.gitignore`), and in the video a short ticker / blinking CTA box
   (`"blink": true`) that says the site is up and "הלינק בביו" - not the boostmind URL (it breaks the illusion).
 - Reply to him in English; Hebrew only in the video's text.

@@ -49,8 +49,9 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   Chrome at 1080x1920, saved to the project's `media/poster.jpg`. In the video: `"inserts": [{take: <last>, at: <just
   before the last piece ends>, seconds: 4.5}]` holds her last frame, a full-frame image overlay (`poster: true`) starts
   at the hold's timeline second (edit.json: the hold item's frame / 30), ticker and CTA end just before it, and
-  `music.lift` {db 8, fade 1.2} swells the harp once she stops. The card starts ~0.35 s into the 5 s hold and fades in
-  0.7 s (his note: it came "a bit before"); the last 0.6 s fade to black.
+  `music.lift` {db 8, fade 1.2} swells the harp once she stops. The card starts dissolving in WHILE she says her last
+  line (~1.7 s before the last word ends, fade_in 1.5 - he wants them still hearing her, nobody waiting), the hold
+  after her last word is only 3 s, the last 0.5 s fade to black.
 - **Most viewers never reach the end:** the same portrait also pops in mid-video as a small polaroid sticker
   (`media/polaroid.png`, "האתר שלי באוויר!! / הלינק בביו") in the first gap between stickers, ~15 s in, on the side
   away from the wall logo, ~5 s.
