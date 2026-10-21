@@ -13,6 +13,9 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   "זו"). Speed 1.2× is his choice. Cut-out "quality" engine only when hands go up against a white wall.
 - A re-take of a passage in a new file: episode.json `"sequence"` (take segments in edit order) - cut the old take at a
   sentence boundary before it and resume after it. Two takes that overlap: `end_at` on take 1 before the repeated words.
+- **His rule for re-takes that overlap** (tadar-5): every take plays from its own start; when its last sentence(s)
+  open the next take too, cut it in the gap before them and use the NEXT take's version. Find the overlaps in the
+  transcripts first, then `"sequence": [{"take", "to"}, ..., {"take"}]`.
 
 ## Series "tadar" - spiritual-guru podcast parody (white bob wig, podcast mic), from 2026-10-17
 - `lesson.py new episodes/tadar-N --from tadar-2 --input "<folder>" --takes IMG_xxxx.MP4 --script <reader id>`.
@@ -23,6 +26,24 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   both engines and look at the body before choosing.
 - Follower question card: overlay `style: "question"` {text, label, y, w, size, accent}, timed by `from_words` (a list
   of alternatives: the question read aloud, else the answer's first words), stays until the next question.
+- **She "explains" with stickers** (tadar-5 / spiritual-3, 2026-10-21 - his idea: it should look like she put effort
+  into her video): Leonardo die-cut stickers in `_assets/tadar/spiritual-3/` (pills, a mosaic with a red X, a peak at
+  sunrise, a glitter handwritten פ with an inward spiral, soil with a rising light, a head made of particles), each an
+  image overlay with `"pop": true` (springs in, shrinks away - Entrance in its panel) around her head at y ~230-650,
+  timed by her words. A quoted verse = an empty scroll sticker + her exact words as text on it (Stam, black, no box)
+  with the source under them ("(בראשית ב׳, ז׳)") - her (wrong) version, the real source: that gap is the joke; the
+  card sits over the mic, below her chin.
+- **Her logo** (logo_2_morningstar, round, transparent PNG) hangs on the woven wall circle via `"sign"` (quad
+  [[443,62],[631,67],[631,303],[443,308]] in studio.jpg = the hoop squashed for the wall's angle, right side a touch
+  shorter). Centred behind her the wig hid the name, so the room is framed with the hoop beside her head:
+  `bg` zoom 1.45, x 315, y 432 (crystals + salt lamps fill the left). Stickers on the right pop over it - fine.
+- Footage 3 (2026-10-21): light-blue top against a white wall - MediaPipe "fast" held fine; the real mic stays.
+- **Her site: https://boostmind-b052c.web.app/ayelet/** (`public/ayelet/`, on the bio hub). Deliberately 2009: a
+  real `<marquee>`, WordArt glow, beveled buttons, guestbook, angel visitor counter, harp music button, the stickers
+  floating. Sections from the scripts: videos, workshop "מעבר לתדר", treatments + prices, Q&A, מילון התודעה, her
+  misquoted verses on the scroll sticker. A new tadar video: put its export in `public/ayelet/v/` and replace the
+  "בקרוב" tile; new etymologies / questions go in the dictionary / Q&A. In the video: ticker "האתר החדש שלי
+  באוויר!! הלינק בביו" + a blinking gold box over the mic (y 1170) for the last ~15 s.
 
 ## Series "news" - anchor parody (curly red wig), news-1 2026-10-18, "almost perfect"
 - Set `_assets/news/studio.jpg` (world-map wall); anchor `person` scale 1.12, x 230, y 200; `cut.silence: false`.
@@ -56,6 +77,22 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   Overlay start/end are timeline seconds (before speed); `--still` takes output seconds.
 - The book site: `public/homo-useless/` (boostmind-b052c.web.app/homo-useless) - publisher-style page, pre-order
   opens a joke (nothing collected).
+
+## Series "crypto" - crypto-guru parody ("the coin that will go up yesterday"), crypto-1 2026-10-21
+- Set `_assets/crypto/set.jpg` (night penthouse, trading monitors, gold bull, cash) at bg zoom 1.12 y -60; trap bed
+  `music.mp3` (he REJECTED it - he brings an energetic TikTok track). Effects he wants: ka-ching on every "95.4", a bill
+  counter under counting lines, money raining on the last big number. Rejected (`rejected/`): the Leonardo riser, coins,
+  scratch. Each hit's ATTACK (not the file start) on the recogniser's start of the word - `start_offset` = -attack;
+  hits ~5 dB under his voice, beds ~10 dB under. Mixkit (mixkit.co, free license) for real library sounds.
+- A soft last word under the voice threshold gets cut ("שלשום"): measure the tail and add a `cut.edges` drag.
+- His wall had a black hexagon panel touching his hair: no matte engine drops it (hair is as flat and dark) - left.
+- The coin line = a **Market panel** (`style: market`) timed by `from_words` "קחו למשל את" .. "ביום אחד"; `draw` 3.4
+  holds the chart so the peak + the "ההמלצה יצאה" pin land on his "95.4" (with the ka-ching) - the pin after the rise is
+  the joke. His footage is a close handheld selfie: the panel goes on TOP (y 150 w 780, over the hook), never over his
+  face; person y 160. Hook (his words): "אף אחד: / נאור (ציון) ברוך:" the whole video.
+- Anchor sounds to the recogniser's words (`start_word` / `end_word`), not `at`; its times run ~0.15 s early - check
+  the energy. A first word timed before the clip start is not "heard" for overlays: anchor on the next words.
+- Ticker of coins "up yesterday"; lower third "VIP | הקהילה הסגורה". His real name only as he writes it in the hook.
 
 ## Eye contact (he called it perfect, 2026-10-17)
 Default for a talking-to-camera video: `"eye_contact": {"on": true}` = NVIDIA Maxine + our blink handling

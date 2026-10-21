@@ -2,25 +2,25 @@
   "type": "lesson",
   "series": "gym",
   "title": "המכון — הבלונים של סיגל",
-  "input_dir": "C:/Users/shazbak/Downloads/סיקיוריטי שבור",
-  "takes": "יניב1.MP4",
+  "input_dir": "C:/Users/shazbak/Downloads/gym",
+  "takes": "*.MP4",
   "background": "../_assets/gym/gym.jpg",
   "plaque": [],
   "music": {
-    "sound": "../_assets/gym/bed.mp3",
-    "gain": 0.3
+    "sound": "../_assets/gym/bed_crowd.mp3",
+    "gain": 0.45
   },
-  "matte_engine": "hybrid",
+  "matte_engine": "quality",
   "matte_cut": 70,
   "person": {
     "scale": 1,
-    "x": 0,
-    "y": 0
+    "x": -34,
+    "y": 154
   },
   "bg": {
-    "zoom": 1.15,
-    "x": 0,
-    "y": 200
+    "zoom": 2.95,
+    "x": -186,
+    "y": 1096
   },
   "captions_y": 1330,
   "captions_style": {
@@ -30,33 +30,72 @@
     "color": "#ffffff",
     "stroke": 10
   },
-  "voice": "natural",
-  "denoise": {
-    "rnn": "models/rnnoise/cb.rnnn"
+  "voice": {
+    "denoise": true,
+    "lowcut": 50,
+    "warmth": -5,
+    "box": -4.5,
+    "presence": -2.5,
+    "deess": 0.1,
+    "comp": 0.25,
+    "room": 0.25,
+    "roomSize": 0.9,
+    "preset": "hall",
+    "boost": -3
   },
   "cut": {
-    "merge": 0.6,
-    "pad_in": 0.08,
-    "pad_out": 0.35,
-    "join": 0.08,
+    "merge": 0.15,
+    "pad_in": 0.04,
+    "pad_out": 0.15,
+    "join": 0.18,
     "above_floor": 28,
     "voice_above_floor": 38,
-    "lead_in": {
-      "יניב1": [
-        7.45,
-        8.95
+    "edges": {
+      "ראשון": [
+        [
+          6.64,
+          6.138
+        ],
+        [
+          7.51,
+          6.459
+        ],
+        [
+          3.173,
+          3.575
+        ],
+        [
+          12.767,
+          12.909
+        ],
+        [
+          14.867,
+          15.367
+        ],
+        [
+          22.943,
+          23.313
+        ],
+        [
+          26.28,
+          25.76
+        ],
+        [
+          24.98,
+          25.734
+        ]
       ]
     }
   },
   "overlays": [
     {
-      "text": "פוב: הבחור במכון שמנהל את העסק של הבלונים מההליכון, וכל המכון כבר יודע מה סיגל לוקחת.",
+      "text": "פוב: הבחור הזה שמנהל את העסק הפרטי מהמכון",
       "style": "pov",
       "font": "assistant",
       "theme": "dark",
       "opacity": 0.75,
       "y": 270,
-      "size": 48,
+      "size": 77,
       "padX": 40,
       "padY": 14,
       "start": 0,
@@ -65,37 +104,127 @@
   ],
   "sounds": [
     {
-      "sound": "../_assets/gym/beep.mp3",
-      "take": "יניב1",
-      "start_word": "רגילה",
-      "start_after": 40,
-      "start_offset": 0.5,
-      "gain": 0.8
+      "sound": "../_assets/gym/sfx_rack.mp3",
+      "take": "ראשון",
+      "at": 3.5,
+      "gain": 0.4
     },
     {
-      "sound": "../_assets/gym/sfx_rack.mp3",
-      "take": "יניב1",
-      "at": 16,
-      "gain": 0.45
+      "sound": "../_assets/gym/sfx_grunt.mp3",
+      "take": "ראשון",
+      "at": 8,
+      "gain": 0.35
     },
     {
       "sound": "../_assets/gym/sfx_drop.mp3",
-      "take": "יניב1",
-      "at": 31,
+      "take": "ראשון",
+      "at": 13,
       "gain": 0.4
     },
     {
       "sound": "../_assets/gym/sfx_plates.mp3",
-      "take": "יניב1",
-      "at": 52,
+      "take": "ראשון",
+      "at": 19.5,
+      "gain": 0.35
+    },
+    {
+      "sound": "../_assets/gym/sfx_rack.mp3",
+      "take": "ראשון",
+      "at": 27.5,
       "gain": 0.4
+    },
+    {
+      "sound": "../_assets/gym/sfx_plates.mp3",
+      "take": "מעמ",
+      "at": 1,
+      "gain": 0.35
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speakerphone",
+      "pitch": 1.25,
+      "tempo": 1.15,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "take": "ראשון",
+      "at": 1.05,
+      "from": 0,
+      "to": 0.9,
+      "gain": 1.9
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speakerphone",
+      "pitch": 1.25,
+      "tempo": 1.15,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "take": "ראשון",
+      "at": 16,
+      "from": 2.1,
+      "to": 3.2,
+      "gain": 1.9
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speakerphone",
+      "pitch": 1.25,
+      "tempo": 1.15,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "take": "ראשון",
+      "at": 24.82,
+      "from": 6.65,
+      "to": 7.75,
+      "gain": 2.4
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speakerphone",
+      "pitch": 1.25,
+      "tempo": 1.15,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "take": "ראשון",
+      "at": 28.25,
+      "from": 9.5,
+      "to": 10.4,
+      "gain": 1.9
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speakerphone",
+      "pitch": 1.25,
+      "tempo": 1.15,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "take": "לאמרוויח",
+      "at": 3.45,
+      "from": 11.8,
+      "to": 12.8,
+      "gain": 1.9
     }
   ],
-  "_todo": [
-    "replace: input_dir/takes = his video; place beep after בהכול and the 3 gym sfx in his pauses / under lines (they are at stand-in times now)"
-  ],
-  "done": false,
-  "placeholder": "stand-in footage - replace input_dir/takes with his video when he says so",
+  "done": true,
   "script": "gym",
-  "media": []
+  "media": [],
+  "sequence": [
+    {
+      "take": "ראשון",
+      "to": 28.8
+    },
+    {
+      "take": "לאמרוויח"
+    },
+    {
+      "take": "מעמ"
+    }
+  ],
+  "captions_from": "file",
+  "speed": 1.2
 }

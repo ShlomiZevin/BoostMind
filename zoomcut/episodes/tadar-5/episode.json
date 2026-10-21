@@ -1,0 +1,330 @@
+{
+  "type": "lesson",
+  "series": "tadar",
+  "title": "איילת השחר – פסיכולוגיה, פסיכיאטריה ותודעה גבוהה (spiritual-3)",
+  "input_dir": "C:/Users/shazbak/Downloads/תדר/3",
+  "takes": "IMG_*.MP4",
+  "background": "../_assets/tadar/studio.jpg",
+  "plaque": [],
+  "music": {
+    "sound": "../_assets/tadar/music/2 - Dreamy harp.mp3",
+    "gain": 0.08
+  },
+  "grade": {
+    "warm": 0.07,
+    "saturation": 1.1,
+    "brightness": 0.025,
+    "contrast": 1.05
+  },
+  "matte_engine": "fast",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 200
+  },
+  "bg": {
+    "zoom": 1.45,
+    "x": 315,
+    "y": 432
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 70,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "speed": 1.1,
+  "voice": {
+    "denoise": true,
+    "lowcut": 85,
+    "warmth": 1.5,
+    "box": -2.5,
+    "presence": 2.5,
+    "deess": 0.4,
+    "comp": 0.6,
+    "preset": "podcast",
+    "boost": 0,
+    "raw": true
+  },
+  "cut": {
+    "merge": 1.1,
+    "pad_in": 0.12,
+    "pad_out": 0.45,
+    "join": 0.06,
+    "above_floor": 28,
+    "voice_above_floor": 30
+  },
+  "eye_contact": {
+    "on": true
+  },
+  "speaker_name": "איילת השחר",
+  "script": "spiritual-3",
+  "media": [
+    "../_assets/tadar/logo/logo_1_lotus.png",
+    "../_assets/tadar/logo/logo_2_morningstar.png",
+    "../_assets/tadar/logo/logo_3_everything.png",
+    "../_assets/tadar/spiritual-3/pe.png",
+    "../_assets/tadar/spiritual-3/pills.png",
+    "../_assets/tadar/spiritual-3/mosaic.png",
+    "../_assets/tadar/spiritual-3/peak.png",
+    "../_assets/tadar/spiritual-3/scroll.png",
+    "../_assets/tadar/spiritual-3/soil.png",
+    "../_assets/tadar/spiritual-3/particles.png"
+  ],
+  "overlays": [
+    {
+      "text": "אף אחת:\nנשים רוחניות שמסבירות על היקום, תדרים, תודעות, קבלה ופיזיקה קוונטית, כשאפשר להבין כל מילה שהן אומרות אבל לא משפט אחד שלם.",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.45,
+      "y": 991,
+      "size": 38,
+      "start": 0,
+      "end": 42.86
+    },
+    {
+      "text": "✨ האתר החדש שלי באוויר!! 🔮 הלינק בביו 💫 סדנת ״מעבר לתדר״ • שאלות ותשובות • מילון התודעה 🌙 הלינק בביו ✨",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.55,
+      "y": 1560,
+      "size": 40,
+      "speed": 130,
+      "start": 0,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/pills.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 250,
+      "w": 400,
+      "h": 400,
+      "start": 9.01,
+      "end": 19.67,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "קונצרטה",
+        "Concerta",
+        "ריטלין",
+        "Ritalin"
+      ],
+      "to_words": [
+        "חיספרדל",
+        "ריספרדל",
+        "קלונקס"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/mosaic.png",
+      "plain": true,
+      "pop": true,
+      "x": 40,
+      "y": 250,
+      "w": 380,
+      "h": 380,
+      "start": 27.31,
+      "end": 31.41,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מהמילה פסיפס",
+        "פסיפס"
+      ],
+      "to_words": [
+        "מהרבה חלקים"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/peak.png",
+      "plain": true,
+      "pop": true,
+      "x": 660,
+      "y": 240,
+      "w": 380,
+      "h": 380,
+      "start": 32.99,
+      "end": 37.35,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מהמילה פסגה",
+        "פסגה"
+      ],
+      "to_words": [
+        "הגבוה ביותר של התודעה"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/pe.png",
+      "plain": true,
+      "pop": true,
+      "x": 60,
+      "y": 230,
+      "w": 440,
+      "h": 440,
+      "start": 39.59,
+      "end": 51.73,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "האות פ",
+        "האות פה",
+        "האות פא",
+        "מתעגלת פנימה"
+      ],
+      "to_words": [
+        "להתבונן פנימה"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/scroll.png",
+      "plain": true,
+      "pop": true,
+      "x": 90,
+      "y": 985,
+      "w": 900,
+      "h": 433,
+      "start": 51.39,
+      "end": 58.95,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "בבריאת האדם",
+        "וייצר",
+        "ויצר"
+      ],
+      "to_words": [
+        "נשמת חיים"
+      ]
+    },
+    {
+      "text": "וייצר אדושם את האדם\nעפר מן האדמה, ויפרח\nבנשמת אפיו נשמת חיים\n(בראשית ב׳, ז׳)",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "light",
+      "opacity": 0,
+      "y": 1064,
+      "size": 50,
+      "pop": true,
+      "start": 51.39,
+      "end": 58.95,
+      "from_words": [
+        "בבריאת האדם",
+        "וייצר",
+        "ויצר"
+      ],
+      "to_words": [
+        "נשמת חיים"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/soil.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 250,
+      "w": 400,
+      "h": 400,
+      "start": 59.89,
+      "end": 69.27,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "קודם עפר"
+      ],
+      "to_words": [
+        "בתדר גבוה יותר של התקיימות",
+        "של התקיימות"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/particles.png",
+      "plain": true,
+      "pop": true,
+      "x": 660,
+      "y": 230,
+      "w": 400,
+      "h": 400,
+      "start": 82.05,
+      "end": 89.05,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ענן פיזי",
+        "ענן פיזי של חלקיקים"
+      ],
+      "to_words": [
+        "כשאנחנו מתבוננות בו מבפנים",
+        "בו מבפנים"
+      ]
+    },
+    {
+      "text": "✨ האתר שלי באוויר!! ✨\nהלינק בביו ⬆️",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "gold",
+      "opacity": 0.85,
+      "y": 1170,
+      "size": 60,
+      "blink": true,
+      "start": 92.0,
+      "end": null
+    }
+  ],
+  "sequence": [
+    {
+      "take": "IMG_0110",
+      "to": 50.2
+    },
+    {
+      "take": "IMG_0111",
+      "to": 36.3
+    },
+    {
+      "take": "IMG_0112",
+      "to": 23.22
+    },
+    {
+      "take": "IMG_0113"
+    }
+  ],
+  "sign": {
+    "image": "../_assets/tadar/logo/logo_2_morningstar.png",
+    "quad": [
+      [
+        443,
+        62
+      ],
+      [
+        631,
+        67
+      ],
+      [
+        631,
+        303
+      ],
+      [
+        443,
+        308
+      ]
+    ],
+    "light": 0.92,
+    "warm": 0.15,
+    "shadow": 0.35
+  }
+}

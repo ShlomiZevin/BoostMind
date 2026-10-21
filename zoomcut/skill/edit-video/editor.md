@@ -2,7 +2,7 @@
 
 ## The editor is the tool - every feature is a control
 - Layers list in the project panel (each with its state) · Add: Hook text / Question card / Thought / Lower third /
-  Ticker · Video card: Cut (Tight / Light / Keep pauses / Whole take), Speed, Slow motion (from the playhead), length.
+  Ticker / Market panel · Video card: Cut (Tight / Light / Keep pauses / Whole take), Speed, Slow motion (from the playhead), length.
 - Right panel per layer (click a timeline lane or the preview): Captions (style, font, size, colour, height, All
   subtitles list with ✎), Speaker (size / position, cut-out or original place + Keep desk %, Look, Eye contact, voice
   presets incl. Raw / podcast / news / hall / stage, Noise Off / Standard / Strong, Pitch, PA echo), Background (zoom /

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Player, PlayerRef } from '@remotion/player';
 import { ZoomCall, ovBoxStyle } from '../src/ZoomCall';
 import { thoughtWords, wordState, lineDrift, wordDust, dustState, THOUGHT_STYLE } from './thought_anim.js';
+import { drawMarket, marketBox } from './market_anim.js';
 import { fxCss, fxAt } from './fx.js';
 import { LiveClock } from './liveplayer';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
@@ -496,9 +497,7 @@ function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, o
         </div>
         <div style={{ marginTop: 12 }}>
           <div className="sec" style={{ marginBottom: 8 }}>Speed</div>
-          <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)` }}>
-            {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => onSpeed(v)}>{v === 1 ? '1×' : `${v}×`}</button>)}
-          </div>
+          <SpeedPick speed={speed} onSpeed={onSpeed} />
           {data?.state?.total ? <div className="row2" style={{ margin: '8px 0 12px' }}><label>Final video</label>
             <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{mmss(data.state.total / speed)}{speed !== 1 ? <span style={{ color: 'var(--faint)', fontWeight: 400 }}> · {mmss(data.state.total)} at 1×</span> : null}</span></div> : null}
           <div className="help">The whole video, every layer together - plays live at this speed (voices keep their pitch); Export makes the file at it.</div>
@@ -615,11 +614,34 @@ function LineSound({ fix, busy, set }: { fix: Fix; busy: boolean; set: (p: Fix) 
   );
 }
 
+// a layer that pops in (springs past its size and settles in 0.35 s) and shrinks away in its last 0.2 s -
+// the export draws the same curve (lesson.py pop_expr)
+const popScale = (o: any, t: number) => {
+  if (!o?.pop) return 1;
+  const p = Math.min(1, Math.max(0, (t - (o.start || 0)) / 0.35));
+  const q = o.end == null ? 1 : Math.min(1, Math.max(0, (o.end - t) / 0.2));
+  return (0.3 + 0.7 * (1 + 2.70158 * (p - 1) ** 3 + 1.70158 * (p - 1) ** 2)) * (0.3 + 0.7 * q);
+};
+// a call to action that blinks: on 72% of each second (lesson.py draws the same)
+const blinkOn = (o: any, t: number) => !o?.blink || ((t - (o.start || 0)) % 1 + 1) % 1 < 0.72;
+const Entrance = ({ o, set }: { o: any; set: (patch: any) => void }) => <>
+  <div className="sec" style={{ marginTop: 4 }}>Entrance</div>
+  <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+    <button className={!o.pop ? 'on' : ''} onClick={() => set({ pop: undefined })}>Appears</button>
+    <button className={o.pop ? 'on' : ''} onClick={() => set({ pop: true })}>Pops in</button>
+  </div>
+  <div className="seg" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+    <button className={!o.blink ? 'on' : ''} onClick={() => set({ blink: undefined })}>Steady</button>
+    <button className={o.blink ? 'on' : ''} onClick={() => set({ blink: true })}>Blinks</button>
+  </div>
+</>;
+
 function TextProps({ all, i, onChange }: { all: Overlay[]; i: number; onChange: (o: Overlay[], commit?: boolean) => void }) {
   const o = all[i];
   const set = (patch: Partial<Overlay>, commit = true) => onChange(all.map((x, k) => (k === i ? { ...x, ...patch } : x)), commit);
   const theme = o.theme || 'light', op = o.opacity ?? 1;
   const chipBg = (t: string) => (t === 'light' ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`);
+  if (o.style === 'market') return <MarketProps o={o as any} set={set} remove={() => onChange(all.filter((_, k) => k !== i))} />;
   return (
     <>
       <div className="card">
@@ -678,11 +700,56 @@ function TextProps({ all, i, onChange }: { all: Overlay[]; i: number; onChange: 
               onChange={(e) => set({ speed: +e.target.value } as any, false)} onMouseUp={() => set({}, true)} />
             <span style={{ width: 40, textAlign: 'right', color: 'var(--dim)' }}>{(o as any).speed || 120}</span>
           </div></div>}
+        {o.style !== 'ticker' && <Entrance o={o} set={set as any} />}
         <div className="pair">
           <label>From</label><Num value={o.start} step={0.5} onCommit={(v) => set({ start: v ?? 0 })} />
           <label>Until</label><Num value={o.end} step={0.5} placeholder="end" onCommit={(v) => set({ end: v ?? null })} />
         </div>
         <button className="btn" onClick={() => onChange(all.filter((_, k) => k !== i))}>{I.drop}Delete text</button>
+      </div>
+    </>
+  );
+}
+
+// a finance-news panel's settings: the coin, its numbers, the words on it, its size and timing
+function MarketProps({ o, set, remove }: { o: any; set: (p: any, commit?: boolean) => void; remove: () => void }) {
+  const field = (k: string, label: string, ph = '', num = false) => <div className="row2" key={k}><label>{label}</label>
+    <input className={`field ${num ? '' : 'he'}`} value={o[k] ?? ''} placeholder={ph}
+      onChange={(e) => set({ [k]: e.target.value === '' ? undefined : e.target.value }, false)}
+      onBlur={() => set(num && o[k] != null && o[k] !== '' && !isNaN(+o[k]) ? { [k]: +o[k] } : {}, true)} /></div>;
+  const slider = (k: string, label: string, min: number, max: number, step: number, def: number, show: (v: number) => string) =>
+    <div className="row2" key={k}><label>{label}</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <input type="range" min={min} max={max} step={step} value={o[k] ?? def} style={{ flex: 1, accentColor: 'var(--accent)' }}
+          onChange={(e) => set({ [k]: +e.target.value }, false)} onMouseUp={() => set({}, true)} />
+        <span style={{ width: 44, textAlign: 'right', color: 'var(--dim)' }}>{show(o[k] ?? def)}</span>
+      </div></div>;
+  return (
+    <>
+      <div className="card">
+        <div className="card-h"><div className="av" style={{ background: 'var(--gold)', color: '#2a2000' }}>$</div><div className="title grow">Market panel</div>
+          <span className="help" style={{ margin: 0 }}>changes show live</span></div>
+        {field('symbol', 'Coin', 'LMTS')}
+        {field('name', 'Name', 'מטבע קריפטו')}
+        {field('price', 'Price $', '0.0847', true)}
+        {field('change', 'Change %', '95.4', true)}
+        {field('text', 'Section', 'שוק הקריפטו')}
+        {field('tag', 'Tag', 'מבזק')}
+        {field('updated', 'Updated', 'עודכן: אתמול')}
+        {field('call', 'The call', 'ההמלצה יצאה')}
+        {field('fine', 'Fine print', 'אין לראות באמור ייעוץ השקעות')}
+        <div className="help">The chart draws in: the day before yesterday flat, yesterday the rise, today the call - after the rise. Drag the panel on the preview to move it.</div>
+      </div>
+      <div className="card">
+        <div className="sec">Size & timing</div>
+        {slider('w', 'Width', 560, 1040, 10, 960, (v) => String(v))}
+        {slider('draw', 'Chart starts', 0, 8, 0.1, 0.3, (v) => `${(+v).toFixed(1)}s`)}
+        {slider('dump', 'After the call', 0, 0.3, 0.01, 0.07, (v) => `-${Math.round(v * 100)}%`)}
+        <div className="pair">
+          <label>From</label><Num value={o.start} step={0.5} onCommit={(v) => set({ start: v ?? 0 })} />
+          <label>Until</label><Num value={o.end} step={0.5} placeholder="end" onCommit={(v) => set({ end: v ?? null })} />
+        </div>
+        <button className="btn" onClick={remove}>{I.drop}Delete panel</button>
       </div>
     </>
   );
@@ -918,6 +985,19 @@ createRoot(document.getElementById('root')!).render(<Editor />);
 
 // ---------- lesson template: one speaker, takes in order — same editor, same panes ---------
 const SPEEDS = [1, 1.05, 1.1, 1.2, 1.3];
+// the presets, and his own exact number beside them (0.5-2x; typed, applied on Enter or leaving the box)
+function SpeedPick({ speed, onSpeed }: { speed: number; onSpeed: (v: number) => void }) {
+  const [txt, setTxt] = useState(SPEEDS.includes(speed) ? '' : String(speed));
+  useEffect(() => setTxt(SPEEDS.includes(speed) ? '' : String(speed)), [speed]);
+  const commit = () => { const v = Math.min(2, Math.max(0.5, +(+txt).toFixed(3))); if (txt.trim() && Number.isFinite(+txt) && v !== speed) onSpeed(v); else if (!txt.trim() || !Number.isFinite(+txt)) setTxt(SPEEDS.includes(speed) ? '' : String(speed)); };
+  return <div style={{ display: 'flex', gap: 6, alignItems: 'stretch' }}>
+    <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)`, flex: 1 }}>
+      {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => onSpeed(v)}>{v === 1 ? '1×' : `${v}×`}</button>)}
+    </div>
+    <input className={`field spd-own ${!SPEEDS.includes(speed) ? 'on' : ''}`} type="number" min={0.5} max={2} step={0.01} placeholder="1.15" title="Your own speed (0.5-2×) - Enter to apply"
+      value={txt} onChange={(e) => setTxt(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
+  </div>;
+}
 
 function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: string; data: any; top: React.ReactNode; busy: boolean; setJob: (j: Job) => void; jobLine?: string; reload?: () => void }) {
   const fps = 30;
@@ -1148,6 +1228,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
       thought: { text: 'מחשבה...', style: 'thought', y: 1150, size: 70, start: now, end: +(now + 3).toFixed(2) },
       band: { text: 'כותרת | טקסט', style: 'band', y: 1500, size: 44, opacity: 0.94, start: now, end: +(now + 5).toFixed(2) },
       ticker: { text: 'טקסט רץ ●', style: 'ticker', font: 'assistant', theme: 'dark', opacity: 0.55, y: 1560, size: 40, speed: 130, start: 0, end: null },
+      market: { text: 'שוק הקריפטו', style: 'market', symbol: 'LMTS', name: 'מטבע קריפטו', price: 0.0847, change: 95.4, y: 300, w: 960, start: now, end: +(now + 6).toFixed(2) },
     };
     const next = [...ov, base[kind] as any];
     changeOv(next); setSel({ kind: 'text', i: next.length - 1 });
@@ -1202,7 +1283,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     const next = [...ov, { style: 'image', image: m, plain: true, x: 800, y: 300, w: 230, h: 230, start: 0, end: null, text: '' } as any];
     changeOv(next); setSel({ kind: 'text', i: next.length - 1 });
   };
-  const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture' };
+  const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture', market: 'Market panel' };
   const changeVoice = (patch: any) => { const v = { ...voice, ...patch }; setVoice(v); saveOpt({ voice: v }); };
   // pitch is the one voice setting that remakes the voice track (higher / lower, same timing): about a second, after you let go
   const [duckDb, setDuckDb] = useState<number>(data.episode.music?.duck ?? 0);
@@ -1610,6 +1691,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   // a story's picture in a framed box - the same look as the export (lesson_text.mjs)
                   <img key={i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false} onMouseDown={(e) => dragText(e, i)}
                     style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: o.plain ? 'contain' : 'cover',
+                      transform: o.pop ? `scale(${popScale(o, t)})` : undefined, transformOrigin: 'center',
                       ...(o.plain ? { opacity: o.opacity ?? 1 } : { border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)' }), boxSizing: 'border-box',
                       pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />))}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'band' && (() => {
@@ -1653,14 +1735,23 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                       {o.text}</div>
                   </div>;
                 })())}
-                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && (
+                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && o.style !== 'market' && (
                   <div key={i} style={{ position: 'absolute', top: o.y ?? 270, left: 60, right: 60, display: 'flex', justifyContent: 'center' }}>
                     {/* click to select, drag to move; the outline hugs the text whatever its size */}
                     <div className="he" onMouseDown={(e) => dragText(e, i)}
                       style={{ ...ovBoxStyle(o, { fontFamily: fontCss(o.font), fontWeight: ['system', 'arimo', 'assistant'].includes(o.font || 'system') ? 800 : 400 }),
-                        pointerEvents: 'auto', cursor: 'move',
+                        pointerEvents: 'auto', cursor: 'move', transform: (o as any).pop ? `scale(${popScale(o, t)})` : undefined, transformOrigin: 'center',
+                        visibility: blinkOn(o, t) ? 'visible' : 'hidden',
                         outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>{o.text}</div>
                   </div>))}
+                {/* the market panels last: over the text, as in the export (the panel is laid after the hook) */}
+                {ov.some((o: any) => o.style === 'market') && <MarketCanvas ov={ov} clock={clock} />}
+                {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'market' && (() => {
+                  // the panel itself is on the canvas (MarketCanvas); this box is what you click and drag
+                  const b = marketBox(o);
+                  return <div key={'mk' + i} onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h,
+                    pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />;
+                })())}
               </div>
             </div>
           </div>
@@ -1688,7 +1779,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
               const set = (patch: any, commit = true) => changeOv(ov.map((x: any, j) => (j === sel.i ? { ...x, ...patch } : x)), commit);
               return <>
                 <div className="card">
-                  <div className="card-h"><div className="title grow">Logo</div><span className="help" style={{ margin: 0 }}>click one to swap</span></div>
+                  <div className="card-h"><div className="title grow">Picture</div><span className="help" style={{ margin: 0 }}>click one to swap</span></div>
                   <div className="pm-strip">
                     {media.filter((m) => /\.(png|jpe?g|webp|gif)$/i.test(m)).map((m) => <button key={m} className={`pm-sw ${o.image === m ? 'on' : ''}`} title={m.split('/').pop()} onClick={() => set({ image: m })}>
                       <img src={`/api/ep/${ep}/file?p=${encodeURIComponent(m)}`} /></button>)}
@@ -1706,7 +1797,8 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   <Slider label="Left / right" v={o.x ?? 800} min={0} max={1080 - (o.w || 230)} step={2} fmt={(v) => `${v}`} onChange={(v) => set({ x: v }, false)} />
                   <Slider label="Up / down" v={o.y ?? 300} min={0} max={1920 - (o.h || o.w || 230)} step={2} fmt={(v) => `${v}`} onChange={(v) => set({ y: v }, false)} />
                   <div className="help">Or drag it on the preview.</div>
-                  <button className="btn ghost" style={{ width: '100%' }} onClick={() => { changeOv(ov.filter((_: any, j) => j !== sel.i)); setSel(null); }}>Remove the logo from the video</button>
+                  <Entrance o={o} set={set} />
+                  <button className="btn ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => { changeOv(ov.filter((_: any, j) => j !== sel.i)); setSel(null); }}>Remove the picture from the video</button>
                 </div>
               </>; })()}
             {sel?.kind === 'text' && ov[sel.i] && !((ov[sel.i] as any).style === 'image' && (ov[sel.i] as any).plain) && (
@@ -2016,7 +2108,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                     </button>))}
                 </div>
                 <div className="add-row"><span className="add-k">Add</span>
-                  {([['hook', 'Hook text'], ['question', 'Question card'], ['thought', 'Thought'], ['band', 'Lower third'], ['ticker', 'Ticker']] as const).map(([kd, nm]) =>
+                  {([['hook', 'Hook text'], ['question', 'Question card'], ['thought', 'Thought'], ['band', 'Lower third'], ['ticker', 'Ticker'], ['market', 'Market panel']] as const).map(([kd, nm]) =>
                     <button key={kd} className="add-chip" onClick={() => addOverlay(kd)}>+ {nm}</button>)}
                 </div>
               </div>
@@ -2029,9 +2121,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                 </div>
                 <div className="help" style={{ margin: '6px 0 12px' }}>Tight cuts every pause · Light keeps a breath for faces and gestures · drag any piece's edge on the timeline to pull footage back.</div>
                 <div className="sec">Speed</div>
-                <div className="seg" style={{ gridTemplateColumns: `repeat(${SPEEDS.length}, 1fr)` }}>
-                  {SPEEDS.map((v) => <button key={v} className={speed === v ? 'on' : ''} onClick={() => { setSpeed(v); api(`/api/ep/${ep}/speed`, { speed: v }); }}>{v === 1 ? '1×' : `${v}×`}</button>)}
-                </div>
+                <SpeedPick speed={speed} onSpeed={(v) => { setSpeed(v); api(`/api/ep/${ep}/speed`, { speed: v }); }} />
                 <div className="help" style={{ marginTop: 6 }}>{speed !== 1 && edit?.total ? `${mmss(edit.total / fps)} at 1× → ${mmss(edit.total / fps / speed)}. ` : ''}Plays live at this speed; Export makes the file at it.</div>
                 <div className="sec" style={{ marginTop: 12 }}>Slow motion</div>
                 <div className="seg" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
@@ -2185,6 +2275,23 @@ function FilmFx({ fx, clock, camRef }: { fx: any; clock: () => number; camRef: R
 
 // the ticker strip, positioned from the video's time exactly as the export's ffmpeg formula does - moved on every
 // screen frame straight from the video clock (the 4-a-second time updates made it jump)
+// the finance-news panels, live: the export's own drawing (render/ui/market_anim.js) on one frame-sized canvas
+function MarketCanvas({ ov, clock }: { ov: any[]; clock: () => number }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const live = useRef(ov); live.current = ov;
+  useEffect(() => {
+    let raf = 0;
+    const step = () => {
+      const ctx = ref.current?.getContext('2d');
+      if (ctx) { ctx.clearRect(0, 0, 1080, 1920); const t = clock(); for (const o of live.current) if (o.style === 'market') drawMarket(ctx, o, t, fontCss('assistant')); }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [clock]);
+  return <canvas ref={ref} width={1080} height={1920} style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, pointerEvents: 'none' }} />;
+}
+
 // an animated thought, live: the same motion as the export (render/ui/thought_anim.js)
 function ThoughtText({ o, clock }: { o: any; clock: () => number }) {
   const [t, setT] = useState(0);
@@ -2475,7 +2582,7 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
     if (el && a) { el.scrollLeft = Math.max(0, 12 + a.t * pps - a.px); zoomAnchor.current = null; }
   });  // (after every render: the anchor is set only by a Ctrl+wheel zoom)
   const syncHeads = () => { if (headsRef.current && lanesRef.current) headsRef.current.scrollTop = lanesRef.current.scrollTop; };
-  const ovName = (o: any) => o.image ? 'Logo' : o.asker ? `${o.asker}` : ({ pov: 'Hook', question: 'Question', thought: 'Thought', band: 'Lower third', ticker: 'Ticker' } as any)[o.style || 'pov'] || 'Text';
+  const ovName = (o: any) => o.image ? 'Logo' : o.asker ? `${o.asker}` : ({ pov: 'Hook', question: 'Question', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', market: 'Market' } as any)[o.style || 'pov'] || 'Text';
   const lanesRef = useRef<HTMLDivElement>(null);
   // the lanes have a horizontal scrollbar, the names column does not: without the same room at its bottom the names
   // stop scrolling short of the lanes and every name sits a scrollbar's height off its lane

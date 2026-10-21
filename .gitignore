@@ -79,3 +79,7 @@ sent-projects.json
 
 # dataconnect generated files
 .dataconnect
+
+# Characters' sites: his recordings and face stay out of git (deployed from this machine)
+public/ayelet/v/
+public/ayelet/img/me.jpg

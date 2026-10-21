@@ -52,7 +52,7 @@ select option { background: var(--panel); color: var(--text); }
 .ln.mine .who { color: var(--c); font-size: calc(var(--fs) * 0.55); }
 .ln.mine .t { font-size: var(--fs); color: var(--text); font-weight: 700; line-height: 1.35; }
 .ln.cur { border-color: var(--accent); opacity: 1; }
-.ln.mark { box-shadow: inset 0 0 0 2px #ffd60a; opacity: 1; }
+.ln.ckpt { box-shadow: inset 0 0 0 2px #ffd60a; opacity: 1; }
 .ln .flag { position: absolute; left: 10px; top: 8px; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; color: #1a1400;
   background: #ffd60a; border-radius: 4px; padding: 2px 9px; cursor: pointer; border: 0; }
 .ln .flag:hover { background: #ffe34d; }
@@ -240,9 +240,9 @@ function render() {
     const d = document.createElement('div');
     const mine = solo ? i === cur && !l.dir : !l.dir && me && l.who === me;
     const cls = solo ? (i < cur ? ' past' : i === cur ? ' mine' : ' other') : l.dir ? ' dir' : mine ? ' mine' : me ? ' other' : '';
-    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur ? ' cur' : '') + (i === mark ? ' mark' : '') + (cues && !mine && !solo ? ' cue' : '');
+    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur ? ' cur' : '') + (i === mark ? ' ckpt' : '')  /* (not 'mark': that is the logo square's class) */ + (cues && !mine && !solo ? ' cue' : '');
     d.dataset.i = i;
-    if (!l.dir) d.style.setProperty('--c', color(l.who));
+    if (!l.dir && l.who) d.style.setProperty('--c', color(l.who));  // (a script with no characters: the solo colour)
     const cut = /[—–-]\s*$/.test(l.text);
     d.innerHTML = l.dir ? `<div class="t">[${esc(l.text)}]</div>`
       : `<div class="who">${esc(l.who)}</div><div class="t">${esc(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
@@ -270,7 +270,7 @@ function foot() {
   if (solo) {
     const left = lines.slice(cur).reduce((t, l) => t + lineSeconds(l), 0);
     f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span><span>עוד ~${Math.max(1, Math.round(left / 60))} דק׳</span>` +
-      `<span class="keys">Space play/pause · Home start · ↓ next · ↑ back</span>`;
+      `<span class="keys">Space play/pause · ${mark != null ? 'Home checkpoint (again: start)' : 'Home start'} · ↓ next · ↑ back</span>`;
     return;
   }
   const mineIdx = lines.map((l, i) => (l.who === me ? i : -1)).filter((i) => i >= 0);
@@ -279,7 +279,7 @@ function foot() {
   f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span>` +
     (me ? `<span>${me}: <b>${Math.min(done + 1, mineIdx.length)}</b> מתוך ${mineIdx.length}</span>` +
       `<span>${next == null ? 'סיימת את השורות שלך 🎬' : next === cur ? '<b>עכשיו את/ה</b>' : `עוד ${next - cur} שורות עד שלך`}</span>` : '<span>בחר/י דמות למעלה (1-9)</span>') +
-    `<span class="keys">Space play/pause · Home start · ↓ next · ← my next line · → my previous · ↑ back</span>`;
+    `<span class="keys">Space play/pause · ${mark != null ? 'Home checkpoint (again: start)' : 'Home start'} · ↓ next · ← my next line · → my previous · ↑ back</span>`;
 }
 
 function center() {
@@ -293,6 +293,7 @@ function go(i) { cur = Math.max(0, Math.min(lines.length - 1, i)); save(); rende
 // pace = words per minute (a general measure, not "1x of something"); each script can lock its own
 const DEFAULT_WPM = 270;
 let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
+
 function lineSeconds(l) {
   if (l.dir) return 0.8;
   const words = l.text.split(/\s+/).filter(Boolean).length;
@@ -305,7 +306,7 @@ function schedule() {
   const secs = lineSeconds(lines[cur]);
   const bar = document.querySelector(`.ln[data-i="${cur}"] .bar`);
   if (bar) {  // fill the current bubble's bar over its time
-    bar.classList.remove('run'); bar.style.width = '0';
+    bar.classList.remove('run'); bar.style.transitionDuration = '0s'; bar.style.width = '0';
     requestAnimationFrame(() => requestAnimationFrame(() => { bar.classList.add('run'); bar.style.transitionDuration = secs + 's'; bar.style.width = '100%'; }));
   }
   timer = setTimeout(() => {
@@ -334,7 +335,10 @@ function toggle() { if (cdTimer) { cancelCd(); setPlay(false); } else if (playin
 function setPlay(on) {
   playing = on;
   $('play').textContent = on ? '❚❚ Pause' : '▶ Play';
-  if (on) schedule(); else { clearTimeout(timer); document.querySelectorAll('.ln .bar').forEach((b) => { b.classList.remove('run'); b.style.width = '0'; }); }
+  if (on) { schedule(); return; }
+  clearTimeout(timer);
+  // a stop: the line is ready again from its start (he records a line whole) - the bar is empty at once, never sliding back
+  document.querySelectorAll('.ln .bar').forEach((b) => { b.classList.remove('run'); b.style.transitionDuration = '0s'; b.style.width = '0'; });
 }
 function pick(c) { me = me === c ? null : c; save(); render(); }
 function myStep(d) {
@@ -354,7 +358,7 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); me ? myStep(-1) : go(cur - 1); }  // RTL: right = back
   else if (e.key === 'ArrowLeft') { e.preventDefault(); me ? myStep(1) : go(cur + 1); }
-  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'Home') { e.preventDefault(); go(mark != null && cur !== mark ? mark : 0); }  // the checkpoint first; on it, Home again = the start
   else if (e.key === 'End') { e.preventDefault(); go(lines.length - 1); }
 });
 $('bigger').onclick = () => { fs = Math.min(64, fs + 3); store.set('reader-fs', fs); render(); };

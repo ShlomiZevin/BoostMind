@@ -200,7 +200,7 @@ app.post('/api/ep/:id/lesson', (q, res) => {
   const cfg = readJson(path.join(d, 'episode.json'));
   if (typeof b.title === 'string') cfg.title = b.title;
   if (Array.isArray(b.plaque)) cfg.plaque = b.plaque;
-  if (b.speed) cfg.speed = Math.min(1.3, Math.max(1, Number(b.speed)));
+  if (b.speed) cfg.speed = Math.min(2, Math.max(0.5, +Number(b.speed).toFixed(3)));  // a preset or his exact number
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
@@ -536,7 +536,7 @@ app.get('/api/ep/:id/music/:file', (q, res) => {
 app.post('/api/ep/:id/speed', (q, res) => {
   const d = epDir(q.params.id);
   const cfg = readJson(path.join(d, 'episode.json'));
-  cfg.speed = Math.min(1.3, Math.max(1, Number(q.body?.speed) || 1));
+  cfg.speed = Math.min(2, Math.max(0.5, +(Number(q.body?.speed) || 1).toFixed(3)));  // a preset or his exact number
   writeJson(path.join(d, 'episode.json'), cfg);
   res.json({ speed: cfg.speed });
 });

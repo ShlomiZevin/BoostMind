@@ -103,7 +103,7 @@
       "w": 820,
       "size": 34,
       "start": 105.91,
-      "end": 140.03,
+      "end": 139.77,
       "label_size": 32,
       "accent": "#262626",
       "avatar_color": "#c4a35a",
@@ -137,7 +137,7 @@
       "opacity": 0.95
     }
   ],
-  "speed": 1.2,
+  "speed": 1.3,
   "voice": {
     "denoise": true,
     "lowcut": 70,
@@ -178,9 +178,13 @@
           96.98
         ]
       ]
+    },
+    "video_end": {
+      "take": "ayelete-2",
+      "t": 42.509
     }
   },
-  "done": false,
+  "done": true,
   "eye_contact": {
     "on": true
   },

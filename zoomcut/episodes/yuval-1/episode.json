@@ -99,13 +99,13 @@
   },
   "overlays": [
     {
-      "text": "פוב: יובל (כסא) נוח הררי בעוד כנס AI, מקדם עוד ספר חדש שלו",
+      "text": "אף אחד:\nיובל (כסא) נוח הררי בעוד כנס AI, מקדם עוד ספר חדש שלו:",
       "style": "pov",
       "font": "assistant",
       "theme": "light",
       "opacity": 0.75,
-      "y": 253,
-      "size": 62,
+      "y": 179,
+      "size": 58,
       "padX": 36,
       "padY": 14,
       "start": 0,
@@ -147,5 +147,6 @@
     "media/book-3d.png"
   ],
   "speed": 1.1,
-  "bg_blur": 0.8
+  "bg_blur": 0.8,
+  "done": true
 }

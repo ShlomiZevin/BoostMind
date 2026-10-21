@@ -510,3 +510,7 @@ a { color: inherit; text-decoration: none; }
 
 /* what a sound panel changes: this sound / the music / every sound */
 .scope { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+
+/* ---- Speed: his own exact number beside the presets ---- */
+.spd-own { width: 64px; height: auto; min-height: 30px; padding: 0 6px; text-align: center; font-variant-numeric: tabular-nums; }
+.spd-own.on { border-color: var(--accent); color: var(--text); }

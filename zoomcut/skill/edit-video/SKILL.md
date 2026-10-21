@@ -56,6 +56,13 @@ the footage; never name things after a series in the UI.
   filter and a level 5-8 dB under his voice; never let your own processing eat a word (RNNoise ate a last word once).
 - **Real people:** no realistic images of real politicians at invented events; "תמונת AI" tag on realistic AI people.
   His own images / recordings stay out of the public git repo.
+- **Every character is a real person** (his rule, 2026-10-21): each recurring character gets their own web presence
+  built the way THEY would build it - Ayelet's 2009 healer site (/ayelet/), Yuval's publisher page
+  (/homo-useless/), Yotam's shop (/yotamverse/). Never "parody", never Shlomi's name on it, first person in the
+  character's voice, made from his scripts (their lines, misquotes, followers' questions). Forms collect nothing
+  (a line in their voice instead). Every such site gets: a button on the bio hub (public/links/), the character's
+  finished videos (his recordings in `.gitignore`), and in the video a short ticker / blinking CTA box
+  (`"blink": true`) that says the site is up and "הלינק בביו" - not the boostmind URL (it breaks the illusion).
 - Reply to him in English; Hebrew only in the video's text.
 
 ## Recipes - read the one you need

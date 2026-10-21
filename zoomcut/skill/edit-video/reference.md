@@ -1,7 +1,8 @@
 # Reference - settings, tools, gotchas
 
 ## episode.json (lesson.py) - the settings that matter
-- **Footage:** `input_dir`, `takes` (glob), `sequence` [{take, from, to}] (edit order of take segments), `language`
+- **Footage:** `input_dir`, `takes` (glob), `sequence` [{take, from, to}] (edit order of take segments; `to` = take
+  seconds, put it in the gap before the sentence the next take repeats), `language`
   ("en" for English speech).
 - **Cut** (`cut`): `merge`, `pad_in`, `pad_out`, `join`, `above_floor`, `voice_above_floor`, `silence: false` (only
   start / end), `whole` (the whole take - a stare), `keep_pauses` {take: [[a,b]]}, `lead_in`, `end_at`,
@@ -10,7 +11,9 @@
 - **Person:** `cutout` (false = original place), `matte_engine` fast | quality | hybrid | body, `matte_cut`, `keep`
   (desk below / boxes / bright_in / stable), `person` {scale, x, y}, `look` (live colour), `grade` (baked colour; set
   neutral for a raw person), `eye_contact`.
-- **Set:** `background`, `bg_blur` (2.2 default), `bg_dim` (false = the photo's own light), `plaque` / `plaque_quad`.
+- **Set:** `background`, `bg_blur` (2.2 default), `bg_dim` (false = the photo's own light), `plaque` / `plaque_quad`,
+  `sign` {image, quad [TL,TR,BR,BL] in the photo's pixels, light, warm, shadow} (or a list) - a picture (her logo)
+  painted INTO the set photo in perspective, so it zooms, moves and blurs with the room (an image overlay does not).
 - **Voice:** `voice` {preset, boost, pitch, pa, room…}, `denoise` {rnn} / {nr, nf}, `speed` (1-1.3, export burns it in).
 - **Sounds** (`sounds` [...]): `sound`, `from` / `to` (file seconds), placement `at` (take seconds) | `after_prev`
   (seconds after the previous placed sound, may be negative) | `start_word` / `end_word`; `filter` phone | speaker |
@@ -19,8 +22,11 @@
   `captions` [[a, b, text]] (the other side's subtitles), `until` {sound, offset} (ends where another starts), `room`,
   `trim_in` / `len`, `reverse`.
 - `voice_bed` {gain} - a voice-over's own room noise between its lines. `music` {sound, start, end, off, duck}.
-- **Overlays:** `style` pov (hook) | question | thought | band | ticker | image (`behind`, `tag`, `plain`); timing
-  `start` / `end` | `from_words` / `to_words` | `sound` (index - written back at each build). Thought: `motion`
+- **Overlays:** `style` pov (hook) | question | thought | band | ticker | image (`behind`, `tag`, `plain`) | market (a finance-news
+  coin card + chart drawing in: `symbol` `name` `price` `change` `tag` `updated` `call` `fine` `dump` `w`; one canvas drawing,
+  `render/ui/market_anim.js`, live in the editor and frame by frame in the export via `tools/market_frames.mjs`); timing
+  `blink: true` (on 72% of each second - a call to action), `start` / `end` | `from_words` / `to_words` (both take a list of alternatives - the recogniser's spelling first:
+  it heard ריספרדל as "חיספרדל"; one word must match exactly) | `sound` (index - written back at each build). Thought: `motion`
   "horror", `x`, `w`, `y`, `size`, `hold`, `grow`, `overlap`.
 - **Film look** (`fx`): `grade_amount` + `grade`, `dark`, `vignette`, `grain`, `zoom`, `drift`, `flicker`, `ghost` +
   `ghost_lag`, `times` {id: [start, end]}, `fade`, `center`, `hits` [{at | sound, kick, shake, flash}], `blackouts`
@@ -30,8 +36,11 @@
 
 ## Tools
 - Images: Leonardo GPT Image 2.5 (flare / sunburst - he prefers them): `node c:\workspace\noam\team-photos\gen.mjs
-  image prompt.txt out.jpg flare HIGH 1024x1536` (~$0.11); `portrait <ref> <prompt> <out> flare HIGH 0.6 1024x1536`
-  re-lights / re-does a photo from a reference (the lit store from the dark one).
+  image prompt.txt out.jpg flare MEDIUM 1024x1024`; `portrait <ref> <prompt> <out> flare MEDIUM 0.6 1024x1024`
+  re-lights / re-does a photo from a reference (the lit store from the dark one). **Work cheap (his rule):** MEDIUM
+  and the smallest size that does the job - HIGH / HD / 2x only when he asks (HIGH was $0.076 square, $0.11 wide).
+- Stickers (the guru's own "effort" look): ask for a die-cut sticker with a thick white border on a flat light-mint
+  (#CDEBDD) background, then `tools/cutout_logo.py` cuts it to a transparent PNG (mint is removed, white border kept).
 - Sound kit: `tools/horror_sfx.py <out dir> [names]` (synthesized: drone, braam, riser, stinger, heartbeat(_climax),
   whine, pulse, end_boom, hum, phone_drop, typing, impact) → mp3 (in git, in the editor's library).
 - Eye contact: `tools/eyes_nvidia.py` (NVIDIA_API_KEY in zoomcut/.env) / `tools/gaze_video.py` (v6 fallback).
@@ -51,3 +60,13 @@
 - An `.ogg` voice note's filtered copies are written next to it (`<file>.<filters>.wav`) - keep notes in the project's
   media/, never in Downloads.
 - Report to the fleet board when asked (alias `video-editing`).
+- Run lesson.py with `.venv/Scripts/python` (system python lacks rapidfuzz: `--still` fails silently in a loop and
+  leaves the OLD still.png - every frame looked the same). A still costs ~60 s: batch few, pick timestamps well.
+- Phone takes that open in digital silence (floor ~-80 dB): the first soft consonant ("כ" of "כי", "ה") is below
+  `voice_above_floor` 38 and was clipped - 30 kept it (tadar-5). A short burst running into speech is no longer
+  dropped as a click (lesson.py spans). Check each take's first piece against the voice onset (dB per 10 ms).
+- A script line with no full stop runs into the next one in the subtitles ("Risperdal ואני") - fix it in
+  captions.txt (the script stays his).
+- The editor once saved ANOTHER project's text-on-video into this one (tadar-4's questions landed in tadar-5 after
+  he moved between them). If he was in the editor on another project, re-check episode.json overlays and tell him
+  to refresh (F5) before editing.

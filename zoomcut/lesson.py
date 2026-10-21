@@ -365,7 +365,8 @@ def spans(ls, n):
         if not v and start is not None:
             out.append([start * hop, i * hop])
             start = None
-    out = [s for s in out if s[1] - s[0] >= 0.12]  # clicks, mic bumps
+    # clicks, mic bumps - but a short burst running straight into speech is its first consonant ("כ" of "כי")
+    out = [s for i, s in enumerate(out) if s[1] - s[0] >= 0.12 or (i + 1 < len(out) and out[i + 1][0] - s[1] < 0.25)]
     merged = []
     for a, b in out:
         if merged and a - merged[-1][1] < c["merge"]:
@@ -844,8 +845,9 @@ def time_overlays(ls, items, total):
         after[take] = hit[0]
         words = load_json(ls.work("words", take + ".json"), [])
         o["start"] = round(out_time(items, take, hit[0]) or 0.0, 2)
-        if o.get("to_words"):
-            end = find_phrase(words, o["to_words"], hit[0], last=True)
+        if o.get("to_words"):  # alternatives too: the first one heard after the start
+            end = next(filter(None, (find_phrase(words, ph, hit[0], last=True) for ph in
+                                     (o["to_words"] if isinstance(o["to_words"], list) else [o["to_words"]]))), None)
             o["end"] = round(out_time(items, take, end[1]) + o.get("hold", 0.4), 2) if end else None
         else:
             o["end"] = None
@@ -894,6 +896,37 @@ def bg_place(ls):
 FLAT = (240, 600, 600, 250)  # where the plaque text is drawn flat (x, y, w, h) before it is put on the plate
 
 
+def paint_sign(ls, photo, s):
+    """A picture hung in the set (episode.json "sign": {image, quad: [TL, TR, BR, BL] in the photo's pixels, light,
+    warm, shadow}) - painted into the photo in perspective, so it zooms, moves and blurs with the room. A logo
+    on the wall: the room's light on it (light < 1 dims it, warm tints it toward the photo under it), a soft shadow."""
+    import cv2
+    img = cv2.imread(ls.asset(s["image"]), cv2.IMREAD_UNCHANGED)
+    if img is None:
+        log(f"  · sign not found: {s['image']}")
+        return photo
+    if img.shape[2] == 3:
+        img = np.dstack([img, np.full(img.shape[:2], 255, np.uint8)])
+    h, w = img.shape[:2]
+    ph, pw = photo.shape[:2]
+    M = cv2.getPerspectiveTransform(np.float32([[0, 0], [w, 0], [w, h], [0, h]]), np.float32(s["quad"]))
+    lay = cv2.warpPerspective(img, M, (pw, ph), flags=cv2.INTER_AREA, borderMode=cv2.BORDER_CONSTANT,
+                              borderValue=(0, 0, 0, 0)).astype(np.float32)
+    a = lay[:, :, 3:] / 255.0
+    base = photo.astype(np.float32)
+    sh = s.get("shadow", 0.35)
+    if sh:  # it hangs a little off the wall: a soft shadow down and to the side the light falls
+        dx, dy = s.get("shadow_offset", [6, 8])
+        sa = cv2.GaussianBlur(np.roll(np.roll(a[:, :, 0], dy, 0), dx, 1), (0, 0), s.get("shadow_blur", 7))[:, :, None]
+        base = base * (1 - sa * sh)
+    rgb = lay[:, :, :3] * s.get("light", 0.9)
+    warm = s.get("warm", 0.15)
+    if warm:  # the room's colour on it: mix in the blurred photo's tint behind it
+        tint = cv2.GaussianBlur(photo, (0, 0), 25).astype(np.float32)
+        rgb = rgb * (1 - warm) + rgb * (tint / max(tint.mean(), 1.0)) * warm
+    return np.clip(base * (1 - a) + rgb * a, 0, 255).astype(np.uint8)
+
+
 def scene_png(ls):
     """Two layers in the photo's own pixels (so zooming / moving them is just a resize): the set photo
     (blurred later, it sits behind him) and the plaque text on the plate in perspective (kept sharp)."""
@@ -901,6 +934,8 @@ def scene_png(ls):
     photo = cv2.imread(ls.asset(ls.cfg["background"]))
     out = ls.work("public", "scene.png")
     plaque_out = ls.work("public", "plaque.png")
+    for s in ([ls.cfg["sign"]] if isinstance(ls.cfg.get("sign"), dict) else ls.cfg.get("sign") or []):
+        photo = paint_sign(ls, photo, s)
     cv2.imwrite(out, photo)
     empty = np.zeros((photo.shape[0], photo.shape[1], 4), np.uint8)
     quad = ls.cfg.get("plaque_quad")
@@ -928,6 +963,7 @@ def cap_y_of(ls, c):
 
 
 THOUGHT_V = 6  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
+MARKET_V = 5  # the same for render/ui/market_anim.js
 
 
 def text_layers(ls, caps, anims_too=True):
@@ -937,7 +973,7 @@ def text_layers(ls, caps, anims_too=True):
     c, sw, sh, cx, cy = bg_place(ls)
     pb = ls.cfg.get("plaque_bg", {"cx": 570, "top": 222, "w": 300, "size": 40})  # in the photo's own pixels
     pl = {"x": pb["cx"] * c - cx, "y": pb["top"] * c - cy, "w": pb["w"] * c, "size": pb["size"] * c}
-    anims = []
+    anims, markets = [], []
     for i, o in enumerate(overlays(ls)):
         o["png"] = ls.work("text", f"ov{i}.png")
         if o.get("style") == "thought":  # animated (render/ui/thought_anim.js): a transparent clip, made once per text and timing
@@ -951,7 +987,25 @@ def text_layers(ls, caps, anims_too=True):
                               "start": float(o["start"]), "end": float(o["end"]), "motion": o.get("motion"), "x": o.get("x"), "w": o.get("w"),
                               "hold": o.get("hold", 0.35), "grow": o.get("grow", 1)})
             continue
+        if o.get("style") == "market":  # a finance-news panel (render/ui/market_anim.js): a transparent clip, like a thought
+            import hashlib
+            k = {f: v for f, v in o.items() if f not in ("png", "anim", "anim_y", "from_words", "to_words", "take", "hold")}
+            o["anim"] = ls.work("text", "anim", "m" + hashlib.md5(json.dumps([MARKET_V, k], ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:13] + ".mov")
+            o["anim_y"] = max(0, round(float(o.get("y") if o.get("y") is not None else 300) - 30)) & ~1  # the clip's top (tools/market_frames.mjs)
+            ls.anims_used = getattr(ls, "anims_used", []) + [o["anim"]]
+            if not os.path.exists(o["anim"]) and anims_too:
+                markets.append({"out": o["anim"][:-4] + f".{os.getpid()}.part.mov", "final": o["anim"], "o": k})
+            continue
         spec["items"].append({"out": o["png"], "kind": "overlay", **{k: v for k, v in o.items() if k != "png"}})
+    if markets:
+        msp = ls.work("text", "anim", "market.json")
+        json.dump({"fontsDir": os.path.join(ROOT, "fonts"), "fps": FPS, "items": markets}, open(msp, "w", encoding="utf-8"), ensure_ascii=False)
+        log(f"  · drawing {len(markets)} market panels")
+        r = subprocess.run(["node", os.path.join(ROOT, "tools", "market_frames.mjs"), msp], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if r.returncode:
+            raise RuntimeError(r.stderr[-1500:])
+        for it in markets:
+            os.replace(it["out"], it["final"])
     if anims:
         asp = ls.work("text", "anim", "spec.json")
         json.dump({"fontsDir": os.path.join(ROOT, "fonts"), "fps": FPS, "items": anims}, open(asp, "w", encoding="utf-8"), ensure_ascii=False)
@@ -1879,7 +1933,7 @@ def warm(ls):
 # ---- after an export: is the file what the edit says? then the work folder keeps only what this edit uses -------
 def check_export(ls, total):
     out = ls.p("out", ls.slug + ".mp4")
-    spd = min(1.3, max(1.0, float(ls.cfg.get("speed", 1.0))))
+    spd = min(2.0, max(0.5, float(ls.cfg.get("speed", 1.0))))
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration:stream=codec_type,width,height,r_frame_rate",
                         "-of", "json", out], capture_output=True, text=True)
     info = json.loads(r.stdout or "{}")
@@ -2135,6 +2189,16 @@ def person_layer(ls, items, gaze=False):
     return out
 
 
+def pop_expr(a, b=None):
+    """A layer's size over time when it pops in (springs past its size and settles in 0.35 s) and shrinks away in its
+    last 0.2 s - the editor's popScale (render/ui/editor.tsx), as an ffmpeg expression of t."""
+    p = f"clip((t-{a:.3f})/0.35,0,1)"
+    s = f"(0.3+0.7*(1+2.70158*pow({p}-1,3)+1.70158*pow({p}-1,2)))"
+    if b is not None:
+        s += f"*(0.3+0.7*clip(({b:.3f}-t)/0.2,0,1))"
+    return s
+
+
 def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_frame=None):
     """One pass: background photo + person (masked, graded, placed) + subtitles + text on video + speed.
     The preview is composed at half size, so it is quick; Export composes full size."""
@@ -2142,7 +2206,7 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
     w, h = int(W * f), int(H * f)
     pw, ph, x, y = layout(ls)
     pw, ph, x, y = int(pw * f) // 2 * 2, int(ph * f) // 2 * 2, int(x * f), int(y * f)
-    spd = 1.0 if preview else min(1.3, max(1.0, float(ls.cfg.get("speed", 1.0))))
+    spd = 1.0 if preview else min(2.0, max(0.5, float(ls.cfg.get("speed", 1.0))))
     frames = round(total / spd)
     # captions as one image stream
     cl, blank = ls.work("text", "captions.txt"), ls.work("text", "blank.png")
@@ -2222,6 +2286,9 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
         last = "vi"
     for k, o in enumerate(ovs):
         a, b = float(o.get("start") or 0), float(o.get("end") or total / FPS)
+        en = f"between(t,{a:.3f},{b:.3f})"
+        if o.get("blink"):  # a call to action that blinks: on 72% of each second - the editor's blinkOn()
+            en += f"*lt(mod(t-{a:.3f},1),0.72)"
         if o.get("behind"):  # already on the set, under him
             continue
         if o.get("style") == "ticker":
@@ -2234,11 +2301,27 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
             band = f"black@{float(o.get('opacity') if o.get('opacity') is not None else 0.55):.2f}"
             fc += (f";[{last}]drawbox=x=0:y={ty - int(10 * f)}:w=iw:h={th + int(20 * f)}:color={band}:t=fill:enable='between(t,{a:.3f},{b:.3f})'[d{k}]"
                    f";[{first_ov + k}:v]scale={tw}:{th}[o{k}];[d{k}][o{k}]overlay=x='mod({v:.2f}*t,{w}+{tw})-{tw}':y={ty}:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
+        elif o.get("pop") and not o.get("anim"):
+            # only the layer's own box (its visible pixels) is cut from the frame-size image and scaled around its centre
+            import cv2
+            al = cv2.imread(o["png"], cv2.IMREAD_UNCHANGED)
+            ys_, xs_ = np.nonzero(al[..., 3] > 8) if al is not None and al.ndim == 3 and al.shape[2] == 4 else ([], [])
+            if len(xs_):
+                sx = w / al.shape[1]
+                x0, y0 = int(xs_.min() * sx) // 2 * 2, int(ys_.min() * sx) // 2 * 2
+                cw = min(w - x0, (int((xs_.max() + 1) * sx) - x0 + 1) // 2 * 2)
+                ch = min(h - y0, (int((ys_.max() + 1) * sx) - y0 + 1) // 2 * 2)
+                S = pop_expr(a, b if o.get("end") is not None else None)
+                fc += (f";[{first_ov + k}:v]scale={w}:{h},format=rgba,crop={cw}:{ch}:{x0}:{y0},"
+                       f"scale=w='max(2,trunc({cw}*{S}/2)*2)':h='max(2,trunc({ch}*{S}/2)*2)':eval=frame[o{k}]"
+                       f";[{last}][o{k}]overlay=x='{x0 + cw / 2:.1f}-w/2':y='{y0 + ch / 2:.1f}-h/2':enable='{en}'[v{k + 1}]")
+            else:
+                fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='{en}'[v{k + 1}]"
         elif o.get("anim"):
             fc += (f";[{first_ov + k}:v]format=rgba,scale={w}:-2[o{k}];"
                    f"[{last}][o{k}]overlay=x=0:y={int(o['anim_y'] * f)}:eof_action=pass:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
         else:
-            fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]"
+            fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='{en}'[v{k + 1}]"
         last = f"v{k + 1}"
     fc += f";[{last}]setpts=PTS/{spd},fps={FPS},format=yuv420p[v];[4:a]atempo={spd}[a]"
     if still_frame is not None:

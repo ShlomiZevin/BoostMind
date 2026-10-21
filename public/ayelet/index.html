@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>איילת השחר ✨ מאמנת תודעה • תקשור • אנרגיה ✨ האתר הרשמי</title>
+<meta name="description" content="האתר הרשמי של איילת השחר - מאמנת תודעה, מתקשרת ומטפלת הוליסטית בתדרים. סדנת מעבר לתדר, שאלות ותשובות, מילון התודעה.">
+<meta property="og:title" content="איילת השחר ✨ האתר הרשמי">
+<meta property="og:description" content="מאמנת תודעה • תקשור • אנרגיה • תדרים">
+<meta property="og:image" content="https://boostmind-b052c.web.app/ayelet/img/logo.png">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Varela+Round&family=Amatic+SC:wght@700&family=David+Libre:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* האתר עוצב באהבה. כל צבע נבחר לפי התדר שלו. */
+  :root { --gold: #ffd700; --pink: #ff4fd8; --cyan: #00ffff; --lime: #b6ff00; --deep: #2a0845; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; color: #fff; font-family: 'Varela Round', 'Comic Sans MS', Arial, sans-serif; font-size: 17px; line-height: 1.6;
+    background-color: #3b0a63;
+    background-image:
+      radial-gradient(circle at 20% 30%, #fff 1px, transparent 1.5px),
+      radial-gradient(circle at 70% 80%, #ffd700 1px, transparent 1.5px),
+      radial-gradient(circle at 45% 60%, #ff9ff3 1.2px, transparent 2px),
+      radial-gradient(circle at 85% 15%, #fff 0.8px, transparent 1.3px),
+      linear-gradient(180deg, #2a0845 0%, #6a1b9a 45%, #c2185b 100%);
+    background-size: 90px 90px, 130px 130px, 170px 170px, 60px 60px, 100% 100%;
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  a { color: var(--cyan); }
+  a:visited { color: #ff9ff3; }
+  .page { max-width: 780px; margin: 0 auto; padding: 0 10px 40px; }
+
+  .marquee { background: #000; color: var(--lime); border-top: 3px ridge var(--gold); border-bottom: 3px ridge var(--gold); font-weight: bold; padding: 6px 0; }
+
+
+  header { text-align: center; padding: 18px 0 6px; }
+  .logo { width: min(240px, 62vw); filter: drop-shadow(0 0 18px #ffd70099); animation: spin 18s linear infinite; }
+  @keyframes spin { 50% { transform: rotate(8deg) scale(1.04); } }
+  h1 {
+    font-family: 'Suez One', serif; font-size: clamp(2.5rem, 11vw, 4.4rem); margin: 6px 0 0; line-height: 1.1;
+    color: var(--gold); letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #b8860b, 4px 4px 0 #7a4f00, 0 0 12px #fff6, 0 0 30px var(--pink), 6px 6px 10px #000;
+  }
+  .tag { font-family: 'Amatic SC', cursive; font-size: 2rem; color: var(--pink); text-shadow: 0 0 8px #fff, 2px 2px 0 #000; margin: 0; }
+
+  .music { display: block; margin: 10px auto; background: #ff00aa; color: #fff; border: 4px outset #ff8adf; font: inherit; font-weight: bold; padding: 8px 16px; cursor: pointer; border-radius: 0; }
+  .music:active { border-style: inset; }
+
+  nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; margin: 14px 0; }
+  nav a { display: block; text-align: center; padding: 9px 4px; background: linear-gradient(#9b30ff, #4b0082); color: #fff !important; text-decoration: none; font-weight: bold; border: 3px outset #c58cff; text-shadow: 1px 1px 0 #000; }
+  nav a:hover { background: linear-gradient(#ff4fd8, #9b30ff); }
+
+  section { background: rgba(20, 0, 40, 0.72); border: 5px double var(--gold); margin: 22px 0; padding: 16px 16px 18px; position: relative; text-align: center; }
+  section:nth-of-type(even) { border: 4px dashed var(--pink); background: rgba(60, 0, 70, 0.75); }
+  h2 { font-family: 'Suez One', serif; font-size: clamp(1.6rem, 7vw, 2.3rem); margin: 0 0 10px; color: var(--cyan); text-shadow: 3px 3px 0 #ff00aa, 0 0 14px #00ffff99; }
+  h3 { color: var(--gold); margin: 14px 0 4px; font-size: 1.25rem; text-shadow: 1px 1px 0 #000; }
+  p { margin: 8px 0; }
+  .pink { color: var(--pink); } .gold { color: var(--gold); } .lime { color: var(--lime); } .cyan { color: var(--cyan); }
+  .big { font-size: 1.25em; font-weight: bold; }
+  hr { border: 0; height: 6px; margin: 16px 0; background: linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red); }
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { visibility: hidden; } }
+  .new { display: inline-block; background: red; color: #ff0; font-weight: bold; padding: 0 6px; font-size: .8em; transform: rotate(-8deg); border: 2px solid #ff0; }
+
+  .me { width: 190px; height: 190px; border-radius: 50%; border: 6px ridge var(--gold); box-shadow: 0 0 0 6px #ff4fd8, 0 0 30px 10px #ffd70088; object-fit: cover; margin: 6px auto 10px; display: block; }
+  .sticker { position: absolute; width: 92px; pointer-events: none; animation: float 4s ease-in-out infinite; z-index: 2; }
+  @keyframes float { 50% { transform: translateY(-8px) rotate(6deg); } }
+
+  .videos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 10px; }
+  .vid { background: #000; border: 4px ridge #c58cff; padding: 8px; }
+  .vid video { width: 100%; aspect-ratio: 9 / 16; background: #000; display: block; }
+  .vid b { display: block; color: var(--gold); margin-top: 6px; }
+  .vid small { color: #ddd; }
+  .soon { display: flex; align-items: center; justify-content: center; flex-direction: column; aspect-ratio: 1; background: repeating-linear-gradient(45deg, #2a0845 0 14px, #3b0a63 14px 28px); color: var(--pink); font-weight: bold; }
+
+  .cta { display: inline-block; margin-top: 12px; background: #00c853; color: #fff !important; text-decoration: none; font-weight: bold; font-size: 1.2em; padding: 10px 22px; border: 4px outset #69f0ae; cursor: pointer; font-family: inherit; }
+  .cta:active { border-style: inset; }
+
+  table.prices { width: 100%; border-collapse: separate; border-spacing: 3px; margin-top: 8px; background: var(--gold); }
+  table.prices td, table.prices th { background: #fff8dc; color: #4b0082; padding: 8px 6px; border: 2px inset #daa520; font-size: .95em; }
+  table.prices th { background: #ff4fd8; color: #fff; font-family: 'Suez One', serif; font-weight: normal; }
+  table.prices td:last-child { font-weight: bold; color: #c2185b; white-space: nowrap; }
+
+  .qa { text-align: right; background: #fff0fb; color: #4a0040; border: 3px solid #ff4fd8; padding: 12px 14px; margin: 14px 0; border-radius: 18px 0 18px 0; }
+  .qa .q { font-weight: bold; color: #8e24aa; }
+  .qa .q::before { content: "💌 "; }
+  .qa .a::before { content: "🔮 איילת: "; font-weight: bold; color: #c2185b; }
+
+  dl.dict { text-align: right; margin: 8px 0 0; }
+  dl.dict dt { font-family: 'Suez One', serif; color: var(--lime); font-size: 1.3em; margin-top: 14px; text-shadow: 2px 2px 0 #000; }
+  dl.dict dd { margin: 2px 0 0; padding-right: 14px; border-right: 4px dotted var(--pink); }
+
+  .scroll { background: url(img/scroll.png) center / 100% 100% no-repeat; color: #2b1400; font-family: 'David Libre', serif; font-size: clamp(1.05rem, 4.6vw, 1.45rem); line-height: 1.55; padding: 13% 16%; margin: 10px auto; max-width: 620px; aspect-ratio: 900 / 433; display: flex; flex-direction: column; justify-content: center; }
+  .scroll small { font-size: .75em; margin-top: 4px; }
+  .note { font-size: .85em; color: #ccc; }
+
+  .gb { text-align: right; background: #fffde7; color: #333; border: 2px solid #999; margin: 10px 0; font-family: 'Comic Sans MS', 'Varela Round', sans-serif; }
+  .gb .who { background: #ffeb3b; color: #6a1b9a; padding: 4px 10px; font-weight: bold; border-bottom: 1px dashed #999; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .gb .who span { font-weight: normal; color: #777; font-size: .85em; }
+  .gb p { padding: 4px 10px 8px; margin: 0; }
+
+  form.fake { display: grid; gap: 8px; max-width: 420px; margin: 10px auto 0; text-align: right; }
+  form.fake input, form.fake textarea, form.fake select { font: inherit; padding: 8px; border: 3px inset #c58cff; background: #fffaf0; color: #4b0082; width: 100%; }
+
+  .counter { display: inline-block; background: #000; color: #0f0; font-family: 'Courier New', monospace; font-size: 1.4em; letter-spacing: 4px; padding: 2px 8px; border: 3px inset #555; }
+  footer { text-align: center; font-size: .9em; color: #eee; padding: 10px 0 30px; }
+  footer p { margin: 6px 0; }
+  .ie { font-size: .8em; color: #bbb; }
+
+  #dlg { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  #dlg.on { display: flex; }
+  #dlg .box { background: #fff0fb; color: #4a0040; border: 6px ridge var(--gold); max-width: 360px; width: 100%; padding: 16px; text-align: center; font-size: 1.1em; }
+  #dlg .box .t { font-family: 'Suez One', serif; color: #c2185b; font-size: 1.4em; }
+  .trail { position: fixed; pointer-events: none; z-index: 99; font-size: 16px; animation: fade 900ms linear forwards; }
+  @keyframes fade { to { opacity: 0; transform: translateY(26px) scale(.4) rotate(90deg); } }
+
+  @media (max-width: 520px) { .sticker { width: 64px; } section { padding: 14px 10px 16px; } }
+</style>
+</head>
+<body>
+
+<marquee class="marquee" direction="right" scrollamount="5">✨✨ ברוכות הבאות לאתר הרשמי של איילת השחר ✨ מאמנת תודעה • מתקשרת • מטפלת הוליסטית בתדרים ✨ ההרשמה לסדנת ״מעבר לתדר״ נפתחה!!! 🔮 מספר המקומות מוגבל 🤍 האתר מותאם לצפייה מתודעה גבוהה ✨✨</marquee>
+
+<div class="page">
+
+<header>
+  <img class="logo" src="img/logo.png" alt="איילת השחר - תקשור, אנרגיה, תודעה">
+  <h1>איילת השחר</h1>
+  <p class="tag">✨ תקשור • אנרגיה • תודעה ✨</p>
+  <button class="music" id="music">🎵 להפעלת מוזיקה מרפאת לחצי כאן 🎵</button>
+  <audio id="harp" src="harp.mp3" loop preload="none"></audio>
+</header>
+
+<nav>
+  <a href="#home">🏠 דף הבית</a>
+  <a href="#videos">🎥 הסרטונים שלי</a>
+  <a href="#workshop">🔮 הסדנה</a>
+  <a href="#treatments">💫 טיפולים</a>
+  <a href="#qa">💌 שאלות ותשובות</a>
+  <a href="#dict">📖 מילון התודעה</a>
+  <a href="#sources">📜 מהמקורות</a>
+  <a href="#guestbook">🕯️ ספר אורחים</a>
+</nav>
+
+<section id="home">
+  <img class="sticker" src="img/peak.png" alt="" style="top:-34px; left:-14px">
+  <img class="me" src="img/me.jpg" alt="איילת השחר">
+  <h2>יקירות שלי, ברוכות הבאות 🌸</h2>
+  <p class="big gold">שמחה שהגעתן. זה לא במקרה.</p>
+  <p>האתר הזה לא נבנה. הוא <span class="pink">התגלה</span>.</p>
+  <p>אני איילת, מאמנת תודעה, מתקשרת ומטפלת הוליסטית בתדרים. כבר שנים אני מלווה נשים בדרך מהתודעה <b>לתודעה הגבוהה</b>, ומהתדר שלהן אל התדר שעוד לא נתנו לעצמן לשחרר.</p>
+  <p>הרבה מכן שולחות לי שאלות. אני עונה לכולן, גם לשאלות שהתשובה שלהן עדיין לא פגשה את התודעה ששאלה אותן.</p>
+  <p class="lime">🌙 קחו נשימה. תתחילו לגלול. היקום כבר בדרך. 🌙</p>
+</section>
+
+<hr>
+
+<section id="videos">
+  <img class="sticker" src="img/particles.png" alt="" style="top:-30px; right:-12px">
+  <h2>🎥 הסרטונים שלי 🎥</h2>
+  <p>כאן אני מסבירה דברים. כל מילה מובנת. <span class="pink">אם משפט שלם לא מובן, זה התדר שלכן שעוד לא הגיע.</span></p>
+  <div class="videos">
+    <div class="vid">
+      <video src="v/toda.mp4" poster="v/toda.jpg" controls playsinline preload="none"></video>
+      <b>מה ההבדל בין תודעה לתודעה גבוהה?</b>
+      <small>על האות ת׳, המוח הימני של הנשמה ועשר הספירות</small>
+    </div>
+    <div class="vid">
+      <video src="v/shealot.mp4" poster="v/shealot.jpg" controls playsinline preload="none"></video>
+      <b>שאלות ותשובות 💌</b>
+      <small>צופית (בשורוק), לוטם ושיבולת שואלות</small>
+    </div>
+    <div class="vid">
+      <div class="soon"><span style="font-size:2.4em">🔮</span><span>פסיכולוגיה, פסיכיאטריה</span><span>ותודעה גבוהה</span><span class="new blink" style="margin-top:8px">חדש!!</span></div>
+      <b>בקרוב באתר</b>
+      <small>האם להעלות מינון? ולאן בדיוק?</small>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section id="workshop">
+  <img class="sticker" src="img/pe.png" alt="" style="top:-30px; left:-10px">
+  <h2>🔮 סדנת ״מעבר לתדר״ 🔮</h2>
+  <p class="big gold">מסע לשחרור החסימות שמונעות מאיתנו לקבל<br>את מה שעוד לא נתנו לעצמנו לשחרר</p>
+  <p>✨ חיבור לתודעה הגבוהה דרך עשר הספירות</p>
+  <p>✨ תדרים אנרגטיים ודואליות קוונטית</p>
+  <p>✨ למה האות פ׳ מתעגלת פנימה (וזה לא במקרה)</p>
+  <p>✨ תרגול מעשי: להפסיק לספור את מה שאין</p>
+  <p class="pink blink big">!!! מספר המקומות מוגבל !!!</p>
+  <p class="note">(המספר מוגבל לאינסוף. אינסוף הוא מספר.)</p>
+  <button class="cta" data-say="register">להרשמה שלחו ״תדר״ בפרטי 💫</button>
+</section>
+
+<hr>
+
+<section id="treatments">
+  <img class="sticker" src="img/soil.png" alt="" style="top:-30px; right:-10px">
+  <h2>💫 הטיפולים שלי 💫</h2>
+  <p>כל טיפול מותאם אישית לתדר שלך. המחירים נקבעו לפי הנומרולוגיה של המחיר.</p>
+  <table class="prices">
+    <tr><th>הטיפול</th><th>מה זה</th><th>מחיר</th></tr>
+    <tr><td>יישור תדרים</td><td>לתדר גבוה מדי, לתדר נמוך מדי, ולתדר שלא יודע מה הוא</td><td>444 ₪</td></tr>
+    <tr><td>קילוף קארמה</td><td>הקארמה היא הקרמה של הנשמה. מורידות את השכבה העליונה</td><td>360 ₪</td></tr>
+    <tr><td>תקשור עם הספירות</td><td>כולל ספירה. אנחנו סופרות ביחד עד שמפסיקות לספור</td><td>888 ₪</td></tr>
+    <tr><td>זימון שפע קבוצתי</td><td>מומלץ להגיע מתודעת שפע. התשלום מראש</td><td>1,111 ₪</td></tr>
+    <tr><td>שחרור בן זוג</td><td>בלי לפגוע בקארמה. בן הזוג לא חייב לדעת</td><td>520 ₪</td></tr>
+    <tr><td>פגישת היכרות</td><td>15 דקות. השעון הוא תודעה של מחסור, אז לפעמים יותר</td><td>180 ₪</td></tr>
+  </table>
+  <p class="note">* המחירים אינם כוללים מע״מ. המע״מ הוא מס על ערך, וערך הוא תדר.</p>
+</section>
+
+<hr>
+
+<section id="qa">
+  <img class="sticker" src="img/pills.png" alt="" style="top:-30px; left:-12px">
+  <h2>💌 שאלות מהקהילה 💌</h2>
+  <div class="qa">
+    <p class="q">צופית (בשורוק): אני שנתיים בהתעוררות רוחנית. עזבתי את העבודה, ניתקתי קשר עם המשפחה, והיקום לא מחזיר לי אנרגיה. יכול להיות שהתדר שלי גבוה מדי?</p>
+    <p class="a">קודם כול צופית, תביני שתדר גבוה הוא לא בהכרח תדר שנמצא למעלה. לפעמים דווקא כשאנחנו עולות בתדר, אנחנו יורדות בתודעה. את לא צריכה להוריד את התדר שלך. את צריכה להעלות את המקום שממנו את יורדת אליו.</p>
+  </div>
+  <div class="qa">
+    <p class="q">לוטם: בן הזוג שלי אומר שאני מנותקת מהמציאות. אני מרגישה שהוא פשוט בתדר נמוך. איך משחררים אותו בלי לפגוע בקארמה שלנו?</p>
+    <p class="a">כשאנחנו מדברות על קארמה, אנחנו בעצם מדברות על הקרמה של הנשמה. ומה זו קרמה? השכבה העליונה. אז לפני שאת משחררת אותו, תשאלי את עצמך אם את משחררת את האדם, או את השכבה שממנה את עדיין מחזיקה בו.</p>
+  </div>
+  <div class="qa">
+    <p class="q">שיבולת: אני שמונה חודשים מזמנת שפע, אבל המינוס בבנק רק גדל. יכול להיות שהחשבון שלי עדיין בתודעת מחסור?</p>
+    <p class="a">וואו, את נוגעת פה בנקודה מאוד מאוד עמוקה. היום גם בתורת הקוונטים יודעים שאין באמת מינוס. יש פלוס שנמצא בתדר הפוך. ולכן את לא צריכה לצאת מהמינוס. את צריכה לאפשר למינוס לצאת ממך.</p>
+  </div>
+  <div class="qa">
+    <p class="q">אנונימית: הפסיכיאטר רוצה להעלות לי מינון. מה את אומרת?</p>
+    <p class="a">אני קודם כול שואלת אותך: להעלות לאן? לאיזה תדר? התרופה אולי פועלת על המוח, אבל מי בעצם מחליטה אם המוח הוא זה שצריך לפעול?</p>
+  </div>
+  <p>יש לך שאלה? <a href="#guestbook">כתבי לי בספר האורחים</a> 💜</p>
+</section>
+
+<hr>
+
+<section id="dict">
+  <img class="sticker" src="img/mosaic.png" alt="" style="top:-30px; right:-10px">
+  <h2>📖 מילון התודעה 📖</h2>
+  <p>מילים הן לא מילים. הן תדרים שנכתבו באותיות.</p>
+  <dl class="dict">
+    <dt>תדר</dt>
+    <dd>מתחילה באות ת׳, האות האחרונה באלף-בית. כי כל סוף הוא בעצם התחלה של תדר חדש.</dd>
+    <dt>פסיכולוגיה</dt>
+    <dd>הרבה טועים לחשוב שהיא מגיעה מהמילה <s>פסיפס</s>. היא מגיעה בכלל מהמילה <b>פסגה</b>. המקום הגבוה ביותר של התודעה.</dd>
+    <dt>האות פ׳</dt>
+    <dd>מתעגלת פנימה, לתוך עצמה. וזה לא במקרה. כדי להגיע לפסגה, צריך קודם להתבונן פנימה.</dd>
+    <dt>קארמה</dt>
+    <dd>הקרמה של הנשמה. השכבה העליונה.</dd>
+    <dt>שורוק</dt>
+    <dd>הניקוד היחיד שמגיע מבפנים. לא מתחת לאות כמו החיריק, ולא מעליה כמו החולם. בדיוק כמו התודעה שלנו.</dd>
+    <dt>מינוס</dt>
+    <dd>פלוס שנמצא בתדר הפוך.</dd>
+    <dt>המוח הימני</dt>
+    <dd>הוא בעצם המוח השמאלי של הנשמה. זה ידוע במדעי המוח.</dd>
+    <dt>ספירה</dt>
+    <dd>עשר הספירות שבקבלה, וגם מה שאנחנו עושות כל היום: סופרות ימים, סופרות שנים, סופרות את מה שחסר. ברגע שמפסיקים לספור את מה שאין, מתחילים להיות חלק ממה שיש.</dd>
+    <dt>נשמה</dt>
+    <dd>חומר, בדיוק כמו העפר. רק בתדר גבוה יותר של התקיימות.</dd>
+    <dt>תודעה</dt>
+    <dd>ענן פיזי של חלקיקים ואפשרויות, שמשנה את התדר שלו כשמתבוננות בו מבפנים.</dd>
+  </dl>
+</section>
+
+<hr>
+
+<section id="sources">
+  <h2>📜 מהמקורות 📜</h2>
+  <p>הכול כבר כתוב. צריך רק לקרוא מהתדר הנכון.</p>
+  <div class="scroll">״בראשית ברא אדושם את המים ואת הארץ״<small>(בראשית א׳, א׳)</small></div>
+  <p class="note">שימו לב. קודם מים, אחר כך ארץ.</p>
+  <div class="scroll">״ומלאכי אדושם עולים ויורדים בו״<small>(בראשית כ״ח, י״ב)</small></div>
+  <p class="note">קודם עולים, אחר כך יורדים. העלייה היא לא בהכרח ההפך מהירידה.</p>
+  <div class="scroll">״וייצר אדושם את האדם עפר מן האדמה, ויפרח בנשמת אפיו נשמת חיים״<small>(בראשית ב׳, ז׳)</small></div>
+  <p class="note">קודם עפר, אחר כך נשמה.</p>
+</section>
+
+<hr>
+
+<section id="guestbook">
+  <h2>🕯️ ספר אורחים 🕯️</h2>
+  <p>המילים שלכן ממלאות אותי באור 💜</p>
+  <div class="gb"><div class="who">צופית (בשורוק) 🌸 <span>תדר גבוה</span></div><p>אחרי השיחה עם איילת עזבתי גם את הדירה. מרגישה שהתדר רק עולה!! תודה אהובה 💫💫</p></div>
+  <div class="gb"><div class="who">שיבולת ✨ <span>מזמנת שפע</span></div><p>המינוס יצא ממני. עכשיו הוא בכרטיס האשראי. מרגישה שיש התקדמות 🙏</p></div>
+  <div class="gb"><div class="who">לוטם 🌙 <span>בתהליך</span></div><p>שחררתי את השכבה. בן הזוג עדיין פה אבל השכבה כבר לא. ממליצה בחום!!!</p></div>
+  <div class="gb"><div class="who">אורית מהמושב 🌻 <span>פעם ראשונה באתר</span></div><p>לא הבנתי כלום אבל הרגשתי הכול. זה בדיוק מה שאיילת אמרה שיקרה.</p></div>
+  <div class="gb"><div class="who">רינת 💗 <span>בוגרת הסדנה</span></div><p>מאז הסדנה אני לא סופרת. גם לא את העודף בסופר. תודה על המתנה הזאת.</p></div>
+  <h3>✍️ הוסיפי ברכה</h3>
+  <form class="fake" data-say="guestbook">
+    <input placeholder="השם שלך (או השם של הנשמה שלך)" required>
+    <select><option>התדר שלי כרגע...</option><option>גבוה</option><option>נמוך</option><option>הפוך</option><option>עוד לא פגש אותי</option></select>
+    <textarea rows="3" placeholder="מה רצית לשתף?" required></textarea>
+    <button class="cta" type="submit">לשלוח ליקום 💌</button>
+  </form>
+</section>
+
+<footer>
+  <p>את המבקרת מספר <span class="counter" id="count">0001111</span></p>
+  <p class="note">(מספר מלאכים. זה לא במקרה.)</p>
+  <hr>
+  <p>© כל הזכויות שמורות ליקום ✨ איילת השחר 2009-2026</p>
+  <p>האתר נבנה באהבה ובתדר גבוה ע״י הבן של השכנה 💻</p>
+  <p class="ie">האתר מותאם לצפייה באינטרנט אקספלורר 6 ברזולוציה 800×600 • עודכן לאחרונה: כשהייתי מוכנה</p>
+</footer>
+
+</div>
+
+<div id="dlg" role="dialog" aria-modal="true"><div class="box"><p class="t" id="dlgT"></p><p id="dlgP"></p><button class="cta" id="dlgX">אמן 🙏</button></div></div>
+
+<script>
+  // ✨ נבנה בתדר גבוה. לא לגעת בלי כוונה.
+  const say = {
+    register: ['ההודעה שלך בדרך 💫', 'שלחי לי ״תדר״ בפרטי. אם עוד לא שלחת, זה כי התדר שלך עוד לא שלח.'],
+    guestbook: ['הברכה נשלחה ליקום 💌', 'היא תופיע באתר כשהיקום יאשר. בדרך כלל זה לוקח בין יום לגלגול.'],
+  };
+  const dlg = document.getElementById('dlg');
+  const open = (k) => { document.getElementById('dlgT').textContent = say[k][0]; document.getElementById('dlgP').textContent = say[k][1]; dlg.classList.add('on'); };
+  document.querySelectorAll('[data-say]').forEach((el) => {
+    if (el.tagName === 'FORM') el.addEventListener('submit', (e) => { e.preventDefault(); el.reset(); open(el.dataset.say); });
+    else el.addEventListener('click', () => open(el.dataset.say));
+  });
+  document.getElementById('dlgX').onclick = () => dlg.classList.remove('on');
+  dlg.onclick = (e) => { if (e.target === dlg) dlg.classList.remove('on'); };
+
+  const harp = document.getElementById('harp'), btn = document.getElementById('music');
+  btn.onclick = () => {
+    if (harp.paused) { harp.volume = 0.6; harp.play(); btn.textContent = '🔇 לעצירת המוזיקה המרפאת'; }
+    else { harp.pause(); btn.textContent = '🎵 להפעלת מוזיקה מרפאת לחצי כאן 🎵'; }
+  };
+
+  // מונה מבקרות - מלאכים בלבד
+  let n = 1111;
+  try { n = +(localStorage.getItem('ayelet-n') || 1111) + 1; localStorage.setItem('ayelet-n', n); } catch (e) {}
+  document.getElementById('count').textContent = String(n).padStart(7, '0');
+
+  // אבקת כוכבים אחרי האצבע ✨
+  const bits = ['✨', '💫', '⭐', '🌸', '🔮'];
+  let last = 0;
+  const sparkle = (x, y) => {
+    const now = Date.now(); if (now - last < 45) return; last = now;
+    const s = document.createElement('span'); s.className = 'trail'; s.textContent = bits[Math.floor(Math.random() * bits.length)];
+    s.style.left = (x - 8) + 'px'; s.style.top = (y - 8) + 'px'; document.body.appendChild(s); setTimeout(() => s.remove(), 900);
+  };
+  addEventListener('mousemove', (e) => sparkle(e.clientX, e.clientY));
+  addEventListener('touchmove', (e) => { const t = e.touches[0]; if (t) sparkle(t.clientX, t.clientY); }, { passive: true });
+</script>
+</body>
+</html>
