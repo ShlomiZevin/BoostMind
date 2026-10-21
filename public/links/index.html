@@ -39,12 +39,25 @@
   .acts a { flex: 1; justify-content: center; height: 42px; padding: 0 14px; border-radius: 9px; display: inline-flex; align-items: center; font-size: .92rem; font-weight: 700; text-decoration: none; color: var(--text); border: 1px solid var(--line); transition: border-color .15s; }
   .acts a:first-child { background: var(--accent); color: #1a0d06; border-color: var(--accent); }
   .acts a:hover { border-color: var(--accent); }
+  /* a wide screen: the photo beside the links, all of it on one screen */
+  @media (min-width: 900px) {
+    body { align-items: center; padding: 48px 32px; }
+    .wrap { max-width: 1000px; display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 64px; align-items: center; text-align: right; }
+    .photo { border-radius: 22px; }
+    h1 { font-size: 3rem; margin-top: 0; line-height: 1.05; }
+    .sub { font-size: 1.2rem; margin-top: 10px; }
+    .social { justify-content: flex-start; margin-top: 22px; }
+    .links { margin-top: 30px; }
+    .link { padding: 16px 18px; }
+    footer { text-align: right; }
+  }
   footer { margin-top: 30px; color: var(--dim); font-size: .85rem; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="photo"><img src="shlomi.jpg" alt="שלומי זוין בסטודיו"></div>
+  <div class="info">
   <h1>שלומי זוין</h1>
   <p class="sub">מערכונים קומיים קצרים</p>
 
@@ -85,6 +98,7 @@
   </div>
 
   <footer>נעים להכיר 👋</footer>
+  </div>
 </div>
 </body>
 </html>
