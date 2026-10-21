@@ -1,0 +1,107 @@
+[
+ {
+  "key": "anna-g1",
+  "ref": "web/img/queens/anna-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: seated, relaxed, three-quarter view, more of the setting visible. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "anna-g2",
+  "ref": "web/img/queens/anna-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: close-up of her lips and hand, face cropped above the nose. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "anna-g3",
+  "ref": "web/img/queens/anna-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: seen from behind or in profile, looking out at the view. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "anna-g4",
+  "ref": "web/img/queens/anna-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: detail shot: hands, jewelry, the outfit, face mostly out of frame. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "anna-avatar",
+  "ref": "web/img/queens/anna-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1024",
+  "prompt": "Same woman, same outfit and styling as the reference photo. Square head-and-shoulders portrait for a chat avatar, face partly hidden exactly as in the reference, lips visible, dark background. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "sabine-g1",
+  "ref": "web/img/queens/sabine-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: seated, relaxed, three-quarter view, more of the setting visible. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "sabine-g2",
+  "ref": "web/img/queens/sabine-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: close-up of her lips and hand, face cropped above the nose. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "sabine-g3",
+  "ref": "web/img/queens/sabine-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: seen from behind or in profile, looking out at the view. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "sabine-g4",
+  "ref": "web/img/queens/sabine-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: detail shot: hands, jewelry, the outfit, face mostly out of frame. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "sabine-avatar",
+  "ref": "web/img/queens/sabine-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1024",
+  "prompt": "Same woman, same outfit and styling as the reference photo. Square head-and-shoulders portrait for a chat avatar, face partly hidden exactly as in the reference, lips visible, dark background. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "mina-g1",
+  "ref": "web/img/queens/mina-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: seated, relaxed, three-quarter view, more of the setting visible. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "mina-g2",
+  "ref": "web/img/queens/mina-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: close-up of her lips and hand, face cropped above the nose. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "mina-g3",
+  "ref": "web/img/queens/mina-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: seen from behind or in profile, looking out at the view. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "mina-g4",
+  "ref": "web/img/queens/mina-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "prompt": "Same woman, same outfit, same setting and mood as the reference photo. New photo from the same shoot: detail shot: hands, jewelry, the outfit, face mostly out of frame. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ },
+ {
+  "key": "mina-avatar",
+  "ref": "web/img/queens/mina-card.png",
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1024",
+  "prompt": "Same woman, same outfit and styling as the reference photo. Square head-and-shoulders portrait for a chat avatar, face partly hidden exactly as in the reference, lips visible, dark background. Portrait photograph for a character profile on a website of confident, commanding AI characters called queens. The face is partly hidden: only the lips and jaw are clearly visible, the eyes covered or out of frame. Moody, dark, editorial. Fully clothed. No text, no logos, no watermark."
+ }
+]

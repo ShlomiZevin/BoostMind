@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- Link-preview (Open Graph) card, 1200x630. Rendered by scripts/og.mjs:
+     og-template.html?q=<id>  -> one queen;   og-template.html  -> home (all queens). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="../web/js/queens.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1200px; height: 630px; background: #0b0b0d; color: #f2f0ec; font-family: Inter, sans-serif; overflow: hidden; }
+  .card { display: flex; width: 100%; height: 100%; }
+  .photo { height: 100%; object-fit: cover; object-position: center 12%; display: block; }
+  .panel { flex: 1; display: flex; flex-direction: column; padding: 60px 64px; }
+  .mark { font-weight: 300; font-size: 22px; letter-spacing: 0.42em; text-transform: uppercase; }
+  .eyebrow { font-weight: 500; font-size: 15px; letter-spacing: 0.3em; text-transform: uppercase; color: #8e8d94; }
+  h1 { font: 400 150px/0.9 "Instrument Serif", serif; margin-top: auto; letter-spacing: -0.01em; }
+  .tag { margin-top: 22px; font-size: 28px; font-weight: 300; color: #c9c7c1; }
+  .cta {
+    margin-top: 44px; align-self: flex-start; display: flex; align-items: center; gap: 14px;
+    height: 64px; padding: 0 34px; border-radius: 999px; background: #f2f0ec; color: #0b0b0d;
+    font-size: 24px; font-weight: 500;
+  }
+  .cta svg { width: 24px; height: 24px; }
+  .rule { width: 1px; background: rgba(255,255,255,0.08); }
+  /* home */
+  .home .panel { flex: 0 0 470px; }
+  .home h1 { font: 200 76px/1 Inter, sans-serif; letter-spacing: 0.34em; text-transform: uppercase; margin-top: auto; }
+  .home .tag { margin-top: 26px; }
+  .strip { flex: 1; display: flex; gap: 6px; }
+  .strip div { flex: 1; position: relative; overflow: hidden; }
+  .strip img { width: 100%; height: 100%; object-fit: cover; object-position: center 10%; display: block; }
+  .strip span {
+    position: absolute; left: 22px; bottom: 24px; font-weight: 300; font-size: 22px;
+    letter-spacing: 0.3em; text-transform: uppercase; text-shadow: 0 1px 14px rgba(0,0,0,0.6);
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg>';
+  const id = new URLSearchParams(location.search).get('q');
+  const q = QUEENS.find(x => x.id === id);
+  const img = src => '../web/' + src;
+  document.getElementById('root').outerHTML = q ? `
+    <div class="card">
+      <img class="photo" style="width:500px" src="${img(q.images.card)}">
+      <div class="panel">
+        <div class="mark">Veyrλ</div>
+        <h1>${q.name}</h1>
+        <div class="tag">${q.tagline}</div>
+        <div class="cta">Chat with ${q.name} ${arrow}</div>
+      </div>
+    </div>` : `
+    <div class="card home">
+      <div class="panel">
+        <div class="eyebrow">Meet your queen</div>
+        <h1>Veyrλ</h1>
+        <div class="tag">Choose your queen.<br>Chat with her tonight.</div>
+      </div>
+      <div class="strip">${QUEENS.map(x => `<div><img src="${img(x.images.card)}"><span>${x.name}</span></div>`).join('')}</div>
+    </div>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Write a short Hebrew email from Shlomi to יפעה (Telos). She asked him for three things for the tender submission: (1) methodologies and tools that overlap Telos's, (2) an experience summary, (3) a project list with two projects expanded. He prepared one page with all three, also downloadable as PDF so she can copy from it.
+Content: here is what you asked for, link [LINK]; one line listing what's inside (tools and methods mapped to your deck incl. the four SDD files; experience summary; two production projects with phases, timeline chart and architecture, plus five more); one line: the first main project was built for a customer and its IP is the customer's, so it is described in general terms; one line: tell me what to shorten or expand, and if you need it in Word. Sign:
+שלומי זוין
+shlomi@boostart.io | 054-5567213
+Register: normal email between colleagues, plain spoken Hebrew, first person, 5-7 short lines, no selling, no exclamation marks, no emoji, no formal words (להלן, מצ"ב, מענה). Start with "היי יפעה,". Output only the email.

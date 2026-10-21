@@ -11,7 +11,7 @@ print() { # $1 = html path, $2 = pdf path
   echo "pdf: $2"
 }
 for row in methodology:Boostart-Agentic-SDD-Methodology.pdf cloud-migration:Boostart-Cloud-Migration-Approach.pdf \
-           olim-laanan:Boostart-Olim-Laanan-Approach.pdf team:Boostart-Team-and-Experience.pdf fit:Shlomi-Zevin-Tender-Fit.pdf partner:Boostart-Framework-Partnership.pdf; do
+           olim-laanan:Boostart-Olim-Laanan-Approach.pdf team:Boostart-Team-and-Experience.pdf fit:Shlomi-Zevin-Tender-Fit.pdf telos:Shlomi-Zevin-Telos-Tools-Experience-Projects.pdf partner:Boostart-Framework-Partnership.pdf; do
   slug="${row%%:*}"; pdf="${row#*:}"
   print "$BASE/$slug/index.html" "$BASE/$slug/$pdf"
 done

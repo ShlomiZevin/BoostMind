@@ -1,0 +1,122 @@
+TASK: Write, in Hebrew, the page Shlomi Zevin sends to יפעה (Yifat) at טלוס (Telos), an Israeli IT company that is the lead supplier. Telos will bid on the government tender "המשך פיתוח מערכת עולים לענן" (מערך הדיגיטל הלאומי) and proposes Shlomi as its AI expert. Yifat asked for three things, to paste into the submission:
+
+1. מתודולוגיות וכלים (שחופפים לכלים שציינו)
+2. תמצית CV עם דגש על הניסיון המתאים
+3. רשימת פרויקטים עם הרחבה לגבי שניים שהכי מתאימים מבחינת מורכבות מערכתית, כלים ומתודולוגיות, והם כבר בייצור (שלבי הפרויקט, גאנט, ארכיטקטורה). For every project, as far as possible: שם הפרויקט; תיאור; טכנולוגיות, כלים, ממשקים; משך זמן הקמה; איזו מתודולוגיה; אתגרים, מורכבויות ופתרונות; כמה זמן באוויר; מסקנות והפקת לקחים; פרויקט חדש או שיפור קיים; תפקידך בפרויקט. She added: "חשוב שיבינו שעבדנו לפי השיטה שהם מבקשים. פירוט השיטה במצגת שלנו."
+
+IGNORE the system instructions' ban on naming Aspect: for THIS page Shlomi explicitly wants his Aspect projects described by name. Still never name customer companies. All other honesty rules apply: use ONLY the facts below; no government experience claims; no invented numbers; write "כ-" for approximations.
+
+# Register
+Plain, direct Hebrew, first person (אני). Facts, not adjectives. Short sentences. This is reference material that gets copied into a tender response, so it must be scannable: tables and short bullets. No philosophy about AI, no selling, no superlatives, no exclamation marks. Banned: מעטפת, הוליסטי, סינרגיה, פורץ דרך, חדשני, מהפכה, "ליבה רזה", "בעלות מקצועית", "להלן". English technical terms are fine where they are the real names (SDD, SPEC, PLAN, Validation, Claude Code, React...). Do not use the words "קורות חיים".
+
+# What Telos's deck says (mirror its vocabulary so the fit is obvious)
+- Tools ("Hybrid Stack"): Cursor AI, Amazon Q, Claude Code, Google Antigravity.
+- Methodologies: Agile/Scrum (product & feature delivery), CRISP-DM (overall AI lifecycle), MLOps (production + scaling), EDD (model improvements), Data-centric mindset (accuracy gains), SDD (פיתוח מונחה אפיון).
+- Telos's SDD: the spec is the source of truth and is written before code; per feature there are four files: SPEC (אפיון: דרישות, גבולות, קלטים ופלטים), PLAN (תוכנית עבודה: פירוק למשימות ואבני דרך), Progress and logs (תיעוד שינויים: החלטות, סטטוס ותקלות), Validation (אימות: בדיקות, Review ואישור לפני Production). Steps: ניתוח דרישות → כתיבת Spec → פירוק למשימות (Plan) → פיתוח ובדיקות.
+# What the government webinar says
+- The work on "עולים לענן" is done with Claude Code. Order of work: מסמך דרישות → ארכיטקטורה → פירוק למשימות → פיתוח → סקירת קוד → בדיקות → הפקת לקחים. Spec documents live in the repository next to the code; every change is made in the spec, not directly in code. Developers review and approve every change in a Merge Request.
+- Bidders must show at least one development done with orderly AI work processes: how the work with agents was done, how the automation was written, and how the manual test specs were written.
+- System stack: Next.js 16 (App Router) on React 19, TypeScript, Mantine, Zustand, Tailwind, Axios; backend Express.js in TypeScript, DynamoDB, S3, AWS Secrets Manager; Docker, Kubernetes (AWS EKS), Terraform, GitLab CI; tests: Playwright E2E, Jest (server), Vitest (client); ESLint, security scanners.
+
+# FACTS — Shlomi's tools and methods
+- Claude Code is his daily engineering tool (since it became available; all current projects). He works alone or leads a small dev team that works the same way. He is not a daily user of Cursor, Amazon Q/Kiro or Antigravity; the method (spec files in the repo) is the same one those tools use, so the artifacts carry over.
+- Inside products he works with the model APIs of Anthropic (Claude), OpenAI and Google Gemini, behind one routing layer, with Pinecone as vector DB.
+- His SDD practice, mapped to Telos's four files:
+  • SPEC: a written task spec per feature in the repository before code. Template: Background, What Changes (numbered steps), Out of Scope, Files Touched, Acceptance Criteria. In Aspect: 55 task spec files (32 done, 23 pending), 78 guide/design/feature documents, and a spec at every level of an agent.
+  • PLAN: larger specs carry a phased plan; each phase has a gate, some gates explicitly "human review required"; "do not skip gates".
+  • Progress and logs: an execution log and progress checklist inside the spec ("check off only once that step's Verify clause has actually passed and been recorded"), a locked-decisions section, a "deviations from the spec, stated honestly" section; a task board with owners.
+  • Validation: test batteries that pass/fail, replay of real customer sessions, results written to a verification folder with a README per topic; human review; work on feature branches merged to master (about 190 merge commits across the two Aspect repos); release is a separate step that only Shlomi performs; deploys are approved one by one.
+- Project rules for the agents: CLAUDE.md files in the repository (architecture rules, conventions, known pitfalls) that every Claude Code session reads; reusable skills; a mandatory checklist after each feature.
+- Agile: feature delivery from a task board, short cycles, continuous deploys. EDD: every accuracy change is measured on a fixed test set before and after (example below). Data-centric: a frozen corpus of 90 real customer questions is the benchmark. MLOps in LLM terms: a model registry with prices, usage and cost logging per call, versioned agents with an explicit publish step, spend limits. CRISP-DM: used in his earlier ML work (prediction models, neural networks, optimization algorithms).
+- Fit to the "עולים לענן" stack: React 19 + TypeScript (Aspect client, about 150,000 lines); Next.js (yes, in previous projects); Express/Node.js (all his backends); TypeScript on the server (Trip Planner server); Docker (all services); Kubernetes (experience from earlier projects; current services run on Cloud Run); AWS (experience; current production is on Google Cloud); Vitest (Trip Planner: 119 tests); Playwright (used in automation tools he built); Jest (experience); Terraform, DynamoDB and GitLab CI — not part of his current daily stack; he has worked with equivalent tools (script-driven deploys, PostgreSQL / MongoDB / Firestore, GitHub) and will align to the project's tools. Say this plainly in one line.
+
+# FACTS — experience summary (section 2)
+- 20+ years in software, 50+ products built from scratch. CTO as a Service (Boostart): takes a system from spec to production — architecture, development, DevOps, managing the development.
+- 2025–today: builds and runs Aspect, a multi-agent AI platform in production; works daily with Claude Code in a spec-driven process; leads a dev team of three (himself and two developers).
+- AI agents for more than two years: multi-agent systems, memory, RAG, deterministic rules next to the model, measurement of answer accuracy.
+- Research background: built and trained neural networks and prediction models, optimization algorithms (genetic / evolutionary).
+- Earlier: co-founder and CTO in startups; systems in privacy/compliance (regulation turned into rules and controls), health (platform for therapists, sensitive data), logistics optimization, ERP systems analysis, consumer AI chat.
+- Teaches the method: the talk "מקלוד לפרוד" for developers and dev teams (2.5 hours, live build from spec to a system in the cloud).
+- Stack: Node.js, Express, Python, React, Next.js, TypeScript, PostgreSQL, MongoDB, Redis, Docker, Kubernetes, Google Cloud, AWS, CI/CD.
+- Put first in this section ONE line exactly: `**תפקיד מוצע:** מומחה Agentic AI מטעם טלוס`.
+
+# FACTS — Project 1 (main): Aspect Builder — פלטפורמה לבניית סוכני AI
+- What: a platform for building AI agents without code. Its idea: the agent thinks before it speaks and applies common sense, instead of one big prompt. Each stage of a conversation is a "crew" with a chain of small steps ("Cortex"): extractors pull structured fields and mood from the conversation; a Reasoner infers one field from several signals; a Thinker decides the strategy for this turn and writes guidance; fixed Rules (if/then with formulas, no model) and a deterministic Router decide transitions; only then a Talker writes the reply. Steps run in lanes (blocking, background, offline). Memory at user and conversation level. Proactive triggers (the agent acts on a schedule or on silence).
+- Builder features: visual builder; a written Spec at every level (project, agent, crew) that the built-in AI helper ("Alfred") reads to keep intent and implementation aligned; Alfred proposes changes, a separate model generates the patch, the change is validated and logged, and a person approves; every save is a version, with revert; a separate "publish" step decides what users see; live preview; a "door" that lets external AI tools (such as Claude Code) read and edit an agent as a draft that a person reviews and saves.
+- Tech: Node.js 22, Express 5, React 19, TypeScript, PostgreSQL (Google Cloud SQL, Drizzle ORM), Pinecone, Google Cloud Run, Cloud Scheduler, Firebase Hosting, SSE streaming. 10 step types (addons), each defined by a JSON descriptor. Interfaces: Anthropic, OpenAI and Google Gemini through one routing layer; WhatsApp (Meta Cloud API, Twilio); web chat and an embeddable widget; knowledge bases.
+- Timeline: design documents from spring 2026; first working version 21.5.2026; Alfred 25.5.2026; knowledge base v2 in June 2026; proactive triggers 1.9.2026 (battery of 46 tests passed 31.8.2026); door for external AI tools 17.9.2026. Build time to first working version: about 2 months of design and development on top of the existing runtime. Running on the platform's production environment since May 2026 (about 5 months); in continuous development.
+- New or improvement: second generation — replaces the first generation of the platform's own agent system (agents written in code) with a builder; new build on an existing runtime.
+- Method: SDD. A main design document of about 1,700 lines plus 17 sibling documents written before and during development; decisions journal; a task spec per feature; a mandatory checklist after each feature (update Alfred's knowledge of the builder), with an "incident gallery" explaining why each check exists; test batteries per feature.
+- Challenges and solutions: (1) one big prompt is not controllable → split into small steps, each with its own prompt and model, and fixed rules where a rule can be stated; (2) an AI helper that edits agents can break them → proposals only, validation, change log, human approval, versions and revert; (3) changes reaching users by accident → a separate publish pointer; (4) keeping the helper's knowledge current as the product changes → the mandatory post-feature checklist.
+- Lessons: the reply prompt belongs to one step (Talker), not to the whole crew — a late insight that reshaped the design; prefer a deterministic rule whenever the business rule can be stated; a spec at every level is what lets an AI helper make correct edits.
+- Role: architect and product lead, hands-on developer, leads the team of three.
+
+# FACTS — Project 2 (main): Aspect — סוכני נתונים ו-BI לרשתות קמעונאות
+- What: AI agents that answer business questions on a retail chain's real data (sales, inventory, procurement) in Hebrew or English, plus dashboards (Aspect BI), proactive investigations (Aspect Intelligence) and per-customer modules (for example smart replenishment). Used by managers and purchasing staff at retail chains in Israel. Six retail datasets; the first one: 30 tables, about 63.3 million rows.
+- Tech: Node.js 22, Express 5, React 19, TypeScript 5.9, Vite; PostgreSQL on Google Cloud SQL (platform DB + a schema per customer, materialized views); Pinecone; Google Cloud Run (europe-west1), Cloud Storage, Cloud Scheduler, Firebase Hosting; Docker. Size: about 124,000 lines of server code, about 150,000 lines of client TypeScript, 53 DB tables, about 540 API routes, 142 migration files. Interfaces: Anthropic, OpenAI, Gemini; data loading from Google Drive (CSV and QlikView QVD files) into a shadow schema and an atomic swap; WhatsApp; Google Sign-In.
+- Timeline: first commit 31.12.2025; Cloud Run 12.1.2026; React client 19.1.2026; agent crew infrastructure 29.1.2026; WhatsApp channel 2.2.2026; first customer dataset 17–18.2.2026; documented production deploy 20.2.2026; billing/usage dashboard 12.3.2026; Aspect BI 7.7.2026; Aspect Intelligence 19.7.2026; verification harness 10.8.2026; modules and smart replenishment 27.8.2026. Build time to production: about 7 weeks. In the air: about 7.5 months (since February 2026), developed continuously — about 1,790 commits in two repositories in about 9 months, a large share co-written with Claude Code.
+- New or improvement: new build.
+- Method: SDD with Claude Code, as in section 1: a spec file per task with acceptance criteria, phased plans with gates, execution logs, verification folder. Automated tests: 41 pass/fail test batteries (offline unit batteries, a schema-contract test, real-data suites that re-run the SQL to verify figures, chat regression including Hebrew, and replay of real customer sessions). Manual review: reading real sessions and a human release step.
+- Challenges and solutions: (1) wrong numbers are the main risk → "the code does the arithmetic, the model does the judgment": the model never writes free SQL in dashboards, the client sends a spec that refers to whitelisted fields; an independent verification step; result: figures verified true went from 60 of 74 to 133 of 135; (2) questions the data cannot answer → a pre-check that refuses in about 1 ms, based on a manifest of what each dataset contains; (3) non-determinism → SQL generation at temperature 0; (4) Hebrew → the reply mirrors the question's language, Hebrew regression suites, fixes for final letters and RTL; (5) speed → 15-second query timeout, materialized views, query optimization (p90 from 68 to 58 seconds); (6) customer isolation → a schema per customer and mandatory schema qualification; (7) cost → model registry with prices, usage log per call, spend limits.
+- Lessons: a suite of 65 invented test cases passed 65 of 65, and then one real session of 18 customer questions exposed two silently wrong answers — since then real sessions are replayed, not only invented cases; a deploy flag once dropped secrets in production — since then every deploy verifies the live revision; measure before and after every accuracy change.
+- Role: CTO and architect, hands-on developer, leads the team of three; responsible for releases.
+
+# FACTS — more projects (short blocks)
+- Wholos — אפליקציית אימונים ותזונה עם מאמן AI. Hebrew RTL installable PWA; training log, nutrition by sentence or photo, a coach view; AI coach built on Claude, and everything the AI proposes appears as a card the user approves. Tech: React 18, TypeScript, Vite, Tailwind, Firebase Auth + Firestore, Node.js/Express on Cloud Run (me-west1), Claude API with streaming, Docker. About 31,500 lines client, 10 API endpoints. Timeline: started April 2026 as a personal app, a 655-line product plan in May 2026 (roadmap with "definition of done" per phase and a decision log), public launch August 2026. Live about 5.5 months (public about 6 weeks). Method: plan and spec documents before code ("spec-only, no code yet"), an audit written as an executable brief with an acceptance criterion per finding, one agent session implements and a second reviews before merge, a 13-item verification checklist, deploy script that type-checks and verifies the live service. Challenge: the Hebrew app rendered in a left-to-right document with 98 local patches → fixed at the root. Lesson: verify the live service after every deploy. New build that evolved from a personal tool to a multi-user product. Role: sole developer.
+- Trip Planner — מדריך טיול כאפליקציה מותקנת. One JSON file per trip drives the app; AI chat reads the plan, searches the web and proposes changes that apply only after the user approves. Tech: React 18, TypeScript, Vite, Vitest; server in TypeScript on Express, Cloud Run, Google Cloud Storage, Claude API with web search; Firebase Hosting. Method: a 576-line spec written first ("the requirements are the contract"), an 8-step order of work, a 7-criterion definition of done, a regression list of 12 known bugs to re-verify; 119 automated tests in 12 files. Built in about a week from the spec (September 2026); live about 5 weeks. Challenge: updates never reached installed phones because of caching → network-first loading; a prompt example leaked into answers → fixed prompt design. Rewrite of an existing single-file app into a tested, generic product. Role: sole developer.
+- Doing — לוח משימות לילדים עם חבר AI קולי. Daily tasks, points and rewards, parent view, a voice AI friend; includes a module for a therapy center. Tech: React, Firebase Hosting + Firestore, Express server in Docker, OpenAI. January–February 2026, about 5 weeks. New build. Role: sole developer.
+- Fleet Command — מרכז שליטה לסשנים מקבילים של Claude Code. A small CLI through which every agent session reports what it is doing, a live dashboard, and a written protocol for how sessions enlist, report and hand off work. Tech: Node.js CLI, Firestore, React + Vite. July 2026, about 2 weeks; in daily use since. Relevance: this is how he runs several agents in parallel with clear ownership. New build. Role: sole developer.
+- "מקלוד לפרוד" — הרצאה ואפליקציית מצגת. The 2.5-hour talk on engineering with Claude Code and the presenter app (React, TypeScript, Vite, Firebase) built for it. September 2026. Role: author and developer.
+
+# REQUIRED STRUCTURE
+# שלומי זוין: כלים, ניסיון ופרויקטים
+>> one plain line: answers to the three items, for the עולים לענן submission.
+## 1. מתודולוגיות וכלים
+- 2 sentences: Claude Code is the daily tool, and it is the tool the tender itself works with.
+- Table A | כלי | איך אני עובד איתו | — rows: Claude Code; Cursor AI, Amazon Q / Kiro, Google Antigravity (one honest row); מודלים: Claude, OpenAI, Gemini; Pinecone.
+- Table B | מתודולוגיה במצגת טלוס | איך זה נראה אצלי | — rows: SDD, Agile/Scrum, EDD, Data-centric, MLOps, CRISP-DM.
+- "### SDD לפי ארבעת הקבצים" then Table C | קובץ | מה אני עושה בפועל | — rows SPEC, PLAN, Progress and logs, Validation.
+- "### התאמה לסטאק של עולים לענן" then Table D | רכיב במערכת | הניסיון שלי | — rows: React 19 + TypeScript + Next.js; Express / Node.js + TypeScript; Docker ו-Kubernetes; AWS; בדיקות: Playwright, Jest, Vitest; Terraform, DynamoDB, GitLab CI.
+## 2. תמצית ניסיון
+- the "תפקיד מוצע" line, then 7–9 bullets.
+## 3. פרויקטים
+- one sentence: the two main projects are two systems on the Aspect platform, both in production and both built with Claude Code in SDD.
+### פרויקט 1: Aspect Builder, פלטפורמה לבניית סוכני AI
+- Table | שדה | פירוט | with exactly these rows in this order: תיאור; טכנולוגיות וכלים; ממשקים; משך הקמה; מתודולוגיה; אתגרים ופתרונות; זמן באוויר; מסקנות ולקחים; חדש או שיפור; התפקיד שלי. Cells may be up to 3–4 short sentences; for challenges use "אתגר → פתרון" pairs separated by semicolons.
+- then a line containing only: [[fig:builder-gantt]]
+- then a line containing only: [[fig:builder-arch]]
+- then "#### איך עבדנו עם הסוכנים" as a `### ` heading titled "איך עבדנו עם הסוכנים בפרויקט 1" with 4–5 bullets (spec first; Claude Code implements a task from the spec on a branch; batteries run; human review and merge; separate release).
+### פרויקט 2: Aspect, סוכני נתונים ו-BI לרשתות קמעונאות
+- same field table.
+- [[fig:data-gantt]]
+- [[fig:data-arch]]
+- "### בדיקות ואוטומציה בפרויקט 2" with 4–6 bullets answering the webinar's question: how automated tests were written (batteries generated with Claude Code from the acceptance criteria and from real sessions, pass/fail, written to a verification folder) and how manual checks were written (review of real sessions, checklists, human release).
+### פרויקטים נוספים
+- For each of the five: a `### ` heading with the name, then a compact table | שדה | פירוט | with rows: תיאור; טכנולוגיות; משך הקמה וזמן באוויר; מתודולוגיה; אתגר ולקח; חדש או שיפור; התפקיד שלי. Skip a row only if there is no fact for it.
+End with nothing after the last table.
+
+# OVERRIDE — CONFIDENTIALITY FOR PROJECT 1 (this overrides the Project 1 facts above wherever they conflict)
+Project 1 is intellectual property of a customer. Shlomi conceived and built it but may NOT expose how it works. Therefore:
+- Do NOT use the names Aspect Builder, Aspect, Lybi, Alfred, Cortex, Thinker, Talker, Reasoner, Router, "addon", "lane", "door", or any internal mechanism name in Project 1. Title it: "### פרויקט 1: פלטפורמה לבניית סוכני AI ללא קוד (פרויקט לקוח)".
+- Describe it only at this level: a platform that lets non-developers build, test and run AI agents without code; the agents are built so that they think and plan before they answer and apply fixed business rules where a rule can be stated, instead of relying on one big prompt; a written spec at every level of an agent; a built-in AI helper that proposes changes which a person approves; versions with revert and a separate publish step; live preview; memory and knowledge bases; proactive agents; channels: web chat, embeddable widget, WhatsApp; several model providers through one routing layer.
+- Add as the first sentence of the "תיאור" cell or right under the heading: the platform was designed and built by me for a customer; the IP is the customer's, so the description is general and more detail can be given subject to the customer's consent.
+- Tech, timeline, method, role stay as in the facts (generic tech names are fine). In challenges/solutions and lessons keep only general engineering points: control vs. one big prompt (small controlled steps + fixed rules); an AI helper that edits agents must not break them (proposals, validation, change log, human approval, versions); changes must not reach users by accident (separate publish); keeping documentation and the helper's knowledge current (a mandatory checklist after each feature). Lessons: prefer a fixed rule whenever the business rule can be stated; a spec at every level is what lets an AI helper edit correctly; measure on real conversations. Do NOT include the "late insight" about where the reply prompt lives, the number or types of steps, or the 1,700-line document detail (say "מסמך תכנון מפורט ומסמכי משנה").
+- In section 3's opening sentence do not say the two projects are on the same platform; say: two production systems, both built with Claude Code in SDD.
+- Project 2 stays named "Aspect" and must not mention the builder.
+
+# OUTPUT FORMAT — follow exactly, it is parsed by a script
+Return only the document, in Hebrew, using ONLY these constructs:
+- `# ` one line: the document title (H1). Exactly once, first line.
+- `>> ` one line right after the title: a one-line subtitle.
+- `## ` section heading. Number sections like `## 1. ...`.
+- `### ` sub-heading inside a section.
+- Plain paragraphs separated by a blank line. Keep paragraphs to 1–3 sentences.
+- `- ` bullet list items (single line each).
+- `+ ` items of a compact two-column checklist (short items, 2–7 words each). Use for lists of 6+ short items.
+- Tables in pipe format. First row is the header. No separator row needed (you may include `|---|` rows, they are ignored). Keep cells short; a cell may contain up to 2 sentences.
+- A callout box:
+  ::: callout
+  one or two sentences
+  :::
+- `**bold**` is allowed inside text, sparingly. No other markdown (no links, no images, no code blocks, no HTML, no horizontal rules, no nested lists).
+Do not add a preface, notes to me, or anything after the document.

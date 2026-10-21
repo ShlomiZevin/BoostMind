@@ -1,0 +1,17 @@
+  in_progress 6s
+  in_progress 11s
+  in_progress 17s
+  in_progress 22s
+  in_progress 28s
+  in_progress 33s
+  in_progress 38s
+  in_progress 44s
+  in_progress 49s
+  in_progress 55s
+  in_progress 60s
+  in_progress 66s
+  in_progress 72s
+  completed 77s
+OK -> out/telos.md  (12634 chars, gpt-5.6-terra, 12511 tokens)
+  input 7405 · output 5106 (reasoning 716)
+Read it with the Read tool — printing Hebrew to this console will mangle it.

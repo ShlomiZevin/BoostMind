@@ -1,0 +1,98 @@
+<!doctype html>
+<!-- Generated from queen.html by scripts/og.mjs — do not edit by hand. -->
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sabine — Veyra</title>
+<meta name="description" content="Your performance is under review. Chat with Sabine on Veyra.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Veyra">
+<meta property="og:title" content="Sabine — Veyra">
+<meta property="og:description" content="Your performance is under review. Chat with Sabine on Veyra.">
+<meta property="og:url" content="https://veyra-queens.web.app/sabine">
+<meta property="og:image" content="https://veyra-queens.web.app/og/sabine.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://veyra-queens.web.app/og/sabine.jpg">
+<script>window.QUEEN_ID = "sabine";</script>
+<meta name="theme-color" content="#0b0b0d">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/veyra.css">
+<script src="js/queens.js"></script>
+<script src="js/app.js"></script>
+</head>
+<body>
+  <div class="topbar--ruled">
+    <header class="wrap topbar">
+      <a href="index.html" class="wordmark" aria-label="Veyra — all queens">Veyrλ</a>
+      <nav class="nav" id="nav"></nav>
+    </header>
+  </div>
+
+  <main id="page"></main>
+  <div id="foot"></div>
+
+<script>
+  const { icon, esc, param, queen, tgUrl, themeButton, tributeSheet, lightbox, footer } = Veyra;
+  const q = queen(window.QUEEN_ID || param('q')) || QUEENS[0];
+  document.title = `${q.name} — Veyra`;
+
+  const shareUrl = `https://veyra-queens.web.app/${q.id}`;
+  const waShare = 'https://wa.me/?text=' + encodeURIComponent(`${q.name} — ${q.tagline}
+${shareUrl}`);
+  document.getElementById('nav').innerHTML = `<a href="index.html">Queens</a><a class="icon-btn share-wa" href="${waShare}" target="_blank" rel="noopener" aria-label="Share ${esc(q.name)} on WhatsApp">${icon.whatsapp}</a>${themeButton()}`;
+
+  document.getElementById('page').innerHTML = `
+    <section class="wrap profile">
+      <div class="profile-photo"><img src="${q.images.card}" alt="${esc(q.name)}"></div>
+      <div>
+        <h1>${esc(q.name)}</h1>
+        <p class="tagline">${esc(q.tagline)}</p>
+        <p class="bio">${esc(q.bio)}</p>
+        <a class="btn btn--solid" href="chat.html?q=${q.id}">Chat with ${esc(q.name)} ${icon.arrow}</a>
+        <a class="tg-link" href="${tgUrl(q.telegram)}" target="_blank" rel="noopener">
+          <span class="tg-icon">${icon.telegram}</span>
+          <div><strong>Join her Telegram channel</strong><span>${esc(q.telegramNote)}</span></div>
+          <span class="go">${icon.arrow}</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="wrap gallery" aria-label="Photos">
+      ${q.images.gallery.map((src, i) => `<button type="button" data-src="${src}" aria-label="Open photo ${i + 1}"><img src="${src}" alt="" loading="lazy"></button>`).join('')}
+    </section>
+
+    <section class="tributes">
+      <div class="wrap">
+        <h2>Send a tribute</h2>
+        <p>Show your appreciation. She'll notice.</p>
+        <div class="tribute-grid">
+          ${q.tributes.map(t => `
+            <div class="tribute">
+              <div class="price">$${t.price}</div>
+              <div class="crown">${icon.crown}</div>
+              <div class="name">${esc(t.name)}</div>
+              <button class="btn btn--ghost" data-price="${t.price}">Send tribute</button>
+            </div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <div class="mobile-cta"><a class="btn btn--solid" href="chat.html?q=${q.id}">Chat with ${esc(q.name)} ${icon.arrow}</a></div>`;
+  document.body.classList.add('has-cta');
+
+  document.querySelectorAll('.gallery button').forEach(b =>
+    b.addEventListener('click', () => lightbox(b.dataset.src, q.name)));
+  // The whole card opens the sheet (on mobile the button is hidden).
+  document.querySelectorAll('.tribute').forEach(card =>
+    card.addEventListener('click', () => tributeSheet(q, +card.querySelector('button').dataset.price)));
+
+  document.getElementById('foot').outerHTML = footer();
+</script>
+</body>
+</html>

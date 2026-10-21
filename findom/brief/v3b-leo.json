@@ -1,0 +1,20 @@
+[
+ {
+  "key": "home-nbpro2",
+  "prompt": "Design the homepage of Veyra as a full desktop website screenshot. Veyra is a website of AI characters called queens: confident, commanding women personas. You browse the queens, choose your queen, see her page and chat with her. Fans can send her tributes and follow her Telegram channel. Every queen is labeled as an AI character. The site is intentionally very simple: see the queens, pick one, her page, chat. Nothing else. The three queens are Anna, Sabine (a cold corporate executive) and Mina (a strict, precise perfectionist). Their photos are stylish and mysterious, the face often partly hidden by dark sunglasses or cropped at the lips. The homepage shows the queens so you can choose one.",
+  "model": "nano-banana-pro",
+  "size": "square"
+ },
+ {
+  "key": "queen-nbpro2",
+  "prompt": "Design a queen page on Veyra as a full desktop website screenshot. Veyra is a website of AI characters called queens: confident, commanding women personas. You browse the queens, choose your queen, see her page and chat with her. Fans can send her tributes and follow her Telegram channel. Every queen is labeled as an AI character. The site is intentionally very simple: see the queens, pick one, her page, chat. Nothing else. This is Sabine’s page (a cold corporate executive; stylish photos, face partly hidden). It has her photos, a short bio, a Chat with Sabine button, her Telegram channel link, and her tribute prices ($15, $35, $70, $150).",
+  "model": "nano-banana-pro",
+  "size": "square"
+ },
+ {
+  "key": "chat-nbpro2",
+  "prompt": "Design the chat page of Veyra as a desktop website screenshot. Veyra is a website of AI characters called queens: confident, commanding women personas. You browse the queens, choose your queen, see her page and chat with her. Fans can send her tributes and follow her Telegram channel. Every queen is labeled as an AI character. The site is intentionally very simple: see the queens, pick one, her page, chat. Nothing else. You are chatting with Mina (strict and precise; stylish photo, face partly hidden). It shows the chat with her, a way to send her a tribute, and a link to her Telegram.",
+  "model": "nano-banana-pro",
+  "size": "square"
+ }
+]

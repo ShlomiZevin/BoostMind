@@ -19,6 +19,15 @@ const PORT = Number(process.env.PORT || 4747);
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
+// the editor's videos and sounds load from this same server under its other name (127.0.0.1 <-> localhost): a browser
+// opens at most 6 connections per host, the media streams held all of them and the saves (POST) waited forever.
+// Another host = its own 6. The sounds go through Web Audio, so the media answers carry CORS.
+app.use('/media', (_q, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); });
+const mediaHost = (q) => {
+  const h = String(q.headers.host || '');
+  return h.startsWith('localhost') ? `http://${h.replace(/^localhost/, '127.0.0.1')}`
+    : h.startsWith('127.0.0.1') ? `http://${h.replace(/^127\.0\.0\.1/, 'localhost')}` : '';  // (another device: as it is)
+};
 
 const epDir = (id) => {
   const d = path.join(EPS, path.basename(id));
@@ -115,7 +124,7 @@ setTimeout(() => {
 
 // the projects, newest first (by when the folder was made); "done" ones are marked
 app.get('/api/episodes', (_q, res) => {
-  const list = fs.readdirSync(EPS).filter((d) => fs.existsSync(path.join(EPS, d, 'episode.json')));
+  const list = fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.existsSync(path.join(EPS, d, 'episode.json')));  // (_name: a test, not in the list)
   res.json(list.map((id) => {
     const cfg = readJson(path.join(EPS, id, 'episode.json'), {});
     return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs,
@@ -166,7 +175,7 @@ app.get('/api/ep/:id', (q, res) => {
   if (episode?.type === 'lesson') {
     const out = path.join(d, 'out', `${q.params.id}.mp4`);
     const prev = w('public/preview.mp4');
-    const layer = (f) => (fs.existsSync(w('public/' + f)) ? { url: `/media/${q.params.id}/${f}`, v: fs.statSync(w('public/' + f)).mtimeMs } : null);
+    const layer = (f) => (fs.existsSync(w('public/' + f)) ? { url: `${mediaHost(q)}/media/${q.params.id}/${f}`, v: fs.statSync(w('public/' + f)).mtimeMs } : null);
     const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
       layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), plain: layer('plain.mp4'), scene: layer('scene.png'), plaque: layer('plaque.png'),
@@ -368,6 +377,7 @@ app.post('/api/ep/:id/sounds', (q, res) => {
   const cfg = readJson(path.join(d, 'episode.json'));
   cfg.sounds = Array.isArray(q.body?.sounds) ? q.body.sounds : [];
   if (Array.isArray(q.body?.overlays)) cfg.overlays = q.body.overlays;  // (thought bubbles tied to a sound follow its index)
+  if (Number.isInteger(q.body?.sound_lanes)) cfg.sound_lanes = Math.max(0, q.body.sound_lanes);  // the sound layers (an empty one stays)
   writeJson(path.join(d, 'episode.json'), cfg);
   const p = spawn(PY, ['lesson.py', `episodes/${q.params.id}`, '--stems'], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
   let err = '';

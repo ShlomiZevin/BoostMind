@@ -109,25 +109,19 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
   // reopen the aerobic modal and re-open the finish prompt afterward.
   const [addAerobicFromFinish, setAddAerobicFromFinish] = useState(false);
 
+  // The page renders as soon as the session doc itself arrives. Everything
+  // else (full history ~1MB, photos ~2MB of base64, the exercise catalog) is
+  // decoration that fills in afterwards — it used to sit in one Promise.all
+  // with the session, so the slowest read held the whole page on "Loading...",
+  // and any single failure held it there forever.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
-    (async () => {
-      const [s, all, exs, pairs, photos] = await Promise.all([
-        firestore.getFreeSession(sessionId),
-        firestore.getFreeSessions(),
-        firestore.listPersonalExercises(),
-        firestore.listSupersetPairs(),
-        firestore.getAllExercisePhotos(),
-      ]);
+    let cancelled = false;
+    setLoadFailed(false);
+    firestore.getFreeSession(sessionId).then(s => {
+      if (cancelled) return;
       setSession(s);
-      setPersonalExercises(exs);
-      setSupersetPairs(pairs);
-      setPhotosMap(photos);
-      const past: FreeSet[] = [];
-      for (const sess of all) {
-        if (sess.id === sessionId) continue;
-        for (const set of sess.sets) past.push(set);
-      }
-      setAllPastSets(past);
       setLoading(false);
       // If Home queued the AI-per-day flow, open the chat empty — user types their own prompt.
       try {
@@ -139,8 +133,26 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
           setChatOpen(true);
         }
       } catch { /* ignore */ }
-    })();
-  }, [sessionId]);
+      // Secondary data starts only once the page is up, so it doesn't compete
+      // with the session read for a weak connection's bandwidth.
+      firestore.listPersonalExercises().then(exs => { if (!cancelled) setPersonalExercises(exs); }).catch(() => {});
+      firestore.listSupersetPairs().then(pairs => { if (!cancelled) setSupersetPairs(pairs); }).catch(() => {});
+      firestore.getFreeSessions().then(all => {
+        if (cancelled) return;
+        const past: FreeSet[] = [];
+        for (const sess of all) {
+          if (sess.id === sessionId) continue;
+          for (const set of sess.sets) past.push(set);
+        }
+        setAllPastSets(past);
+      }).catch(() => {});
+      firestore.getAllExercisePhotos().then(photos => { if (!cancelled) setPhotosMap(photos); }).catch(() => {});
+    }).catch(() => {
+      if (cancelled) return;
+      setLoadFailed(true);
+    });
+    return () => { cancelled = true; };
+  }, [sessionId, loadAttempt]);
 
   // Auto-cleanup: when the user opens a session that was created empty by the
   // "plan with AI" flow and then navigates away without adding anything, we
@@ -1093,6 +1105,16 @@ export function FreeSession({ uid, sessionId, navigate, historical, restTimer }:
     }
   }
 
+  if (loading && loadFailed) {
+    return (
+      <div className="page-bg flex flex-col items-center justify-center gap-3 text-muted" dir="rtl">
+        <div>אין חיבור כרגע</div>
+        <button onClick={() => setLoadAttempt(a => a + 1)} className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold">
+          נסה שוב
+        </button>
+      </div>
+    );
+  }
   if (loading) return <div className="page-bg flex items-center justify-center text-muted">Loading...</div>;
   if (!session) {
     // Session no longer exists (deleted from Home, expired link, etc.) — bounce back to home

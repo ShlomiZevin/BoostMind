@@ -1,5 +1,8 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  doc, getDoc, setDoc,
+} from 'firebase/firestore';
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut,
   onAuthStateChanged, type User,
@@ -16,7 +19,20 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+// On-device cache (IndexedDB). Lets reads fall back to the last known data and
+// keeps unsent writes across app restarts — the backbone of fastFirestore.ts,
+// which stops a weak gym connection from freezing the UI. Multi-tab so an
+// installed PWA and a browser tab can both be open.
+function createDb() {
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    });
+  } catch {
+    return getFirestore(app);
+  }
+}
+export const db = createDb();
 export const auth = getAuth(app);
 
 // Emails that resolve to a specific legacy uid instead of the raw Firebase Auth uid.

@@ -2,6 +2,8 @@
 // Usage: node docs/gov-kit/build.js   (then run pdf.sh to print the PDFs)
 const fs = require('fs');
 const path = require('path');
+const FIGS = require('./figs');
+const hoursCalc = require('./calc');
 
 const ROOT = path.join(__dirname, '..', '..');
 const OUT = path.join(ROOT, 'public', 'boostart', 'gov');
@@ -49,7 +51,8 @@ function parse(md) {
         if (!/^\|[\s:|-]+\|$/.test(r)) rows.push(r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
         i++;
       }
-      blocks.push({ t: 'table', head: rows[0], rows: rows.slice(1) }); continue;
+      const body = rows.slice(1).filter(r => r.join('|') !== rows[0].join('|'));
+      blocks.push({ t: 'table', head: rows[0], rows: body }); continue;
     }
     if (line.startsWith('- ') || line.startsWith('+ ') || /^\d+\.\s/.test(line)) {
       const kind = line.startsWith('- ') ? 'ul' : line.startsWith('+ ') ? 'grid' : 'ol';
@@ -81,6 +84,9 @@ function render(blocks) {
       case 'h2': { h2n++; const id = 's' + h2n; toc.push({ id, text: b.text }); return `<h2 id="${id}">${inline(b.text)}</h2>`; }
       case 'h3': return `<h3>${inline(b.text)}</h3>`;
       case 'p': {
+        const fig = b.lines.length === 1 && b.lines[0].match(/^\[\[fig:([\w-]+)\]\]$/);
+        if (fig) return FIGS[fig[1]] || '';
+        if (b.lines.length === 1 && b.lines[0] === '[[calc:hours]]') return hoursCalc('Telos-Hours-Bank.xlsx');
         const t = b.lines.map(inline).join('<br>');
         const chain = b.lines.length === 1 && /→/.test(b.lines[0]);
         return chain ? `<p class="chain">${t}</p>` : `<p>${t}</p>`;
@@ -185,6 +191,50 @@ table.wide{font-size:13.5px}
 .sign a{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
 .sign a:hover{color:var(--accent)}
 
+/* figures */
+.fig{margin:10px 0 26px;break-inside:avoid;page-break-inside:avoid}
+.fig figcaption{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:10px}
+.gantt{display:grid;grid-template-columns:minmax(150px,34%) 1fr;border:1px solid var(--line-2);border-radius:4px;overflow:hidden;font-size:13px}
+.gantt .g-l{padding:7px 12px;border-bottom:1px solid var(--line);color:var(--text);font-weight:500;line-height:1.4;background:var(--paper)}
+.gantt .g-t{display:grid;border-bottom:1px solid var(--line);border-inline-start:1px solid var(--line-2);align-items:center;padding:5px 0;background:var(--paper)}
+.gantt .g-h{background:var(--tint);padding:0;border-bottom:1px solid var(--line-2)}
+.gantt .g-m{font-size:11.5px;font-weight:700;color:var(--muted);text-align:center;padding:7px 0;border-inline-start:1px solid var(--line)}
+.gantt .g-m:first-child{border-inline-start:none}
+.gantt .g-b{height:20px;border-radius:3px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;line-height:20px;text-align:center;margin:0 3px;white-space:nowrap;overflow:hidden}
+.gantt .g-b.ms{background:var(--text);color:var(--paper)}
+.gantt .g-b.soft{background:var(--tint-2);border:1px solid var(--accent)}
+.gantt > :nth-last-child(-n+2){border-bottom:none}
+.arch{border:1px solid var(--line-2);border-radius:4px;padding:16px;background:var(--tint)}
+.a-row{background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:10px 12px}
+.a-name{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.a-boxes{display:flex;flex-wrap:wrap;gap:6px}
+.a-boxes span{font-size:13px;color:var(--text);background:var(--tint);border:1px solid var(--line);border-radius:3px;padding:4px 10px}
+.a-arrow{text-align:center;color:var(--muted);font-size:15px;line-height:1.5}
+
+/* hours calculator */
+.calc{margin:8px 0 18px}
+.calc-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.calc-bar label{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.calc .calc-bar input{width:72px;min-width:0;flex:none}
+.calc-actions{display:flex;flex-wrap:wrap;gap:8px}
+.calc-wrap{overflow-x:auto;border:1px solid var(--line-2);border-radius:4px}
+.calc .calc-t{display:table;width:100%;min-width:720px;font-size:13px;border:none}
+.calc .calc-t thead{display:table-header-group}
+.calc .calc-t tbody{display:table-row-group}
+.calc .calc-t tfoot{display:table-footer-group}
+.calc .calc-t tr{display:table-row;border:none;margin:0}
+.calc .calc-t th,.calc .calc-t td{display:table-cell;width:auto;border:1px solid var(--line);padding:5px 6px;vertical-align:middle;white-space:nowrap}
+.calc .calc-t td::before{content:none}
+.calc .calc-t thead th{background:var(--tint);font-size:12.5px;white-space:normal;line-height:1.35}
+.calc .calc-t td.c-task{white-space:normal;min-width:160px;font-weight:600;color:var(--text)}
+.calc .calc-t td.c-out{background:var(--tint);color:var(--text);font-variant-numeric:tabular-nums}
+.calc .calc-t .c-key{font-weight:700}
+.calc .calc-t tfoot td{background:var(--tint-2);font-weight:700;color:var(--text)}
+.calc input{width:100%;min-width:46px;font:inherit;font-size:14px;color:var(--text);background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:4px 6px;text-align:center}
+.calc input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.calc-sum{font-weight:700;color:var(--text);margin:12px 0 4px}
+.calc-hint{font-size:13px;color:var(--muted);margin:0}
+
 /* hub */
 .docs{list-style:none;margin:10px 0 8px}
 .docs li{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
@@ -219,6 +269,12 @@ table.wide{font-size:13.5px}
 }
 
 @media print{
+  .calc-actions,.calc-hint{display:none}
+  .calc-wrap{overflow:visible;border:none}
+  .calc .calc-t{min-width:0;font-size:8pt}
+  .calc input{border:none;padding:0;background:none}
+  .gantt .g-b{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .gantt,.arch,.a-row,.a-boxes span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{size:A4;margin:14mm 13mm 16mm}
   body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.55}
   .bar{display:none}
@@ -250,7 +306,7 @@ table.wide{font-size:13.5px}
 
 const ICON_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
 
-function page({ title, desc, body, back, pdf, logo, to }) {
+function page({ title, desc, body, back, pdf, logo, to, docx }) {
   return `<!DOCTYPE html>
 <html lang="he" dir="rtl" data-theme="light">
 <head>
@@ -270,6 +326,7 @@ function page({ title, desc, body, back, pdf, logo, to }) {
   ${back ? `<a class="back" href="${back}">→ ערכת המענה</a>` : `<span></span>`}
   <div class="actions">
     ${pdf ? `<a class="btn primary" href="${pdf}" download>${ICON_DL}<span>PDF</span><span class="lbl-long">&nbsp;להורדה</span></a>` : ''}
+    ${docx ? `<a class="btn" href="${docx}" download>${ICON_DL}<span>Word</span></a>` : ''}
     <button class="btn icon" id="themeBtn" aria-label="החלפת מצב תצוגה">☾</button>
   </div>
 </div>
@@ -311,7 +368,7 @@ function buildDoc(d) {
   const body = `  <h1>${inline(title)}</h1>\n  <p class="sub">${inline(subtitle)}</p>\n${tocHtml}\n${html}`;
   const dir = path.join(OUT, d.slug);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'index.html'), page({ title: `${title} · Boostart`, desc: subtitle, body, back: standalone ? null : '../', pdf: d.pdf, logo: '../../boostart-logo.png', to: d.to }));
+  fs.writeFileSync(path.join(dir, 'index.html'), page({ title: `${title} · Boostart`, desc: subtitle, body, back: standalone ? null : '../', pdf: d.pdf, logo: '../../boostart-logo.png', to: d.to, docx: d.docx }));
   d.title = title;
   console.log('built', d.slug);
 }
@@ -342,6 +399,7 @@ function buildHub() {
 }
 
 DOCS.forEach(buildDoc);
+buildDoc({ key: 'telos', slug: 'telos', pdf: 'Shlomi-Zevin-Telos-Tools-Experience-Projects.pdf', toc: true, to: 'יפעה, טלוס', docx: 'Shlomi-Zevin-Telos-Tools-Experience-Projects.docx' });
 buildDoc({ key: 'fit', slug: 'fit', pdf: 'Shlomi-Zevin-Tender-Fit.pdf', toc: false, to: 'יפעה ורדיגר' });
 if (fs.existsSync(path.join(SRC, 'hub.md'))) buildHub();
 fs.writeFileSync(path.join(__dirname, 'build', 'docs.json'), JSON.stringify(DOCS.map(d => ({ slug: d.slug, pdf: d.pdf })), null, 1));

@@ -871,7 +871,7 @@ def overlays(ls):
     ov = ls.cfg.get("overlays")
     if ov is None and ls.cfg.get("title"):
         ov = [{"text": ls.cfg["title"], "style": "pov", "font": "stam-ashkenaz", "theme": "gold", "opacity": 0, "y": 270, "size": 64}]
-    out = [o for o in (ov or []) if ((o.get("text") or "").strip() or o.get("image"))
+    out = [o for o in (ov or []) if ((o.get("text") or "").strip() or o.get("image") or o.get("video"))
            and not ((o.get("from_words") or o.get("sound") is not None) and o.get("start") is None)]  # not placed yet: not drawn
     for o in out:
         if o.get("image"):
@@ -987,6 +987,23 @@ def text_layers(ls, caps, anims_too=True):
                 anims.append({"out": o["anim"][:-4] + f".{os.getpid()}.part.mov", "final": o["anim"], "text": o["text"], "y": float(o.get("y") or 1150), "size": o.get("size") or 70,
                               "start": float(o["start"]), "end": float(o["end"]), "motion": o.get("motion"), "x": o.get("x"), "w": o.get("w"),
                               "hold": o.get("hold", 0.35), "grow": o.get("grow", 1)})
+            continue
+        if o.get("style") == "sticker" and o.get("motion") == "video":  # a green-screen clip (money rain): keyed, cover-cropped to the frame
+            import hashlib
+            src = ls.asset(o["video"])
+            a0, dur = float(o.get("from", 0)), float(o["end"]) - float(o["start"])
+            key = [STICKER_V, src, os.stat(src).st_mtime, a0, round(dur, 3), o.get("key", "0x00FF00"), o.get("similarity", 0.22)]
+            o["anim"] = ls.work("text", "anim", "v" + hashlib.md5(json.dumps(key).encode()).hexdigest()[:13] + ".mov")
+            o["anim_y"] = 0
+            ls.anims_used = getattr(ls, "anims_used", []) + [o["anim"]]
+            if not os.path.exists(o["anim"]) and anims_too:
+                fo = min(0.4, dur / 3)
+                part = o["anim"][:-4] + f".{os.getpid()}.part.mov"
+                ff("-ss", f"{a0:.3f}", "-t", f"{dur:.3f}", "-i", src, "-an", "-vf",
+                   f"fps={FPS},scale=-2:{H}:flags=lanczos,crop={W}:{H},chromakey={o.get('key', '0x00FF00')}:{o.get('similarity', 0.22)}:0.06,"
+                   f"despill=type=green:mix=0.6:expand=0.1,format=argb,fade=t=out:st={max(0.0, dur - fo):.3f}:d={fo:.3f}:alpha=1",
+                   "-c:v", "qtrle", part)
+                os.replace(part, o["anim"])
             continue
         if o.get("style") == "sticker":  # a picture that pops in / rains down (render/ui/sticker_anim.js): a full-frame clip
             import hashlib

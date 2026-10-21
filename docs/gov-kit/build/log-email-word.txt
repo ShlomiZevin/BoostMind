@@ -1,0 +1,3 @@
+OK -> out/email-word.md  (299 chars, gpt-5.6-terra, 348 tokens)
+  input 222 · output 126 (reasoning 0)
+Read it with the Read tool — printing Hebrew to this console will mangle it.

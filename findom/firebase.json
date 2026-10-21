@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "public": "web",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": ["firebase.json", "**/.*", "img/queens/*.png"],
+    "headers": [
+      { "source": "img/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+You are a senior product + brand strategist for adult-creator marketplaces. Short, sharp, no preamble.
+
+CONTEXT
+We are building a web marketplace for FINANCIAL DOMINATION (findom) — a consensual adult fetish niche where submissive users ("paypigs"/"subs") pay dominant women ("queens"/"goddesses") for attention and humiliation-by-spending.
+Our twist: every queen is an AI CHARACTER with a deep persona. This is disclosed openly (legal + payment processor requirement), but it must feel premium and intentional, not like a disclaimer. Users: browse the market -> pick "your queen" -> her profile page (photos, bio, rules, tribute menu, rituals) -> chat with her (AI agent, backend comes later from another service) -> link to her Telegram channel to go deeper.
+Stack: static web (vanilla HTML/CSS/JS), Firebase hosting + Firestore later. Adult 18+ gate. No nudity on site (images are glamour/editorial, clothed).
+
+TASKS
+1. Brand name: 8 options (one line each, why), then your pick. Avoid: "Findom Hub", anything with "pay", "pig", "wallet", generic "Goddess" puns, "Tribute" alone.
+2. Tagline: 5 options + pick.
+3. Information architecture: list every page and every section on each page (homepage/market, queen profile, chat). Include what makes the market page addictive (filters, "online now", tribute leaderboards, etc). Be concrete.
+4. Chat page UX: what features beyond messages (tribute buttons, tasks, "owned" status, streak, mood indicator...). Pick the 6 that matter most.
+5. Design direction: describe a visual identity that does NOT look like a generic dark-purple adult site or a generic SaaS template. Give: mood, palette (hex), typography (Google Fonts), texture/material cues, logo concept. Constraint from owner: NO gradients, NO glow effects, flat/solid colors, editorial and premium.
+6. Three launch queens: for each — name, age (25+), archetype, look (hair, ethnicity, styling, setting for photos), personality, speaking voice (2 sample lines), her "rules" (4), tribute menu (4 items with USD prices), Telegram channel name. Make the three clearly distinct archetypes.
+7. The AI disclosure: how to phrase and place it so it reads as a feature. 2 phrasings.

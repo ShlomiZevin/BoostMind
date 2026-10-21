@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>שלומי זוין: כלים, ניסיון ופרויקטים · Boostart</title>
+<meta name="description" content="מענה לשלושת הנושאים שנדרשו להגשת טלוס לתיחור "המשך פיתוח מערכת עולים לענן".">
+<link rel="icon" href="../../boostart-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0F3; --paper:#FFFFFF; --tint:#F5F7FA; --tint-2:#EAF0F8;
+  --line:rgba(20,22,26,.10); --line-2:rgba(20,22,26,.18);
+  --text:#14161A; --text-2:#353A44; --muted:#6A707C;
+  --accent:#3F6FB0; --chip:#FFFFFF; --maxw:860px;
+}
+:root[data-theme="dark"]{
+  --bg:#0B0C0E; --paper:#131519; --tint:#1A1D22; --tint-2:#1C2430;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.17);
+  --text:#EEF0F3; --text-2:#BCC2CC; --muted:#8A919C;
+  --accent:#7AA7E0; --chip:#F4F6F9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Heebo',system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;padding:0 16px 64px;transition:background .18s,color .18s}
+a{color:inherit}
+
+.bar{position:sticky;top:0;z-index:20;max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;background:var(--bg)}
+.bar a.back{font-size:14px;color:var(--muted);text-decoration:none}
+.bar a.back:hover{color:var(--text)}
+.actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;font:600 14px 'Heebo',sans-serif;text-decoration:none;cursor:pointer;border:1px solid var(--line-2);background:var(--paper);color:var(--text);transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--text);border-color:var(--text);color:var(--paper)}
+.btn svg{width:16px;height:16px}
+.icon{width:36px;padding:0;justify-content:center}
+
+.doc{max-width:var(--maxw);margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:52px 64px 48px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line-2)}
+.logo-chip{background:var(--chip);border-radius:4px;padding:6px 8px;display:inline-flex}
+.logo-chip img{display:block;height:26px;width:auto}
+.from{text-align:end;font-size:13px;line-height:1.55;color:var(--muted)}
+.from b{display:block;color:var(--text);font-size:14.5px;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 24px;font-size:13px;color:var(--muted);padding-top:16px}
+.kicker{font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--accent);margin:34px 0 8px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin-top:30px}
+.sub{font-size:17px;color:var(--text-2);margin:10px 0 0;padding-bottom:26px;border-bottom:1px solid var(--line)}
+
+.toc{margin:26px 0 6px;padding:18px 20px;background:var(--tint);border:1px solid var(--line);border-radius:4px}
+.toc b{display:block;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+.toc ol{list-style:none;columns:2;column-gap:28px}
+.toc li{break-inside:avoid;font-size:14px;line-height:1.5;padding:4px 0}
+.toc a{color:var(--text-2);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+
+h2{font-size:19px;font-weight:700;color:var(--text);letter-spacing:-.01em;margin:44px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line-2);scroll-margin-top:70px}
+h3{font-size:16px;font-weight:700;color:var(--text);margin:26px 0 10px}
+p{color:var(--text-2);margin-bottom:14px}
+strong{color:var(--text);font-weight:600}
+p.chain{font-size:15px;font-weight:600;color:var(--text);background:var(--tint-2);border:1px solid var(--line);border-radius:4px;padding:12px 16px;text-align:center}
+p.chain strong{font-weight:600}
+
+ul.bul,ol.num{margin:2px 0 18px;padding-inline-start:22px}
+ul.bul li,ol.num li{color:var(--text-2);margin-bottom:6px;padding-inline-start:4px}
+ul.bul li::marker{color:var(--accent)}
+ol.num li::marker{color:var(--accent);font-weight:600}
+
+.incl{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px;margin:2px 0 20px}
+.incl li{position:relative;padding:8px 16px 8px 0;font-size:15px;color:var(--text-2);line-height:1.5;border-bottom:1px solid var(--line)}
+.incl li::before{content:"";position:absolute;inset-inline-start:0;top:16px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.incl li b{display:block;color:var(--text);font-weight:600}
+.incl li span{font-size:14px;color:var(--muted)}
+
+.tbl-wrap{margin:6px 0 22px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:start;padding:10px 12px;border:1px solid var(--line-2);vertical-align:top;line-height:1.55}
+thead th{background:var(--tint);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap}
+tbody td{color:var(--text-2)}
+tbody td:first-child{font-weight:600;color:var(--text)}
+table.wide{font-size:13.5px}
+
+.callout{background:var(--tint);border:1px solid var(--line);border-inline-start:3px solid var(--accent);border-radius:4px;padding:14px 18px;margin:6px 0 18px}
+.callout p{margin:0;color:var(--text-2)}
+
+.sign{margin-top:44px;padding-top:22px;border-top:1px solid var(--line-2);font-size:14px;color:var(--muted);line-height:1.7;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sign b{display:block;color:var(--text);font-size:15.5px;font-weight:600}
+.sign a{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.sign a:hover{color:var(--accent)}
+
+/* figures */
+.fig{margin:10px 0 26px;break-inside:avoid;page-break-inside:avoid}
+.fig figcaption{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:10px}
+.gantt{display:grid;grid-template-columns:minmax(150px,34%) 1fr;border:1px solid var(--line-2);border-radius:4px;overflow:hidden;font-size:13px}
+.gantt .g-l{padding:7px 12px;border-bottom:1px solid var(--line);color:var(--text);font-weight:500;line-height:1.4;background:var(--paper)}
+.gantt .g-t{display:grid;border-bottom:1px solid var(--line);border-inline-start:1px solid var(--line-2);align-items:center;padding:5px 0;background:var(--paper)}
+.gantt .g-h{background:var(--tint);padding:0;border-bottom:1px solid var(--line-2)}
+.gantt .g-m{font-size:11.5px;font-weight:700;color:var(--muted);text-align:center;padding:7px 0;border-inline-start:1px solid var(--line)}
+.gantt .g-m:first-child{border-inline-start:none}
+.gantt .g-b{height:20px;border-radius:3px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;line-height:20px;text-align:center;margin:0 3px;white-space:nowrap;overflow:hidden}
+.gantt .g-b.ms{background:var(--text);color:var(--paper)}
+.gantt .g-b.soft{background:var(--tint-2);border:1px solid var(--accent)}
+.gantt > :nth-last-child(-n+2){border-bottom:none}
+.arch{border:1px solid var(--line-2);border-radius:4px;padding:16px;background:var(--tint)}
+.a-row{background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:10px 12px}
+.a-name{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.a-boxes{display:flex;flex-wrap:wrap;gap:6px}
+.a-boxes span{font-size:13px;color:var(--text);background:var(--tint);border:1px solid var(--line);border-radius:3px;padding:4px 10px}
+.a-arrow{text-align:center;color:var(--muted);font-size:15px;line-height:1.5}
+
+/* hours calculator */
+.calc{margin:8px 0 18px}
+.calc-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.calc-bar label{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.calc .calc-bar input{width:72px;min-width:0;flex:none}
+.calc-actions{display:flex;flex-wrap:wrap;gap:8px}
+.calc-wrap{overflow-x:auto;border:1px solid var(--line-2);border-radius:4px}
+.calc .calc-t{display:table;width:100%;min-width:720px;font-size:13px;border:none}
+.calc .calc-t thead{display:table-header-group}
+.calc .calc-t tbody{display:table-row-group}
+.calc .calc-t tfoot{display:table-footer-group}
+.calc .calc-t tr{display:table-row;border:none;margin:0}
+.calc .calc-t th,.calc .calc-t td{display:table-cell;width:auto;border:1px solid var(--line);padding:5px 6px;vertical-align:middle;white-space:nowrap}
+.calc .calc-t td::before{content:none}
+.calc .calc-t thead th{background:var(--tint);font-size:12.5px;white-space:normal;line-height:1.35}
+.calc .calc-t td.c-task{white-space:normal;min-width:160px;font-weight:600;color:var(--text)}
+.calc .calc-t td.c-out{background:var(--tint);color:var(--text);font-variant-numeric:tabular-nums}
+.calc .calc-t .c-key{font-weight:700}
+.calc .calc-t tfoot td{background:var(--tint-2);font-weight:700;color:var(--text)}
+.calc input{width:100%;min-width:46px;font:inherit;font-size:14px;color:var(--text);background:var(--paper);border:1px solid var(--line-2);border-radius:4px;padding:4px 6px;text-align:center}
+.calc input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.calc-sum{font-weight:700;color:var(--text);margin:12px 0 4px}
+.calc-hint{font-size:13px;color:var(--muted);margin:0}
+
+/* hub */
+.docs{list-style:none;margin:10px 0 8px}
+.docs li{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
+.docs li:last-child{border-bottom:none}
+.docs .n{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.06em}
+.docs h3{margin:2px 0 4px;font-size:17px}
+.docs h3 a{text-decoration:none}
+.docs h3 a:hover{color:var(--accent)}
+.docs p{margin:0;font-size:15px}
+.docs .row-actions{display:flex;gap:8px;flex-shrink:0;padding-top:18px}
+
+@media(max-width:720px){
+  body{padding:0 12px 40px}
+  .doc{padding:26px 18px 30px}
+  h1{font-size:23px}
+  .sub{font-size:15.5px}
+  h2{font-size:17px;margin-top:34px}
+  .head{flex-direction:column;gap:12px}
+  .from{text-align:start}
+  .toc ol{columns:1}
+  .incl{grid-template-columns:1fr;gap:0}
+  .btn .lbl-long{display:none}
+  .docs li{flex-direction:column;gap:8px}
+  .docs .row-actions{padding-top:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line-2);border-radius:4px;margin-bottom:10px;overflow:hidden}
+  td{border:none;border-bottom:1px solid var(--line);padding:9px 12px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:1px}
+  .tbl-wrap{overflow:visible}
+}
+
+@media print{
+  .calc-actions,.calc-hint{display:none}
+  .calc-wrap{overflow:visible;border:none}
+  .calc .calc-t{min-width:0;font-size:8pt}
+  .calc input{border:none;padding:0;background:none}
+  .gantt .g-b{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .gantt,.arch,.a-row,.a-boxes span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4;margin:14mm 13mm 16mm}
+  body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.55}
+  .bar{display:none}
+  .doc{max-width:none;border:none;border-radius:0;padding:0;background:#fff}
+  .kicker{color:#3F6FB0;margin-top:18pt}
+  h1{font-size:20pt}
+  .sub{font-size:11.5pt;color:#333}
+  h2{font-size:13pt;color:#000;border-bottom:1px solid #999;margin:18pt 0 8pt;page-break-after:avoid;break-after:avoid}
+  h3{font-size:11pt;page-break-after:avoid;break-after:avoid}
+  p,li,td{color:#222}
+  .meta,.from,.sign{color:#555}
+  .toc{background:#f6f7f9;border:1px solid #ccc;page-break-inside:avoid}
+  .toc a{color:#222}
+  table{font-size:8.8pt}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid;break-inside:avoid}
+  th,td{border:1px solid #999;padding:5pt 6pt}
+  thead th{background:#eef1f5;color:#000}
+  .tbl-wrap{overflow:visible}
+  .incl li{border-bottom:1px solid #e3e3e3;page-break-inside:avoid}
+  .incl li::before,ul.bul li::marker{background:#3F6FB0}
+  .callout,p.chain{background:#f4f6f9;border:1px solid #bbb;page-break-inside:avoid}
+  .callout{border-inline-start:3px solid #3F6FB0}
+  .sign{page-break-inside:avoid;border-top:1px solid #999}
+  .logo-chip{padding:0}
+  a{text-decoration:none;color:#000}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <span></span>
+  <div class="actions">
+    <a class="btn primary" href="Shlomi-Zevin-Telos-Tools-Experience-Projects.pdf" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>PDF</span><span class="lbl-long">&nbsp;להורדה</span></a>
+    <a class="btn" href="Shlomi-Zevin-Telos-Tools-Experience-Projects.docx" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>Word</span></a>
+    <button class="btn icon" id="themeBtn" aria-label="החלפת מצב תצוגה">☾</button>
+  </div>
+</div>
+<main class="doc">
+  <div class="head">
+    <div class="logo-chip"><img src="../../boostart-logo.png" alt="Boostart"></div>
+    <div class="from"><b>שלומי זוין</b>Boostart · CTO as a Service<br>shlomi@boostart.io · 054-5567213</div>
+  </div>
+  <div class="meta"><div><b>לכבוד:</b> יפעה, טלוס</div><div>ספטמבר 2026</div></div>
+  <h1>שלומי זוין: כלים, ניסיון ופרויקטים</h1>
+  <p class="sub">מענה לשלושת הנושאים שנדרשו להגשת טלוס לתיחור "המשך פיתוח מערכת עולים לענן".</p>
+
+<h2 id="s1">1. מתודולוגיות וכלים</h2>
+<p>Claude Code הוא כלי ההנדסה היומיומי שלי בכל הפרויקטים הנוכחיים. זה גם הכלי שהמערך ציין בכנס הספקים ככלי העבודה בפיתוח המערכת.</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>כלי</th><th>איך אני עובד איתו</th></tr></thead><tbody><tr><td data-l="כלי">Claude Code</td><td data-l="איך אני עובד איתו">כלי העבודה היומיומי שלי. כל Session מתחיל מקריאת כללי הפרויקט, ה-Spec וההקשר הרלוונטי. אני עובד עם Skills, Worktrees ובדיקת אדם לכל שינוי.</td></tr><tr><td data-l="כלי">Cursor AI, Amazon Q / Kiro, Google Antigravity</td><td data-l="איך אני עובד איתו">אינני משתמש יומיומי בכלים אלה. התוצרים שלי הם מסמכי Markdown רגילים ב-Repository, במבנה Spec, Plan, Progress ו-Validation, ולכן אפשר להמשיך איתם בכל כלי מאושר.</td></tr><tr><td data-l="כלי">מודלים: Claude, OpenAI, Gemini</td><td data-l="איך אני עובד איתו">במוצרי Agent אני עובד מול כמה ספקי מודלים דרך שכבת Routing אחת. הבחירה במודל מתועדת ונמדדת לפי משימה, עלות ותוצאה.</td></tr><tr><td data-l="כלי">Pinecone</td><td data-l="איך אני עובד איתו">Vector DB עבור Knowledge Bases, חיפוש סמנטי ו-RAG במערכות Agent.</td></tr></tbody></table></div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>מתודולוגיה במצגת טלוס</th><th>איך זה נראה אצלי</th></tr></thead><tbody><tr><td data-l="מתודולוגיה במצגת טלוס">SDD</td><td data-l="איך זה נראה אצלי">ה-Spec נכתב לפני קוד ונשמר ב-Repository ליד הקוד. תיקון או תוספת מתחילים בעדכון ה-Spec ולא בשינוי ישיר בקוד.</td></tr><tr><td data-l="מתודולוגיה במצגת טלוס">Agile/Scrum</td><td data-l="איך זה נראה אצלי">ניהול Feature delivery מתוך Task Board, מחזורים קצרים, בעלים לכל משימה ופרסום רציף לאחר אישור.</td></tr><tr><td data-l="מתודולוגיה במצגת טלוס">EDD</td><td data-l="איך זה נראה אצלי">כל שינוי שמשפיע על דיוק נמדד לפני ואחרי על סט בדיקות קבוע.</td></tr><tr><td data-l="מתודולוגיה במצגת טלוס">Data-centric</td><td data-l="איך זה נראה אצלי">Corpus קפוא של 90 שאלות לקוח אמיתיות משמש Benchmark לשינויי דיוק.</td></tr><tr><td data-l="מתודולוגיה במצגת טלוס">MLOps</td><td data-l="איך זה נראה אצלי">Model registry עם מחירים, שימוש ועלות לכל קריאה. Agents ממוספרים ומפורסמים רק בצעד Publish מפורש, עם מגבלות הוצאה.</td></tr><tr><td data-l="מתודולוגיה במצגת טלוס">CRISP-DM</td><td data-l="איך זה נראה אצלי">מתודולוגיה שבה השתמשתי בעבודות ML קודמות, כולל מודלי חיזוי, רשתות נוירונים ואלגוריתמי אופטימיזציה.</td></tr></tbody></table></div>
+<h3>SDD לפי ארבעת הקבצים</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>קובץ</th><th>מה אני עושה בפועל</th></tr></thead><tbody><tr><td data-l="קובץ">SPEC</td><td data-l="מה אני עושה בפועל">לכל Feature נכתב Task Spec לפני פיתוח. התבנית כוללת Background, What Changes, Out of Scope, Files Touched ו-Acceptance Criteria. במערכת Aspect קיימים 55 Task Specs ו-78 מסמכי הנחיה, תכנון ו-Feature.</td></tr><tr><td data-l="קובץ">PLAN</td><td data-l="מה אני עושה בפועל">מפרט גדול מפורק לשלבים. לכל שלב יש Gate, ובחלק מהשערים מוגדר במפורש Human Review Required. הכלל הוא לא לדלג על שערים.</td></tr><tr><td data-l="קובץ">Progress and logs</td><td data-l="מה אני עושה בפועל">בתוך ה-Spec יש Checklist לביצוע, יומן הרצה, החלטות נעולות וחריגות מהאפיון. משימה מסומנת כהושלמה רק לאחר שסעיף ה-Verify עבר ותועד.</td></tr><tr><td data-l="קובץ">Validation</td><td data-l="מה אני עושה בפועל">סוללות בדיקה pass/fail, Replay של שיחות לקוח, תיקיית Verification עם README לכל נושא, Code Review אנושי ו-Merge ל-Master. Release הוא צעד נפרד ומאושר.</td></tr></tbody></table></div>
+<h3>התאמה לסטאק של עולים לענן</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>רכיב במערכת</th><th>הניסיון שלי</th></tr></thead><tbody><tr><td data-l="רכיב במערכת">React 19 + TypeScript + Next.js</td><td data-l="הניסיון שלי">React 19 ו-TypeScript הם חלק מרכזי ממערכות Aspect. יש לי ניסיון קודם גם ב-Next.js.</td></tr><tr><td data-l="רכיב במערכת">Express / Node.js + TypeScript</td><td data-l="הניסיון שלי">כל ה-Backends הנוכחיים שלי מבוססים Node.js ו-Express. אני עובד גם עם TypeScript בצד השרת.</td></tr><tr><td data-l="רכיב במערכת">Docker ו-Kubernetes</td><td data-l="הניסיון שלי">Docker משמש בכל השירותים שלי. יש לי ניסיון קודם עם Kubernetes, והשירותים הנוכחיים רצים על Cloud Run.</td></tr><tr><td data-l="רכיב במערכת">AWS</td><td data-l="הניסיון שלי">יש לי ניסיון ב-AWS. סביבת הייצור הנוכחית שלי היא Google Cloud.</td></tr><tr><td data-l="רכיב במערכת">בדיקות: Playwright, Jest, Vitest</td><td data-l="הניסיון שלי">השתמשתי ב-Playwright בכלי אוטומציה, ב-Jest בפרויקטים קודמים וב-Vitest בפרויקט Trip Planner שבו קיימות 119 בדיקות.</td></tr><tr><td data-l="רכיב במערכת">Terraform, DynamoDB, GitLab CI</td><td data-l="הניסיון שלי">אלה אינם חלק מהסטאק היומיומי הנוכחי שלי. עבדתי עם כלים מקבילים, כולל Script-driven deploys, PostgreSQL, MongoDB, Firestore ו-GitHub, ואתאים את העבודה לכלי הפרויקט.</td></tr></tbody></table></div>
+<h2 id="s2">2. תמצית ניסיון</h2>
+<p><strong>תפקיד מוצע:</strong> מומחה Agentic AI מטעם טלוס</p>
+<ul class="bul"><li>20+ שנות ניסיון בפיתוח תוכנה, ארכיטקטורה, ניהול פיתוח ו-DevOps.</li><li>בניתי 50+ מוצרים מאפס, בעיקר מערכות Web מסוג B2B ו-B2C SaaS עם לוגיקה מורכבת בצד השרת.</li><li>במסגרת Boostart אני מלווה מערכות מאפיון ועד Production, כולל ארכיטקטורה, פיתוח, תהליכי CI/CD וניהול פיתוח.</li><li>משנת 2025 אני בונה ומפעיל את Aspect, מערכת Multi-Agent ב-Production, ועובד בה מדי יום עם Claude Code בתהליך Spec-driven.</li><li>אני מוביל צוות של שלושה (אני ושני מפתחים), כולל עבודה מקבילית עם Sessions מבודדים, חלוקת משימות ובדיקת אדם לכל שינוי.</li><li>יש לי ניסיון של יותר משנתיים בפיתוח מערכות AI Agents, כולל Memory, RAG, כללים דטרמיניסטיים, מדידת דיוק ותיעוד שימוש במודלים.</li><li>רקע מחקרי בבניית ואימון רשתות נוירונים, מודלי חיזוי ואלגוריתמי אופטימיזציה גנטיים ואבולוציוניים.</li><li>ניסיון קודם במערכות פרטיות וציות לרגולציה, בריאות עם מידע רגיש, ניתוח מערכות ERP, אופטימיזציית לוגיסטיקה ומוצרי AI צרכניים.</li><li>אני מעביר את ההרצאה "מקלוד לפרוד", באורך 2.5 שעות, על עבודה הנדסית עם Claude Code, מאפיון ועד מערכת רצה בענן.</li></ul>
+<h2 id="s3">3. פרויקטים</h2>
+<p>שני הפרויקטים המרכזיים הם מערכות ב-Production, שנבנו עם Claude Code ובתהליך SDD.</p>
+<h3>פרויקט 1: פלטפורמה לבניית סוכני AI ללא קוד (פרויקט לקוח)</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">הפלטפורמה תוכננה ונבנתה על ידי עבור לקוח. הקניין הרוחני שייך ללקוח, ולכן התיאור כללי וניתן להרחיב עליו בכפוף לאישורו. הפלטפורמה מאפשרת לאנשים שאינם מפתחים לבנות, לבדוק ולהפעיל סוכני AI ללא קוד. הסוכנים מתכננים לפני מענה, מפעילים כללים עסקיים קבועים כשאפשר להגדיר כלל, ואינם מסתמכים על Prompt יחיד גדול.</td></tr><tr><td data-l="שדה">טכנולוגיות וכלים</td><td data-l="פירוט">Node.js 22, Express 5, React 19, TypeScript, PostgreSQL על Google Cloud SQL עם Drizzle ORM, Pinecone, Google Cloud Run, Cloud Scheduler, Firebase Hosting ו-SSE streaming. העבודה נעשית עם Claude Code, מסמכי Markdown ב-Repository ובדיקות Feature.</td></tr><tr><td data-l="שדה">ממשקים</td><td data-l="פירוט">Anthropic, OpenAI ו-Google Gemini דרך שכבת Routing אחת. Web chat, Widget להטמעה, WhatsApp דרך Meta Cloud API ו-Twilio, ו-Knowledge Bases.</td></tr><tr><td data-l="שדה">משך הקמה</td><td data-l="פירוט">מוקאפ ומסמך ארכיטקטורה ראשונים ב-5.4.2026. גרסה עובדת ראשונה ב-21.5.2026, כ-7 שבועות לאחר מכן, על גבי Runtime קיים. יכולות נוספות נוספו באופן מדורג מיוני עד ספטמבר 2026.</td></tr><tr><td data-l="שדה">מתודולוגיה</td><td data-l="פירוט">SDD עם מסמך תכנון מפורט ומסמכי משנה. לכל Feature יש Task Spec, החלטות מתועדות, Checklist מחייב לאחר Feature וסוללות בדיקה. כל Session קורא כללי פרויקט מתוך CLAUDE.md לפני תחילת עבודה.</td></tr><tr><td data-l="שדה">אתגרים ופתרונות</td><td data-l="פירוט">שליטה מול Prompt גדול אחד → פירוק לשלבים מבוקרים וכללים קבועים; עוזר AI עלול לפגוע בסוכן בעת עריכה → הצעות בלבד, Validation, Change Log, אישור אדם, גרסאות ו-Revert; שינוי עלול להגיע למשתמשים בטעות → Publish נפרד; תיעוד וידע העוזר עלולים להתיישן → Checklist מחייב לאחר כל Feature.</td></tr><tr><td data-l="שדה">זמן באוויר</td><td data-l="פירוט">ב-Production מאז מאי 2026, כ-5 חודשים, ובפיתוח רציף.</td></tr><tr><td data-l="שדה">מסקנות ולקחים</td><td data-l="פירוט">יש להעדיף כלל קבוע כאשר אפשר לנסח את הכלל העסקי. Spec בכל רמת פירוט מאפשר לעוזר AI לבצע שינוי נכון. שינויים נמדדים גם על שיחות אמיתיות ולא רק על תרחישים שהומצאו מראש.</td></tr><tr><td data-l="שדה">חדש או שיפור</td><td data-l="פירוט">דור שני של מערכת קיימת. נבנה ממשק חדש לבניית סוכנים על גבי Runtime קיים.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">ארכיטקט ומוביל מוצר, מפתח Hands-on ומוביל צוות של שלושה (אני ושני מפתחים).</td></tr></tbody></table></div>
+<figure class="fig"><figcaption>שלבי הפרויקט, 2026</figcaption>
+  <div class="gantt"><div class="g-l g-h"></div><div class="g-t g-h" style="grid-template-columns:repeat(7,1fr)"><div class="g-m">אפר׳</div><div class="g-m">מאי</div><div class="g-m">יוני</div><div class="g-m">יולי</div><div class="g-m">אוג׳</div><div class="g-m">ספט׳</div><div class="g-m">אוק׳</div></div>
+    <div class="g-l">מוקאפ, אפיון וארכיטקטורה</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:1/3">5.4</div>
+    </div>
+    <div class="g-l">גרסה עובדת ראשונה</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b ms" style="grid-column:2/3">21.5</div>
+    </div>
+    <div class="g-l">עוזר AI לעריכת סוכנים</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:2/4">25.5</div>
+    </div>
+    <div class="g-l">מאגרי ידע, דור שני</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:3/4">19.6</div>
+    </div>
+    <div class="g-l">גרסאות ופרסום מבוקר</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:3/5">15.7</div>
+    </div>
+    <div class="g-l">תצוגה חיה של מצב הסוכן</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:4/6"></div>
+    </div>
+    <div class="g-l">סוכנים יזומים</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:5/7">1.9</div>
+    </div>
+    <div class="g-l">חיבור כלי AI חיצוניים</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b" style="grid-column:6/7">17.9</div>
+    </div>
+    <div class="g-l">פיתוח רציף, בדיקות ושחרורים</div>
+    <div class="g-t" style="grid-template-columns:repeat(7,1fr)">
+      <div class="g-b soft" style="grid-column:2/8"></div>
+    </div></div></figure>
+<figure class="fig"><figcaption>ארכיטקטורה (ברמה כללית)</figcaption><div class="arch">
+    <div class="a-row"><div class="a-name">משתמשים וערוצים</div><div class="a-boxes"><span>בוני סוכנים</span><span>Web chat</span><span>Widget להטמעה</span><span>WhatsApp</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">ממשק הבנייה (React 19, TypeScript)</div><div class="a-boxes"><span>בנייה ויזואלית</span><span>עוזר AI</span><span>תצוגה חיה</span><span>גרסאות ופרסום</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">שרת (Node.js, Express, Cloud Run)</div><div class="a-boxes"><span>API לבנייה</span><span>מנוע ההרצה</span><span>תכנון לפני מענה</span><span>כללים קבועים</span><span>זיכרון</span><span>תזמון</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">נתונים</div><div class="a-boxes"><span>PostgreSQL (Cloud SQL)</span><span>Pinecone</span><span>Cloud Storage</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">מודלים (שכבת ניתוב אחת)</div><div class="a-boxes"><span>Anthropic Claude</span><span>OpenAI</span><span>Google Gemini</span></div></div>
+    </div></figure>
+<h3>איך עבדנו עם הסוכנים בפרויקט 1</h3>
+<ul class="bul"><li>כל Feature התחיל ב-Spec כתוב עם Acceptance Criteria.</li><li>Claude Code מימש משימה מתוך ה-Spec על Branch ייעודי.</li><li>סוללות הבדיקה הופעלו לפני סימון משימה כהושלמה.</li><li>אדם ביצע Review ואישר את ה-Merge.</li><li>Release בוצע כצעד נפרד לאחר אישור מפורש.</li></ul>
+<h3>פרויקט 2: Aspect, סוכני נתונים ו-BI לרשתות קמעונאות</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">מערכת AI Agents שעונה על שאלות עסקיות בעברית ובאנגלית על נתוני מכירות, מלאי ורכש של רשתות קמעונאות בישראל. המערכת כוללת Dashboard מסוג BI, חקירות יזומות ומודולים ייעודיים כגון השלמת מלאי חכמה. בנתון הלקוח הראשון קיימות 30 טבלאות וכ-63.3 מיליון שורות.</td></tr><tr><td data-l="שדה">טכנולוגיות וכלים</td><td data-l="פירוט">Node.js 22, Express 5, React 19, TypeScript 5.9, Vite, PostgreSQL על Google Cloud SQL, Pinecone, Cloud Run, Cloud Storage, Cloud Scheduler, Firebase Hosting ו-Docker. קיימים כ-124,000 שורות Server Code וכ-150,000 שורות TypeScript בצד הלקוח.</td></tr><tr><td data-l="שדה">ממשקים</td><td data-l="פירוט">Anthropic, OpenAI ו-Gemini. טעינת נתונים מ-Google Drive מקובצי CSV ו-QlikView QVD, WhatsApp ו-Google Sign-In. טעינת מידע נעשית ל-Shadow Schema ולאחר בדיקה ב-Atomic Swap.</td></tr><tr><td data-l="שדה">משך הקמה</td><td data-l="פירוט">Commit ראשון ב-31.12.2025. עלייה מתועדת ל-Production ב-20.2.2026, לאחר כ-7 שבועות. יכולות BI, Intelligence, Verification ומודולים נוספו בהמשך השנה.</td></tr><tr><td data-l="שדה">מתודולוגיה</td><td data-l="פירוט">SDD עם Claude Code. לכל משימה יש Spec, Acceptance Criteria, תוכנית בשלבים עם Gates, יומן ביצוע ותיקיית Verification. העבודה מנוהלת על Branches, עם Review אנושי לפני Merge ו-Release ידני.</td></tr><tr><td data-l="שדה">אתגרים ופתרונות</td><td data-l="פירוט">מספרים שגויים הם הסיכון המרכזי → הקוד מבצע את החשבון והמודל מבצע שיפוט, ללא SQL חופשי ב-Dashboard; שאלות שאין עליהן נתון → Pre-check מבוסס Manifest שמסרב בתוך כ-1 ms; אי-דטרמיניזם → יצירת SQL ב-Temperature 0; עברית ו-RTL → Suites ייעודיים ותיקוני אותיות סופיות; ביצועים → Timeout של 15 שניות, Materialized Views ואופטימיזציית שאילתות; בידוד לקוחות → Schema נפרד לכל לקוח; עלות → Model registry, לוג שימוש ומגבלות הוצאה.</td></tr><tr><td data-l="שדה">זמן באוויר</td><td data-l="פירוט">ב-Production מאז פברואר 2026, כ-7.5 חודשים, ובפיתוח רציף. בשני ה-Repositories קיימים כ-1,790 Commits בכ-9 חודשים.</td></tr><tr><td data-l="שדה">מסקנות ולקחים</td><td data-l="פירוט">סט של 65 תרחישים מומצאים עבר במלואו, אך Session אמיתי של 18 שאלות חשף שתי תשובות שגויות. מאז מבוצע Replay של שיחות אמיתיות. לאחר תקלה שבה דגל Deploy השמיט Secrets, כל Deploy מאמת את ה-Live Revision. כל שינוי דיוק נמדד לפני ואחרי.</td></tr><tr><td data-l="שדה">חדש או שיפור</td><td data-l="פירוט">פיתוח חדש.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">CTO וארכיטקט, מפתח Hands-on, מוביל צוות של שלושה (אני ושני מפתחים) ואחראי על Releases.</td></tr></tbody></table></div>
+<figure class="fig"><figcaption>שלבי הפרויקט, דצמבר 2025 עד אוקטובר 2026</figcaption>
+  <div class="gantt"><div class="g-l g-h"></div><div class="g-t g-h" style="grid-template-columns:repeat(11,1fr)"><div class="g-m">דצמ׳</div><div class="g-m">ינו׳</div><div class="g-m">פבר׳</div><div class="g-m">מרץ</div><div class="g-m">אפר׳</div><div class="g-m">מאי</div><div class="g-m">יוני</div><div class="g-m">יולי</div><div class="g-m">אוג׳</div><div class="g-m">ספט׳</div><div class="g-m">אוק׳</div></div>
+    <div class="g-l">תשתית: שרת, DB, Cloud Run</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:1/3">31.12</div>
+    </div>
+    <div class="g-l">לקוח React ותשתית סוכנים</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:2/4">19.1</div>
+    </div>
+    <div class="g-l">ערוץ WhatsApp</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:3/4">2.2</div>
+    </div>
+    <div class="g-l">נתוני לקוח ראשון</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:3/4">17.2</div>
+    </div>
+    <div class="g-l">עלייה לייצור</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b ms" style="grid-column:3/4">20.2</div>
+    </div>
+    <div class="g-l">דיוק נתונים, ביצועים, ניטור עלות</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:4/7">12.3</div>
+    </div>
+    <div class="g-l">Aspect BI</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:7/9">7.7</div>
+    </div>
+    <div class="g-l">Aspect Intelligence</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:8/9">19.7</div>
+    </div>
+    <div class="g-l">מערך Verification</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:9/10">10.8</div>
+    </div>
+    <div class="g-l">מודולים והשלמת מלאי</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b" style="grid-column:9/11">27.8</div>
+    </div>
+    <div class="g-l">בייצור: פיתוח רציף ושחרורים</div>
+    <div class="g-t" style="grid-template-columns:repeat(11,1fr)">
+      <div class="g-b soft" style="grid-column:3/12"></div>
+    </div></div></figure>
+<figure class="fig"><figcaption>ארכיטקטורה</figcaption><div class="arch">
+    <div class="a-row"><div class="a-name">משתמשים וערוצים</div><div class="a-boxes"><span>React SPA: צ׳אט, דשבורדים</span><span>Widget להטמעה</span><span>WhatsApp (Meta, Twilio)</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">שרת: Node.js 22, Express 5 על Cloud Run</div><div class="a-boxes"><span>סוכנים (Crews)</span><span>שאילתות נתונים</span><span>בדיקת יכולת מקדימה</span><span>מהדר BI</span><span>חקירות יזומות</span><span>מודולים</span><span>ניטור שימוש ועלות</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">נתונים</div><div class="a-boxes"><span>PostgreSQL פלטפורמה</span><span>PostgreSQL: Schema לכל לקוח</span><span>Pinecone</span><span>Cloud Storage</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">טעינת נתונים</div><div class="a-boxes"><span>Google Drive</span><span>CSV / QVD</span><span>Shadow schema → Atomic swap</span><span>Cloud Scheduler</span></div></div>
+    <div class="a-arrow">↓</div>
+    <div class="a-row"><div class="a-name">מודלים (שכבת ניתוב אחת)</div><div class="a-boxes"><span>Anthropic Claude</span><span>OpenAI</span><span>Google Gemini</span></div></div>
+    </div></figure>
+<h3>בדיקות ואוטומציה בפרויקט 2</h3>
+<ul class="bul"><li>נכתבו 41 סוללות בדיקה pass/fail, חלקן בעזרת Claude Code מתוך Acceptance Criteria ומפגשים אמיתיים.</li><li>הבדיקות כוללות Unit Batteries, בדיקת Schema Contract, בדיקות נתוני אמת, Regression לצ'אט בעברית ו-Replay של Sessions אמיתיים.</li><li>בבדיקות נתונים, המערכת מריצה מחדש את ה-SQL ומאמתת את המספרים שהוצגו למשתמש.</li><li>תוצאות הבדיקות נכתבות לתיקיית Verification, עם README לכל נושא בדיקה.</li><li>בדיקות ידניות כוללות קריאת שיחות אמיתיות, Checklists לפי Feature ובדיקת חריגות מה-Spec.</li><li>Release מתבצע רק לאחר Review אנושי ואישור מפורש.</li></ul>
+<h3>פרויקטים נוספים</h3>
+<h3>Wholos, אפליקציית אימונים ותזונה עם מאמן AI</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">אפליקציית PWA בעברית וב-RTL לניהול אימונים ותזונה, עם מאמן AI ותצוגה למאמן אנושי. כל הצעה של ה-AI מוצגת ככרטיס שהמשתמש מאשר.</td></tr><tr><td data-l="שדה">טכנולוגיות</td><td data-l="פירוט">React 18, TypeScript, Vite, Tailwind, Firebase Auth, Firestore, Node.js, Express, Cloud Run, Claude API עם Streaming ו-Docker.</td></tr><tr><td data-l="שדה">משך הקמה וזמן באוויר</td><td data-l="פירוט">התחיל באפריל 2026 כאפליקציה אישית והושק לציבור באוגוסט 2026. באוויר כ-5.5 חודשים, מתוכם כ-6 שבועות בהשקה ציבורית.</td></tr><tr><td data-l="שדה">מתודולוגיה</td><td data-l="פירוט">תוכנית מוצר של 655 שורות, Roadmap עם Definition of Done לכל שלב, Decision Log, Specs לפני קוד, Audit עם Acceptance Criterion לכל ממצא ו-Checklist של 13 סעיפים.</td></tr><tr><td data-l="שדה">אתגר ולקח</td><td data-l="פירוט">האפליקציה בעברית רונדרה בתוך מסמך LTR, עם 98 תיקונים מקומיים → התיקון בוצע בשורש מבנה המסמך. יש לאמת את השירות החי אחרי כל Deploy.</td></tr><tr><td data-l="שדה">חדש או שיפור</td><td data-l="פירוט">פיתוח חדש שהתפתח מכלי אישי למוצר מרובה משתמשים.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">מפתח יחיד.</td></tr></tbody></table></div>
+<h3>Trip Planner, מדריך טיול כאפליקציה מותקנת</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">אפליקציה מותקנת שבה קובץ JSON אחד לכל טיול מניע את המערכת. צ'אט AI קורא את התוכנית, מחפש ברשת ומציע שינויים שמוחלים רק לאחר אישור המשתמש.</td></tr><tr><td data-l="שדה">טכנולוגיות</td><td data-l="פירוט">React 18, TypeScript, Vite, Vitest, Express ב-TypeScript, Cloud Run, Google Cloud Storage, Claude API עם Web Search ו-Firebase Hosting.</td></tr><tr><td data-l="שדה">משך הקמה וזמן באוויר</td><td data-l="פירוט">נבנה בכשבוע מתוך Spec בספטמבר 2026. באוויר כ-5 שבועות.</td></tr><tr><td data-l="שדה">מתודולוגיה</td><td data-l="פירוט">Spec של 576 שורות שנכתב לפני הפיתוח, סדר עבודה בן 8 שלבים, Definition of Done עם 7 קריטריונים, רשימת Regression של 12 תקלות ידועות ו-119 בדיקות אוטומטיות ב-12 קבצים.</td></tr><tr><td data-l="שדה">אתגר ולקח</td><td data-l="פירוט">עדכונים לא הגיעו לטלפונים מותקנים בגלל Cache → מעבר לטעינה מסוג Network-first. דוגמה מתוך Prompt זלגה לתשובות → תיקון Prompt Design.</td></tr><tr><td data-l="שדה">חדש או שיפור</td><td data-l="פירוט">כתיבה מחדש של אפליקציה קיימת בקובץ יחיד למוצר כללי, בדוק ומבוסס מפרט.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">מפתח יחיד.</td></tr></tbody></table></div>
+<h3>Doing, לוח משימות לילדים עם חבר AI קולי</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">לוח משימות יומי לילדים עם נקודות, תגמולים, תצוגת הורים וחבר AI קולי. כולל מודול למרכז טיפולי.</td></tr><tr><td data-l="שדה">טכנולוגיות</td><td data-l="פירוט">React, Firebase Hosting, Firestore, Express ב-Docker ו-OpenAI.</td></tr><tr><td data-l="שדה">משך הקמה וזמן באוויר</td><td data-l="פירוט">ינואר עד פברואר 2026, כ-5 שבועות.</td></tr><tr><td data-l="שדה">חדש או שיפור</td><td data-l="פירוט">פיתוח חדש.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">מפתח יחיד.</td></tr></tbody></table></div>
+<h3>Fleet Command, מרכז שליטה ל-Sessions מקבילים של Claude Code</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">כלי CLI ודשבורד חי לניהול Sessions מקבילים של Claude Code. כל Session מדווח על משימה, סטטוס והעברת עבודה, לפי פרוטוקול כתוב.</td></tr><tr><td data-l="שדה">טכנולוגיות</td><td data-l="פירוט">Node.js CLI, Firestore, React ו-Vite.</td></tr><tr><td data-l="שדה">משך הקמה וזמן באוויר</td><td data-l="פירוט">נבנה ביולי 2026, בכשבועיים. נמצא בשימוש יומיומי מאז.</td></tr><tr><td data-l="שדה">מתודולוגיה</td><td data-l="פירוט">פרוטוקול כתוב לחלוקת בעלות, דיווח סטטוס והעברת משימות בין Sessions.</td></tr><tr><td data-l="שדה">אתגר ולקח</td><td data-l="פירוט">עבודה מקבילית דורשת בעלות ברורה ותיעוד מצב משותף לכל Session.</td></tr><tr><td data-l="שדה">חדש או שיפור</td><td data-l="פירוט">פיתוח חדש.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">מפתח יחיד.</td></tr></tbody></table></div>
+<h3>מקלוד לפרוד, הרצאה ואפליקציית מצגת</h3>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>שדה</th><th>פירוט</th></tr></thead><tbody><tr><td data-l="שדה">תיאור</td><td data-l="פירוט">הרצאה של 2.5 שעות למפתחים ולצוותי פיתוח על עבודה עם Claude Code, מארכיטקטורה ו-Spec ועד מערכת רצה בענן. עבור ההרצאה נבנתה אפליקציית מצגת.</td></tr><tr><td data-l="שדה">טכנולוגיות</td><td data-l="פירוט">React, TypeScript, Vite ו-Firebase.</td></tr><tr><td data-l="שדה">משך הקמה וזמן באוויר</td><td data-l="פירוט">נבנה בספטמבר 2026.</td></tr><tr><td data-l="שדה">מתודולוגיה</td><td data-l="פירוט">הדגמה חיה של עבודה מ-Spec, דרך Git ופיתוח, ועד Deployment בענן.</td></tr><tr><td data-l="שדה">התפקיד שלי</td><td data-l="פירוט">מחבר ההרצאה ומפתח אפליקציית המצגת.</td></tr></tbody></table></div>
+<h2 id="s4">4. בנק שעות לפי תפוקות</h2>
+<p>הכנתי טבלה אינטראקטיבית לחישוב בנק השעות לפי התפוקות והכמויות. אפשר לערוך כל תא לבן, וכל החישובים מתעדכנים אוטומטית.</p>
+
+<div class="calc" id="hoursCalc">
+  <div class="calc-bar">
+    <label>שעות ליום עבודה <input type="number" min="1" step="0.5" id="hpd" value="9"></label>
+    <div class="calc-actions">
+      <button type="button" class="btn" id="calcCopy">העתקה לאקסל</button>
+      <a class="btn" href="Telos-Hours-Bank.xlsx" download>הורדת Excel</a>
+      <button type="button" class="btn" id="calcReset">איפוס</button>
+    </div>
+  </div>
+  <div class="calc-wrap">
+    <table class="calc-t">
+      <thead><tr>
+        <th>המשימה</th><th>כמות בסיס</th><th>כמות נוספת</th><th>סה"כ</th><th>מחיר יחידה</th><th>מחיר כולל</th>
+        <th>שעות כולל תמיכה ובדיקות</th><th>ימים ליחידה (SLA)</th><th>ימים כולל (כמות × ימים)</th><th>שעות ליחידה</th>
+      </tr></thead>
+      <tbody>
+      <tr data-i="0">
+        <td class="c-task">היערכות והנחיות לתשתית עבודה מבוססת Agentic AI</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="0" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="1" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="10" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="1">
+        <td class="c-task">תכנון ויישום עסקי ופונקציונאלי</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="3" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="3" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="7" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="2">
+        <td class="c-task">תכנון ויישום טכנולוגי ועיצוב</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="5" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="5" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="7" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="3">
+        <td class="c-task">פיתוח תהליך חדש פשוט</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="10" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="10" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="5" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="4">
+        <td class="c-task">פיתוח תהליך חדש בינוני</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="2" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="5" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="10" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="5">
+        <td class="c-task">פיתוח תהליך חדש מורכב</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="2" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="3" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="19" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="6">
+        <td class="c-task">שו&quot;ש תשתיתי פשוט</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="5" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="6" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="2" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="7">
+        <td class="c-task">שו&quot;ש תשתיתי בינוני</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="3" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="6" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="5" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="8">
+        <td class="c-task">שו&quot;ש תשתיתי מורכב</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="0" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="4" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="8" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="9">
+        <td class="c-task">שו&quot;ש אפליקטיבי פשוט</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="22" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="24" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="1" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="10">
+        <td class="c-task">שו&quot;ש אפליקטיבי בינוני</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="7" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="6" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="2" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="11">
+        <td class="c-task">שו&quot;ש אפליקטיבי מורכב</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="5" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="11" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="3" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="12">
+        <td class="c-task">הקמת/שדרוג מערכת בענן כולל CI/CD וממשקים</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="0" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="2" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="16" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr>
+      <tr data-i="13">
+        <td class="c-task">העברת ידע והכשרת צוות הפרויקט</td>
+        <td><input type="number" min="0" step="1" data-f="base" value="0" aria-label="כמות בסיס"></td>
+        <td><input type="number" min="0" step="1" data-f="add" value="1" aria-label="כמות נוספת"></td>
+        <td class="c-out" data-o="qty"></td>
+        <td><input type="number" min="0" step="any" data-f="price" value="" placeholder="₪" aria-label="מחיר יחידה"></td>
+        <td class="c-out" data-o="ptotal"></td>
+        <td class="c-out c-key" data-o="hours"></td>
+        <td><input type="number" min="0" step="any" data-f="days" value="3" aria-label="ימים ליחידה"></td>
+        <td class="c-out" data-o="dtotal"></td>
+        <td class="c-out" data-o="hunit"></td>
+      </tr></tbody>
+      <tfoot><tr>
+        <td>סה"כ</td><td data-t="base"></td><td data-t="add"></td><td data-t="qty"></td><td></td><td data-t="ptotal"></td>
+        <td data-t="hours" class="c-key"></td><td></td><td data-t="days"></td><td></td>
+      </tr></tfoot>
+    </table>
+  </div>
+  <p class="calc-sum" id="calcSum"></p>
+  <p class="calc-hint">התאים הלבנים ניתנים לעריכה. השינויים נשמרים בדפדפן שלך בלבד.</p>
+</div>
+<script>
+(function(){
+  var root=document.getElementById('hoursCalc'), K='telos-hours-v1', DEF=[[0,1,10],[3,3,7],[5,5,7],[10,10,5],[2,5,10],[2,3,19],[5,6,2],[3,6,5],[0,4,8],[22,24,1],[7,6,2],[5,11,3],[0,2,16],[0,1,3]], HPD=9;
+  var nf=new Intl.NumberFormat('he-IL',{maximumFractionDigits:1});
+  var money=new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0});
+  var n=function(v){v=parseFloat(v);return isFinite(v)?v:0};
+  var trs=[].slice.call(root.querySelectorAll('tbody tr')), hpd=document.getElementById('hpd');
+  function save(){try{localStorage.setItem(K,JSON.stringify({hpd:hpd.value,rows:trs.map(function(tr){var o={};[].forEach.call(tr.querySelectorAll('input'),function(x){o[x.dataset.f]=x.value});return o})}))}catch(e){}}
+  function load(){try{var s=JSON.parse(localStorage.getItem(K)||'null');if(!s)return;hpd.value=s.hpd;s.rows.forEach(function(o,i){if(!trs[i])return;[].forEach.call(trs[i].querySelectorAll('input'),function(x){if(o[x.dataset.f]!==undefined)x.value=o[x.dataset.f]})})}catch(e){}}
+  function calc(){
+    var h=n(hpd.value), T={base:0,add:0,qty:0,ptotal:0,hours:0,days:0}, anyPrice=false;
+    trs.forEach(function(tr){
+      var g=function(f){return n(tr.querySelector('[data-f="'+f+'"]').value)}, p=tr.querySelector('[data-f="price"]').value!=='';
+      var base=g('base'),add=g('add'),qty=base+add,days=g('days'),price=g('price'),hu=days*h,hrs=qty*hu;
+      var set=function(o,v){tr.querySelector('[data-o="'+o+'"]').textContent=v};
+      set('qty',nf.format(qty));set('dtotal',nf.format(qty*days));set('hunit',nf.format(hu));set('hours',nf.format(hrs));set('ptotal',p?money.format(qty*price):'');
+      T.base+=base;T.add+=add;T.qty+=qty;T.hours+=hrs;T.days+=qty*days;if(p){anyPrice=true;T.ptotal+=qty*price}
+    });
+    var st=function(k,v){root.querySelector('[data-t="'+k+'"]').textContent=v};
+    st('base',nf.format(T.base));st('add',nf.format(T.add));st('qty',nf.format(T.qty));st('hours',nf.format(T.hours));
+    st('days',nf.format(T.days)+' ימים');st('ptotal',anyPrice?money.format(T.ptotal):'');
+    document.getElementById('calcSum').textContent='סה"כ '+nf.format(T.days)+' ימי עבודה, '+nf.format(T.hours)+' שעות'+(anyPrice?', '+money.format(T.ptotal):'')+'.';
+  }
+  root.addEventListener('input',function(){calc();save()});
+  document.getElementById('calcReset').addEventListener('click',function(){
+    hpd.value=HPD;trs.forEach(function(tr,i){tr.querySelector('[data-f="base"]').value=DEF[i][0];tr.querySelector('[data-f="add"]').value=DEF[i][1];tr.querySelector('[data-f="days"]').value=DEF[i][2];tr.querySelector('[data-f="price"]').value=''});
+    try{localStorage.removeItem(K)}catch(e){}calc();
+  });
+  document.getElementById('calcCopy').addEventListener('click',function(){
+    var head=['המשימה','כמות בסיס','כמות נוספת','סה"כ','מחיר יחידה','מחיר כולל','שעות כולל תמיכה ובדיקות'];
+    var lines=[head.join('\t')].concat(trs.map(function(tr){
+      var v=function(f){return tr.querySelector('[data-f="'+f+'"]').value}, o=function(k){return tr.querySelector('[data-o="'+k+'"]').textContent.replace(/[^\d.]/g,'')};
+      return [tr.querySelector('.c-task').textContent,v('base'),v('add'),o('qty'),v('price'),o('ptotal'),o('hours')].join('\t');
+    }));
+    var b=this, done=function(){b.textContent='הועתק';setTimeout(function(){b.textContent='העתקה לאקסל'},1600)};
+    if(navigator.clipboard)navigator.clipboard.writeText(lines.join('\n')).then(done,function(){});
+  });
+  load();calc();
+})();
+</script>
+<ul class="bul"><li>שעות ליחידה מחושבות כמספר הימים ליחידה כפול שעות עבודה ביום, והימים נלקחו מטבלת ה־SLA במכרז.</li><li>ה־SLA מגדיר זמן אספקה של צוות סטנדרטי, ולכן הוא בסיס שמרני להערכת שעות.</li><li>הטבלה אינה כוללת Discovery למערכת קיימת (לימוד המערכת הקיימת), שלדעתי רלוונטי כי הספק הזוכה נדרש להכיר את המערכת: 7 ימים למערכת קטנה ו־13 ימים לגדולה.</li><li>תחזוקה שנתית מתומחרת במכרז בשיעור של 12% ולא בשעות, ולכן אינה כלולה בטבלה.</li></ul>
+  <div class="sign">
+    <div><b>שלומי זוין</b>Boostart · CTO as a Service</div>
+    <div><a href="mailto:shlomi@boostart.io">shlomi@boostart.io</a> · <a href="tel:+972545567213">054-5567213</a></div>
+  </div>
+</main>
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('themeBtn'),K='boostart-gov-theme';
+  function set(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'☀':'☾';try{localStorage.setItem(K,t)}catch(e){}}
+  var s=null;try{s=localStorage.getItem(K)}catch(e){}
+  set(s||'light');
+  btn.addEventListener('click',function(){set(root.getAttribute('data-theme')==='dark'?'light':'dark')});
+})();
+</script>
+</body>
+</html>

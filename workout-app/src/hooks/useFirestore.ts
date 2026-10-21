@@ -1,8 +1,11 @@
 import { useCallback } from 'react';
 import {
-  collection, doc, setDoc, updateDoc, getDoc, getDocs, deleteDoc,
-  arrayUnion, Timestamp, onSnapshot, query, orderBy,
+  collection, doc,
+  arrayUnion, Timestamp, onSnapshot, query, orderBy, where,
 } from 'firebase/firestore';
+// Time-budgeted versions — a weak connection falls back to the device cache
+// instead of freezing the screen. See config/fastFirestore.ts.
+import { setDoc, updateDoc, getDoc, getDocs, deleteDoc } from '../config/fastFirestore';
 import { db, auth } from '../config/firebase';
 import { isAdminEmail } from '../config/admins';
 import type { Session, SetLog, ExerciseStats, Exercise, FreeSession, FreeSet, PlannedExercise, FreeSessionStatus, AerobicEntry, SupersetPair, UserProfile, ChatThreadDoc, ChatMessageDoc, ChatBucket, PersonalMeal, MealLog, MealType, MealIngredient, MealMacros, MealFlags, DietProfile, AppReport, ReportComment } from '../types';
@@ -11,6 +14,24 @@ import { DEFAULT_WEEKLY_TARGETS } from '../data/muscles';
 import { exercisePhotoKey } from './usePhotos';
 import { exerciseIdOf, findPersonalByName, type PersonalExercise, type RenameSuggestion } from '../data/exercisesDB';
 import { PROGRAM } from '../data/program';
+
+// ─── In-flight request coalescing ────────────────────────────────
+// Several components mount at the same moment and each asks for the same
+// big list (all sessions, the exercise catalog, the photo map). Without
+// this they fire 3-6 identical multi-hundred-KB reads in parallel on every
+// screen change, which is what makes a plain tap feel like it hangs.
+//
+// Deliberately NOT a cache with a TTL: an entry lives only while the request
+// is actually in flight, so anyone who asks AFTER a write still gets a fresh
+// read. Zero staleness risk, and the duplicate storm disappears.
+const inflightReads = new Map<string, Promise<unknown>>();
+function coalesce<T>(key: string, run: () => Promise<T>): Promise<T> {
+  const existing = inflightReads.get(key) as Promise<T> | undefined;
+  if (existing) return existing;
+  const p = run().finally(() => { inflightReads.delete(key); });
+  inflightReads.set(key, p);
+  return p;
+}
 
 function sessionsCol(uid: string) {
   return collection(db, 'users', uid, 'sessions');
@@ -429,10 +450,18 @@ export function useFirestore(uid: string | null) {
   //     superseded, and resurfacing it would be wrong.
   const getExerciseDifficulty = useCallback(async (exerciseId: string, currentSessionId?: string): Promise<{ difficulty?: string; nextReps?: string; sessionId?: string; ackedAt?: number; targetWeight?: number; targetUnit?: string } | null> => {
     if (!uid) return null;
-    const snap = await getDocs(collection(db, 'users', uid, 'exerciseDifficulty'));
+    // Ask only for THIS exercise's marks. This used to download the whole
+    // exerciseDifficulty collection and filter in JS — and since one
+    // ExerciseInline mounts per exercise card, opening a workout did that
+    // full scan once per card. The collection grows by a doc per exercise
+    // per workout, so it got slower every single session. `exerciseId` is a
+    // single field, so Firestore indexes it automatically — no index deploy.
+    const snap = await getDocs(query(
+      collection(db, 'users', uid, 'exerciseDifficulty'),
+      where('exerciseId', '==', exerciseId),
+    ));
     const ratings = snap.docs
       .map(d => d.data())
-      .filter(d => d.exerciseId === exerciseId)
       .filter(d => !currentSessionId || d.sessionId !== currentSessionId)
       .filter(d => !!d.difficulty || !!d.nextReps)
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -639,12 +668,17 @@ export function useFirestore(uid: string | null) {
     return toFreeSession(snap.id, snap.data());
   }, [uid]);
 
+  // Reads every session WITH its full sets array, and a dozen call sites hit
+  // it — App on every route change, Home, Food tabs, Body, Exercises, the
+  // session page. Coalesced so one screen change fires one read, not six.
   const getFreeSessions = useCallback(async (): Promise<FreeSession[]> => {
     if (!uid) return [];
-    const snap = await getDocs(freeSessionsCol(uid));
-    return snap.docs
-      .map(d => toFreeSession(d.id, d.data()))
-      .sort((a, b) => b.date - a.date);
+    return coalesce(`freeSessions:${uid}`, async () => {
+      const snap = await getDocs(freeSessionsCol(uid));
+      return snap.docs
+        .map(d => toFreeSession(d.id, d.data()))
+        .sort((a, b) => b.date - a.date);
+    });
   }, [uid]);
 
   const logFreeSet = useCallback(async (sessionId: string, set: FreeSet) => {
@@ -1066,8 +1100,15 @@ export function useFirestore(uid: string | null) {
   // Reader merges (global ∪ userCustom) → applies overrides → filters hidden.
   // Writer routes to the right layer based on the uid's admin status and
   // whether the target id already exists in global.
+  // Four whole collections per call (the shared catalog is 115 docs on its
+  // own). Coalesced because the session page, the set modal and the AI panel
+  // all ask for it as they mount.
   const listPersonalExercises = useCallback(async (): Promise<PersonalExercise[]> => {
     if (!uid) return [];
+    return coalesce(`personalExercises:${uid}`, () => loadPersonalExercises(uid));
+  }, [uid]);
+
+  async function loadPersonalExercises(uid: string): Promise<PersonalExercise[]> {
     const [globalSnap, customSnap, ovSnap, hiddenSnap] = await Promise.all([
       getDocs(globalExercisesCol()),
       getDocs(userPersonalExercisesCol(uid)),
@@ -1097,7 +1138,7 @@ export function useFirestore(uid: string | null) {
       out.push(custom);
     }
     return out;
-  }, [uid]);
+  }
 
   const upsertPersonalExercise = useCallback(async (ex: PersonalExercise) => {
     if (!uid) return;
@@ -1181,6 +1222,40 @@ export function useFirestore(uid: string | null) {
     isHoldTime?: boolean,
   ): Promise<PersonalExercise | null> => {
     if (!uid || !name.trim()) return null;
+    // FAST PATH — this runs on every single set save, and it used to pull
+    // four entire collections just to answer "does this exercise exist?".
+    // The id is a deterministic slug of the name, so look the doc up
+    // directly: four tiny reads instead of four collection downloads.
+    const directId = exerciseIdOf(name);
+    if (directId) {
+      const [gSnap, pSnap, ovSnap, hidSnap] = await Promise.all([
+        getDoc(doc(globalExercisesCol(), directId)),
+        getDoc(doc(userPersonalExercisesCol(uid), directId)),
+        getDoc(doc(userExerciseOverridesCol(uid), directId)),
+        getDoc(doc(userHiddenPersonalExercisesCol(uid), directId)),
+      ]);
+      // A hidden entry must fall through to the slow path so the old
+      // "hidden → recreate as personal" behaviour is preserved exactly.
+      if (!hidSnap.exists()) {
+        const base = pSnap.exists() ? (pSnap.data() as PersonalExercise)
+          : gSnap.exists() ? (gSnap.data() as PersonalExercise)
+          : null;
+        if (base) {
+          // Personal entries stand alone; overrides only layer onto global ones.
+          const found = (!pSnap.exists() && ovSnap.exists())
+            ? { ...base, ...(ovSnap.data() as Partial<PersonalExercise>), id: directId } as PersonalExercise
+            : { ...base, id: directId } as PersonalExercise;
+          if (en && !found.en) {
+            const updated = { ...found, en: en.trim(), updatedAt: Date.now() };
+            await upsertPersonalExercise(updated);
+            return updated;
+          }
+          return found;
+        }
+      }
+    }
+    // SLOW PATH — only when the id didn't resolve: the name may be an alias
+    // or a near-match, which needs the full list to resolve.
     const list = await listPersonalExercises();
     const existing = findPersonalByName(list, name)
       || list.find(e => e.id === exerciseIdOf(name));
@@ -1543,8 +1618,14 @@ export function useFirestore(uid: string | null) {
   // Returns { key → base64 } for both the global defaults AND the user's per-user overrides.
   // User overrides always win over defaults (spread order matters).
   // Defaults are BEST EFFORT — if rules block us or the collection doesn't exist, keep going.
+  // Base64 image blobs — easily the heaviest read in the app. Coalesced: the
+  // session page and the set modal both want it, often at the same instant.
   const getAllExercisePhotos = useCallback(async (): Promise<Record<string, string>> => {
     if (!uid) return {};
+    return coalesce(`exercisePhotos:${uid}`, () => loadAllExercisePhotos(uid));
+  }, [uid]);
+
+  async function loadAllExercisePhotos(uid: string): Promise<Record<string, string>> {
     const out: Record<string, string> = {};
     try {
       const defSnap = await getDocs(collection(db, 'defaultExercisePhotos'));
@@ -1559,7 +1640,7 @@ export function useFirestore(uid: string | null) {
       if (data.base64 && data.key) out[data.key] = data.base64; // override wins
     }
     return out;
-  }, [uid]);
+  }
 
   const deleteExercisePhoto = useCallback(async (exerciseName: string) => {
     if (!uid) return;

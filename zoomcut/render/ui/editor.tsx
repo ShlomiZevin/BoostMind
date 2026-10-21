@@ -1809,7 +1809,8 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                         outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>{o.text}</div>
                   </div>))}
                 {/* the market panels last: over the text, as in the export (the panel is laid after the hook) */}
-                {ov.map((o: any, i) => o.style === 'sticker' && <StickerLayer key={'st' + i} o={o} ep={ep} clock={clock} />)}
+                {ov.map((o: any, i) => o.style === 'sticker' && (o.motion === 'video' ? <KeyedClip key={'st' + i} o={o} ep={ep} clock={clock} />
+                  : <StickerLayer key={'st' + i} o={o} ep={ep} clock={clock} />))}
                 {ov.some((o: any) => o.style === 'market') && <MarketCanvas ov={ov} clock={clock} />}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'market' && (() => {
                   // the panel itself is on the canvas (MarketCanvas); this box is what you click and drag
@@ -2357,6 +2358,52 @@ function FilmFx({ fx, clock, camRef }: { fx: any; clock: () => number; camRef: R
 
 // the ticker strip, positioned from the video's time exactly as the export's ffmpeg formula does - moved on every
 // screen frame straight from the video clock (the 4-a-second time updates made it jump)
+// a green-screen clip (money rain), live: the source video in step with the clock, its green keyed out on a half-size
+// canvas each frame (the export keys it the same way with ffmpeg: chromakey + despill, cover-cropped, a fade at the end)
+function KeyedClip({ o, ep, clock }: { o: any; ep: string; clock: () => number }) {
+  const vid = useRef<HTMLVideoElement>(null), cv = useRef<HTMLCanvasElement>(null);
+  const live = useRef(o); live.current = o;
+  useEffect(() => {
+    let raf = 0, lastT = -1;
+    const step = () => {
+      const v = vid.current, c = cv.current, cur = live.current, t = clock();
+      const on = cur.start != null && t >= cur.start && (cur.end == null || t <= cur.end);
+      if (v && c) {
+        c.style.opacity = on ? '1' : '0';
+        if (on) {
+          const want = (cur.from || 0) + (t - cur.start), moving = Math.abs(t - lastT) > 0.0005 && Math.abs(t - lastT) < 0.2;
+          if (Math.abs(v.currentTime - want) > (moving ? 0.2 : 0.03)) v.currentTime = want;
+          if (moving && v.paused) v.play().catch(() => {});
+          if (!moving && !v.paused) v.pause();
+          const ctx = c.getContext('2d', { willReadFrequently: true });
+          if (ctx && v.videoWidth) {
+            const W = c.width, H = c.height, sc = H / v.videoHeight, sw = W / sc;  // cover: full height, the middle of the width
+            ctx.clearRect(0, 0, W, H);
+            ctx.drawImage(v, (v.videoWidth - sw) / 2, 0, sw, v.videoHeight, 0, 0, W, H);
+            const img = ctx.getImageData(0, 0, W, H), d = img.data;
+            for (let k = 0; k < d.length; k += 4) {
+              const g = d[k + 1] - Math.max(d[k], d[k + 2]);  // how green
+              if (g > 40) d[k + 3] = Math.max(0, 255 - (g - 40) * 6);
+              if (g > 0) d[k + 1] = Math.max(d[k], d[k + 2]) + g * 0.4;  // despill
+            }
+            const left = cur.end != null ? cur.end - t : 99, f = Math.min(1, left / 0.4);
+            ctx.putImageData(img, 0, 0);
+            c.style.opacity = String(Math.max(0, f));
+          }
+        } else if (!v.paused) v.pause();
+      }
+      lastT = t;
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [clock]);
+  return <>
+    <video ref={vid} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.video)}`} muted playsInline preload="auto" style={{ display: 'none' }} />
+    <canvas ref={cv} width={540} height={960} style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, pointerEvents: 'none', opacity: 0 }} />
+  </>;
+}
+
 // a picture sticker, live: pops in on its moment / rains down - the export's own motion (render/ui/sticker_anim.js),
 // moved on every screen frame straight from the clock
 function StickerLayer({ o, ep, clock }: { o: any; ep: string; clock: () => number }) {
