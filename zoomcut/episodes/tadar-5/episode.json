@@ -8,7 +8,11 @@
   "plaque": [],
   "music": {
     "sound": "../_assets/tadar/music/2 - Dreamy harp.mp3",
-    "gain": 0.08
+    "gain": 0.08,
+    "lift": {
+      "db": 8,
+      "fade": 1.2
+    }
   },
   "grade": {
     "warm": 0.07,
@@ -36,7 +40,7 @@
     "color": "#ffffff",
     "stroke": 10
   },
-  "speed": 1.1,
+  "speed": 1.3,
   "voice": {
     "denoise": true,
     "lowcut": 85,
@@ -96,7 +100,7 @@
       "size": 40,
       "speed": 130,
       "start": 0,
-      "end": null
+      "end": 111.85
     },
     {
       "style": "image",
@@ -283,7 +287,20 @@
       "size": 60,
       "blink": true,
       "start": 92.0,
-      "end": null
+      "end": 111.85
+    },
+    {
+      "style": "image",
+      "image": "media/poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 111.9,
+      "end": null,
+      "text": "",
+      "poster": true
     }
   ],
   "sequence": [
@@ -326,5 +343,13 @@
     "light": 0.92,
     "warm": 0.15,
     "shadow": 0.35
-  }
+  },
+  "inserts": [
+    {
+      "take": "IMG_0113",
+      "at": 20.3,
+      "seconds": 4.5,
+      "end_card": true
+    }
+  ]
 }

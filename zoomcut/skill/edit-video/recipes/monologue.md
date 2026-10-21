@@ -44,6 +44,12 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   misquoted verses on the scroll sticker. A new tadar video: put its export in `public/ayelet/v/` and replace the
   "בקרוב" tile; new etymologies / questions go in the dictionary / Q&A. In the video: ticker "האתר החדש שלי
   באוויר!! הלינק בביו" + a blinking gold box over the mic (y 1170) for the last ~15 s.
+- **End card** (he loved it, 2026-10-21): her Leonardo studio portrait (flare, from his profile photo) as a polaroid
+  on a 1080x1920 card in the site's look + logo + "האתר שלי באוויר!! / הלינק בביו" - made as HTML, shot with headless
+  Chrome at 1080x1920, saved to the project's `media/poster.jpg`. In the video: `"inserts": [{take: <last>, at: <just
+  before the last piece ends>, seconds: 4.5}]` holds her last frame, a full-frame image overlay (`poster: true`) starts
+  at the hold's timeline second (edit.json: the hold item's frame / 30), ticker and CTA end just before it, and
+  `music.lift` {db 8, fade 1.2} swells the harp once she stops.
 
 ## Series "news" - anchor parody (curly red wig), news-1 2026-10-18, "almost perfect"
 - Set `_assets/news/studio.jpg` (world-map wall); anchor `person` scale 1.12, x 230, y 200; `cut.silence: false`.
