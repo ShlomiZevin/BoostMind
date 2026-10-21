@@ -4,6 +4,7 @@ import { Player, PlayerRef } from '@remotion/player';
 import { ZoomCall, ovBoxStyle } from '../src/ZoomCall';
 import { thoughtWords, wordState, lineDrift, wordDust, dustState, THOUGHT_STYLE } from './thought_anim.js';
 import { drawMarket, marketBox } from './market_anim.js';
+import { stickerPop, rainBills } from './sticker_anim.js';
 import { fxCss, fxAt } from './fx.js';
 import { LiveClock } from './liveplayer';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
@@ -115,7 +116,7 @@ function Editor() {
   const player = useRef<PlayerRef>(null);
   const frameRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep)) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
+  useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep) && !ep.startsWith('_')) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
   const load = useCallback(async () => { if (!ep) return; const d: Data = await api(`/api/ep/${ep}`); setData(d); setJob(d.job); }, [ep]);
   useEffect(() => { if (ep) { tabProject.set(ep); setData(null); setSel(null); setUndo([]); setRedo([]); load(); } }, [ep]);
   useEffect(() => {  // one project for every tool: picked in the Reader or Karaoke -> opened here too
@@ -622,6 +623,14 @@ const popScale = (o: any, t: number) => {
   const q = o.end == null ? 1 : Math.min(1, Math.max(0, (o.end - t) / 0.2));
   return (0.3 + 0.7 * (1 + 2.70158 * (p - 1) ** 3 + 1.70158 * (p - 1) ** 2)) * (0.3 + 0.7 * q);
 };
+// a layer that fades in / out ("fade_in" / "fade_out" seconds) - lesson.py draws the same alpha ramps
+const fadeOp = (o: any, t: number, total: number) => {
+  const fi = +(o?.fade_in || 0), fo = +(o?.fade_out || 0), end = o?.end ?? total;
+  let op = 1;
+  if (fi > 0) op = Math.min(op, (t - (o.start || 0)) / fi);
+  if (fo > 0) op = Math.min(op, (end - t) / fo);
+  return Math.max(0, Math.min(1, op));
+};
 // a call to action that blinks: on 72% of each second (lesson.py draws the same)
 const blinkOn = (o: any, t: number) => !o?.blink || ((t - (o.start || 0)) % 1 + 1) % 1 < 0.72;
 const Entrance = ({ o, set }: { o: any; set: (patch: any) => void }) => <>
@@ -642,6 +651,7 @@ function TextProps({ all, i, onChange }: { all: Overlay[]; i: number; onChange: 
   const theme = o.theme || 'light', op = o.opacity ?? 1;
   const chipBg = (t: string) => (t === 'light' ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`);
   if (o.style === 'market') return <MarketProps o={o as any} set={set} remove={() => onChange(all.filter((_, k) => k !== i))} />;
+  if (o.style === 'sticker') return <StickerProps o={o as any} set={set} remove={() => onChange(all.filter((_, k) => k !== i))} />;
   return (
     <>
       <div className="card">
@@ -706,6 +716,40 @@ function TextProps({ all, i, onChange }: { all: Overlay[]; i: number; onChange: 
           <label>Until</label><Num value={o.end} step={0.5} placeholder="end" onCommit={(v) => set({ end: v ?? null })} />
         </div>
         <button className="btn" onClick={() => onChange(all.filter((_, k) => k !== i))}>{I.drop}Delete text</button>
+      </div>
+    </>
+  );
+}
+
+// a sticker's settings: how it moves, its size, place, tilt and timing
+function StickerProps({ o, set, remove }: { o: any; set: (p: any, commit?: boolean) => void; remove: () => void }) {
+  const slider = (k: string, label: string, min: number, max: number, step: number, def: number) =>
+    <div className="row2" key={k}><label>{label}</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <input type="range" min={min} max={max} step={step} value={o[k] ?? def} style={{ flex: 1, accentColor: 'var(--accent)' }}
+          onChange={(e) => set({ [k]: +e.target.value }, false)} onMouseUp={() => set({}, true)} />
+        <span style={{ width: 44, textAlign: 'right', color: 'var(--dim)' }}>{o[k] ?? def}</span>
+      </div></div>;
+  const rain = o.motion === 'rain';
+  return (
+    <>
+      <div className="card">
+        <div className="card-h"><div className="av" style={{ background: 'var(--gold)', color: '#2a2000' }}>★</div><div className="title grow">Sticker</div>
+          <span className="help" style={{ margin: 0 }}>changes show live</span></div>
+        <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <button className={!rain ? 'on' : ''} onClick={() => set({ motion: 'pop' })}>Pop in</button>
+          <button className={rain ? 'on' : ''} onClick={() => set({ motion: 'rain' })}>Rain down</button>
+        </div>
+        {slider('w', rain ? 'Bill size' : 'Size', 120, 1000, 10, rain ? 260 : 520)}
+        {rain ? slider('count', 'How many', 4, 60, 1, 22) : <>{slider('x', 'Left / right', 0, 1080, 10, 540)}{slider('y', 'Up / down', 0, 1920, 10, 700)}{slider('rot', 'Tilt', -30, 30, 1, -6)}</>}
+      </div>
+      <div className="card">
+        <div className="sec">Timing</div>
+        <div className="pair">
+          <label>From</label><Num value={o.start} step={0.1} onCommit={(v) => set({ start: v ?? 0 })} />
+          <label>Until</label><Num value={o.end} step={0.1} placeholder="end" onCommit={(v) => set({ end: v ?? null })} />
+        </div>
+        <button className="btn" onClick={remove}>{I.drop}Delete sticker</button>
       </div>
     </>
   );
@@ -1152,21 +1196,53 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     changeFx(fx.map((x: any) => ({ ...x, gain: +Math.min(3, (x.gain ?? 0.8) * f).toFixed(3) })));
     if (data.episode.music && !data.episode.music.off) { const g = +Math.min(2, musicGain * f).toFixed(3); setMusicGain(g); saveOpt({ music_gain: g }); }
   };
-  const changeFx = (next: any[], overlays?: any[]) => {  // sounds: saved, then only the sound layers are remade (seconds)
-    setFx(next);
+  // sound layers are lanes of their own: each sound sits on one ("lane"); taking a sound off leaves its layer (empty),
+  // Delete layer takes a layer away (with what is on it). Older projects: a lane per sound, in order.
+  const laneOf = (s: any, i: number) => (Number.isInteger(s?.lane) ? s.lane : i);
+  const [lanesN, setLanesN] = useState<number>(data.episode.sound_lanes ?? 0);
+  useEffect(() => setLanesN(data.episode.sound_lanes ?? 0), [ep]);
+  const laneCount = Math.max(lanesN, 0, ...fx.map((s: any, i: number) => laneOf(s, i) + 1));
+  const changeFx = (next: any[], overlays?: any[], lanes?: number) => {  // sounds: saved, then only the sound layers are remade (seconds)
+    const n = lanes ?? Math.max(laneCount, 0, ...next.map((s: any, i: number) => laneOf(s, i) + 1));
+    setFx(next); setLanesN(n);
     clearTimeout(fxTimer.current);
-    fxTimer.current = setTimeout(async () => { setFxBusy(true); await api(`/api/ep/${ep}/sounds`, { sounds: next, overlays }); setFxBusy(false); reload?.(); }, 350);
+    fxTimer.current = setTimeout(async () => { setFxBusy(true); await api(`/api/ep/${ep}/sounds`, { sounds: next, overlays, sound_lanes: n }); setFxBusy(false); reload?.(); }, 350);
   };
-  const moveSound = (i: number, startOut: number) => {  // dragged on its lane: placed at that moment of the take
-    const at = takeAt(Math.max(0, startOut));
-    if (!at) return;
-    const { end_word, end_after, end_offset, start_word, start_after, start_offset, after_prev, at: _a, ...rest } = fx[i] || {};
-    changeFx(fx.map((s: any, j: number) => (j === i ? { ...rest, take: at.take, at: at.t } : s)));
+  const withLanes = (list: any[]) => list.map((s: any, i: number) => ({ ...s, lane: laneOf(s, i) }));  // (before indices shift)
+  // sounds taken off: whatever points at a sound by its number (a thought bubble, a film hit) follows the new numbers
+  const dropSounds = (gone: Set<number>, next: any[], lanes: number) => {
+    const to = (k: number) => k - [...gone].filter((j) => j < k).length;
+    const ovs = ov.filter((o: any) => !(o.sound != null && gone.has(o.sound))).map((o: any) => (o.sound != null ? { ...o, sound: to(o.sound) } : o));
+    if (ovs.length !== ov.length || ovs.some((o: any, j: number) => o.sound !== (ov[j] as any)?.sound)) setOv(ovs);
+    if (film && (film.hits || film.blackouts)) {
+      const fix = (list?: any[]) => list?.filter((h: any) => !(h.sound != null && gone.has(h.sound))).map((h: any) => (h.sound != null ? { ...h, sound: to(h.sound) } : h));
+      const f2 = { ...film, ...(film.hits ? { hits: fix(film.hits) } : {}), ...(film.blackouts ? { blackouts: fix(film.blackouts) } : {}) };
+      if (JSON.stringify(f2) !== JSON.stringify(film)) changeFilm(f2);
+    }
+    changeFx(next, ovs, lanes);
   };
-  const removeSound = (i: number) => {  // a thought bubble tied to a later sound keeps its own sound
-    const ovs = ov.filter((o: any) => o.sound !== i).map((o: any) => (o.sound != null && o.sound > i ? { ...o, sound: o.sound - 1 } : o));
-    if (ovs.length !== ov.length || ovs.some((o, j) => o !== ov[j])) setOv(ovs);
-    changeFx(fx.filter((_: any, j: number) => j !== i), ovs);
+  const removeLane = (l: number) => {  // the layer goes, with the sounds on it; the layers under it move up
+    const m = withLanes(fx), gone = new Set(m.flatMap((s: any, j: number) => (s.lane === l ? [j] : [])));
+    dropSounds(gone, m.filter((_: any, j: number) => !gone.has(j)).map((s: any) => (s.lane > l ? { ...s, lane: s.lane - 1 } : s)), Math.max(0, laneCount - 1));
+  };
+  const addLane = () => changeFx(withLanes(fx), undefined, laneCount + 1);
+  const freeLane = () => { const used = new Set(fx.map(laneOf)); for (let l = 0; l < laneCount; l++) if (!used.has(l)) return l; return laneCount; };
+  const moveSound = (i: number, startOut: number | null, lane?: number) => {  // dragged: to that moment of the take, and / or to another layer
+    const m = withLanes(fx);
+    let s = m[i];
+    if (!s) return;
+    if (startOut != null) {
+      const at = takeAt(Math.max(0, startOut));
+      if (!at) return;
+      const { end_word, end_after, end_offset, start_word, start_after, start_offset, after_prev, at: _a, ...rest } = s;
+      s = { ...rest, take: at.take, at: at.t };
+    }
+    if (lane != null) s = { ...s, lane: Math.max(0, Math.min(laneCount - 1, lane)) };
+    changeFx(m.map((x: any, j: number) => (j === i ? s : x)));
+  };
+  const removeSound = (i: number) => {  // the sound comes off its layer - the layer stays (empty)
+    const m = withLanes(fx);
+    dropSounds(new Set([i]), m.filter((_: any, j: number) => j !== i), laneCount);
   };
   // an end of a sound dragged on its lane: it plays less (or more) of its file - left end = its start, right end = its end
   const trimSound = (i: number, side: 'l' | 'r', ds: number) => {
@@ -1283,7 +1359,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     const next = [...ov, { style: 'image', image: m, plain: true, x: 800, y: 300, w: 230, h: 230, start: 0, end: null, text: '' } as any];
     changeOv(next); setSel({ kind: 'text', i: next.length - 1 });
   };
-  const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture', market: 'Market panel' };
+  const STYLE_NAMES: Record<string, string> = { pov: 'Hook text', question: 'Question card', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', image: 'Picture', market: 'Market panel', sticker: 'Sticker' };
   const changeVoice = (patch: any) => { const v = { ...voice, ...patch }; setVoice(v); saveOpt({ voice: v }); };
   // pitch is the one voice setting that remakes the voice track (higher / lower, same timing): about a second, after you let go
   const [duckDb, setDuckDb] = useState<number>(data.episode.music?.duck ?? 0);
@@ -1334,6 +1410,9 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     const mk = (l: any) => { if (!l) return null; const a = new Audio(`${l.url}?v=${l.v}`); a.preload = 'auto'; a.crossOrigin = 'anonymous'; return a; };
     const els = { voice: mk(L.voice), voice_dn: mk(L.voice_dn), fx: mk(L.fx), music: mk(L.music) };
     audioRef.current = { els, ctx: null, nodes: null };
+    (window as any).__zcAudio = audioRef;  // (for tests)
+    const v = video.current;  // remade while it plays (a sound changed): they join in now, not at the next Play
+    if (v && !v.paused) setTimeout(() => { graph(); applyAudio(); audioRef.current?.ctx?.resume(); syncAudio(true); }, 0);
     return () => { Object.values(els).forEach((a: any) => a && (a.pause(), (a.src = ''))); audioRef.current?.ctx?.close(); audioRef.current = null; };
   }, [L.voice?.v, L.fx?.v, L.music?.v]);
   const graph = () => {  // built on the first play (browsers need a click to start sound)
@@ -1655,21 +1734,6 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   {L.intro && t < introSecs && <video ref={introRef} key={'intro' + L.intro.v} src={`${L.intro.url}?v=${L.intro.v}`} muted playsInline
                     style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, objectFit: 'cover', pointerEvents: 'none',
                       opacity: introFade > 0 && t > introSecs - introFade ? Math.max(0, (introSecs - t) / introFade) : 1 }} />}
-                  {capOver && (() => {
-                    const st = { ...(capStyle || {}), ...(data.episode.captions_other || {}) };
-                    return <div className="he" style={{ position: 'absolute', top: data.episode.captions_other?.y ?? capY - 150, left: 50, right: 50, textAlign: 'center', direction: 'rtl', pointerEvents: 'none',
-                      font: `${st.weight || 400} ${st.size || 84}px/1.18 ${fontCss(st.font || 'stam-ashkenaz')}`, color: st.color || '#FFD60A',
-                      WebkitTextStroke: `${st.stroke ?? 14}px #000`, paintOrder: 'stroke fill',
-                      textShadow: '0 6px 14px rgba(0,0,0,0.55)', letterSpacing: st.font ? 0 : '0.045em', unicodeBidi: 'plaintext' } as any}>{capOver.text}</div>;
-                  })()}
-                  {capNow && (() => {
-                    const st = { ...(capStyle || {}), ...(capNow.who === 'other' ? data.episode.captions_other || {} : {}) };  // the series' look; the other side's in its colour
-                    return <div className="he" onMouseDown={dragCap} style={{ position: 'absolute', top: capY, left: 50, right: 50, textAlign: 'center', direction: 'rtl', cursor: 'ns-resize',
-                      outline: sel?.kind === 'layer' && sel.id === 'captions' ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none',
-                      font: `${st.weight || 400} ${st.size || 84}px/1.18 ${fontCss(st.font || 'stam-ashkenaz')}`, color: st.color || '#FFD60A',
-                      WebkitTextStroke: `${st.stroke ?? 14}px #000`, paintOrder: 'stroke fill',
-                      textShadow: '0 6px 14px rgba(0,0,0,0.55)', letterSpacing: st.font ? 0 : '0.045em', unicodeBidi: 'plaintext' } as any}>{capNow.text}</div>;
-                  })()}
                 </div>
               ) : (data.preview || data.output)
                 ? <video ref={video} key={data.previewVersion || data.outputVersion} src={data.preview ? `${data.preview}?v=${data.previewVersion}` : `${data.output}?v=${data.outputVersion}`}
@@ -1692,7 +1756,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   <img key={i} src={`/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`} draggable={false} onMouseDown={(e) => dragText(e, i)}
                     style={{ position: 'absolute', left: o.x ?? 60, top: o.y ?? 380, width: o.w ?? 960, height: o.h ?? 540, objectFit: o.plain ? 'contain' : 'cover',
                       transform: o.pop ? `scale(${popScale(o, t)})` : undefined, transformOrigin: 'center',
-                      ...(o.plain ? { opacity: o.opacity ?? 1 } : { border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)' }), boxSizing: 'border-box',
+                      ...(o.plain ? { opacity: (o.opacity ?? 1) * fadeOp(o, t, (data.edit?.durationInFrames || 0) / 30) } : { opacity: fadeOp(o, t, (data.edit?.durationInFrames || 0) / 30), border: '6px solid #fff', borderRadius: 14, boxShadow: '0 12px 34px rgba(0,0,0,0.55)' }), boxSizing: 'border-box',
                       pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />))}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'band' && (() => {
                   // a news lower third: red tag (before "|"), deep-blue band (after it)
@@ -1735,7 +1799,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                       {o.text}</div>
                   </div>;
                 })())}
-                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && o.style !== 'market' && (
+                {ov.map((o, i) => liveOv.includes(o) && o.style !== 'ticker' && o.style !== 'image' && o.style !== 'band' && o.style !== 'question' && o.style !== 'thought' && o.style !== 'market' && o.style !== 'sticker' && (
                   <div key={i} style={{ position: 'absolute', top: o.y ?? 270, left: 60, right: 60, display: 'flex', justifyContent: 'center' }}>
                     {/* click to select, drag to move; the outline hugs the text whatever its size */}
                     <div className="he" onMouseDown={(e) => dragText(e, i)}
@@ -1745,6 +1809,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                         outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none', outlineOffset: Math.round(6 / scale) }}>{o.text}</div>
                   </div>))}
                 {/* the market panels last: over the text, as in the export (the panel is laid after the hook) */}
+                {ov.map((o: any, i) => o.style === 'sticker' && <StickerLayer key={'st' + i} o={o} ep={ep} clock={clock} />)}
                 {ov.some((o: any) => o.style === 'market') && <MarketCanvas ov={ov} clock={clock} />}
                 {ov.map((o: any, i) => liveOv.includes(o) && o.style === 'market' && (() => {
                   // the panel itself is on the canvas (MarketCanvas); this box is what you click and drag
@@ -1752,6 +1817,22 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   return <div key={'mk' + i} onMouseDown={(e) => dragText(e, i)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h,
                     pointerEvents: 'auto', cursor: 'move', outline: sel?.kind === 'text' && sel.i === i ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none' }} />;
                 })())}
+                {/* the subtitles over everything (stickers, panels, text) - as in the export */}
+                  {capOver && (() => {
+                    const st = { ...(capStyle || {}), ...(data.episode.captions_other || {}) };
+                    return <div className="he" style={{ position: 'absolute', top: data.episode.captions_other?.y ?? capY - 150, left: 50, right: 50, textAlign: 'center', direction: 'rtl', pointerEvents: 'none',
+                      font: `${st.weight || 400} ${st.size || 84}px/1.18 ${fontCss(st.font || 'stam-ashkenaz')}`, color: st.color || '#FFD60A',
+                      WebkitTextStroke: `${st.stroke ?? 14}px #000`, paintOrder: 'stroke fill',
+                      textShadow: '0 6px 14px rgba(0,0,0,0.55)', letterSpacing: st.font ? 0 : '0.045em', unicodeBidi: 'plaintext' } as any}>{capOver.text}</div>;
+                  })()}
+                  {capNow && (() => {
+                    const st = { ...(capStyle || {}), ...(capNow.who === 'other' ? data.episode.captions_other || {} : {}) };  // the series' look; the other side's in its colour
+                    return <div className="he" onMouseDown={dragCap} style={{ position: 'absolute', top: capY, left: 50, right: 50, textAlign: 'center', direction: 'rtl', cursor: 'ns-resize', pointerEvents: 'auto',
+                      outline: sel?.kind === 'layer' && sel.id === 'captions' ? `${Math.round(3 / scale)}px dashed var(--accent)` : 'none',
+                      font: `${st.weight || 400} ${st.size || 84}px/1.18 ${fontCss(st.font || 'stam-ashkenaz')}`, color: st.color || '#FFD60A',
+                      WebkitTextStroke: `${st.stroke ?? 14}px #000`, paintOrder: 'stroke fill',
+                      textShadow: '0 6px 14px rgba(0,0,0,0.55)', letterSpacing: st.font ? 0 : '0.045em', unicodeBidi: 'plaintext' } as any}>{capNow.text}</div>;
+                  })()}
               </div>
             </div>
           </div>
@@ -2078,7 +2159,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                 <button className="btn" style={{ width: '100%', marginTop: 6 }} disabled={busy} onClick={() => setAddingFx(true)}>+ Add effect at {mmss(t)}</button>
                 {addingFx && <SoundPicker ep={ep} title={`Add a sound at ${mmss(t)}`} hint="It plays from the playhead; drag it on its lane afterwards." hear={hear} hearing={hearing}
                   onClose={() => setAddingFx(false)}
-                  onPick={(e) => { const at = takeAt(t); if (at) changeFx([...fx, { sound: e.sound, take: at.take, at: at.t, gain: 0.6 }]); setAddingFx(false); }} />}
+                  onPick={(e) => { const at = takeAt(t); if (at) changeFx([...withLanes(fx), { sound: e.sound, take: at.take, at: at.t, gain: 0.6, lane: freeLane() }]); setAddingFx(false); }} />}
               </div>
             </>}
 
@@ -2147,6 +2228,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
         onOvTime={(i, start, end) => changeOv(ov.map((o: any, j) => { if (j !== i) return o; const { from_words, sound, until, ...rest } = o; return { ...rest, start, end }; }))}
         onCut={async (op) => { const r = await api(`/api/ep/${ep}/cutop`, op); if (r?.live) reload?.(); else setJob(r); }} hasEnds={!!(data.episode.cut?.video_start || data.episode.cut?.video_end)}
         onSoundMove={moveSound} onSoundRemove={removeSound} fxBusy={fxBusy} film={film} onFilm={changeFilm}
+        soundLane={fx.map(laneOf)} laneCount={laneCount} onLaneAdd={addLane} onLaneRemove={removeLane}
         onSoundTrim={trimSound} soundTrim={fx.map((s: any) => !s?.from_word)} music={musT} onMusic={changeMusic}
         soundNames={soundNames} />
     </div>
@@ -2275,6 +2357,38 @@ function FilmFx({ fx, clock, camRef }: { fx: any; clock: () => number; camRef: R
 
 // the ticker strip, positioned from the video's time exactly as the export's ffmpeg formula does - moved on every
 // screen frame straight from the video clock (the 4-a-second time updates made it jump)
+// a picture sticker, live: pops in on its moment / rains down - the export's own motion (render/ui/sticker_anim.js),
+// moved on every screen frame straight from the clock
+function StickerLayer({ o, ep, clock }: { o: any; ep: string; clock: () => number }) {
+  const root = useRef<HTMLDivElement>(null);
+  const live = useRef(o); live.current = o;
+  const n = o.motion === 'rain' ? (o.count || 22) : 1;
+  useEffect(() => {
+    let raf = 0;
+    const step = () => {
+      const el = root.current, cur = live.current, t = clock();
+      if (el) {
+        const ims = Array.from(el.children) as HTMLElement[];
+        if (cur.motion === 'rain') {
+          const r = rainBills(cur, t);
+          ims.forEach((im, i) => { const q = r[i]; if (!q) { im.style.opacity = '0'; return; }
+            Object.assign(im.style, { left: q.x + 'px', top: q.y + 'px', width: q.w + 'px', opacity: String(q.opacity), transform: q.transform }); });
+        } else if (ims[0]) {
+          const q = stickerPop(cur, t);
+          Object.assign(ims[0].style, { left: (cur.x ?? 540) + 'px', top: (cur.y ?? 700) + 'px', width: (cur.w || 520) + 'px', opacity: String(q.opacity), transform: q.transform });
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [clock]);
+  const src = `/api/ep/${ep}/file?p=${encodeURIComponent(o.image)}`;
+  return <div ref={root} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+    {Array.from({ length: n }, (_, i) => <img key={i} src={src} draggable={false} style={{ position: 'absolute', left: 0, top: 0, opacity: 0, transformOrigin: '50% 50%' }} />)}
+  </div>;
+}
+
 // the finance-news panels, live: the export's own drawing (render/ui/market_anim.js) on one frame-sized canvas
 function MarketCanvas({ ov, clock }: { ov: any[]; clock: () => number }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -2436,14 +2550,15 @@ function SoundPicker({ ep, title, hint, onPick, onClose, hear, hearing }: { ep: 
   </div>;
 }
 
-function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, onPeek, onSoundTrim, soundTrim, music, onMusic, onSoundPick, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy, film, soundNames, onFilm }: {
+function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelText, bgName, layer, onLayer, onTrim, onPeek, onSoundTrim, soundTrim, music, onMusic, onSoundPick, soundLane, laneCount = 0, onLaneAdd, onLaneRemove, busy, onOvTime, onCut, hasEnds, onSoundMove, onSoundRemove, fxBusy, film, soundNames, onFilm }: {
   edit: any; fps: number; k: number; t: number; total: number; onSeek: (s: number) => void; overlays: Overlay[]; sel: number | null; onSelText: (i: number) => void; bgName: string;
   layer: string | null; onLayer: (id: string) => void; onTrim: (take: string, from: number, to: number, i?: number, side?: 'in' | 'out') => void; busy: boolean;
   onPeek?: (take: string, at: number) => void;
   onSoundTrim?: (i: number, side: 'l' | 'r', ds: number) => void; soundTrim?: boolean[]; music?: any; onMusic?: (patch: any) => void;
   onSoundPick?: (i: number) => void;
+  soundLane?: number[]; laneCount?: number; onLaneAdd?: () => void; onLaneRemove?: (l: number) => void;
   onOvTime: (i: number, start: number, end: number | null) => void; onCut: (op: any) => void; hasEnds?: boolean;
-  onSoundMove?: (i: number, startOut: number) => void; onSoundRemove?: (i: number) => void; fxBusy?: boolean; film?: any; soundNames?: string[]; onFilm?: (fx: any) => void;
+  onSoundMove?: (i: number, startOut: number | null, lane?: number) => void; onSoundRemove?: (i: number) => void; fxBusy?: boolean; film?: any; soundNames?: string[]; onFilm?: (fx: any) => void;
 }) {
   // a filter layer moved / its ends dragged on its lane (its time: fx.times[id] = [start, end | null])
   const [fDrag, setFDrag] = useState<{ id: string; mode: 'm' | 'l' | 'r'; dx: number } | null>(null);
@@ -2473,21 +2588,24 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
   const fOn = filtersOn(film);
   // sounds: pick one (click), drag it to move it, drag an end to make it shorter / longer; Delete removes the pick
   const [snd, setSnd] = useState<number | null>(null);
-  const [sndDrag, setSndDrag] = useState<{ i: number; dx: number; mode: 'm' | 'l' | 'r' } | null>(null);
+  const [sndDrag, setSndDrag] = useState<{ i: number; dx: number; dy: number; mode: 'm' | 'l' | 'r' } | null>(null);
+  const [laneSel, setLaneSel] = useState<number | null>(null);  // a sound layer picked (its name on the left): Delete layer
+  const laneAt = (i: number) => soundLane?.[i] ?? i;
   const [sndMoved, setSndMoved] = useState<Record<number, { from: number; to: number }>>({});  // shown so until its layer is remade
   useEffect(() => setSndMoved({}), [edit?.sounds]);
   const sndBox = (i: number) => { const s = edit.sounds[i]; return sndMoved[i] ?? { from: s.from / k, to: s.to / k }; };
   const grabSound = (e: React.MouseEvent, i: number, mode: 'm' | 'l' | 'r' = 'm') => {
     e.stopPropagation(); e.preventDefault();
     pick({ snd: i }); onSoundPick?.(i);
-    const x0 = e.clientX; let dx = 0;
-    setSndDrag({ i, dx: 0, mode });
-    const mv = (m: MouseEvent) => { dx = m.clientX - x0; setSndDrag({ i, dx, mode }); };
+    const x0 = e.clientX, y0 = e.clientY; let dx = 0, dy = 0;
+    setSndDrag({ i, dx: 0, dy: 0, mode });
+    const mv = (m: MouseEvent) => { dx = m.clientX - x0; dy = sndOpen && mode === 'm' ? m.clientY - y0 : 0; setSndDrag({ i, dx, dy, mode }); };
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up); setSndDrag(null);
-      if (Math.abs(dx) < 3) return;
+      const dl = Math.round(dy / TH), lane = Math.max(0, Math.min(laneCount - 1, laneAt(i) + dl));
+      if (Math.abs(dx) < 3) { if (dl && lane !== laneAt(i)) onSoundMove?.(i, null, lane); return; }
       const b = sndBox(i), ds = dx / pps;
-      if (mode === 'm') { setSndMoved({ ...sndMoved, [i]: { from: b.from + ds, to: b.to + ds } }); onSoundMove?.(i, b.from + ds); }
+      if (mode === 'm') { setSndMoved({ ...sndMoved, [i]: { from: b.from + ds, to: b.to + ds } }); onSoundMove?.(i, b.from + ds, dl ? lane : undefined); }
       else if (mode === 'l') { setSndMoved({ ...sndMoved, [i]: { from: Math.min(b.to - 0.1, b.from + ds), to: b.to } }); onSoundTrim?.(i, 'l', ds); }
       else { setSndMoved({ ...sndMoved, [i]: { from: b.from, to: Math.max(b.from + 0.1, b.to + ds) } }); onSoundTrim?.(i, 'r', ds); }
     };
@@ -2522,10 +2640,11 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
     return it ? { take: it.take, t: +(it.a + (f - it.out) / fps * (it.sp ?? 1)).toFixed(3) } : null;
   };
   const split = () => { const at = atPlayhead(); if (at && !busy) onCut({ op: 'split', ...at }); };
-  const pick = (p: { piece?: number; snd?: number; music?: boolean }) => { setPiece(p.piece ?? null); setSnd(p.snd ?? null); setMusSel(!!p.music); };
-  const picked = piece != null ? 'piece' : snd != null ? 'sound' : musSel ? 'music' : null;
-  const del = () => {  // the pick goes: a piece (the rest closes up), a sound, the music
+  const pick = (p: { piece?: number; snd?: number; music?: boolean; lane?: number }) => { setPiece(p.piece ?? null); setSnd(p.snd ?? null); setMusSel(!!p.music); setLaneSel(p.lane ?? null); };
+  const picked = piece != null ? 'piece' : snd != null ? 'sound' : musSel ? 'music' : laneSel != null ? 'lane' : null;
+  const del = () => {  // the pick goes: a piece (the rest closes up), a sound (its layer stays), the music, a sound layer
     if (snd != null) { onSoundRemove?.(snd); pick({}); return; }
+    if (laneSel != null) { onLaneRemove?.(laneSel); pick({}); return; }
     if (musSel) { onMusic?.({ off: true }); pick({}); return; }
     const it = piece != null ? edit?.items?.[piece] : null;
     if (!it || busy) return;
@@ -2582,7 +2701,7 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
     if (el && a) { el.scrollLeft = Math.max(0, 12 + a.t * pps - a.px); zoomAnchor.current = null; }
   });  // (after every render: the anchor is set only by a Ctrl+wheel zoom)
   const syncHeads = () => { if (headsRef.current && lanesRef.current) headsRef.current.scrollTop = lanesRef.current.scrollTop; };
-  const ovName = (o: any) => o.image ? 'Logo' : o.asker ? `${o.asker}` : ({ pov: 'Hook', question: 'Question', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', market: 'Market' } as any)[o.style || 'pov'] || 'Text';
+  const ovName = (o: any) => o.image ? 'Logo' : o.asker ? `${o.asker}` : ({ pov: 'Hook', question: 'Question', thought: 'Thought', band: 'Lower third', ticker: 'Ticker', market: 'Market', sticker: 'Sticker' } as any)[o.style || 'pov'] || 'Text';
   const lanesRef = useRef<HTMLDivElement>(null);
   // the lanes have a horizontal scrollbar, the names column does not: without the same room at its bottom the names
   // stop scrolling short of the lanes and every name sits a scrollbar's height off its lane
@@ -2652,8 +2771,8 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
         {hasEnds && <button className="btn ghost" disabled={busy} title="Back to the full length" onClick={() => onCut({ op: 'clear-ends' })}>Reset start/end</button>}
         <span className="vsep" />
         <button className="btn" disabled={busy || !atPlayhead()} title="Split the video at the playhead (S)" onClick={split}>✂ Split</button>
-        <button className="btn" disabled={!picked || (picked === 'piece' && busy)} title="Remove what is picked on the timeline - a piece (the rest closes up), a sound, the music (Delete)" onClick={del}>Delete</button>
-        <span className="help" style={{ margin: '0 10px 0 4px' }}>{picked === 'piece' ? 'a piece of the video picked' : picked === 'sound' ? `sound picked: ${soundNames?.[snd!] || edit?.sounds?.[snd!]?.name || ''}` : picked === 'music' ? 'the music picked' : 'click a piece, a sound or the music to pick it'}</span>
+        <button className="btn" disabled={!picked || (picked === 'piece' && busy)} title="Remove what is picked on the timeline - a piece (the rest closes up), a sound (its layer stays), the music, a sound layer (Delete)" onClick={del}>{picked === 'lane' ? 'Delete layer' : 'Delete'}</button>
+        <span className="help" style={{ margin: '0 10px 0 4px' }}>{picked === 'piece' ? 'a piece of the video picked' : picked === 'sound' ? `sound picked: ${soundNames?.[snd!] || edit?.sounds?.[snd!]?.name || ''}` : picked === 'music' ? 'the music picked' : picked === 'lane' ? `sound layer ${laneSel! + 1} picked${(soundLane || []).includes(laneSel!) ? '' : ' (empty)'}` : 'click a piece, a sound or the music to pick it'}</span>
         <button className="btn ghost icon" title="Zoom out" onClick={() => setZoom(Math.max(0.25, zoom / 1.5))}>{I.zoomOut}</button>
         <input type="range" min={0.25} max={40} step={0.05} value={zoom} onChange={(e) => setZoom(+e.target.value)} />
         <button className="btn ghost icon" title="Zoom in" onClick={() => setZoom(Math.min(40, zoom * 1.5))}>{I.zoomIn}</button>
@@ -2677,8 +2796,11 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
             <span className="caret">{sndOpen ? '▾' : '▸'}</span>♪<span className="h-name">Sounds · {(edit?.sounds || []).length}</span></div>
           {sndOpen && <div className={`h pick sub ${musSel ? 'on' : ''}`} onClick={() => { if (musOn) pick({ music: true }); onLayer('music'); }}
             title="The background music"><span className="h-name">♪ {musOn ? String(music.sound || 'music').split('/').pop()!.replace(/\.[^.]+$/, '') : 'Music'}</span></div>}
-          {sndOpen && (edit?.sounds || []).map((s: any, i: number) => <div key={'sh' + i} className={`h pick sub ${snd === i ? 'on' : ''}`} onClick={() => { pick({ snd: i }); onSoundPick?.(i); }}
-            title={soundNames?.[i] || s.name}><span className="h-name he">{soundNames?.[i] || s.name}</span></div>)}
+          {sndOpen && Array.from({ length: laneCount }, (_, l) => { const on = (edit?.sounds || []).map((s: any, i: number) => (laneAt(i) === l ? soundNames?.[i] || s.name : null)).filter(Boolean);
+            return <div key={'sh' + l} className={`h pick sub ${laneSel === l ? 'on' : ''}`} onClick={() => { pick({ lane: l }); onLayer('music'); }}
+              title={on.length ? `${on.join(' · ')} - click to pick this layer (Delete layer removes it)` : 'An empty sound layer - click to pick it (Delete layer removes it)'}>
+              <span className="h-name he" style={on.length ? undefined : { color: 'var(--faint)', fontStyle: 'italic' }}>{on.length ? on.join(' · ') : 'Empty layer'}</span></div>; })}
+          {sndOpen && <div className="h pick sub" onClick={() => onLaneAdd?.()} title="Add an empty sound layer"><span className="h-name" style={{ color: 'var(--dim)' }}>+ Sound layer</span></div>}
           <div style={{ height: sbH }} />
         </div>
         <div className="lanes" ref={lanesRef} onScroll={syncHeads}>
@@ -2744,7 +2866,8 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                 const w = Math.max(14, (en - st) * pps - 2);  // a short sound: zoom in to drag its ends (the middle stays to move it)
                 const nm = soundNames?.[i] || s.name, thought = nm.startsWith('💭'), ends = soundTrim?.[i] !== false && w >= 34;
                 return <div key={i} className={`cap snd he ${snd === i ? 'on' : ''}`} style={{ left: x(st), width: w,
-                  background: thought ? 'var(--daniel)' : 'var(--gold)', color: thought ? '#fff' : '#2a2000', cursor: 'grab', opacity: fxBusy && sndMoved[i] != null ? 0.7 : 1 }}
+                  background: thought ? 'var(--daniel)' : 'var(--gold)', color: thought ? '#fff' : '#2a2000', cursor: 'grab', opacity: fxBusy && sndMoved[i] != null ? 0.7 : 1,
+                  transform: d?.dy ? `translateY(${d.dy}px)` : undefined, zIndex: d ? 5 : undefined }}
                   title={`${nm} - drag to move it${ends ? ', drag an end to make it shorter / longer' : ''}; click it and press Delete to remove it`} onMouseDown={(e) => grabSound(e, i)}>
                   {ends && <span className="ov-h l" onMouseDown={(e) => grabSound(e, i, 'l')} />}
                   {w >= 40 && <span className="snd-n">{nm}</span>}
@@ -2769,10 +2892,12 @@ function LessonTimeline({ edit, fps, k, t, total, onSeek, overlays, sel, onSelTe
                   {!sndOpen && (edit?.sounds || []).map(block)}
                 </div>
                 {sndOpen && <div className={`lane ${musSel ? 'sel' : ''}`} onMouseDown={scrub}>{musLane}</div>}
-                {sndOpen && (edit?.sounds || []).map((s: any, i: number) => <div key={'sl' + i} className={`lane ${snd === i ? 'sel' : ''}`} onMouseDown={scrub}>{block(s, i)}</div>)}
+                {sndOpen && Array.from({ length: laneCount }, (_, l) => <div key={'sl' + l} className={`lane ${laneSel === l || (snd != null && laneAt(snd) === l) ? 'sel' : ''}`} onMouseDown={scrub}>
+                  {(edit?.sounds || []).map((s: any, i: number) => (laneAt(i) === l ? block(s, i) : null))}</div>)}
+                {sndOpen && <div className="lane" onMouseDown={scrub} />}
               </>;
             })()}
-            <div className="playhead" style={{ left: x(t), height: 30 + (6 + (textOpen ? overlays.length : 0) + (fltOpen ? FILTERS.length : 0) + (sndOpen ? (edit?.sounds || []).length + 1 : 0)) * TH }} />
+            <div className="playhead" style={{ left: x(t), height: 30 + (6 + (textOpen ? overlays.length : 0) + (fltOpen ? FILTERS.length : 0) + (sndOpen ? laneCount + 2 : 0)) * TH }} />
           </div>
         </div>
       </div>

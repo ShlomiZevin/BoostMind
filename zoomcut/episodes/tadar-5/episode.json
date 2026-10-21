@@ -291,16 +291,45 @@
     },
     {
       "style": "image",
+      "image": "media/polaroid.png",
+      "plain": true,
+      "pop": true,
+      "x": 10,
+      "y": 290,
+      "w": 370,
+      "h": 433,
+      "start": 20.2,
+      "end": 26.8,
+      "text": "",
+      "mid_card": true
+    },
+    {
+      "style": "image",
       "image": "media/poster.jpg",
       "plain": true,
       "x": 0,
       "y": 0,
       "w": 1080,
       "h": 1920,
-      "start": 111.9,
+      "start": 112.25,
       "end": null,
+      "fade_in": 0.7,
       "text": "",
       "poster": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 116.3,
+      "end": null,
+      "fade_in": 0.6,
+      "text": "",
+      "end_black": true
     }
   ],
   "sequence": [
@@ -348,7 +377,7 @@
     {
       "take": "IMG_0113",
       "at": 20.3,
-      "seconds": 4.5,
+      "seconds": 5.0,
       "end_card": true
     }
   ]

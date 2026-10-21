@@ -24,8 +24,11 @@
 - `voice_bed` {gain} - a voice-over's own room noise between its lines. `music` {sound, start, end, off, duck}.
 - **Overlays:** `style` pov (hook) | question | thought | band | ticker | image (`behind`, `tag`, `plain`) | market (a finance-news
   coin card + chart drawing in: `symbol` `name` `price` `change` `tag` `updated` `call` `fine` `dump` `w`; one canvas drawing,
-  `render/ui/market_anim.js`, live in the editor and frame by frame in the export via `tools/market_frames.mjs`); timing
-  `blink: true` (on 72% of each second - a call to action), `start` / `end` | `from_words` / `to_words` (both take a list of alternatives - the recogniser's spelling first:
+  `render/ui/market_anim.js`, live in the editor and frame by frame in the export via `tools/market_frames.mjs`) | sticker (a picture that pops in on a hit or rains down:
+  `image` `motion` pop|rain `x` `y` `w` `rot` `count`; tie it to its sound with `sound` (+ `hold`) and it follows the hit;
+  `render/ui/sticker_anim.js` + `tools/sticker_frames.mjs`). Subtitles are drawn over every overlay (editor and export); timing
+  `blink: true` (on 72% of each second - a call to action), `fade_in` / `fade_out` (seconds of alpha - image / text overlays; a full-frame
+  `_assets/black.png` overlay with fade_in = a fade to black at the end), `start` / `end` | `from_words` / `to_words` (both take a list of alternatives - the recogniser's spelling first:
   it heard ריספרדל as "חיספרדל"; one word must match exactly) | `sound` (index - written back at each build). Thought: `motion`
   "horror", `x`, `w`, `y`, `size`, `hold`, `grow`, `overlap`.
 - **Film look** (`fx`): `grade_amount` + `grade`, `dark`, `vignette`, `grain`, `zoom`, `drift`, `flicker`, `ghost` +

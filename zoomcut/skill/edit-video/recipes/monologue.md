@@ -49,7 +49,11 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   Chrome at 1080x1920, saved to the project's `media/poster.jpg`. In the video: `"inserts": [{take: <last>, at: <just
   before the last piece ends>, seconds: 4.5}]` holds her last frame, a full-frame image overlay (`poster: true`) starts
   at the hold's timeline second (edit.json: the hold item's frame / 30), ticker and CTA end just before it, and
-  `music.lift` {db 8, fade 1.2} swells the harp once she stops.
+  `music.lift` {db 8, fade 1.2} swells the harp once she stops. The card starts ~0.35 s into the 5 s hold and fades in
+  0.7 s (his note: it came "a bit before"); the last 0.6 s fade to black.
+- **Most viewers never reach the end:** the same portrait also pops in mid-video as a small polaroid sticker
+  (`media/polaroid.png`, "האתר שלי באוויר!! / הלינק בביו") in the first gap between stickers, ~15 s in, on the side
+  away from the wall logo, ~5 s.
 
 ## Series "news" - anchor parody (curly red wig), news-1 2026-10-18, "almost perfect"
 - Set `_assets/news/studio.jpg` (world-map wall); anchor `person` scale 1.12, x 230, y 200; `cut.silence: false`.
@@ -90,6 +94,11 @@ script in the Reader (episode.json `"script"`), subtitles remake from it (only t
   counter under counting lines, money raining on the last big number. Rejected (`rejected/`): the Leonardo riser, coins,
   scratch. Each hit's ATTACK (not the file start) on the recogniser's start of the word - `start_offset` = -attack;
   hits ~5 dB under his voice, beds ~10 dB under. Mixkit (mixkit.co, free license) for real library sounds.
+- "Much stronger, pro": every money moment is a STACK - a real recorded ka-ching (Pixabay `px-*`) + a bass hit under
+  it (gain ~0.3 - the bass files are hot) + a sticker popping in beside his face (`stickers/kaching.png`, `counter.png`;
+  Leonardo on flat magenta, keyed by magenta-ness); the finale adds a boom, pouring coins and `bill.png` raining down.
+  Hits ~level with his voice in mean, beds a few dB under. Pixabay sounds: real Chrome (Cloudflare), press play on each
+  search result and catch the mp3 request (free license, no credit needed). He rejects AI-generated effects.
 - A soft last word under the voice threshold gets cut ("שלשום"): measure the tail and add a `cut.edges` drag.
 - His wall had a black hexagon panel touching his hair: no matte engine drops it (hair is as flat and dark) - left.
 - The coin line = a **Market panel** (`style: market`) timed by `from_words` "קחו למשל את" .. "ביום אחד"; `draw` 3.4

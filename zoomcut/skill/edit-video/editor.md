@@ -35,6 +35,18 @@ end must show at once, with the real footage there.
   = `--stems`. Layout, look, voice, music, keep desk, cut-out on/off, eye switch, text, filters are drawn live and saved.
 - **Sounds and music are layers like the video:** drag to move, drag ends (`trim_in`, `len`); music `start` / `end` /
   `off`. One Delete for whatever is picked (toolbar or the key) - never a ✕ on a block.
+- **Sound layers are lanes of their own** (his rule, 2026-10-21): each sound has `lane`, the project `sound_lanes`
+  (older projects: a lane per sound, in order). Deleting a sound leaves its layer ("Empty layer"); picking a layer's
+  name on the left turns the button into **Delete layer** (it goes with what is on it, the ones under it move up);
+  "+ Sound layer" adds one; a sound dragged up / down changes layer; a new sound goes on the first empty layer.
+  Anything pointing at a sound by number (thought bubble `sound`, film hit / blackout `sound`) is renumbered.
+- **Sound players remade while playing** (a sound changed → new stems) start at once - before, every sound went
+  quiet until the next Play.
+- **Media load from the other host name** (`127.0.0.1` ↔ `localhost`, server `mediaHost`, CORS on /media): a browser
+  allows 6 connections per host; the take videos + stems held all of them and saves (POST) hung silently - his edits
+  "did nothing". Keep heavy media off the page's own host.
+- **Testing on a copy:** name it `_something` (episodes/_x) - hidden from every project menu, still opens when asked
+  for by id; delete it after. Never write into a project he is working on (he wants one project per video).
 - **What still rebuilds** (a real job): Re-analyze, cut presets, matte engine, Make eye contact, Strong noise
   reduction, new footage, slow-motion ranges. Don't add new jobs for things the editor can draw.
 - Testing: `window.__zcClock` is the live clock; a puppeteer script logging every frame's shown box and its video's

@@ -964,6 +964,7 @@ def cap_y_of(ls, c):
 
 THOUGHT_V = 6  # bump when render/ui/thought_anim.js changes, so the thought clips are made again
 MARKET_V = 5  # the same for render/ui/market_anim.js
+STICKER_V = 1  # ... and render/ui/sticker_anim.js
 
 
 def text_layers(ls, caps, anims_too=True):
@@ -973,7 +974,7 @@ def text_layers(ls, caps, anims_too=True):
     c, sw, sh, cx, cy = bg_place(ls)
     pb = ls.cfg.get("plaque_bg", {"cx": 570, "top": 222, "w": 300, "size": 40})  # in the photo's own pixels
     pl = {"x": pb["cx"] * c - cx, "y": pb["top"] * c - cy, "w": pb["w"] * c, "size": pb["size"] * c}
-    anims, markets = [], []
+    anims, markets, stickers = [], [], []
     for i, o in enumerate(overlays(ls)):
         o["png"] = ls.work("text", f"ov{i}.png")
         if o.get("style") == "thought":  # animated (render/ui/thought_anim.js): a transparent clip, made once per text and timing
@@ -987,6 +988,16 @@ def text_layers(ls, caps, anims_too=True):
                               "start": float(o["start"]), "end": float(o["end"]), "motion": o.get("motion"), "x": o.get("x"), "w": o.get("w"),
                               "hold": o.get("hold", 0.35), "grow": o.get("grow", 1)})
             continue
+        if o.get("style") == "sticker":  # a picture that pops in / rains down (render/ui/sticker_anim.js): a full-frame clip
+            import hashlib
+            k = {f: v for f, v in o.items() if f not in ("png", "anim", "anim_y", "from_words", "to_words", "take", "hold", "sound")}
+            st = os.stat(o["image_abs"])
+            o["anim"] = ls.work("text", "anim", "s" + hashlib.md5(json.dumps([STICKER_V, k, st.st_mtime], ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:13] + ".mov")
+            o["anim_y"] = 0
+            ls.anims_used = getattr(ls, "anims_used", []) + [o["anim"]]
+            if not os.path.exists(o["anim"]) and anims_too:
+                stickers.append({"out": o["anim"][:-4] + f".{os.getpid()}.part.mov", "final": o["anim"], "o": k})
+            continue
         if o.get("style") == "market":  # a finance-news panel (render/ui/market_anim.js): a transparent clip, like a thought
             import hashlib
             k = {f: v for f, v in o.items() if f not in ("png", "anim", "anim_y", "from_words", "to_words", "take", "hold")}
@@ -997,6 +1008,15 @@ def text_layers(ls, caps, anims_too=True):
                 markets.append({"out": o["anim"][:-4] + f".{os.getpid()}.part.mov", "final": o["anim"], "o": k})
             continue
         spec["items"].append({"out": o["png"], "kind": "overlay", **{k: v for k, v in o.items() if k != "png"}})
+    if stickers:
+        ssp = ls.work("text", "anim", "sticker.json")
+        json.dump({"fps": FPS, "items": stickers}, open(ssp, "w", encoding="utf-8"), ensure_ascii=False)
+        log(f"  · drawing {len(stickers)} stickers")
+        r = subprocess.run(["node", os.path.join(ROOT, "tools", "sticker_frames.mjs"), ssp], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if r.returncode:
+            raise RuntimeError(r.stderr[-1500:])
+        for it in stickers:
+            os.replace(it["out"], it["final"])
     if markets:
         msp = ls.work("text", "anim", "market.json")
         json.dump({"fontsDir": os.path.join(ROOT, "fonts"), "fps": FPS, "items": markets}, open(msp, "w", encoding="utf-8"), ensure_ascii=False)
@@ -2243,7 +2263,7 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
         if o.get("anim"):  # an animated thought: its clip starts at its moment
             inputs += ["-itsoffset", f"{float(o['start']):.3f}", "-i", o["anim"]]
         else:
-            inputs += ["-loop", "1", "-i", o["png"]]
+            inputs += ["-loop", "1", "-framerate", str(FPS), "-i", o["png"]]
     ov_in = None
     if over:
         ov_in = first_ov + len(ovs)
@@ -2274,10 +2294,8 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
             fx_pass(ls, [*inputs, "-filter_complex", fc + ";[s]format=bgr24[pv]", "-map", "[pv]", "-frames:v", str(total)], pic_fx, total, w, h)
             inputs += ["-i", pic_fx]
         fc = f"[{sum(1 for a in inputs if a == '-i') - 1}:v]setpts=PTS-STARTPTS,format=yuv420p[s]"
-    fc += f";[3:v]fps={FPS},scale={w}:{h},format=rgba[c];[s][c]overlay=eof_action=pass[v0]"
-    if ov_in is not None:
-        fc += f";[{ov_in}:v]fps={FPS},scale={w}:{h},format=rgba[c2];[v0][c2]overlay=eof_action=pass[v0b]"
-    last = "v0b" if ov_in is not None else "v0"
+    fc += ";[s]null[v0]"  # (the subtitles go on last - over every sticker, panel and text)
+    last = "v0"
     if iv_in is not None:
         ivs, ivf = float(iv.get("seconds", 5)), float(iv.get("fade", 0))
         fade = f",format=yuva420p,fade=t=out:st={max(0.0, ivs - ivf):.3f}:d={ivf:.3f}:alpha=1" if ivf > 0 else ""
@@ -2289,6 +2307,9 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
         en = f"between(t,{a:.3f},{b:.3f})"
         if o.get("blink"):  # a call to action that blinks: on 72% of each second - the editor's blinkOn()
             en += f"*lt(mod(t-{a:.3f},1),0.72)"
+        fi, fo = float(o.get("fade_in") or 0), float(o.get("fade_out") or 0)  # seconds - the editor's fadeOp()
+        fd = ((",format=rgba" + (f",fade=t=in:st={a:.3f}:d={fi:.3f}:alpha=1" if fi else "")
+               + (f",fade=t=out:st={b - fo:.3f}:d={fo:.3f}:alpha=1" if fo else "")) if fi or fo else "")
         if o.get("behind"):  # already on the set, under him
             continue
         if o.get("style") == "ticker":
@@ -2316,13 +2337,19 @@ def compose(ls, items, total, caps, bg, person, mask, audio, preview, still_fram
                        f"scale=w='max(2,trunc({cw}*{S}/2)*2)':h='max(2,trunc({ch}*{S}/2)*2)':eval=frame[o{k}]"
                        f";[{last}][o{k}]overlay=x='{x0 + cw / 2:.1f}-w/2':y='{y0 + ch / 2:.1f}-h/2':enable='{en}'[v{k + 1}]")
             else:
-                fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='{en}'[v{k + 1}]"
+                fc += f";[{first_ov + k}:v]scale={w}:{h}{fd}[o{k}];[{last}][o{k}]overlay=enable='{en}'[v{k + 1}]"
         elif o.get("anim"):
             fc += (f";[{first_ov + k}:v]format=rgba,scale={w}:-2[o{k}];"
                    f"[{last}][o{k}]overlay=x=0:y={int(o['anim_y'] * f)}:eof_action=pass:enable='between(t,{a:.3f},{b:.3f})'[v{k + 1}]")
         else:
-            fc += f";[{first_ov + k}:v]scale={w}:{h}[o{k}];[{last}][o{k}]overlay=enable='{en}'[v{k + 1}]"
+            fc += f";[{first_ov + k}:v]scale={w}:{h}{fd}[o{k}];[{last}][o{k}]overlay=enable='{en}'[v{k + 1}]"
         last = f"v{k + 1}"
+    cap_en = f":enable='gte(t,{float(iv.get('seconds', 5)):.3f})'" if iv_in is not None else ""  # (not over the opening clip)
+    fc += f";[3:v]fps={FPS},scale={w}:{h},format=rgba[c];[{last}][c]overlay=eof_action=pass{cap_en}[vc]"
+    last = "vc"
+    if ov_in is not None:
+        fc += f";[{ov_in}:v]fps={FPS},scale={w}:{h},format=rgba[c2];[vc][c2]overlay=eof_action=pass{cap_en}[vc2]"
+        last = "vc2"
     fc += f";[{last}]setpts=PTS/{spd},fps={FPS},format=yuv420p[v];[4:a]atempo={spd}[a]"
     if still_frame is not None:
         out = ls.work("still.png")
