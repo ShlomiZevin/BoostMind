@@ -42,6 +42,14 @@ select option { background: var(--panel); color: var(--text); }
 .rolewrap { display: inline-flex; align-items: center; gap: 4px; }
 .rp { width: 56px; height: 40px; padding: 0 4px; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 10px; font: 600 13px Inter, sans-serif; font-variant-numeric: tabular-nums; }
 .rp::placeholder { color: var(--faint); }
+/* measuring a pace: a bar at the bottom, over the footer */
+.meas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;
+  padding: 16px; background: var(--panel); border-top: 2px solid var(--accent); direction: ltr; }
+.meas.on { display: flex; }
+.meas-who { font-weight: 800; font-size: 16px; }
+.meas-t { color: var(--dim); font-size: 15px; font-variant-numeric: tabular-nums; }
+.meas-b { display: flex; gap: 8px; }
+.meas.run .meas-t { color: var(--text); font-size: 22px; font-weight: 700; }
 .rp:focus { outline: none; border-color: var(--accent); }
 .script { max-width: 980px; margin: 0 auto; padding: 30vh 20px 60vh; direction: rtl; }
 .ln { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 12px 18px; margin: 4px 0; border-radius: 12px; border: 2px solid transparent; cursor: pointer; transition: opacity .15s, background .15s; }
@@ -118,11 +126,17 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <button class="btn ck" id="tomark" title="Back to the checkpoint and play (B)" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-4-4 4-4"/><path d="M5 10h9a5 5 0 0 1 0 10h-2"/></svg></button>
   <label class="pace" title="Reading pace in words per minute">Pace <input type="range" id="pace" min="120" max="500" step="5"><input type="number" id="paceN" min="60" max="600" step="5" title="Type the pace (words per minute) - Enter to apply"><span class="unit">wpm</span></label>
   <button class="btn lock" id="lock" title="Keep this pace for this script">🔓 Lock</button>
+  <button class="btn" id="measure" title="Measure a pace: pick a long line, press when you start saying it and when you finish - its speaker's pace is set from it">⏱ Measure</button>
   <button class="btn" id="cues" title="My lines + cues: only your lines, each with the line before it">Cues</button>
   <button class="btn" id="smaller" title="Smaller text">A−</button>
   <button class="btn" id="bigger" title="Bigger text">A+</button>
 </div>
 <div class="roles" id="roles"></div>
+<div class="meas" id="meas">
+  <div class="meas-who" id="measWho"></div>
+  <div class="meas-t" id="measT">Press Space (or Start) the moment you start saying the highlighted line</div>
+  <div class="meas-b"><button class="btn play" id="measGo">Start</button><button class="btn" id="measX">Cancel</button></div>
+</div>
 </header>
 <div class="script" id="script"><div class="empty">Pick a project - its script shows here.</div></div>
 <div class="foot" id="foot"></div>
@@ -293,6 +307,54 @@ function go(i) { cur = Math.max(0, Math.min(lines.length - 1, i)); save(); rende
 // pace = words per minute (a general measure, not "1x of something"); each script can lock its own
 const DEFAULT_WPM = 270;
 let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
+
+// measure a pace: the current line's speaker (or the general pace when the script has no characters) gets the pace
+// that makes this line last exactly as long as he took to say it - the same formula the player uses (lineSeconds)
+let meas = null;  // {i, t0, raf}
+function measureOpen() {
+  const l = lines[cur];
+  if (!l || l.dir) return;
+  if (playing) setPlay(false);
+  cancelCd();
+  meas = { i: cur, t0: 0 };
+  const words = l.text.split(/\s+/).filter(Boolean).length;
+  $('measWho').textContent = l.who ? `⏱ ${l.who}` : '⏱ Pace';
+  $('measT').textContent = `${words} words${words < 12 ? ' - a longer line measures better' : ''} · Space / Start the moment you start saying it`;
+  $('measGo').textContent = 'Start';
+  $('meas').classList.add('on'); $('meas').classList.remove('run');
+}
+function measureClose() { if (meas?.raf) cancelAnimationFrame(meas.raf); meas = null; $('meas').classList.remove('on', 'run'); }
+function measureStep() {
+  if (!meas) return;
+  if (!meas.t0) {  // start: the clock runs on screen
+    meas.t0 = performance.now();
+    $('meas').classList.add('run'); $('measGo').textContent = 'Stop';
+    const tick = () => { if (!meas?.t0) return; $('measT').textContent = `${((performance.now() - meas.t0) / 1000).toFixed(1)} s · Space / Stop when you finish`; meas.raf = requestAnimationFrame(tick); };
+    tick();
+    return;
+  }
+  const secs = (performance.now() - meas.t0) / 1000, l = lines[meas.i];
+  const words = l.text.split(/\s+/).filter(Boolean).length;
+  // lineSeconds backwards: your own lines get 10% + 0.15 s more, every line 0.3 s
+  const speak = (l.who === me ? (secs - 0.15) / 1.1 : secs) - 0.3;
+  const pace = Math.max(60, Math.min(600, Math.round((words * 60) / Math.max(0.3, speak) / 5) * 5));
+  if (l.who) paces[l.who] = pace; else { wpm = pace; showPace(); }
+  save(); render(); foot();
+  measureClose();
+  $('measWho').textContent = '';
+  const done = $('meas'); done.classList.add('on');
+  $('measT').textContent = `${l.who || 'Pace'}: ${pace} wpm  (${words} words in ${secs.toFixed(1)} s) - set`;
+  $('measGo').textContent = 'Again'; $('measGo').onclick = () => { $('measGo').onclick = measureStep; measureOpen(); };
+  setTimeout(() => { if (!meas) $('meas').classList.remove('on'); $('measGo').onclick = measureStep; }, 5000);
+}
+$('measure').onclick = measureOpen;
+$('measGo').onclick = measureStep;
+$('measX').onclick = measureClose;
+document.addEventListener('keydown', (e) => {  // (first: while measuring, Space / Enter are the stopwatch, not Play)
+  if (!meas) return;
+  if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); measureStep(); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); measureClose(); }
+}, true);
 
 function lineSeconds(l) {
   if (l.dir) return 0.8;
