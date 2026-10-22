@@ -1,123 +1,132 @@
-// An audio layer in the EDITOR, live: moving, trimming, muting, a gain or a fade shows up at once - no stems made
-// again. Like VideoTrack: each source gets two persistent <audio> copies (clock.js - the next item's copy waits
-// already seeked), following the Player's frame; every source is downloaded once into memory (ui/preload.ts).
-// Each copy -> its own gain (the item's gain x fade in x fade out, ramped so a cut never clicks) -> the layer's gain
-// (volume, muted / hidden) -> the speakers, through one shared Web Audio context (made on the first play).
-// A voice layer (props.voice) goes through the one-camera voice chain of render/ui/sound.ts on the way - the same code
-// the export renders it with (tools/voice_chain.mjs), at the same level: the prepared sources carry the mix's shared
-// gain, so the chain gets them back at the track's own level (x 1/gain) and hands them on at the shared gain (x gain).
-// A clip marked `soften` plays its prepared piece (urls['<layer>|<asset>@<item>'], softened like the export).
-// The source: urls['<layer>|<asset>'] = the studio's prepared file (cleaning x level x master, pipeline/layers_audio.py),
-// else urls['<asset>:audio'] (the take's own sound). The export mixes in python (layers_audio.py) - same gains.
+// An audio layer in the EDITOR, live: moving, trimming, muting, gain, fades, the cleaning, clarity, speech level, the
+// voice chain and every sound effect (filter, pitch, soften, room - render/ui/soundfx.ts) are heard at once; nothing
+// is rebuilt. The graph is render/ui/layergraph.ts - the export renders the very same one offline (tools/audio_layers.mjs).
+// Like VideoTrack: each source gets two persistent <audio> copies (clock.js - the next item's copy waits already
+// seeked), following the Player's frame; the sources are downloaded once into memory (ui/preload.ts).
+// Sources (pipeline/layers_audio.py): urls['<layer>|<asset>|<clean>'] = the take's sound cleaned only (off / mild /
+// strong / fft / nn), at the mix's shared gain; levels[...] = its speech-level gain. The Noise switch picks one - instant.
+// (An older project with only urls['<layer>|<asset>'] - cleaning x level x clarity baked in - plays that, as before.)
+// Levels: sources come at the shared gain g; each clip is brought back to the track's own level (x 1/g) before its
+// fx and the voice chain (they are level-dependent, the export runs them at that level) and the layer goes out x g.
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { partsOf, activeParts, nextUses, copiesOf, srcAt } from './clock.js';
 import { usePreloaded } from '../../ui/preload';
-import { buildVoice, applyVoice, VoiceNodes } from '../../ui/sound';
+import { loadFx } from '../../ui/soundfx';
+import { buildLayer, applyLayer, buildClip, applyClip, clipGainAt, LayerNodes, ClipNodes } from '../../ui/layergraph';
 import type { LayersProps } from '../Layers';
 
 let shared: AudioContext | null = null;
-const audioCtx = () => (shared ??= new AudioContext());
+let fxReady = false;
+const audioCtx = () => {
+  if (!shared) { shared = new AudioContext(); loadFx(shared).then(() => { fxReady = true; }); }
+  return shared;
+};
 
-/** An item's gain at frame f: its own gain x a short fade in (default 12 ms, so a cut never clicks) x its fade out (curve ^1.5). */
-export function itemGain(it: any, f: number, fps: number) {
-  const t = (f - it.from) / fps, d = it.dur / fps;
-  const fi = it.fade_in ?? 0.012, fo = it.fade_out ?? 0;
-  const a = fi > 0 ? Math.min(1, Math.max(0, t / fi)) : 1;
-  const b = fo > 0 ? Math.min(1, Math.max(0, (d - t) / fo)) ** 1.5 : 1;
-  return (it.gain ?? 1) * a * b;
-}
+/** An item's gain at frame f (layergraph.ts clipGainAt). */
+export const itemGain = (it: any, f: number, fps: number) => clipGainAt(it, (f - it.from) / fps, fps);
 
 export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer }) => {
   const f = useCurrentFrame();
   const fps = p.project.canvas.fps;
-  const soft = (it: any) => (it.soften && p.urls[`${layer.id}|${it.asset}@${it.id}`] ? `soft@${it.id}` : 'audio');
-  const urlOf = (key: string) => {  // "asset:variant" -> the file
-    const [asset, variant] = key.split(':');
-    if (variant?.startsWith('soft@')) return p.urls[`${layer.id}|${asset}@${variant.slice(5)}`] || '';
-    return p.urls[`${layer.id}|${asset}`] || p.urls[`${asset}:audio`] || '';
+  const clean = layer.props?.clean || 'off';
+  /** an asset's source for this layer: the cleaned-only file (new) or the older baked one */
+  const srcOf = (asset: string, c = clean) => {
+    const k = `${layer.id}|${asset}|${c}`;
+    if (p.urls[k]) return { url: p.urls[k], key: k, fresh: true };
+    return { url: p.urls[`${layer.id}|${asset}`] || p.urls[`${asset}:audio`] || '', key: '', fresh: false };
   };
-  const parts = useMemo(() => partsOf(layer.items, fps, soft), [layer.items, fps, p.urls]);
+  const parts = useMemo(() => partsOf(layer.items, fps, () => 'audio'), [layer.items, fps]);
   const copies = useMemo(() => copiesOf(parts), [parts]);
-  const [blobs] = usePreloaded(useMemo(() => [...new Set(Object.values(copies).map((k: string) => urlOf(k)).filter(Boolean))], [copies, p.urls]));
-  /** where in the copy's file the part is at frame f (a softened piece starts at the clip's own start) */
-  const at = (A: any, f: number) => srcAt(A, f, fps) - (A.key.includes(':soft@') ? A.in ?? 0 : 0);
+  // in memory: the current cleaning of every asset in use, and the plain / RNNoise ones (the usual switches)
+  const [blobs] = usePreloaded(useMemo(() => {
+    const assets = [...new Set(Object.values(copies).map((k: string) => k.split(':')[0]))];
+    return [...new Set(assets.flatMap((a) => [clean, 'off', 'nn'].map((c) => srcOf(a, c).url)).filter(Boolean))];
+  }, [copies, p.urls, clean]));
 
-  type Node = { el: HTMLAudioElement; gain?: GainNode; src: string };
+  type Node = { el: HTMLAudioElement; clip?: ClipNodes; src: string; item?: string };
   const nodes = useRef<Record<string, Node>>({});
-  const layerGain = useRef<GainNode | null>(null);
-  const chain = useRef<{ inG: GainNode; outG: GainNode; v: VoiceNodes } | null>(null);
+  const out = useRef<{ L: LayerNodes; gOut: GainNode; vol: GainNode } | null>(null);
   const live = useRef<any>({});
   const on = !layer.hidden && !layer.muted;
+  const levels = (p as any).levels || {};
   live.current = { parts, f, playing: !!(p as any).playing, rate: (p as any).playbackRate || 1, volume: on ? Math.max(0, layer.props?.volume ?? 1) : 0,
-    voice: layer.props?.voice || null, g: Math.pow(10, ((p as any).gainDb ?? 0) / 20) };
+    props: layer.props || {}, g: Math.pow(10, ((p as any).gainDb ?? 0) / 20) };
 
-  // the copies: made / pointed at their (in-memory) file as the items change; gone with the layer
+  // the copies: made / pointed at their (in-memory) file as the items or the cleaning change; gone with the layer
   useEffect(() => {
     for (const [copy, key] of Object.entries(copies)) {
-      const u = urlOf(key as string);
-      const src = blobs[u] || u;
+      const s = srcOf((key as string).split(':')[0]);
+      const src = blobs[s.url] || s.url;
       const n = nodes.current[copy];
       if (!n) { const el = new Audio(); el.preload = 'auto'; el.crossOrigin = 'anonymous'; el.src = src; nodes.current[copy] = { el, src }; }
-      else if (n.src !== src && src) { n.el.src = src; n.src = src; }
+      else if (n.src !== src && src) { const t = n.el.currentTime; n.el.src = src; n.src = src; n.el.currentTime = t; }  // (the Noise switch: same place, other file)
     }
     for (const copy of Object.keys(nodes.current)) if (!(copy in copies)) { nodes.current[copy].el.pause(); nodes.current[copy].el.src = ''; delete nodes.current[copy]; }
   }, [copies, blobs]);
-  useEffect(() => () => { for (const n of Object.values(nodes.current)) { n.el.pause(); n.el.src = ''; } nodes.current = {}; layerGain.current?.disconnect(); chain.current?.outG.disconnect(); }, []);
+  useEffect(() => () => { for (const n of Object.values(nodes.current)) { n.el.pause(); n.el.src = ''; } nodes.current = {}; out.current?.vol.disconnect(); }, []);
 
-  // into Web Audio once it may start (a browser starts sound only after a click - the first Play is one)
+  // into Web Audio once it may start (a browser starts sound only after a click - the first Play is one) and the
+  // effects' worklet is loaded
   const wire = () => {
     const ctx = audioCtx();
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-    if (!layerGain.current) {  // copies -> [x 1/gain -> voice chain -> x gain] -> volume -> speakers
-      layerGain.current = ctx.createGain(); layerGain.current.connect(ctx.destination);
-      const inG = ctx.createGain(), outG = ctx.createGain();
-      chain.current = { inG, outG, v: buildVoice(ctx, inG, outG) };
-      outG.connect(layerGain.current);
-      (window as any).__atTap?.(ctx, layer.id, layerGain.current);  // (tests: listen to one layer)
+    if (!fxReady) return null;
+    if (!out.current) {
+      const vol = ctx.createGain(), gOut = ctx.createGain();
+      gOut.connect(vol); vol.connect(ctx.destination);
+      out.current = { L: buildLayer(ctx, gOut), gOut, vol };
+      (window as any).__atTap?.(ctx, layer.id, vol);  // (tests: listen to one layer)
     }
     for (const n of Object.values(nodes.current)) {
-      if (n.gain) continue;
-      try { const g = ctx.createGain(); g.gain.value = 0; ctx.createMediaElementSource(n.el).connect(g); g.connect(chain.current!.inG); n.gain = g; } catch {}
+      if (n.clip) continue;
+      try { const c = buildClip(ctx, out.current.L); ctx.createMediaElementSource(n.el).connect(c.gain); n.clip = c; } catch {}
     }
     return ctx;
   };
 
-  useEffect(() => {
-    const { parts, f, playing, rate, volume, voice, g } = live.current;
+  const sync = () => {
+    const { parts, f, playing, rate, volume, props, g } = live.current;
     const act = activeParts(parts, f), waits = nextUses(parts, f);
     const ctx = playing || shared ? wire() : null;
-    if (ctx && layerGain.current) layerGain.current.gain.setTargetAtTime(volume, ctx.currentTime, 0.01);
-    const c = chain.current, sig = JSON.stringify(voice) + g;
-    if (ctx && c && (c as any).sig !== sig) {  // (only when the settings change: each change glides)
-      (c as any).sig = sig;
-      c.inG.gain.setTargetAtTime(voice ? 1 / g : 1, ctx.currentTime, 0.01);
-      c.outG.gain.setTargetAtTime(voice ? g : 1, ctx.currentTime, 0.01);
-      applyVoice(ctx, c.v, voice || { bypass: true });
+    const o = out.current;
+    const anyFresh = Object.values(copies).some((k: any) => srcOf(k.split(':')[0]).fresh);
+    if (ctx && o) {
+      o.vol.gain.setTargetAtTime(volume, ctx.currentTime, 0.01);
+      o.gOut.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
+      // clarity is live only over the cleaned-only sources (the older baked ones carry it already)
+      applyLayer(o.L, { ...props, presence: anyFresh ? props.presence : 0 });
     }
     for (const [copy, n] of Object.entries(nodes.current)) {
       const A = act[copy], el = n.el;
       if (A && playing) {
-        const want = at(A, f);
+        const want = srcAt(A, f, fps);
         const r = rate * (A.rate ?? 1);
         if (el.playbackRate !== r) el.playbackRate = r;
-        const keep = (A.rate ?? 1) === 1;  // a slowed piece sounds slower AND lower, as lesson.py made it; the project speed keeps the pitch
+        const keep = (A.rate ?? 1) === 1;  // a sped-up / slowed clip is a tape (pitch follows); the project speed keeps the pitch
         if ((el as any).preservesPitch !== keep) (el as any).preservesPitch = keep;
         if (Math.abs(el.currentTime - want) > 0.08) el.currentTime = want;  // (sound drifts are heard sooner than picture)
         if (el.paused) el.play().catch(() => {});
-        if (ctx && n.gain) n.gain.gain.setTargetAtTime(itemGain(A, f, fps), ctx.currentTime, 0.006);
+        if (ctx && n.clip) {
+          const s = srcOf(A.asset);
+          const lv = s.fresh && props.level === 'speech' ? levels[s.key] ?? 1 : 1;
+          applyClip(n.clip, A);
+          n.clip.gain.gain.setTargetAtTime(itemGain(A, f, fps) * lv / g, ctx.currentTime, 0.006);
+        }
       } else {
-        if (ctx && n.gain) n.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.004);  // (out, without a click)
+        if (ctx && n.clip) n.clip.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.004);  // (out, without a click)
         if (!el.paused) el.pause();
         const w = A || waits[copy];  // paused: waits where it will play
-        const to = A ? at(A, f) : w ? at(w, w.from) : 0;
+        if (w && n.clip) applyClip(n.clip, w);  // (its fx ready before it starts)
+        const to = A ? srcAt(A, f, fps) : w ? srcAt(w, w.from, fps) : 0;
         if (w && !el.seeking && Math.abs(el.currentTime - to) > 0.04) el.currentTime = to;
       }
     }
     const dbg = (window as any).__atDebug;  // (the test bench: is each item at this frame heard, in time?)
     if (dbg) dbg[layer.id] = Object.entries(act).map(([copy, A]: any) => { const n = nodes.current[copy];
-      return { copy, item: A.id, want: +at(A, f).toFixed(3), at: n ? +n.el.currentTime.toFixed(3) : -1, playing: n ? !n.el.paused : false,
-        gain: n?.gain ? +n.gain.gain.value.toFixed(3) : -1, ready: n ? n.el.readyState : -1 }; });
-  });
+      return { copy, item: A.id, want: +srcAt(A, f, fps).toFixed(3), at: n ? +n.el.currentTime.toFixed(3) : -1, playing: n ? !n.el.paused : false,
+        gain: n?.clip ? +n.clip.gain.gain.value.toFixed(3) : -1, ready: n ? n.el.readyState : -1 }; });
+  };
+  useEffect(sync);
   return null;
 };

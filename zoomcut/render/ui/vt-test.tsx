@@ -37,7 +37,7 @@ function Bench() {
     for (const [aid, a] of Object.entries<any>(d.project.assets)) if (a.audio && !out[`${aid}:audio`]) out[`${aid}:audio`] = `${host}/pm/${id}?p=${encodeURIComponent(a.audio)}`;
     return out;
   }, [d]);
-  const props = useMemo(() => d && { project: d.project, urls, playing, playbackRate: 1, gainDb: d.gainDb }, [d, urls, playing]);
+  const props = useMemo(() => d && { project: d.project, urls, playing, playbackRate: 1, gainDb: d.gainDb, levels: d.levels }, [d, urls, playing]);
   if (!props) return null;
   return <Player ref={player} component={Comp} inputProps={props} durationInFrames={d.project.duration} fps={d.project.canvas.fps}
     compositionWidth={d.project.canvas.w} compositionHeight={d.project.canvas.h} style={{ width: 540, height: 960 }} />;

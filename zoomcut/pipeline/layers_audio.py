@@ -16,7 +16,7 @@ import os
 
 import numpy as np
 
-from . import audio, voice_chain
+from . import audio, audio_render, voice_chain
 from .common import FFMPEG, SR, load_json, log, run, save_json
 from .media import read_wav
 
@@ -141,6 +141,9 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
     n = int(round(total * SR))
     srcs = {}
     tracks = {l["id"]: track(ep, project, l, n, srcs.setdefault(l["id"], {})) for l in project["layers"] if l["kind"] == "audio"}
+    rendered = audio_render.render(ep, project, n)  # the editor's own graph (clip fx, clarity, voice chain): what he heard
+    if rendered:
+        tracks.update(rendered)
     buf = np.zeros(n, dtype=np.float32)
     for l in project["layers"]:
         if _audible(l):
