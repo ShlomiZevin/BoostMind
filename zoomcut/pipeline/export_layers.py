@@ -34,7 +34,25 @@ from .layer_geometry import backdrop_box, fit_box, image_box
 
 VIDEO_KINDS = {"video", "backdrop"}
 SKIP_KINDS = {"audio", "effect"}
-ANIMATED_STYLES = {"ticker"}  # text styles that move every frame by themselves (render/src/layers/styles.tsx)
+def animated_styles():
+    """The text / subtitle styles that move every frame by themselves - read from the registry (`animated: true` in
+    render/src/layers/styles*.tsx, tools/animated_styles.mjs), cached until a style file changes."""
+    import glob
+    files = sorted(glob.glob(os.path.join(ROOT, "render", "src", "layers", "*.tsx")))
+    stamp = ";".join(f"{os.path.basename(f)}:{os.path.getmtime(f):.0f}" for f in files)
+    cache = os.path.join(ROOT, "render", "node_modules", ".zc-animated-styles.json")
+    try:
+        c = json.load(open(cache, encoding="utf-8"))
+        if c.get("stamp") == stamp:
+            return set(c["names"])
+    except (OSError, ValueError):
+        pass
+    r = subprocess.run(["node", os.path.join(ROOT, "tools", "animated_styles.mjs")], capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
+    if r.returncode:
+        raise RuntimeError("could not read the style registry: " + r.stderr[-600:])
+    names = json.loads(r.stdout)
+    json.dump({"stamp": stamp, "names": names}, open(cache, "w", encoding="utf-8"))
+    return set(names)
 REMOTION = os.path.join(ROOT, "render", "node_modules", "@remotion", "cli", "remotion-cli.js")
 
 
@@ -54,7 +72,7 @@ def stack_runs(project):
 # ---- 1. graphics ---------------------------------------------------------------------------------------------------
 def changes(layers, fps, total):
     """The frames where something in these layers looks different from the frame before."""
-    keys = {0}
+    keys, animated = {0}, animated_styles()
     for l in layers:
         props = l.get("props") or {}
         for it in l.get("items", []):
@@ -70,7 +88,7 @@ def changes(layers, fps, total):
             for k in (it.get("anim") or {}).values():
                 if k:
                     keys.update(range(a + int(k[0][0] * fps), a + int(math.ceil(k[-1][0] * fps)) + 1))
-            if (it.get("style") or props.get("style")) in ANIMATED_STYLES:
+            if (it.get("style") or props.get("style")) in animated:
                 keys.update(range(a, z))
             if "{clock}" in str(it.get("text", "")):
                 keys.update(range(a, z, fps))
