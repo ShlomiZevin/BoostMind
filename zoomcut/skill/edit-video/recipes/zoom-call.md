@@ -96,6 +96,19 @@ episode.json (characters, title, input_dir, overlays, per-character `look` / `fr
   zoom 0.6, pan x 0.35 - the ship and the whisky at a natural size; it never shrinks past covering the tile). Show him
   A / B / C stills of the tile before choosing.
 
+**More he caught on the export (gilad-joins round 3, 2026-10-22):**
+- **Never a take's first 3 s / last 2.5 s in a tile** - that's him starting / stopping the phone recording (Gilad
+  reaching for the phone showed at 2:31). Listening footage and the lead-in / run-on around a line both keep out of
+  them (zoomcut.py idle_pools, plan.py `TAKE_HEAD` / `TAKE_TAIL`). After a build, list tile segments that touch a take's
+  start / end: only spoken lines may.
+- **An aside's `gain` is relative to the other voices** - after the level fix, 0.2 made Ronit's "נורא קר פה בזום"
+  inaudible; 0.65 and `show` = her whole line (1.7 s) is what he wanted ("put her for a bit more").
+- **Same proportion in every tile:** zooming the photo out works on the big tile only - a thumbnail's view is almost the
+  whole box, so the photo can't shrink without empty edges. The fix is a WIDER photo of the same room (more field of
+  view): `node scripts/outpaint-image.mjs` (the photo at 60% on a transparent canvas → gpt-image fills the rest; it
+  repaints the room wider - check the ship / whisky are still there), then zoom ~1.45 + pan to frame it. Gilad:
+  `gilad-office-wide.jpg`, x 0, y -0.35, zoom 1.45. Check stills of the big tile AND a thumbnail.
+
 **The end poster** (gilad-joins, 2026-10-22 - his final call after two tries: a small card over the call was wrong):
 a 1080x1920 picture on **black** - the logo, the hook ("מחפשים עובדים!"), a strip of the real site, the URL big and clear
 (techytech.web.app). Made in HTML and captured with a **full-page** headless screenshot (a clip / element capture at

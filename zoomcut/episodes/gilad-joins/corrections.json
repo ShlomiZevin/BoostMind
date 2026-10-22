@@ -6,8 +6,8 @@
       "out": 6.3,
       "aside": true,
       "at": 2.3,
-      "gain": 0.2,
-      "show": 0.9
+      "gain": 0.65,
+      "show": 1.7
     },
     "3": {
       "shift": -1

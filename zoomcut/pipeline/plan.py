@@ -218,6 +218,7 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
 
     # ---- 3. tile footage -----------------------------------------------------------
     tiles = {}
+    durs = {k: v.get("duration", 1e9) for k, v in clips.items()}
     for c in ep.characters:
         cid = c["id"]
         end_c = removed.get(cid, total)
@@ -227,7 +228,7 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
         for b in speaking + [None]:
             s0 = min(b["start"], end_c) if b else end_c
             if s0 - cursor > 1e-3:
-                segs += _listening(cursor, s0, last, b, quiet, pool)
+                segs += _listening(cursor, s0, last, b, quiet, pool, durs)
             if b and b["start"] < end_c:
                 s1 = min(b["end_t"], end_c)
                 segs.append({"from": f(b["start"]), "dur": max(1, f(s1) - f(b["start"])), "clip": b["clip"], "at": round(b["in"], 3)})
@@ -306,7 +307,10 @@ def _quiet_span(quiet, clip, t, direction):
     return None
 
 
-def _listening(t0, t1, last, nxt, quiet, pool):
+TAKE_HEAD, TAKE_TAIL = 3.0, 2.5  # a take's first / last seconds = him starting / stopping the phone recording
+
+
+def _listening(t0, t1, last, nxt, quiet, pool, durs=None):
     """Footage for a person while someone else talks, timeline t0..t1. Their tile keeps running on
     from where their last line ended and arrives exactly where their next line starts, so neither the
     end nor the start of a line ever jumps; if those are different moments of the take, they meet in
@@ -319,6 +323,12 @@ def _listening(t0, t1, last, nxt, quiet, pool):
     if nxt is not None:
         span = _quiet_span(quiet, nxt["clip"], nxt["in"], -1)
         before = (nxt["in"] - max(span[0], 0.0)) if span else 0.0
+    # never into a take's first / last seconds (him starting / stopping the recording showed in a tile)
+    durs = durs or {}
+    if nxt is not None:
+        before = max(0.0, min(before, nxt["in"] - TAKE_HEAD))
+    if last is not None:
+        after = max(0.0, min(after, durs.get(last["clip"], 1e9) - TAKE_TAIL - last["out"]))
     if last is not None and nxt is not None and last["clip"] == nxt["clip"] and abs((nxt["in"] - last["out"]) - d) < 0.08:
         return [{"from": f(t0), "dur": max(1, f(t1) - f(t0)), "clip": last["clip"], "at": round(last["out"], 3)}]
     if d < 1.2:  # too short for two pieces: arrive seamlessly into the next line

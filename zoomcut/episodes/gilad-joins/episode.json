@@ -89,10 +89,10 @@
       "look": {},
       "frame": {},
       "bg": {
-        "image": "gilad-wide.jpg",
-        "x": 0.35,
-        "y": 0,
-        "zoom": 0.6
+        "image": "gilad-office-wide.jpg",
+        "x": 0,
+        "y": -0.35,
+        "zoom": 1.45
       }
     }
   ],
@@ -155,5 +155,5 @@
     "media/techytech-card.png",
     "media/techytech-poster.png"
   ],
-  "speed": 1.2
+  "speed": 2
 }

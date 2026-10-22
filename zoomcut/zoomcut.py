@@ -280,7 +280,9 @@ def idle_pools(ep, clips, words, used):
         for kind in ("listen", "lines"):
             for c in sorted([c for c in clips if c["char"] == ch["id"] and c["kind"] == kind], key=lambda c: (c.get("order", 0), c["rel"])):
                 busy = sorted([(w["s"] - 0.35, w["e"] + 0.35) for w in words[c["id"]]] + used[c["id"]])
-                t, dur = 0.3, c["duration"] - 0.3
+                # never a take's first 3 s / last 2.5 s: that's him starting / stopping the phone recording
+                # (gilad-joins: Gilad reaching for the phone showed in a listening tile at the end)
+                t, dur = 3.0, c["duration"] - 2.5
                 min_len = 0.8 if kind == "listen" else 1.8
                 shrink = 0.0 if kind == "listen" else 0.25
                 for a, b in busy + [(dur, dur)]:
