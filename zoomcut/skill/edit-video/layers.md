@@ -66,6 +66,9 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   asset's `framing`; `head` = where the head top lands, fraction of the box height, default 0.09) | `contain`;
   `zoom` (>= 1 for cover/face), `x` / `y` (nudge, fraction of the box), `look {saturate, contrast, brightness}`,
   `radius` (rounded corners), `cutout` (true: the person on the backdrop - needs the asset's `matte` / `fg`).
+- Cut-out, live: `matte_cut` 0..254 (edge cleanup), `keep {below}` (the real desk below that fraction of the take's
+  height stays in front; asset `keep_static` = the desk objects), `side_ramp` (the sides fade when the picture is
+  narrower than the frame - a one-camera person, never grid tiles). The asset's `matte` is the raw matte.
 - `eyes` (true / false; default true when the take has it): **eye contact** - the corrected copy of the same frames,
   switched live. The asset's `eyes_src` / `eyes` / `eyes_fg` / `eyes_engine` (nvidia | v6 | capcut) are made by the
   builder action `{action: "eyes", mode: "nvidia" | "neural", strength, dy, nudge, assets: [...], files: {asset:
@@ -81,7 +84,8 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 
 ### image - a picture
 - item: `asset`, `box {x, y, w, h?, anchor?}` (h from the picture's proportions when missing; `anchor: "c"` =
-  x / y are its centre), `radius`, fades, `anim`.
+  x / y are its centre), `radius`, fades, `anim`. Live looks (item or layer): `blur` (px), `brightness`, `saturate` - a set
+  behind a person: blur 2.2, brightness 0.96, saturate 0.95; drag it on the video to pan.
 
 ### text - words on the video
 - item: `text` (`\n` = new line; `{clock}` = a running mm:ss from `clock_start` s), `box {x, y, w?, anchor}`.
@@ -113,9 +117,11 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   bright | hall | stage | raw, boost, lowcut, warmth, box, presence, deess, comp, room, roomSize, pa}`
   (render/ui/sound.ts) - live in the editor, the same code renders it in the export (pipeline/voice_chain.py). An
   anchor with AC / fan hum: `voice.preset "news"` + `clean "nn"` (he called it perfect).
-- `fx` (item or layer) - live sound effects: `{filter: phone | speaker | thought | echo | ..., echo, pitch (semitones,
-  timing kept), room, roomSize, level}`; item `rate` = tape speed (pitch follows); item `duck: dB` dips the voice while
-  it plays; layer `lift {db, fade, of}` rises after the last item of `of` ends (music up at the end card).
+- `fx` (item or layer) - live sound effects: `{filter: phone | speakerphone | speaker | thought | echo | muffled,
+  echo 0..2, pitch (semitones, timing kept), room 0..1, roomSize (s), level (dB)}`; item `rate` = tape speed (pitch follows); item `duck: dB` dips the voice while
+  it plays (`duck_layers` [ids] to dip others); layer `lift {db, fade, of (default "subs"), after}` rises after the last
+  item of `of` ends (the music up at the end card).
+- **Builders write raw content + these fields; they never bake a setting into a file.**
 - **All of it is live** in the editor and rendered by the same graph in the export (render/ui/layergraph.ts,
   tools/audio_layers.mjs). Only a NEW sound file is prepared (cleaning variants, levels) - in the background.
 - One loudness gain for the whole video to -14 LUFS, a limiter for the rare peak - the level never rides.
