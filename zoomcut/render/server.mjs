@@ -949,7 +949,7 @@ const projectView = (q, id) => {
   const stems = Object.keys(sj.stems || {}).map((layer) => ({ layer, src: url(`work/public/layers/stems/${layer}.wav`) }));
   // each audio layer's sources as the editor plays them item by item: "<layer>|<asset>" (filtered, evened out, shared gain)
   for (const [k, s] of Object.entries(sj.sources || {})) urls[k] = url(`work/public/layers/src/${s.file}`);
-  return { project, urls, stems, gainDb: sj.gain_db ?? 0,
+  return { project, urls, stems, gainDb: sj.gain_db ?? 0, levels: sj.levels || {},  // (levels: '<layer>|<asset>|<clean>' -> speech-level gain, applied live)
     output: exportDone(id) ? `/media/${id}/out` : null, outputStale: exportStale(id), job: pub(jobs[id]) };
 };
 app.get('/api/p/:id', (q, res) => {
@@ -958,7 +958,9 @@ app.get('/api/p/:id', (q, res) => {
   res.json(v);
 });
 // sound has to be made again when an audio layer's items or filters change (volume / mute / hide are live)
-const LIVE_SOUND = new Set(['volume']);  // (a committed voice-chain change re-measures the shared gain with the chain in)
+// live in the editor (no re-make): volume, the cleaning (every variant is made up front), clarity, the speech level.
+// (a committed voice-chain change still re-measures the shared gain with the chain in)
+const LIVE_SOUND = new Set(['volume', 'clean', 'presence', 'level']);
 const touchesSound = (before, ops) => ops.some((op) => {
   const l = (before.layers || []).find((x) => x.id === (op.layer || op.id || op.layer?.id)) || (op.op === 'layer.add' ? op.layer : null);
   if (!l || l.kind !== 'audio') return op.op === 'asset.add' && false;

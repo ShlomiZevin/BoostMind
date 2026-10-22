@@ -43,6 +43,36 @@ def _filtered(ep, path, props):
     return out
 
 
+CLEAN_VARIANTS = ("off", "mild", "strong", "fft", "nn")  # the Noise switch's choices made up front: switching plays another file, at once
+
+
+def layer_sources(ep, project, layer, clean=None):
+    """({asset id: samples}, {asset id: level gain}) - each source of an audio layer through ONLY its cleaning (`clean`,
+    or the layer's own): the editor applies clarity, the speech level, gains and fades live on top. The level gain is
+    each source's speech level evened out (when the layer asks), measured on the pieces it uses."""
+    fps = project["canvas"]["fps"]
+    props = dict(layer.get("props") or {})
+    if clean is not None:
+        props["clean"] = clean
+    props["presence"] = 0  # (clarity is live)
+    items = [it for it in layer.get("items", []) if not it.get("hidden")]
+    cache, levels = {}, {}
+    for it in items:
+        aid = it.get("asset") or props.get("asset")
+        if aid not in cache:
+            cache[aid], _ = read_wav(_filtered(ep, _src(ep, project, aid), props))
+    for aid, x in cache.items():
+        pieces = [x[int(it.get("in", 0) * SR):int((it.get("in", 0) + it["dur"] / fps) * SR)] for it in items if (it.get("asset") or props.get("asset")) == aid]
+        whole = np.concatenate(pieces) if pieces else x
+        levels[aid] = audio.speech_gain(whole if len(whole) > SR // 2 else x)
+    return cache, levels
+
+
+def is_voice(project, layer):
+    """A layer of takes' sound (a person speaking) - the one the Noise switch is for."""
+    return any(project["assets"].get(it.get("asset"), {}).get("kind") == "video" for it in layer.get("items", []))
+
+
 def track(ep, project, layer, n, sources=None):
     """One audio layer as a mono float track of n samples (before its volume). sources: a dict that gets each source
     of the layer as the editor should play it - filtered, evened out ({asset id: samples})."""
@@ -149,7 +179,26 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
                     audio._write_mono(p, y)
                     open(p + ".sig", "w").write(sig)
                 sources[f"{lid}|{aid}"] = {"file": name, "v": int(os.path.getmtime(p) * 1000)}
-        save_json(os.path.join(stems_dir, "stems.json"), {"gain_db": round(gain_db, 2), "stems": index, "sources": sources})
+        # a voice's Noise switch: every cleaning made up front ("<layer>|<asset>|<clean>") - switching swaps the file.
+        # These are cleaning ONLY, at the shared gain: clarity (presence), the speech level (levels[key]), gains, fades
+        # and the voice chain are applied live by the editor.
+        levels = {}
+        for l in project["layers"]:
+            if l["kind"] != "audio" or not is_voice(project, l):
+                continue
+            for v in sorted(set(CLEAN_VARIANTS) | {(l.get("props") or {}).get("clean") or "off"}):
+                srcs_v, lv = layer_sources(ep, project, l, v)
+                for aid, x in srcs_v.items():
+                    levels[f"{l['id']}|{aid}|{v}"] = round(float(lv[aid]), 5)  # x this live when the layer's level is "speech"
+                    name = f"{l['id']}__{aid}__{v}".replace("/", "_") + ".wav"
+                    p = os.path.join(sdir, name)
+                    y = (x * g).astype(np.float32)
+                    sig = hashlib.sha1(np.round(y[::997] * 1e4).tobytes()).hexdigest()[:12]
+                    if not (os.path.exists(p) and os.path.exists(p + ".sig") and open(p + ".sig").read() == sig):
+                        audio._write_mono(p, y)
+                        open(p + ".sig", "w").write(sig)
+                    sources[f"{l['id']}|{aid}|{v}"] = {"file": name, "v": int(os.path.getmtime(p) * 1000)}
+        save_json(os.path.join(stems_dir, "stems.json"), {"gain_db": round(gain_db, 2), "stems": index, "sources": sources, "levels": levels})
     log(f"  · sound mixed ({total:.1f}s, {len(tracks)} audio layers, {gain_db:+.1f} dB to -14 LUFS)")
     return out_wav
 
