@@ -18,6 +18,16 @@
   folder from Downloads, optional settings from an earlier project; POST /api/new).
 - One project in every tool (editor, Reader, Karaoke) - localStorage/sessionStorage "zc-ep", studio/bar.js StudioProject.
   The Reader shows the project's script (episode.json `"script"` → scripts/<id>.txt); Paste saves into it.
+- **The Reader (his teleprompter while recording):** a pace (wpm) for the script and one per character (the box beside
+  each name). **⏱ beside a character** = measure his pace: it picks a fair line of his (closest to ~18 words), Start when
+  he starts saying it, Stop when he finishes → "<name>: N wpm" → **Save / Measure again / Cancel** (Save = that
+  character's pace in this script; nothing changes before Save; Escape cancels). The pace is the player's own formula
+  backwards (`lineSeconds`: 0.3 s a line, his own lines +10% +0.15 s). A script without characters: one ⏱ by the line
+  count, for the pace. **Stop resets the line** (its bar empty at once) - he always records a line whole from its start.
+  **Checkpoint** (⚑ / M, or a line's bookmark) and **Home** = to the checkpoint (Home again = the start). Lines that
+  start with `#` are notes, hidden (e.g. "# על המסך – ..." for what shows on screen); `[..]` are directions.
+- **Speed** (Video card, both editors): the presets 1-1.3× and his own exact number in the box beside them (0.5-2×,
+  Enter) - plays live, Export makes the file at it.
 - Project media (Media tab → Logos & pictures): episode.json `"media"`, "+ Add file" → episodes/<id>/media/,
   "Put on video" = a plain image overlay.
 - Studio rail → **Jobs**: what runs now (builds / exports with progress and step, sends by email / Telegram) and the

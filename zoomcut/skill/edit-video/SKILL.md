@@ -7,7 +7,8 @@ argument-hint: "[footage folder in Downloads] [what the sketch is]"
 # /edit-video - Sketch Studio
 
 Shlomi runs a 40K-follower Hebrew comedy TikTok. He records every character himself (wigs, face filters), drops the
-files in a folder in `C:\Users\shazbak\Downloads`, and wants a finished vertical 1080x1920 MP4. **You make the first
+files in a folder in `C:\Users\shazbak\Downloads` - from the iPhone through **the Drop** they arrive in
+`Downloads\drop\<project>` by themselves - and wants a finished vertical 1080x1920 MP4. **You make the first
 edit; he fine-tunes it in the editor (http://localhost:4747) and exports.** Everything is in
 `c:\workspace\BoostMind\zoomcut`; it runs locally (no per-edit API cost).
 
@@ -20,7 +21,10 @@ the footage; never name things after a series in the UI.
 ## The workflow (every video)
 1. **Start the studio** if :4747 is down: `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background).
    Never restart it while a job runs (check the Jobs panel / `GET /api/ep/<id>/job` first).
-2. **Look before you plan:** list the folder with PowerShell (bash mangles Hebrew names); ffprobe each file; a contact
+2. **Find the footage:** the folder he names, or `Downloads\drop\<project>` (his iPhone uploads - the studio pulls
+   them from the cloud each minute; the Jobs panel shows each "Drop"). He uploads at
+   https://drop-463727469066.me-west1.run.app (first time: "+ New video" → From the iPhone → QR). See `editor.md`.
+   **Look before you plan:** list the folder with PowerShell (bash mangles Hebrew names); ffprobe each file; a contact
    sheet of frames (cv2 - Hebrew paths via `np.fromfile` / `cv2.imencode().tofile`); transcribe (faster-whisper via
    `pipeline.transcribe._get_model`). Know the footage second by second before you place anything.
 3. **Pick the recipe** (table below); ask only if it is truly unclear. Read that recipe file.
