@@ -37,6 +37,17 @@ any AI code tool can work with and spill things into it without changing it. The
   the solo builder (`pipeline/to_layers_solo.py`). The older screens are not used any more. Deleting project.json
   brings a project back to its older screen (its episode.json / captions / corrections are never touched).
 
+## EVERYTHING IS LIVE - NOTHING REBUILDS (his words, 2026-10-22: "as in CapCut exactly")
+"When I'm changing something, it should be live." Every change in the editor shows at once - a filter, a voice
+setting, noise cleaning, pitch, speed, the set, the cut-out's edge, a text, a drag of any clip. The only real jobs are
+new content: **Analyze** (new footage) and **Make eye contact**; the cut-out engine (fast / quality / hybrid) is chosen
+at Analyze. A builder that must re-plan after a drag does it quietly in the background - the edit already shows.
+If you find something that makes him wait, it's a tool bug: fix it generically (a live prop + the same math in the
+export), never "press Re-analyze".
+
+There is ONE kind of project: layers. Never talk about "Zoom videos" vs "regular videos" - a grid of people is just
+layers a builder made; the editor and the export don't know or care which builder.
+
 ## READ FIRST - how we work (his rules; each one cost him a round)
 
 1. **No templates. Only projects.** A new video is a new project. Learn from earlier projects and copy their look and

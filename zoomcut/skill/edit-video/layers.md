@@ -113,6 +113,11 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   bright | hall | stage | raw, boost, lowcut, warmth, box, presence, deess, comp, room, roomSize, pa}`
   (render/ui/sound.ts) - live in the editor, the same code renders it in the export (pipeline/voice_chain.py). An
   anchor with AC / fan hum: `voice.preset "news"` + `clean "nn"` (he called it perfect).
+- `fx` (item or layer) - live sound effects: `{filter: phone | speaker | thought | echo | ..., echo, pitch (semitones,
+  timing kept), room, roomSize, level}`; item `rate` = tape speed (pitch follows); item `duck: dB` dips the voice while
+  it plays; layer `lift {db, fade, of}` rises after the last item of `of` ends (music up at the end card).
+- **All of it is live** in the editor and rendered by the same graph in the export (render/ui/layergraph.ts,
+  tools/audio_layers.mjs). Only a NEW sound file is prepared (cleaning variants, levels) - in the background.
 - One loudness gain for the whole video to -14 LUFS, a limiter for the rare peak - the level never rides.
 
 ### effect - film effects on everything below
@@ -128,6 +133,15 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 ### Animation
 `anim: {"opacity": [[t, v], ...], "scale": [...], "x": [...], "y": [...]}` - t = seconds from the item's start,
 linear between keys, held at the ends. Text / image / shape items.
+
+### link and ripple - editing like one piece
+- `link` (item): items with the same link change together when one is dragged - a line's voice, its subtitles and the
+  speaker's picture; a cut piece's picture, voice and subtitles.
+- `edit` (project): `{"ripple": true}` = a continuous timeline - dragging an edge closes up / makes room after it;
+  `"ripple_move": true` = moving a piece moves everything after it too (lines that follow each other).
+- An item a builder made (`ref` on a builder layer): the drag shows at once; the builder hears about it in the
+  background (`POST /api/p/<id>/build {action: "edit", layer, item, side, frames}` - render/actions/edit.mjs) and its
+  next version replaces the live guess when it lands. Items it has nothing to say about are saved as his.
 
 ### pin - when the video's length changes
 `"pin": "end"` - keeps its distance to the end (an end card). `"pin": "span"` - its end stays at the video's end
