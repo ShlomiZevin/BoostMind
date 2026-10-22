@@ -164,6 +164,7 @@ const store = { get: (k) => { try { return localStorage.getItem(k); } catch { re
 const $ = (id) => document.getElementById(id);
 let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
 let mark = null;  // the checkpoint line (per script)
+let defs = (() => { try { return JSON.parse(localStorage.getItem('reader-char-paces') || '{}'); } catch { return {}; } })();  // a character's default pace in every script (Measure → Save as default)
 let paces = {};  // a character's own pace (wpm) in this script - when you play, each line waits at its speaker's pace
 let fs = +(store.get('reader-fs') || 30);
 
@@ -233,7 +234,7 @@ function render() {
     wrap.className = 'rolewrap';
     const pi = document.createElement('input');
     pi.type = 'number'; pi.min = 60; pi.max = 600; pi.step = 5; pi.className = 'rp';
-    pi.value = paces[c] || ''; pi.placeholder = wpm;
+    pi.value = paces[c] || ''; pi.placeholder = defs[c] || wpm; pi.dataset.c = c;  // (empty: his default, else the general pace)
     pi.title = `${c}'s pace (words per minute) - empty = the general pace`;
     pi.onchange = () => {
       const v = Math.round(+pi.value);
@@ -347,14 +348,28 @@ function measureStep() {
   // lineSeconds backwards: your own lines get 10% + 0.15 s more, every line 0.3 s
   const speak = (l.who === me ? (secs - 0.15) / 1.1 : secs) - 0.3;
   const pace = Math.max(60, Math.min(600, Math.round((words * 60) / Math.max(0.3, speak) / 5) * 5));
-  if (l.who) paces[l.who] = pace; else { wpm = pace; showPace(); }
+  if (l.who) paces[l.who] = pace; else { wpm = pace; showPace(); }  // (this script: at once)
   save(); render(); foot();
   measureClose();
-  $('measWho').textContent = '';
-  const done = $('meas'); done.classList.add('on');
-  $('measT').textContent = `${l.who || 'Pace'}: ${pace} wpm  (${words} words in ${secs.toFixed(1)} s) - set`;
-  $('measGo').textContent = 'Again'; $('measGo').onclick = () => { $('measGo').onclick = measureStep; measureOpen(); };
-  setTimeout(() => { if (!meas) $('meas').classList.remove('on'); $('measGo').onclick = measureStep; }, 5000);
+  // then the question: this character's pace in every script too?
+  const who = l.who;
+  $('measWho').textContent = `${who || 'Pace'}: ${pace} wpm`;
+  $('measT').textContent = `${words} words in ${secs.toFixed(1)} s - set for this script. ${who ? `Save as ${who}'s default (every script)?` : 'Save as the default pace (every script)?'}`;
+  $('meas').classList.add('on');
+  placeMeas();
+  $('measGo').textContent = 'Save as default';
+  $('measX').textContent = 'This script only';
+  const reset = () => { $('measGo').onclick = measureStep; $('measX').onclick = measureClose; $('measX').textContent = 'Cancel'; };
+  $('measGo').onclick = () => {
+    if (who) { defs[who] = pace; store.set('reader-char-paces', JSON.stringify(defs)); }
+    else store.set('reader-wpm', pace);
+    $('measT').textContent = who ? `Saved: ${who} reads at ${pace} wpm in every script (a script's own pace still wins).` : `Saved: ${pace} wpm is the default pace.`;
+    $('measGo').textContent = 'Done'; $('measX').textContent = 'Measure again';
+    $('measGo').onclick = () => { reset(); measureClose(); };
+    $('measX').onclick = () => { reset(); measureOpen(); };
+    render();
+  };
+  $('measX').onclick = () => { reset(); measureClose(); };
 }
 $('measure').onclick = measureOpen;
 $('measGo').onclick = measureStep;
@@ -368,7 +383,7 @@ document.addEventListener('keydown', (e) => {  // (first: while measuring, Space
 function lineSeconds(l) {
   if (l.dir) return 0.8;
   const words = l.text.split(/\s+/).filter(Boolean).length;
-  const base = 0.3 + words / (((l.who && paces[l.who]) || wpm) / 60);  // the speaker's own pace, if set
+  const base = 0.3 + words / (((l.who && (paces[l.who] || defs[l.who])) || wpm) / 60);  // the speaker's own pace, if set
   return l.who === me ? base * 1.1 + 0.15 : base;
 }
 function schedule() {
@@ -439,7 +454,7 @@ $('play').onclick = () => toggle();
 $('cd').onchange = () => { cdSecs = +$('cd').value; store.set('reader-cd', cdSecs); $('cd').blur(); };
 showCd();
 function showPace() {
-  document.querySelectorAll('.rp').forEach((x) => (x.placeholder = wpm));
+  document.querySelectorAll('.rp').forEach((x) => (x.placeholder = defs[x.dataset.c] || wpm));  // (empty box: his default, else this)
   $('pace').value = wpm;
   if (document.activeElement !== $('paceN')) $('paceN').value = wpm;  // not while you're typing in it
   $('pace').disabled = $('paceN').disabled = locked;
