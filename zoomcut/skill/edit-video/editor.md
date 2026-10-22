@@ -64,9 +64,10 @@ end must show at once, with the real footage there.
   rename / delete on the page done here too (a rename = same size, new name - no download again); every pull is a
   "Drop" job whose line says what each file really is (ffprobe: size, resolution, codec, fps, bitrate). Use that folder
   as the project's footage. Marking the project Done deletes its cloud folder (the copy here stays). Test folders: `_x`.
-  **Full quality:** the picker has no `accept` limit - with `accept="video/*"` iOS sent 720x1280 H.264 ~5 Mb/s copies
-  with random names (2026-10-22). Check the Drop job's line against what he filmed; if a file is a converted copy, he
-  picks it through Files instead.
+  **Full quality - only through Files:** a video picked from the PHOTO LIBRARY in Safari arrives converted (measured
+  2026-10-22, accept limit or not: 720x1280 H.264 ~5 Mb/s, random-ID .mp4 names). Originals: in Photos select the clips
+  → Share → Save to Files, then on the Drop page Choose videos → Choose File (Files) - they keep IMG_xxxx.MOV, full
+  resolution, HEVC. The Drop job's line (ffprobe) tells which one arrived; never edit a converted copy without saying so.
 - **Subtitle text is live too** (his note, 2026-10-21: "as in CapCut"): a line / a take's text edited -> the line shows
   at once, captions.txt saved, `--replan` places the subtitles again (~1.5 s, no picture work). Only the plaque /
   title (part of the set picture) rebuilds.
