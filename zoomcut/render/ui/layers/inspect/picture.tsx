@@ -2,6 +2,7 @@
 // shape (borders, highlights, flashes) and effect (film effects - their knobs arrive with the solo builder).
 import React from 'react';
 import { imageBox } from '../../../src/layers/geometry.js';
+import { FILTERS } from '../../../src/layers/effect_curve.js';
 import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt } from './controls';
 
 function Thumb({ P, asset, onReplace }: { P: InspectorProps; asset?: string; onReplace: () => void }) {
@@ -103,9 +104,38 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
   </div>;
 };
 
-export const EffectInspector: React.FC<InspectorProps> = (P) => <div className="ins">
-  <Head icon={ICON.effect} title={P.layer.name || 'Effect'} sub="Effect layer" />
-  <Sec title="Effect"><Note>Film effects (grain, flicker, ghost, flash) get their controls with the one-camera builder.</Note></Sec>
-  <ClipTiming P={P} />
-  <LayerState P={P} />
-</div>;
+/** A film-effect layer: which filter, how strong, and (a clip) when it plays - fades at its ends. All the effect layers
+ *  act together on everything below the top-most one (render/src/layers/effect_curve.js); texts above stay clean. */
+export const EffectInspector: React.FC<InspectorProps> = (P) => {
+  const { layer, item } = P;
+  const S = useSettings(P);
+  const kind = layer.props?.filter || 'grade';
+  const F = FILTERS[kind] || { label: 'Effect', def: 0 };
+  const strength = kind !== 'hits' && kind !== 'black';
+  return <div className="ins">
+    <Head icon={ICON.effect} title={layer.name || F.label} sub={item ? `${F.label} · clip ${item.id}` : `Effect layer · ${layer.items?.length || 0} clips`} />
+    <Sec title="Effect">
+      <Row label="Filter"><select className="ins-select" value={kind} onChange={(e) => S.layer({ filter: e.target.value, amount: null })}>
+        {Object.entries(FILTERS).map(([k, f]) => <option key={k} value={k}>{f.label}</option>)}</select></Row>
+      {strength && <Slider label={<>Strength <Ovr S={S} k="amount" /></>} v={S.get('amount', F.def)} min={0} max={1} step={0.01} def={F.def} fmt={fmt.pct} onChange={(v, c) => S.set('amount', v, c)} />}
+      {kind === 'ghost' && <Slider label="Trail behind" v={layer.props?.ghost_lag ?? 0.2} min={0.05} max={0.6} step={0.01} def={0.2} fmt={fmt.s} onChange={(v, c) => S.layer({ ghost_lag: v }, c)} />}
+      {(kind === 'zoom' || kind === 'hits' || kind === 'drift') && <>
+        <Slider label="Centre across" v={(layer.props?.center || [0.5, 0.36])[0]} min={0} max={1} step={0.01} def={0.5} fmt={fmt.pct} onChange={(v, c) => S.layer({ center: [v, (layer.props?.center || [0.5, 0.36])[1]] }, c)} />
+        <Slider label="Centre down" v={(layer.props?.center || [0.5, 0.36])[1]} min={0} max={1} step={0.01} def={0.36} fmt={fmt.pct} onChange={(v, c) => S.layer({ center: [(layer.props?.center || [0.5, 0.36])[0], v] }, c)} />
+      </>}
+      <Note>{kind === 'zoom' ? 'Zooms in over each clip and holds there.' : kind === 'hits' ? 'Each clip is an impact at its start: a punch-in, a shake, a flash.'
+        : kind === 'black' ? 'Each clip is black.' : 'Fades in and out at the ends of each clip.'} Everything below the top effect layer is filtered; layers above it (texts, subtitles) stay clean. Live - the export uses the same curve.</Note>
+    </Sec>
+    {item && kind === 'hits' && <Sec title="This hit">
+      <Slider label="Punch-in" v={item.kick ?? layer.props?.kick ?? 0.04} min={0} max={0.2} step={0.005} def={0.04} fmt={fmt.pct} onChange={(v, c) => S.item({ kick: v }, c)} />
+      <Slider label="Shake" v={item.shake ?? layer.props?.shake ?? 0.3} min={0} max={1} step={0.01} def={0.3} fmt={fmt.pct} onChange={(v, c) => S.item({ shake: v }, c)} />
+      <Slider label="Flash" v={item.flash ?? layer.props?.flash ?? 0} min={0} max={1} step={0.01} def={0} fmt={fmt.pct} onChange={(v, c) => S.item({ flash: v }, c)} />
+    </Sec>}
+    {item && strength && kind !== 'zoom' && <Sec title="Fades">
+      <Slider label="Fade in" v={item.fade_in ?? 1.5} min={0} max={4} step={0.05} def={1.5} fmt={fmt.s} onChange={(v, c) => S.item({ fade_in: v }, c)} />
+      <Slider label="Fade out" v={item.fade_out ?? 0.6} min={0} max={4} step={0.05} def={0.6} fmt={fmt.s} onChange={(v, c) => S.item({ fade_out: v }, c)} />
+    </Sec>}
+    <ClipTiming P={P} fades={false} />
+    <LayerState P={P} />
+  </div>;
+};

@@ -15,8 +15,9 @@ import type { LayersProps } from '../Layers';
 
 const lookFilter = (l?: any) => (l && Object.keys(l).length ? `saturate(${l.saturate ?? 1}) contrast(${l.contrast ?? 1}) brightness(${l.brightness ?? 1})` : undefined);
 
-export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any }> = ({ p, layer, backdrop }) => {
-  const f = useCurrentFrame();
+// lag: drawn that many frames back (the Ghost trail effect lays such a copy over the picture - its own copies)
+export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; lag?: number }> = ({ p, layer, backdrop, lag = 0 }) => {
+  const f = Math.max(0, useCurrentFrame() - lag);
   const fps = p.project.canvas.fps;
   const assets = p.project.assets || {};
   // a cut-out over its photo (the backdrop) plays the transparent "fg" file; otherwise the preview (or the source)
