@@ -45,6 +45,12 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
       <Opacity P={P} />
       <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
     </Sec>
+    <Sec title="Look" end={<span className="ins-state ok">live</span>}>
+      <Slider label={<>Blur <Ovr S={S} k="blur" /></>} v={S.get('blur', 0)} min={0} max={20} step={0.1} def={0} fmt={(v) => (v ? `${v.toFixed(1)} px` : 'sharp')} onChange={(v, c) => S.set('blur', v || null, c)} />
+      <Slider label={<>Brightness <Ovr S={S} k="brightness" /></>} v={S.get('brightness', 1)} min={0.3} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('brightness', v === 1 ? null : v, c)} />
+      <Slider label={<>Colour <Ovr S={S} k="saturate" /></>} v={S.get('saturate', 1)} min={0} max={2} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('saturate', v === 1 ? null : v, c)} />
+      <Note>A set behind him: a little blur and a touch darker sits him in the room. Drag the picture on the video to move it; its corner zooms.</Note>
+    </Sec>
     <Sec title="Size and place" end={<Ovr S={S} k="box" />}>
       <Slider label="Size" v={b.w} min={24} max={W * 1.5} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />
       <Row label="Place"><Anchor value={spot} allowed={Object.keys(SPOT)} onPick={place} /></Row>

@@ -371,12 +371,28 @@ def _build(ls, sync=True):
             if fm:
                 a["matte"] = rel(fm)
         assets[f"t.{n}"] = a
-    assets["m.set"] = {"kind": "image", "src": rel(set_png), "w": W, "h": H, "label": "Set - " + os.path.basename(cfg.get("background") or "photo")}
     full = {"x": 0, "y": 0, "w": W, "h": H}
-
-    # Set
-    layers.append({"id": "set", "kind": "image", "name": "Set", "owner": "builder", "props": {},
-                   "items": [{"id": "set", "from": 0, "dur": total, "asset": "m.set", "box": dict(full), "pin": "span", "ref": {"set": 1}}]})
+    # Set - LIVE: the room photo (with its sign painted in) in the photo's own pixels, placed by its box (drag = pan,
+    # the corner = zoom), its blur / dim as the picture's look; the plaque's lettering a sharp layer over it, the same box
+    scene, plaque = ls.work("public", "scene.png"), ls.work("public", "plaque.png")
+    if os.path.exists(scene):
+        sw_, sh_, _ = probe(scene)
+        c_, sw, sh, cx, cy = L.bg_place(ls)
+        box = {"x": -cx, "y": -cy, "w": sw, "h": sh}
+        assets["m.set"] = {"kind": "image", "src": rel(scene), "w": sw_, "h": sh_, "label": "Set - " + os.path.basename(cfg.get("background") or "photo")}
+        look = {"blur": float(cfg.get("bg_blur", 2.2))}
+        if cfg.get("bg_dim", True):
+            look.update({"brightness": 0.96, "saturate": 0.95})
+        layers.append({"id": "set", "kind": "image", "name": "Set", "owner": "builder", "props": look,
+                       "items": [{"id": "set", "from": 0, "dur": total, "asset": "m.set", "box": dict(box), "pin": "span", "ref": {"set": 1}}]})
+        if cfg.get("plaque_quad") and os.path.exists(plaque):
+            assets["m.plaque"] = {"kind": "image", "src": rel(plaque), "w": sw_, "h": sh_, "label": "Plaque"}
+            layers.append({"id": "plaque", "kind": "image", "name": "Plaque", "owner": "builder", "props": {},
+                           "items": [{"id": "plaque", "from": 0, "dur": total, "asset": "m.plaque", "box": dict(box), "pin": "span", "ref": {"plaque": 1}}]})
+    else:  # (no set photo: the older composite)
+        assets["m.set"] = {"kind": "image", "src": rel(set_png), "w": W, "h": H, "label": "Set"}
+        layers.append({"id": "set", "kind": "image", "name": "Set", "owner": "builder", "props": {},
+                       "items": [{"id": "set", "from": 0, "dur": total, "asset": "m.set", "box": dict(full), "pin": "span", "ref": {"set": 1}}]})
     # (texts placed on the set, behind him, go here - see overlays below)
     behind_at = len(layers)
 

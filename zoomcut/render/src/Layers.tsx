@@ -58,8 +58,12 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
     const asset = p.project.assets[props.asset];
     if (!asset) return null;
     const b = imageBox(asset, props.box || { x: 0, y: 0, w: W });
+    // a picture's look: blur (a set behind him, out of focus), brightness, colour - CSS here, so the export (drawn by
+    // this same composition) matches
+    const look = [props.blur ? `blur(${props.blur}px)` : '', props.brightness != null && props.brightness !== 1 ? `brightness(${props.brightness})` : '',
+      props.saturate != null && props.saturate !== 1 ? `saturate(${props.saturate})` : ''].filter(Boolean).join(' ') || undefined;
     return <Img data-l={layer.id} data-i={it.id} src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
-      opacity: op, borderRadius: props.radius, transform: animTransform(it, t) }} />;
+      opacity: op, borderRadius: props.radius, transform: animTransform(it, t), filter: look }} />;
   }
   if (layer.kind === 'shape') {
     const b = props.box;
