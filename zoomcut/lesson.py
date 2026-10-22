@@ -1837,7 +1837,7 @@ def build(ls, still_at=None, preview=False):
         save_json(ls.work("edit.json"), {"items": items, "total": total, "captions": caps, "speed": 1.0, "photo": [pw_, ph_],
                                          "sounds": getattr(ls, "placed", [])})
         log(f"✔ layers ready ({total / FPS:.1f}s) — the editor puts them together live")
-        spawn_warm(ls)
+        layered(ls)  # (the one editor: the analysis lands in project.json; the layered export needs no warm render)
         return
     person, mask = person_layer(ls, items, gaze=eye_on(ls))
     audio = mix(ls, items, total)
@@ -2081,6 +2081,14 @@ def replan(ls):
     e.update({"items": items, "total": total, "captions": caps, "sounds": getattr(ls, "placed", [])})
     save_json(ls.work("edit.json"), e)
     log(f"✔ cut ready ({total / FPS:.1f}s)")
+    layered(ls)
+
+
+def layered(ls):
+    """The project as layers for the one editor (pipeline/to_layers_solo.py: this file's own decisions translated into
+    project.json, merged so his edits there stay) - after every analysis and every re-cut."""
+    from pipeline import to_layers_solo
+    to_layers_solo.build(ls.dir)
 
 
 def build_stems(ls):
