@@ -32,10 +32,12 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
   const fps = p.project.canvas.fps;
   const clean = layer.props?.clean || 'off';
   /** an asset's source for this layer: the cleaned-only file (new) or the older baked one */
+  // (scaled: the studio's prepared sources carry the mix's shared gain; a take's own sound / a sound file as it is do not)
   const srcOf = (asset: string, c = clean) => {
     const k = `${layer.id}|${asset}|${c}`;
-    if (p.urls[k]) return { url: p.urls[k], key: k, fresh: true };
-    return { url: p.urls[`${layer.id}|${asset}`] || p.urls[`${asset}:audio`] || '', key: '', fresh: false };
+    if (p.urls[k]) return { url: p.urls[k], key: k, fresh: true, scaled: true };
+    if (p.urls[`${layer.id}|${asset}`]) return { url: p.urls[`${layer.id}|${asset}`], key: '', fresh: false, scaled: true };
+    return { url: p.urls[`${asset}:audio`] || p.urls[asset] || '', key: '', fresh: false, scaled: false };
   };
   const parts = useMemo(() => partsOf(layer.items, fps, () => 'audio'), [layer.items, fps]);
   const copies = useMemo(() => copiesOf(parts), [parts]);
@@ -113,7 +115,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
           const s = srcOf(A.asset);
           const lv = s.fresh && props.level === 'speech' ? levels[s.key] ?? 1 : 1;
           applyClip(n.clip, A);
-          n.clip.gain.gain.setTargetAtTime(itemGain(A, f, fps) * lv / g, ctx.currentTime, 0.006);
+          n.clip.gain.gain.setTargetAtTime(itemGain(A, f, fps) * lv / (s.scaled ? g : 1), ctx.currentTime, 0.006);
         }
       } else {
         if (ctx && n.clip) n.clip.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.004);  // (out, without a click)
