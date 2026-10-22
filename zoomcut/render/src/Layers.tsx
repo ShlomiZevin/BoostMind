@@ -123,7 +123,8 @@ export const Layers: React.FC<LayersProps> = (p) => {
   const layers = all.filter((l: any) => !l.hidden && (!p.only || p.only.includes(l.id)));
   // draw some of the stack at frame ff (lag: a copy that many frames back - the ghost trail of an effect)
   const draw = (subset: any[], ff: number, lag = 0) => runsOf(subset).map((run, k) => run.video ? (graphics ? null : (
-    <AbsoluteFill key={k}>
+    // (isolate: the copies' z-index stacks them inside this run only - without it a video drew over the texts above it)
+    <AbsoluteFill key={k} style={{ isolation: 'isolate' }}>
       {/* each video layer plays through VideoTrack (render/src/layers/VideoTrack.tsx): persistent copies per take,
           seamless cuts, dissolves; z / order stacking inside the run */}
       {run.layers.filter((l) => l.kind === 'video').map((l) => (

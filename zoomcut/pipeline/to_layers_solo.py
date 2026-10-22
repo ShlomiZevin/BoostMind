@@ -290,7 +290,7 @@ def _build(ls, sync=True):
             if fm:
                 a["matte"] = rel(fm)
         assets[f"t.{n}"] = a
-    assets["m.set"] = {"kind": "image", "src": rel(set_png), "w": W, "h": H}
+    assets["m.set"] = {"kind": "image", "src": rel(set_png), "w": W, "h": H, "label": "Set - " + os.path.basename(cfg.get("background") or "photo")}
     full = {"x": 0, "y": 0, "w": W, "h": H}
 
     # Set
@@ -391,7 +391,7 @@ def _build(ls, sync=True):
     mf, m0, m1 = music_file(ls, items, total)
     if mf:
         m = cfg["music"]
-        assets["s.music"] = {"kind": "audio", "src": rel(mf), "duration": round(m1 - m0, 3)}
+        assets["s.music"] = {"kind": "audio", "src": rel(mf), "duration": round(m1 - m0, 3), "label": "Music - " + os.path.basename(m["sound"]).rsplit(".", 1)[0]}
         layers.append({"id": "music", "kind": "audio", "name": "Music", "owner": "builder",
                        "props": {"volume": float(m.get("gain") if m.get("gain") is not None else 0.3)},
                        "items": [{"id": "m0", "from": round(m0 * FPS, 3), "dur": round((m1 - m0) * FPS, 3), "asset": "s.music", "in": 0, "fade_in": 0, "fade_out": 0,

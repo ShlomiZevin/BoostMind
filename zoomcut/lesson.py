@@ -708,8 +708,10 @@ def captions(ls, items, total):
     caps = []
     for t in ls.takes:
         n = name(t)
-        toks = blocks.get(n, [])
         words = load_json(ls.work("words", n + ".json"), [])
+        # (a take with no block yet - a new project: the recogniser's own words, so there are subtitles from the first
+        # Analyze; writing the take's block in captions.txt (corrected) replaces them)
+        toks = blocks.get(n) or [w["w"] for w in words]
         if not toks or not words:
             continue
         times = [None] * len(toks)
