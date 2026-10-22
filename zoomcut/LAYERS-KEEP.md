@@ -16,7 +16,38 @@ Reading the tables:
 
 ---
 
-## Not covered yet / not visible yet (most important first)
+## Status - 2026-10-22 evening (the gaps below, as of now)
+
+Checked = measured editor vs export, or layered vs the old engine (test copies `_gl`, `_solo`).
+1. Eye contact - **DONE.** render/actions/eyes.mjs -> pipeline/eyes_layers.py (NVIDIA + blink blend, v6 fallback,
+   CapCut file); asset eyes / eyes_fg / eyes_src; props.eyes switches live in VideoTrack; the export reads eyes_src.
+   Picture inspector: Original / Looking at the lens, Make / Redo, engine, strength. Checked: NVIDIA test take, bench.
+2. Voice chain + RNNoise - **DONE.** props.voice (sound.ts buildVoice / applyVoice, live in AudioTrack; export
+   pipeline/voice_chain.py, same code; 0.05 dB apart). clean off / mild / strong / nn (RNNoise) / fft / custom.
+   Hold to compare. Old lesson mix unchanged (null test 2e-7). Pitch: baked into the take's sound by the solo builder
+   (not live yet).
+3. Per-sound processing - **PARTIAL.** The solo builder prepares each sound with lesson.py's own steps (filter / pitch /
+   tempo / echo / room / reverse / skips / loop / chime / voice bed / music duck + lift + carve), so gain / trim / fades
+   stay live. Not live yet: changing a filter re-runs the builder. Open: the voice dipping under a thought (`duck`).
+4. Items that follow the cut - **OPEN** (d3: linking a Zoom line's items). Solo: the builder re-places them on a rebuild.
+5. Solo builder - **DONE (first version)**, pipeline/to_layers_solo.py: lesson.py's own plan (cuts, edges, holds = held
+   frames, hide, footage, slow motion = rate, joins) -> layers. Checked: crypto-1 copy, mean SSIM 0.938 vs the old
+   export (visually the same), same length, -14.8 vs -15.7 LUFS. Open: the live cut editing of solo projects in the
+   layered editor (edge drag re-runs the builder today).
+6. Film effects - **DONE.** effect layers (one per filter + hits + black), adjustment semantics, live + export from one
+   curve (3/255). lesson.py shares the same FxFrame (pixel-identical).
+7. Cut-out quality - **PARTIAL.** matte_cut + keep desk + side ramp baked into one matte per take (exact). Not live.
+8. Look - **DONE.** warm + smooth (SVG live, pipeline/look.py export); the old baked grade passed exactly (props.af).
+9. The set - **PARTIAL.** The solo set is an image layer (photo + sign + plaque, blur / dim baked); not live-editable.
+10. Text styles - **DONE** except the green-screen clip and the framed picture (styles_solo.tsx: ticker, thought, market,
+    sticker, card, lower3; pop / blink entrances as keyframes; 0-5/255 from the old drawing).
+11. Solo subtitles - **DONE** (style "solo", the other side's layer above). Open: word edit in place, Read / Lines views.
+12. Zoom line inspector - d3 (reuses LineProps in the Script tab).
+13. Opening clip + sound - **DONE** (the solo builder writes them).
+14. Export parity - **DONE** for the stale check (d3). Open: the background warm render.
+15. Undo - **DONE** (d3: every op, toolbar + Ctrl+Z).
+
+## Not covered yet / not visible yet (most important first) - the inventory as first written
 
 1. **Eye contact** - nothing in the layered model. Today: `eye_contact` {on, mode nvidia | neural | iris | center |
    offset, strength, dy, nudge, file} (lesson.py:105-149, 2042-2049), NVIDIA Maxine + our blink blend
