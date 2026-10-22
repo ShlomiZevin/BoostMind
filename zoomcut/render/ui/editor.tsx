@@ -332,7 +332,7 @@ function Editor() {
   const statusText = busy
     ? job!.kind === 'export' ? (pct ? `Exporting · ${Math.round(100 * +pct[1] / +pct[2])}%` : last.includes('interface') ? 'Exporting · drawing the interface…' : 'Exporting…')
       : last.startsWith('cutting out') ? last.replace('cutting out', 'Removing background ·') : last.startsWith('· transcribing') ? last.replace('· transcribing', 'Listening to') : 'Updating preview…'
-    : job?.code === 2 && data?.footage?.unassigned?.length ? 'Waiting: who is in each file' : job?.code ? 'Last run failed' : (data?.state || (data as any)?.preview || (data as any)?.output || (data as any)?.layers?.person) ? 'Preview ready' : 'Not analyzed yet';
+    : job?.code === 2 && data?.footage?.unassigned?.length ? 'Waiting: who is in each file' : job?.code ? 'Last run failed' : ((data as any)?.layeredReady || data?.state || (data as any)?.preview || (data as any)?.output || (data as any)?.layers?.person) ? 'Preview ready' : 'Not analyzed yet';
 
   const startDrag = (e: React.MouseEvent) => {
     const y0 = e.clientY, h0 = tlH;

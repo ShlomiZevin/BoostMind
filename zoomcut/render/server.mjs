@@ -212,6 +212,7 @@ app.get('/api/ep/:id', (q, res) => {
     const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
       layered: fs.existsSync(path.join(d, 'project.json')),  // one editor: a layered one-camera project opens in it too
+      layeredReady: !!readJson(path.join(d, 'project.json'), {})?.layers?.length,  // analyzed = it has layers
       layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), plain: layer('plain.mp4'), scene: layer('scene.png'), plaque: layer('plaque.png'),
         voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music'), intro: layer('intro.mp4'), takes: takeLayers(q.params.id, layer) },
       preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
@@ -225,6 +226,7 @@ app.get('/api/ep/:id', (q, res) => {
   }
   res.json({
     layered: fs.existsSync(path.join(d, 'project.json')),  // a layered project: the editor opens it from /api/p/:id
+    layeredReady: !!readJson(path.join(d, 'project.json'), {})?.layers?.length,  // analyzed = it has layers
     episode: readJson(path.join(d, 'episode.json')),
     corrections: readJson(path.join(d, 'corrections.json'), { lines: {} }),
     state: readJson(w('state.json')),
