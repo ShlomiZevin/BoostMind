@@ -8,7 +8,35 @@
   tool can't do, that is a tool improvement - generic (a new layer kind or control that every project gets), done on
   purpose, written here - never a one-video patch.
 
-## Zoom projects: the layers (2026-10-22)
+## The layered tool (2026-10-22) - where every project is going
+One format, one composition, one editor, one export. The format and the API: `layers.md`.
+- **Format**: `episodes/<id>/project.json` - assets + layers of items. Changed ONLY by ops
+  (`render/src/layers/ops.js`: apply, inverse = undo, validate); the studio (`server.mjs`, "layered projects")
+  refuses a write that breaks the format, keeps `rev`, logs every op with its undo in `work/history/log.jsonl`.
+- **Geometry**: `render/src/layers/geometry.js` (editor) = `pipeline/layer_geometry.py` (export); keep them equal -
+  `node tools/geometry_parity.mjs` must pass after any change.
+- **Picture**: `render/src/Layers.tsx` draws every layer; video layers through `layers/VideoTrack.tsx` (persistent
+  copies per take - seamless cuts, dissolves), sound through `layers/AudioTrack.tsx` (live gains / fades / volume from
+  each layer's prepared sources), looks from `layers/styles.tsx` (TEXT_STYLES / SUB_STYLES - a new look goes HERE).
+  The editor plays it in a Player; the export draws its graphics with it (mode "graphics", frameMap).
+- **Editor**: `render/ui/layers/` - LayersEditor (shell, routed from editor.tsx when /api/ep says `layered`), Timeline
+  (lane per layer, grouped; drag / trim = ops, live while dragging), Media (assets, upload, + timeline), Inspector
+  (project panel, `inspect/*` per kind by boostmind-31, a plain fallback for the rest), api.ts (ops, undo, saves in
+  order with `rev`).
+- **Builders**: zoomcut.py analyzes as before; `pipeline/to_layers.py` writes its layers (window chrome picture from
+  `render/src/builders/ZoomChrome.tsx`, title / timer / count as text, tiles as video items with `z`, office photos as
+  backdrops, tags / borders / flash / notice, subtitles, voices with `ref: {line}` and `link`), merged by
+  `pipeline/project.py` (his items `user: true`, deletions in `removed`, props his). New builder actions = a file in
+  `render/actions/<action>.mjs`.
+- **Export**: `pipeline/export_layers.py`. gilad-joins as layers (_gl): graphics 477 of 5647 frames drawn (~20 s, was
+  110-195 s), Quick 103 s total. Gotchas it already met: NTFS allows 1023 hard links per file (the held graphics
+  frames copy every 1000); a fully opaque frame comes out of the PNG encoder as RGB - ffmpeg re-inits mid-stream and
+  deadlocks (`-reinit_filter 0` + `format=rgba` on the graphics inputs).
+- **Sound**: `pipeline/layers_audio.py` - tracks per layer (= audio.mix math; null test on gilad-joins -46 dB), one
+  gain to -14 LUFS, stems + prepared sources (`<layer>|<asset>` urls) for the editor. Item moves / trims / gains are
+  live in the editor; only a new source (an added sound, a filter change) is re-made (seconds).
+
+## Zoom projects: the layers in the older Zoom screen (2026-10-22, before project.json)
 - **Picture per take** - the cut pieces on each character's lane (drag edges / move, as before).
 - **Background per character - a layer.** The take is cut out once (`work/matte/<take>.mkv`, cached on the take only);
   the editor shows the office photo + the person on transparency (`clips/<take>_fg.webm`, VP9 alpha, 540p). A "רקע"

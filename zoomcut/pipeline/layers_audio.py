@@ -63,6 +63,12 @@ def track(ep, project, layer, n, sources=None):
     if sources is not None:
         for aid, x in cache.items():
             sources[aid] = x * level.get(aid, 1.0)
+        for it in items:  # a softened item plays its own prepared piece in the editor (soften is per item)
+            if it.get("soften"):
+                aid = it.get("asset") or props.get("asset")
+                a = int(it.get("in", 0) * SR)
+                z = a + int(round(it["dur"] / fps * SR))
+                sources[f"{aid}@{it['id']}"] = audio.soften(cache[aid][a:z].copy() * level.get(aid, 1.0))
     for it in items:
         aid = it.get("asset") or props.get("asset")
         x = cache[aid]

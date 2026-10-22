@@ -13,11 +13,27 @@ Reply to him in English; Hebrew only inside the video.
 
 ## THE EDITOR IS THE TOOL. YOU FILL IT - YOU DON'T CHANGE IT. (his words, 2026-10-22)
 "When an editor is working, he doesn't change the tool almost never. He is mainly spilling things into the tool."
-There is ONE editor for every project. Making a video = putting content into it (footage, script, lines,
-backgrounds, voices, texts, the poster) through its own controls / the studio's endpoints, as layers he then
-controls himself. Changing the editor is a separate, rare, planned job (see "USING THE TOOL RIGHT" below and
-`editor.md`). If you notice you are about to edit `render/ui/*`, `render/server.mjs`, `pipeline/*` or the engines
-while making a video - stop: that's tool work; tell him in one line and treat it as its own task.
+"We need to have a tool which can have layers ... zoom is a great example of a very complex layered composition ...
+any AI code tool can work with and spill things into it without changing it. The skill should say what to do."
+
+**A video is a list of layers: `episodes/<id>/project.json`.** Read `layers.md` (the format) before you touch one.
+- Layer kinds: video (footage in a window, cut-out), backdrop (the photo behind a cut-out person), image, text
+  (styles: pov, plain, tag, toast, pill...), subtitles, shape, audio (voices, effects, music - with RNNoise / clarity /
+  speech levelling), effect. Every item has `from` / `dur` in frames; the editor shows each layer as a lane he controls.
+- **You fill it, three ways - all through the studio, never by editing files behind the editor:**
+  1. a **builder** turns footage + script into layers: Zoom grid = Re-analyze (`POST /api/p/<id>/build {action:
+     "analyze"}`; a new Zoom project: analyze, then `{action: "layers"}` once). Line fixes: `{action: "line", n, fix}`.
+     A rebuild never touches what he changed by hand (pipeline/project.py merge);
+  2. **ops** for everything else: `POST /api/p/<id>/ops {rev, ops: [...]}` - add a text / picture / sound layer, move
+     an item, set a background, a voice filter, a speed (examples in `layers.md`);
+  3. **files** into Media: `POST /api/p/<id>/assets?name=<file>` (raw body), then use the asset id in a layer.
+- A look the tool doesn't have (a new text style, a new layer kind) = tool work: one generic addition (a style in
+  `render/src/layers/styles.tsx`, documented in `layers.md`), on its own, tested on a `_` copy - never a one-video hack.
+  If you notice you are about to edit `render/`, `pipeline/` or the engines while making a video - stop, tell him in
+  one line, treat it as its own task.
+- Export = the one exporter (`pipeline/export_layers.py`): what the editor shows is what the file gets.
+- Projects made before the layered tool still open in the older screens (one-camera projects move over with the solo
+  builder - stage 2). Don't convert a project he is working on; convert on a `_` copy first and show him.
 
 ## READ FIRST - how we work (his rules; each one cost him a round)
 
@@ -78,7 +94,8 @@ The rules:
    project gets it, in the main editor's existing places), tested on a hidden copy, load-tested before he exports with
    it, written in `editor.md`. Never patch the tool piece by piece while he waits on a video.
 4. **Before every export:** read the project as he left it - speed, the layers, the length (`GET /api/ep/<id>`) - and
-   export exactly that. A setting that looks off (2× speed) = ask, don't export.
+   export exactly that (a layered project: `GET /api/p/<id>` - speed, hidden / muted layers, length). A setting that
+   looks off (2× speed) = ask, don't export.
 5. **Show before applying** a look or sound change: stills of the tiles (big AND small), short before / after mp3s.
 6. **Time-box debugging:** two or three attempts, then the simplest route that works.
 
@@ -99,8 +116,10 @@ The rules:
 3. **Pick the recipe** (table below) and read it.
 4. **Make the project from the closest earlier one** (`lesson.py new episodes/<slug> --from <closest> --input "<folder>"`,
    or `zoomcut.py new` for a Zoom grid). `input_dir` points at his folder - never copy footage.
-5. **Build through the server** (`curl -X POST localhost:4747/api/ep/<slug>/analyze`, wait on `/api/ep/<slug>/job`),
-   never a parallel CLI run.
+5. **Build through the server** (`POST /api/p/<slug>/build {action: "analyze"}`, wait on `/api/ep/<slug>/job`),
+   never a parallel CLI run. A new Zoom project: after the first analyze, `{action: "layers"}` makes its project.json
+   (copy the look of the closest earlier layered project: its text layers, poster, voice settings - as ops).
+   Then **fill the layers** (hook text, end poster, backgrounds, voice cleaning, sounds) with ops - read `layers.md`.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
    Fix what you find first.
@@ -155,6 +174,7 @@ A new kind of video: start from the closest recipe and the closest earlier proje
 he signs off.
 
 ## More
+- `layers.md` - **the project format**: layer kinds, items, ops, builders, export. The contract for filling a video.
 - `editor.md` - how the editor, the live cut, layers, the background render and the export work (read before
   changing code).
 - `reference.md` - every episode.json setting, the tools (Leonardo, sound kit, eye contact, sending), gotchas.

@@ -18,6 +18,7 @@ export type LayersProps = {
   stems?: { layer: string; src: string }[];  // the editor: one sound file per audio layer (the studio mixes them)
   playing?: boolean;                 // the editor: the Player is playing (video / sound copies follow it)
   playbackRate?: number;
+  gainDb?: number;                   // the editor: the shared gain the sound was prepared at (the voice chain needs the track's own level)
 };
 
 const VIDEO_KINDS = new Set(['video', 'backdrop']);

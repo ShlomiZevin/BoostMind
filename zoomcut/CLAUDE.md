@@ -15,6 +15,10 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
 - No templates. Projects - you learn from earlier projects and copy their look.
 
 ## Where things are
+- **`episodes/<id>/project.json` = a layered project** (the format: `skill/edit-video/layers.md`). Changed only through
+  the studio's ops (`POST /api/p/<id>/ops`); drawn by `render/src/Layers.tsx`, edited in `render/ui/layers/`,
+  exported by `pipeline/export_layers.py`, sound by `pipeline/layers_audio.py`. Builders: `pipeline/to_layers.py`
+  (Zoom), the solo builder (coming). Projects without project.json still use the older screens below.
 - `README.md` — how the pipeline works, folder layout, script directives, corrections.
 - `zoomcut.py` (Zoom-grid projects) / `lesson.py` (one-camera projects) — the engines behind the one editor.
 - `pipeline/` — prepare → transcribe (ivrit-ai Whisper, CPU) → match → plan → background (cut-out + photo layer) →
@@ -29,4 +33,5 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
   full load) - don't raise its parallelism.
 - Before an export: read the project as he left it (speed, layers, length) and export exactly that.
 - Speed over perfection (CapCut-level is fine), but never start/end a line mid-word.
-- Changes to `render/src/ZoomCall.tsx` geometry must be mirrored in `pipeline/compose.py`.
+- Changes to `render/src/layers/geometry.js` must be mirrored in `pipeline/layer_geometry.py` (`node tools/geometry_parity.mjs`).
+  (Older Zoom screen: `render/src/ZoomCall.tsx` geometry mirrored in `pipeline/compose.py`.)

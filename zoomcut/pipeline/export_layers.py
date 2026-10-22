@@ -223,7 +223,9 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale):
             cx, cy = min(max(0, int(round(-left))), max(0, vw - w)), min(max(0, int(round(-top))), max(0, vh - h))
             dur = ln / fps * rate + 0.1
             spts = f"setpts=(PTS-STARTPTS)/{rate:.4f}," if abs(rate - 1) > 1e-4 else "setpts=PTS-STARTPTS,"
-            args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(asset["src"]))]
+            # eye contact: the corrected take (same frames, same matte) unless the item / layer turned it off
+            src = asset.get("eyes_src") if it.get("eyes") is not False and asset.get("eyes_src") else asset["src"]
+            args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(src))]
             vi = idx
             idx += 1
             bd = it.get("_bd")

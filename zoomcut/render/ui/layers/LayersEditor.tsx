@@ -42,8 +42,8 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
   const total = project?.duration || 1;
   const speed = project?.speed || 1;
   const seek = (f: number) => { const g = Math.max(0, Math.min(total - 1, Math.round(f))); player.current?.seekTo(g); setFrame(g); };
-  const inputProps = useMemo(() => project && ({ project, urls: L.view!.urls, mode: 'full' as const, playing, playbackRate: speed }),
-    [project, L.view?.urls, playing, speed]);
+  const inputProps = useMemo(() => project && ({ project, urls: L.view!.urls, mode: 'full' as const, playing, playbackRate: speed, gainDb: (L.view as any).gainDb ?? 0 }),
+    [project, L.view?.urls, (L.view as any)?.gainDb, playing, speed]);
 
   // keys: space play, arrows step / jump, Ctrl+Z / Ctrl+Shift+Z, Delete the picked item
   useEffect(() => {

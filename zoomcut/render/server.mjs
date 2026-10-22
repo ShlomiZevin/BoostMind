@@ -66,15 +66,17 @@ function recordJob(e) {
 }
 const jobFiles = (id) => { const w = path.join(EPS, id, 'work'); fs.mkdirSync(w, { recursive: true }); return { log: path.join(w, 'job.log'), state: path.join(w, 'job.json') }; };
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
-function runJob(id, args, _onSuccess, send = []) {
+// opts {kind, cmd}: a job with its own command (a builder action - e.g. eye contact, minutes long): the same durable
+// jobwrap, log, state and Jobs history; `cmd` = the python arguments
+function runJob(id, args, _onSuccess, send = [], opts = null) {
   const prev = jobs[id];
   if (prev?.running) return prev;
-  const kind = args.includes('--preview') ? 'preview' : 'export';
+  const kind = opts?.kind || (args.includes('--preview') ? 'preview' : 'export');
   // the lesson template (one speaker, takes in order) has its own pipeline
   const lesson = readJson(path.join(EPS, id, 'episode.json'), {}).type === 'lesson';
   // a layered project (project.json) exports through the one layered exporter; its builder still analyzes
   const layered = fs.existsSync(path.join(EPS, id, 'project.json'));
-  const cmd = layered && kind === 'export' ? ['-m', 'pipeline.export_layers', `episodes/${id}`, ...args.filter((a) => a === '--quick')]
+  const cmd = opts?.cmd ? opts.cmd : layered && kind === 'export' ? ['-m', 'pipeline.export_layers', `episodes/${id}`, ...args.filter((a) => a === '--quick')]
     : lesson ? ['lesson.py', `episodes/${id}`, ...args.filter((a) => a === '--preview')] : ['zoomcut.py', 'build', `episodes/${id}`, ...args];
   const f = jobFiles(id);
   fs.writeFileSync(f.log, '');
@@ -112,7 +114,7 @@ function attach(id) {
     job.running = false; job.code = s.code; job.ended = s.ended;
     if (!s.recorded) {  // (once, even when it ended while the server was down)
       writeJson(f.state, { ...s, recorded: true });
-      recordJob({ id, kind: s.kind === 'preview' ? 'build' : 'export', started: s.started, ended: s.ended || Date.now(), ok: s.code === 0,
+      recordJob({ id, kind: s.kind === 'preview' ? 'build' : s.kind || 'export', started: s.started, ended: s.ended || Date.now(), ok: s.code === 0,
         line: lastLine(job.log), send: s.send || [] });
     }
     finishSends(id);
@@ -874,7 +876,7 @@ app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id]) || null))
 app.get('/api/jobs', (_q, res) => {
   const running = [
     ...drop.running(),  // files from the iPhone coming down
-    ...Object.entries(jobs).filter(([, j]) => j?.running).map(([id, j]) => ({ id, kind: j.kind === 'preview' ? 'build' : 'export', started: j.started, log: (j.log || []).slice(-30) })),
+    ...Object.entries(jobs).filter(([, j]) => j?.running).map(([id, j]) => ({ id, kind: j.kind === 'preview' ? 'build' : j.kind || 'export', started: j.started, log: (j.log || []).slice(-30) })),
     ...Object.entries(shares).filter(([, s]) => s?.running).map(([key, s]) => ({ id: key.split(':')[0], kind: 'send', channel: s.channel, started: s.started, log: s.log.slice(-5) })),
   ];
   const mine = (j) => !String(j.id).startsWith('_');  // (a _test project is not his)
@@ -937,13 +939,13 @@ app.get('/api/p/:id', (q, res) => {
   res.json(v);
 });
 // sound has to be made again when an audio layer's items or filters change (volume / mute / hide are live)
-const LIVE_SOUND = new Set(['volume', 'voice']);  // (voice: the sound.ts chain, applied live by AudioTrack)
+const LIVE_SOUND = new Set(['volume']);  // (a committed voice-chain change re-measures the shared gain with the chain in)
 const touchesSound = (before, ops) => ops.some((op) => {
   const l = (before.layers || []).find((x) => x.id === (op.layer || op.id || op.layer?.id)) || (op.op === 'layer.add' ? op.layer : null);
   if (!l || l.kind !== 'audio') return op.op === 'asset.add' && false;
   if (op.op === 'layer.update') return Object.keys(op.props || {}).some((k) => !LIVE_SOUND.has(k));
   // moving / trimming / gain / fades play live from the prepared sources (AudioTrack): only a new source needs making
-  if (op.op === 'item.update') return 'asset' in (op.set || {});
+  if (op.op === 'item.update') return 'asset' in (op.set || {}) || 'soften' in (op.set || {});
   return op.op === 'item.add' || op.op === 'layer.add' || op.op === 'layer.replace';
 });
 const restem = (id) => new Promise((done) => {
@@ -1006,6 +1008,12 @@ app.post('/api/p/:id/build', (q, res) => {
   const id = q.params.id, d = epDir(id);
   const { action, n, fix, text } = q.body || {};
   if (action === 'analyze') return res.json(pub(runJob(id, ['--preview'])));
+  if (action === 'layers') {  // an analyzed Zoom project becomes a layered one (project.json); from then on its builds merge in
+    const p = spawn(PY, ['zoomcut.py', 'layers', `episodes/${id}`], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+    let err = '';
+    p.stderr.on('data', (b) => (err += b));
+    return p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true }));
+  }
   if (action === 'line') {
     const p = path.join(d, 'corrections.json'), c = readJson(p, { lines: {} });
     c.lines = c.lines || {};

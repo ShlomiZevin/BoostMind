@@ -214,7 +214,7 @@ def build(ep):
             k = len(subs)
             item = {"id": f"s{k}", "from": a0, "dur": a1 - a0, "text": c["text"], "who": c["name"],
                     "box": {"x": round((left + right) / 2, 2), "y": round(bottom, 2), "w": round(right - left, 2), "anchor": "b"},
-                    "ref": {"line": c.get("n"), "k": cn, "side": bool(c.get("side")), "part": a0 - c["from"]}}
+                    "ref": {"line": c.get("n"), "k": cn, "side": bool(c.get("side")), "part": a0 - c["from"]}, **({"link": f"line-{c['n']}"} if c.get("n") is not None else {})}
             if c.get("side"):
                 item["side"] = True
             if narrow:
@@ -285,7 +285,7 @@ def build(ep):
             continue
         char = seg["clip"].split("_")[0]
         it = {"id": f"v{len(voices.get(char, []))}", "from": round(seg["at"] * fps, 3), "dur": round((seg["out"] - seg["in"]) * fps, 3),
-              "asset": seg["clip"], "in": round(seg["in"], 4), "fade_out": seg.get("fade_out", 0.12), "ref": {"line": seg["n"]} if seg.get("n") is not None else {"take": seg["clip"], "in": round(seg["in"], 2)}}
+              "asset": seg["clip"], "in": round(seg["in"], 4), "fade_out": seg.get("fade_out", 0.12), "ref": {"line": seg["n"]} if seg.get("n") is not None else {"take": seg["clip"], "in": round(seg["in"], 2)}, **({"link": f"line-{seg['n']}"} if seg.get("n") is not None else {})}
         if abs(seg.get("gain", 1) - 1) > 1e-6:
             it["gain"] = seg["gain"]
         if seg.get("soften"):

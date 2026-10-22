@@ -45,6 +45,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const px = (f: number) => (f / fps) * pps;
   const width = px(total) + 200;
   const groups = useMemo(() => groupsOf(project), [project]);
+  const selLink = sel?.item ? project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item)?.link : null;
   const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string } | null>(null);
 
   // keep the playhead in view while playing
@@ -158,9 +159,10 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                     })()}
                     {(l.items || []).map((it: any) => {
                       const isSel = sel?.layer === l.id && sel.item === it.id;
+                      const linked = !isSel && !!it.link && it.link === selLink;  // the same line's voice / subtitle
                       const w = px(it.dur);
                       return (
-                        <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${isSel ? 'sel' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''}`}
+                        <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''}`}
                           style={{ left: px(it.from), width: Math.max(3, w), background: KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
                           title={blockText(l, it, project)}

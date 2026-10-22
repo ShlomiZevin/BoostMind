@@ -41,7 +41,7 @@ export function useLayered(ep: string) {
       rev.current = r.json.rev;
       setError(r.json.soundError ? `sound: ${r.json.soundError}` : null);
       setView((v) => (v ? { ...v, project: { ...v.project, rev: r.json.rev } } : v));
-      if (r.json.stems) { const v = await (await fetch(`/api/p/${ep}`)).json(); setView((o) => (o ? { ...o, urls: v.urls, stems: v.stems } : v)); }
+      if (r.json.stems) { const v = await (await fetch(`/api/p/${ep}`)).json(); setView((o) => (o ? { ...o, urls: v.urls, stems: v.stems, gainDb: v.gainDb } as any : v)); }
     });
   };
 
