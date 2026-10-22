@@ -1082,7 +1082,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     return () => ro.disconnect();
   }, []);
   const dirty = caps !== (data.lesson?.captions || '') || plaque !== (data.episode.plaque || []).join('\n');
-  const save = async (extra: any = {}) => setJob(await api(`/api/ep/${ep}/lesson`, { captions: caps, plaque: plaque.split('\n').filter((x) => x.trim()), ...extra }));
+  const save = async (extra: any = {}) => { const r = await api(`/api/ep/${ep}/lesson`, { captions: caps, plaque: plaque.split('\n').filter((x) => x.trim()), ...extra }); if (r?.live) reload?.(); else setJob(r); };
   // text on video: saved as you edit, drawn live over the preview, burnt in on Export (no rebuild needed)
   const ovTimer = useRef<any>(null);
   const changeOv = (next: Overlay[], commit = true) => {
@@ -1325,7 +1325,10 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
     const nextText = [...toks.slice(0, hit), text.trim(), ...toks.slice(hit + want.length)].join(' ');
     const next = head + blocks.map((b, i) => `== ${b.take}\n${i === n ? nextText : b.text}\n`).join('');
     setCaps(next); setCapEdit(null);
-    setJob(await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) }));
+    // shown at once (that line, its new words); the server places the subtitles again in about a second - no rebuild
+    setEditLive({ ...edit, captions: edit.captions.map((x: any, j: number) => (j === ci ? { ...x, text: text.trim() } : x)) });
+    const r = await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) });
+    if (r?.live) reload?.(); else if (r?.error) setEditLive(null); else setJob(r);
   };
   const capRef = useRef<HTMLDivElement>(null);
   const [txtEdit, setTxtEdit] = useState<{ n: number; text: string } | null>(null);
@@ -1337,7 +1340,8 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   const saveTake = async (n: number, text: string) => {
     const next = head + blocks.map((b, i) => `== ${b.take}\n${i === n ? text.trim() : b.text}\n`).join('');
     setCaps(next); setTxtEdit(null);
-    setJob(await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) }));
+    const r = await api(`/api/ep/${ep}/lesson`, { captions: next, plaque: plaque.split('\n').filter((x) => x.trim()) });  // subtitles are text: no rebuild
+    if (r?.live) reload?.(); else setJob(r);
   };
   // the project's own media (logos, pictures): add a file, put one on the video
   const [media, setMedia] = useState<string[]>(data.episode.media || []);
@@ -2504,6 +2508,36 @@ function TickerStrip({ o, clock }: { o: Overlay; clock: () => number }) {
 }
 
 // "New video": a template, the footage folder, optionally an earlier project's settings - then it opens
+// the iPhone's way in: scan the QR once, drop videos on the phone page - they come down to Downloads\drop\<folder>
+// by themselves and show in the footage list; a project marked Done empties its folder in the cloud
+function DropCard() {
+  const [d, setD] = useState<any>(null);
+  const [qr, setQr] = useState(false);
+  useEffect(() => {
+    const load = () => api('/api/drop').then((x) => x && setD(x)).catch(() => {});
+    load(); const t = setInterval(load, 4000); return () => clearInterval(t);
+  }, []);
+  if (!d) return null;
+  const gb = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)} GB` : `${Math.round(n / 1e6)} MB`);
+  return <div className="drop-card">
+    <div className="nv-sec">From the iPhone <span>full quality, any size</span></div>
+    <div style={{ display: 'flex', gap: 6 }}>
+      <button className="btn" style={{ flex: 1 }} onClick={() => setQr(!qr)}>{qr ? 'Hide the QR' : 'QR for the phone'}</button>
+      <button className="btn ghost" onClick={() => api('/api/drop/sync', {})} title="Look for new files now (it also looks every minute)">Check now</button>
+    </div>
+    {qr && <div className="drop-qr">
+      <img src="/api/drop/qr.svg" alt="The drop page" />
+      <div className="help">Scan it once with the iPhone camera - the page keeps its key. Then Share → Add to Home Screen, and it is an app.</div>
+    </div>}
+    {d.running && <div className="drop-f on"><span className="he">{d.running.folder}</span>
+      <span>coming down {d.running.i}/{d.running.n}</span><span>{Math.floor((d.running.bytes / Math.max(1, d.running.total)) * 100)}%</span></div>}
+    {(d.folders || []).map((f: any) => <div key={f.name} className="drop-f"><span className="he">{f.name}</span>
+      <span>{f.files} file{f.files === 1 ? '' : 's'} · {gb(f.bytes)}</span><span className={f.here === f.files ? 'ok' : ''}>{f.here === f.files ? 'here ✓' : `${f.here}/${f.files} here`}</span></div>)}
+    {!(d.folders || []).length && !d.running && <div className="help">Nothing waiting in the cloud. What you drop comes down to Downloads\drop by itself and is listed under Footage folder.</div>}
+    {d.error && <div className="nv-err">{d.error}</div>}
+  </div>;
+}
+
 function NewVideo() {
   const [folders, setFolders] = useState<any[]>([]);
   const [eps, setEps] = useState<any[]>([]);
@@ -2525,15 +2559,16 @@ function NewVideo() {
   };
   return (
     <div className="nv">
+      <DropCard />
       <div className="nv-sec">1 · Template</div>
       <div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
         <button className={tpl === 'solo' ? 'on' : ''} onClick={() => setTpl('solo')}>Solo · one person</button>
         <button className={tpl === 'zoom' ? 'on' : ''} onClick={() => setTpl('zoom')}>Zoom call</button>
       </div>
       <div className="help" style={{ marginTop: 6 }}>{tpl === 'solo' ? 'One person to camera: monologue, Q&A, a desk sketch with an off-screen voice.' : 'Several people in a video meeting, one file per person.'}</div>
-      <div className="nv-sec">2 · Footage folder <span>in Downloads</span></div>
+      <div className="nv-sec">2 · Footage folder <span>in Downloads (drop/ = from the iPhone)</span></div>
       <div className="nv-list">
-        {folders.map((f) => <button key={f.path} className={`nv-f ${folder === f.path ? 'on' : ''}`} onClick={() => { setFolder(f.path); if (!name) setName(f.name); }}>
+        {folders.map((f) => <button key={f.path} className={`nv-f ${folder === f.path ? 'on' : ''}`} onClick={() => { setFolder(f.path); if (!name) setName(f.name.split('/').pop()); }}>
           <span className="nv-fn he">{f.name}</span><span className="nv-fc">{f.videos} video{f.videos > 1 ? 's' : ''}</span></button>)}
         {!folders.length && <div className="help">No folder with videos in Downloads.</div>}
       </div>

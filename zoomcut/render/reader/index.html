@@ -42,13 +42,15 @@ select option { background: var(--panel); color: var(--text); }
 .rolewrap { display: inline-flex; align-items: center; gap: 4px; }
 .rp { width: 56px; height: 40px; padding: 0 4px; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 10px; font: 600 13px Inter, sans-serif; font-variant-numeric: tabular-nums; }
 .rp::placeholder { color: var(--faint); }
-/* measuring a pace: a bar at the bottom, over the footer */
-.meas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;
-  padding: 16px; background: var(--panel); border-top: 2px solid var(--accent); direction: ltr; }
+/* measuring a pace: a small popup under the Measure button */
+.meas { position: fixed; z-index: 60; display: none; flex-direction: column; gap: 10px; width: 320px; padding: 14px;
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,.45); direction: ltr; }
 .meas.on { display: flex; }
-.meas-who { font-weight: 800; font-size: 16px; }
-.meas-t { color: var(--dim); font-size: 15px; font-variant-numeric: tabular-nums; }
+.meas-who { font-weight: 800; font-size: 15px; }
+.meas-who:empty { display: none; }
+.meas-t { color: var(--dim); font-size: 14px; font-variant-numeric: tabular-nums; }
 .meas-b { display: flex; gap: 8px; }
+.meas-b .btn { flex: 1; }
 .meas.run .meas-t { color: var(--text); font-size: 22px; font-weight: 700; }
 .rp:focus { outline: none; border-color: var(--accent); }
 .script { max-width: 980px; margin: 0 auto; padding: 30vh 20px 60vh; direction: rtl; }
@@ -321,8 +323,15 @@ function measureOpen() {
   $('measWho').textContent = l.who ? `⏱ ${l.who}` : '⏱ Pace';
   $('measT').textContent = `${words} words${words < 12 ? ' - a longer line measures better' : ''} · Space / Start the moment you start saying it`;
   $('measGo').textContent = 'Start';
+  placeMeas();
   $('meas').classList.add('on'); $('meas').classList.remove('run');
 }
+function placeMeas() {  // right under the Measure button, inside the window
+  const r = $('measure').getBoundingClientRect(), m = $('meas');
+  m.style.top = `${Math.round(r.bottom + 8)}px`;
+  m.style.left = `${Math.round(Math.max(8, Math.min(innerWidth - 328, r.left + r.width / 2 - 160)))}px`;
+}
+addEventListener('resize', () => { if ($('meas').classList.contains('on')) placeMeas(); });
 function measureClose() { if (meas?.raf) cancelAnimationFrame(meas.raf); meas = null; $('meas').classList.remove('on', 'run'); }
 function measureStep() {
   if (!meas) return;

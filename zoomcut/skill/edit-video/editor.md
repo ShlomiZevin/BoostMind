@@ -20,7 +20,9 @@
   The Reader shows the project's script (episode.json `"script"` → scripts/<id>.txt); Paste saves into it.
 - Project media (Media tab → Logos & pictures): episode.json `"media"`, "+ Add file" → episodes/<id>/media/,
   "Put on video" = a plain image overlay.
-- Studio rail → **Jobs**: every project's build / export with progress and step; click one to open that project.
+- Studio rail → **Jobs**: what runs now (builds / exports with progress and step, sends by email / Telegram) and the
+  **History** of every build, export and send (when, how long, done / failed, last line) - `GET /api/jobs`, kept in
+  `episodes/_jobs.json` (git-ignored, last 300) across restarts; click one to open that project. Sends are jobs too.
 
 ## The live cut - every change is instant (his #1 rule)
 He hates background processes and "Updating preview": dragging an edge, splitting, deleting a piece, moving the start /
@@ -40,6 +42,14 @@ end must show at once, with the real footage there.
   name on the left turns the button into **Delete layer** (it goes with what is on it, the ones under it move up);
   "+ Sound layer" adds one; a sound dragged up / down changes layer; a new sound goes on the first empty layer.
   Anything pointing at a sound by number (thought bubble `sound`, film hit / blackout `sound`) is renumbered.
+- **Footage from the iPhone - the Drop** (2026-10-22): he uploads on https://drop-463727469066.me-west1.run.app (Cloud
+  Run service `drop`, code in zoomcut/drop, key in zoomcut/.env DROP_KEY - the studio's "+ New video" shows its QR) into
+  `gs://boostmind-drop/<folder>/` (me-west1, private, 60-day auto-delete). The studio pulls every new file to
+  `Downloads\drop\<folder>` by itself (render/drop.mjs, each pull a "Drop" job) - use that folder as the project's
+  footage. Marking the project Done deletes its cloud folder (the copy here stays). Test folders start with `_`.
+- **Subtitle text is live too** (his note, 2026-10-21: "as in CapCut"): a line / a take's text edited -> the line shows
+  at once, captions.txt saved, `--replan` places the subtitles again (~1.5 s, no picture work). Only the plaque /
+  title (part of the set picture) rebuilds.
 - **Sound players remade while playing** (a sound changed → new stems) start at once - before, every sound went
   quiet until the next Play.
 - **Media load from the other host name** (`127.0.0.1` ↔ `localhost`, server `mediaHost`, CORS on /media): a browser

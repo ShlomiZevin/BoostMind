@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer as createVite } from 'vite';
 import react from '@vitejs/plugin-react';
 import { sendEmail, sendTelegram, sizedCopy } from './share.mjs';
+import { startDrop } from './drop.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -55,6 +56,14 @@ const exportDone = (id) => {
   return !(s && s.kind === 'export' && (s.running || s.code !== 0));
 };
 const pub = (j) => j && { running: j.running, kind: j.kind, log: j.log, code: j.code, send: j.send || [] };
+// every job that ended - builds, exports, sends by email / Telegram - newest last, kept across restarts (the Jobs panel)
+const HISTORY = path.join(EPS, '_jobs.json');
+const lastLine = (log) => [...(log || [])].reverse().find((l) => l && !/^W0000|InitGoogle|^Rendered/.test(l)) || '';
+function recordJob(e) {
+  const list = readJson(HISTORY, []);
+  list.push(e);
+  writeJson(HISTORY, list.slice(-300));
+}
 const jobFiles = (id) => { const w = path.join(EPS, id, 'work'); fs.mkdirSync(w, { recursive: true }); return { log: path.join(w, 'job.log'), state: path.join(w, 'job.json') }; };
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
 function runJob(id, args, _onSuccess, send = []) {
@@ -97,6 +106,11 @@ function attach(id) {
     if (s.running) return;
     clearInterval(iv);
     job.running = false; job.code = s.code; job.ended = s.ended;
+    if (!s.recorded) {  // (once, even when it ended while the server was down)
+      writeJson(f.state, { ...s, recorded: true });
+      recordJob({ id, kind: s.kind === 'preview' ? 'build' : 'export', started: s.started, ended: s.ended || Date.now(), ok: s.code === 0,
+        line: lastLine(job.log), send: s.send || [] });
+    }
     finishSends(id);
   };
   const iv = setInterval(tick, 500);
@@ -115,6 +129,18 @@ async function finishSends(id) {
 }
 // on start: jobs still running from before (or finished while the server was down) are picked up again
 setTimeout(() => {
+  if (!fs.existsSync(HISTORY)) {  // the first start with a history: each project's last job goes in (from its job.json)
+    const seed = [];
+    for (const id of fs.readdirSync(EPS)) {
+      const st = readJson(path.join(EPS, id, 'work', 'job.json'), null);
+      if (!st || st.running || !st.kind) continue;
+      let log = [];
+      try { log = fs.readFileSync(path.join(EPS, id, 'work', 'job.log'), 'utf8').split(/\r?\n/); } catch {}
+      seed.push({ id, kind: st.kind === 'preview' ? 'build' : 'export', started: st.started, ended: st.ended || st.started, ok: st.code === 0, line: lastLine(log), send: st.send || [] });
+      writeJson(path.join(EPS, id, 'work', 'job.json'), { ...st, recorded: true });
+    }
+    writeJson(HISTORY, seed.sort((x, y) => (x.ended || 0) - (y.ended || 0)));
+  }
   for (const id of fs.readdirSync(EPS)) {
     const s = readJson(path.join(EPS, id, 'work', 'job.json'), null);
     if (!s) continue;
@@ -138,6 +164,7 @@ app.post('/api/ep/:id/done', (q, res) => {
   const cfg = readJson(path.join(d, 'episode.json'));
   cfg.done = !!q.body?.done;
   writeJson(path.join(d, 'episode.json'), cfg);
+  if (cfg.done) drop.cleanup(cfg, q.params.id);  // (footage dropped from the iPhone: the cloud copy goes, the one here stays)
   res.json({ ok: true, done: cfg.done });
 });
 
@@ -207,10 +234,13 @@ app.post('/api/ep/:id/lesson', (q, res) => {
   const b = q.body || {};
   if (typeof b.captions === 'string') fs.writeFileSync(path.join(d, 'captions.txt'), b.captions, 'utf8');
   const cfg = readJson(path.join(d, 'episode.json'));
+  const picture = (Array.isArray(b.plaque) && JSON.stringify(b.plaque) !== JSON.stringify(cfg.plaque || [])) || typeof b.title === 'string';
   if (typeof b.title === 'string') cfg.title = b.title;
   if (Array.isArray(b.plaque)) cfg.plaque = b.plaque;
   if (b.speed) cfg.speed = Math.min(2, Math.max(0.5, +Number(b.speed).toFixed(3)));  // a preset or his exact number
   writeJson(path.join(d, 'episode.json'), cfg);
+  // subtitles are text: placed again in about a second, no picture work (the plaque / title is a picture: a rebuild)
+  if (!picture && takeLayers(q.params.id, () => 1)) return replanNow(q.params.id, res);
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
 
@@ -294,11 +324,12 @@ app.post('/api/ep/:id/config', (q, res) => {
 // "New video": the folders in Downloads that hold footage, and a project made from a template (optionally with an
 // earlier project's settings - same series: set, music, voice, subtitle style)
 const DOWNLOADS = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', 'Downloads');
+const drop = startDrop({ app, DOWNLOADS, ROOT, PY, recordJob });  // iPhone uploads (render/drop.mjs)
 const VIDEO = /\.(mp4|mov|m4v)$/i;
 app.get('/api/downloads', (_q, res) => {
   const out = [];
-  for (const f of fs.readdirSync(DOWNLOADS)) {
-    const p = path.join(DOWNLOADS, f);
+  for (const p of [...fs.readdirSync(DOWNLOADS).map((f) => path.join(DOWNLOADS, f)), ...drop.folders()]) {
+    const f = path.relative(DOWNLOADS, p).split(path.sep).join('/');  // (a dropped one: "drop/<folder>")
     try {
       if (!fs.statSync(p).isDirectory()) continue;
       const vids = fs.readdirSync(p).filter((x) => VIDEO.test(x));
@@ -590,7 +621,7 @@ function startShare(id, channel, to) {
   const master = path.join(d, 'out', `${id}.mp4`);
   const key = `${id}:${channel}`;
   if (shares[key]?.running) return shares[key];
-  const job = (shares[key] = { running: true, channel, log: [], ok: null, error: null });
+  const job = (shares[key] = { running: true, channel, log: [], ok: null, error: null, started: Date.now() });
   const log = (m, replace) => { if (replace && job.log.length && job.log.at(-1).startsWith(m.split(' ·')[0])) job.log[job.log.length - 1] = m; else job.log.push(m); };
   const title = readJson(path.join(d, 'episode.json'), {}).title || id;
   (async () => {
@@ -608,7 +639,10 @@ Exported by Sketch Studio. Full-quality master: ${master}` });
     }
     job.ok = true;
   })().catch((e) => { job.ok = false; job.error = e.message; log('failed: ' + e.message); })
-    .finally(() => { job.running = false; job.ended = Date.now(); });  // (ended: the editor shows the latest send)
+    .finally(() => {  // (ended: the editor shows the latest send) - and it goes into the Jobs history
+      job.running = false; job.ended = Date.now();
+      recordJob({ id, kind: 'send', channel, started: job.started, ended: job.ended, ok: !!job.ok, line: job.log.at(-1) || '' });
+    });
   return job;
 }
 app.post('/api/ep/:id/share', (q, res) => {
@@ -723,6 +757,16 @@ app.post('/api/ep/:id/export', (q, res) => {
   res.json(pub(job));
 });
 app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id]) || null));
+// the Jobs panel in one call: what runs now (builds, exports, sends) and the history, newest first
+app.get('/api/jobs', (_q, res) => {
+  const running = [
+    ...drop.running(),  // files from the iPhone coming down
+    ...Object.entries(jobs).filter(([, j]) => j?.running).map(([id, j]) => ({ id, kind: j.kind === 'preview' ? 'build' : 'export', started: j.started, log: (j.log || []).slice(-30) })),
+    ...Object.entries(shares).filter(([, s]) => s?.running).map(([key, s]) => ({ id: key.split(':')[0], kind: 'send', channel: s.channel, started: s.started, log: s.log.slice(-5) })),
+  ];
+  const mine = (j) => !String(j.id).startsWith('_');  // (a _test project is not his)
+  res.json({ running: running.filter(mine), history: readJson(HISTORY, []).filter(mine).slice(-100).reverse() });
+});
 // Stop button: kill the run and everything it started (ffmpeg, renderer)
 app.post('/api/ep/:id/cancel', (q, res) => {
   const job = jobs[q.params.id];

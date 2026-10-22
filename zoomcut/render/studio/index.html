@@ -41,6 +41,9 @@ iframe.on { display: block; }
 .job-name { font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .job-kind { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: var(--panel-3); color: var(--dim); }
 .job-kind.export { color: #ffb3a8; }
+.job-kind.send { color: #9fd0ff; }
+.job-kind.drop { color: #b8e0a0; }
+.job-t { margin-left: auto; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .job-st { font-size: 12px; color: var(--dim); }
 .job-st.ok { color: #7fd29a; } .job-st.err { color: #ff8a7a; }
 .job-line { margin-top: 5px; color: var(--faint); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -104,37 +107,41 @@ const progress = (log) => {  // the last "Rendered n/total" line, and what step 
   return null;
 };
 const lastLine = (log) => [...(log || [])].reverse().find((l) => l && !/^W0000|InitGoogle|^Rendered/.test(l)) || '';
+let J = { running: [], history: [] };
 async function poll() {
   try {
     if (Date.now() - lastFull > 15000 || !eps.length) { eps = await (await fetch('/api/episodes')).json(); lastFull = Date.now(); }
-    const ids = eps.map((e) => e.id);
-    const res = await Promise.all(ids.map((id) => fetch(`/api/ep/${id}/job`).then((r) => r.json()).catch(() => null)));
-    ids.forEach((id, i) => { if (res[i]) jobs[id] = res[i]; });
+    J = await (await fetch('/api/jobs')).json();  // one call: what runs now + the history (builds, exports, sends)
   } catch {}
   draw();
 }
+const KIND = (j) => (j.kind === 'send' ? (j.channel === 'email' ? 'Email' : 'Telegram') : j.kind === 'drop' ? 'Drop' : j.kind === 'export' ? 'Export' : 'Build');
+const when = (ms) => { if (!ms) return ''; const d = new Date(ms), now = new Date();
+  const hm = d.toTimeString().slice(0, 5); return d.toDateString() === now.toDateString() ? hm : `${d.getDate()}/${d.getMonth() + 1} ${hm}`; };
+const took = (a, b) => { if (!a || !b) return ''; const s = Math.round((b - a) / 1000); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`; };
 function draw() {
   const title = (id) => (eps.find((e) => e.id === id) || {}).title || id;
-  const all = Object.entries(jobs).filter(([, j]) => j && j.kind);
-  const run = all.filter(([, j]) => j.running), fin = all.filter(([, j]) => !j.running);
+  const run = J.running || [], fin = J.history || [], all = [...run, ...fin];
   jobsBtn.classList.toggle('busy', run.length > 0);
   jobsBtn.querySelector('.badge')?.remove();
   if (run.length) jobsBtn.insertAdjacentHTML('beforeend', `<span class="badge">${run.length}</span>`);
   if (!jobsPop.classList.contains('on')) return;
-  const row = ([id, j]) => {
-    const p = j.running ? progress(j.log) : null;
-    const st = j.running ? (p ? `${p.pct}%` : 'working') : j.code === 0 ? 'done' : 'failed';
-    return `<div class="job" data-id="${esc(id)}">
-      <div class="job-top"><span class="job-name">${esc(id)}</span><span class="job-kind ${j.kind}">${j.kind === 'export' ? 'Export' : 'Build'}</span>
-        <span class="job-st ${j.running ? '' : j.code === 0 ? 'ok' : 'err'}">${st}</span></div>
-      <div class="job-line" dir="auto">${esc(title(id))}${p && p.step ? ' · ' + esc(p.step) : ''} · ${esc(lastLine(j.log))}</div>
-      ${j.running ? `<div class="job-bar"><div style="width:${p ? p.pct : 8}%"></div></div>` : ''}
+  const row = (j, running) => {
+    const p = running && j.pct != null ? { pct: j.pct, step: '' } : running && j.kind !== 'send' ? progress(j.log) : null;
+    const st = running ? (p ? `${p.pct}%` : j.kind === 'send' ? 'sending' : 'working') : j.ok ? 'done' : 'failed';
+    const line = running ? (j.kind === 'send' || j.kind === 'drop' ? (j.log || []).at(-1) || '' : lastLine(j.log)) : j.line || '';
+    const t = running ? `since ${when(j.started)}` : `${when(j.ended)} · ${took(j.started, j.ended)}`;
+    return `<div class="job" data-id="${esc(j.id)}">
+      <div class="job-top"><span class="job-name">${esc(j.id)}</span><span class="job-kind ${j.kind}">${KIND(j)}</span>
+        <span class="job-st ${running ? '' : j.ok ? 'ok' : 'err'}">${st}</span><span class="job-t">${esc(t)}</span></div>
+      <div class="job-line" dir="auto">${esc(title(j.id))}${p && p.step ? ' · ' + esc(p.step) : ''}${line ? ' · ' + esc(line) : ''}</div>
+      ${running ? `<div class="job-bar"><div style="width:${p ? p.pct : 8}%"></div></div>` : ''}
     </div>`;
   };
   jobsPop.innerHTML = `<div class="jobs-h">Jobs <span>every project · click one to open it</span></div>`
-    + (run.length ? `<div class="jobs-sec">Running · ${run.length}</div>` + run.map(row).join('') : '')
-    + (fin.length ? `<div class="jobs-sec">Finished · ${fin.length}</div>` + fin.map(row).join('') : '')
-    + (all.length ? '' : '<div class="jobs-empty">No jobs since the studio started.</div>');
+    + (run.length ? `<div class="jobs-sec">Running · ${run.length}</div>` + run.map((j) => row(j, true)).join('') : '')
+    + (fin.length ? `<div class="jobs-sec">History · ${fin.length}</div>` + fin.map((j) => row(j, false)).join('') : '')
+    + (all.length ? '' : '<div class="jobs-empty">No jobs yet.</div>');
 }
 jobsBtn.onclick = (e) => { e.stopPropagation(); jobsPop.classList.toggle('on'); draw(); };
 jobsPop.onclick = (e) => {

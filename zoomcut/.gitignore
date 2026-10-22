@@ -13,3 +13,5 @@ episodes/_assets/**/*.wav
 # a project's own voice recordings and the filtered copies made from them stay on this computer (public repo)
 episodes/*/media/*.ogg
 episodes/*/media/*.wav
+# the Jobs panel's history (this computer's builds, exports and sends)
+episodes/_jobs.json
