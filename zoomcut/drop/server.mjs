@@ -20,6 +20,30 @@ async function token() {  // the service account's access token (cached until sh
   tok = { value: j.access_token, until: Date.now() + (j.expires_in - 120) * 1000 };
   return tok.value;
 }
+let saEmail = '';
+async function email() {
+  if (!saEmail) saEmail = await (await fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email', { headers: { 'Metadata-Flavor': 'Google' } })).text();
+  return saEmail;
+}
+const rfc = (s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+// a V4 signed URL for one object (valid an hour) - signed by this service's own account through the IAM signBlob API
+async function signedUrl(object, disposition) {
+  const who = await email();
+  const iso = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');  // 20261022T091500Z
+  const day = iso.slice(0, 8), scope = `${day}/auto/storage/goog4_request`;
+  const path = `/${BUCKET}/${object.split('/').map(rfc).join('/')}`;
+  const q = { 'X-Goog-Algorithm': 'GOOG4-RSA-SHA256', 'X-Goog-Credential': `${who}/${scope}`, 'X-Goog-Date': iso, 'X-Goog-Expires': '3600', 'X-Goog-SignedHeaders': 'host' };
+  if (disposition) q['response-content-disposition'] = disposition;
+  const qs = Object.keys(q).sort().map((k) => `${rfc(k)}=${rfc(q[k])}`).join('&');
+  const canonical = ['GET', path, qs, 'host:storage.googleapis.com\n', 'host', 'UNSIGNED-PAYLOAD'].join('\n');
+  const toSign = ['GOOG4-RSA-SHA256', iso, scope, crypto.createHash('sha256').update(canonical).digest('hex')].join('\n');
+  const r = await fetch(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${who}:signBlob`, {
+    method: 'POST', headers: { Authorization: `Bearer ${await token()}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ payload: Buffer.from(toSign).toString('base64') }) });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message || `sign ${r.status}`);
+  return `https://storage.googleapis.com${path}?${qs}&X-Goog-Signature=${Buffer.from(j.signedBlob, 'base64').toString('hex')}`;
+}
 const gcs = async (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${await token()}`, ...(opts.headers || {}) } });
 const keyOk = (k) => {
   const m = /[#?&]k=([^&#\s]+)/.exec(String(k || ''));  // (the whole Drop link pasted: its key)
@@ -72,10 +96,12 @@ const routes = {
       const fo = (folders[f] ||= { name: f, files: [], bytes: 0, updated: '' });
       const name = rest.join('/');
       if (o.updated > fo.updated) fo.updated = o.updated;
-      if (!name || name.startsWith('.')) continue;  // (".keep": a project made before its first file)
+      if (name.startsWith('.thumbs/')) { (fo.thumbs ||= new Set()).add(name.slice(8, -4)); continue; }  // (a file's picture)
+      if (!name || name.split('/').some((x) => x.startsWith('.'))) continue;  // (".keep": a project made before its first file)
       fo.files.push({ name, size: +o.size, updated: o.updated, type: o.contentType || '' });
       fo.bytes += +o.size;
     }
+    for (const fo of Object.values(folders)) { for (const x of fo.files) x.thumb = !!fo.thumbs?.has(x.name); delete fo.thumbs; }
     return { folders: Object.values(folders).sort((a, b) => (b.updated > a.updated ? 1 : -1)) };
   },
   async mkdir(b) {  // a new project: a placeholder so it shows before its first file
@@ -113,12 +139,21 @@ const routes = {
     if (from === to) return { name: to };
     if (await exists(`${folder}/${to}`)) throw Object.assign(new Error(`"${to}" is already there`), { code: 409 });
     await rename(`${folder}/${from}`, `${folder}/${to}`);
+    if (await exists(`${folder}/.thumbs/${from}.jpg`)) await rename(`${folder}/.thumbs/${from}.jpg`, `${folder}/.thumbs/${to}.jpg`);  // (its picture too)
     return { name: to };
   },
   async delete(b) {
     const folder = clean(b.folder, 60), name = String(b.name || '');
     if (!folder || !name) throw Object.assign(new Error('folder, name'), { code: 400 });
     await gcs(`${API}/${enc(`${folder}/${name}`)}`, { method: 'DELETE' });
+    await gcs(`${API}/${enc(`${folder}/.thumbs/${name}.jpg`)}`, { method: 'DELETE' });  // (its picture, if it has one)
+    return { ok: true };
+  },
+  async thumb(b) {  // a file's small picture (a JPEG drawn by the page), kept beside it in .thumbs/
+    const folder = clean(b.folder, 60), name = String(b.name || '');
+    const data = Buffer.from(String(b.data || '').replace(/^data:image\/jpeg;base64,/, ''), 'base64');
+    if (!folder || !name || !data.length || data.length > 200000) throw Object.assign(new Error('folder, name, data'), { code: 400 });
+    await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${enc(`${folder}/.thumbs/${name}.jpg`)}`, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: data });
     return { ok: true };
   },
   async rmdir(b) {  // a whole project
@@ -134,6 +169,17 @@ http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
     if (req.method === 'GET' && (u.pathname === '/' || u.pathname === '/index.html')) return send(res, 200, PAGE, 'text/html; charset=utf-8');
+    // a file from the bucket: ?k=key&f=folder/name[&dl=1 = save it] -> a signed link straight to it in storage (an
+    // hour). Not through this service: Cloud Run cuts a response at 32 MB. Storage serves any size, Range included
+    // (a video seeks, a big download resumes); the page draws thumbnails from it
+    if (req.method === 'GET' && u.pathname === '/api/get') {
+      if (!keyOk(u.searchParams.get('k'))) return send(res, 401, { error: 'key' });
+      const f = String(u.searchParams.get('f') || '');
+      if (!f || f.startsWith('_') || f.includes('..')) return send(res, 400, { error: 'f' });
+      const url = await signedUrl(f, u.searchParams.get('dl') ? `attachment; filename*=UTF-8''${rfc(f.split('/').pop())}` : '');
+      res.writeHead(302, { Location: url, 'Cache-Control': 'private, max-age=1800' });
+      return res.end();
+    }
     const route = req.method === 'POST' && u.pathname.startsWith('/api/') && routes[u.pathname.slice(5)];
     if (!route) return send(res, 404, { error: 'not found' });
     const b = await body(req);

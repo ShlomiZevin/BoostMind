@@ -56,8 +56,11 @@ select { appearance: none; -webkit-appearance: none; }
 /* a project's files */
 .it { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--edge); }
 .it-n { flex: 1; min-width: 0; }
+.it-th { width: 44px; height: 62px; border-radius: 5px; background: #000; object-fit: cover; flex: none; }
+@media (min-width: 900px) { .it-th { width: 54px; height: 76px; } }
 .it-name { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .it-meta { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+a.btn-dl { text-decoration: none; }
 .it button { height: 36px; min-width: 40px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim); font-size: 14px; cursor: pointer; }
 .it input { height: 38px; font-size: 15px; }
 .empty { color: var(--faint); font-size: 14px; padding: 10px 2px; }
@@ -190,14 +193,36 @@ function drawFiles() {
   const f = curFolder();
   const files = (f?.files || []).slice().sort((a, b) => (b.updated > a.updated ? 1 : -1));
   $('filesSum').textContent = f ? `${files.length} · ${gb(f.bytes)}` : '';
-  $('filesBox').innerHTML = files.map((x) => `<div class="it" data-n="${esc(x.name)}"><div class="it-n">
-      <div class="it-name" dir="auto">${esc(x.name)}</div><div class="it-meta">${gb(x.size)} · ${when(x.updated)}${x.type ? ' · ' + esc(x.type) : ''}</div></div>
+  $('filesBox').innerHTML = files.map((x) => `<div class="it" data-n="${esc(x.name)}">
+      <img class="it-th" alt="" src="${x.thumb ? get(`${cur}/.thumbs/${x.name}.jpg`) : thumbCache[`${cur}/${x.name}`] || ''}">
+      <div class="it-n"><div class="it-name" dir="auto">${esc(x.name)}</div><div class="it-meta">${gb(x.size)} · ${when(x.updated)}${x.type ? ' · ' + esc(x.type) : ''}</div></div>
+      <a class="btn-dl" href="${get(`${cur}/${x.name}`)}&dl=1" title="Download" download><button tabindex="-1">⬇</button></a>
       <button data-a="ren" title="Rename">✎</button><button data-a="del" title="Delete">🗑</button></div>`).join('')
     || `<div class="empty">${cur ? 'Nothing here yet.' : 'Make a project to start.'}</div>`;
   $('rmdir').style.display = f ? '' : 'none';
+  missingThumbs(f, files);
+}
+// a file streamed from the Drop (the key in the address - an <img>, a <video> or a download link can use it)
+const get = (path) => `/api/get?k=${encodeURIComponent(KEY)}&f=${encodeURIComponent(path)}`;
+// a file without a picture (sent from Files, the Shortcut): drawn once from the video itself (it reads only the bytes
+// it needs), shown, and kept in the Drop for every device
+const thumbCache = {};
+let drawingThumbs = false;
+async function missingThumbs(f, files) {
+  if (drawingThumbs || !f) return;
+  drawingThumbs = true;
+  for (const x of files.filter((y) => !y.thumb && !thumbCache[`${f.name}/${y.name}`] && (y.type || '').startsWith('video/'))) {
+    const img = await frameOf(get(`${f.name}/${x.name}`), 30000);  // (from the cloud: slower to open)
+    if (!img) continue;  // (not this time - again on the next visit)
+    thumbCache[`${f.name}/${x.name}`] = img;
+    const el = [...document.querySelectorAll('.it')].find((r) => r.dataset.n === x.name)?.querySelector('.it-th');
+    if (el && cur === f.name) el.src = img;
+    api('thumb', { folder: f.name, name: x.name, data: img }).then(() => { x.thumb = true; }).catch(() => {});
+  }
+  drawingThumbs = false;
 }
 $('filesBox').onclick = async (e) => {
-  const b = e.target.closest('button'); if (!b) return;
+  const b = e.target.closest('button'); if (!b || !b.dataset.a) return;  // (⬇ is a plain link)
   const row = b.closest('.it'), name = row.dataset.n;
   if (b.dataset.a === 'del') {
     if (!confirm(`Delete ${name}?`)) return;
@@ -251,14 +276,49 @@ let pend = [];
 $('pick').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('files').click(); };
 $('files').onchange = () => {
   for (const file of $('files').files) pend.push({ file, name: cleanName(splitExt(file.name)[0]) || 'video', url: URL.createObjectURL(file) });
+  thumbs();
   $('files').value = '';
   drawPending();
 };
+let thumbing = false;
+async function thumbs() {
+  if (thumbing) return;
+  thumbing = true;
+  for (let p; (p = pend.find((x) => !x.thumb && !x.file.type.startsWith('image/'))); ) {
+    p.thumb = await frameOf(p.url) || 'data:,';
+    const i = pend.indexOf(p), img = document.querySelector(`.p[data-i="${i}"] .p-th`);
+    if (img && p.thumb !== 'data:,') img.src = p.thumb;
+  }
+  thumbing = false;
+}
+function frameOf(url, wait = 8000) {  // load it quietly, half a second in, onto a small canvas
+  return new Promise((ok) => {
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto';
+    v.crossOrigin = 'anonymous';  // (a video from storage: the frame can be drawn)
+    let done = false;
+    const finish = (img) => { if (done) return; done = true; v.removeAttribute('src'); v.load(); ok(img); };
+    const draw = () => {
+      try {
+        const w = 120, h = Math.round(w * (v.videoHeight || 16) / (v.videoWidth || 9));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(v, 0, 0, w, h);
+        finish(c.toDataURL('image/jpeg', 0.7));
+      } catch { finish(''); }
+    };
+    v.onloadeddata = () => { try { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); } catch { draw(); } };
+    v.onseeked = draw;
+    v.onerror = () => finish('');
+    setTimeout(() => finish(''), wait);
+    v.src = url;
+    v.load();
+    v.play?.().then(() => v.pause()).catch(() => {});  // (the phone loads a frame only once it is asked to play - muted)
+  });
+}
 function drawPending() {
   $('pendBox').style.display = pend.length ? '' : 'none';
   $('pending').innerHTML = pend.map((p, i) => `<div class="p" data-i="${i}">
-      ${p.file.type.startsWith('image/') ? `<img class="p-th" src="${p.url}" alt="">`
-        : `<video class="p-th" src="${p.url}#t=0.5" muted playsinline preload="metadata"></video>`}
+      <img class="p-th" src="${p.file.type.startsWith('image/') ? p.url : p.thumb || ''}" alt="">
       <div class="p-body"><div class="p-top">
       <input type="text" value="${esc(p.name)}" dir="auto" autocapitalize="off" spellcheck="false"><span class="p-ext">${esc(splitExt(p.file.name)[1])}</span>
       <button class="p-x" title="Leave it out">✕</button></div>
@@ -279,7 +339,7 @@ $('upload').onclick = () => {
     while (taken.has(n)) n = `${base}-${k++}${ext}`;
     taken.add(n);
     remember(base);
-    queue.push({ file: p.file, folder: cur, name: n, sent: 0, state: 'waiting', el: row1(n, p.file) });
+    queue.push({ file: p.file, folder: cur, name: n, sent: 0, state: 'waiting', el: row1(n, p.file), thumb: p.thumb });
   });
   pend = []; drawPending();
   draw(); run();
@@ -364,7 +424,8 @@ async function run() {
   $('keep').classList.add('on');
   try { wake = await navigator.wakeLock?.request('screen'); } catch {}  // the screen stays on while it uploads
   for (let q; (q = queue.find((x) => x.state === 'waiting')); ) {
-    try { await upload(q); } catch (e) { q.state = 'failed'; q.err = e.message; draw(); }
+    try { await upload(q); if (q.thumb && q.thumb !== 'data:,') await api('thumb', { folder: q.folder, name: q.name, data: q.thumb }).catch(() => {}); }
+    catch (e) { q.state = 'failed'; q.err = e.message; draw(); }
     refresh();
   }
   busy = false;

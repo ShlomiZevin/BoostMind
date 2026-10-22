@@ -49,7 +49,7 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     } while (page);
     const all = items.map((i) => ({ name: i.name, size: +i.size, updated: i.updated })).filter((o) => !o.name.startsWith('_') && !o.name.endsWith('/'));
     list.folders = new Set(all.map((o) => o.name.split('/')[0]));  // (every folder in the cloud, an empty new one too)
-    return all.filter((o) => !o.name.split('/').pop().startsWith('.'));  // (".keep": a project made before its first file)
+    return all.filter((o) => !o.name.split('/').slice(1).some((x) => x.startsWith('.')));  // (".keep", ".thumbs/": not footage)
   }
 
   const state = { running: null, cloud: [], error: null, checked: 0 };
