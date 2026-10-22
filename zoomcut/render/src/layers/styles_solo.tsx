@@ -161,6 +161,8 @@ export const SOLO_TEXT_STYLES: Record<string, { label: string; animated?: boolea
     const x = ((v * (t + (it.t0 || 0))) % (W + tw)) - tw;  // (t0: the item's start on the video - the strip runs by the video's clock)
     return <div style={{ width: W, overflow: 'hidden', background: it.bg || 'transparent', direction: 'ltr' }}>
       <div style={{ display: 'inline-block', whiteSpace: 'nowrap', padding: '10px 40px', transform: `translateX(${x}px)`, fontFamily: fam, fontWeight: 800,
+        // (a Hebrew line starts at the strip's right edge: the strip exactly tw wide, so the letters sit where the loop expects)
+        ...(it.tw ? { width: it.tw, boxSizing: 'border-box' as const } : {}),
         fontSize: size, lineHeight: 1.25, color: it.theme === 'gold' ? '#FFD60A' : it.color || '#fff', direction: 'rtl' }}>{line}</div>
     </div>;
   } },
