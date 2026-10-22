@@ -277,26 +277,15 @@ def music_file(ls, items, total):
     a1 = n if m.get("end") is None else min(n, int(float(m["end"]) * SR))
     if a1 - a0 <= SR // 10:
         return None, 0, 0
-    key = "m" + sig_of(ls.asset(m["sound"]), {k: m.get(k) for k in ("start", "end", "fade_in", "fade_out", "duck", "lift")}, total,
-                       [(i["take"], i.get("a"), i["n"], i["out"]) for i in items if i["kind"] == "clip"])
+    # only what is content, not a setting: the bed looped over the whole video (its clip's edges drag anywhere) and the
+    # speech carve; its fades, the end lift and any duck are LIVE (the clip's fades, props.lift - automation.js)
+    key = "m2" + sig_of(ls.asset(m["sound"]), total)
 
     def make():
         bed = L.load_sound(ls.asset(m["sound"]))
-        x = np.tile(bed, (a1 - a0) // max(1, len(bed)) + 1)[:a1 - a0].copy()
-        fi, fo = int(m.get("fade_in", 1.5) * SR), int(m.get("fade_out", 2.5) * SR)
-        x[:fi] *= np.linspace(0, 1, len(x[:fi]))
-        x[-fo:] *= np.linspace(1, 0, len(x[-fo:]))
-        full = np.zeros(n, np.float32)
-        full[a0:a1] = x
-        duck, lift = float(m.get("duck") or 0), m.get("lift")
-        if duck < 0 or (lift and float(lift.get("db") or 0)):
-            v = L.voice_stem(ls, items, total, denoise=True)[:n]
-            if duck < 0:
-                full *= L.duck_curve(v, duck)[:n]
-            if lift and float(lift.get("db") or 0):
-                full *= L.lift_curve(v, float(lift["db"]), float(lift.get("fade", 1.0)))[:n]
+        full = np.tile(bed, n // max(1, len(bed)) + 1)[:n].copy()
         tmp = ls.work("layers", "sounds", key + ".dry.wav")
-        L.write_wav(tmp, full[a0:a1])
+        L.write_wav(tmp, full)
         out = tmp[:-8] + ".carved.wav"
         run([FFMPEG, "-y", "-v", "error", "-i", tmp, "-af", "equalizer=f=2500:t=q:w=0.9:g=-3.5", "-ar", str(SR), "-ac", "1", out])
         from .media import read_wav
@@ -423,7 +412,7 @@ def _build(ls, sync=True):
                         "ref": {"hold": it["take"], "at": round(it["t"], 2)}})
     layers.append({"id": "person", "kind": "video", "name": "Person", "owner": "builder",
                    "props": {"fit": "cover", "cutout": cutout, "eyes": bool(eyes), "look": look_of(ls),
-                             **({"matte_cut": int(cfg.get("matte_cut", 175))} if cutout else {}),
+                             **({"matte_cut": int(cfg.get("matte_cut", 175)), "side_ramp": True} if cutout else {}),
                              **({"keep": {"below": round(L.keep_below(ls, L.name(ls.takes[0])), 4)}} if cutout and L.keep_cfg(ls, L.name(ls.takes[0])) else {}),
                              **({} if cfg.get("look") else {"af": L.grade(ls)}),
                              "box": {"x": px, "y": py, "w": pw, "h": ph}}, "items": pic})
@@ -495,11 +484,13 @@ def _build(ls, sync=True):
     mf, m0, m1 = music_file(ls, items, total)
     if mf:
         m = cfg["music"]
-        assets["s.music"] = {"kind": "audio", "src": rel(mf), "duration": round(m1 - m0, 3), "label": "Music - " + os.path.basename(m["sound"]).rsplit(".", 1)[0]}
+        assets["s.music"] = {"kind": "audio", "src": rel(mf), "duration": round(total / FPS, 3), "label": "Music - " + os.path.basename(m["sound"]).rsplit(".", 1)[0]}
+        lift = m.get("lift") or {}
         layers.append({"id": "music", "kind": "audio", "name": "Music", "owner": "builder",
-                       "props": {"volume": float(m.get("gain") if m.get("gain") is not None else 0.3)},
-                       "items": [{"id": "m0", "from": round(m0 * FPS, 3), "dur": round((m1 - m0) * FPS, 3), "asset": "s.music", "in": 0, "fade_in": 0, "fade_out": 0,
-                                  "ref": {"music": 1}}]})
+                       "props": {"volume": float(m.get("gain") if m.get("gain") is not None else 0.3),
+                                 **({"lift": {"db": float(lift["db"]), "fade": float(lift.get("fade", 1.0)), "of": "subs"}} if lift.get("db") else {})},
+                       "items": [{"id": "m0", "from": round(m0 * FPS, 3), "dur": round((m1 - m0) * FPS, 3), "asset": "s.music", "in": 0,
+                                  "fade_in": float(m.get("fade_in", 1.5)), "fade_out": float(m.get("fade_out", 2.5)), "ref": {"music": 1}}]})
 
     new = {"format": projectlib.FORMAT, "title": cfg.get("title") or ls.slug, "canvas": {"w": W, "h": H, "fps": FPS, "color": "#000000"},
            "duration": total, "speed": float(cfg.get("speed", 1.0)), "assets": assets, "layers": layers,
@@ -665,7 +656,8 @@ def sound_layers(ls, items, total, assets, rel):
             trim = float(s.get("trim_in", 0) or 0)
             cut = -o0 if o0 < 0 else 0.0
             base = {"id": f"x{si}", "from": round(max(0.0, o0) * FPS, 3), "dur": round((o1 - max(0.0, o0)) * FPS, 3), "asset": aid,
-                    "gain": float(s.get("gain", 0.8)), "fade_in": float(s.get("fade_in", 0.02)), "fade_out": float(s.get("fade_out", 0.06)), "ref": {"sound": si}}
+                    "gain": float(s.get("gain", 0.8)), "fade_in": float(s.get("fade_in", 0.02)), "fade_out": float(s.get("fade_out", 0.06)), "ref": {"sound": si},
+                    **({"duck": float(s["duck"])} if s.get("duck") else {})}  # (his voice dips while it plays - live, automation.js)
             # the sound + its settings, live (speed, pitch, filter, echo, room - render/ui/soundfx.ts); only RNNoise /
             # backwards / skipped pauses are done once beforehand (pre_sound_file), the rest stays live on the clip
             pre = needs_prepared(s)

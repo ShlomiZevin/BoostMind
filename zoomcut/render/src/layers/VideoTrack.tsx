@@ -173,7 +173,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
           {fg ? (
             <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(props.look),
               // (his picture smaller than the frame: its sides fade, as the export does)
-              ...(box.x > 0.5 || box.x + box.w < p.project.canvas.w - 0.5 ? { maskImage: RAMP, WebkitMaskImage: RAMP } : {}) }}>
+              ...(props.side_ramp && (box.x > 0.5 || box.x + box.w < p.project.canvas.w - 0.5) ? { maskImage: RAMP, WebkitMaskImage: RAMP } : {}) }}>  {/* (only where the layer asks - never on call tiles) */}
               {bdImg && (() => {
                 const img = assets[bdImg.props.asset];
                 const g = backdropBox(img, b.width, b.height, bdImg.props, { x0: -b.left, y0: -b.top, w: box.w, h: box.h });

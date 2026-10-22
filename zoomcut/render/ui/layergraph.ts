@@ -9,6 +9,7 @@
 import { buildVoice, applyVoice, VoiceNodes } from './sound';
 import { buildFx, applyFx, FxNodes, hasFx } from './soundfx';
 export { loadFx } from './soundfx';
+export { prepare as autoPrepare, layerGainAt } from '../src/layers/automation.js';  // (ducks / lift from the other layers)
 
 export type LayerNodes = { ctx: BaseAudioContext; input: GainNode; fx: FxNodes; pres: BiquadFilterNode; voice: VoiceNodes; vIn: GainNode; out: GainNode; sig: string };
 export type ClipNodes = { gain: GainNode; fx: FxNodes; sig: string };

@@ -14,6 +14,7 @@ import { partsOf, activeParts, nextUses, copiesOf, srcAt } from './clock.js';
 import { usePreloaded } from '../../ui/preload';
 import { loadFx } from '../../ui/soundfx';
 import { buildLayer, applyLayer, buildClip, applyClip, clipGainAt, LayerNodes, ClipNodes } from '../../ui/layergraph';
+import { prepare, layerGainAt } from './automation.js';
 import type { LayersProps } from '../Layers';
 
 let shared: AudioContext | null = null;
@@ -50,6 +51,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
   const live = useRef<any>({});
   const on = !layer.hidden && !layer.muted;
   const levels = (p as any).levels || {};
+  const auto = useMemo(() => prepare(p.project, layer), [p.project.layers, layer]);  // ducks / lift, live from the other layers
   live.current = { parts, f, playing: !!(p as any).playing, rate: (p as any).playbackRate || 1, volume: on ? Math.max(0, layer.props?.volume ?? 1) : 0,
     props: layer.props || {}, g: Math.pow(10, ((p as any).gainDb ?? 0) / 20) };
 
@@ -92,7 +94,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
     const o = out.current;
     const anyFresh = Object.values(copies).some((k: any) => srcOf(k.split(':')[0]).fresh);
     if (ctx && o) {
-      o.vol.gain.setTargetAtTime(volume, ctx.currentTime, 0.01);
+      o.vol.gain.setTargetAtTime(volume * layerGainAt(auto, f / fps), ctx.currentTime, 0.01);
       o.gOut.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
       // clarity is live only over the cleaned-only sources (the older baked ones carry it already)
       applyLayer(o.L, { ...props, presence: anyFresh ? props.presence : 0 });

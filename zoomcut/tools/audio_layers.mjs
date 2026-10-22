@@ -57,7 +57,15 @@ try {
         const x = new Float32Array(await (await fetch(`${base}/${k}`)).arrayBuffer());
         const b = ctx.createBuffer(1, Math.max(1, x.length), rate); b.copyToChannel(x, 0); bufs[aid] = b;
       }
-      const lay = LG.buildLayer(ctx, ctx.destination);
+      // the layer's automatic gain (ducks under the other layers' items, the end lift) - the editor's own curve
+      const auto = ctx.createGain(); auto.connect(ctx.destination);
+      const pre = LG.autoPrepare(L.project, L.layer);
+      if (pre.ducks.length || pre.lift) {
+        const N = Math.ceil(n / rate / 0.01) + 1, curve = new Float32Array(N);
+        for (let k = 0; k < N; k++) curve[k] = LG.layerGainAt(pre, k * 0.01);
+        auto.gain.setValueCurveAtTime(curve, 0, (N - 1) * 0.01);
+      }
+      const lay = LG.buildLayer(ctx, auto);
       LG.applyLayer(lay, L.props || {}, false);
       for (const it of L.items) {
         const r = it.rate == null ? 1 : +it.rate;

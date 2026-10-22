@@ -40,6 +40,10 @@ def render(ep, project, n):
                               "levels": {aid: float(g) for aid, g in levels.items()} if props.get("level") == "speech" else {}})
     if not job["layers"]:
         return {}
+    shape = {"canvas": project["canvas"], "layers": [{k: l.get(k) for k in ("id", "kind", "hidden", "muted", "props", "items")} for l in project["layers"]]}
+    for L in job["layers"]:  # (the ducks and the lift come from the other layers)
+        L["project"] = shape
+        L["layer"] = next(x for x in shape["layers"] if x["id"] == L["id"])
     key = hashlib.sha1(json.dumps(job, sort_keys=True, default=str).encode()).hexdigest()[:12]
     for L in job["layers"]:  # (each job's own track files: a "done" job is always its own result)
         L["out"] = os.path.join(d, f"{L['id']}.{key}.track.f32".replace("/", "_"))
