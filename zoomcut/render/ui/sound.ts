@@ -58,9 +58,9 @@ export const TARGET_LUFS = -14;  // the finished file's loudness (TikTok / Reels
 
 type Inputs = { voice?: AudioNode | null; voice_dn?: AudioNode | null; fx?: AudioNode | null; music?: AudioNode | null };
 
-export function buildMix(ctx: BaseAudioContext, inp: Inputs) {
-  const gRaw = ctx.createGain(), gDn = ctx.createGain();
-  inp.voice?.connect(gRaw); inp.voice_dn?.connect(gDn);
+/** The voice chain alone, `inp` -> low cut ... compressor -> make-up -> dry + room + PA -> `out` (a layered project's
+ *  voice layer: AudioTrack live, tools/voice_chain.mjs for the export). `byp` = the untouched voice (hold to compare). */
+export function buildVoice(ctx: BaseAudioContext, inp: AudioNode, out: AudioNode) {
   const hp = ctx.createBiquadFilter(); hp.type = 'highpass';
   const warm = ctx.createBiquadFilter(); warm.type = 'peaking'; warm.frequency.value = 140; warm.Q.value = 1.1;
   const box = ctx.createBiquadFilter(); box.type = 'peaking'; box.frequency.value = 320; box.Q.value = 1.2;
@@ -72,33 +72,24 @@ export function buildMix(ctx: BaseAudioContext, inp: Inputs) {
   rev.normalize = false; pre.delayTime.value = 0.022;
   const wLo = ctx.createBiquadFilter(); wLo.type = 'highpass'; wLo.frequency.value = 220;
   const wHi = ctx.createBiquadFilter(); wHi.type = 'lowpass'; wHi.frequency.value = 5500;
-  // the PA: the voice coming back from the hall's far speakers - a band-limited slap ~110 ms later, a few fading repeats
   const slap = ctx.createDelay(0.5), slapFb = ctx.createGain(), paG = ctx.createGain();
   slap.delayTime.value = 0.11; slapFb.gain.value = 0.28; paG.gain.value = 0;
   const pLo = ctx.createBiquadFilter(); pLo.type = 'highpass'; pLo.frequency.value = 320;
   const pHi = ctx.createBiquadFilter(); pHi.type = 'lowpass'; pHi.frequency.value = 4200;
-  const mg = ctx.createGain();
-  // room for the voice: the music a little lower where speech lives (2-3 kHz), so it can be louder without covering him
-  const carve = ctx.createBiquadFilter(); carve.type = 'peaking'; carve.frequency.value = 2500; carve.Q.value = 0.9; carve.gain.value = -3.5;
-  const master = ctx.createGain();
-  // a safety limiter: catches the odd peak the loudness gain pushes over -1 dB
-  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
-  gRaw.connect(hp); gDn.connect(hp); hp.connect(warm); warm.connect(box); box.connect(pres); pres.connect(ess); ess.connect(comp); comp.connect(makeup);
-  makeup.connect(dry); dry.connect(master);
-  makeup.connect(pre); pre.connect(rev); rev.connect(wLo); wLo.connect(wHi); wHi.connect(wet); wet.connect(master);
-  makeup.connect(slap); slap.connect(pLo); pLo.connect(pHi); pHi.connect(slapFb); slapFb.connect(slap); pHi.connect(paG); paG.connect(master);
-  inp.fx?.connect(master);
-  inp.music?.connect(mg); mg.connect(carve); carve.connect(master);
-  master.connect(lim); lim.connect(ctx.destination);
-  return { gRaw, gDn, hp, warm, box, pres, ess, comp, makeup, dry, rev, wet, paG, mg, master, lim, irSize: 0 };
+  const byp = ctx.createGain(); byp.gain.value = 0;
+  inp.connect(hp); hp.connect(warm); warm.connect(box); box.connect(pres); pres.connect(ess); ess.connect(comp); comp.connect(makeup);
+  makeup.connect(dry); dry.connect(out);
+  makeup.connect(pre); pre.connect(rev); rev.connect(wLo); wLo.connect(wHi); wHi.connect(wet); wet.connect(out);
+  makeup.connect(slap); slap.connect(pLo); pLo.connect(pHi); pHi.connect(slapFb); slapFb.connect(slap); pHi.connect(paG); paG.connect(out);
+  inp.connect(byp); byp.connect(out);
+  return { hp, warm, box, pres, ess, comp, makeup, dry, rev, wet, paG, byp, irSize: 0 };
 }
-export type MixNodes = ReturnType<typeof buildMix>;
+export type VoiceNodes = ReturnType<typeof buildVoice>;
 
-/** settings -> the chain. Live (glide = true) every change glides ~40 ms, so moving a slider doesn't crackle. */
-export function applyMix(ctx: BaseAudioContext, n: MixNodes, voice: any, musicGain: number, masterGain: number, glide = true) {
+/** voice settings -> the chain (glide = live: every change glides ~40 ms). `voice.bypass` = only the untouched voice. */
+export function applyVoice(ctx: BaseAudioContext, n: VoiceNodes, voice: any, glide = true) {
   const at = ctx.currentTime;
   const set = (p: AudioParam, v: number) => (glide ? p.setTargetAtTime(v, at, 0.04) : (p.value = v));
-  set(n.gRaw.gain, voice.denoise ? 0 : 1); set(n.gDn.gain, voice.denoise ? 1 : 0);
   set(n.hp.frequency, voice.lowcut || (voice.raw ? 10 : 60));
   set(n.warm.gain, voice.warmth || 0); set(n.box.gain, voice.box || 0); set(n.pres.gain, voice.presence || 0);
   set(n.ess.gain, -8 * (voice.deess || 0));
@@ -108,8 +99,36 @@ export function applyMix(ctx: BaseAudioContext, n: MixNodes, voice: any, musicGa
   const room = voice.raw ? 0 : Math.max(0, Math.min(1, voice.room || 0));  // 0 = close to the mic, 1 = far in a big room
   const size = Math.max(0.3, Math.min(3.5, voice.roomSize || 1.6));
   if (room > 0 && n.irSize !== size) { n.rev.buffer = roomIR(ctx, size); n.irSize = size; }
-  set(n.dry.gain, 1 - 0.45 * room); set(n.wet.gain, room > 0 ? 1.1 * room : 0);
-  set(n.paG.gain, voice.raw ? 0 : 0.45 * Math.max(0, Math.min(1, voice.pa || 0)));
+  const by = voice.bypass ? 1 : 0;
+  set(n.dry.gain, (1 - 0.45 * room) * (1 - by)); set(n.wet.gain, room > 0 ? 1.1 * room * (1 - by) : 0);
+  set(n.paG.gain, voice.raw || by ? 0 : 0.45 * Math.max(0, Math.min(1, voice.pa || 0)));
+  set(n.byp.gain, by);
+}
+
+export function buildMix(ctx: BaseAudioContext, inp: Inputs) {
+  const gRaw = ctx.createGain(), gDn = ctx.createGain(), vin = ctx.createGain();
+  inp.voice?.connect(gRaw); inp.voice_dn?.connect(gDn);
+  gRaw.connect(vin); gDn.connect(vin);
+  const master = ctx.createGain();
+  const v = buildVoice(ctx, vin, master);
+  const mg = ctx.createGain();
+  // room for the voice: the music a little lower where speech lives (2-3 kHz), so it can be louder without covering him
+  const carve = ctx.createBiquadFilter(); carve.type = 'peaking'; carve.frequency.value = 2500; carve.Q.value = 0.9; carve.gain.value = -3.5;
+  // a safety limiter: catches the odd peak the loudness gain pushes over -1 dB
+  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+  inp.fx?.connect(master);
+  inp.music?.connect(mg); mg.connect(carve); carve.connect(master);
+  master.connect(lim); lim.connect(ctx.destination);
+  return { gRaw, gDn, ...v, mg, master, lim };
+}
+export type MixNodes = ReturnType<typeof buildMix>;
+
+/** settings -> the chain. Live (glide = true) every change glides ~40 ms, so moving a slider doesn't crackle. */
+export function applyMix(ctx: BaseAudioContext, n: MixNodes, voice: any, musicGain: number, masterGain: number, glide = true) {
+  const at = ctx.currentTime;
+  const set = (p: AudioParam, v: number) => (glide ? p.setTargetAtTime(v, at, 0.04) : (p.value = v));
+  set(n.gRaw.gain, voice.denoise ? 0 : 1); set(n.gDn.gain, voice.denoise ? 1 : 0);
+  applyVoice(ctx, n, voice, glide);
   set(n.mg.gain, musicGain);
   set(n.master.gain, voice.raw ? 1 : masterGain);
   set(n.lim.ratio, voice.raw ? 1 : 20); set(n.lim.threshold, voice.raw ? 0 : -3.5);
