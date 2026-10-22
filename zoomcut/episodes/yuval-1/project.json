@@ -1,0 +1,607 @@
+{
+  "format": "sketch-studio/1",
+  "title": "Yuval Know All Harari - Homo Useless",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#000000"
+  },
+  "duration": 1063,
+  "speed": 1.1,
+  "assets": {
+    "font.stam-ashkenaz": {
+      "kind": "font",
+      "src": "../../fonts/stamashkenazclm-webfont.ttf",
+      "family": "zc-stam-ashkenaz"
+    },
+    "font.assistant": {
+      "kind": "font",
+      "src": "../../fonts/Assistant.ttf",
+      "family": "zc-assistant"
+    },
+    "t.IMG_0093": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/yuval/IMG_0093.MP4",
+      "w": 720,
+      "h": 1280,
+      "duration": 39.107,
+      "label": "IMG_0093",
+      "audio": "work/audio/IMG_0093.p+1.wav",
+      "preview": "work/public/takes/IMG_0093.plain.mp4",
+      "fg": "work/public/takes/IMG_0093.webm",
+      "matte": "work/layers/matte/IMG_0093.mkv"
+    },
+    "m.set": {
+      "kind": "image",
+      "src": "work/bg.png",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.ov1": {
+      "kind": "image",
+      "src": "media/poster.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "s.0": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s5bcb2eba0ff8.wav",
+      "label": "applause"
+    },
+    "s.1": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s4f9db71796ae.wav",
+      "label": "crowd-gasp-stack"
+    },
+    "s.music": {
+      "kind": "audio",
+      "src": "work/layers/sounds/m552a8bf3a376.wav",
+      "duration": 35.433
+    }
+  },
+  "layers": [
+    {
+      "id": "set",
+      "kind": "image",
+      "name": "Set",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "set",
+          "from": 0,
+          "dur": 1063,
+          "asset": "m.set",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "pin": "span",
+          "ref": {
+            "set": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "person",
+      "kind": "video",
+      "name": "Person",
+      "owner": "builder",
+      "props": {
+        "fit": "cover",
+        "cutout": true,
+        "eyes": false,
+        "look": {
+          "saturate": 1.05,
+          "brightness": 0.97,
+          "warm": 0.05
+        },
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      "items": [
+        {
+          "id": "c0",
+          "from": 0,
+          "dur": 342,
+          "asset": "t.IMG_0093",
+          "in": 5.25,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 5.25
+          },
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c1",
+          "from": 342,
+          "dur": 403,
+          "asset": "t.IMG_0093",
+          "in": 17.01,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 17.01
+          },
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c2",
+          "from": 745,
+          "dur": 213,
+          "asset": "t.IMG_0093",
+          "in": 30.68,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 30.68
+          },
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c3",
+          "from": 958,
+          "dur": 105,
+          "asset": "t.IMG_0093",
+          "in": 37.975,
+          "rate": 0.3,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 37.98
+          },
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ]
+    },
+    {
+      "id": "ov.0",
+      "kind": "text",
+      "name": "אף אחד:",
+      "owner": "builder",
+      "props": {
+        "style": "pov"
+      },
+      "items": [
+        {
+          "id": "o0",
+          "from": 0,
+          "dur": 958,
+          "ref": {
+            "overlay": 0
+          },
+          "box": {
+            "x": 540.0,
+            "y": 179.0,
+            "anchor": "t",
+            "w": 940.0
+          },
+          "text": "אף אחד:\nיובל (כסא) נוח הררי בעוד כנס AI, מקדם עוד ספר חדש שלו:",
+          "style": "pov",
+          "font": "font.assistant",
+          "theme": "light",
+          "size": 58,
+          "padX": 36,
+          "padY": 14,
+          "box_opacity": 0.75
+        }
+      ]
+    },
+    {
+      "id": "ov.1",
+      "kind": "image",
+      "name": "Picture 2",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o1",
+          "from": 958,
+          "dur": 105,
+          "ref": {
+            "overlay": 1
+          },
+          "pin": "span",
+          "asset": "m.ov1",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "w": 1080.0,
+            "h": 1920.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "subs",
+      "kind": "subtitles",
+      "name": "Subtitles",
+      "owner": "builder",
+      "props": {
+        "style": "solo",
+        "box": {
+          "x": 540.0,
+          "y": 1470,
+          "w": 980,
+          "anchor": "t"
+        },
+        "font": "font.assistant",
+        "size": 62,
+        "weight": 800,
+        "color": "#ffffff",
+        "stroke": 10
+      },
+      "items": [
+        {
+          "id": "s0",
+          "from": 0,
+          "dur": 79,
+          "text": "For over 70,000 years,",
+          "ref": {
+            "cap": "For over 70,000 years,",
+            "k": 0
+          }
+        },
+        {
+          "id": "s1",
+          "from": 79,
+          "dur": 50,
+          "text": "the Homo sapiens believed",
+          "ref": {
+            "cap": "the Homo sapiens believed",
+            "k": 1
+          }
+        },
+        {
+          "id": "s2",
+          "from": 129,
+          "dur": 37,
+          "text": "it was the crown",
+          "ref": {
+            "cap": "it was the crown",
+            "k": 2
+          }
+        },
+        {
+          "id": "s3",
+          "from": 166,
+          "dur": 30,
+          "text": "of creation.",
+          "ref": {
+            "cap": "of creation.",
+            "k": 3
+          }
+        },
+        {
+          "id": "s4",
+          "from": 203,
+          "dur": 54,
+          "text": "But what happens when",
+          "ref": {
+            "cap": "But what happens when",
+            "k": 4
+          }
+        },
+        {
+          "id": "s5",
+          "from": 257,
+          "dur": 61,
+          "text": "creation itself no longer",
+          "ref": {
+            "cap": "creation itself no longer",
+            "k": 5
+          }
+        },
+        {
+          "id": "s6",
+          "from": 318,
+          "dur": 24,
+          "text": "needs us?",
+          "ref": {
+            "cap": "needs us?",
+            "k": 6
+          }
+        },
+        {
+          "id": "s7",
+          "from": 342,
+          "dur": 46,
+          "text": "We may discover that",
+          "ref": {
+            "cap": "We may discover that",
+            "k": 7
+          }
+        },
+        {
+          "id": "s8",
+          "from": 388,
+          "dur": 44,
+          "text": "within 10 years,",
+          "ref": {
+            "cap": "within 10 years,",
+            "k": 8
+          }
+        },
+        {
+          "id": "s9",
+          "from": 432,
+          "dur": 43,
+          "text": "the only role left",
+          "ref": {
+            "cap": "the only role left",
+            "k": 9
+          }
+        },
+        {
+          "id": "s10",
+          "from": 475,
+          "dur": 51,
+          "text": "for the Homo sapiens",
+          "ref": {
+            "cap": "for the Homo sapiens",
+            "k": 10
+          }
+        },
+        {
+          "id": "s11",
+          "from": 526,
+          "dur": 41,
+          "text": "will be to stand",
+          "ref": {
+            "cap": "will be to stand",
+            "k": 11
+          }
+        },
+        {
+          "id": "s12",
+          "from": 567,
+          "dur": 40,
+          "text": "next to the router",
+          "ref": {
+            "cap": "next to the router",
+            "k": 12
+          }
+        },
+        {
+          "id": "s13",
+          "from": 607,
+          "dur": 38,
+          "text": "and check if there",
+          "ref": {
+            "cap": "and check if there",
+            "k": 13
+          }
+        },
+        {
+          "id": "s14",
+          "from": 645,
+          "dur": 51,
+          "text": "is an Internet connection.",
+          "ref": {
+            "cap": "is an Internet connection.",
+            "k": 14
+          }
+        },
+        {
+          "id": "s15",
+          "from": 708,
+          "dur": 37,
+          "text": "And even that,",
+          "ref": {
+            "cap": "And even that,",
+            "k": 15
+          }
+        },
+        {
+          "id": "s16",
+          "from": 745,
+          "dur": 36,
+          "text": "artificial intelligence,",
+          "ref": {
+            "cap": "artificial intelligence,",
+            "k": 16
+          }
+        },
+        {
+          "id": "s17",
+          "from": 781,
+          "dur": 55,
+          "text": "or super intelligence,",
+          "ref": {
+            "cap": "or super intelligence,",
+            "k": 17
+          }
+        },
+        {
+          "id": "s18",
+          "from": 836,
+          "dur": 65,
+          "text": "as Elon calls it,",
+          "ref": {
+            "cap": "as Elon calls it,",
+            "k": 18
+          }
+        },
+        {
+          "id": "s19",
+          "from": 901,
+          "dur": 65,
+          "text": "will outperform us soon.",
+          "ref": {
+            "cap": "will outperform us soon.",
+            "k": 19
+          }
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "kind": "audio",
+      "name": "Voice",
+      "owner": "builder",
+      "props": {
+        "volume": 1,
+        "voice": {
+          "preset": "stage",
+          "boost": -5.5,
+          "lowcut": 90,
+          "warmth": -0.5,
+          "box": -3,
+          "presence": 1,
+          "deess": 0.35,
+          "comp": 0.4,
+          "room": 0.3,
+          "roomSize": 1.2,
+          "pa": 0.3
+        },
+        "clean": "nn"
+      },
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 346,
+          "asset": "t.IMG_0093",
+          "in": 5.25,
+          "fade_in": 0.012,
+          "fade_out": 0.133,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 5.25
+          }
+        },
+        {
+          "id": "v1",
+          "from": 342,
+          "dur": 407,
+          "asset": "t.IMG_0093",
+          "in": 17.01,
+          "fade_in": 0.012,
+          "fade_out": 0.133,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 17.01
+          }
+        },
+        {
+          "id": "v2",
+          "from": 745,
+          "dur": 217,
+          "asset": "t.IMG_0093",
+          "in": 30.68,
+          "fade_in": 0.012,
+          "fade_out": 0.133,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 30.68
+          }
+        },
+        {
+          "id": "v3",
+          "from": 958,
+          "dur": 105,
+          "asset": "t.IMG_0093",
+          "in": 37.975,
+          "rate": 0.3,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "IMG_0093",
+            "a": 37.98
+          }
+        }
+      ]
+    },
+    {
+      "id": "sfx",
+      "kind": "audio",
+      "name": "Sounds",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x1",
+          "from": 674.7,
+          "dur": 127.612,
+          "asset": "s.1",
+          "in": 0.0,
+          "gain": 0.5,
+          "fade_in": 0.02,
+          "fade_out": 0.5,
+          "ref": {
+            "sound": 1
+          }
+        },
+        {
+          "id": "x0",
+          "from": 913.6,
+          "dur": 180.0,
+          "asset": "s.0",
+          "in": 0.0,
+          "gain": 0.45,
+          "fade_in": 0.6,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "kind": "audio",
+      "name": "Music",
+      "owner": "builder",
+      "props": {
+        "volume": 0.9
+      },
+      "items": [
+        {
+          "id": "m0",
+          "from": 0.0,
+          "dur": 1062.999,
+          "asset": "s.music",
+          "in": 0,
+          "fade_in": 0,
+          "fade_out": 0,
+          "ref": {
+            "music": 1
+          }
+        }
+      ]
+    }
+  ],
+  "builder": {
+    "kind": "solo",
+    "from": "lesson.py"
+  },
+  "rev": 1,
+  "saved": 1792685803212
+}

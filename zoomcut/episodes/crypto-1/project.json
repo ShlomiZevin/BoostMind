@@ -1,0 +1,1700 @@
+{
+  "format": "sketch-studio/1",
+  "title": "גורו הקריפטו - המטבע של אתמול",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#000000"
+  },
+  "duration": 2275,
+  "speed": 1.05,
+  "assets": {
+    "font.stam-ashkenaz": {
+      "kind": "font",
+      "src": "../../fonts/stamashkenazclm-webfont.ttf",
+      "family": "zc-stam-ashkenaz"
+    },
+    "font.assistant": {
+      "kind": "font",
+      "src": "../../fonts/Assistant.ttf",
+      "family": "zc-assistant"
+    },
+    "t.IMG_0114": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/naor/IMG_0114.MP4",
+      "w": 720,
+      "h": 1280,
+      "duration": 27.705,
+      "label": "IMG_0114",
+      "audio": "work/audio/IMG_0114.wav",
+      "preview": "work/public/takes/IMG_0114.orig.mp4",
+      "eyes": "work/public/takes/IMG_0114.plain.mp4",
+      "eyes_src": "work/gaze/IMG_0114.445a1692.mp4",
+      "eyes_engine": "nvidia",
+      "fg": "work/public/takes/IMG_0114.raw.webm",
+      "eyes_fg": "work/public/takes/IMG_0114.webm",
+      "matte": "work/layers/matte/IMG_0114.mkv"
+    },
+    "t.IMG_0115": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/naor/IMG_0115.MP4",
+      "w": 720,
+      "h": 1280,
+      "duration": 23.738,
+      "label": "IMG_0115",
+      "audio": "work/audio/IMG_0115.wav",
+      "preview": "work/public/takes/IMG_0115.orig.mp4",
+      "eyes": "work/public/takes/IMG_0115.plain.mp4",
+      "eyes_src": "work/gaze/IMG_0115.445a1692.mp4",
+      "eyes_engine": "nvidia",
+      "fg": "work/public/takes/IMG_0115.raw.webm",
+      "eyes_fg": "work/public/takes/IMG_0115.webm",
+      "matte": "work/layers/matte/IMG_0115.mkv"
+    },
+    "t.IMG_0116": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/naor/IMG_0116.MP4",
+      "w": 720,
+      "h": 1280,
+      "duration": 26.905,
+      "label": "IMG_0116",
+      "audio": "work/audio/IMG_0116.wav",
+      "preview": "work/public/takes/IMG_0116.orig.mp4",
+      "eyes": "work/public/takes/IMG_0116.plain.mp4",
+      "eyes_src": "work/gaze/IMG_0116.445a1692.mp4",
+      "eyes_engine": "nvidia",
+      "fg": "work/public/takes/IMG_0116.raw.webm",
+      "eyes_fg": "work/public/takes/IMG_0116.webm",
+      "matte": "work/layers/matte/IMG_0116.mkv"
+    },
+    "m.set": {
+      "kind": "image",
+      "src": "work/bg.png",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.ov2": {
+      "kind": "image",
+      "src": "media/cta.png",
+      "w": 980,
+      "h": 170
+    },
+    "m.st4": {
+      "kind": "image",
+      "src": "../_assets/crypto/stickers/kaching.png",
+      "w": 833,
+      "h": 896
+    },
+    "m.st5": {
+      "kind": "image",
+      "src": "../_assets/crypto/stickers/counter.png",
+      "w": 976,
+      "h": 885
+    },
+    "m.st6": {
+      "kind": "image",
+      "src": "../_assets/crypto/stickers/kaching.png",
+      "w": 833,
+      "h": 896
+    },
+    "m.st7": {
+      "kind": "image",
+      "src": "../_assets/crypto/stickers/counter.png",
+      "w": 976,
+      "h": 885
+    },
+    "m.st8": {
+      "kind": "image",
+      "src": "../_assets/crypto/stickers/kaching.png",
+      "w": 833,
+      "h": 896
+    },
+    "m.st9": {
+      "kind": "image",
+      "src": "../_assets/crypto/stickers/bill.png",
+      "w": 1282,
+      "h": 552
+    },
+    "m.ov10": {
+      "kind": "image",
+      "src": "media/poster.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "s.0": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s6f25b3e3d4cc.wav",
+      "label": "px-kaching-a"
+    },
+    "s.1": {
+      "kind": "audio",
+      "src": "work/layers/sounds/sf1c07b426cf8.wav",
+      "label": "px-bass-hit"
+    },
+    "s.2": {
+      "kind": "audio",
+      "src": "work/layers/sounds/se89913fc5281.wav",
+      "label": "px-counter-b"
+    },
+    "s.3": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s0e4cd0baa0e3.wav",
+      "label": "kaching"
+    },
+    "s.4": {
+      "kind": "audio",
+      "src": "work/layers/sounds/sf1c07b426cf8.wav",
+      "label": "px-bass-hit"
+    },
+    "s.5": {
+      "kind": "audio",
+      "src": "work/layers/sounds/sa79f40dd7a9c.wav",
+      "label": "px-kaching-retro"
+    },
+    "s.6": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s0f8e5d6e1ed6.wav",
+      "label": "px-kick-hit"
+    },
+    "s.7": {
+      "kind": "audio",
+      "src": "work/layers/sounds/se89913fc5281.wav",
+      "label": "px-counter-b"
+    },
+    "s.8": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s2d0147fbdc83.wav",
+      "label": "px-register-purchase"
+    },
+    "s.9": {
+      "kind": "audio",
+      "src": "work/layers/sounds/sf1c07b426cf8.wav",
+      "label": "px-bass-hit"
+    },
+    "s.10": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s6f25b3e3d4cc.wav",
+      "label": "px-kaching-a"
+    },
+    "s.11": {
+      "kind": "audio",
+      "src": "work/layers/sounds/sda64dfb4b328.wav",
+      "label": "px-boom-05"
+    },
+    "s.12": {
+      "kind": "audio",
+      "src": "work/layers/sounds/se89913fc5281.wav",
+      "label": "px-counter-b"
+    },
+    "s.13": {
+      "kind": "audio",
+      "src": "work/layers/sounds/s4f730b8bdd30.wav",
+      "label": "px-paper-flutter2"
+    },
+    "s.music": {
+      "kind": "audio",
+      "src": "work/layers/sounds/m56bf8157203f.wav",
+      "duration": 75.833
+    }
+  },
+  "layers": [
+    {
+      "id": "set",
+      "kind": "image",
+      "name": "Set",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "set",
+          "from": 0,
+          "dur": 2275,
+          "asset": "m.set",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "pin": "span",
+          "ref": {
+            "set": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "person",
+      "kind": "video",
+      "name": "Person",
+      "owner": "builder",
+      "props": {
+        "fit": "cover",
+        "cutout": true,
+        "eyes": true,
+        "look": {},
+        "af": "eq=brightness=0.02:contrast=1.06:saturation=1.08,colorbalance=rs=0.05:gs=0.016666666666666666:bs=-0.05:rm=0.05:bm=-0.05",
+        "box": {
+          "x": 0,
+          "y": 160,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      "items": [
+        {
+          "id": "c0",
+          "from": 0,
+          "dur": 755,
+          "asset": "t.IMG_0114",
+          "in": 0.91,
+          "ref": {
+            "take": "IMG_0114",
+            "a": 0.91
+          },
+          "box": {
+            "x": 0,
+            "y": 160,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c1",
+          "from": 755,
+          "dur": 662,
+          "asset": "t.IMG_0115",
+          "in": 0.67,
+          "ref": {
+            "take": "IMG_0115",
+            "a": 0.67
+          },
+          "box": {
+            "x": 0,
+            "y": 160,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c2",
+          "from": 1417,
+          "dur": 765,
+          "asset": "t.IMG_0116",
+          "in": 0.8,
+          "ref": {
+            "take": "IMG_0116",
+            "a": 0.8
+          },
+          "box": {
+            "x": 0,
+            "y": 160,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c3",
+          "from": 2182,
+          "dur": 90,
+          "asset": "t.IMG_0116",
+          "in": 26.3,
+          "rate": 0,
+          "ref": {
+            "hold": "IMG_0116",
+            "at": 26.3
+          },
+          "box": {
+            "x": 0,
+            "y": 160,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c4",
+          "from": 2272,
+          "dur": 3,
+          "asset": "t.IMG_0116",
+          "in": 26.3,
+          "ref": {
+            "take": "IMG_0116",
+            "a": 26.3
+          },
+          "box": {
+            "x": 0,
+            "y": 160,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ]
+    },
+    {
+      "id": "ov.0",
+      "kind": "text",
+      "name": "אף אחד:",
+      "owner": "builder",
+      "props": {
+        "style": "pov"
+      },
+      "items": [
+        {
+          "id": "o0",
+          "from": 0,
+          "dur": 2122,
+          "ref": {
+            "overlay": 0
+          },
+          "box": {
+            "x": 540.0,
+            "y": 270.0,
+            "anchor": "t",
+            "w": 940.0
+          },
+          "text": "אף אחד:\nנהור (ציון) מינוף:",
+          "style": "pov",
+          "font": "font.assistant",
+          "theme": "dark",
+          "size": 82,
+          "padX": 40,
+          "padY": 14,
+          "box_opacity": 0.55
+        }
+      ]
+    },
+    {
+      "id": "ov.1",
+      "kind": "text",
+      "name": "מטבע קריפטו",
+      "owner": "builder",
+      "props": {
+        "style": "market"
+      },
+      "items": [
+        {
+          "id": "o1",
+          "from": 1036,
+          "dur": 279,
+          "ref": {
+            "overlay": 1
+          },
+          "box": {
+            "x": 540.0,
+            "y": 150.0,
+            "anchor": "t"
+          },
+          "style": "market",
+          "text": "שוק הקריפטו",
+          "tag": "מבזק",
+          "symbol": "LMTS",
+          "name": "מטבע קריפטו",
+          "price": 0.0847,
+          "change": 95.4,
+          "updated": "עודכן: אתמול",
+          "call": "ההמלצה יצאה",
+          "w": 780,
+          "draw": 3.4
+        }
+      ]
+    },
+    {
+      "id": "ov.2",
+      "kind": "image",
+      "name": "Picture 3",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o2",
+          "from": 1424,
+          "dur": 212,
+          "ref": {
+            "overlay": 2
+          },
+          "anim": {
+            "scale": [
+              [
+                0.0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1.0
+              ],
+              [
+                6.86,
+                1.0
+              ],
+              [
+                6.8767,
+                0.9416
+              ],
+              [
+                6.8933,
+                0.8835
+              ],
+              [
+                6.91,
+                0.825
+              ],
+              [
+                6.9267,
+                0.7666
+              ],
+              [
+                6.9433,
+                0.7085
+              ],
+              [
+                6.96,
+                0.65
+              ],
+              [
+                6.9767,
+                0.5916
+              ],
+              [
+                6.9933,
+                0.5335
+              ],
+              [
+                7.01,
+                0.475
+              ],
+              [
+                7.0267,
+                0.4166
+              ],
+              [
+                7.0433,
+                0.3585
+              ],
+              [
+                7.06,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov2",
+          "box": {
+            "x": 50.0,
+            "y": 1250.0,
+            "w": 980.0,
+            "h": 170.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "ov.3",
+      "kind": "text",
+      "name": "LMTS ▲95.4% אתמול ● PEPE",
+      "owner": "builder",
+      "props": {
+        "style": "ticker"
+      },
+      "items": [
+        {
+          "id": "o3",
+          "from": 0,
+          "dur": 2122,
+          "ref": {
+            "overlay": 3
+          },
+          "box": {
+            "x": 0,
+            "y": 1590.0,
+            "anchor": "tl"
+          },
+          "text": "LMTS ▲95.4% אתמול ● PEPE ▲61.2% שלשום ● DOGE ▲33.8% לפני שבוע ● BTC ▲8.1% ב־2017 ● מטבעות של אתמול, כבר היום ● הצטרפו לקהילה הסגורה ● HINDSIGHT VIP: הקבוצה הסגורה באוויר, הלינק בביו ⬆️ ●",
+          "style": "ticker",
+          "font": "font.assistant",
+          "theme": "dark",
+          "size": 38,
+          "speed": 130,
+          "t0": 0.0,
+          "tw": 3500,
+          "bg": "rgba(0,0,0,0.60)"
+        }
+      ]
+    },
+    {
+      "id": "ov.4",
+      "kind": "text",
+      "name": "sticker",
+      "owner": "builder",
+      "props": {
+        "style": "sticker"
+      },
+      "items": [
+        {
+          "id": "o4",
+          "from": 47,
+          "dur": 39,
+          "ref": {
+            "overlay": 4
+          },
+          "box": {
+            "x": 790.0,
+            "y": 1130.0,
+            "anchor": "c"
+          },
+          "style": "sticker",
+          "text": "",
+          "image": "m.st4",
+          "motion": "pop",
+          "hold": 0.15,
+          "w": 440,
+          "rot": 8,
+          "overlap": true
+        }
+      ]
+    },
+    {
+      "id": "ov.5",
+      "kind": "text",
+      "name": "sticker",
+      "owner": "builder",
+      "props": {
+        "style": "sticker"
+      },
+      "items": [
+        {
+          "id": "o5",
+          "from": 437,
+          "dur": 78,
+          "ref": {
+            "overlay": 5
+          },
+          "box": {
+            "x": 290.0,
+            "y": 1130.0,
+            "anchor": "c"
+          },
+          "style": "sticker",
+          "text": "",
+          "image": "m.st5",
+          "motion": "pop",
+          "hold": 0.15,
+          "w": 470,
+          "rot": -7,
+          "overlap": true
+        }
+      ]
+    },
+    {
+      "id": "ov.6",
+      "kind": "text",
+      "name": "sticker",
+      "owner": "builder",
+      "props": {
+        "style": "sticker"
+      },
+      "items": [
+        {
+          "id": "o6",
+          "from": 1230,
+          "dur": 45,
+          "ref": {
+            "overlay": 6
+          },
+          "box": {
+            "x": 290.0,
+            "y": 1130.0,
+            "anchor": "c"
+          },
+          "style": "sticker",
+          "text": "",
+          "image": "m.st6",
+          "motion": "pop",
+          "hold": 0.15,
+          "w": 440,
+          "rot": -8,
+          "overlap": true
+        }
+      ]
+    },
+    {
+      "id": "ov.7",
+      "kind": "text",
+      "name": "sticker",
+      "owner": "builder",
+      "props": {
+        "style": "sticker"
+      },
+      "items": [
+        {
+          "id": "o7",
+          "from": 1483,
+          "dur": 75,
+          "ref": {
+            "overlay": 7
+          },
+          "box": {
+            "x": 790.0,
+            "y": 930.0,
+            "anchor": "c"
+          },
+          "style": "sticker",
+          "text": "",
+          "image": "m.st7",
+          "motion": "pop",
+          "hold": 0.15,
+          "w": 420,
+          "rot": 7,
+          "overlap": true
+        }
+      ]
+    },
+    {
+      "id": "ov.8",
+      "kind": "text",
+      "name": "sticker",
+      "owner": "builder",
+      "props": {
+        "style": "sticker"
+      },
+      "items": [
+        {
+          "id": "o8",
+          "from": 1768,
+          "dur": 42,
+          "ref": {
+            "overlay": 8
+          },
+          "box": {
+            "x": 790.0,
+            "y": 1130.0,
+            "anchor": "c"
+          },
+          "style": "sticker",
+          "text": "",
+          "image": "m.st8",
+          "motion": "pop",
+          "hold": 0.15,
+          "w": 440,
+          "rot": 8,
+          "overlap": true
+        }
+      ]
+    },
+    {
+      "id": "ov.9",
+      "kind": "text",
+      "name": "sticker",
+      "owner": "builder",
+      "props": {
+        "style": "sticker"
+      },
+      "items": [
+        {
+          "id": "o9",
+          "from": 1910,
+          "dur": 95,
+          "ref": {
+            "overlay": 9
+          },
+          "box": {
+            "x": 0,
+            "y": 0
+          },
+          "style": "sticker",
+          "text": "",
+          "motion": "rain",
+          "hold": 0.1,
+          "overlap": true,
+          "image": "m.st9",
+          "w": 270,
+          "count": 26
+        }
+      ]
+    },
+    {
+      "id": "ov.10",
+      "kind": "image",
+      "name": "Picture 11",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o10",
+          "from": 2124,
+          "dur": 151,
+          "ref": {
+            "overlay": 10
+          },
+          "pin": "span",
+          "fade_in": 1.5,
+          "asset": "m.ov10",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "w": 1080.0,
+            "h": 1920.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "subs",
+      "kind": "subtitles",
+      "name": "Subtitles",
+      "owner": "builder",
+      "props": {
+        "style": "solo",
+        "box": {
+          "x": 540.0,
+          "y": 1470,
+          "w": 980,
+          "anchor": "t"
+        },
+        "font": "font.assistant",
+        "size": 70,
+        "weight": 800,
+        "color": "#ffffff",
+        "stroke": 10
+      },
+      "items": [
+        {
+          "id": "s0",
+          "from": 2,
+          "dur": 36,
+          "text": "טופ טופ טרללה,",
+          "ref": {
+            "cap": "טופ טופ טרללה,",
+            "k": 0
+          }
+        },
+        {
+          "id": "s1",
+          "from": 38,
+          "dur": 72,
+          "text": "גדלתי ב־95% בשעה!",
+          "ref": {
+            "cap": "גדלתי ב־95% בשעה!",
+            "k": 1
+          }
+        },
+        {
+          "id": "s2",
+          "from": 110,
+          "dur": 33,
+          "text": "בשעה, טופיסטים,",
+          "ref": {
+            "cap": "בשעה, טופיסטים,",
+            "k": 2
+          }
+        },
+        {
+          "id": "s3",
+          "from": 143,
+          "dur": 24,
+          "text": "לא בשנה.",
+          "ref": {
+            "cap": "לא בשנה.",
+            "k": 3
+          }
+        },
+        {
+          "id": "s4",
+          "from": 171,
+          "dur": 21,
+          "text": "טופיסטים שלי,",
+          "ref": {
+            "cap": "טופיסטים שלי,",
+            "k": 4
+          }
+        },
+        {
+          "id": "s5",
+          "from": 192,
+          "dur": 22,
+          "text": "תקשיבו טוב.",
+          "ref": {
+            "cap": "תקשיבו טוב.",
+            "k": 5
+          }
+        },
+        {
+          "id": "s6",
+          "from": 226,
+          "dur": 37,
+          "text": "מהיום, פעם בשבוע,",
+          "ref": {
+            "cap": "מהיום, פעם בשבוע,",
+            "k": 6
+          }
+        },
+        {
+          "id": "s7",
+          "from": 263,
+          "dur": 29,
+          "text": "אני הולך לחשוף בפניכם",
+          "ref": {
+            "cap": "אני הולך לחשוף בפניכם",
+            "k": 7
+          }
+        },
+        {
+          "id": "s8",
+          "from": 292,
+          "dur": 56,
+          "text": "מטבע קריפטו שהולך לעשות",
+          "ref": {
+            "cap": "מטבע קריפטו שהולך לעשות",
+            "k": 8
+          }
+        },
+        {
+          "id": "s9",
+          "from": 348,
+          "dur": 66,
+          "text": "עלייה מטורפת אתמול.",
+          "ref": {
+            "cap": "עלייה מטורפת אתמול.",
+            "k": 9
+          }
+        },
+        {
+          "id": "s10",
+          "from": 414,
+          "dur": 26,
+          "text": "אני מדבר איתכם על",
+          "ref": {
+            "cap": "אני מדבר איתכם על",
+            "k": 10
+          }
+        },
+        {
+          "id": "s11",
+          "from": 440,
+          "dur": 59,
+          "text": "עשרות, לפעמים מאות אחוזים,",
+          "ref": {
+            "cap": "עשרות, לפעמים מאות אחוזים,",
+            "k": 11
+          }
+        },
+        {
+          "id": "s12",
+          "from": 499,
+          "dur": 31,
+          "text": "ביום אחד.",
+          "ref": {
+            "cap": "ביום אחד.",
+            "k": 12
+          }
+        },
+        {
+          "id": "s13",
+          "from": 530,
+          "dur": 29,
+          "text": "ואני לא זורק סתם",
+          "ref": {
+            "cap": "ואני לא זורק סתם",
+            "k": 13
+          }
+        },
+        {
+          "id": "s14",
+          "from": 559,
+          "dur": 19,
+          "text": "מטבעות, טופיסטים.",
+          "ref": {
+            "cap": "מטבעות, טופיסטים.",
+            "k": 14
+          }
+        },
+        {
+          "id": "s15",
+          "from": 578,
+          "dur": 27,
+          "text": "אני בודק,",
+          "ref": {
+            "cap": "אני בודק,",
+            "k": 15
+          }
+        },
+        {
+          "id": "s16",
+          "from": 605,
+          "dur": 29,
+          "text": "אני מנתח,",
+          "ref": {
+            "cap": "אני מנתח,",
+            "k": 16
+          }
+        },
+        {
+          "id": "s17",
+          "from": 634,
+          "dur": 41,
+          "text": "אני מסתכל על הגרפים,",
+          "ref": {
+            "cap": "אני מסתכל על הגרפים,",
+            "k": 17
+          }
+        },
+        {
+          "id": "s18",
+          "from": 675,
+          "dur": 41,
+          "text": "לפעמים גם קצת מידע",
+          "ref": {
+            "cap": "לפעמים גם קצת מידע",
+            "k": 18
+          }
+        },
+        {
+          "id": "s19",
+          "from": 716,
+          "dur": 35,
+          "text": "פנים, אסור לי לדבר",
+          "ref": {
+            "cap": "פנים, אסור לי לדבר",
+            "k": 19
+          }
+        },
+        {
+          "id": "s20",
+          "from": 751,
+          "dur": 6,
+          "text": "על זה.",
+          "ref": {
+            "cap": "על זה.",
+            "k": 20
+          }
+        },
+        {
+          "id": "s21",
+          "from": 755,
+          "dur": 23,
+          "text": "אני לא עובד על",
+          "ref": {
+            "cap": "אני לא עובד על",
+            "k": 21
+          }
+        },
+        {
+          "id": "s22",
+          "from": 778,
+          "dur": 19,
+          "text": "תחושות בטן.",
+          "ref": {
+            "cap": "תחושות בטן.",
+            "k": 22
+          }
+        },
+        {
+          "id": "s23",
+          "from": 797,
+          "dur": 48,
+          "text": "תחושות בטן זה תיקחו,",
+          "ref": {
+            "cap": "תחושות בטן זה תיקחו,",
+            "k": 23
+          }
+        },
+        {
+          "id": "s24",
+          "from": 845,
+          "dur": 22,
+          "text": "תאכלו תאילנדי,",
+          "ref": {
+            "cap": "תאכלו תאילנדי,",
+            "k": 24
+          }
+        },
+        {
+          "id": "s25",
+          "from": 867,
+          "dur": 33,
+          "text": "תקבלו תחושות בטן.",
+          "ref": {
+            "cap": "תקבלו תחושות בטן.",
+            "k": 25
+          }
+        },
+        {
+          "id": "s26",
+          "from": 900,
+          "dur": 42,
+          "text": "אני עובד על נתונים.",
+          "ref": {
+            "cap": "אני עובד על נתונים.",
+            "k": 26
+          }
+        },
+        {
+          "id": "s27",
+          "from": 942,
+          "dur": 31,
+          "text": "עד שאני לא רואה",
+          "ref": {
+            "cap": "עד שאני לא רואה",
+            "k": 27
+          }
+        },
+        {
+          "id": "s28",
+          "from": 973,
+          "dur": 22,
+          "text": "שהמטבע עלה,",
+          "ref": {
+            "cap": "שהמטבע עלה,",
+            "k": 28
+          }
+        },
+        {
+          "id": "s29",
+          "from": 995,
+          "dur": 40,
+          "text": "אני לא מוציא המלצה.",
+          "ref": {
+            "cap": "אני לא מוציא המלצה.",
+            "k": 29
+          }
+        },
+        {
+          "id": "s30",
+          "from": 1035,
+          "dur": 67,
+          "text": "קחו למשל את LMTS.",
+          "ref": {
+            "cap": "קחו למשל את LMTS.",
+            "k": 30
+          }
+        },
+        {
+          "id": "s31",
+          "from": 1107,
+          "dur": 46,
+          "text": "המטבע הזה הולך לעשות",
+          "ref": {
+            "cap": "המטבע הזה הולך לעשות",
+            "k": 31
+          }
+        },
+        {
+          "id": "s32",
+          "from": 1153,
+          "dur": 86,
+          "text": "אתמול עלייה של 95.4%.",
+          "ref": {
+            "cap": "אתמול עלייה של 95.4%.",
+            "k": 32
+          }
+        },
+        {
+          "id": "s33",
+          "from": 1252,
+          "dur": 62,
+          "text": "95.4% ביום אחד!",
+          "ref": {
+            "cap": "95.4% ביום אחד!",
+            "k": 33
+          }
+        },
+        {
+          "id": "s34",
+          "from": 1318,
+          "dur": 56,
+          "text": "עכשיו, מי שנמצא בקהילה",
+          "ref": {
+            "cap": "עכשיו, מי שנמצא בקהילה",
+            "k": 34
+          }
+        },
+        {
+          "id": "s35",
+          "from": 1374,
+          "dur": 42,
+          "text": "הסגורה לא צריך לחכות",
+          "ref": {
+            "cap": "הסגורה לא צריך לחכות",
+            "k": 35
+          }
+        },
+        {
+          "id": "s36",
+          "from": 1416,
+          "dur": 6,
+          "text": "שבוע.",
+          "ref": {
+            "cap": "שבוע.",
+            "k": 36
+          }
+        },
+        {
+          "id": "s37",
+          "from": 1417,
+          "dur": 34,
+          "text": "הוא מקבל ממני מטבעות",
+          "ref": {
+            "cap": "הוא מקבל ממני מטבעות",
+            "k": 37
+          }
+        },
+        {
+          "id": "s38",
+          "from": 1451,
+          "dur": 35,
+          "text": "כאלה כל יום.",
+          "ref": {
+            "cap": "כאלה כל יום.",
+            "k": 38
+          }
+        },
+        {
+          "id": "s39",
+          "from": 1486,
+          "dur": 39,
+          "text": "לפעמים פעמיים ביום,",
+          "ref": {
+            "cap": "לפעמים פעמיים ביום,",
+            "k": 39
+          }
+        },
+        {
+          "id": "s40",
+          "from": 1525,
+          "dur": 31,
+          "text": "לפעמים שלוש פעמים ביום.",
+          "ref": {
+            "cap": "לפעמים שלוש פעמים ביום.",
+            "k": 40
+          }
+        },
+        {
+          "id": "s41",
+          "from": 1556,
+          "dur": 35,
+          "text": "תלוי כמה מטבעות טסו",
+          "ref": {
+            "cap": "תלוי כמה מטבעות טסו",
+            "k": 41
+          }
+        },
+        {
+          "id": "s42",
+          "from": 1591,
+          "dur": 44,
+          "text": "אתמול. ואני אומר לכם",
+          "ref": {
+            "cap": "אתמול. ואני אומר לכם",
+            "k": 42
+          }
+        },
+        {
+          "id": "s43",
+          "from": 1635,
+          "dur": 23,
+          "text": "משהו, טופיסטים.",
+          "ref": {
+            "cap": "משהו, טופיסטים.",
+            "k": 43
+          }
+        },
+        {
+          "id": "s44",
+          "from": 1658,
+          "dur": 36,
+          "text": "מי שהיה מקשיב לי",
+          "ref": {
+            "cap": "מי שהיה מקשיב לי",
+            "k": 44
+          }
+        },
+        {
+          "id": "s45",
+          "from": 1694,
+          "dur": 45,
+          "text": "היום וקונה את המטבע",
+          "ref": {
+            "cap": "היום וקונה את המטבע",
+            "k": 45
+          }
+        },
+        {
+          "id": "s46",
+          "from": 1739,
+          "dur": 15,
+          "text": "הזה אתמול,",
+          "ref": {
+            "cap": "הזה אתמול,",
+            "k": 46
+          }
+        },
+        {
+          "id": "s47",
+          "from": 1754,
+          "dur": 95,
+          "text": "היה עושה 95.4% ביום",
+          "ref": {
+            "cap": "היה עושה 95.4% ביום",
+            "k": 47
+          }
+        },
+        {
+          "id": "s48",
+          "from": 1849,
+          "dur": 41,
+          "text": "אחד. בשעה אחת,",
+          "ref": {
+            "cap": "אחד. בשעה אחת,",
+            "k": 48
+          }
+        },
+        {
+          "id": "s49",
+          "from": 1890,
+          "dur": 21,
+          "text": "לא ביום!",
+          "ref": {
+            "cap": "לא ביום!",
+            "k": 49
+          }
+        },
+        {
+          "id": "s50",
+          "from": 1929,
+          "dur": 72,
+          "text": "95.4% בשעה אחת.",
+          "ref": {
+            "cap": "95.4% בשעה אחת.",
+            "k": 50
+          }
+        },
+        {
+          "id": "s51",
+          "from": 2001,
+          "dur": 30,
+          "text": "עכשיו תגידו לי אתם",
+          "ref": {
+            "cap": "עכשיו תגידו לי אתם",
+            "k": 51
+          }
+        },
+        {
+          "id": "s52",
+          "from": 2031,
+          "dur": 45,
+          "text": "איפה אתם מקבלים תשואות",
+          "ref": {
+            "cap": "איפה אתם מקבלים תשואות",
+            "k": 52
+          }
+        },
+        {
+          "id": "s53",
+          "from": 2076,
+          "dur": 40,
+          "text": "כאלו. וזה עוד לפני",
+          "ref": {
+            "cap": "כאלו. וזה עוד לפני",
+            "k": 53
+          }
+        },
+        {
+          "id": "s54",
+          "from": 2116,
+          "dur": 47,
+          "text": "שדיברנו על המטבע של",
+          "ref": {
+            "cap": "שדיברנו על המטבע של",
+            "k": 54
+          }
+        },
+        {
+          "id": "s55",
+          "from": 2163,
+          "dur": 19,
+          "text": "שלשום.",
+          "ref": {
+            "cap": "שלשום.",
+            "k": 55
+          }
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "kind": "audio",
+      "name": "Voice",
+      "owner": "builder",
+      "props": {
+        "volume": 1,
+        "voice": {
+          "preset": "natural",
+          "raw": true,
+          "boost": 0,
+          "lowcut": 60,
+          "warmth": 0,
+          "box": 0,
+          "presence": 0,
+          "deess": 0,
+          "comp": 0
+        },
+        "clean": "fft"
+      },
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 757,
+          "asset": "t.IMG_0114",
+          "in": 0.91,
+          "fade_in": 0.012,
+          "fade_out": 0.067,
+          "ref": {
+            "take": "IMG_0114",
+            "a": 0.91
+          }
+        },
+        {
+          "id": "v1",
+          "from": 755,
+          "dur": 664,
+          "asset": "t.IMG_0115",
+          "in": 0.67,
+          "fade_in": 0.012,
+          "fade_out": 0.067,
+          "ref": {
+            "take": "IMG_0115",
+            "a": 0.67
+          }
+        },
+        {
+          "id": "v2",
+          "from": 1417,
+          "dur": 765,
+          "asset": "t.IMG_0116",
+          "in": 0.8,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "IMG_0116",
+            "a": 0.8
+          }
+        },
+        {
+          "id": "v4",
+          "from": 2272,
+          "dur": 3,
+          "asset": "t.IMG_0116",
+          "in": 26.3,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "IMG_0116",
+            "a": 26.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "sfx",
+      "kind": "audio",
+      "name": "Sounds",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x0",
+          "from": 48.6,
+          "dur": 32.914,
+          "asset": "s.0",
+          "in": 0.0,
+          "gain": 0.75,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 0
+          }
+        },
+        {
+          "id": "x1",
+          "from": 52.2,
+          "dur": 41.76,
+          "asset": "s.1",
+          "in": 0.0,
+          "gain": 0.28,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 1
+          }
+        },
+        {
+          "id": "x2",
+          "from": 438.9,
+          "dur": 72.0,
+          "asset": "s.2",
+          "in": 0.0,
+          "gain": 0.9,
+          "fade_in": 0.02,
+          "fade_out": 0.3,
+          "ref": {
+            "sound": 2
+          }
+        },
+        {
+          "id": "x4",
+          "from": 1186.7,
+          "dur": 41.76,
+          "asset": "s.4",
+          "in": 0.0,
+          "gain": 0.28,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 4
+          }
+        },
+        {
+          "id": "x3",
+          "from": 1187.6,
+          "dur": 60.0,
+          "asset": "s.3",
+          "in": 0.0,
+          "gain": 1.0,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 3
+          }
+        },
+        {
+          "id": "x5",
+          "from": 1231.7,
+          "dur": 39.0,
+          "asset": "s.5",
+          "in": 0.0,
+          "gain": 1.3,
+          "fade_in": 0.02,
+          "fade_out": 0.2,
+          "ref": {
+            "sound": 5
+          }
+        },
+        {
+          "id": "x6",
+          "from": 1234.1,
+          "dur": 52.506,
+          "asset": "s.6",
+          "in": 0.0,
+          "gain": 0.35,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 6
+          }
+        },
+        {
+          "id": "x7",
+          "from": 1484.5,
+          "dur": 69.0,
+          "asset": "s.7",
+          "in": 0.0,
+          "gain": 0.4,
+          "fade_in": 0.02,
+          "fade_out": 0.3,
+          "ref": {
+            "sound": 7
+          }
+        },
+        {
+          "id": "x8",
+          "from": 1769.5,
+          "dur": 36.0,
+          "asset": "s.8",
+          "in": 0.0,
+          "gain": 0.6,
+          "fade_in": 0.02,
+          "fade_out": 0.2,
+          "ref": {
+            "sound": 8
+          }
+        },
+        {
+          "id": "x9",
+          "from": 1777.0,
+          "dur": 41.76,
+          "asset": "s.9",
+          "in": 0.0,
+          "gain": 0.28,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 9
+          }
+        },
+        {
+          "id": "x10",
+          "from": 1905.4,
+          "dur": 32.914,
+          "asset": "s.10",
+          "in": 0.0,
+          "gain": 1.0,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 10
+          }
+        },
+        {
+          "id": "x11",
+          "from": 1906.6,
+          "dur": 62.64,
+          "asset": "s.11",
+          "in": 0.0,
+          "gain": 0.45,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 11
+          }
+        },
+        {
+          "id": "x12",
+          "from": 1908.1,
+          "dur": 48.0,
+          "asset": "s.12",
+          "in": 0.0,
+          "gain": 1.6,
+          "fade_in": 0.02,
+          "fade_out": 0.3,
+          "ref": {
+            "sound": 12
+          }
+        },
+        {
+          "id": "x13",
+          "from": 1911.4,
+          "dur": 90.0,
+          "asset": "s.13",
+          "in": 0.0,
+          "gain": 1.8,
+          "fade_in": 0.02,
+          "fade_out": 0.7,
+          "ref": {
+            "sound": 13
+          }
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "kind": "audio",
+      "name": "Music",
+      "owner": "builder",
+      "props": {
+        "volume": 0.0
+      },
+      "items": [
+        {
+          "id": "m0",
+          "from": 0.0,
+          "dur": 2275.0,
+          "asset": "s.music",
+          "in": 0,
+          "fade_in": 0,
+          "fade_out": 0,
+          "ref": {
+            "music": 1
+          }
+        }
+      ]
+    }
+  ],
+  "builder": {
+    "kind": "solo",
+    "from": "lesson.py"
+  },
+  "rev": 1,
+  "saved": 1792685722773
+}
