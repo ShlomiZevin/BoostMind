@@ -4,6 +4,31 @@ One speaker, takes in order (`IMG_*.MP4`), usually no script file: transcribe, c
 corrected by hand - the recogniser garbles Aramaic / wordplay), let `lesson.py` cut, place and subtitle. If he keeps a
 script in the Reader (episode.json `"script"`), subtitles remake from it (only the on-camera lines, ad-libs as said).
 
+## In the one editor (layers) - from 2026-10-22
+Analyze (`lesson.py --preview`, the editor's Analyze button) ends by writing `project.json` through
+`pipeline/to_layers_solo.py`: lesson.py still decides the cut, the subtitles and the timing, and the editor shows the
+result as layers (format: `layers.md`). The layers are Set, Person, one layer per film effect, Opening, the texts and
+overlays, Other side, Subtitles, Voice, Sounds (one per lane), Inserts and Music. A rebuild merges, so his edits in
+the editor stay.
+- **Live in the editor** (an op or the inspector, no rebuild):
+  - the clips (trim / move, the whole take behind each cut);
+  - the Person layer: `eyes` (Original / Looking at the lens), `look` (warm, smooth, colour);
+  - the Voice layer: `voice` (preset `news` = the anchor voice he loved) and `clean` (`nn` = RNNoise, for AC / fan hum; re-prepared in seconds);
+  - every layer's volume, every item's gain and fades;
+  - the effect layers;
+  - the texts and overlays: words, style, position, time;
+  - the subtitles' words and style.
+- **Still lesson.py's** (change episode.json, then Analyze again):
+  - the cut itself: pauses, joins, slow motion, `sequence`, inserts;
+  - word-anchored sounds and overlays, and each sound's filter / pitch / tempo / room;
+  - music duck / lift;
+  - the set: background, blur, dim, sign, plaque;
+  - cut-out quality (`matte_engine`, `matte_cut`, keep desk);
+  - the old baked `grade`.
+- **Eye contact:** the Picture inspector's "Make eye contact" (a job: NVIDIA + blink blend, v6 if it fails, or his CapCut
+  file), or `eye_contact` in episode.json before Analyze, as before.
+- Never change the tool for one video's look (`layers.md`): fill layers; a missing look is tool work, generic.
+
 ## The base he signed off on ("demokratovich-elections", the rabbi lesson)
 - **Rhythm:** cut every pause > 0.25 s; each join starts 0.18 s on top of the last word; a take ends where the voice
   after its last word stops (keeps a held last word, drops a phone thud after a gap).
