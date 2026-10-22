@@ -55,6 +55,8 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
         <FxControls fx={item.fx} set={(patch, c) => S.item({ fx: fxPatch(item.fx, patch) }, c)}
           rate={item.rate ?? 1} setRate={(r, c) => S.item({ rate: Math.abs(r - 1) < 0.005 ? null : +r.toFixed(3) }, c)} />
         <ToggleRow label="Soften a shout" on={!!item.soften} onChange={(on) => S.item({ soften: on || null })} />
+        <Slider label="Lowers his voice" v={-(item.duck || 0)} min={0} max={24} step={0.5} def={0} fmt={(v) => (v ? `−${v} dB while it plays` : 'off')}
+          onChange={(v, c) => S.item({ duck: v ? -v : null }, c)} />
         <Note>Speed is a tape (the pitch follows); Pitch keeps the timing. Faster speech at the same pitch: Speed up + Pitch down.</Note>
       </Sec>
     </>}
@@ -92,6 +94,10 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Level">
       <Slider label="Volume" v={props.volume ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(x, c) => S.layer({ volume: x }, c)} />
       <ToggleRow label="Even out speech level" on={props.level === 'speech'} onChange={(on) => S.layer({ level: on ? 'speech' : null })} />
+      <Slider label="Rise at the end" v={props.lift?.db || 0} min={0} max={14} step={0.5} def={0} fmt={(v) => (v ? `+${v} dB after the last word` : 'off')}
+        onChange={(v, c) => S.layer({ lift: v ? { fade: 1.2, of: 'subs', ...(props.lift || {}), db: v } : null }, c)} />
+      {props.lift?.db ? <Slider label="Rise over" v={props.lift.fade ?? 1.2} min={0.2} max={4} step={0.1} def={1.2} fmt={(v) => `${v.toFixed(1)} s`}
+        onChange={(v, c) => S.layer({ lift: { ...props.lift, fade: v } }, c)} /> : null}
       <Row label="Mix"><Note>The whole video goes to −14 LUFS with one gain; a limiter only catches the rare peak.</Note></Row>
     </Sec>
     <LayerState P={P} sound />
