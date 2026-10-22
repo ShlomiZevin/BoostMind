@@ -880,7 +880,10 @@ app.get('/api/jobs', (_q, res) => {
     ...Object.entries(shares).filter(([, s]) => s?.running).map(([key, s]) => ({ id: key.split(':')[0], kind: 'send', channel: s.channel, started: s.started, log: s.log.slice(-5) })),
   ];
   const mine = (j) => !String(j.id).startsWith('_');  // (a _test project is not his)
-  res.json({ running: running.filter(mine), history: readJson(HISTORY, []).filter(mine).slice(-100).reverse() });
+  // busy: EVERY job running, test (`_`) projects too - a test export loads his PC just as much; check it before a
+  // restart or another heavy job. (running / history: his projects only - the Jobs panel)
+  res.json({ running: running.filter(mine), busy: running.map((j) => ({ id: j.id, kind: j.kind, started: j.started })),
+    history: readJson(HISTORY, []).filter(mine).slice(-100).reverse() });
 });
 // Stop button: kill the run and everything it started (ffmpeg, renderer)
 app.post('/api/ep/:id/cancel', (q, res) => {
