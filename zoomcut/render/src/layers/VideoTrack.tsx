@@ -13,19 +13,42 @@ import { partsOf, activeAt, activeParts, nextUses, copiesOf, srcAt } from './clo
 import { usePreloaded } from '../../ui/preload';
 import type { LayersProps } from '../Layers';
 
-const lookFilter = (l?: any) => (l && Object.keys(l).length ? `saturate(${l.saturate ?? 1}) contrast(${l.contrast ?? 1}) brightness(${l.brightness ?? 1})` : undefined);
+// the look: CSS saturate / contrast / brightness, then (warm, smooth) an SVG filter - the one-camera engine's own
+// matrix and soft focus (lesson.py look_matrix / look_soft; the export: pipeline/look.py)
+const lookId = (l?: any) => (l && (l.warm || l.smooth) ? `lk_${String(+(l.warm || 0)).replace(/\W/g, '_')}_${String(+(l.smooth || 0)).replace(/\W/g, '_')}` : '');
+const lookFilter = (l?: any) => {
+  if (!l || !Object.keys(l).length) return undefined;
+  const k = lookId(l);
+  return `saturate(${l.saturate ?? 1}) contrast(${l.contrast ?? 1}) brightness(${l.brightness ?? 1})${k ? ` url(#${k})` : ''}`;
+};
+/** The SVG filters the looks of these items need (warm = R/G/B gains, smooth = a soft focus mixed in). */
+const LookDefs: React.FC<{ looks: any[] }> = ({ looks }) => {
+  const uniq = [...new Map(looks.filter((l) => lookId(l)).map((l) => [lookId(l), l])).values()];
+  if (!uniq.length) return null;
+  return <svg width="0" height="0" style={{ position: 'absolute' }}>{uniq.map((l) => {
+    const w = +(l.warm || 0), sm = +(l.smooth || 0), sigma = 4 * sm, amt = 0.65 * sm;
+    return <filter key={lookId(l)} id={lookId(l)} colorInterpolationFilters="sRGB" x="0" y="0" width="100%" height="100%">
+      <feColorMatrix in="SourceGraphic" type="matrix" values={`${1 + w} 0 0 0 0 0 ${1 + w / 3} 0 0 0 0 0 ${1 - w} 0 0 0 0 0 1 0`} result="c" />
+      <feGaussianBlur in="c" stdDeviation={sigma} result="b" />
+      <feComposite in="b" in2="c" operator="arithmetic" k1={0} k2={amt} k3={1 - amt} k4={0} result="mix" />
+      <feComposite in="mix" in2="SourceAlpha" operator="in" />
+    </filter>;
+  })}</svg>;
+};
+const isCut = (key: string) => /:(eyes_)?fg$/.test(key);
 
 // lag: drawn that many frames back (the Ghost trail effect lays such a copy over the picture - its own copies)
 export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; lag?: number }> = ({ p, layer, backdrop, lag = 0 }) => {
   const f = Math.max(0, useCurrentFrame() - lag);
   const fps = p.project.canvas.fps;
   const assets = p.project.assets || {};
-  // a cut-out over its photo (the backdrop) plays the transparent "fg" file; otherwise the preview (or the source)
+  // a cut-out plays the transparent "fg" file - over its photo (a backdrop layer: a call tile), or with props.cutout true
+  // over whatever is drawn below (a one-camera set); otherwise the preview (or the source)
   const bdImg = backdrop?.props?.asset && assets[backdrop.props.asset] ? backdrop : null;
   // eye contact (props.eyes, default on when the take has it): the corrected copy of the same frames - "eyes" / "eyes_fg"
   const variantOf = (it: any) => {
     const r = { ...(layer.props || {}), ...it };
-    const cut = bdImg && r.cutout !== false && p.urls[`${it.asset}:fg`];
+    const cut = (bdImg ? r.cutout !== false : r.cutout === true) && p.urls[`${it.asset}:fg`];
     const eyes = r.eyes !== false && p.urls[`${it.asset}:${cut ? 'eyes_fg' : 'eyes'}`];
     return cut ? (eyes ? 'eyes_fg' : 'fg') : (eyes ? 'eyes' : 'preview');
   };
@@ -62,9 +85,10 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
       if (A) {
         const want = Math.min(srcAt(A, f, fps), (el.duration || Infinity) - 0.04);
         const r = rate * (A.rate ?? 1);
-        if (el.playbackRate !== r) el.playbackRate = r;
-        if (!el.seeking && Math.abs(el.currentTime - want) > (playing ? 0.25 : 0.5 / fps)) el.currentTime = want;
-        if (playing) { if (el.paused) el.play().catch(() => {}); } else if (!el.paused) el.pause();
+        const still = A.rate === 0;  // a held frame (rate 0): the copy waits on it
+        if (!still && el.playbackRate !== r) el.playbackRate = r;
+        if (!el.seeking && Math.abs(el.currentTime - want) > (playing && !still ? 0.25 : 0.5 / fps)) el.currentTime = want;
+        if (playing && !still) { if (el.paused) el.play().catch(() => {}); } else if (!el.paused) el.pause();
       } else {
         if (!el.paused) el.pause();  // (an old copy freezes on its last frame - never plays on past its cut)
         const n = waits[copy];
@@ -110,6 +134,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   const act = activeParts(parts, f);
   const waits = nextUses(parts, f);
   return <>
+    <LookDefs looks={[layer.props?.look, ...(layer.items || []).map((i: any) => i.look)]} />
     {Object.entries(copies).map(([copy, key]) => {
       const it = act[copy] || waits[copy] || parts.filter((x: any) => x.copy === copy).at(-1);
       const props = { ...(layer.props || {}), ...it };
@@ -118,7 +143,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
       if (!asset || !box) return null;
       const b = fitBox(asset, box, props);
       const src = blobs[urlOf(key)] || urlOf(key);
-      const fg = key.endsWith(':fg');
+      const fg = isCut(key);
       return (
         <div key={copy} data-layer={layer.id} data-copy={copy} ref={(el) => { boxes.current[copy] = el; }} style={{ position: 'absolute', left: box.x, top: box.y, width: box.w, height: box.h,
           overflow: 'hidden', borderRadius: props.radius ?? 0, pointerEvents: 'none',
@@ -127,7 +152,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
           opacity: lit.current[copy] ? litOpacity(lit.current[copy], f) : 0 }}>
           {fg ? (
             <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(props.look) }}>
-              {(() => {
+              {bdImg && (() => {
                 const img = assets[bdImg.props.asset];
                 const g = backdropBox(img, b.width, b.height, bdImg.props, { x0: -b.left, y0: -b.top, w: box.w, h: box.h });
                 const u = p.urls[bdImg.props.asset];
@@ -159,15 +184,16 @@ const StillRun: React.FC<{ p: LayersProps; layer: any; parts: any[]; f: number; 
   return (
     <div style={{ position: 'absolute', left: box.x, top: box.y, width: box.w, height: box.h, overflow: 'hidden', borderRadius: props.radius ?? 0,
       opacity: itemOpacity(it, layer.props || {}, f, p.project.canvas.fps), zIndex: it.z ?? 0 }}>
-      {it.key.endsWith(':fg') ? (
+      <LookDefs looks={[props.look]} />
+      {isCut(it.key) ? (
         <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(props.look) }}>
-          {(() => { const img = p.project.assets[bd.props.asset]; const g = backdropBox(img, b.width, b.height, bd.props, { x0: -b.left, y0: -b.top, w: box.w, h: box.h });
+          {bd && (() => { const img = p.project.assets[bd.props.asset]; const g = backdropBox(img, b.width, b.height, bd.props, { x0: -b.left, y0: -b.top, w: box.w, h: box.h });
             return <Img src={u(bd.props.asset)} style={{ position: 'absolute', left: g.left, top: g.top, width: g.width, height: g.height, maxWidth: 'none' }} />; })()}
-          <Sequence from={it.from} layout="none"><OffthreadVideo src={u(`${it.asset}:fg`)} transparent startFrom={startFrom} muted playbackRate={it.rate ?? 1}
+          <Sequence from={it.from} layout="none"><OffthreadVideo src={u(it.key)} transparent startFrom={startFrom} muted playbackRate={it.rate || 1}
             style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none' }} /></Sequence>
         </div>
       ) : (
-        <Sequence from={it.from} layout="none"><OffthreadVideo src={u(`${it.asset}:preview`) || u(it.asset)} startFrom={startFrom} muted playbackRate={it.rate ?? 1}
+        <Sequence from={it.from} layout="none"><OffthreadVideo src={u(it.key) || u(it.asset)} startFrom={startFrom} muted playbackRate={it.rate || 1}
           style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none', filter: lookFilter(props.look) }} /></Sequence>
       )}
     </div>
