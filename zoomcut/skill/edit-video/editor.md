@@ -52,11 +52,21 @@ end must show at once, with the real footage there.
   name on the left turns the button into **Delete layer** (it goes with what is on it, the ones under it move up);
   "+ Sound layer" adds one; a sound dragged up / down changes layer; a new sound goes on the first empty layer.
   Anything pointing at a sound by number (thought bubble `sound`, film hit / blackout `sound`) is renumbered.
-- **Footage from the iPhone - the Drop** (2026-10-22): he uploads on https://drop-463727469066.me-west1.run.app (Cloud
-  Run service `drop`, code in zoomcut/drop, key in zoomcut/.env DROP_KEY - the studio's "+ New video" shows its QR) into
-  `gs://boostmind-drop/<folder>/` (me-west1, private, 60-day auto-delete). The studio pulls every new file to
-  `Downloads\drop\<folder>` by itself (render/drop.mjs, each pull a "Drop" job) - use that folder as the project's
-  footage. Marking the project Done deletes its cloud folder (the copy here stays). Test folders start with `_`.
+- **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
+  `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project
+  boostmind-b052c`; key in zoomcut/.env DROP_KEY - the studio's "+ New video" → From the iPhone shows the QR with it).
+  On the phone he picks a **project** (folder) or makes one, chooses videos, **names each file** before it goes up
+  (chips = names he used before, e.g. amir / ofer - a taken name gets -2) and sees the project's files with
+  **rename / delete**. On the desktop the same page is a **browser**: every project (files, size, last upload, delete
+  project) beside the picked one's files. Files land in `gs://boostmind-drop/<project>/<name>.<ext>` (me-west1, private,
+  60-day auto-delete; resumable 16 MB pieces, any size).
+  The studio (render/drop.mjs) mirrors each folder to `Downloads\drop\<project>` every minute: new files pulled, a
+  rename / delete on the page done here too (a rename = same size, new name - no download again); every pull is a
+  "Drop" job whose line says what each file really is (ffprobe: size, resolution, codec, fps, bitrate). Use that folder
+  as the project's footage. Marking the project Done deletes its cloud folder (the copy here stays). Test folders: `_x`.
+  **Full quality:** the picker has no `accept` limit - with `accept="video/*"` iOS sent 720x1280 H.264 ~5 Mb/s copies
+  with random names (2026-10-22). Check the Drop job's line against what he filmed; if a file is a converted copy, he
+  picks it through Files instead.
 - **Subtitle text is live too** (his note, 2026-10-21: "as in CapCut"): a line / a take's text edited -> the line shows
   at once, captions.txt saved, `--replan` places the subtitles again (~1.5 s, no picture work). Only the plaque /
   title (part of the set picture) rebuilds.

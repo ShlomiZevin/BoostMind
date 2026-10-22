@@ -6,6 +6,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 
+// what a file really is: "3840x2160 hevc 59.94 fps 28 Mb/s" (to see it arrived as filmed, not a converted copy)
+const probe = (file) => new Promise((ok) => {
+  execFile('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height,avg_frame_rate,bit_rate,side_data_list:stream_side_data=rotation', '-of', 'json', file],
+    { windowsHide: true }, (e, out) => {
+      try {
+        const s = JSON.parse(out).streams[0];
+        if (!s) return ok('');
+        const [a, b] = String(s.avg_frame_rate || '0/1').split('/').map(Number), fps = b ? a / b : 0;
+        ok(`${s.width}x${s.height} ${s.codec_name}${fps ? ` ${+fps.toFixed(2)} fps` : ''}${s.bit_rate ? ` ${Math.round(s.bit_rate / 1e6)} Mb/s` : ''}`);
+      } catch { ok(''); }
+    });
+});
+
 const BUCKET = 'boostmind-drop';
 const PAGE = 'https://drop-463727469066.me-west1.run.app';
 const API = `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o`;
@@ -34,7 +47,9 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
       items.push(...(j.items || []));
       page = j.nextPageToken || '';
     } while (page);
-    return items.map((i) => ({ name: i.name, size: +i.size, updated: i.updated })).filter((o) => !o.name.startsWith('_') && !o.name.endsWith('/'));
+    const all = items.map((i) => ({ name: i.name, size: +i.size, updated: i.updated })).filter((o) => !o.name.startsWith('_') && !o.name.endsWith('/'));
+    list.folders = new Set(all.map((o) => o.name.split('/')[0]));  // (every folder in the cloud, an empty new one too)
+    return all.filter((o) => !o.name.split('/').pop().startsWith('.'));  // (".keep": a project made before its first file)
   }
 
   const state = { running: null, cloud: [], error: null, checked: 0 };
@@ -52,23 +67,48 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     if (fs.statSync(part).size !== o.size) throw new Error(`${path.basename(dst)}: size differs`);
     fs.renameSync(part, dst);  // (only a whole file gets its real name)
   }
+  // a file renamed or deleted on the Drop page: the same here - a rename is the same size under a new name (no
+  // download again). Only for folders still in the cloud (a project marked Done keeps its copy here).
+  function mirror(items) {
+    const done = [];
+    for (const folder of list.folders || []) {
+      let here = [];
+      try { here = fs.readdirSync(path.join(DIR, folder)).filter((f) => !f.endsWith('.part') && fs.statSync(path.join(DIR, folder, f)).isFile()); } catch { continue; }
+      const cloud = items.filter((o) => o.name.split('/')[0] === folder);
+      const names = new Set(cloud.map((o) => o.name.split('/').slice(1).join('/')));
+      const missing = cloud.filter((o) => !fs.existsSync(local(o.name)));
+      for (const f of here.filter((x) => !names.has(x))) {
+        const size = fs.statSync(path.join(DIR, folder, f)).size;
+        const to = missing.find((o) => o.size === size);
+        try {
+          if (to) { fs.renameSync(path.join(DIR, folder, f), local(to.name)); missing.splice(missing.indexOf(to), 1); done.push(`${f} → ${to.name.split('/').pop()}`); }
+          else { fs.rmSync(path.join(DIR, folder, f)); done.push(`${f} removed`); }
+        } catch {}
+      }
+      if (done.length) recordJob({ id: folder, kind: 'drop', started: Date.now(), ended: Date.now(), ok: true, line: `as on the Drop page: ${done.join(' · ')}` }), done.length = 0;
+    }
+  }
   async function sync() {
     if (state.running) return;
     let items;
     try { items = await list(); state.error = null; } catch (e) { state.error = e.message; return; }
     state.cloud = items; state.checked = Date.now();
+    mirror(items);
     const todo = items.filter((o) => { try { return fs.statSync(local(o.name)).size !== o.size; } catch { return true; } });
     const folders = [...new Set(todo.map((o) => o.name.split('/')[0]))];
     for (const folder of folders) {  // one job per folder (the Jobs panel)
       const files = todo.filter((o) => o.name.split('/')[0] === folder), total = files.reduce((s, o) => s + o.size, 0), started = Date.now();
       state.running = { folder, i: 0, n: files.length, bytes: 0, total, started, file: '' };
       let ok = true, err = '';
+      const seen = [];
       for (const o of files) {
         state.running.i++; state.running.file = o.name.split('/').pop();
         try { await download(o); } catch (e) { ok = false; err = e.message; break; }
+        const what = await probe(local(o.name));
+        seen.push(`${state.running.file} ${gb(o.size)}${what ? ` ${what}` : ''}`);
       }
-      recordJob({ id: folder, kind: 'drop', started, ended: Date.now(), ok,
-        line: ok ? `${files.length} file${files.length === 1 ? '' : 's'} · ${gb(total)} → Downloads\\drop\\${folder}` : `failed: ${err}` });
+      recordJob({ id: folder, kind: 'drop', started, ended: Date.now(), ok, files: seen,
+        line: ok ? `${files.length} file${files.length === 1 ? '' : 's'} · ${gb(total)} → Downloads\\drop\\${folder} · ${seen.join(' | ')}` : `failed: ${err}` });
       state.running = null;
     }
   }

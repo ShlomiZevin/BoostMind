@@ -14,15 +14,31 @@
 html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 -apple-system, Inter, system-ui, sans-serif; }
 main { max-width: 560px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
 h1 { font-size: 26px; margin: 4px 0 2px; letter-spacing: -.01em; }
-.sub { color: var(--dim); margin: 0 0 22px; font-size: 14px; }
-label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
-input[type=text], input[type=password] { width: 100%; height: 48px; padding: 0 14px; font-size: 17px; color: var(--text); background: var(--panel); border: 1px solid var(--edge-2); border-radius: 8px; outline: none; }
-input[type=text]:focus, input[type=password]:focus { border-color: var(--accent); }
-.pick { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 64px; margin-top: 22px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; }
-.pick:active { opacity: .85; }
-.pick[disabled] { opacity: .4; }
-.hint { color: var(--faint); font-size: 13px; margin: 10px 2px 0; }
-.sum { display: flex; justify-content: space-between; margin: 26px 2px 8px; font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.sub { color: var(--dim); margin: 0 0 18px; font-size: 14px; }
+.sec { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 22px 0 8px; }
+.sec span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+input[type=text], input[type=password], select { width: 100%; height: 46px; padding: 0 12px; font-size: 16px; color: var(--text); background: var(--panel); border: 1px solid var(--edge-2); border-radius: 8px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); }
+select { appearance: none; -webkit-appearance: none; }
+.row { display: flex; gap: 8px; }
+.row > :first-child { flex: 1; min-width: 0; }
+.btn { height: 46px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--edge-2); background: var(--panel-2); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn:active { opacity: .8; }
+.btn.go { width: 100%; height: 58px; margin-top: 14px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 17px; font-weight: 700; }
+.btn[disabled] { opacity: .4; }
+.hint { color: var(--faint); font-size: 13px; margin: 8px 2px 0; }
+/* the files about to go up: a name each */
+.p { padding: 10px 12px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; margin-bottom: 8px; }
+.p-top { display: flex; gap: 8px; align-items: center; }
+.p-top input { height: 42px; font-size: 16px; }
+.p-ext { color: var(--dim); font-size: 14px; }
+.p-x { width: 38px; height: 42px; border: 1px solid var(--edge-2); border-radius: 8px; background: transparent; color: var(--dim); font-size: 16px; }
+.p-line { margin-top: 6px; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+.chip { height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid var(--edge-2); background: var(--panel-2); color: var(--text); font-size: 14px; cursor: pointer; }
+.chip:active { border-color: var(--accent); }
+/* uploading */
+.sum { display: flex; justify-content: space-between; margin: 18px 2px 8px; font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
 .f { padding: 12px 14px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; margin-bottom: 8px; }
 .f-top { display: flex; gap: 10px; align-items: baseline; }
 .f-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 15px; }
@@ -32,41 +48,87 @@ input[type=text]:focus, input[type=password]:focus { border-color: var(--accent)
 .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
 .f.done .bar > div { background: var(--ok); }
 .f-line { margin-top: 6px; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
-.keep { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--accent); border-radius: 8px; color: var(--text); font-size: 14px; display: none; }
+.keep { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--accent); border-radius: 8px; font-size: 14px; display: none; }
 .keep.on { display: block; }
-.key { display: none; }
-.key.on { display: block; }
-button.ghost { margin-top: 10px; height: 44px; width: 100%; background: transparent; color: var(--dim); border: 1px solid var(--edge-2); border-radius: 8px; font-size: 15px; }
+/* a project's files */
+.it { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--edge); }
+.it-n { flex: 1; min-width: 0; }
+.it-name { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.it-meta { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.it button { height: 36px; min-width: 40px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim); font-size: 14px; cursor: pointer; }
+.it input { height: 38px; font-size: 15px; }
+.empty { color: var(--faint); font-size: 14px; padding: 10px 2px; }
+.key { display: none; } .key.on { display: block; }
+/* the desktop: every project on the left, the picked one on the right */
+.side { display: none; }
+@media (min-width: 900px) {
+  main { max-width: 1180px; display: grid; grid-template-columns: 300px 1fr; gap: 0 32px; }
+  header { grid-column: 1 / -1; }
+  .side { display: block; }
+  .pick-mobile { display: none; }
+  #curTitle { display: flex !important; }
+  .pr { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid transparent; border-radius: 8px; cursor: pointer; }
+  .pr:hover { background: var(--panel); }
+  .pr.on { background: var(--panel); border-color: var(--accent); }
+  .pr-n { flex: 1; min-width: 0; }
+  .pr-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pr-meta { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+}
 </style>
 </head>
 <body>
 <main>
-  <h1>Drop</h1>
-  <p class="sub">Videos from the phone to Sketch Studio - full size, original quality.</p>
+  <header>
+    <h1>Drop</h1>
+    <p class="sub">Videos from the phone to Sketch Studio - full size, original quality.</p>
+    <div class="key" id="keyBox">
+      <div class="sec">Key</div>
+      <div class="row"><input type="password" id="key" autocomplete="current-password" placeholder="The drop key"><button class="btn" id="keySave">Save</button></div>
+    </div>
+  </header>
 
-  <div class="key" id="keyBox">
-    <label for="key">Key</label>
-    <input type="password" id="key" autocomplete="current-password" placeholder="The drop key">
-    <button class="ghost" id="keySave">Save the key on this phone</button>
-  </div>
+  <aside class="side">
+    <div class="sec">Projects <span id="sideSum"></span></div>
+    <div id="projects"></div>
+    <button class="btn" id="newSide" style="width:100%;margin-top:10px">+ New project</button>
+  </aside>
 
-  <label for="folder">Project</label>
-  <input type="text" id="folder" list="folders" autocomplete="off" autocapitalize="off" spellcheck="false">
-  <datalist id="folders"></datalist>
-  <p class="hint">One name per video (e.g. tadar-6). Files go into this folder; the studio picks them up by itself.</p>
+  <section>
+    <div class="pick-mobile">
+      <div class="sec">Project</div>
+      <div class="row"><select id="folder"></select><button class="btn" id="newMob">+ New</button></div>
+    </div>
+    <div class="sec" id="curTitle" style="display:none"></div>
 
-  <input type="file" id="files" multiple accept="video/*,audio/*,image/*" hidden>
-  <button class="pick" id="pick">Choose videos</button>
-  <p class="hint">Keep this page open and the phone unlocked until it says done - the phone pauses uploads in the background.</p>
-  <div class="keep" id="keep">Uploading - keep this page open.</div>
+    <input type="file" id="files" multiple hidden>  <!-- (no accept="": iOS gives the original file, not a "compatible" copy) -->
+    <button class="btn go" id="pick">Choose videos</button>
+    <p class="hint">The size under each file should match the size in Photos (swipe up on the video) - the studio checks every file that arrives.</p>
 
-  <div class="sum" id="sum" hidden><span id="sumL"></span><span id="sumR"></span></div>
-  <div id="list"></div>
+    <div id="pendBox" style="display:none">
+      <div class="sec">Name them <span>tap a name you used, or type</span></div>
+      <div class="chips" id="chips"></div>
+      <div id="pending" style="margin-top:8px"></div>
+      <button class="btn go" id="upload">Upload</button>
+    </div>
+
+    <div class="keep" id="keep">Uploading - keep this page open and the phone unlocked.</div>
+    <div class="sum" id="sum" hidden><span id="sumL"></span><span id="sumR"></span></div>
+    <div id="list"></div>
+
+    <div class="sec">In this project <span id="filesSum"></span></div>
+    <div id="filesBox"></div>
+    <button class="btn" id="rmdir" style="margin-top:14px;display:none">Delete this project</button>
+  </section>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
 const CHUNK = 16 * 1024 * 1024;  // a multiple of 256 KiB (the storage rule); a lost chunk costs at most this much
 const store = { get: (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
+const gb = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' GB' : (n / 1e6).toFixed(n >= 1e8 ? 0 : 1) + ' MB');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' ' + d.toTimeString().slice(0, 5); };
+const splitExt = (n) => { const i = n.lastIndexOf('.'); return i > 0 ? [n.slice(0, i), n.slice(i)] : [n, '']; };
+const cleanName = (s) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 100);
 
 // the key: from the link (#k=...) once, then remembered on this phone
 const fromLink = new URLSearchParams(location.hash.slice(1)).get('k');
@@ -74,43 +136,153 @@ if (fromLink) { store.set('drop-key', fromLink); history.replaceState(null, '', 
 let KEY = store.get('drop-key');
 const askKey = () => $('keyBox').classList.add('on');
 if (!KEY) askKey();
-$('keySave').onclick = () => { KEY = $('key').value.trim(); store.set('drop-key', KEY); $('keyBox').classList.remove('on'); loadFolders(); };
+$('keySave').onclick = () => { KEY = $('key').value.trim(); store.set('drop-key', KEY); $('keyBox').classList.remove('on'); refresh(); };
 
-const today = () => new Date().toISOString().slice(0, 10);
-$('folder').value = store.get('drop-folder') || today();
-$('folder').onchange = () => store.set('drop-folder', $('folder').value.trim());
-
-async function api(path, data) {
-  const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: KEY, ...data }) });
+async function api(path, data = {}) {
+  const r = await fetch('/api/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: KEY, ...data }) });
   if (r.status === 401) { askKey(); throw new Error('The key is wrong'); }
   const j = await r.json();
   if (!r.ok) throw new Error(j.error || r.status);
   return j;
 }
-async function loadFolders() {
-  if (!KEY) return;
-  try { const { folders } = await api('/api/folders', {}); $('folders').innerHTML = folders.map((f) => `<option value="${f.replace(/"/g, '&quot;')}">`).join(''); } catch {}
-}
-loadFolders();
 
-const gb = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' GB' : (n / 1e6).toFixed(n >= 1e8 ? 0 : 1) + ' MB');
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+// ---- projects (folders) ----
+let folders = [], cur = store.get('drop-folder');
+const curFolder = () => folders.find((f) => f.name === cur);
+async function refresh() {
+  if (!KEY) return;
+  try { folders = (await api('list')).folders; } catch (e) { return; }
+  if (cur && !folders.some((f) => f.name === cur)) folders.unshift({ name: cur, files: [], bytes: 0, updated: '' });  // (made here, nothing in it yet)
+  if (!cur && folders.length) cur = folders[0].name;
+  drawProjects(); drawFiles(); drawChips();
+}
+function pickFolder(name) { cur = name; store.set('drop-folder', name); drawProjects(); drawFiles(); if (pend.length) drawPending(); }
+function drawProjects() {
+  $('folder').innerHTML = (folders.length ? '' : '<option value="">- make a project -</option>')
+    + folders.map((f) => `<option value="${esc(f.name)}" ${f.name === cur ? 'selected' : ''}>${esc(f.name)}  ·  ${f.files.length} file${f.files.length === 1 ? '' : 's'}</option>`).join('');
+  $('projects').innerHTML = folders.map((f) => `<div class="pr ${f.name === cur ? 'on' : ''}" data-f="${esc(f.name)}"><div class="pr-n">
+      <div class="pr-name" dir="auto">${esc(f.name)}</div><div class="pr-meta">${f.files.length} file${f.files.length === 1 ? '' : 's'} · ${gb(f.bytes)}${f.updated ? ' · ' + when(f.updated) : ''}</div></div></div>`).join('')
+    || '<div class="empty">No projects yet.</div>';
+  const tot = folders.reduce((s, f) => s + f.bytes, 0);
+  $('sideSum').textContent = folders.length ? `${folders.length} · ${gb(tot)}` : '';
+  $('curTitle').textContent = cur || '';
+}
+$('folder').onchange = () => pickFolder($('folder').value);
+$('projects').onclick = (e) => { const r = e.target.closest('.pr'); if (r) pickFolder(r.dataset.f); };
+async function newProject() {
+  const n = cleanName(prompt('New project name (e.g. tadar-6)', ''));
+  if (!n) return;
+  try { await api('mkdir', { folder: n }); } catch (e) { return alert(e.message); }
+  cur = n; store.set('drop-folder', n);
+  await refresh();
+}
+$('newMob').onclick = newProject;
+$('newSide').onclick = newProject;
+
+// ---- the project's files: rename, delete ----
+function drawFiles() {
+  const f = curFolder();
+  const files = (f?.files || []).slice().sort((a, b) => (b.updated > a.updated ? 1 : -1));
+  $('filesSum').textContent = f ? `${files.length} · ${gb(f.bytes)}` : '';
+  $('filesBox').innerHTML = files.map((x) => `<div class="it" data-n="${esc(x.name)}"><div class="it-n">
+      <div class="it-name" dir="auto">${esc(x.name)}</div><div class="it-meta">${gb(x.size)} · ${when(x.updated)}${x.type ? ' · ' + esc(x.type) : ''}</div></div>
+      <button data-a="ren" title="Rename">✎</button><button data-a="del" title="Delete">🗑</button></div>`).join('')
+    || `<div class="empty">${cur ? 'Nothing here yet.' : 'Make a project to start.'}</div>`;
+  $('rmdir').style.display = f ? '' : 'none';
+}
+$('filesBox').onclick = async (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  const row = b.closest('.it'), name = row.dataset.n;
+  if (b.dataset.a === 'del') {
+    if (!confirm(`Delete ${name}?`)) return;
+    try { await api('delete', { folder: cur, name }); } catch (err) { return alert(err.message); }
+    return refresh();
+  }
+  // rename in place: the name without its extension, the extension kept
+  const [base, ext] = splitExt(name);
+  row.querySelector('.it-n').innerHTML = `<input type="text" value="${esc(base)}" dir="auto">`;
+  const inp = row.querySelector('input'); inp.focus(); inp.select();
+  let gone = false;
+  const done = async (save) => {
+    if (gone) return; gone = true;
+    const to = cleanName(inp.value);
+    if (save && to && to !== base) { try { await api('rename', { folder: cur, from: name, to: to + ext }); remember(to); } catch (err) { alert(err.message); } }
+    refresh();
+  };
+  inp.onkeydown = (ev) => { if (ev.key === 'Enter') done(true); if (ev.key === 'Escape') done(false); };
+  inp.onblur = () => done(true);
+};
+$('rmdir').onclick = async () => {
+  const f = curFolder(); if (!f) return;
+  if (!confirm(`Delete the project "${f.name}" and its ${f.files.length} file(s) from the cloud?`)) return;
+  try { await api('rmdir', { folder: f.name }); } catch (e) { return alert(e.message); }
+  cur = ''; store.set('drop-folder', ''); refresh();
+};
+
+// ---- names: the ones used before, one tap ----
+const remember = (n) => { const l = JSON.parse(store.get('drop-names') || '[]').filter((x) => x !== n); l.unshift(n); store.set('drop-names', JSON.stringify(l.slice(0, 40))); drawChips(); };
+function names() {
+  const used = JSON.parse(store.get('drop-names') || '[]');
+  const fromCloud = folders.flatMap((f) => f.files).sort((a, b) => (b.updated > a.updated ? 1 : -1)).map((x) => splitExt(x.name)[0].replace(/-\d+$/, ''));
+  const out = [];
+  for (const n of [...used, ...fromCloud]) if (n && !/^[0-9A-F]{8}-[0-9A-F]{4}-/i.test(n) && !/^IMG_\d+$/i.test(n) && !out.includes(n)) out.push(n);
+  return out.slice(0, 16);
+}
+let focused = null;  // the name box a chip goes into (else the first one not named yet)
+function drawChips() { $('chips').innerHTML = names().map((n) => `<button class="chip" dir="auto">${esc(n)}</button>`).join(''); }
+$('chips').onmousedown = (e) => e.preventDefault();  // (a chip keeps the name box focused)
+$('chips').onclick = (e) => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  const t = focused && document.body.contains(focused) ? focused : [...document.querySelectorAll('.p input')].find((i) => !i.dataset.named) || document.querySelector('.p input');
+  if (!t) return;
+  t.value = c.textContent; t.dataset.named = '1';
+  const next = [...document.querySelectorAll('.p input')].find((i) => !i.dataset.named);
+  focused = next || t;
+};
+
+// ---- choose → name → upload ----
+let pend = [];
+$('pick').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('files').click(); };
+$('files').onchange = () => {
+  for (const file of $('files').files) pend.push({ file, name: cleanName(splitExt(file.name)[0]) || 'video' });
+  $('files').value = '';
+  drawPending();
+};
+function drawPending() {
+  $('pendBox').style.display = pend.length ? '' : 'none';
+  $('pending').innerHTML = pend.map((p, i) => `<div class="p" data-i="${i}"><div class="p-top">
+      <input type="text" value="${esc(p.name)}" dir="auto" autocapitalize="off" spellcheck="false"><span class="p-ext">${esc(splitExt(p.file.name)[1])}</span>
+      <button class="p-x" title="Leave it out">✕</button></div>
+      <div class="p-line">${esc(p.file.name)} · ${gb(p.file.size)}${p.file.type ? ' · ' + esc(p.file.type) : ''}</div></div>`).join('');
+  $('upload').textContent = `Upload ${pend.length} file${pend.length === 1 ? '' : 's'} to ${cur}`;
+  drawChips();
+}
+$('pending').addEventListener('focusin', (e) => { if (e.target.matches('input')) focused = e.target; });
+$('pending').addEventListener('input', (e) => { if (e.target.matches('input')) { e.target.dataset.named = '1'; pend[+e.target.closest('.p').dataset.i].name = e.target.value; } });
+$('pending').onclick = (e) => { const x = e.target.closest('.p-x'); if (!x) return; pend.splice(+x.closest('.p').dataset.i, 1); drawPending(); };
+$('upload').onclick = () => {
+  const taken = new Set((curFolder()?.files || []).map((f) => f.name));
+  for (const q of queue) if (q.folder === cur) taken.add(q.name);
+  [...document.querySelectorAll('.p')].forEach((row) => {  // each its name (+ its own extension); a name already there gets -2, -3
+    const p = pend[+row.dataset.i], ext = splitExt(p.file.name)[1];
+    const base = cleanName(row.querySelector('input').value) || 'video';
+    let n = base + ext, k = 2;
+    while (taken.has(n)) n = `${base}-${k++}${ext}`;
+    taken.add(n);
+    remember(base);
+    queue.push({ file: p.file, folder: cur, name: n, sent: 0, state: 'waiting', el: row1(n, p.file) });
+  });
+  pend = []; drawPending();
+  draw(); run();
+};
+
+// ---- uploading ----
 const queue = [];
 let busy = false, wake = null;
-
-$('pick').onclick = () => { if (!KEY) return askKey(); if (!$('folder').value.trim()) return $('folder').focus(); $('files').click(); };
-$('files').onchange = () => {
-  const folder = $('folder').value.trim();
-  store.set('drop-folder', folder);
-  for (const file of $('files').files) queue.push({ file, folder, sent: 0, state: 'waiting', el: row(file) });
-  $('files').value = '';
-  draw();
-  run();
-};
-function row(file) {
+function row1(name, file) {
   const d = document.createElement('div');
   d.className = 'f';
-  d.innerHTML = `<div class="f-top"><span class="f-name" dir="auto">${esc(file.name)}</span><span class="f-st">waiting</span></div>
+  d.innerHTML = `<div class="f-top"><span class="f-name" dir="auto">${esc(name)}</span><span class="f-st">waiting</span></div>
     <div class="bar"><div></div></div><div class="f-line">${gb(file.size)}</div>`;
   $('list').prepend(d);
   return d;
@@ -127,10 +299,9 @@ function draw() {
     st.textContent = q.state === 'done' ? 'done ✓' : q.state === 'uploading' ? `${pct}%` : q.state === 'retrying' ? `${pct}% · reconnecting` : q.state;
     q.el.classList.toggle('done', q.state === 'done');
     q.el.querySelector('.bar > div').style.width = `${pct}%`;
-    q.el.querySelector('.f-line').textContent = `${gb(q.file.size)}${q.speed ? ` · ${gb(q.speed)}/s` : ''}${q.err ? ` · ${q.err}` : ''}`;
+    q.el.querySelector('.f-line').textContent = `${gb(q.file.size)}${q.file.type ? ` · ${q.file.type}` : ''}${q.speed ? ` · ${gb(q.speed)}/s` : ''}${q.err ? ` · ${q.err}` : ''}`;
   }
 }
-
 // one chunk: PUT bytes start-end/total; 308 = more to come (Range says how much arrived), 200/201 = the file is there
 function put(url, body, range, onProgress) {
   return new Promise((ok, fail) => {
@@ -147,38 +318,37 @@ function put(url, body, range, onProgress) {
 }
 const arrived = (range) => (range ? +range.split('-')[1] + 1 : 0);  // "bytes=0-1048575" -> 1048576
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 async function upload(q) {
-  const f = q.file, total = f.size;
-  let { url } = await api('/api/session', { folder: q.folder, name: f.name, size: total, type: f.type || 'application/octet-stream' });
-  let offset = 0, tries = 0, t0 = Date.now(), b0 = 0;
+  const f = q.file, total = f.size, type = f.type || 'application/octet-stream';
+  let { url } = await api('session', { folder: q.folder, name: q.name, size: total, type });
+  let offset = 0, tries = 0;
+  const t0 = Date.now();
   q.state = 'uploading'; draw();
   while (offset < total) {
     const end = Math.min(offset + CHUNK, total);
     try {
       const r = await put(url, f.slice(offset, end), `bytes ${offset}-${end - 1}/${total}`, (n) => {
         q.sent = offset + n;
-        const dt = (Date.now() - t0) / 1000; if (dt > 1) q.speed = (q.sent - b0) / dt;
+        const dt = (Date.now() - t0) / 1000; if (dt > 1) q.speed = q.sent / dt;
         draw();
       });
       if (r.status === 200 || r.status === 201) { offset = total; break; }
       if (r.status === 308) { offset = r.range ? arrived(r.range) : end; tries = 0; q.state = 'uploading'; continue; }  // (no Range readable: the chunk it took whole)
       if (r.status === 404 || r.status === 410) {  // the session ran out: a new one, from the start of this file
-        ({ url } = await api('/api/session', { folder: q.folder, name: f.name, size: total, type: f.type || 'application/octet-stream' }));
+        ({ url } = await api('session', { folder: q.folder, name: q.name, size: total, type }));
         offset = 0; continue;
       }
       throw new Error('storage ' + r.status);
     } catch (e) {
       // the connection dropped (a tunnel, a switch from Wi-Fi): ask how much arrived, go on from there
       if (++tries > 12) throw e;
-      q.state = 'retrying'; q.err = ''; draw();
+      q.state = 'retrying'; draw();
       await sleep(Math.min(30000, 1000 * 2 ** tries));
       try { const s = await put(url, null, `bytes */${total}`); if (s.status === 200 || s.status === 201) { offset = total; break; } if (s.status === 308 && s.range) offset = arrived(s.range); } catch {}  // (else: again from the last chunk it confirmed)
     }
   }
   q.sent = total; q.state = 'done'; q.speed = 0; draw();
 }
-
 async function run() {
   if (busy) return;
   busy = true;
@@ -186,13 +356,14 @@ async function run() {
   try { wake = await navigator.wakeLock?.request('screen'); } catch {}  // the screen stays on while it uploads
   for (let q; (q = queue.find((x) => x.state === 'waiting')); ) {
     try { await upload(q); } catch (e) { q.state = 'failed'; q.err = e.message; draw(); }
+    refresh();
   }
   busy = false;
   $('keep').classList.remove('on');
   try { await wake?.release(); } catch {}
-  loadFolders();
 }
 document.addEventListener('visibilitychange', async () => { if (busy && document.visibilityState === 'visible') { try { wake = await navigator.wakeLock?.request('screen'); } catch {} } });
+refresh();
 </script>
 </body>
 </html>
