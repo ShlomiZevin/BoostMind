@@ -733,17 +733,121 @@ app.put('/api/ep/:id/script', (q, res) => {
 // a character's look (framing / colour): patch episode.json and the current edit — no rebuild
 app.post('/api/ep/:id/character', (q, res) => {
   const d = epDir(q.params.id);
-  const { id, look, frame } = q.body;
+  const { id, look, frame, bg } = q.body;
   const e = readJson(path.join(d, 'episode.json'));
   const c = (e.characters || []).find((x) => x.id === id);
   if (!c) return res.status(404).json({ error: 'no such character' });
   c.look = look; c.frame = frame;
+  // the background layer: {image (a file in backgrounds/), x, y, zoom, w, h} - live, no rebuild (his rule: a layer)
+  if (bg !== undefined) {
+    c.bg = bg ? { image: bg.image, x: bg.x ?? 0, y: bg.y ?? 0, zoom: bg.zoom ?? 1 } : null;
+    if (bg?.image) bgToPublic(d, bg.image);
+  }
   writeJson(path.join(d, 'episode.json'), e);
   const editPath = path.join(d, 'work', 'edit.json');
   const edit = readJson(editPath);
   const pp = edit?.participants?.find((x) => x.id === id);
-  if (pp) { pp.look = look; pp.frame = frame; writeJson(editPath, edit); }
+  if (pp) {
+    pp.look = look; pp.frame = frame;
+    if (bg !== undefined) pp.bg = bg ? { ...(pp.bg || {}), ...bg, image: 'bg/' + bg.image } : null;
+    writeJson(editPath, edit);
+  }
   res.json({ ok: true });
+});
+
+// a line's subtitle - a layer: {n, text} (empty = back to the script's words). Saved in corrections.json ("caption",
+// the next build keeps it) and the line's subtitle chunks are cut again right in edit.json - instant, no build.
+// (same chunking as pipeline/plan.py _chunks)
+const chunkText = (text, a, z, maxWords = 7) => {
+  const words = text.split(/\s+/).filter(Boolean);
+  const groups = []; let cur = [];
+  for (const w of words) {
+    cur.push(w);
+    if (cur.length >= maxWords || (cur.length >= 4 && /[.?,]$/.test(w))) { groups.push(cur); cur = []; }
+  }
+  if (cur.length) { if (groups.length && cur.length <= 2) groups[groups.length - 1].push(...cur); else groups.push(cur); }
+  const total = groups.reduce((s, g) => s + g.join(' ').length, 0) || 1;
+  let t = a;
+  return groups.map((g) => { const d = ((z - a) * g.join(' ').length) / total; const o = [g.join(' '), t, t + d]; t += d; return o; });
+};
+app.post('/api/ep/:id/caption', (q, res) => {
+  const d = epDir(q.params.id);
+  const { n, text } = q.body || {};
+  const cp = path.join(d, 'corrections.json');
+  const corr = readJson(cp, {}) || {};
+  corr.lines = corr.lines || {};
+  const key = String(n), clean = String(text || '').trim();
+  corr.lines[key] = { ...(corr.lines[key] || {}) };
+  if (clean) corr.lines[key].caption = clean; else delete corr.lines[key].caption;
+  writeJson(cp, corr);
+  const editPath = path.join(d, 'work', 'edit.json');
+  const edit = readJson(editPath);
+  if (edit?.captions) {
+    const mine = edit.captions.filter((c) => c.n === n);
+    if (mine.length) {
+      const state = readJson(path.join(d, 'work', 'state.json'), {});
+      const line = (state.lines || []).find((l) => l.n === n);
+      const words = clean || line?.text || mine.map((c) => c.text).join(' ');
+      const side = mine.filter((c) => c.side), main = mine.filter((c) => !c.side);
+      side.forEach((c) => (c.text = words));
+      let rest = edit.captions.filter((c) => c.n !== n || c.side);
+      if (main.length) {
+        const a = Math.min(...main.map((c) => c.from)), z = Math.max(...main.map((c) => c.from + c.dur));
+        const re = chunkText(words, a, z).map(([t, c0, c1]) => ({ ...main[0], text: t, from: Math.round(c0), dur: Math.max(1, Math.round(c1) - Math.round(c0)) }));
+        rest = [...rest, ...re].sort((x, y) => x.from - y.from);
+      }
+      edit.captions = rest;
+      writeJson(editPath, edit);
+    }
+  }
+  res.json({ ok: true });
+});
+
+// a character's voice - a layer: {volume 0..1, clean off | mild | strong, presence dB}. Volume is live (the editor plays
+// one track per character); a filter change mixes only the audio again (zoomcut.py voices - seconds, no picture work)
+app.post('/api/ep/:id/voice', (q, res) => {
+  const d = epDir(q.params.id);
+  const { id, voice } = q.body || {};
+  const e = readJson(path.join(d, 'episode.json'));
+  const c = (e.characters || []).find((x) => x.id === id);
+  if (!c || !voice) return res.status(400).json({ error: 'no such character' });
+  const before = { clean: c.voice?.clean ?? (c.clean === 'strong' ? 'strong' : c.clean ? 'mild' : 'off'), presence: c.voice?.presence ?? 0 };
+  c.voice = { volume: voice.volume ?? 1, clean: voice.clean ?? before.clean, presence: voice.presence ?? before.presence };
+  delete c.clean;  // (the voice layer replaces the old flag)
+  writeJson(path.join(d, 'episode.json'), e);
+  const editPath = path.join(d, 'work', 'edit.json');
+  const edit = readJson(editPath);
+  const pp = edit?.participants?.find((x) => x.id === id);
+  if (pp) { pp.voice = c.voice; writeJson(editPath, edit); }
+  if (c.voice.clean === before.clean && c.voice.presence === before.presence) return res.json({ ok: true });
+  const p = spawn(PY, ['zoomcut.py', 'voices', `episodes/${q.params.id}`], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  let err = '';
+  p.stderr.on('data', (b) => (err += b));
+  p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, remixed: true }));
+});
+
+// a character's background photos: everything in the project's backgrounds/ (copied where the editor reads), and
+// adding one (raw body, name in ?name=) - the background is a layer he picks and moves himself
+const bgToPublic = (d, name) => {
+  const src = path.join(d, 'backgrounds', path.basename(name)), dst = path.join(d, 'work', 'public', 'bg', path.basename(name));
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(path.dirname(dst), { recursive: true });
+  if (!fs.existsSync(dst) || fs.statSync(dst).mtimeMs < fs.statSync(src).mtimeMs) fs.copyFileSync(src, dst);
+};
+app.get('/api/ep/:id/backgrounds', (q, res) => {
+  const d = epDir(q.params.id), dir = path.join(d, 'backgrounds');
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)) : [];
+  files.forEach((f) => bgToPublic(d, f));
+  res.json(files.map((f) => ({ name: f, url: `/media/${q.params.id}/bg/${encodeURIComponent(f)}` })));
+});
+app.post('/api/ep/:id/backgrounds', express.raw({ type: '*/*', limit: '40mb' }), (q, res) => {
+  const d = epDir(q.params.id);
+  const name = path.basename(String(q.query.name || 'background.jpg')).replace(/[^\w.\-א-ת ]+/g, '_');
+  if (!/\.(jpe?g|png|webp)$/i.test(name)) return res.status(400).json({ error: 'A picture (jpg / png / webp)' });
+  fs.mkdirSync(path.join(d, 'backgrounds'), { recursive: true });
+  fs.writeFileSync(path.join(d, 'backgrounds', name), q.body);
+  bgToPublic(d, name);
+  res.json({ ok: true, name });
 });
 
 app.get('/api/fonts', (_q, res) => res.json(readJson(path.join(ROOT, 'fonts', 'fonts.json'), [])));

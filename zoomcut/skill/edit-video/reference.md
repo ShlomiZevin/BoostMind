@@ -75,3 +75,18 @@
 - The editor once saved ANOTHER project's text-on-video into this one (tadar-4's questions landed in tadar-5 after
   he moved between them). If he was in the editor on another project, re-check episode.json overlays and tell him
   to refresh (F5) before editing.
+- **Zoom export hung forever on tiny tile pieces** (gilad-joins, 2026-10-22): a listening tile switching takes for
+  2-15 frames froze ffmpeg in the chunk (old and layered paths alike; not the inputs, not threads). `compose._absorb_tiny`
+  gives those frames to the neighbouring piece of the same person. If an export sits on one "Rendered N/M" for minutes,
+  find the chunk (`work/chunks/cNNN.mp4` stuck at 48 bytes) and run `compose.render_chunk` on it with a timeout.
+- **loudnorm "linear=true" silently falls back to dynamic** when one gain would push a peak over the limit - voices
+  pumped around a loud aside. The mix is one fixed gain to -14 LUFS + a limiter for rare peaks (`audio.mix`).
+- **A mostly silent take** (a listening take with one line) gets a huge automatic speech gain - set that line's `gain`.
+- **Phone / filter-app voices:** measure before filtering (spectrum bands vs 300-1k, ring-out after words, codec gaps).
+  RNNoise swallowed an "אה" even at 70% mix; afftdn barely moves codec damage; a compressor with makeup lifts the hiss.
+- **Headless poster capture:** a 1080x1920 page captured with a clip / element screenshot came out white; a
+  **full-page** screenshot works (puppeteer `fullPage: true`, viewport 1080 wide).
+- **Windows line endings:** pipeline/*.py and some files are CRLF - a patch script that matches "\n" fails silently;
+  normalise, patch, write back.
+- **iPhone / filter-app files:** creation_time = recording time for camera files, export time for app exports (use the
+  number in `export_<n>.mov`). Two characters' takes can be uploaded together - frames tell who.

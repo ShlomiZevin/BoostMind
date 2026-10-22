@@ -1,5 +1,30 @@
 # The editor and the export - how they work (read before changing code)
 
+## The tool and the skill (his rule, 2026-10-22)
+- **The editor is a general tool.** It builds videos out of layers - pictures, backgrounds, subtitles, texts, images,
+  voices, sounds, music, filters - each with its controls. He controls the layers himself, or through a session.
+- **The edit-video skill knows how to USE the tool:** it sets up the layers of a project (from earlier projects and the
+  recipes) and hands them to him. A session making a video does not change the tool. If a video needs something the
+  tool can't do, that is a tool improvement - generic (a new layer kind or control that every project gets), done on
+  purpose, written here - never a one-video patch.
+
+## Zoom projects: the layers (2026-10-22)
+- **Picture per take** - the cut pieces on each character's lane (drag edges / move, as before).
+- **Background per character - a layer.** The take is cut out once (`work/matte/<take>.mkv`, cached on the take only);
+  the editor shows the office photo + the person on transparency (`clips/<take>_fg.webm`, VP9 alpha, 540p). A "רקע"
+  lane under each character; its card: pick a photo (the project's `backgrounds/`, or add one), pan x / y, zoom - live
+  (POST /api/ep/:id/character `bg`). Placement math: `bg_box` (pipeline/background.py) = `bgBox` (ZoomCall.tsx). The
+  export composites the same: photo, the take masked by its matte, the look over both (pipeline/compose.py).
+  `"background_layer": false` in episode.json = the old baked way (don't).
+- **Voice per character - a layer.** Card: Volume (live - the editor plays one track per character,
+  `work/public/voices/<char>.wav`), Cleaning off / mild / strong and Clarity (dB at 2.8 kHz) - a change mixes only the
+  audio again (`zoomcut.py voices`, seconds). episode.json characters[].voice. The export mixes from the same settings.
+- **Subtitles - a layer.** The Subtitles lane: click a chunk → its line → the subtitle text, edited live (corrections
+  `caption`, chunks re-cut in edit.json at once, POST /api/ep/:id/caption).
+- **Click a character's name on the timeline** = all of that character's settings (look, background, voice). The ✕ in
+  the inspector header = back to the project settings (speed, subtitles, texts).
+- Images (an end poster) are overlay layers (`style: image`), texts as before.
+
 ## The editor is the tool - every feature is a control
 - Layers list in the project panel (each with its state) · Add: Hook text / Question card / Thought / Lower third /
   Ticker / Market panel · Video card: Cut (Tight / Light / Keep pauses / Whole take), Speed, Slow motion (from the playhead), length.

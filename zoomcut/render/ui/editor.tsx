@@ -33,7 +33,7 @@ type Data = {
   footage: { clips: { rel: string; char: string; kind: string }[]; unassigned: string[] } | null;
   audioVersion: number | null; output: string | null; job: Job | null;
 };
-type Sel = { kind: 'line'; n: number } | { kind: 'text'; i: number } | null;
+type Sel = { kind: 'line'; n: number } | { kind: 'text'; i: number } | { kind: 'char'; id: string } | null;
 // one undoable change: a line's fix, or project settings
 type Change = { kind: 'line'; n: number; before: Fix; after: Fix } | { kind: 'settings'; before: any; after: any } | { kind: 'overlays'; before: Overlay[]; after: Overlay[] };
 
@@ -119,6 +119,7 @@ function Editor() {
   useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep) && !ep.startsWith('_')) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
   const load = useCallback(async () => { if (!ep) return; const d: Data = await api(`/api/ep/${ep}`); setData(d); setJob(d.job); }, [ep]);
   useEffect(() => { if (ep) { tabProject.set(ep); setData(null); setSel(null); setUndo([]); setRedo([]); load(); } }, [ep]);
+  useEffect(() => { const on = () => load(); window.addEventListener('studio-reload', on); return () => window.removeEventListener('studio-reload', on); }, [load]);
   useEffect(() => {  // one project for every tool: picked in the Reader or Karaoke -> opened here too
     const on = (e: StorageEvent) => { if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage) setEp(e.newValue); };  // this tab's tools only
     addEventListener('storage', on);
@@ -165,20 +166,46 @@ function Editor() {
       return o.style === 'image' ? { ...base, image: 'overlays/' + String(o.image).split(/[\\/]/).pop(), x: o.x ?? null, w: o.w ?? 960, fade_in: o.fade_in ?? 0.3 } : base;
     });
   }, [ovDraft, data?.edit, fps]);
-  const [charDraft, setCharDraft] = useState<Record<string, { look?: any; frame?: any }>>({});
+  const [charDraft, setCharDraft] = useState<Record<string, { look?: any; frame?: any; bg?: any }>>({});
   useEffect(() => setCharDraft({}), [data?.episode]);
   const charTimer = useRef<any>(null);
-  const changeChar = (id: string, patch: { look?: any; frame?: any }) => {
+  const changeChar = (id: string, patch: { look?: any; frame?: any; bg?: any }) => {
     const curC = chars.find((c) => c.id === id) || {};
-    const next = { look: { ...(curC.look || {}), ...(charDraft[id]?.look || {}), ...(patch.look || {}) },
-                   frame: { ...(curC.frame || {}), ...(charDraft[id]?.frame || {}), ...(patch.frame || {}) } };
+    const curP = (data?.edit?.participants || []).find((p: any) => p.id === id) || {};
+    const bgNow = charDraft[id] && 'bg' in charDraft[id] ? charDraft[id].bg : curP.bg;
+    const next: any = { look: { ...(curC.look || {}), ...(charDraft[id]?.look || {}), ...(patch.look || {}) },
+                   frame: { ...(curC.frame || {}), ...(charDraft[id]?.frame || {}), ...(patch.frame || {}) },
+                   bg: 'bg' in patch ? (patch.bg === null ? null : { ...(bgNow || {}), ...patch.bg }) : bgNow };
     setCharDraft({ ...charDraft, [id]: next });
     clearTimeout(charTimer.current);
-    charTimer.current = setTimeout(() => api(`/api/ep/${ep}/character`, { id, ...next }), 350);
+    // the server keeps the file name; the editor's copy lives under bg/
+    const send = { ...next, bg: next.bg ? { ...next.bg, image: String(next.bg.image).split('/').pop() } : next.bg };
+    charTimer.current = setTimeout(() => api(`/api/ep/${ep}/character`, { id, ...send }), 350);
   };
-  const liveParticipants = useMemo(() => (data?.edit?.participants || []).map((pp: any) => charDraft[pp.id] ? { ...pp, ...charDraft[pp.id] } : pp), [data?.edit, charDraft]);
+  const [voiceDraft, setVoiceDraft] = useState<Record<string, any>>({});
+  const [voiceBusy, setVoiceBusy] = useState<string | null>(null);
+  useEffect(() => setVoiceDraft({}), [data?.edit]);
+  const voiceTimer = useRef<any>(null);
+  const changeVoice = (id: string, patch: any) => {
+    const cur = { ...((data?.edit?.participants || []).find((p: any) => p.id === id)?.voice || {}), ...(voiceDraft[id] || {}) };
+    const next = { ...cur, ...patch };
+    setVoiceDraft({ ...voiceDraft, [id]: next });
+    clearTimeout(voiceTimer.current);
+    const remix = 'clean' in patch || 'presence' in patch;
+    voiceTimer.current = setTimeout(async () => {
+      if (remix) setVoiceBusy(id);
+      const r = await api(`/api/ep/${ep}/voice`, { id, voice: next });
+      setVoiceBusy(null);
+      if (r?.remixed) load();  // the new tracks
+    }, remix ? 500 : 350);
+  };
+  const liveParticipants = useMemo(() => (data?.edit?.participants || []).map((pp: any) => {
+    const q = charDraft[pp.id] ? { ...pp, ...charDraft[pp.id] } : pp;
+    return voiceDraft[pp.id] ? { ...q, voice: { ...(q.voice || {}), ...voiceDraft[pp.id] } } : q;
+  }), [data?.edit, charDraft, voiceDraft]);
   const props = useMemo(() => data?.edit && ({ ...data.edit, participants: liveParticipants, overlays: liveOverlays, mediaBase: `/media/${ep}/`,
-    audioSrc: data.audioVersion ? `/media/${ep}/dialogue.wav?v=${data.audioVersion}` : undefined }), [data?.edit, data?.audioVersion, ep, liveOverlays, liveParticipants]);
+    audioSrc: data.audioVersion ? `/media/${ep}/dialogue.wav?v=${data.audioVersion}` : undefined,
+    voices: data.edit.voices?.map((v: any) => ({ ...v, src: `${v.src}?v=${data.audioVersion}` })) }), [data?.edit, data?.audioVersion, ep, liveOverlays, liveParticipants]);
 
   useEffect(() => {
     const p = player.current; if (!p) return;
@@ -401,7 +428,7 @@ function Editor() {
             <div className="frame" ref={frameRef} style={{ position: 'relative' }}>
               {sel?.kind === 'text' && ovDraft[sel.i] && <TextHandle o={ovDraft[sel.i]} i={sel.i} scale={(frameRef.current?.clientHeight || 1920) / 1920}
                 onMove={(y, done) => changeOverlays(ovDraft.map((x, k) => (k === sel.i ? { ...x, y } : x)), done)} />}
-              {props && <Player ref={player} component={ZoomCall as any} inputProps={props} durationInFrames={props.durationInFrames}
+              {props && <Player ref={player} component={ZoomCall as any} inputProps={props} numberOfSharedAudioTags={16} durationInFrames={props.durationInFrames}
                 fps={props.fps} compositionWidth={1080} compositionHeight={1920} controls={false} clickToPlay playbackRate={speed}
                 style={{ width: '100%', height: '100%' }} />}
             </div>
@@ -418,10 +445,13 @@ function Editor() {
         </div>
 
         <div className="pane right">
-          <div className="pane-h">Inspector</div>
+          <div className="pane-h" style={{ display: 'flex', alignItems: 'center' }}>
+            <span className="grow">{sel ? (sel.kind === 'char' ? `${chars.find((c) => c.id === sel.id)?.name || ''} · all settings` : sel.kind === 'line' ? `Line #${sel.n}` : 'Text') : 'Project'}</span>
+            {sel && <button className="btn ghost icon" title="Back to the project settings (speed, subtitles, texts)" onClick={() => setSel(null)}>✕</button>}
+          </div>
           <div className="scroll">
-            <Inspector data={data} sel={sel} busy={busy} job={job} chars={chars} onFix={changeLine} onSettings={changeSettings}
-              participants={liveParticipants} onChar={changeChar} speed={speed} onSpeed={changeSpeed}
+            <Inspector ep={ep} data={data} sel={sel} busy={busy} job={job} chars={chars} onFix={changeLine} onSettings={changeSettings}
+              participants={liveParticipants} onChar={changeChar} onVoice={changeVoice} voiceBusy={voiceBusy} speed={speed} onSpeed={changeSpeed}
               overlays={ovDraft} onOverlays={changeOverlays} onSelText={(i) => setSel({ kind: 'text', i })} />
           </div>
         </div>
@@ -430,7 +460,8 @@ function Editor() {
       <div className="split" onMouseDown={startDrag} />
       <Timeline data={data && data.edit ? { ...data, edit: { ...data.edit, overlays: liveOverlays } } : data} frame={frame} fps={fps} total={total} sel={sel} playing={playing} chars={chars}
         canUndo={!!undo.length && !busy} canRedo={!!redo.length && !busy} onUndo={doUndo} onRedo={doRedo} busy={busy} onTrim={trim}
-        onSeek={seek} onSelLine={(n) => selectLine(n, false)} onSelText={(i) => setSel({ kind: 'text', i })} />
+        onSeek={seek} onSelLine={(n) => selectLine(n, false)} onSelText={(i) => setSel({ kind: 'text', i })}
+        onSelChar={(id) => setSel({ kind: 'char', id })} participants={liveParticipants} ep={ep} />
     </div>
   );
 }
@@ -470,8 +501,8 @@ function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string; busy:
 }
 
 // ---------- inspector --------------------------------------------------------------------
-function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, onOverlays, onSelText, participants, onChar, speed, onSpeed }: {
-  participants: any[]; onChar: (id: string, patch: { look?: any; frame?: any }) => void; speed: number; onSpeed: (v: number) => void;
+function Inspector({ ep, data, sel, busy, job, chars, onFix, onSettings, overlays, onOverlays, onSelText, participants, onChar, onVoice, voiceBusy, speed, onSpeed }: {
+  ep: string; onVoice: (id: string, patch: any) => void; voiceBusy: string | null; participants: any[]; onChar: (id: string, patch: { look?: any; frame?: any; bg?: any }) => void; speed: number; onSpeed: (v: number) => void;
   data: Data | null; sel: Sel; busy: boolean; job: Job | null; chars: any[];
   onFix: (n: number, f: Fix) => void; onSettings: (p: any) => void; onSelText: (i: number) => void;
   overlays: Overlay[]; onOverlays: (o: Overlay[], commit?: boolean) => void;
@@ -482,7 +513,11 @@ function Inspector({ data, sel, busy, job, chars, onFix, onSettings, overlays, o
   if (sel?.kind === 'line') {
     const l = data?.state?.lines.find((x) => x.n === sel.n);
     if (l) return <div className="insp"><LineProps key={l.n} l={l} busy={busy} chars={chars} onFix={(f) => onFix(l.n, f)} />
-      <CharacterCard who={participants.find((x) => x.id === l.speaker)} onChar={onChar} />{runLog}</div>;
+      <SubtitleEdit key={'s' + l.n} ep={ep} n={l.n} script={l.text} saved={(data as any)?.corrections?.lines?.[String(l.n)]?.caption} />
+      <CharacterCard ep={ep} who={participants.find((x) => x.id === l.speaker)} onChar={onChar} onVoice={onVoice} voiceBusy={voiceBusy} />{runLog}</div>;
+  }
+  if (sel?.kind === 'char') {
+    return <div className="insp"><CharacterCard ep={ep} who={participants.find((x) => x.id === sel.id)} onChar={onChar} onVoice={onVoice} voiceBusy={voiceBusy} />{runLog}</div>;
   }
   if (sel?.kind === 'text' && ov[sel.i]) {
     return <div className="insp"><TextProps all={ov} i={sel.i} onChange={onOverlays} />{runLog}</div>;
@@ -849,7 +884,8 @@ function Slider({ label, v, min, max, step, fmt, onChange }: { label: string; v:
 }
 
 // how one person looks in every tile: framing and colour, live
-function CharacterCard({ who, onChar }: { who: any; onChar: (id: string, patch: { look?: any; frame?: any }) => void }) {
+function CharacterCard({ ep, who, onChar, onVoice, voiceBusy }: { ep: string; who: any; onChar: (id: string, patch: { look?: any; frame?: any; bg?: any }) => void;
+  onVoice?: (id: string, patch: any) => void; voiceBusy?: string | null }) {
   if (!who) return null;
   const fr = who.frame || {}, lk = who.look || {};
   const pct = (v: number) => `${Math.round(v * 100)}%`, sgn = (v: number) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`;
@@ -863,12 +899,91 @@ function CharacterCard({ who, onChar }: { who: any; onChar: (id: string, patch: 
       <Slider label="Brightness" v={lk.brightness ?? 1} min={0.7} max={1.4} step={0.02} fmt={pct} onChange={(v) => onChar(who.id, { look: { brightness: v } })} />
       <Slider label="Contrast" v={lk.contrast ?? 1} min={0.7} max={1.4} step={0.02} fmt={pct} onChange={(v) => onChar(who.id, { look: { contrast: v } })} />
       <div className="help">Double-click a slider to reset it.</div>
+      <BgLayer ep={ep} who={who} onChar={onChar} />
+      {onVoice && <VoiceLayer who={who} onVoice={onVoice} busy={voiceBusy === who.id} />}
+    </div>
+  );
+}
+
+// a line's subtitle - a layer: its text, edited live (empty = the script's words). Saved instantly; the next build keeps it
+function SubtitleEdit({ ep, n, script, saved }: { ep: string; n: number; script: string; saved?: string }) {
+  const [txt, setTxt] = useState(saved ?? script);
+  const timer = useRef<any>(null);
+  const save = (v: string) => {
+    setTxt(v);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      await api(`/api/ep/${ep}/caption`, { n, text: v.trim() === script.trim() ? '' : v });
+      window.dispatchEvent(new Event('studio-reload'));
+    }, 450);
+  };
+  return (
+    <div className="card">
+      <div className="card-h"><div className="title grow">Subtitle · layer</div>
+        {saved ? <button className="btn ghost" onClick={() => save(script)} title="Back to the script's words">Back to script</button> : null}</div>
+      <textarea className="field he" dir="rtl" rows={3} value={txt} onChange={(e) => save(e.target.value)} />
+      <div className="help">What the subtitle says for this line (write what he actually SAID). Changes show at once.</div>
+    </div>
+  );
+}
+
+// a character's voice - a layer: volume (live), cleaning and clarity (the audio is mixed again in seconds)
+function VoiceLayer({ who, onVoice, busy }: { who: any; onVoice: (id: string, patch: any) => void; busy: boolean }) {
+  const v = who.voice || {};
+  const clean = v.clean || 'off';
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div className="sec" style={{ marginBottom: 8 }}>Voice · layer {busy && <span className="help" style={{ margin: 0 }}>· mixing…</span>}</div>
+      <Slider label="Volume" v={v.volume ?? 1} min={0} max={1} step={0.02} fmt={(x) => `${Math.round(x * 100)}%`} onChange={(x) => onVoice(who.id, { volume: x })} />
+      <div className="row2" style={{ margin: '6px 0' }}><label>Cleaning</label>
+        <div className="seg" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {(['off', 'mild', 'strong'] as const).map((k) => <button key={k} className={clean === k ? 'on' : ''} onClick={() => onVoice(who.id, { clean: k })}>{k}</button>)}
+        </div></div>
+      <Slider label="Clarity" v={v.presence ?? 0} min={-6} max={8} step={0.5} fmt={(x) => `${x > 0 ? '+' : ''}${x} dB`} onChange={(x) => onVoice(who.id, { presence: x })} />
+      <div className="help">Mild: hiss and rumble out, level evened. Strong: also mud out, clarity up, the room's ringing gated - for a muffled phone / filter-app voice.</div>
+    </div>
+  );
+}
+
+// a character's background - a layer: pick a photo (or add one), move and zoom it; live, the export follows
+function BgLayer({ ep, who, onChar }: { ep: string; who: any; onChar: (id: string, patch: { bg?: any }) => void }) {
+  const [list, setList] = useState<{ name: string; url: string }[]>([]);
+  const load = () => api(`/api/ep/${ep}/backgrounds`).then((l) => Array.isArray(l) && setList(l));
+  useEffect(() => { load(); }, [ep]);
+  const bg = who.bg;
+  const cur = bg?.image ? String(bg.image).split('/').pop() : null;
+  const pick = (f: { name: string; url: string }) => {
+    const img = new Image();
+    img.onload = () => onChar(who.id, { bg: { image: 'bg/' + f.name, w: img.naturalWidth, h: img.naturalHeight, x: 0, y: 0, zoom: 1 } });
+    img.src = f.url;
+  };
+  const add = async (file?: File) => {
+    if (!file) return;
+    const r = await fetch(`/api/ep/${ep}/backgrounds?name=${encodeURIComponent(file.name)}`, { method: 'POST', body: file }).then((x) => x.json());
+    const l = await api(`/api/ep/${ep}/backgrounds`);
+    if (Array.isArray(l)) { setList(l); const f = l.find((x: any) => x.name === r.name); if (f) pick(f); }
+  };
+  const sgn = (v: number) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`, pct = (v: number) => `${Math.round(v * 100)}%`;
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div className="sec" style={{ marginBottom: 8 }}>Background · layer</div>
+      <div className="bg-grid">
+        {list.map((f) => <img key={f.name} src={f.url} className={cur === f.name ? 'on' : ''} title={f.name} onClick={() => pick(f)} />)}
+        <label className="bg-add" title="Add a background picture">+<input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { add(e.target.files?.[0]); e.target.value = ''; }} /></label>
+        <button className={`bg-none ${!bg ? 'on' : ''}`} title="No background (the take as filmed)" onClick={() => onChar(who.id, { bg: null })}>None</button>
+      </div>
+      {bg && <>
+        <Slider label="Pan left / right" v={bg.x ?? 0} min={-0.5} max={0.5} step={0.01} fmt={sgn} onChange={(v) => onChar(who.id, { bg: { x: v } })} />
+        <Slider label="Pan up / down" v={bg.y ?? 0} min={-0.5} max={0.5} step={0.01} fmt={sgn} onChange={(v) => onChar(who.id, { bg: { y: v } })} />
+        <Slider label="Zoom" v={bg.zoom ?? 1} min={1} max={2.5} step={0.02} fmt={pct} onChange={(v) => onChar(who.id, { bg: { zoom: v } })} />
+      </>}
     </div>
   );
 }
 
 // ---------- timeline ---------------------------------------------------------------------
-function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRedo, onUndo, onRedo, busy, onTrim, onSeek, onSelLine, onSelText }: {
+function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRedo, onUndo, onRedo, busy, onTrim, onSeek, onSelLine, onSelText, onSelChar, participants, ep }: {
+  onSelChar: (id: string) => void; participants: any[]; ep: string;
   data: Data | null; frame: number; fps: number; total: number; sel: Sel; playing: boolean; chars: any[];
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void; busy: boolean; onTrim: (n: number, side: 'l' | 'r' | 'm', d: number) => void;
   onSeek: (t: number) => void; onSelLine: (n: number) => void; onSelText: (i: number) => void;
@@ -930,7 +1045,7 @@ function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRe
     for (let k = 1; k < 5; k++) ticks.push(<div key={`${t}-${k}`} className="tick minor" style={{ left: x(t + (k * step) / 5) }} />);
   }
   const TH = 40;
-  const tracks = ['layout', ...chars.map((c) => c.id), 'captions', 'text'];
+  const tracks = ['layout', ...chars.flatMap((c) => [c.id, 'bg:' + c.id]), 'captions', 'text'];
   const onlyBg = (e: React.MouseEvent) => e.target === e.currentTarget && scrub(e);
   // drag an edge to trim (take more/less of the recording), drag the body to move the line in time;
   // a press without movement just selects
@@ -966,9 +1081,15 @@ function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRe
           <div className="h ruler" />
           {tracks.map((t) => {
             const c = chars.find((x) => x.id === t);
-            return <div key={t} className="h">
+            if (t.startsWith('bg:')) {
+              const who = chars.find((x) => x.id === t.slice(3));
+              return <div key={t} className="h sub bgh" onClick={() => onSelChar(t.slice(3))} title="This character's background - a layer">
+                <span className="he">רקע · {who?.name}</span></div>;
+            }
+            return <div key={t} className={`h ${c ? 'pick' : ''} ${c && sel?.kind === 'char' && sel.id === t ? 'on' : ''}`} onClick={() => c && onSelChar(t)}
+              title={c ? "All of this character's settings - voice, background, look" : undefined}>
               {c ? <><div className="av sm" style={{ background: colorOf(t, chars) }}>{c.name[0]}</div><span className="he">{c.name}</span></>
-                : t === 'layout' ? <>{I.layout}Layout</> : t === 'captions' ? <>{I.cc}Captions</> : <>{I.text}Text</>}
+                : t === 'layout' ? <>{I.layout}Layout</> : t === 'captions' ? <>{I.cc}Subtitles</> : <>{I.text}Text</>}
             </div>;
           })}
         </div>
@@ -989,7 +1110,7 @@ function Timeline({ data, frame, fps, total, sel, playing, chars, canUndo, canRe
                   </div>))}
                 {edit.events.map((e: any, i: number) => <div key={`e${i}`} className="marker" style={{ left: x(e.at / fps) }}><span className="he">{e.name} הוסר</span></div>)}
               </div>
-              {chars.map((c) => (
+              {chars.map((c) => [(
                 <div key={c.id} className="lane" onMouseDown={onlyBg}>
                   {(edit.tiles[c.id] || []).map((s: any, i: number) => <div key={i} className="idle" style={{ left: x(s.from / fps), width: Math.max(1, s.dur / fps * pps - 1) }} />)}
                   {lines.filter((l) => l.speaker === c.id && l.start != null && l.in != null).map((l) => {
@@ -1006,11 +1127,23 @@ Drag the middle to move it · drag an edge to take more or less of the recording
                         <div className="hd r" onMouseDown={(e) => startTrim(e, l.n, 'r')} />
                       </div>);
                   })}
-                </div>
-              ))}
+                </div>), (() => {
+                  // the background layer of this character: one bar for the whole video
+                  const bg = participants.find((p: any) => p.id === c.id)?.bg;
+                  const on = sel?.kind === 'char' && sel.id === c.id;
+                  return <div key={'bg' + c.id} className="lane" onMouseDown={onlyBg}>
+                    <div className={`bgbar he ${on ? 'sel' : ''} ${bg ? '' : 'none'}`} style={{ left: x(0), width: Math.max(20, total * pps - 2),
+                      backgroundImage: bg ? `url(/media/${ep}/${bg.image})` : undefined }}
+                      onMouseDown={(e) => e.stopPropagation()} onClick={() => onSelChar(c.id)}>
+                      {bg ? String(bg.image).split('/').pop() : 'no background'}</div>
+                  </div>;
+                })()])}
               <div className="lane" onMouseDown={scrub}>
                 {edit.subtitles && edit.captions.map((c: any, i: number) => (
-                  <div key={i} className="cap he" style={{ left: x(c.from / fps), width: Math.max(2, c.dur / fps * pps - 2) }}>{c.text}</div>))}
+                  <div key={i} className={`cap he ${c.n != null ? 'pick' : ''} ${sel?.kind === 'line' && sel.n === c.n ? 'sel' : ''}`}
+                    style={{ left: x(c.from / fps), width: Math.max(2, c.dur / fps * pps - 2) }}
+                    onMouseDown={(e) => c.n != null && e.stopPropagation()} onClick={() => c.n != null && onSelLine(c.n)}
+                    title={c.n != null ? 'A subtitle - click to edit its text' : undefined}>{c.text}</div>))}
               </div>
               <div className="lane" onMouseDown={onlyBg}>
                 {(edit.overlays || []).map((o: any, i: number) => (

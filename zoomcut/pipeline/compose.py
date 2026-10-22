@@ -106,9 +106,36 @@ def plan_chunks(props):
                     continue
                 items.append({"pid": pid, "rect": rect, "clip": props["clips"][seg["clip"]], "off": a - s0, "len": b - a,
                               "src": seg["at"] + (a - seg["from"]) / FPS, "fade": seg.get("fade", 0) if a == seg["from"] else 0,
-                              "look": parts.get(pid, {}).get("look"), "frame": parts.get(pid, {}).get("frame")})
-        chunks.append({"from": s0, "dur": shot["dur"], "items": items})
+                              "look": parts.get(pid, {}).get("look"), "frame": parts.get(pid, {}).get("frame"),
+                              "bg": parts.get(pid, {}).get("bg")})
+        chunks.append({"from": s0, "dur": shot["dur"], "items": _absorb_tiny(items)})
     return chunks
+
+
+def _absorb_tiny(items, min_len=20):
+    """A tile that switches takes for a few frames (a listening tile, 2 or 15 frames) is invisible - and it hung ffmpeg
+    for good (gilad-joins export, 2026-10-22, old and layered paths alike). The neighbouring piece of the same person
+    takes its frames instead: the next piece starts earlier in its take, or the previous one runs on."""
+    out = []
+    for pid in dict.fromkeys(it["pid"] for it in items):
+        mine = sorted((dict(it) for it in items if it["pid"] == pid), key=lambda it: it["off"])
+        k = 0
+        while k < len(mine):
+            it = mine[k]
+            if it["len"] < min_len and len(mine) > 1:
+                nxt = mine[k + 1] if k + 1 < len(mine) else None
+                gap = max(0, nxt["off"] - it["off"]) if nxt is not None else 0  # (they may overlap: then just drop it)
+                if nxt is not None and nxt["src"] - gap / FPS >= 0:
+                    nxt["off"] -= gap; nxt["len"] += gap; nxt["src"] -= gap / FPS; nxt["fade"] = 0
+                    mine.pop(k)
+                    continue
+                if k > 0:
+                    mine[k - 1]["len"] += it["len"]
+                    mine.pop(k)
+                    continue
+            k += 1
+        out += mine
+    return out
 
 
 def _look(look):
@@ -142,7 +169,29 @@ def render_chunk(ep, k, ch, ui_dir, pad):
         idx += 2
         fade = f",fade=t=in:st=0:d={it['fade'] / FPS:.4f}:alpha=1" if it["fade"] else ""
         t0, t1 = it["off"] / FPS, (it["off"] + it["len"] - 0.5) / FPS
-        fc.append(f"[{vi}:v]setpts=PTS-STARTPTS,fps={FPS},scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}{_look(it['look'])},format=yuva420p[v{j}]")
+        bg, matte = it.get("bg"), it["clip"].get("matte")
+        if bg and matte:
+            # the background layer: the office photo placed in the person's box (bg_box = the editor's bgBox), the take
+            # masked by its cut-out on top, the character's look over both - then cropped to the tile like before
+            from .background import bg_box
+            gx, gy, gw, gh = bg_box(bg, vw, vh)
+            gw, gh = int(round(gw / 2) * 2), int(round(gh / 2) * 2)
+            # every branch of the tile (take, mask, photo) is cut to the piece's exact frame count: branches that ran on
+            # after a short piece ended left ffmpeg's scheduler waiting forever (gilad-joins export hung, 2026-10-22)
+            args += ["-ss", f"{it['src']:.4f}", "-t", f"{dur:.4f}", "-i", matte]
+            args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{dur:.4f}", "-i", os.path.join(ep.public, bg["image"])]
+            ai, bi = idx, idx + 1
+            idx += 2
+            sig = max(0.8, 1.0 * vw / it["clip"]["w"])
+            bx, by = min(max(0, int(round(cx - gx))), gw - w), min(max(0, int(round(cy - gy))), gh - h)
+            fr = it["len"]
+            fc.append(f"[{bi}:v]setpts=PTS-STARTPTS,fps={FPS},trim=end_frame={fr},scale={gw}:{gh}:flags=bicubic,crop={w}:{h}:{bx}:{by},format=yuv420p[g{j}]")
+            fc.append(f"[{ai}:v]setpts=PTS-STARTPTS,fps={FPS},trim=end_frame={fr},scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy},gblur=sigma={sig:.2f},format=gray[al{j}]")
+            fc.append(f"[{vi}:v]setpts=PTS-STARTPTS,fps={FPS},trim=end_frame={fr},scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}[p{j}]")
+            fc.append(f"[p{j}][al{j}]alphamerge=shortest=1[pa{j}]")
+            fc.append(f"[g{j}][pa{j}]overlay=shortest=1:format=auto{_look(it['look'])},format=yuva420p[v{j}]")
+        else:
+            fc.append(f"[{vi}:v]setpts=PTS-STARTPTS,fps={FPS},scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}{_look(it['look'])},format=yuva420p[v{j}]")
         fc.append(f"[{mi}:v]format=gray,setpts=PTS-STARTPTS[m{j}]")
         fc.append(f"[v{j}][m{j}]alphamerge{fade},setpts=PTS+{t0:.4f}/TB[o{j}]")
         fc.append(f"{last}[o{j}]overlay=x={int(round(r['x']))}:y={int(round(r['y']))}:eof_action=pass:"

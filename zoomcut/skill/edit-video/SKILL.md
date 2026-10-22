@@ -35,7 +35,14 @@ Reply to him in English; Hebrew only inside the video.
    keeps going underneath, then stops. A line said over someone ("זה סדר הגודל" over "תקשיב ×3") plays in full on top,
    and the view switches between them. Start each line on its first word (no breath, no tail of the line before) and
    end on its last word (no gasp after).
-5. **First cut fast, then his notes.** Never let him review a half-built state ("wait, building" - then say it's ready).
+5. **The editor is the tool; this skill uses it.** Making a video = setting up a project's layers with the tool as it
+   is, then he (or you, on his word) changes them. A video session does not change the tool. Something the tool can't
+   do = a deliberate, generic tool improvement (a layer kind / control every project gets, written in `editor.md`) -
+   never a one-video patch. See `editor.md` → "The tool and the skill".
+6. **This skill learns.** Anything you learn about how he wants it - cutting, rhythm, sound, looks, how he works -
+   goes into this skill (here, the recipe, or `reference.md`) the same session, with the date and his words. A lesson
+   that stays only in the conversation is lost.
+7. **First cut fast, then his notes.** Never let him review a half-built state ("wait, building" - then say it's ready).
    His timestamps are the editor's time at 1x speed. When he says "you do it", make the call yourself.
 
 ## The workflow (every video)

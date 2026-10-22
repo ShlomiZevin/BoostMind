@@ -93,7 +93,101 @@ def _cover(img, w, h):
     return r[y:y + h, x:x + w]
 
 
+# ---- the background as a LAYER (his rule: everything is a layer) ---------------------------------------------------
+# The take is cut out once (the person's matte, cached on the take + engine only - changing the office photo never
+# cuts again). The editor draws office photo + person-on-transparency per tile (live: swap / pan / zoom the photo);
+# the export composites the same in ffmpeg from the take + matte + photo (pipeline/compose.py).
+
+def matte_for(ep, clip, engine="fast"):
+    """The person's cut-out mask for the whole take (ffv1 gray, long side 768)."""
+    src = os.path.join(ep.public, clip["proxy"])
+    matte = ep.work("matte", clip["id"] + ".mkv")
+    stamp_file, stamp = matte + ".stamp", f"{os.path.getmtime(src)}|{engine}"
+    if os.path.exists(matte) and (not os.path.exists(stamp_file) or open(stamp_file).read() == stamp):
+        open(stamp_file, "w").write(stamp)  # (a matte from before the stamp: same take - keep it)
+        return matte
+    w, h = clip["w"], clip["h"]
+    long_side = 768
+    mw = long_side if w >= h else int(round(long_side * w / h / 2) * 2)
+    mh = int(round(mw * h / w / 2) * 2)
+    log(f"  · cutting out {clip['rel']} ({engine})")
+    dec = subprocess.Popen([FFMPEG, "-v", "error", "-i", src, "-vf", f"scale={mw}:{mh}:flags=area",
+                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+    enc = subprocess.Popen([FFMPEG, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", f"{mw}x{mh}",
+                            "-r", str(FPS), "-i", "-", "-c:v", "ffv1", matte], stdin=subprocess.PIPE)
+    matte_fn = FastMatte() if engine == "fast" else QualityMatte()
+    every = 1 if engine == "fast" else 2
+    size, last, n = mw * mh * 3, None, 0
+    while True:
+        buf = dec.stdout.read(size)
+        if len(buf) < size:
+            break
+        if n % 150 == 0 and n:
+            log(f"    cutting out {clip['rel']}: {n / FPS:.0f}s of {clip['duration']:.0f}s")
+        if n % every and last is not None:
+            enc.stdin.write(last)
+            n += 1
+            continue
+        a = matte_fn(np.frombuffer(buf, np.uint8).reshape(mh, mw, 3), n)
+        last = (a * 255).astype(np.uint8).tobytes()
+        enc.stdin.write(last)
+        n += 1
+    enc.stdin.close()
+    enc.wait()
+    dec.wait()
+    open(stamp_file, "w").write(stamp)
+    return matte
+
+
+def fg_preview(ep, clip, matte):
+    """The person alone on transparency (VP9 + alpha, 540 wide) - the editor lays it over the background layer."""
+    from .common import run
+    src = os.path.join(ep.public, clip["proxy"])
+    rel = "clips/" + clip["id"] + "_fg.webm"
+    dst = os.path.join(ep.public, rel)
+    if os.path.exists(dst) and os.path.getmtime(dst) >= max(os.path.getmtime(src), os.path.getmtime(matte)):
+        return rel
+    w = 540 if clip["w"] <= clip["h"] else 960
+    h = int(round(w * clip["h"] / clip["w"] / 2) * 2)
+    log(f"  · person layer for the editor → {clip['rel']}")
+    fc = (f"[1:v]scale={w}:{h}:flags=bicubic,gblur=sigma=0.8,format=gray[a];[0:v]scale={w}:{h}:flags=bilinear[v];"
+          f"[v][a]alphamerge,format=yuva420p[o]")
+    run([FFMPEG, "-y", "-v", "error", "-i", src, "-i", matte, "-filter_complex", fc, "-map", "[o]", "-an",
+         "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "1400k", "-deadline", "realtime", "-cpu-used", "8",
+         "-row-mt", "1", "-auto-alt-ref", "0", "-g", "15", dst + ".tmp.webm"])
+    os.replace(dst + ".tmp.webm", dst)
+    return rel
+
+
+def bg_layer(ep, char, setting):
+    """The office photo of one character as a layer: copied where the editor / renderer read it, with its size
+    (both renderers place it with the same math) and the pan / zoom he set. None = no background (raw take)."""
+    import cv2
+    s = dict(setting or {})
+    src = ep.p("backgrounds", s["image"]) if s.get("image") else find_background(ep, char)
+    if not src or not os.path.exists(src):
+        return None
+    name = os.path.basename(src)
+    os.makedirs(os.path.join(ep.public, "bg"), exist_ok=True)
+    dst = os.path.join(ep.public, "bg", name)
+    if not os.path.exists(dst) or os.path.getmtime(dst) < os.path.getmtime(src):
+        import shutil
+        shutil.copy(src, dst)
+    img = cv2.imdecode(np.fromfile(src, np.uint8), cv2.IMREAD_COLOR)
+    return {"image": "bg/" + name, "w": int(img.shape[1]), "h": int(img.shape[0]),
+            "x": float(s.get("x", 0)), "y": float(s.get("y", 0)), "zoom": float(s.get("zoom", 1))}
+
+
+def bg_box(bg, vw, vh):
+    """Where the photo sits inside the person's video box (vw x vh): cover, then pan (x, y in -0.5..0.5) and zoom.
+    Mirrored in render/src/ZoomCall.tsx (bgBox)."""
+    s = max(vw / bg["w"], vh / bg["h"]) * max(1.0, bg.get("zoom", 1))
+    sw, sh = bg["w"] * s, bg["h"] * s
+    return (vw - sw) * (0.5 + bg.get("x", 0)), (vh - sh) * (0.5 + bg.get("y", 0)), sw, sh
+
+
 def replace(ep, clip, bg_path, ranges=None, reuse=False, engine="fast"):
+    """(The old way: the photo baked into the take. Only for "background_layer": false.)"""
     """Matte small (long side 768), composite at full res in ffmpeg.
     ranges: [(start_s, end_s)] the edit actually shows; other frames are skipped (left as-is)."""
     import hashlib

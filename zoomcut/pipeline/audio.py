@@ -75,30 +75,66 @@ CLEAN_STRONG_AF = ("highpass=f=90,equalizer=f=300:t=q:w=1:g=-3,equalizer=f=2800:
                    "agate=threshold=0.01:ratio=3:range=0.1:attack=2:release=50")
 
 
+def voice_of(ep, char_id):
+    """A character's voice layer: {"volume": 1, "clean": "off" | "mild" | "strong", "presence": dB at 2.8 kHz}.
+    (An older "clean": true / "strong" on the character still counts.)"""
+    ch = next((c for c in ep.characters if c["id"] == char_id), {})
+    v = dict(ch.get("voice") or {})
+    old = ch.get("clean")
+    v.setdefault("clean", "strong" if old == "strong" else "mild" if old else "off")
+    v.setdefault("volume", 1.0)
+    v.setdefault("presence", 0.0)
+    return v
+
+
+def _voice_chain(v):
+    chain = {"mild": CLEAN_AF, "strong": CLEAN_STRONG_AF}.get(v.get("clean"), "")
+    pr = float(v.get("presence") or 0)
+    if abs(pr) >= 0.5:  # clarity: up for a muffled voice, down for a harsh one
+        chain = (chain + "," if chain else "") + f"equalizer=f=2800:t=q:w=1.2:g={pr:.1f}"
+    return chain
+
+
 def _cleaned(ep, cid):
+    """The take's audio through its character's voice filters (cached per filter chain)."""
+    import hashlib
     import os
     src = ep.work("audio", cid + ".wav")
-    char = next((c for c in ep.characters if cid.startswith(c["id"] + "_")), {})
-    level = char.get("clean")
-    if not level:
+    chain = _voice_chain(voice_of(ep, cid.split("_")[0]))
+    if not chain:
         return src
-    af = CLEAN_STRONG_AF if level == "strong" else CLEAN_AF
-    out = ep.work("audio", f"{cid}.clean-{'strong' if level == 'strong' else 'mild'}.wav")
+    out = ep.work("audio", f"{cid}.v{hashlib.sha1(chain.encode()).hexdigest()[:8]}.wav")
     if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(src):
-        run([FFMPEG, "-y", "-v", "error", "-i", src, "-af", af, "-ar", str(SR), "-ac", "1", out])
+        run([FFMPEG, "-y", "-v", "error", "-i", src, "-af", chain, "-ar", str(SR), "-ac", "1", out])
     return out
 
 
-def mix(ep, plan, total, out_wav):
+def _write_mono(path, x):
+    with wave.open(path, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SR)
+        wf.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
+
+
+def mix(ep, plan, total, out_wav, stems=None):
+    """Every line placed on the timeline through its character's voice layer, then ONE fixed gain to -14 LUFS (a
+    limiter only catching the rare peak - the level never rides). stems: a folder to also write one track per
+    character there (before his volume, after the shared gain) + the sound effects - the editor plays them as layers."""
+    import os
     cache, gains = {}, {}
-    buf = np.zeros(int((total + 1) * SR), dtype=np.float32)
+    n = int((total + 1) * SR)
+    buf = np.zeros(n, dtype=np.float32)
+    per = {}
+    sfx = np.zeros(n, dtype=np.float32)
     for seg in plan:
         if seg.get("sfx"):
             fx = removal_sound()
             at = int(seg["at"] * SR)
-            buf[at:at + len(fx)] += fx[: max(0, len(buf) - at)]
+            sfx[at:at + len(fx)] += fx[: max(0, n - at)]
             continue
         cid = seg["clip"]
+        char = cid.split("_")[0]
         if cid not in cache:
             cache[cid], _ = read_wav(_cleaned(ep, cid))
             gains[cid] = speech_gain(cache[cid])
@@ -115,29 +151,27 @@ def mix(ep, plan, total, out_wav):
         piece[:fi] *= np.linspace(0, 1, fi)
         piece[-fo:] *= np.linspace(1, 0, fo) ** 1.5
         at = int(seg["at"] * SR)
-        buf[at:at + len(piece)] += piece[: max(0, len(buf) - at)]
-    buf = buf[: int(total * SR)]
+        st = per.setdefault(char, np.zeros(n, dtype=np.float32))
+        st[at:at + len(piece)] += piece[: max(0, n - at)]
+    vols = {c: float(voice_of(ep, c).get("volume", 1.0)) for c in per}
+    for c, st in per.items():
+        buf += st * vols[c]
+    buf += sfx
+    m = int(total * SR)
     raw = out_wav.replace(".wav", ".raw.wav")
-    with wave.open(raw, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(SR)
-        wf.writeframes((np.clip(buf, -1, 1) * 32767).astype(np.int16).tobytes())
-    # peaks limited first: loudnorm only stays linear (one gain for the whole video) when that gain keeps the true
-    # peak under -1.5 dBTP; a few loud bursts (an aside, a shout) made it fall back to riding the level - Amir pumped
-    # down under Ronit's aside and back up after it
-    lim = raw.replace(".raw.wav", ".lim.wav")
-    run([FFMPEG, "-y", "-v", "error", "-i", raw, "-af", "alimiter=limit=0.45:attack=4:release=60:level=false", lim])
-    raw = lim
-    # two-pass loudnorm
+    _write_mono(raw, buf[:m])
     r = run_capture([FFMPEG, "-hide_banner", "-i", raw, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"])
-    m = json.loads(re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", r, re.S).group(0))
-    # one fixed gain to -14 LUFS (measured above), a limiter catching only the rare peak: the level never rides
-    # (loudnorm's "linear" mode silently fell back to dynamic and pumped the voices)
-    gain = -14.0 - float(m["input_i"])
-    af = f"volume={gain:.2f}dB,alimiter=limit=0.84:attack=3:release=50:level=false"
+    meas = json.loads(re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", r, re.S).group(0))
+    gain_db = -14.0 - float(meas["input_i"])
+    af = f"volume={gain_db:.2f}dB,alimiter=limit=0.84:attack=3:release=50:level=false"
     run([FFMPEG, "-y", "-v", "error", "-i", raw, "-af", af, "-ar", str(SR), "-ac", "2", out_wav])
-    log(f"  · dialogue mixed ({total:.1f}s), loudness {m['input_i']} → -14 LUFS")
+    if stems:
+        g = 10 ** (gain_db / 20)
+        os.makedirs(stems, exist_ok=True)
+        for c, st in per.items():
+            _write_mono(os.path.join(stems, c + ".wav"), st[:m] * g)
+        _write_mono(os.path.join(stems, "_sfx.wav"), sfx[:m] * g)
+    log(f"  · dialogue mixed ({total:.1f}s), loudness {meas['input_i']} → -14 LUFS")
     return out_wav
 
 

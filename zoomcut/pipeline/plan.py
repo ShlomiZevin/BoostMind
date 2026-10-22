@@ -248,16 +248,18 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
     names = {c["id"]: c["name"] for c in ep.characters}
     captions = []
     for b in beats:
-        if not b["show_text"] or not b["text"]:
+        # the subtitles are a layer: a line's own subtitle text (edited in the editor, corrections "caption") wins
+        txt = (fix.get(str(b.get("n")), {}).get("caption") or b["text"]) if b.get("n") is not None else b["text"]
+        if not b["show_text"] or not txt:
             continue
         a, z = b["start"], (b["cut_t"] if b["interrupted"] else b["end_t"])
         if b.get("aside"):
-            captions.append({"from": f(a), "dur": max(1, f(z) - f(a)), "name": names[b["speaker"]], "text": b["text"], "side": True,
-                             "id": b["speaker"]})
+            captions.append({"from": f(a), "dur": max(1, f(z) - f(a)), "name": names[b["speaker"]], "text": txt, "side": True,
+                             "id": b["speaker"], "n": b.get("n")})
             continue
-        for chunk_text, c0, c1 in _chunks(b["text"], a, z, ep.preset.get("captions", {}).get("max_words", 7)):
+        for chunk_text, c0, c1 in _chunks(txt, a, z, ep.preset.get("captions", {}).get("max_words", 7)):
             captions.append({"from": f(c0), "dur": max(1, f(c1) - f(c0)), "name": names[b["speaker"]], "text": chunk_text,
-                             "id": b["speaker"]})
+                             "id": b["speaker"], "n": b.get("n")})
     # overlapping lines: the subtitle switches with the speaker, the previous one never stays on top
     captions.sort(key=lambda c: c["from"])
     main = [c for c in captions if not c.get("side")]

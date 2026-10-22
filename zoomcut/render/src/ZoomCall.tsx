@@ -3,7 +3,9 @@ import { AbsoluteFill, Audio, continueRender, delayRender, Img, interpolate, Off
 
 type Rect = { x: number; y: number; w: number; h: number; small?: boolean };
 type Seg = { from: number; dur: number; clip: string; at: number; fade?: number };
-type Clip = { src: string; preview?: string; w: number; h: number; char?: string; framing: { cx: number; top?: number; hw?: number; cy?: number; fh?: number; found: boolean } };
+type Clip = { src: string; preview?: string; fg?: string; w: number; h: number; char?: string; framing: { cx: number; top?: number; hw?: number; cy?: number; fh?: number; found: boolean } };
+// a character's background as a layer: the photo (its size), pan x / y (-0.5..0.5) and zoom - placed by bgBox
+type Bg = { image: string; w: number; h: number; x?: number; y?: number; zoom?: number };
 type Look = { saturate?: number; contrast?: number; brightness?: number };
 type Frame = { zoom?: number; y?: number; x?: number };
 export type EditProps = {
@@ -11,7 +13,8 @@ export type EditProps = {
   title: string; timerStart: number; subtitles: boolean; accent?: string; ui?: Record<string, string>;
   mediaBase?: string; audioSrc?: string;
   uiOnly?: boolean;  // fast export: draw only the interface, transparent where the videos go (ffmpeg fills them in)  // review screen only: where clips live, preview dialogue
-  participants: { id: string; name: string; role: string; look?: Look | null; frame?: Frame | null }[];
+  participants: { id: string; name: string; role: string; look?: Look | null; frame?: Frame | null; bg?: Bg | null; voice?: { volume?: number } | null }[];
+  voices?: { id: string; src: string }[];  // one track per character (+ _sfx) - the editor plays them as layers
   clips: Record<string, Clip>;
   tiles: Record<string, Seg[]>;
   shots: { from: number; dur: number; layout: string; order: string[] }[];
@@ -82,6 +85,13 @@ function videoBox(c: Clip, t: Rect, fr?: Frame | null) {
   return { left, top, width: vw, height: vh };
 }
 
+// where the photo sits inside the person's video box: cover, then pan and zoom (= pipeline/background.py bg_box)
+export function bgBox(bg: Bg, vw: number, vh: number) {
+  const s = Math.max(vw / bg.w, vh / bg.h) * Math.max(1, bg.zoom ?? 1);
+  const sw = bg.w * s, sh = bg.h * s;
+  return { left: (vw - sw) * (0.5 + (bg.x ?? 0)), top: (vh - sh) * (0.5 + (bg.y ?? 0)), width: sw, height: sh };
+}
+
 const lookFilter = (l?: Look | null) =>
   l ? `saturate(${l.saturate ?? 1}) contrast(${l.contrast ?? 1}) brightness(${l.brightness ?? 1})` : undefined;
 
@@ -110,12 +120,23 @@ const Tile: React.FC<{ p: EditProps; id: string; name: string; rect: Rect; activ
         const c = p.clips[s.clip];
         if (!c) return null;
         const b = videoBox(c, rect, part?.frame);
+        const bg = part?.bg && c.fg ? part.bg : null;
+        const url = (rel: string) => (p.mediaBase ? p.mediaBase + rel : staticFile(rel));
         return (
           <Sequence key={i} from={s.from} durationInFrames={s.dur} premountFor={45}>
             <FadeIn frames={s.fade}>
-              <OffthreadVideo src={p.mediaBase ? p.mediaBase + (c.preview || c.src) : staticFile(c.src)} startFrom={Math.round(s.at * p.fps)} muted
-                style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none',
-                  filter: lookFilter(part?.look) }} />
+              {bg ? (
+                <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(part?.look) }}>
+                  {(() => { const g = bgBox(bg, b.width, b.height);
+                    return <Img src={url(bg.image)} style={{ position: 'absolute', left: g.left, top: g.top, width: g.width, height: g.height, maxWidth: 'none' }} />; })()}
+                  <OffthreadVideo src={url(c.fg!)} transparent startFrom={Math.round(s.at * p.fps)} muted
+                    style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none' }} />
+                </div>
+              ) : (
+                <OffthreadVideo src={p.mediaBase ? p.mediaBase + (c.preview || c.src) : staticFile(c.src)} startFrom={Math.round(s.at * p.fps)} muted
+                  style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none',
+                    filter: lookFilter(part?.look) }} />
+              )}
             </FadeIn>
           </Sequence>
         );
@@ -211,7 +232,11 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
 
   return (
     <AbsoluteFill style={{ background: p.uiOnly ? 'transparent' : '#0b0b0b', fontFamily: FONT, direction: 'rtl' }}>
-      {p.audioSrc && <Audio src={p.audioSrc} />}
+      {/* voices are layers: one track per character at his volume (live); else the single mixed dialogue */}
+      {p.voices && p.mediaBase
+        ? p.voices.map((v) => <Audio key={v.id} src={p.mediaBase + v.src}
+            volume={Math.min(1, Math.max(0, p.participants.find((x) => x.id === v.id)?.voice?.volume ?? 1))} />)
+        : p.audioSrc && <Audio src={p.audioSrc} />}
       {/* top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: TOP - 14, display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', padding: '24px 30px 0', color: '#fff' }}>

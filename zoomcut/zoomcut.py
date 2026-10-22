@@ -136,7 +136,23 @@ def cmd_build(ep, args):
     props, mixplan, beats, missing, total = build_plan(ep, items, matches, attempts, pools,
                                                        {c["id"]: c for c in clips}, corrections,
                                                        quiet=quiet_spans(clips, words))
-    if ep.cfg.get("background_replace", True):
+    layered = ep.cfg.get("background_replace", True) and ep.cfg.get("background_layer", True)
+    if layered:
+        # the background is a layer: cut each shown take out once (cached), a person-on-transparency copy for the
+        # editor; each character's office photo goes on its participant with the pan / zoom he set
+        engine = ep.cfg.get("background_engine", "fast")
+        used = {s["clip"] for t in props["tiles"].values() for s in t}
+        for c in clips:
+            if c["id"] not in used or not background.find_background(ep, c["char"]) and not \
+                    (next((x for x in ep.characters if x["id"] == c["char"]), {}).get("bg") or {}).get("image"):
+                continue
+            matte = background.matte_for(ep, c, engine)
+            props["clips"][c["id"]]["matte"] = matte
+            props["clips"][c["id"]]["fg"] = background.fg_preview(ep, c, matte)
+        for pp in props["participants"]:
+            ch = next((x for x in ep.characters if x["id"] == pp["id"]), {})
+            pp["bg"] = background.bg_layer(ep, pp["id"], ch.get("bg"))
+    elif ep.cfg.get("background_replace", True):
         for c in clips:
             bg = background.find_background(ep, c["char"])
             segs = [s for t in props["tiles"].values() for s in t if s["clip"] == c["id"]]
@@ -157,13 +173,18 @@ def cmd_build(ep, args):
                                                        if o.get("text", "").strip() or (o.get("style") == "image" and o.get("image"))]):
         if o.get("image"):  # image layers: the episode's file (path relative to the episode) goes where the renderer reads
             shutil.copy(ep.p(src["image"]), os.path.join(ep.public, o["image"]))
+    # voices are layers: each character's voice settings on the participant, one track per character for the editor
+    for pp in props["participants"]:
+        pp["voice"] = audio.voice_of(ep, pp["id"])
+    spoken = sorted({s["clip"].split("_")[0] for s in mixplan if s.get("clip")})
+    props["voices"] = [{"id": c, "src": f"voices/{c}.wav"} for c in spoken] + [{"id": "_sfx", "src": "voices/_sfx.wav"}]
     save_json(ep.work("edit.json"), props)
     save_json(ep.work("mix.json"), mixplan)
     write_report(ep, lines, matches, byid, missing, attempts, items, total, props)
     write_state(ep, lines, matches, byid, beats, corrections, total)
 
     if args.preview:
-        audio.mix(ep, mixplan, total, ep.work("public", "dialogue.wav"))
+        audio.mix(ep, mixplan, total, ep.work("public", "dialogue.wav"), stems=ep.work("public", "voices"))
         log(f"✔ preview ready ({total:.1f}s)")
         return
     if args.no_render:
@@ -398,9 +419,25 @@ def cmd_new(path):
     log(f"✔ new episode at {path} — put footage in input/, the script in script.txt")
 
 
+def cmd_voices(ep):
+    """A voice layer changed (cleaning / clarity / volume): mix the dialogue and the per-character tracks again from
+    the saved plan - seconds, nothing else is touched."""
+    props, mixplan = load_json(ep.work("edit.json"), {}), load_json(ep.work("mix.json"), [])
+    if not props or not mixplan:
+        sys.exit("✖ build the project first")
+    for pp in props.get("participants", []):
+        pp["voice"] = audio.voice_of(ep, pp["id"])
+    spoken = sorted({s["clip"].split("_")[0] for s in mixplan if s.get("clip")})
+    props["voices"] = [{"id": c, "src": f"voices/{c}.wav"} for c in spoken] + [{"id": "_sfx", "src": "voices/_sfx.wav"}]
+    save_json(ep.work("edit.json"), props)
+    audio.mix(ep, mixplan, props["durationInFrames"] / props["fps"], ep.work("public", "dialogue.wav"),
+              stems=ep.work("public", "voices"))
+    log("✔ voices mixed")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["build", "new", "audit"])
+    ap.add_argument("cmd", choices=["build", "new", "audit", "voices"])
     ap.add_argument("episode")
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--preview", action="store_true", help="plan + preview audio for the review screen")
@@ -411,5 +448,7 @@ if __name__ == "__main__":
         cmd_new(a.episode)
     elif a.cmd == "audit":
         cmd_audit(Episode(a.episode))
+    elif a.cmd == "voices":
+        cmd_voices(Episode(a.episode))
     else:
         cmd_build(Episode(a.episode), a)
