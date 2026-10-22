@@ -86,10 +86,17 @@ function videoBox(c: Clip, t: Rect, fr?: Frame | null) {
 }
 
 // where the photo sits inside the person's video box: cover, then pan and zoom (= pipeline/background.py bg_box)
-export function bgBox(bg: Bg, vw: number, vh: number) {
-  const s = Math.max(vw / bg.w, vh / bg.h) * Math.max(1, bg.zoom ?? 1);
+// zoom < 1 = a smaller room, but never below covering `view` (the part of the box the tile shows): no empty edge
+export function bgBox(bg: Bg, vw: number, vh: number, view?: { x0: number; y0: number; w: number; h: number }) {
+  let s = Math.max(vw / bg.w, vh / bg.h) * Math.max(0.3, bg.zoom ?? 1);
+  if (view) s = Math.max(s, view.w / bg.w, view.h / bg.h);
   const sw = bg.w * s, sh = bg.h * s;
-  return { left: (vw - sw) * (0.5 + (bg.x ?? 0)), top: (vh - sh) * (0.5 + (bg.y ?? 0)), width: sw, height: sh };
+  let left = (vw - sw) * (0.5 + (bg.x ?? 0)), top = (vh - sh) * (0.5 + (bg.y ?? 0));
+  if (view) {
+    left = Math.min(view.x0, Math.max(view.x0 + view.w - sw, left));
+    top = Math.min(view.y0, Math.max(view.y0 + view.h - sh, top));
+  }
+  return { left, top, width: sw, height: sh };
 }
 
 const lookFilter = (l?: Look | null) =>
@@ -127,7 +134,7 @@ const Tile: React.FC<{ p: EditProps; id: string; name: string; rect: Rect; activ
             <FadeIn frames={s.fade}>
               {bg ? (
                 <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(part?.look) }}>
-                  {(() => { const g = bgBox(bg, b.width, b.height);
+                  {(() => { const g = bgBox(bg, b.width, b.height, { x0: -b.left, y0: -b.top, w: rect.w, h: rect.h });
                     return <Img src={url(bg.image)} style={{ position: 'absolute', left: g.left, top: g.top, width: g.width, height: g.height, maxWidth: 'none' }} />; })()}
                   <OffthreadVideo src={url(c.fg!)} transparent startFrom={Math.round(s.at * p.fps)} muted
                     style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none' }} />

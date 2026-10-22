@@ -182,7 +182,7 @@ def render_chunk(ep, k, ch, ui_dir, pad, scale=1.0):
             # the background layer: the office photo placed in the person's box (bg_box = the editor's bgBox), the take
             # masked by its cut-out on top, the character's look over both - then cropped to the tile like before
             from .background import bg_box
-            gx, gy, gw, gh = bg_box(bg, vw, vh)
+            gx, gy, gw, gh = bg_box(bg, vw, vh, (cx, cy, w, h))
             gw, gh = int(round(gw / 2) * 2), int(round(gh / 2) * 2)
             # every branch of the tile (take, mask, photo) is cut to the piece's exact frame count: branches that ran on
             # after a short piece ended left ffmpeg's scheduler waiting forever (gilad-joins export hung, 2026-10-22)

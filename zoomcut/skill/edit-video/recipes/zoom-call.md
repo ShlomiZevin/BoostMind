@@ -84,6 +84,18 @@ Check his own edits in `corrections.json` before applying yours ("I was only che
 episode.json (characters, title, input_dir, overlays, per-character `look` / `frame` - set after seeing the footage);
 `backgrounds/<char>.jpg` 16:9 office photos (Leonardo, `reference.md`). Export = fast compositor (`pipeline/compose.py`).
 
+**Voices and backgrounds - what he signed off on** (gilad-joins, 2026-10-22):
+- **Every voice at the same level.** The mixer measures each take on the pieces the video uses (a mostly silent
+  listening take measured whole came out 6-10 dB too loud - Daniel +10, Ofer +7, Ronit +6). Check the speech level per
+  character from `work/public/voices/<char>.wav` before handover; they should sit within ~1 dB.
+- **Phone / filter-app voice (Daniel): `"voice": {"clean": "nn"}`** - RNNoise, the neural noise filter he knows from
+  the news voice. He called the result "amazing"; my own ffmpeg chains ("strong") sounded "terrible". Start with NN.
+  Send him a short BEFORE / AFTER mp3 of the character's lines (SendUserFile) before applying - he decides by ear.
+- **Background proportion:** the photo is fitted to the person's whole video frame, which is taller than the tile
+  shows, so on the big tile the room looks blown up. Zoom the background layer below 100% (Gilad: `gilad-wide.jpg`,
+  zoom 0.6, pan x 0.35 - the ship and the whisky at a natural size; it never shrinks past covering the tile). Show him
+  A / B / C stills of the tile before choosing.
+
 **The end poster** (gilad-joins, 2026-10-22 - his final call after two tries: a small card over the call was wrong):
 a 1080x1920 picture on **black** - the logo, the hook ("מחפשים עובדים!"), a strip of the real site, the URL big and clear
 (techytech.web.app). Made in HTML and captured with a **full-page** headless screenshot (a clip / element capture at

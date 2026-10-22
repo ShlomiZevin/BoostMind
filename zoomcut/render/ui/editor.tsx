@@ -941,11 +941,12 @@ function VoiceLayer({ who, onVoice, busy }: { who: any; onVoice: (id: string, pa
       <div className="sec" style={{ marginBottom: 8 }}>Voice · layer {busy && <span className="help" style={{ margin: 0 }}>· mixing…</span>}</div>
       <Slider label="Volume" v={v.volume ?? 1} min={0} max={1} step={0.02} fmt={(x) => `${Math.round(x * 100)}%`} onChange={(x) => onVoice(who.id, { volume: x })} />
       <div className="row2" style={{ margin: '6px 0' }}><label>Cleaning</label>
-        <div className="seg" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-          {(['off', 'mild', 'strong'] as const).map((k) => <button key={k} className={clean === k ? 'on' : ''} onClick={() => onVoice(who.id, { clean: k })}>{k}</button>)}
+        <div className="seg" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          {(['off', 'mild', 'strong', 'nn'] as const).map((k) => <button key={k} className={clean === k ? 'on' : ''} title={k === 'nn' ? 'RNNoise - the neural noise filter (as on the news voice)' : undefined}
+            onClick={() => onVoice(who.id, { clean: k })}>{k === 'nn' ? 'NN' : k}</button>)}
         </div></div>
       <Slider label="Clarity" v={v.presence ?? 0} min={-6} max={8} step={0.5} fmt={(x) => `${x > 0 ? '+' : ''}${x} dB`} onChange={(x) => onVoice(who.id, { presence: x })} />
-      <div className="help">Mild: hiss and rumble out, level evened. Strong: also mud out, clarity up, the room's ringing gated - for a muffled phone / filter-app voice.</div>
+      <div className="help">Mild: hiss and rumble out, level evened. Strong: also mud out, clarity up, the room's ringing gated. NN: RNNoise, the neural noise filter (as on the news voice) - can swallow a very soft sound.</div>
     </div>
   );
 }
@@ -980,7 +981,7 @@ function BgLayer({ ep, who, onChar }: { ep: string; who: any; onChar: (id: strin
       {bg && <>
         <Slider label="Pan left / right" v={bg.x ?? 0} min={-0.5} max={0.5} step={0.01} fmt={sgn} onChange={(v) => onChar(who.id, { bg: { x: v } })} />
         <Slider label="Pan up / down" v={bg.y ?? 0} min={-0.5} max={0.5} step={0.01} fmt={sgn} onChange={(v) => onChar(who.id, { bg: { y: v } })} />
-        <Slider label="Zoom" v={bg.zoom ?? 1} min={1} max={2.5} step={0.02} fmt={pct} onChange={(v) => onChar(who.id, { bg: { zoom: v } })} />
+        <Slider label="Zoom" v={bg.zoom ?? 1} min={0.4} max={2.5} step={0.02} fmt={pct} onChange={(v) => onChar(who.id, { bg: { zoom: v } })} />
       </>}
     </div>
   );

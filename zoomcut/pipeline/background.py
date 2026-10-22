@@ -178,12 +178,21 @@ def bg_layer(ep, char, setting):
             "x": float(s.get("x", 0)), "y": float(s.get("y", 0)), "zoom": float(s.get("zoom", 1))}
 
 
-def bg_box(bg, vw, vh):
+def bg_box(bg, vw, vh, view=None):
     """Where the photo sits inside the person's video box (vw x vh): cover, then pan (x, y in -0.5..0.5) and zoom.
+    zoom < 1 makes the room smaller (the box is taller than the tile shows, so cover alone blows the photo up), but
+    never below covering `view` = the part of the box the tile shows (x0, y0, w, h): no empty edge, ever.
     Mirrored in render/src/ZoomCall.tsx (bgBox)."""
-    s = max(vw / bg["w"], vh / bg["h"]) * max(1.0, bg.get("zoom", 1))
+    s = max(vw / bg["w"], vh / bg["h"]) * max(0.3, bg.get("zoom", 1))
+    if view:
+        s = max(s, view[2] / bg["w"], view[3] / bg["h"])
     sw, sh = bg["w"] * s, bg["h"] * s
-    return (vw - sw) * (0.5 + bg.get("x", 0)), (vh - sh) * (0.5 + bg.get("y", 0)), sw, sh
+    left, top = (vw - sw) * (0.5 + bg.get("x", 0)), (vh - sh) * (0.5 + bg.get("y", 0))
+    if view:
+        x0, y0, w, h = view
+        left = min(x0, max(x0 + w - sw, left))
+        top = min(y0, max(y0 + h - sh, top))
+    return left, top, sw, sh
 
 
 def replace(ep, clip, bg_path, ranges=None, reuse=False, engine="fast"):

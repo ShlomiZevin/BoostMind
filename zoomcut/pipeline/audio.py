@@ -75,6 +75,12 @@ CLEAN_STRONG_AF = ("highpass=f=90,equalizer=f=300:t=q:w=1:g=-3,equalizer=f=2800:
                    "agate=threshold=0.01:ratio=3:range=0.1:attack=2:release=50")
 
 
+# "clean": "nn" - RNNoise, the neural noise filter (models/rnnoise/cb.rnnn) he already knows from the news anchor voice;
+# it wants 48 kHz. A gentle compressor after it evens the level. (It can swallow a soft "אה" - his call per character.)
+CLEAN_NN_AF = ("aresample=48000,highpass=f=80,arnndn=m=models/rnnoise/cb.rnnn,"
+               "acompressor=threshold=0.12:ratio=2.5:attack=8:release=150:makeup=1")
+
+
 def voice_of(ep, char_id):
     """A character's voice layer: {"volume": 1, "clean": "off" | "mild" | "strong", "presence": dB at 2.8 kHz}.
     (An older "clean": true / "strong" on the character still counts.)"""
@@ -88,7 +94,7 @@ def voice_of(ep, char_id):
 
 
 def _voice_chain(v):
-    chain = {"mild": CLEAN_AF, "strong": CLEAN_STRONG_AF}.get(v.get("clean"), "")
+    chain = {"mild": CLEAN_AF, "strong": CLEAN_STRONG_AF, "nn": CLEAN_NN_AF}.get(v.get("clean"), "")
     pr = float(v.get("presence") or 0)
     if abs(pr) >= 0.5:  # clarity: up for a muffled voice, down for a harsh one
         chain = (chain + "," if chain else "") + f"equalizer=f=2800:t=q:w=1.2:g={pr:.1f}"
@@ -127,6 +133,12 @@ def mix(ep, plan, total, out_wav, stems=None):
     buf = np.zeros(n, dtype=np.float32)
     per = {}
     sfx = np.zeros(n, dtype=np.float32)
+    # each take's level is measured on the pieces the video USES, not the whole take: a mostly silent listening take
+    # (Daniel, Ofer, Ronit in gilad-joins) measured whole came out 6-10 dB too loud
+    used = {}
+    for seg in plan:
+        if not seg.get("sfx"):
+            used.setdefault(seg["clip"], []).append((seg["in"], seg["out"]))
     for seg in plan:
         if seg.get("sfx"):
             fx = removal_sound()
@@ -137,7 +149,8 @@ def mix(ep, plan, total, out_wav, stems=None):
         char = cid.split("_")[0]
         if cid not in cache:
             cache[cid], _ = read_wav(_cleaned(ep, cid))
-            gains[cid] = speech_gain(cache[cid])
+            pieces = [cache[cid][int(a * SR):int(z * SR)] for a, z in used.get(cid, [])]
+            gains[cid] = speech_gain(np.concatenate(pieces) if pieces and sum(map(len, pieces)) > SR // 2 else cache[cid])
         x = cache[cid]
         a, z = int(seg["in"] * SR), int(seg["out"] * SR)
         piece = x[a:z].copy() * gains[cid]
