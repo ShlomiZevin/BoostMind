@@ -42,6 +42,8 @@ select option { background: var(--panel); color: var(--text); }
 .rolewrap { display: inline-flex; align-items: center; gap: 4px; }
 .rp { width: 56px; height: 40px; padding: 0 4px; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 10px; font: 600 13px Inter, sans-serif; font-variant-numeric: tabular-nums; }
 .rp::placeholder { color: var(--faint); }
+.rm { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--edge-2); background: var(--panel-2); color: var(--text); font-size: 17px; cursor: pointer; }
+.rm:hover { border-color: var(--accent); }
 /* measuring a pace: a small popup under the Measure button */
 .meas { position: fixed; z-index: 60; display: none; flex-direction: column; gap: 10px; width: 320px; padding: 14px;
   background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,.45); direction: ltr; }
@@ -128,7 +130,6 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <button class="btn ck" id="tomark" title="Back to the checkpoint and play (B)" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-4-4 4-4"/><path d="M5 10h9a5 5 0 0 1 0 10h-2"/></svg></button>
   <label class="pace" title="Reading pace in words per minute">Pace <input type="range" id="pace" min="120" max="500" step="5"><input type="number" id="paceN" min="60" max="600" step="5" title="Type the pace (words per minute) - Enter to apply"><span class="unit">wpm</span></label>
   <button class="btn lock" id="lock" title="Keep this pace for this script">🔓 Lock</button>
-  <button class="btn" id="measure" title="Measure a pace: pick a long line, press when you start saying it and when you finish - its speaker's pace is set from it">⏱ Measure</button>
   <button class="btn" id="cues" title="My lines + cues: only your lines, each with the line before it">Cues</button>
   <button class="btn" id="smaller" title="Smaller text">A−</button>
   <button class="btn" id="bigger" title="Bigger text">A+</button>
@@ -220,7 +221,8 @@ const hash = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 
 
 function render() {
   const roles = $('roles');
-  roles.innerHTML = chars.length ? '<span class="lbl">אני משחק את:</span>' : solo ? `<span class="lbl">פרומפטר · ${lines.length} שורות</span>` : '';
+  roles.innerHTML = chars.length ? '<span class="lbl">אני משחק את:</span>' : solo ? `<span class="lbl">פרומפטר · ${lines.length} שורות</span><button class="rm" data-m="" title="Measure the pace on a line">⏱</button>` : '';
+  roles.querySelector('.rm[data-m=""]')?.addEventListener('click', () => measureFor(null));
   document.body.classList.toggle('solo', solo);
   chars.forEach((c, i) => {
     const b = document.createElement('button');
@@ -242,7 +244,10 @@ function render() {
       save(); foot(); if (playing) schedule();
     };
     pi.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); pi.blur(); } };
-    wrap.append(b, pi);
+    const mb = document.createElement('button');  // measure his pace on a line of his (a fair length)
+    mb.className = 'rm'; mb.dataset.m = c; mb.textContent = '⏱'; mb.title = `Measure ${c}'s pace on a line of his`;
+    mb.onclick = () => measureFor(c);
+    wrap.append(b, pi, mb);
     roles.appendChild(wrap);
   });
   const box = $('script');
@@ -314,28 +319,33 @@ let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
 // finish - Save sets his pace (the player's own formula, lineSeconds, backwards). A script without characters: the pace.
 let meas = null;  // {i, who, t0, raf, pace, secs}
 const wordsOf = (l) => l.text.split(/\s+/).filter(Boolean).length;
-function measureOpen() {
+function fairLine(who) {
+  const words = (l) => wordsOf(l);
+  const his = lines.map((l, i) => ({ l, i })).filter(({ l }) => !l.dir && (who ? l.who === who : true) && words(l) > 0);
+  if (!his.length) return -1;
+  const score = ({ l, i }) => Math.abs(words(l) - 18) + (words(l) < 12 || words(l) > 28 ? 50 : 0) + (i < cur ? 0.5 : 0);
+  return his.reduce((best, x) => (score(x) < score(best) ? x : best)).i;
+}
+function measureFor(who) {
   if (playing) setPlay(false);
   cancelCd();
-  let i = cur;
-  if (me && lines[i]?.who !== me) {  // the picked character's line: the next one from here (else his first)
-    const n = lines.findIndex((l, k) => k >= cur && l.who === me);
-    i = n >= 0 ? n : lines.findIndex((l) => l.who === me);
-    if (i >= 0) go(i);
-  }
-  const l = lines[i];
-  if (!l || l.dir) return;
+  const i = fairLine(who);
+  if (i < 0) return;
+  go(i);  // (the line is marked and in view)
   if (meas?.raf) cancelAnimationFrame(meas.raf);
-  meas = { i, who: l.who || null, t0: 0, pace: null };
-  $('measWho').textContent = `⏱ ${meas.who || 'Pace'}`;
+  const l = lines[i];
+  meas = { i, who: who || null, t0: 0, pace: null };
+  $('measWho').textContent = `⏱ ${who || 'Pace'}`;
   $('measT').textContent = `Read the marked line (${wordsOf(l)} words) - Start when you start, Stop when you finish.`;
   $('measGo').textContent = 'Start';
   $('measAgain').hidden = true;
   $('meas').classList.add('on'); $('meas').classList.remove('run');
   placeMeas();
 }
-function placeMeas() {  // right under the Measure button, inside the window
-  const r = $('measure').getBoundingClientRect(), m = $('meas');
+function placeMeas() {  // right under the character's ⏱, inside the window
+  const btn = [...document.querySelectorAll('.rm')].find((x) => x.dataset.m === (meas?.who || ''));
+  if (!btn) return;
+  const r = btn.getBoundingClientRect(), m = $('meas');
   m.style.top = `${Math.round(r.bottom + 8)}px`;
   m.style.left = `${Math.round(Math.max(8, Math.min(innerWidth - 328, r.left + r.width / 2 - 160)))}px`;
 }
@@ -367,9 +377,8 @@ function measureStep() {  // Start -> Stop -> Save
   $('measGo').textContent = 'Save';
   $('measAgain').hidden = false;
 }
-$('measure').onclick = measureOpen;
 $('measGo').onclick = measureStep;
-$('measAgain').onclick = measureOpen;
+$('measAgain').onclick = () => measureFor(meas?.who);
 $('measX').onclick = measureClose;
 document.addEventListener('keydown', (e) => {  // (first: while measuring, Space is the stopwatch - not Play; Enter saves)
   if (!meas) return;
