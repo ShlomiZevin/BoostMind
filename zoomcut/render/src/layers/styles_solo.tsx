@@ -6,6 +6,7 @@
 // every other field is copied as it is (except `opacity` = the box's see-through -> `box_opacity`, since an item's
 // `opacity` fades the whole item).
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Img } from 'remotion';
 import { thoughtWords, wordState, lineDrift, wordDust, dustState, THOUGHT_STYLE } from '../../ui/thought_anim.js';
 import { drawMarket, MARKET_H } from '../../ui/market_anim.js';
 import { stickerPop, rainBills } from '../../ui/sticker_anim.js';
@@ -95,7 +96,7 @@ const Sticker: React.FC<P> = ({ it, text, t, url }) => {
   const o = { ...it, start: 0, end: secsOf(it) };
   const src = it.image && url ? url(it.image) : '';
   const face = (w: number) => src
-    ? <img src={src} draggable={false} style={{ display: 'block', width: w, maxWidth: 'none' }} />
+    ? <Img src={src} draggable={false} style={{ display: 'block', width: w, maxWidth: 'none' }} />  // (Remotion's: the export's frame waits for it)
     : <div style={{ width: w, textAlign: 'center', fontSize: it.size || Math.round(w * 0.6), lineHeight: 1, fontFamily: `${UI}, "Segoe UI Emoji"`, fontWeight: 800,
         color: it.color || '#fff', direction: 'rtl', whiteSpace: 'pre-line' }}>{text}</div>;
   if (it.motion === 'rain') {
