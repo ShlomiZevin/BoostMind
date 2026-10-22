@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apply, inverse } from '../../src/layers/ops.js';
 
 export type View = { project: any; urls: Record<string, string>; stems: any[]; output: string | null; outputStale: boolean; job: any };
-export type Send = (ops: any[], opts?: { commit?: boolean; label?: string }) => void;
+export type Send = (ops: any[], opts?: { commit?: boolean; label?: string; channel?: string }) => void;
 
 const post = async (url: string, body: any) => {
   const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -13,7 +13,9 @@ const post = async (url: string, body: any) => {
 
 export function useLayered(ep: string) {
   const [view, setView] = useState<View | null>(null);
-  const [draft, setDraft] = useState<any[] | null>(null);
+  // live drafts by channel: 'drag' (a slider / block being dragged - replaced as it moves) and 'sync' (edits shown
+  // live while a builder catches up in the background - they stack). Both show; only a commit clears 'drag'.
+  const [drafts, setDrafts] = useState<Record<string, any[]>>({});
   const [undo, setUndo] = useState<{ ops: any[]; inv: any[]; label?: string }[]>([]);
   const [redo, setRedo] = useState<{ ops: any[]; inv: any[]; label?: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function useLayered(ep: string) {
     setView(v);
     return v;
   }, [ep]);
-  useEffect(() => { setView(null); setUndo([]); setRedo([]); setDraft(null); load(); }, [ep]);
+  useEffect(() => { setView(null); setUndo([]); setRedo([]); setDrafts({}); load(); }, [ep]);
 
   // saves go one after the other (each carries the rev it was made on)
   const save = (ops: any[]) => {
@@ -41,19 +43,29 @@ export function useLayered(ep: string) {
       rev.current = r.json.rev;
       setError(r.json.soundError ? `sound: ${r.json.soundError}` : null);
       setView((v) => (v ? { ...v, project: { ...v.project, rev: r.json.rev } } : v));
-      if (r.json.stems) { const v = await (await fetch(`/api/p/${ep}`)).json(); setView((o) => (o ? { ...o, urls: v.urls, stems: v.stems, gainDb: v.gainDb } as any : v)); }
+      // a new sound's prepared source is made behind (soundBusy): it plays as it is meanwhile, the prepared one
+      // comes in when ready - never a wait
+      const fresh = async () => {
+        const v = await (await fetch(`/api/p/${ep}`)).json();
+        setView((o) => (o ? { ...o, urls: v.urls, stems: v.stems, gainDb: v.gainDb, levels: v.levels } as any : v));
+        return v;
+      };
+      (async () => {  // (detached: the next saves never wait on it)
+        let v = await fresh();
+        for (let i = 0; v?.soundBusy && i < 120; i++) { await new Promise((res) => setTimeout(res, 1500)); v = await fresh(); }
+      })();
     });
   };
 
   const send: Send = (ops, opts = {}) => {
     if (!view) return;
-    if (opts.commit === false) { setDraft(ops.length ? ops : null); return; }  // (no ops: the draft goes)
+    if (opts.commit === false) { const ch = opts.channel || 'drag'; setDrafts((d) => ({ ...d, [ch]: ops })); return; }  // (no ops: that draft goes)
     if (!ops.length) return;
     let inv: any[];
     try { inv = inverse(view.project, ops); } catch (e: any) { setError(e.message); return; }
     const next = apply(view.project, ops);
     setView({ ...view, project: next });
-    setDraft(null);
+    setDrafts((d) => ({ ...d, drag: [] }));
     setUndo((u) => [...u.slice(-199), { ops, inv, label: opts.label }]);
     setRedo([]);
     save(ops);
@@ -71,9 +83,10 @@ export function useLayered(ep: string) {
   // what the preview shows: the saved project + the draft being dragged
   const live = useMemo(() => {
     if (!view) return null;
-    if (!draft) return view.project;
-    try { return apply(view.project, draft); } catch { return view.project; }
-  }, [view?.project, draft]);
+    const all = [...(drafts.sync || []), ...(drafts.drag || [])];
+    if (!all.length) return view.project;
+    try { return apply(view.project, all); } catch { return view.project; }
+  }, [view?.project, drafts]);
   return { view, live, send, load, undo: doUndo, redo: doRedo, canUndo: !!undo.length, canRedo: !!redo.length, error, setError, saving: saving > 0 };
 }
 

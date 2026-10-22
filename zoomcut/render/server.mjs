@@ -118,6 +118,7 @@ function attach(id) {
         line: lastLine(job.log), send: s.send || [] });
     }
     finishSends(id);
+    if (job.again && s.code === 0) { job.again = false; setTimeout(() => runJob(id, ['--preview']), 200); }  // (a line fixed meanwhile)
   };
   const iv = setInterval(tick, 500);
   tick();
@@ -944,12 +945,13 @@ const projectView = (q, id) => {
     if (a.preview) urls[aid + ':preview'] = url(a.preview);
     if (a.audio) urls[aid + ':audio'] = url(a.audio);
     for (const v of ['eyes', 'eyes_fg']) if (a[v]) urls[`${aid}:${v}`] = url(a[v]);  // eye contact: the corrected copies
+    if (a.keep_static) urls[`${aid}:keep`] = url(a.keep_static);  // the desk objects kept over the cut-out (live)
   }
   const sj = readJson(path.join(d, 'work', 'public', 'layers', 'stems', 'stems.json'), { stems: {} });
   const stems = Object.keys(sj.stems || {}).map((layer) => ({ layer, src: url(`work/public/layers/stems/${layer}.wav`) }));
   // each audio layer's sources as the editor plays them item by item: "<layer>|<asset>" (filtered, evened out, shared gain)
   for (const [k, s] of Object.entries(sj.sources || {})) urls[k] = url(`work/public/layers/src/${s.file}`);
-  return { project, urls, stems, gainDb: sj.gain_db ?? 0, levels: sj.levels || {},  // (levels: '<layer>|<asset>|<clean>' -> speech-level gain, applied live)
+  return { project, urls, stems, gainDb: sj.gain_db ?? 0, levels: sj.levels || {}, soundBusy: !!soundBusy[id],  // (levels: '<layer>|<asset>|<clean>' -> speech-level gain, applied live)
     output: exportDone(id) ? `/media/${id}/out` : null, outputStale: exportStale(id), job: pub(jobs[id]) };
 };
 app.get('/api/p/:id', (q, res) => {
@@ -959,16 +961,23 @@ app.get('/api/p/:id', (q, res) => {
 });
 // sound has to be made again when an audio layer's items or filters change (volume / mute / hide are live)
 // live in the editor (no re-make): volume, the cleaning (every variant is made up front), clarity, the speech level.
-// (a committed voice-chain change still re-measures the shared gain with the chain in)
-const LIVE_SOUND = new Set(['volume', 'clean', 'presence', 'level']);
+// Sound is LIVE in the editor (AudioTrack plays each item from its layer's prepared source with every setting applied
+// on the fly), so almost nothing needs making: only a SOURCE that doesn't exist yet - a new sound file on a layer, a
+// new audio layer. Everything else (volume, cleaning variants, clarity, level, voice chain, fx, lift, an item's
+// gain / fades / soften / duck / speed / position) is live.
+const LIVE_SOUND = new Set(['volume', 'clean', 'presence', 'level', 'voice', 'fx', 'lift']);
 const touchesSound = (before, ops) => ops.some((op) => {
   const l = (before.layers || []).find((x) => x.id === (op.layer || op.id || op.layer?.id)) || (op.op === 'layer.add' ? op.layer : null);
-  if (!l || l.kind !== 'audio') return op.op === 'asset.add' && false;
-  if (op.op === 'layer.update') return Object.keys(op.props || {}).some((k) => !LIVE_SOUND.has(k));
-  // moving / trimming / gain / fades play live from the prepared sources (AudioTrack): only a new source needs making
-  if (op.op === 'item.update') return 'asset' in (op.set || {}) || 'soften' in (op.set || {});
-  return op.op === 'item.add' || op.op === 'layer.add' || op.op === 'layer.replace';
+  if (!l || l.kind !== 'audio') return false;
+  const has = new Set((l.items || []).map((i) => i.asset ?? l.props?.asset));
+  if (op.op === 'layer.update') return Object.keys(op.props || {}).some((k) => !LIVE_SOUND.has(k)) && 'asset' in (op.props || {});
+  if (op.op === 'item.update') return 'asset' in (op.set || {}) && !has.has(op.set.asset);
+  if (op.op === 'item.add') return !has.has(op.item?.asset ?? l.props?.asset);
+  return (op.op === 'layer.add' || op.op === 'layer.replace') && (l.items || []).length > 0;
 });
+// making a source never holds a save: it runs behind, the editor plays the file as it is meanwhile and picks the
+// prepared one up when it's there (GET /api/p `soundBusy`)
+const soundBusy = {}, soundAgain = {};
 const restem = (id) => new Promise((done) => {
   const p = spawn(PY, ['-m', 'pipeline.layers_audio', `episodes/${id}`], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
   let err = '';
@@ -993,7 +1002,10 @@ app.post('/api/p/:id/ops', async (q, res) => {
   fs.mkdirSync(hist, { recursive: true });
   fs.appendFileSync(path.join(hist, 'log.jsonl'), JSON.stringify({ rev: after.rev, t: after.saved, by: q.body?.by || 'editor', ops, undo: inverse(before, ops) }) + '\n');
   let stemErr = null;
-  if (touchesSound(before, ops)) stemErr = await restem(id);
+  if (touchesSound(before, ops)) {
+    const go = () => { soundBusy[id] = restem(id).then((e) => { delete soundBusy[id]; if (e) console.log('sound for', id, e); if (soundAgain[id]) { delete soundAgain[id]; go(); } }); };
+    if (soundBusy[id]) soundAgain[id] = true; else go();  // (a new file while one is being made: once more after)
+  }
   const v = projectView(q, id);
   res.json({ ok: true, rev: after.rev, stems: v.stems, gainDb: v.gainDb, ...(stemErr ? { soundError: stemErr } : {}) });
 });
@@ -1063,6 +1075,8 @@ app.post('/api/p/:id/build', (q, res) => {
     c.lines = c.lines || {};
     if (!fix || !Object.keys(fix).length) delete c.lines[String(n)]; else c.lines[String(n)] = { ...fix, ...(c.lines[String(n)]?.caption ? { caption: c.lines[String(n)].caption } : {}) };
     writeJson(p, c);
+    // a line fixed while the analysis already runs: it runs once more when this one ends (the fix is saved, not lost)
+    if (jobs[id]?.running) { jobs[id].again = true; return res.json(pub(jobs[id])); }
     return res.json(pub(runJob(id, ['--preview'])));
   }
   if (action === 'caption') {
@@ -1077,7 +1091,7 @@ app.post('/api/p/:id/build', (q, res) => {
   const mod = path.join(HERE, 'actions', `${String(action).replace(/[^\w-]/g, '')}.mjs`);
   if (action && fs.existsSync(mod)) {
     return import(`file://${mod.replace(/\\/g, '/')}?v=${verOf(mod)}`)
-      .then((m) => m.default({ id, dir: d, body: q.body, runJob, pub, spawn, PY, ROOT }))
+      .then((m) => m.default({ id, dir: d, body: q.body, runJob, pub, spawn, PY, ROOT, jobs, PORT }))
       .then((r) => res.json(r ?? { ok: true }), (e) => res.status(500).json({ error: e.message }));
   }
   res.status(400).json({ error: 'action: analyze | line | caption | a module in render/actions/' });

@@ -301,6 +301,16 @@ def build(ep):
         if seg.get("soften"):
             it["soften"] = True
         voices.setdefault(char, []).append(it)
+    # a person's picture pieces during their line move with it (the same `link` as its voice and subtitles)
+    for pp in props["participants"]:
+        pic = next((l for l in layers if l["id"] == f"{pp['id']}.picture"), None)
+        for v_it in voices.get(pp["id"], []):
+            if not v_it.get("link"):
+                continue
+            a, z = v_it["from"], v_it["from"] + v_it["dur"]
+            for it in (pic or {}).get("items", []):
+                if it["from"] >= a - 1 and it["from"] + it["dur"] <= z + 1:
+                    it["link"] = v_it["link"]
     for pp in props["participants"]:
         v = audio.voice_of(ep, pp["id"])
         layers.append({"id": f"{pp['id']}.voice", "kind": "audio", "name": "Voice", "group": pp["name"],
@@ -315,6 +325,8 @@ def build(ep):
     return {"format": projectlib.FORMAT, "title": ep.cfg.get("title") or ep.id,
             "canvas": {"w": props.get("width", 1080), "h": props.get("height", 1920), "fps": fps, "color": "#0b0b0b"},
             "duration": total, "speed": float(ep.cfg.get("speed") or 1), "assets": assets, "layers": layers, "script": script,
+            # lines follow each other: a line moved / lengthened moves everything after it (the live edit shows that)
+            "edit": {"ripple": True, "ripple_move": True},
             "builder": {"kind": "zoom", "top": top, "accent": accent,
                         "actions": [{"id": "analyze", "label": "Re-analyze the footage"},
                                     {"id": "line", "label": "Fix a line (take / start / end / timing)"},

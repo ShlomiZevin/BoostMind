@@ -90,41 +90,87 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     return () => removeEventListener('keydown', k);
   });
 
-  // a Zoom line: its voice / subtitle blocks belong to the analysis - dragging one fixes the line (as the old screen did)
+  // the script panel's line fix (a builder that has script lines - the Script tab)
   const script: any[] = project?.script || [];
   const lineFix = async (n: number, fix: any) => {
     const clean = Object.fromEntries(Object.entries(fix || {}).filter(([, v]) => v !== undefined && v !== null && v !== ''));
     const j = await build(ep, { action: 'line', n, fix: clean });
     setJob(j);
   };
+  // ONE way to edit any item, whatever made the project (his rule: "everything is one tool, just layers" and
+  // "nothing rebuilds - when I change something it should be live"):
+  //  1. LIVE: the item changes at once with every item that shares its `link` (its voice, subtitles, picture); in a
+  //     continuous cut (`project.edit.ripple`) everything after the edge closes up / makes room;
+  //  2. QUIETLY: when a builder made the item, it is told (POST build {action: 'edit'}, render/actions/edit.mjs) and
+  //     its next version replaces the live guess when it lands - no "Updating", no wait. The editor never asks which
+  //     builder it is.
+  const [syncing, setSyncing] = useState(0);
+  const liveEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number) => {
+    const ops: any[] = [], seen = new Set<string>();
+    const change = (ly: any, x: any) => {
+      const set: any = side === 'm' ? { from: Math.max(0, x.from + d) }
+        : side === 'r' ? { dur: Math.max(1, x.dur + d) }
+        : ripple ? { dur: Math.max(1, x.dur - d), ...(x.in != null ? { in: Math.max(0, +(x.in + (d / fps) * (x.rate || 1)).toFixed(4)) } : {}) }
+        : { from: Math.max(0, x.from + d), dur: Math.max(1, x.dur - d), ...(x.in != null ? { in: Math.max(0, +(x.in + (d / fps) * (x.rate || 1)).toFixed(4)) } : {}) };
+      ops.push({ op: 'item.update', layer: ly.id, id: x.id, set, user: false });
+      seen.add(ly.id + '|' + x.id);
+    };
+    // ripple: a continuous timeline - an edge closes up / makes room; ripple_move: moving a piece moves everything after
+    // it too (lines that follow each other, as the conversation builder plans them)
+    const ripple = !!project.edit?.ripple && (side !== 'm' || !!project.edit?.ripple_move);
+    // everything that starts after this item starts (lines overlap a little - the next one starts before this one ends)
+    for (const ly of project.layers) for (const x of ly.items || []) {
+      if (x === it || (it.link && x.link === it.link)) change(ly, x);
+    }
+    if (ripple) {  // everything after it moves with it (texts, sounds, effects too)
+      const shift = side === 'l' ? -d : d;
+      for (const ly of project.layers) for (const x of ly.items || []) {
+        if (seen.has(ly.id + '|' + x.id) || x.from <= it.from) continue;
+        ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, x.from + shift) }, user: false });
+      }
+    }
+    return ops;
+  };
+  // edits waiting for their builder: shown live (the 'sync' draft, they stack), one quiet loop brings the builder's
+  // answer in when everything has settled
+  const pending = useRef<any[]>([]);
+  const syncLoop = useRef<Promise<void> | null>(null);
+  const settle = () => {
+    if (syncLoop.current) return;
+    syncLoop.current = (async () => {
+      try {
+        let idle = 0;  // idle twice in a row = settled (an edit meanwhile re-runs the builder once more)
+        for (let i = 0; i < 1200 && idle < 2; i++) {
+          await new Promise((r) => setTimeout(r, 700));
+          const s = await (await fetch(`/api/ep/${ep}/job`)).json().catch(() => null);
+          idle = s?.running ? 0 : idle + 1;
+        }
+        await L.load();
+      } finally {
+        pending.current = []; L.send([], { commit: false, channel: 'sync' }); setSyncing(0); syncLoop.current = null;
+      }
+    })();
+  };
   const onItemEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number): boolean | 'keep' => {
-    // a one-camera cut: an edge of his picture / voice dragged = that cut's edge in his take (lesson.py cut.edges, the
-    // old editor's /trim) - the take re-cut at once: picture, voice and subtitles together, everything after it shifts,
-    // the real footage before / after pulled back. The drag stays on screen until the re-cut lands (~seconds).
-    if (project?.builder?.kind === 'solo' && l.owner === 'builder' && (l.id === 'person' || l.id === 'voice') && it.ref?.take && it.rate !== 0 && side !== 'm') {
-      const v = project.layers.find((x: any) => x.id === 'voice')?.items?.find((x: any) => x.ref?.take === it.ref.take && x.ref?.a === it.ref.a) || it;
-      const rate = v.rate || 1;
-      const was = side === 'l' ? v.in ?? 0 : (v.in ?? 0) + (v.dur / fps) * rate;
-      const now = Math.max(0, was + (d / fps) * rate);
-      fetch(`/api/ep/${ep}/trim`, { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ take: it.ref.take, from: +was.toFixed(3), to: +now.toFixed(3) }) })
-        .then((r) => r.json()).then(async (j) => { if (j?.error) L.setError(j.error); await L.load(); L.send([], { commit: false }); })
-        .catch(async () => { await L.load(); L.send([], { commit: false }); });
-      return 'keep';
-    }
-    if (project?.builder?.kind !== 'zoom' || l.owner !== 'builder' || l.kind !== 'audio' || it.ref?.line == null) return false;
-    const ln = script.find((x) => x.n === it.ref.line);
-    if (!ln || ln.in == null) return false;
-    const sec = d / fps, fx = ln.fix || {};
-    if (side === 'm') lineFix(ln.n, { ...fx, shift: +((fx.shift || 0) + sec).toFixed(3) });
-    else {
-      const base = { ...fx, clip: fx.clip ?? ln.clip, in: fx.in ?? ln.in };
-      if (side === 'l') lineFix(ln.n, ln.interrupted ? { ...base, in: Math.max(0, +(base.in + sec).toFixed(3)), out: undefined, cut: fx.cut ?? ln.cut }
-        : { ...base, in: Math.max(0, +(base.in + sec).toFixed(3)), out: fx.out ?? ln.out });
-      else if (ln.interrupted) lineFix(ln.n, { ...base, out: undefined, cut: +((fx.cut ?? ln.cut) + sec).toFixed(3) });
-      else lineFix(ln.n, { ...base, out: +((fx.out ?? ln.out) + sec).toFixed(3) });
-    }
-    return true;
+    if (l.owner !== 'builder' || !it.ref) return false;  // a layer of his own: the plain edit is the edit
+    const live = liveEdit(l, it, side, d);
+    L.send([], { commit: false });  // (the drag's own draft goes - the live edit below shows it)
+    pending.current = [...pending.current, ...live];
+    L.send(pending.current, { commit: false, channel: 'sync' });  // shown now, on top of any edit still syncing
+    setSyncing((k) => k + 1);
+    (async () => {
+      const j = await build(ep, { action: 'edit', layer: l.id, item: it.id, side, frames: d }).catch((e) => ({ error: String(e) }));
+      if (j?.error) L.setError(j.error);
+      if (j?.hand) {  // nothing for the builder: the live edit is saved as his
+        pending.current = pending.current.filter((o) => !live.includes(o));
+        L.send(pending.current, { commit: false, channel: 'sync' });
+        L.send(live.map((o) => ({ ...o, user: true })), { label: side === 'm' ? 'move' : 'trim' });
+        setSyncing((k) => Math.max(0, k - 1));
+        return;
+      }
+      settle();
+    })();
+    return 'keep';
   };
 
   const startSplit = (e: React.MouseEvent) => {
@@ -179,7 +225,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
             <div className={`tab ${tab === 'media' ? 'on' : ''}`} onClick={() => setTab('media')}>Media</div>
             {script.length > 0 && <div className={`tab ${tab === 'script' ? 'on' : ''}`} onClick={() => setTab('script')}>Script</div>}
             <div className="grow" />
-            {L.saving && <span className="help" style={{ margin: 0 }}>saving…</span>}
+            {(L.saving || syncing > 0) && <span className="help" style={{ margin: 0 }}>{syncing ? 'syncing the line…' : 'saving…'}</span>}
           </div>
           <div className="scroll">
             {tab === 'media' && setup}

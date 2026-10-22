@@ -33,7 +33,9 @@ def post(tag, idx, ep, props, asset, box, canvas_w, vw, vh, w, h, cx, cy, n_fram
         f.append(f"[{idx}:v]setpts=PTS-STARTPTS,trim=end_frame={n_frames},format=gray,scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}[ks{tag}]")
         f.append(f"{last}[ks{tag}]blend=all_mode=lighten:shortest=1,format=gray[kl{tag}]")
         last = f"[kl{tag}]"
-    if box.get("x", 0) > 0.5 or box.get("x", 0) + box.get("w", canvas_w) < canvas_w - 0.5:
+    # the side ramp only where the layer asks for it (props.side_ramp - a one-camera person narrower than the frame);
+    # never on tiles that are small by design
+    if props.get("side_ramp") and (box.get("x", 0) > 0.5 or box.get("x", 0) + box.get("w", canvas_w) < canvas_w - 0.5):
         r = max(1.0, vw * 0.07)
         f.append(f"{last}geq=lum='p(X,Y)*clip(min(X+{cx},{vw}-1-X-{cx})/{r:.3f},0,1)'[rp{tag}]")
         last = f"[rp{tag}]"

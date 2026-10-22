@@ -26,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from . import film_fx, layers_audio, look
+from . import cutout as cutout_fx, film_fx, layers_audio, look
 from . import project as projectlib
 from .common import FFMPEG, ROOT, Episode, ffprobe, log, run
 from .compose import LOW, PIECES, X264_THREADS, _look
@@ -270,8 +270,15 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
                 idx += 1
                 sig = max(0.6, 1.0 * vw / asset["w"])
                 fc.append(f"[{ai}:v]{spts}{frames},{fit_wh},gblur=sigma={sig:.2f},format=gray[al{tag}]")
+                # the cut-out's live settings (edge cleanup, the desk kept, the side ramp) - pipeline/cutout.py, the
+                # same math as the editor's VideoTrack
+                kargs, kn, kfc = cutout_fx.post(tag, idx, ep, it, asset, box, W * scale, vw, vh, w, h, cx, cy, ln, fps, scale)
+                args += kargs
+                idx += kn
+                if kfc:
+                    fc.append(kfc)
                 fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}[p{tag}]")
-                fc.append(f"[p{tag}][al{tag}]alphamerge=shortest=1[pa{tag}]")
+                fc.append(f"[p{tag}][{'ak' if kfc else 'al'}{tag}]alphamerge=shortest=1[pa{tag}]")
                 img = project["assets"].get((bd or {}).get("props", {}).get("asset") or "") if bd else None
                 if img:
                     gx, gy, gw, gh = backdrop_box(img, vw, vh, bd["props"], (cx, cy, w, h))
