@@ -47,7 +47,7 @@ const exportStale = (id) => {
   const out = path.join(EPS, id, 'out', `${id}.mp4`);
   if (!fs.existsSync(out)) return false;
   const t = fs.statSync(out).mtimeMs;
-  return ['episode.json', 'captions.txt', 'work/edit.json'].some((f) => { try { return fs.statSync(path.join(EPS, id, f)).mtimeMs > t + 2000; } catch { return false; } });
+  return ['episode.json', 'captions.txt', 'work/edit.json', 'project.json'].some((f) => { try { return fs.statSync(path.join(EPS, id, f)).mtimeMs > t + 2000; } catch { return false; } });
 };
 // an export file the editor offers (Open MP4 / Email / Telegram): there, and not one being written or a failed one
 const exportDone = (id) => {
@@ -72,7 +72,10 @@ function runJob(id, args, _onSuccess, send = []) {
   const kind = args.includes('--preview') ? 'preview' : 'export';
   // the lesson template (one speaker, takes in order) has its own pipeline
   const lesson = readJson(path.join(EPS, id, 'episode.json'), {}).type === 'lesson';
-  const cmd = lesson ? ['lesson.py', `episodes/${id}`, ...args.filter((a) => a === '--preview')] : ['zoomcut.py', 'build', `episodes/${id}`, ...args];
+  // a layered project (project.json) exports through the one layered exporter; its builder still analyzes
+  const layered = fs.existsSync(path.join(EPS, id, 'project.json'));
+  const cmd = layered && kind === 'export' ? ['-m', 'pipeline.export_layers', `episodes/${id}`, ...args.filter((a) => a === '--quick')]
+    : lesson ? ['lesson.py', `episodes/${id}`, ...args.filter((a) => a === '--preview')] : ['zoomcut.py', 'build', `episodes/${id}`, ...args];
   const f = jobFiles(id);
   fs.writeFileSync(f.log, '');
   const quick = args.includes('--quick');  // the Quick export: a half-size draft to check the edit
@@ -218,6 +221,7 @@ app.get('/api/ep/:id', (q, res) => {
     });
   }
   res.json({
+    layered: fs.existsSync(path.join(d, 'project.json')),  // a layered project: the editor opens it from /api/p/:id
     episode: readJson(path.join(d, 'episode.json')),
     corrections: readJson(path.join(d, 'corrections.json'), { lines: {} }),
     state: readJson(w('state.json')),
@@ -775,8 +779,10 @@ const chunkText = (text, a, z, maxWords = 7) => {
   return groups.map((g) => { const d = ((z - a) * g.join(' ').length) / total; const o = [g.join(' '), t, t + d]; t += d; return o; });
 };
 app.post('/api/ep/:id/caption', (q, res) => {
-  const d = epDir(q.params.id);
-  const { n, text } = q.body || {};
+  setCaption(epDir(q.params.id), q.body?.n, q.body?.text);
+  res.json({ ok: true });
+});
+function setCaption(d, n, text) {
   const cp = path.join(d, 'corrections.json');
   const corr = readJson(cp, {}) || {};
   corr.lines = corr.lines || {};
@@ -804,8 +810,7 @@ app.post('/api/ep/:id/caption', (q, res) => {
       writeJson(editPath, edit);
     }
   }
-  res.json({ ok: true });
-});
+}
 
 // a character's voice - a layer: {volume 0..1, clean off | mild | strong, presence dB}. Volume is live (the editor plays
 // one track per character); a filter change mixes only the audio again (zoomcut.py voices - seconds, no picture work)
@@ -892,6 +897,145 @@ app.get('/media/:id/*', (q, res) => {
   const f = path.resolve(base, q.params[0]);
   if (!f.startsWith(base) || !fs.existsSync(f)) return res.status(404).end();
   res.sendFile(f, { cacheControl: false, headers: { 'Cache-Control': q.query.v ? 'private, max-age=31536000, immutable' : 'no-cache' } });  // (Range honoured - the preview seeks; a versioned file kept, a new version is a new URL)
+});
+
+// ---- layered projects (project.json - skill/edit-video/layers.md) ----------------------------------------------------
+// One format for every video: assets + layers of items. The editor, the studio and any AI tool change a project ONLY
+// through ops (render/src/layers/ops.js) - checked, versioned (rev), logged with their undo in work/history.
+const projFile = (id) => path.join(epDir(id), 'project.json');
+const readProject = (id) => readJson(projFile(id));
+const verOf = (f) => { try { return Math.round(fs.statSync(f).mtimeMs); } catch { return 0; } };
+// a project's file (an asset, a stem): anything under the studio folder, by its path relative to the project
+app.use('/pm', (_q, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); });
+app.get('/pm/:id', (q, res) => {
+  const f = path.resolve(epDir(q.params.id), String(q.query.p || ''));
+  if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return res.status(404).end();
+  res.sendFile(f, { cacheControl: false, headers: { 'Cache-Control': q.query.v ? 'private, max-age=31536000, immutable' : 'no-cache' } });
+});
+const projectView = (q, id) => {
+  const d = epDir(id), project = readProject(id);
+  if (!project) return null;
+  const url = (rel) => `${mediaHost(q)}/pm/${id}?p=${encodeURIComponent(rel)}&v=${verOf(path.resolve(d, rel))}`;
+  const urls = {};
+  for (const [aid, a] of Object.entries(project.assets || {})) {
+    urls[aid] = url(a.src);
+    if (a.fg) urls[aid + ':fg'] = url(a.fg);
+    if (a.preview) urls[aid + ':preview'] = url(a.preview);
+    if (a.audio) urls[aid + ':audio'] = url(a.audio);
+    for (const v of ['eyes', 'eyes_fg']) if (a[v]) urls[`${aid}:${v}`] = url(a[v]);  // eye contact: the corrected copies
+  }
+  const sj = readJson(path.join(d, 'work', 'public', 'layers', 'stems', 'stems.json'), { stems: {} });
+  const stems = Object.keys(sj.stems || {}).map((layer) => ({ layer, src: url(`work/public/layers/stems/${layer}.wav`) }));
+  // each audio layer's sources as the editor plays them item by item: "<layer>|<asset>" (filtered, evened out, shared gain)
+  for (const [k, s] of Object.entries(sj.sources || {})) urls[k] = url(`work/public/layers/src/${s.file}`);
+  return { project, urls, stems, gainDb: sj.gain_db ?? 0,
+    output: exportDone(id) ? `/media/${id}/out` : null, outputStale: exportStale(id), job: pub(jobs[id]) };
+};
+app.get('/api/p/:id', (q, res) => {
+  const v = projectView(q, q.params.id);
+  if (!v) return res.status(404).json({ error: 'not a layered project (no project.json)' });
+  res.json(v);
+});
+// sound has to be made again when an audio layer's items or filters change (volume / mute / hide are live)
+const LIVE_SOUND = new Set(['volume', 'voice']);  // (voice: the sound.ts chain, applied live by AudioTrack)
+const touchesSound = (before, ops) => ops.some((op) => {
+  const l = (before.layers || []).find((x) => x.id === (op.layer || op.id || op.layer?.id)) || (op.op === 'layer.add' ? op.layer : null);
+  if (!l || l.kind !== 'audio') return op.op === 'asset.add' && false;
+  if (op.op === 'layer.update') return Object.keys(op.props || {}).some((k) => !LIVE_SOUND.has(k));
+  // moving / trimming / gain / fades play live from the prepared sources (AudioTrack): only a new source needs making
+  if (op.op === 'item.update') return 'asset' in (op.set || {});
+  return op.op === 'item.add' || op.op === 'layer.add' || op.op === 'layer.replace';
+});
+const restem = (id) => new Promise((done) => {
+  const p = spawn(PY, ['-m', 'pipeline.layers_audio', `episodes/${id}`], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  let err = '';
+  p.stderr.on('data', (b) => (err += b));
+  p.on('close', (code) => done(code ? err.slice(-400) : null));
+});
+const opsLib = import('./src/layers/ops.js');
+app.post('/api/p/:id/ops', async (q, res) => {
+  const { apply, validate, inverse } = await opsLib;
+  const id = q.params.id, before = readProject(id);
+  if (!before) return res.status(404).json({ error: 'no project.json' });
+  const ops = q.body?.ops || [];
+  if (q.body?.rev != null && q.body.rev !== before.rev) return res.status(409).json({ error: 'the project changed meanwhile - reload it', rev: before.rev });
+  let after;
+  try { after = apply(before, ops); } catch (e) { return res.status(400).json({ error: e.message }); }
+  const problems = validate(after);
+  if (problems.length) return res.status(400).json({ error: 'the project would break', problems: problems.slice(0, 20) });
+  after.rev = (before.rev || 0) + 1;
+  after.saved = Date.now();
+  writeJson(projFile(id), after);
+  const hist = path.join(epDir(id), 'work', 'history');
+  fs.mkdirSync(hist, { recursive: true });
+  fs.appendFileSync(path.join(hist, 'log.jsonl'), JSON.stringify({ rev: after.rev, t: after.saved, by: q.body?.by || 'editor', ops, undo: inverse(before, ops) }) + '\n');
+  let stemErr = null;
+  if (touchesSound(before, ops)) stemErr = await restem(id);
+  const v = projectView(q, id);
+  res.json({ ok: true, rev: after.rev, stems: v.stems, gainDb: v.gainDb, ...(stemErr ? { soundError: stemErr } : {}) });
+});
+// a file for the project's Media (picture, sound, video): saved in media/, measured, added as an asset
+app.post('/api/p/:id/assets', express.raw({ type: '*/*', limit: '300mb' }), async (q, res) => {
+  const { apply, validate } = await opsLib;
+  const d = epDir(q.params.id), project = readProject(q.params.id);
+  if (!project) return res.status(404).json({ error: 'no project.json' });
+  const name = path.basename(String(q.query.name || 'file')).replace(/[^\w.\-א-ת ]+/g, '_');
+  const ext = path.extname(name).toLowerCase();
+  const kind = /\.(png|jpe?g|webp|gif)$/.test(ext) ? 'image' : /\.(mp3|wav|m4a|ogg)$/.test(ext) ? 'audio' : /\.(mp4|mov|m4v|webm)$/.test(ext) ? 'video' : /\.(ttf|otf|woff2?)$/.test(ext) ? 'font' : null;
+  if (!kind) return res.status(400).json({ error: 'A picture, sound, video or font file' });
+  fs.mkdirSync(path.join(d, 'media'), { recursive: true });
+  fs.writeFileSync(path.join(d, 'media', name), q.body);
+  const asset = { kind, src: `media/${name}` };
+  try {
+    const info = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height:format=duration', '-of', 'json', path.join(d, 'media', name)]).toString());
+    const st = (info.streams || []).find((s) => s.width);
+    if (st) Object.assign(asset, { w: st.width, h: st.height });
+    if (info.format?.duration && kind !== 'image') asset.duration = +(+info.format.duration).toFixed(3);
+  } catch {}
+  if (kind === 'font') asset.family = 'zc-' + name.replace(/\.[^.]+$/, '').replace(/\W+/g, '-');
+  const aid = (kind === 'image' ? 'm.' : kind === 'audio' ? 's.' : kind === 'video' ? 'v.' : 'font.') + name;
+  const after = apply(project, [{ op: 'asset.add', id: aid, asset }]);
+  const problems = validate(after);
+  if (problems.length) return res.status(400).json({ error: problems[0] });
+  after.rev = (project.rev || 0) + 1;
+  writeJson(projFile(q.params.id), after);
+  res.json({ ok: true, id: aid, asset, rev: after.rev });
+});
+// the builder's own actions (a Zoom project: re-analyze, fix a line, a line's subtitle) - its items come back merged
+app.post('/api/p/:id/build', (q, res) => {
+  const id = q.params.id, d = epDir(id);
+  const { action, n, fix, text } = q.body || {};
+  if (action === 'analyze') return res.json(pub(runJob(id, ['--preview'])));
+  if (action === 'line') {
+    const p = path.join(d, 'corrections.json'), c = readJson(p, { lines: {} });
+    c.lines = c.lines || {};
+    if (!fix || !Object.keys(fix).length) delete c.lines[String(n)]; else c.lines[String(n)] = { ...fix, ...(c.lines[String(n)]?.caption ? { caption: c.lines[String(n)].caption } : {}) };
+    writeJson(p, c);
+    return res.json(pub(runJob(id, ['--preview'])));
+  }
+  if (action === 'caption') {
+    setCaption(d, n, text);
+    const p = spawn(PY, ['zoomcut.py', 'layers', `episodes/${id}`], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+    let err = '';
+    p.stderr.on('data', (b) => (err += b));
+    return p.on('close', (code) => res.json(code ? { error: err.slice(-400) } : { ok: true, live: true }));
+  }
+  // any other action is a module of its own: render/actions/<action>.mjs, default export ({id, dir, body, runJob, pub, spawn,
+  // PY, ROOT}) -> the answer (a job, {ok}, {error}) - a new builder action is a new file, the studio stays as it is
+  const mod = path.join(HERE, 'actions', `${String(action).replace(/[^\w-]/g, '')}.mjs`);
+  if (action && fs.existsSync(mod)) {
+    return import(`file://${mod.replace(/\\/g, '/')}?v=${verOf(mod)}`)
+      .then((m) => m.default({ id, dir: d, body: q.body, runJob, pub, spawn, PY, ROOT }))
+      .then((r) => res.json(r ?? { ok: true }), (e) => res.status(500).json({ error: e.message }));
+  }
+  res.status(400).json({ error: 'action: analyze | line | caption | a module in render/actions/' });
+});
+// the format, for any tool that fills a project: the doc and the kinds
+app.get('/api/schema', async (_q, res) => {
+  const { FORMAT, LAYER_KINDS, ASSET_KINDS } = await opsLib;
+  let doc = '';
+  try { doc = fs.readFileSync(path.join(ROOT, 'skill', 'edit-video', 'layers.md'), 'utf8'); } catch {}
+  res.json({ format: FORMAT, layerKinds: LAYER_KINDS, assetKinds: ASSET_KINDS, doc });
 });
 
 app.use((err, _q, res, _n) => res.status(err.status || 500).json({ error: err.message }));

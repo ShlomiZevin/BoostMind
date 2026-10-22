@@ -12,6 +12,7 @@ import { usePreloaded, usePrefetched, Preload } from './preload';
 const PreloadBar = ({ p }: { p: Preload }) => (p.loading ? <div className="pre-bar">
   <div className="pre-fill" style={{ width: `${Math.round((p.done / Math.max(1, p.total)) * 100)}%` }} />
   <span>Loading the clips into memory · {p.done}/{p.total} · {Math.round(p.bytes / 1e6)} MB</span></div> : null);
+import { LayersEditor } from './layers/LayersEditor';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -343,7 +344,7 @@ function Editor() {
   const shown = query ? lines.filter((l) => (l.text + ' ' + l.name + ' ' + l.n).includes(query)) : lines;
 
   const lessonData = (data as any)?.episode?.type === 'lesson' ? (data as any) : null;
-  const ready = !!data?.state || !!lessonData?.preview || !!lessonData?.output || !!lessonData?.layers?.person;  // a layered preview counts
+  const ready = !!(data as any)?.layered || !!data?.state || !!lessonData?.preview || !!lessonData?.output || !!lessonData?.layers?.person;  // a layered preview counts
   const top = (
       <div className="top studio-top">
         {/* @ts-ignore - the shared studio bar (render/studio/bar.js) */}
@@ -402,6 +403,8 @@ function Editor() {
         </div>
       </div>
   );
+  // a layered project (project.json): the one layered editor - every layer a lane, every change an op
+  if ((data as any)?.layered) return <LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} />;
   if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} reload={load} />;
 
   return (
@@ -566,7 +569,7 @@ function Inspector({ ep, data, sel, busy, job, chars, onFix, onSettings, overlay
   );
 }
 
-function Num({ value, onCommit, step = 0.05, disabled, placeholder }: { value?: number | null; onCommit: (v: number | undefined) => void; step?: number; disabled?: boolean; placeholder?: string }) {
+export function Num({ value, onCommit, step = 0.05, disabled, placeholder }: { value?: number | null; onCommit: (v: number | undefined) => void; step?: number; disabled?: boolean; placeholder?: string }) {
   const [v, setV] = useState(value == null ? '' : f2(value));
   useEffect(() => setV(value == null ? '' : f2(value)), [value]);
   const commit = (s: string) => { const n = s === '' ? undefined : +(+s).toFixed(3); if (n !== value && !(n !== undefined && isNaN(n))) onCommit(n); };
@@ -583,7 +586,7 @@ function Num({ value, onCommit, step = 0.05, disabled, placeholder }: { value?: 
   );
 }
 
-function LineProps({ l, busy, chars, onFix }: { l: Line; busy: boolean; chars: any[]; onFix: (f: Fix) => void }) {
+export function LineProps({ l, busy, chars, onFix }: { l: Line; busy: boolean; chars: any[]; onFix: (f: Fix) => void }) {
   const fix = l.fix || {};
   const cur: Take | null = l.clip ? { clip: l.clip, in: l.in!, out: l.out!, cut: l.cut ?? undefined } : null;
   const options: Take[] = [...(l.auto ? [l.auto] : []), ...l.alternatives];
@@ -890,7 +893,7 @@ function LookFilter({ id, lk }: { id: string; lk: any }) {
   );
 }
 
-function Slider({ label, v, min, max, step, fmt, onChange }: { label: string; v: number; min: number; max: number; step: number; fmt: (v: number) => string; onChange: (v: number) => void }) {
+export function Slider({ label, v, min, max, step, fmt, onChange }: { label: string; v: number; min: number; max: number; step: number; fmt: (v: number) => string; onChange: (v: number) => void }) {
   return (
     <div className="row2"><label>{label}</label>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1185,7 +1188,7 @@ createRoot(document.getElementById('root')!).render(<Editor />);
 // ---------- lesson template: one speaker, takes in order — same editor, same panes ---------
 const SPEEDS = [1, 1.05, 1.1, 1.2, 1.3];
 // the presets, and his own exact number beside them (0.5-2x; typed, applied on Enter or leaving the box)
-function SpeedPick({ speed, onSpeed }: { speed: number; onSpeed: (v: number) => void }) {
+export function SpeedPick({ speed, onSpeed }: { speed: number; onSpeed: (v: number) => void }) {
   // the presets and a sixth button: "Custom" - his own number, lit like a preset when it is the speed; click to type it
   const own = !SPEEDS.includes(speed);
   const [edit, setEdit] = useState(false);

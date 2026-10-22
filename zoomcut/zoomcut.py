@@ -14,7 +14,7 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-from pipeline import audio, background, compose, media, transcribe
+from pipeline import audio, background, compose, layers_audio, media, transcribe
 from pipeline.common import FFMPEG, ROOT, Episode, load_json, log, run, save_json
 from pipeline.match import GOOD_SCORE, Env, extend_to_utterance, match_character, refine
 from pipeline.plan import build as build_plan
@@ -185,6 +185,10 @@ def cmd_build(ep, args):
 
     if args.preview:
         audio.mix(ep, mixplan, total, ep.work("public", "dialogue.wav"), stems=ep.work("public", "voices"))
+        if os.path.exists(ep.p("project.json")):  # a layered project: the new edit goes into its layers (his edits kept)
+            from pipeline import to_layers
+            to_layers.sync(ep, "re-analyzed")
+            layers_audio.stems(ep)
         log(f"✔ preview ready ({total:.1f}s)")
         return
     if args.no_render:
@@ -441,9 +445,17 @@ def cmd_voices(ep):
     log("✔ voices mixed")
 
 
+def cmd_layers(ep):
+    """Make (or refresh) the project's layers - project.json - from the analyzed Zoom edit. From then on the project
+    opens in the layered editor and exports through pipeline/export_layers.py."""
+    from pipeline import to_layers
+    to_layers.sync(ep, "layers made")
+    layers_audio.stems(ep)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["build", "new", "audit", "voices"])
+    ap.add_argument("cmd", choices=["build", "new", "audit", "voices", "layers"])
     ap.add_argument("episode")
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--preview", action="store_true", help="plan + preview audio for the review screen")
@@ -457,5 +469,7 @@ if __name__ == "__main__":
         cmd_audit(Episode(a.episode))
     elif a.cmd == "voices":
         cmd_voices(Episode(a.episode))
+    elif a.cmd == "layers":
+        cmd_layers(Episode(a.episode))
     else:
         cmd_build(Episode(a.episode), a)

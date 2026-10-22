@@ -292,7 +292,7 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
             continue
         hard = b["kind"] == "attempt"
         mix.append({"clip": b["clip"], "in": b["in"], "out": b["out"], "at": b["start"], "gain": b.get("gain", 1.0),
-                    "soften": b.get("soften", False),
+                    "soften": b.get("soften", False), "n": b.get("n"),  # (the line: the voice layer's item knows it)
                     "fade_out": 0.012 if hard else (0.07 if b["interrupted"] else 0.12)})
     for cid, at in removed.items():
         mix.append({"sfx": "remove", "at": at})
