@@ -26,10 +26,10 @@ without changing it; the skill says what to do." He doesn't want to review the p
 - **Editor**: `LayersEditor` (render/ui/layers/*), from LessonView's shell: Media (every asset incl. backgrounds),
   Script (builder lines), lanes per layer grouped, inspector per kind, ops-based undo.
 
-## Status
-Done: geometry + parity, ops.js, project.py merge, to_layers.py (Zoom), layers_audio.py, Layers.tsx (first cut),
-ZoomChrome builder picture. Test copy: `episodes/_gl` (gilad-joins). Next: stills parity vs ZoomCall, exporter,
-endpoints, editor, docs. Stage 2 = one-camera projects.
+## Status - DONE (2026-10-22)
+One editor for every video. Zoom (gilad-joins, SSIM 0.978) and one camera (crypto-1, 0.938) match their old exports;
+fresh projects of both kinds tested end to end (footage -> analysis -> layers -> export). New projects start layered.
+What's still not live is listed in LAYERS-KEEP.md (status section). Format: skill/edit-video/layers.md.
 
 ## Your 9 points
 1. Instant changes: kept. Layer ops are instant (no job); audio-only ops re-make stems (seconds). For one-camera the
