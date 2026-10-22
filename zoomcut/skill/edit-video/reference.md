@@ -75,6 +75,10 @@
 - The editor once saved ANOTHER project's text-on-video into this one (tadar-4's questions landed in tadar-5 after
   he moved between them). If he was in the editor on another project, re-check episode.json overlays and tell him
   to refresh (F5) before editing.
+- **His PC blue-screens under heavy export load** (2026-10-22: DPC_WATCHDOG_VIOLATION - a Samsung 860 EVO on the
+  generic SATA AHCI driver, the SSD ~94% full, 13 hard resets in 30 days). The Zoom export is gentle on purpose
+  (compose.py: 3 pieces at a time, x264 4 threads, below-normal priority; Remotion concurrency 4) - don't raise it.
+  An export cut by a crash leaves a corrupt `out/<id>.mp4`: ffmpeg `-f null` decode check before sending anything.
 - **Zoom export hung forever on tiny tile pieces** (gilad-joins, 2026-10-22): a listening tile switching takes for
   2-15 frames froze ffmpeg in the chunk (old and layered paths alike; not the inputs, not threads). `compose._absorb_tiny`
   gives those frames to the neighbouring piece of the same person. If an export sits on one "Rendered N/M" for minutes,

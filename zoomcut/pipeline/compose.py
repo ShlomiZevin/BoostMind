@@ -12,6 +12,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
+# gentle on the machine: his PC blue-screens (DPC_WATCHDOG_VIOLATION - the SATA driver under heavy disk load) and hard
+# resets under full load (2026-10-22). Few parallel pieces, few threads each, below-normal priority.
+LOW = 0x00004000 if os.name == "nt" else 0  # BELOW_NORMAL_PRIORITY_CLASS
+PIECES = 3
+X264_THREADS = 4
+
 from .common import FFMPEG, FPS, ROOT, log, run
 
 TOP, POV_TOP, BAR, PAD, GAP = 150, 300, 1752, 16, 12
@@ -148,18 +154,20 @@ def _look(look):
     return f
 
 
-def render_chunk(ep, k, ch, ui_dir, pad):
+def render_chunk(ep, k, ch, ui_dir, pad, scale=1.0):
+    """scale < 1: the Quick export (a draft to check the edit) - every size and position shrinks together."""
     out = ep.work("chunks", f"c{k:03d}.mp4")
     n = ch["dur"]
+    cw, chh = int(round(1080 * scale / 2) * 2), int(round(1920 * scale / 2) * 2)
     args = [FFMPEG, "-y", "-v", "error",
-            "-f", "lavfi", "-i", f"color=c=0x0b0b0b:s=1080x1920:r={FPS}:d={(n + 2) / FPS:.4f}",
+            "-f", "lavfi", "-i", f"color=c=0x0b0b0b:s={cw}x{chh}:r={FPS}:d={(n + 2) / FPS:.4f}",
             "-framerate", str(FPS), "-start_number", str(ch["from"]), "-i", os.path.join(ui_dir, f"element-%0{pad}d.png")]
     fc, last, idx = [], "[0:v]", 2
     for j, it in enumerate(ch["items"]):
         r = it["rect"]
         # even sizes: the video goes through yuva420p, which can't be odd (3 thumbnails of 341.3 px -> 340 vs a 341 mask)
-        w, h = int(r["w"]) // 2 * 2, int(r["h"]) // 2 * 2
-        left, top, vw, vh = video_box(it["clip"], r, it["frame"])
+        w, h = int(r["w"] * scale) // 2 * 2, int(r["h"] * scale) // 2 * 2
+        left, top, vw, vh = (v * scale for v in video_box(it["clip"], r, it["frame"]))
         vw, vh = int(round(vw / 2) * 2), int(round(vh / 2) * 2)
         cx, cy = min(max(0, int(round(-left))), vw - w), min(max(0, int(round(-top))), vh - h)
         dur = it["len"] / FPS + 0.1
@@ -182,7 +190,7 @@ def render_chunk(ep, k, ch, ui_dir, pad):
             args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{dur:.4f}", "-i", os.path.join(ep.public, bg["image"])]
             ai, bi = idx, idx + 1
             idx += 2
-            sig = max(0.8, 1.0 * vw / it["clip"]["w"])
+            sig = max(0.6, 1.0 * vw / it["clip"]["w"])
             bx, by = min(max(0, int(round(cx - gx))), gw - w), min(max(0, int(round(cy - gy))), gh - h)
             fr = it["len"]
             fc.append(f"[{bi}:v]setpts=PTS-STARTPTS,fps={FPS},trim=end_frame={fr},scale={gw}:{gh}:flags=bicubic,crop={w}:{h}:{bx}:{by},format=yuv420p[g{j}]")
@@ -194,20 +202,23 @@ def render_chunk(ep, k, ch, ui_dir, pad):
             fc.append(f"[{vi}:v]setpts=PTS-STARTPTS,fps={FPS},scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}{_look(it['look'])},format=yuva420p[v{j}]")
         fc.append(f"[{mi}:v]format=gray,setpts=PTS-STARTPTS[m{j}]")
         fc.append(f"[v{j}][m{j}]alphamerge{fade},setpts=PTS+{t0:.4f}/TB[o{j}]")
-        fc.append(f"{last}[o{j}]overlay=x={int(round(r['x']))}:y={int(round(r['y']))}:eof_action=pass:"
+        fc.append(f"{last}[o{j}]overlay=x={int(round(r['x'] * scale))}:y={int(round(r['y'] * scale))}:eof_action=pass:"
                   f"enable='between(t,{t0:.4f},{t1:.4f})'[b{j}]")
         last = f"[b{j}]"
     fc.append(f"{last}[1:v]overlay=0:0:format=auto,format=yuv420p[out]")
     args += ["-filter_complex", ";".join(fc), "-map", "[out]", "-frames:v", str(n), "-r", str(FPS),
-             "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-an", out]
-    r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace")
+             "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", "medium" if scale >= 1 else "ultrafast",
+             "-crf", "18" if scale >= 1 else "24", "-pix_fmt", "yuv420p", "-an", out]
+    r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", creationflags=LOW)
     if r.returncode:
         raise RuntimeError(f"chunk {k} failed:\n{r.stderr[-1200:]}")
     return out
 
 
-def export(ep, props, props_path, silent_out, concurrency=8):
-    """Render the interface frames, composite every shot, concat. Returns the silent video path."""
+def export(ep, props, props_path, silent_out, concurrency=8, quick=False):
+    """Render the interface frames, composite every shot, concat. Returns the silent video path.
+    quick: the Quick export - half size (540x960), the fastest encoder: a draft to check the edit, minutes faster."""
+    scale = 0.5 if quick else 1.0
     t_start = time.time()
     ui_dir = ep.work("ui")
     os.makedirs(ui_dir, exist_ok=True)  # first export of a new episode
@@ -220,8 +231,9 @@ def export(ep, props, props_path, silent_out, concurrency=8):
     log(f"  · drawing the interface ({props['durationInFrames']} frames)")
     remotion = os.path.join(ROOT, "render", "node_modules", "@remotion", "cli", "remotion-cli.js")
     r = subprocess.run(["node", remotion, "render", "src/index.ts", "ZoomCall", ui_dir, "--sequence", "--image-format=png",
-                        f"--props={ui_props}", f"--public-dir={ep.public}", f"--concurrency={concurrency}", "--log=error"],
-                       cwd=os.path.join(ROOT, "render"))
+                        f"--props={ui_props}", f"--public-dir={ep.public}", f"--concurrency={concurrency}", "--log=error"]
+                       + ([f"--scale={scale}"] if scale != 1 else []),
+                       cwd=os.path.join(ROOT, "render"), creationflags=LOW)
     if r.returncode:
         raise RuntimeError("interface render failed")
     pngs = sorted(f for f in os.listdir(ui_dir) if f.endswith(".png"))
@@ -232,12 +244,12 @@ def export(ep, props, props_path, silent_out, concurrency=8):
 
     def job(kc):
         k, ch = kc
-        out = render_chunk(ep, k, ch, ui_dir, pad)
+        out = render_chunk(ep, k, ch, ui_dir, pad, scale)
         done[0] += ch["dur"]
         log(f"Rendered {done[0]}/{props['durationInFrames']}")
         return out
 
-    with ThreadPoolExecutor(max_workers=max(2, min(6, (os.cpu_count() or 8) // 3))) as pool:
+    with ThreadPoolExecutor(max_workers=PIECES) as pool:
         outs = list(pool.map(job, enumerate(chunks)))
     lst = ep.work("chunks", "list.txt")
     with open(lst, "w", encoding="utf-8") as fh:

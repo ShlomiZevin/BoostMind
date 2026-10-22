@@ -202,21 +202,25 @@ def cmd_build(ep, args):
         if r.returncode:
             sys.exit("✖ render failed")
     else:  # browser draws the interface only, ffmpeg composites the videos in parallel chunks
-        compose.export(ep, props, ep.work("edit.json"), silent, concurrency=min(args.concurrency, 8))
+        compose.export(ep, props, ep.work("edit.json"), silent, concurrency=min(args.concurrency, 4), quick=args.quick)
     os.makedirs(ep.p("out"), exist_ok=True)
-    final = ep.p("out", f"{ep.id}.mp4")
+    # the Quick export (a draft to check the edit) never replaces the real one
+    final = ep.p("out", f"{ep.id}.draft.mp4" if args.quick else f"{ep.id}.mp4")
     run([FFMPEG, "-y", "-v", "error", "-i", silent, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
          "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", final])
     spd = float(ep.cfg.get("speed") or 1)
     if abs(spd - 1) > 1e-3:  # the editor's Speed: the whole video, every layer together
         fast = final[:-4] + ".speed.mp4"
         run([FFMPEG, "-y", "-v", "error", "-i", final, "-filter_complex", f"[0:v]setpts=PTS/{spd},fps={props['fps']}[v];[0:a]atempo={spd}[a]",
-             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p",
+             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "ultrafast" if args.quick else "medium",
+             "-crf", "24" if args.quick else "17", "-pix_fmt", "yuv420p",
              "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", fast])
         os.replace(fast, final)
         log(f"  · speed x{spd}")
     log("⑦ validating")
     v = validate(ep, final, props["durationInFrames"] / props["fps"] / spd, props["shots"], spd)
+    if args.quick:  # a draft is half size on purpose
+        v["problems"] = [x for x in v["problems"] if "1080" not in x]
     if v["problems"]:
         log("⚠ problems: " + "; ".join(v["problems"]))
     log(f"✔ {final}  ({v['duration']}s, {v['lufs']} LUFS)  stills: {v['stills']}")
@@ -442,6 +446,7 @@ if __name__ == "__main__":
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--preview", action="store_true", help="plan + preview audio for the review screen")
     ap.add_argument("--slow", action="store_true", help="render everything in the browser (old exporter)")
+    ap.add_argument("--quick", action="store_true", help="Quick export: half size, fastest encoder - a draft to check the edit (out/<id>.draft.mp4)")
     ap.add_argument("--concurrency", type=int, default=8)
     a = ap.parse_args()
     if a.cmd == "new":

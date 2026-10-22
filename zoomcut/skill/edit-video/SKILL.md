@@ -70,8 +70,11 @@ Reply to him in English; Hebrew only inside the video.
 7. **Hand over:** the link, the length, the lines you fixed or could not find, 2-4 timestamps worth his ear, one line
    that he can drag any cut edge to pull footage back.
 8. **Iterate on his notes**, keep a short line going while you work.
-9. **Export** when he says (Export / Export & send in the editor). Commit and push when he asks - only your own files
-   (other sessions have uncommitted work in this repo).
+9. **Export - a Quick check first, then Full quality** (his flow, 2026-10-22): he checks the edit on his phone from a
+   **Quick check** (Export menu → Quick check: half size 540x960, fastest encoder, `out/<id>.draft.mp4`, the email says
+   DRAFT; ~3 min for a 3-min Zoom video vs ~9 for full). When he's happy, **Full quality** (1080x1920, `out/<id>.mp4`,
+   "ready for TikTok"). Same button / endpoint he uses: `POST /api/ep/<id>/export {send: ["email"], quick: true}`.
+   Commit and push when he asks - only your own files (other sessions have uncommitted work in this repo).
 
 ## More of his rules
 - **He can always re-trim the cut himself:** every cut piece's edge drags to take more / less of the original take

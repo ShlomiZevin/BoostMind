@@ -24,6 +24,10 @@
 - **Click a character's name on the timeline** = all of that character's settings (look, background, voice). The ✕ in
   the inspector header = back to the project settings (speed, subtitles, texts).
 - Images (an end poster) are overlay layers (`style: image`), texts as before.
+- **Export: Full quality or Quick check** (the Export menu). Quick check = the same composite at half size (540x960),
+  ultrafast encoder, to `out/<id>.draft.mp4`, sent marked DRAFT - never replaces the real file (`zoomcut.py --quick`,
+  compose `scale`). Where the time goes (3-min video): drawing the interface ~110-195 s (every frame, even unchanged
+  ones - next speed-up: draw only frames that change), compositing ~60 s quick / ~5 min full, the speed pass.
 
 ## The editor is the tool - every feature is a control
 - Layers list in the project panel (each with its state) · Add: Hook text / Question card / Thought / Lower third /

@@ -90,6 +90,7 @@ const I = {
 function Editor() {
   const [eps, setEps] = useState<Proj[]>([]);
   const [expOpen, setExpOpen] = useState(false);
+  const [expQuick, setExpQuick] = useState(false);  // Quick check: a half-size draft (Zoom projects)
   const [stalePick, setStalePick] = useState<'email' | 'telegram' | null>(null);
   const setDone = async (id: string, done: boolean) => {
     setEps((l) => l.map((e) => (e.id === id ? { ...e, done } : e)));
@@ -376,11 +377,15 @@ function Editor() {
         <div className="exp">
           <button className="btn primary" disabled={busy || !ready} onClick={() => setExpOpen(!expOpen)} title="Export the video - pick where it goes first">{I.export} Export ▾</button>
           {expOpen && <div className="exp-pop" onMouseLeave={() => setExpOpen(false)}>
+            {!lessonData && <div className="seg exp-mode" style={{ gridTemplateColumns: '1fr 1fr', margin: '4px 10px 8px' }}>
+              <button className={!expQuick ? 'on' : ''} onClick={() => setExpQuick(false)} title="1080x1920, the file for TikTok">Full quality</button>
+              <button className={expQuick ? 'on' : ''} onClick={() => setExpQuick(true)} title="Half size, fastest - a draft to check the edit on the phone (sent marked DRAFT; the real file is not replaced)">Quick check</button>
+            </div>}
             <div className="exp-h">When it's done, send it to…</div>
             {([[['telegram'], 'Telegram', I.tg], [['email'], 'Email', I.mail], [['telegram', 'email'], 'Telegram + Email', null], [[], 'Nowhere - just make the file', null]] as const).map(([send, nm, ic]) => (
-              <button key={nm} className="exp-it" onClick={async () => { setExpOpen(false); setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send })); }}>
+              <button key={nm} className="exp-it" onClick={async () => { setExpOpen(false); setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send, quick: expQuick && !lessonData })); }}>
                 {ic || <span style={{ width: 16 }} />}{nm}</button>))}
-            <div className="exp-f">Export takes a few minutes - it sends by itself when it finishes.</div>
+            <div className="exp-f">{expQuick && !lessonData ? 'Quick check: a draft at half size, a few times faster - check the edit, then export Full quality.' : 'Export takes a few minutes - it sends by itself when it finishes.'}</div>
           </div>}
         </div>
       </div>
