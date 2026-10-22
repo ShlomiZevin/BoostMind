@@ -36,6 +36,24 @@ const LookDefs: React.FC<{ looks: any[] }> = ({ looks }) => {
   })}</svg>;
 };
 const isCut = (key: string) => /:(eyes_)?fg$/.test(key);
+// the cut-out, LIVE (the take files carry his matte as it is): matte_cut = the halo threshold, a' = (a - c) / (255 - c)
+// (pipeline/cutout.py applies the same curve in the export); keep.below = the desk's band of the take kept in front
+// (+ the asset's still mask of the objects on it); the side fade when his picture doesn't reach the frame's edges
+const MatteDefs: React.FC<{ cuts: number[] }> = ({ cuts }) => {
+  const u = [...new Set(cuts.filter((c) => c > 0 && c < 255))];
+  if (!u.length) return null;
+  return <svg width="0" height="0" style={{ position: 'absolute' }}>{u.map((c) => (
+    <filter key={c} id={`mc_${c}`} colorInterpolationFilters="sRGB" x="0" y="0" width="100%" height="100%">
+      <feComponentTransfer><feFuncA type="linear" slope={255 / (255 - c)} intercept={-c / (255 - c)} /></feComponentTransfer>
+    </filter>))}</svg>;
+};
+const keepMask = (below: number | undefined, still: string) => {
+  const parts = [below != null && below < 1 ? `linear-gradient(to bottom, transparent ${(below * 100).toFixed(2)}%, black ${(below * 100).toFixed(2)}%)` : '',
+    still ? `url("${still}")` : ''].filter(Boolean);
+  return parts.length ? { maskImage: parts.join(', '), WebkitMaskImage: parts.join(', '), maskSize: '100% 100%', WebkitMaskSize: '100% 100%',
+    maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskComposite: 'add', WebkitMaskComposite: 'source-over' } as React.CSSProperties : null;
+};
+const RAMP = 'linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%)';
 
 // lag: drawn that many frames back (the Ghost trail effect lays such a copy over the picture - its own copies)
 export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; lag?: number }> = ({ p, layer, backdrop, lag = 0 }) => {
@@ -78,9 +96,10 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
     const { parts, f, playing, rate } = live.current;
     const act = activeParts(parts, f);
     const waits = nextUses(parts, f);
-    for (const copy of Object.keys(copies)) {
-      const el = els.current[copy];
-      if (!el) continue;
+    for (const ek of Object.keys(els.current)) {
+      const el = els.current[ek];
+      const copy = ek.split('~')[0];  // (a keep-desk twin plays exactly as its copy)
+      if (!el || !(copy in copies)) continue;
       const A = act[copy];
       if (A) {
         const want = Math.min(srcAt(A, f, fps), (el.duration || Infinity) - 0.04);
@@ -135,6 +154,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   const waits = nextUses(parts, f);
   return <>
     <LookDefs looks={[layer.props?.look, ...(layer.items || []).map((i: any) => i.look)]} />
+    <MatteDefs cuts={[layer.props?.matte_cut ?? 0, ...(layer.items || []).map((i: any) => i.matte_cut ?? 0)]} />
     {Object.entries(copies).map(([copy, key]) => {
       const it = act[copy] || waits[copy] || parts.filter((x: any) => x.copy === copy).at(-1);
       const props = { ...(layer.props || {}), ...it };
@@ -151,7 +171,9 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
           zIndex: lit.current[copy] ? stackOf(lit.current[copy], parts) : (it.z ?? 0) * 10000,
           opacity: lit.current[copy] ? litOpacity(lit.current[copy], f) : 0 }}>
           {fg ? (
-            <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(props.look) }}>
+            <div style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, overflow: 'hidden', filter: lookFilter(props.look),
+              // (his picture smaller than the frame: its sides fade, as the export does)
+              ...(box.x > 0.5 || box.x + box.w < p.project.canvas.w - 0.5 ? { maskImage: RAMP, WebkitMaskImage: RAMP } : {}) }}>
               {bdImg && (() => {
                 const img = assets[bdImg.props.asset];
                 const g = backdropBox(img, b.width, b.height, bdImg.props, { x0: -b.left, y0: -b.top, w: box.w, h: box.h });
@@ -159,7 +181,15 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
                 return <img src={u} alt="" style={{ position: 'absolute', left: g.left, top: g.top, width: g.width, height: g.height, maxWidth: 'none' }} />;
               })()}
               <video ref={refEl(copy)} src={src} muted playsInline preload="auto"
-                style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none' }} />
+                style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none',
+                  filter: (props.matte_cut ?? 0) > 0 ? `url(#mc_${props.matte_cut})` : undefined }} />
+              {(() => {  // the kept desk: the same moment of the take as filmed, shown where the desk is
+                const km = keepMask(props.keep?.below, p.urls[`${it.asset}:keep`] || '');
+                const o = other(key);
+                if (!km || !o) return null;
+                return <video ref={refEl(`${copy}~k`)} src={blobs[urlOf(o)] || urlOf(o)} muted playsInline preload="auto"
+                  style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none', ...km }} />;
+              })()}
             </div>
           ) : (
             <video ref={refEl(copy)} src={src} muted playsInline preload="auto"

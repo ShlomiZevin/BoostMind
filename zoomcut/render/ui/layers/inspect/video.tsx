@@ -73,6 +73,14 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Person">
       <ToggleRow label={<>Cut-out (person on the background) <Ovr S={S} k="cutout" /></>} on={!!S.get('cutout', false)} disabled={!canCut} onChange={(v) => S.set('cutout', v)} />
       {!canCut && <Note>No cut-out mask for these takes yet.</Note>}
+      {canCut && S.get('cutout', false) && <>
+        <Slider label={<>Edge cleanup <Ovr S={S} k="matte_cut" /></>} v={S.get('matte_cut', 0)} min={0} max={240} step={1} def={0}
+          fmt={(v) => (v ? `${Math.round((v / 255) * 100)}%` : 'off')} onChange={(v, c) => S.set('matte_cut', v || null, c)} />
+        <Slider label={<>Keep desk <Ovr S={S} k="keep" /></>} v={Math.round((1 - (S.get('keep')?.below ?? 1)) * 100)} min={0} max={45} step={1} def={0}
+          fmt={(v) => (v ? `bottom ${v}%` : 'off')} onChange={(v, c) => S.set('keep', v ? { ...(S.get('keep') || {}), below: +(1 - v / 100).toFixed(3) } : null, c)} />
+        <Note>Live. Edge cleanup drops the half-sure halo around him (white wall behind raised hands); Keep desk keeps the real desk in
+          front of the set. The export applies the same.</Note>
+      </>}
     </Sec>
 
     <Sec title="Framing">

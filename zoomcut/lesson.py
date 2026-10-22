@@ -199,6 +199,37 @@ def keep_cfg(ls, take):
     return kp.get(take) or kp.get("*")
 
 
+def keep_static_png(ls, take):
+    """What the kept desk adds beyond its band: the bright objects standing on it, the fixed boxes (a mic stand), the
+    stable parts - a still mask, the band's rows left out (the band itself is live: the editor's Keep desk slider,
+    keep.below). None when nothing beyond the band is kept."""
+    k = keep_cfg(ls, take)
+    full = keep_png(ls, take)
+    if not full or not k or not (k.get("objects") or k.get("bright_in") or k.get("boxes") or k.get("stable")):
+        return None
+    import cv2
+    out = full[:-4] + ".static.png"
+    if os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(full):
+        return out
+    m = cv2.imdecode(np.fromfile(full, np.uint8), cv2.IMREAD_GRAYSCALE)
+    h = m.shape[0]
+    below = keep_below(ls, take)
+    m[int(round(below * h)):, :] = 0
+    cv2.imencode(".png", m)[1].tofile(out)
+    return out
+
+
+def keep_below(ls, take):
+    """Where the desk's band starts, a fraction of the take's height (1 = no band)."""
+    k = keep_cfg(ls, take) or {}
+    if "below" in k:
+        import cv2
+        cap = cv2.VideoCapture(os.path.join(ls.cfg["input_dir"], take + os.path.splitext(ls.takes[0])[1]))
+        h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1920
+        return float(k["below"]) / h
+    return float(k.get("below_frac", 1.0))
+
+
 def keep_png(ls, take):
     """The real things on his desk stay in front of the new set (episode.json "keep": {"<take>": {"below": y,
     "bright_in": [x0, y0, x1, y1]}}, in the take's own pixels): everything under the desk's front edge, and the
@@ -2015,17 +2046,17 @@ def take_src(ls, n, gaze):
 
 def take_proxy(ls, n, gaze, kind):
     """One take, whole, for the editor (540x960, a keyframe every half second so it seeks at once):
-    "cut" = him cut out (VP9 alpha, his matte + the kept desk), "plain" = as filmed. Made again only when its source,
-    cut-out or look changes."""
+    "cut" = him cut out (VP9 alpha = his matte as it is: the halo threshold, the kept desk and the side fade are applied
+    LIVE by the editor - render/src/layers/VideoTrack.tsx - and by the export the same way), "plain" = as filmed.
+    Made again only when its source, cut-out or look changes."""
     import hashlib
     src = take_src(ls, n, gaze)
     cutout = ls.cfg.get("cutout") is not False
-    mk, keep = (matte_path(ls, n), keep_png(ls, n)) if kind == "cut" and cutout else (None, None)
+    mk, keep = (matte_path(ls, n), None) if kind == "cut" and cutout else (None, None)
     if mk and not os.path.exists(mk):
         return None
     look = "null" if ls.cfg.get("look") else grade(ls, 540)
-    sig = hashlib.md5("|".join([src, str(os.path.getmtime(src)), str(mk and os.path.getmtime(mk)), str(keep), look,
-                                str(ls.cfg.get("matte_cut", 175)), kind, "v1"]).encode()).hexdigest()[:12]
+    sig = hashlib.md5("|".join([src, str(os.path.getmtime(src)), str(mk and os.path.getmtime(mk)), look, kind, "v2-raw-alpha"]).encode()).hexdigest()[:12]
     name_ = f"{n}{'.raw' if kind == 'cut' and not gaze and eye_cfg(ls) else ''}.{'webm' if kind == 'cut' else 'mp4'}"
     if kind == "plain":
         name_ = f"{n}.plain.mp4"
@@ -2041,12 +2072,9 @@ def take_proxy(ls, n, gaze, kind):
         ff("-i", src, "-vf", pic, "-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1", "-b:v", "2000k",
            "-g", "15", "-an", part)
     else:
-        cut = ls.cfg.get("matte_cut", 175)
-        m = f"[1:v]fps={FPS},scale=540:960,format=gray"
-        fc = (f"{m}[a];[2:v]scale=540:960,format=gray[k];[a][k]blend=all_mode=lighten,format=gray" if keep else m)
-        fc += (f",lutyuv=y='clip((val-{cut})*255/{255 - cut},0,255)',gblur=sigma=0.7,format=gray[m];"
-               f"[0:v]{pic},format=yuva420p[p];[p][m]alphamerge[v]")
-        ff("-i", src, "-i", mk, *(["-loop", "1", "-i", keep] if keep else []), "-filter_complex", fc, "-map", "[v]", "-shortest",
+        fc = (f"[1:v]fps={FPS},scale=540:960,format=gray,gblur=sigma=0.7,format=gray[m];"
+              f"[0:v]{pic},format=yuva420p[p];[p][m]alphamerge[v]")
+        ff("-i", src, "-i", mk, "-filter_complex", fc, "-map", "[v]", "-shortest",
            "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1", "-b:v", "2000k",
            "-g", "15", "-auto-alt-ref", "0", "-an", part)
     os.replace(part, out)

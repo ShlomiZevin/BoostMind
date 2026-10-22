@@ -366,10 +366,13 @@ def _build(ls, sync=True):
             a["preview"] = rel(os.path.join(takes, f"{n}.plain.mp4"))
             if cutout:
                 a["fg"] = rel(os.path.join(takes, f"{n}.webm"))
-        if cutout:
-            fm = final_matte(ls, n, ramp)
-            if fm:
-                a["matte"] = rel(fm)
+        if cutout:  # his matte as it is - the halo threshold, the kept desk and the side fade are LIVE (VideoTrack / pipeline/cutout.py)
+            mk = L.matte_path(ls, n)
+            if os.path.exists(mk):
+                a["matte"] = rel(mk)
+            ks = L.keep_static_png(ls, n)
+            if ks:
+                a["keep_static"] = rel(ks)
         assets[f"t.{n}"] = a
     full = {"x": 0, "y": 0, "w": W, "h": H}
     # Set - LIVE: the room photo (with its sign painted in) in the photo's own pixels, placed by its box (drag = pan,
@@ -420,6 +423,8 @@ def _build(ls, sync=True):
                         "ref": {"hold": it["take"], "at": round(it["t"], 2)}})
     layers.append({"id": "person", "kind": "video", "name": "Person", "owner": "builder",
                    "props": {"fit": "cover", "cutout": cutout, "eyes": bool(eyes), "look": look_of(ls),
+                             **({"matte_cut": int(cfg.get("matte_cut", 175))} if cutout else {}),
+                             **({"keep": {"below": round(L.keep_below(ls, L.name(ls.takes[0])), 4)}} if cutout and L.keep_cfg(ls, L.name(ls.takes[0])) else {}),
                              **({} if cfg.get("look") else {"af": L.grade(ls)}),
                              "box": {"x": px, "y": py, "w": pw, "h": ph}}, "items": pic})
     for it in pic:
