@@ -69,6 +69,8 @@ class Episode:
         self.cfg = load_json(self.p("episode.json"), {})
         preset_name = self.cfg.get("preset", "zoom-he")
         self.preset = load_json(os.path.join(ROOT, "presets", preset_name + ".json"), {})
+        # an episode can override single timing values (e.g. a longer hold after the removal for an end card)
+        self.preset["timing"] = {**self.preset.get("timing", {}), **self.cfg.get("timing", {})}
         self.id = os.path.basename(self.dir)
 
     def p(self, *parts):

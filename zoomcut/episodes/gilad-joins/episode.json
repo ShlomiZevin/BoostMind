@@ -1,0 +1,147 @@
+{
+  "title": "סנכרון אסטרטגי | עדכון לגלעד",
+  "preset": "zoom-he",
+  "subtitles": true,
+  "input_dir": "C:/Users/shazbak/Downloads/drop/Zoom",
+  "overlays": [
+    {
+      "text": "פוב: עוד פגישה על ה-AI עם הגאונים מההנהלה. דיברו, עברו לביצוע, רונית בדקה אם בכלל צריך, ועכשיו גלעד הצטרף לשאול מה הביזנס.",
+      "start": 0,
+      "end": null,
+      "style": "pov",
+      "theme": "dark",
+      "y": 276,
+      "opacity": 0.6,
+      "size": 40
+    },
+    {
+      "style": "image",
+      "image": "media/techytech-poster.png",
+      "start": -4.3,
+      "w": 1080,
+      "y": 960,
+      "fade_in": 0.08
+    }
+  ],
+  "characters": [
+    {
+      "id": "amir",
+      "name": "אמיר",
+      "aliases": [
+        "amir",
+        "אמיר"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "ofer",
+      "name": "עופר",
+      "aliases": [
+        "ofer",
+        "offer",
+        "עופר"
+      ],
+      "role": "exec",
+      "clean": true
+    },
+    {
+      "id": "daniel",
+      "name": "דניאל",
+      "aliases": [
+        "daniel",
+        "dani",
+        "דניאל"
+      ],
+      "role": "victim",
+      "look": {
+        "saturate": 1.45,
+        "contrast": 1.06,
+        "brightness": 1.03
+      },
+      "frame": {
+        "zoom": 1.08,
+        "y": 0
+      },
+      "clean": "strong"
+    },
+    {
+      "id": "ronit",
+      "name": "רונית",
+      "aliases": [
+        "ronit",
+        "רונית"
+      ],
+      "role": "exec"
+    },
+    {
+      "id": "gilad",
+      "name": "גלעד",
+      "aliases": [
+        "gilad",
+        "גלעד",
+        "gil"
+      ],
+      "role": "exec"
+    }
+  ],
+  "files": {
+    "13944E36-2E02-4D7E-A12B-8772938DF5E5.MP4": {
+      "char": "amir",
+      "order": 1
+    },
+    "FB0D6E09-6F58-4CB5-83A7-D969ED0D9E77.MP4": {
+      "char": "amir",
+      "order": 2
+    },
+    "B56008CB-D0AD-4BA4-AD2A-C681397FEF2A.MP4": {
+      "char": "ofer",
+      "order": 1
+    },
+    "F3AB8807-7BE0-4A16-94AC-59C1472522BA.MP4": {
+      "char": "ofer",
+      "order": 2
+    },
+    "9431A515-134C-4267-AEE1-6FA06AF2F4E5.MP4": {
+      "char": "ofer",
+      "order": 3
+    },
+    "CB859D25-26F2-47FF-A99C-B0B8B382BD22.mp4": {
+      "char": "ronit",
+      "order": 1
+    },
+    "AA8DE6ED-159D-42CC-8418-15AC21096CA8.mp4": {
+      "char": "ronit",
+      "order": 2
+    },
+    "870B0BC8-70C4-423B-92E0-FEBE0DA20928.mp4": {
+      "char": "gilad",
+      "order": 1
+    },
+    "2953F9F4-C9E5-4F04-9784-B28ECD45BD89.mp4": {
+      "char": "gilad",
+      "order": 2
+    },
+    "839A8301-E833-49A8-9724-6FFA1A8CA905.mp4": {
+      "char": "gilad",
+      "order": 3
+    },
+    "export_1792661432030.mov": {
+      "char": "daniel",
+      "order": 1
+    },
+    "export_1792661560150.mov": {
+      "char": "daniel",
+      "order": 2
+    }
+  },
+  "timing": {
+    "tail_after_removal": 3.9,
+    "interrupt_overlap": 0.7,
+    "interrupted_tail": 0.7
+  },
+  "media": [
+    "media/techytech-card.png",
+    "media/techytech-poster.png"
+  ],
+  "speed": 1.2
+}

@@ -1,0 +1,7 @@
+{
+  "hosting": {
+    "site": "techytech",
+    "public": "dist",
+    "ignore": ["**/.*", "_*"]
+  }
+}

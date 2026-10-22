@@ -60,6 +60,35 @@ def soften(x, sr=SR):
     return (y * (rms0 / (np.sqrt(np.mean(y ** 2)) + 1e-9))).astype(np.float32)
 
 
+# a character marked "clean": true - phone / filter-app audio with codec damage (a haze, "watery" gaps up top) and an
+# uneven level: rumble and the damaged top out, mild noise reduction, a compressor that evens the level (no makeup -
+# it lifted the hiss), a soft gate between words. Mild on purpose: it must never swallow a soft word.
+CLEAN_AF = ("highpass=f=80,lowpass=f=7500,afftdn=nr=15:nf=-40:tn=1,"
+            "acompressor=threshold=0.12:ratio=2.5:attack=8:release=150:makeup=1,"
+            "agate=threshold=0.012:ratio=2:range=0.25:attack=5:release=180")
+
+
+# "clean": "strong" - a muffled, ringing take (Daniel, gilad-joins: 1-6 kHz 4-6 dB low, the room ringing after each
+# word): mud out, presence up, compressor, a fast gate on the ringing tails. No RNNoise: it swallowed his "אה".
+CLEAN_STRONG_AF = ("highpass=f=90,equalizer=f=300:t=q:w=1:g=-3,equalizer=f=2800:t=q:w=1.2:g=5,lowpass=f=9000,"
+                   "acompressor=threshold=0.12:ratio=2.5:attack=6:release=120:makeup=1,"
+                   "agate=threshold=0.01:ratio=3:range=0.1:attack=2:release=50")
+
+
+def _cleaned(ep, cid):
+    import os
+    src = ep.work("audio", cid + ".wav")
+    char = next((c for c in ep.characters if cid.startswith(c["id"] + "_")), {})
+    level = char.get("clean")
+    if not level:
+        return src
+    af = CLEAN_STRONG_AF if level == "strong" else CLEAN_AF
+    out = ep.work("audio", f"{cid}.clean-{'strong' if level == 'strong' else 'mild'}.wav")
+    if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(src):
+        run([FFMPEG, "-y", "-v", "error", "-i", src, "-af", af, "-ar", str(SR), "-ac", "1", out])
+    return out
+
+
 def mix(ep, plan, total, out_wav):
     cache, gains = {}, {}
     buf = np.zeros(int((total + 1) * SR), dtype=np.float32)
@@ -71,7 +100,7 @@ def mix(ep, plan, total, out_wav):
             continue
         cid = seg["clip"]
         if cid not in cache:
-            cache[cid], _ = read_wav(ep.work("audio", cid + ".wav"))
+            cache[cid], _ = read_wav(_cleaned(ep, cid))
             gains[cid] = speech_gain(cache[cid])
         x = cache[cid]
         a, z = int(seg["in"] * SR), int(seg["out"] * SR)
@@ -94,11 +123,19 @@ def mix(ep, plan, total, out_wav):
         wf.setsampwidth(2)
         wf.setframerate(SR)
         wf.writeframes((np.clip(buf, -1, 1) * 32767).astype(np.int16).tobytes())
+    # peaks limited first: loudnorm only stays linear (one gain for the whole video) when that gain keeps the true
+    # peak under -1.5 dBTP; a few loud bursts (an aside, a shout) made it fall back to riding the level - Amir pumped
+    # down under Ronit's aside and back up after it
+    lim = raw.replace(".raw.wav", ".lim.wav")
+    run([FFMPEG, "-y", "-v", "error", "-i", raw, "-af", "alimiter=limit=0.45:attack=4:release=60:level=false", lim])
+    raw = lim
     # two-pass loudnorm
     r = run_capture([FFMPEG, "-hide_banner", "-i", raw, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"])
     m = json.loads(re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", r, re.S).group(0))
-    af = (f"loudnorm=I=-14:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
-          f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true")
+    # one fixed gain to -14 LUFS (measured above), a limiter catching only the rare peak: the level never rides
+    # (loudnorm's "linear" mode silently fell back to dynamic and pumped the voices)
+    gain = -14.0 - float(m["input_i"])
+    af = f"volume={gain:.2f}dB,alimiter=limit=0.84:attack=3:release=50:level=false"
     run([FFMPEG, "-y", "-v", "error", "-i", raw, "-af", af, "-ar", str(SR), "-ac", "2", out_wav])
     log(f"  · dialogue mixed ({total:.1f}s), loudness {m['input_i']} → -14 LUFS")
     return out_wav

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Audio, continueRender, delayRender, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Audio, continueRender, delayRender, Img, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from 'remotion';
 
 type Rect = { x: number; y: number; w: number; h: number; small?: boolean };
 type Seg = { from: number; dur: number; clip: string; at: number; fade?: number };
@@ -18,7 +18,8 @@ export type EditProps = {
   active: { from: number; dur: number; id: string }[];
   captions: { from: number; dur: number; name: string; text: string; side?: boolean; id?: string }[];
   events: { at: number; type: string; id: string; name: string }[];
-  overlays?: { text: string; style: string; from: number; dur: number; font?: string; theme?: string; opacity?: number; y?: number | null; size?: number }[];
+  overlays?: { text: string; style: string; from: number; dur: number; font?: string; theme?: string; opacity?: number; y?: number | null; size?: number;
+    image?: string; x?: number | null; w?: number; fade_in?: number }[];  // style 'image': a picture layer (an end card), x / y = its centre
   fonts?: { id: string; family: string; url: string; weight: number }[];
 };
 
@@ -275,7 +276,15 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
       )}
 
       {/* TikTok-native text: POV hook / labels, above everything, clear of TikTok's own top UI */}
-      {(p.overlays || []).filter((o) => frame >= o.from && frame < o.from + o.dur).map((o, i) => (
+      {/* image layers (an end card): over everything, also in the interface-only export pass */}
+      {(p.overlays || []).filter((o) => o.style === 'image' && o.image && frame >= o.from && frame < o.from + o.dur).map((o, i) => (
+        <Img key={'img' + i} src={p.mediaBase ? p.mediaBase + o.image : staticFile(o.image!)}
+          style={{ position: 'absolute', zIndex: 40, width: o.w || 960, left: (o.x ?? 540) - (o.w || 960) / 2, top: o.y ?? 960,
+            transform: 'translateY(-50%)', opacity: interpolate(frame - o.from, [0, Math.max(1, (o.fade_in ?? 0.3) * p.fps)], [0, o.opacity ?? 1],
+              { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) }} />
+      ))}
+
+      {(p.overlays || []).filter((o) => o.style !== 'image' && frame >= o.from && frame < o.from + o.dur).map((o, i) => (
         <div key={i} style={{ position: 'absolute', top: ovY(o, i), left: 60, right: 60,
           display: 'flex', justifyContent: 'center', zIndex: 30 }}>
           <div style={ovBoxStyle(o, OV_FONT(p, o.font))}>

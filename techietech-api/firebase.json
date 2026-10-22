@@ -1,0 +1,3 @@
+{
+  "functions": { "source": ".", "ignore": ["node_modules", ".git", "firebase-debug.log", "*.local"] }
+}

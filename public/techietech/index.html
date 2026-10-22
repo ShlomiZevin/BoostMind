@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>טקי-טק | Techy-Tech — Enterprise Solutions</title>
+<meta name="description" content="טקי-טק (Techy-Tech) — מובילה בפתרונות Enterprise מאז 1999. סנכרון אסטרטגי, Alignment ארגוני ו-AI כמנוע צמיחה.">
+<meta property="og:title" content="טקי-טק | Techy-Tech">
+<meta property="og:description" content="Enterprise Solutions. Strategic Alignment. מאז 1999.">
+<meta property="og:image" content="img/hq.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b2545;
+    --navy-2: #13315c;
+    --blue: #0a5cc2;
+    --blue-dark: #084a9c;
+    --sky: #e8f0fb;
+    --ink: #1c2633;
+    --muted: #5b6878;
+    --line: #dde3ea;
+    --bg: #ffffff;
+    --bg-2: #f4f6f9;
+    --amber: #f2a900;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: 'Heebo', Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.6; font-size: 16px; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .en { direction: ltr; unicode-bidi: isolate; }
+
+  /* utility bar */
+  .util { background: var(--navy); color: #c9d4e3; font-size: 13px; }
+  .util .wrap { display: flex; justify-content: space-between; align-items: center; height: 36px; gap: 16px; }
+  .util a { color: #c9d4e3; }
+  .util nav { display: flex; gap: 18px; }
+  .util .lang b { color: #fff; font-weight: 500; }
+
+  /* header */
+  header.main { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 50; }
+  header.main .wrap { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+  .logo { display: flex; align-items: center; gap: 10px; color: var(--navy); }
+  .logo:hover { text-decoration: none; }
+  .logo .mark { height: 38px; display: grid; place-items: center; color: var(--blue); font-weight: 800; font-size: 30px; letter-spacing: -2px; direction: ltr; }
+  footer .logo .mark { color: #6fa8f0; }
+  .logo .name { display: flex; flex-direction: column; line-height: 1.05; }
+  .logo .name b { font-size: 21px; font-weight: 800; letter-spacing: -.3px; direction: ltr; }
+  .logo .name small { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; direction: ltr; }
+  .menu { display: flex; gap: 26px; align-items: center; font-weight: 500; font-size: 15px; }
+  .menu a { color: var(--ink); }
+  .menu a:hover { color: var(--blue); text-decoration: none; }
+  .btn { display: inline-block; padding: 11px 22px; border-radius: 4px; font-weight: 500; font-size: 15px; border: 1px solid transparent; cursor: pointer; font-family: inherit; transition: background .15s, color .15s; }
+  .btn:hover { text-decoration: none; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover { background: var(--blue-dark); }
+  .btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.7); }
+  .btn.ghost:hover { background: rgba(255,255,255,.12); }
+  .btn.line { background: #fff; color: var(--blue); border-color: var(--blue); }
+  .btn.line:hover { background: var(--sky); }
+  .burger { display: none; background: none; border: 1px solid var(--line); border-radius: 4px; width: 42px; height: 38px; font-size: 20px; cursor: pointer; color: var(--navy); }
+
+  /* hero */
+  .hero { position: relative; min-height: 560px; display: flex; align-items: center; color: #fff; background: var(--navy) url('img/hq.jpg') center/cover no-repeat; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: rgba(8, 26, 52, .62); }
+  .hero .wrap { position: relative; width: 100%; }
+  .hero .kicker { display: inline-block; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #cfe0f7; border-right: 3px solid var(--amber); padding-right: 10px; margin-bottom: 18px; direction: ltr; }
+  .hero h1 { font-size: 50px; line-height: 1.15; font-weight: 800; margin: 0 0 18px; max-width: 720px; }
+  .hero p { font-size: 19px; max-width: 620px; color: #e3ebf6; margin: 0 0 30px; font-weight: 300; }
+  .hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* announcement */
+  .announce { background: var(--sky); border-bottom: 1px solid #cddcf0; }
+  .announce .wrap { display: flex; align-items: center; gap: 14px; padding-top: 14px; padding-bottom: 14px; font-size: 15px; }
+  .announce .tag { background: var(--navy); color: #fff; font-size: 12px; padding: 3px 10px; border-radius: 3px; white-space: nowrap; font-weight: 500; }
+
+  /* stats */
+  .stats { background: #fff; border-bottom: 1px solid var(--line); }
+  .stats .wrap { display: grid; grid-template-columns: repeat(5, 1fr); }
+  .stat { padding: 34px 12px; text-align: center; border-left: 1px solid var(--line); }
+  .stat:last-child { border-left: 0; }
+  .stat b { display: block; font-size: 36px; font-weight: 800; color: var(--navy); line-height: 1.1; direction: ltr; }
+  .stat span { color: var(--muted); font-size: 14px; }
+
+  section { padding: 84px 0; }
+  section.alt { background: var(--bg-2); }
+  .eyebrow { color: var(--blue); font-weight: 700; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; direction: ltr; text-align: right; }
+  h2 { font-size: 36px; line-height: 1.2; margin: 0 0 14px; color: var(--navy); font-weight: 800; }
+  .lead { font-size: 18px; color: var(--muted); max-width: 720px; margin: 0 0 44px; }
+
+  /* about */
+  .about { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+  .about img { border-radius: 6px; border: 1px solid var(--line); }
+  .about p { color: #3a4656; margin: 0 0 16px; }
+  .about ul { padding: 0; margin: 22px 0 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+  .about li { padding-right: 22px; position: relative; font-weight: 500; font-size: 15px; }
+  .about li::before { content: ''; position: absolute; right: 0; top: 9px; width: 9px; height: 9px; background: var(--blue); border-radius: 2px; }
+
+  /* solutions */
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 28px 24px; display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s; }
+  .card:hover { border-color: #b9c9de; box-shadow: 0 6px 18px rgba(11,37,69,.06); }
+  .card .ico { width: 44px; height: 44px; border-radius: 6px; background: var(--sky); color: var(--blue); display: grid; place-items: center; margin-bottom: 18px; }
+  .card h3 { margin: 0 0 4px; font-size: 19px; color: var(--navy); direction: ltr; text-align: right; }
+  .card .sub { font-size: 13px; color: var(--blue); font-weight: 500; margin-bottom: 10px; }
+  .card p { color: var(--muted); font-size: 15px; margin: 0 0 18px; flex: 1; }
+  .card .more { font-weight: 500; font-size: 14px; }
+
+  /* people */
+  .person { background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; transition: border-color .15s, box-shadow .15s; text-align: right; font: inherit; color: inherit; padding: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; width: 100%; height: 100%; }
+  .person .info { flex: 1; }
+  .person.vacant .ph { border-bottom: 1px dashed #b9c6d6; }
+  .person.vacant h4 { color: var(--muted); }
+
+  /* org chart: CEO, the executive row, then a panel per division */
+  .org { --wire: #b9c6d6; }
+  .org-ceo { width: 280px; margin: 0 auto; position: relative; padding-bottom: 30px; }
+  .org-ceo::after { content: ''; position: absolute; bottom: 0; right: 50%; width: 1px; height: 30px; background: var(--wire); }
+  .org-ceo .person h4 { font-size: 22px; }
+  .org-ceo .person .role { font-size: 15px; }
+  .org-execs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; position: relative; padding-top: 30px; }
+  .exec { position: relative; }
+  /* the rail: each card draws its own stub and its share of the horizontal line, so the pieces always meet */
+  .exec::before { content: ''; position: absolute; top: -30px; right: 50%; width: 1px; height: 30px; background: var(--wire); }
+  .exec::after { content: ''; position: absolute; top: -30px; right: -8px; left: -8px; height: 1px; background: var(--wire); }
+  .exec:first-child::after { right: 50%; }
+  .exec:last-child::after { left: 50%; }
+  .exec .person .info { padding: 12px 14px 14px; }
+  .exec .person h4 { font-size: 16px; }
+  .exec .person .role { font-size: 13px; line-height: 1.4; }
+
+  .divs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; }
+  .div { background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .div-h { display: flex; gap: 12px; align-items: center; padding: 16px 18px; background: var(--bg-2); border-bottom: 1px solid var(--line); }
+  .div-h .av { width: 46px; height: 46px; }
+  .div-h b { display: block; color: var(--navy); font-size: 16px; line-height: 1.3; }
+  .div-h small { display: block; color: var(--muted); font-size: 12px; }
+  .div-b { padding: 6px 18px 16px; }
+  .unit { margin-top: 14px; }
+  .unit-n { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: .3px; }
+  .unit-n span { color: var(--muted); font-weight: 400; direction: ltr; unicode-bidi: isolate; }
+  /* tree: every item draws its own vertical piece, the last one stops at its own stub */
+  .tree, .tree ul { list-style: none; margin: 2px 0 0; padding: 0 16px 0 0; }
+  .tree ul { margin: -6px 20px 0 0; }
+  .tree li { position: relative; }
+  .tree li::before { content: ''; position: absolute; right: -16px; top: 26px; width: 14px; height: 1px; background: #c3cedb; }
+  .tree li::after { content: ''; position: absolute; right: -16px; top: 0; bottom: 0; width: 1px; background: #c3cedb; }
+  .tree li:last-child::after { bottom: auto; height: 27px; }
+  .chip.group .av { background: var(--sky); color: var(--blue); display: grid; place-items: center; font-weight: 700; font-size: 13px; direction: ltr; }
+  .chip.group { cursor: default; }
+  .chip.group:hover b { color: var(--navy); }
+
+  /* the people, medium cards (smaller than management, bigger than the tree) */
+  .staff { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mate { display: flex; gap: 18px; align-items: stretch; background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; font: inherit; color: inherit; text-align: right; padding: 0; transition: border-color .15s, box-shadow .15s; }
+  .mate:hover { border-color: #b9c9de; box-shadow: 0 6px 18px rgba(11,37,69,.06); }
+  .mate .ph { width: 128px; flex: none; aspect-ratio: 1 / 1; background: #e9edf2; }
+  .mate .ph img, .mate .ph svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mate .tx { padding: 14px 4px 14px 16px; align-self: center; }
+  .mate h4 { margin: 0; font-size: 17px; color: var(--navy); }
+  .mate .role { font-size: 14px; color: var(--ink); }
+  .mate .role-en { font-size: 12px; color: var(--muted); direction: ltr; text-align: right; }
+  .mate .unit-of { font-size: 12px; color: var(--blue); margin-top: 6px; }
+  .chip { display: flex; gap: 10px; align-items: center; padding: 6px 0; background: none; border: 0; font: inherit; color: inherit; text-align: right; width: 100%; cursor: pointer; border-radius: 4px; }
+  .chip:hover b { color: var(--blue); }
+  .av { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex: none; background: #e3e8ee; }
+  .av img, .av svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .chip b { display: block; font-size: 14px; color: var(--navy); line-height: 1.3; transition: color .15s; }
+  .chip small { display: block; font-size: 12px; color: var(--muted); line-height: 1.35; }
+  .chip.vacant .av { background: #eef0f3; }
+  .jobs-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: -20px 0 18px; flex-wrap: wrap; color: var(--muted); }
+  .jobs-bar b { color: var(--navy); }
+  .job-t { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .dept { font-size: 11px; font-weight: 700; color: var(--blue); background: var(--sky); padding: 2px 8px; border-radius: 3px; direction: ltr; }
+  /* the CV form */
+  #apply .box2 { background: #fff; border-radius: 8px; max-width: 560px; width: 100%; padding: 28px; position: relative; max-height: 92vh; overflow: auto; }
+  #apply h3 { margin: 0 0 4px; color: var(--navy); font-size: 22px; }
+  #apply .sub2 { color: var(--muted); font-size: 14px; margin: 0 0 6px; }
+  #apply input[type=file] { padding: 9px; background: var(--bg-2); }
+  #apply .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  #apply .err { color: #b42318; font-size: 14px; margin-top: 10px; min-height: 1px; }
+  #apply .small { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .chip.vacant b { color: var(--muted); font-weight: 500; }
+  @media (max-width: 1000px) {
+    .org-execs { grid-template-columns: repeat(3, 1fr); row-gap: 40px; }
+    .exec:nth-child(n+4)::before, .exec:nth-child(n+4)::after { display: none; }
+    .exec:nth-child(3)::after { left: 50%; }
+    .divs { grid-template-columns: 1fr 1fr; }
+  }
+  .person:hover { border-color: #b9c9de; box-shadow: 0 6px 18px rgba(11,37,69,.07); }
+  .person .ph { aspect-ratio: 1 / 1; background: #e9edf2; position: relative; }
+  .person .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .person .ph svg { width: 100%; height: 100%; }
+  .person .info { padding: 16px 18px 18px; }
+  .person h4 { margin: 0; font-size: 18px; color: var(--navy); }
+  .person .role { font-size: 14px; color: var(--ink); margin-top: 2px; }
+  .person .role-en { font-size: 12px; color: var(--muted); direction: ltr; text-align: right; }
+  .person.join { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; background: var(--navy); color: #fff; border-color: var(--navy); min-height: 300px; }
+  .person.join h4 { color: #fff; font-size: 22px; margin-bottom: 8px; }
+  .person.join p { color: #c9d4e3; font-size: 14px; margin: 0 0 18px; }
+  .sub-h { font-size: 22px; color: var(--navy); margin: 56px 0 20px; font-weight: 700; }
+
+  /* values */
+  .values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  .value { padding: 30px 26px; border-left: 1px solid var(--line); }
+  .value:last-child { border-left: 0; }
+  .value .n { color: var(--blue); font-weight: 800; font-size: 14px; direction: ltr; text-align: right; }
+  .value h3 { margin: 6px 0 8px; color: var(--navy); font-size: 20px; direction: ltr; text-align: right; }
+  .value p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* news */
+  .news { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .news article { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 24px; }
+  .news .meta { font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .news .cat { background: var(--sky); color: var(--blue); padding: 2px 8px; border-radius: 3px; font-weight: 500; font-size: 12px; }
+  .news h3 { margin: 0 0 10px; font-size: 18px; line-height: 1.4; color: var(--navy); }
+  .news p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* careers */
+  .jobs { border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  .job { display: grid; grid-template-columns: 1fr auto auto; gap: 20px; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+  .job:last-child { border-bottom: 0; }
+  .job h3 { margin: 0; font-size: 17px; color: var(--navy); }
+  .job .req { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .job .loc { font-size: 14px; color: var(--muted); white-space: nowrap; }
+
+  /* investors */
+  .ir { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .ir-list { border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  .ir-list a, .ir-list div { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); color: var(--ink); font-weight: 500; }
+  .ir-list > :last-child { border-bottom: 0; }
+  .ir-list span { font-size: 13px; color: var(--muted); font-weight: 400; }
+  .ir-list a:hover { background: var(--bg-2); text-decoration: none; }
+
+  /* contact */
+  .contact { display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px; }
+  .contact dl { margin: 0; }
+  .contact dt { font-weight: 700; color: var(--navy); margin-top: 18px; }
+  .contact dd { margin: 2px 0 0; color: var(--muted); }
+  form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  form label { display: block; font-size: 14px; font-weight: 500; margin: 14px 0 6px; }
+  form input, form select, form textarea { width: 100%; font: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid #c7d0db; border-radius: 4px; background: #fff; color: var(--ink); }
+  form input:focus, form select:focus, form textarea:focus { outline: 2px solid var(--sky); border-color: var(--blue); }
+  form textarea { min-height: 110px; resize: vertical; }
+  .note { margin-top: 14px; padding: 14px 16px; background: var(--sky); border-right: 3px solid var(--blue); border-radius: 3px; font-size: 15px; display: none; }
+
+  footer { background: var(--navy); color: #a9b7ca; font-size: 14px; padding: 56px 0 26px; }
+  footer .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+  footer h5 { color: #fff; font-size: 15px; margin: 0 0 12px; }
+  footer a { color: #a9b7ca; display: block; margin: 6px 0; }
+  footer .logo { color: #fff; margin-bottom: 14px; }
+  footer .logo .name small { color: #8fa1b8; }
+  footer .legal { border-top: 1px solid rgba(255,255,255,.12); margin-top: 40px; padding-top: 20px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+  footer .legal a { display: inline; margin: 0 0 0 16px; }
+
+  /* modal */
+  .modal { position: fixed; inset: 0; background: rgba(8, 20, 40, .55); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal.open { display: flex; }
+  .modal .box { background: #fff; border-radius: 8px; max-width: 720px; width: 100%; display: grid; grid-template-columns: 240px 1fr; overflow: hidden; max-height: 92vh; }
+  .modal .box .ph { background: #e9edf2; }
+  .modal .box .ph img, .modal .box .ph svg { width: 100%; height: 100%; object-fit: cover; }
+  .modal .box .body { padding: 28px; overflow: auto; position: relative; }
+  .modal h3 { margin: 0; font-size: 24px; color: var(--navy); }
+  .modal .role { color: var(--ink); font-weight: 500; }
+  .modal .role-en { color: var(--muted); font-size: 13px; direction: ltr; text-align: right; }
+  .modal p { color: #3a4656; }
+  .modal blockquote { margin: 16px 0 0; padding: 12px 16px; border-right: 3px solid var(--amber); background: var(--bg-2); font-weight: 500; color: var(--navy); }
+  .modal .x { position: absolute; top: 12px; left: 12px; border: 0; background: none; font-size: 24px; cursor: pointer; color: var(--muted); line-height: 1; }
+  .modal .li { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; font-size: 14px; font-weight: 500; }
+
+  .access { position: fixed; bottom: 18px; left: 18px; width: 48px; height: 48px; border-radius: 50%; background: var(--blue); color: #fff; border: 0; display: grid; place-items: center; cursor: pointer; z-index: 40; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+
+  @media (max-width: 1000px) {
+    .grid4 { grid-template-columns: 1fr 1fr; }
+    .values { grid-template-columns: 1fr 1fr; }
+    .value:nth-child(2) { border-left: 0; }
+    .value:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+    .stats .wrap { grid-template-columns: repeat(3, 1fr); }
+    .stat:nth-child(3) { border-left: 0; }
+    .stat:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
+    footer .cols { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 860px) {
+    .menu { display: none; position: absolute; top: 76px; right: 0; left: 0; background: #fff; flex-direction: column; align-items: stretch; gap: 0; border-bottom: 1px solid var(--line); }
+    .menu.open { display: flex; }
+    .menu a { padding: 14px 24px; border-top: 1px solid var(--line); }
+    .menu .btn { margin: 12px 24px; text-align: center; }
+    .burger { display: block; }
+    .about, .ir, .contact { grid-template-columns: 1fr; gap: 32px; }
+    .news { grid-template-columns: 1fr; }
+    .util nav a:not(.keep) { display: none; }
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 0 16px; }
+    section { padding: 60px 0; }
+    .hero { min-height: 480px; }
+    .hero h1 { font-size: 33px; }
+    .hero p { font-size: 17px; }
+    h2 { font-size: 28px; }
+    .grid4, .values { grid-template-columns: 1fr; }
+    .value { border-left: 0 !important; border-bottom: 1px solid var(--line); }
+    .value:last-child { border-bottom: 0; }
+    .stats .wrap { grid-template-columns: 1fr 1fr; }
+    .stat { border-left: 1px solid var(--line) !important; border-bottom: 1px solid var(--line); padding: 22px 8px; }
+    .stat:nth-child(2n) { border-left: 0 !important; }
+    .stat:last-child { grid-column: 1 / -1; border-bottom: 0; }
+    .stat b { font-size: 28px; }
+    .org-ceo { width: 220px; }
+    .org-execs { grid-template-columns: 1fr 1fr; gap: 12px; row-gap: 12px; padding-top: 18px; }
+    .exec::before { top: -18px; height: 18px; }
+    .exec::after { top: -18px; right: -6px; left: -6px; }
+    .exec:nth-child(2)::after { left: 50%; }
+    .exec:nth-child(n+3)::before, .exec:nth-child(n+3)::after { display: none; }
+    .exec:nth-child(n+4)::after { display: none; }
+    .divs { grid-template-columns: 1fr; }
+    .staff { grid-template-columns: 1fr; }
+    .mate .ph { width: 104px; }
+    .person .info { padding: 12px; }
+    .person h4 { font-size: 16px; }
+    .person .role { font-size: 13px; }
+    .job { grid-template-columns: 1fr; gap: 8px; }
+    form .row { grid-template-columns: 1fr; }
+    .about ul { grid-template-columns: 1fr; }
+    footer .cols { grid-template-columns: 1fr; }
+    .modal .box { grid-template-columns: 1fr; }
+    .modal .box .ph { max-height: 300px; }
+    .announce .wrap { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="util">
+  <div class="wrap">
+    <nav>
+      <a href="#investors" class="keep">קשרי משקיעים</a>
+      <a href="#careers" class="keep">קריירה</a>
+      <a href="#news">חדר חדשות</a>
+      <a href="#contact">צור קשר</a>
+    </nav>
+    <div class="lang"><b>עב</b> | <a href="#" onclick="note('The English website is coming soon.');return false">EN</a></div>
+  </div>
+</div>
+
+<header class="main">
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <span class="mark">&lt;/&gt;</span>
+      <span class="name"><b>Techy-Tech</b><small>Enterprise Solutions</small></span>
+    </a>
+    <nav class="menu" id="menu">
+      <a href="#about">אודות</a>
+      <a href="#solutions">פתרונות</a>
+      <a href="#leadership">הנהלה</a>
+      <a href="#people">האנשים שלנו</a>
+      <a href="#news">חדשות</a>
+      <a href="#careers">קריירה</a>
+      <a class="btn primary" href="#contact">דברו עם מומחה</a>
+    </nav>
+    <button class="burger" aria-label="תפריט" onclick="document.getElementById('menu').classList.toggle('open')">☰</button>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div class="kicker">Enterprise · Strategy · AI</div>
+      <h1>מובילים את הסנכרון האסטרטגי של עולם ה-Enterprise</h1>
+      <p>מאז 1999 טקי-טק מספקת לארגונים המובילים בישראל ובעולם פתרונות שמייצרים Alignment, מעצימים Synergy ומניעים Value לאורך כל שרשרת הערך.</p>
+      <div class="ctas">
+        <a class="btn primary" href="#solutions">לפתרונות שלנו</a>
+        <a class="btn ghost" href="#about">הכירו את טקי-טק</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="announce">
+    <div class="wrap">
+      <span class="tag">הודעה לעיתונות</span>
+      <span>טקי-טק מציגה את הכיוון האסטרטגי החדש שלה: הפיכת ה-AI ממנוע התייעלות למנוע צמיחה אסטרטגי. <a href="#news">לפרטים</a></span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="wrap">
+      <div class="stat"><b>27</b><span>שנות פעילות</span></div>
+      <div class="stat"><b>1,400+</b><span>עובדים ועובדות</span></div>
+      <div class="stat"><b>6</b><span>מרכזי פיתוח בעולם</span></div>
+      <div class="stat"><b>300+</b><span>לקוחות Enterprise</span></div>
+      <div class="stat"><b>18</b><span>מדינות פעילות</span></div>
+    </div>
+  </div>
+
+  <section id="about">
+    <div class="wrap about">
+      <div>
+        <div class="eyebrow">About Techy-Tech</div>
+        <h2>יציבות של חברה ותיקה. חדשנות של ארגון שלא מפסיק לרוץ.</h2>
+        <p>טקי-טק נוסדה ב-1999 ומאז צמחה לאחת מחברות ה-Enterprise Software הוותיקות בישראל. מטה החברה ממוקם בפתח תקווה, ולצדו מרכזי פיתוח ומכירות באירופה, בצפון אמריקה ובאסיה.</p>
+        <p>אנחנו מאמינים שטכנולוגיה טובה מתחילה בהבנה עמוקה של הארגון. אנחנו עובדים בצמוד להנהלות הלקוחות, מגדירים יעדים משותפים ומלווים כל הטמעה עד לתוצאה מדידה.</p>
+        <ul>
+          <li>ISO 27001 · ISO 9001</li>
+          <li>תמיכה 24/7 בשלוש יבשות</li>
+          <li>שותף אסטרטגי לארגוני Fortune 500</li>
+          <li>תהליכי Governance מוקפדים</li>
+        </ul>
+      </div>
+      <img src="img/boardroom.jpg" alt="חדר הישיבות במטה טקי-טק" loading="lazy">
+    </div>
+  </section>
+
+  <section id="solutions" class="alt">
+    <div class="wrap">
+      <div class="eyebrow">Solutions</div>
+      <h2>הפתרונות שלנו</h2>
+      <p class="lead">חבילת פתרונות Enterprise מקצה לקצה, שנבנתה לאורך 27 שנה כדי לתת לארגונים בהירות, שליטה ותוצאות.</p>
+      <div class="grid4">
+        <div class="card">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+          <h3>TechyCore™</h3>
+          <div class="sub">Enterprise Suite</div>
+          <p>פלטפורמת הליבה של הארגון: תהליכים, נתונים ודיווח במקום אחד. יציבה, מאובטחת ומוכחת לאורך שני עשורים.</p>
+          <a class="more" href="#contact">למידע נוסף ←</a>
+        </div>
+        <div class="card">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
+          <h3>SyncPoint™</h3>
+          <div class="sub">סנכרון אסטרטגי</div>
+          <p>ניהול תוכניות עבודה אסטרטגיות, יעדים ו-OKRs ברמת הארגון, עם מעקב ביצוע ודיווח להנהלה בזמן אמת.</p>
+          <a class="more" href="#contact">למידע נוסף ←</a>
+        </div>
+        <div class="card">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></div>
+          <h3>AlignAI™</h3>
+          <div class="sub">AI כמנוע צמיחה</div>
+          <p>שכבת AI ארגונית שמחברת את הנתונים, התהליכים והמערכות הקיימות, ומאפשרת להטמיע יכולות AI בצורה מאובטחת ומבוקרת.</p>
+          <a class="more" href="#contact">למידע נוסף ←</a>
+        </div>
+        <div class="card">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></div>
+          <h3>RiskView™</h3>
+          <div class="sub">ניהול סיכונים ארגוני</div>
+          <p>ניהול סיכונים, ציות ובקרה במערכת אחת: מיפוי סיכונים, בקרות שוטפות ודוחות ברמת דירקטוריון.</p>
+          <a class="more" href="#contact">למידע נוסף ←</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="leadership">
+    <div class="wrap">
+      <div class="eyebrow">Leadership &amp; Organization</div>
+      <h2>ההנהלה והמבנה הארגוני</h2>
+      <p class="lead">צוות ההנהלה של טקי-טק מביא עשרות שנות ניסיון בהובלת ארגוני Enterprise בישראל ובעולם.</p>
+      <div class="org">
+        <div class="org-ceo" id="ceo"></div>
+        <div class="org-execs" id="execs"></div>
+      </div>
+
+      <div class="sub-h" id="org">החטיבות</div>
+      <p class="lead" style="margin-bottom:28px">שש חטיבות, שישה מרכזי פיתוח בארבע יבשות ולמעלה מ-1,400 עובדים ועובדות. (נכון לרבעון השלישי 2026)</p>
+      <div class="divs" id="divs"></div>
+
+      <div class="sub-h" id="people">הכירו את הצוות</div>
+      <p class="lead" style="margin-bottom:28px">חלק מהאנשים שעושים את טקי-טק למה שהיא.</p>
+      <div class="staff" id="staff"></div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap">
+      <div class="eyebrow">Our Values</div>
+      <h2>הערכים שמובילים אותנו</h2>
+      <p class="lead">ארבעה עקרונות שמנחים אותנו בעבודה היומיומית, מול הלקוחות ובתוך הארגון.</p>
+      <div class="values">
+        <div class="value"><div class="n">01</div><h3>Alignment</h3><p>אנחנו מקבלים החלטות יחד, עם תמונה מלאה ושקיפות בין כל הגורמים בארגון.</p></div>
+        <div class="value"><div class="n">02</div><h3>Ownership</h3><p>כל אחד מאיתנו אחראי לתוצאה, מהשורה הראשונה בקוד ועד הלקוח.</p></div>
+        <div class="value"><div class="n">03</div><h3>Execution</h3><p>אנחנו מודדים את עצמנו בתוצאות. תוכנית טובה שווה רק כמו הביצוע שלה.</p></div>
+        <div class="value"><div class="n">04</div><h3>Synergy</h3><p>כשהנהלה, מוצר וטכנולוגיה עובדים כגוף אחד, הלקוחות שלנו מרוויחים.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="news">
+    <div class="wrap">
+      <div class="eyebrow">Newsroom</div>
+      <h2>חדשות ועדכונים</h2>
+      <p class="lead">הודעות לעיתונות, אירועים ועדכונים מבית טקי-טק.</p>
+      <div class="news">
+        <article>
+          <div class="meta"><span class="cat">אסטרטגיה</span><span>אוקטובר 2026</span></div>
+          <h3>טקי-טק מציגה את הכיוון האסטרטגי שלה סביב ה-AI</h3>
+          <p>החברה תשקיע בהטמעת יכולות AI בכל קווי המוצר, במטרה להפוך את ה-AI ממנוע התייעלות למנוע צמיחה אסטרטגי. פרטים נוספים יוצגו בכנס הלקוחות השנתי.</p>
+        </article>
+        <article>
+          <div class="meta"><span class="cat">מינויים</span><span>ספטמבר 2026</span></div>
+          <h3>גלעד שחר מונה למנכ"ל טקי-טק</h3>
+          <p>שחר, בעל ניסיון של למעלה משני עשורים בהובלת חברות Enterprise, יוביל את החברה בשלב הצמיחה הבא שלה.</p>
+        </article>
+        <article>
+          <div class="meta"><span class="cat">מוצר</span><span>יולי 2026</span></div>
+          <h3>SyncPoint™ 4.0 זמינה ללקוחות</h3>
+          <p>הגרסה החדשה כוללת לוחות בקרה מבוססי AI, אינטגרציה מלאה עם מערכות ה-ERP המובילות ושיפורי ביצועים משמעותיים.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="careers" class="alt">
+    <div class="wrap">
+      <div class="eyebrow">Careers</div>
+      <h2>בואו לעבוד איתנו</h2>
+      <p class="lead">בטקי-טק תמצאו סביבת עבודה יציבה ומקצועית, אפשרויות קידום, מודל עבודה היברידי ותוכנית רווחה מקיפה.</p>
+      <div class="jobs-bar"><span><b id="jobCount"></b> משרות פתוחות בישראל ובעולם</span><button class="btn primary" onclick="applyFor('פנייה כללית')">שליחת קורות חיים</button></div>
+      <div class="jobs" id="jobs"></div>
+    </div>
+  </section>
+
+  <section id="investors">
+    <div class="wrap ir">
+      <div>
+        <div class="eyebrow">Investor Relations</div>
+        <h2>קשרי משקיעים</h2>
+        <p class="lead" style="margin-bottom:24px">טקי-טק מחויבת לשקיפות מלאה מול המשקיעים ובעלי העניין שלה. כאן תמצאו את הדוחות והמצגות העדכניים.</p>
+        <a class="btn line" href="#contact">פנייה למחלקת קשרי משקיעים</a>
+      </div>
+      <div class="ir-list">
+        <a href="#" onclick="note('הדוח השנתי לשנת 2025 זמין לבעלי עניין בפנייה למחלקת קשרי משקיעים.');return false">דוח שנתי 2025 <span>PDF · 4.2MB</span></a>
+        <a href="#" onclick="note('מצגת המשקיעים תפורסם לאחר כנס הלקוחות השנתי.');return false">מצגת משקיעים — אסטרטגיית AI <span>בהכנה</span></a>
+        <a href="#" onclick="note('דוחות רבעוניים זמינים לבעלי עניין, בתיאום מראש.');return false">דוחות רבעוניים <span>Q1–Q2 2026</span></a>
+        <div>ממשל תאגידי <span>Corporate Governance</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="alt">
+    <div class="wrap contact">
+      <div>
+        <div class="eyebrow">Contact Us</div>
+        <h2>צרו קשר</h2>
+        <p class="lead" style="margin-bottom:10px">רוצים לשמוע איך טקי-טק יכולה לקדם את הארגון שלכם? השאירו פרטים ונציג יחזור אליכם.</p>
+        <dl>
+          <dt>מטה החברה</dt>
+          <dd>מגדלי טקי-טק, קומות 7–14<br>פארק ההייטק, פתח תקווה</dd>
+          <dt>שעות פעילות</dt>
+          <dd>א'–ה', 08:30–18:00</dd>
+          <dt>מרכזי פיתוח</dt>
+          <dd>פתח תקווה · חיפה · לונדון · בוסטון · קייב · בנגלור</dd>
+        </dl>
+      </div>
+      <form onsubmit="event.preventDefault(); this.reset(); const n=document.getElementById('formNote'); n.style.display='block'; return false;">
+        <div class="row">
+          <div><label for="f1">שם מלא</label><input id="f1" autocomplete="off"></div>
+          <div><label for="f2">חברה</label><input id="f2" autocomplete="off"></div>
+        </div>
+        <div class="row">
+          <div><label for="f3">תפקיד</label><input id="f3" autocomplete="off"></div>
+          <div><label for="f4">נושא הפנייה</label>
+            <select id="f4"><option>פתרונות Enterprise</option><option>SyncPoint™</option><option>AlignAI™</option><option>קשרי משקיעים</option><option>קריירה</option></select>
+          </div>
+        </div>
+        <label for="f5">הודעה</label>
+        <textarea id="f5"></textarea>
+        <button class="btn primary" style="margin-top:16px">שליחה</button>
+        <div class="note" id="formNote">תודה. פנייתך התקבלה ונציג מטעמנו יחזור אליך בהקדם.</div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="logo" href="#top"><span class="mark">&lt;/&gt;</span><span class="name"><b>Techy-Tech</b><small>Enterprise Solutions</small></span></a>
+        <p style="margin:0;max-width:300px">פתרונות Enterprise, סנכרון אסטרטגי ו-AI כמנוע צמיחה. מאז 1999.</p>
+      </div>
+      <div><h5>החברה</h5><a href="#about">אודות</a><a href="#leadership">הנהלה</a><a href="#people">האנשים שלנו</a><a href="#news">חדר חדשות</a></div>
+      <div><h5>פתרונות</h5><a href="#solutions">TechyCore™</a><a href="#solutions">SyncPoint™</a><a href="#solutions">AlignAI™</a><a href="#solutions">RiskView™</a></div>
+      <div><h5>מידע</h5><a href="#careers">קריירה</a><a href="#investors">קשרי משקיעים</a><a href="#contact">צור קשר</a></div>
+    </div>
+    <div class="legal">
+      <span>© 1999–2026 Techy-Tech Ltd. כל הזכויות שמורות.</span>
+      <span><a href="#" onclick="note('האתר אינו אוסף מידע אישי. מדיניות הפרטיות המלאה זמינה בפנייה דרך טופס צור קשר.');return false">מדיניות פרטיות</a><a href="#" onclick="note('האתר הונגש בהתאם לתקן הישראלי 5568. לפניות בנושא נגישות ניתן לפנות דרך טופס צור קשר.');return false">הצהרת נגישות</a><a href="#" onclick="note('תנאי השימוש המלאים יפורסמו בקרוב.');return false">תנאי שימוש</a></span>
+    </div>
+  </div>
+</footer>
+
+<button class="access" aria-label="נגישות" onclick="note('תפריט הנגישות בהכנה. בינתיים אפשר להגדיל עם Ctrl ו-+.')">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="M5 8h14M12 8v6M9 21l3-7 3 7"/></svg>
+</button>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="box">
+    <div class="ph" id="mPh"></div>
+    <div class="body">
+      <button class="x" onclick="closeModal()" aria-label="סגירה">×</button>
+      <h3 id="mName"></h3>
+      <div class="role" id="mRole"></div>
+      <div class="role-en" id="mRoleEn"></div>
+      <p id="mBio"></p>
+      <blockquote id="mQuote"></blockquote>
+      <a class="li" href="#" onclick="note('הפרופיל המלא זמין לעובדי החברה בלבד.');return false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.4c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/></svg>
+        פרופיל LinkedIn
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="apply" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="box2">
+    <button class="x" onclick="document.getElementById('apply').classList.remove('open')" aria-label="סגירה" style="position:absolute;top:12px;left:12px;border:0;background:none;font-size:24px;cursor:pointer;color:var(--muted)">×</button>
+    <form id="aForm" onsubmit="sendApply(event)">
+      <h3>הגשת מועמדות</h3>
+      <p class="sub2">צרפו קורות חיים וצוות הגיוס של טקי-טק יחזור אליכם.</p>
+      <label for="aPos">משרה</label>
+      <select id="aPos" name="position"></select>
+      <div class="row">
+        <div><label for="aName">שם מלא</label><input id="aName" name="name" required autocomplete="name"></div>
+        <div><label for="aEmail">אימייל</label><input id="aEmail" name="email" type="email" required autocomplete="email" dir="ltr"></div>
+      </div>
+      <label for="aPhone">טלפון</label>
+      <input id="aPhone" name="phone" type="tel" autocomplete="tel" dir="ltr">
+      <label for="aCv">קורות חיים (PDF / Word, עד 5MB)</label>
+      <input id="aCv" name="cv" type="file" accept=".pdf,.doc,.docx" required>
+      <label for="aMsg">כמה מילים עליך (לא חובה)</label>
+      <textarea id="aMsg" name="message" style="min-height:80px"></textarea>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="err" id="aErr"></div>
+      <button class="btn primary" type="submit" style="margin-top:12px;width:100%">שליחת מועמדות</button>
+      <div class="small">הפרטים ישמשו לצורך תהליך הגיוס בלבד.</div>
+    </form>
+    <div id="aDone" style="display:none;text-align:center;padding:20px 0">
+      <h3>תודה!</h3>
+      <p class="sub2" style="margin:8px 0 20px">קורות החיים התקבלו. צוות הגיוס יעבור עליהם ויחזור אליך בהקדם.</p>
+      <button class="btn primary" onclick="document.getElementById('apply').classList.remove('open')">סגירה</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="toast" onclick="this.classList.remove('open')">
+  <div style="background:#fff;border-radius:8px;max-width:440px;padding:26px 28px;border-top:4px solid var(--blue)">
+    <p id="toastText" style="margin:0 0 18px;font-size:16px"></p>
+    <button class="btn primary">הבנתי</button>
+  </div>
+</div>
+
+<script>
+  // The people. photo: a file in team/ (null = the grey placeholder until the picture arrives).
+  const LEADERS = [
+    { id: 'gilad', name: 'גלעד שחר', role: 'מנכ"ל ונשיא', en: 'CEO & President', photo: null,
+      bio: 'גלעד מכהן כמנכ"ל ונשיא טקי-טק. מביא למעלה משני עשורים של ניסיון בהובלת חברות Enterprise בישראל ובעולם, בניהול מהלכי צמיחה ובעבודה מול דירקטוריונים ומשקיעים.',
+      quote: 'הצמיחה הבאה שלנו תגיע ממיקוד ברור במה שהלקוחות שלנו באמת צריכים.' },
+    { id: 'amir', name: 'אמיר לביא', role: 'סמנכ"ל אסטרטגיה וחדשנות', en: 'Chief Strategy Officer', photo: 'amir.jpg',
+      bio: 'אמיר מוביל את האסטרטגיה והחדשנות של טקי-טק, כולל תוכנית ה-AI הארגונית של החברה. לפני הצטרפותו כיהן בתפקידי אסטרטגיה בכירים בחברות טכנולוגיה בינלאומיות.',
+      quote: 'ה-AI הוא כבר לא כלי התייעלות. הוא מנוע הצמיחה הבא של החברה.' },
+    { id: 'ofer', name: 'עופר דהן', role: 'סמנכ"ל פיתוח עסקי', en: 'VP Business Development', photo: 'ofer.jpg',
+      bio: 'עופר אחראי על פיתוח עסקי, שותפויות אסטרטגיות והצלחת לקוחות. מוביל את הקשר עם לקוחות ה-Enterprise הגדולים של החברה בישראל ובאירופה.',
+      quote: 'השותפויות שלנו נבנות לטווח ארוך.' },
+    { id: 'lior', name: 'ליאור בן-עמי', role: 'סמנכ"ל מכירות גלובלי', en: 'VP Global Sales', photo: 'sales.jpg',
+      bio: 'ליאור מוביל את פעילות המכירות הגלובלית של טקי-טק בישראל, באירופה, בצפון אמריקה ובאסיה, עם צוותים בלונדון, בבוסטון ובסינגפור.',
+      quote: 'הלקוחות שלנו לא קונים מוצר. הם בוחרים שותף.' },
+    { id: 'ronit', name: 'רונית אלמוג', role: 'סמנכ"לית תפעול וניהול סיכונים', en: 'COO & Chief Risk Officer', photo: 'ronit.jpg',
+      bio: 'רונית אחראית על התפעול, הכספים, אבטחת המידע וניהול הסיכונים של טקי-טק. בעלת ניסיון רב בבניית מסגרות Governance ובקרה בארגונים גלובליים.',
+      quote: 'ניהול סיכונים נכון הוא מה שמאפשר לנו לנוע מהר ובביטחון.' },
+    { id: 'vprd', name: 'ד"ר יואב מרגלית', role: 'סמנכ"ל R&D', en: 'VP R&D', photo: 'vprd.jpg',
+      bio: 'יואב מוביל את חטיבת ה-R&D של טקי-טק מאז 2004, עם מרכזי פיתוח בפתח תקווה, בחיפה, בקייב ובבנגלור. בעל דוקטורט במערכות מבוזרות.',
+      quote: 'הנדסה טובה היא הנדסה שעובדת גם בעוד עשר שנים.' },
+    { id: 'osnat', name: 'אסנת ברגר', role: 'Head of People', en: 'Head of People', photo: 'osnat.jpg',
+      bio: 'אסנת מובילה את תחום ה-People בטקי-טק: גיוס, פיתוח מנהלים, חוויית עובד ותרבות ארגונית, כולל תוכנית הטרנספורמציה הארגונית בעידן ה-AI.',
+      quote: 'האנשים שלנו הם הנכס החשוב ביותר של החברה.' },
+  ];
+  const TEAM = [
+    { id: 'daniel', name: 'דניאל פרידמן', role: 'מומחה טכנולוגיות AI (דרג II)', en: 'AI Technology Enablement Specialist II', photo: 'daniel.jpg',
+      bio: 'דניאל חבר בצוות ה-AI Enablement במרכז המצוינות לבינה מלאכותית, ועוסק בהטמעת טכנולוגיות AI בתהליכי החברה.' },
+    { id: 'rami', name: 'רמי אוחיון', role: 'ארכיטקט ראשי', en: 'Chief Architect', photo: 'arch.jpg',
+      bio: 'רמי אחראי על הארכיטקטורה הטכנולוגית של כל מוצרי טקי-טק, על הסטנדרטים ההנדסיים ועל תהליך הסקירה והאישור של שינויים ארכיטקטוניים.' },
+    { id: 'tzvika', name: 'צביקה גרינברג', role: 'ראש צוות Core Platform', en: 'Core Platform Team Lead', photo: 'dino.jpg',
+      bio: 'צביקה בטקי-טק מאז 1999 ומוביל את צוות Core Platform. היה שותף לכתיבת הגרסה הראשונה של TechyCore™ ומכיר כל שכבה במערכת.' },
+    { id: 'ido', name: 'עידו שפירא', role: 'מפתח Backend בכיר', en: 'Senior Backend Engineer', photo: 'ido.jpg',
+      bio: 'עידו מפתח את שירותי ה-Backend של פלטפורמת הליבה, עם התמחות בביצועים ובאינטגרציות Enterprise.' },
+    { id: 'erez', name: 'ארז נחמיאס', role: 'ראש צוות Data & AI', en: 'Data & AI Team Lead', photo: 'datasci.jpg',
+      bio: 'ארז מוביל את צוות ה-Data & AI, ואחראי על המודלים האנליטיים ועל תשתית הנתונים של החברה.' },
+    { id: 'yotam', name: 'יותם גולדשטיין', role: 'מהנדס AI בכיר', en: 'Senior AI & Context Engineer', photo: 'yotam.jpg',
+      bio: 'יותם מתמחה בפיתוח פתרונות AI מבוססי מודלי שפה ובהנדסת Context למערכות ארגוניות.' },
+    { id: 'vova', name: 'ולדימיר (וובה) קוגן', role: 'ראש תחום תשתיות ו-DevOps', en: 'Infrastructure & DevOps Lead', photo: 'vova.jpg',
+      bio: 'וובה אחראי על תשתיות הענן, על תהליכי ה-CI/CD ועל זמינות המערכות של טקי-טק בכל מרכזי הפיתוח.' },
+    { id: 'tamir', name: 'תמיר', role: 'ראש צוות אבטחת מידע', en: 'Security Team Lead', photo: null,
+      bio: 'תמיר מוביל את צוות אבטחת המידע, ואחראי על מדיניות האבטחה ועל עמידת החברה בתקן ISO 27001.' },
+    { id: 'yaniv', name: 'יניב אזולאי', role: 'מהנדס אבטחת מידע', en: 'Information Security Engineer', photo: 'yaniv.jpg',
+      bio: 'יניב עוסק באבטחת התשתיות והמוצרים של טקי-טק, בניהול הרשאות ובניטור אירועי אבטחה.' },
+    { id: 'sagi', name: 'שגיא', role: 'Customer Success Manager', en: 'Customer Success', photo: 'scooter.jpg',
+      bio: 'שגיא מלווה את לקוחות ה-Enterprise של טקי-טק לאורך כל מחזור החיים, מההטמעה ועד הרחבת השימוש.' },
+  ];
+  const DIVS = [
+    { head: 'amir', name: 'חטיבת אסטרטגיה וחדשנות', en: 'Strategy & Innovation', units: [
+      { name: 'משרד ה-CSO', en: 'Strategic Alignment Office', people: [{ group: 'צוות Alignment אסטרטגי', count: 6, where: 'פתח תקווה' }] },
+      { name: 'מרכז מצוינות AI', en: 'AI Center of Excellence', people: [{ open: 'Head of AI Execution', reports: ['daniel'] }] },
+      { name: 'מודיעין שוק', en: 'Market Intelligence', people: [{ group: 'אנליסטים', count: 4, where: 'פתח תקווה · לונדון' }] },
+    ] },
+    { head: 'ofer', name: 'חטיבת פיתוח עסקי', en: 'Business Development', units: [
+      { name: 'שותפויות אסטרטגיות', en: 'Strategic Partnerships', people: [{ group: 'מנהלי שותפויות', count: 8, where: 'לונדון · בוסטון' }] },
+      { name: 'הצלחת לקוחות', en: 'Customer Success', people: [{ id: 'sagi', reports: [{ group: 'צוות Customer Success', count: 18, where: 'פתח תקווה · בוסטון' }] }] },
+      { name: 'שירותים מקצועיים', en: 'Professional Services', people: [{ group: 'יועצי הטמעה', count: 23, where: 'ישראל · אירופה' }] },
+    ] },
+    { head: 'lior', name: 'חטיבת מכירות גלובלית', en: 'Global Sales', units: [
+      { name: 'מכירות ישראל', en: 'Israel', people: [{ group: 'Account Executives', count: 9, where: 'פתח תקווה' }] },
+      { name: 'מכירות EMEA', en: 'EMEA', people: [{ group: 'משרד לונדון', count: 14, where: 'לונדון · פרנקפורט' }] },
+      { name: 'מכירות צפון אמריקה', en: 'North America', people: [{ group: 'משרד בוסטון', count: 22, where: 'בוסטון · ניו יורק' }] },
+      { name: 'מכירות APAC', en: 'Asia Pacific', people: [{ group: 'משרד סינגפור', count: 11, where: 'סינגפור · בנגלור' }] },
+    ] },
+    { head: 'ronit', name: 'חטיבת תפעול וניהול סיכונים', en: 'Operations & Risk', units: [
+      { name: 'ניהול סיכונים וציות', en: 'Risk & Compliance', people: [{ group: 'צוות Risk & Compliance', count: 7, where: 'פתח תקווה' }] },
+      { name: 'אבטחת מידע', en: 'Information Security', people: [{ id: 'tamir', reports: ['yaniv', { group: 'מהנדסי אבטחה', count: 5, where: 'פתח תקווה · קייב' }] }] },
+      { name: 'כספים ורכש', en: 'Finance & Procurement', people: [{ group: 'כספים', count: 16, where: 'פתח תקווה' }] },
+      { name: 'סביבת עבודה ומתקנים', en: 'Workplace & Facilities', people: [{ group: 'צוות Workplace', count: 6, where: 'פתח תקווה · חיפה' }] },
+    ] },
+    { head: 'vprd', name: 'חטיבת R&D', en: 'Research & Development', units: [
+      { name: 'משרד הארכיטקט הראשי', en: 'Office of the Chief Architect', people: ['rami'] },
+      { name: 'פלטפורמת הליבה', en: 'TechyCore™ Core Platform', people: [{ id: 'tzvika', reports: ['ido', { group: 'מפתחי Core', count: 12, where: 'פתח תקווה' }] }] },
+      { name: 'Data & AI', en: 'Data & AI', people: [{ id: 'erez', reports: ['yotam', { open: 'AI Engineer (LLM Agents)' }] }] },
+      { name: 'תשתיות ו-DevOps', en: 'Platform & DevOps', people: ['vova'] },
+      { name: 'מרכזי פיתוח בחו"ל', en: 'Global Development Centers', people: [
+        { group: 'מרכז פיתוח קייב', count: 46, where: 'קייב, אוקראינה' },
+        { group: 'מרכז פיתוח בנגלור', count: 58, where: 'בנגלור, הודו' },
+        { group: 'QA ואוטומציה', count: 17, where: 'חיפה' } ] },
+    ] },
+    { head: 'osnat', name: 'חטיבת People', en: 'People & Culture', units: [
+      { name: 'גיוס ומיתוג מעסיק', en: 'Talent Acquisition', people: [{ group: 'צוות גיוס', count: 6, where: 'פתח תקווה · קייב · בנגלור' }] },
+      { name: 'שותפים עסקיים (HRBP)', en: 'HR Business Partners', people: [{ group: 'HRBPs', count: 5, where: 'ישראל · חו"ל' }] },
+      { name: 'פיתוח מנהלים ולמידה', en: 'Learning & Development', people: [{ group: 'צוות L&D', count: 3, where: 'פתח תקווה' }] },
+    ] },
+  ];
+  // [title, department, requirements, location]
+  const JOBS = [
+    ['Head of AI Execution', 'AI', 'הובלת הטמעת יכולות AI בקווי המוצר. 8+ שנות ניסיון בניהול תוכניות טכנולוגיות.', 'פתח תקווה'],
+    ['AI Engineer (LLM Agents)', 'AI', 'פיתוח סוכני AI מבוססי LLM למוצרי ה-Enterprise. Python, RAG, ניסיון עם APIs של מודלי שפה.', 'פתח תקווה · היברידי'],
+    ['Senior Data Scientist, GenAI', 'AI', 'מודלים גנרטיביים, הערכת איכות ו-Fine-tuning על נתונים ארגוניים.', 'פתח תקווה · בנגלור'],
+    ['Machine Learning Engineer', 'AI', 'אימון, הערכה והטמעה של מודלים ב-Production. PyTorch, ניסיון בסביבות ענן.', 'חיפה'],
+    ['MLOps Engineer', 'AI', 'תשתיות אימון והסקה בענן, ניטור מודלים, ביצועים ועלויות.', 'קייב · היברידי'],
+    ['AI Product Manager', 'AI', 'הובלת מוצרי AI מהגדרה ועד השקה, בעבודה צמודה עם לקוחות Enterprise.', 'פתח תקווה'],
+    ['AI Solutions Architect', 'AI', 'תכנון פתרונות AI ללקוחות Enterprise וליווי צוותי המכירות בשלבי ה-Pre-sale.', 'לונדון'],
+    ['Senior Backend Engineer', 'R&D', 'Java / Node.js, ניסיון במערכות Enterprise מבוזרות.', 'פתח תקווה · חיפה'],
+    ['DevOps Engineer', 'R&D', 'Kubernetes, AWS, Terraform. ניסיון בסביבות Production גדולות.', 'קייב · היברידי'],
+    ['Product Security Engineer', 'Security', 'אבטחת אפליקציות, Threat Modeling ועבודה מול צוותי פיתוח.', 'פתח תקווה'],
+    ['Enterprise Account Executive', 'Sales', 'מכירות Enterprise בצפון אמריקה. 5+ שנות ניסיון ב-SaaS.', 'בוסטון'],
+  ];
+  // where the CV form posts (the techietech-api function); empty = the form isn't live yet
+  const APPLY_URL = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/techietechApply';
+
+  const silhouette = '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#e3e8ee"/><circle cx="100" cy="80" r="36" fill="#c3ccd7"/><path d="M30 200c4-44 34-68 70-68s66 24 70 68z" fill="#c3ccd7"/></svg>';
+  const photo = (p) => p.photo ? `<img src="team/${p.photo}" alt="${p.name}" loading="lazy">` : silhouette;
+  const ALL = [...LEADERS, ...TEAM];
+  const byId = (id) => ALL.find((x) => x.id === id);
+  const card = (p) => `<button class="person${p.vacant ? ' vacant' : ''}" onclick="openPerson('${p.id}')"><div class="ph">${photo(p)}</div><div class="info"><h4>${p.name}</h4><div class="role">${p.role}</div><div class="role-en">${p.en}</div></div></button>`;
+  const avatar = (p) => `<span class="av">${photo(p)}</span>`;
+  // one entry in a unit: a person id, {id, reports: [...]} for a team lead, or {open: 'title', reports?: [...]} for an open seat
+  const entry = (e) => {
+    const o = typeof e === 'string' ? { id: e } : e;
+    const kids = o.reports ? `<ul>${o.reports.map((r) => `<li>${entry(r)}</li>`).join('')}</ul>` : '';
+    if (o.group) return `<div class="chip group"><span class="av">${o.count}</span><span><b>${o.group}</b><small>${o.count} עובדים · ${o.where}</small></span></div>${kids}`;
+    if (o.open) return `<button class="chip vacant" onclick="applyFor('${o.open}')"><span class="av"><img src="img/open-seat.jpg" alt="" loading="lazy"></span><span><b>משרה פתוחה</b><small>${o.open}</small></span></button>${kids}`;
+    const p = byId(o.id);
+    return `<button class="chip" onclick="openPerson('${p.id}')">${avatar(p)}<span><b>${p.name}</b><small>${p.role}</small></span></button>${kids}`;
+  };
+  document.getElementById('ceo').innerHTML = card(byId('gilad'));
+  document.getElementById('execs').innerHTML = DIVS.map((d) => `<div class="exec">${card(byId(d.head))}</div>`).join('');
+  document.getElementById('divs').innerHTML = DIVS.map((d) => {
+    const h = byId(d.head);
+    return `<div class="div"><div class="div-h">${avatar(h)}<span><b>${d.name}</b><small>${d.en} · ${d.lead || h.name}</small></span></div><div class="div-b">` +
+      d.units.map((u) => `<div class="unit"><div class="unit-n">${u.name}${u.en ? ` <span>· ${u.en}</span>` : ''}</div><ul class="tree">${u.people.map((e) => `<li>${entry(e)}</li>`).join('')}</ul></div>`).join('') +
+      '</div></div>';
+  }).join('');
+  document.getElementById('jobs').innerHTML = JOBS.map(([t, dept, r, l]) =>
+    `<div class="job"><div><div class="job-t"><span class="dept">${dept}</span><h3 class="en">${t}</h3></div><div class="req">${r}</div></div><div class="loc">${l}</div><button class="btn line" onclick="applyFor('${t}')">הגשת מועמדות</button></div>`).join('');
+  document.getElementById('jobCount').textContent = JOBS.length;
+  document.getElementById('aPos').innerHTML = '<option>פנייה כללית</option>' + [...new Set(JOBS.map((j) => j[0]))].map((t) => `<option>${t}</option>`).join('');
+
+  // the CV form: posts the file to APPLY_URL, which emails it on
+  function applyFor(position) {
+    if (!APPLY_URL) return note('תודה על ההתעניינות. פורטל הגיוס החדש שלנו יעלה בקרוב, ונשמח לקבל את מועמדותך דרכו.');
+    const sel = document.getElementById('aPos');
+    sel.value = [...sel.options].some((o) => o.value === position) ? position : 'פנייה כללית';
+    document.getElementById('aDone').style.display = 'none';
+    document.getElementById('aForm').style.display = '';
+    document.getElementById('aErr').textContent = '';
+    document.getElementById('apply').classList.add('open');
+  }
+  const APPLY_ERR = { file_type: 'יש לצרף קובץ PDF או Word.', file_size: 'הקובץ גדול מ-5MB.', details: 'נא למלא שם ואימייל תקינים.', too_many: 'נשלחו יותר מדי פניות. נסו שוב בעוד שעה.' };
+  async function sendApply(e) {
+    e.preventDefault();
+    const form = e.target, btn = form.querySelector('button[type=submit]'), err = document.getElementById('aErr');
+    const file = form.cv.files[0];
+    if (!file) return (err.textContent = APPLY_ERR.file_type);
+    if (file.size > 5 * 1024 * 1024) return (err.textContent = APPLY_ERR.file_size);
+    btn.disabled = true; btn.textContent = 'שולח…'; err.textContent = '';
+    try {
+      const r = await fetch(APPLY_URL, { method: 'POST', body: new FormData(form) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.error || 'send');
+      form.reset();
+      form.style.display = 'none';
+      document.getElementById('aDone').style.display = '';
+    } catch (x) {
+      err.textContent = APPLY_ERR[x.message] || 'השליחה נכשלה. נסו שוב בעוד מספר דקות.';
+    } finally { btn.disabled = false; btn.textContent = 'שליחת מועמדות'; }
+  }
+
+  // the medium cards: every named person under management, with the unit they sit in
+  const unitOf = (id) => {
+    const has = (e) => e === id || e.id === id || (e.reports || []).some(has);
+    for (const d of DIVS) for (const u of d.units) if (u.people.some(has)) return u.name + ' · ' + d.name;
+    return '';
+  };
+  document.getElementById('staff').innerHTML = TEAM.map((p) =>
+    `<button class="mate" onclick="openPerson('${p.id}')"><div class="ph">${photo(p)}</div><div class="tx"><h4>${p.name}</h4><div class="role">${p.role}</div><div class="role-en">${p.en}</div><div class="unit-of">${unitOf(p.id)}</div></div></button>`).join('');
+
+  function openPerson(id) {
+    const p = byId(id);
+    document.getElementById('mPh').innerHTML = photo(p);
+    document.getElementById('mName').textContent = p.name;
+    document.getElementById('mRole').textContent = p.role;
+    document.getElementById('mRoleEn').textContent = p.en;
+    document.getElementById('mBio').textContent = p.bio;
+    const q = document.getElementById('mQuote');
+    q.textContent = p.quote ? '"' + p.quote + '"' : '';
+    q.style.display = p.quote ? '' : 'none';
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  function note(t) { document.getElementById('toastText').textContent = t; document.getElementById('toast').classList.add('open'); }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); document.getElementById('toast').classList.remove('open'); document.getElementById('apply').classList.remove('open'); } });
+  document.querySelectorAll('.menu a').forEach((a) => a.addEventListener('click', () => document.getElementById('menu').classList.remove('open')));
+</script>
+</body>
+</html>

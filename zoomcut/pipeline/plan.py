@@ -42,6 +42,22 @@ def default_gap(prev, cur, tm):
     return tm.get("same_speaker_gap", 0.15)
 
 
+def _overlay(o, total, f):
+    """One text / image layer on top of the call. A negative start counts from the end of the video
+    (an end card: "start": -4 = the last 4 seconds), whatever length the edit comes out."""
+    start = o.get("start") or 0
+    if start < 0:
+        start = max(0, total + start)
+    end = min(total, o["end"]) if o.get("end") else total
+    out = {"text": o.get("text", ""), "style": o.get("style", "pov"), "from": f(start), "dur": max(1, f(end) - f(start)),
+           "font": o.get("font", "system"), "theme": o.get("theme", "light"), "opacity": o.get("opacity", 1.0), "y": o.get("y"),
+           "size": o.get("size")}
+    if out["style"] == "image":  # a picture: x / y / w in frame pixels (x, y = its centre; default centred), a fade in
+        out.update({"image": "overlays/" + os.path.basename(o["image"]), "x": o.get("x"), "w": o.get("w", 960),
+                    "fade_in": o.get("fade_in", 0.3)})
+    return out
+
+
 def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=None):
     roles = {c["id"]: c.get("role", "exec") for c in ep.characters}
     fix = (corrections or {}).get("lines", {})
@@ -261,11 +277,8 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
                           "look": c.get("look"), "frame": c.get("frame")} for c in ep.characters],
         "clips": {k: {"src": v["render_src"], "w": v["w"], "h": v["h"], "framing": v["framing"], "char": v["char"]}
                   for k, v in clips.items() if k in used_clips},
-        "overlays": [{"text": o["text"], "style": o.get("style", "pov"), "from": f(o.get("start") or 0),
-                      "dur": max(1, f(min(total, o["end"]) if o.get("end") else total) - f(o.get("start") or 0)),
-                      "font": o.get("font", "system"), "theme": o.get("theme", "light"),
-                      "opacity": o.get("opacity", 1.0), "y": o.get("y")}
-                     for o in ep.cfg.get("overlays", []) if o.get("text", "").strip()],
+        "overlays": [_overlay(o, total, f) for o in ep.cfg.get("overlays", [])
+                     if o.get("text", "").strip() or (o.get("style") == "image" and o.get("image"))],
         "fonts": [{"id": x["id"], "family": "zc-" + x["id"], "url": "fonts/" + x["file"], "weight": x["weight"]}
                   for x in FONTS if x["file"]],
         "tiles": tiles, "shots": shots_f, "active": active, "captions": captions, "events": events,

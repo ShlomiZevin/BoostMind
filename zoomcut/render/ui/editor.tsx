@@ -157,9 +157,12 @@ function Editor() {
   };
   const liveOverlays = useMemo(() => {
     const total = data?.edit?.durationInFrames || 0;
-    return ovDraft.filter((o) => (o.text || '').trim()).map((o) => {
-      const from = Math.round((o.start || 0) * fps), end = o.end ? Math.min(total, Math.round(o.end * fps)) : total;
-      return { text: o.text, style: o.style || 'pov', from, dur: Math.max(1, end - from), font: o.font || 'system', theme: o.theme || 'light', opacity: o.opacity ?? 1, y: o.y ?? null };
+    // (mirrors plan.py _overlay: an image layer too, and a negative start counts from the end)
+    return ovDraft.filter((o: any) => (o.text || '').trim() || (o.style === 'image' && o.image)).map((o: any) => {
+      const s = o.start || 0, from = s < 0 ? Math.max(0, total + Math.round(s * fps)) : Math.round(s * fps);
+      const end = o.end ? Math.min(total, Math.round(o.end * fps)) : total;
+      const base = { text: o.text || '', style: o.style || 'pov', from, dur: Math.max(1, end - from), font: o.font || 'system', theme: o.theme || 'light', opacity: o.opacity ?? 1, y: o.y ?? null, size: o.size };
+      return o.style === 'image' ? { ...base, image: 'overlays/' + String(o.image).split(/[\\/]/).pop(), x: o.x ?? null, w: o.w ?? 960, fade_in: o.fade_in ?? 0.3 } : base;
     });
   }, [ovDraft, data?.edit, fps]);
   const [charDraft, setCharDraft] = useState<Record<string, { look?: any; frame?: any }>>({});

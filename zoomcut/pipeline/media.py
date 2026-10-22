@@ -34,7 +34,8 @@ def scan(ep):
                 unassigned.append(rel)
                 continue
             cid = f"{char}_{hashlib.sha1(rel.encode()).hexdigest()[:6]}"
-            clips.append({"id": cid, "char": char, "kind": kind, "rel": rel, "src": full})
+            # "order": where this file sits in the character's takes (phone uploads have random names: 1, 2, 3 = recorded order)
+            clips.append({"id": cid, "char": char, "kind": kind, "rel": rel, "src": full, "order": (spec or {}).get("order", 0)})
     return clips, unassigned
 
 

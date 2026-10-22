@@ -95,7 +95,7 @@ def cmd_build(ep, args):
         cid = ch["id"]
         mine = [ln for ln in lines if ln["speaker"] == cid]
         stream = []
-        for c in sorted([c for c in clips if c["char"] == cid and c["kind"] == "lines"], key=lambda c: c["rel"]):
+        for c in sorted([c for c in clips if c["char"] == cid and c["kind"] == "lines"], key=lambda c: (c.get("order", 0), c["rel"])):
             stream += [{**w, "clip": c["id"]} for w in words[c["id"]]]
         chosen, cands = match_character(mine, stream) if stream else ({}, {})
         extend_to_utterance(chosen, stream, vad, no_tail={ln["n"] for ln in mine if ln["interrupted"]})
@@ -152,6 +152,11 @@ def cmd_build(ep, args):
         dst = os.path.join(ep.public, fnt["url"])
         if not os.path.exists(dst):
             shutil.copy(os.path.join(ROOT, fnt["url"]), dst)
+    os.makedirs(os.path.join(ep.public, "overlays"), exist_ok=True)
+    for o, src in zip([o for o in props["overlays"]], [o for o in ep.cfg.get("overlays", [])
+                                                       if o.get("text", "").strip() or (o.get("style") == "image" and o.get("image"))]):
+        if o.get("image"):  # image layers: the episode's file (path relative to the episode) goes where the renderer reads
+            shutil.copy(ep.p(src["image"]), os.path.join(ep.public, o["image"]))
     save_json(ep.work("edit.json"), props)
     save_json(ep.work("mix.json"), mixplan)
     write_report(ep, lines, matches, byid, missing, attempts, items, total, props)
@@ -248,7 +253,7 @@ def idle_pools(ep, clips, words, used):
     for ch in ep.characters:
         segs = []
         for kind in ("listen", "lines"):
-            for c in sorted([c for c in clips if c["char"] == ch["id"] and c["kind"] == kind], key=lambda c: c["rel"]):
+            for c in sorted([c for c in clips if c["char"] == ch["id"] and c["kind"] == kind], key=lambda c: (c.get("order", 0), c["rel"])):
                 busy = sorted([(w["s"] - 0.35, w["e"] + 0.35) for w in words[c["id"]]] + used[c["id"]])
                 t, dur = 0.3, c["duration"] - 0.3
                 min_len = 0.8 if kind == "listen" else 1.8
