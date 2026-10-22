@@ -100,8 +100,8 @@ The rules:
 6. **Time-box debugging:** two or three attempts, then the simplest route that works.
 
 ## The workflow (every video)
-1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it while a
-   job runs (`GET /api/ep/<id>/job`).
+1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
+   another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.
 2. **Footage.** The folder he names, or **the Drop**: he uploads from the iPhone at
    https://drop-463727469066.me-west1.run.app and files land in `Downloads\drop\<folder>` within a minute (the studio
    pulls each minute; if one is late, `gcloud storage ls gs://boostmind-drop/<folder>/` and pull it yourself). iPhone
