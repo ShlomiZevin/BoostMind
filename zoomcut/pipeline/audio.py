@@ -100,6 +100,8 @@ def voice_of(ep, char_id):
 
 def _voice_chain(v):
     chain = {"mild": CLEAN_AF, "strong": CLEAN_STRONG_AF, "nn": CLEAN_NN_AF, "fft": CLEAN_FFT_AF}.get(v.get("clean"), "")
+    if v.get("clean") == "custom":  # a migrated solo voice's own filter (lesson.denoise_filter), as it is
+        chain = str(v.get("clean_filter") or "")
     pr = float(v.get("presence") or 0)
     if abs(pr) >= 0.5:  # clarity: up for a muffled voice, down for a harsh one
         chain = (chain + "," if chain else "") + f"equalizer=f=2800:t=q:w=1.2:g={pr:.1f}"

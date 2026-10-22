@@ -52,7 +52,7 @@ export const boxStyle = (o: any, font: React.CSSProperties): React.CSSProperties
   };
 };
 
-type StyleProps = { it: any; text: string; fonts: Record<string, string>; t: number };
+type StyleProps = { it: any; text: string; fonts: Record<string, string>; t: number; url?: (assetId: string) => string };  // url: where an asset (a sticker's picture) loads
 export const TEXT_STYLES: Record<string, { label: string; animated?: boolean; render: React.FC<StyleProps> }> = {
   // the TikTok hook / a label: a box with the text (theme light / dark / gold, opacity, size)
   pov: { label: 'Text box (POV / label)', render: ({ it, text, fonts }) => <div style={boxStyle(it, fontOf(it, fonts))}>{text}</div> },

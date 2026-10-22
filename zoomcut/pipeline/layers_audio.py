@@ -34,7 +34,7 @@ def _src(ep, project, aid):
 
 
 def _filtered(ep, path, props):
-    chain = audio._voice_chain({"clean": props.get("clean", "off"), "presence": props.get("presence", 0)})
+    chain = audio._voice_chain({"clean": props.get("clean", "off"), "presence": props.get("presence", 0), "clean_filter": props.get("clean_filter")})
     if not chain:
         return path
     out = ep.work("layers", "audio", f"{os.path.basename(path)[:-4]}.f{hashlib.sha1(chain.encode()).hexdigest()[:8]}.wav")

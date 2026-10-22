@@ -110,7 +110,8 @@ def render_graphics(ep, project, k, layers, scale, total):
             shutil.rmtree(d)
         os.makedirs(d)
     used = {a for l in layers for a in [(l.get("props") or {}).get("asset")] + [it.get("asset") for it in l.get("items", [])] + [it.get("font") for it in l.get("items", [])] + [(l.get("props") or {}).get("font")] if a}
-    used |= {aid for aid, a in project["assets"].items() if a["kind"] == "font"}
+    # every picture / font the project has: a style may name one in any field (a sticker's picture) - they're linked, cheap
+    used |= {aid for aid, a in project["assets"].items() if a["kind"] in ("font", "image")}
     pub = ep.work("layers", "public", "x")[:-2]
     urls = asset_public(ep, project, used, pub)
     props_file = ep.work("layers", f"g{k}.props.json")

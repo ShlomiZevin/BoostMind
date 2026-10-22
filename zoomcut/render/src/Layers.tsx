@@ -76,7 +76,7 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
       text = text.replace('{clock}', `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`);
     }
     return <div style={{ ...placeStyle(props.box, W, H), opacity: op }}>
-      <div data-l={layer.id} data-i={it.id} style={{ transform: animTransform(it, t) }}><S.render it={props} text={text} fonts={fonts} t={t} /></div></div>;
+      <div data-l={layer.id} data-i={it.id} style={{ transform: animTransform(it, t) }}><S.render it={props} text={text} fonts={fonts} t={t} url={(id: string) => src(p, id)} /></div></div>;
   }
   return null;
 }
