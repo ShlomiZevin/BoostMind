@@ -97,7 +97,21 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     const j = await build(ep, { action: 'line', n, fix: clean });
     setJob(j);
   };
-  const onItemEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number) => {
+  const onItemEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number): boolean | 'keep' => {
+    // a one-camera cut: an edge of his picture / voice dragged = that cut's edge in his take (lesson.py cut.edges, the
+    // old editor's /trim) - the take re-cut at once: picture, voice and subtitles together, everything after it shifts,
+    // the real footage before / after pulled back. The drag stays on screen until the re-cut lands (~seconds).
+    if (project?.builder?.kind === 'solo' && l.owner === 'builder' && (l.id === 'person' || l.id === 'voice') && it.ref?.take && it.rate !== 0 && side !== 'm') {
+      const v = project.layers.find((x: any) => x.id === 'voice')?.items?.find((x: any) => x.ref?.take === it.ref.take && x.ref?.a === it.ref.a) || it;
+      const rate = v.rate || 1;
+      const was = side === 'l' ? v.in ?? 0 : (v.in ?? 0) + (v.dur / fps) * rate;
+      const now = Math.max(0, was + (d / fps) * rate);
+      fetch(`/api/ep/${ep}/trim`, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ take: it.ref.take, from: +was.toFixed(3), to: +now.toFixed(3) }) })
+        .then((r) => r.json()).then(async (j) => { if (j?.error) L.setError(j.error); await L.load(); L.send([], { commit: false }); })
+        .catch(async () => { await L.load(); L.send([], { commit: false }); });
+      return 'keep';
+    }
     if (project?.builder?.kind !== 'zoom' || l.owner !== 'builder' || l.kind !== 'audio' || it.ref?.line == null) return false;
     const ln = script.find((x) => x.n === it.ref.line);
     if (!ln || ln.in == null) return false;

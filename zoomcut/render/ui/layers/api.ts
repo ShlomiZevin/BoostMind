@@ -46,8 +46,9 @@ export function useLayered(ep: string) {
   };
 
   const send: Send = (ops, opts = {}) => {
-    if (!view || !ops.length) return;
-    if (opts.commit === false) { setDraft(ops); return; }
+    if (!view) return;
+    if (opts.commit === false) { setDraft(ops.length ? ops : null); return; }  // (no ops: the draft goes)
+    if (!ops.length) return;
     let inv: any[];
     try { inv = inverse(view.project, ops); } catch (e: any) { setError(e.message); return; }
     const next = apply(view.project, ops);

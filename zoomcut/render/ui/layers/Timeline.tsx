@@ -8,7 +8,7 @@ export type Sel = { layer: string; item?: string } | null;
 
 type Props = {
   project: any; frame: number; sel: Sel; onSel: (s: Sel) => void; onSeek: (f: number) => void; send: Send;
-  onItemEdit?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number) => boolean;  // a builder item: its builder takes the change
+  onItemEdit?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number) => boolean | 'keep';  // a builder item: its builder takes the change
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void;
 };
 
@@ -116,7 +116,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
       setDrag(null);
       if (!last) { send([], { commit: false }); return; }
-      if (onItemEdit && onItemEdit(l, it, side, last)) { send([], { commit: false }); return; }  // the builder takes it
+      const taken = onItemEdit && onItemEdit(l, it, side, last);  // the builder takes it
+      if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }  // ('keep': the drag shows until the builder's answer lands)
       send(opsFor(last), { label: side === 'm' ? 'move' : 'trim' });
     };
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
