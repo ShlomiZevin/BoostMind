@@ -1,4 +1,6 @@
-// Techy-Tech careers: the "send your CV" form on /techietech/ posts here (multipart), and the CV is emailed to Shlomi
+// Techy-Tech careers: the "send your CV" form on /techietech/ posts here (multipart), and the CV is emailed to Shlomi.
+// siteLead (below): the other characters' sites - a booking / a membership request, emailed the same way.
+// (techietechApply:)
 // as an attachment. Nothing is stored. Deploy from this folder: firebase deploy --only functions
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
@@ -79,6 +81,55 @@ exports.techietechApply = onRequest({
       text,
       attachments: [{ filename: file.name, content: file.data, contentType: file.type }],
     });
+  } catch (e) {
+    console.error('send failed', e.message);
+    return res.status(502).json({ error: 'send' });
+  }
+  res.json({ ok: true });
+});
+
+// The other characters' sites (on boostmind-b052c.web.app): a request emailed to Shlomi, nothing stored, nothing charged.
+//   /ayelet/     - booking a treatment / the workshop (Ayelet Hashachar)
+//   /hindsight/  - joining a membership plan (HINDSIGHT VIP)
+const SITES = {
+  ayelet: { from: 'איילת השחר - האתר', subject: (f) => `איילת השחר | בקשה ל${f.choice || 'טיפול'} · ${f.name}`, choice: 'טיפול', page: '/ayelet/' },
+  hindsight: { from: 'HINDSIGHT VIP', subject: (f) => `HINDSIGHT VIP | הצטרפות ל-${f.choice || 'קבוצה'} · ${f.name}`, choice: 'מסלול', page: '/hindsight/' },
+};
+exports.siteLead = onRequest({
+  region: 'europe-west1',
+  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
+  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/],
+  maxInstances: 3,
+  memory: '256MiB',
+  timeoutSeconds: 60,
+}, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
+  if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
+  let form;
+  try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
+  const f = form.fields;
+  const site = SITES[f.site];
+  if (!site) return res.status(400).json({ error: 'site' });
+  if (f.website) return res.json({ ok: true });  // the hidden field only a bot fills
+  const email = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '') ? f.email : '';
+  const phone = (f.phone || '').replace(/[^\d+\-\s()]/g, '').slice(0, 30);
+  if (!f.name || (!email && phone.replace(/\D/g, '').length < 9)) return res.status(400).json({ error: 'details' });
+  const clip = (v, n) => String(v || '').slice(0, n);
+  const text = [
+    `${site.choice}: ${clip(f.choice, 120) || '-'}`,
+    `שם: ${clip(f.name, 120)}`,
+    `טלפון: ${phone || '-'}`,
+    `אימייל: ${email || '-'}`,
+    f.when ? `מתי נוח: ${clip(f.when, 200)}` : '',
+    '',
+    f.message ? `הודעה:\n${clip(f.message, 3000)}` : '',
+    '',
+    `נשלח מהאתר ${site.page} · ${new Date().toISOString()}`,
+  ].filter((l, i, a) => l || a[i - 1]).join('\n');
+  try {
+    const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
+    await t.sendMail({ from: `${site.from} <${GMAIL_USER.value()}>`, to: TO, ...(email ? { replyTo: email } : {}),
+      subject: site.subject({ ...f, name: clip(f.name, 80), choice: clip(f.choice, 60) }).slice(0, 200), text });
   } catch (e) {
     console.error('send failed', e.message);
     return res.status(502).json({ error: 'send' });

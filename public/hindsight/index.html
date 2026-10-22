@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>HINDSIGHT VIP | נהור (ציון) מינוף</title>
+<meta name="description" content="קבוצת הסיגנלים הסגורה של נהור (ציון) מינוף. המטבעות שיעשו את העלייה הגדולה - אתמול.">
+<meta property="og:title" content="HINDSIGHT VIP | נהור (ציון) מינוף">
+<meta property="og:description" content="המטבעות שיעשו את העלייה הגדולה. אתמול.">
+<meta property="og:image" content="img/og.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230b0b0d'/><text x='32' y='44' font-family='Georgia' font-size='36' text-anchor='middle' fill='%23d4b062'>H</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090b; --bg2: #0e1013; --card: #121418; --line: rgba(255,255,255,0.08); --line2: rgba(212,176,98,0.28);
+    --text: #f2efe8; --dim: #9a9690; --gold: #d4b062; --gold2: #f0d79a; --green: #16c784; --red: #ea3943;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: "Heebo", system-ui, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+  .serif { font-family: "Playfair Display", Georgia, serif; }
+  .gold { color: var(--gold); }
+  .up { color: var(--green); }
+
+  /* the tape: yesterday's winners, scrolling */
+  .tape { background: #000; border-bottom: 1px solid var(--line); overflow: hidden; white-space: nowrap; font-size: .85rem; height: 34px; display: flex; align-items: center; direction: ltr; }
+  .tape .run { display: inline-flex; gap: 38px; padding-left: 38px; animation: tape 48s linear infinite; }
+  .tape span { display: inline-flex; gap: 8px; align-items: center; color: var(--dim); }
+  .tape b { color: var(--text); font-weight: 700; letter-spacing: .02em; }
+  .tape i { font-style: normal; color: var(--green); font-weight: 700; }
+  .tape em { font-style: normal; color: var(--dim); direction: rtl; }
+  @keyframes tape { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 30; background: rgba(8,9,11,0.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 20px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; direction: ltr; }
+  .brand .serif { font-size: 1.5rem; letter-spacing: .14em; color: var(--text); }
+  .brand small { font-size: .62rem; letter-spacing: .3em; color: var(--gold); font-weight: 700; border: 1px solid var(--line2); padding: 2px 7px; border-radius: 4px; }
+  .links { display: flex; gap: 26px; font-size: .95rem; color: var(--dim); }
+  .links a { text-decoration: none; transition: color .15s; }
+  .links a:hover { color: var(--text); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 28px; border-radius: 10px; border: 0; cursor: pointer;
+    font: 700 1.02rem "Heebo", sans-serif; text-decoration: none; transition: transform .15s, background .15s, border-color .15s; }
+  .btn.gold { background: var(--gold); color: #171105; }
+  .btn.gold:hover { background: var(--gold2); transform: translateY(-1px); }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--gold); }
+  .btn.sm { height: 42px; padding: 0 18px; font-size: .92rem; }
+  @media (max-width: 860px) { .links { display: none; } }
+
+  /* hero */
+  .hero { position: relative; padding: 70px 0 60px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.08fr .92fr; gap: 56px; align-items: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: .86rem; font-weight: 500; color: var(--gold); letter-spacing: .04em; border: 1px solid var(--line2); border-radius: 100px; padding: 6px 14px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  h1 { font-size: clamp(2.3rem, 5.4vw, 4.3rem); line-height: 1.06; font-weight: 900; margin: 22px 0 18px; letter-spacing: -.01em; }
+  h1 .y { color: var(--gold); display: inline-block; }
+  .lead { font-size: 1.2rem; color: #cfcac1; max-width: 560px; margin: 0 0 30px; font-weight: 300; }
+  .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .closed { margin-top: 26px; display: flex; align-items: center; gap: 14px; font-size: .92rem; color: var(--dim); flex-wrap: wrap; }
+  .clock { display: inline-flex; gap: 6px; direction: ltr; }
+  .clock span { background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; min-width: 42px; text-align: center; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 38px; border-top: 1px solid var(--line); }
+  .stat { padding: 18px 0 0; }
+  .stat + .stat { padding-right: 22px; border-right: 1px solid var(--line); margin-right: 22px; }
+  .stat b { display: block; font-size: 1.85rem; font-weight: 800; line-height: 1.1; }
+  .stat small { color: var(--dim); font-size: .85rem; }
+  .portrait { position: relative; justify-self: center; width: 100%; max-width: 440px; }
+  .portrait img { width: 100%; display: block; border-radius: 18px; border: 1px solid var(--line); aspect-ratio: 900/1350; object-fit: cover; }
+  .portrait .badge { position: absolute; bottom: 22px; right: -18px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 18px 40px rgba(0,0,0,0.45); }
+  .portrait .badge .n { font-size: 1.35rem; font-weight: 800; color: var(--green); direction: ltr; }
+  .portrait .badge small { display: block; color: var(--dim); font-size: .78rem; line-height: 1.3; }
+  .portrait .sig { position: absolute; top: 22px; left: -18px; background: rgba(8,9,11,0.88); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 14px; font-size: .82rem; }
+  .portrait .sig b { display: block; font-size: 1rem; }
+  @media (max-width: 920px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+    .portrait { max-width: 380px; order: -1; }
+    .portrait .badge { right: 10px; } .portrait .sig { left: 10px; }
+  }
+
+  section { padding: 96px 0; border-top: 1px solid var(--line); }
+  .kicker { font-size: .8rem; letter-spacing: .28em; color: var(--gold); font-weight: 700; margin-bottom: 14px; direction: ltr; text-align: right; }
+  h2 { font-size: clamp(1.9rem, 3.8vw, 3rem); line-height: 1.12; margin: 0 0 16px; font-weight: 800; }
+  .sub { color: var(--dim); font-size: 1.1rem; max-width: 640px; margin: 0 0 46px; }
+
+  /* proof */
+  .proof { display: grid; grid-template-columns: 1.25fr 1fr; gap: 28px; align-items: start; }
+  .chart { background: #0d1117; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .chart canvas { width: 100%; height: auto; display: block; }
+  .wins { display: grid; gap: 12px; }
+  .win { display: grid; grid-template-columns: 46px 1fr auto; gap: 14px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .coin { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #171105; background: var(--gold); font-size: 1.1rem; direction: ltr; }
+  .win b { font-size: 1.05rem; direction: ltr; display: inline-block; }
+  .win p { margin: 2px 0 0; color: var(--dim); font-size: .9rem; line-height: 1.45; }
+  .win .pct { text-align: left; }
+  .win .pct strong { display: block; color: var(--green); font-size: 1.35rem; font-weight: 800; direction: ltr; }
+  .win .pct small { color: var(--dim); font-size: .78rem; }
+  .win.locked { border-color: var(--line2); }
+  .win.locked .coin { background: #1c1d21; color: var(--gold); border: 1px solid var(--line2); }
+  .win.locked strong { filter: blur(6px); user-select: none; }
+  @media (max-width: 920px) { .proof { grid-template-columns: 1fr; } }
+
+  /* method */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: s; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px 22px; position: relative; }
+  .step::before { counter-increment: s; content: "0" counter(s); font-family: "Playfair Display", serif; color: var(--gold); font-size: 1.1rem; display: block; margin-bottom: 18px; }
+  .step h3 { margin: 0 0 8px; font-size: 1.25rem; }
+  .step p { margin: 0; color: var(--dim); font-size: .97rem; }
+  @media (max-width: 920px) { .steps { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+
+  /* the man */
+  .man { display: grid; grid-template-columns: .9fr 1.1fr; gap: 60px; align-items: center; }
+  .man img { width: 100%; border-radius: 18px; border: 1px solid var(--line); display: block; aspect-ratio: 900/1350; object-fit: cover; }
+  blockquote { margin: 0; font-size: clamp(1.5rem, 2.8vw, 2.15rem); line-height: 1.35; font-weight: 700; }
+  blockquote::before { content: "״"; display: block; font-family: "Playfair Display", serif; color: var(--gold); font-size: 4rem; line-height: .6; margin-bottom: 10px; }
+  .man .who { margin-top: 26px; display: flex; gap: 14px; align-items: center; }
+  .man .who b { display: block; font-size: 1.1rem; }
+  .man .who small { color: var(--dim); }
+  .bio { margin-top: 26px; color: #cfcac1; font-size: 1.05rem; font-weight: 300; }
+  .bio p { margin: 0 0 12px; }
+  @media (max-width: 920px) { .man { grid-template-columns: 1fr; gap: 36px; } .man img { max-width: 420px; } }
+
+  /* pricing */
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+  .plan { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 30px 26px; display: flex; flex-direction: column; position: relative; }
+  .plan.pop { border-color: var(--gold); background: #15140f; }
+  .plan .tag { position: absolute; top: -13px; right: 24px; background: var(--gold); color: #171105; font-size: .78rem; font-weight: 800; padding: 4px 12px; border-radius: 100px; }
+  .plan .tier { font-size: .78rem; letter-spacing: .3em; color: var(--gold); font-weight: 700; direction: ltr; text-align: right; }
+  .plan h3 { margin: 6px 0 14px; font-size: 1.45rem; }
+  .price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+  .price b { font-size: 2.6rem; font-weight: 900; line-height: 1; }
+  .price span { color: var(--dim); }
+  .was { color: var(--dim); font-size: .88rem; margin-bottom: 20px; }
+  .was s { color: #6c6862; }
+  .plan ul { list-style: none; padding: 0; margin: 0 0 26px; display: grid; gap: 11px; flex: 1; }
+  .plan li { display: flex; gap: 10px; font-size: .97rem; color: #d8d3ca; }
+  .plan li::before { content: "✓"; color: var(--gold); font-weight: 800; flex: none; }
+  .plan li.secret { color: var(--dim); font-style: italic; }
+  .plan .btn { width: 100%; }
+  .guar { margin-top: 30px; display: flex; gap: 18px; align-items: center; border: 1px solid var(--line2); border-radius: 16px; padding: 20px 24px; background: #0f0e0b; }
+  .seal { width: 64px; height: 64px; flex: none; border-radius: 50%; border: 2px solid var(--gold); color: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .72rem; text-align: center; line-height: 1.1; }
+  .guar b { font-size: 1.12rem; display: block; }
+  .guar span { color: var(--dim); }
+  @media (max-width: 920px) { .plans { grid-template-columns: 1fr; max-width: 460px; } }
+
+  /* testimonials */
+  .quotes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .stars { color: var(--gold); letter-spacing: 3px; font-size: .95rem; }
+  .q p { margin: 0; font-size: 1.02rem; flex: 1; }
+  .q .p { display: flex; gap: 12px; align-items: center; }
+  .av { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; background: #1d1f24; color: var(--gold); border: 1px solid var(--line2); }
+  .q .p b { display: block; font-size: .95rem; }
+  .q .p small { color: var(--dim); font-size: .82rem; }
+  .q .gain { margin-right: auto; color: var(--green); font-weight: 800; direction: ltr; font-size: .9rem; }
+  @media (max-width: 1020px) { .quotes { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .quotes { grid-template-columns: 1fr; } }
+
+  /* faq */
+  .faq { max-width: 820px; }
+  details { border-bottom: 1px solid var(--line); }
+  summary { list-style: none; cursor: pointer; padding: 22px 0; font-size: 1.15rem; font-weight: 700; display: flex; justify-content: space-between; gap: 20px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--gold); font-weight: 400; font-size: 1.5rem; line-height: 1; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { margin: 0 0 22px; color: #cfcac1; font-size: 1.05rem; max-width: 700px; }
+
+  /* video */
+  .vid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+  .vid video { width: 100%; max-width: 360px; aspect-ratio: 9/16; border-radius: 18px; border: 1px solid var(--line); background: #000; display: block; justify-self: center; object-fit: cover; }
+  @media (max-width: 860px) { .vid { grid-template-columns: 1fr; } }
+
+  /* final */
+  .final { text-align: center; padding: 110px 0; }
+  .final h2 { max-width: 760px; margin: 0 auto 16px; }
+  .final .sub { margin: 0 auto 34px; }
+  footer { border-top: 1px solid var(--line); padding: 40px 0 120px; color: #6f6b65; font-size: .82rem; }
+  footer .wrap { display: grid; gap: 14px; }
+  footer .brand .serif { font-size: 1.15rem; }
+
+  /* someone just joined */
+  .toast { position: fixed; bottom: 22px; right: 22px; z-index: 40; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px 12px 18px; display: flex; gap: 12px; align-items: center;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.5); max-width: 330px; font-size: .9rem; transform: translateY(140%); opacity: 0; transition: transform .35s ease, opacity .35s ease; }
+  .toast.on { transform: none; opacity: 1; }
+  .toast small { display: block; color: var(--dim); font-size: .78rem; }
+  .toast .av { width: 36px; height: 36px; flex: none; }
+
+  /* the join answer */
+  .modal { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal.on { display: flex; }
+  .box { background: var(--bg2); border: 1px solid var(--line2); border-radius: 20px; max-width: 460px; width: 100%; padding: 34px 30px; text-align: center; }
+  .box img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
+  .box h3 { margin: 16px 0 10px; font-size: 1.5rem; }
+  .box p { color: #cfcac1; margin: 0 0 12px; }
+  .box .btn { margin-top: 12px; width: 100%; }
+  .join-form { display: grid; gap: 10px; margin-top: 14px; text-align: right; }
+  .join-form input, .join-form select { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 10px; height: 48px; padding: 0 14px; width: 100%; }
+  .join-form input:focus, .join-form select:focus { outline: none; border-color: var(--gold); }
+  .join-form .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .join-form .err { color: var(--red); font-size: .9rem; min-height: 1.2em; margin: 0; }
+  .join-form .fine { color: var(--dim); font-size: .8rem; margin: 2px 0 0; }
+
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } .tape .run { animation: none; } }
+</style>
+</head>
+<body>
+
+<div class="tape" aria-label="המטבעות של אתמול">
+  <div class="run" id="tape"></div>
+</div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="serif">HINDSIGHT</span><small>VIP</small></a>
+    <div class="links">
+      <a href="#proof">התוצאות</a>
+      <a href="#method">השיטה</a>
+      <a href="#naor">מי אני</a>
+      <a href="#join">מסלולים</a>
+      <a href="#faq">שאלות</a>
+    </div>
+    <a class="btn gold sm" href="#join">להצטרפות</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow"><span class="dot"></span>קבוצת הסיגנלים הסגורה של נהור (ציון) מינוף</span>
+      <h1>המטבעות שיעשו את העלייה הגדולה. <span class="y">אתמול.</span></h1>
+      <p class="lead">כל יום אני בודק, מנתח ומסתכל על הגרפים. ברגע שאני רואה שמטבע עלה, הטופיסטים שלי הם הראשונים לשמוע על זה. עשרות, לפעמים מאות אחוזים. ביום אחד.</p>
+      <div class="ctas">
+        <a class="btn gold" href="#join">אני רוצה להיכנס לקבוצה</a>
+        <a class="btn ghost" href="#proof">התוצאות של אתמול</a>
+      </div>
+      <div class="closed">
+        <span>ההרשמה למחזור הנוכחי נסגרה לפני</span>
+        <span class="clock" id="clock"><span>00</span><span>00</span><span>00</span></span>
+        <span>ואפשר עדיין להצטרף.</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>12,480</b><small>טופיסטים בקבוצה</small></div>
+        <div class="stat"><b class="gold">100%</b><small>מהמטבעות שהמלצתי עליהם עלו</small></div>
+        <div class="stat"><b>עד 3</b><small>מטבעות ביום*</small></div>
+      </div>
+    </div>
+    <div class="portrait">
+      <img src="img/naor-suit.jpg" alt="נהור (ציון) מינוף">
+      <div class="sig"><small class="gold">LMTS / USDT</small><b>ההמלצה יצאה ✓</b></div>
+      <div class="badge"><div class="n">+95.4%</div><div><b>LMTS</b><small>ביום אחד · אתמול</small></div></div>
+    </div>
+  </div>
+</header>
+
+<section id="proof">
+  <div class="wrap">
+    <div class="kicker">TRACK RECORD</div>
+    <h2>אני לא עובד על תחושות בטן. <span class="gold">אני עובד על נתונים.</span></h2>
+    <p class="sub">עד שאני לא רואה שהמטבע עלה, אני לא מוציא המלצה. ככה כל המלצה שיצאה ממני עלתה. תבדקו בגרפים.</p>
+    <div class="proof">
+      <div class="chart reveal"><canvas id="chart" width="1080" height="700" aria-label="LMTS עלה 95.4% אתמול"></canvas></div>
+      <div class="wins">
+        <div class="win reveal"><div class="coin">L</div><div><b>LMTS</b><p>הודעתי לקבוצה ברגע שראיתי שהוא עלה. ככה זה אצלי.</p></div><div class="pct"><strong>+95.4%</strong><small>אתמול</small></div></div>
+        <div class="win reveal"><div class="coin">V</div><div><b>VRKS</b><p>מי שהיה בקבוצה ידע על זה עוד באותו ערב.</p></div><div class="pct"><strong>+212%</strong><small>אתמול</small></div></div>
+        <div class="win reveal"><div class="coin">P</div><div><b>PMPX</b><p>מטבע שאף אחד לא דיבר עליו. עד שהוא עלה.</p></div><div class="pct"><strong>+61.2%</strong><small>שלשום</small></div></div>
+        <div class="win locked reveal"><div class="coin">?</div><div><b>המטבע של שלשום</b><p>זמין רק למנויי BLACK. אסור לי לדבר עליו כאן.</p></div><div class="pct"><strong>+340%</strong><small>שלשום</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="kicker">THE METHOD</div>
+    <h2>השיטה שלי, ב-4 שלבים</h2>
+    <p class="sub">פעם בשבוע אני חושף מטבע אחד לכולם. בקבוצה הסגורה זה קורה כל יום.</p>
+    <div class="steps">
+      <div class="step reveal"><h3>אני בודק</h3><p>אלפי מטבעות, כל לילה. מה זז, מה טס, מה כבר טס.</p></div>
+      <div class="step reveal"><h3>אני מנתח</h3><p>גרפים, נפחים, נתונים. לפעמים גם קצת מידע פנים. אסור לי לדבר על זה.</p></div>
+      <div class="step reveal"><h3>אני מחכה</h3><p>עד שאני לא רואה שהמטבע עלה, אני לא מוציא המלצה. משמעת זה הכול.</p></div>
+      <div class="step reveal"><h3>אתם מקבלים</h3><p>ישר לקבוצה. לפעמים פעמיים ביום, לפעמים שלוש. תלוי כמה מטבעות טסו אתמול.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="naor">
+  <div class="wrap man">
+    <img class="reveal" src="img/naor-office.jpg" alt="נהור (ציון) מינוף במשרד">
+    <div class="reveal">
+      <div class="kicker">THE FOUNDER</div>
+      <blockquote>תחושות בטן זה תיקחו, תאכלו תאילנדי, תקבלו תחושות בטן. אני עובד על נתונים.</blockquote>
+      <div class="who"><img src="img/avatar.jpg" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:1px solid var(--line2);aspect-ratio:1"><div><b>נהור (ציון) מינוף</b><small>מייסד HINDSIGHT VIP</small></div></div>
+      <div class="bio">
+        <p>התחלתי כמו כולם: קניתי מטבעות לפני שהם עלו, וחיכיתי. ולפעמים הם לא עלו.</p>
+        <p>אז פיתחתי שיטה. היום אני ממליץ רק על מטבעות שכבר הוכיחו את עצמם, בעלייה של עשרות ומאות אחוזים. מאז, אין לי המלצה אחת שלא עלתה.</p>
+        <p>טופיסטים שלי, תקשיבו לי טוב טוב: זה לא מזל. זה ניתוח.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="join">
+  <div class="wrap">
+    <div class="kicker">MEMBERSHIP</div>
+    <h2>בחרו את המסלול שלכם</h2>
+    <p class="sub">מי שבקבוצה הסגורה לא צריך לחכות שבוע. הוא מקבל ממני מטבעות כאלה כל יום.</p>
+    <div class="plans">
+      <div class="plan reveal">
+        <div class="tier">SILVER</div><h3>טופיסט</h3>
+        <div class="price"><b>₪497</b><span>/ לחודש</span></div><div class="was">במקום <s>₪890</s> · המחיר של אתמול</div>
+        <ul>
+          <li>מטבע אחד ביום, ברגע שהוא עלה</li>
+          <li>גישה לקבוצה הסגורה</li>
+          <li>סיכום שבועי: כל מה שעלה השבוע</li>
+        </ul>
+        <button class="btn ghost" data-plan="SILVER">להצטרפות</button>
+      </div>
+      <div class="plan pop reveal">
+        <span class="tag">הכי פופולרי</span>
+        <div class="tier">GOLD</div><h3>טופיסט VIP</h3>
+        <div class="price"><b>₪1,497</b><span>/ לחודש</span></div><div class="was">במקום <s>₪2,990</s> · נשארו 3 מקומות אתמול</div>
+        <ul>
+          <li>עד 3 מטבעות ביום, תלוי כמה טסו אתמול</li>
+          <li>התראה בזמן אמת על כל עלייה שהסתיימה</li>
+          <li>שיחת זום חודשית: מה עלה החודש</li>
+          <li>ערוץ טופיסטים VIP בטלגרם</li>
+        </ul>
+        <button class="btn gold" data-plan="GOLD">אני רוצה VIP</button>
+      </div>
+      <div class="plan reveal">
+        <div class="tier">BLACK</div><h3>המעגל הפנימי</h3>
+        <div class="price"><b>₪9,970</b><span>/ לחודש</span></div><div class="was">בהזמנה בלבד · 12 מקומות</div>
+        <ul>
+          <li>כל מה שב-VIP</li>
+          <li>המטבע של שלשום</li>
+          <li>קו ישיר אליי בווטסאפ</li>
+          <li class="secret">ועוד משהו. אסור לי לדבר על זה כאן.</li>
+        </ul>
+        <button class="btn ghost" data-plan="BLACK">בקשת הצטרפות</button>
+      </div>
+    </div>
+    <div class="guar reveal">
+      <div class="seal">100%<br>אחריות</div>
+      <div><b>אחריות מלאה, בלי אותיות קטנות</b><span>אם מטבע לא עלה, לא המלצתי עליו.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">TOPISTIM</div>
+    <h2>מה הטופיסטים אומרים</h2>
+    <p class="sub">12,480 חברים. הנה כמה מהם.</p>
+    <div class="quotes">
+      <div class="q reveal"><div class="stars">★★★★★</div><p>הצטרפתי ביום שלישי, וכבר ביום רביעי ידעתי בדיוק מה עלה ביום שלישי.</p><div class="p"><div class="av">ר</div><div><b>רוני</b><small>ראשון לציון</small></div><span class="gain">+95.4%</span></div></div>
+      <div class="q reveal"><div class="stars">★★★★★</div><p>בחיים לא הייתי בטוחה ככה בהשקעה. כל מטבע שנהור שולח כבר עלה. אחוזי הצלחה מטורפים.</p><div class="p"><div class="av">מ</div><div><b>מורן</b><small>חיפה</small></div><span class="gain">+212%</span></div></div>
+      <div class="q reveal"><div class="stars">★★★★★</div><p>קניתי את LMTS שנייה אחרי שנהור שלח. עכשיו אני רק מחכה שהוא יחזור לעלות אתמול.</p><div class="p"><div class="av">א</div><div><b>אבי</b><small>אשדוד</small></div><span class="gain">+95.4%</span></div></div>
+      <div class="q reveal"><div class="stars">★★★★★</div><p>פעם הייתי שומעת על מטבעות שעלו רק בחדשות. היום אני שומעת עליהם ישר מנהור, בערך באותה שעה.</p><div class="p"><div class="av">ש</div><div><b>שירן</b><small>תל אביב</small></div><span class="gain">+61.2%</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="video" hidden>
+  <div class="wrap vid">
+    <div>
+      <div class="kicker">WEEKLY CALL</div>
+      <h2>המטבע של השבוע</h2>
+      <p class="sub">פעם בשבוע אני חושף מטבע אחד לכולם. בקבוצה הסגורה, כל יום.</p>
+      <a class="btn gold" href="#join">אני לא רוצה לחכות שבוע</a>
+    </div>
+    <video id="vid" controls playsinline preload="metadata" poster="img/naor-office.jpg"></video>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap faq">
+    <div class="kicker">FAQ</div>
+    <h2>שאלות שאני מקבל הרבה</h2>
+    <details><summary>מתי אתה שולח את ההמלצות?</summary><p>ברגע שאני רואה שהמטבע עלה. לא דקה לפני. ככה אני עובד.</p></details>
+    <details><summary>אפשר לקבל את ההמלצה לפני העלייה?</summary><p>אני לא עובד על תחושות בטן.</p></details>
+    <details><summary>מה אחוז ההצלחה שלך?</summary><p>100%. כל מטבע שהמלצתי עליו עלה. אפשר לבדוק בגרפים, הכול שקוף.</p></details>
+    <details><summary>קניתי אחרי ההמלצה והמטבע ירד. מה עושים?</summary><p>מי שהיה מקשיב לי היום וקונה את המטבע אתמול, היה עושה 95.4% ביום אחד. תקשיבו לי טוב טוב.</p></details>
+    <details><summary>מה זה "המטבע של שלשום"?</summary><p>לא כאן. זה רק במסלול BLACK.</p></details>
+  </div>
+</section>
+
+<div class="final">
+  <div class="wrap">
+    <h2>הטופיסטים של אתמול כבר הרוויחו. <span class="gold">אתם עוד יכולים להצטרף היום.</span></h2>
+    <p class="sub">ההרשמה נסגרה, ואנחנו עדיין מקבלים חברים.</p>
+    <a class="btn gold" href="#join">אני רוצה להיכנס לקבוצה</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="serif">HINDSIGHT</span><small>VIP</small></a>
+    <div>* תלוי כמה מטבעות טסו אתמול.</div>
+    <div>אין לראות באמור באתר ייעוץ השקעות או המלצה לפעולה. ביצועי עבר מבטיחים ביצועי עבר. כל התשואות המוצגות באתר הושגו בדיעבד.</div>
+    <div>© HINDSIGHT VIP · נהור (ציון) מינוף · כל הזכויות שמורות, אתמול.</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"><div class="av" id="tAv">ד</div><div><b id="tName"></b><small id="tWhen"></small></div></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="box">
+    <img src="img/avatar.jpg" alt="">
+    <div id="mAsk">
+      <h3 id="mPlan">הצטרפות ל-GOLD</h3>
+      <p>השאירו פרטים ואחזור אליכם אישית לסגור את ההצטרפות.</p>
+      <form class="join-form" id="joinForm" novalidate>
+        <input name="name" placeholder="שם מלא" autocomplete="name" required>
+        <input name="phone" type="tel" placeholder="טלפון (וואטסאפ)" autocomplete="tel" inputmode="tel" dir="ltr" style="text-align:right">
+        <input name="email" type="email" placeholder="אימייל" autocomplete="email" dir="ltr" style="text-align:right">
+        <select name="choice" id="mChoice">
+          <option value="SILVER">SILVER · טופיסט</option>
+          <option value="GOLD">GOLD · טופיסט VIP</option>
+          <option value="BLACK">BLACK · המעגל הפנימי</option>
+        </select>
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <p class="err" id="jErr"></p>
+        <button class="btn gold" type="submit" id="jGo">אני רוצה להיכנס</button>
+        <p class="fine">לא גובים כאן תשלום. הפרטים מגיעים רק אליי.</p>
+      </form>
+    </div>
+    <div id="mDone" hidden>
+      <h3 id="mTitle">כמעט בפנים</h3>
+      <p>מעולה. אני בודק, מנתח ומסתכל על הגרפים.</p>
+      <p>ברגע שאני רואה שההצטרפות שלך עברה, אני מאשר אותה. עד שאני לא רואה שזה קרה, אני לא שולח אישור.</p>
+      <button class="btn gold" id="mClose">סגור. אחכה לאתמול</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { drawMarket } from './market.js';
+
+  // the tape: yesterday's winners, twice so it loops seamlessly
+  const T = [['LMTS', '+95.4%', 'אתמול'], ['VRKS', '+212%', 'אתמול'], ['PMPX', '+61.2%', 'שלשום'], ['DOGE', '+33.8%', 'לפני שבוע'], ['BTC', '+8.1%', 'ב־2017'],
+    ['NRBX', '+144%', 'אתמול'], ['TOPX', '+77.7%', 'אתמול בלילה'], ['YSTR', '+95.4%', 'אתמול']];
+  const one = T.map(([s, p, w]) => `<span><b>${s}</b><i>▲ ${p}</i><em>${w}</em></span>`).join('');
+  document.getElementById('tape').innerHTML = one + one;
+
+  // registration closed ... ago (and still open)
+  const closedAt = new Date(); closedAt.setHours(0, 0, 0, 0); closedAt.setMinutes(-1);  // yesterday, 23:59
+  const clk = document.getElementById('clock').children;
+  const tick = () => { let s = Math.floor((Date.now() - closedAt) / 1000);
+    const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; s %= 60;
+    [h, m, s].forEach((v, i) => (clk[i].textContent = String(v).padStart(2, '0'))); };
+  tick(); setInterval(tick, 1000);
+
+  // the chart: the same panel as the video, drawn in when it comes into view
+  const cv = document.getElementById('chart'), ctx = cv.getContext('2d');
+  const o = { text: 'שוק הקריפטו', tag: 'מבזק', symbol: 'LMTS', name: 'מטבע קריפטו', price: 0.0847, change: 95.4, updated: 'עודכן: אתמול', call: 'ההמלצה יצאה', y: 16, w: 1000, start: 0, end: null, draw: 0.2 };
+  let t0 = null;
+  const frame = (now) => { if (t0 != null) { ctx.clearRect(0, 0, cv.width, cv.height); drawMarket(ctx, o, (now - t0) / 1000, '"Heebo", sans-serif'); } requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+  new IntersectionObserver((es, ob) => es.forEach((e) => { if (e.isIntersecting && t0 == null) { document.fonts.ready.then(() => (t0 = performance.now())); ob.disconnect(); } }), { threshold: 0.35 }).observe(cv);
+
+  // reveal on scroll
+  const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))), { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // someone just joined (yesterday)
+  const P = [['דני', 'חולון', 'GOLD'], ['מיכל', 'רמת גן', 'SILVER'], ['יוסי', 'נתניה', 'GOLD'], ['אלון', 'הרצליה', 'BLACK'], ['נועה', 'באר שבע', 'GOLD'], ['עידו', 'פתח תקווה', 'SILVER']];
+  const toast = document.getElementById('toast'); let k = 0;
+  const show = () => { const [n, c, p] = P[k++ % P.length];
+    document.getElementById('tAv').textContent = n[0];
+    document.getElementById('tName').textContent = `${n} מ${c} הצטרף/ה ל-${p}`;
+    document.getElementById('tWhen').textContent = `אתמול, ${String(9 + (k * 5) % 13).padStart(2, '0')}:${String((k * 17) % 60).padStart(2, '0')}`;
+    toast.classList.add('on'); setTimeout(() => toast.classList.remove('on'), 4200); };
+  setTimeout(() => { show(); setInterval(show, 9000); }, 5000);
+
+  // joining: a real request - name and a phone or an email, emailed to Shlomi (techietech-api siteLead); nothing is
+  // charged and nothing is stored
+  const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/siteLead';
+  const modal = document.getElementById('modal'), form = document.getElementById('joinForm');
+  const ask = document.getElementById('mAsk'), done = document.getElementById('mDone'), err = document.getElementById('jErr');
+  const openJoin = (plan) => {
+    ask.hidden = false; done.hidden = true; err.textContent = '';
+    document.getElementById('mChoice').value = plan;
+    document.getElementById('mPlan').textContent = `הצטרפות ל-${plan}`;
+    modal.classList.add('on');
+    setTimeout(() => form.elements.name.focus(), 50);
+  };
+  document.querySelectorAll('[data-plan]').forEach((b) => b.addEventListener('click', () => openJoin(b.dataset.plan)));
+  document.getElementById('mChoice').onchange = (e) => (document.getElementById('mPlan').textContent = `הצטרפות ל-${e.target.value}`);
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const name = form.elements.name.value.trim(), phone = form.phone.value.trim(), email = form.email.value.trim();
+    if (!name) { err.textContent = 'איך קוראים לך?'; return; }
+    if (phone.replace(/\D/g, '').length < 9 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'צריך טלפון או אימייל כדי שאחזור אליך.'; return; }
+    const go = document.getElementById('jGo'); go.disabled = true; go.textContent = 'שולח…'; err.textContent = '';
+    try {
+      const fd = new FormData(form); fd.append('site', 'hindsight');
+      const r = await fetch(API, { method: 'POST', body: fd });
+      if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
+      document.getElementById('mTitle').textContent = `כמעט בפנים: ${form.choice.value}`;
+      ask.hidden = true; done.hidden = false; form.reset();
+    } catch (x) {
+      err.textContent = x.message === 'too many' ? 'כבר שלחת. אני חוזר אליך.' : 'משהו לא עבר. נסו שוב בעוד רגע.';
+    } finally { go.disabled = false; go.textContent = 'אני רוצה להיכנס'; }
+  };
+  document.getElementById('mClose').onclick = () => modal.classList.remove('on');
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('on'); };
+
+  // the weekly video: shown only once it is here (public/hindsight/v/)
+  const vid = document.getElementById('vid');
+  fetch('v/week-1.mp4', { method: 'HEAD' }).then((r) => { if (r.ok && (r.headers.get('content-type') || '').startsWith('video')) { vid.src = 'v/week-1.mp4'; document.getElementById('video').hidden = false; } }).catch(() => {});
+</script>
+</body>
+</html>

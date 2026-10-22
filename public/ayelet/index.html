@@ -107,6 +107,10 @@
   .gb p { padding: 4px 10px 8px; margin: 0; }
 
   form.fake { display: grid; gap: 8px; max-width: 420px; margin: 10px auto 0; text-align: right; }
+  form.book { display: grid; gap: 8px; max-width: 420px; margin: 10px auto 0; text-align: right; }
+  form.book input, form.book textarea, form.book select { font: inherit; padding: 8px; border: 3px inset #c58cff; background: #fffaf0; color: #4b0082; width: 100%; box-sizing: border-box; }
+  form.book .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; border: 0; }
+  form.book .err { color: #c2185b; font-weight: bold; min-height: 1.2em; margin: 0; text-align: center; }
   form.fake input, form.fake textarea, form.fake select { font: inherit; padding: 8px; border: 3px inset #c58cff; background: #fffaf0; color: #4b0082; width: 100%; }
 
   .counter { display: inline-block; background: #000; color: #0f0; font-family: 'Courier New', monospace; font-size: 1.4em; letter-spacing: 4px; padding: 2px 8px; border: 3px inset #555; }
@@ -143,6 +147,7 @@
   <a href="#videos">🎥 הסרטונים שלי</a>
   <a href="#workshop">🔮 הסדנה</a>
   <a href="#treatments">💫 טיפולים</a>
+  <a href="#book">📅 לקביעת טיפול</a>
   <a href="#qa">💌 שאלות ותשובות</a>
   <a href="#dict">📖 מילון התודעה</a>
   <a href="#sources">📜 מהמקורות</a>
@@ -198,7 +203,7 @@
   <p>✨ תרגול מעשי: להפסיק לספור את מה שאין</p>
   <p class="pink blink big">!!! מספר המקומות מוגבל !!!</p>
   <p class="note">(המספר מוגבל לאינסוף. אינסוף הוא מספר.)</p>
-  <button class="cta" data-say="register">להרשמה שלחו ״תדר״ בפרטי 💫</button>
+  <button class="cta" id="toWorkshop">להרשמה לסדנה 💫</button>
 </section>
 
 <hr>
@@ -217,6 +222,28 @@
     <tr><td>פגישת היכרות</td><td>15 דקות. השעון הוא תודעה של מחסור, אז לפעמים יותר</td><td>180 ₪</td></tr>
   </table>
   <p class="note">* המחירים אינם כוללים מע״מ. המע״מ הוא מס על ערך, וערך הוא תדר.</p>
+
+  <h3 id="book">📅 לקביעת טיפול 📅</h3>
+  <p>השאירי פרטים ואחזור אלייך בעצמי לתאם מועד 💜</p>
+  <form class="book" id="bookForm" novalidate>
+    <input name="name" placeholder="השם שלך" autocomplete="name" required>
+    <input name="phone" type="tel" placeholder="טלפון" autocomplete="tel" inputmode="tel" dir="ltr" style="text-align:right">
+    <input name="email" type="email" placeholder="אימייל (לא חובה)" autocomplete="email" dir="ltr" style="text-align:right">
+    <select name="choice" id="bookChoice">
+      <option>יישור תדרים</option>
+      <option>קילוף קארמה</option>
+      <option>תקשור עם הספירות</option>
+      <option>זימון שפע קבוצתי</option>
+      <option>שחרור בן זוג</option>
+      <option selected>פגישת היכרות</option>
+      <option>סדנת ״מעבר לתדר״</option>
+    </select>
+    <input name="when" placeholder="מתי נוח לך? (ימים ושעות)">
+    <textarea name="message" rows="3" placeholder="משהו שחשוב לך שאדע לפני?"></textarea>
+    <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="err" id="bookErr"></p>
+    <button class="cta" type="submit" id="bookGo">לשלוח בקשה 💫</button>
+  </form>
 </section>
 
 <hr>
@@ -322,6 +349,7 @@
   // ✨ נבנה בתדר גבוה. לא לגעת בלי כוונה.
   const say = {
     register: ['ההודעה שלך בדרך 💫', 'שלחי לי ״תדר״ בפרטי. אם עוד לא שלחת, זה כי התדר שלך עוד לא שלח.'],
+    booked: ['הבקשה התקבלה 💜', 'אחזור אלייך בעצמי לתאם. אם לא חזרתי עדיין, זה כי היקום עוד מתאם.'],
     guestbook: ['הברכה נשלחה ליקום 💌', 'היא תופיע באתר כשהיקום יאשר. בדרך כלל זה לוקח בין יום לגלגול.'],
   };
   const dlg = document.getElementById('dlg');
@@ -331,6 +359,30 @@
     else el.addEventListener('click', () => open(el.dataset.say));
   });
   document.getElementById('dlgX').onclick = () => dlg.classList.remove('on');
+
+  // booking: a real request - emailed to Shlomi (techietech-api siteLead); nothing is charged and nothing is stored
+  const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/siteLead';
+  const bf = document.getElementById('bookForm'), berr = document.getElementById('bookErr');
+  document.getElementById('toWorkshop').onclick = () => {
+    document.getElementById('bookChoice').value = 'סדנת ״מעבר לתדר״';
+    document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => bf.elements.name.focus({ preventScroll: true }), 600);
+  };
+  bf.onsubmit = async (e) => {
+    e.preventDefault();
+    const name = bf.elements.name.value.trim(), phone = bf.phone.value.trim(), email = bf.email.value.trim();
+    if (!name) { berr.textContent = 'איך קוראים לך, יקירה? 🌸'; return; }
+    if (phone.replace(/\D/g, '').length < 9 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { berr.textContent = 'צריך טלפון או אימייל כדי שאחזור אלייך 💜'; return; }
+    const go = document.getElementById('bookGo'); go.disabled = true; go.textContent = 'שולחת ליקום…'; berr.textContent = '';
+    try {
+      const fd = new FormData(bf); fd.append('site', 'ayelet');
+      const r = await fetch(API, { method: 'POST', body: fd });
+      if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
+      bf.reset(); document.getElementById('bookChoice').value = 'פגישת היכרות'; open('booked');
+    } catch (x) {
+      berr.textContent = x.message === 'too many' ? 'הבקשה שלך כבר אצלי 💜' : 'משהו לא עבר. נסי שוב בעוד רגע 🙏';
+    } finally { go.disabled = false; go.textContent = 'לשלוח בקשה 💫'; }
+  };
   dlg.onclick = (e) => { if (e.target === dlg) dlg.classList.remove('on'); };
 
   const harp = document.getElementById('harp'), btn = document.getElementById('music');
