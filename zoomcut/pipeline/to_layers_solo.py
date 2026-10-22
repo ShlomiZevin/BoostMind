@@ -342,7 +342,7 @@ def _build(ls, sync=True):
         n = L.name(t)
         w, h, dur = probe(t)
         a = {"kind": "video", "src": rel(t), "w": w, "h": h, "duration": round(dur, 3), "label": n,
-             "audio": rel(L.pitched(ls, L.take_audio(ls, n, False)))}
+             "audio": rel(L.take_audio(ls, n, False))}  # (his voice as recorded - its pitch is live, the voice layer's fx)
         takes = ls.work("public", "takes")
         if eyes:
             g = L.take_src(ls, n, True)
@@ -477,8 +477,9 @@ def _build(ls, sync=True):
 
     # sound: his voice - the chain he tuned (live in the editor, the same code renders the export) and its cleaning
     voice = {k: v[k] for k in ("preset", "raw", "boost", "lowcut", "warmth", "box", "presence", "deess", "comp", "room", "roomSize", "pa") if k in v}
+    vp = L.voice_pitch(ls)
     layers.append({"id": "voice", "kind": "audio", "name": "Voice", "owner": "builder",
-                   "props": {"volume": 1, "voice": voice, **({"clean": clean} if clean else {}),
+                   "props": {"volume": 1, "voice": voice, **({"clean": clean} if clean else {}), **({"fx": {"pitch": vp}} if vp else {}),
                              **({"clean_filter": L.denoise_filter(ls)} if clean == "custom" else {})}, "items": vo})
     layers += sound_layers(ls, items, total, assets, rel)
     mf, m0, m1 = music_file(ls, items, total)
