@@ -71,7 +71,8 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
               </div>
             ) : list.map(([id, a]) => (
               <div key={id} className="m-row" onClick={() => (pick && pick.kind === a.kind ? pick.onPick(id) : null)}>
-                <div className="m-ic">{a.kind === 'video' ? '▶' : a.kind === 'audio' ? '♪' : 'Aa'}</div>
+                {a.kind === 'video' ? <img className="m-thumb" loading="lazy" src={`/api/p/${ep}/thumb?asset=${encodeURIComponent(id)}`} />
+                  : <div className="m-ic">{a.kind === 'audio' ? '♪' : 'Aa'}</div>}
                 <div className="m-main">
                   <div className="m-name he">{a.label || a.src.split('/').pop()}</div>
                   <div className="m-sub">{a.kind === 'font' ? a.family : `${a.duration ? a.duration.toFixed(1) + ' s' : ''}${a.w ? ` · ${a.w}×${a.h}` : ''}${used.has(id) ? ' · in use' : ''}`}</div>

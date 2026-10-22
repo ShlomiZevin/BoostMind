@@ -31,14 +31,19 @@ export function groupsOf(project: any) {
   return [...out.filter((g) => g.layers.some((l) => l.kind !== 'audio')), ...out.filter((g) => g.layers.every((l) => l.kind === 'audio'))];
 }
 
-const blockText = (l: any, it: any, project: any) =>
-  it.text != null ? String(it.text).replace('{clock}', '00:00') : it.asset ? (project.assets?.[it.asset]?.label || it.asset) : l.kind === 'shape' ? '' : '';
+// what a block says: its words (a text, a subtitle, a voice's line), else its file's name
+const blockText = (l: any, it: any, project: any) => {
+  if (it.text != null) return String(it.text).replace('{clock}', '00:00');
+  if (l.kind === 'audio' && it.ref?.line != null) { const ln = (project.script || []).find((x: any) => x.n === it.ref.line); if (ln) return ln.text; }
+  const a = project.assets?.[it.asset ?? l.props?.asset];
+  return a ? a.label || String(a.src).split('/').pop() : '';
+};
 
 export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, canUndo, canRedo, onUndo, onRedo }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
-  const [closed, setClosed] = useState<Record<string, boolean>>(() => { try { return JSON.parse(localStorage.getItem('zc-ly-closed') || '{}'); } catch { return {}; } });
+  const [closed, setClosed] = useState<Record<string, boolean>>(() => { try { return JSON.parse(localStorage.getItem('zc-ly-closed') || '{"Window":true}'); } catch { return { Window: true }; } });  // (the Zoom window's parts start folded)
   useEffect(() => { try { localStorage.setItem('zc-ly-closed', JSON.stringify(closed)); } catch {} }, [closed]);
   const lanes = useRef<HTMLDivElement>(null);
   const heads = useRef<HTMLDivElement>(null);
@@ -47,6 +52,21 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const groups = useMemo(() => groupsOf(project), [project]);
   const selLink = sel?.item ? project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item)?.link : null;
   const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string } | null>(null);
+
+  // something picked (on the video, in a panel): unfold its group, bring its lane and block into view
+  useEffect(() => {
+    if (!sel) return;
+    const g = groups.find((x) => x.layers.some((l) => l.id === sel.layer));
+    if (g && closed[g.name]) { setClosed({ ...closed, [g.name]: false }); return; }
+    const el = lanes.current; if (!el) return;
+    const lane = el.querySelector(`[data-lane="${CSS.escape(sel.layer)}"]`) as HTMLElement | null;
+    if (lane) {
+      const top = lane.offsetTop, h = lane.offsetHeight;
+      if (top < el.scrollTop + 30 || top + h > el.scrollTop + el.clientHeight) el.scrollTop = Math.max(0, top - el.clientHeight / 2);
+    }
+    const it = sel.item && project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item);
+    if (it) { const x = px(it.from); if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - 60) el.scrollLeft = Math.max(0, x - 120); }
+  }, [sel?.layer, sel?.item, closed]);
 
   // keep the playhead in view while playing
   useEffect(() => {
@@ -115,6 +135,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <div className="vsep" />
         <span className="chip">{project.layers.length} layers · {project.layers.reduce((n: number, l: any) => n + (l.items?.length || 0), 0)} items</span>
         <div className="grow" />
+        <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="The whole video in view"
+          onClick={() => { const w = lanes.current?.clientWidth || 1000; setPps(Math.max(8, (w - 40) / (total / fps))); }}>Fit</button>
         <span style={{ color: 'var(--faint)', fontSize: 12 }}>Zoom</span>
         <input type="range" min={8} max={400} value={pps} onChange={(e) => setPps(+e.target.value)} />
       </div>
@@ -149,7 +171,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
               <React.Fragment key={g.name}>
                 <div className="lane grp-lane" onMouseDown={seekAt} />
                 {!closed[g.name] && g.layers.map((l) => (
-                  <div key={l.id} className={`lane ${sel?.layer === l.id && !sel.item ? 'sel' : ''}`} style={{ opacity: l.hidden || l.muted ? 0.45 : 1 }}
+                  <div key={l.id} data-lane={l.id} className={`lane ${sel?.layer === l.id ? 'sel' : ''}`} style={{ opacity: l.hidden || l.muted ? 0.45 : 1 }}
                     onMouseDown={(e) => { if (e.target === e.currentTarget) { onSel({ layer: l.id }); seekAt(e); } }}>
                     {l.kind === 'backdrop' && (() => {
                       const t = project.layers.find((x: any) => x.id === l.props?.target);

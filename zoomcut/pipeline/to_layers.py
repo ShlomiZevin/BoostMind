@@ -77,10 +77,19 @@ def build(ep):
     assets, layers = {}, []
 
     # ---- assets: the takes, the office photos, the project's pictures, fonts, the window, sounds -------------------
+    # a take is named the way he'd say it: "<name> · take 2" - numbered per person by when it first shows in the video
+    first = {}
+    for segs in props["tiles"].values():
+        for sg in segs:
+            first[sg["clip"]] = min(first.get(sg["clip"], 1e12), sg["from"])
+    takeno = {}
+    for cid in sorted(props["clips"], key=lambda c: first.get(c, 1e12)):
+        who = props["clips"][cid].get("char")
+        takeno[cid] = sum(1 for k in takeno if props["clips"][k].get("char") == who) + 1
     for cid, c in props["clips"].items():
         meta = (load_json(ep.work("meta", cid + ".json"), {}) or {}).get("clip", {})
         a = {"kind": "video", "src": "work/public/" + c["src"], "w": c["w"], "h": c["h"], "framing": c.get("framing"),
-             "duration": meta.get("duration"), "who": c.get("char"), "label": f"{names.get(c.get('char'), c.get('char'))} · {cid.split('_')[-1]}"}
+             "duration": meta.get("duration"), "who": c.get("char"), "label": f"{names.get(c.get('char'), c.get('char'))} · take {takeno[cid]}"}
         if c.get("preview"):
             a["preview"] = "work/public/" + c["preview"]
         if c.get("fg"):
@@ -110,7 +119,7 @@ def build(ep):
 
     # ---- the window: chrome picture, meeting title, timer, participant count -------------------------------------
     whole = lambda i, **k: {"id": i, "from": 0, "dur": total, "pin": "span", **k}
-    layers.append({"id": "zoom.chrome", "kind": "image", "name": "Window", "group": "Window",
+    layers.append({"id": "zoom.chrome", "kind": "image", "name": "Window", "group": "Window", "locked": True,
                    "items": [whole("w1", asset="zoom.chrome", box={"x": 0, "y": 0, "w": 1080, "h": 1920})]})
 
     # ---- per character: background (backdrop), picture (video), name tag, voice (audio) ----------------------------

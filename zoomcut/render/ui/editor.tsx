@@ -12,7 +12,7 @@ import { usePreloaded, usePrefetched, Preload } from './preload';
 const PreloadBar = ({ p }: { p: Preload }) => (p.loading ? <div className="pre-bar">
   <div className="pre-fill" style={{ width: `${Math.round((p.done / Math.max(1, p.total)) * 100)}%` }} />
   <span>Loading the clips into memory · {p.done}/{p.total} · {Math.round(p.bytes / 1e6)} MB</span></div> : null);
-import { LayersEditor } from './layers/LayersEditor';
+import { LayersEditor, LayersBoundary } from './layers/LayersEditor';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -404,7 +404,7 @@ function Editor() {
       </div>
   );
   // a layered project (project.json): the one layered editor - every layer a lane, every change an op
-  if ((data as any)?.layered) return <LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} />;
+  if ((data as any)?.layered) return <LayersBoundary><LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} /></LayersBoundary>;
   if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} reload={load} />;
 
   return (

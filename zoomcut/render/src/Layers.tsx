@@ -7,6 +7,8 @@ import { imageBox, itemOpacity } from './layers/geometry.js';
 import { TEXT_STYLES, SUB_STYLES, placeStyle, animTransform } from './layers/styles';
 import { VideoTrack } from './layers/VideoTrack';
 import { AudioTrack } from './layers/AudioTrack';
+import { EffectWrap } from './layers/effects';
+import { topEffect } from './layers/effect_curve.js';
 
 export type LayersProps = {
   project: any;
@@ -56,13 +58,14 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
     const asset = p.project.assets[props.asset];
     if (!asset) return null;
     const b = imageBox(asset, props.box || { x: 0, y: 0, w: W });
-    return <Img src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
+    return <Img data-l={layer.id} data-i={it.id} src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
       opacity: op, borderRadius: props.radius, transform: animTransform(it, t) }} />;
   }
   if (layer.kind === 'shape') {
     const b = props.box;
-    return <div style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, boxSizing: 'border-box', borderRadius: props.radius ?? 0,
+    return <div data-l={layer.id} data-i={it.id} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, boxSizing: 'border-box', borderRadius: props.radius ?? 0,
       background: props.fill || 'transparent', border: props.stroke ? `${props.width ?? 2}px solid ${props.stroke}` : undefined, opacity: op,
+      pointerEvents: props.fill ? undefined : 'none',  // an outline only (tile edges, a highlight): a click goes to what's inside it
       transform: animTransform(it, t) }} />;
   }
   if (layer.kind === 'text') {
@@ -73,7 +76,7 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
       text = text.replace('{clock}', `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`);
     }
     return <div style={{ ...placeStyle(props.box, W, H), opacity: op }}>
-      <div style={{ transform: animTransform(it, t) }}><S.render it={props} text={text} fonts={fonts} t={t} /></div></div>;
+      <div data-l={layer.id} data-i={it.id} style={{ transform: animTransform(it, t) }}><S.render it={props} text={text} fonts={fonts} t={t} /></div></div>;
   }
   return null;
 }
@@ -94,9 +97,20 @@ function Subtitles({ p, layer, f, fonts }: { p: LayersProps; layer: any; f: numb
     <div key={k} style={{ ...placeStyle(JSON.parse(k), W, H), gap: 12 }}>
       {items.sort((a, b) => Number(!!b.side) - Number(!!a.side)).map((it) => {
         const props = { ...(layer.props || {}), ...it };
-        return <div key={it.id} style={{ opacity: itemOpacity(it, layer.props || {}, f, fps) }}><S.render it={props} text={props.text} fonts={fonts} t={(f - it.from) / fps} /></div>;
+        return <div key={it.id} data-l={layer.id} data-i={it.id} style={{ opacity: itemOpacity(it, layer.props || {}, f, fps) }}><S.render it={props} text={props.text} fonts={fonts} t={(f - it.from) / fps} /></div>;
       })}
     </div>))}</>;
+}
+
+// the stack in runs: consecutive video layers composite together (an item's z lifts it inside its run)
+function runsOf(layers: any[]) {
+  const runs: { video: boolean; layers: any[] }[] = [];
+  for (const l of layers) {
+    if (l.kind === 'audio' || l.kind === 'effect') continue;
+    const v = VIDEO_KINDS.has(l.kind);
+    if (runs.length && runs.at(-1)!.video === v) runs.at(-1)!.layers.push(l); else runs.push({ video: v, layers: [l] });
+  }
+  return runs;
 }
 
 export const Layers: React.FC<LayersProps> = (p) => {
@@ -105,33 +119,35 @@ export const Layers: React.FC<LayersProps> = (p) => {
   const pr = p.project;
   const f = p.frameMap ? p.frameMap[Math.min(frame, p.frameMap.length - 1)] : frame;
   const graphics = p.mode === 'graphics';
-  const layers = (pr.layers || []).filter((l: any) => !l.hidden && (!p.only || p.only.includes(l.id)));
-  // the stack in runs: consecutive video layers composite together (an item's z lifts it inside its run)
-  const runs: { video: boolean; layers: any[] }[] = [];
-  for (const l of layers) {
-    if (l.kind === 'audio' || l.kind === 'effect') continue;
-    const v = VIDEO_KINDS.has(l.kind);
-    if (runs.length && runs.at(-1)!.video === v) runs.at(-1)!.layers.push(l); else runs.push({ video: v, layers: [l] });
-  }
+  const all = pr.layers || [];
+  const layers = all.filter((l: any) => !l.hidden && (!p.only || p.only.includes(l.id)));
+  // draw some of the stack at frame ff (lag: a copy that many frames back - the ghost trail of an effect)
+  const draw = (subset: any[], ff: number, lag = 0) => runsOf(subset).map((run, k) => run.video ? (graphics ? null : (
+    <AbsoluteFill key={k}>
+      {/* each video layer plays through VideoTrack (render/src/layers/VideoTrack.tsx): persistent copies per take,
+          seamless cuts, dissolves; z / order stacking inside the run */}
+      {run.layers.filter((l) => l.kind === 'video').map((l) => (
+        <VideoTrack key={l.id} p={p} layer={l} lag={lag} backdrop={all.find((x: any) => x.kind === 'backdrop' && !x.hidden && x.props?.target === l.id)} />
+      ))}
+    </AbsoluteFill>
+  )) : (
+    <AbsoluteFill key={k}>
+      {run.layers.map((l) => l.kind === 'subtitles' ? <Subtitles key={l.id} p={p} layer={l} f={ff} fonts={fonts} />
+        : (l.items || []).filter((it: any) => !it.hidden && ff >= it.from && ff < it.from + it.dur)
+            .map((it: any) => <Graphic key={l.id + it.id} p={p} layer={l} it={it} f={ff} fonts={fonts} />))}
+    </AbsoluteFill>
+  ));
+  // film effects (render/src/layers/effects.tsx): every effect layer acts together on what is BELOW the top-most one;
+  // the layers above it (texts, subtitles) stay clean. The export does the same in pipeline/film_fx.py.
+  const k = graphics ? -1 : topEffect(pr);
+  const below = k >= 0 ? layers.filter((l: any) => all.indexOf(l) < k) : [];
+  const above = k >= 0 ? layers.filter((l: any) => all.indexOf(l) > k) : layers;
   return (
     <AbsoluteFill style={{ background: graphics ? 'transparent' : pr.canvas.color || '#000', overflow: 'hidden' }}>
       {/* sound: each audio layer plays item by item, live (render/src/layers/AudioTrack.tsx) - the export mixes the same */}
-      {!graphics && (pr.layers || []).filter((l: any) => l.kind === 'audio').map((l: any) => <AudioTrack key={l.id} p={p} layer={l} />)}
-      {runs.map((run, k) => run.video ? (graphics ? null : (
-        <AbsoluteFill key={k}>
-          {/* each video layer plays through VideoTrack (render/src/layers/VideoTrack.tsx): persistent copies per take,
-              seamless cuts, dissolves; z / order stacking inside the run */}
-          {run.layers.filter((l) => l.kind === 'video').map((l) => (
-            <VideoTrack key={l.id} p={p} layer={l} backdrop={(pr.layers || []).find((x: any) => x.kind === 'backdrop' && !x.hidden && x.props?.target === l.id)} />
-          ))}
-        </AbsoluteFill>
-      )) : (
-        <AbsoluteFill key={k}>
-          {run.layers.map((l) => l.kind === 'subtitles' ? <Subtitles key={l.id} p={p} layer={l} f={f} fonts={fonts} />
-            : (l.items || []).filter((it: any) => !it.hidden && f >= it.from && f < it.from + it.dur)
-                .map((it: any) => <Graphic key={l.id + it.id} p={p} layer={l} it={it} f={f} fonts={fonts} />))}
-        </AbsoluteFill>
-      ))}
+      {!graphics && all.filter((l: any) => l.kind === 'audio').map((l: any) => <AudioTrack key={l.id} p={p} layer={l} />)}
+      {k >= 0 && <EffectWrap p={p} f={f} below={(lag) => <AbsoluteFill style={{ background: pr.canvas.color || '#000' }}>{draw(below, Math.max(0, f - lag), lag)}</AbsoluteFill>} />}
+      {draw(above, f)}
     </AbsoluteFill>
   );
 };

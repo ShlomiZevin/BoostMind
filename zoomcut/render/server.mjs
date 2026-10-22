@@ -976,6 +976,17 @@ app.post('/api/p/:id/ops', async (q, res) => {
   const v = projectView(q, id);
   res.json({ ok: true, rev: after.rev, stems: v.stems, gainDb: v.gainDb, ...(stemErr ? { soundError: stemErr } : {}) });
 });
+// a footage thumbnail for Media (a frame a third in, small; made once)
+app.get('/api/p/:id/thumb', (q, res) => {
+  const d = epDir(q.params.id), a = readProject(q.params.id)?.assets?.[String(q.query.asset || '')];
+  if (!a || a.kind !== 'video') return res.status(404).end();
+  const out = path.join(d, 'work', 'layers', 'thumbs', String(q.query.asset).replace(/[^\w.-]/g, '_') + '.jpg');
+  if (fs.existsSync(out)) return res.sendFile(out);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const t = Math.min(6, (a.duration || 9) / 3);
+  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', String(t), '-i', path.resolve(d, a.preview || a.src), '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
+  p.on('close', () => (fs.existsSync(out) ? res.sendFile(out) : res.status(404).end()));
+});
 // a file for the project's Media (picture, sound, video): saved in media/, measured, added as an asset
 app.post('/api/p/:id/assets', express.raw({ type: '*/*', limit: '300mb' }), async (q, res) => {
   const { apply, validate } = await opsLib;

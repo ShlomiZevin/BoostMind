@@ -26,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from . import layers_audio
+from . import film_fx, layers_audio
 from . import project as projectlib
 from .common import FFMPEG, ROOT, Episode, ffprobe, log, run
 from .compose import LOW, PIECES, X264_THREADS, _look
@@ -183,15 +183,20 @@ def _mask(ep, w, h, r):
     return path
 
 
-def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale):
+def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=None):
+    """base: a video to draw on instead of the canvas colour (the effected picture under the layers above an effect)."""
     fps = project["canvas"]["fps"]
     W, H = project["canvas"]["w"], project["canvas"]["h"]
     n = c1 - c0
     cw, ch = int(round(W * scale / 2) * 2), int(round(H * scale / 2) * 2)
-    out = ep.work("layers", "chunks", f"c{k:04d}.mp4")
+    out = ep.work("layers", "chunks", name or f"c{k:04d}.mp4")
     color = (project["canvas"].get("color") or "#000000").replace("#", "0x")
-    args = [FFMPEG, "-y", "-v", "error", "-f", "lavfi", "-i", f"color=c={color}:s={cw}x{ch}:r={fps}:d={(n + 2) / fps:.4f}"]
-    fc, last, idx = [], "[0:v]", 1
+    if base:
+        args = [FFMPEG, "-y", "-v", "error", "-i", base]
+        fc, last, idx = [f"[0:v]setpts=PTS-STARTPTS,trim=end_frame={n}[base]"], "[base]", 1
+    else:
+        args = [FFMPEG, "-y", "-v", "error", "-f", "lavfi", "-i", f"color=c={color}:s={cw}x{ch}:r={fps}:d={(n + 2) / fps:.4f}"]
+        fc, last, idx = [], "[0:v]", 1
     # the drawn layers: a frame that is fully opaque (an end poster over everything) comes out of the PNG encoder as
     # RGB, not RGBA - the format changed mid-stream, ffmpeg rebuilt the graph and deadlocked (the last chunk of _gl
     # hung for good, 2026-10-22). -reinit_filter 0 + format=rgba keep one format.
@@ -322,14 +327,23 @@ def export(ep, quick=False):
     speed = float(project.get("speed") or 1)
     scale = 0.5 if quick else 1.0
     log(f"▶ export {ep.id}{' (quick check)' if quick else ''}: {total} frames, {len(project['layers'])} layers, speed x{speed}")
-    runs = stack_runs(project)
-    for r_ in runs:
-        if r_["video"]:
-            r_["items"] = video_items(project, r_["layers"])
-    gdirs = {}
-    for ri, r_ in enumerate(runs):
-        if not r_["video"]:
-            gdirs[ri] = render_graphics(ep, project, ri, r_["layers"], scale, total)
+    # film effects (pipeline/film_fx.py): every effect layer acts on what is below the top-most effect layer; the
+    # layers above it are drawn on the effected picture
+    top = film_fx.top_effect(project)
+    ids = [l["id"] for l in project["layers"]]
+    sub = lambda keep: {**project, "layers": [l for l in project["layers"] if keep(ids.index(l["id"]))]}
+    passes = [stack_runs(sub(lambda i: i < top)), stack_runs(sub(lambda i: i > top))] if top >= 0 else [stack_runs(project)]
+    gdirs, gk = [], 0
+    for runs in passes:
+        g = {}
+        for ri, r_ in enumerate(runs):
+            if r_["video"]:
+                r_["items"] = video_items(project, r_["layers"])
+            else:
+                g[ri] = render_graphics(ep, project, gk, r_["layers"], scale, total)
+                gk += 1
+        gdirs.append(g)
+    runs = [r_ for rs in passes for r_ in rs]
     log(f"  · layers drawn in {time.time() - t_start:.0f}s - putting the videos in")
     all_items = [it for r_ in runs if r_["video"] for it in r_["items"]]
     chunks = plan_chunks(all_items, total)
@@ -338,9 +352,20 @@ def export(ep, quick=False):
         os.remove(os.path.join(cdir, fn))
     done = [0]
 
+    fps_ = project["canvas"]["fps"]
+    pre_all = film_fx.preroll(project) if top >= 0 else 0
+    cw, chh = int(round(project["canvas"]["w"] * scale / 2) * 2), int(round(project["canvas"]["h"] * scale / 2) * 2)
+
     def job(kc):
         k, (c0, c1) = kc
-        o = render_chunk(ep, project, k, c0, c1, runs, gdirs, scale)
+        if top < 0:
+            o = render_chunk(ep, project, k, c0, c1, passes[0], gdirs[0], scale)
+        else:  # below the effect (from a little earlier: the ghost's history) -> the effects -> the layers above
+            pre = min(pre_all, c0)
+            low = render_chunk(ep, project, k, c0 - pre, c1, passes[0], gdirs[0], scale, name=f"c{k:04d}.low.mp4")
+            fx = ep.work("layers", "chunks", f"c{k:04d}.fx.mp4")
+            film_fx.apply_chunk(ep, project, low, fx, c0, c1 - c0, pre, cw, chh, "18" if scale >= 1 else "24", "medium" if scale >= 1 else "ultrafast")
+            o = render_chunk(ep, project, k, c0, c1, passes[1], gdirs[1], scale, base=fx)
         done[0] += c1 - c0
         log(f"Rendered {done[0]}/{total}")
         return o
@@ -369,8 +394,9 @@ def export(ep, quick=False):
     if problems:
         log("⚠ problems: " + "; ".join(problems))
     log(f"✔ {final}  ({dur:.1f}s, {lufs} LUFS, {time.time() - t_start:.0f}s)")
-    for k in gdirs.values():  # the drawn frames are only for this export
-        shutil.rmtree(k, ignore_errors=True)
+    for g in gdirs:  # the drawn frames are only for this export
+        for d in g.values():
+            shutil.rmtree(d, ignore_errors=True)
     return final
 
 

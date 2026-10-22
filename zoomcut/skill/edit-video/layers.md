@@ -66,6 +66,10 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   asset's `framing`; `head` = where the head top lands, fraction of the box height, default 0.09) | `contain`;
   `zoom` (>= 1 for cover/face), `x` / `y` (nudge, fraction of the box), `look {saturate, contrast, brightness}`,
   `radius` (rounded corners), `cutout` (true: the person on the backdrop - needs the asset's `matte` / `fg`).
+- `eyes` (true / false; default true when the take has it): **eye contact** - the corrected copy of the same frames,
+  switched live. The asset's `eyes_src` / `eyes` / `eyes_fg` / `eyes_engine` (nvidia | v6 | capcut) are made by the
+  builder action `{action: "eyes", mode: "nvidia" | "neural", strength, dy, nudge, assets: [...], files: {asset:
+  "asset:<id>"}}` (a job, minutes; "files" = his own CapCut export of that take). The export reads `eyes_src`.
 - Consecutive items continuing the same take play as one clip (no reload at a cut); only the window moves.
 - Dragging an item's edge in the editor pulls back the original footage (the whole take is there).
 
@@ -103,9 +107,21 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 - props: `volume` (0-2, live), `clean` - `off` | `mild` | `strong` | `nn` (RNNoise, the neural noise filter),
   `presence` (dB at 2.8 kHz - clarity), `level: "speech"` (even out each source by its speech level, measured on the
   pieces used). Layer `muted` / `hidden` silence it.
+- `voice` - the voice chain he knows from the one-camera editor: `{preset: natural | podcast | news | radio | warm |
+  bright | hall | stage | raw, boost, lowcut, warmth, box, presence, deess, comp, room, roomSize, pa}`
+  (render/ui/sound.ts) - live in the editor, the same code renders it in the export (pipeline/voice_chain.py). An
+  anchor with AC / fan hum: `voice.preset "news"` + `clean "nn"` (he called it perfect).
 - One loudness gain for the whole video to -14 LUFS, a limiter for the rare peak - the level never rides.
 
-### effect - (one-camera film effects: coming with the solo builder)
+### effect - film effects on everything below
+- One effect layer = one filter: props `filter` = `grade` (movie colour) | `dark` | `vignette` | `grain` | `zoom`
+  (slow zoom in) | `drift` (handheld) | `ghost` (trail; `ghost_lag` s) | `flicker` | `hits` | `black`, `amount`
+  (0-1), optional `center [x, y]`.
+- Items = when it plays; it fades in / out at the item's ends (`fade_in` default 1.5 s, `fade_out` 0.6 s). A `hits`
+  item is an impact at its start (`kick`, `shake`, `flash`); a `black` item is black.
+- **All effect layers act together, as one, on every layer BELOW the top-most effect layer**; layers above it (texts,
+  subtitles) stay clean. Put effects right above the pictures. He likes them moderate ("cinematic, not overdone").
+- Editor and export use the same curve (render/src/layers/effect_curve.js; pipeline/film_fx.py).
 
 ### Animation
 `anim: {"opacity": [[t, v], ...], "scale": [...], "x": [...], "y": [...]}` - t = seconds from the item's start,

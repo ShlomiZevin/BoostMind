@@ -6,6 +6,7 @@ import { KIND_LABEL, Send } from './api';
 import { SpeedPick } from '../editor';
 import { newId } from '../../src/layers/ops.js';
 import { TEXT_STYLES, SUB_STYLES } from '../../src/layers/styles';
+import { FILTERS } from '../../src/layers/effect_curve.js';
 
 const panels = import.meta.glob('./inspect/index.ts', { eager: true }) as Record<string, any>;
 const INSPECTORS: Record<string, React.FC<any>> = Object.values(panels)[0]?.INSPECTORS || {};
@@ -98,6 +99,18 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
           <button className="add-chip" onClick={() => addLayer({ id: newId('shape.'), kind: 'shape', name: 'Shape', group: 'Shapes', props: { fill: 'rgba(0,0,0,0.5)', radius: 12 },
             items: [{ id: 'i1', from: frame, dur: Math.min(3 * fps, project.duration - frame), box: { x: 90, y: 800, w: W - 180, h: 300 } }] })}>Shape</button>
           <span className="help" style={{ margin: 0 }}>Pictures, sounds, footage: from Media</span>
+        </div>
+        <div className="sec">Film effect - on everything under it (texts above it stay clean)</div>
+        <div className="add-row" style={{ borderTop: 0, marginTop: 0, paddingTop: 0 }}>
+          {Object.entries(FILTERS as Record<string, any>).map(([k, f]) => (
+            <button key={k} className="add-chip" title={f.help || ''} onClick={() => {
+              // an effect goes under the texts / subtitles: right above the last video-ish layer
+              const lastPic = project.layers.map((l: any) => l.kind).lastIndexOf('video');
+              const lid = newId('fx.');
+              send([{ op: 'layer.add', layer: { id: lid, kind: 'effect', name: f.label || k, group: 'Effects', props: { filter: k },
+                items: [{ id: 'i1', from: frame, dur: Math.min(5 * fps, project.duration - frame) }] }, index: Math.max(0, lastPic + 1) }], { label: 'add effect' });
+              onSel({ layer: lid, item: 'i1' });
+            }}>{f.label || k}</button>))}
         </div>
       </div>
       {extra}

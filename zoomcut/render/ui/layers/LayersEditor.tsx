@@ -10,6 +10,22 @@ import { Timeline, Sel } from './Timeline';
 import { Media } from './Media';
 import { Inspector } from './Inspector';
 import { LineProps } from '../editor';
+import { Handles, pickAt } from './Handles';
+
+// a crash anywhere in the layered editor never blanks his screen: a note and a way back
+export class LayersBoundary extends React.Component<{ children: React.ReactNode }, { err: string | null }> {
+  state = { err: null as string | null };
+  static getDerivedStateFromError(e: any) { return { err: String(e?.message || e) }; }
+  render() {
+    if (!this.state.err) return this.props.children;
+    return <div className="empty" style={{ padding: 40, display: 'grid', gap: 12, maxWidth: 560 }}>
+      <b style={{ color: 'var(--text)' }}>The editor tripped over something.</b>
+      <span>Nothing is lost - every change was saved as you made it.</span>
+      <code style={{ fontSize: 11 }}>{this.state.err}</code>
+      <button className="btn primary" style={{ width: 160 }} onClick={() => this.setState({ err: null })}>Back to the editor</button>
+    </div>;
+  }
+}
 
 type Props = { ep: string; top: React.ReactNode; job: any; setJob: (j: any) => void; jobLine: string; reloadEp: () => void; chars: any[] };
 
@@ -17,6 +33,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
   const L = useLayered(ep);
   const project = L.live;
   const player = useRef<PlayerRef>(null);
+  const frameEl = useRef<HTMLDivElement>(null);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [sel, setSel] = useState<Sel>(null);
@@ -42,6 +59,12 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
   const total = project?.duration || 1;
   const speed = project?.speed || 1;
   const seek = (f: number) => { const g = Math.max(0, Math.min(total - 1, Math.round(f))); player.current?.seekTo(g); setFrame(g); };
+  // picking an item shows it: the video jumps into it when the playhead is outside it
+  const pickItem = (s: Sel) => {
+    setSel(s); setLine(null);
+    const it = s?.item && project?.layers.find((l: any) => l.id === s.layer)?.items?.find((i: any) => i.id === s.item);
+    if (it && (frame < it.from || frame >= it.from + it.dur)) seek(it.from + Math.min(it.dur - 1, Math.round(fps * 0.4)));
+  };
   const inputProps = useMemo(() => project && ({ project, urls: L.view!.urls, mode: 'full' as const, playing, playbackRate: speed, gainDb: (L.view as any).gainDb ?? 0 }),
     [project, L.view?.urls, (L.view as any)?.gainDb, playing, speed]);
 
@@ -142,9 +165,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
 
         <div className="pane viewer">
           <div className="monitor">
-            <div className="frame" style={{ position: 'relative', aspectRatio: `${project.canvas.w}/${project.canvas.h}` }}>
+            <div className="frame" ref={frameEl} style={{ position: 'relative', aspectRatio: `${project.canvas.w}/${project.canvas.h}` }}
+              onClick={(e) => { const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else player.current?.toggle(); }}>
+              <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />
               {inputProps && <Player ref={player} component={Layers as any} inputProps={inputProps} durationInFrames={total} fps={fps}
-                compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay playbackRate={speed}
+                compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay={false} playbackRate={speed}
                 numberOfSharedAudioTags={0} style={{ width: '100%', height: '100%' }} />}
             </div>
           </div>
@@ -175,7 +200,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={(s) => { setSel(s); setLine(null); }} onSeek={seek} send={L.send} onItemEdit={onItemEdit}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
     </div>
   );
