@@ -137,7 +137,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
 <div class="meas" id="meas">
   <div class="meas-who" id="measWho"></div>
   <div class="meas-t" id="measT">Press Space (or Start) the moment you start saying the highlighted line</div>
-  <div class="meas-b"><button class="btn play" id="measGo">Start</button><button class="btn" id="measX">Cancel</button></div>
+  <div class="meas-b"><button class="btn play" id="measGo">Start</button><button class="btn" id="measAgain" hidden>Measure again</button><button class="btn" id="measX">Cancel</button></div>
 </div>
 </header>
 <div class="script" id="script"><div class="empty">Pick a project - its script shows here.</div></div>
@@ -164,7 +164,6 @@ const store = { get: (k) => { try { return localStorage.getItem(k); } catch { re
 const $ = (id) => document.getElementById(id);
 let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
 let mark = null;  // the checkpoint line (per script)
-let defs = (() => { try { return JSON.parse(localStorage.getItem('reader-char-paces') || '{}'); } catch { return {}; } })();  // a character's default pace in every script (Measure → Save as default)
 let paces = {};  // a character's own pace (wpm) in this script - when you play, each line waits at its speaker's pace
 let fs = +(store.get('reader-fs') || 30);
 
@@ -234,7 +233,7 @@ function render() {
     wrap.className = 'rolewrap';
     const pi = document.createElement('input');
     pi.type = 'number'; pi.min = 60; pi.max = 600; pi.step = 5; pi.className = 'rp';
-    pi.value = paces[c] || ''; pi.placeholder = defs[c] || wpm; pi.dataset.c = c;  // (empty: his default, else the general pace)
+    pi.value = paces[c] || ''; pi.placeholder = wpm;  // (empty: his default, else the general pace)
     pi.title = `${c}'s pace (words per minute) - empty = the general pace`;
     pi.onchange = () => {
       const v = Math.round(+pi.value);
@@ -311,21 +310,29 @@ function go(i) { cur = Math.max(0, Math.min(lines.length - 1, i)); save(); rende
 const DEFAULT_WPM = 270;
 let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
 
-// measure a pace: the current line's speaker (or the general pace when the script has no characters) gets the pace
-// that makes this line last exactly as long as he took to say it - the same formula the player uses (lineSeconds)
-let meas = null;  // {i, t0, raf}
+// measure a character's pace: pick the character, Measure, Start when you start saying his line, Stop when you
+// finish - Save sets his pace (the player's own formula, lineSeconds, backwards). A script without characters: the pace.
+let meas = null;  // {i, who, t0, raf, pace, secs}
+const wordsOf = (l) => l.text.split(/\s+/).filter(Boolean).length;
 function measureOpen() {
-  const l = lines[cur];
-  if (!l || l.dir) return;
   if (playing) setPlay(false);
   cancelCd();
-  meas = { i: cur, t0: 0 };
-  const words = l.text.split(/\s+/).filter(Boolean).length;
-  $('measWho').textContent = l.who ? `⏱ ${l.who}` : '⏱ Pace';
-  $('measT').textContent = `${words} words${words < 12 ? ' - a longer line measures better' : ''} · Space / Start the moment you start saying it`;
+  let i = cur;
+  if (me && lines[i]?.who !== me) {  // the picked character's line: the next one from here (else his first)
+    const n = lines.findIndex((l, k) => k >= cur && l.who === me);
+    i = n >= 0 ? n : lines.findIndex((l) => l.who === me);
+    if (i >= 0) go(i);
+  }
+  const l = lines[i];
+  if (!l || l.dir) return;
+  if (meas?.raf) cancelAnimationFrame(meas.raf);
+  meas = { i, who: l.who || null, t0: 0, pace: null };
+  $('measWho').textContent = `⏱ ${meas.who || 'Pace'}`;
+  $('measT').textContent = `Read the marked line (${wordsOf(l)} words) - Start when you start, Stop when you finish.`;
   $('measGo').textContent = 'Start';
-  placeMeas();
+  $('measAgain').hidden = true;
   $('meas').classList.add('on'); $('meas').classList.remove('run');
+  placeMeas();
 }
 function placeMeas() {  // right under the Measure button, inside the window
   const r = $('measure').getBoundingClientRect(), m = $('meas');
@@ -334,56 +341,48 @@ function placeMeas() {  // right under the Measure button, inside the window
 }
 addEventListener('resize', () => { if ($('meas').classList.contains('on')) placeMeas(); });
 function measureClose() { if (meas?.raf) cancelAnimationFrame(meas.raf); meas = null; $('meas').classList.remove('on', 'run'); }
-function measureStep() {
+function measureStep() {  // Start -> Stop -> Save
   if (!meas) return;
-  if (!meas.t0) {  // start: the clock runs on screen
+  if (meas.pace != null) {  // Save
+    if (meas.who) paces[meas.who] = meas.pace; else { wpm = meas.pace; showPace(); }
+    save(); render(); foot();
+    if (playing) schedule();
+    measureClose();
+    return;
+  }
+  if (!meas.t0) {  // Start: the clock runs on screen
     meas.t0 = performance.now();
     $('meas').classList.add('run'); $('measGo').textContent = 'Stop';
-    const tick = () => { if (!meas?.t0) return; $('measT').textContent = `${((performance.now() - meas.t0) / 1000).toFixed(1)} s · Space / Stop when you finish`; meas.raf = requestAnimationFrame(tick); };
+    const tick = () => { if (!meas?.t0 || meas.pace != null) return; $('measT').textContent = `${((performance.now() - meas.t0) / 1000).toFixed(1)} s`; meas.raf = requestAnimationFrame(tick); };
     tick();
     return;
   }
-  const secs = (performance.now() - meas.t0) / 1000, l = lines[meas.i];
-  const words = l.text.split(/\s+/).filter(Boolean).length;
-  // lineSeconds backwards: your own lines get 10% + 0.15 s more, every line 0.3 s
-  const speak = (l.who === me ? (secs - 0.15) / 1.1 : secs) - 0.3;
-  const pace = Math.max(60, Math.min(600, Math.round((words * 60) / Math.max(0.3, speak) / 5) * 5));
-  if (l.who) paces[l.who] = pace; else { wpm = pace; showPace(); }  // (this script: at once)
-  save(); render(); foot();
-  measureClose();
-  // then the question: this character's pace in every script too?
-  const who = l.who;
-  $('measWho').textContent = `${who || 'Pace'}: ${pace} wpm`;
-  $('measT').textContent = `${words} words in ${secs.toFixed(1)} s - set for this script. ${who ? `Save as ${who}'s default (every script)?` : 'Save as the default pace (every script)?'}`;
-  $('meas').classList.add('on');
-  placeMeas();
-  $('measGo').textContent = 'Save as default';
-  $('measX').textContent = 'This script only';
-  const reset = () => { $('measGo').onclick = measureStep; $('measX').onclick = measureClose; $('measX').textContent = 'Cancel'; };
-  $('measGo').onclick = () => {
-    if (who) { defs[who] = pace; store.set('reader-char-paces', JSON.stringify(defs)); }
-    else store.set('reader-wpm', pace);
-    $('measT').textContent = who ? `Saved: ${who} reads at ${pace} wpm in every script (a script's own pace still wins).` : `Saved: ${pace} wpm is the default pace.`;
-    $('measGo').textContent = 'Done'; $('measX').textContent = 'Measure again';
-    $('measGo').onclick = () => { reset(); measureClose(); };
-    $('measX').onclick = () => { reset(); measureOpen(); };
-    render();
-  };
-  $('measX').onclick = () => { reset(); measureClose(); };
+  // Stop: the pace that makes this line last exactly that long (your own lines get 10% + 0.15 s more, every line 0.3 s)
+  const secs = (performance.now() - meas.t0) / 1000, l = lines[meas.i], words = wordsOf(l);
+  const speak = (l.who && l.who === me ? (secs - 0.15) / 1.1 : secs) - 0.3;
+  meas.pace = Math.max(60, Math.min(600, Math.round((words * 60) / Math.max(0.3, speak) / 5) * 5));
+  $('meas').classList.remove('run');
+  $('measWho').textContent = `${meas.who || 'Pace'}: ${meas.pace} wpm`;
+  $('measT').textContent = `${words} words in ${secs.toFixed(1)} s`;
+  $('measGo').textContent = 'Save';
+  $('measAgain').hidden = false;
 }
 $('measure').onclick = measureOpen;
 $('measGo').onclick = measureStep;
+$('measAgain').onclick = measureOpen;
 $('measX').onclick = measureClose;
-document.addEventListener('keydown', (e) => {  // (first: while measuring, Space / Enter are the stopwatch, not Play)
+document.addEventListener('keydown', (e) => {  // (first: while measuring, Space is the stopwatch - not Play; Enter saves)
   if (!meas) return;
-  if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); measureStep(); }
+  if (e.code === 'Space' && meas.pace == null) { e.preventDefault(); e.stopImmediatePropagation(); measureStep(); }
+  else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); measureStep(); }
   else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); measureClose(); }
+  else if (e.code === 'Space') { e.preventDefault(); e.stopImmediatePropagation(); }
 }, true);
 
 function lineSeconds(l) {
   if (l.dir) return 0.8;
   const words = l.text.split(/\s+/).filter(Boolean).length;
-  const base = 0.3 + words / (((l.who && (paces[l.who] || defs[l.who])) || wpm) / 60);  // the speaker's own pace, if set
+  const base = 0.3 + words / (((l.who && paces[l.who]) || wpm) / 60);  // the speaker's own pace, if set
   return l.who === me ? base * 1.1 + 0.15 : base;
 }
 function schedule() {
@@ -454,7 +453,7 @@ $('play').onclick = () => toggle();
 $('cd').onchange = () => { cdSecs = +$('cd').value; store.set('reader-cd', cdSecs); $('cd').blur(); };
 showCd();
 function showPace() {
-  document.querySelectorAll('.rp').forEach((x) => (x.placeholder = defs[x.dataset.c] || wpm));  // (empty box: his default, else this)
+  document.querySelectorAll('.rp').forEach((x) => (x.placeholder = wpm));
   $('pace').value = wpm;
   if (document.activeElement !== $('paceN')) $('paceN').value = wpm;  // not while you're typing in it
   $('pace').disabled = $('paceN').disabled = locked;
