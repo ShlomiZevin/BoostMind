@@ -45,6 +45,35 @@ Reply to him in English; Hebrew only inside the video.
 7. **First cut fast, then his notes.** Never let him review a half-built state ("wait, building" - then say it's ready).
    His timestamps are the editor's time at 1x speed. When he says "you do it", make the call yourself.
 
+## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
+The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").
+What I did wrong:
+- **Built features into a side screen.** The Zoom project opens in an older, Zoom-only screen. I added backgrounds,
+  voices and subtitles THERE (a "רקע" lane, a character card) instead of in the main editor every other project uses -
+  so its backgrounds were nowhere in Media, controls sat in other places, it didn't feel like his tool.
+- **Changed the tool in the middle of a video**, under time pressure, piece by piece, while he was waiting.
+- **Worked behind the editor's back**: edited episode.json / corrections.json and ran `zoomcut.py voices` from the
+  shell instead of going through the editor's controls / the studio's endpoints - the screen didn't always show it.
+- **Exported without checking what he set**: an export went out at 2× because the project's speed had changed.
+- **Made the export heavier without load-testing it** - his PC blue-screened mid-export.
+- **Debugged too long** on one problem (the export freeze) before taking the simple route.
+
+The rules:
+1. **One editor.** Every project - Zoom grid or one camera - is edited in the same main editor: its Media tab, its
+   layers, its inspector. Never add a feature to a side screen. If a project type still opens elsewhere, say so and
+   bring it into the main editor (tool work, below) - don't extend the side screen.
+2. **Use the tool the way he does.** Change a project through the editor's own controls / the studio's endpoints, so
+   what you set is what he sees. Never edit project files behind an open editor; never run the engine from the shell
+   while the studio is up (build / export / voices go through the studio).
+3. **Tool work is separate from video work.** Making a video = setting layers with the tool as it is. If the tool
+   lacks something: stop, tell him in one line, and do the tool change as its own planned task - generic (every
+   project gets it, in the main editor's existing places), tested on a hidden copy, load-tested before he exports with
+   it, written in `editor.md`. Never patch the tool piece by piece while he waits on a video.
+4. **Before every export:** read the project as he left it - speed, the layers, the length (`GET /api/ep/<id>`) - and
+   export exactly that. A setting that looks off (2× speed) = ask, don't export.
+5. **Show before applying** a look or sound change: stills of the tiles (big AND small), short before / after mp3s.
+6. **Time-box debugging:** two or three attempts, then the simplest route that works.
+
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it while a
    job runs (`GET /api/ep/<id>/job`).
