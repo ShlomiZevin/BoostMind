@@ -9,7 +9,7 @@ import { useLayered, build, fmtT } from './api';
 import { Timeline, Sel } from './Timeline';
 import { Media } from './Media';
 import { Inspector } from './Inspector';
-import { LineProps } from '../editor';
+import { LineProps, Media as FootageAssign } from '../editor';
 import { Handles, pickAt } from './Handles';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
@@ -27,9 +27,9 @@ export class LayersBoundary extends React.Component<{ children: React.ReactNode 
   }
 }
 
-type Props = { ep: string; top: React.ReactNode; job: any; setJob: (j: any) => void; jobLine: string; reloadEp: () => void; chars: any[] };
+type Props = { ep: string; top: React.ReactNode; job: any; setJob: (j: any) => void; jobLine: string; reloadEp: () => void; chars: any[]; epData?: any };
 
-export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
+export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, reloadEp }: Props) {
   const L = useLayered(ep);
   const project = L.live;
   const player = useRef<PlayerRef>(null);
@@ -46,7 +46,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
 
   // a builder job (re-analyze, a line fix) ended: its layers changed on disk
   const wasRunning = useRef(false);
-  useEffect(() => { if (wasRunning.current && !job?.running) L.load(); wasRunning.current = !!job?.running; }, [job?.running]);
+  useEffect(() => { if (wasRunning.current && !job?.running) { L.load(); reloadEp(); } wasRunning.current = !!job?.running; }, [job?.running]);
 
   useEffect(() => {
     const p = player.current; if (!p) return;
@@ -122,6 +122,17 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
 
   if (!project) return <div className="ed">{top}<div className="empty" style={{ padding: 30 }}>Loading the layers…</div></div>;
   const busy = !!job?.running;
+  // a new project: its footage (who is who) and the analysis come first - right here, in the one editor
+  const fresh = !project.layers.length;
+  const unassigned = epData?.footage?.unassigned?.length || 0;
+  const setup = (fresh || unassigned > 0) && project.builder?.kind === 'zoom' ? (
+    <div className="card" style={{ margin: 12, gap: 10 }}>
+      <div className="card-h"><div className="title grow">{fresh ? 'New video - the footage' : 'New footage'}</div></div>
+      <div className="help" style={{ marginTop: 0 }}>{unassigned ? 'Pick who is in each file - the analysis goes on by itself.'
+        : busy ? 'Analyzing: listening to every take, matching the script, cutting out the people…' : 'Analyze: the takes are matched to the script and every person, voice and subtitle becomes a layer.'}</div>
+      {epData?.footage && <div className="setup-foot"><FootageAssign data={epData} ep={ep} busy={busy} onJob={setJob} /></div>}
+      {!unassigned && <button className="btn primary" disabled={busy} onClick={async () => setJob(await build(ep, { action: 'analyze' }))}>{busy ? 'Analyzing…' : 'Analyze'}</button>}
+    </div>) : null;
   const nowLine = [...script].reverse().find((l) => l.start != null && l.start <= frame / fps + 0.01)?.n;
   const curLine = line != null ? script.find((l) => l.n === line) : null;
   const lineCard = curLine && (
@@ -148,6 +159,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars }: Props) {
             {L.saving && <span className="help" style={{ margin: 0 }}>saving…</span>}
           </div>
           <div className="scroll">
+            {tab === 'media' && setup}
             {tab === 'media' && <Media ep={ep} project={project} urls={L.view!.urls} frame={frame} send={L.send} onLoaded={L.load}
               pick={pick && { kind: pick.kind, onPick: (id) => { pick.onPick(id); setPick(null); } }} />}
             {tab === 'script' && <div className="lines">

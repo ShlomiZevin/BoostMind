@@ -18,7 +18,8 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
 - **`episodes/<id>/project.json` = a layered project** (the format: `skill/edit-video/layers.md`). Changed only through
   the studio's ops (`POST /api/p/<id>/ops`); drawn by `render/src/Layers.tsx`, edited in `render/ui/layers/`,
   exported by `pipeline/export_layers.py`, sound by `pipeline/layers_audio.py`. Builders: `pipeline/to_layers.py`
-  (Zoom), the solo builder (coming). Projects without project.json still use the older screens below.
+  (Zoom), `pipeline/to_layers_solo.py` (one camera). Every project opens in this one editor (2026-10-22); the older
+  screens (ZoomCall / LessonView) only show a project that has no project.json.
 - `README.md` — how the pipeline works, folder layout, script directives, corrections.
 - `zoomcut.py` (Zoom-grid projects) / `lesson.py` (one-camera projects) — the engines behind the one editor.
 - `pipeline/` — prepare → transcribe (ivrit-ai Whisper, CPU) → match → plan → background (cut-out + photo layer) →

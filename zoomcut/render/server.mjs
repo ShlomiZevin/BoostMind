@@ -358,6 +358,8 @@ app.post('/api/new', (q, res) => {
       const cfg = readJson(path.join(dst, 'episode.json'));
       cfg.input_dir = folder; cfg.title = name;
       writeJson(path.join(dst, 'episode.json'), cfg);
+      const pj = readJson(path.join(dst, 'project.json'));
+      if (pj) writeJson(path.join(dst, 'project.json'), { ...pj, title: name });
     } else if (from) {
       execFileSync(py, ['lesson.py', 'new', `episodes/${id}`, '--from', from, '--input', folder, '--takes', '*.[mM][pPoO][4vV]'], { cwd: ROOT });
       const cfg = readJson(path.join(dst, 'episode.json'));
@@ -609,6 +611,10 @@ app.post('/api/ep/:id/files', (q, res) => {
   const e = readJson(p);
   e.files = { ...(e.files || {}), ...q.body.files };
   writeJson(p, e);
+  // the analysis starts once every new file has its person (not on each pick)
+  const foot = readJson(path.join(epDir(q.params.id), 'work', 'footage.json'), null);
+  const left = (foot?.unassigned || []).filter((rel) => !e.files[rel]?.char);
+  if (left.length) return res.json({ ok: true, waiting: left.length });
   res.json(pub(runJob(q.params.id, ['--preview'])));
 });
 
@@ -978,6 +984,18 @@ app.post('/api/p/:id/ops', async (q, res) => {
   if (touchesSound(before, ops)) stemErr = await restem(id);
   const v = projectView(q, id);
   res.json({ ok: true, rev: after.rev, stems: v.stems, gainDb: v.gainDb, ...(stemErr ? { soundError: stemErr } : {}) });
+});
+// a new file's thumbnail (who is in it?): a frame from his footage folder, small, made once
+app.get('/api/ep/:id/footthumb', (q, res) => {
+  const d = epDir(q.params.id), cfg = readJson(path.join(d, 'episode.json'), {});
+  const rel = String(q.query.rel || '');
+  const src = path.resolve(cfg.input_dir || path.join(d, 'input'), rel);
+  if (!fs.existsSync(src)) return res.status(404).end();
+  const out = path.join(d, 'work', 'thumbs', rel.replace(/[^\w.-]/g, '_') + '.jpg');
+  if (fs.existsSync(out)) return res.sendFile(out);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', '4', '-i', src, '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
+  p.on('close', () => (fs.existsSync(out) ? res.sendFile(out) : res.status(404).end()));
 });
 // a footage thumbnail for Media (a frame a third in, small; made once)
 app.get('/api/p/:id/thumb', (q, res) => {

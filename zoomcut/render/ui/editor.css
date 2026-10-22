@@ -555,3 +555,8 @@ a { color: inherit; text-decoration: none; }
 
 /* a layered project: blocks linked to the picked one (the same Zoom line's voice and subtitles) */
 .blk.linked { box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
+
+/* the one editor's "New video" step: the footage rows use the card's full width */
+.setup-foot .item { padding: 10px 0; gap: 10px; }
+.setup-foot .item .ctl { display: grid; grid-template-columns: 1fr 1fr; }
+.setup-foot .item .name { font-size: 11.5px; color: var(--faint); }

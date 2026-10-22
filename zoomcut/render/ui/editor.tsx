@@ -332,7 +332,7 @@ function Editor() {
   const statusText = busy
     ? job!.kind === 'export' ? (pct ? `Exporting · ${Math.round(100 * +pct[1] / +pct[2])}%` : last.includes('interface') ? 'Exporting · drawing the interface…' : 'Exporting…')
       : last.startsWith('cutting out') ? last.replace('cutting out', 'Removing background ·') : last.startsWith('· transcribing') ? last.replace('· transcribing', 'Listening to') : 'Updating preview…'
-    : job?.code ? 'Last run failed' : (data?.state || (data as any)?.preview || (data as any)?.output || (data as any)?.layers?.person) ? 'Preview ready' : 'Not analyzed yet';
+    : job?.code === 2 && data?.footage?.unassigned?.length ? 'Waiting: who is in each file' : job?.code ? 'Last run failed' : (data?.state || (data as any)?.preview || (data as any)?.output || (data as any)?.layers?.person) ? 'Preview ready' : 'Not analyzed yet';
 
   const startDrag = (e: React.MouseEvent) => {
     const y0 = e.clientY, h0 = tlH;
@@ -368,7 +368,7 @@ function Editor() {
             <span className="xp-s">{stage}</span>
             <span className="xp-d">{busy ? (dest ? `then → ${dest}` : 'then → the file only') : ''}</span>
           </div>;
-        })() : <div className="state"><span className={`ring ${busy ? 'busy' : job?.code ? 'err' : ''}`} />{statusText}</div>}
+        })() : <div className="state"><span className={`ring ${busy ? 'busy' : job?.code && !(job.code === 2 && data?.footage?.unassigned?.length) ? 'err' : ''}`} />{statusText}</div>}
         <div className="grow" />
         {busy && <button className="btn" onClick={async () => setJob(await api(`/api/ep/${ep}/cancel`, {}))}>{I.stop} Stop</button>}
         <button className="btn" disabled={busy} onClick={async () => setJob(await api(`/api/ep/${ep}/analyze`, {}))}>Re-analyze</button>
@@ -404,7 +404,7 @@ function Editor() {
       </div>
   );
   // a layered project (project.json): the one layered editor - every layer a lane, every change an op
-  if ((data as any)?.layered) return <LayersBoundary><LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} /></LayersBoundary>;
+  if ((data as any)?.layered) return <LayersBoundary><LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} epData={data} /></LayersBoundary>;
   if (lessonData) return <LessonView ep={ep} data={lessonData} top={top} busy={busy} setJob={setJob} jobLine={busy ? statusText : ''} reload={load} />;
 
   return (
@@ -488,12 +488,16 @@ function Editor() {
 }
 
 // ---------- media bin --------------------------------------------------------------------
-function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string; busy: boolean; onJob: (j: Job) => void }) {
+export function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string; busy: boolean; onJob: (j: Job) => void }) {
   const f = data?.footage;
   if (!f) return <div className="empty" style={{ padding: 16 }}>No footage scanned yet.</div>;
   const chars = data!.episode?.characters || [];
-  const rows = [...f.unassigned.map((rel) => ({ rel, char: '', kind: 'lines' })), ...f.clips];
-  const assign = async (rel: string, char: string, kind: string) => onJob(await api(`/api/ep/${ep}/files`, { files: { [rel]: { char, kind } } }));
+  const picked = (data!.episode?.files || {}) as Record<string, any>;  // picks made since the last scan show at once
+  const rows = [...f.unassigned.map((rel) => ({ rel, char: picked[rel]?.char || '', kind: picked[rel]?.kind || 'lines' })), ...f.clips];
+  const assign = async (rel: string, char: string, kind: string) => {
+    const r = await api(`/api/ep/${ep}/files`, { files: { [rel]: { char, kind } } });
+    if (r?.running) onJob(r); else window.dispatchEvent(new Event('studio-reload'));  // (waiting for the other files: just show the pick)
+  };
   return (
     <>
       {f.unassigned.length > 0 && <div className="note">Pick a character for every file — the edit continues once all are assigned.</div>}
@@ -501,7 +505,7 @@ function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string; busy:
         const c = chars.find((x: any) => x.id === r.char);
         return (
           <div key={r.rel} className="item">
-            <div className="av" style={{ background: c ? colorOf(c.id, chars) : 'var(--panel-3)' }}>{c ? c.name[0] : '?'}</div>
+            <img className="m-thumb" loading="lazy" src={`/api/ep/${ep}/footthumb?rel=${encodeURIComponent(r.rel)}`} alt="" />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="name">{r.rel}</div>
               <div className="ctl">

@@ -32,8 +32,10 @@ any AI code tool can work with and spill things into it without changing it. The
   If you notice you are about to edit `render/`, `pipeline/` or the engines while making a video - stop, tell him in
   one line, treat it as its own task.
 - Export = the one exporter (`pipeline/export_layers.py`): what the editor shows is what the file gets.
-- Projects made before the layered tool still open in the older screens (one-camera projects move over with the solo
-  builder - stage 2). Don't convert a project he is working on; convert on a `_` copy first and show him.
+- **One editor for every project** (his call, 2026-10-22: "I just want one editor"): every project has a
+  project.json and opens in the layered editor. Zoom projects get it from every analysis; one-camera projects from
+  the solo builder (`pipeline/to_layers_solo.py`). The older screens are not used any more. Deleting project.json
+  brings a project back to its older screen (its episode.json / captions / corrections are never touched).
 
 ## READ FIRST - how we work (his rules; each one cost him a round)
 

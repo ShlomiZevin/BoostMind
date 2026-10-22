@@ -426,6 +426,14 @@ def cmd_new(path):
             shutil.copy(os.path.join(prev, fn), dst)
     if not os.path.exists(os.path.join(path, "script.txt")):
         open(os.path.join(path, "script.txt"), "w", encoding="utf-8").write("**אמיר:** ...\n")
+    # one editor from the first minute: an empty layered project (the analysis fills its layers)
+    from pipeline import project as projectlib
+    pj = os.path.join(path, "project.json")
+    if not os.path.exists(pj):
+        cfg = load_json(os.path.join(path, "episode.json"), {}) or {}
+        save_json(pj, {"format": projectlib.FORMAT, "title": cfg.get("title") or os.path.basename(os.path.abspath(path)),
+                       "canvas": {"w": 1080, "h": 1920, "fps": 30, "color": "#0b0b0b"}, "duration": 30 * 30, "speed": 1,
+                       "assets": {}, "layers": [], "builder": {"kind": "zoom", "actions": [{"id": "analyze", "label": "Analyze the footage"}]}, "rev": 1})
     log(f"✔ new episode at {path} — put footage in input/, the script in script.txt")
 
 
