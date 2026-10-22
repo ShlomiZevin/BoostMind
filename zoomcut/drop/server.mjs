@@ -22,12 +22,15 @@ async function token() {  // the service account's access token (cached until sh
 }
 const gcs = async (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${await token()}`, ...(opts.headers || {}) } });
 const keyOk = (k) => {
+  const m = /[#?&]k=([^&#\s]+)/.exec(String(k || ''));  // (the whole Drop link pasted: its key)
+  if (m) k = m[1];
   const a = Buffer.from(String(k || '')), b = Buffer.from(KEY);
   return KEY.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
 };
 // a folder / file name as it lands in the bucket and on the PC: letters (Hebrew too), digits, - _ . and spaces
 const clean = (s, max = 120) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, max);
 const enc = encodeURIComponent;
+const TYPES = { mov: 'video/quicktime', mp4: 'video/mp4', m4v: 'video/x-m4v', heic: 'image/heic', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', m4a: 'audio/mp4', wav: 'audio/wav', mp3: 'audio/mpeg' };
 
 async function listAll(prefix = '') {
   const items = [];
@@ -81,18 +84,28 @@ const routes = {
     await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${enc(`${folder}/.keep`)}`, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '' });
     return { folder };
   },
-  async session(b, req) {  // a resumable upload session for one file
-    const folder = clean(b.folder, 60), name = clean(b.name);
+  // a resumable upload session for one file. The page sends name + size; the iPhone Shortcut (originals straight from
+  // Photos) sends only a name and the file's extension - no size, and a taken name gets -2, -3 here
+  async session(b, req) {
+    const folder = clean(b.folder, 60);
+    const ext = clean(b.ext || '', 8).replace(/^\.+/, '');
+    let name = clean(b.name) || 'video';
+    if (ext && !name.toLowerCase().endsWith(`.${ext.toLowerCase()}`)) name += `.${ext}`;
     const size = Number(b.size);
-    if (!folder || !name || !(size > 0)) throw Object.assign(new Error('folder, name, size'), { code: 400 });
+    if (!folder) throw Object.assign(new Error('folder'), { code: 400 });
+    if (b.unique) {  // (the Shortcut cannot see what is there)
+      const [base, dot] = name.includes('.') ? [name.slice(0, name.lastIndexOf('.')), name.slice(name.lastIndexOf('.'))] : [name, ''];
+      for (let k = 2; await exists(`${folder}/${name}`); k++) name = `${base}-${k}${dot}`;
+    }
+    const type = String(b.type || TYPES[ext.toLowerCase()] || 'application/octet-stream');
     const r = await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=resumable&name=${enc(`${folder}/${name}`)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Upload-Content-Type': String(b.type || 'application/octet-stream'), 'X-Upload-Content-Length': String(size),
+      headers: { 'Content-Type': 'application/json', 'X-Upload-Content-Type': type, ...(size > 0 ? { 'X-Upload-Content-Length': String(size) } : {}),
         Origin: req.headers.origin || '' },  // (the session then answers the page's own origin - CORS)
-      body: JSON.stringify({ name: `${folder}/${name}`, contentType: String(b.type || 'application/octet-stream') }),
+      body: JSON.stringify({ name: `${folder}/${name}`, contentType: type }),
     });
     if (!r.ok) throw new Error(`storage ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    return { url: r.headers.get('location'), object: `${folder}/${name}` };
+    return { url: r.headers.get('location'), object: `${folder}/${name}`, name };
   },
   async rename(b) {
     const folder = clean(b.folder, 60), from = String(b.from || ''), to = clean(b.to);
