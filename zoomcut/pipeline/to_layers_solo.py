@@ -482,6 +482,10 @@ def overlay_layers(ls, assets, rel, total):
                 it["box"] = {"x": float(o.get("x") or W / 2), "y": float(o.get("y") or 270), "anchor": "t", "w": float(o.get("maxw") or 940)}
             elif style == "ticker":
                 fields["t0"] = a
+                png = ls.work("text", f"ov{k}.png")  # the strip as the old engine drew it: its width sets the loop
+                if os.path.exists(png):
+                    import cv2
+                    fields["tw"] = int(cv2.imread(png, cv2.IMREAD_UNCHANGED).shape[1])
                 fields.setdefault("bg", f"rgba(0,0,0,{float(o.get('opacity') if o.get('opacity') is not None else 0.55):.2f})")
                 it["box"] = {"x": 0, "y": float(o.get("y") or 1560) - 10, "anchor": "tl"}
             else:  # the one-camera styles (render/src/layers/styles_solo.tsx): the old fields, the place as each style expects

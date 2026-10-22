@@ -157,7 +157,7 @@ export const SOLO_TEXT_STYLES: Record<string, { label: string; animated?: boolea
     const size = it.size || 46, W = it.width || 1080, v = it.speed || 120;
     const fam = it.font && fonts[it.font] ? `"${fonts[it.font]}", ${UI}` : UI;
     const line = String(text).replace(/\n/g, '   ·   ');
-    const tw = widthOf(line, `800 ${size}px ${fam}`, size) + 80;  // (+ its padding)
+    const tw = it.tw || widthOf(line, `800 ${size}px ${fam}`, size) + 80;  // (+ its padding; tw: the strip's width as the old engine drew it)
     const x = ((v * (t + (it.t0 || 0))) % (W + tw)) - tw;  // (t0: the item's start on the video - the strip runs by the video's clock)
     return <div style={{ width: W, overflow: 'hidden', background: it.bg || 'transparent', direction: 'ltr' }}>
       <div style={{ display: 'inline-block', whiteSpace: 'nowrap', padding: '10px 40px', transform: `translateX(${x}px)`, fontFamily: fam, fontWeight: 800,
