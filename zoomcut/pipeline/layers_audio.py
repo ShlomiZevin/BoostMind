@@ -73,8 +73,16 @@ def track(ep, project, layer, n, sources=None):
         aid = it.get("asset") or props.get("asset")
         x = cache[aid]
         a = int(it.get("in", 0) * SR)
-        z = a + int(round(it["dur"] / fps * SR))
-        piece = x[a:z].copy() * level.get(aid, 1.0)
+        n_out = int(round(it["dur"] / fps * SR))
+        rate = float(it.get("rate", 1) if it.get("rate") is not None else 1)
+        if rate <= 1e-6:  # a held frame: no sound
+            continue
+        if abs(rate - 1) > 1e-4:  # slow / fast motion: rate x the length of source, stretched to the item (pitch follows)
+            src_n = max(2, int(round(n_out * rate)))
+            seg = x[a:a + src_n]
+            piece = np.interp(np.linspace(0, max(0, len(seg) - 1), n_out), np.arange(len(seg)), seg).astype(np.float32) * level.get(aid, 1.0) if len(seg) > 1 else np.zeros(0, np.float32)
+        else:
+            piece = x[a:a + n_out].copy() * level.get(aid, 1.0)
         if it.get("soften"):
             piece = audio.soften(piece)
         piece = piece * float(it.get("gain", 1.0))

@@ -81,6 +81,11 @@ CLEAN_NN_AF = ("aresample=48000,highpass=f=80,arnndn=m=models/rnnoise/cb.rnnn,"
                "acompressor=threshold=0.12:ratio=2.5:attack=8:release=150:makeup=1")
 
 
+# "clean": "fft" - the one-camera engine's own noise reduction (lesson.py DENOISE), so a migrated solo voice keeps
+# exactly its filter ("Standard (FFT)" in the editor)
+CLEAN_FFT_AF = "afftdn=nf=-28:tn=1"
+
+
 def voice_of(ep, char_id):
     """A character's voice layer: {"volume": 1, "clean": "off" | "mild" | "strong", "presence": dB at 2.8 kHz}.
     (An older "clean": true / "strong" on the character still counts.)"""
@@ -94,7 +99,7 @@ def voice_of(ep, char_id):
 
 
 def _voice_chain(v):
-    chain = {"mild": CLEAN_AF, "strong": CLEAN_STRONG_AF, "nn": CLEAN_NN_AF}.get(v.get("clean"), "")
+    chain = {"mild": CLEAN_AF, "strong": CLEAN_STRONG_AF, "nn": CLEAN_NN_AF, "fft": CLEAN_FFT_AF}.get(v.get("clean"), "")
     pr = float(v.get("presence") or 0)
     if abs(pr) >= 0.5:  # clarity: up for a muffled voice, down for a harsh one
         chain = (chain + "," if chain else "") + f"equalizer=f=2800:t=q:w=1.2:g={pr:.1f}"

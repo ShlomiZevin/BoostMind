@@ -26,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from . import film_fx, layers_audio
+from . import film_fx, layers_audio, look
 from . import project as projectlib
 from .common import FFMPEG, ROOT, Episode, ffprobe, log, run
 from .compose import LOW, PIECES, X264_THREADS, _look
@@ -219,15 +219,19 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             tag = f"{ri}_{j}"
             asset = project["assets"][it["asset"]]
             box = it["box"]
-            rate = float(it.get("rate", 1) or 1)
+            rate = float(it["rate"]) if it.get("rate") is not None else 1.0  # (0 = a held frame: never "or 1")
             src_t = float(it.get("in", 0)) + (a - it["from"]) / fps * rate
             ln = z - a
             w, h = max(2, int(box["w"] * scale) // 2 * 2), max(2, int(box["h"] * scale) // 2 * 2)
             left, top, vw, vh = (v * scale for v in fit_box(asset, box, it))
             vw, vh = max(2, int(round(vw / 2) * 2)), max(2, int(round(vh / 2) * 2))
             cx, cy = min(max(0, int(round(-left))), max(0, vw - w)), min(max(0, int(round(-top))), max(0, vh - h))
-            dur = ln / fps * rate + 0.1
-            spts = f"setpts=(PTS-STARTPTS)/{rate:.4f}," if abs(rate - 1) > 1e-4 else "setpts=PTS-STARTPTS,"
+            hold = rate <= 1e-6  # rate 0 = a held frame at `in` (the other side talks over a frozen frame of him)
+            dur = 0.2 if hold else ln / fps * rate + 0.1
+            spts = "setpts=PTS-STARTPTS," if hold or abs(rate - 1) < 1e-4 else f"setpts=(PTS-STARTPTS)/{rate:.4f},"
+            # the frames of the item: one frame repeated for a hold, else ln frames at its rate (picture and matte alike)
+            frames = (f"fps={fps},trim=end_frame=1,loop=loop={max(0, ln - 1)}:size=1:start=0,setpts=N/{fps}/TB" if hold
+                      else f"fps={fps},trim=end_frame={ln}")
             # eye contact: the corrected take (same frames, same matte) unless the item / layer turned it off
             src = asset.get("eyes_src") if it.get("eyes") is not False and asset.get("eyes_src") else asset["src"]
             args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(src))]
@@ -236,13 +240,14 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             bd = it.get("_bd")
             cutout = it.get("cutout") and asset.get("matte")
             fit_wh = f"scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}"
+            look_of = lambda it_, tg: _look(it_.get("look")) + look.extra(it_.get("look"), scale, tg)  # colour, then warm / smooth
             if cutout:
                 args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(asset["matte"]))]
                 ai = idx
                 idx += 1
                 sig = max(0.6, 1.0 * vw / asset["w"])
-                fc.append(f"[{ai}:v]{spts}fps={fps},trim=end_frame={ln},{fit_wh},gblur=sigma={sig:.2f},format=gray[al{tag}]")
-                fc.append(f"[{vi}:v]{spts}fps={fps},trim=end_frame={ln},{fit_wh}[p{tag}]")
+                fc.append(f"[{ai}:v]{spts}{frames},{fit_wh},gblur=sigma={sig:.2f},format=gray[al{tag}]")
+                fc.append(f"[{vi}:v]{spts}{frames},{fit_wh}[p{tag}]")
                 fc.append(f"[p{tag}][al{tag}]alphamerge=shortest=1[pa{tag}]")
                 img = project["assets"].get((bd or {}).get("props", {}).get("asset") or "") if bd else None
                 if img:
@@ -253,11 +258,11 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
                     bi = idx
                     idx += 1
                     fc.append(f"[{bi}:v]setpts=PTS-STARTPTS,fps={fps},trim=end_frame={ln},scale={gw}:{gh}:flags=bicubic,crop={w}:{h}:{bx}:{by},format=yuv420p[g{tag}]")
-                    fc.append(f"[g{tag}][pa{tag}]overlay=shortest=1:format=auto{_look(it.get('look'))},format=yuva420p[v{tag}]")
+                    fc.append(f"[g{tag}][pa{tag}]overlay=shortest=1:format=auto{look_of(it, tag)},format=yuva420p[v{tag}]")
                 else:
-                    fc.append(f"[pa{tag}]null{_look(it.get('look'))},format=yuva420p[v{tag}]")
+                    fc.append(f"[pa{tag}]null{look_of(it, tag)},format=yuva420p[v{tag}]")
             else:
-                fc.append(f"[{vi}:v]{spts}fps={fps},trim=end_frame={ln},{fit_wh}{_look(it.get('look'))},format=yuva420p[v{tag}]")
+                fc.append(f"[{vi}:v]{spts}{frames},{fit_wh}{look_of(it, tag)},format=yuva420p[v{tag}]")
             r = int(round((it.get("radius") or 0) * scale))
             post = []
             fi = float(it.get("fade_in") or 0) if a == int(round(it["from"])) else 0
