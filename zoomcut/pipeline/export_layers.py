@@ -241,6 +241,10 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             bd = it.get("_bd")
             cutout = it.get("cutout") and asset.get("matte")
             fit_wh = f"scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}"
+            # props.af: a filter on the SOURCE picture first (a one-camera project's grade, already in the editor's take
+            # copies) - the picture only, never the matte
+            af = (it.get("af") or "").strip().strip(",")
+            src_f = f"{frames},{af}" if af else frames
             look_of = lambda it_, tg: _look(it_.get("look")) + look.extra(it_.get("look"), scale, tg)  # colour, then warm / smooth
             if cutout:
                 args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(asset["matte"]))]
@@ -248,7 +252,7 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
                 idx += 1
                 sig = max(0.6, 1.0 * vw / asset["w"])
                 fc.append(f"[{ai}:v]{spts}{frames},{fit_wh},gblur=sigma={sig:.2f},format=gray[al{tag}]")
-                fc.append(f"[{vi}:v]{spts}{frames},{fit_wh}[p{tag}]")
+                fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}[p{tag}]")
                 fc.append(f"[p{tag}][al{tag}]alphamerge=shortest=1[pa{tag}]")
                 img = project["assets"].get((bd or {}).get("props", {}).get("asset") or "") if bd else None
                 if img:
@@ -263,7 +267,7 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
                 else:
                     fc.append(f"[pa{tag}]null{look_of(it, tag)},format=yuva420p[v{tag}]")
             else:
-                fc.append(f"[{vi}:v]{spts}{frames},{fit_wh}{look_of(it, tag)},format=yuva420p[v{tag}]")
+                fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}{look_of(it, tag)},format=yuva420p[v{tag}]")
             r = int(round((it.get("radius") or 0) * scale))
             post = []
             fi = float(it.get("fade_in") or 0) if a == int(round(it["from"])) else 0

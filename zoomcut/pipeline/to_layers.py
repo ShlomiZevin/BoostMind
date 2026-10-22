@@ -280,7 +280,8 @@ def build(ep):
                                       "box": {"x": o.get("x") if o.get("x") is not None else 540, "y": o.get("y") if o.get("y") is not None else 960,
                                               "w": o.get("w") or 960, "anchor": "c"}}]})
         else:
-            item = {**base, "text": o["text"], "theme": o.get("theme", "light"), "opacity": o.get("opacity", 1), "size": o.get("size") or 46,
+            # (the old "opacity" is the BOX's see-through - the letters stay solid: box_opacity, not the item's opacity)
+            item = {**base, "text": o["text"], "theme": o.get("theme", "light"), "box_opacity": o.get("opacity", 1), "size": o.get("size") or 46,
                     "box": {"x": 540, "y": oy(o, i), "w": 960, "anchor": "t"}}
             if o.get("font") and o["font"] != "system":
                 item["font"] = "font." + o["font"]
