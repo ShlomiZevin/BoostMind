@@ -140,6 +140,87 @@ def sig_of(*parts):
     return hashlib.md5(json.dumps([mt(p) for p in parts], sort_keys=True, default=str).encode()).hexdigest()[:12]
 
 
+def needs_prepared(s):
+    """A sound whose processing has no live equivalent (RNNoise on it, played backwards, pauses cut out of it)."""
+    return bool(s.get("denoise") or s.get("reverse") or s.get("skip"))
+
+
+def filter_of(s):
+    f = s.get("filter") or s.get("phone")
+    return "phone" if f is True else f if isinstance(f, str) else None
+
+
+_LEVELS = {}
+
+
+def norm_level(ls, path, filt):
+    """The filters lesson.py ends with loudnorm (thought / echo / muffled: every one at one level): the gain that step
+    gave this sound, measured once here - the live filter then plays it at the same level (fx.level)."""
+    af = L.SOUND_FILTERS.get(filt, "")
+    if "loudnorm=" not in af:
+        return 0.0
+    key = (path, filt)
+    if key not in _LEVELS:
+        import re
+        target = float(af.split("loudnorm=I=")[1].split(":")[0])
+        pre = af.split(",loudnorm=")[0]
+        r = subprocess.run([FFMPEG, "-hide_banner", "-i", path, "-af", pre + ",ebur128", "-f", "null", "-"], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
+        m = re.findall(r"I:\s+(-?[\d.]+) LUFS", r.stderr)
+        _LEVELS[key] = round(target - float(m[-1]), 2) if m and float(m[-1]) > -70 else 0.0
+    return _LEVELS[key]
+
+
+def live_sound(ls, s, path):
+    """A sound's settings as a clip's live fields (render/ui/soundfx.ts): (rate, fx). lesson.py's "pitch" is a tape
+    (speed and pitch together) -> rate; its "tempo" (speed, same pitch) -> rate x tempo with the pitch brought back."""
+    import math
+    tempo, pitch = float(s.get("tempo", 1.0) or 1.0), float(s.get("pitch", 1.0) or 1.0)
+    fx = {}
+    filt = filter_of(s)
+    if filt:
+        fx["filter"] = filt
+        lv = norm_level(ls, path, filt)
+        if abs(lv) > 0.05:
+            fx["level"] = lv
+        if filt == "echo" and s.get("echo") is not None:
+            fx["echo"] = float(s["echo"])
+    if abs(tempo - 1) > 1e-3:
+        fx["pitch"] = round(-12 * math.log2(tempo), 3)
+    if s.get("room"):
+        vv = ls.cfg.get("voice")
+        vs = vv if isinstance(vv, dict) else ({"room": 0.45, "roomSize": 1.8} if vv == "hall" else {})
+        r = s.get("room")
+        fx["room"] = float(r) if not isinstance(r, bool) else float(vs.get("room") or 0.3)
+        fx["roomSize"] = round(float(s.get("roomSize") or vs.get("roomSize") or 1.6), 2)
+    return tempo * pitch, fx
+
+
+def pre_sound_file(ls, s):
+    """Only what has no live equivalent, done once: RNNoise on it, its skipped pauses joined, played backwards - NO
+    filter / pitch / tempo / room (those stay live on the clip). The file starts at the sound's own "from"."""
+    src = ls.asset(s["sound"])
+    keys = {k: s.get(k) for k in ("denoise", "reverse", "skip", "from", "to")}
+
+    def make():
+        snd = L.load_sound(src, None, 1.0, denoise=s.get("denoise"))
+        if s.get("reverse"):
+            snd = snd[::-1].copy()
+        xf = int(0.015 * SR)
+        seg = np.zeros(0, np.float32)
+        plain = {k: v for k, v in s.items() if k not in ("tempo", "pitch", "filter", "phone", "echo")}  # (the parts in the file's own seconds)
+        for pa, pb in L.sound_parts(ls, plain):
+            piece = snd[int(pa * SR):int(pb * SR)].astype(np.float32).copy()
+            if len(seg) > xf and len(piece) > xf:
+                piece[:xf] *= np.linspace(0, 1, xf)
+                seg[-xf:] *= np.linspace(1, 0, xf)
+                seg = np.concatenate([seg[:-xf], seg[-xf:] + piece[:xf], piece[xf:]])
+            else:
+                seg = np.concatenate([seg, piece])
+        return seg
+    return prepared(ls, "q" + sig_of(src, keys), make)
+
+
 def placed_sound_file(ls, s):
     """A placed sound (episode.json "sounds") as lesson.py processes it - filter / pitch / tempo / echo / denoise, his
     room, reversed, its skipped pauses joined - before its trim, gain and fades (those stay live on the item)."""
@@ -304,13 +385,14 @@ def _build(ls, sync=True):
     for k, it in enumerate(items):
         ins = it.get("insert") or {}
         if it["kind"] == "clip":
+            link = f"cut-{it['take']}-{round(it['a'], 2)}"  # (picture, voice and subtitles of one piece move together)
             pic.append({"id": f"c{k}", "from": it["out"], "dur": it["n"], "asset": f"t.{it['take']}", "in": round(it["a"], 4),
-                        **({"rate": it["sp"]} if it.get("sp", 1) != 1 else {}), "ref": {"take": it["take"], "a": round(it["a"], 2)}})
+                        **({"rate": it["sp"]} if it.get("sp", 1) != 1 else {}), "ref": {"take": it["take"], "a": round(it["a"], 2)}, "link": link})
             an = it.get("an", it["n"])
             vo.append({"id": f"v{k}", "from": it["out"], "dur": an, "asset": f"t.{it['take']}", "in": round(it["a"], 4),
                        **({"rate": it["sp"]} if it.get("sp", 1) != 1 else {}), "fade_in": 0.012,
                        "fade_out": round(max(0.012, (an - it["n"]) / FPS), 3) if "an" in it else 0.012,
-                       "ref": {"take": it["take"], "a": round(it["a"], 2)}})
+                       "ref": {"take": it["take"], "a": round(it["a"], 2)}, "link": link})
         elif ins.get("hide"):
             continue
         elif ins.get("footage"):
@@ -379,7 +461,8 @@ def _build(ls, sync=True):
             props["font"] = font(st["font"]) and f"font.{st['font']}"
         props.update({k: st[k] for k in ("size", "weight", "color", "stroke") if st.get(k) is not None})
         layers.append({"id": lid, "kind": "subtitles", "name": name, "owner": "builder", "props": props,
-                       "items": [{"id": f"s{k}", "from": c["from"], "dur": max(1, c["to"] - c["from"]), "text": c["text"], "ref": {"cap": c["text"][:40], "k": k}}
+                       "items": [{"id": f"s{k}", "from": c["from"], "dur": max(1, c["to"] - c["from"]), "text": c["text"], "ref": {"cap": c["text"][:40], "k": k},
+                                  **({"link": lk} if (lk := link_at(pic, c["from"])) else {})}
                                  for k, c in enumerate(cs)]})
 
     # sound: his voice - the chain he tuned (live in the editor, the same code renders the export) and its cleaning
@@ -399,7 +482,7 @@ def _build(ls, sync=True):
 
     new = {"format": projectlib.FORMAT, "title": cfg.get("title") or ls.slug, "canvas": {"w": W, "h": H, "fps": FPS, "color": "#000000"},
            "duration": total, "speed": float(cfg.get("speed", 1.0)), "assets": assets, "layers": layers,
-           "builder": {"kind": "solo", "from": "lesson.py"}}
+           "builder": {"kind": "solo", "from": "lesson.py"}, "edit": {"ripple": True}}
 
     class Ep:  # (project.py reads / writes through the folder helpers)
         dir = ls.dir
@@ -440,6 +523,14 @@ def blink_anim(dur):
     for k in range(math.ceil(dur)):
         keys += [[k, 1], [r4(k + 0.7199), 1], [r4(k + 0.72), 0], [r4(k + 0.9999), 0]]
     return {"opacity": keys + [[math.ceil(dur), 1]]}
+
+
+def link_at(pic, f):
+    """The link of the cut piece on screen at frame f (a subtitle belongs to the piece it starts in)."""
+    for it in pic:
+        if it.get("link") and it["from"] <= f < it["from"] + it["dur"]:
+            return it["link"]
+    return None
 
 
 def overlay_layers(ls, assets, rel, total):
@@ -548,14 +639,21 @@ def sound_layers(ls, items, total, assets, rel):
         lane = int(s.get("lane") or 0)
         if si in pl:
             o0, o1 = pl[si]
-            f = placed_sound_file(ls, s)
             aid = f"s.{si}"
-            assets[aid] = {"kind": "audio", "src": rel(f), "label": os.path.basename(s["sound"]).rsplit(".", 1)[0]}
+            name = os.path.basename(s["sound"]).rsplit(".", 1)[0]
             trim = float(s.get("trim_in", 0) or 0)
-            a = int(o0 * SR)
             cut = -o0 if o0 < 0 else 0.0
-            add(lane, {"id": f"x{si}", "from": round(max(0.0, o0) * FPS, 3), "dur": round((o1 - max(0.0, o0)) * FPS, 3), "asset": aid, "in": round(trim + cut, 4),
-                       "gain": float(s.get("gain", 0.8)), "fade_in": float(s.get("fade_in", 0.02)), "fade_out": float(s.get("fade_out", 0.06)), "ref": {"sound": si}})
+            base = {"id": f"x{si}", "from": round(max(0.0, o0) * FPS, 3), "dur": round((o1 - max(0.0, o0)) * FPS, 3), "asset": aid,
+                    "gain": float(s.get("gain", 0.8)), "fade_in": float(s.get("fade_in", 0.02)), "fade_out": float(s.get("fade_out", 0.06)), "ref": {"sound": si}}
+            # the sound + its settings, live (speed, pitch, filter, echo, room - render/ui/soundfx.ts); only RNNoise /
+            # backwards / skipped pauses are done once beforehand (pre_sound_file), the rest stays live on the clip
+            pre = needs_prepared(s)
+            f = pre_sound_file(ls, s) if pre else ls.asset(s["sound"])
+            rate, fx = live_sound(ls, s, f)
+            assets[aid] = {"kind": "audio", "src": rel(f), "label": name}
+            start = 0.0 if pre else float(s.get("from", 0.0))
+            add(lane, {**base, "in": round(start + (trim + cut) * rate, 4), **({"rate": round(rate, 4)} if abs(rate - 1) > 1e-4 else {}),
+                       **({"fx": fx} if fx else {})})
             if s.get("chime"):
                 ch = s["chime"]
                 cf = plain_sound_file(ls, ch["sound"])
@@ -570,11 +668,26 @@ def sound_layers(ls, items, total, assets, rel):
         if o0 is None or o1 is None or o1 <= o0:
             log(f"  · sound {si} could not be placed - left out")
             continue
-        f = ranged_sound_file(ls, s, int((o1 - o0) * SR))
         aid = f"s.{si}"
-        assets[aid] = {"kind": "audio", "src": rel(f), "label": os.path.basename(s["sound"]).rsplit(".", 1)[0]}
-        add(lane, {"id": f"x{si}", "from": round(o0 * FPS, 3), "dur": round((o1 - o0) * FPS, 3), "asset": aid, "in": 0, "gain": float(s.get("gain", 0.5)),
-                   "fade_in": float(s.get("fade_in", 0.05)), "fade_out": float(s.get("fade_out", 0.04)), "ref": {"sound": si}})
+        name = os.path.basename(s["sound"]).rsplit(".", 1)[0]
+        if s.get("denoise"):
+            f = ranged_sound_file(ls, s, int((o1 - o0) * SR))
+            assets[aid] = {"kind": "audio", "src": rel(f), "label": name}
+            add(lane, {"id": f"x{si}", "from": round(o0 * FPS, 3), "dur": round((o1 - o0) * FPS, 3), "asset": aid, "in": 0, "gain": float(s.get("gain", 0.5)),
+                       "fade_in": float(s.get("fade_in", 0.05)), "fade_out": float(s.get("fade_out", 0.04)), "ref": {"sound": si}})
+            continue
+        raw = ls.asset(s["sound"])
+        rate, fx = live_sound(ls, s, raw)
+        assets[aid] = {"kind": "audio", "src": rel(raw), "label": name}
+        one = len_s_any(raw) / rate  # (seconds one play of it lasts on the video)
+        t, k = o0, 0
+        while t < o1 - 0.02 and k < 200:  # a short recording plays again until the span ends (it looped)
+            d = min(one, o1 - t)
+            add(lane, {"id": f"x{si}" + (f"r{k}" if k else ""), "from": round(t * FPS, 3), "dur": round(d * FPS, 3), "asset": aid, "in": 0,
+                       **({"rate": round(rate, 4)} if abs(rate - 1) > 1e-4 else {}), **({"fx": fx} if fx else {}), "gain": float(s.get("gain", 0.5)),
+                       "fade_in": float(s.get("fade_in", 0.05)) if k == 0 else 0.005, "fade_out": float(s.get("fade_out", 0.04)) if t + d >= o1 - 0.02 else 0.005,
+                       "ref": {"sound": si, "rep": k}})
+            t, k = t + d, k + 1
     out = [{"id": f"sfx{k}" if k else "sfx", "kind": "audio", "name": f"Sounds {k + 1}" if k else "Sounds", "owner": "builder", "props": {"volume": 1},
             "items": sorted(v, key=lambda i: i["from"])} for k, v in sorted(lanes.items())]
 
@@ -586,11 +699,15 @@ def sound_layers(ls, items, total, assets, rel):
         o = it["out"] / FPS
         n = it.get("an", it["n"]) / FPS
         if ins.get("sound"):
-            f = plain_sound_file(ls, ins["sound"], ins.get("filter") or ins.get("phone"))
+            raw = ls.asset(ins["sound"])
             aid = f"s.ins{k}"
-            assets[aid] = {"kind": "audio", "src": rel(f), "label": os.path.basename(ins["sound"]).rsplit(".", 1)[0]}
+            assets[aid] = {"kind": "audio", "src": rel(raw), "label": os.path.basename(ins["sound"]).rsplit(".", 1)[0]}
+            filt = filter_of(ins)
+            lv = norm_level(ls, raw, filt) if filt else 0.0
+            ifx = {"filter": filt, **({"level": lv} if lv else {})} if filt else None
             lead, tail = float(ins.get("lead", 0)), float(ins.get("tail", 0))
             ins_items.append({"id": f"i{k}", "from": round(max(0.0, o - lead) * FPS, 3), "dur": round((n + lead + tail) * FPS, 3), "asset": aid,
+                              **({"fx": ifx} if ifx else {}),
                               "in": float(ins.get("from", 0)), "gain": float(ins.get("gain", 0.55 if ins.get("phone") else 0.8)),
                               "fade_in": 0.08, "fade_out": float(ins.get("fade_out", 0.08)), "ref": {"insert": k}})
         if ins.get("chime"):
@@ -617,6 +734,12 @@ def sound_layers(ls, items, total, assets, rel):
     if ins_items:
         out.append({"id": "inserts", "kind": "audio", "name": "Inserts", "owner": "builder", "props": {"volume": 1}, "items": sorted(ins_items, key=lambda i: i["from"])})
     return out
+
+
+def len_s_any(path):
+    """Seconds of any sound file (ffprobe)."""
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path], capture_output=True, text=True)
+    return float(r.stdout.strip() or 0) or 1.0
 
 
 def len_s(path):
