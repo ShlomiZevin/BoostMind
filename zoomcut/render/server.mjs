@@ -211,6 +211,7 @@ app.get('/api/ep/:id', (q, res) => {
     const layer = (f) => (fs.existsSync(w('public/' + f)) ? { url: `${mediaHost(q)}/media/${q.params.id}/${f}`, v: fs.statSync(w('public/' + f)).mtimeMs } : null);
     const stem = (k) => layer(`${k}.wav`) || layer(`${k}.m4a`);  // the export's own wav files (older previews: m4a)
     return res.json({
+      layered: fs.existsSync(path.join(d, 'project.json')),  // one editor: a layered one-camera project opens in it too
       layers: { person: layer('person.webm'), person_raw: layer('person_raw.webm'), plain: layer('plain.mp4'), scene: layer('scene.png'), plaque: layer('plaque.png'),
         voice: stem('voice'), voice_dn: stem('voice_dn'), fx: stem('fx'), music: stem('music'), intro: layer('intro.mp4'), takes: takeLayers(q.params.id, layer) },
       preview: fs.existsSync(prev) ? `/media/${q.params.id}/preview.mp4` : null,
@@ -379,6 +380,13 @@ app.post('/api/new', (q, res) => {
         + vids.map((v) => `== ${v.replace(/\.[^.]+$/, '')}\n\n`).join(''));
     }
   } catch (e) { return res.status(500).json({ error: String(e.stderr || e.message).slice(-400) }); }
+  // one editor from the first minute: an empty layered project; the analysis fills its layers (Zoom: zoomcut.py, one
+  // camera: lesson.py -> to_layers_solo)
+  const pj = path.join(dst, 'project.json');
+  if (!fs.existsSync(pj)) writeJson(pj, { format: 'sketch-studio/1', title: name, canvas: { w: 1080, h: 1920, fps: 30, color: '#0b0b0b' },
+    duration: 900, speed: 1, assets: {}, layers: [], rev: 1,
+    builder: { kind: template === 'zoom' ? 'zoom' : 'solo', actions: [{ id: 'analyze', label: 'Analyze the footage' }] } });
+  else { const p = readJson(pj); writeJson(pj, { ...p, title: name }); }
   res.json({ ok: true, id });
 });
 

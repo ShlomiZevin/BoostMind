@@ -125,14 +125,23 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // a new project: its footage (who is who) and the analysis come first - right here, in the one editor
   const fresh = !project.layers.length;
   const unassigned = epData?.footage?.unassigned?.length || 0;
-  const setup = (fresh || unassigned > 0) && project.builder?.kind === 'zoom' ? (
+  // a new one-camera project: its takes, then Analyze (the cut, subtitles, cut-out, eye contact) - lesson.py
+  const solo = project.builder?.kind === 'solo' || epData?.episode?.type === 'lesson';
+  const soloSetup = fresh && solo ? (
+    <div className="card" style={{ margin: 12, gap: 10 }}>
+      <div className="card-h"><div className="title grow">New video - the takes</div></div>
+      <div className="help" style={{ marginTop: 0 }}>{busy ? 'Analyzing: listening to the takes, cutting the pauses, the subtitles, cutting him out, eye contact…'
+        : `From ${String(epData?.episode?.input_dir || 'the footage folder').split(/[\/]/).slice(-2).join('/')}. Analyze makes the cut, the subtitles, the cut-out and eye contact - each one a layer here.`}</div>
+      <button className="btn primary" disabled={busy} onClick={async () => setJob(await build(ep, { action: 'analyze' }))}>{busy ? 'Analyzing…' : 'Analyze'}</button>
+    </div>) : null;
+  const setup = soloSetup || ((fresh || unassigned > 0) && project.builder?.kind === 'zoom' ? (
     <div className="card" style={{ margin: 12, gap: 10 }}>
       <div className="card-h"><div className="title grow">{fresh ? 'New video - the footage' : 'New footage'}</div></div>
       <div className="help" style={{ marginTop: 0 }}>{unassigned ? 'Pick who is in each file - the analysis goes on by itself.'
         : busy ? 'Analyzing: listening to every take, matching the script, cutting out the people…' : 'Analyze: the takes are matched to the script and every person, voice and subtitle becomes a layer.'}</div>
       {epData?.footage && <div className="setup-foot"><FootageAssign data={epData} ep={ep} busy={busy} onJob={setJob} /></div>}
       {!unassigned && <button className="btn primary" disabled={busy} onClick={async () => setJob(await build(ep, { action: 'analyze' }))}>{busy ? 'Analyzing…' : 'Analyze'}</button>}
-    </div>) : null;
+    </div>) : null);
   const nowLine = [...script].reverse().find((l) => l.start != null && l.start <= frame / fps + 0.01)?.n;
   const curLine = line != null ? script.find((l) => l.n === line) : null;
   const lineCard = curLine && (

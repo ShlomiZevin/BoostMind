@@ -116,12 +116,19 @@ The rules:
    **Look before you plan:** ffprobe each file, frames, transcribe (faster-whisper via `pipeline.transcribe._get_model`,
    feed numpy). Know the footage second by second.
 3. **Pick the recipe** (table below) and read it.
-4. **Make the project from the closest earlier one** (`lesson.py new episodes/<slug> --from <closest> --input "<folder>"`,
-   or `zoomcut.py new` for a Zoom grid). `input_dir` points at his folder - never copy footage.
-5. **Build through the server** (`POST /api/p/<slug>/build {action: "analyze"}`, wait on `/api/ep/<slug>/job`),
-   never a parallel CLI run. A new Zoom project: after the first analyze, `{action: "layers"}` makes its project.json
-   (copy the look of the closest earlier layered project: its text layers, poster, voice settings - as ops).
-   Then **fill the layers** (hook text, end poster, backgrounds, voice cleaning, sounds) with ops - read `layers.md`.
+4. **Make the project** - the editor's "+ New video" (`POST /api/new {name, template: "zoom" | ..., folder, from}`;
+   `from` = the closest earlier one-camera project: its set, music, voice, eye contact, look, subtitle style).
+   `input_dir` points at his folder - never copy footage. Every new project is a layered one from the first minute
+   (an empty project.json) and opens in the one editor with a **"New video"** step:
+   - Zoom: the footage files with a thumbnail each - pick who is in each (Dialogue / Listening). The analysis starts
+     by itself once every file has its person (`POST /api/ep/<slug>/files` per pick; it answers `waiting: n` until
+     the last one).
+   - One camera: the takes, and **Analyze**.
+5. **Analyze through the server** (`POST /api/p/<slug>/build {action: "analyze"}`, wait on `/api/ep/<slug>/job`),
+   never a parallel CLI run, and only when `GET /api/jobs` → `busy` is empty. The analysis (zoomcut.py / lesson.py)
+   ends by writing the project's layers; they appear in the same editor. Then **fill the layers** (hook text, end
+   poster, backgrounds, voice cleaning, effects, sounds) with ops - read `layers.md`; copy the look of the closest
+   earlier project as ops.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
    Fix what you find first.
