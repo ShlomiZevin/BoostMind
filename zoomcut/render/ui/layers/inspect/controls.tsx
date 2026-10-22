@@ -9,6 +9,7 @@ export type InspectorProps = {
   send: (ops: any[], opts?: { commit?: boolean }) => void;
   fps: number; frame: number;
   pickAsset: (kind: 'image' | 'video' | 'audio' | 'font', onPick: (id: string) => void) => void;
+  build?: (action: string, args?: any) => Promise<void>;  // a builder action (POST /api/p/:id/build) - a job the editor follows
 };
 
 /** Read / write a setting on the selected clip or its layer (see the top of this file). */

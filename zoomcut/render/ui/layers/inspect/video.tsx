@@ -5,6 +5,31 @@
 import React from 'react';
 import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, Opacity, ICON, fmt } from './controls';
 
+
+/** Make (or redo) the corrected copies: NVIDIA (the best; our own v6 if it fails) or our own v6 with its strength,
+ *  or - for one take - his CapCut eye-contact export of it. A job; the editor reloads the project when it ends. */
+function EyesMake({ P, assets, made }: { P: InspectorProps; assets: string[]; made: boolean }) {
+  const [mode, setMode] = React.useState<'nvidia' | 'neural'>('nvidia');
+  const [strength, setStrength] = React.useState(1);
+  const [dy, setDy] = React.useState(0.6);
+  const [busy, setBusy] = React.useState(false);
+  const go = async (args: any) => { if (!P.build) return; setBusy(true); try { await P.build('eyes', { assets, ...args }); } finally { setBusy(false); } };
+  const secs = assets.reduce((t, a) => t + (P.project.assets?.[a]?.duration || 0), 0);
+  return <>
+    <Row label="Engine"><Seg options={[['nvidia', 'NVIDIA (best)'], ['neural', 'Our own (free)']]} value={mode} onPick={(v) => setMode(v as 'nvidia' | 'neural')} /></Row>
+    {mode === 'neural' && <>
+      <Slider label="Strength" v={strength} min={0} max={1} step={0.05} def={1} fmt={fmt.pct} onChange={(v) => setStrength(v)} />
+      <Slider label="Up / down share" v={dy} min={0} max={1} step={0.05} def={0.6} fmt={fmt.pct} onChange={(v) => setDy(v)} />
+    </>}
+    <button className="btn primary" disabled={busy || !P.build || !assets.length} onClick={() => go({ mode, ...(mode === 'neural' ? { strength, dy } : {}) })}>
+      {made ? 'Redo eye contact' : 'Make eye contact'}{assets.length > 1 ? ` · ${assets.length} takes` : ''}</button>
+    {P.item && <button className="btn" disabled={busy || !P.build} onClick={() => P.pickAsset('video', (id) => go({ assets: [P.item.asset], files: { [P.item.asset]: `asset:${id}` } }))}>
+      Use a CapCut eye-contact export…</button>}
+    <Note>{mode === 'nvidia' ? 'NVIDIA Maxine + our blink blend - "better than CapCut". ' : 'Local and free, a little weaker on filter-drawn eyes. '}
+      About {Math.max(1, Math.round(secs / 60))} min for {Math.round(secs)} s of footage; it runs in Jobs.{P.item ? ' A CapCut export must be the whole take, untrimmed.' : ''}</Note>
+  </>;
+}
+
 const ENGINE: Record<string, string> = { nvidia: 'NVIDIA Maxine + blink blend', v6: 'Our own (v6)', capcut: "CapCut's export", file: 'From a file' };
 
 const LOOKS: Record<string, { label: string; look: any }> = {
@@ -41,8 +66,8 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Eye contact" end={withEyes.length ? <span className="ins-state ok">{engines.map((e) => ENGINE[e] || e).join(' / ')}</span> : <span className="ins-state">not prepared</span>}>
       <Seg options={[[false, 'Original'], [true, 'Looking at the lens']]} value={eyes} disabled={!withEyes.length} onPick={(v) => S.set('eyes', v)} />
       {withEyes.length > 0 && withEyes.length < assetsUsed.length && <Note warn>Prepared for {withEyes.length} of {assetsUsed.length} takes - the others play as filmed.</Note>}
-      {withEyes.length > 0 ? <Note>Same frames, the eyes brought to the lens; blinks and glances stay natural. Switches live - the export uses the same choice.</Note>
-        : <Note>These takes have no eye-contact copy. One-camera projects make it when they are built (NVIDIA Maxine + our blink blend; v6 if NVIDIA fails), or name a CapCut eye-contact export of the take.</Note>}
+      {withEyes.length > 0 && <Note>Same frames, the eyes brought to the lens; closed and narrowed eyes stay as filmed. Switches live - the export uses the same choice.</Note>}
+      <EyesMake P={P} assets={assetsUsed} made={withEyes.length > 0} />
     </Sec>
 
     <Sec title="Person">

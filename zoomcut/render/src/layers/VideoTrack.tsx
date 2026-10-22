@@ -21,14 +21,22 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any }>
   const assets = p.project.assets || {};
   // a cut-out over its photo (the backdrop) plays the transparent "fg" file; otherwise the preview (or the source)
   const bdImg = backdrop?.props?.asset && assets[backdrop.props.asset] ? backdrop : null;
-  const variantOf = (it: any) => (bdImg && { ...(layer.props || {}), ...it }.cutout !== false && p.urls[`${it.asset}:fg`] ? 'fg' : 'preview');
-  const parts = useMemo(() => partsOf(layer.items, fps, variantOf), [layer.items, fps, !!bdImg, p.urls]);
+  // eye contact (props.eyes, default on when the take has it): the corrected copy of the same frames - "eyes" / "eyes_fg"
+  const variantOf = (it: any) => {
+    const r = { ...(layer.props || {}), ...it };
+    const cut = bdImg && r.cutout !== false && p.urls[`${it.asset}:fg`];
+    const eyes = r.eyes !== false && p.urls[`${it.asset}:${cut ? 'eyes_fg' : 'eyes'}`];
+    return cut ? (eyes ? 'eyes_fg' : 'fg') : (eyes ? 'eyes' : 'preview');
+  };
+  const parts = useMemo(() => partsOf(layer.items, fps, variantOf), [layer.items, layer.props, fps, !!bdImg, p.urls]);
   const copies = useMemo(() => copiesOf(parts), [parts]);
   const urlOf = (key: string) => {  // "asset:variant" -> the file
     const [asset, variant] = key.split(':');
     return p.urls[`${asset}:${variant}`] || p.urls[asset] || '';
   };
-  const [blobs] = usePreloaded(useMemo(() => [...new Set(Object.values(copies).map(urlOf).filter(Boolean))], [copies, p.urls]));
+  // (the other eyes version is held in memory too, so Original / Corrected switches without a wait)
+  const other = (key: string) => { const [a, v] = key.split(':'); const o = { eyes: 'preview', preview: 'eyes', eyes_fg: 'fg', fg: 'eyes_fg' }[v]; return o && p.urls[`${a}:${o}`] ? `${a}:${o}` : ''; };
+  const [blobs] = usePreloaded(useMemo(() => [...new Set(Object.values(copies).flatMap((k: string) => [urlOf(k), other(k) && urlOf(other(k))]).filter(Boolean))], [copies, p.urls]));
 
   const els = useRef<Record<string, HTMLVideoElement | null>>({});
   const boxes = useRef<Record<string, HTMLDivElement | null>>({});
