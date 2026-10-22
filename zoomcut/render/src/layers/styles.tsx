@@ -42,7 +42,7 @@ const Mic: React.FC<{ on: boolean; size?: number }> = ({ on, size = 30 }) => (
 
 // "text on video": light = white box / black text, dark = black box / white text, gold = yellow in a black outline
 export const boxStyle = (o: any, font: React.CSSProperties): React.CSSProperties => {
-  const op = o.opacity ?? 1, size = o.size || 46, gold = o.theme === 'gold';
+  const op = o.box_opacity ?? o.opacity ?? 1, size = o.size || 46, gold = o.theme === 'gold';  // (box_opacity: the box alone - an item's opacity fades all of it)
   return {
     background: o.theme === 'light' || !o.theme ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`,
     color: gold ? '#FFD60A' : o.theme === 'dark' ? '#fff' : '#000', fontSize: size, lineHeight: 1.25, padding: `${o.padY ?? 12}px ${o.padX ?? 24}px`,

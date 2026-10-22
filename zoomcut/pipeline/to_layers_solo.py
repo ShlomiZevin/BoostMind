@@ -107,7 +107,8 @@ def orig_preview(ls, n):
     src = L.take_src(ls, n, False)
     if os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(src):
         return out
-    run([FFMPEG, "-y", "-v", "error", "-i", src, "-vf", f"fps={FPS},scale=540:960", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
+    look = "" if ls.cfg.get("look") else "," + L.grade(ls, 540)  # (like the other take files: the baked grade in)
+    run([FFMPEG, "-y", "-v", "error", "-i", src, "-vf", f"fps={FPS},scale=540:960{look}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
          "-g", "15", "-pix_fmt", "yuv420p", "-an", out + ".part.mp4"])
     os.replace(out + ".part.mp4", out)
     return out
@@ -119,9 +120,7 @@ def look_of(ls):
     if lk:
         return {k: v for k, v in {"saturate": float(lk.get("saturation", 1)), "brightness": 1 + float(lk.get("brightness", 0)),
                                   "warm": float(lk.get("warm", 0)) or None, "smooth": float(lk.get("smooth", 0)) or None}.items() if v is not None}
-    g = ls.cfg.get("grade", {})  # (the older baked grade: eq + colorbalance - here as the nearest live look)
-    return {"saturate": float(g.get("saturation", 1.08)), "contrast": float(g.get("contrast", 1.05)), "brightness": 1 + float(g.get("brightness", 0.0)),
-            "warm": float(g.get("warm", 0.06)), **({"smooth": float(g["smooth"])} if g.get("smooth") else {})}
+    return {}  # the older baked grade ("grade"): not a live look - the editor's take files carry it, the export gets props.af
 
 
 # ---- sound -----------------------------------------------------------------------------------------------------
@@ -309,6 +308,7 @@ def build(ep_dir):
                         "ref": {"hold": it["take"], "at": round(it["t"], 2)}})
     layers.append({"id": "person", "kind": "video", "name": "Person", "owner": "builder",
                    "props": {"fit": "cover", "cutout": cutout, "eyes": bool(eyes), "look": look_of(ls),
+                             **({} if cfg.get("look") else {"af": L.grade(ls)}),
                              "box": {"x": px, "y": py, "w": pw, "h": ph}}, "items": pic})
     for it in pic:
         it["box"] = {"x": px, "y": py, "w": pw, "h": ph}
@@ -456,8 +456,16 @@ def overlay_layers(ls, assets, rel, total):
             img = ls.asset(o["image"])
             iw, ih, _ = probe(img)
             assets[aid] = {"kind": "image", "src": rel(img), "w": iw, "h": ih}
-            w = float(o.get("w") or 600)
-            it.update({"asset": aid, "box": {"x": float(o.get("x") or W / 2) - w / 2, "y": float(o.get("y") or 300), "w": w}})
+            # the old engine's box: x / y its top-left corner, w x h; "plain" = the whole picture inside it (contain)
+            bx, by = float(o.get("x") if o.get("x") is not None else 60), float(o.get("y") if o.get("y") is not None else 380)
+            bw, bh = float(o.get("w") or 960), float(o.get("h") or 540)
+            k_ = min(bw / iw, bh / ih) if o.get("plain") else max(bw / iw, bh / ih)
+            cw, ch = iw * k_, ih * k_
+            it.update({"asset": aid, "box": {"x": round(bx + (bw - cw) / 2, 1), "y": round(by + (bh - ch) / 2, 1), "w": round(cw, 1), "h": round(ch, 1)}})
+            if o.get("opacity") is not None:
+                it["opacity"] = float(o["opacity"])
+            if not o.get("plain"):
+                log(f"  · overlay {k}: a framed picture - drawn without its frame for now (LAYERS-KEEP.md)")
             lay = {"id": f"ov.{k}", "kind": "image", "name": o.get("name") or f"Picture {k + 1}", "owner": "builder", "props": {}, "items": [it]}
         else:
             fields = {x: v for x, v in o.items() if x not in ("start", "end", "fade_in", "fade_out", "pop", "behind", "png", "image_abs", "anim", "anim_y",
@@ -470,9 +478,10 @@ def overlay_layers(ls, assets, rel, total):
                 else:
                     fields.pop("font", None)
             if style == "pov":
-                fields["opacity"] = o.get("opacity", 1)
+                fields["box_opacity"] = o.get("opacity", 1)
                 it["box"] = {"x": float(o.get("x") or W / 2), "y": float(o.get("y") or 270), "anchor": "t", "w": float(o.get("maxw") or 940)}
             elif style == "ticker":
+                fields["t0"] = a
                 fields.setdefault("bg", f"rgba(0,0,0,{float(o.get('opacity') if o.get('opacity') is not None else 0.55):.2f})")
                 it["box"] = {"x": 0, "y": float(o.get("y") or 1560) - 10, "anchor": "tl"}
             else:  # the one-camera styles (render/src/layers/styles_solo.tsx): the old fields, the place as each style expects

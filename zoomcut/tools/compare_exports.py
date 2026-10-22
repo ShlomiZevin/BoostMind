@@ -22,9 +22,10 @@ def main():
     a, b, out = sys.argv[1:4]
     os.makedirs(out, exist_ok=True)
     log = os.path.join(out, "ssim.log")
-    subprocess.run(["ffmpeg", "-v", "error", "-i", a, "-i", b, "-filter_complex",
-                    "[0:v]scale=540:960,format=yuv420p[x];[1:v]scale=540:960,format=yuv420p[y];[x][y]ssim=stats_file=" + log.replace("\\", "/").replace(":", "\\:"),
-                    "-f", "null", "-"], check=True)
+    # (run in OUTDIR with a bare file name: a drive letter's ":" breaks ffmpeg's filter syntax)
+    subprocess.run(["ffmpeg", "-v", "error", "-i", os.path.abspath(a), "-i", os.path.abspath(b), "-filter_complex",
+                    "[0:v]scale=540:960,format=yuv420p[x];[1:v]scale=540:960,format=yuv420p[y];[x][y]ssim=stats_file=ssim.log",
+                    "-f", "null", "-"], check=True, cwd=out)
     per = []
     for line in open(log):
         m = re.search(r"n:(\d+).*All:([\d.]+)", line)
