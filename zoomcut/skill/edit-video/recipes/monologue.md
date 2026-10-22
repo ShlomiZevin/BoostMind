@@ -10,6 +10,13 @@ Analyze (`lesson.py --preview`, the editor's Analyze button) ends by writing `pr
 result as layers (format: `layers.md`). The layers are Set, Person, one layer per film effect, Opening, the texts and
 overlays, Other side, Subtitles, Voice, Sounds (one per lane), Inserts and Music. A rebuild merges, so his edits in
 the editor stay.
+- **He always drags a cut's edges** to pull back the real footage before or after it. He asked for this five times
+  and it must work on every piece of every video. In the one editor:
+  - an edge of a Person or Voice clip goes to lesson.py as that take's cut edge (`cut.edges`, `/api/ep/<id>/trim`);
+  - the take is re-cut in ~4 s: picture, voice and subtitles together, and everything after it shifts;
+  - the drag stays on screen meanwhile.
+  This works because every video item points at the WHOLE take (`in` = where the piece starts in it): never give a
+  layer a file cut down to the piece, or there is nothing to pull back.
 - **Live in the editor** (an op or the inspector, no rebuild):
   - the clips (trim / move, the whole take behind each cut);
   - the Person layer: `eyes` (Original / Looking at the lens), `look` (warm, smooth, colour);
