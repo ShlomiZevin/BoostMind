@@ -3,6 +3,8 @@
 // per-project hack. `animated: true` = the style moves by itself every frame (the export draws every frame of it).
 import React from 'react';
 import { keyAt } from './geometry.js';
+import { SOLO_TEXT_STYLES } from './styles_solo';
+import { SOLO_SUB_STYLES } from './subs_solo';
 
 export const UI_FONT = '"Segoe UI", "Arial", sans-serif';
 
@@ -77,6 +79,7 @@ export const TEXT_STYLES: Record<string, { label: string; animated?: boolean; re
   pill: { label: 'Pill', render: ({ it, text }) => (
     <div style={{ background: it.bg || '#e02828', color: it.color || '#fff', fontFamily: UI_FONT, fontWeight: it.weight ?? 700, fontSize: it.size || 64,
       padding: it.pad || '10px 28px', borderRadius: it.radius ?? 12, direction: 'rtl', whiteSpace: 'nowrap' }}>{text}</div>) },
+  ...SOLO_TEXT_STYLES,  // the one-camera engine's styles (styles_solo.tsx): ticker, ...
 };
 
 // subtitles: "zoom" = a dark box with the speaker's name first ("side" items: said on the side, amber)
@@ -97,6 +100,7 @@ export const SUB_STYLES: Record<string, { label: string; render: React.FC<StyleP
   outline: { label: 'Outlined words', render: ({ it, text, fonts }) => (
     <div style={{ ...fontOf(it, fonts, it.weight ?? 800), fontSize: it.size || 64, color: it.color || '#fff', direction: 'rtl', textAlign: 'center',
       lineHeight: 1.2, maxWidth: it.maxw ?? 980, WebkitTextStroke: `${it.stroke ?? 10}px ${it.strokeColor || '#000'}`, paintOrder: 'stroke fill' } as any}>{text}</div>) },
+  ...SOLO_SUB_STYLES,  // the one-camera engine's subtitles (subs_solo.tsx)
 };
 
 /** A text item's scale / x / y keyframes as a CSS transform (t = seconds since the item began). */

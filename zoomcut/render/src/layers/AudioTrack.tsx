@@ -101,6 +101,8 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
         const want = at(A, f);
         const r = rate * (A.rate ?? 1);
         if (el.playbackRate !== r) el.playbackRate = r;
+        const keep = (A.rate ?? 1) === 1;  // a slowed piece sounds slower AND lower, as lesson.py made it; the project speed keeps the pitch
+        if ((el as any).preservesPitch !== keep) (el as any).preservesPitch = keep;
         if (Math.abs(el.currentTime - want) > 0.08) el.currentTime = want;  // (sound drifts are heard sooner than picture)
         if (el.paused) el.play().catch(() => {});
         if (ctx && n.gain) n.gain.gain.setTargetAtTime(itemGain(A, f, fps), ctx.currentTime, 0.006);
