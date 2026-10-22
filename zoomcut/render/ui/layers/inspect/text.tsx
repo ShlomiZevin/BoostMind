@@ -64,7 +64,14 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
         <Row label="Fill"><Swatches value={S.get('bg', '#e02828')} colors={['#e02828', '#111111', '#ffffff', '#ffd23f']} onPick={(c) => S.set('bg', c)} /></Row>
         <Row label="Letters"><Swatches value={S.get('color', '#ffffff')} colors={WHITE_ETC} onPick={(c) => S.set('color', c)} /></Row>
       </>}
-      {['pov', 'plain'].includes(style) && fs.length > 0 && <Row label="Font"><select className="ins-select" value={S.get('font', '')} onChange={(e) => S.set('font', e.target.value || null)}>
+      {style === 'ticker' && <>
+        {size(46)}
+        <Slider label={<>Speed <Ovr S={S} k="speed" /></>} v={S.get('speed', 120)} min={20} max={400} step={5} def={120} fmt={(v) => `${v} px/s`} onChange={(v, c) => S.set('speed', v, c)} />
+        <Row label="Letters"><Seg options={[['white', 'White'], ['gold', 'Gold']]} value={S.get('theme') === 'gold' ? 'gold' : 'white'} onPick={(v) => S.set('theme', v === 'gold' ? 'gold' : null)} /></Row>
+        <Row label="Strip"><Swatches value={S.get('bg', '')} colors={['#000000', '#b3001b', '#0b3d91']} onPick={(c) => S.set('bg', c)} /></Row>
+        {S.get('bg') && <button className="btn ghost" onClick={() => S.set('bg', null)}>No strip</button>}
+      </>}
+      {['pov', 'plain', 'ticker'].includes(style) && fs.length > 0 && <Row label="Font"><select className="ins-select" value={S.get('font', '')} onChange={(e) => S.set('font', e.target.value || null)}>
         <option value="">The app font</option>{fs.map(([id, n]) => <option key={id} value={id}>{n}</option>)}</select></Row>}
     </Sec>
     <Place P={P} />
