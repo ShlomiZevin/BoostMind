@@ -1,20 +1,32 @@
 # Sketch Studio (zoomcut)
 
-Shlomi's own editor for his TikTok/Instagram comedy sketches: raw character takes + a Hebrew script →
-finished vertical MP4. Zoom Call is the first template. **Load the `sketch-studio` skill** before working
-on an episode — it holds the full protocol and the editing rules he signed off on.
+Shlomi's own video editor for his TikTok/Instagram comedy sketches: raw takes + a Hebrew script → a finished vertical
+MP4. **Load the `edit-video` skill** before working on any video - it holds the protocol and the rules he signed off on.
 
+## THE EDITOR IS THE TOOL. A VIDEO SESSION FILLS IT - IT DOES NOT CHANGE IT.
+- There is **one editor** (http://localhost:4747) for every project, and every project is **layers** in it: pictures,
+  backgrounds, subtitles, texts, images, voices, sounds, music, filters. He controls every layer himself.
+- **Making a video = spilling content into the editor**: footage, the script, lines, backgrounds, voices, texts, the
+  end poster - through the editor's own controls / the studio's endpoints. Like a human editor: he works in the tool,
+  he doesn't rewrite it.
+- **Changing the tool is a separate job**, done rarely and on purpose: generic (every project gets it), in the one
+  editor's existing places (Media, layers, inspector), tested on a hidden copy and load-tested, written in
+  `skill/edit-video/editor.md`. Never patch the tool piece by piece while he waits on a video.
+- No templates. Projects - you learn from earlier projects and copy their look.
+
+## Where things are
 - `README.md` — how the pipeline works, folder layout, script directives, corrections.
-- `zoomcut.py` — CLI (`build episodes/<ep> [--preview|--no-render|--slow]`, `new`).
-- `pipeline/` — prepare → transcribe (ivrit-ai Whisper, CPU) → match → plan → background (MediaPipe) →
-  mix → compose (fast export) → validate.
-- `render/` — `src/ZoomCall.tsx` (the Zoom template, Remotion), `server.mjs` (editor server, :4747),
-  `ui/editor.tsx` (the editor), `share.mjs` (email / Telegram).
-- `episodes/<ep>/` — episode.json, script.txt, corrections.json, backgrounds/, work/ (generated), out/.
+- `zoomcut.py` (Zoom-grid projects) / `lesson.py` (one-camera projects) — the engines behind the one editor.
+- `pipeline/` — prepare → transcribe (ivrit-ai Whisper, CPU) → match → plan → background (cut-out + photo layer) →
+  mix (voice layers) → compose (export) → validate.
+- `render/` — `server.mjs` (the studio, :4747), `ui/editor.tsx` (the editor), `src/ZoomCall.tsx` (the Zoom-grid
+  picture), `share.mjs` (email / Telegram).
+- `episodes/<ep>/` — episode.json, script.txt, corrections.json, backgrounds/, media/, work/ (generated), out/.
 
-Rules of the house:
-- Run analysis/export through the editor server's API, never a parallel CLI run (one run per episode).
-- Never kill, restart or rebuild while he is exporting. Ask first.
-- Speed over perfection (CapCut-level is fine), but never start/end a line mid-word and never lower a
-  voice under an overlap.
+## Rules of the house
+- Build / export / re-mix through the studio's API (the editor's own buttons), never a parallel CLI run.
+- Never kill, restart or rebuild while a job runs. The export is gentle on purpose (his PC blue-screens under
+  full load) - don't raise its parallelism.
+- Before an export: read the project as he left it (speed, layers, length) and export exactly that.
+- Speed over perfection (CapCut-level is fine), but never start/end a line mid-word.
 - Changes to `render/src/ZoomCall.tsx` geometry must be mirrored in `pipeline/compose.py`.

@@ -663,11 +663,14 @@ app.post('/api/ep/:id/overlays', (q, res) => {
   const edit = readJson(editPath);
   if (edit?.fps) { // a Zoom edit; a lesson draws its text from episode.json
     const fps = edit.fps, total = edit.durationInFrames;
-    edit.overlays = e.overlays.filter((o) => (o.text || '').trim()).map((o) => {
-      const from = Math.round((o.start || 0) * fps);
+    // (same rules as pipeline/plan.py _overlay: picture layers too - the end poster vanished when a text was saved -
+    // and a negative start counts from the end)
+    edit.overlays = e.overlays.filter((o) => (o.text || '').trim() || (o.style === 'image' && o.image)).map((o) => {
+      const s = o.start || 0, from = s < 0 ? Math.max(0, total + Math.round(s * fps)) : Math.round(s * fps);
       const end = o.end ? Math.min(total, Math.round(o.end * fps)) : total;
-      return { text: o.text, style: o.style || 'pov', from, dur: Math.max(1, end - from), font: o.font || 'system',
+      const base = { text: o.text || '', style: o.style || 'pov', from, dur: Math.max(1, end - from), font: o.font || 'system',
         theme: o.theme || 'light', opacity: o.opacity ?? 1, y: o.y ?? null, size: o.size ?? null };
+      return o.style === 'image' ? { ...base, image: 'overlays/' + path.basename(String(o.image)), x: o.x ?? null, w: o.w ?? 960, fade_in: o.fade_in ?? 0.3 } : base;
     });
     writeJson(editPath, edit);
   }

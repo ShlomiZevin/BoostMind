@@ -11,6 +11,14 @@ finished vertical 1080x1920 MP4. **You make the first edit; he fine-tunes it him
 (http://localhost:4747) and exports.** Everything is in `c:\workspace\BoostMind\zoomcut`; it runs locally.
 Reply to him in English; Hebrew only inside the video.
 
+## THE EDITOR IS THE TOOL. YOU FILL IT - YOU DON'T CHANGE IT. (his words, 2026-10-22)
+"When an editor is working, he doesn't change the tool almost never. He is mainly spilling things into the tool."
+There is ONE editor for every project. Making a video = putting content into it (footage, script, lines,
+backgrounds, voices, texts, the poster) through its own controls / the studio's endpoints, as layers he then
+controls himself. Changing the editor is a separate, rare, planned job (see "USING THE TOOL RIGHT" below and
+`editor.md`). If you notice you are about to edit `render/ui/*`, `render/server.mjs`, `pipeline/*` or the engines
+while making a video - stop: that's tool work; tell him in one line and treat it as its own task.
+
 ## READ FIRST - how we work (his rules; each one cost him a round)
 
 1. **No templates. Only projects.** A new video is a new project. Learn from earlier projects and copy their look and
