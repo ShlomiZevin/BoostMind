@@ -888,7 +888,7 @@ app.get('/media/:id/*', (q, res) => {
   const base = path.join(epDir(q.params.id), 'work', 'public');
   const f = path.resolve(base, q.params[0]);
   if (!f.startsWith(base) || !fs.existsSync(f)) return res.status(404).end();
-  res.sendFile(f, { cacheControl: false }); // sendFile honours Range, so the preview can seek
+  res.sendFile(f, { cacheControl: false, headers: { 'Cache-Control': q.query.v ? 'private, max-age=31536000, immutable' : 'no-cache' } });  // (Range honoured - the preview seeks; a versioned file kept, a new version is a new URL)
 });
 
 app.use((err, _q, res, _n) => res.status(err.status || 500).json({ error: err.message }));

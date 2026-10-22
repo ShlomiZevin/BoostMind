@@ -7,6 +7,11 @@ import { drawMarket, marketBox } from './market_anim.js';
 import { stickerPop, rainBills } from './sticker_anim.js';
 import { fxCss, fxAt } from './fx.js';
 import { LiveClock } from './liveplayer';
+import { usePreloaded, usePrefetched, Preload } from './preload';
+// every clip of the project coming down into memory (once) - a thin bar over the video until it is all there
+const PreloadBar = ({ p }: { p: Preload }) => (p.loading ? <div className="pre-bar">
+  <div className="pre-fill" style={{ width: `${Math.round((p.done / Math.max(1, p.total)) * 100)}%` }} />
+  <span>Loading the clips into memory · {p.done}/{p.total} · {Math.round(p.bytes / 1e6)} MB</span></div> : null);
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -207,6 +212,13 @@ function Editor() {
   const props = useMemo(() => data?.edit && ({ ...data.edit, participants: liveParticipants, overlays: liveOverlays, mediaBase: `/media/${ep}/`,
     audioSrc: data.audioVersion ? `/media/${ep}/dialogue.wav?v=${data.audioVersion}` : undefined,
     voices: data.edit.voices?.map((v: any) => ({ ...v, src: `${v.src}?v=${data.audioVersion}` })) }), [data?.edit, data?.audioVersion, ep, liveOverlays, liveParticipants]);
+  const preUrls = useMemo(() => {
+    if (!props) return [] as string[];
+    const b = props.mediaBase;
+    const vids = Object.values(props.clips || {}).flatMap((c: any) => [c.fg && b + c.fg, b + (c.preview || c.src)]);
+    return [...new Set([...vids, ...(props.voices || []).map((v: any) => b + v.src), props.audioSrc].filter(Boolean))] as string[];
+  }, [props?.clips, props?.voices, props?.audioSrc, ep]);
+  const pre = usePrefetched(preUrls);
 
   useEffect(() => {
     const p = player.current; if (!p) return;
@@ -431,6 +443,7 @@ function Editor() {
         <div className="pane viewer">
           <div className="monitor">
             <div className="frame" ref={frameRef} style={{ position: 'relative' }}>
+              <PreloadBar p={pre} />
               {sel?.kind === 'text' && ovDraft[sel.i] && <TextHandle o={ovDraft[sel.i]} i={sel.i} scale={(frameRef.current?.clientHeight || 1920) / 1920}
                 onMove={(y, done) => changeOverlays(ovDraft.map((x, k) => (k === sel.i ? { ...x, y } : x)), done)} />}
               {props && <Player ref={player} component={ZoomCall as any} inputProps={props} numberOfSharedAudioTags={16} durationInFrames={props.durationInFrames}
@@ -1548,6 +1561,10 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
   const takesL = (L as any).takes as Record<string, any> | null;
   const clockRef = useRef<LiveClock | null>(null);
   const liveCut = !!(takesL && layered && edit?.items);
+  const preUrls = useMemo(() => (liveCut ? Object.values(takesL!).flatMap((l: any) => [l.cut, l.raw, l.plain].filter(Boolean).map((x: any) => `${x.url}?v=${x.v}`)) : []),
+    [JSON.stringify(takesL), liveCut]);
+  const [preBlobs, pre] = usePreloaded(preUrls);
+  const takeSrc = (x: any) => preBlobs[`${x.url}?v=${x.v}`] || `${x.url}?v=${x.v}`;
   if (liveCut && !clockRef.current) clockRef.current = new LiveClock();
   if (liveCut) { (video as any).current = clockRef.current; (window as any).__zcClock = clockRef.current; }  // (window: for tests)
   useEffect(() => { if (liveCut) (video as any).current = clockRef.current; });  // (after an old video element let go of the ref)
@@ -1835,6 +1852,7 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
         <div className="pane viewer">
           <div className="monitor">
             <div className="frame" ref={frameRef} style={{ position: 'relative', background: '#000', overflow: 'hidden' }}>
+              <PreloadBar p={pre} />
               {busy && <div className="upd"><div className="upd-bar" /></div>}
               {layered ? (
                 // layers, put together live: the set photo, him (transparent video, carries the sound), subtitles
@@ -1857,13 +1875,13 @@ function LessonView({ ep, data, top, busy, setJob, jobLine, reload }: { ep: stri
                   {look && <LookFilter id="zc-look" lk={look} />}
                   {liveCut ? Object.entries(takesL!).flatMap(([tk, l]: [string, any]) => [0, 1].map((slot) => (
                     <div key={tk + slot} ref={boxRef(tk, slot)} style={{ position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, pointerEvents: 'none', opacity: 0 }}>
-                      {l.cut && <video ref={liveRef(tk, slot, 'cut')} src={`${l.cut.url}?v=${l.cut.v}`} muted playsInline preload="auto" onMouseDown={(e) => dragLayer(e, 'person')}
+                      {l.cut && <video ref={liveRef(tk, slot, 'cut')} src={takeSrc(l.cut)} muted playsInline preload="auto" onMouseDown={(e) => dragLayer(e, 'person')}
                         style={{ position: 'absolute', pointerEvents: 'auto', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, cursor: 'grab', opacity: !l.raw || eyeOn ? 1 : 0,
                           filter: look ? 'url(#zc-look)' : undefined }} />}
-                      {l.plain && needPlain && <video ref={liveRef(tk, slot, 'plain')} src={`${l.plain.url}?v=${l.plain.v}`} muted playsInline preload="auto"
+                      {l.plain && needPlain && <video ref={liveRef(tk, slot, 'plain')} src={takeSrc(l.plain)} muted playsInline preload="auto"
                         style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', zIndex: 1,
                           clipPath: cutout ? `inset(${100 - keepPct}% 0 0 0)` : undefined, filter: look ? 'url(#zc-look)' : undefined }} />}
-                      {l.raw && <video ref={liveRef(tk, slot, 'raw')} src={`${l.raw.url}?v=${l.raw.v}`} muted playsInline preload="auto"
+                      {l.raw && <video ref={liveRef(tk, slot, 'raw')} src={takeSrc(l.raw)} muted playsInline preload="auto"
                         style={{ position: 'absolute', left: pBox.x, top: pBox.y, width: pBox.w, height: pBox.h, pointerEvents: 'none', opacity: eyeOn ? 0 : 1,
                           filter: look ? 'url(#zc-look)' : undefined }} />}
                     </div>))) : <>
