@@ -29,6 +29,9 @@ select { appearance: none; -webkit-appearance: none; }
 .hint { color: var(--faint); font-size: 13px; margin: 8px 2px 0; }
 /* the files about to go up: a name each */
 .p { padding: 10px 12px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; margin-bottom: 8px; }
+.p { display: grid; grid-template-columns: 62px 1fr; gap: 10px; align-items: start; }
+.p-th { width: 62px; height: 88px; border-radius: 6px; background: #000; object-fit: cover; display: block; }
+.p-body { min-width: 0; }
 .p-top { display: flex; gap: 8px; align-items: center; }
 .p-top input { height: 42px; font-size: 16px; }
 .p-ext { color: var(--dim); font-size: 14px; }
@@ -130,13 +133,16 @@ const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLoca
 const splitExt = (n) => { const i = n.lastIndexOf('.'); return i > 0 ? [n.slice(0, i), n.slice(i)] : [n, '']; };
 const cleanName = (s) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 100);
 
-// the key: from the link (#k=...) once, then remembered on this phone
+// the key lives in the page's own address (#k=...): "Add to Home Screen" saves that address, so the home-screen
+// app has it too (it does not share Safari's storage) - he never types it. Also remembered on this phone.
 const fromLink = new URLSearchParams(location.hash.slice(1)).get('k');
-if (fromLink) { store.set('drop-key', fromLink); history.replaceState(null, '', location.pathname); }
-let KEY = store.get('drop-key');
+if (fromLink) store.set('drop-key', fromLink);
+let KEY = fromLink || store.get('drop-key');
+const keepInLink = () => { if (KEY && new URLSearchParams(location.hash.slice(1)).get('k') !== KEY) history.replaceState(null, '', `${location.pathname}#k=${KEY}`); };
+keepInLink();
 const askKey = () => $('keyBox').classList.add('on');
 if (!KEY) askKey();
-$('keySave').onclick = () => { KEY = $('key').value.trim(); store.set('drop-key', KEY); $('keyBox').classList.remove('on'); refresh(); };
+$('keySave').onclick = () => { KEY = $('key').value.trim(); store.set('drop-key', KEY); keepInLink(); $('keyBox').classList.remove('on'); refresh(); };
 
 async function api(path, data = {}) {
   const r = await fetch('/api/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: KEY, ...data }) });
@@ -244,16 +250,19 @@ $('chips').onclick = (e) => {
 let pend = [];
 $('pick').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('files').click(); };
 $('files').onchange = () => {
-  for (const file of $('files').files) pend.push({ file, name: cleanName(splitExt(file.name)[0]) || 'video' });
+  for (const file of $('files').files) pend.push({ file, name: cleanName(splitExt(file.name)[0]) || 'video', url: URL.createObjectURL(file) });
   $('files').value = '';
   drawPending();
 };
 function drawPending() {
   $('pendBox').style.display = pend.length ? '' : 'none';
-  $('pending').innerHTML = pend.map((p, i) => `<div class="p" data-i="${i}"><div class="p-top">
+  $('pending').innerHTML = pend.map((p, i) => `<div class="p" data-i="${i}">
+      ${p.file.type.startsWith('image/') ? `<img class="p-th" src="${p.url}" alt="">`
+        : `<video class="p-th" src="${p.url}#t=0.5" muted playsinline preload="metadata"></video>`}
+      <div class="p-body"><div class="p-top">
       <input type="text" value="${esc(p.name)}" dir="auto" autocapitalize="off" spellcheck="false"><span class="p-ext">${esc(splitExt(p.file.name)[1])}</span>
       <button class="p-x" title="Leave it out">✕</button></div>
-      <div class="p-line">${esc(p.file.name)} · ${gb(p.file.size)}${p.file.type ? ' · ' + esc(p.file.type) : ''}</div></div>`).join('');
+      <div class="p-line">${esc(p.file.name)} · ${gb(p.file.size)}${p.file.type ? ' · ' + esc(p.file.type) : ''}</div></div></div>`).join('');
   $('upload').textContent = `Upload ${pend.length} file${pend.length === 1 ? '' : 's'} to ${cur}`;
   drawChips();
 }

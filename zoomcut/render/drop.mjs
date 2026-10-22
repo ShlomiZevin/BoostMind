@@ -138,6 +138,7 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     res.json({ page: PAGE, ready: !!key(), folders: Object.values(folders), running: state.running, error: state.error, checked: state.checked, dir: DIR });
   });
   app.post('/api/drop/sync', (_q, res) => { sync(); res.json({ ok: true }); });
+  app.get('/api/drop/open', (_q, res) => res.redirect(link()));  // (the page with its key - the studio's "Open the Drop")
   // the page's link with the key in it, as a QR - scanned once with the iPhone camera, the phone keeps the key
   app.get('/api/drop/qr.svg', (_q, res) => {
     execFile(PY, ['-c', "import segno,sys; segno.make(sys.argv[1], error='l').save(sys.stdout.buffer, kind='svg', scale=5, dark='#141312', light='#ffffff', border=2)", link()],
