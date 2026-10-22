@@ -1,0 +1,94 @@
+/* Sketch Studio - the layered editor's inspector panels (design.md). Same tokens as editor.css (:root there):
+   warm off-black, one coral accent, 1px hairlines, flat - no gradients, no glow. Only what the panels add. */
+.ins { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; font-size: 13px; }
+.ins-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px 14px; border-bottom: 1px solid var(--edge); position: sticky; top: 0; background: var(--panel); z-index: 2; }
+.ins-ico { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; flex: none; }
+.ins-title { font-weight: 600; font-size: 14px; line-height: 1.25; }
+.ins-sub { color: var(--faint); font-size: 12px; }
+.ins-head .grow { min-width: 0; }
+
+.ins-sec { border-bottom: 1px solid var(--edge); padding: 4px 18px 16px; }
+.ins-sec > summary { list-style: none; display: flex; align-items: center; gap: 8px; height: 40px; cursor: pointer; font-weight: 600; font-size: 12.5px; color: var(--text); }
+.ins-sec > summary::-webkit-details-marker { display: none; }
+.ins-sec > summary .chev { color: var(--faint); transition: transform .15s; }
+.ins-sec[open] > summary .chev { transform: rotate(90deg); }
+.ins-sec > summary .end { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: 400; color: var(--faint); }
+.ins-body { display: flex; flex-direction: column; gap: 12px; }
+
+.ins-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 30px; }
+.ins-row > label { color: var(--dim); font-size: 12.5px; }
+.ins-row.wide { grid-template-columns: 1fr; gap: 6px; }
+.ins-note { color: var(--faint); font-size: 11.5px; line-height: 1.45; }
+.ins-note.warn { color: var(--warn); }
+
+/* slider: label | track | value; double-click the track = back to default */
+.ins-sl { display: grid; grid-template-columns: 96px minmax(0, 1fr) 58px; align-items: center; gap: 10px; min-height: 28px; }
+.ins-sl > label { color: var(--dim); font-size: 12.5px; }
+.ins-sl input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.ins-sl .val { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-size: 12px; white-space: nowrap; }
+.ins-sl.off { opacity: .4; pointer-events: none; }
+
+/* chips (a choice of looks / presets) and segmented (a mode) */
+.ins-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ins-chips button { height: 28px; padding: 0 11px; border-radius: 6px; border: 1px solid var(--edge-2); background: var(--panel-3); color: var(--dim); cursor: pointer; font-size: 12px; transition: background .15s, color .15s, border-color .15s; }
+.ins-chips button:hover { color: var(--text); background: var(--hover); }
+.ins-chips button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.ins-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--app); border: 1px solid var(--edge-2); border-radius: var(--r); padding: 2px; gap: 2px; }
+.ins-seg button { height: 30px; border: 0; background: transparent; border-radius: 6px; color: var(--dim); cursor: pointer; font-size: 12.5px; transition: background .15s, color .15s; white-space: nowrap; }
+.ins-seg button:hover:not(:disabled) { color: var(--text); }
+.ins-seg button.on { background: var(--accent); color: #fff; font-weight: 600; }
+.ins-seg button:disabled { opacity: .35; cursor: default; }
+.ins-seg button.on:disabled { background: var(--panel-3); color: var(--dim); opacity: .6; }
+
+/* toggle */
+.ins-tg { width: 34px; height: 20px; border-radius: 10px; background: var(--panel-3); border: 1px solid var(--edge-2); position: relative; cursor: pointer; flex: none; padding: 0; transition: background .15s; }
+.ins-tg::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--dim); transition: transform .15s, background .15s; }
+.ins-tg.on { background: var(--accent); border-color: var(--accent); }
+.ins-tg.on::after { transform: translateX(14px); background: #fff; }
+.ins-tg:disabled { opacity: .35; cursor: default; }
+.ins-tgrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; }
+.ins-tgrow > label { color: var(--text); }
+
+/* number field with a unit and nudges */
+.ins-num { display: flex; align-items: center; height: 32px; background: var(--app); border: 1px solid var(--edge-2); border-radius: var(--r); overflow: hidden; transition: border-color .15s; }
+.ins-num:focus-within { border-color: var(--accent); }
+.ins-num input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; outline: none; padding: 0 10px; font-variant-numeric: tabular-nums; }
+.ins-num .unit { color: var(--faint); font-size: 11.5px; padding-right: 8px; }
+.ins-num button { width: 26px; height: 100%; border: 0; border-left: 1px solid var(--edge); background: transparent; color: var(--dim); cursor: pointer; font-size: 11px; }
+.ins-num button:hover { background: var(--panel-3); color: var(--text); }
+.ins-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.ins-pair > * { min-width: 0; }
+.ins-cap { color: var(--faint); font-size: 11px; margin-top: 3px; }
+
+.ins-text { width: 100%; min-height: 76px; resize: vertical; background: var(--app); border: 1px solid var(--edge-2); border-radius: var(--r); padding: 9px 10px; outline: none; line-height: 1.45; }
+.ins-text:focus { border-color: var(--accent); }
+.ins-select { height: 32px; width: 100%; background: var(--app); border: 1px solid var(--edge-2); border-radius: var(--r); padding: 0 8px; outline: none; cursor: pointer; }
+
+/* 3x3 anchor grid */
+.ins-anchor { display: grid; grid-template-columns: repeat(3, 30px); gap: 5px; }
+.ins-anchor button { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--edge-2); background: var(--panel-3); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.ins-anchor button::after { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--dim); }
+.ins-anchor button.on { background: var(--accent); border-color: var(--accent); }
+.ins-anchor button.on::after { background: #fff; }
+.ins-anchor button:disabled { opacity: .25; cursor: default; }
+
+.ins-sw { display: flex; gap: 8px; align-items: center; }
+.ins-sw button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--panel); outline: 1px solid var(--edge-2); cursor: pointer; padding: 0; }
+.ins-sw button.on { outline: 2px solid var(--accent); }
+.ins-sw input[type=color] { width: 26px; height: 26px; border: 0; padding: 0; background: transparent; cursor: pointer; border-radius: 50%; overflow: hidden; }
+.ins-sw input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.ins-sw input[type=color]::-webkit-color-swatch { border: 1px solid var(--edge-2); border-radius: 50%; }
+
+.ins-thumb { width: 84px; height: 84px; border-radius: 8px; border: 1px solid var(--edge-2); background: var(--app) center / contain no-repeat; flex: none; }
+.ins-media { display: flex; align-items: center; gap: 12px; }
+.ins-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ins-acts .btn { height: 34px; }
+.btn.danger { color: var(--bad); border-color: rgba(239, 95, 95, 0.45); background: transparent; }
+.btn.danger:hover { background: rgba(239, 95, 95, 0.1); }
+.ins-ovr { font-size: 11px; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 1px 6px; cursor: pointer; border: 0; }
+.ins-meter { height: 6px; border-radius: 3px; background: var(--panel-3); overflow: hidden; }
+.ins-meter > i { display: block; height: 100%; background: var(--ok); transition: width .08s linear; }
+.ins-state { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--dim); }
+.ins-state::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+.ins-state.ok::before { background: var(--ok); }
+.ins-state.warn::before { background: var(--warn); }
