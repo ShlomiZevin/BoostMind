@@ -87,13 +87,13 @@ def final_matte(ls, n, ramp):
     last = "[a0]"
     if keep:
         ins += ["-loop", "1", "-i", keep]
-        fc += f";[1:v]scale={mw}:{mh},format=gray[k];[a0][k]blend=all_mode=lighten,format=gray[a1]"
+        fc += f";[1:v]scale={mw}:{mh},format=gray[k];[a0][k]blend=all_mode=lighten:shortest=1,format=gray[a1]"
         last = "[a1]"
     # (lesson.py stores the pieces as yuv420p - TV range - before mask_curve reads them: the same steps here)
     fc += f";{last}format=yuv420p,lutyuv=y='{L.mask_curve(cut)}',format=gray"
     if ramp:
         ins += ["-loop", "1", "-i", ramp]
-        fc += f"[m0];[{len(ins) // 2 - 1 if not keep else 2}:v]format=gray,scale={mw}:{mh}[r];[m0][r]blend=all_mode=multiply,format=gray"
+        fc += f"[m0];[{ins.count('-i') - 1}:v]format=gray,scale={mw}:{mh}[r];[m0][r]blend=all_mode=multiply:shortest=1,format=gray"
     fc += "[o]"
     run([FFMPEG, "-y", "-v", "error", *ins, "-filter_complex", fc, "-map", "[o]", "-shortest", "-c:v", "ffv1", "-pix_fmt", "gray", out + ".part.mkv"])
     os.replace(out + ".part.mkv", out)
@@ -227,12 +227,26 @@ def music_file(ls, items, total):
 
 
 # ---- the project -----------------------------------------------------------------------------------------------
-def build(ep_dir):
+def build(ep_dir, keep_settings=False):
+    """keep_settings: only project.json (+ work/) is written - his episode.json / captions.txt stay exactly as they are
+    (moving a project to the layered editor: deleting project.json is the way back)."""
     ls = L.Lesson(ep_dir)
+    if keep_settings:  # lesson.py's timing steps write their results back into episode.json - here they stay in memory
+        real = L.save_json
+        L.save_json = lambda path, data, *a, **k: None if os.path.basename(path) == "episode.json" else real(path, data, *a, **k)
+        try:
+            return _build(ls, sync=False)
+        finally:
+            L.save_json = real
+    return _build(ls)
+
+
+def _build(ls, sync=True):
     rel = lambda p: os.path.relpath(p, ls.dir).replace("\\", "/")
     log(f"▶ {ls.slug} as layers (one camera)")
     items, total = L.plan(ls)
-    L.sync_captions(ls)
+    if sync:  # (re-reads the script into captions.txt)
+        L.sync_captions(ls)
     L.time_overlays(ls, items, total)
     L.time_fx(ls, items, total)
     caps = L.captions(ls, items, total)
@@ -611,4 +625,4 @@ def len_s(path):
 
 
 if __name__ == "__main__":
-    build(sys.argv[1])
+    build(sys.argv[1], keep_settings="--keep-settings" in sys.argv)
