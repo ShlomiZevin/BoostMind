@@ -185,10 +185,10 @@ def cmd_build(ep, args):
 
     if args.preview:
         audio.mix(ep, mixplan, total, ep.work("public", "dialogue.wav"), stems=ep.work("public", "voices"))
-        if os.path.exists(ep.p("project.json")):  # a layered project: the new edit goes into its layers (his edits kept)
-            from pipeline import to_layers
-            to_layers.sync(ep, "re-analyzed")
-            layers_audio.stems(ep)
+        # one editor for every project: the new edit goes into its layers - project.json (his edits there are kept)
+        from pipeline import to_layers
+        to_layers.sync(ep, "re-analyzed" if os.path.exists(ep.p("project.json")) else "layers made")
+        layers_audio.stems(ep)
         log(f"✔ preview ready ({total:.1f}s)")
         return
     if args.no_render:
