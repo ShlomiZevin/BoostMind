@@ -142,8 +142,14 @@ The rules:
    Commit and push when he asks - only your own files (other sessions have uncommitted work in this repo).
 
 ## More of his rules
-- **He can always re-trim the cut himself:** every cut piece's edge drags to take more / less of the original take
-  (`cut.edges`, `corrections.json` for Zoom). Keep it working whenever you change the cut.
+- **He can always re-trim the cut himself - in the one editor, in every kind of video** (asked 6 times, last
+  2026-10-22: "make sure I can drag videos to start before them and after them... always on partial videos"): every
+  cut piece's edge drags out to take more of the original take, or in to take less. Zoom: the drag becomes a line
+  fix (the analysis re-times the line, picture / voice / subtitles together). One camera: the drag re-cuts the take
+  (`/api/ep/<id>/trim`, seconds) - picture, voice and subtitles follow, everything after shifts. A layer you make
+  yourself: the item's edge pulls back footage up to the take's start / end.
+  **The whole-take rule for any session:** a video item points at the WHOLE take (`asset` = the take, `in` = where the
+  piece starts in it). Never a file cut down to the piece - then there is nothing to pull back.
 - **Every change shows at once.** He hates waiting and "Updating preview". Only real picture work rebuilds.
 - **What he sees is what he exports, and exports fast.** Same cut, sounds, text, filters, speed in both.
 - **Subtitles follow what he SAID**, not the script (his ad-libs stay - add them to the script line). Hook text starts

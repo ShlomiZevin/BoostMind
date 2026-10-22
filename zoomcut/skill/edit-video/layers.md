@@ -71,7 +71,9 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   builder action `{action: "eyes", mode: "nvidia" | "neural", strength, dy, nudge, assets: [...], files: {asset:
   "asset:<id>"}}` (a job, minutes; "files" = his own CapCut export of that take). The export reads `eyes_src`.
 - Consecutive items continuing the same take play as one clip (no reload at a cut); only the window moves.
-- Dragging an item's edge in the editor pulls back the original footage (the whole take is there).
+- Dragging an item's edge in the editor pulls back the original footage - so an item ALWAYS points at the whole
+  take (`asset` = the take, `in` = where the piece starts), never at a file cut down to the piece. A builder's items:
+  the drag goes to the builder (Zoom: a line fix; one camera: a re-cut of the take) so voice and subtitles follow.
 
 ### backdrop - the photo behind a cut-out person
 - no items; props `target` (a video layer id), `asset` (an image), `x`, `y` (pan, -0.5..0.5), `zoom` (0.3..).
