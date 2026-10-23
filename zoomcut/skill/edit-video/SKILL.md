@@ -246,6 +246,26 @@ wig, beard kept; 0.5 when the scene changes a lot). Key from aspect-agent-server
   `<meta name="robots" content="noindex">` so a search for the real name never lands on it; faces are his own
   (Leonardo from his frames), never the real person's; nothing collected or charged.
 
+## Characters - the multiverse (his ask, 2026-10-23)
+Every recurring character has a profile in the studio (left rail → **Characters**): name, portrait, who they are,
+personality, catchphrases, look, voice preset, **pace** (words per minute), writing rules, relations, their website,
+their videos and their assets. It's where he learns about them and briefs a session ("Copy brief for a session").
+- **Data:** `zoomcut/characters/<id>/character.json` (format: the fields above - see any existing one; `index.json`
+  orders them and names the worlds). Images stay where they are and are referenced by path (`assets.portraits /
+  backgrounds / logos / sounds`, `portrait`). Pictures copied into a character folder are gitignored (his face, public repo).
+- **Every video:**
+  - Before you build it, find its characters on the page (`GET /api/characters`).
+  - **A new character gets a profile first:** `POST /api/characters/<id> {patch: {...}}` with name, world, role and brief
+    from the script, a portrait from his frame (or Leonardo `portrait` from it), the look and the voice preset.
+  - Then the video lists them: project.json `"characters": [ids]`. The builders fill it (Zoom: the participants;
+    one camera: the series' character). Check it, and add a guest character by hand.
+  - Use the profile when writing for the character: the catchphrases, the writing rules (e.g. Yotam speaks in the first
+    person; the sites never say parody) and the relations.
+- **Pace** comes from the Reader by itself. Measuring a character (⏱ by the name) or typing their pace updates the
+  profile. The name must match the character's `name` / `aka`.
+- After a video is done, add anything new you learned about the character to their profile (a new catchphrase, a
+  new set, the website's new page). The page is the one place that knows them.
+
 ## Recipes - read the one you need
 Under the hood two engines exist: `lesson.py` (one camera - almost everything) and `zoomcut.py` (a Zoom grid of
 separately filmed characters). Pick by the footage; never name things after a series in the UI.

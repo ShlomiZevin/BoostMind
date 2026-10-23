@@ -208,6 +208,7 @@ function load(text, key) {
   cur = Math.min(saved.cur || 0, Math.max(0, lines.length - 1));
   locked = !!saved.locked;
   paces = saved.paces || {};
+  sendPaces();  // (paces measured before reach the Characters page too)
   mark = Number.isInteger(saved.mark) && saved.mark < lines.length ? saved.mark : null;  // the checkpoint
   wpm = saved.locked && saved.wpm ? saved.wpm : (saved.wpm || +(store.get('reader-wpm') || DEFAULT_WPM));
   setPlay(false);
@@ -216,7 +217,11 @@ function load(text, key) {
 }
 
 const color = (who) => KNOWN[who] || PALETTE[chars.indexOf(who) % PALETTE.length];
-const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces, mark })); if (!locked) store.set('reader-wpm', wpm); };
+const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces, mark })); if (!locked) store.set('reader-wpm', wpm); sendPaces(); };
+// each character's pace also goes to its profile on the Characters page (render/characters.mjs matches the name)
+let paceTimer = null;
+const sendPaces = () => { clearTimeout(paceTimer); paceTimer = setTimeout(() => { if (!Object.keys(paces).length) return;
+  fetch('/api/characters/pace', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paces, script: String(src).replace(/^script:/, '') }) }).catch(() => {}); }, 800); };
 const hash = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
 
 function render() {

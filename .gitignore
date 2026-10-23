@@ -99,3 +99,10 @@ public/techietech/team/
 zoomcut/episodes/_assets/tadar/spiritual-4/poster.jpg
 zoomcut/episodes/_assets/tadar/spiritual-4/src/ref.jpg
 zoomcut/episodes/_assets/tadar/spiritual-4/src/portrait.jpg
+
+# the characters page: their pictures are his face (public repo) - only character.json goes in git
+zoomcut/characters/**/*.jpg
+zoomcut/characters/**/*.jpeg
+zoomcut/characters/**/*.png
+zoomcut/characters/**/*.webp
+zoomcut/characters/_paces.json
