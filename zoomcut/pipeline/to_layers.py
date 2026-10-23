@@ -327,6 +327,8 @@ def build(ep):
             "duration": total, "speed": float(ep.cfg.get("speed") or 1), "assets": assets, "layers": layers, "script": script,
             # lines follow each other: a line moved / lengthened moves everything after it (the live edit shows that)
             "edit": {"ripple": True, "ripple_move": True},
+            # who is in it (the Characters place - zoomcut/characters/<id>)
+            "characters": [pp["id"] for pp in props["participants"]],
             "builder": {"kind": "zoom", "top": top, "accent": accent,
                         "actions": [{"id": "analyze", "label": "Re-analyze the footage"},
                                     {"id": "line", "label": "Fix a line (take / start / end / timing)"},

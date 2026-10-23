@@ -57,7 +57,7 @@ def merge(old, new):
     out = dict(old)
     out["format"] = FORMAT
     out["assets"] = {**old.get("assets", {}), **new.get("assets", {})}
-    for k in ("script", "builder", "edit"):
+    for k in ("script", "builder", "edit", "characters"):
         if k in new:
             out[k] = new[k]
     old_dur, new_dur = old.get("duration") or new["duration"], new["duration"]
