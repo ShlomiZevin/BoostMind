@@ -50,6 +50,15 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const px = (f: number) => (f / fps) * pps;
   const width = px(total) + 200;
   const groups = useMemo(() => groupsOf(project), [project]);
+  // the names column scrolls with the lanes; the lanes have a horizontal scrollbar it doesn't (12-17 px on Windows),
+  // so it gets the same room at the bottom - or near the end every name sat lower than its lane
+  const padHeads = () => { const l = lanes.current, h = heads.current; if (l && h) h.style.paddingBottom = `${l.offsetHeight - l.clientHeight}px`; };
+  useEffect(() => {
+    padHeads();
+    const ro = new ResizeObserver(padHeads);
+    if (lanes.current) ro.observe(lanes.current);
+    return () => ro.disconnect();
+  });
   const selLink = sel?.item ? project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item)?.link : null;
   const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string } | null>(null);
 
@@ -162,7 +171,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             </React.Fragment>
           ))}
         </div>
-        <div className="lanes" ref={lanes} onScroll={(e) => { if (heads.current) heads.current.scrollTop = (e.target as HTMLDivElement).scrollTop; }}
+        <div className="lanes" ref={lanes} onScroll={(e) => { padHeads(); if (heads.current) heads.current.scrollTop = (e.target as HTMLDivElement).scrollTop; }}
           onWheel={(e) => { if (e.ctrlKey) { e.preventDefault(); setPps((p) => Math.max(8, Math.min(400, p * (e.deltaY < 0 ? 1.15 : 0.87)))); } }}>
           <div className="lanes-in" style={{ width }}>
             <div className="ruler" onMouseDown={seekAt}>
