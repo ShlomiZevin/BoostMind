@@ -182,12 +182,23 @@ The rules:
   card - a Leonardo portrait from his frame, the character's logo, the site's CTA in the character's voice, a line
   tied to the video's punchline. Nothing important in the top 240 px or the bottom 300 px (the apps' bars). Made as
   HTML + headless Chrome at 1080x1920, ONE render per call (parallel renders sharing a profile fail silently).
-  Templates: `recipes/monologue.md` → tadar. Make both as soon as the script arrives - before the footage.
-- **A script before the footage** (2026-10-23: "prepare first the project reader then the rest, I'm filming"):
-  1. the Reader first - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line
-     `# <title>`, a `# על המסך – ...` note above each line that gets a sticker / card), and tell him it's ready;
-  2. then, while he films: the stickers (Leonardo sunburst, cut out), the end card, the story posters. The project
-     itself waits for the footage (step 4 below), then the prepared pictures go in as layers.
+  Layouts to copy: `recipes/monologue.md` → tadar. Make both as soon as the script arrives - before the footage.
+- **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
+  reader then the rest, I'm filming" / "fill it while I'm filming"). He films with the Reader, and **the Reader lists
+  PROJECTS, not scripts** - a script with no project never shows ("I don't see it here"). So, in this order:
+  1. **Script** - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line `# <title>`, a
+     `# על המסך – ...` note above each line that gets a sticker / card).
+  2. **Project, at once** - make the footage folder (`Downloads\<series>\<n>`, empty is fine), then
+     `POST /api/new {name: "<series>-<n>", folder, from: "<last project of the series>"}`; set its `script` to the id
+     and its Hebrew `title` (the copy still points at the old script). Tell him: "refresh the Reader, pick <id>".
+  3. **Fill it while he films** - the pictures (stickers via Leonardo, cut out; the end card; the story posters) AND
+     the project's layers in episode.json `overlays`, each tied to her words (`from_words` / `to_words`, a list of
+     alternatives each) so the analysis places them where she says it: hook (draft), ticker, every sticker, the verse
+     card, the mid-video polaroid, the blinking CTA, the end card (`poster`, `fade_in` 1.5, from her last line, no
+     `to_words` = to the end), `music.lift`; the files in `media/` + episode.json `media`. What needs the takes
+     (re-take overlaps, the end-card hold, the fade to black) goes in `_todo` for right after Analyze.
+  4. Footage arrives -> Analyze -> do the `_todo` -> review -> hand over.
+  Example: tadar-6 (spiritual-4, elections).
 - **Real people:** no realistic images of real politicians at invented events; "תמונת AI" tag on realistic AI people.
   His own images / recordings stay out of the public git repo.
 - **Every character is a real person** (2026-10-21): each recurring character gets their own web presence built the

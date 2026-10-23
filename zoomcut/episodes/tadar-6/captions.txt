@@ -1,0 +1,1 @@
+# Subtitles, one block per take (in order). Timing is aligned to the audio automatically.

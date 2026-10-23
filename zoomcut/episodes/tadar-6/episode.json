@@ -1,0 +1,325 @@
+{
+  "type": "lesson",
+  "series": "tadar",
+  "title": "איילת השחר – בחירות ובחירה חופשית (spiritual-4)",
+  "input_dir": "C:/Users/shazbak/Downloads/תדר/4",
+  "takes": "*.[mM][pPoO][4vV]",
+  "background": "../_assets/tadar/studio.jpg",
+  "plaque": [],
+  "music": {
+    "sound": "../_assets/tadar/music/2 - Dreamy harp.mp3",
+    "gain": 0.08,
+    "lift": {
+      "db": 8,
+      "fade": 1.2
+    }
+  },
+  "grade": {
+    "warm": 0.07,
+    "saturation": 1.1,
+    "brightness": 0.025,
+    "contrast": 1.05
+  },
+  "matte_engine": "fast",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 200
+  },
+  "bg": {
+    "zoom": 1.45,
+    "x": 315,
+    "y": 432
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 70,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "speed": 1.3,
+  "voice": {
+    "denoise": true,
+    "lowcut": 85,
+    "warmth": 1.5,
+    "box": -2.5,
+    "presence": 2.5,
+    "deess": 0.4,
+    "comp": 0.6,
+    "preset": "podcast",
+    "boost": 0,
+    "raw": true
+  },
+  "cut": {
+    "merge": 1.1,
+    "pad_in": 0.12,
+    "pad_out": 0.45,
+    "join": 0.06,
+    "above_floor": 28,
+    "voice_above_floor": 30
+  },
+  "eye_contact": {
+    "on": true
+  },
+  "speaker_name": "איילת השחר",
+  "script": "spiritual-4",
+  "media": [
+    "media/poster.jpg",
+    "media/polaroid.png",
+    "media/portrait.jpg",
+    "../_assets/tadar/spiritual-4/ballot.png",
+    "../_assets/tadar/spiritual-4/bird.png",
+    "../_assets/tadar/spiritual-4/infinity.png",
+    "../_assets/tadar/spiritual-4/bchirut.png",
+    "../_assets/tadar/spiritual-4/collective.png",
+    "../_assets/tadar/spiritual-3/scroll.png",
+    "../_assets/tadar/logo/logo_2_morningstar.png"
+  ],
+  "overlays": [
+    {
+      "text": "אף אחת:\nמדריכה רוחנית כשאת שואלת אותה את מי לבחור בבחירות",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.45,
+      "y": 991,
+      "size": 42,
+      "start": 0,
+      "end": 8.5,
+      "_draft": "hook - his wording wins"
+    },
+    {
+      "text": "✨ לקביעת טיפול אצלי 🔮 הלינק בביו 💫 סדנת ״מעבר לתדר״ • שאלות ותשובות • מילון התודעה 🌙 הלינק בביו ✨",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.55,
+      "y": 1560,
+      "size": 40,
+      "speed": 130,
+      "start": 0,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-4/ballot.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 250,
+      "w": 400,
+      "h": 400,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "בבחירות הקרובות",
+        "הקרובות אנחנו באמת"
+      ],
+      "to_words": [
+        "כבר עשתה עבורנו",
+        "עשתה עבורנו"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "media/polaroid.png",
+      "plain": true,
+      "pop": true,
+      "x": 10,
+      "y": 290,
+      "w": 370,
+      "h": 433,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ואני תמיד אומרת",
+        "קודם כול בואו נבין"
+      ],
+      "to_words": [
+        "בכלל לבחור",
+        "מה זה בכלל"
+      ],
+      "mid_card": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/scroll.png",
+      "plain": true,
+      "pop": true,
+      "x": 90,
+      "y": 985,
+      "w": 900,
+      "h": 433,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "כבר בתורה כתוב",
+        "אשר יבחר"
+      ],
+      "to_words": [
+        "מכל שבטיכם",
+        "שבטיכם"
+      ]
+    },
+    {
+      "text": "אשר יבחר אדושם אלוהיכם\nמכל שבטיכם\n(דברים י״ב, ה׳)",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "light",
+      "opacity": 0,
+      "y": 1080,
+      "size": 54,
+      "pop": true,
+      "from_words": [
+        "כבר בתורה כתוב",
+        "אשר יבחר"
+      ],
+      "to_words": [
+        "מכל שבטיכם",
+        "שבטיכם"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-4/bird.png",
+      "plain": true,
+      "pop": true,
+      "x": 40,
+      "y": 250,
+      "w": 380,
+      "h": 380,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "הבחירה החופשית",
+        "על הבחירה החופשית"
+      ],
+      "to_words": [
+        "לחופש הזה",
+        "זקוק לחופש"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-4/infinity.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 280,
+      "w": 420,
+      "h": 300,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "תודעת האינסוף",
+        "של תודעת האינסוף"
+      ],
+      "to_words": [
+        "שעדיין לא התרחש",
+        "לא התרחש"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-4/bchirut.png",
+      "plain": true,
+      "pop": true,
+      "x": 30,
+      "y": 260,
+      "w": 520,
+      "h": 300,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "המילה בחירות",
+        "שהמילה בחירות"
+      ],
+      "to_words": [
+        "להשתחרר מהבחירה",
+        "מהבחירה"
+      ]
+    },
+    {
+      "text": "✨ לקביעת טיפול אצלי ✨\nהלינק בביו ⬆️",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "gold",
+      "opacity": 0.85,
+      "y": 1170,
+      "size": 60,
+      "blink": true,
+      "from_words": [
+        "וזה לא במקרה",
+        "לא במקרה שהמילה"
+      ],
+      "to_words": [
+        "פשוט נזכרות",
+        "נזכרות במה"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-4/collective.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 250,
+      "w": 400,
+      "h": 400,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ולכן בבחירות",
+        "בבחירות הקרובות אנחנו לא"
+      ],
+      "to_words": [
+        "פשוט נזכרות",
+        "אנחנו פשוט"
+      ]
+    },
+    {
+      "style": "image",
+      "image": "media/poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 1.5,
+      "poster": true,
+      "from_words": [
+        "פשוט נזכרות",
+        "נזכרות במה"
+      ]
+    }
+  ],
+  "sign": {
+    "image": "../_assets/tadar/logo/logo_2_morningstar.png",
+    "quad": [
+      [
+        443,
+        62
+      ],
+      [
+        631,
+        67
+      ],
+      [
+        631,
+        303
+      ],
+      [
+        443,
+        308
+      ]
+    ],
+    "light": 0.92,
+    "warm": 0.15,
+    "shadow": 0.35
+  },
+  "_todo": "After Analyze: (1) re-takes that overlap -> sequence {take,to} cut before the line the next take repeats; (2) end-card hold: inserts [{take:<last>, at:<just before its last piece ends>, seconds:3, end_card:true}]; (3) end fade: image overlay ../_assets/black.png full frame, start = total-0.5, fade_in 0.5, end_black:true; (4) check every from_words overlay was heard (log 'overlay words not heard'); the hook text is a draft."
+}

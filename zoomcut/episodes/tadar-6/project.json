@@ -1,0 +1,24 @@
+{
+  "format": "sketch-studio/1",
+  "title": "איילת השחר – בחירות ובחירה חופשית (spiritual-4)",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 900,
+  "speed": 1,
+  "assets": {},
+  "layers": [],
+  "rev": 1,
+  "builder": {
+    "kind": "solo",
+    "actions": [
+      {
+        "id": "analyze",
+        "label": "Analyze the footage"
+      }
+    ]
+  }
+}
