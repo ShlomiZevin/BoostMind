@@ -1,7 +1,8 @@
 // The timeline of a layered project: a lane per layer, grouped (one group per character, Window, Text, Sound...),
 // the top layer first. Click a block = select it; drag it = move; drag an edge = trim (a video / sound edge pulls back
-// the original footage, never past the take's ends). Ctrl+wheel zooms. Every change is an op (live while dragging).
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+// the original footage, never past the take's ends). Ctrl+wheel zooms (around the mouse), Alt / Shift+wheel scrolls
+// sideways. Every change is an op (live while dragging).
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
 
@@ -49,6 +50,34 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   useEffect(() => { try { localStorage.setItem('zc-ly-closed', JSON.stringify(closed)); } catch {} }, [closed]);
   // ONE scroll box: each row = its name (sticky on the left) + its lane - they can't drift apart (timeline.css)
   const lanes = useRef<HTMLDivElement>(null);
+  // the wheel: Ctrl zooms around the mouse (the moment under it stays put), Alt / Shift scrolls sideways, plain scrolls
+  // the layers. A native listener - React's wheel listener is passive, so it can't stop the browser zooming the page.
+  const anchor = useRef<{ t: number; x: number } | null>(null);  // (the time under the mouse, kept there after a zoom)
+  useEffect(() => {
+    const el = lanes.current; if (!el) return;
+    const wheel = (e: WheelEvent) => {
+      const d = e.deltaY || e.deltaX;
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const x = e.clientX - el.getBoundingClientRect().left - NW;  // (where the mouse is in the lanes' view)
+        setPps((p) => {
+          const n = Math.max(8, Math.min(400, p * (d < 0 ? 1.15 : 0.87)));
+          anchor.current = { t: Math.max(0, (el.scrollLeft + x) / p), x };
+          return n;
+        });
+      } else if (e.altKey || e.shiftKey) {
+        e.preventDefault();
+        el.scrollLeft += d;
+      }
+    };
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => el.removeEventListener('wheel', wheel);
+  }, []);
+  useLayoutEffect(() => {
+    const el = lanes.current, a = anchor.current; if (!el || !a) return;
+    anchor.current = null;
+    el.scrollLeft = Math.max(0, a.t * pps - a.x);
+  }, [pps]);
   const px = (f: number) => (f / fps) * pps;
   const width = px(total) + 200;
   const groups = useMemo(() => groupsOf(project), [project]);
@@ -144,7 +173,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <input type="range" min={8} max={400} value={pps} onChange={(e) => setPps(+e.target.value)} />
       </div>
       <div className="ltl" ref={lanes} style={{ ['--th' as any]: `${TH}px`, ['--nw' as any]: `${NW}px` }}
-        onWheel={(e) => { if (e.ctrlKey) { e.preventDefault(); setPps((p) => Math.max(8, Math.min(400, p * (e.deltaY < 0 ? 1.15 : 0.87)))); } }}>
+>
         <div className="ltl-in" style={{ width: NW + width }}>
           <div className="ltl-row ltl-ruler">
             <div className="ltl-name" />
