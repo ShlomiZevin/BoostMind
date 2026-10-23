@@ -3,6 +3,7 @@
 // the original footage, never past the take's ends). Ctrl+wheel zooms. Every change is an op (live while dragging).
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
+import './timeline.css';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -13,6 +14,7 @@ type Props = {
 };
 
 const TH = 30;  // lane height
+const NW = 200;  // the names column
 
 const EyeIc = ({ off }: { off?: boolean }) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{off && <path d="M4 4l16 16" />}</svg>;
@@ -45,20 +47,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
   const [closed, setClosed] = useState<Record<string, boolean>>(() => { try { return JSON.parse(localStorage.getItem('zc-ly-closed') || '{"Window":true}'); } catch { return { Window: true }; } });  // (the Zoom window's parts start folded)
   useEffect(() => { try { localStorage.setItem('zc-ly-closed', JSON.stringify(closed)); } catch {} }, [closed]);
+  // ONE scroll box: each row = its name (sticky on the left) + its lane - they can't drift apart (timeline.css)
   const lanes = useRef<HTMLDivElement>(null);
-  const heads = useRef<HTMLDivElement>(null);
   const px = (f: number) => (f / fps) * pps;
   const width = px(total) + 200;
   const groups = useMemo(() => groupsOf(project), [project]);
-  // the names column scrolls with the lanes; the lanes have a horizontal scrollbar it doesn't (12-17 px on Windows),
-  // so it gets the same room at the bottom - or near the end every name sat lower than its lane
-  const padHeads = () => { const l = lanes.current, h = heads.current; if (l && h) h.style.paddingBottom = `${l.offsetHeight - l.clientHeight}px`; };
-  useEffect(() => {
-    padHeads();
-    const ro = new ResizeObserver(padHeads);
-    if (lanes.current) ro.observe(lanes.current);
-    return () => ro.disconnect();
-  });
   const selLink = sel?.item ? project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item)?.link : null;
   const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string } | null>(null);
 
@@ -71,22 +64,22 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const lane = el.querySelector(`[data-lane="${CSS.escape(sel.layer)}"]`) as HTMLElement | null;
     if (lane) {
       const top = lane.offsetTop, h = lane.offsetHeight;
-      if (top < el.scrollTop + 30 || top + h > el.scrollTop + el.clientHeight) el.scrollTop = Math.max(0, top - el.clientHeight / 2);
+      if (top < el.scrollTop + TH || top + h > el.scrollTop + el.clientHeight) el.scrollTop = Math.max(0, top - el.clientHeight / 2);
     }
     const it = sel.item && project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item);
-    if (it) { const x = px(it.from); if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - 60) el.scrollLeft = Math.max(0, x - 120); }
+    if (it) { const x = px(it.from); if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - NW - 60) el.scrollLeft = Math.max(0, x - 120); }
   }, [sel?.layer, sel?.item, closed]);
 
   // keep the playhead in view while playing
   useEffect(() => {
     const el = lanes.current; if (!el) return;
-    const x = px(frame);
-    if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - 40) el.scrollLeft = Math.max(0, x - 80);
+    const x = px(frame);  // (in the lanes' own x: the names column covers the first NW px of the view)
+    if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - NW - 40) el.scrollLeft = Math.max(0, x - 80);
   }, [Math.floor(frame / fps)]);
 
-  const seekAt = (e: React.MouseEvent) => {
-    const el = lanes.current!; const r = el.getBoundingClientRect();
-    const go = (cx: number) => onSeek(Math.max(0, Math.min(total - 1, Math.round(((cx - r.left + el.scrollLeft) / pps) * fps))));
+  const seekAt = (e: React.MouseEvent) => {  // (on a lane's track: its left edge is frame 0, wherever it is scrolled)
+    const tr = e.currentTarget as HTMLElement;
+    const go = (cx: number) => onSeek(Math.max(0, Math.min(total - 1, Math.round(((cx - tr.getBoundingClientRect().left) / pps) * fps))));
     go(e.clientX);
     const mv = (m: MouseEvent) => go(m.clientX);
     const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); };
@@ -146,42 +139,37 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <span className="chip">{project.layers.length} layers · {project.layers.reduce((n: number, l: any) => n + (l.items?.length || 0), 0)} items</span>
         <div className="grow" />
         <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="The whole video in view"
-          onClick={() => { const w = lanes.current?.clientWidth || 1000; setPps(Math.max(8, (w - 40) / (total / fps))); }}>Fit</button>
+          onClick={() => { const w = (lanes.current?.clientWidth || 1000) - NW; setPps(Math.max(8, (w - 40) / (total / fps))); }}>Fit</button>
         <span style={{ color: 'var(--faint)', fontSize: 12 }}>Zoom</span>
         <input type="range" min={8} max={400} value={pps} onChange={(e) => setPps(+e.target.value)} />
       </div>
-      <div className="tl-body" style={{ ['--th' as any]: `${TH}px`, gridTemplateColumns: '200px minmax(0, 1fr)' }}>
-        <div className="heads" ref={heads}>
-          <div className="h ruler" />
-          {groups.map((g) => (
-            <React.Fragment key={g.name}>
-              <div className="h grp" style={{ cursor: 'pointer' }} onClick={() => setClosed({ ...closed, [g.name]: !closed[g.name] })}>
-                <span className="caret">{closed[g.name] ? '▸' : '▾'}</span><span className="h-name he" style={{ direction: 'rtl' }}>{g.name}</span>
-              </div>
-              {!closed[g.name] && g.layers.map((l) => (
-                <div key={l.id} className={`h sub pick ${sel?.layer === l.id ? 'on' : ''}`} style={{ opacity: l.hidden ? 0.5 : 1, gap: 6 }}
-                  onClick={() => onSel({ layer: l.id })} title={`${KIND_LABEL[l.kind]} · ${l.id}`}>
-                  <span style={{ width: 8, height: 8, borderRadius: 2, background: KIND_COLOR[l.kind], flex: 'none' }} />
-                  <span className="h-name grow">{l.name || l.id}</span>
-                  {l.kind === 'audio'
-                    ? <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.muted ? 'Sound on' : 'Mute'} onClick={(e) => { e.stopPropagation(); toggle(l, 'muted'); }}><SpkIc off={l.muted} /></button>
-                    : <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); toggle(l, 'hidden'); }}><EyeIc off={l.hidden} /></button>}
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-        <div className="lanes" ref={lanes} onScroll={(e) => { padHeads(); if (heads.current) heads.current.scrollTop = (e.target as HTMLDivElement).scrollTop; }}
-          onWheel={(e) => { if (e.ctrlKey) { e.preventDefault(); setPps((p) => Math.max(8, Math.min(400, p * (e.deltaY < 0 ? 1.15 : 0.87)))); } }}>
-          <div className="lanes-in" style={{ width }}>
-            <div className="ruler" onMouseDown={seekAt}>
+      <div className="ltl" ref={lanes} style={{ ['--th' as any]: `${TH}px`, ['--nw' as any]: `${NW}px` }}
+        onWheel={(e) => { if (e.ctrlKey) { e.preventDefault(); setPps((p) => Math.max(8, Math.min(400, p * (e.deltaY < 0 ? 1.15 : 0.87)))); } }}>
+        <div className="ltl-in" style={{ width: NW + width }}>
+          <div className="ltl-row ltl-ruler">
+            <div className="ltl-name" />
+            <div className="ltl-track" style={{ width }} onMouseDown={seekAt}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
             </div>
-            {groups.map((g) => (
-              <React.Fragment key={g.name}>
-                <div className="lane grp-lane" onMouseDown={seekAt} />
-                {!closed[g.name] && g.layers.map((l) => (
-                  <div key={l.id} data-lane={l.id} className={`lane ${sel?.layer === l.id ? 'sel' : ''}`} style={{ opacity: l.hidden || l.muted ? 0.45 : 1 }}
+          </div>
+          {groups.map((g) => (
+            <React.Fragment key={g.name}>
+              <div className="ltl-row ltl-grp">
+                <div className="ltl-name" onClick={() => setClosed({ ...closed, [g.name]: !closed[g.name] })}>
+                  <span className="caret">{closed[g.name] ? '▸' : '▾'}</span><span className="nm he" style={{ direction: 'rtl' }}>{g.name}</span>
+                </div>
+                <div className="ltl-track" style={{ width }} onMouseDown={seekAt} />
+              </div>
+              {!closed[g.name] && g.layers.map((l) => (
+                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${sel?.layer === l.id ? 'sel' : ''}`}>
+                  <div className="ltl-name" style={{ opacity: l.hidden ? 0.5 : 1 }} onClick={() => onSel({ layer: l.id })} title={`${KIND_LABEL[l.kind]} · ${l.id}`}>
+                    <span className="dot" style={{ background: KIND_COLOR[l.kind] }} />
+                    <span className="nm" dir="auto">{l.name || l.id}</span>
+                    {l.kind === 'audio'
+                      ? <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.muted ? 'Sound on' : 'Mute'} onClick={(e) => { e.stopPropagation(); toggle(l, 'muted'); }}><SpkIc off={l.muted} /></button>
+                      : <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); toggle(l, 'hidden'); }}><EyeIc off={l.hidden} /></button>}
+                  </div>
+                  <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted ? 0.45 : 1 }}
                     onMouseDown={(e) => { if (e.target === e.currentTarget) { onSel({ layer: l.id }); seekAt(e); } }}>
                     {l.kind === 'backdrop' && (() => {
                       const t = project.layers.find((x: any) => x.id === l.props?.target);
@@ -205,11 +193,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                       );
                     })}
                   </div>
-                ))}
-              </React.Fragment>
-            ))}
-            <div className="playhead" style={{ left: px(frame), height: '100%' }} />
-          </div>
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
+          <div className="playhead" style={{ left: NW + px(frame), height: '100%' }} />
         </div>
       </div>
     </div>

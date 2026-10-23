@@ -1,0 +1,29 @@
+/* The layered timeline: ONE scroll box. Every row holds its name and its lane together; the names stay in view by
+   sticky positioning (left), the ruler by sticky positioning (top) - so names and lanes can never drift apart. */
+.ltl { overflow: auto; position: relative; background: #161514; min-height: 0; }
+.ltl::-webkit-scrollbar { width: 10px; height: 10px; }
+.ltl::-webkit-scrollbar-thumb { background: var(--panel-3); border-radius: 10px; border: 2px solid var(--panel); }
+.ltl::-webkit-scrollbar-corner { background: var(--panel); }
+.ltl-in { position: relative; }
+.ltl-row { display: flex; height: var(--th); }
+.ltl-name { position: sticky; left: 0; z-index: 4; flex: none; width: var(--nw); height: 100%; display: flex; align-items: center; gap: 6px;
+  padding: 0 12px 0 14px; background: var(--panel); border-right: 1px solid var(--edge); border-bottom: 1px solid var(--edge); color: var(--text); }
+.ltl-name .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.ltl-name svg { color: var(--dim); }
+.ltl-track { position: relative; flex: none; height: 100%; border-bottom: 1px solid var(--edge); }
+/* the ruler: on top while the lanes scroll under it; its corner over everything */
+.ltl-ruler { position: sticky; top: 0; z-index: 6; }
+.ltl-ruler .ltl-name { z-index: 7; }
+.ltl-ruler .ltl-track { background: var(--panel); cursor: ew-resize; }
+/* a group's row */
+.ltl-grp .ltl-name { font-weight: 700; cursor: pointer; }
+.ltl-grp .ltl-name .caret { width: 12px; color: var(--faint); font-size: 11px; flex: none; }
+.ltl-grp .ltl-track { background: rgba(255, 255, 255, 0.015); }
+/* a layer's row */
+.ltl-lay .ltl-name { padding-left: 28px; color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
+.ltl-lay .ltl-name:hover { background: var(--panel-3); color: var(--text); }
+.ltl-lay.sel .ltl-name { background: var(--accent-soft); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+.ltl-lay.sel .ltl-track { background: rgba(255, 107, 87, 0.05); }
+.ltl-lay .dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+/* the playhead runs under the names column (it scrolls with the lanes) */
+.ltl .playhead { z-index: 3; }
