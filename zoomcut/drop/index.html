@@ -28,7 +28,10 @@ select { appearance: none; -webkit-appearance: none; }
 .btn[disabled] { opacity: .4; }
 .gos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .gos .btn.go.alt { background: var(--panel-2); border-color: var(--edge-2); }
-@media (min-width: 900px) { .gos { grid-template-columns: 1fr; } #rec { display: none; } }  /* (a computer has no front camera to film with) */
+.btn.go.on { background: var(--err); border-color: var(--err); font-variant-numeric: tabular-nums; }
+.lvl { height: 6px; margin-top: 10px; background: var(--panel-2); border-radius: 3px; overflow: hidden; display: none; }
+.lvl.on { display: block; }
+.lvl > div { height: 100%; width: 0; background: var(--ok); transition: width .08s; }
 .hint { color: var(--faint); font-size: 13px; margin: 8px 2px 0; }
 /* the files about to go up: a name each */
 .p { padding: 10px 12px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; margin-bottom: 8px; }
@@ -110,8 +113,8 @@ a.btn-dl { text-decoration: none; }
     <div class="sec" id="curTitle" style="display:none"></div>
 
     <input type="file" id="files" multiple hidden>  <!-- (no accept="": iOS gives the original file, not a "compatible" copy) -->
-    <input type="file" id="cam" accept="video/*" capture="user" hidden>  <!-- the phone's own camera, front lens -->
-    <div class="gos"><button class="btn go" id="rec">● Record myself</button><button class="btn go alt" id="pick">Choose videos</button></div>
+    <div class="gos"><button class="btn go" id="rec">● Record voice</button><button class="btn go alt" id="pick">Choose videos</button></div>
+    <div class="lvl" id="lvl"><div></div></div>
     <p class="hint">The size under each file should match the size in Photos (swipe up on the video) - the studio checks every file that arrives.</p>
 
     <div id="pendBox" style="display:none">
@@ -278,22 +281,52 @@ $('chips').onclick = (e) => {
 // ---- choose → name → upload ----
 let pend = [];
 $('pick').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('files').click(); };
-// Record myself: the phone's camera opens on the front lens; the take goes straight up to this project, no naming
-// step (named rec-<time>, so takes sort in the order they were filmed - rename it in the list if you like)
-$('rec').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('cam').click(); };
-$('cam').onchange = () => {
-  const file = $('cam').files[0];
-  $('cam').value = '';
-  if (!file || !cur) return;
-  const ext = (splitExt(file.name)[1] || (file.type.includes('mp4') ? '.mp4' : '.mov')).toLowerCase();
-  const d = new Date(), pad = (n) => String(n).padStart(2, '0');
-  const taken = new Set([...(curFolder()?.files || []).map((f) => f.name), ...queue.filter((q) => q.folder === cur).map((q) => q.name)]);
-  let n = `rec-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${ext}`, k = 2;
-  while (taken.has(n)) n = `rec-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${k++}${ext}`;
-  const q = { file, folder: cur, name: n, sent: 0, state: 'waiting', el: row1(n, file) };
-  queue.push(q);
-  frameOf(URL.createObjectURL(file)).then((t) => { if (t) q.thumb = t; });  // (its picture, while it uploads)
-  draw(); run();
+// Record voice: the phone's microphone, recorded here (raw - no echo cancelling, noise suppression or auto gain, the
+// studio cleans it), then straight up to this project with no naming step - rec-<time>, so takes sort in the order
+// they were recorded (rename it in the list if you like). The screen stays on while it records.
+let rec = null;
+$('rec').onclick = async () => {
+  if (rec) return rec.mr.stop();
+  if (!KEY) return askKey();
+  if (!cur) return newProject();
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); }
+  catch (e) { return alert('No microphone: ' + e.message); }
+  const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find((t) => window.MediaRecorder?.isTypeSupported?.(t)) || '';
+  const mr = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), audioBitsPerSecond: 256000 });
+  const parts = [], t0 = Date.now(), d = new Date(), folder = cur;
+  // a level bar, so he sees the microphone hears him
+  const ac = new (window.AudioContext || window.webkitAudioContext)(), an = ac.createAnalyser();
+  an.fftSize = 1024; ac.createMediaStreamSource(stream).connect(an);
+  const buf = new Float32Array(an.fftSize);
+  rec = { mr, timer: setInterval(() => {
+    const t = Math.floor((Date.now() - t0) / 1000);
+    $('rec').textContent = `■ Stop  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+    an.getFloatTimeDomainData(buf);
+    let pk = 0; for (const v of buf) pk = Math.max(pk, Math.abs(v));
+    $('lvl').firstElementChild.style.width = `${Math.min(100, Math.round(Math.sqrt(pk) * 100))}%`;
+  }, 100) };
+  try { rec.wake = await navigator.wakeLock?.request('screen'); } catch {}
+  mr.ondataavailable = (e) => { if (e.data.size) parts.push(e.data); };
+  mr.onstop = () => {
+    clearInterval(rec.timer); try { rec.wake?.release(); } catch {}
+    stream.getTracks().forEach((t) => t.stop()); ac.close().catch(() => {});
+    rec = null;
+    $('rec').textContent = '● Record voice'; $('rec').classList.remove('on'); $('lvl').classList.remove('on');
+    const mime = (mr.mimeType || type || 'audio/mp4').split(';')[0];
+    const ext = mime.includes('webm') ? '.webm' : '.m4a';
+    const pad = (n) => String(n).padStart(2, '0'), stamp = `rec-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const taken = new Set([...(folders.find((f) => f.name === folder)?.files || []).map((f) => f.name), ...queue.filter((q) => q.folder === folder).map((q) => q.name)]);
+    let n = stamp + ext, k = 2;
+    while (taken.has(n)) n = `${stamp}-${k++}${ext}`;
+    const file = new File(parts, n, { type: mime });
+    if (!file.size) return alert('Nothing was recorded');
+    queue.push({ file, folder, name: n, sent: 0, state: 'waiting', el: row1(n, file) });
+    draw(); run();
+  };
+  mr.start(1000);  // (a chunk a second: nothing is lost if it stops early)
+  $('rec').classList.add('on'); $('lvl').classList.add('on');
+  $('rec').textContent = '■ Stop  0:00';
 };
 $('files').onchange = () => {
   for (const file of $('files').files) pend.push({ file, name: cleanName(splitExt(file.name)[0]) || 'video', url: URL.createObjectURL(file) });

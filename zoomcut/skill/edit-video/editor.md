@@ -112,9 +112,10 @@ end must show at once, with the real footage there.
 - **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
   `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project
   boostmind-b052c`; key in zoomcut/.env DROP_KEY - the studio's "+ New video" → From the iPhone shows the QR with it).
-  On the phone he picks a **project** (folder) or makes one. **● Record myself** (2026-10-23) opens the iPhone's own
-  camera on the front lens; the take uploads straight away, no naming step, as `rec-HHMMSS.mov` (filming time - the
-  takes sort in order; who is who comes from the frames, or he renames). Or he chooses videos and **names each file** before it goes up
+  On the phone he picks a **project** (folder) or makes one. **● Record voice** (2026-10-23) records his voice only, in
+  the page (raw mic: no echo cancel / noise suppression / auto gain - the studio cleans it; AAC 256 kbps, `.m4a`; a
+  level bar shows the mic hears him); on Stop it uploads straight away, no naming step, as `rec-HHMMSS.m4a` (recording
+  time - the takes sort in order; he renames if he wants). Or he chooses videos and **names each file** before it goes up
   (chips = names he used before, e.g. amir / ofer - a taken name gets -2) and sees the project's files with
   **rename / delete**. On the desktop the same page is a **browser**: every project (files, size, last upload, delete
   project) beside the picked one's files. Files land in `gs://boostmind-drop/<project>/<name>.<ext>` (me-west1, private,
