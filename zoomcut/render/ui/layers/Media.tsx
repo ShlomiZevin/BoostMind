@@ -1,8 +1,38 @@
 // Media: every file the project uses or can use (its assets) - footage, backgrounds and pictures, sounds, fonts.
-// Add a file (it goes to the project's media/), put any of them on the timeline at the playhead.
-import React, { useRef, useState } from 'react';
+// Add a file (it goes to the project's media/), put any of them on the timeline at the playhead. A file's picture
+// opens it big (VideoPeek): a video or a sound plays, a picture shows large - and there, not in this list, he marks
+// it Use / Don't use with a note ("the first part from this take"). Kept on the asset (mark, note), for him and for
+// whoever edits the project (the skill reads them); the list only gets a small sign on a marked file's picture.
+import React, { useEffect, useRef, useState } from 'react';
 import { Send, upload } from './api';
 import { newId } from '../../src/layers/ops.js';
+import { VideoPeek, PeekThumb } from './VideoPeek';
+
+// in the window: Use / Don't use + a note for one file
+function Marks({ id, a, send }: { id: string; a: any; send: Send }) {
+  const [note, setNote] = useState(a.note || '');
+  useEffect(() => setNote(a.note || ''), [id, a.note]);
+  const save = (patch: any) => {
+    const next = { ...a, ...patch };
+    for (const k of ['mark', 'note']) if (!next[k]) delete next[k];
+    send([{ op: 'asset.add', id, asset: next }], { label: 'mark ' + (a.label || a.src.split('/').pop()) });
+  };
+  const keep = () => { if (note.trim() !== (a.note || '')) save({ note: note.trim() }); };
+  return (
+    <div className="mk">
+      <div className="mk-b">
+        <button className={`mk-use ${a.mark === 'use' ? 'on' : ''}`} onClick={() => save({ mark: a.mark === 'use' ? '' : 'use' })}>✓ Use this</button>
+        <button className={`mk-skip ${a.mark === 'skip' ? 'on' : ''}`} onClick={() => save({ mark: a.mark === 'skip' ? '' : 'skip' })}>✕ Don't use</button>
+      </div>
+      <div className="mk-l">Note</div>
+      <textarea className="mk-note he" dir="auto" rows={3} value={note} placeholder="e.g. take the first part from this one, the ending from the other"
+        onChange={(e) => setNote(e.target.value)} onBlur={keep} />
+    </div>
+  );
+}
+// a small sign on a marked file's picture (✓ use, ✕ don't, • a note only)
+const Dot = ({ a }: { a: any }) => (a.mark ? <span className={`mk-dot ${a.mark}`}>{a.mark === 'use' ? '✓' : '✕'}</span>
+  : a.note ? <span className="mk-dot note">•</span> : null);
 
 const SECTIONS: [string, string, (a: any) => boolean][] = [
   ['video', 'Footage', (a) => a.kind === 'video'],
@@ -18,6 +48,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
 }) {
   const fileIn = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState('');
+  const [peek, setPeek] = useState<string | null>(null);  // the file open big
   const W = project.canvas.w, H = project.canvas.h, fps = project.canvas.fps;
   const add = async (files: FileList | null) => {
     for (const f of Array.from(files || [])) {
@@ -62,8 +93,8 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
               <div className="pm-grid">
                 {list.map(([id, a]) => (
                   <div key={id} className={`pm ${pick?.kind === 'image' ? 'on' : ''}`} title={a.src}>
-                    <button className="pm-img" onClick={() => (pick && pick.kind === 'image' ? pick.onPick(id) : place(id, a))}>
-                      <img src={urls[id]} loading="lazy" style={{ objectFit: k === 'bg' ? 'cover' : 'contain' }} /></button>
+                    <button className="pm-img" style={{ position: 'relative' }} title="Open it big" onClick={() => (pick && pick.kind === 'image' ? pick.onPick(id) : setPeek(id))}>
+                      <img src={urls[id]} loading="lazy" style={{ objectFit: k === 'bg' ? 'cover' : 'contain' }} /><Dot a={a} /></button>
                     <div className="pm-name">{a.label || a.src.split('/').pop()}</div>
                     {!pick && <button className="pm-use" onClick={() => place(id, a)}>{used.has(id) ? '+ again' : '+ timeline'}</button>}
                   </div>
@@ -71,8 +102,9 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
               </div>
             ) : list.map(([id, a]) => (
               <div key={id} className="m-row" onClick={() => (pick && pick.kind === a.kind ? pick.onPick(id) : null)}>
-                {a.kind === 'video' ? <img className="m-thumb" loading="lazy" src={`/api/p/${ep}/thumb?asset=${encodeURIComponent(id)}`} />
-                  : <div className="m-ic">{a.kind === 'audio' ? '♪' : 'Aa'}</div>}
+                {a.kind === 'video' ? <span className="mk-wrap"><PeekThumb src={`/api/p/${ep}/thumb?asset=${encodeURIComponent(id)}`} onPlay={() => (pick ? pick.kind === 'video' && pick.onPick(id) : setPeek(id))} /><Dot a={a} /></span>
+                  : a.kind === 'audio' ? <span className="mk-wrap"><button className="m-ic" style={{ cursor: 'pointer', border: 0, font: 'inherit', color: 'inherit' }} title="Listen" onClick={(e) => { e.stopPropagation(); pick ? pick.kind === 'audio' && pick.onPick(id) : setPeek(id); }}>♪</button><Dot a={a} /></span>
+                  : <div className="m-ic">Aa</div>}
                 <div className="m-main">
                   <div className="m-name he">{a.label || a.src.split('/').pop()}</div>
                   <div className="m-sub">{a.kind === 'font' ? a.family : `${a.duration ? a.duration.toFixed(1) + ' s' : ''}${a.w ? ` · ${a.w}×${a.h}` : ''}${used.has(id) ? ' · in use' : ''}`}</div>
@@ -83,6 +115,13 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
           </div>
         );
       })}
+      {peek && project.assets?.[peek] && (() => {
+        const a = project.assets[peek];
+        return <VideoPeek kind={a.kind} src={a.kind === 'image' ? urls[peek] : `/api/p/${ep}/asset?a=${encodeURIComponent(peek)}`} name={a.label || a.src.split('/').pop()} onClose={() => setPeek(null)}
+          sub={[a.duration ? a.duration.toFixed(1) + ' s' : '', a.w ? `${a.w}×${a.h}` : '', used.has(peek) ? 'in use' : ''].filter(Boolean).join(' · ')}
+          actions={<button className="btn" onClick={() => { place(peek, a); setPeek(null); }}>{used.has(peek) ? '+ Timeline again' : '+ Timeline'}</button>}>
+          <Marks id={peek} a={a} send={send} /></VideoPeek>;
+      })()}
     </div>
   );
 }

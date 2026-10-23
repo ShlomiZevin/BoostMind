@@ -57,6 +57,10 @@ def merge(old, new):
     out = dict(old)
     out["format"] = FORMAT
     out["assets"] = {**old.get("assets", {}), **new.get("assets", {})}
+    for aid, a in out["assets"].items():  # his marks on a take (Media: Use / Don't use + a note) outlive a rebuild
+        for k in ("mark", "note"):
+            if k in old.get("assets", {}).get(aid, {}) and k not in a:
+                out["assets"][aid] = a = {**a, k: old["assets"][aid][k]}
     for k in ("script", "builder", "edit", "characters"):
         if k in new:
             out[k] = new[k]

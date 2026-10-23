@@ -1,8 +1,9 @@
 // Drop - the iPhone's way into Sketch Studio. The page (index.html) uploads files at full quality straight into the
 // bucket (resumable sessions, any size, picks up after a dropped connection) and is a browser of what is there:
 // projects (folders), their files, rename, delete. This service checks the key and talks to Storage; no dependencies -
-// its Google token comes from Cloud Run's metadata server. The studio on the PC mirrors every folder to
-// Downloads\drop\<folder> (renames and deletes too) and empties a folder when its project is marked Done.
+// its Google token comes from Cloud Run's metadata server. The studio on the PC pulls every file to
+// Downloads\drop\<folder> within a minute and then removes it from here; a delete on the page leaves a marker
+// (<folder>/.gone/<size>~<name>) so the studio deletes its copy too.
 import http from 'node:http';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -145,6 +146,9 @@ const routes = {
   async delete(b) {
     const folder = clean(b.folder, 60), name = String(b.name || '');
     if (!folder || !name) throw Object.assign(new Error('folder, name'), { code: 400 });
+    const m = await gcs(`${API}/${enc(`${folder}/${name}`)}?fields=size`);  // (gone already when the studio has it: the page's size)
+    const size = m.ok ? +(await m.json()).size : Number(b.size) || 0;
+    if (size > 0) await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${enc(`${folder}/.gone/${size}~${name}`)}`, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '' });
     await gcs(`${API}/${enc(`${folder}/${name}`)}`, { method: 'DELETE' });
     await gcs(`${API}/${enc(`${folder}/.thumbs/${name}.jpg`)}`, { method: 'DELETE' });  // (its picture, if it has one)
     return { ok: true };

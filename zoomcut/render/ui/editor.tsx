@@ -13,6 +13,7 @@ const PreloadBar = ({ p }: { p: Preload }) => (p.loading ? <div className="pre-b
   <div className="pre-fill" style={{ width: `${Math.round((p.done / Math.max(1, p.total)) * 100)}%` }} />
   <span>Loading the clips into memory · {p.done}/{p.total} · {Math.round(p.bytes / 1e6)} MB</span></div> : null);
 import { LayersEditor, LayersBoundary } from './layers/LayersEditor';
+import { VideoPeek, PeekThumb } from './layers/VideoPeek';
 import { VOICE_PRESETS, voiceSettings, musicVolume, buildMix, applyMix, renderMix, loudness, masterFor } from './sound';
 
 // ---------- types ----------------------------------------------------------------------
@@ -489,6 +490,7 @@ function Editor() {
 
 // ---------- media bin --------------------------------------------------------------------
 export function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string; busy: boolean; onJob: (j: Job) => void }) {
+  const [peek, setPeek] = useState<string | null>(null);  // a file playing whole - to see who it is
   const f = data?.footage;
   if (!f) return <div className="empty" style={{ padding: 16 }}>No footage scanned yet.</div>;
   const chars = data!.episode?.characters || [];
@@ -505,7 +507,7 @@ export function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string
         const c = chars.find((x: any) => x.id === r.char);
         return (
           <div key={r.rel} className="item">
-            <img className="m-thumb" loading="lazy" src={`/api/ep/${ep}/footthumb?rel=${encodeURIComponent(r.rel)}`} alt="" />
+            <PeekThumb src={`/api/ep/${ep}/footthumb?rel=${encodeURIComponent(r.rel)}`} onPlay={() => setPeek(r.rel)} />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="name">{r.rel}</div>
               <div className="ctl">
@@ -521,6 +523,12 @@ export function Media({ data, ep, busy, onJob }: { data: Data | null; ep: string
             </div>
           </div>);
       })}
+      {peek && <VideoPeek src={`/api/ep/${ep}/footage?rel=${encodeURIComponent(peek)}`} name={peek} onClose={() => setPeek(null)}>
+        <select className="field" disabled={busy} value={rows.find((x) => x.rel === peek)?.char || ''}
+          onChange={(e) => { const r = rows.find((x) => x.rel === peek)!; assign(r.rel, e.target.value, r.kind); }}>
+          <option value="">Who is this?</option>
+          {chars.map((x: any) => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </select></VideoPeek>}
     </>
   );
 }

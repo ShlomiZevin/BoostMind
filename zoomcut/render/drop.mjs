@@ -1,9 +1,12 @@
 // Drop - the PC side. Files he drops from the iPhone (the page: zoomcut/drop, on Cloud Run) land in the bucket; the
 // studio pulls each new one down to Downloads\drop\<folder> by itself (every minute), where "+ New video" and any
-// session find it like any footage folder. A project marked Done empties its folder in the cloud (the copy here stays);
-// the bucket also forgets anything older than 60 days. Uses this computer's gcloud login - no keys in the code.
+// session find it like any footage folder. Once a file is here, checked (size + md5), it leaves the Drop - the Drop
+// only holds what is still on its way (his rule, 2026-10-23). The copy here is never touched by the cloud: a name
+// used again later comes down as name-2. A project marked Done empties what is left of its folder in the cloud; the
+// bucket also forgets anything older than 60 days. Uses this computer's gcloud login - no keys in the code.
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 
 // what a file really is: "3840x2160 hevc 59.94 fps 28 Mb/s" (to see it arrived as filmed, not a converted copy)
@@ -41,20 +44,21 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     const items = [];
     let page = '';
     do {
-      const r = await gcs(`${API}?prefix=${encodeURIComponent(prefix)}&fields=items(name,size,updated),nextPageToken${page ? `&pageToken=${page}` : ''}`);
+      const r = await gcs(`${API}?prefix=${encodeURIComponent(prefix)}&fields=items(name,size,updated,md5Hash),nextPageToken${page ? `&pageToken=${page}` : ''}`);
       const j = await r.json();
       if (!r.ok) throw new Error(j.error?.message || `storage ${r.status}`);
       items.push(...(j.items || []));
       page = j.nextPageToken || '';
     } while (page);
-    const all = items.map((i) => ({ name: i.name, size: +i.size, updated: i.updated })).filter((o) => !o.name.startsWith('_') && !o.name.endsWith('/'));
+    const all = items.map((i) => ({ name: i.name, size: +i.size, updated: i.updated, md5: i.md5Hash || '' })).filter((o) => !o.name.startsWith('_') && !o.name.endsWith('/'));
     list.folders = new Set(all.map((o) => o.name.split('/')[0]));  // (every folder in the cloud, an empty new one too)
+    list.gone = all.filter((o) => o.name.split('/')[1] === '.gone');  // (deleted on the page: <folder>/.gone/<size>~<name>)
     return all.filter((o) => !o.name.split('/').slice(1).some((x) => x.startsWith('.')));  // (".keep", ".thumbs/": not footage)
   }
 
   const state = { running: null, cloud: [], error: null, checked: 0 };
   async function download(o) {
-    const dst = local(o.name), part = dst + '.part';
+    const dst = local(o.as || o.name), part = dst + '.part';
     fs.mkdirSync(path.dirname(dst), { recursive: true });
     const r = await gcs(`${API}/${encodeURIComponent(o.name)}?alt=media`);
     if (!r.ok) throw new Error(`download ${r.status}`);
@@ -67,25 +71,32 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     if (fs.statSync(part).size !== o.size) throw new Error(`${path.basename(dst)}: size differs`);
     fs.renameSync(part, dst);  // (only a whole file gets its real name)
   }
-  // a file renamed or deleted on the Drop page: the same here - a rename is the same size under a new name (no
-  // download again). Only for folders still in the cloud (a project marked Done keeps its copy here).
-  function mirror(items) {
-    const done = [];
-    for (const folder of list.folders || []) {
-      let here = [];
-      try { here = fs.readdirSync(path.join(DIR, folder)).filter((f) => !f.endsWith('.part') && fs.statSync(path.join(DIR, folder, f)).isFile()); } catch { continue; }
-      const cloud = items.filter((o) => o.name.split('/')[0] === folder);
-      const names = new Set(cloud.map((o) => o.name.split('/').slice(1).join('/')));
-      const missing = cloud.filter((o) => !fs.existsSync(local(o.name)));
-      for (const f of here.filter((x) => !names.has(x))) {
-        const size = fs.statSync(path.join(DIR, folder, f)).size;
-        const to = missing.find((o) => o.size === size);
-        try {
-          if (to) { fs.renameSync(path.join(DIR, folder, f), local(to.name)); missing.splice(missing.indexOf(to), 1); done.push(`${f} → ${to.name.split('/').pop()}`); }
-          else { fs.rmSync(path.join(DIR, folder, f)); done.push(`${f} removed`); }
-        } catch {}
-      }
-      if (done.length) recordJob({ id: folder, kind: 'drop', started: Date.now(), ended: Date.now(), ok: true, line: `as on the Drop page: ${done.join(' · ')}` }), done.length = 0;
+  // the file here is the one in the cloud: same size and the same md5 (cached per file + size + time)
+  const sums = new Map();
+  const md5 = (file) => new Promise((ok) => {
+    const st = fs.statSync(file), k = `${file}|${st.size}|${st.mtimeMs}`;
+    if (sums.has(k)) return ok(sums.get(k));
+    const h = crypto.createHash('md5');
+    fs.createReadStream(file).on('data', (c) => h.update(c)).on('end', () => { const d = h.digest('base64'); sums.set(k, d); ok(d); }).on('error', () => ok(''));
+  });
+  const same = async (o) => { try { return fs.statSync(local(o.name)).size === o.size && (!o.md5 || (await md5(local(o.name))) === o.md5); } catch { return false; } };
+  // a name already here with other bytes (the Drop reuses a name once the first file left it): name-2, name-3
+  const freeName = (name) => {
+    const i = name.lastIndexOf('.'), [base, ext] = i > name.indexOf('/') ? [name.slice(0, i), name.slice(i)] : [name, ''];
+    let n = name;
+    for (let k = 2; fs.existsSync(local(n)) || fs.existsSync(local(n) + '.part'); k++) n = `${base}-${k}${ext}`;
+    return n;
+  };
+  // off the Drop: the file (and its picture); the project stays on the phone (".keep"), empty, for the next upload
+  const kept = new Set();
+  async function unDrop(o) {
+    const folder = o.name.split('/')[0], file = o.name.slice(folder.length + 1);
+    const r = await gcs(`${API}/${encodeURIComponent(o.name)}`, { method: 'DELETE' });
+    if (!r.ok && r.status !== 404) throw new Error(`remove ${r.status}`);
+    await gcs(`${API}/${encodeURIComponent(`${folder}/.thumbs/${file}.jpg`)}`, { method: 'DELETE' }).catch(() => {});
+    if (!kept.has(folder)) {
+      await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent(`${folder}/.keep`)}`, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '' }).catch(() => {});
+      kept.add(folder);
     }
   }
   async function sync() {
@@ -93,22 +104,42 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     let items;
     try { items = await list(); state.error = null; } catch (e) { state.error = e.message; return; }
     state.cloud = items; state.checked = Date.now();
-    mirror(items);
-    const todo = items.filter((o) => { try { return fs.statSync(local(o.name)).size !== o.size; } catch { return true; } });
+    // deleted on the Drop page (a voice take he didn't like): the copy here goes too - only the same name and size
+    for (const g of list.gone || []) {
+      const [folder, , mark] = g.name.split('/'), cut = mark.indexOf('~'), size = +mark.slice(0, cut), file = mark.slice(cut + 1);
+      // (it may have come down as name-2 when the name was here already: those too, by size)
+      const i = file.lastIndexOf('.'), [base, ext] = i > 0 ? [file.slice(0, i), file.slice(i)] : [file, ''];
+      let names = []; try { names = fs.readdirSync(path.join(DIR, folder)); } catch {}
+      const hit = file && !file.includes('..') && names.find((n) => (n === file || (n.startsWith(base + '-') && n.endsWith(ext) && /^\d+$/.test(n.slice(base.length + 1, n.length - ext.length))))
+        && fs.statSync(path.join(DIR, folder, n)).size === size);
+      if (hit) { try { fs.rmSync(path.join(DIR, folder, hit)); recordJob({ id: folder, kind: 'drop', started: Date.now(), ended: Date.now(), ok: true, line: `${hit} deleted on the Drop page - deleted here too` }); } catch {} }
+      if (!items.some((o) => o.name === `${folder}/${file}`)) await gcs(`${API}/${encodeURIComponent(g.name)}`, { method: 'DELETE' }).catch(() => {});
+    }
+    // already here (pulled before this rule, or its removal failed): just off the Drop. Else: down (a name here with
+    // other bytes comes down as name-2), then off the Drop
+    const todo = [];
+    for (const o of items) {
+      if (await same(o)) { try { await unDrop(o); } catch {} continue; }
+      todo.push(fs.existsSync(local(o.name)) ? { ...o, as: freeName(o.name) } : o);
+    }
     const folders = [...new Set(todo.map((o) => o.name.split('/')[0]))];
     for (const folder of folders) {  // one job per folder (the Jobs panel)
       const files = todo.filter((o) => o.name.split('/')[0] === folder), total = files.reduce((s, o) => s + o.size, 0), started = Date.now();
       state.running = { folder, i: 0, n: files.length, bytes: 0, total, started, file: '' };
       let ok = true, err = '';
       const seen = [];
+      let off = 0;
       for (const o of files) {
-        state.running.i++; state.running.file = o.name.split('/').pop();
+        state.running.i++; state.running.file = (o.as || o.name).split('/').pop();
         try { await download(o); } catch (e) { ok = false; err = e.message; break; }
-        const what = await probe(local(o.name));
+        const what = await probe(local(o.as || o.name));
         seen.push(`${state.running.file} ${gb(o.size)}${what ? ` ${what}` : ''}`);
+        // here and whole (download checked the size; md5 when the cloud has one) - off the Drop
+        if (!o.md5 || (await md5(local(o.as || o.name))) === o.md5) { try { await unDrop(o); off++; } catch {} }
+        else { ok = false; err = `${state.running.file}: md5 differs - kept on the Drop`; break; }
       }
       recordJob({ id: folder, kind: 'drop', started, ended: Date.now(), ok, files: seen,
-        line: ok ? `${files.length} file${files.length === 1 ? '' : 's'} · ${gb(total)} → Downloads\\drop\\${folder} · ${seen.join(' | ')}` : `failed: ${err}` });
+        line: ok ? `${files.length} file${files.length === 1 ? '' : 's'} · ${gb(total)} → Downloads\\drop\\${folder} · ${seen.join(' | ')}${off ? ` · ${off} removed from the Drop` : ''}` : `failed: ${err}` });
       state.running = null;
     }
   }

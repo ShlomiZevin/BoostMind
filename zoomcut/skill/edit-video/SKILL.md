@@ -117,7 +117,9 @@ The rules:
    another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.
 2. **Footage.** The folder he names, or **the Drop**: he uploads from the iPhone at
    https://drop-463727469066.me-west1.run.app and files land in `Downloads\drop\<folder>` within a minute (the studio
-   pulls each minute; if one is late, `gcloud storage ls gs://boostmind-drop/<folder>/` and pull it yourself). iPhone
+   pulls each minute, then removes it from the Drop - the folder here is the footage; if one is late, `gcloud storage
+   ls gs://boostmind-drop/<folder>/` and pull it yourself). **His marks:** in Media he marks takes Use / Don't use with
+   a note (asset `mark` / `note`, layers.md) - read them before picking or changing takes. iPhone
    and filter-app files have random names (`13944E36-….MP4`, `export_….mov`):
    - **who is who** from a contact sheet of frames (wig, cap, glasses, shirt); ask once if unsure;
    - **order** from the recording time (`ffprobe … creation_time`; filter-app exports: the number in the name) →

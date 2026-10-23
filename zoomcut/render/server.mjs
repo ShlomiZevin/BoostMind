@@ -936,6 +936,15 @@ app.get('/pm/:id', (q, res) => {
   if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return res.status(404).end();
   res.sendFile(f, { cacheControl: false, headers: { 'Cache-Control': q.query.v ? 'private, max-age=31536000, immutable' : 'no-cache' } });
 });
+// one of the project's own files, whole and with its sound, wherever it lives (footage stays in Downloads) - Media's
+// big window plays it. Only a file the project lists as an asset.
+app.get('/api/p/:id/asset', (q, res) => {
+  const a = readProject(q.params.id)?.assets?.[String(q.query.a || '')];
+  if (!a?.src) return res.status(404).end();
+  const f = path.resolve(epDir(q.params.id), a.src);
+  if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return res.status(404).end();
+  res.sendFile(f);
+});
 const projectView = (q, id) => {
   const d = epDir(id), project = readProject(id);
   if (!project) return null;
@@ -1022,6 +1031,13 @@ app.get('/api/ep/:id/footthumb', (q, res) => {
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', '4', '-i', src, '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
   p.on('close', () => (fs.existsSync(out) ? res.sendFile(out) : res.status(404).end()));
+});
+// a footage file itself, whole (from the folder the project reads) - the editor plays it to see who is in a take
+app.get('/api/ep/:id/footage', (q, res) => {
+  const d = epDir(q.params.id), cfg = readJson(path.join(d, 'episode.json'), {});
+  const base = path.resolve(cfg.input_dir || path.join(d, 'input')), src = path.resolve(base, String(q.query.rel || ''));
+  if (!src.startsWith(base + path.sep) || !fs.existsSync(src)) return res.status(404).end();
+  res.sendFile(src);
 });
 // a footage thumbnail for Media (a frame a third in, small; made once)
 app.get('/api/p/:id/thumb', (q, res) => {

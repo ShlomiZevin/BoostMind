@@ -20,7 +20,9 @@ One format, one composition, one editor, one export. The format and the API: `la
   each layer's prepared sources), looks from `layers/styles.tsx` (TEXT_STYLES / SUB_STYLES - a new look goes HERE).
   The editor plays it in a Player; the export draws its graphics with it (mode "graphics", frameMap).
 - **Editor**: `render/ui/layers/` - LayersEditor (shell, routed from editor.tsx when /api/ep says `layered`), Timeline
-  (lane per layer, grouped; drag / trim = ops, live while dragging), Media (assets, upload, + timeline), Inspector
+  (lane per layer, grouped; drag / trim = ops, live while dragging), Media (assets, upload, + timeline; a file's
+  picture opens it big - VideoPeek: plays / shows it, Use / Don't use + a note, + Timeline - the list itself never
+  changes layout, more options go in that window), Inspector
   (project panel, `inspect/*` per kind by boostmind-31, a plain fallback for the rest), api.ts (ops, undo, saves in
   order with `rev`).
 - **Builders**: zoomcut.py analyzes as before; `pipeline/to_layers.py` writes its layers (window chrome picture from
@@ -115,15 +117,22 @@ end must show at once, with the real footage there.
   On the phone he picks a **project** (folder) or makes one. **● Record voice** (2026-10-23) records his voice only, in
   the page (raw mic: no echo cancel / noise suppression / auto gain - the studio cleans it; AAC 256 kbps, `.m4a`; a
   level bar shows the mic hears him); on Stop it uploads straight away, no naming step, as `rec-HHMMSS.m4a` (recording
-  time - the takes sort in order; he renames if he wants). Or he chooses videos and **names each file** before it goes up
+  time - the takes sort in order; he renames if he wants). Under each take: a player (from the phone itself), **Delete**
+  (off the Drop and off the PC too) and **Record another**. Or he chooses videos and **names each file** before it goes up
   (chips = names he used before, e.g. amir / ofer - a taken name gets -2) and sees the project's files with
   **rename / delete**. On the desktop the same page is a **browser**: every project (files, size, last upload, delete
   project) beside the picked one's files. Files land in `gs://boostmind-drop/<project>/<name>.<ext>` (me-west1, private,
   60-day auto-delete; resumable 16 MB pieces, any size).
-  The studio (render/drop.mjs) mirrors each folder to `Downloads\drop\<project>` every minute: new files pulled, a
-  rename / delete on the page done here too (a rename = same size, new name - no download again); every pull is a
-  "Drop" job whose line says what each file really is (ffprobe: size, resolution, codec, fps, bitrate). Use that folder
-  as the project's footage. Marking the project Done deletes its cloud folder (the copy here stays). Test folders: `_x`.
+  The studio (render/drop.mjs) pulls each new file to `Downloads\drop\<project>` every minute and then **removes it
+  from the Drop** once the copy here is checked (size + md5) - his rule (2026-10-23): the Drop only holds what is on its
+  way; the PC copy is the footage. The cloud never deletes a file here any more (the old mirror did, and wiped the
+  footage of projects marked Done - fixed; recovered from the bucket's 7-day soft delete: `gcloud storage ls
+  --soft-deleted` / `gcloud storage restore <obj>#<generation>`). A delete on the page leaves `<project>/.gone/<size>~<name>`
+  and the studio deletes that file here (same name, or name-N, same size). A name already here with other bytes comes
+  down as name-2. Every pull is a "Drop" job whose line says what each file really is (ffprobe: size, resolution,
+  codec, fps, bitrate). Use that folder as the project's footage. The editor's "Who is this?" list plays a file whole
+  (`GET /api/ep/<id>/footage?rel=`). Test folders: `_x` - and a test of drop.mjs must list ONLY its own `_x` prefix
+  (a copy that lists the bucket syncs - and with this rule removes - his real folders).
   **Full quality - only through Files:** a video picked from the PHOTO LIBRARY in Safari arrives converted (measured
   2026-10-22, accept limit or not: 720x1280 H.264 ~5 Mb/s, random-ID .mp4 names). Originals: in Photos select the clips
   → Share → Save to Files, then on the Drop page Choose videos → Choose File (Files) - they keep IMG_xxxx.MOV, full

@@ -44,6 +44,11 @@ Checked by `render/src/layers/ops.js validate()` on every write; the studio refu
 ```
 `src` is relative to the project folder. Add a file: `POST /api/p/<id>/assets?name=<file>` (raw body) - it lands in
 `media/`, is measured and gets an id (`m.` picture, `s.` sound, `v.` video, `font.`).
+**His marks on a file** (2026-10-23): Media opens any file big (a video / sound plays whole with its sound - served by
+`GET /api/p/<id>/asset?a=<asset id>`, wherever the file lives); there he marks it `"mark": "use" | "skip"` and writes
+a `"note"` ("the first part from this take, the ending from the other") - on the asset, undoable (`asset.add` with the
+same id), kept through rebuilds (project.py merge). **Read them before choosing or changing takes**: a `skip` take is
+not used, a `use` take wins over its twin, and the note says which part - follow it, and tell him if it can't be done.
 
 ## Layers
 
