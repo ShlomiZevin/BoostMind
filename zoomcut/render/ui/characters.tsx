@@ -11,7 +11,7 @@ const hashId = () => decodeURIComponent((location.hash.match(/^#c=(.+)$/) || [])
 const isHe = (s: string) => /[֐-׿]/.test(s || '');
 const dt = (ms?: number) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
-function Gallery({ data, open }: { data: { characters: Ch[]; worlds: any }; open: (id: string) => void }) {
+function Gallery({ data, open, reload }: { data: { characters: Ch[]; worlds: any }; open: (id: string) => void; reload: () => void }) {
   const [q, setQ] = useState('');
   const [world, setWorld] = useState('');
   const [tier, setTier] = useState<'main' | 'sidekick' | 'npc'>('main');  // (sidekicks and NPCs stay out of the main list)
@@ -44,9 +44,15 @@ function Gallery({ data, open }: { data: { characters: Ch[]; worlds: any }; open
     </div>
     <div className="cx-grid">
       {list.map((c) => (
-        <button key={c.id} className="cx-card" onClick={() => open(c.id)}>
+        <div key={c.id} role="button" tabIndex={0} className="cx-card" onClick={() => open(c.id)} onKeyDown={(e) => e.key === 'Enter' && open(c.id)}>
           <div className="cx-ph" style={c.portrait_url ? { backgroundImage: `url("${c.portrait_url}")` } : undefined}>
             {!c.portrait_url && <div className="initial">{(c.name || c.id)[0]}</div>}
+            {/* main / sidekick / NPC right here (sidekicks and NPCs leave the main list) */}
+            <div className="cx-tier" onClick={(e) => e.stopPropagation()}>
+              {([['main', 'Main'], ['sidekick', 'Sidekick'], ['npc', 'NPC']] as const).map(([t, l]) => (
+                <button key={t} className={tierOf(c) === t ? 'on' : ''} title={t === 'main' ? 'A main character' : `Mark as ${l} - out of the main list`}
+                  onClick={async () => { if (tierOf(c) !== t) { await api(`/api/characters/${c.id}`, { patch: { tier: t === 'main' ? null : t } }); reload(); } }}>{l}</button>))}
+            </div>
           </div>
           <div className="body">
             <div className={`nm ${isHe(c.name) ? 'he' : ''}`}>{c.name || c.id}</div>
@@ -56,7 +62,7 @@ function Gallery({ data, open }: { data: { characters: Ch[]; worlds: any }; open
               <span className="cx-count">{c.pace?.wpm ? `${c.pace.wpm} wpm · ` : ''}{c.video_count} video{c.video_count === 1 ? '' : 's'}</span>
             </div>
           </div>
-        </button>))}
+        </div>))}
       <button className="cx-card cx-new" onClick={add}><span className="plus">+</span>New character</button>
     </div>
   </div>;
@@ -177,6 +183,6 @@ function App() {
   useEffect(() => { reload(); const f = () => setId(hashId()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f); }, []);
   const open = (x: string) => { location.hash = `c=${encodeURIComponent(x)}`; scrollTo(0, 0); };
   if (!data) return <div className="cx"><div className="cp-note">Loading the multiverse…</div></div>;
-  return id ? <Profile id={id} all={data.characters} back={() => { location.hash = ''; }} open={open} reload={reload} /> : <Gallery data={data} open={open} />;
+  return id ? <Profile id={id} all={data.characters} back={() => { location.hash = ''; }} open={open} reload={reload} /> : <Gallery data={data} open={open} reload={reload} />;
 }
 createRoot(document.getElementById('root')!).render(<App />);
