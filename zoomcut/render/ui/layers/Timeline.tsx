@@ -156,7 +156,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             <React.Fragment key={g.name}>
               <div className="ltl-row ltl-grp">
                 <div className="ltl-name" onClick={() => setClosed({ ...closed, [g.name]: !closed[g.name] })}>
-                  <span className="caret">{closed[g.name] ? '▸' : '▾'}</span><span className="nm he" style={{ direction: 'rtl' }}>{g.name}</span>
+                  <span className="caret">{closed[g.name] ? '▸' : '▾'}</span><span className="nm he" dir="auto" style={{ textAlign: 'left', unicodeBidi: 'plaintext' }}>{g.name}</span>
                 </div>
                 <div className="ltl-track" style={{ width }} onMouseDown={seekAt} />
               </div>
