@@ -1,0 +1,50 @@
+{
+  "id": "sagi",
+  "name": "שגיא",
+  "name_en": "Sagi",
+  "aka": [
+    "איש הקורקינט",
+    "sagi"
+  ],
+  "world": "טקי-טק",
+  "role": "Customer Success Manager בטקי-טק - \"איש הקורקינט\"",
+  "brief": "שגיא הוא \"איש הקורקינט\" של טקי-טק. באתר הוא Customer Success (ההחלטה שלו), מלווה את לקוחות ה-Enterprise מההטמעה ועד הרחבת השימוש.",
+  "look": "קירח, משקפיים, חיוך נלהב עם פה פתוח, סווטשירט רוכסן כחול (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "ofer",
+      "relation": "בחטיבת הפיתוח העסקי שלו (הצלחת לקוחות)"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: Customer Success Manager, חטיבת פיתוח עסקי."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/scooter.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/scooter-guy.png"
+    ]
+  },
+  "color": "#f1c40f",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

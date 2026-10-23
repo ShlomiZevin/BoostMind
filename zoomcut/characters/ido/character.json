@@ -1,0 +1,51 @@
+{
+  "id": "ido",
+  "name": "עידו",
+  "name_en": "Ido Shapira",
+  "aka": [
+    "עידו שפירא",
+    "ido"
+  ],
+  "world": "טקי-טק",
+  "role": "מפתח Backend בכיר בטקי-טק",
+  "brief": "עידו מפתח את שירותי ה-Backend של פלטפורמת הליבה, ומדווח לצביקה בצוות Core Platform.",
+  "look": "שיער שחור מתולתל, משקפיים עגולים, אוזניות סביב הצוואר, חולצת טי לבנה (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "tzvika",
+      "relation": "ראש הצוות שלו"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: מפתח Backend בכיר, פלטפורמת הליבה."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/ido.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/ido.png",
+      "C:/Users/shazbak/Downloads/techi-tech/ido2.png"
+    ]
+  },
+  "color": "#2bb3c0",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

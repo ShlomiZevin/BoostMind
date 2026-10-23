@@ -1,0 +1,62 @@
+{
+  "id": "yoav",
+  "name": "ד\"ר יואב מרגלית",
+  "name_en": "Dr. Yoav Margalit",
+  "aka": [
+    "יואב",
+    "VP R&D",
+    "yoav"
+  ],
+  "world": "טקי-טק",
+  "role": "סמנכ\"ל R&D בטקי-טק",
+  "brief": "יואב הומצא לאתר (הפנים של שלומי בעיצוב מחדש), כדי למלא את מושב ה-VP R&D שהיה פתוח. באתר הוא מוביל את ה-R&D מאז 2004 ובעל דוקטורט במערכות מבוזרות.",
+  "look": "שיער אפור קצר, משקפיים, בלייזר טוויד אפור (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "rami",
+      "relation": "הארכיטקט הראשי בחטיבה שלו"
+    },
+    {
+      "id": "tzvika",
+      "relation": "ראש צוות Core בחטיבה שלו"
+    },
+    {
+      "id": "erez",
+      "relation": "ראש צוות Data & AI בחטיבה שלו"
+    },
+    {
+      "id": "vova",
+      "relation": "DevOps בחטיבה שלו"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בהנהלה: ראש חטיבת R&D. ציטוט: \"הנדסה טובה היא הנדסה שעובדת גם בעוד עשר שנים.\""
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/vprd.jpg"
+    ]
+  },
+  "color": "#7a8a99",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

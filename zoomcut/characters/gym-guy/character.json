@@ -1,0 +1,64 @@
+{
+  "id": "gym-guy",
+  "name": "הבחור מהמכון",
+  "name_en": "The gym guy",
+  "aka": [
+    "gym"
+  ],
+  "world": "המכון",
+  "role": "מנהל עסק פרטי (בלונים לאירועים) מתוך חדר הכושר",
+  "brief": "הבחור הזה שמנהל את העסק הפרטי שלו מהמכון, וכל המכון כבר יודע מה סיגל לוקחת. הוא מתווכח איתה ברמקול על חבילת ה-200 מול ה-400, על הליום ועל מע״מ, בזמן שמסביב מרימים משקולות.",
+  "personality": [
+    "מוכר שמתמקח בקול רם בפומבי",
+    "\"אני לא מרוויח עלייך\"",
+    "מתפרץ ואז מנמיך קול בבת אחת"
+  ],
+  "catchphrases": [
+    "רגע, רגע, רגע, רגע, סיגל.",
+    "אני לא אומר לך לקחת את ה-400!",
+    "בלי הליום, סיגל!",
+    "סיגל נשמה, בינינו? אני לא מרוויח עלייך.",
+    "מע״מ זה לא אני. מע״מ זה המדינה."
+  ],
+  "look": "קירח, זקן, משקפיים, גופייה שחורה, טלפון על רמקול ביד; חדר כושר הומה.",
+  "voice": {
+    "preset": "hall",
+    "notes": "preset hall (הדהוד חדר, סליידרים Room / Room size). רעש מכון bed_crowd.mp3 ב-0.45 + פגיעות משקולות כל ~5 ש׳; בלי צפצוף (הוא שנא)."
+  },
+  "writing_rules": [
+    "POV: \"פוב: הבחור הזה שמנהל את העסק הפרטי מהמכון, וכל המכון כבר יודע מה סיגל לוקחת.\"",
+    "כתוביות כפי שנאמרו (\"רגע רגע רגע רגע\", \"סיגל נשמה\")."
+  ],
+  "relations": [
+    {
+      "id": "sigal",
+      "relation": "הלקוחה שלו ברמקול"
+    }
+  ],
+  "videos": [
+    "gym-1"
+  ],
+  "assets": {
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/gym.jpg"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/bed_crowd.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/sfx_rack.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/sfx_drop.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/sfx_plates.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/sfx_grunt.mp3"
+    ],
+    "portraits": [
+      "portrait.jpg"
+    ]
+  },
+  "color": "#ff7a00",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/gym-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/gym-1/captions.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/gym.txt"
+  ],
+  "portrait": "portrait.jpg"
+}

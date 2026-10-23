@@ -1,0 +1,92 @@
+{
+  "id": "nahor",
+  "name": "נהור (ציון) מינוף",
+  "aka": [
+    "נהור",
+    "גורו הקריפטו",
+    "HINDSIGHT VIP",
+    "crypto"
+  ],
+  "world": "HINDSIGHT VIP",
+  "role": "גורו קריפטו, מייסד HINDSIGHT VIP - קבוצת הסיגנלים הסגורה",
+  "brief": "נהור הוא גורו קריפטו שממליץ על מטבעות שיעשו עלייה מטורפת - אתמול. הוא \"בודק, מנתח ומסתכל על הגרפים\", ולא מוציא המלצה עד שהוא רואה שהמטבע כבר עלה, ולכן 100% מההמלצות שלו עלו. הוא קורא לעוקבים שלו \"טופיסטים\" ומוכר מנוי לקבוצה הסגורה HINDSIGHT VIP (בדיעבד).",
+  "personality": [
+    "ביטחון מוחלט של איש פאנלים",
+    "הכול בדיעבד",
+    "מרמז על \"מידע פנים, אסור לי לדבר על זה\"",
+    "משווק אגרסיבי"
+  ],
+  "catchphrases": [
+    "טופ טופ טרללה, גדלתי ב־95% בשעה!",
+    "טופיסטים שלי, תקשיבו לי טוב טוב.",
+    "מטבע קריפטו שהולך לעשות עלייה מטורפת אתמול.",
+    "עד שאני לא רואה שהמטבע עלה, אני לא מוציא המלצה.",
+    "תחושות בטן זה תיקחו, תאכלו תאילנדי, תקבלו תחושות בטן.",
+    "95.4% ביום אחד!",
+    "וזה עוד לפני שדיברנו על המטבע של שלשום.",
+    "אסור לי לדבר על זה."
+  ],
+  "look": "שיער כהה, זקן, פילטר פנים; סלפי צמוד מהיד. סט: פנטהאוז לילי עם מסכי מסחר, פסל שור מוזהב וכסף. בפורטרטים: חליפה כהה, שיער כהה מסורק לאחור.",
+  "voice": {
+    "preset": "natural",
+    "notes": "raw. כל רגע של כסף = ערימה: קה-צ׳ינג אמיתי + בס + מדבקה קופצת; הוא פסל אפקטים שנוצרו ב-AI ואת מוזיקת הטראפ (מביא טראק טיקטוק משלו)."
+  },
+  "writing_rules": [
+    "דמות שמבוססת על אדם אמיתי: שם בדוי לגמרי (\"נהור (ציון) מינוף\") ב-hook, באתר ובפוסטר; האתר noindex; הפנים של שלומי בלבד; שום דבר לא נאסף ולא נגבה.",
+    "Hook (המילים שלו): \"אף אחד: / נהור (ציון) מינוף:\" לכל אורך הסרטון.",
+    "הכול \"אתמול\": המטבעות, הטיקר, ההצטרפויות, האחריות (\"אם מטבע לא עלה, לא המלצתי עליו\").",
+    "פורטרטים בלי לוגואים של מגזינים (פעם יצא כריכת Forbes אמיתית).",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\" ולא השם של שלומי."
+  ],
+  "site": {
+    "url": "https://boostmind-b052c.web.app/hindsight/",
+    "notes": "public/hindsight - משפך קריפטו של מיליון דולר שמשוחק ברצינות: פורטרטים בחליפה, פאנל השוק מהסרטון (market.js), מסלולים SILVER / GOLD / BLACK, אחריות, טוסטים \"הצטרף אתמול\". CTA: בקשת הצטרפות במייל לשלומי (siteLead \"hindsight\"), לא גובים כלום. noindex. כפתור בדף הלינקים. סרטון חדש: public/hindsight/v/week-1.mp4."
+  },
+  "links": [
+    {
+      "label": "HINDSIGHT VIP",
+      "url": "https://boostmind-b052c.web.app/hindsight/"
+    }
+  ],
+  "videos": [
+    "crypto-1"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/hindsight/img/naor-suit.jpg",
+      "c:/workspace/BoostMind/public/hindsight/img/naor-office.jpg",
+      "c:/workspace/BoostMind/public/hindsight/img/avatar.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/set.jpg"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/px-kaching-a.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/px-bass-hit.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/px-counter-b.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/kaching.mp3"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/crypto-1/media/poster.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/crypto-1/media/cta.png",
+      "c:/workspace/BoostMind/public/hindsight/img/og.jpg",
+      "C:/Users/shazbak/Downloads/naor/story-instagram.jpg",
+      "C:/Users/shazbak/Downloads/naor/story-tiktok.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/stickers/kaching.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/stickers/counter.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/crypto/stickers/bill.png",
+      "c:/workspace/BoostMind/public/hindsight/market.js"
+    ]
+  },
+  "color": "#16c784",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/SKILL.md",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/user_tiktok_channel.md",
+    "c:/workspace/BoostMind/public/hindsight/index.html",
+    "c:/workspace/BoostMind/public/links/index.html",
+    "c:/workspace/BoostMind/zoomcut/episodes/crypto-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/crypto-1/captions.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/crypto.txt"
+  ]
+}

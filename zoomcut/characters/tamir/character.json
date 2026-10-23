@@ -1,0 +1,75 @@
+{
+  "id": "tamir",
+  "name": "תמיר",
+  "name_en": "Tamir",
+  "aka": [
+    "tamir"
+  ],
+  "world": "טקי-טק",
+  "role": "ראש צוות אבטחת מידע בטקי-טק",
+  "brief": "תמיר הוא ראש הצוות של יניב, שמזמן את כולם לזום ומאחר בעשר דקות. הוא נשמע רק כקול מרמקולי המחשב: ממהר, מבקש מיניב לשתף מסך, ומאיים ללכת לאייל.",
+  "personality": [
+    "ממהר תמיד, מאחר תמיד",
+    "לא מקשיב לתירוצים של יניב",
+    "מאיים ללכת לממונה"
+  ],
+  "catchphrases": [
+    "טוב חברים, אנחנו באיחור.",
+    "יניב, אתה יכול לשתף מסך?",
+    "אתה רוצה שאני אלך לאייל?",
+    "עזוב, שתף מסך."
+  ],
+  "look": "לא נראה - קול בלבד; באתר אין לו תמונה (צללית אפורה).",
+  "voice": {
+    "notes": "הקלטות tamir1-3.ogg עם \"filter\": \"speaker\" (רמקולי מחשב נייד) + צליל \"הצטרף\"; כתוביות כחולות מעל של יניב (captions_other)."
+  },
+  "writing_rules": [
+    "קול מחוץ לפריים: מונח מעל הטייק של יניב עם end_word / start_word; חפיפה רצויה.",
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "yaniv",
+      "relation": "הכפוף שלו"
+    },
+    {
+      "id": "ronit",
+      "relation": "הצוות שלו בחטיבה שלה באתר"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: ראש צוות אבטחת מידע, אחראי על ISO 27001. אין תמונה (photo: null)."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "videos": [
+    "security-1"
+  ],
+  "assets": {
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/security/tamir1.ogg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/security/tamir2.ogg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/security/tamir3.ogg"
+    ]
+  },
+  "color": "#34495e",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/security-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/scripts/security.txt"
+  ]
+}

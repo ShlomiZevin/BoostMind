@@ -14,25 +14,33 @@ const dt = (ms?: number) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day
 function Gallery({ data, open }: { data: { characters: Ch[]; worlds: any }; open: (id: string) => void }) {
   const [q, setQ] = useState('');
   const [world, setWorld] = useState('');
-  const worlds = useMemo(() => [...new Set(data.characters.map((c) => c.world).filter(Boolean))], [data]);
-  const list = data.characters.filter((c) => (!world || c.world === world) && (!q || JSON.stringify([c.name, c.name_en, c.role, c.world, c.aka]).toLowerCase().includes(q.toLowerCase())));
+  const [tier, setTier] = useState<'main' | 'sidekick' | 'npc'>('main');  // (sidekicks and NPCs stay out of the main list)
+  const tierOf = (c: Ch) => c.tier || 'main';
+  const worlds = useMemo(() => [...new Set(data.characters.filter((c) => tierOf(c) === tier).map((c) => c.world).filter(Boolean))], [data, tier]);
+  const count = (t: string) => data.characters.filter((c) => tierOf(c) === t).length;
+  const list = data.characters.filter((c) => tierOf(c) === tier && (!world || c.world === world)
+    && (!q || JSON.stringify([c.name, c.name_en, c.role, c.world, c.aka]).toLowerCase().includes(q.toLowerCase())));
   const add = async () => {
     const name = prompt('The new character\'s name (as in the scripts):');
     if (!name) return;
     const en = prompt('A short id in English letters (e.g. "yotam"):', '') || '';
     const id = en.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-');
     if (!id) return;
-    await api(`/api/characters/${id}`, { patch: { name, world: world || '', brief: '' } });
+    await api(`/api/characters/${id}`, { patch: { name, world: world || '', brief: '', ...(tier !== 'main' ? { tier } : {}) } });
     open(id);
   };
   return <div className="cx">
     <div className="cx-top">
-      <div><h1>Characters</h1><div className="sub">The multiverse · {data.characters.length} characters</div></div>
+      <div><h1>{tier === 'main' ? 'Characters' : tier === 'sidekick' ? 'Sidekicks' : 'NPCs'}</h1>
+        <div className="sub">The multiverse · {count('main')} characters{count('sidekick') ? ` · ${count('sidekick')} sidekick${count('sidekick') === 1 ? '' : 's'}` : ''}{count('npc') ? ` · ${count('npc')} NPC${count('npc') === 1 ? '' : 's'}` : ''}</div></div>
       <input className="field cx-search" placeholder="Search characters…" value={q} onChange={(e) => setQ(e.target.value)} />
     </div>
     <div className="cx-chips">
       <button className={`cx-chip ${!world ? 'on' : ''}`} onClick={() => setWorld('')}>All</button>
       {worlds.map((w) => <button key={w} className={`cx-chip ${world === w ? 'on' : ''} ${isHe(w) ? 'he' : ''}`} onClick={() => setWorld(w)}>{w}</button>)}
+      <span style={{ flex: 1 }} />
+      {(['main', 'sidekick', 'npc'] as const).map((t) => (t === 'main' || count(t)) ? <button key={t} className={`cx-chip ${tier === t ? 'on' : ''}`}
+        onClick={() => { setTier(t); setWorld(''); }}>{t === 'main' ? 'Main' : t === 'sidekick' ? `Sidekicks · ${count(t)}` : `NPCs · ${count(t)}`}</button> : null)}
     </div>
     <div className="cx-grid">
       {list.map((c) => (
@@ -57,7 +65,7 @@ function Gallery({ data, open }: { data: { characters: Ch[]; worlds: any }; open
 /** The profile as text, for a session that writes or edits for this character. */
 function briefText(c: Ch) {
   const L = (t: string, v: any) => (v && (!Array.isArray(v) || v.length) ? `## ${t}\n${Array.isArray(v) ? v.map((x) => `- ${typeof x === 'string' ? x : JSON.stringify(x)}`).join('\n') : v}\n` : '');
-  return [`# ${c.name}${c.name_en ? ` (${c.name_en})` : ''} - ${c.role || ''}`, c.world ? `World: ${c.world}` : '', '',
+  return [`# ${c.name}${c.name_en ? ` (${c.name_en})` : ''} - ${c.role || ''}`, c.world ? `World: ${c.world}` : '', c.tier ? `(${c.tier})` : '', '',
     L('Who', c.brief), L('Personality', c.personality), L('Catchphrases', c.catchphrases), L('Look', c.look),
     L('Voice', [c.voice?.preset && `preset: ${c.voice.preset}`, c.voice?.notes].filter(Boolean).join(' - ')),
     L('Pace', c.pace?.wpm ? `${c.pace.wpm} words per minute (measured in the Reader${c.pace.script ? `, ${c.pace.script}` : ''})` : ''),
@@ -107,6 +115,10 @@ function Profile({ id, all, back, open, reload }: { id: string; all: Ch[]; back:
             <div className={`cp-role ${isHe(c.role) ? 'he' : ''}`}>{c.role}</div>
             <div className="cp-row"><span className={`cx-world ${isHe(c.world) ? 'he' : ''}`}><i style={{ background: c.color || 'var(--faint)' }} />{c.world || '—'}</span></div>
           </>}
+        <div className="seg" style={{ gridTemplateColumns: '1fr 1fr 1fr' }} title="Sidekicks and NPCs stay out of the main list">
+          {([['main', 'Main'], ['sidekick', 'Sidekick'], ['npc', 'NPC']] as const).map(([t, l]) => (
+            <button key={t} className={(c.tier || 'main') === t ? 'on' : ''} onClick={() => save({ tier: t === 'main' ? null : t })}>{l}</button>))}
+        </div>
         <button className="cp-btn primary" onClick={copy}>Copy brief for a session</button>
         {c.site?.url && <a className="cp-btn" href={c.site.url} target="_blank" rel="noreferrer">Open {he ? 'the' : 'their'} website ↗</a>}
         {edit ? <div className="cp-row"><button className="cp-btn primary" style={{ flex: 1 }} onClick={commit}>Save</button><button className="cp-btn" style={{ flex: 1 }} onClick={() => setEdit(false)}>Cancel</button></div>

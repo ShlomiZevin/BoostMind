@@ -1,0 +1,99 @@
+{
+  "id": "gilad",
+  "name": "גלעד",
+  "name_en": "Gilad Shahar",
+  "aka": [
+    "גלעד שחר",
+    "gilad",
+    "gil"
+  ],
+  "world": "טקי-טק",
+  "role": "מנכ\"ל ונשיא טקי-טק (CEO & President)",
+  "brief": "גלעד הוא המנכ\"ל הוותיק שהצטרף לשיחה (זום #4) כדי לשאול שאלה אחת: מה הביזנס. הוא עוצר את אמיר (\"אתה שוב רץ\"), דוחה כל באזוורד ומזכיר את נציג המשקיעים. באתר הוא מונה למנכ\"ל בספטמבר 2026.",
+  "personality": [
+    "ותיק עם \"קילומטראז׳\"",
+    "לא סובל באזוורדים",
+    "עוצר את כולם ושואל את השאלה הפשוטה",
+    "מקטין 200-300 מיליון דולר ל\"נחמד\""
+  ],
+  "catchphrases": [
+    "אמיר, אמיר, חכה רגע.",
+    "אותי מעניין מה הביזנס.",
+    "אמיר, אתה שוב רץ.",
+    "תקשיב, תקשיב, תקשיב.",
+    "יש לי כבר קצת קילומטראז׳ בעולמות האלה.",
+    "יישור קו על מה? עוד אין לכם קו."
+  ],
+  "look": "קירח, משקפיים; בצילום חולצת טי אפורה, בפורטרט חליפה כחולה וחולצה תכלת. רקע זום: משרד פינתי של יו\"ר ותיק - דגם ספינה ובקבוק וויסקי (gilad-office-wide.jpg, zoom 1.25).",
+  "voice": {
+    "notes": "ה\"תקשיב ×3\" שלו וה\"זה סדר הגודל\" של אמיר מתנגנים במלואם אחד על השני (shift שלילי גדול)."
+  },
+  "writing_rules": [
+    "בתסריט: \"—\" בסוף כל שורה שבה מישהו נקטע; בהפרעה המפריע מתחיל בזמן שהשני עוד מדבר (חפיפה אמיתית, כמו ויכוח).",
+    "כל הקולות באותה עוצמה; משפט שחסר בצילום - להודיע לו במפורש (מי, איזו שורה, איפה), לא לכסות בשקט.",
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי.",
+    "בסוף הפרק שלו: פוסטר מסך מלא על שחור (הלוגו, \"מחפשים עובדים!\", techytech.web.app גדול וברור) על המילה האחרונה, ~4 ש׳."
+  ],
+  "relations": [
+    {
+      "id": "amir",
+      "relation": "הכפוף שרץ קדימה - גלעד עוצר אותו"
+    },
+    {
+      "id": "ronit",
+      "relation": "בודקת איתו; הוא מתקן אותה (\"Alignment זה לא העניין\")"
+    },
+    {
+      "id": "ofer",
+      "relation": "סמנכ\"ל שלו"
+    },
+    {
+      "id": "daniel",
+      "relation": "נשאר בשיחה כשדניאל מורד ממנה"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בראש המבנה הארגוני. ציטוט: \"הצמיחה הבאה שלנו תגיע ממיקוד ברור במה שהלקוחות שלנו באמת צריכים.\" חדשות: \"גלעד שחר מונה למנכ\"ל טקי-טק\" (ספטמבר 2026). התמונה team/gilad.jpg מהצילומים של gilad-joins."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "videos": [
+    "gilad-joins"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/gilad.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/gilad-office-wide.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/gilad-wide.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/gilad.jpg"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/media/techytech-poster.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/media/techytech-card.png"
+    ]
+  },
+  "color": "#e8a33d",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/zoom-call.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/prompts/gilad.txt",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/feedback_interruption_overlap.md"
+  ]
+}

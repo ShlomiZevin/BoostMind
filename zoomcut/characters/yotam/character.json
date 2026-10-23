@@ -1,0 +1,84 @@
+{
+  "id": "yotam",
+  "name": "יותם",
+  "name_en": "Yotam Goldstein",
+  "aka": [
+    "יותם גולדשטיין",
+    "Geek & Prompty",
+    "גיק ופרומפטי",
+    "YOTAMVERSE",
+    "yotam"
+  ],
+  "world": "טקי-טק",
+  "role": "גיק-על, מהנדס AI ו-Context בכיר בטקי-טק",
+  "brief": "יותם הוא הדמות האהובה בערוץ: הייטקיסט גיק-על מטקי-טק שרואה הכול כמערכת - deadlock בחניה, latency בזוגיות - וחי בתוך Claude Code. הוא חכם באמת אבל מתנשא בלי כוונה (\"פוץ בתום לב\"), קצת אוטיסטי ואובססיבי לקונטקסט, עם דעות נחרצות על ג׳אז, יין, משחקי קופסה, D&D וקומיקס. יש לו מולטיוורס משלו - YOTAMVERSE - עם חנות החולצות GEEK & PROMPTY וסרטוני \"ללמוד עם יותם\".",
+  "personality": [
+    "אובססיבי לקונטקסט - קונטקסט עשיר = פלט מדויק",
+    "מסביר את החיים דרך deadlock / overfitting / reward hacking / latency / context window / orchestration",
+    "מתנשא בלי כוונה (\"פוץ בתום לב\")",
+    "התלהבות גיקית ילדית",
+    "פגיע",
+    "דעתן על ג׳אז, יין, משחקי קופסה, D&D, קומיקס"
+  ],
+  "catchphrases": [
+    "זה בסדר, זה בסדר.",
+    "אני ה-System Architect של החיים עצמם. רק שאף אחד לא פתח לי ticket."
+  ],
+  "look": "פאה שחורה עם פוני, משקפיים; חולצות טי בסגנון ריק ומורטי (בפורטרט: חולצת גלקסיה).",
+  "writing_rules": [
+    "באתר שלו - תמיד בגוף ראשון, בקול של יותם (\"אני מסביר\", \"המולטיוורס שלי\"), אף פעם לא בגוף שלישי.",
+    "הוא לא אומר שהוא משתמש בביטוי \"זה בסדר, זה בסדר\" - הביטוי מופיע רק באופן טבעי (למשל מרגיע את עצמו אחרי וידוי פגיע) - חמוד אבל קצת מביך.",
+    "אף פעם לא המילה \"טכי\" (הוא לא היה אומר; \"טכני\" בסדר).",
+    "אלה החיים האמיתיים שלו, לא תוכנית: \"החולצות שלי\", אף פעם לא \"מהסדרה\".",
+    "לא לתת קרדיט לשלומי זוין באתר שלו."
+  ],
+  "relations": [
+    {
+      "id": "erez",
+      "relation": "ראש צוות Data & AI - יותם מדווח אליו באתר"
+    },
+    {
+      "id": "osnat",
+      "relation": "המגייסת שמתקשרת אליו בקמפיין Wolt (\"אני אסנת מטקי-טק\")"
+    }
+  ],
+  "site": {
+    "url": "https://boostmind-b052c.web.app/yotamverse/",
+    "notes": "YOTAMVERSE - המולטיוורס של יותם (public/yotamverse; אדמין admin.html). פורטלים: GEEK & PROMPTY (8 חולצות, 80 ₪ + 35 ₪ משלוח), ללמוד עם יותם (50 ₪, רק יחד עם חולצה); בקרוב: הערוץ הפרטי, העלאת וידאו, יותם AI. נתיבים ישנים (/geek-and-prompty, /yotam) מפנים לכאן. כפתור \"החנות של יותם\" בדף הלינקים."
+  },
+  "links": [
+    {
+      "label": "YOTAMVERSE",
+      "url": "https://boostmind-b052c.web.app/yotamverse/"
+    },
+    {
+      "label": "טקי-טק",
+      "url": "https://techytech.web.app"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/yotam.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/yotam.png",
+      "C:/Users/shazbak/Downloads/techi-tech/yotam2.png"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-1.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-2.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-3.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-4.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-5.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-6.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-7.jpg",
+      "c:/workspace/BoostMind/public/yotamverse/img/shirt-8.jpg"
+    ]
+  },
+  "color": "#7df53d",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/user_tiktok_channel.md",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/yotamverse/index.html",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/public/wolt-proposal/storyboard.html"
+  ]
+}

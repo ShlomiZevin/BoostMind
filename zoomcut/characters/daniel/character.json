@@ -1,0 +1,109 @@
+{
+  "id": "daniel",
+  "name": "דניאל",
+  "name_en": "Daniel Friedman",
+  "aka": [
+    "דניאל פרידמן",
+    "daniel",
+    "dani"
+  ],
+  "world": "טקי-טק",
+  "role": "\"האיש הטכנולוגי\" - AI Technology Enablement Specialist II בטקי-טק",
+  "brief": "דניאל הוא הקורבן הקבוע של שיחות ההנהלה: מעלים אותו לזום \"לתת חוות דעת מקצועית\", ואף פעם לא נותנים לו לסיים משפט. בסוף כל פרק מסירים אותו מהשיחה באמצע מילה. באתר של טקי-טק הוא חלש בכוונה - בדרג II, תחת משרה פתוחה של Head of AI Execution.",
+  "personality": [
+    "אף פעם לא מסיים משפט",
+    "מנומס, מנסה שוב ושוב",
+    "היחיד שבאמת מבין משהו - ואף אחד לא מקשיב"
+  ],
+  "catchphrases": [
+    "אז קודם כול—",
+    "כן, אבל—",
+    "אני חושב ש—",
+    "אבל לא—",
+    "טוב, תודה, אני—"
+  ],
+  "look": "כובע מצחייה שחור, משקפיים, זקן, חולצת טי. בעריכה: +45% רוויה, ממוסגר גבוה יותר. רקע זום: חדר עבודה קטן ועמוס בדירה (מדף איקאה, ברווז גומי).",
+  "voice": {
+    "notes": "מוקלט דרך אפליקציית פילטר / טלפון: \"voice\": {\"clean\": \"nn\"} (RNNoise) - הוא קרא לתוצאה \"amazing\"; שרשראות ffmpeg משלי נשמעו \"terrible\". תמיד לשלוח לו לפני/אחרי לפני שמחילים."
+  },
+  "writing_rules": [
+    "תפקיד victim בפרויקט הזום: נקטע בכל שורה; כל פרק נגמר ב[דניאל מנסה לדבר 2.0] ואז [הסר: דניאל] - רגע ההסרה (אריח מהבהב באדום \"הוסר מהפגישה\") הוא חובה בכל פרק.",
+    "באתר הוא חלש בכוונה, וגם ראשי הצוותים \"טיפשים\" (כלל שלו).",
+    "בתסריט: \"—\" בסוף כל שורה שבה מישהו נקטע; בהפרעה המפריע מתחיל בזמן שהשני עוד מדבר (חפיפה אמיתית, כמו ויכוח).",
+    "כל הקולות באותה עוצמה; משפט שחסר בצילום - להודיע לו במפורש (מי, איזו שורה, איפה), לא לכסות בשקט.",
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "amir",
+      "relation": "הבוס שקוטע אותו ומוריד אותו מהשיחה"
+    },
+    {
+      "id": "ofer",
+      "relation": "מנהל נוסף שמדבר מעליו"
+    },
+    {
+      "id": "ronit",
+      "relation": "שואלת \"מי בכלל אישר לדניאל להתחיל לעבוד על זה?\""
+    },
+    {
+      "id": "gilad",
+      "relation": "המנכ\"ל; דניאל מורד מהשיחה כשהם \"לוקחים את זה פנימה\""
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: מומחה טכנולוגיות AI (דרג II) בצוות AI Enablement, מדווח למשרה פתוחה של Head of AI Execution בחטיבה של אמיר."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "videos": [
+    "agentic-sync",
+    "follow-up",
+    "ronit-joins",
+    "gilad-joins"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/daniel.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync/backgrounds/daniel.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/follow-up/backgrounds/daniel.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/backgrounds/daniel.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/daniel.jpg"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/media/techytech-poster.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/media/techytech-card.png"
+    ]
+  },
+  "color": "#45a86a",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/zoom-call.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/SKILL.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/follow-up/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/follow-up/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync/backgrounds/prompts/daniel.txt",
+    "c:/workspace/BoostMind/zoomcut/render/ui/editor.css"
+  ]
+}

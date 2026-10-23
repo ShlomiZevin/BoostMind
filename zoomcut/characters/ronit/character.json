@@ -1,0 +1,101 @@
+{
+  "id": "ronit",
+  "name": "רונית",
+  "name_en": "Ronit Almog",
+  "aka": [
+    "רונית אלמוג",
+    "ronit"
+  ],
+  "world": "טקי-טק",
+  "role": "סמנכ\"לית תפעול וניהול סיכונים (COO & CRO) בטקי-טק",
+  "brief": "רונית היא ה-Key Stakeholder שאמיר ועופר מנסים לעקוף - עד שהיא מצטרפת לזום ובודקת \"אם בכלל צריך\". היא מתקנת את כולם (\"אנחנו לא מסונכרנים\"), מעלה Risk Management, ובין לבין מתלוננת שקר לה בזום. מול גלעד היא מתקפלת מיד: \"נכון. לחלוטין.\"",
+  "personality": [
+    "בירוקרטית שמחפשת מי אישר",
+    "מתקנת אחרים, מתיישרת מול המנכ\"ל",
+    "בחופשת יוקרה (וילה בדולומיטים עם שף פרטי)"
+  ],
+  "catchphrases": [
+    "נורא קר פה בזום. מישהו הדליק מזגן?",
+    "רגע, מי בכלל הגדיר את הדרישות?",
+    "לא. אנחנו לא מסונכרנים.",
+    "תנו לי לבדוק את זה קודם עם גלעד.",
+    "נכון. לחלוטין."
+  ],
+  "look": "פאת בוב שחורה, בפורטרט: משקפיים שחורים עבים ובלייזר כחול כהה. רקע זום: חדר עבודה ביתי יוקרתי (ספריית אגוז, עץ זית).",
+  "voice": {
+    "notes": "ההערה \"נורא קר פה בזום\" היא aside (בזמן שורה של מישהו אחר) - gain 0.65 והשורה כולה (1.7 ש׳) מוצגת; 0.2 היה בלתי נשמע."
+  },
+  "writing_rules": [
+    "בתסריט: \"—\" בסוף כל שורה שבה מישהו נקטע; בהפרעה המפריע מתחיל בזמן שהשני עוד מדבר (חפיפה אמיתית, כמו ויכוח).",
+    "כל הקולות באותה עוצמה; משפט שחסר בצילום - להודיע לו במפורש (מי, איזו שורה, איפה), לא לכסות בשקט.",
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "gilad",
+      "relation": "בודקת איתו לפני כל החלטה; מתיישרת מולו"
+    },
+    {
+      "id": "ofer",
+      "relation": "מתקנת אותו (\"עופר, עופר, עופר\")"
+    },
+    {
+      "id": "amir",
+      "relation": "היא אמורה \"להחזיק את ה-Ownership\" בתוכנית שלו - בלי לדעת עליה"
+    },
+    {
+      "id": "tamir",
+      "relation": "צוות אבטחת המידע של תמיר יושב בחטיבה שלה באתר"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בהנהלה: ראש חטיבת תפעול וניהול סיכונים (כולל אבטחת מידע). ציטוט: \"ניהול סיכונים נכון הוא מה שמאפשר לנו לנוע מהר ובביטחון.\""
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "videos": [
+    "ronit-joins",
+    "gilad-joins"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/ronit.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/backgrounds/ronit.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/ronit.jpg"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/media/techytech-poster.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/media/techytech-card.png"
+    ]
+  },
+  "color": "#e05c8a",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/zoom-call.md",
+    "c:/workspace/BoostMind/zoomcut/scripts/זום-3.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/follow-up/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/script.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/follow-up/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/backgrounds/prompts/ronit.txt"
+  ]
+}

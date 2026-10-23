@@ -1,0 +1,93 @@
+{
+  "id": "demokratovich",
+  "name": "הרב דמוקרטוביץ",
+  "name_en": "Rabbi Demokratovich",
+  "aka": [
+    "דמוקרטוביץ",
+    "הגאון הרב דמוקרטוביץ שליט״א",
+    "demokratovich"
+  ],
+  "world": "קהילת שערי בג״ץ",
+  "role": "רב קהילת \"שערי בג״ץ\" ועמותת \"קופת הקולות\" - מוסר שיעור שבועי במסכת שלטון ומשפט",
+  "brief": "הרב דמוקרטוביץ הוא רב שהאמונה שלו היא הדמוקרטיה, בית המשפט והקלפי - לא התורה. הצורה דתית לגמרי (שיעור, שו״ת, תרומות, כתב רש״י), אבל התוכן הוא מגילת העצמאות, חוקי היסוד, בג״ץ, הפרדת רשויות והסקרים. באמצע השיעור על \"הימים הנוראים\" (בין כסה לאסון) מתקשרת הרבנית עם סקר חדש. עכשיו הוא עונה לשאלות הקהל בשו״ת.",
+  "personality": [
+    "פנאט - אבל של דמוקרטיה",
+    "פלפול תלמודי על בחירות, גושים וסקרים",
+    "חרד מסקרים ומהגוש השני",
+    "סמכותי ושליו"
+  ],
+  "catchphrases": [
+    "רחמנא ליצלן.",
+    "ללמדך שאין דמוקרטיה מתקיימת בלא שופטים.",
+    "בברכת הדמוקרטיה ושלטון החוק.",
+    "הימים שבין כסה לאסון.",
+    "״כולם שווים בפני החוק״ - ומי שלא, יש בג״ץ."
+  ],
+  "look": "זקן אפור ארוך ועבות, כיפה שחורה, משקפיים, חליפה שחורה (פורטרט מפריים שלו). סט: בית כנסת עם ארון קודש ומאזני צדק, שלט \"בית המדרש ״שערי בג״ץ״\".",
+  "voice": {
+    "notes": "בלי preset מוגדר בפרויקט. צלצול טלפון ושיחת הרבנית מתנגנים מתחתיו בזמן שהוא ממשיך לדבר (wife-call, pitch 1.2, phone)."
+  },
+  "writing_rules": [
+    "האמונה שלו היא דמוקרטיה, לא תורה (2026-10-23): בכתיבה שלנו בלי תורה, ברכות, תפילות או שבת; \"בברכת הדמוקרטיה ושלטון החוק\", לא \"התורה והמשפט\". השורות שלו מהטייקים נשארות כפי שאמר.",
+    "\"בית המשפט\" במקום \"בית המדרש\" (בכתיבה שלנו); כתב רש״י נשאר - \"פנאטים, אבל של דמוקרטיה\".",
+    "עיצוב: כותרת Stam זהב על קופסה שחורה ~45%, כתוביות Stam צהובות עם קו מתאר שחור, מהירות 1.2.",
+    "קצב: לחתוך כל שקט מעל 0.25 ש׳, כל חיבור 0.18 ש׳ על הזנב של המילה הקודמת.",
+    "כל דמות היא אדם אמיתי: האתר בקול שלו, אף פעם לא \"פרודיה\" ולא השם של שלומי; כסף רק כהתחייבות (\"נחזור אליכם\"), אף פעם לא תשלום."
+  ],
+  "relations": [
+    {
+      "id": "rabbanit",
+      "relation": "אשתו, מתקשרת באמצע השיעור עם סקר"
+    }
+  ],
+  "site": {
+    "url": "https://boostmind-b052c.web.app/demokratovich/",
+    "notes": "public/demokratovich - אתר קהילה \"עלוב\" בכוונה: בס״ד (בסייעתא דבג״ץ), תאריך עברי, זמני הקלפי, פסיקה יומית בכתב רש״י, marquee, אירועים, פופאפ תרומה. שני CTA במייל לשלומי (siteLead \"demokratovich\"): שאל את הרב (שאלות לשו״ת) והתחייבות לתרומה דמוקרטית (3.25 ₪ אחוז החסימה, 61 רוב קואליציוני, 120 כנסת שלמה, 260 הקדשת סעיף בחוקה, 15/חודש הרכב מורחב). noindex."
+  },
+  "links": [
+    {
+      "label": "קהילת שערי בג״ץ",
+      "url": "https://boostmind-b052c.web.app/demokratovich/"
+    }
+  ],
+  "videos": [
+    "demokratovich-elections",
+    "demokratovich-shut"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/demokratovich/img/rabbi.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-shut/media/demokratovich-rabbi.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/demokratovich/synagogue.jpg"
+    ],
+    "logos": [
+      "c:/workspace/BoostMind/public/demokratovich/img/logo.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-shut/media/demokratovich-logo.png"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/demokratovich/phone-ring3.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/demokratovich/wife-call.mp3"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-shut/media/demokratovich-poster.jpg",
+      "c:/workspace/BoostMind/public/demokratovich/img/og.jpg",
+      "c:/workspace/BoostMind/public/demokratovich/img/event.jpg",
+      "c:/workspace/BoostMind/public/demokratovich/img/amulet.jpg",
+      "c:/workspace/BoostMind/public/demokratovich/img/banner.jpg",
+      "c:/workspace/BoostMind/public/demokratovich/v/shiur-1.mp4"
+    ]
+  },
+  "color": "#c9a227",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/SKILL.md",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_sketch_studio.md",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/feedback_lesson_rhythm.md",
+    "c:/workspace/BoostMind/public/demokratovich/index.html",
+    "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-elections/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-elections/captions.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-shut/episode.json"
+  ]
+}

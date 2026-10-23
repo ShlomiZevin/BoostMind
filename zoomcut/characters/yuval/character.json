@@ -1,0 +1,80 @@
+{
+  "id": "yuval",
+  "name": "יובל (כסא) נוח הררי",
+  "name_en": "Yuval Know All Harari",
+  "aka": [
+    "יובל",
+    "יובל כסא נוח הררי",
+    "Homo Useless",
+    "yuval"
+  ],
+  "world": "Homo Useless",
+  "role": "סופר והוגה, נואם מרכזי בכנסי AI; מחבר Homo Useless",
+  "brief": "יובל הוא סופר-הוגה בינלאומי שנואם באנגלית בכנס AI ומשיק ספר חדש: Homo Useless - A Brief History of Human Irrelevance. הטענה שלו: בעוד עשר שנים התפקיד היחיד שיישאר להומו ספיינס הוא לעמוד ליד הראוטר ולבדוק אם יש אינטרנט - וגם את זה ה-AI יעשה טוב יותר. הקהל מעריץ אותו.",
+  "personality": [
+    "חגיגי ונבואי",
+    "מדבר בהיסטוריה של 70,000 שנה",
+    "הקהל נדהם ממנו - לא צוחק"
+  ],
+  "catchphrases": [
+    "For over 70,000 years, Homo sapiens believed it was the crown of creation.",
+    "The only role left for Homo sapiens will be to stand next to the router and check if there is an Internet connection.",
+    "Or super intelligence, as Elon calls it."
+  ],
+  "look": "קירח, משקפיים, חולצה כהה ומיקרופון דש, על במת כנס (WORLD PREMIERE, ספר וקוד QR על המסך מאחוריו).",
+  "voice": {
+    "preset": "stage",
+    "notes": "אנגלית (\"language\": \"en\"). preset stage (מיקרופון קרוב + PA של האולם, סליידר pa), רעש אולם room.mp3 ב-0.35. סליידר Voice Pitch - הוא מחקה קולות גבוהים; +1.5 חצאי טונים היה ההתחלה."
+  },
+  "writing_rules": [
+    "אף פעם לא השם של האדם האמיתי (הוא לא רוצה תביעה): Yuval Know All Harari; ב-hook העברי \"יובל (כסא) נוח הררי\" - הניסוח שלו.",
+    "בלי שמות של ספרים אמיתיים (Sapiens / Homo Deus) ובלי \"פרודיה\" - הוא משוחק כסופר אמיתי עם שם דומה.",
+    "הקהל מעריץ: התנשפויות והתפעלות, אף פעם לא צחוק; מחיאות כפיים על המילים האחרונות; הסרטון נגמר בדיוק על המילה האחרונה.",
+    "משהו מחוץ לסרטון (האתר) צריך CTA רועש: קופסת זהב \"הספר באמת קיים 😳 / הלינק בביו ⬆️\" ב-5 השניות האחרונות."
+  ],
+  "site": {
+    "url": "https://boostmind-b052c.web.app/homo-useless/",
+    "notes": "public/homo-useless - דף הוצאה לאור באנגלית: ספר תלת-ממדי מסתובב, ציטוטים, תוכן עניינים, קטע מפרק 5, הזמנה מוקדמת שהיא בדיחה (שום דבר לא נאסף). כפתור \"Homo Useless\" בדף הלינקים."
+  },
+  "links": [
+    {
+      "label": "Homo Useless",
+      "url": "https://boostmind-b052c.web.app/homo-useless/"
+    }
+  ],
+  "videos": [
+    "yuval-1"
+  ],
+  "assets": {
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/yuval/set6.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/yuval/stage.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/yuval/stage2.jpg"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/yuval/room.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/yuval/applause.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/yuval/crowd-gasp-stack.mp3"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/yuval-1/media/poster.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/yuval-1/media/book.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/yuval-1/media/book-3d.png",
+      "c:/workspace/BoostMind/public/homo-useless/cover.jpg",
+      "c:/workspace/BoostMind/public/links/book.jpg"
+    ],
+    "portraits": [
+      "portrait.jpg"
+    ]
+  },
+  "color": "#e5532a",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/SKILL.md",
+    "c:/workspace/BoostMind/public/homo-useless/index.html",
+    "c:/workspace/BoostMind/public/links/index.html",
+    "c:/workspace/BoostMind/zoomcut/episodes/yuval-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/yuval-1/captions.txt"
+  ],
+  "portrait": "portrait.jpg"
+}

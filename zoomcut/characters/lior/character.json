@@ -1,0 +1,52 @@
+{
+  "id": "lior",
+  "name": "ליאור",
+  "name_en": "Lior Ben-Ami",
+  "aka": [
+    "ליאור בן-עמי",
+    "lior"
+  ],
+  "world": "טקי-טק",
+  "role": "סמנכ\"ל מכירות גלובלי (VP Global Sales) בטקי-טק",
+  "brief": "ליאור הומצא לאתר של טקי-טק: הפנים של שלומי בעיצוב מחדש כאיש מכירות חלקלק. הוא מוביל את המכירות בישראל, אירופה, צפון אמריקה ואסיה.",
+  "personality": [
+    "איש מכירות חלקלק"
+  ],
+  "look": "שיער מסורק, חיוך רחב, חליפה כחולה עם ממחטת כיס (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "gilad",
+      "relation": "חבר הנהלה תחת המנכ\"ל"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בהנהלה: ראש חטיבת המכירות הגלובלית (לונדון, בוסטון, סינגפור). ציטוט: \"הלקוחות שלנו לא קונים מוצר. הם בוחרים שותף.\""
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/sales.jpg"
+    ]
+  },
+  "color": "#0a5cc2",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

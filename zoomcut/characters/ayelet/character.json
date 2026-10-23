@@ -1,0 +1,150 @@
+{
+  "id": "ayelet",
+  "name": "איילת השחר",
+  "name_en": "Ayelet HaShachar",
+  "aka": [
+    "איילת",
+    "Ayelet",
+    "איילת השחר",
+    "תדר",
+    "spiritual",
+    "tadar"
+  ],
+  "world": "תדר - הפודקאסט הרוחני",
+  "role": "מאמנת תודעה, מתקשרת ומטפלת הוליסטית בתדרים",
+  "brief": "איילת השחר היא מדריכה רוחנית שמסבירה על היקום, תדרים, תודעות, קבלה ופיזיקה קוונטית בפודקאסט שלה - אפשר להבין כל מילה, אבל לא משפט אחד שלם. היא עונה לשאלות של עוקבות (צופית בשורוק, לוטם, שיבולת), ממציאה אטימולוגיות (\"פסיכולוגיה מלשון פסגה\"), מצטטת פסוקים לא נכון, ו\"מסבירה\" עם מדבקות כדי שייראה שהשקיעה בסרטון. יש לה אתר משנת 2009, סדנת \"מעבר לתדר\" וטיפולים במחירים נומרולוגיים.",
+  "personality": [
+    "סלט מילים רוחני בביטחון מלא",
+    "אטימולוגיות מומצאות (\"וזה לא במקרה\")",
+    "מצטטת פסוקים בגרסה שלה",
+    "מערבבת קבלה, קוונטים ומדעי המוח",
+    "פונה לנשים (\"יקירות שלי\", \"את\")",
+    "רכה, שלווה, מתקתקה"
+  ],
+  "catchphrases": [
+    "וזה לא במקרה.",
+    "קודם כול תביני ש...",
+    "וואו, את נוגעת פה בנקודה מאוד מאוד עמוקה.",
+    "יקירות שלי.",
+    "המוח הימני הוא בעצם המוח השמאלי של הנשמה.",
+    "התודעה כבר בחרה בך 💜"
+  ],
+  "look": "פאת בוב לבנה-פלטינה עם פוני ישר, שפתון אדום, גופייה בהירה, מיקרופון פודקאסט לפניה. בפורטרטים: צעיף שיפון לבנדר ותליון אמטיסט, סטודיו סגול עם נצנוצים.",
+  "voice": {
+    "preset": "podcast",
+    "notes": "tadar-5/6: preset podcast (raw). בעבר radio (tadar-2/3) ו-warm (tadar-4). מוזיקת נבל ברקע (_assets/tadar/music.mp3 ב-0.3), music.lift בסוף."
+  },
+  "writing_rules": [
+    "כל דמות היא אדם אמיתי: האתר שלה בקול שלה, אף פעם לא \"פרודיה\" ולא השם של שלומי.",
+    "פסוק מצוטט = מדבקת מגילה + המילים המדויקות שלה, ומתחת המקור האמיתי - הפער בין הגרסה שלה למקור הוא הבדיחה (\"אדושם\").",
+    "מדבקות Leonardo (die-cut) קופצות סביב הראש לפי המילים שלה.",
+    "כל סרטון: טיקר \"האתר החדש שלי באוויר!! הלינק בביו\", קופסת זהב מהבהבת, פולארויד באמצע הסרטון, ופוסטר סיום בסגנון האתר; ושני סטורי פוסטרים (אינסטגרם + טיקטוק).",
+    "Hook קבוע: \"אף אחת: / נשים רוחניות שמסבירות על היקום...\" (הניסוח שלו גובר).",
+    "האתר מכוער בכוונה, 2009: marquee, WordArt, ספר אורחים, מונה מלאכים."
+  ],
+  "site": {
+    "url": "https://boostmind-b052c.web.app/ayelet/",
+    "notes": "public/ayelet - אתר 2009 מכוון: סרטונים, סדנת \"מעבר לתדר\", טיפולים ומחירים, שאלות ותשובות, מילון התודעה, \"מהמקורות\", ספר אורחים. CTA: קביעת טיפול / הרשמה לסדנה - נשלח במייל לשלומי (siteLead \"ayelet\"), שום דבר לא נגבה. סרטון חדש: ה-export ל-public/ayelet/v/ במקום אריח \"בקרוב\"."
+  },
+  "links": [
+    {
+      "label": "האתר של איילת",
+      "url": "https://boostmind-b052c.web.app/ayelet/"
+    },
+    {
+      "label": "תסריט ב-Reader: echar-תודעה-גבוהה (tadar-2/3 - מה ההבדל בין תודעה לתודעה גבוהה)",
+      "url": "c:/workspace/BoostMind/zoomcut/scripts/echar-תודעה-גבוהה.txt"
+    },
+    {
+      "label": "תסריט ב-Reader: spiritual-2 (tadar-4 - שאלות ותשובות)",
+      "url": "c:/workspace/BoostMind/zoomcut/scripts/spiritual-2.txt"
+    },
+    {
+      "label": "תסריט ב-Reader: spiritual-3 (tadar-5 - פסיכולוגיה, פסיכיאטריה ותודעה גבוהה)",
+      "url": "c:/workspace/BoostMind/zoomcut/scripts/spiritual-3.txt"
+    },
+    {
+      "label": "תסריט ב-Reader: spiritual-4 (tadar-6 - בחירות ובחירה חופשית)",
+      "url": "c:/workspace/BoostMind/zoomcut/scripts/spiritual-4.txt"
+    }
+  ],
+  "videos": [
+    "tadar-1",
+    "tadar-2",
+    "tadar-3",
+    "tadar-4",
+    "tadar-5",
+    "tadar-6"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/ayelet/img/me.jpg",
+      "c:/workspace/BoostMind/public/ayelet/img/studio-shot.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-5/media/ayelet-flare.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-5/media/ayelet-sunburst.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-6/media/portrait.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/src/portrait.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/studio.jpg"
+    ],
+    "logos": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/logo/logo_2_morningstar.png",
+      "c:/workspace/BoostMind/public/ayelet/img/logo.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/logo/logo_1_lotus.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/logo/logo_3_everything.png"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/music.mp3",
+      "c:/workspace/BoostMind/public/ayelet/harp.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/music/1 - Calm frequency pad.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/music/2 - Dreamy harp.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/music/3 - Lo-fi kalimba beat.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/music/4 - Mystical choir.mp3"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-5/media/poster.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-5/media/polaroid.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-6/media/poster.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/tadar-6/media/polaroid.png",
+      "C:/Users/shazbak/Downloads/תדר/3/ayelet-story-instagram.jpg",
+      "C:/Users/shazbak/Downloads/תדר/3/ayelet-story-tiktok.jpg",
+      "C:/Users/shazbak/Downloads/תדר/ayelet-bchirot-story-instagram.jpg",
+      "C:/Users/shazbak/Downloads/תדר/ayelet-bchirot-story-tiktok.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/pills.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/mosaic.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/peak.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/pe.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/scroll.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/soil.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-3/particles.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/ballot.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/bird.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/infinity.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/bchirut.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/collective.png"
+    ]
+  },
+  "color": "#b07ad6",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/user_tiktok_channel.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/SKILL.md",
+    "c:/workspace/BoostMind/public/ayelet/index.html",
+    "c:/workspace/BoostMind/zoomcut/episodes/_assets/tadar/spiritual-4/src/portrait.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/spiritual-2.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/spiritual-4.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-2/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-3/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-4/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-5/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-6/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/tadar-1/captions.txt"
+  ],
+  "pace": {
+    "wpm": 140,
+    "at": 1792745452569,
+    "script": "spiritual-4"
+  }
+}

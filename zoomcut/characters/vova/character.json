@@ -1,0 +1,57 @@
+{
+  "id": "vova",
+  "name": "וובה",
+  "name_en": "Vladimir (Vova) Kogan",
+  "aka": [
+    "ולדימיר קוגן",
+    "וובה קוגן",
+    "vova"
+  ],
+  "world": "טקי-טק",
+  "role": "ראש תחום תשתיות ו-DevOps בטקי-טק",
+  "brief": "וובה הוא איש התשתיות של טקי-טק, והוא תמיד ציני כלפי הארגון - והפורטרט שלו מראה את זה.",
+  "personality": [
+    "ציני כלפי הארגון, תמיד"
+  ],
+  "look": "כובע מצחייה כהה עם שוליים אדומים, משקפיים שחור-אדום, זקן; חיוך עקום (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "yoav",
+      "relation": "בחטיבת ה-R&D של יואב באתר"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: ראש תחום תשתיות ו-DevOps - ענן, CI/CD, זמינות."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/vova.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/vova.png",
+      "C:/Users/shazbak/Downloads/techi-tech/vova-2.png",
+      "C:/Users/shazbak/Downloads/techi-tech/vova-3.png",
+      "C:/Users/shazbak/Downloads/merch/vova.png"
+    ]
+  },
+  "color": "#c0392b",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

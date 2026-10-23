@@ -1,0 +1,39 @@
+{
+  "id": "rabbanit",
+  "name": "הרבנית דמוקרטוביץ",
+  "name_en": "Rebbetzin Demokratovich",
+  "aka": [
+    "הרבנית",
+    "rabbanit"
+  ],
+  "world": "קהילת שערי בג״ץ",
+  "role": "אשתו של הרב דמוקרטוביץ",
+  "brief": "הרבנית מתקשרת לרב באמצע השיעור כדי לספר שהתפרסם סקר. שומעים אותה רק כמלמול בטלפון, והרב מנתק (\"לא מכניסים הביתה סקרים של...\").",
+  "look": "לא נראית - קול בטלפון בלבד.",
+  "voice": {
+    "notes": "wife-call.mp3, \"phone\": true, pitch 1.2, gain 0.5, מתחת לרב אחרי צלצול phone-ring3.mp3. אותו מלמול שימש אחר כך לסיגל (gym-1)."
+  },
+  "relations": [
+    {
+      "id": "demokratovich",
+      "relation": "בעלה"
+    }
+  ],
+  "videos": [
+    "demokratovich-elections"
+  ],
+  "assets": {
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/demokratovich/wife-call.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/demokratovich/wife-phone.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/demokratovich/phone-ring3.mp3"
+    ]
+  },
+  "color": "#14286b",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-elections/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-elections/captions.txt",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md"
+  ]
+}

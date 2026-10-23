@@ -1,0 +1,35 @@
+{
+  "id": "sigal",
+  "name": "סיגל",
+  "name_en": "Sigal",
+  "aka": [
+    "sigal"
+  ],
+  "world": "המכון",
+  "role": "לקוחה של הבחור מהמכון (בטלפון, ברמקול)",
+  "brief": "סיגל מזמינה בלונים לאירוע ומתמקחת על המחיר. שומעים אותה רק כמה שניות מהטלפון ברמקול, נקטעת בסוף כל משפט.",
+  "look": "לא נראית - קול בטלפון בלבד.",
+  "voice": {
+    "notes": "אחרי 6 סבבים - \"perfect\": כמה שורות קצרות (5 ב-31 ש׳, 0.8-1.1 ש׳ כל אחת) בסוף המשפטים שלו, נכנסות קצת לתוך המילים הבאות שלו. מקור sigal-mumble.mp3 (אותו מלמול של שיחת הרבנית), filter speakerphone, pitch 1.25, tempo 1.15, room, gain 1.9 (2.4 בהשהיה שלו)."
+  },
+  "relations": [
+    {
+      "id": "gym-guy",
+      "relation": "הספק שלה"
+    }
+  ],
+  "videos": [
+    "gym-1"
+  ],
+  "assets": {
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/gym/sigal-mumble.mp3"
+    ]
+  },
+  "color": "#ff4fd8",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/gym-1/episode.json"
+  ],
+  "tier": "npc"
+}

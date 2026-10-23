@@ -1,0 +1,59 @@
+{
+  "id": "tzvika",
+  "name": "צביקה",
+  "name_en": "Tzvika Greenberg",
+  "aka": [
+    "צביקה גרינברג",
+    "הדינוזאור",
+    "tzvika"
+  ],
+  "world": "טקי-טק",
+  "role": "ראש צוות Core Platform בטקי-טק - \"הדינוזאור\"",
+  "brief": "צביקה הוא \"הדינוזאור\" של טקי-טק - נגד AI. באתר הוא בחברה מאז 1999, היה שותף לכתיבת הגרסה הראשונה של TechyCore ומכיר כל שכבה במערכת.",
+  "personality": [
+    "נגד AI",
+    "ותיק שמכיר כל שכבה"
+  ],
+  "look": "קירח, זקן עם פאות עבות, משקפיים, חולצת טי סגולה, פרצוף חמוץ (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "ido",
+      "relation": "מפתח Backend בצוות שלו"
+    },
+    {
+      "id": "yoav",
+      "relation": "בחטיבת ה-R&D שלו"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: ראש צוות Core Platform (פלטפורמת הליבה TechyCore™)."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/dino.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/old-dinosaur-no-name.png"
+    ]
+  },
+  "color": "#8e5bb5",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

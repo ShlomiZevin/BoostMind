@@ -1,0 +1,85 @@
+{
+  "id": "yaniv",
+  "name": "יניב",
+  "name_en": "Yaniv Azoulay",
+  "aka": [
+    "יניב אזולאי",
+    "הסיקיוריטי השבור",
+    "yaniv"
+  ],
+  "world": "טקי-טק",
+  "role": "מהנדס אבטחת מידע בטקי-טק - \"הסיקיוריטי השבור\"",
+  "brief": "יניב הוא איש הסיקיוריטי השבור: אין לו איבר אחד תקין בגוף, הוא היה אצל כל האורתופדים בארץ ולא מוצאים כלום, ועובד עם עכבר ארגונומי קמור ומיקרו-מקלדת עם חיישני מיקרו-תנועה. הוא יושב מול המצלמה ומחכה ש\"תמיר הדפוק הזה\" יעלה לזום, ולא מבין למה בכלל מזמנים אותו.",
+  "personality": [
+    "היפוכונדר ארגונומי",
+    "כל תנועה כואבת לו",
+    "עיוור צבעים",
+    "ממורמר על הבוס",
+    "רציני לגמרי לגבי הכאבים שלו"
+  ],
+  "catchphrases": [
+    "מה אתה צוחק? אני רציני איתך.",
+    "אני מחכה שתמיר הדפוק הזה יעלה לזום.",
+    "תכף אני יוצא, אני לא יכול לשבת יותר מעשר דקות.",
+    "יש לי טווח תנועה של מילימטרים באצבעות."
+  ],
+  "look": "בצילום: גופייה שחורה, משקפיים, ליד שולחן עם מיקרו-מקלדת צבעונית ו\"עכבר\" שהוא בעצם מנורה - האביזרים האמיתיים הם הבדיחה. בפורטרט: קירח, משקפיים, פולו כחול כהה.",
+  "voice": {
+    "preset": "raw",
+    "notes": "קול גולמי (raw, boost 1.5). מזגן ברקע: זיהוי שקטים על הקול אחרי RNNoise."
+  },
+  "writing_rules": [
+    "רואים רק אותו ליד השולחן - \"WE ARE NOT SEEING THE ZOOM\": בלי מסכי שיחה, אריחים או טוסטים; הצד השני הוא קול בלבד.",
+    "הקול של תמיר מונח מעליו ונגמר איפה שיניב מגיב; מותר ורצוי שידברו אחד על השני.",
+    "משאירים את ההשהיות שלו כשתמיר מדבר - שם הפרצופים שלו; בלי קשר עין (הוא מסתכל על המסך).",
+    "סיום: חיתוך חד באמצע מילה על הפאנץ׳.",
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "tamir",
+      "relation": "ראש הצוות שלו; מזמן אותו לזום ולוחץ עליו לשתף מסך"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: מהנדס אבטחת מידע, מדווח לתמיר (אבטחת מידע, חטיבת התפעול של רונית). הביו באתר רציני לגמרי."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "videos": [
+    "security-1"
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/yaniv.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/security/office.jpg"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/security/join.mp3"
+    ]
+  },
+  "color": "#1f6f8b",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/feedback_overtalk_sketch.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/security-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/security-1/captions.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/security.txt"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "rami",
+  "name": "רמי",
+  "name_en": "Rami Ohayon",
+  "aka": [
+    "רמי אוחיון",
+    "rami"
+  ],
+  "world": "טקי-טק",
+  "role": "ארכיטקט ראשי (Chief Architect) בטקי-טק",
+  "brief": "רמי הוא הארכיטקט הראשי של טקי-טק, אחראי על הארכיטקטורה של כל המוצרים ועל תהליך האישור של שינויים ארכיטקטוניים.",
+  "look": "קירח, זקן שחור מלא, משקפיים, סוודר שחור (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "yoav",
+      "relation": "בחטיבת ה-R&D שלו"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: משרד הארכיטקט הראשי, חטיבת R&D."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/arch.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/main-architecht-noname.png"
+    ]
+  },
+  "color": "#5f6b7a",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

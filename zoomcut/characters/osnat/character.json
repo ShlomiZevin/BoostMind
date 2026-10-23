@@ -1,0 +1,69 @@
+{
+  "id": "osnat",
+  "name": "אסנת",
+  "name_en": "Osnat Berger",
+  "aka": [
+    "אסנת ברגר",
+    "osnat"
+  ],
+  "world": "טקי-טק",
+  "role": "Head of People בטקי-טק (מגייסת הייטק)",
+  "brief": "אסנת היא ה-HR של טקי-טק. בסטוריבורד של קמפיין Wolt Benefits (\"שיחת הגיוס\") היא מגייסת שמתקשרת ליותם מתוך \"סוף העולם\" - טילים ברקע ושקיות Wolt מסביב - מוכרת לו תפקיד שהוא \"חצי פרודקט, חצי ריסרץ׳, חצי פיתוח וחצי BI\" עם צחוק מזויף. באתר היא Head of People (הניסוח שלו).",
+  "personality": [
+    "צחוק מזויף אחרי כל תגובה",
+    "מדברת בשפת גיוס (\"אתה לא בורג, אתה עמוד השדרה\")",
+    "\"ככה\" בכל משפט",
+    "אכילה רגשית (מכרסמת מהשקית)"
+  ],
+  "catchphrases": [
+    "אני אסנת מטקי-טק.",
+    "אתה לא בורג במערכת. אתה ככה… עמוד השדרה שלה.",
+    "אנחנו קוראים לזה Wolt Vibe Balance."
+  ],
+  "look": "שיער חום אסוף גבוה עם סרט ורוד, משקפיים, בלייזר אפור (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "yotam",
+      "relation": "מגייסת אותו בשיחת הגיוס (קמפיין Wolt)"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בהנהלה: Head of People - גיוס, פיתוח מנהלים, חוויית עובד ותרבות. ציטוט: \"האנשים שלנו הם הנכס החשוב ביותר של החברה.\""
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    },
+    {
+      "label": "סטוריבורד Wolt - שיחת הגיוס",
+      "url": "https://boostmind-b052c.web.app/wolt-proposal/storyboard.html"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/osnat.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/osnat.png",
+      "C:/Users/shazbak/Downloads/techi-tech/osnat-2.png",
+      "C:/Users/shazbak/Downloads/techi-tech/osnat-3.png"
+    ]
+  },
+  "color": "#ff8fb1",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "c:/workspace/BoostMind/public/wolt-proposal/storyboard.html",
+    "c:/workspace/BoostMind/public/wolt-proposal/index.html"
+  ]
+}

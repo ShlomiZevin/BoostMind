@@ -1,0 +1,58 @@
+{
+  "id": "news-anchor",
+  "name": "מגיש/ת חדשות הערב",
+  "name_en": "News anchor",
+  "aka": [
+    "מגיש החדשות",
+    "חדשות הערב",
+    "news"
+  ],
+  "world": "מבזק חדשות",
+  "role": "מגיש/ת מהדורת \"חדשות הערב\"",
+  "brief": "מגיש החדשות פותח את המהדורה בצרפת, באיטליה, בספרד ובארצות הברית - וכל ידיעה מהעולם נגמרת בשאלה מה ידע נתניהו. הסופה בצפון-מזרח ארה״ב, יוקר המחיה באיטליה וההפסדים של ריאל מדריד - הכול מוגש ברצינות גמורה של אולפן חדשות.",
+  "personality": [
+    "רצינות של אולפן חדשות",
+    "קושר כל ידיעה מחו״ל לראש הממשלה"
+  ],
+  "catchphrases": [
+    "שלום לכם. אנחנו פותחים הערב ב...",
+    "השאלה כעת היא מה ידע ראש הממשלה, ומתי.",
+    "נתניהו טרם התייחס.",
+    "עד כאן החדשות, ערב טוב."
+  ],
+  "look": "פאה ג׳ינג׳ית מתולתלת, חליפה כהה; אולפן חדשות עם קיר מפת עולם, מסך תמונות, פס תחתון וטיקר מבזקים.",
+  "voice": {
+    "preset": "news",
+    "notes": "הקול שהוא קרא לו \"perfect\": preset news (denoise, lowcut 95, warmth +2, box -3, presence +3.5) + RNNoise (models/rnnoise/cb.rnnn, נתיב יחסי) נגד רעש מזגן. episode.json של news-1 מראה כרגע preset podcast."
+  },
+  "writing_rules": [
+    "אף פעם לא תמונות ריאליסטיות של פוליטיקאים אמיתיים באירועים מומצאים; תגית \"תמונת AI\" על אנשים ריאליסטיים; התמונות שלו (his_*.jpg) נשארות מחוץ ל-git.",
+    "פתיחה: קליפ intro (Seedance, 30fps) שמתמוסס לתוך המגיש + מוזיקת חדשות; hook תוך שנייה (\"פוב: אתה צופה בחדשות בישראל\")."
+  ],
+  "videos": [
+    "news-1"
+  ],
+  "assets": {
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/news/studio.jpg"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/news/intro.mp3"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/news/intro30.mp4"
+    ],
+    "portraits": [
+      "portrait.jpg"
+    ]
+  },
+  "color": "#d0021b",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/feedback_news_audio.md",
+    "c:/workspace/BoostMind/zoomcut/episodes/news-1/episode.json",
+    "c:/workspace/BoostMind/zoomcut/episodes/news-1/captions.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/חדשות-מעודכן.txt"
+  ],
+  "portrait": "portrait.jpg"
+}

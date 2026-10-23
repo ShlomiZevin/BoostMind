@@ -1,0 +1,58 @@
+{
+  "id": "erez",
+  "name": "ארז",
+  "name_en": "Erez Nahmias",
+  "aka": [
+    "ארז נחמיאס",
+    "erez"
+  ],
+  "world": "טקי-טק",
+  "role": "ראש צוות Data & AI בטקי-טק - ה-data scientist היחיד",
+  "brief": "ארז הוא ה-data scientist היחיד בטקי-טק, עם בדיחות אבא. באתר הוא ראש צוות Data & AI, ויותם מדווח אליו.",
+  "personality": [
+    "בדיחות אבא"
+  ],
+  "look": "קירח, משקפיים, זקן ג׳ינג׳י, פולו תכלת, מחייך (פורטרט).",
+  "writing_rules": [
+    "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
+    "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
+    "ציטוטים באתר - רק להנהלה.",
+    "כל דמות היא אדם אמיתי: אף פעם לא \"פרודיה\", אף פעם לא השם של שלומי."
+  ],
+  "relations": [
+    {
+      "id": "yotam",
+      "relation": "מדווח אליו"
+    },
+    {
+      "id": "yoav",
+      "relation": "בחטיבת ה-R&D שלו"
+    }
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "בצוות: ראש צוות Data & AI; תחתיו יותם ומשרה פתוחה AI Engineer (LLM Agents)."
+  },
+  "links": [
+    {
+      "label": "האתר של טקי-טק",
+      "url": "https://techytech.web.app"
+    },
+    {
+      "label": "האתר (כתובת משנית)",
+      "url": "https://boostmind-b052c.web.app/techietech/"
+    }
+  ],
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/datasci.jpg",
+      "C:/Users/shazbak/Downloads/techi-tech/data-science-noname.png",
+      "C:/Users/shazbak/Downloads/techi-tech/data-science-noname2.png"
+    ]
+  },
+  "color": "#e07b39",
+  "sources": [
+    "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

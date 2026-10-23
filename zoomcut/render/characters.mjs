@@ -44,8 +44,21 @@ export default function characters(app, { ROOT, EPS }) {
     return { id: ep, title: cfg.title || ep, done: !!cfg.done, exists: fs.existsSync(path.join(EPS, ep)),
       video: mp4 ? `/media/${ep}/out/${encodeURIComponent(mp4)}` : null }; };
 
+  // a pace the Reader sent before its character existed (characters/_paces.json, by name) lands on the profile
+  const norm = (x) => String(x || '').trim().toLowerCase();
+  const adoptPace = (id, c) => {
+    const pending = read(path.join(DIR, '_paces.json'), {}) || {};
+    const names = [id, c.name, c.name_en, ...(c.aka || [])].map(norm).filter(Boolean);
+    const hit = Object.entries(pending).filter(([n]) => names.includes(norm(n))).sort((a, b) => (b[1].at || 0) - (a[1].at || 0))[0];
+    if (!hit) return c;
+    if (!c.pace || (hit[1].at || 0) > (c.pace.at || 0)) { c.pace = hit[1]; write(path.join(DIR, id, 'character.json'), c); }
+    for (const [n] of Object.entries(pending)) if (names.includes(norm(n))) delete pending[n];
+    write(path.join(DIR, '_paces.json'), pending);
+    return c;
+  };
+
   const full = (id, vids) => {
-    const c = read(path.join(DIR, id, 'character.json'), {}) || {};
+    const c = adoptPace(id, read(path.join(DIR, id, 'character.json'), {}) || {});
     const videos = [...new Set([...(c.videos || []), ...(vids[id] || [])])].filter((v) => fs.existsSync(path.join(EPS, v)));
     const A = c.assets || {};
     const portraits = [c.portrait, ...(A.portraits || [])].filter(Boolean);
@@ -66,7 +79,6 @@ export default function characters(app, { ROOT, EPS }) {
   });
   app.post('/api/characters/pace', (q, res) => {  // the Reader: {paces: {name: wpm}, script}
     const { paces = {}, script = '' } = q.body || {};
-    const norm = (s) => String(s || '').trim().toLowerCase();
     const all = order().map((id) => ({ id, c: read(path.join(DIR, id, 'character.json'), {}) || {} }));
     const done = [], unknown = read(path.join(DIR, '_paces.json'), {}) || {};
     for (const [name, wpm] of Object.entries(paces)) {
