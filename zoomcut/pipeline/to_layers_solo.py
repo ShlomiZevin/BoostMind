@@ -455,9 +455,9 @@ def _build(ls, sync=True):
                                   "box": dict(full), **({"fade_out": float(iv["fade"])} if iv.get("fade") else {}), "ref": {"intro": 1}}]})
 
     # texts on video (episode.json "overlays", timed by lesson.py)
-    over_layers, behind = overlay_layers(ls, assets, rel, total)
-    layers[behind_at:behind_at] = behind
-    layers += over_layers
+    over, behind = overlay_layers(ls, assets, rel, total)
+    layers[behind_at:behind_at] = [l for k, _ in LANES for l in behind.get(k, [])]
+    layers += [l for k, _ in LANES if k not in ("end", "fade") for l in over.get(k, [])]
 
     # subtitles: the other side's (said over him) above his own
     for who, lid, name, st in (("other", "subs.other", "Other side", {**(cfg.get("captions_style") or {}), **(cfg.get("captions_other") or {})}),
@@ -474,6 +474,8 @@ def _build(ls, sync=True):
                        "items": [{"id": f"s{k}", "from": c["from"], "dur": max(1, c["to"] - c["from"]), "text": c["text"], "ref": {"cap": c["text"][:40], "k": k},
                                   **({"link": lk} if (lk := link_at(pic, c["from"])) else {})}
                                  for k, c in enumerate(cs)]})
+
+    layers += over.get("end", []) + over.get("fade", [])  # the end card covers everything, the subtitles too
 
     # sound: his voice - the chain he tuned (live in the editor, the same code renders the export) and its cleaning
     voice = {k: v[k] for k in ("preset", "raw", "boost", "lowcut", "warmth", "box", "presence", "deess", "comp", "room", "roomSize", "pa") if k in v}
@@ -657,8 +659,46 @@ def overlay_layers(ls, assets, rel, total):
             it["style"] = style
             lay = {"id": f"ov.{k}", "kind": "text", "name": o.get("name") or (o.get("text") or style).split("\n")[0][:24], "owner": "builder",
                    "props": {"style": style}, "items": [it]}
-        (behind if o.get("behind") else front).append(lay)
-    return front, behind
+        (behind if o.get("behind") else front).append((o, lay))
+    return group_lanes(front, "ov"), group_lanes(behind, "ov.behind")
+
+
+# his ask (2026-10-23): "use a small amount of layers" - the overlays share a few lanes by what they are, CapCut-like,
+# instead of a layer each: Stickers (pictures), Texts, Ticker, End card (full-frame pictures - the poster, a fade to
+# black - drawn above the subtitles). A lane opens a second one only where two of its items would overlap in time.
+LANES = (("stickers", "Stickers"), ("texts", "Texts"), ("ticker", "Ticker"), ("end", "End card"), ("fade", "Fade to black"))
+
+
+def lane_of(o, lay):
+    if lay["kind"] == "image":
+        full = float(o.get("w") or 0) >= W and float(o.get("h") or 0) >= H
+        if o.get("end_black"):  # (a fade to black lies over the end card on purpose: its own lane)
+            return "fade"
+        return "end" if full or o.get("poster") else "stickers"
+    return "ticker" if (o.get("style") or "pov") == "ticker" else "texts"
+
+
+def group_lanes(pairs, prefix):
+    """[(overlay, its one-item layer)] -> a few layers, each a lane of items that never overlap; returns
+    {lane key: [layers]} so the caller can put the end card above the subtitles."""
+    out = {}
+    for o, lay in pairs:
+        key = lane_of(o, lay)
+        it = lay["items"][0]
+        lanes = out.setdefault(key, [])
+        home = next((l for l in lanes if l["kind"] == lay["kind"] and not any(
+            it["from"] < x["from"] + x["dur"] and x["from"] < it["from"] + it["dur"] for x in l["items"])), None)
+        if home is None:
+            n = len(lanes) + 1
+            name = dict(LANES)[key] + (f" {n}" if n > 1 else "")
+            home = {"id": f"{prefix}.{key}" + (f".{n}" if n > 1 else ""), "kind": lay["kind"], "name": name, "owner": "builder",
+                    "props": {"style": lay["props"]["style"]} if lay["kind"] == "text" else {}, "items": []}
+            lanes.append(home)
+        home["items"].append(it)
+    for lanes in out.values():
+        for l in lanes:
+            l["items"].sort(key=lambda x: x["from"])
+    return out
 
 
 def sound_layers(ls, items, total, assets, rel):

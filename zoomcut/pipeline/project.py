@@ -80,7 +80,9 @@ def merge(old, new):
                 ids.add(it["id"])
             layers.append({**l, "items": sorted(mine + fresh, key=lambda it: it["from"]), "owner": "builder"})
         elif l.get("owner") == "builder":  # the builder no longer makes it: his hand-made items stay, the rest go
-            layers.append({**l, "items": [it for it in l.get("items", []) if it.get("user")]})
+            mine = [it for it in l.get("items", []) if it.get("user")]
+            if mine:  # (nothing of his left in it: the lane goes too - no empty lanes after the builder regroups)
+                layers.append({**l, "items": mine})
         else:
             if old_dur != new_dur:
                 repin(l.get("items", []), old_dur, new_dur)

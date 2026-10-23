@@ -70,11 +70,14 @@
 - An `.ogg` voice note's filtered copies are written next to it (`<file>.<filters>.wav`) - keep notes in the project's
   media/, never in Downloads.
 - Report to the fleet board when asked (alias `video-editing`).
-- **episode.json overlays: write them in time order, and never reorder them after the first Analyze** (tadar-6,
-  2026-10-23). Words are matched in list order (each searches after the previous one's hit - an overlay listed after a
-  later one is "not heard"), and the solo builder names its layers by list position (`ov.<k>`); a rebuild keeps each
-  layer's old kind, so a reorder turned a text into an empty picture layer. Fix a wrong one with ops
-  (`layer.remove ov.<k>`, then Analyze makes it fresh), not by shuffling the list.
+- **episode.json overlays: write them in time order** (tadar-6, 2026-10-23) - words are matched in list order, each
+  searching after the previous one's hit, so an overlay listed after a later one is "not heard".
+- **Few lanes, not a layer per overlay** (his ask, 2026-10-23: "use a small amount of layers"): the solo builder puts
+  the overlays on shared lanes by what they are - Stickers (pictures), Texts (hook, cards, CTA), Ticker, End card
+  (full-frame pictures, above the subtitles), Fade to black (`end_black`) - `pipeline/to_layers_solo.py` group_lanes.
+  A lane opens a second one ("Stickers 2") only where two items overlap in time - end a sticker before the next
+  starts (`hold` 0.05 on the first) and they share a lane. A builder lane that's no longer made disappears on the next
+  Analyze unless he made something in it (pipeline/project.py merge).
 - The one-camera project starts at speed 1 - set the series speed with `{"op": "project", "set": {"speed": 1.3}}`
   and check it before any export. Put the end card ABOVE the subtitles (`layer.move subs` below it).
 - A picture you make for a video (poster, sticker, portrait) only shows in the editor's Media tab when its path is
