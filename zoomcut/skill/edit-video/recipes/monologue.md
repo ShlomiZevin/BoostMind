@@ -49,6 +49,30 @@ the editor stay.
   open the next take too, cut it in the gap before them and use the NEXT take's version. Find the overlaps in the
   transcripts first, then `"sequence": [{"take", "to"}, ..., {"take"}]`.
 
+## Series "demokratovich" - the rabbi who believes in democracy, the court and the ballot (since 2026-10-16)
+- **His faith is democracy, not Torah** (his words, 2026-10-23: "it should be more about law and order and democracy
+  and less about halakha... he believes only in democracy"). The FORM is religious (בית מדרש, honorifics, שו״ת, a
+  weekly shiur, donations); the CONTENT is מגילת העצמאות, חוקי היסוד, השופטים, בג״ץ, הפרדת רשויות, the ballot. No
+  Torah, blessings, prayers or Shabbat in what we write ("בברכת הדמוקרטיה ושלטון החוק", not "התורה והמשפט"); his own
+  lines from the takes stay as he said them. His follow-up the same day: "instead of בית המדרש - בית המשפט"; the Rashi
+  script stays ("it was funny - that is where the line is thick, like they are super fanatic but about democracy"):
+  the Declaration and the daily rulings in Rashi, like a page of Gemara.
+- The set, the plaque "בית המדרש ״שערי בג״ץ״", gold Stam title, yellow Stam subtitles, speed 1.2: the elections video
+  above. A new video = "+ New video" from `demokratovich-elections`.
+- **His site: https://boostmind-b052c.web.app/demokratovich/** (`public/demokratovich/`, on the bio hub) - קהילת
+  ״שערי בג״ץ״ and its עמותה ״קופת הקולות״ (ע״ר - "registration under appeal"). A lame community-shul site: בס״ד + a
+  real Hebrew date, זמני הקלפי, a Rashi-script הלכה יומית from his lines, נוסח תפילה, marquee, events, a donation pop-up.
+  Two CTAs, both emailed to him (siteLead `demokratovich`): **שאל את הרב** (a question for the next שו״ת video - real
+  questions = material) and **a donation pledge** where even the donation is democratic: tiers 3.25 ₪ "אחוז החסימה",
+  61 "רוב קואליציוני", 120 "כנסת שלמה" (+ the red string "שמירה מפני סקרים"), 260 "הקדשת סעיף בחוקה (לכשתיכתב)",
+  15/month "הרכב מורחב"; the board votes on each donation, a rejected one can be appealed to the court. Images:
+  Leonardo portrait from his frame, the emblem (scales on a ballot box), the ballot-box procession (תמונת AI), the
+  amulet. A new video: its 540p copy into `public/demokratovich/v/` and replace the "בקרוב" tile.
+- **demokratovich-shut** (2026-10-23, waiting for footage in `Downloads\דמוקרטוביץ-שות`): the rabbi answering his
+  audience's questions. Media ready: `demokratovich-poster.jpg` (end poster "יש לך שאלה לרב? / האתר באוויר • הלינק
+  בביו"), his portrait, the emblem. Plan: each question on screen as a `question` card (the tadar style) timed by his
+  words; a CTA box "שלחו שאלה לרב - הלינק בביו" for the last ~10 s; the poster on his last word, held ~4 s.
+
 ## Series "tadar" - spiritual-guru podcast parody (white bob wig, podcast mic), from 2026-10-17
 - `lesson.py new episodes/tadar-N --from tadar-2 --input "<folder>" --takes IMG_xxxx.MP4 --script <reader id>`.
 - Set `_assets/tadar/studio.jpg` (warm podcast studio), music `_assets/tadar/music.mp3` at 0.3, voice "podcast", eye
@@ -70,6 +94,14 @@ the editor stay.
   shorter). Centred behind her the wig hid the name, so the room is framed with the hoop beside her head:
   `bg` zoom 1.45, x 315, y 432 (crystals + salt lamps fill the left). Stickers on the right pop over it - fine.
 - Footage 3 (2026-10-21): light-blue top against a white wall - MediaPipe "fast" held fine; the real mic stays.
+- **spiritual-4 - elections** (script 2026-10-23, Reader id `spiritual-4`, footage to come): prepared in
+  `_assets/tadar/spiritual-4/` - ballot box with a third eye (opening), the verse on the spiritual-3 scroll with
+  "(דברים י״ב, ה׳)" under her ״אשר יבחר אדושם אלוהיכם מכל שבטיכם״ (real verse - about the Temple's place, not
+  elections: that gap is the joke), dove out of a cage (בחירה חופשית), star infinity (תודעת האינסוף), the HTML
+  sticker "ב + חירות = בחירות" (`bchirut.png`), collective heads (the punchline). End card `poster.jpg` (her portrait
+  holding a glowing ballot envelope, "התודעה כבר בחרה בך 💜", "✨ לקביעת טיפול אצלי ✨ / הלינק בביו") and the
+  stories in `Downloads\תדרyelet-bchirot-story-*.jpg`. Poster HTML templates: the end card / story layout of
+  tadar-5 (logo top, tilted polaroid, gold WordArt line, dashed link box below).
 - **Her site: https://boostmind-b052c.web.app/ayelet/** (`public/ayelet/`, on the bio hub). Deliberately 2009: a
   real `<marquee>`, WordArt glow, beveled buttons, guestbook, angel visitor counter, harp music button, the stickers
   floating. Sections from the scripts: videos, workshop "מעבר לתדר", treatments + prices, Q&A, מילון התודעה, her
@@ -133,11 +165,17 @@ the editor stay.
   Hits ~level with his voice in mean, beds a few dB under. Pixabay sounds: real Chrome (Cloudflare), press play on each
   search result and catch the mp3 request (free license, no credit needed). He rejects AI-generated effects.
 - A soft last word under the voice threshold gets cut ("שלשום"): measure the tail and add a `cut.edges` drag.
+- **His site: /hindsight/** (`public/hindsight/`) - HINDSIGHT VIP, his closed signals group (the name = in hindsight).
+  A $1M crypto funnel played straight: the suit portraits (Leonardo portrait from his frames; no magazine logos - it
+  drew a real Forbes cover once), the video's market panel live (`market.js` = a copy of market_anim.js), tiers, the
+  guarantee "if the coin didn't go up, I didn't recommend it", toasts "joined yesterday". Collects nothing. A new
+  video export goes to `public/hindsight/v/week-1.mp4` (gitignored) and its section appears by itself. In the video:
+  a ticker line + blinking gold CTA (y 1250) "HINDSIGHT VIP באוויר / הלינק בביו" for the last ~11 s.
 - His wall had a black hexagon panel touching his hair: no matte engine drops it (hair is as flat and dark) - left.
 - The coin line = a **Market panel** (`style: market`) timed by `from_words` "קחו למשל את" .. "ביום אחד"; `draw` 3.4
   holds the chart so the peak + the "ההמלצה יצאה" pin land on his "95.4" (with the ka-ching) - the pin after the rise is
   the joke. His footage is a close handheld selfie: the panel goes on TOP (y 150 w 780, over the hook), never over his
-  face; person y 160. Hook (his words): "אף אחד: / נאור (ציון) ברוך:" the whole video.
+  face; person y 160. Hook (his words): "אף אחד: / נהור (ציון) מינוף:" the whole video.
 - Anchor sounds to the recogniser's words (`start_word` / `end_word`), not `at`; its times run ~0.15 s early - check
   the energy. A first word timed before the clip start is not "heard" for overlays: anchor on the next words.
 - Ticker of coins "up yesterday"; lower third "VIP | הקהילה הסגורה". His real name only as he writes it in the hook.

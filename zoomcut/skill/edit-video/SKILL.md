@@ -174,6 +174,20 @@ The rules:
   after.
 - **The ending:** end on the last word. A character / company site goes on a **full-screen poster on black** right on
   that word (logo, the hook - e.g. "מחפשים עובדים!" - the site, the URL big and clear), held ~4 s. No Zoom tail.
+- **Every video ships with two posters** (his rule, 2026-10-23: "for every video it has also to prepare story
+  poster with link below"): the END CARD inside the video (above) and a **STORY POSTER** he posts the same day -
+  1080x1920 JPG in the footage's Downloads folder, two versions: `<name>-story-instagram.jpg` with a dashed box BELOW
+  ("👇 לקביעת טיפול 👇" / "👇 הקישור כאן 👇") where he drops Instagram's link sticker with the site URL, and
+  `<name>-story-tiktok.jpg` with "🔗 הלינק בביו ⬆️" in that box (TikTok stories carry no link). Same art as the end
+  card - a Leonardo portrait from his frame, the character's logo, the site's CTA in the character's voice, a line
+  tied to the video's punchline. Nothing important in the top 240 px or the bottom 300 px (the apps' bars). Made as
+  HTML + headless Chrome at 1080x1920, ONE render per call (parallel renders sharing a profile fail silently).
+  Templates: `recipes/monologue.md` → tadar. Make both as soon as the script arrives - before the footage.
+- **A script before the footage** (2026-10-23: "prepare first the project reader then the rest, I'm filming"):
+  1. the Reader first - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line
+     `# <title>`, a `# על המסך – ...` note above each line that gets a sticker / card), and tell him it's ready;
+  2. then, while he films: the stickers (Leonardo sunburst, cut out), the end card, the story posters. The project
+     itself waits for the footage (step 4 below), then the prepared pictures go in as layers.
 - **Real people:** no realistic images of real politicians at invented events; "תמונת AI" tag on realistic AI people.
   His own images / recordings stay out of the public git repo.
 - **Every character is a real person** (2026-10-21): each recurring character gets their own web presence built the
@@ -181,6 +195,41 @@ The rules:
   (/yotamverse/), Techy-Tech's corporate site (techytech.web.app - a serious company site, no jokes on it). Never
   "parody", never Shlomi's name on it. Every such site gets a button on his links page (public/links/), and the video
   shows it (an end poster, or a short ticker / blinking box that says "הלינק בביו" - never the boostmind URL).
+- **Every video can have its character's site, and every site has a CTA that reaches his email** (his ask, 2026-10-23:
+  "there should be a cta on the website, a call to do something... going to my email"). If a character has no site
+  yet, offer one. Live now: /ayelet/ (book a treatment), /hindsight/ (join a plan), /demokratovich/ (ask the rabbi /
+  pledge a donation), Techy-Tech (send a CV). How to make one:
+  - **Look like the character would build it**, as lame or as slick as the real thing (a community-shul site: בס״ד,
+    navy + gold, marquee, red "תרמו עכשיו" everywhere, a donation pop-up). The jokes are in the character's voice and
+    from his scripts; the site plays it straight.
+  - **Pictures with Leonardo** (below): his portrait from a frame of his footage, the logo, a product, an event photo.
+    `public/<site>/img/` + `v/` for his video (a 540p copy). His face and recordings go in `.gitignore` (deployed from
+    this machine, never in the public repo). A realistic AI crowd gets a small "תמונת AI" tag.
+  - **The CTA = a form posted to `siteLead`** (`techietech-api/index.js`, emailed to shlomi@boostart.io; name + phone or
+    email, a `choice` line and a message; nothing charged, nothing stored, a hidden `website` field for bots). A new
+    site = one entry in `SITES` there, then `cd techietech-api && firebase deploy --only functions:siteLead --project
+    boostmind-b052c`, then one test POST with curl (a "בדיקה" name) before he relies on it. Money is only ever a pledge
+    ("we'll call you back") - never a payment.
+  - **A good link preview** (WhatsApp / social - he asked, 2026-10-23): `img/og.jpg` 1200x630, under 300 KB, made as
+    HTML and shot with headless Chrome (his portrait, the logo, the name, one line in the character's voice, the CTA);
+    og:title / description / url / image (ABSOLUTE https URL - WhatsApp ignores a relative one) + og:image:width /
+    height + `twitter:card` summary_large_image. Check with `curl -A "WhatsApp/2.23" <url>`.
+  - Deploy the site (`firebase deploy --only hosting --project boostmind-b052c` from BoostMind), check the URLs 200,
+    add the links-page button, and give the video a poster / CTA that sends them to the bio.
+
+## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
+`node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
+`... portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare MEDIUM 0.6 1024x1024` (repaints from a reference: his face,
+wig, beard kept; 0.5 when the scene changes a lot). Key from aspect-agent-server/.env (read by the script).
+- **Models - only these two** (his taste, 2026-10-20: "I'm loving more the sunburst and flare models"):
+  `flare` = `openai/gpt-image-2.5-flare` - photoreal people, portraits from his frames, sets, event photos;
+  `sunburst` = `openai/gpt-image-2.5-sunburst` - logos / emblems, products, die-cut stickers, flat graphics.
+- **Cheap (his rule):** MEDIUM and the smallest size that works - 1024x1024, 1536x1024 for a wide one. Never HIGH /
+  HD / 2x unless he asks. Paid 2026-10-23: sunburst square $0.021, flare portrait $0.024, flare 1536x1024 $0.033.
+- Run several at once (`&` + `wait`), look at every result before using it.
+- **No words in the picture** (Hebrew breaks): ask for "no text" and put the words on in HTML / a text layer.
+- A logo or sticker: ask for it on a flat white / mint background, then `tools/cutout_logo.py in.jpg out.png`.
+- A real person's face never - his own face, from his frames. No real politicians at invented events.
 - **A character based on a REAL person** (he worries about being sued, 2026-10-21): the character gets a fully fictional
   name - in the hook, on the site, on the poster ("נהור (ציון) מינוף", not the real surname); the site gets
   `<meta name="robots" content="noindex">` so a search for the real name never lands on it; faces are his own

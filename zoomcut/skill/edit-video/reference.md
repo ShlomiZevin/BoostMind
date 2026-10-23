@@ -38,10 +38,17 @@
   `script` (Reader id), `intro_video` / `intro_sound`, `media`, `_todo` (notes for the next session - ignored).
 
 ## Tools
-- Images: Leonardo GPT Image 2.5 (flare / sunburst - he prefers them): `node c:\workspace\noam\team-photos\gen.mjs
-  image prompt.txt out.jpg flare MEDIUM 1024x1024`; `portrait <ref> <prompt> <out> flare MEDIUM 0.6 1024x1024`
+- Images: Leonardo GPT Image 2.5 flare / sunburst only (SKILL.md → "Leonardo" for which model when): `node
+  zoomcut/tools/leonardo.mjs image prompt.txt out.jpg flare MEDIUM 1024x1024`; `portrait <ref> <prompt> <out> flare MEDIUM 0.6 1024x1024`
   re-lights / re-does a photo from a reference (the lit store from the dark one). **Work cheap (his rule):** MEDIUM
   and the smallest size that does the job - HIGH / HD / 2x only when he asks (HIGH was $0.076 square, $0.11 wide).
+- AI talking footage (measured 2026-10-23 on Leonardo, two-person English dialogue, 8 s 720p 16:9, sound on, same
+  start frame): every model said the lines exactly, in the right mouth and voice. Leonardo charged per clip: **Veo 3.1
+  Lite $0.60** (cheapest, passed everything), Gemini Omni Flash $0.96, Wan 3.0 $1.14, Kling 3.0 $1.51, Seedance 2.0
+  Mini / Kling 3.0 Turbo $1.55, Veo 3.1 Fast / Happy Horse $1.79, Grok 1.5 $1.91, Seedance 2.5 $2.62, 2.0 Fast $2.89,
+  2.0 $3.62, Veo 3.1 $4.78. Leonardo marks up 1.5-3× over list price. **A FAILED clip is still charged** (Veo 3.1
+  failed, no reason given, cost $4.78). Gemini Omni Flash takes no start frame → the set and faces drift. Comparison
+  page: lybi.ai/lybi/marketing/social (aspect-react-client/public/lybi-site/marketing/social/) + scripts/video-lab.mjs (1 Leonardo token ≈ $0.0015).
 - Stickers (the guru's own "effort" look): ask for a die-cut sticker with a thick white border on a flat light-mint
   (#CDEBDD) background, then `tools/cutout_logo.py` cuts it to a transparent PNG (mint is removed, white border kept).
 - Sound kit: `tools/horror_sfx.py <out dir> [names]` (synthesized: drone, braam, riser, stinger, heartbeat(_climax),
