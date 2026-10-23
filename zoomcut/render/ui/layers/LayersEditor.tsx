@@ -31,6 +31,17 @@ type Props = { ep: string; top: React.ReactNode; job: any; setJob: (j: any) => v
 
 export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, reloadEp }: Props) {
   const L = useLayered(ep);
+  // Ctrl+Z for what a builder changes (a video's length - its cut re-made from the take -, a line fix, a caption, an
+  // Inspector action): the project before it is kept, and once the builder's version is loaded the difference goes on
+  // the undo list as one step (api.ts record) - so his Ctrl+Z undoes it like any other edit
+  const snap = useRef<{ p: any; label: string } | null>(null);
+  const before = (label: string) => { if (!snap.current && L.view) snap.current = { p: L.view.project, label }; };
+  const reloaded = async () => {
+    const v = await L.load();
+    const s = snap.current; snap.current = null;
+    if (s && v) L.record(s.p, v.project, s.label);
+    return v;
+  };
   const project = L.live;
   const player = useRef<PlayerRef>(null);
   const frameEl = useRef<HTMLDivElement>(null);
@@ -46,7 +57,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
 
   // a builder job (re-analyze, a line fix) ended: its layers changed on disk
   const wasRunning = useRef(false);
-  useEffect(() => { if (wasRunning.current && !job?.running) { L.load(); reloadEp(); } wasRunning.current = !!job?.running; }, [job?.running]);
+  useEffect(() => { if (wasRunning.current && !job?.running) { reloaded(); reloadEp(); } wasRunning.current = !!job?.running; }, [job?.running]);
 
   useEffect(() => {
     const p = player.current; if (!p) return;
@@ -93,6 +104,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // the script panel's line fix (a builder that has script lines - the Script tab)
   const script: any[] = project?.script || [];
   const lineFix = async (n: number, fix: any) => {
+    before('line ' + n);
     const clean = Object.fromEntries(Object.entries(fix || {}).filter(([, v]) => v !== undefined && v !== null && v !== ''));
     const j = await build(ep, { action: 'line', n, fix: clean });
     setJob(j);
@@ -145,7 +157,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
           const s = await (await fetch(`/api/ep/${ep}/job`)).json().catch(() => null);
           idle = s?.running ? 0 : idle + 1;
         }
-        await L.load();
+        await reloaded();
       } finally {
         pending.current = []; L.send([], { commit: false, channel: 'sync' }); setSyncing(0); syncLoop.current = null;
       }
@@ -156,6 +168,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     // a caption or a text: its own length / place only - not its line's picture and voice, nothing after it moves
     // (his rule, 2026-10-23); the plain edit is kept as his (user: true) through rebuilds
     if (l.kind === 'subtitles' || l.kind === 'text') return false;
+    before(side === 'm' ? 'move' : 'trim');
     const live = liveEdit(l, it, side, d);
     L.send([], { commit: false });  // (the drag's own draft goes - the live edit below shows it)
     pending.current = [...pending.current, ...live];
@@ -213,7 +226,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       <div className="card">
         <div className="card-h"><div className="title grow">Subtitle words</div></div>
         <textarea className="field he" style={{ height: 70, padding: 8, userSelect: 'text' }} key={curLine.n} defaultValue={curLine.fix?.caption || curLine.text}
-          onBlur={async (e) => { const t = e.target.value.trim(); if (t !== (curLine.fix?.caption || curLine.text)) { await build(ep, { action: 'caption', n: curLine.n, text: t === curLine.text ? '' : t }); L.load(); } }} />
+          onBlur={async (e) => { const t = e.target.value.trim(); if (t !== (curLine.fix?.caption || curLine.text)) { before('caption'); await build(ep, { action: 'caption', n: curLine.n, text: t === curLine.text ? '' : t }); reloaded(); } }} />
         <div className="help">How this line reads on screen; the timing stays the line's.</div>
       </div>
     </>
@@ -279,7 +292,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
             {curLine ? <div className="insp">{lineCard}</div>
               : <Inspector project={project} sel={sel} send={L.send} frame={frame} onSel={(s) => { setSel(s); setLine(null); }} urls={L.view!.urls}
                   pickAsset={(kind, onPick) => { setTab('media'); setPick({ kind, onPick }); }}
-                  build={async (action, args) => { const j = await build(ep, { action, ...(args || {}) }); if (j?.running) setJob(j); else L.load(); }} />}
+                  build={async (action, args) => { before(action); const j = await build(ep, { action, ...(args || {}) }); if (j?.running) setJob(j); else reloaded(); }} />}
           </div>
         </div>
       </div>

@@ -1,7 +1,8 @@
 // The timeline of a layered project: a lane per layer, grouped (one group per character, Window, Text, Sound...),
 // the top layer first. Click a block = select it; drag it = move; drag an edge = trim (a video / sound edge pulls back
 // the original footage, never past the take's ends). Ctrl+wheel zooms (around the mouse), Alt / Shift+wheel scrolls
-// sideways. Every change is an op (live while dragging).
+// sideways. Pick a block first (a click): only the picked one drags - by its body or by its edge grips - so a
+// neighbour's edge is never grabbed by mistake. Every change is an op (live while dragging).
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
@@ -214,10 +215,12 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                         <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''}`}
                           style={{ left: px(it.from), width: Math.max(3, w), background: KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
-                          title={blockText(l, it, project)}
-                          onMouseDown={(e) => startDrag(e, l, it, 'm')}>
+                          title={isSel ? `${blockText(l, it, project)} - drag it, or its edges` : `${blockText(l, it, project)} - click to pick it`}
+                          onMouseDown={(e) => { if (isSel) startDrag(e, l, it, 'm'); else { e.stopPropagation(); e.preventDefault(); onSel({ layer: l.id, item: it.id }); } }}>
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
-                          {w > 14 && <><div className="hd l" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
+                          {isSel && <><div className="hd l" title="Drag: where it starts" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
+                          {drag && drag.item === it.id && drag.layer === l.id && drag.d !== 0 && (
+                            <span className="blk-tip">{drag.side === 'l' ? 'start' : drag.side === 'r' ? 'end' : 'moved'} {drag.d > 0 ? '+' : '−'}{(Math.abs(drag.d) / fps).toFixed(2)} s</span>)}
                         </div>
                       );
                     })}

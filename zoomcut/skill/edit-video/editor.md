@@ -22,7 +22,11 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Editor**: `render/ui/layers/` - LayersEditor (shell, routed from editor.tsx when /api/ep says `layered`), Timeline
   (lane per layer, grouped; drag / trim = ops, live while dragging; Ctrl+wheel zooms around the mouse, Alt / Shift+wheel
   scrolls sideways - a native non-passive listener; a caption's or a text's edge / move changes ONLY that item - never its
-  line's picture / voice, nothing ripples - his rule; LayersEditor.onItemEdit hands those to the plain edit), Media (assets, upload, + timeline; a file's
+  line's picture / voice, nothing ripples - his rule; LayersEditor.onItemEdit hands those to the plain edit); **a click picks a block, only the picked one
+  drags** - body = move, its two white grips = start / end, a label shows 'end +0.57 s' - so the edge between two clips
+  is never the neighbour's (his rule, 2026-10-23); **Ctrl+Z / Ctrl+Shift+Z undo / redo EVERYTHING**, a builder's
+  change too (a video's length re-cut from the take, a line fix, a caption, an Inspector action): the project before
+  it is kept and the difference goes on the undo list as one step (api.ts diffOps / record)), Media (assets, upload, + timeline; a file's
   picture opens it big - VideoPeek: plays / shows it, Use / Don't use + a note, + Timeline - the list itself never
   changes layout, more options go in that window), Inspector
   (project panel, `inspect/*` per kind by boostmind-31, a plain fallback for the rest), api.ts (ops, undo, saves in

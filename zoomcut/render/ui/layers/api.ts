@@ -6,6 +6,30 @@ import { apply, inverse } from '../../src/layers/ops.js';
 export type View = { project: any; urls: Record<string, string>; stems: any[]; output: string | null; outputStale: boolean; job: any };
 export type Send = (ops: any[], opts?: { commit?: boolean; label?: string; channel?: string }) => void;
 
+// the ops that turn one version of the project into another (a builder's change on the server, made undoable):
+// top-level fields, then each layer (added / removed / replaced / moved), then the assets. Checked: if applying them
+// doesn't give exactly `to`, null (no undo step rather than a wrong one).
+const strip = (p: any) => { const { rev, saved, ...rest } = p || {}; return JSON.stringify(rest); };  // (rev / saved: the server's own stamps)
+export function diffOps(from: any, to: any): any[] | null {
+  const same = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
+  const ops: any[] = [];
+  const set: any = {};
+  for (const k of new Set([...Object.keys(from), ...Object.keys(to)])) if (!['layers', 'assets', 'rev', 'saved'].includes(k) && !same(from[k], to[k])) set[k] = to[k] ?? null;
+  let cur = from;
+  if (Object.keys(set).length) { ops.push({ op: 'project', set }); cur = apply(cur, ops); }  // (a new duration re-pins items: the layers are compared after it)
+  const want = new Map((to.layers || []).map((l: any) => [l.id, l]));
+  for (const l of cur.layers || []) if (!want.has(l.id)) ops.push({ op: 'layer.remove', id: l.id });
+  const has = new Map((cur.layers || []).map((l: any) => [l.id, l]));
+  (to.layers || []).forEach((l: any, i: number) => {
+    if (!has.has(l.id)) ops.push({ op: 'layer.add', layer: l, index: i });
+    else if (!same(has.get(l.id), l)) ops.push({ op: 'layer.replace', layer: l });
+  });
+  (to.layers || []).forEach((l: any, i: number) => ops.push({ op: 'layer.move', id: l.id, index: i }));
+  for (const [id, a] of Object.entries(to.assets || {})) if (!same(cur.assets?.[id], a)) ops.push({ op: 'asset.add', id, asset: a });
+  for (const id of Object.keys(cur.assets || {})) if (!(to.assets || {})[id]) ops.push({ op: 'asset.remove', id });
+  try { return strip(apply(from, ops)) === strip(to) ? ops : null; } catch { return null; }
+}
+
 const post = async (url: string, body: any) => {
   const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   return { ok: r.ok, status: r.status, json: await r.json().catch(() => ({})) };
@@ -80,6 +104,15 @@ export function useLayered(ep: string) {
     setRedo(redo.slice(0, -1)); setUndo([...undo, c]);
     setView({ ...view, project: apply(view.project, c.ops) }); save(c.ops);
   };
+  // a change a builder made on the server (a cut re-made from the take, a line fix): already saved and loaded - it
+  // only goes on the undo list, as the ops between the version before it and now
+  const record = (before: any, after: any, label = 'edit') => {
+    if (!before || !after || strip(before) === strip(after)) return;
+    const ops = diffOps(before, after), inv = diffOps(after, before);
+    if (!ops || !inv) return;
+    setUndo((u) => [...u.slice(-199), { ops, inv, label }]);
+    setRedo([]);
+  };
   // what the preview shows: the saved project + the draft being dragged
   const live = useMemo(() => {
     if (!view) return null;
@@ -87,7 +120,7 @@ export function useLayered(ep: string) {
     if (!all.length) return view.project;
     try { return apply(view.project, all); } catch { return view.project; }
   }, [view?.project, drafts]);
-  return { view, live, send, load, undo: doUndo, redo: doRedo, canUndo: !!undo.length, canRedo: !!redo.length, error, setError, saving: saving > 0 };
+  return { view, live, send, load, record, undo: doUndo, redo: doRedo, canUndo: !!undo.length, canRedo: !!redo.length, error, setError, saving: saving > 0 };
 }
 
 export const upload = async (ep: string, file: File) => {
