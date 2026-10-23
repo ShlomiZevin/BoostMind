@@ -70,6 +70,13 @@
 - An `.ogg` voice note's filtered copies are written next to it (`<file>.<filters>.wav`) - keep notes in the project's
   media/, never in Downloads.
 - Report to the fleet board when asked (alias `video-editing`).
+- **episode.json overlays: write them in time order, and never reorder them after the first Analyze** (tadar-6,
+  2026-10-23). Words are matched in list order (each searches after the previous one's hit - an overlay listed after a
+  later one is "not heard"), and the solo builder names its layers by list position (`ov.<k>`); a rebuild keeps each
+  layer's old kind, so a reorder turned a text into an empty picture layer. Fix a wrong one with ops
+  (`layer.remove ov.<k>`, then Analyze makes it fresh), not by shuffling the list.
+- The one-camera project starts at speed 1 - set the series speed with `{"op": "project", "set": {"speed": 1.3}}`
+  and check it before any export. Put the end card ABOVE the subtitles (`layer.move subs` below it).
 - A picture you make for a video (poster, sticker, portrait) only shows in the editor's Media tab when its path is
   in episode.json `"media"` - add it there whenever you drop a file in `media/` or `_assets/`.
 - Run lesson.py with `.venv/Scripts/python` (system python lacks rapidfuzz: `--still` fails silently in a loop and

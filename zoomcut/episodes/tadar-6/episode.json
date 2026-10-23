@@ -2,8 +2,8 @@
   "type": "lesson",
   "series": "tadar",
   "title": "איילת השחר – בחירות ובחירה חופשית (spiritual-4)",
-  "input_dir": "C:/Users/shazbak/Downloads/תדר/4",
-  "takes": "*.[mM][pPoO][4vV]",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/Ayelet",
+  "takes": "586D1398-5BD0-45C2-A2B7-DC5C2945A405.mp4",
   "background": "../_assets/tadar/studio.jpg",
   "plaque": [],
   "music": {
@@ -121,7 +121,9 @@
       "to_words": [
         "כבר עשתה עבורנו",
         "עשתה עבורנו"
-      ]
+      ],
+      "start": 1.36,
+      "end": 8.86
     },
     {
       "style": "image",
@@ -142,7 +144,9 @@
         "בכלל לבחור",
         "מה זה בכלל"
       ],
-      "mid_card": true
+      "mid_card": true,
+      "start": 8.72,
+      "end": 12.54
     },
     {
       "style": "image",
@@ -162,7 +166,9 @@
       "to_words": [
         "מכל שבטיכם",
         "שבטיכם"
-      ]
+      ],
+      "start": 12.86,
+      "end": 16.54
     },
     {
       "text": "אשר יבחר אדושם אלוהיכם\nמכל שבטיכם\n(דברים י״ב, ה׳)",
@@ -180,7 +186,9 @@
       "to_words": [
         "מכל שבטיכם",
         "שבטיכם"
-      ]
+      ],
+      "start": 12.86,
+      "end": 16.54
     },
     {
       "style": "image",
@@ -200,7 +208,9 @@
       "to_words": [
         "לחופש הזה",
         "זקוק לחופש"
-      ]
+      ],
+      "start": 19.04,
+      "end": 26.34
     },
     {
       "style": "image",
@@ -220,7 +230,9 @@
       "to_words": [
         "שעדיין לא התרחש",
         "לא התרחש"
-      ]
+      ],
+      "start": 30.74,
+      "end": 42.32
     },
     {
       "style": "image",
@@ -240,7 +252,9 @@
       "to_words": [
         "להשתחרר מהבחירה",
         "מהבחירה"
-      ]
+      ],
+      "start": 43.28,
+      "end": 53.2
     },
     {
       "text": "✨ לקביעת טיפול אצלי ✨\nהלינק בביו ⬆️",
@@ -252,13 +266,15 @@
       "size": 60,
       "blink": true,
       "from_words": [
-        "וזה לא במקרה",
-        "לא במקרה שהמילה"
+        "שהמילה בחירות",
+        "המילה בחירות"
       ],
       "to_words": [
         "פשוט נזכרות",
         "נזכרות במה"
-      ]
+      ],
+      "start": 43.28,
+      "end": 59.16
     },
     {
       "style": "image",
@@ -278,7 +294,9 @@
       "to_words": [
         "פשוט נזכרות",
         "אנחנו פשוט"
-      ]
+      ],
+      "start": 53.28,
+      "end": 59.16
     },
     {
       "style": "image",
@@ -294,7 +312,23 @@
       "from_words": [
         "פשוט נזכרות",
         "נזכרות במה"
-      ]
+      ],
+      "start": 57.54,
+      "end": 65.13
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 64.63,
+      "end": null,
+      "fade_in": 0.5,
+      "text": "",
+      "end_black": true
     }
   ],
   "sign": {
@@ -321,5 +355,13 @@
     "warm": 0.15,
     "shadow": 0.35
   },
-  "_todo": "After Analyze: (1) re-takes that overlap -> sequence {take,to} cut before the line the next take repeats; (2) end-card hold: inserts [{take:<last>, at:<just before its last piece ends>, seconds:3, end_card:true}]; (3) end fade: image overlay ../_assets/black.png full frame, start = total-0.5, fade_in 0.5, end_black:true; (4) check every from_words overlay was heard (log 'overlay words not heard'); the hook text is a draft."
+  "_todo": "done after Analyze: end-card hold, end fade, CTA words. Hook text is a draft.",
+  "inserts": [
+    {
+      "take": "586D1398-5BD0-45C2-A2B7-DC5C2945A405",
+      "at": 66.4,
+      "seconds": 3.0,
+      "end_card": true
+    }
+  ]
 }
