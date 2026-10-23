@@ -26,6 +26,9 @@ select { appearance: none; -webkit-appearance: none; }
 .btn:active { opacity: .8; }
 .btn.go { width: 100%; height: 58px; margin-top: 14px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 17px; font-weight: 700; }
 .btn[disabled] { opacity: .4; }
+.gos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gos .btn.go.alt { background: var(--panel-2); border-color: var(--edge-2); }
+@media (min-width: 900px) { .gos { grid-template-columns: 1fr; } #rec { display: none; } }  /* (a computer has no front camera to film with) */
 .hint { color: var(--faint); font-size: 13px; margin: 8px 2px 0; }
 /* the files about to go up: a name each */
 .p { padding: 10px 12px; background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; margin-bottom: 8px; }
@@ -107,7 +110,8 @@ a.btn-dl { text-decoration: none; }
     <div class="sec" id="curTitle" style="display:none"></div>
 
     <input type="file" id="files" multiple hidden>  <!-- (no accept="": iOS gives the original file, not a "compatible" copy) -->
-    <button class="btn go" id="pick">Choose videos</button>
+    <input type="file" id="cam" accept="video/*" capture="user" hidden>  <!-- the phone's own camera, front lens -->
+    <div class="gos"><button class="btn go" id="rec">● Record myself</button><button class="btn go alt" id="pick">Choose videos</button></div>
     <p class="hint">The size under each file should match the size in Photos (swipe up on the video) - the studio checks every file that arrives.</p>
 
     <div id="pendBox" style="display:none">
@@ -274,6 +278,23 @@ $('chips').onclick = (e) => {
 // ---- choose → name → upload ----
 let pend = [];
 $('pick').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('files').click(); };
+// Record myself: the phone's camera opens on the front lens; the take goes straight up to this project, no naming
+// step (named rec-<time>, so takes sort in the order they were filmed - rename it in the list if you like)
+$('rec').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('cam').click(); };
+$('cam').onchange = () => {
+  const file = $('cam').files[0];
+  $('cam').value = '';
+  if (!file || !cur) return;
+  const ext = (splitExt(file.name)[1] || (file.type.includes('mp4') ? '.mp4' : '.mov')).toLowerCase();
+  const d = new Date(), pad = (n) => String(n).padStart(2, '0');
+  const taken = new Set([...(curFolder()?.files || []).map((f) => f.name), ...queue.filter((q) => q.folder === cur).map((q) => q.name)]);
+  let n = `rec-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${ext}`, k = 2;
+  while (taken.has(n)) n = `rec-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${k++}${ext}`;
+  const q = { file, folder: cur, name: n, sent: 0, state: 'waiting', el: row1(n, file) };
+  queue.push(q);
+  frameOf(URL.createObjectURL(file)).then((t) => { if (t) q.thumb = t; });  // (its picture, while it uploads)
+  draw(); run();
+};
 $('files').onchange = () => {
   for (const file of $('files').files) pend.push({ file, name: cleanName(splitExt(file.name)[0]) || 'video', url: URL.createObjectURL(file) });
   thumbs();
