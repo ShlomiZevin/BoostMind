@@ -21,7 +21,8 @@ One format, one composition, one editor, one export. The format and the API: `la
   The editor plays it in a Player; the export draws its graphics with it (mode "graphics", frameMap).
 - **Editor**: `render/ui/layers/` - LayersEditor (shell, routed from editor.tsx when /api/ep says `layered`), Timeline
   (lane per layer, grouped; drag / trim = ops, live while dragging; Ctrl+wheel zooms around the mouse, Alt / Shift+wheel
-  scrolls sideways - a native non-passive listener), Media (assets, upload, + timeline; a file's
+  scrolls sideways - a native non-passive listener; a caption's or a text's edge / move changes ONLY that item - never its
+  line's picture / voice, nothing ripples - his rule; LayersEditor.onItemEdit hands those to the plain edit), Media (assets, upload, + timeline; a file's
   picture opens it big - VideoPeek: plays / shows it, Use / Don't use + a note, + Timeline - the list itself never
   changes layout, more options go in that window), Inspector
   (project panel, `inspect/*` per kind by boostmind-31, a plain fallback for the rest), api.ts (ops, undo, saves in

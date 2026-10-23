@@ -153,6 +153,9 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   };
   const onItemEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number): boolean | 'keep' => {
     if (l.owner !== 'builder' || !it.ref) return false;  // a layer of his own: the plain edit is the edit
+    // a caption or a text: its own length / place only - not its line's picture and voice, nothing after it moves
+    // (his rule, 2026-10-23); the plain edit is kept as his (user: true) through rebuilds
+    if (l.kind === 'subtitles' || l.kind === 'text') return false;
     const live = liveEdit(l, it, side, d);
     L.send([], { commit: false });  // (the drag's own draft goes - the live edit below shows it)
     pending.current = [...pending.current, ...live];

@@ -22,7 +22,7 @@
 /* a layer's row */
 .ltl-lay .ltl-name { padding-left: 28px; color: var(--dim); cursor: pointer; transition: background .15s, color .15s; }
 .ltl-lay .ltl-name:hover { background: var(--panel-3); color: var(--text); }
-.ltl-lay.sel .ltl-name { background: var(--accent-soft); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+.ltl-lay.sel .ltl-name { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }  /* (solid: the lane's blocks scroll under the names) */
 .ltl-lay.sel .ltl-track { background: rgba(255, 107, 87, 0.05); }
 .ltl-lay .dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
 /* the playhead runs under the names column (it scrolls with the lanes) */
