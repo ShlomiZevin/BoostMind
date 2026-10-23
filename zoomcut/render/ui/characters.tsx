@@ -1,9 +1,11 @@
 // The Characters page - his multiverse: every recurring character, who they are, how they look and sound, how fast
 // they talk (the Reader's measured pace, kept up to date by it), their website, their videos and their assets.
-// "Copy brief for a session" puts the whole profile on the clipboard - to brief a session working on a character.
+// "Copy profile for a session" puts the character's profile on the clipboard (character_profile.js) - paste it into a
+// session, then say what we write.
 // Data: render/characters.mjs (zoomcut/characters/<id>/character.json). Opens in the studio's left rail.
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { profileText } from './character_profile.js';
 
 type Ch = any;
 const api = async (u: string, body?: any) => (await fetch(u, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : undefined)).json();
@@ -68,23 +70,12 @@ function Gallery({ data, open, reload }: { data: { characters: Ch[]; worlds: any
   </div>;
 }
 
-/** The profile as text, for a session that writes or edits for this character. */
-function briefText(c: Ch) {
-  const L = (t: string, v: any) => (v && (!Array.isArray(v) || v.length) ? `## ${t}\n${Array.isArray(v) ? v.map((x) => `- ${typeof x === 'string' ? x : JSON.stringify(x)}`).join('\n') : v}\n` : '');
-  return [`# ${c.name}${c.name_en ? ` (${c.name_en})` : ''} - ${c.role || ''}`, c.world ? `World: ${c.world}` : '', c.tier ? `(${c.tier})` : '', '',
-    L('Who', c.brief), L('Personality', c.personality), L('Catchphrases', c.catchphrases), L('Look', c.look),
-    L('Voice', [c.voice?.preset && `preset: ${c.voice.preset}`, c.voice?.notes].filter(Boolean).join(' - ')),
-    L('Pace', c.pace?.wpm ? `${c.pace.wpm} words per minute (measured in the Reader${c.pace.script ? `, ${c.pace.script}` : ''})` : ''),
-    L('Writing rules', c.writing_rules), L('Relations', (c.relations || []).map((r: any) => `${r.id}: ${r.relation}`)),
-    L('Website', c.site?.url ? `${c.site.url}${c.site.notes ? ` - ${c.site.notes}` : ''}` : ''), L('Videos', (c.videos || []).map((v: any) => `${v.title} (${v.id})`)),
-  ].filter(Boolean).join('\n');
-}
-
 function Profile({ id, all, back, open, reload }: { id: string; all: Ch[]; back: () => void; open: (id: string) => void; reload: () => void }) {
   const [c, setC] = useState<Ch | null>(null);
   const [edit, setEdit] = useState(false);
   const [draft, setDraft] = useState<any>({});
   const [toast, setToast] = useState('');
+  const [show, setShow] = useState(false);  // (the profile text, to read before copying)
   const load = () => api(`/api/characters/${id}`).then(setC);
   // the pace follows the Reader: read again when this page comes back into view, and every 10 s while it is shown
   useEffect(() => { load(); const t = setInterval(() => { if (!document.hidden) load(); }, 10000); const f = () => load(); addEventListener('focus', f);
@@ -104,7 +95,7 @@ function Profile({ id, all, back, open, reload }: { id: string; all: Ch[]; back:
   };
   const F = (k: string, ta = false) => (ta ? <textarea className={isHe(draft[k]) ? 'he' : ''} value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />
     : <input className={isHe(draft[k]) ? 'he' : ''} value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />);
-  const copy = async () => { try { await navigator.clipboard.writeText(briefText(c)); setToast('The brief is on the clipboard'); } catch { setToast('Could not copy'); } };
+  const copy = async () => { try { await navigator.clipboard.writeText(profileText(c, all)); setToast('The profile is copied - paste it into the session, then say what we write'); } catch { setToast('Could not copy'); } };
   const openVideo = (ep: string) => { try { sessionStorage.setItem('zc-ep', ep); localStorage.setItem('zc-ep', ep); } catch {} if (parent !== window) parent.location.hash = 'video'; else location.href = '/'; };
   const groups: [string, string][] = [['portraits', 'Portraits'], ['backgrounds', 'Backgrounds'], ['logos', 'Logos'], ['other', 'Other']];
   const he = isHe(c.name);
@@ -125,7 +116,8 @@ function Profile({ id, all, back, open, reload }: { id: string; all: Ch[]; back:
           {([['main', 'Main'], ['sidekick', 'Sidekick'], ['npc', 'NPC']] as const).map(([t, l]) => (
             <button key={t} className={(c.tier || 'main') === t ? 'on' : ''} onClick={() => save({ tier: t === 'main' ? null : t })}>{l}</button>))}
         </div>
-        <button className="cp-btn primary" onClick={copy}>Copy brief for a session</button>
+        <button className="cp-btn primary" onClick={copy}>Copy profile for a session</button>
+        <button className="cp-btn" onClick={() => setShow(true)}>See the profile</button>
         {c.site?.url && <a className="cp-btn" href={c.site.url} target="_blank" rel="noreferrer">Open {he ? 'the' : 'their'} website ↗</a>}
         {edit ? <div className="cp-row"><button className="cp-btn primary" style={{ flex: 1 }} onClick={commit}>Save</button><button className="cp-btn" style={{ flex: 1 }} onClick={() => setEdit(false)}>Cancel</button></div>
           : <button className="cp-btn" onClick={startEdit}>Edit profile</button>}
@@ -173,6 +165,13 @@ function Profile({ id, all, back, open, reload }: { id: string; all: Ch[]; back:
       </div>
     </div>
     {toast && <div className="cp-toast">{toast}</div>}
+    {show && <div className="cp-modal" onClick={() => setShow(false)}>
+      <div className="cp-modal-in" onClick={(e) => e.stopPropagation()}>
+        <div className="cp-row" style={{ justifyContent: 'space-between', marginBottom: 10 }}><b>The profile a session gets</b>
+          <span className="cp-row"><button className="cp-btn primary" style={{ padding: '0 14px' }} onClick={copy}>Copy</button>
+            <button className="cp-btn" style={{ padding: '0 14px' }} onClick={() => setShow(false)}>Close</button></span></div>
+        <pre className="cp-pre" dir="auto">{profileText(c, all)}</pre>
+      </div></div>}
   </div>;
 }
 

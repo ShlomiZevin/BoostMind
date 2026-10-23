@@ -261,6 +261,10 @@ their videos and their assets. It's where he learns about them and briefs a sess
     one camera: the series' character). Check it, and add a guest character by hand.
   - Use the profile when writing for the character: the catchphrases, the writing rules (e.g. Yotam speaks in the first
     person; the sites never say parody) and the relations.
+- **Writing for a character:** read `zoomcut/characters/<id>/profile.md` first. It's the same text as the page's "Copy
+  profile for a session": who they are, what they do, how they talk (and their pace), what's funny about them, the
+  rules, the people around them, and what their videos already did. After changing a profile, run
+  `node zoomcut/tools/character_profiles.mjs` so the files match (the page always builds it live).
 - **Pace** comes from the Reader by itself. Measuring a character (⏱ by the name) or typing their pace updates the
   profile. The name must match the character's `name` / `aka`.
 - After a video is done, add anything new you learned about the character to their profile (a new catchphrase, a
