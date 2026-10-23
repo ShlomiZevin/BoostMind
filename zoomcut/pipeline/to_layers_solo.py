@@ -495,7 +495,7 @@ def _build(ls, sync=True):
 
     new = {"format": projectlib.FORMAT, "title": cfg.get("title") or ls.slug, "canvas": {"w": W, "h": H, "fps": FPS, "color": "#000000"},
            "duration": total, "speed": float(cfg.get("speed", 1.0)), "assets": assets, "layers": layers,
-           "builder": {"kind": "solo", "from": "lesson.py"}, "edit": {"ripple": True}}
+           "builder": {"kind": "solo", "from": "lesson.py"}, "edit": {"ripple": True}, "characters": characters_of(ls)}
 
     class Ep:  # (project.py reads / writes through the folder helpers)
         dir = ls.dir
@@ -544,6 +544,28 @@ def link_at(pic, f):
         if it.get("link") and it["from"] <= f < it["from"] + it["dur"]:
             return it["link"]
     return None
+
+
+def characters_of(ls):
+    """Who is in this video (zoomcut/characters - the Characters page): episode.json "characters" if he set it, else
+    the characters whose profile lists this video, else those of the earlier videos of the same series."""
+    if ls.cfg.get("characters"):
+        return list(ls.cfg["characters"])
+    reg = os.path.join(ROOT, "characters")
+    if not os.path.isdir(reg):
+        return []
+    series_of = lambda ep: (L.load_json(os.path.join(ROOT, "episodes", ep, "episode.json"), {}) or {}).get("series")
+    mine, same = [], []
+    for cid in sorted(os.listdir(reg)):
+        c = L.load_json(os.path.join(reg, cid, "character.json"), None)
+        if not c:  # (NPCs too: out of the main gallery, still in the videos they are in)
+            continue
+        vids = c.get("videos") or []
+        if ls.slug in vids:
+            mine.append(cid)
+        elif ls.cfg.get("series") and any(series_of(v) == ls.cfg["series"] for v in vids):
+            same.append(cid)
+    return mine or same
 
 
 def overlay_layers(ls, assets, rel, total):
