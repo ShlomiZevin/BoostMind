@@ -9,6 +9,19 @@
   "world": "קהילת שערי בג״ץ",
   "role": "אשתו של הרב דמוקרטוביץ",
   "brief": "הרבנית מתקשרת לרב באמצע השיעור כדי לספר שהתפרסם סקר. שומעים אותה רק כמלמול בטלפון, והרב מנתק (\"לא מכניסים הביתה סקרים של...\").",
+  "speech": [
+    "שומעים אותה רק כמלמול בטלפון, בלי מילים ברורות; מה שאמרה עולה מהתשובות של הרב (\"נו?\", \"אז התפרסם סקר\", \"כמה? שישים ושלושה?\")."
+  ],
+  "behavior": [
+    "מתקשרת לרב באמצע השיעור כדי לבשר על סקר חדש.",
+    "מכניסה הביתה סקרים שהרב כבר פסל (\"כמה פעמים אמרתי לך...\")."
+  ],
+  "comedy": [
+    "שיחת טלפון ביתית וקטנה קוטעת שיעור חגיגי על \"הימים הנוראים\", והרב מנתק לה \"ביי ביי ביי ביי ביי\" וחוזר לפלפול."
+  ],
+  "themes": [
+    "מתקשרת עם סקר של 63 באמצע השיעור על הבחירות (demokratovich-elections)"
+  ],
   "look": "לא נראית - קול בטלפון בלבד.",
   "voice": {
     "notes": "wife-call.mp3, \"phone\": true, pitch 1.2, gain 0.5, מתחת לרב אחרי צלצול phone-ring3.mp3. אותו מלמול שימש אחר כך לסיגל (gym-1)."
@@ -35,5 +48,6 @@
     "c:/workspace/BoostMind/zoomcut/episodes/demokratovich-elections/captions.txt",
     "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
     "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md"
-  ]
+  ],
+  "tier": "npc"
 }

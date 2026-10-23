@@ -21,6 +21,31 @@
     "The only role left for Homo sapiens will be to stand next to the router and check if there is an Internet connection.",
     "Or super intelligence, as Elon calls it."
   ],
+  "speech": [
+    "נואם באנגלית, חגיגית ונבואית, במשפטים ארוכים ומאוזנים של סופר-הוגה: \"For over 70,000 years...\", \"But what happens when creation itself no longer needs us?\".",
+    "שאלה רטורית גדולה ואחריה תחזית בטון מדוד (\"We may discover that within 10 years...\") שנוחתת על פרט טכני יומיומי - הראוטר, החיבור לאינטרנט.",
+    "שם-דרופינג קליל באמצע משפט: \"or super intelligence, as Elon calls it\".",
+    "הוא מחקה קולות גבוהים (בעריכה: סליידר Voice Pitch)."
+  ],
+  "behavior": [
+    "נואם מרכזי בכנס AI שמשיק ספר חדש: WORLD PREMIERE, ספר ענק ו-QR על המסך מאחוריו.",
+    "בכל כנס מקדם \"עוד ספר חדש\" (ה-hook: \"יובל (כסא) נוח הררי בעוד כנס AI, מקדם עוד ספר חדש שלו\").",
+    "מנבא את סוף הרלוונטיות של האדם מול ה-AI, ומקבל התנשפויות ומחיאות כפיים.",
+    "באתר: הספר Homo Useless - A Brief History of Human Irrelevance, \"ארבע מהפכות. ראוטר אחד\"; ספר מוקלט בקול AI של המחבר (\"The author was not needed\")."
+  ],
+  "comedy": [
+    "הפאתוס של הוגה עולמי ו-70,000 שנות היסטוריה - והנבואה הגדולה נגמרת בבן אדם שעומד ליד הראוטר; ואפילו את זה ה-AI יעשה טוב יותר.",
+    "הקהל מעריץ ולא צוחק - הפער בין ההתפעלות לבנאליות הוא הבדיחה."
+  ],
+  "themes": [
+    "השקת Homo Useless בכנס AI: 70,000 שנה, \"what happens when creation itself no longer needs us\", הראוטר, \"as Elon calls it\" (yuval-1)",
+    "דף ההוצאה: \"The next stage of human evolution is technical support\", תוכן עניינים (The Router as a Sacred Object, Have You Tried Turning It Off and On Again?), ביקורות של מודל שפה ושל ראוטר, הזמנה מוקדמת שה-AI קורא במקומך (site: homo-useless)"
+  ],
+  "dont": [
+    "אף פעם לא השם של האדם האמיתי - רק Yuval Know All Harari / \"יובל (כסא) נוח הררי\".",
+    "בלי שמות של ספרים אמיתיים (Sapiens / Homo Deus) ובלי \"פרודיה\".",
+    "הקהל לא צוחק ולא נאנח \"אוהה\" - רק התפעלות."
+  ],
   "look": "קירח, משקפיים, חולצה כהה ומיקרופון דש, על במת כנס (WORLD PREMIERE, ספר וקוד QR על המסך מאחוריו).",
   "voice": {
     "preset": "stage",
