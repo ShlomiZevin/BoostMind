@@ -113,6 +113,22 @@ dialog textarea::-webkit-scrollbar { width: 10px; }
 dialog textarea::-webkit-scrollbar-thumb { background: var(--panel-3, #3a3836); border-radius: 10px; border: 2px solid var(--panel-2); }
 dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
 @media (max-width: 640px) { .script { padding: 20vh 10px 60vh; } }
+/* Print: the script on paper - white, every line with its speaker, your lines marked; nothing of the prompter */
+#printpage { display: none; }
+@media print {
+  @page { margin: 16mm 14mm; }
+  html, body { background: #fff !important; color: #000; }
+  body > *:not(#printpage) { display: none !important; }
+  #printpage { display: block; direction: rtl; font: 12.5pt/1.55 Assistant, Inter, sans-serif; color: #000; }
+  #printpage h1 { font-size: 18pt; margin: 0 0 2pt; }
+  #printpage .pm { color: #555; font-size: 10pt; margin-bottom: 14pt; }
+  #printpage .pl { display: grid; grid-template-columns: 26mm 1fr; gap: 0 4mm; padding: 3pt 2.5mm 3pt 0; border-right: 2.5pt solid transparent; break-inside: avoid; }
+  #printpage .pw { font-weight: 700; }
+  #printpage .pl.me { border-right-color: #000; }
+  #printpage .pl.me .pt { font-weight: 700; }
+  #printpage .pl.solo { grid-template-columns: 1fr; }
+  #printpage .pd { color: #555; font-style: italic; padding: 3pt 2.5mm 3pt 0; border-right: 2.5pt solid transparent; break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -122,6 +138,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <select id="ep" title="Project" data-picker="project" data-label="Project"></select>
   <button class="btn" id="paste" title="Paste a script">Paste</button>
   <button class="btn" id="copy" title="Copy the whole script (names and lines, as written)">Copy</button>
+  <button class="btn" id="print" title="Print the script: every line with who says it; the character you play is marked">Print</button>
   <div class="grow"></div>
   <button class="btn play" id="play" title="Play / pause (Space)">▶ Play</button>
   <select id="cd" title="Countdown before it starts"><option value="0">⏱ No countdown</option><option value="3">⏱ 3 s</option><option value="5">⏱ 5 s</option><option value="10">⏱ 10 s</option></select>
@@ -502,6 +519,20 @@ $('copy').onclick = async () => {
   catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
   $('copy').textContent = '✓ Copied';
   setTimeout(() => ($('copy').textContent = 'Copy'), 1500);
+};
+// Print: a clean page of the script (built fresh each time, so it is always the script on screen)
+$('print').onclick = () => {
+  if (!lines.length) return;
+  const sel = $('ep'), opt = sel?.selectedOptions?.[0]?.textContent?.trim() || '';
+  const title = /[\p{L}\d]/u.test(opt) ? opt : 'תסריט';  // (a pasted script with no project: the picker shows a dash)
+  let pg = document.getElementById('printpage');
+  if (!pg) { pg = document.createElement('div'); pg.id = 'printpage'; document.body.appendChild(pg); }
+  const meta = [solo ? `${lines.filter((l) => !l.dir).length} שורות` : chars.join(' · '), me ? `אני משחק את: ${me}` : ''].filter(Boolean).join('  ·  ');
+  pg.innerHTML = `<h1>${esc(title)}</h1><div class="pm">${esc(meta)}</div>` + lines.map((l) => l.dir
+    ? `<div class="pd">[${esc(l.text)}]</div>`
+    : l.solo || !l.who ? `<div class="pl solo"><div class="pt">${esc(l.text)}</div></div>`
+    : `<div class="pl${me && l.who === me ? ' me' : ''}"><div class="pw">${esc(l.who)}</div><div class="pt">${esc(l.text)}</div></div>`).join('');
+  window.print();
 };
 $('use').onclick = async () => {
   const t = $('txt').value, name = $('nm').value.trim();
