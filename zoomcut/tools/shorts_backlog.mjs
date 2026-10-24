@@ -44,10 +44,11 @@ const releaseAt = (i) => new Date(Date.UTC(2026, 9, 25 + i, 17, 0, 0)).toISOStri
 
 const plan = fs.existsSync(PLAN) ? JSON.parse(fs.readFileSync(PLAN, 'utf8')) : {};
 const save = () => { fs.mkdirSync(path.dirname(PLAN), { recursive: true }); fs.writeFileSync(PLAN, JSON.stringify(plan, null, 2)); };
-const items = VIDEOS.map(([id, title, tags], i) => ({ id, title, description: `${tags} #Shorts\n\n${LINKS}`, publishAt: releaseAt(i), file: path.join(EPS, id, 'out', `${id}.mp4`) }));
+const items = VIDEOS.map(([id, title, tags], i) => ({ id, title, description: `${tags} #Shorts\n\n${LINKS}`, publishAt: plan[id]?.publishAt && plan[id].publishAt !== 'now' ? plan[id].publishAt : releaseAt(i), file: path.join(EPS, id, 'out', `${id}.mp4`) }));
 for (const it of items) {
   if (!fs.existsSync(it.file)) throw new Error('missing ' + it.file);
-  plan[it.id] = { ...(plan[it.id] || {}), title: it.title, publishAt: it.publishAt };
+  // (a date already in the plan wins - a schedule moved by a reschedule stays)
+  plan[it.id] = { ...(plan[it.id] || {}), title: it.title, publishAt: plan[it.id]?.publishAt || it.publishAt };
 }
 save();
 if (DRY) { for (const it of items) console.log(it.publishAt, '|', it.id, '|', it.title, '|', plan[it.id].videoId ? 'UP ' + plan[it.id].videoId : 'to upload'); process.exit(0); }

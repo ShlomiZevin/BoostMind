@@ -9,7 +9,8 @@
 //   TikTok     to his TikTok DRAFTS (an unaudited app can't post publicly): he adds a sound and posts in the app. The
 //              API takes no caption for a draft - the caption comes to his Telegram, ready to copy into TikTok
 //   YouTube    a Short (vertical, up to 3 min), public / unlisted / private
-//   Facebook   no app can post to a personal profile: Instagram's own "Share to Facebook" button does it
+//   Facebook   no app can post to a personal profile: Instagram's own "Share to Facebook" button does it - picked,
+//              it sends him a Telegram once the Instagram Reel is up (its link + the step), he shares it himself
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -193,9 +194,15 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     },
 
     facebook: {
-      name: 'Facebook', what: 'Reel', manual: true,
-      connected: () => ({ ok: false, note: 'On the Instagram Reel, tap "Share to Facebook"' }),
+      name: 'Facebook', what: 'Reel',
+      connected: () => ({ ok: true, note: 'a Telegram reminder - you share the Instagram Reel to Facebook' }),
       limits: {},
+      async publish(file, post, log, items) {  // (runs after Instagram - ORDER)
+        const ig = items?.instagram;
+        if (!ig || ig.state !== 'done' || !ig.url) throw new Error('Instagram didn\'t go out - nothing to share to Facebook');
+        await sendTelegramText(`Your Instagram Reel is up ✓\n${ig.url}\n\nNow Facebook: open it in Instagram → ⋯ → "Share to Facebook"`);
+        return { url: ig.url, note: 'Telegram reminder sent - share the Reel to Facebook from Instagram' };
+      },
     },
   };
   const ORDER = ['instagram', 'tiktok', 'youtube', 'x', 'facebook'];
@@ -208,6 +215,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
     const file = master(id);
+    post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)) };  // (Instagram before Facebook's reminder)
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
     (async () => {
       for (const p of post.platforms) {  // one after the other - his upload line, and each one's progress reads clearly
@@ -217,7 +225,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
         it.state = 'publishing';
         try {
           // (dry: everything but the platform call - a test of the path, nothing goes out)
-          const res = dry ? (log('dry run - nothing sent'), await sleep(300), { url: null, note: `dry run: ${path.basename(file)} → ${A.name}` }) : await A.publish(file, post, log);
+          const res = dry ? (log('dry run - nothing sent'), await sleep(300), { url: null, note: `dry run: ${path.basename(file)} → ${A.name}` }) : await A.publish(file, post, log, r.items);
           Object.assign(it, { state: 'done', url: res.url || null, note: res.note || '' });
         } catch (e) { Object.assign(it, { state: 'failed', error: String(e.message || e).slice(0, 300) }); }
         if (!dry) recordJob({ id, kind: 'publish', channel: p, started: r.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });

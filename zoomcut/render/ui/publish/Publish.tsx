@@ -28,6 +28,7 @@ const VIS: Record<string, (o: any) => string> = {
   tiktok: () => 'your DRAFTS (private until you post it)',
   youtube: (o) => (['public', 'unlisted', 'private'].includes(o.youtube?.privacy) ? o.youtube.privacy.toUpperCase() : 'PRIVATE'),
   x: () => 'PUBLIC',
+  facebook: () => 'a Telegram reminder - you share the Instagram Reel',
 };
 export const Mark = ({ id, size = 34 }: { id: string; size?: number }) => {
   const b = BRAND[id] || { bg: 'var(--panel-3)', fg: 'var(--text)', mark: null };
@@ -152,6 +153,7 @@ export function PublishWindow({ ep, mode, output, stale, onExport, onClose }: {
                   {sel && !run && p.id === 'x' && (
                     <div className="pb-opt"><textarea className="pb-in he" dir="auto" rows={2} value={opt.x?.text ?? ''} placeholder={`Its own text (empty = the caption${caption.length > 280 ? ', cut at 280' : ''})`}
                       onChange={(e) => setOpt({ ...opt, x: { text: e.target.value } })} /></div>)}
+                  {sel && !run && p.id === 'facebook' && !on.instagram && <div className="pb-warn">Needs Instagram on - the reminder shares that Reel</div>}
                   {sel && !run && warn(p).map((w) => <div key={w} className="pb-warn">{w}</div>)}
                   {it && (it.state === 'publishing' || it.state === 'waiting') && <div className="pb-log">{it.log.at(-1) || (it.state === 'waiting' ? 'waiting for its turn' : 'starting…')}</div>}
                   {it?.state === 'done' && <div className="pb-done">{it.url ? <a href={it.url} target="_blank" rel="noreferrer">Open the {p.what.toLowerCase()} ↗</a> : null}{it.note ? <span>{it.note}</span> : null}</div>}

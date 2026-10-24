@@ -20,7 +20,7 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
 | | Goes to | Caption | Hashtags | Limits / notes |
 |---|---|---|---|---|
 | **Instagram** | Reel - grid + Reels tab (`options.instagram.reelsOnly` for the Reels tab only) | yes, ≤2,200 | in the caption | ≤15 min. @shlomizevin |
-| **Facebook** | his personal profile - **no API can post there** | - | - | he taps "Share to Facebook" on the Instagram Reel |
+| **Facebook** | his personal profile - **no API can post there** | - | - | pick it with Instagram: once the Reel is up the studio sends him a **Telegram reminder** (the Reel link + "⋯ → Share to Facebook") and he shares it |
 | **TikTok** | his **drafts** (sandbox app - public posting would need TikTok's audit) | **not with a draft** - the studio sends the caption to his Telegram to paste | in the pasted caption | ≤10 min. He adds a sound in the app |
 | **YouTube** | Short (vertical, ≤3 min) on @shlomizevin (owned by shlomi@boostart.io) | description = caption (+ #Shorts added) | in the description | title ≤100 (`title`), `options.youtube.privacy` public / unlisted / private. Public uploads are NOT locked (tested). A new upload can sit under Videos for a while before YouTube files it under Shorts. The API can't edit or delete - he does it in Studio |
 | **X** | a post with the video | ≤280 (`options.x.text` = its own text, else the caption cut at 280) | 1-2, inside the 280 | ≤2:20 on a regular account. Waiting for his PIN |
