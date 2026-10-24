@@ -160,6 +160,13 @@ const routes = {
     await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${enc(`${folder}/.thumbs/${name}.jpg`)}`, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: data });
     return { ok: true };
   },
+  // a private link (an hour) to a video the studio staged under _publish/ - Instagram / Facebook download the video
+  // from a web address when the studio publishes it. Nothing public; the studio deletes the file after
+  async publink(b) {
+    const f = String(b.f || '');
+    if (!/^_publish\/[\w.-]+$/.test(f)) throw Object.assign(new Error('f'), { code: 400 });
+    return { url: await signedUrl(f, '') };
+  },
   async rmdir(b) {  // a whole project
     const folder = clean(b.folder, 60);
     if (!folder) throw Object.assign(new Error('folder'), { code: 400 });
