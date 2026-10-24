@@ -5,7 +5,8 @@
 // ends (publish.json afterExport - kept on disk, so a restart in between doesn't lose it).
 //   Instagram  Reels (grid + Reels tab, or Reels tab only); Instagram downloads the video from a private one-hour link
 //              (the Drop's /api/publink on a file staged in the bucket's hidden _publish/ folder, deleted after)
-//   X          a post with the video (chunked upload, OAuth 1.0a for his account) - up to 2:20 on a regular account
+//   X          a post with the video (chunked upload, OAuth 1.0a, his own app 'Sketch Studio' on Pay Per Use - about
+//              1.5 cents a post; links are taken out of the text, a link makes a post cost ~20 cents) - up to 2:20
 //   TikTok     to his TikTok DRAFTS (an unaudited app can't post publicly): he adds a sound and posts in the app. The
 //              API takes no caption for a draft - the caption comes to his Telegram, ready to copy into TikTok
 //   YouTube    a Short (vertical, up to 3 min), public / unlisted / private
@@ -115,7 +116,8 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           const st = await json(await fetch(`${U}?command=STATUS&media_id=${id}`, { headers: { Authorization: auth('GET', U, q) } }));
           info = st.data?.processing_info;
         }
-        const text = (post.options?.x?.text || post.caption || '').slice(0, 280);
+        // (no links: on X's Pay Per Use a post with a URL costs ~13x a plain one - his links page is in his X bio)
+        const text = (post.options?.x?.text || post.caption || '').replace(/https?:\/\/\S+/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 280);
         const t = await json(await fetch('https://api.x.com/2/tweets', { method: 'POST', headers: { Authorization: auth('POST', 'https://api.x.com/2/tweets'), 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, media: { media_ids: [id] } }) }));
         if (!t.data?.id) throw new Error('X post: ' + JSON.stringify(t).slice(0, 200));
