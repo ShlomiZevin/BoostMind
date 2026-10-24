@@ -11,6 +11,7 @@ import { createServer as createVite } from 'vite';
 import react from '@vitejs/plugin-react';
 import { sendEmail, sendTelegram, sizedCopy } from './share.mjs';
 import { startDrop } from './drop.mjs';
+import { startPublish } from './publish.mjs';
 import characters from './characters.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -129,12 +130,13 @@ function attach(id) {
 // an export that ended well: send it where it was asked to (once)
 async function finishSends(id) {
   const f = jobFiles(id), s = readJson(f.state, {});
-  if (s.kind !== 'export' || s.code !== 0 || s.sent || !(s.send || []).length) return;
+  if (s.kind !== 'export' || s.code !== 0 || s.sent) return;
   writeJson(f.state, { ...s, sent: true });
-  for (const ch of s.send) {
+  for (const ch of s.send || []) {
     const sh = startShare(id, ch, undefined, !!s.quick);
     while (sh.running) await new Promise((r) => setTimeout(r, 500));
   }
+  publisher.afterExport(id, !!s.quick);  // (asked in the Publish window: the socials, once the file is made)
 }
 // on start: jobs still running from before (or finished while the server was down) are picked up again
 setTimeout(() => {
@@ -337,7 +339,8 @@ app.post('/api/ep/:id/config', (q, res) => {
 // "New video": the folders in Downloads that hold footage, and a project made from a template (optionally with an
 // earlier project's settings - same series: set, music, voice, subtitle style)
 const DOWNLOADS = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', 'Downloads');
-const drop = startDrop({ app, DOWNLOADS, ROOT, PY, recordJob });  // iPhone uploads (render/drop.mjs)
+const drop = startDrop({ app, DOWNLOADS, ROOT, PY, recordJob });
+const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id) });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
 const VIDEO = /\.(mp4|mov|m4v)$/i;
 app.get('/api/downloads', (_q, res) => {
   const out = [];
@@ -895,6 +898,7 @@ app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id]) || null))
 app.get('/api/jobs', (_q, res) => {
   const running = [
     ...drop.running(),  // files from the iPhone coming down
+    ...publisher.running(),  // the video going to his socials
     ...Object.entries(jobs).filter(([, j]) => j?.running).map(([id, j]) => ({ id, kind: j.kind === 'preview' ? 'build' : j.kind || 'export', started: j.started, log: (j.log || []).slice(-30) })),
     ...Object.entries(shares).filter(([, s]) => s?.running).map(([key, s]) => ({ id: key.split(':')[0], kind: 'send', channel: s.channel, started: s.started, log: s.log.slice(-5) })),
   ];

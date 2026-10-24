@@ -117,6 +117,17 @@ end must show at once, with the real footage there.
   name on the left turns the button into **Delete layer** (it goes with what is on it, the ones under it move up);
   "+ Sound layer" adds one; a sound dragged up / down changes layer; a new sound goes on the first empty layer.
   Anything pointing at a sound by number (thought bubble `sound`, film hit / blackout `sound`) is renumbered.
+- **Publish to his socials** (2026-10-24, render/publish.mjs + ui/publish/Publish.tsx): Export → "Export and publish…"
+  (picks + caption saved in episode.json `publish`; the export publishes by itself when it ends well - never a Quick
+  draft) or the **Publish** button (the file already made). The window shows the account, caption, file, length, size
+  and export time before his click; a STALE export can't be published (server refuses 409 - export again); one run,
+  no retries. Platforms (keys in zoomcut/.env, never print them): **Instagram** live (@shlomizevin, Creator; Reels via
+  `video_url` - the file staged in the Drop bucket's hidden `_publish/` + the Drop's `/api/publink` one-hour private
+  link, deleted after; key renews itself, IG_TOKEN_EXPIRES; the API can't delete a post); **Facebook** personal profile
+  = no API: he taps "Share to Facebook" on the Instagram Reel; **X** (OAuth 1.0a on the plaxzy app, his account via
+  PIN - X_* keys; 280 chars, 2:20), **TikTok** (to his drafts - TT_CLIENT_KEY/SECRET/REFRESH_TOKEN), **YouTube**
+  Shorts (YT_CLIENT_ID/SECRET/REFRESH_TOKEN) are written and switch on when their keys exist. Results: Jobs history
+  (kind publish) + episode.json publish.last. **Never post a test without his OK** - posts are public.
 - **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
   `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project
   boostmind-b052c`; key in zoomcut/.env DROP_KEY - the studio's "+ New video" → From the iPhone shows the QR with it).

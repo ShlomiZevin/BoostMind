@@ -1,0 +1,260 @@
+// Publish - the exported video to his socials, from the studio. One adapter per platform (below); each says whether
+// it is connected (its keys in zoomcut/.env) and posts a file. A project keeps its post (episode.json "publish":
+// platforms, caption, title, per-platform options, the last results). Export can publish by itself when it ends
+// (episode.json publish.afterExport - kept on disk, so a restart in between doesn't lose it).
+//   Instagram  Reels (grid + Reels tab, or Reels tab only); Instagram downloads the video from a private one-hour link
+//              (the Drop's /api/publink on a file staged in the bucket's hidden _publish/ folder, deleted after)
+//   X          a post with the video (chunked upload, OAuth 1.0a for his account) - up to 2:20 on a regular account
+//   TikTok     to his TikTok DRAFTS (an unaudited app can't post publicly): he adds a sound and posts in the app
+//   YouTube    a Short (vertical, up to 3 min), public / unlisted / private
+//   Facebook   no app can post to a personal profile: Instagram's own "Share to Facebook" button does it
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFile } from 'node:child_process';
+
+const DROP = 'https://drop-463727469066.me-west1.run.app';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale }) {
+  const ENV = path.join(ROOT, '.env');
+  const env = () => Object.fromEntries(fs.readFileSync(ENV, 'utf8').split(/\r?\n/).filter((l) => /^[A-Z_][A-Z0-9_]*=/.test(l)).map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]));
+  const setEnv = (vals) => {  // (a renewed key goes back into the file)
+    const keys = Object.keys(vals);
+    let t = fs.readFileSync(ENV, 'utf8').split(/\r?\n/).filter((l) => !keys.some((k) => l.startsWith(k + '='))).join('\n').replace(/\n+$/, '');
+    for (const k of keys) t += `\n${k}=${vals[k]}`;
+    fs.writeFileSync(ENV, t + '\n');
+  };
+  const json = async (r) => { const t = await r.text(); try { return JSON.parse(t); } catch { return { raw: t.slice(0, 300) }; } };
+  const gcloud = (args) => new Promise((ok, fail) => execFile('cmd', ['/c', 'gcloud', ...args], { windowsHide: true }, (e) => (e ? fail(e) : ok())));
+  // a private one-hour link to the file (staged in the Drop bucket's hidden _publish/ folder) - for the platforms that
+  // download the video themselves; the returned drop() deletes it
+  async function privateLink(file) {
+    const obj = `_publish/${crypto.randomBytes(10).toString('hex')}${path.extname(file) || '.mp4'}`;
+    await gcloud(['storage', 'cp', file, `gs://boostmind-drop/${obj}`]);
+    const drop = () => gcloud(['storage', 'rm', `gs://boostmind-drop/${obj}`]).catch(() => {});
+    const l = await json(await fetch(`${DROP}/api/publink`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: env().DROP_KEY, f: obj }) }));
+    if (!l.url) { await drop(); throw new Error('no private link: ' + JSON.stringify(l).slice(0, 120)); }
+    return { url: l.url, drop };
+  }
+
+  // ---- the platforms ----------------------------------------------------------------------------------------
+  const P = {
+    instagram: {
+      name: 'Instagram', what: 'Reel',
+      connected: (e) => (e.IG_TOKEN && e.IG_USER_ID ? { ok: true, handle: '@shlomizevin', until: e.IG_TOKEN_EXPIRES } : { ok: false }),
+      limits: { caption: 2200, seconds: 900 },
+      async publish(file, post, log) {
+        let e = env();
+        if (e.IG_TOKEN_EXPIRES && Date.parse(e.IG_TOKEN_EXPIRES) - Date.now() < 15 * 864e5) {  // renew a key that ends within 15 days
+          const r = await json(await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${e.IG_TOKEN}`));
+          if (r.access_token) { setEnv({ IG_TOKEN: r.access_token, IG_TOKEN_EXPIRES: new Date(Date.now() + r.expires_in * 1000).toISOString().slice(0, 10) }); e = env(); log('key renewed'); }
+        }
+        const G = 'https://graph.instagram.com/v23.0', T = e.IG_TOKEN;
+        log('handing Instagram a private link…');
+        const link = await privateLink(file);
+        try {
+          const c = await json(await fetch(`${G}/${e.IG_USER_ID}/media`, { method: 'POST', body: new URLSearchParams({
+            media_type: 'REELS', video_url: link.url, caption: post.caption || '', share_to_feed: post.options?.reelsOnly ? 'false' : 'true', access_token: T }) }));
+          if (!c.id) throw new Error(c.error?.message || 'Instagram refused the Reel');
+          for (let i = 0; i < 200; i++) {  // Instagram downloads and processes it (a minute or two for a long one)
+            const s = await json(await fetch(`${G}/${c.id}?fields=status_code,status&access_token=${T}`));
+            if (s.status_code === 'FINISHED') break;
+            if (s.status_code === 'ERROR' || s.error) throw new Error(s.status || s.error?.message || 'Instagram could not process it');
+            log(`Instagram is processing it… ${i * 3}s`, true);
+            await sleep(3000);
+          }
+          const pub = await json(await fetch(`${G}/${e.IG_USER_ID}/media_publish`, { method: 'POST', body: new URLSearchParams({ creation_id: c.id, access_token: T }) }));
+          if (!pub.id) throw new Error(pub.error?.message || 'not published');
+          const m = await json(await fetch(`${G}/${pub.id}?fields=permalink&access_token=${T}`));
+          return { url: m.permalink };
+        } finally { await link.drop(); }
+      },
+    },
+
+    x: {
+      name: 'X', what: 'Post',
+      connected: (e) => (e.X_ACCESS_TOKEN && e.X_CONSUMER_KEY ? { ok: true, handle: e.X_HANDLE ? '@' + e.X_HANDLE : '' } : { ok: false }),
+      limits: { caption: 280, seconds: 140 },
+      async publish(file, post, log) {
+        const e = env();
+        const enc = (s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+        const auth = (method, url, query = {}) => {  // OAuth 1.0a (the query is signed; JSON / multipart bodies are not)
+          const o = { oauth_consumer_key: e.X_CONSUMER_KEY, oauth_nonce: crypto.randomBytes(16).toString('hex'), oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: String(Math.floor(Date.now() / 1000)), oauth_token: e.X_ACCESS_TOKEN, oauth_version: '1.0' };
+          const all = { ...o, ...query };
+          const base = [method, enc(url), enc(Object.keys(all).sort().map((k) => `${enc(k)}=${enc(all[k])}`).join('&'))].join('&');
+          o.oauth_signature = crypto.createHmac('sha1', `${enc(e.X_CONSUMER_SECRET)}&${enc(e.X_ACCESS_SECRET)}`).update(base).digest('base64');
+          return 'OAuth ' + Object.keys(o).sort().map((k) => `${enc(k)}="${enc(o[k])}"`).join(', ');
+        };
+        const U = 'https://api.x.com/2/media/upload', size = fs.statSync(file).size;
+        const init = await json(await fetch(`${U}/initialize`, { method: 'POST', headers: { Authorization: auth('POST', `${U}/initialize`), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ media_type: 'video/mp4', total_bytes: size, media_category: 'tweet_video' }) }));
+        const id = init.data?.id;
+        if (!id) throw new Error('X upload: ' + JSON.stringify(init).slice(0, 200));
+        const buf = fs.readFileSync(file), CH = 4 * 1048576;
+        for (let i = 0, seg = 0; i < size; i += CH, seg++) {
+          const form = new FormData();
+          form.append('media', new Blob([buf.subarray(i, i + CH)]), 'chunk');
+          form.append('segment_index', String(seg));
+          const r = await fetch(`${U}/${id}/append`, { method: 'POST', headers: { Authorization: auth('POST', `${U}/${id}/append`) }, body: form });
+          if (!r.ok) throw new Error(`X upload piece ${seg}: ${r.status} ${(await r.text()).slice(0, 150)}`);
+          log(`uploading to X… ${Math.min(100, Math.round(((i + CH) / size) * 100))}%`, true);
+        }
+        let fin = await json(await fetch(`${U}/${id}/finalize`, { method: 'POST', headers: { Authorization: auth('POST', `${U}/${id}/finalize`) } }));
+        let info = fin.data?.processing_info;
+        for (let k = 0; info && info.state !== 'succeeded' && k < 120; k++) {
+          if (info.state === 'failed') throw new Error('X could not process the video: ' + (info.error?.message || ''));
+          log('X is processing it…', true);
+          await sleep((info.check_after_secs || 2) * 1000);
+          const q = { command: 'STATUS', media_id: id };
+          const st = await json(await fetch(`${U}?command=STATUS&media_id=${id}`, { headers: { Authorization: auth('GET', U, q) } }));
+          info = st.data?.processing_info;
+        }
+        const text = (post.options?.text || post.caption || '').slice(0, 280);
+        const t = await json(await fetch('https://api.x.com/2/tweets', { method: 'POST', headers: { Authorization: auth('POST', 'https://api.x.com/2/tweets'), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, media: { media_ids: [id] } }) }));
+        if (!t.data?.id) throw new Error('X post: ' + JSON.stringify(t).slice(0, 200));
+        return { url: `https://x.com/${e.X_HANDLE || 'i'}/status/${t.data.id}` };
+      },
+    },
+
+    tiktok: {
+      name: 'TikTok', what: 'Draft',
+      connected: (e) => (e.TT_REFRESH_TOKEN && e.TT_CLIENT_KEY ? { ok: true, handle: e.TT_HANDLE ? '@' + e.TT_HANDLE : '', note: 'to your drafts' } : { ok: false }),
+      limits: { caption: 0, seconds: 600 },
+      async publish(file, post, log) {
+        const e = env();
+        const tok = await json(await fetch('https://open.tiktokapis.com/v2/oauth/token/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ client_key: e.TT_CLIENT_KEY, client_secret: e.TT_CLIENT_SECRET, grant_type: 'refresh_token', refresh_token: e.TT_REFRESH_TOKEN }) }));
+        if (!tok.access_token) throw new Error('TikTok key: ' + (tok.error_description || tok.error || 'not renewed'));
+        if (tok.refresh_token && tok.refresh_token !== e.TT_REFRESH_TOKEN) setEnv({ TT_REFRESH_TOKEN: tok.refresh_token });
+        const size = fs.statSync(file).size, CH = size <= 64 * 1048576 ? size : 10 * 1048576, n = Math.floor(size / CH);
+        const init = await json(await fetch('https://open.tiktokapis.com/v2/post/publish/inbox/video/init/', { method: 'POST',
+          headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8' },
+          body: JSON.stringify({ source_info: { source: 'FILE_UPLOAD', video_size: size, chunk_size: CH, total_chunk_count: n } }) }));
+        if (!init.data?.upload_url) throw new Error('TikTok: ' + (init.error?.message || JSON.stringify(init).slice(0, 200)));
+        const buf = fs.readFileSync(file);
+        for (let k = 0; k < n; k++) {  // (the last piece takes the rest)
+          const a = k * CH, b = k === n - 1 ? size : a + CH;
+          const r = await fetch(init.data.upload_url, { method: 'PUT', headers: { 'Content-Type': 'video/mp4', 'Content-Range': `bytes ${a}-${b - 1}/${size}` }, body: buf.subarray(a, b) });
+          if (!r.ok) throw new Error(`TikTok upload piece ${k}: ${r.status}`);
+          log(`uploading to TikTok… ${Math.round((b / size) * 100)}%`, true);
+        }
+        for (let k = 0; k < 60; k++) {
+          const s = await json(await fetch('https://open.tiktokapis.com/v2/post/publish/status/fetch/', { method: 'POST',
+            headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ publish_id: init.data.publish_id }) }));
+          const st = s.data?.status;
+          if (st === 'SEND_TO_USER_INBOX' || st === 'PUBLISH_COMPLETE') return { url: null, note: 'In your TikTok drafts - open TikTok, add a sound, post' };
+          if (st === 'FAILED') throw new Error('TikTok: ' + (s.data?.fail_reason || 'failed'));
+          log('TikTok is processing it…', true);
+          await sleep(3000);
+        }
+        return { url: null, note: 'Sent - it should appear in your TikTok drafts' };
+      },
+    },
+
+    youtube: {
+      name: 'YouTube', what: 'Short',
+      connected: (e) => (e.YT_REFRESH_TOKEN && e.YT_CLIENT_ID ? { ok: true, handle: e.YT_CHANNEL || '' } : { ok: false }),
+      limits: { caption: 5000, title: 100, seconds: 180 },
+      async publish(file, post, log) {
+        const e = env();
+        const tok = await json(await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ client_id: e.YT_CLIENT_ID, client_secret: e.YT_CLIENT_SECRET, refresh_token: e.YT_REFRESH_TOKEN, grant_type: 'refresh_token' }) }));
+        if (!tok.access_token) throw new Error('YouTube key: ' + (tok.error_description || tok.error || 'not renewed'));
+        const size = fs.statSync(file).size;
+        const title = (post.title || post.caption || 'Short').split('\n')[0].slice(0, 100);
+        const init = await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status', { method: 'POST',
+          headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': 'video/mp4', 'X-Upload-Content-Length': String(size) },
+          body: JSON.stringify({ snippet: { title, description: post.caption || '', categoryId: '23' },
+            status: { privacyStatus: post.options?.privacy || 'public', selfDeclaredMadeForKids: false } }) });
+        const at = init.headers.get('location');
+        if (!at) throw new Error('YouTube: ' + (await init.text()).slice(0, 200));
+        log('uploading to YouTube…', true);
+        const v = await json(await fetch(at, { method: 'PUT', headers: { 'Content-Type': 'video/mp4', 'Content-Length': String(size) }, body: fs.readFileSync(file) }));
+        if (!v.id) throw new Error('YouTube: ' + JSON.stringify(v).slice(0, 200));
+        return { url: `https://youtube.com/shorts/${v.id}`, note: v.status?.privacyStatus && v.status.privacyStatus !== (post.options?.privacy || 'public') ? `YouTube kept it ${v.status.privacyStatus}` : '' };
+      },
+    },
+
+    facebook: {
+      name: 'Facebook', what: 'Reel', manual: true,
+      connected: () => ({ ok: false, note: 'On the Instagram Reel, tap "Share to Facebook"' }),
+      limits: {},
+    },
+  };
+  const ORDER = ['instagram', 'tiktok', 'youtube', 'x', 'facebook'];
+
+  // ---- runs ---------------------------------------------------------------------------------------------------
+  const runs = {};  // id -> { running, started, items: { platform: { state, log, url, note, error } } }
+  const epFile = (id) => path.join(epDir(id), 'episode.json');
+  const master = (id) => path.join(epDir(id), 'out', `${id}.mp4`);
+  function run(id, post) {
+    if (runs[id]?.running) return runs[id];
+    const file = master(id);
+    const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
+    (async () => {
+      for (const p of post.platforms) {  // one after the other - his upload line, and each one's progress reads clearly
+        const it = r.items[p], A = P[p];
+        const log = (m, replace) => { if (replace && it.log.length) it.log[it.log.length - 1] = m; else it.log.push(m); };
+        if (!A?.publish || !A.connected(env()).ok) { it.state = 'skipped'; it.error = 'not connected'; continue; }
+        it.state = 'publishing';
+        try {
+          const res = await A.publish(file, post, log);
+          Object.assign(it, { state: 'done', url: res.url || null, note: res.note || '' });
+        } catch (e) { Object.assign(it, { state: 'failed', error: String(e.message || e).slice(0, 300) }); }
+        recordJob({ id, kind: 'publish', channel: p, started: r.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });
+      }
+      r.running = false; r.ended = Date.now();
+      const e = readJson(epFile(id), {});  // the results stay with the project
+      e.publish = { ...(e.publish || {}), afterExport: false, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } };
+      writeJson(epFile(id), e);
+    })();
+    return r;
+  }
+  const savePost = (id, body) => {
+    const e = readJson(epFile(id), {});
+    const post = { platforms: (body.platforms || []).filter((p) => P[p]?.publish), caption: String(body.caption || ''), title: String(body.title || ''), options: body.options || {} };
+    e.publish = { ...(e.publish || {}), ...post, afterExport: !!body.afterExport };
+    writeJson(epFile(id), e);
+    return post;
+  };
+
+  app.get('/api/publish/platforms', (_q, res) => {
+    const e = env();
+    res.json(ORDER.map((id) => ({ id, name: P[id].name, what: P[id].what, manual: !!P[id].manual, limits: P[id].limits, ...P[id].connected(e) })));
+  });
+  // the project's post (what he last chose) + the run now / the last results
+  app.get('/api/ep/:id/publish', (q, res) => {
+    const e = readJson(epFile(q.params.id), {}), f = master(q.params.id);
+    let file = null;  // what would go out: the file, its size and when it was exported (the window shows it before he clicks)
+    try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
+    res.json({ post: e.publish || null, run: runs[q.params.id] || null, title: e.title || q.params.id, file });
+  });
+  // publish the current export now; {afterExport: true} only saves it - the export publishes when it ends well
+  app.post('/api/ep/:id/publish', (q, res) => {
+    const id = q.params.id;
+    const post = savePost(id, q.body || {});
+    if (q.body?.afterExport) return res.json({ saved: true });
+    if (!post.platforms.length) return res.status(400).json({ error: 'Pick where to publish' });
+    if (!fs.existsSync(master(id))) return res.status(400).json({ error: 'Export the video first' });
+    // never a file older than his last change (public and can't be undone) - export again first
+    if (isStale(id)) return res.status(409).json({ error: 'The video changed after this export - export again first' });
+    if (runs[id]?.running) return res.status(409).json({ error: 'Already publishing this video' });
+    res.json({ run: run(id, post) });  // (once: no retries - a failed platform says so, he decides)
+  });
+
+  // an export ended well: publish if it was asked to (a quick draft never goes out)
+  return {
+    afterExport(id, quick) {
+      const e = readJson(epFile(id), {});
+      if (quick || !e.publish?.afterExport || !(e.publish.platforms || []).length) return;
+      e.publish.afterExport = false;
+      writeJson(epFile(id), e);
+      run(id, e.publish);
+    },
+    running: () => Object.entries(runs).filter(([, r]) => r.running).map(([id, r]) => ({ id, kind: 'publish', started: r.started,
+      log: Object.entries(r.items).map(([p, it]) => `${P[p].name}: ${it.state}${it.log.length ? ' · ' + it.log.at(-1) : ''}`) })),
+  };
+}
