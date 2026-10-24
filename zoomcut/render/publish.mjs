@@ -58,7 +58,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
         const link = await privateLink(file);
         try {
           const c = await json(await fetch(`${G}/${e.IG_USER_ID}/media`, { method: 'POST', body: new URLSearchParams({
-            media_type: 'REELS', video_url: link.url, caption: post.caption || '', share_to_feed: post.options?.reelsOnly ? 'false' : 'true', access_token: T }) }));
+            media_type: 'REELS', video_url: link.url, caption: post.caption || '', share_to_feed: post.options?.instagram?.reelsOnly ? 'false' : 'true', access_token: T }) }));
           if (!c.id) throw new Error(c.error?.message || 'Instagram refused the Reel');
           for (let i = 0; i < 200; i++) {  // Instagram downloads and processes it (a minute or two for a long one)
             const s = await json(await fetch(`${G}/${c.id}?fields=status_code,status&access_token=${T}`));
@@ -114,7 +114,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           const st = await json(await fetch(`${U}?command=STATUS&media_id=${id}`, { headers: { Authorization: auth('GET', U, q) } }));
           info = st.data?.processing_info;
         }
-        const text = (post.options?.text || post.caption || '').slice(0, 280);
+        const text = (post.options?.x?.text || post.caption || '').slice(0, 280);
         const t = await json(await fetch('https://api.x.com/2/tweets', { method: 'POST', headers: { Authorization: auth('POST', 'https://api.x.com/2/tweets'), 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, media: { media_ids: [id] } }) }));
         if (!t.data?.id) throw new Error('X post: ' + JSON.stringify(t).slice(0, 200));
@@ -172,16 +172,19 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
         if (!tok.access_token) throw new Error('YouTube key: ' + (tok.error_description || tok.error || 'not renewed'));
         const size = fs.statSync(file).size;
         const title = (post.title || post.caption || 'Short').split('\n')[0].slice(0, 100);
+        const privacy = post.options?.youtube?.privacy || 'public';  // (each platform's options under its own name, as the window saves them)
+        // #Shorts in the description helps YouTube file a vertical video under Shorts right away
+        const description = /#shorts/i.test(post.caption || '') ? post.caption : `${post.caption || ''}\n\n#Shorts`.trim();
         const init = await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status', { method: 'POST',
           headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': 'video/mp4', 'X-Upload-Content-Length': String(size) },
-          body: JSON.stringify({ snippet: { title, description: post.caption || '', categoryId: '23' },
-            status: { privacyStatus: post.options?.privacy || 'public', selfDeclaredMadeForKids: false } }) });
+          body: JSON.stringify({ snippet: { title, description, categoryId: '23' },
+            status: { privacyStatus: privacy, selfDeclaredMadeForKids: false } }) });
         const at = init.headers.get('location');
         if (!at) throw new Error('YouTube: ' + (await init.text()).slice(0, 200));
         log('uploading to YouTube…', true);
         const v = await json(await fetch(at, { method: 'PUT', headers: { 'Content-Type': 'video/mp4', 'Content-Length': String(size) }, body: fs.readFileSync(file) }));
         if (!v.id) throw new Error('YouTube: ' + JSON.stringify(v).slice(0, 200));
-        return { url: `https://youtube.com/shorts/${v.id}`, note: v.status?.privacyStatus && v.status.privacyStatus !== (post.options?.privacy || 'public') ? `YouTube kept it ${v.status.privacyStatus}` : '' };
+        return { url: `https://youtube.com/shorts/${v.id}`, note: v.status?.privacyStatus && v.status.privacyStatus !== privacy ? `YouTube kept it ${v.status.privacyStatus}` : '' };
       },
     },
 
