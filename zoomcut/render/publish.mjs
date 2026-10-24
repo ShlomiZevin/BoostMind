@@ -6,13 +6,15 @@
 //   Instagram  Reels (grid + Reels tab, or Reels tab only); Instagram downloads the video from a private one-hour link
 //              (the Drop's /api/publink on a file staged in the bucket's hidden _publish/ folder, deleted after)
 //   X          a post with the video (chunked upload, OAuth 1.0a for his account) - up to 2:20 on a regular account
-//   TikTok     to his TikTok DRAFTS (an unaudited app can't post publicly): he adds a sound and posts in the app
+//   TikTok     to his TikTok DRAFTS (an unaudited app can't post publicly): he adds a sound and posts in the app. The
+//              API takes no caption for a draft - the caption comes to his Telegram, ready to copy into TikTok
 //   YouTube    a Short (vertical, up to 3 min), public / unlisted / private
 //   Facebook   no app can post to a personal profile: Instagram's own "Share to Facebook" button does it
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
+import { sendTelegramText } from './share.mjs';
 
 const DROP = 'https://drop-463727469066.me-west1.run.app';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -146,7 +148,11 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           const s = await json(await fetch('https://open.tiktokapis.com/v2/post/publish/status/fetch/', { method: 'POST',
             headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ publish_id: init.data.publish_id }) }));
           const st = s.data?.status;
-          if (st === 'SEND_TO_USER_INBOX' || st === 'PUBLISH_COMPLETE') return { url: null, note: 'In your TikTok drafts - open TikTok, add a sound, post' };
+          if (st === 'SEND_TO_USER_INBOX' || st === 'PUBLISH_COMPLETE') {
+            // (a draft can't carry text: the caption goes to his phone, one long-press to copy)
+            const sent = post.caption ? await sendTelegramText(post.caption).then(() => true).catch(() => false) : false;
+            return { url: null, note: `In your TikTok drafts - open TikTok, add a sound, post${sent ? '. The caption is in your Telegram to copy' : ''}` };
+          }
           if (st === 'FAILED') throw new Error('TikTok: ' + (s.data?.fail_reason || 'failed'));
           log('TikTok is processing it…', true);
           await sleep(3000);
@@ -235,6 +241,8 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   app.post('/api/ep/:id/publish', (q, res) => {
     const id = q.params.id, post = postOf(q.body || {});
     if (q.body?.afterExport) { savePost(id, post, true, !!q.body?.dry); return res.json({ saved: true }); }
+    // {save: true}: only fills the Publish window (a session prepares caption / title / platforms - he presses Publish)
+    if (q.body?.save) { savePost(id, post, !!readJson(pubFile(id), {}).afterExport); return res.json({ saved: true }); }
     if (!post.platforms.length) return res.status(400).json({ error: 'Pick where to publish' });
     if (!fs.existsSync(master(id))) return res.status(400).json({ error: 'Export the video first' });
     // never a file older than his last change (public and can't be undone) - export again first. Checked before

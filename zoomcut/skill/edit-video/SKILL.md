@@ -153,6 +153,9 @@ The rules:
    DRAFT; ~3 min for a 3-min Zoom video vs ~9 for full). When he's happy, **Full quality** (1080x1920, `out/<id>.mp4`,
    "ready for TikTok"). Same button / endpoint he uses: `POST /api/ep/<id>/export {send: ["email"], quick: true}`.
    Commit and push when he asks - only your own files (other sessions have uncommitted work in this repo).
+10. **Post it** - read `publishing.md`. Write the caption + hashtags (+ X text, YouTube title) in the character's
+   voice and save them into the Publish window (`POST /api/ep/<id>/publish {save: true, ...}`); **he presses
+   Publish**, never you. Instagram + TikTok drafts are live; Facebook = "Share to Facebook" on the Instagram Reel.
 
 ## More of his rules
 - **He can always re-trim the cut himself - in the one editor, in every kind of video** (asked 6 times, last
@@ -163,6 +166,16 @@ The rules:
   yourself: the item's edge pulls back footage up to the take's start / end.
   **The whole-take rule for any session:** a video item points at the WHOLE take (`asset` = the take, `in` = where the
   piece starts in it). Never a file cut down to the piece - then there is nothing to pull back.
+- **Pauses inside a take stay; only the joins BETWEEN takes are tight** (his words, 2026-10-23: "don't cut spaces in
+  the same video, only between videos"). One-camera projects with several short takes: `cut.silence: false`. At a
+  join the previous take's sound runs on under the next one's start (`cut.join` 0.25 - "continue the sound of the
+  previous and start the sound of the next"); each take starts on its first syllable (measure the onset, dB per 10 ms).
+- **Trim a take's start / end with `cut.edges` [[where the cut put it, where it goes]] - never `cut.removes`** for that.
+  removes run AFTER his drags, so the editor's edge stopped moving and he dragged six times for nothing (2026-10-23).
+  The natural edges come from `lesson.spans` with no edges / removes. removes = a piece cut out of the middle only.
+- **Several takes of the same passage:** show them before choosing - one numbered comparison video (`TAKE 1..n`
+  burnt in, outside the footage folder) + a table of what differs; he picks. Drop exact duplicates by hash (the Drop
+  can bring `<name>-2.mp4` copies); pick the takes with a `takes` glob that matches exactly those files.
 - **Every change shows at once.** He hates waiting and "Updating preview". Only real picture work rebuilds.
 - **What he sees is what he exports, and exports fast.** Same cut, sounds, text, filters, speed in both.
 - **Subtitles follow what he SAID**, not the script (his ad-libs stay - add them to the script line). Hook text starts
@@ -230,6 +243,39 @@ The rules:
   - Deploy the site (`firebase deploy --only hosting --project boostmind-b052c` from BoostMind), check the URLs 200,
     add the links-page button, and give the video a poster / CTA that sends them to the bio.
 
+## ElevenLabs - more people from his own voice (his call, 2026-10-23: "it might be a game changer")
+`node zoomcut/tools/elevenlabs.mjs choir <his take.mp4> <out.wav>` = a crowd singing / saying it WITH him: the voice
+changer (`eleven_multilingual_sts_v2`) turns his take into 4 other men (Brian, Bill, Callum, Roger), each lined up
+to his take by its loudness envelope (they come back within +-20 ms), 0/15/30/45 ms apart, one hall; mix it UNDER him
+(a sound tied to the take: `at` = `from` = the take second, gain ~0.45). Also `sts <in> <voice> <out>` (his line in
+one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.env` (git-ignored, never printed).
+- **Cost** (always tell him): ~1000 credits per minute of audio per voice; Creator plan = 300k credits a month,
+  ~$0.07 per 1000. The medley (8 songs x 4 voices, made twice) used 12,195 credits (~4%, ~$0.90).
+- The plan allows 5 requests at once - the tool retries; run takes one after another. The voices are kept in
+  `<out>.voices/` - a new mix never pays twice.
+- **Never re-time a voice** (an asetrate detune drifted 0.2 s over a song - "the singers are not synced").
+- **Each singer its own layer, never one mixed choir** (his words: "put all the singers as layers. Don't merge
+  them"): one `sounds` entry per take per singer with `lane` 0-3 (= Sounds 1-4, renamed "קהל – <name>" by op), the
+  file = the voice kept in `<choir>.voices/<voice id>.mp3`, gain ~0.36, `room` 0.4.
+- **Tie a take's sound to where HIS voice starts in it** (`from` = `at` = the piece's `in`, e.g. 1.13): `at` 0 put
+  every choir 0.7-1.4 s late - the cut starts the sound at the clip, not before it.
+- **Nobody sings on the dot** (his words): Brian 14-22 ms early, Roger 4-12 early, Bill 18-26 late, Callum 36-44
+  late, a few ms different every song. Late = `at` later than `from`; early = `from` later than `at` (start further
+  into the singer's own recording) - an `at` before the clip start is clamped to 0.
+- Clear the project's `work/layers/sounds/` after replacing a sound file under the same name (cached copies).
+- Free alternative to compare: his own voice through `rubberband=pitch=..:formant=preserved` x4 (0.84 / 0.92 /
+  1.06 / 0.5), same delays and hall. Send him both (A / B) the first time a video needs a crowd.
+- **Hebrew voices, picked per song** (2026-10-23, "some came out good and some terrible"): the 8 Israeli men in the
+  account ("HE Nimrod / Itamar / Viktor / Dorian / Itai / Omer / Tomer / Amit" - the tool's default 4 are Hebrew now).
+  Convert every song with every voice, then SCORE each pair: the recogniser on the voice vs his own take's words
+  (clarity) + the loudness-curve correlation with his take (timing, and its lag). Keep per song only timing >= 0.75
+  (0.85 on a wordless niggun - no voice says "רק") and clarity within 0.25 of that song's best; e.g. "אנא עבדא" kept 4,
+  "גוש השינוי חי" all 8. Depth baked into each kept file (close dry / mid darker + short room / far darker + more
+  room, gains 0.26 / 0.24 / 0.20). 8 songs x 8 voices = ~5k credits.
+- He is happy to spend the credits ("you can even use them all") - quality over saving; still say what it cost.
+- Try a big change to his video on a COPY (`<id>-he`: copy episode.json, captions.txt, project.json, media/, work/)
+  while he is still checking the original (his ask).
+
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
 `... portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare MEDIUM 0.6 1024x1024` (repaints from a reference: his face,
@@ -287,6 +333,8 @@ he signs off.
 
 ## More
 - `layers.md` - **the project format**: layer kinds, items, ops, builders, export. The contract for filling a video.
+- `publishing.md` - **posting to his socials**: what each platform takes (caption, hashtags, limits), how to write
+  the post, how to prepare it for him.
 - `editor.md` - how the editor, the live cut, layers, the background render and the export work (read before
   changing code).
 - `reference.md` - every episode.json setting, the tools (Leonardo, sound kit, eye contact, sending), gotchas.

@@ -127,7 +127,9 @@ end must show at once, with the real footage there.
   link, deleted after; key renews itself, IG_TOKEN_EXPIRES; the API can't delete a post); **Facebook** personal profile
   = no API: he taps "Share to Facebook" on the Instagram Reel; **X** (OAuth 1.0a on the plaxzy app, his account via
   PIN - X_* keys; 280 chars, 2:20), **TikTok** (to his drafts - TT_CLIENT_KEY/SECRET/REFRESH_TOKEN), **YouTube**
-  Shorts (YT_CLIENT_ID/SECRET/REFRESH_TOKEN) are written and switch on when their keys exist. Results: Jobs history
+  Shorts (YT_CLIENT_ID/SECRET/REFRESH_TOKEN) are written and switch on when their keys exist. **TikTok is live**
+  (2026-10-24, sandbox app = drafts; the caption goes to his Telegram - sendTelegramText - since a draft takes no
+  text). `{save: true}` only fills the window (a session prepares the post). How to write the post: publishing.md. Results: Jobs history
   (kind publish) + episode.json publish.last. **Never post a test without his OK** - posts are public.
 - **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
   `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project

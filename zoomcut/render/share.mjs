@@ -83,6 +83,15 @@ export async function sendEmail({ file, to, subject, text }) {
   return to || env.GMAIL_USER;
 }
 
+// a text message to his Telegram (e.g. a caption to paste into TikTok - long-press copies it)
+export async function sendTelegramText(text) {
+  const env = readEnv(ENV_TG);
+  if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing in ' + ENV_TG);
+  const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }) });
+  if (!r.ok) throw new Error('Telegram: ' + r.status);
+}
+
 export async function sendTelegram({ file, caption, log = () => {} }) {
   const env = readEnv(ENV_TG);
   if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing in ' + ENV_TG);

@@ -111,7 +111,7 @@ export function PublishWindow({ ep, mode, output, stale, onExport, onClose }: {
           <label className="pb-l">Caption</label>
           <textarea className="pb-cap he" dir="auto" rows={4} value={caption} disabled={running} placeholder="What goes under the video - text, #hashtags"
             onChange={(e) => setCaption(e.target.value)} />
-          <div className="pb-count">{caption.length}</div>
+          <div className="pb-count">{caption && <button className="pb-copy" onClick={() => navigator.clipboard?.writeText(caption)} title="Copy the caption">Copy</button>}{caption.length}</div>
 
           <div className="pb-l" style={{ marginTop: 14 }}>Where</div>
           <div className="pb-list">
@@ -140,7 +140,7 @@ export function PublishWindow({ ep, mode, output, stale, onExport, onClose }: {
                       <div className="seg" style={{ gridTemplateColumns: '1fr 1fr 1fr', marginTop: 6 }}>
                         {['public', 'unlisted', 'private'].map((v) => <button key={v} className={opt.youtube?.privacy === v ? 'on' : ''} onClick={() => setOpt({ ...opt, youtube: { privacy: v } })}>{v[0].toUpperCase() + v.slice(1)}</button>)}
                       </div></div>)}
-                  {sel && !run && p.id === 'tiktok' && <div className="pb-opt"><div className="pb-tip">Goes to your TikTok drafts - add a sound there and post</div></div>}
+                  {sel && !run && p.id === 'tiktok' && <div className="pb-opt"><div className="pb-tip">Goes to your TikTok drafts - TikTok takes no text with a draft, so the caption comes to your Telegram to paste; add a sound and post</div></div>}
                   {sel && !run && p.id === 'x' && (
                     <div className="pb-opt"><textarea className="pb-in he" dir="auto" rows={2} value={opt.x?.text ?? ''} placeholder={`Its own text (empty = the caption${caption.length > 280 ? ', cut at 280' : ''})`}
                       onChange={(e) => setOpt({ ...opt, x: { text: e.target.value } })} /></div>)}
