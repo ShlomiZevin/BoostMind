@@ -1,7 +1,8 @@
 // Publish - the exported video to his socials, from the studio. One adapter per platform (below); each says whether
-// it is connected (its keys in zoomcut/.env) and posts a file. A project keeps its post (episode.json "publish":
-// platforms, caption, title, per-platform options, the last results). Export can publish by itself when it ends
-// (episode.json publish.afterExport - kept on disk, so a restart in between doesn't lose it).
+// it is connected (its keys in zoomcut/.env) and posts a file. A project keeps its post in episodes/<id>/publish.json
+// (platforms, caption, title, per-platform options, the last results) - NOT episode.json: a write there would make
+// the export look older than the project (exportStale) and block publishing it. Export can publish by itself when it
+// ends (publish.json afterExport - kept on disk, so a restart in between doesn't lose it).
 //   Instagram  Reels (grid + Reels tab, or Reels tab only); Instagram downloads the video from a private one-hour link
 //              (the Drop's /api/publink on a file staged in the bucket's hidden _publish/ folder, deleted after)
 //   X          a post with the video (chunked upload, OAuth 1.0a for his account) - up to 2:20 on a regular account
@@ -188,9 +189,10 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
 
   // ---- runs ---------------------------------------------------------------------------------------------------
   const runs = {};  // id -> { running, started, items: { platform: { state, log, url, note, error } } }
-  const epFile = (id) => path.join(epDir(id), 'episode.json');
+  const epFile = (id) => path.join(epDir(id), 'episode.json');  // (read only: the title)
+  const pubFile = (id) => path.join(epDir(id), 'publish.json');
   const master = (id) => path.join(epDir(id), 'out', `${id}.mp4`);
-  function run(id, post) {
+  function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
     const file = master(id);
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
@@ -198,28 +200,24 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       for (const p of post.platforms) {  // one after the other - his upload line, and each one's progress reads clearly
         const it = r.items[p], A = P[p];
         const log = (m, replace) => { if (replace && it.log.length) it.log[it.log.length - 1] = m; else it.log.push(m); };
-        if (!A?.publish || !A.connected(env()).ok) { it.state = 'skipped'; it.error = 'not connected'; continue; }
+        if (!A?.publish || (!dry && !A.connected(env()).ok)) { it.state = 'skipped'; it.error = 'not connected'; continue; }
         it.state = 'publishing';
         try {
-          const res = await A.publish(file, post, log);
+          // (dry: everything but the platform call - a test of the path, nothing goes out)
+          const res = dry ? (log('dry run - nothing sent'), await sleep(300), { url: null, note: `dry run: ${path.basename(file)} → ${A.name}` }) : await A.publish(file, post, log);
           Object.assign(it, { state: 'done', url: res.url || null, note: res.note || '' });
         } catch (e) { Object.assign(it, { state: 'failed', error: String(e.message || e).slice(0, 300) }); }
-        recordJob({ id, kind: 'publish', channel: p, started: r.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });
+        if (!dry) recordJob({ id, kind: 'publish', channel: p, started: r.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });
       }
       r.running = false; r.ended = Date.now();
-      const e = readJson(epFile(id), {});  // the results stay with the project
-      e.publish = { ...(e.publish || {}), afterExport: false, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } };
-      writeJson(epFile(id), e);
+      if (dry) return;
+      const pj = readJson(pubFile(id), {});  // the results stay with the project
+      writeJson(pubFile(id), { ...pj, afterExport: false, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } });
     })();
     return r;
   }
-  const savePost = (id, body) => {
-    const e = readJson(epFile(id), {});
-    const post = { platforms: (body.platforms || []).filter((p) => P[p]?.publish), caption: String(body.caption || ''), title: String(body.title || ''), options: body.options || {} };
-    e.publish = { ...(e.publish || {}), ...post, afterExport: !!body.afterExport };
-    writeJson(epFile(id), e);
-    return post;
-  };
+  const postOf = (body) => ({ platforms: (body.platforms || []).filter((p) => P[p]?.publish), caption: String(body.caption || ''), title: String(body.title || ''), options: body.options || {} });
+  const savePost = (id, post, afterExport, dry = false) => writeJson(pubFile(id), { ...readJson(pubFile(id), {}), ...post, afterExport: !!afterExport, dry: !!dry });
 
   app.get('/api/publish/platforms', (_q, res) => {
     const e = env();
@@ -227,32 +225,33 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   });
   // the project's post (what he last chose) + the run now / the last results
   app.get('/api/ep/:id/publish', (q, res) => {
-    const e = readJson(epFile(q.params.id), {}), f = master(q.params.id);
+    const e = readJson(epFile(q.params.id), {}), f = master(q.params.id), pj = readJson(pubFile(q.params.id), null);
     let file = null;  // what would go out: the file, its size and when it was exported (the window shows it before he clicks)
     try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
-    res.json({ post: e.publish || null, run: runs[q.params.id] || null, title: e.title || q.params.id, file });
+    res.json({ post: pj, run: runs[q.params.id] || null, title: e.title || q.params.id, file });
   });
-  // publish the current export now; {afterExport: true} only saves it - the export publishes when it ends well
+  // publish the current export now; {afterExport: true} only saves it - the export publishes when it ends well.
+  // {dry: true}: the whole path without the platform calls (a test - nothing goes out)
   app.post('/api/ep/:id/publish', (q, res) => {
-    const id = q.params.id;
-    const post = savePost(id, q.body || {});
-    if (q.body?.afterExport) return res.json({ saved: true });
+    const id = q.params.id, post = postOf(q.body || {});
+    if (q.body?.afterExport) { savePost(id, post, true, !!q.body?.dry); return res.json({ saved: true }); }
     if (!post.platforms.length) return res.status(400).json({ error: 'Pick where to publish' });
     if (!fs.existsSync(master(id))) return res.status(400).json({ error: 'Export the video first' });
-    // never a file older than his last change (public and can't be undone) - export again first
+    // never a file older than his last change (public and can't be undone) - export again first. Checked before
+    // anything is written (publish.json isn't watched by exportStale anyway)
     if (isStale(id)) return res.status(409).json({ error: 'The video changed after this export - export again first' });
     if (runs[id]?.running) return res.status(409).json({ error: 'Already publishing this video' });
-    res.json({ run: run(id, post) });  // (once: no retries - a failed platform says so, he decides)
+    savePost(id, post, false);
+    res.json({ run: run(id, post, !!q.body?.dry) });  // (once: no retries - a failed platform says so, he decides)
   });
 
   // an export ended well: publish if it was asked to (a quick draft never goes out)
   return {
     afterExport(id, quick) {
-      const e = readJson(epFile(id), {});
-      if (quick || !e.publish?.afterExport || !(e.publish.platforms || []).length) return;
-      e.publish.afterExport = false;
-      writeJson(epFile(id), e);
-      run(id, e.publish);
+      const pj = readJson(pubFile(id), {});
+      if (quick || !pj.afterExport || !(pj.platforms || []).length) return;
+      writeJson(pubFile(id), { ...pj, afterExport: false, dry: false });  // (cleared first: it publishes once)
+      run(id, pj, !!pj.dry);
     },
     running: () => Object.entries(runs).filter(([, r]) => r.running).map(([id, r]) => ({ id, kind: 'publish', started: r.started,
       log: Object.entries(r.items).map(([p, it]) => `${P[p].name}: ${it.state}${it.log.length ? ' · ' + it.log.at(-1) : ''}`) })),

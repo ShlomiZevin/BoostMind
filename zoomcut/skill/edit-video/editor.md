@@ -118,8 +118,9 @@ end must show at once, with the real footage there.
   "+ Sound layer" adds one; a sound dragged up / down changes layer; a new sound goes on the first empty layer.
   Anything pointing at a sound by number (thought bubble `sound`, film hit / blackout `sound`) is renumbered.
 - **Publish to his socials** (2026-10-24, render/publish.mjs + ui/publish/Publish.tsx): Export → "Export and publish…"
-  (picks + caption saved in episode.json `publish`; the export publishes by itself when it ends well - never a Quick
-  draft) or the **Publish** button (the file already made). The window shows the account, caption, file, length, size
+  (picks + caption + results in episodes/<id>/publish.json - NEVER episode.json: its mtime makes the export
+  look stale; the export publishes by itself when it ends well - never a Quick draft; `{dry: true}` tests the whole path
+  without the platform calls) or the **Publish** button (the file already made). The window shows the account, caption, file, length, size
   and export time before his click; a STALE export can't be published (server refuses 409 - export again); one run,
   no retries. Platforms (keys in zoomcut/.env, never print them): **Instagram** live (@shlomizevin, Creator; Reels via
   `video_url` - the file staged in the Drop bucket's hidden `_publish/` + the Drop's `/api/publink` one-hour private
