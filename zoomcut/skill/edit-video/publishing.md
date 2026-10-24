@@ -12,8 +12,8 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
 3. Tell him it's ready: Publish button (or Export → "Export and publish…"). The window shows the account, caption,
    file, length, size and export time before his click. A stale export can't be published - export again.
 4. After it runs: the window and the Jobs history show each platform's result and link. Tell him what to do by hand:
-   **Instagram → "Share to Facebook"** on the Reel, **TikTok → open the draft, paste the caption from Telegram, add a
-   sound, post**.
+   **Instagram → "Share to Facebook"** on the Reel, **TikTok → the video arrives as a notification in the app's Inbox
+   ("ready to edit", not in Drafts) - tap it, paste the caption from Telegram, add a sound, post**.
 - Testing the path: `{dry: true}` runs everything but the platform calls. Never a real test post without his OK.
 
 ## Each platform - what it takes
