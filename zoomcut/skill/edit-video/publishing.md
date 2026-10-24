@@ -38,3 +38,10 @@ Connected = its keys in zoomcut/.env (`GET /api/publish/platforms` says which).
 - **Per platform**: Instagram + TikTok take the full caption; X gets its own short version (`options.x.text`) - the
   hook + 1-2 hashtags; YouTube gets a title (the hook, ≤100) and the caption as its description.
 - Show him the caption before saving it when it's the first post of a series; afterwards follow what he approved.
+
+## A backlog of videos (2026-10-24: his first 16 Shorts)
+`node zoomcut/tools/shorts_backlog.mjs [--dry]` - uploads each finished video PRIVATE with a scheduled `publishAt`
+(one a day, 19:00 Israel - YouTube itself releases them, nothing looks like a burst). A new Google app gets ~6
+uploads a day (quota): the run waits and retries every 30 min; `zoomcut/work/shorts-backlog.json` keeps what's up, so
+it's safe to run again. Edit the VIDEOS list for a new batch (the last export of each video - not drafts, not the
+`.email` / `.telegram` copies; Shorts max 3:00). He can cancel or move any scheduled one in YouTube Studio.
