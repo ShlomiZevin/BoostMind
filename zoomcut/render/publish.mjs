@@ -70,7 +70,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           const pub = await json(await fetch(`${G}/${e.IG_USER_ID}/media_publish`, { method: 'POST', body: new URLSearchParams({ creation_id: c.id, access_token: T }) }));
           if (!pub.id) throw new Error(pub.error?.message || 'not published');
           const m = await json(await fetch(`${G}/${pub.id}?fields=permalink&access_token=${T}`));
-          return { url: m.permalink };
+          return { url: m.permalink, note: `posted PUBLIC - ${post.options?.instagram?.reelsOnly ? 'Reels tab only' : 'grid + Reels tab'}` };
         } finally { await link.drop(); }
       },
     },
@@ -118,7 +118,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
         const t = await json(await fetch('https://api.x.com/2/tweets', { method: 'POST', headers: { Authorization: auth('POST', 'https://api.x.com/2/tweets'), 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, media: { media_ids: [id] } }) }));
         if (!t.data?.id) throw new Error('X post: ' + JSON.stringify(t).slice(0, 200));
-        return { url: `https://x.com/${e.X_HANDLE || 'i'}/status/${t.data.id}` };
+        return { url: `https://x.com/${e.X_HANDLE || 'i'}/status/${t.data.id}`, note: 'posted PUBLIC' };
       },
     },
 
@@ -172,7 +172,9 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
         if (!tok.access_token) throw new Error('YouTube key: ' + (tok.error_description || tok.error || 'not renewed'));
         const size = fs.statSync(file).size;
         const title = (post.title || post.caption || 'Short').split('\n')[0].slice(0, 100);
-        const privacy = post.options?.youtube?.privacy || 'public';  // (each platform's options under its own name, as the window saves them)
+        // (each platform's options under its own name, as the window saves them). Unknown or missing -> PRIVATE, never
+        // the platform's default: a post that can't read its setting must not go public
+        const privacy = ['public', 'unlisted', 'private'].includes(post.options?.youtube?.privacy) ? post.options.youtube.privacy : 'private';
         // #Shorts in the description helps YouTube file a vertical video under Shorts right away
         const description = /#shorts/i.test(post.caption || '') ? post.caption : `${post.caption || ''}\n\n#Shorts`.trim();
         const init = await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status', { method: 'POST',
@@ -184,7 +186,9 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
         log('uploading to YouTube…', true);
         const v = await json(await fetch(at, { method: 'PUT', headers: { 'Content-Type': 'video/mp4', 'Content-Length': String(size) }, body: fs.readFileSync(file) }));
         if (!v.id) throw new Error('YouTube: ' + JSON.stringify(v).slice(0, 200));
-        return { url: `https://youtube.com/shorts/${v.id}`, note: v.status?.privacyStatus && v.status.privacyStatus !== privacy ? `YouTube kept it ${v.status.privacyStatus}` : '' };
+        // (the log says the visibility YouTube actually gave it)
+        const got = v.status?.privacyStatus || 'unknown';
+        return { url: `https://youtube.com/shorts/${v.id}`, note: `uploaded as ${got.toUpperCase()}${got !== privacy ? ` (asked ${privacy})` : ''}` };
       },
     },
 

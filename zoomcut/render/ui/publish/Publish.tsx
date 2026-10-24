@@ -22,6 +22,13 @@ const BRAND: Record<string, { bg: string; fg: string; mark: React.ReactNode }> =
   x: { bg: '#e8e6e3', fg: '#111', mark: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 5l14 14M19 5L5 19" /></svg> },
   facebook: { bg: '#1877f2', fg: '#fff', mark: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.6-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H8v3h2.5V21h3z" /></svg> },
 };
+// what each platform's post will be, seen before the click (as the adapters send it - YouTube: unknown = PRIVATE)
+const VIS: Record<string, (o: any) => string> = {
+  instagram: (o) => `PUBLIC · ${o.instagram?.reelsOnly ? 'Reels tab only' : 'grid + Reels tab'}`,
+  tiktok: () => 'your DRAFTS (private until you post it)',
+  youtube: (o) => (['public', 'unlisted', 'private'].includes(o.youtube?.privacy) ? o.youtube.privacy.toUpperCase() : 'PRIVATE'),
+  x: () => 'PUBLIC',
+};
 export const Mark = ({ id, size = 34 }: { id: string; size?: number }) => {
   const b = BRAND[id] || { bg: 'var(--panel-3)', fg: 'var(--text)', mark: null };
   return <span className="pb-mark" style={{ width: size, height: size, background: b.bg, color: b.fg }}>{b.mark}</span>;
@@ -125,6 +132,7 @@ export function PublishWindow({ ep, mode, output, stale, onExport, onClose }: {
                     <div className="pb-main">
                       <div className="pb-name">{p.name} <span className="pb-what">{p.what}</span></div>
                       <div className="pb-meta">{p.manual ? p.note : !p.ok ? 'Not connected yet' : [p.handle, p.note].filter(Boolean).join(' · ')}</div>
+                      {sel && !run && <div className={`pb-vis ${VIS[p.id]?.(opt) === 'PUBLIC' ? 'pub' : ''}`}>Goes out: {VIS[p.id]?.(opt) || '-'}</div>}
                     </div>
                     {it ? <span className={`pb-state ${it.state}`}>{it.state === 'done' ? '✓' : it.state === 'failed' ? '!' : it.state === 'publishing' ? <span className="pb-spin" /> : it.state === 'skipped' ? '–' : '…'}</span>
                       : p.ok && !p.manual ? <div className={`switch ${sel ? 'on' : ''}`} /> : null}
