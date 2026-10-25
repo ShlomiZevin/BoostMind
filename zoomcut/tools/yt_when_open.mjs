@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [id, privacy = 'public'] = process.argv.slice(2);
@@ -38,6 +38,10 @@ for (;;) {
     const cur = JSON.parse(fs.readFileSync(PJ, 'utf8'));
     cur.last = { ...(cur.last || {}), items: { ...(cur.last?.items || {}), youtube: { state: 'done', url: `https://youtube.com/shorts/${r.v.id}`, note: `uploaded as ${String(r.v.status?.privacyStatus).toUpperCase()}` } } };
     fs.writeFileSync(PJ, JSON.stringify(cur, null, 2));
+    // (he hears it on his phone the moment it's up)
+    const { sendTelegramText } = await import(pathToFileURL(path.join(ROOT, 'render', 'share.mjs')).href);
+    await sendTelegramText(`▶️ On YouTube now (${r.v.status?.privacyStatus}): ${title}
+https://youtube.com/shorts/${r.v.id}`).catch(() => {});
     break;
   }
   if (r.limit) { console.log("  YouTube's daily upload limit - trying again in 10 min"); await sleep(10 * 60e3); continue; }
