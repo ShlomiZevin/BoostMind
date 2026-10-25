@@ -196,7 +196,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
         {err && <div className="pb-err">{err}</div>}
         <div className="pb-foot">
           <div className="pb-file">{file && !exportFirst ? `Sends the export from ${when(file.exported)} as is` : file && isStale ? 'You changed the video since the last export - it exports again first'
-            : draft && !file ? 'Only a quick test so far - it makes the full export first' : 'It exports the video first, then sends'}</div>
+            : draft && !file ? 'This is a quick test - the button makes the full-quality export first' : 'It exports the video first, then sends'}</div>
           {started && !running ? <button className="pb-go" onClick={onClose}>Done</button>
             : running ? <button className="pb-go ghost" onClick={onClose}>Sending… you can close this</button>
             : <button className="pb-go" onClick={go}>{n ? `${exportFirst ? 'Export & send' : 'Send'} to ${n}` : exportFirst ? 'Just export' : 'Pick where it goes'}</button>}

@@ -214,7 +214,9 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   const epFile = (id) => path.join(epDir(id), 'episode.json');  // (read only: the title)
   const pubFile = (id) => path.join(epDir(id), 'publish.json');
   const master = (id) => path.join(epDir(id), 'out', `${id}.mp4`);
-  const draftOf = (id) => path.join(epDir(id), 'out', `${id}.draft.mp4`);
+  // a Quick check or the phone test - shown in the window, never published (the newest of the two)
+  const draftOf = (id) => [`${id}.test.mp4`, `${id}.draft.mp4`].map((n) => path.join(epDir(id), 'out', n)).filter((f) => fs.existsSync(f))
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0] || path.join(epDir(id), 'out', `${id}.draft.mp4`);
   function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
     const file = master(id);
