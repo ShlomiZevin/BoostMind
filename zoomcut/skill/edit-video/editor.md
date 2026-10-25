@@ -83,6 +83,9 @@ One format, one composition, one editor, one export. The format and the API: `la
   folder from Downloads, optional settings from an earlier project; POST /api/new).
 - One project in every tool (editor, Reader, Karaoke) - localStorage/sessionStorage "zc-ep", studio/bar.js StudioProject.
   The Reader shows the project's script (episode.json `"script"` → scripts/<id>.txt); Paste saves into it.
+- **Reader lines (2026-10-25):** double-click a line (or E) to edit it; the **+** on a line (or A) adds a new line right after
+  it - same speaker, or type "Name: text" for another; Esc / empty drops it. Both save into the script file in place.
+  Paste → "Create a new project for it" makes a project + its Drop folder from a script.
 - **The Reader (his teleprompter while recording):** a pace (wpm) for the script and one per character (the box beside
   each name). **⏱ beside a character** = measure his pace: it picks a fair line of his (closest to ~18 words), Start when
   he starts saying it, Stop when he finishes → "<name>: N wpm" → **Save / Measure again / Cancel** (Save = that

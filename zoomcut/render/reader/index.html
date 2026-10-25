@@ -72,6 +72,12 @@ select option { background: var(--panel); color: var(--text); }
   border-radius: 4px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); color: #e8e4de; cursor: pointer; }
 .ln:hover .pin { display: inline-flex; }
 .ln .pin:hover { color: #1a1400; background: #ffd60a; border-color: #ffd60a; }
+/* add a line after this one (hover) */
+.t.editing:empty::before { content: attr(data-ph); color: var(--faint); }
+.ln .addl { position: absolute; left: 44px; top: 8px; width: 28px; height: 28px; display: none; align-items: center; justify-content: center;
+  border-radius: 4px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); color: #e8e4de; cursor: pointer; font-size: 18px; line-height: 1; }
+.ln:hover .addl { display: inline-flex; }
+.ln .addl:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
 .btn.ck { display: inline-flex; align-items: center; gap: 6px; }
 .btn.ck.on { color: #ffd60a; border-color: #ffd60a; }
 .ln.cur.other .t { color: var(--text); }
@@ -305,6 +311,8 @@ function render() {
     d.insertAdjacentHTML('beforeend', '<div class="bar"></div>' + (i === mark
       ? `<button class="flag" title="Back here and play"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>נקודת התחלה</button>`
       : `<button class="pin" title="Checkpoint here - start again from this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>`));
+    d.insertAdjacentHTML('beforeend', '<button class="addl" title="Add a line after this one (A)">+</button>');
+    d.querySelector('.addl').onclick = (e) => { e.stopPropagation(); addLine(i); };
     const fl = d.querySelector('.flag'), pin = d.querySelector('.pin');  // the mouse: set it on this line, or go back to it
     if (fl) fl.onclick = (e) => { e.stopPropagation(); toMark(); };
     if (pin) pin.onclick = (e) => { e.stopPropagation(); mark = i; save(); render(); };
@@ -478,6 +486,7 @@ const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>':
 document.addEventListener('keydown', (e) => {
   if ($('dlg').open || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;  // typing: no shortcuts
   if ((e.key === 'e' || e.key === 'E' || e.key === 'ק') && lines[cur]) { e.preventDefault(); return editLine(cur); }
+  if ((e.key === 'a' || e.key === 'A' || e.key === 'ש') && lines[cur]) { e.preventDefault(); return addLine(cur); }
   if (/^[1-9]$/.test(e.key) && chars[+e.key - 1]) return pick(chars[+e.key - 1]);
   if (e.code === 'KeyM') { e.preventDefault(); return setMark(); }
   if (e.code === 'KeyB') { e.preventDefault(); return toMark(); }
@@ -636,6 +645,67 @@ function editLine(i) {
   el.onblur = () => finish(true);
 }
 
+// ---- add a line: the + on a line (or A for the current one) - a new line right after it, typed in place --------
+// Enter keeps it, Esc / empty drops it. It takes that line's speaker; "Name: text" gives it to someone else.
+function addLine(i) {
+  if (!lines[i] || document.querySelector('.t.editing')) return;
+  setPlay(false);
+  cancelCd();
+  const base = lines[i];
+  const near = (l) => l && !l.dir && l.who;
+  const who = solo ? '' : base.dir ? ((lines.slice(i + 1).find(near) || [...lines.slice(0, i)].reverse().find(near))?.who || '') : base.who;
+  const nl = solo ? { who: '', text: '', solo: true } : { who, text: '' };
+  lines.splice(i + 1, 0, nl);
+  if (mark != null && mark > i) mark++;
+  go(i + 1);  // (redraws the script with the new, empty line)
+  const el = document.querySelector(`.ln[data-i="${i + 1}"] .t`);
+  if (!el) return;
+  el.contentEditable = 'plaintext-only';
+  el.classList.add('editing');
+  el.dataset.ph = solo ? 'the new line' : `${who || 'Name'}: the new line`;
+  el.focus();
+  let done = false;
+  const finish = async (keep) => {
+    if (done) return;
+    done = true;
+    el.contentEditable = 'false';
+    let text = el.textContent.replace(/\s+/g, ' ').trim();
+    if (!keep || !text) {  // nothing typed: the line goes
+      lines.splice(i + 1, 1);
+      if (mark != null && mark > i) mark--;
+      go(i);
+      return;
+    }
+    const m = !solo && text.match(/^([^:：]{1,24})[:：]\s*(.+)$/);
+    if (m && m[1].trim().split(/\s+/).length <= 3) { nl.who = m[1].trim(); text = m[2].trim(); }
+    nl.text = text;
+    if (!solo) chars = [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
+    await insertRaw(i, nl);
+    render();
+  };
+  el.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  };
+  el.onblur = () => finish(true);
+}
+// the new line into the original text, right after line i's row (the rest of the file as it was)
+async function insertRaw(i, nl) {
+  const row = nl.dir ? `[${nl.text}]` : nl.solo || !nl.who ? nl.text : `${nl.who}: ${nl.text}`;
+  const before = lines[i].text, nth = lines.slice(0, i).filter((l) => l.text === before).length;
+  const rows = raw.split(/\r?\n/);
+  let seen = 0, at = -1;
+  for (let r = 0; r < rows.length; r++) {
+    if (rows[r].trim().startsWith('#') || !rows[r].includes(before)) continue;
+    if (seen++ === nth) { at = r; break; }
+  }
+  if (at >= 0) rows.splice(at + 1, 0, row);
+  const next = at >= 0 ? rows.join('\n')
+    : [...raw.split(/\r?\n/).filter((r) => r.trim().startsWith('#')), ...lines.map((l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`))].join('\n');
+  await writeScript(next);
+}
+
 async function saveLine(i, before, after) {
   // the line in the original text: the n-th raw line holding this text (n = how many lines before it say the same)
   const nth = lines.slice(0, i).filter((l) => l.text === before).length;
@@ -655,6 +725,10 @@ async function saveLine(i, before, after) {
     next = [...head, ...lines.map((l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`))].join('\n');
   }
   lines[i].text = after;
+  await writeScript(next);
+}
+// the script's text, saved where it came from (a saved script, a project's script.txt, or the pasted one)
+async function writeScript(next) {
   raw = next;
   try {
     if (src.startsWith('script:')) {
