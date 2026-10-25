@@ -118,7 +118,7 @@ async function poll() {
   draw();
 }
 const PLAT = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', x: 'X', facebook: 'Facebook' };  // (a publish job: one per platform)
-const KIND = (j) => (j.kind === 'send' ? (j.channel === 'email' ? 'Email' : 'Telegram') : j.kind === 'publish' ? PLAT[j.channel] || 'Publish' : j.kind === 'drop' ? 'Drop' : j.kind === 'export' ? 'Export' : 'Build');
+const KIND = (j) => (j.kind === 'send' ? (j.channel === 'email' ? 'Email' : 'Telegram') : j.kind === 'publish' ? PLAT[j.channel] || 'Publish' : j.kind === 'drop' ? 'Drop' : j.kind === 'site' ? 'Shlomiverse' : j.kind === 'export' ? 'Export' : 'Build');
 const when = (ms) => { if (!ms) return ''; const d = new Date(ms), now = new Date();
   const hm = d.toTimeString().slice(0, 5); return d.toDateString() === now.toDateString() ? hm : `${d.getDate()}/${d.getMonth() + 1} ${hm}`; };
 const took = (a, b) => { if (!a || !b) return ''; const s = Math.round((b - a) / 1000); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`; };
@@ -130,9 +130,9 @@ function draw() {
   if (run.length) jobsBtn.insertAdjacentHTML('beforeend', `<span class="badge">${run.length}</span>`);
   if (!jobsPop.classList.contains('on')) return;
   const row = (j, running) => {
-    const p = running && j.pct != null ? { pct: j.pct, step: '' } : running && j.kind !== 'send' && j.kind !== 'publish' ? progress(j.log) : null;
-    const st = running ? (p ? `${p.pct}%` : j.kind === 'send' ? 'sending' : j.kind === 'publish' ? 'publishing' : 'working') : j.ok ? 'done' : 'failed';
-    const line = running ? (j.kind === 'send' || j.kind === 'drop' || j.kind === 'publish' ? (j.log || []).at(-1) || '' : lastLine(j.log)) : j.line || '';
+    const p = running && j.pct != null ? { pct: j.pct, step: '' } : running && j.kind !== 'send' && j.kind !== 'publish' && j.kind !== 'site' ? progress(j.log) : null;
+    const st = running ? (p ? `${p.pct}%` : j.kind === 'send' ? 'sending' : j.kind === 'publish' ? 'publishing' : j.kind === 'site' ? 'on the sites' : 'working') : j.ok ? 'done' : 'failed';
+    const line = running ? (j.kind === 'send' || j.kind === 'drop' || j.kind === 'publish' || j.kind === 'site' ? (j.log || []).at(-1) || '' : lastLine(j.log)) : j.line || '';
     const t = running ? `since ${when(j.started)}` : `${when(j.ended)} · ${took(j.started, j.ended)}`;
     return `<div class="job" data-id="${esc(j.id)}">
       <div class="job-top"><span class="job-name">${esc(j.id)}</span><span class="job-kind ${j.kind}">${KIND(j)}</span>

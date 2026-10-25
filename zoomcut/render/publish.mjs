@@ -15,7 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { sendTelegramText, tgEsc } from './share.mjs';
 
 const DROP = 'https://drop-463727469066.me-west1.run.app';
@@ -255,9 +255,52 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       if (dry) return;
       const pj = readJson(pubFile(id), {});  // the results stay with the project
       writeJson(pubFile(id), { ...pj, afterExport: false, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } });
+      if (Object.values(r.items).some((it) => it.state === 'done')) site(id);  // out on a social -> on his sites too
     })();
     return r;
   }
+
+  // ---- his sites: a published video goes on the Shlomiverse (the wiki + the links page) by itself, every time - videos
+  // whose sessions skipped the wiki steps were missing there (2026-10-25). scripts/wiki/publish_site.py does it all
+  // (done, web copy, Terra's fan copy, build, deploy, live check); here it is a "site" job, one at a time (it deploys
+  // the whole hosting site), its lines the job's log, a Telegram with the link or the error.
+  const BM = path.resolve(ROOT, '..');
+  const sites = { queue: [], cur: null };
+  function site(id) {
+    if (sites.cur?.id === id || sites.queue.includes(id)) return { queued: true };
+    sites.queue.push(id);
+    pumpSites();
+    return { queued: true };
+  }
+  function pumpSites() {
+    if (sites.cur || !sites.queue.length) return;
+    const id = sites.queue.shift();
+    const cur = (sites.cur = { id, started: Date.now(), log: [] });
+    const ch = spawn('python', ['scripts/wiki/publish_site.py', id], { cwd: BM, windowsHide: true, env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' } });
+    let buf = '';
+    const take = (d) => { buf += d; const ls = buf.split(/\r?\n/); buf = ls.pop(); for (const l of ls) if (l.trim()) cur.log.push(l.trimEnd()); };
+    ch.stdout.on('data', take); ch.stderr.on('data', take);
+    let over = false;  // ('error' and 'close' can both come)
+    const end = async (code) => {
+      if (over) return;
+      over = true;
+      if (buf.trim()) cur.log.push(buf.trim());
+      const ok = code === 0;
+      const done = cur.log.filter((l) => l.startsWith('✔')), warn = cur.log.filter((l) => l.trim().startsWith('!'));
+      recordJob({ id, kind: 'site', started: cur.started, ended: Date.now(), ok, line: ok ? done.at(-1) || 'on the Shlomiverse' : cur.log.at(-1) || `failed (${code})` });
+      await sendTelegramText(ok ? `🌐 On the Shlomiverse ✓\n${done.join('\n')}${warn.length ? '\n\n' + warn.join('\n') : ''}`
+        : `⚠ ${id} didn't go up on the Shlomiverse (the wiki / links page):\n${cur.log.slice(-6).join('\n')}\n\nRun it again: POST /api/ep/${id}/site`).catch(() => {});
+      sites.cur = null;
+      pumpSites();
+    };
+    ch.on('close', end);
+    ch.on('error', (e) => { cur.log.push(String(e.message || e)); end(-1); });
+  }
+  // by hand: a video published before this, or one whose site job failed
+  app.post('/api/ep/:id/site', (q, res) => {
+    if (!fs.existsSync(master(q.params.id))) return res.status(400).json({ error: 'No full export of this video' });
+    res.json(site(q.params.id));
+  });
   const postOf = (body) => ({ platforms: (body.platforms || []).filter((p) => P[p]?.publish), caption: String(body.caption || ''), title: String(body.title || ''), options: body.options || {} });
   const savePost = (id, post, afterExport, dry = false) => writeJson(pubFile(id), { ...readJson(pubFile(id), {}), ...post, afterExport: !!afterExport, dry: !!dry });
 
@@ -305,10 +348,11 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       writeJson(pubFile(id), { ...pj, afterExport: false, dry: false });  // (cleared first: it publishes once)
       run(id, pj, !!pj.dry);
     },
-    // the Jobs list: one job per platform (his ask) - its own progress line
-    running: () => Object.entries(runs).filter(([, r]) => r.running).flatMap(([id, r]) => Object.entries(r.items)
+    // the Jobs list: one job per platform (his ask) - its own progress line; the site job after them
+    running: () => [...(sites.cur ? [{ id: sites.cur.id, kind: 'site', started: sites.cur.started, log: sites.cur.log.slice(-5) }] : []),
+      ...sites.queue.map((id) => ({ id, kind: 'site', started: Date.now(), log: ['waiting for the site job before it'] })), ...Object.entries(runs).filter(([, r]) => r.running).flatMap(([id, r]) => Object.entries(r.items)
       .filter(([, it]) => it.state === 'waiting' || it.state === 'publishing')
       .map(([p, it]) => ({ id, kind: 'publish', channel: p, started: it.started || r.started,
-        log: [`${P[p].name}: ${it.state === 'waiting' ? 'waiting for Instagram' : it.log.at(-1) || 'starting…'}`] }))),
+        log: [`${P[p].name}: ${it.state === 'waiting' ? 'waiting for Instagram' : it.log.at(-1) || 'starting…'}`] })))],
   };
 }

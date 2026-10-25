@@ -51,6 +51,10 @@ it's safe to run again. Edit the VIDEOS list for a new batch (the last export of
 All platforms at once - each its own job in the Jobs list (Instagram, TikTok, YouTube, X; Facebook's reminder waits
 for Instagram, it needs the Reel's link). Each goes out once, no retries. TikTok: TWO Telegram messages - the video's name +
 "waiting for you to approve in the TikTok app (Inbox → ready to edit)", then the caption ALONE in its own plain message,
-so one long-press copies exactly it (his ask; he once posted with an old caption TikTok had kept - 2026-10-25). YouTube's
+so one long-press copies exactly it (his ask; he once posted with an old caption TikTok had kept - 2026-10-25).
+**His sites, by themselves:** when a publish ends with any platform out, the studio runs
+`scripts/wiki/publish_site.py <id>` as a "Shlomiverse" job (one at a time - it deploys the hosting site): done, web
+copy, Terra's fan copy, build, deploy, live check - the video is on the wiki and the links page, and a Telegram says
+so (or why not). A video published before this / a failed one: `POST /api/ep/<id>/site`. Never skip it by hand. YouTube's
 "exceeded the number of videos" = the channel's daily upload limit (it opens ~24 h after a batch): the job says so in
 plain words; `node zoomcut/tools/yt_when_open.mjs <id> public` uploads it the moment it opens.
