@@ -167,6 +167,36 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     send([{ op: 'layer.remove', id: l.id }], { label: 'delete layer' });
     onSel(null);
   };
+  // drag a layer by its name up / down: a line shows where it lands; on top in the list = drawn on top. Ctrl+Z undoes
+  const [lmove, setLmove] = useState<{ id: string; over?: string; below?: boolean } | null>(null);
+  const lmoved = useRef(false);  // (a drag isn't also a click)
+  const startLayerMove = (e: React.MouseEvent, l: any) => {
+    if (e.button !== 0 || (e.target as HTMLElement).closest('button')) return;
+    const y0 = e.clientY;
+    let on = false, at: { over?: string; below?: boolean } = {};
+    lmoved.current = false;
+    const mv = (ev: MouseEvent) => {
+      if (!on && Math.abs(ev.clientY - y0) < 5) return;
+      on = true; lmoved.current = true; document.body.style.cursor = 'grabbing';
+      const row = (document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest('[data-lane]') as HTMLElement | null;
+      const over = row?.dataset.lane;
+      if (!row || !over || over === l.id) at = {};
+      else { const r = row.getBoundingClientRect(); at = { over, below: ev.clientY > r.top + r.height / 2 }; }
+      setLmove({ id: l.id, ...at });
+    };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
+      document.body.style.cursor = '';
+      setLmove(null);
+      if (!on || !at.over) return;
+      const rest = project.layers.filter((x: any) => x.id !== l.id);
+      const t = rest.findIndex((x: any) => x.id === at.over);
+      if (t < 0) return;
+      const index = at.below ? t : t + 1;  // (the list is top first; the project's layers bottom first)
+      if (index !== project.layers.indexOf(l)) send([{ op: 'layer.move', id: l.id, index }], { label: 'move layer' });
+    };
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
 
   return (
     <div className="tl">
@@ -199,15 +229,16 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                 <div className="ltl-track" style={{ width }} onMouseDown={seekAt} />
               </div>
               {!closed[g.name] && g.layers.map((l) => (
-                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${sel?.layer === l.id ? 'sel' : ''}`}>
-                  <div className="ltl-name" style={{ opacity: l.hidden ? 0.5 : 1 }} onClick={() => onSel({ layer: l.id })} title={`${KIND_LABEL[l.kind]} · ${l.id}`}>
+                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${sel?.layer === l.id ? 'sel' : ''} ${lmove?.id === l.id ? 'lmoving' : ''} ${lmove?.over === l.id ? (lmove.below ? 'drop-below' : 'drop-above') : ''}`}>
+                  <div className="ltl-name" style={{ opacity: l.hidden ? 0.5 : 1 }} onMouseDown={(e) => startLayerMove(e, l)}
+                    onClick={() => { if (lmoved.current) { lmoved.current = false; return; } onSel({ layer: l.id }); }} title={`${KIND_LABEL[l.kind]} · ${l.id} - drag it up or down to move the layer`}>
                     <span className="dot" style={{ background: KIND_COLOR[l.kind] }} />
                     <span className="nm" dir="auto">{l.name || l.id}</span>
+                    <button className="btn ghost icon ltl-del" style={{ width: 22, height: 22 }} title="Delete this layer (Ctrl+Z brings it back)"
+                      onClick={(e) => { e.stopPropagation(); removeLayer(l); }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
                     {l.kind === 'audio'
                       ? <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.muted ? 'Sound on' : 'Mute'} onClick={(e) => { e.stopPropagation(); toggle(l, 'muted'); }}><SpkIc off={l.muted} /></button>
                       : <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); toggle(l, 'hidden'); }}><EyeIc off={l.hidden} /></button>}
-                    <button className="btn ghost icon ltl-del" style={{ width: 22, height: 22 }} title="Delete this layer (Ctrl+Z brings it back)"
-                      onClick={(e) => { e.stopPropagation(); removeLayer(l); }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
                   </div>
                   <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted ? 0.45 : 1 }}
                     onMouseDown={(e) => { if (e.target === e.currentTarget) { onSel({ layer: l.id }); seekAt(e); } }}>

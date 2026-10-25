@@ -183,7 +183,8 @@ Answer: `{ok, rev, stems}`. Every write is logged with its undo in `work/history
 ```
 Delete a whole layer in the editor: the trash on its name (on hover), Delete with the layer picked, or the Inspector's
 "Delete layer" - always through our own window (render/ui/layers/ask.ts - never the browser's confirm box, his ask);
-Ctrl+Z brings it back.
+Ctrl+Z brings it back. Move a layer: drag its name in the timeline up / down (a line shows where it lands; higher in the
+list = drawn on top) - `layer.move`.
 `GET /api/p/<id>` - the project, `urls` (where the editor loads each asset), `stems`, the last export.
 
 ## Builders - who makes the items

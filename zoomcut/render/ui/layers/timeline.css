@@ -41,6 +41,13 @@
 .blk-tip { position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); z-index: 8; padding: 2px 7px; border-radius: 3px;
   background: #fff; color: #111; font-size: 11px; font-weight: 600; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
 /* the layer's trash: only on hover (the names column doesn't change) */
-.ltl-name .ltl-del { display: none; flex: none; }
-.ltl-name:hover .ltl-del { display: inline-flex; }
+/* (its place is always kept, left of the eye - the eye never moves under the mouse) */
+.ltl-name .ltl-del { visibility: hidden; flex: none; margin-right: 6px; }
+.ltl-name:hover .ltl-del { visibility: visible; }
 .ltl-name .ltl-del:hover { color: var(--bad, #ef5f5f); }
+/* moving a layer: dragged by its name, a line where it lands */
+.ltl-lay { position: relative; }
+.ltl-lay.lmoving .ltl-name { opacity: 0.45 !important; }
+.ltl-lay.drop-above::before, .ltl-lay.drop-below::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); z-index: 8; pointer-events: none; }
+.ltl-lay.drop-above::before { top: -1px; }
+.ltl-lay.drop-below::after { bottom: -1px; }
