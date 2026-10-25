@@ -43,6 +43,7 @@ iframe.on { display: block; }
 .job-kind.export { color: #ffb3a8; }
 .job-kind.send { color: #9fd0ff; }
 .job-kind.drop { color: #b8e0a0; }
+.job-kind.publish { color: #ffd27a; }
 .job-t { margin-left: auto; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .job-st { font-size: 12px; color: var(--dim); }
 .job-st.ok { color: #7fd29a; } .job-st.err { color: #ff8a7a; }
@@ -116,7 +117,8 @@ async function poll() {
   } catch {}
   draw();
 }
-const KIND = (j) => (j.kind === 'send' ? (j.channel === 'email' ? 'Email' : 'Telegram') : j.kind === 'drop' ? 'Drop' : j.kind === 'export' ? 'Export' : 'Build');
+const PLAT = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', x: 'X', facebook: 'Facebook' };  // (a publish job: one per platform)
+const KIND = (j) => (j.kind === 'send' ? (j.channel === 'email' ? 'Email' : 'Telegram') : j.kind === 'publish' ? PLAT[j.channel] || 'Publish' : j.kind === 'drop' ? 'Drop' : j.kind === 'export' ? 'Export' : 'Build');
 const when = (ms) => { if (!ms) return ''; const d = new Date(ms), now = new Date();
   const hm = d.toTimeString().slice(0, 5); return d.toDateString() === now.toDateString() ? hm : `${d.getDate()}/${d.getMonth() + 1} ${hm}`; };
 const took = (a, b) => { if (!a || !b) return ''; const s = Math.round((b - a) / 1000); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`; };
@@ -128,9 +130,9 @@ function draw() {
   if (run.length) jobsBtn.insertAdjacentHTML('beforeend', `<span class="badge">${run.length}</span>`);
   if (!jobsPop.classList.contains('on')) return;
   const row = (j, running) => {
-    const p = running && j.pct != null ? { pct: j.pct, step: '' } : running && j.kind !== 'send' ? progress(j.log) : null;
-    const st = running ? (p ? `${p.pct}%` : j.kind === 'send' ? 'sending' : 'working') : j.ok ? 'done' : 'failed';
-    const line = running ? (j.kind === 'send' || j.kind === 'drop' ? (j.log || []).at(-1) || '' : lastLine(j.log)) : j.line || '';
+    const p = running && j.pct != null ? { pct: j.pct, step: '' } : running && j.kind !== 'send' && j.kind !== 'publish' ? progress(j.log) : null;
+    const st = running ? (p ? `${p.pct}%` : j.kind === 'send' ? 'sending' : j.kind === 'publish' ? 'publishing' : 'working') : j.ok ? 'done' : 'failed';
+    const line = running ? (j.kind === 'send' || j.kind === 'drop' || j.kind === 'publish' ? (j.log || []).at(-1) || '' : lastLine(j.log)) : j.line || '';
     const t = running ? `since ${when(j.started)}` : `${when(j.ended)} · ${took(j.started, j.ended)}`;
     return `<div class="job" data-id="${esc(j.id)}">
       <div class="job-top"><span class="job-name">${esc(j.id)}</span><span class="job-kind ${j.kind}">${KIND(j)}</span>

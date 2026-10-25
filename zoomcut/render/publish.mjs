@@ -152,9 +152,11 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
             headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ publish_id: init.data.publish_id }) }));
           const st = s.data?.status;
           if (st === 'SEND_TO_USER_INBOX' || st === 'PUBLISH_COMPLETE') {
-            // (a draft can't carry text: the caption goes to his phone, one long-press to copy)
-            const sent = post.caption ? await sendTelegramText(post.caption).then(() => true).catch(() => false) : false;
-            return { url: null, note: `In your TikTok drafts - open TikTok, add a sound, post${sent ? '. The caption is in your Telegram to copy' : ''}` };
+            // (a draft can't carry text) - a Telegram that it's waiting for him in the app, then the caption ALONE
+            // in its own message, so one long-press copies exactly it
+            const sent = await sendTelegramText(`📱 TikTok: your video is waiting for you to approve it\n\nOpen TikTok → Inbox → the "ready to edit" notification → add a sound → Post${post.caption ? '\n\n👇 The caption is the next message - long-press to copy it' : ''}`)
+              .then(() => (post.caption ? sendTelegramText(post.caption.trim()) : null)).then(() => true).catch(() => false);
+            return { url: null, note: `Waiting for you in the TikTok app (Inbox → "ready to edit")${sent ? ' - details and the caption in your Telegram' : ''}` };
           }
           if (st === 'FAILED') throw new Error('TikTok: ' + (s.data?.fail_reason || 'failed'));
           log('TikTok is processing it…', true);
@@ -185,7 +187,11 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           body: JSON.stringify({ snippet: { title, description, categoryId: '23' },
             status: { privacyStatus: privacy, selfDeclaredMadeForKids: false } }) });
         const at = init.headers.get('location');
-        if (!at) throw new Error('YouTube: ' + (await init.text()).slice(0, 200));
+        if (!at) {
+          const txt = await init.text();
+          if (/exceeded the number of videos|uploadLimitExceeded/i.test(txt)) throw new Error("YouTube's daily upload limit for your channel - try again in a few hours (Send → only YouTube), or verify the channel: youtube.com/verify");
+          throw new Error('YouTube: ' + txt.slice(0, 200));
+        }
         log('uploading to YouTube…', true);
         const v = await json(await fetch(at, { method: 'PUT', headers: { 'Content-Type': 'video/mp4', 'Content-Length': String(size) }, body: fs.readFileSync(file) }));
         if (!v.id) throw new Error('YouTube: ' + JSON.stringify(v).slice(0, 200));
@@ -223,18 +229,25 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)) };  // (Instagram before Facebook's reminder)
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
     (async () => {
-      for (const p of post.platforms) {  // one after the other - his upload line, and each one's progress reads clearly
+      // every platform at once (his ask, 2026-10-25) - each its own job in the Jobs list; Facebook's reminder waits for
+      // Instagram (it needs the Reel's link). Each goes out once: no retries.
+      const one = async (p) => {
         const it = r.items[p], A = P[p];
+        it.started = Date.now();
         const log = (m, replace) => { if (replace && it.log.length) it.log[it.log.length - 1] = m; else it.log.push(m); };
-        if (!A?.publish || (!dry && !A.connected(env()).ok)) { it.state = 'skipped'; it.error = 'not connected'; continue; }
+        if (!A?.publish || (!dry && !A.connected(env()).ok)) { it.state = 'skipped'; it.error = 'not connected'; return; }
         it.state = 'publishing';
         try {
           // (dry: everything but the platform call - a test of the path, nothing goes out)
           const res = dry ? (log('dry run - nothing sent'), await sleep(300), { url: null, note: `dry run: ${path.basename(file)} → ${A.name}` }) : await A.publish(file, post, log, r.items);
           Object.assign(it, { state: 'done', url: res.url || null, note: res.note || '' });
         } catch (e) { Object.assign(it, { state: 'failed', error: String(e.message || e).slice(0, 300) }); }
-        if (!dry) recordJob({ id, kind: 'publish', channel: p, started: r.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });
-      }
+        if (!dry) recordJob({ id, kind: 'publish', channel: p, started: it.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });
+      };
+      const tasks = {};
+      for (const p of post.platforms) if (p !== 'facebook') tasks[p] = one(p);
+      if (post.platforms.includes('facebook')) tasks.facebook = (tasks.instagram || Promise.resolve()).then(() => one('facebook'));
+      await Promise.all(Object.values(tasks));
       r.running = false; r.ended = Date.now();
       if (dry) return;
       const pj = readJson(pubFile(id), {});  // the results stay with the project
@@ -289,7 +302,10 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       writeJson(pubFile(id), { ...pj, afterExport: false, dry: false });  // (cleared first: it publishes once)
       run(id, pj, !!pj.dry);
     },
-    running: () => Object.entries(runs).filter(([, r]) => r.running).map(([id, r]) => ({ id, kind: 'publish', started: r.started,
-      log: Object.entries(r.items).map(([p, it]) => `${P[p].name}: ${it.state}${it.log.length ? ' · ' + it.log.at(-1) : ''}`) })),
+    // the Jobs list: one job per platform (his ask) - its own progress line
+    running: () => Object.entries(runs).filter(([, r]) => r.running).flatMap(([id, r]) => Object.entries(r.items)
+      .filter(([, it]) => it.state === 'waiting' || it.state === 'publishing')
+      .map(([p, it]) => ({ id, kind: 'publish', channel: p, started: it.started || r.started,
+        log: [`${P[p].name}: ${it.state === 'waiting' ? 'waiting for Instagram' : it.log.at(-1) || 'starting…'}`] }))),
   };
 }

@@ -46,3 +46,10 @@ Connected = its keys in zoomcut/.env (`GET /api/publish/platforms` says which).
 uploads a day (quota): the run waits and retries every 30 min; `zoomcut/work/shorts-backlog.json` keeps what's up, so
 it's safe to run again. Edit the VIDEOS list for a new batch (the last export of each video - not drafts, not the
 `.email` / `.telegram` copies; Shorts max 3:00). He can cancel or move any scheduled one in YouTube Studio.
+
+## How a publish runs (2026-10-25)
+All platforms at once - each its own job in the Jobs list (Instagram, TikTok, YouTube, X; Facebook's reminder waits
+for Instagram, it needs the Reel's link). Each goes out once, no retries. TikTok: two Telegram messages - "waiting for
+you to approve in the TikTok app (Inbox → ready to edit)", then the caption alone (one long-press copies it). YouTube's
+"exceeded the number of videos" = the channel's daily upload limit (it opens ~24 h after a batch): the job says so in
+plain words; `node zoomcut/tools/yt_when_open.mjs <id> public` uploads it the moment it opens.
