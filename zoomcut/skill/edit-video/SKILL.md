@@ -146,16 +146,22 @@ The rules:
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
    Fix what you find first.
 7. **Hand over:** the link, the length, the lines you fixed or could not find, 2-4 timestamps worth his ear, one line
-   that he can drag any cut edge to pull footage back.
+   that he can drag any cut edge to pull footage back. **And the post is already written** (his rule, 2026-10-25):
+   every video you make comes with its DEFAULT caption - a hook line + 3-6 hashtags, in the character's voice
+   (`publishing.md`) - and its YouTube title, saved into the Send window (`POST /api/ep/<id>/publish {save: true,
+   platforms, caption, title}`), so when he opens Send it's all there; tell him the caption in the hand-over.
 8. **Iterate on his notes**, keep a short line going while you work.
-9. **Export - a Quick check first, then Full quality** (his flow, 2026-10-22): he checks the edit on his phone from a
-   **Quick check** (Export menu → Quick check: half size 540x960, fastest encoder, `out/<id>.draft.mp4`, the email says
-   DRAFT; ~3 min for a 3-min Zoom video vs ~9 for full). When he's happy, **Full quality** (1080x1920, `out/<id>.mp4`,
-   "ready for TikTok"). Same button / endpoint he uses: `POST /api/ep/<id>/export {send: ["email"], quick: true}`.
+9. **Send - one window for everything** (2026-10-25): the top bar's **Send** button opens it - **Test on my phone**
+   (`POST /api/ep/<id>/export {test: true, send: ["telegram"]}`: 378x672, ultrafast, `out/<id>.test.mp4`, marked TEST,
+   never published - to check the look and the sound), **Send the file** (Telegram, Email) and **Publish** (the
+   socials). An up-to-date full export goes out as is; otherwise its button exports first (`out/<id>.mp4`, 1080x1920).
    Commit and push when he asks - only your own files (other sessions have uncommitted work in this repo).
-10. **Post it** - read `publishing.md`. Write the caption + hashtags (+ X text, YouTube title) in the character's
-   voice and save them into the Publish window (`POST /api/ep/<id>/publish {save: true, ...}`); **he presses
-   Publish**, never you. Instagram + TikTok drafts are live; Facebook = "Share to Facebook" on the Instagram Reel.
+10. **Post it** - read `publishing.md`. The caption you saved in step 7 is in the Send window; **he presses Send**,
+   never you. Instagram, TikTok drafts, YouTube Shorts and X are live; Facebook = a Telegram reminder to share the
+   Instagram Reel.
+11. **Put it on the Shlomiverse** - read `wiki.md`: web copy + poster, the fan title (Terra), build, deploy the site
+   and the chat. Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
+   about it.
 
 ## More of his rules
 - **He can always re-trim the cut himself - in the one editor, in every kind of video** (asked 6 times, last
@@ -318,6 +324,17 @@ their videos and their assets. It's where he learns about them and briefs a sess
 - After a video is done, add anything new you learned about the character to their profile (a new catchphrase, a
   new set, the website's new page). The page is the one place that knows them.
 
+## The Shlomiverse, the links page, his images - read `wiki.md`
+His world on the web is filled from this studio: **שלומיוורס** (https://boostmind-b052c.web.app/wiki/ - every
+character, every video, a chat with each one in their own voice), the **links page** in all his bios
+(https://boostmind-b052c.web.app/links/), and **his own analytics** (/stats/). A new character or a finished video
+reaches them only through step 11.
+- **Profile photo:** https://boostmind-b052c.web.app/links/shlomi.jpg (880x880, studio with the wigs) ·
+  older: https://boostmind-b052c.web.app/links/profile.jpg
+- **Facebook cover:** https://boostmind-b052c.web.app/links/img/fb-cover.jpg (1640x624) · sharp:
+  https://boostmind-b052c.web.app/links/img/fb-cover-2x.jpg - made from his real portraits (`scripts/wiki/fb-cover.html`).
+- Deep links for posts and end cards: `/wiki/#/c/<character>`, `/wiki/#/v/<video>`, `/wiki/#/chat?with=<character>`.
+
 ## Recipes - read the one you need
 Under the hood two engines exist: `lesson.py` (one camera - almost everything) and `zoomcut.py` (a Zoom grid of
 separately filmed characters). Pick by the footage; never name things after a series in the UI.
@@ -333,6 +350,8 @@ he signs off.
 
 ## More
 - `layers.md` - **the project format**: layer kinds, items, ops, builders, export. The contract for filling a video.
+- `wiki.md` - **the Shlomiverse, the links page, his profile / cover images, his analytics**: addresses, step 11,
+  the chat, his rules for those pages.
 - `publishing.md` - **posting to his socials**: what each platform takes (caption, hashtags, limits), how to write
   the post, how to prepare it for him.
 - `editor.md` - how the editor, the live cut, layers, the background render and the export work (read before

@@ -214,6 +214,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   const epFile = (id) => path.join(epDir(id), 'episode.json');  // (read only: the title)
   const pubFile = (id) => path.join(epDir(id), 'publish.json');
   const master = (id) => path.join(epDir(id), 'out', `${id}.mp4`);
+  const draftOf = (id) => path.join(epDir(id), 'out', `${id}.draft.mp4`);
   function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
     const file = master(id);
@@ -251,7 +252,15 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     const e = readJson(epFile(q.params.id), {}), f = master(q.params.id), pj = readJson(pubFile(q.params.id), null);
     let file = null;  // what would go out: the file, its size and when it was exported (the window shows it before he clicks)
     try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
-    res.json({ post: pj, run: runs[q.params.id] || null, title: e.title || q.params.id, file });
+    let draft = null;  // a Quick check (half size) - shown in the window, never published
+    try { draft = { exported: fs.statSync(draftOf(q.params.id)).mtimeMs }; } catch {}
+    res.json({ post: pj, run: runs[q.params.id] || null, title: e.title || q.params.id, file, draft });
+  });
+  // the video the window shows: the full export, else the Quick check draft
+  app.get('/api/ep/:id/publish/video', (q, res) => {
+    const f = [master(q.params.id), draftOf(q.params.id)].find((x) => fs.existsSync(x));
+    if (!f) return res.status(404).end();
+    res.sendFile(f);
   });
   // publish the current export now; {afterExport: true} only saves it - the export publishes when it ends well.
   // {dry: true}: the whole path without the platform calls (a test - nothing goes out)

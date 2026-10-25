@@ -5,12 +5,13 @@ the post - caption, hashtags, YouTube title - and put it in the window ready for
 do** - a post is public and the APIs can't delete it (Instagram refused a delete; he deleted tests by hand).
 
 ## The flow
-1. The Full quality export is done and he's happy with it (never a Quick check draft - the server won't publish one).
+1. **With every video you make, write its default post** (his rule, 2026-10-25) - don't wait for him to ask. The
+   Send window (top bar → **Send**: Test on my phone · Telegram / Email · the socials) opens with it filled in.
 2. Write the post (below) and **save it into the window**, without publishing:
    `POST /api/ep/<id>/publish {save: true, platforms: [...], caption, title, options}`
    (or `{afterExport: true, ...}` when he wants it out as soon as an export ends).
-3. Tell him it's ready: Publish button (or Export → "Export and publish…"). The window shows the account, caption,
-   file, length, size and export time before his click. A stale export can't be published - export again.
+3. Tell him the caption in the hand-over. He presses **Send**: an up-to-date full export goes out as is, otherwise
+   the button exports first (a Quick / Test export is never published). A stale export can't be published.
 4. After it runs: the window and the Jobs history show each platform's result and link. Tell him what to do by hand:
    **Instagram → "Share to Facebook"** on the Reel, **TikTok → the video arrives as a notification in the app's Inbox
    ("ready to edit", not in Drafts) - tap it, paste the caption from Telegram, add a sound, post**.

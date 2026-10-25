@@ -378,13 +378,11 @@ function Editor() {
         <button className="btn" disabled={busy} onClick={async () => setJob(await api(`/api/ep/${ep}/analyze`, {}))}>Re-analyze</button>
         {shareText && <div className="state" style={{ color: share!.ok === false ? 'var(--bad)' : share!.ok ? 'var(--ok)' : 'var(--dim)' }}>{shareText}</div>}
         {data?.output && !busy && <a href={`${data.output}?v=${Date.now()}`} target="_blank"><button className="btn">Open MP4</button></a>}
-        {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Email the video to shlomi@boostart.io" onClick={() => sendOrAsk('email')}>{I.mail} Email</button>}
-        {data?.output && !busy && <button className="btn" disabled={!!share?.running} title="Send the video to your Telegram" onClick={() => sendOrAsk('telegram')}>{I.tg} Telegram</button>}
         {pubRun && (pubRun.running || Date.now() - ((pubRun as any).ended || 0) < 10 * 60e3) && <span className="pb-top" title="Open the Publish window" onClick={() => setPubWin('now')}>
           {pubRun.running ? 'Publishing' : 'Published'} {Object.entries(pubRun.items).map(([p, it]: any) => <span key={p} style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><Mark id={p} size={16} />{it.state === 'done' ? '✓' : it.state === 'failed' ? '!' : it.state === 'skipped' ? '–' : '…'}</span>)}</span>}
-        {data?.output && !busy && <button className="btn" title="Put the video on Instagram, TikTok, YouTube, X" onClick={() => setPubWin('now')}>Publish</button>}
-        {pubWin && <PublishWindow ep={ep} mode={pubWin} output={data?.output || null} stale={!!(data as any)?.outputStale} onClose={() => setPubWin(null)}
-          onExport={async () => { setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send: [], quick: false })); }} />}
+        {pubWin && <PublishWindow ep={ep} canTest={!lessonData || !!(data as any)?.layered} onClose={() => setPubWin(null)}
+          onExport={async (send) => { setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send, quick: false })); }}
+          onTest={async () => { setShare(null); setJob(await api(`/api/ep/${ep}/export`, { test: true, send: ['telegram'] })); }} />}
         {stalePick && <div className="pm-modal" onClick={() => setStalePick(null)}>
           <div className="pm-box" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>The video changed after the last export</div>
@@ -396,22 +394,7 @@ function Editor() {
             </div>
           </div>
         </div>}
-        <div className="exp">
-          <button className="btn primary" disabled={busy || !ready} onClick={() => setExpOpen(!expOpen)} title="Export the video - pick where it goes first">{I.export} Export ▾</button>
-          {expOpen && <div className="exp-pop" onMouseLeave={() => setExpOpen(false)}>
-            {!lessonData && <div className="seg exp-mode" style={{ gridTemplateColumns: '1fr 1fr', margin: '4px 10px 8px' }}>
-              <button className={!expQuick ? 'on' : ''} onClick={() => setExpQuick(false)} title="1080x1920, the file for TikTok">Full quality</button>
-              <button className={expQuick ? 'on' : ''} onClick={() => setExpQuick(true)} title="Half size, fastest - a draft to check the edit on the phone (sent marked DRAFT; the real file is not replaced)">Quick check</button>
-            </div>}
-            <div className="exp-h">When it's done, send it to…</div>
-            {([[['telegram'], 'Telegram', I.tg], [['email'], 'Email', I.mail], [['telegram', 'email'], 'Telegram + Email', null], [[], 'Nowhere - just make the file', null]] as const).map(([send, nm, ic]) => (
-              <button key={nm} className="exp-it" onClick={async () => { setExpOpen(false); setShare(null); setJob(await api(`/api/ep/${ep}/export`, { send, quick: expQuick && !lessonData })); }}>
-                {ic || <span style={{ width: 16 }} />}{nm}</button>))}
-            {!(expQuick && !lessonData) && <button className="exp-it exp-pub" onClick={() => { setExpOpen(false); setPubWin('export'); }} title="Pick the socials and the caption - it publishes by itself when the export ends">
-              <span style={{ display: 'inline-flex', gap: 3 }}>{['instagram', 'tiktok', 'youtube', 'x'].map((p) => <Mark key={p} id={p} size={16} />)}</span>Export and publish…</button>}
-            <div className="exp-f">{expQuick && !lessonData ? 'Quick check: a draft at half size, a few times faster - check the edit, then export Full quality.' : 'Export takes a few minutes - it sends by itself when it finishes.'}</div>
-          </div>}
-        </div>
+        <button className="btn primary" disabled={busy || !ready} onClick={() => setPubWin('now')} title="Test on your phone, send the file, publish - one window">{I.export} Send</button>
       </div>
   );
   // a layered project (project.json): the one layered editor - every layer a lane, every change an op
