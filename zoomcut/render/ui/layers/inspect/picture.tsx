@@ -52,7 +52,7 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
       <Note>A set behind him: a little blur and a touch darker sits him in the room. Drag the picture on the video to move it; its corner zooms.</Note>
     </Sec>
     <Sec title="Size and place" end={<Ovr S={S} k="box" />}>
-      <Slider label="Size" v={b.w} min={24} max={W * 1.5} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />
+      <Slider label="Size" v={b.w} min={24} max={Math.max(W * 5, b.w)} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />
       <Row label="Place"><Anchor value={spot} allowed={Object.keys(SPOT)} onPick={place} /></Row>
       <Slider label="Across" v={b.x} min={-b.w} max={W} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ x: Math.round(v), anchor: null }, c)} />
       <Slider label="Down" v={b.y} min={-b.h} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: Math.round(v), anchor: null }, c)} />
