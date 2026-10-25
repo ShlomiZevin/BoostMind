@@ -1,5 +1,6 @@
-// Publish - the exported video to his socials (render/publish.mjs). One window: the video on the left; on the right
-// the caption and a card per platform (on / off, its options, then its progress and a link to the post). Opened from
+// Publish - the exported video to his socials (render/publish.mjs). One compact window: the video + its caption, a
+// tile per platform (tap on / off), the few options only for what's picked, one line of what goes where, one button;
+// then each platform's result with a link. Opened from
 // Export ("Export and publish…" - the export publishes by itself when it ends) or from the Publish button (the file
 // already made). A platform not connected yet shows as such; Facebook is Instagram's own "Share to Facebook".
 // The project remembers what he picked (episode.json publish); a new project starts from his last picks.
@@ -57,11 +58,13 @@ export function PublishWindow({ ep, mode, output, stale, onExport, onClose }: {
     (async () => {
       const [pl, cur] = await Promise.all([api('/api/publish/platforms'), api(`/api/ep/${ep}/publish`)]);
       setPlatforms(pl);
-      setTitle(cur.title || ep);
+      // (a project's title can carry a working tag - "(spiritual-4)", "(3)": not for the public)
+      const clean = String(cur.title || ep).replace(/\s*\([ -~]*\)\s*$/, '').trim();
+      setTitle(clean);
       setFile(cur.file || null);
       const post = cur.post, last = JSON.parse(store.get('zc-publish') || '{}');
       setCaption(post?.caption ?? '');
-      setYTitle(post?.title || cur.title || '');
+      setYTitle(post?.title || clean);
       const picks: string[] = post?.platforms || last.platforms || pl.filter((p: Platform) => p.ok && !p.manual).map((p: Platform) => p.id);
       setOn(Object.fromEntries(pl.map((p: Platform) => [p.id, p.ok && !p.manual && picks.includes(p.id)])));
       if (post?.options || last.options) setOpt({ ...opt, ...(last.options || {}), ...(post?.options || {}) });
@@ -101,92 +104,81 @@ export function PublishWindow({ ep, mode, output, stale, onExport, onClose }: {
   const len = duration ? `${Math.floor(duration / 60)}:${String(Math.round(duration % 60)).padStart(2, '0')}` : '';
   const doneCount = run ? Object.values(run.items).filter((i) => i.state === 'done').length : 0;
 
+  // one line of what goes where, in plain words (before the click)
+  const where = picked.map((p) => (p.id === 'tiktok' ? 'TikTok drafts' : p.id === 'facebook' ? 'a Facebook reminder' : p.id === 'youtube' ? `YouTube (${(opt.youtube?.privacy || 'public')})` : p.name));
+  const tileState = (id: string) => run?.items[id]?.state;
+
   return (
     <div className="pb" onMouseDown={(e) => { if (e.target === e.currentTarget && !running) onClose(); }}>
       <div className="pb-box">
-        <div className="pb-video">
-          {output ? <video src={`${output}?v=${Date.now()}`} muted autoPlay loop playsInline onLoadedMetadata={(e) => setDuration((e.target as HTMLVideoElement).duration || 0)} />
-            : <div className="pb-novideo"><div className="pb-novideo-t he">{title}</div><div className="pb-novideo-s">The video is made when you export</div></div>}
-          {isStale && output && mode === 'now' && <div className="pb-stale">Older than your last changes</div>}
+        <div className="pb-h">
+          <div className="pb-title">Publish</div>
+          <button className="pb-x" onClick={onClose} title="Close (Esc)">✕</button>
         </div>
 
-        <div className="pb-side">
-          <div className="pb-h">
-            <div><div className="pb-title">Publish</div><div className="pb-sub he">{title}</div></div>
-            <button className="pb-x" onClick={onClose} title="Close (Esc)">✕</button>
+        {/* the video + its caption */}
+        <div className="pb-row1">
+          <div className="pb-thumb">
+            {output ? <video src={`${output}?v=${Date.now()}`} muted autoPlay loop playsInline onLoadedMetadata={(e) => setDuration((e.target as HTMLVideoElement).duration || 0)} />
+              : <span className="pb-thumb-t">made on export</span>}
           </div>
-
-          <label className="pb-l">Caption</label>
-          <textarea className="pb-cap he" dir="auto" rows={4} value={caption} disabled={running} placeholder="What goes under the video - text, #hashtags"
-            onChange={(e) => setCaption(e.target.value)} />
-          <div className="pb-count">{caption && <button className="pb-copy" onClick={() => navigator.clipboard?.writeText(caption)} title="Copy the caption">Copy</button>}{caption.length}</div>
-
-          <div className="pb-l" style={{ marginTop: 14 }}>Where</div>
-          <div className="pb-list">
-            {(platforms || []).map((p) => {
-              const it = run?.items[p.id];
-              const sel = !!on[p.id];
-              return (
-                <div key={p.id} className={`pb-card ${sel ? 'on' : ''} ${!p.ok ? 'off' : ''} ${it ? 'st-' + it.state : ''}`}>
-                  <div className="pb-row" onClick={() => { if (p.ok && !p.manual && !run) setOn({ ...on, [p.id]: !sel }); }}>
-                    <Mark id={p.id} />
-                    <div className="pb-main">
-                      <div className="pb-name">{p.name} <span className="pb-what">{p.what}</span></div>
-                      <div className="pb-meta">{p.manual ? p.note : !p.ok ? 'Not connected yet' : [p.handle, p.note].filter(Boolean).join(' · ')}</div>
-                      {sel && !run && <div className={`pb-vis ${VIS[p.id]?.(opt) === 'PUBLIC' ? 'pub' : ''}`}>Goes out: {VIS[p.id]?.(opt) || '-'}</div>}
-                    </div>
-                    {it ? <span className={`pb-state ${it.state}`}>{it.state === 'done' ? '✓' : it.state === 'failed' ? '!' : it.state === 'publishing' ? <span className="pb-spin" /> : it.state === 'skipped' ? '–' : '…'}</span>
-                      : p.ok && !p.manual ? <div className={`switch ${sel ? 'on' : ''}`} /> : null}
-                  </div>
-                  {sel && !run && p.id === 'instagram' && (
-                    <div className="pb-opt"><div className="seg" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                      <button className={!opt.instagram?.reelsOnly ? 'on' : ''} onClick={() => setOpt({ ...opt, instagram: { reelsOnly: false } })}>Grid + Reels</button>
-                      <button className={opt.instagram?.reelsOnly ? 'on' : ''} onClick={() => setOpt({ ...opt, instagram: { reelsOnly: true } })}>Reels tab only</button>
-                    </div><div className="pb-tip">Then tap "Share to Facebook" on it in Instagram</div></div>)}
-                  {sel && !run && p.id === 'youtube' && (
-                    <div className="pb-opt">
-                      <input className="pb-in he" dir="auto" value={yTitle} maxLength={100} placeholder="Title" onChange={(e) => setYTitle(e.target.value)} />
-                      <div className="seg" style={{ gridTemplateColumns: '1fr 1fr 1fr', marginTop: 6 }}>
-                        {['public', 'unlisted', 'private'].map((v) => <button key={v} className={opt.youtube?.privacy === v ? 'on' : ''} onClick={() => setOpt({ ...opt, youtube: { privacy: v } })}>{v[0].toUpperCase() + v.slice(1)}</button>)}
-                      </div></div>)}
-                  {sel && !run && p.id === 'tiktok' && <div className="pb-opt"><div className="pb-tip">Goes to your TikTok drafts - TikTok takes no text with a draft, so the caption comes to your Telegram to paste; add a sound and post</div></div>}
-                  {sel && !run && p.id === 'x' && (
-                    <div className="pb-opt"><textarea className="pb-in he" dir="auto" rows={2} value={opt.x?.text ?? ''} placeholder={`Its own text (empty = the caption${caption.length > 280 ? ', cut at 280' : ''})`}
-                      onChange={(e) => setOpt({ ...opt, x: { text: e.target.value } })} /></div>)}
-                  {sel && !run && p.id === 'facebook' && !on.instagram && <div className="pb-warn">Needs Instagram on - the reminder shares that Reel</div>}
-                  {sel && !run && warn(p).map((w) => <div key={w} className="pb-warn">{w}</div>)}
-                  {it && (it.state === 'publishing' || it.state === 'waiting') && <div className="pb-log">{it.log.at(-1) || (it.state === 'waiting' ? 'waiting for its turn' : 'starting…')}</div>}
-                  {it?.state === 'done' && <div className="pb-done">{it.url ? <a href={it.url} target="_blank" rel="noreferrer">Open the {p.what.toLowerCase()} ↗</a> : null}{it.note ? <span>{it.note}</span> : null}</div>}
-                  {(it?.state === 'failed' || it?.state === 'skipped') && <div className="pb-warn">{it.error}</div>}
-                </div>
-              );
-            })}
-            {!platforms && <div className="pb-tip">Loading…</div>}
+          <div className="pb-capbox">
+            <div className="pb-name he">{title}</div>
+            <textarea className="pb-cap he" dir="auto" value={caption} disabled={running} placeholder="Caption and #hashtags"
+              onChange={(e) => setCaption(e.target.value)} />
+            <div className="pb-fileline">
+              {mode === 'now' && file ? <span className={isStale ? 'warn' : ''}>{isStale ? 'Changed after this export - export again' : [len, `exported ${when(file.exported)}`].filter(Boolean).join(' · ')}</span> : <span>Publishes when the export is done</span>}
+              {caption && <button className="pb-copy" onClick={() => navigator.clipboard?.writeText(caption)}>Copy</button>}
+            </div>
           </div>
+        </div>
 
-          {mode === 'now' && file && !finished && (  // what goes out - seen before the click
-            <div className={`pb-file ${isStale ? 'stale' : ''}`}>
-              <div className="pb-file-n">{file.name}</div>
-              <div className="pb-file-m">{[len, `${(file.size / 1048576).toFixed(1)} MB`, `exported ${when(file.exported)}`].filter(Boolean).join(' · ')}</div>
-              {isStale && <div className="pb-file-w">You changed the video after this export - export again to publish it</div>}
-            </div>)}
-          {err && <div className="pb-warn" style={{ marginTop: 10, marginLeft: 0 }}>{err}</div>}
-          <div className="pb-foot">
-            {finished ? (
-              <><div className="pb-sum">{doneCount ? `Out in ${doneCount} place${doneCount === 1 ? '' : 's'} ✓` : 'Nothing went out'}</div>
-                <button className="btn" onClick={() => setRun(null)}>Publish again</button><button className="btn primary" onClick={onClose}>Done</button></>
-            ) : running ? (
-              <><div className="pb-sum">Publishing… you can close this, it carries on</div><button className="btn" onClick={onClose}>Close</button></>
-            ) : mode === 'export' || !output ? (
-              <><div className="pb-sum">{picked.length ? `When the export is done → ${picked.map((p) => p.name).join(', ')}` : 'Pick where it goes'}</div>
-                <button className="btn primary" disabled={!picked.length} onClick={() => go(true)}>Export & publish</button></>
-            ) : (
-              <><div className="pb-sum">{picked.length ? picked.map((p) => p.name).join(', ') : 'Pick where it goes'}</div>
-                {isStale  // (never a file older than his last change - it goes out public and can't be undone)
-                  ? <button className="btn primary" disabled={!picked.length} onClick={() => go(true)} title="Export with your latest changes - it publishes when the export ends">Export again & publish</button>
-                  : <button className="btn primary" disabled={!picked.length} onClick={() => go(false)}>Publish to {picked.length}</button>}</>
-            )}
-          </div>
+        {/* where: a tile per platform, tap to switch */}
+        <div className="pb-tiles">
+          {(platforms || []).map((p) => {
+            const sel = !!on[p.id], st = tileState(p.id);
+            return (
+              <button key={p.id} className={`pb-tile ${sel ? 'on' : ''} ${!p.ok ? 'off' : ''} ${st ? 'st-' + st : ''}`} disabled={!p.ok || !!run}
+                title={!p.ok ? 'Not connected yet' : p.id === 'facebook' ? 'A Telegram reminder to share the Instagram Reel' : `${p.handle || ''}`}
+                onClick={() => setOn({ ...on, [p.id]: !sel })}>
+                <Mark id={p.id} size={30} />
+                <span className="pb-tile-n">{p.name}</span>
+                <span className="pb-tick">{st === 'done' ? '✓' : st === 'failed' ? '!' : st === 'publishing' ? <span className="pb-spin" /> : sel ? '✓' : ''}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* the few options, only for what's picked */}
+        {!run && (on.instagram || on.youtube || on.x) && (
+          <div className="pb-opts">
+            {on.instagram && <div className="pb-o"><span>Instagram</span>
+              <select value={opt.instagram?.reelsOnly ? 'reels' : 'grid'} onChange={(e) => setOpt({ ...opt, instagram: { reelsOnly: e.target.value === 'reels' } })}>
+                <option value="grid">Grid + Reels</option><option value="reels">Reels tab only</option></select></div>}
+            {on.youtube && <div className="pb-o"><span>YouTube</span>
+              <input className="he" dir="auto" value={yTitle} maxLength={100} placeholder="Title" onChange={(e) => setYTitle(e.target.value)} />
+              <select value={opt.youtube?.privacy || 'public'} onChange={(e) => setOpt({ ...opt, youtube: { privacy: e.target.value } })}>
+                <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select></div>}
+            {on.x && <div className="pb-o"><span>X</span>
+              <input className="he" dir="auto" value={opt.x?.text ?? ''} placeholder="Shorter text for X (optional)" onChange={(e) => setOpt({ ...opt, x: { text: e.target.value } })} /></div>}
+          </div>)}
+
+        {/* the results, with links */}
+        {run && <div className="pb-results">
+          {Object.entries(run.items).map(([id, it]) => {
+            const p = (platforms || []).find((x) => x.id === id);
+            return <div key={id} className={`pb-res ${it.state}`}><Mark id={id} size={20} /><span className="pb-res-n">{p?.name}</span>
+              <span className="pb-res-t">{it.state === 'done' ? (it.url ? <a href={it.url} target="_blank" rel="noreferrer">open ↗</a> : it.note) : it.state === 'failed' || it.state === 'skipped' ? it.error : it.log.at(-1) || 'waiting'}</span></div>;
+          })}
+        </div>}
+
+        {err && <div className="pb-err">{err}</div>}
+        <div className="pb-foot">
+          <div className="pb-sum">{finished ? (doneCount ? `Out in ${doneCount} place${doneCount === 1 ? '' : 's'} ✓` : 'Nothing went out') : running ? 'Publishing - you can close this' : picked.length ? `→ ${where.join(' · ')}` : 'Pick where it goes'}</div>
+          {finished ? <><button className="btn" onClick={() => setRun(null)}>Again</button><button className="btn primary" onClick={onClose}>Done</button></>
+            : running ? <button className="btn" onClick={onClose}>Close</button>
+            : mode === 'export' || !output || isStale ? <button className="btn primary" disabled={!picked.length} onClick={() => go(true)}>{mode === 'export' || !output ? 'Export & publish' : 'Export again & publish'}</button>
+            : <button className="btn primary" disabled={!picked.length} onClick={() => go(false)}>Publish</button>}
         </div>
       </div>
     </div>
