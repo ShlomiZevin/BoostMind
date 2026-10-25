@@ -84,13 +84,15 @@ export async function sendEmail({ file, to, subject, text }) {
 }
 
 // a text message to his Telegram (e.g. a caption to paste into TikTok - long-press copies it)
-export async function sendTelegramText(text) {
+// (html: Telegram's HTML - a <pre> block is copied with one tap / its Copy button)
+export async function sendTelegramText(text, { html = false } = {}) {
   const env = readEnv(ENV_TG);
   if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing in ' + ENV_TG);
   const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }) });
-  if (!r.ok) throw new Error('Telegram: ' + r.status);
+    body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text, ...(html ? { parse_mode: 'HTML' } : {}) }) });
+  if (!r.ok) throw new Error('Telegram: ' + r.status + ' ' + (await r.text()).slice(0, 120));
 }
+export const tgEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export async function sendTelegram({ file, caption, log = () => {} }) {
   const env = readEnv(ENV_TG);

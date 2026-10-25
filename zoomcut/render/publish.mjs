@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
-import { sendTelegramText } from './share.mjs';
+import { sendTelegramText, tgEsc } from './share.mjs';
 
 const DROP = 'https://drop-463727469066.me-west1.run.app';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -154,8 +154,13 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           if (st === 'SEND_TO_USER_INBOX' || st === 'PUBLISH_COMPLETE') {
             // (a draft can't carry text) - a Telegram that it's waiting for him in the app, then the caption ALONE
             // in its own message, so one long-press copies exactly it
-            const sent = await sendTelegramText(`📱 TikTok: your video is waiting for you to approve it\n\nOpen TikTok → Inbox → the "ready to edit" notification → add a sound → Post${post.caption ? '\n\n👇 The caption is the next message - long-press to copy it' : ''}`)
-              .then(() => (post.caption ? sendTelegramText(post.caption.trim()) : null)).then(() => true).catch(() => false);
+            // ONE message: the video's name, the steps, and its caption in a tap-to-copy block (so the right caption is
+            // the one in his hand - not an old draft's text TikTok kept)
+            const name = post.name || path.basename(file, '.mp4');
+            const cap = (post.caption || '').trim();
+            const sent = await sendTelegramText(`📱 <b>TikTok – ${tgEsc(name)}</b>\nWaiting for you to approve: TikTok → Inbox → "ready to edit" → add a sound → Post.\n\n`
+              + (cap ? `<b>Caption</b> (tap the box to copy, then paste it in TikTok):\n<pre>${tgEsc(cap)}</pre>` : 'No caption was set for this video.'), { html: true })
+              .then(() => true).catch(() => false);
             return { url: null, note: `Waiting for you in the TikTok app (Inbox → "ready to edit")${sent ? ' - details and the caption in your Telegram' : ''}` };
           }
           if (st === 'FAILED') throw new Error('TikTok: ' + (s.data?.fail_reason || 'failed'));
@@ -226,7 +231,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
     const file = master(id);
-    post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)) };  // (Instagram before Facebook's reminder)
+    post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)), name: readJson(epFile(id), {}).title || id };  // (Instagram before Facebook's reminder; the video's name for messages)
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
     (async () => {
       // every platform at once (his ask, 2026-10-25) - each its own job in the Jobs list; Facebook's reminder waits for
