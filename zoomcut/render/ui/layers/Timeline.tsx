@@ -167,6 +167,20 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     send([{ op: 'layer.remove', id: l.id }], { label: 'delete layer' });
     onSel(null);
   };
+  // End here: the video's length = the playhead; every item past it goes, one across it is cut there. "pin": "end"
+  // items (an end card) move to the new end and "span" ones across the cut end there by themselves (ops.js repin); a
+  // "span" one that starts after the cut goes like the rest
+  const endHere = () => {
+    const f = Math.round(frame);
+    if (f < 1 || f >= total) return;
+    const ops: any[] = [{ op: 'project', set: { duration: f } }];
+    for (const l of project.layers) for (const it of l.items || []) {
+      if (it.pin === 'end' || (it.pin === 'span' && it.from < f)) continue;
+      if (it.from >= f) ops.push({ op: 'item.remove', layer: l.id, id: it.id });
+      else if (it.from + it.dur > f) ops.push({ op: 'item.update', layer: l.id, id: it.id, set: { dur: f - it.from } });
+    }
+    send(ops, { label: 'end here' });
+  };
   // drag a layer by its name up / down: a line shows where it lands; on top in the list = drawn on top. Ctrl+Z undoes
   const [lmove, setLmove] = useState<{ id: string; over?: string; below?: boolean } | null>(null);
   const lmoved = useRef(false);  // (a drag isn't also a click)
@@ -205,6 +219,9 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <button className="btn ghost icon" disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" onClick={onRedo}>↷</button>
         <div className="vsep" />
         <span className="chip">{project.layers.length} layers · {project.layers.reduce((n: number, l: any) => n + (l.items?.length || 0), 0)} items</span>
+        <div className="vsep" />
+        <button className="btn" style={{ height: 26, padding: '0 9px', fontSize: 12 }} disabled={frame < 1 || frame >= total - 1} onClick={endHere}
+          title="The video ends at the playhead - everything after it goes, in every layer (an end card pinned to the end moves with it). Ctrl+Z undoes">End here ⇥</button>
         <div className="grow" />
         <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="The whole video in view"
           onClick={() => { const w = (lanes.current?.clientWidth || 1000) - NW; setPps(Math.max(8, (w - 40) / (total / fps))); }}>Fit</button>

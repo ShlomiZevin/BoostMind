@@ -185,6 +185,8 @@ Delete a whole layer in the editor: the trash on its name (on hover), Delete wit
 "Delete layer" - always through our own window (render/ui/layers/ask.ts - never the browser's confirm box, his ask);
 Ctrl+Z brings it back. Move a layer: drag its name in the timeline up / down (a line shows where it lands; higher in the
 list = drawn on top) - `layer.move`.
+End here ⇥ (the layered timeline's bar): the video ends at the playhead - every item past it goes, one across it is
+cut there, `pin: "end"` items move to the new end; one undoable change (`project.duration` + item ops).
 `GET /api/p/<id>` - the project, `urls` (where the editor loads each asset), `stems`, the last export.
 
 ## Builders - who makes the items
