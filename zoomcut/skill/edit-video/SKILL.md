@@ -81,6 +81,11 @@ layers a builder made; the editor and the export don't know or care which builde
    that stays only in the conversation is lost.
 7. **First cut fast, then his notes.** Never let him review a half-built state ("wait, building" - then say it's ready).
    His timestamps are the editor's time at 1x speed. When he says "you do it", make the call yourself.
+8. **You don't export - he does.** Exporting is HIS step (the Send window), not part of your hand-over (his words,
+   2026-10-25: "I hate it when he exports, especially the full quality"). If YOU want to check your work, use the live
+   preview and stills first; if you still need a file, ONLY the fast test export, without sending it
+   (`POST /api/ep/<id>/export {test: true, send: []}` - about a minute, `out/<id>.test.mp4`), and only when nothing else
+   runs (`GET /api/jobs` → `busy` empty). **Never a Full quality export on your own** - only when he asks or presses Send.
 
 ## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
 The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").
@@ -158,6 +163,7 @@ The rules:
    (`POST /api/ep/<id>/export {test: true, send: ["telegram"]}`: 378x672, ultrafast, `out/<id>.test.mp4`, marked TEST,
    never published - to check the look and the sound), **Send the file** (Telegram, Email) and **Publish** (the
    socials). An up-to-date full export goes out as is; otherwise its button exports first (`out/<id>.mp4`, 1080x1920).
+   **This is his step** - you never press Send or export Full quality for him (rule 8); you tell him it's ready.
    Commit and push when he asks - only your own files (other sessions have uncommitted work in this repo).
 10. **Post it** - read `publishing.md`. The caption you saved in step 7 is in the Send window; **he presses Send**,
    never you. Instagram, TikTok drafts, YouTube Shorts and X are live; Facebook = a Telegram reminder to share the
