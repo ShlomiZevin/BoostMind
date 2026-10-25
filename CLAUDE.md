@@ -296,6 +296,19 @@ https://boostmind-b052c.web.app/boostart/
 - `BRAND-PLAYBOOK.md` — מה לעשות כששם המותג, המסר או כרטיס השיתוף משתנים.
 - `matzav-marketing/LEONARDO.md` — יצירת תמונות: מודלים, מחירים, ואיך עברית נשברת.
 
+## A new page or site - every session, every time
+
+Shlomi found new sites missing from his lists because some sessions never added them. **A new page under
+`public/` (or a site elsewhere) is not done until it is listed:**
+- **/all/** - his private index of everything: `python scripts/all/catalog.py`, then
+  `firebase deploy --only functions:stats` from `techietech-api/`.
+- **A character's site / part of his comedy world (the Shlomiverse):** also the sites strip of the links page
+  (`public/links/index.html`), the character's profile in Sketch Studio (`site.url`) and its world in
+  `zoomcut/characters/index.json`, and the sites table in `zoomcut/skill/edit-video/wiki.md`.
+- **A finished video** reaches the wiki and the links page by itself when it is published from Sketch Studio
+  (a "Shlomiverse" job); one that missed it: `python scripts/wiki/publish_site.py <episode-id>`.
+Client proposal pages need only /all/.
+
 ## Deploy
 
 ```bash

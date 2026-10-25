@@ -49,5 +49,9 @@
     "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/monologue.md",
     "c:/workspace/BoostMind/zoomcut/skill/edit-video/recipes/offscreen-voice.md"
   ],
-  "tier": "npc"
+  "tier": "npc",
+  "site": {
+    "url": "https://boostmind-b052c.web.app/demokratovich/",
+    "notes": "public/demokratovich - אתר הקהילה של בעלה, הרב דמוקרטוביץ (קהילת שערי בג״ץ)."
+  }
 }

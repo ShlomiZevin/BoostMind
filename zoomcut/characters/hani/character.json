@@ -106,5 +106,9 @@
   "sources": [
     "c:/workspace/BoostMind/zoomcut/scripts/haredit-1.txt",
     "c:/workspace/BoostMind/public/techietech/index.html"
-  ]
+  ],
+  "site": {
+    "url": "https://techytech.web.app",
+    "notes": "עובדת בטקי-טק - כרטיס בצוות באתר החברה (public/techietech)."
+  }
 }

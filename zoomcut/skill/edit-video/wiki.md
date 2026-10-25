@@ -11,7 +11,30 @@ finish in the studio is not on the site until you run the steps below.
 | **שלומיוורס** - the wiki of every character, every video, and a chat with each character | https://boostmind-b052c.web.app/wiki/ | `public/wiki/index.html`, data `public/wiki/data/wiki.json` |
 | **His analytics dashboard** (Google sign-in, only shlomi@boostart.io) | https://boostmind-b052c.web.app/stats/ | `public/stats/index.html` |
 | **Everything he runs** (private, Google sign-in): every page, the Vault, tools, servers | https://boostmind-b052c.web.app/all/ | `scripts/all/catalog.py` -> redeploy `stats` |
-| The characters' own sites | /ayelet/, /demokratovich/, /hindsight/, /homo-useless/, /yotamverse/, https://techytech.web.app | `public/<site>/` |
+| The characters' own sites | the table below | `public/<site>/` |
+
+**Every character site** (each character's profile has it as `site.url`, each world in `zoomcut/characters/index.json`
+as `site` - the Characters page shows it; keep all three in step):
+
+| Site | Whose | Files / deploy |
+|---|---|---|
+| https://techytech.web.app (+ the same at /techietech/) | Techy-Tech: Amir, Ofer, Ronit, Gilad, Daniel, Erez, Hani, Ido, Lior, Osnat, Rami, Sagi, Tamir, Tzvika, Vova, Yaniv, Dr. Yoav | `public/techietech/` - BOTH: `sh techietech-site/deploy.sh` and `firebase deploy --only hosting` |
+| /yotamverse/ | Yotam (works at Techy-Tech, his own multiverse site) | `public/yotamverse/` |
+| /ayelet/ | Ayelet Hashachar (תדר) | `public/ayelet/` |
+| /demokratovich/ | Rabbi Demokratovich + the Rabbanit (קהילת שערי בג״ץ) | `public/demokratovich/` |
+| /dorit/ | Dorit Mercury (astrology) | `public/dorit/` |
+| /hindsight/ | Nahor (Zion) Minuf (HINDSIGHT VIP) | `public/hindsight/` |
+| /homo-useless/ | Yuval (Kise) Noah Harari | `public/homo-useless/` |
+| - (none yet) | Gen Z cashier, the gym guy + Sigal, the news anchor | a site of their own is welcome - ask him |
+
+His own pages (not characters): /links/, /wiki/, /stats/, /all/ (above); Sketch Studio's public pages
+/sketch-studio/ (+ terms, privacy - for the social apps); /karaoke/. /micro-comedy/ is obsolete - never link it.
+
+**A NEW site (a character's, or any page of his) is not done until it is in every list:** the character's profile
+`site` (`POST /api/characters/<id> {patch: {site: {url, notes}}}`) and its world's `site` in index.json · this
+table · the sites strip of the links page (`public/links/index.html`) · his private index /all/ (`python
+scripts/all/catalog.py`, then `firebase deploy --only functions:stats` from techietech-api/) · `/t.js` analytics
+(below). Then deploy - and say what else rides along (other sessions' unfinished pages, step 12).
 
 Deep links into the wiki (use them in posts, end cards, the links page):
 `/wiki/#/c/<character-id>` a character's page · `/wiki/#/v/<video-id>` plays a video ·
