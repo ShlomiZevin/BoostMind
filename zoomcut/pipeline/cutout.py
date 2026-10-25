@@ -30,7 +30,7 @@ def post(tag, idx, ep, props, asset, box, canvas_w, vw, vh, w, h, cx, cy, n_fram
     if still and os.path.exists(ep.p(still)):
         args += ["-loop", "1", "-framerate", str(fps), "-t", f"{n_frames / fps + 0.1:.4f}", "-i", os.path.normpath(ep.p(still))]
         n += 1
-        f.append(f"[{idx}:v]setpts=PTS-STARTPTS,trim=end_frame={n_frames},format=gray,scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}[ks{tag}]")
+        f.append(f"[{idx}:v]setpts=PTS-STARTPTS,trim=end_frame={n_frames},format=gray,scale={vw}:{vh}:flags=bicubic,{'hflip,' if props.get('mirror') else ''}crop={w}:{h}:{cx}:{cy}[ks{tag}]")  # (cx is already mirrored for a mirrored take)
         f.append(f"{last}[ks{tag}]blend=all_mode=lighten:shortest=1,format=gray[kl{tag}]")
         last = f"[kl{tag}]"
     # the side ramp only where the layer asks for it (props.side_ramp - a one-camera person narrower than the frame);

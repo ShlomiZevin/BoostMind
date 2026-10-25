@@ -252,6 +252,12 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             left, top, vw, vh = (v * scale for v in fit_box(asset, box, it))
             vw, vh = max(2, int(round(vw / 2) * 2)), max(2, int(round(vh / 2) * 2))
             cx, cy = min(max(0, int(round(-left))), max(0, vw - w)), min(max(0, int(round(-top))), max(0, vh - h))
+            # mirror (a book read to the camera): the take flipped left <-> right - picture, matte, the kept desk - with
+            # its framing mirrored, so he stays where he was on screen; what's behind and on top never flips.
+            # (the editor: VideoTrack, b.left' = box.w - b.left - b.width - the same window)
+            mirror = bool(it.get("mirror"))
+            if mirror:
+                cx = max(0, vw - w - cx)
             hold = rate <= 1e-6  # rate 0 = a held frame at `in` (the other side talks over a frozen frame of him)
             dur = 0.2 if hold else ln / fps * rate + 0.1
             spts = "setpts=PTS-STARTPTS," if hold or abs(rate - 1) < 1e-4 else f"setpts=(PTS-STARTPTS)/{rate:.4f},"
@@ -265,7 +271,7 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             idx += 1
             bd = it.get("_bd")
             cutout = it.get("cutout") and asset.get("matte")
-            fit_wh = f"scale={vw}:{vh}:flags=bicubic,crop={w}:{h}:{cx}:{cy}"
+            fit_wh = f"scale={vw}:{vh}:flags=bicubic,{'hflip,' if mirror else ''}crop={w}:{h}:{cx}:{cy}"
             # props.af: a filter on the SOURCE picture first (a one-camera project's grade, already in the editor's take
             # copies) - the picture only, never the matte
             af = (it.get("af") or "").strip().strip(",")
