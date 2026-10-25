@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>שלומיוורס · הוויקי של הדמויות</title>
+<meta name="description" content="כל הדמויות, כל הסרטונים, ואפשר לדבר עם כולן.">
+<meta property="og:title" content="שלומיוורס · הוויקי של הדמויות">
+<meta property="og:description" content="כל הדמויות, כל הסרטונים, ואפשר לדבר עם כולן.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script>try { const t = localStorage.getItem('wiki-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<style>
+  :root {
+    --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.16);
+    --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff5b3a; --on-accent: #fff; --shade: rgba(0,0,0,.62);
+    --r: 16px; color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f3ef; --card: #ffffff; --card2: #ece9e3; --line: rgba(0,0,0,.08); --line2: rgba(0,0,0,.16);
+    --text: #17161a; --dim: #5d5a64; --faint: #8b8892; --shade: rgba(20,18,16,.5); color-scheme: light;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.55; min-height: 100svh; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  img, video { display: block; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- top bar ---------- */
+  .top { position: fixed; top: 0; inset-inline: 0; z-index: 30; transition: background .2s, border-color .2s; border-bottom: 1px solid transparent; }
+  .top.solid, body:not(.at-home) .top { background: var(--bg); border-color: var(--line); }
+  .top .wrap { display: flex; align-items: center; gap: 22px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 1.45rem; letter-spacing: -.02em; }
+  .brand .pill { font-size: .7rem; font-weight: 800; background: var(--accent); color: var(--on-accent); padding: 2px 8px; border-radius: 99px; letter-spacing: 0; }
+  .nav { display: flex; gap: 2px; }
+  .nav a { padding: 8px 12px; border-radius: 9px; color: var(--dim); font-weight: 500; transition: color .15s, background .15s; }
+  .nav a:hover { color: var(--text); }
+  .nav a.on { color: var(--text); }
+  .nav a.on::after { content: ''; display: block; height: 2px; background: var(--accent); border-radius: 2px; margin-top: 4px; }
+  .search { position: relative; width: 300px; margin-inline-start: auto; }
+  .search input { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; padding: 0 38px 0 12px; outline: none; transition: border-color .15s; }
+  .search input:focus { border-color: var(--line2); }
+  .search > svg { position: absolute; right: 12px; top: 11px; width: 18px; height: 18px; color: var(--faint); pointer-events: none; }
+  .results { position: absolute; top: 46px; inset-inline: 0; background: var(--card); border: 1px solid var(--line2); border-radius: 12px; padding: 6px; display: none; max-height: 70vh; overflow: auto; box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+  .results.open { display: block; }
+  .results a { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; }
+  .results a:hover { background: var(--card2); }
+  .results img, .results .ph { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex: none; font-size: .9rem; }
+  .results .k { color: var(--faint); font-size: .78rem; margin-inline-start: auto; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; flex: none; transition: border-color .15s; }
+  .icon-btn:hover { border-color: var(--line2); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* ---------- hero: the wall of faces ---------- */
+  .hero { position: relative; height: max(640px, min(94svh, 900px)); overflow: hidden; perspective: 1100px; display: grid; place-items: center; }
+  .wall { position: absolute; top: -30%; bottom: -30%; width: 44%; display: flex; gap: 14px; transform-style: preserve-3d; opacity: .62; pointer-events: none; }
+  .wall.r { right: -6%; transform: rotateY(-34deg); transform-origin: right center; -webkit-mask-image: linear-gradient(to left, #000 35%, transparent 96%); mask-image: linear-gradient(to left, #000 35%, transparent 96%); }
+  .wall.l { left: -6%; transform: rotateY(34deg); transform-origin: left center; -webkit-mask-image: linear-gradient(to right, #000 35%, transparent 96%); mask-image: linear-gradient(to right, #000 35%, transparent 96%); }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 14px; animation: drift 90s linear infinite; }
+  .col:nth-child(2) { animation-duration: 110s; animation-direction: reverse; }
+  .col:nth-child(3) { animation-duration: 130s; }
+  @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+  .tile { aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; position: relative; background: var(--card2); flex: none; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; }
+  .tile span { position: absolute; bottom: 0; inset-inline: 0; padding: 22px 12px 10px; font-weight: 800; font-size: .95rem; color: #fff; background: rgba(0,0,0,.45); }
+  .hero-in { position: relative; z-index: 2; width: min(720px, 92vw); text-align: center; padding-top: 40px; }
+  .wordmark { font-size: clamp(3.4rem, 10vw, 7.4rem); font-weight: 900; letter-spacing: -.045em; line-height: .9; }
+  .wordmark small { display: block; font-size: clamp(1rem, 1.7vw, 1.45rem); letter-spacing: 0; font-weight: 700; color: var(--dim); margin-top: 16px; line-height: 1.3; }
+  .ask { margin-top: 30px; display: flex; align-items: center; gap: 10px; background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 8px; box-shadow: 0 10px 40px rgba(0,0,0,.45); }
+  .ask .spark { width: 40px; height: 40px; display: grid; place-items: center; color: var(--accent); flex: none; }
+  .ask .spark svg { width: 22px; height: 22px; }
+  .ask input { flex: 1; min-width: 0; height: 48px; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 1.12rem; }
+  .ask button { width: 50px; height: 50px; border-radius: 13px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; transition: transform .15s; }
+  .ask button:hover { transform: scale(1.04); }
+  .ask button svg { width: 20px; height: 20px; transform: scaleX(-1); }
+  .who { margin-top: 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+  .who-l { width: 100%; color: var(--dim); font-size: .88rem; margin-bottom: -4px; }
+  .who button { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 66px; font-size: .78rem; color: var(--dim); line-height: 1.2; transition: color .15s; }
+  .who button .av { width: 54px; height: 54px; border-radius: 50%; overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; transition: outline-color .15s, transform .15s; background: var(--card2); }
+  .who button .av img, .who button .av .ph { width: 100%; height: 100%; object-fit: cover; }
+  .who button:hover .av { transform: translateY(-2px); }
+  .who button.on { color: var(--text); font-weight: 700; }
+  .who button.on .av { outline-color: var(--c, var(--accent)); }
+  .scroll-hint { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--faint); font-size: .85rem; z-index: 2; white-space: nowrap; }
+
+  /* ---------- sections ---------- */
+  main { min-height: 70svh; }
+  body:not(.at-home) main { padding-top: 64px; }
+  .sec { margin-top: 56px; }
+  .sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .sec-h h2 { font-size: 1.7rem; font-weight: 900; letter-spacing: -.02em; }
+  .sec-h a { color: var(--dim); font-size: .95rem; transition: color .15s; }
+  .sec-h a:hover { color: var(--accent); }
+  .page-h { padding: 40px 0 6px; }
+  .page-h h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 900; letter-spacing: -.03em; line-height: 1.05; }
+  .page-h p { color: var(--dim); margin-top: 8px; font-size: 1.05rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 22px; }
+  .chip { height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); font-size: .92rem; font-weight: 500; display: inline-flex; align-items: center; gap: 7px; transition: border-color .15s, color .15s; }
+  .chip:hover { color: var(--text); border-color: var(--line2); }
+  .chip.on { color: var(--text); border-color: var(--text); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+  .ph { display: grid; place-items: center; color: var(--pc, var(--dim)); background: var(--card2); width: 100%; height: 100%; }
+  .ph svg { width: 46%; height: 46%; opacity: .55; }
+
+  /* character poster cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s, transform .2s; position: relative; }
+  .card:hover { border-color: var(--c, var(--line2)); transform: translateY(-3px); }
+  .card .pic { aspect-ratio: 4 / 5; background: var(--card2); overflow: hidden; display: block; }
+  .card .pic img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+  .card:hover .pic img { transform: scale(1.04); }
+  .card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .card .name { font-weight: 900; font-size: 1.12rem; line-height: 1.2; }
+  .card .tag-line { color: var(--dim); font-size: .88rem; line-height: 1.35; }
+  .card .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 10px; }
+  .stag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--dim); }
+  .talk-mini { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 800; color: var(--c, var(--accent)); padding: 5px 10px; border-radius: 99px; border: 1px solid var(--line2); transition: background .15s, color .15s, border-color .15s; flex: none; }
+  .talk-mini:hover { background: var(--c, var(--accent)); color: #111; border-color: transparent; }
+  .talk-mini svg { width: 14px; height: 14px; }
+
+  /* videos */
+  .row { display: grid; grid-auto-flow: column; grid-auto-columns: 178px; gap: 14px; overflow-x: auto; padding-bottom: 10px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+  .vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 16px; }
+  .vid { scroll-snap-align: start; display: flex; flex-direction: column; gap: 8px; text-align: right; }
+  .vid .thumb { position: relative; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: var(--card2); border: 1px solid var(--line); width: 100%; }
+  .vid .thumb img, .vid .thumb video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .vid .play { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity .2s; z-index: 1; }
+  .vid .play span { width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,.55); display: grid; place-items: center; }
+  .vid .play svg { width: 18px; height: 18px; fill: #fff; margin-inline-end: -3px; }
+  .vid.previewing .play { opacity: 0; }
+  .vid .t { font-weight: 800; font-size: 1rem; line-height: 1.3; }
+  .vid .who { color: var(--dim); font-size: .84rem; }
+  .vid .ext { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.6); color: #fff; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; z-index: 2; }
+
+  /* series */
+  .sgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+  .series { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s; }
+  .series:hover { border-color: var(--line2); }
+  .series h3 { font-size: 1.25rem; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+  .series p { color: var(--dim); font-size: .95rem; }
+  .faces { display: flex; padding-inline-start: 10px; }
+  .faces img, .faces .ph, .faces .gmark { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--card); margin-inline-start: -10px; object-fit: cover; flex: none; }
+  .series .meta { color: var(--faint); font-size: .85rem; }
+
+  /* ---------- character page ---------- */
+  .chero { background: color-mix(in srgb, var(--c) 13%, var(--bg)); border-bottom: 1px solid var(--line); }
+  .chero .wrap { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 44px; padding-top: 44px; padding-bottom: 44px; align-items: center; }
+  .chero .portrait { aspect-ratio: 4 / 5; border-radius: 22px; overflow: hidden; border: 2px solid var(--c); background: var(--card2); }
+  .chero .portrait img { width: 100%; height: 100%; object-fit: cover; }
+  .chero h1 { font-size: clamp(2.6rem, 6vw, 4.6rem); font-weight: 900; letter-spacing: -.035em; line-height: .98; margin-top: 10px; }
+  .chero .tl { color: var(--c); font-weight: 800; font-size: 1.3rem; margin-top: 12px; }
+  .chero .role { color: var(--dim); margin-top: 4px; }
+  .chero .bio { font-size: 1.12rem; margin-top: 18px; max-width: 60ch; }
+  .chero .acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .btn { display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 22px; border-radius: 13px; font-weight: 800; transition: opacity .15s, border-color .15s; }
+  .btn svg { width: 19px; height: 19px; }
+  .btn.main { background: var(--c, var(--accent)); color: #111; }
+  .btn.main:hover { opacity: .9; }
+  .btn.ghost { border: 1px solid var(--line2); }
+  .btn.ghost:hover { border-color: var(--text); }
+  .bubbles { display: flex; flex-wrap: wrap; gap: 16px 12px; }
+  .bubble { position: relative; background: var(--card); border: 1px solid var(--line2); border-radius: 18px; padding: 12px 16px; font-weight: 700; font-size: 1.02rem; max-width: 340px; }
+  .bubble::after { content: ''; position: absolute; bottom: -7px; inset-inline-start: 22px; width: 12px; height: 12px; background: var(--card); border-inline-end: 1px solid var(--line2); border-bottom: 1px solid var(--line2); transform: rotate(45deg); }
+  .rel { display: flex; flex-wrap: wrap; gap: 16px; }
+  .rel a { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: .85rem; color: var(--dim); width: 74px; text-align: center; line-height: 1.2; transition: color .15s; }
+  .rel a:hover { color: var(--text); }
+  .rel .av { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 2px solid var(--line2); }
+  .rel .av img, .rel .av .ph { width: 100%; height: 100%; object-fit: cover; }
+  .empty { color: var(--dim); background: var(--card); border: 1px dashed var(--line2); border-radius: 14px; padding: 20px; }
+
+  /* ---------- chat: a drawer on desktop, full screen on phones ---------- */
+  .cx-back { position: fixed; inset: 0; z-index: 40; background: var(--shade); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .cx-back.open { opacity: 1; pointer-events: auto; }
+  .cx { position: fixed; top: 0; bottom: 0; left: 0; z-index: 41; width: 480px; max-width: 100vw; display: flex; flex-direction: column;
+        background: color-mix(in srgb, var(--c) 10%, var(--bg)); border-inline-start: 1px solid var(--line2);
+        transform: translateX(-102%); transition: transform .22s ease, background .3s; }
+  .cx.open { transform: none; }
+  .cx-strip { display: flex; gap: 10px; padding: 12px 14px 10px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); flex: none; }
+  .cx-strip::-webkit-scrollbar { display: none; }
+  .cx-strip button { flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; transition: outline-color .15s, transform .15s; background: var(--card2); }
+  .cx-strip button:hover { transform: translateY(-1px); }
+  .cx-strip button.on { outline-color: var(--c); }
+  .cx-strip img, .cx-strip .ph { width: 100%; height: 100%; object-fit: cover; }
+  .gmark { width: 100%; height: 100%; display: grid; place-items: center; background: var(--accent); color: #fff; }
+  .gmark svg { width: 55%; height: 55%; }
+  .cx-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; flex: none; }
+  .cx-head .av { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid var(--c); flex: none; }
+  .cx-head .av img, .cx-head .av .ph { width: 100%; height: 100%; object-fit: cover; }
+  .cx-head b { display: block; font-weight: 900; font-size: 1.2rem; line-height: 1.15; }
+  .cx-head small { color: var(--dim); font-size: .86rem; display: block; }
+  .cx-head a.pg { color: var(--c); font-size: .82rem; font-weight: 700; }
+  .cx-head .x { margin-inline-start: auto; }
+  .msgs { flex: 1; overflow-y: auto; padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .m { max-width: 86%; padding: 11px 15px; border-radius: 18px; font-size: 1rem; line-height: 1.5; }
+  .m > * + * { margin-top: 9px; }
+  .m.bot { background: var(--card); align-self: flex-start; border-start-start-radius: 5px; border: 1px solid var(--line); }
+  .m.me { background: var(--c); color: #111; align-self: flex-end; border-start-end-radius: 5px; font-weight: 500; }
+  .m.note { align-self: center; background: none; color: var(--dim); font-size: .85rem; padding: 2px 10px; }
+  .m.wait::after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dim); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .mv { width: min(250px, 100%); border-radius: 14px; overflow: hidden; background: #000; }
+  .mv video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: #000; }
+  .mv .mv-t { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--card2); padding: 8px 10px; font-size: .86rem; font-weight: 700; }
+  .mv .mv-t button { color: var(--c); font-size: .8rem; font-weight: 700; flex: none; }
+  .mc { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); }
+  .mc .av { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--cc); }
+  .mc .av img, .mc .av .ph { width: 100%; height: 100%; object-fit: cover; }
+  .mc b { display: block; font-size: .95rem; line-height: 1.25; }
+  .mc small { color: var(--dim); font-size: .8rem; }
+  .mc button { margin-inline-start: auto; background: var(--cc); color: #111; font-weight: 800; font-size: .84rem; padding: 8px 12px; border-radius: 99px; flex: none; }
+  .sugg { display: flex; gap: 7px; padding: 0 16px 10px; overflow-x: auto; scrollbar-width: none; flex: none; }
+  .sugg button { flex: none; font-size: .87rem; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--line2); color: var(--text); background: var(--card); transition: border-color .15s; }
+  .sugg button:hover { border-color: var(--c); }
+  .composer { display: flex; gap: 8px; padding: 10px 14px 6px; border-top: 1px solid var(--line); flex: none; }
+  .cx-note { color: var(--faint); font-size: .72rem; text-align: center; padding: 0 14px calc(8px + env(safe-area-inset-bottom)); flex: none; }
+  .composer textarea { flex: 1; resize: none; overflow: hidden; height: 48px; max-height: 130px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; line-height: 1.45; padding: 12px 14px; outline: none; }
+  .composer textarea:focus { border-color: var(--c); }
+  .composer button { width: 48px; height: 48px; border-radius: 14px; background: var(--c); color: #111; display: grid; place-items: center; flex: none; }
+  .composer button:disabled { opacity: .4; cursor: default; }
+  .composer svg { width: 19px; height: 19px; transform: scaleX(-1); }
+  .fab { position: fixed; bottom: 22px; left: 22px; z-index: 35; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 20px 0 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: transform .15s; }
+  .fab:hover { transform: translateY(-2px); }
+  .fab .faces img { border-color: var(--accent); width: 38px; height: 38px; }
+
+  /* video player */
+  .modal { position: fixed; inset: 0; z-index: 50; background: var(--shade); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal.open { display: flex; }
+  .player { background: var(--card); border: 1px solid var(--line2); border-radius: 20px; overflow: hidden; display: grid; grid-template-columns: auto 350px; max-height: calc(100svh - 40px); }
+  .player video { height: min(80svh, 780px); aspect-ratio: 9 / 16; background: #000; }
+  .player .info { padding: 22px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+  .player h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.15; }
+  .player .info > p { color: var(--dim); }
+  .player .cast { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .player .cast > div { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; }
+  .player .cast .av { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; flex: none; }
+  .player .cast .av img, .player .cast .av .ph { width: 100%; height: 100%; object-fit: cover; }
+  .player .cast a.n { font-weight: 800; }
+  .player .cast .talk-mini { margin-inline-start: auto; }
+  .player .close { margin-inline-start: auto; }
+
+  footer { border-top: 1px solid var(--line); color: var(--faint); font-size: .88rem; padding: 28px 0 100px; margin-top: 70px; }
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 900px) {
+    .search { width: auto; flex: 1; }
+    .chero .wrap { grid-template-columns: 1fr; gap: 22px; padding-top: 26px; }
+    .chero .portrait { width: min(320px, 70vw); }
+  }
+  @media (max-width: 760px) {
+    .wrap { padding: 0 16px; }
+    .top .wrap { height: 58px; gap: 10px; }
+    .brand { font-size: 1.2rem; }
+    .brand .pill { display: none; }
+    .nav { position: fixed; bottom: 0; inset-inline: 0; z-index: 36; background: var(--bg); border-top: 1px solid var(--line); justify-content: space-around; padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
+    .nav a.on::after { display: none; }
+    .nav a.on { background: var(--card2); }
+    .hero { height: max(620px, 92svh); }
+    .hero-in { background: color-mix(in srgb, var(--bg) 72%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-radius: 26px; padding: 26px 14px 20px; }
+    .wall.r { width: 130%; right: -15%; transform: rotateX(16deg) rotateY(-8deg); opacity: .4; -webkit-mask-image: none; mask-image: none; }
+    .wall.l { display: none; }
+    .who { gap: 10px; }
+    .who button { width: 56px; }
+    .who button .av { width: 46px; height: 46px; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .vgrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .row { grid-auto-columns: 44%; }
+    .card .foot { flex-wrap: wrap; }
+    .cx { width: 100vw; border: 0; }
+    .fab { bottom: calc(74px + env(safe-area-inset-bottom)); left: 14px; }
+    .modal { padding: 0; }
+    .player { grid-template-columns: 1fr; border-radius: 0; height: 100svh; max-height: none; width: 100%; overflow-y: auto; }
+    .player video { width: 100%; height: auto; max-height: 74svh; }
+    footer { padding-bottom: 150px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .col { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#/">שלומיוורס<span class="pill">וויקי</span></a>
+    <nav class="nav">
+      <a href="#/characters" data-nav="characters">דמויות</a>
+      <a href="#/series" data-nav="series">סדרות</a>
+      <a href="#/videos" data-nav="videos">סרטונים</a>
+      <a href="#/chat" data-nav="chat">צ'אט</a>
+    </nav>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="חיפוש דמות, סדרה או סרטון" autocomplete="off">
+      <div class="results" id="results"></div>
+    </div>
+    <button class="icon-btn" id="theme" aria-label="מצב תצוגה">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <div class="wrap">
+    <span>שלומיוורס · הוויקי של הדמויות</span>
+    <span><a href="/links/">שלומי זוין</a> · <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener">TikTok</a> · <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.youtube.com/@shlomizevin" target="_blank" rel="noopener">YouTube</a></span>
+  </div>
+</footer>
+
+<button class="fab" id="fab"><span class="faces" id="fab-faces"></span>לדבר עם הדמויות</button>
+<div class="cx-back" id="cx-back"></div>
+<aside class="cx" id="cx" aria-label="צ'אט"></aside>
+<div class="modal" id="modal"><div class="player" id="player"></div></div>
+
+<script src="/t.js" data-site="wiki" data-no-view></script>
+<script>
+const t = (e, x) => window.track && window.track(e, x);
+const API = location.hostname === 'localhost' ? '/api/wikiChat' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/wikiChat';
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ICON = {
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  talk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>',
+  person: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.2-7 8.5-7s7.7 2.6 8.5 7z"/></svg>',
+};
+let W, C = {}, S = {}, V = {};
+const GUIDE = { id: 'guide', name: 'שלומיוורס', tagline: 'מכיר את כולם, מוצא כל סרטון', color: '#ff5b3a' };
+
+// ---------- pieces ----------
+const color = (c) => (c && c.color) || '#ff5b3a';
+const face = (c) => c && c.id === 'guide' ? `<span class="gmark">${ICON.spark}</span>`
+  : c && c.img ? `<img src="${c.img}" alt="${esc(c.name)}" loading="lazy">`
+  : `<span class="ph" style="--pc:${color(c)}" title="${esc(c?.name)}">${ICON.person}</span>`;
+const seriesColor = (s) => color(C[(s && s.characters.find((id) => C[id]?.img)) || s?.characters[0]]);
+const stag = (sid) => S[sid] ? `<span class="stag"><span class="dot" style="background:${seriesColor(S[sid])}"></span>${esc(S[sid].title)}</span>` : '';
+const talkBtn = (c) => `<button class="talk-mini" data-talk="${c.id}" style="--c:${color(c)}">${ICON.talk}שיחה</button>`;
+const card = (c) => `<div class="card" style="--c:${color(c)}">
+  <a class="pic" href="#/c/${c.id}">${face(c)}</a>
+  <div class="body"><a class="name" href="#/c/${c.id}">${esc(c.name)}</a><span class="tag-line">${esc(c.tagline || c.role)}</span>
+  <div class="foot">${stag(c.series)}${talkBtn(c)}</div></div></div>`;
+// characters with the newest videos first (W.videos is newest first), the rest in the canon's order
+const byNewest = (list) => list.map((c, k) => [c, W.videos.findIndex((v) => v.cast.includes(c.id)), k])
+  .sort((a, b) => ((a[1] < 0 ? 1e9 : a[1]) - (b[1] < 0 ? 1e9 : b[1])) || a[2] - b[2]).map((x) => x[0]);
+const vcard = (v) => `<button class="vid" data-video="${v.id}">
+  <div class="thumb">${v.poster ? `<img src="${v.poster}" alt="" loading="lazy">` : ''}<div class="play"><span>${ICON.play}</span></div>${v.url ? '<span class="ext">TikTok</span>' : ''}</div>
+  <span class="t">${esc(v.title)}</span><span class="who">${esc(v.cast.map((id) => C[id]?.name).filter(Boolean).slice(0, 3).join(', '))}</span></button>`;
+const scard = (s) => `<a class="series" href="#/s/${s.id}">
+  <h3><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</h3>
+  <p>${esc(s.blurb)}</p>
+  <div class="faces">${s.characters.slice(0, 8).map((id) => face(C[id])).join('')}</div>
+  <span class="meta">${s.characters.length} דמויות · ${s.videos.length} סרטונים</span></a>`;
+const filterChips = (active, base) => `<div class="chips">
+  <a class="chip ${active ? '' : 'on'}" href="${base}">הכול</a>
+  ${W.series.map((s) => `<a class="chip ${active === s.id ? 'on' : ''}" href="${base}?s=${s.id}"><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</a>`).join('')}</div>`;
+
+// the hero's two drifting walls of faces (each column holds its tiles twice, so the loop is seamless)
+function wall() {
+  const people = W.characters.filter((c) => c.img);
+  const cols = [[], [], [], [], [], []];
+  people.forEach((c, i) => cols[i % 6].push(c));
+  const col = (list) => { const t = list.map((c) => `<div class="tile">${face(c)}<span>${esc(c.name)}</span></div>`).join(''); return `<div class="col">${t}${t}</div>`; };
+  return `<div class="wall r">${cols.slice(0, 3).map(col).join('')}</div><div class="wall l">${cols.slice(3).map(col).join('')}</div>`;
+}
+
+// ---------- pages ----------
+let heroWho = 'guide';
+const pages = {
+  home() {
+    const who = [GUIDE, ...W.characters.filter((c) => c.img).slice(0, 7)];
+    return `<section class="hero">${wall()}
+      <div class="hero-in">
+        <h1 class="wordmark">שלומיוורס<small>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</small></h1>
+        <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
+          <input id="ask-in" placeholder="שאלו את השלומיוורס…" autocomplete="off" maxlength="1200">
+          <button aria-label="שליחה">${ICON.send}</button></form>
+        <div class="who" id="who"><div class="who-l">מי עונה?</div>
+          ${who.map((c) => `<button type="button" data-who="${c.id}" class="${c.id === heroWho ? 'on' : ''}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.id === 'guide' ? 'כולם' : c.name)}</button>`).join('')}</div>
+      </div>
+      <span class="scroll-hint">↓ ${W.characters.length} דמויות · ${W.videos.length} סרטונים</span></section>
+      <div class="wrap">
+      <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
+        <div class="row">${W.videos.slice(0, 14).map(vcard).join('')}</div></section>
+      <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
+        <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
+      <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="#/series">כל הסדרות ←</a></div>
+        <div class="sgrid">${W.series.map(scard).join('')}</div></section></div>`;
+  },
+  characters(q) {
+    const list = W.characters.filter((c) => !q.s || c.series === q.s);
+    return `<div class="wrap"><div class="page-h"><h1>הדמויות</h1><p>${W.characters.length} דמויות, והרשימה ממשיכה לגדול.</p></div>
+      ${filterChips(q.s, '#/characters')}<div class="grid">${list.map(card).join('')}</div></div>`;
+  },
+  series() {
+    return `<div class="wrap"><div class="page-h"><h1>הסדרות</h1><p>כל סדרה היא עולם, עם האנשים והסיפורים שלו.</p></div>
+      <div class="sgrid" style="margin-top:22px">${W.series.map(scard).join('')}</div></div>`;
+  },
+  s(q, id) {
+    const s = S[id];
+    if (!s) return pages.notFound();
+    return `<div class="wrap"><div class="page-h"><h1><span class="dot" style="background:${seriesColor(s)};width:14px;height:14px;margin-inline-end:12px;vertical-align:middle"></span>${esc(s.title)}</h1><p>${esc(s.blurb)}</p>
+      ${s.site ? `<p style="margin-top:12px"><a class="chip" href="${esc(s.site)}" target="_blank" rel="noopener">לאתר ←</a></p>` : ''}</div>
+      <section class="sec"><div class="sec-h"><h2>הדמויות</h2></div><div class="grid">${s.characters.map((id) => card(C[id])).join('')}</div></section>
+      <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>${s.videos.length ? `<div class="vgrid">${s.videos.map((id) => vcard(V[id])).join('')}</div>` : '<div class="empty">עוד אין כאן סרטונים.</div>'}</section></div>`;
+  },
+  videos(q) {
+    const list = W.videos.filter((v) => !q.s || v.series === q.s);
+    return `<div class="wrap"><div class="page-h"><h1>הסרטונים</h1><p>מהחדש לישן.</p></div>
+      ${filterChips(q.s, '#/videos')}<div class="vgrid">${list.map(vcard).join('')}</div></div>`;
+  },
+  c(q, id) {
+    const c = C[id];
+    if (!c) return pages.notFound();
+    const s = S[c.series];
+    const rel = [...new Set([...c.relations.map((r) => r.id), ...(s ? s.characters : [])])].filter((x) => x !== id && C[x]).slice(0, 10);
+    return `<section class="chero" style="--c:${color(c)}"><div class="wrap">
+        <div class="portrait">${face(c)}</div>
+        <div>
+          ${s ? `<a href="#/s/${s.id}">${stag(s.id)}</a>` : ''}
+          <h1>${esc(c.name)}</h1>
+          ${c.tagline ? `<div class="tl">${esc(c.tagline)}</div>` : ''}
+          <div class="role">${esc(c.role)}</div>
+          ${c.bio ? `<p class="bio">${esc(c.bio)}</p>` : ''}
+          <div class="acts"><button class="btn main" data-talk="${c.id}">${ICON.talk}לדבר עם ${esc(c.name)}</button>
+            ${c.videos.length ? `<button class="btn ghost" data-video="${c.videos[0]}">▶ הסרטון האחרון</button>` : ''}
+            ${c.site ? `<a class="btn ghost" href="${esc(c.site)}" target="_blank" rel="noopener">לאתר ←</a>` : ''}</div>
+        </div></div></section>
+      <div class="wrap" style="--c:${color(c)}">
+        ${c.quotes.length ? `<section class="sec"><div class="sec-h"><h2>משפטים מוכרים</h2></div><div class="bubbles">${c.quotes.map((x) => `<div class="bubble">${esc(x.replace(/^[״"]|[״"]$/g, ''))}</div>`).join('')}</div></section>` : ''}
+        <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>
+          ${c.videos.length ? `<div class="vgrid">${c.videos.map((v) => vcard(V[v])).join('')}</div>` : `<div class="empty">עוד אין כאן סרטונים, אבל אפשר כבר לדבר עם ${esc(c.name)}.</div>`}</section>
+        ${rel.length ? `<section class="sec"><div class="sec-h"><h2>מכירים מקרוב</h2></div><div class="rel">${rel.map((r) => `<a href="#/c/${r}"><span class="av">${face(C[r])}</span>${esc(C[r].name)}</a>`).join('')}</div></section>` : ''}
+      </div>`;
+  },
+  notFound() { return `<div class="wrap"><div class="page-h"><h1>לא מצאנו</h1><p><a href="#/">חזרה לדף הבית</a></p></div></div>`; },
+};
+
+// ---------- router ----------
+function route() {
+  const [path, qs] = (location.hash.slice(1) || '/').split('?');
+  const q = Object.fromEntries(new URLSearchParams(qs || ''));
+  let [, page = '', id] = path.split('/');
+  // #/chat?with=<id>&ask=<text> - the links page opens a conversation straight from a face or its question box
+  if (page === 'chat') { openChat(q.with && C[q.with] ? q.with : 'guide', q.ask || null); history.replaceState(null, '', '#/'); page = ''; }
+  // #/v/<id> - a video opened from outside (the links page): the player over the home page
+  if (page === 'v') { const vid = id; history.replaceState(null, '', '#/'); page = ''; setTimeout(() => openVideo(vid), 0); }
+  document.body.classList.toggle('at-home', !page);
+  $('#app').innerHTML = (pages[page || 'home'] || pages.notFound)(q, decodeURIComponent(id || ''));
+  document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page === 'c' ? 'characters' : page === 's' ? 'series' : page)));
+  const c = page === 'c' && C[id];
+  t('view', page ? page + (id ? '/' + id : '') : 'home');
+  if (c) t('character', id);
+  document.title = c ? `${c.name} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות';
+  $('#fab').style.display = page ? '' : 'none';
+  if (!page) bindHero();
+  window.scrollTo(0, 0);
+  onScroll();
+}
+function bindHero() {
+  $('#who').onclick = (e) => {
+    const b = e.target.closest('[data-who]');
+    if (!b) return;
+    heroWho = b.dataset.who;
+    document.querySelectorAll('#who [data-who]').forEach((x) => x.classList.toggle('on', x === b));
+    $('#ask-in').focus();
+  };
+  $('#ask').onsubmit = (e) => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (q) t('ask', heroWho); openChat(heroWho, q || null); $('#ask-in').value = ''; };
+}
+const onScroll = () => $('#top').classList.toggle('solid', scrollY > 40);
+addEventListener('scroll', onScroll, { passive: true });
+
+// ---------- chat ----------
+const threads = {};
+const load = (mode) => { try { return JSON.parse(sessionStorage.getItem('wiki-chat-' + mode)) || []; } catch (e) { return []; } };
+const save = (mode) => { try { sessionStorage.setItem('wiki-chat-' + mode, JSON.stringify(threads[mode].slice(-20))); } catch (e) {} };
+const who = (mode) => (mode === 'guide' ? GUIDE : C[mode]);
+const greet = (mode) => mode === 'guide'
+  ? 'היי. אני מכיר כאן את כולם. ספרו לי את מי אתם מחפשים, או איזה רגע מסרטון אתם זוכרים, ואמצא לכם אותו.'
+  : `${C[mode].name} כאן. שאלו מה שבא לכם.`;
+const cx = $('#cx');
+let cxMode = 'guide', busy = false;
+
+// a reply's text; [[video:id]] lines become a player inside the bubble, [[char:id]] lines an invitation to switch
+function renderText(text, streaming) {
+  if (streaming) text = text.replace(/\[\[[^\]]*$/, '');
+  return text.split(/\n{2,}/).map((block) => {
+    const parts = [];
+    let para = [];
+    const flush = () => { if (para.length) parts.push(`<p>${para.map(esc).join('<br>')}</p>`); para = []; };
+    for (const line of block.split('\n')) {
+      const m = line.trim().match(/^\[\[(video|char):([\w-]+)\]\]$/);
+      if (m && m[1] === 'video' && V[m[2]]) {
+        flush();
+        const v = V[m[2]];
+        parts.push(v.url
+          ? `<div class="mc" style="--cc:var(--c)"><b>${esc(v.title)}</b><button data-video="${v.id}">לצפייה</button></div>`
+          : `<div class="mv"><video data-vid="${v.id}" src="${v.src}" poster="${v.poster || ''}" controls playsinline preload="none"></video><div class="mv-t"><span>${esc(v.title)}</span><button data-video="${v.id}">מסך מלא</button></div></div>`);
+      } else if (m && m[1] === 'char' && C[m[2]]) {
+        flush();
+        const c = C[m[2]];
+        parts.push(`<div class="mc" style="--cc:${color(c)}"><span class="av">${face(c)}</span><span><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role)}</small></span><button data-switch="${c.id}">להעביר לשיחה</button></div>`);
+      } else if (!m) para.push(line);
+    }
+    flush();
+    return parts.join('');
+  }).join('');
+}
+
+function drawChat() {
+  const w = who(cxMode);
+  threads[cxMode] ||= load(cxMode);
+  cx.style.setProperty('--c', color(w));
+  const strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
+  const ask = cxMode === 'guide' ? ['תכירו לי מישהו', 'יש סרטון על בחירות?', 'מי הכי מצחיק פה?'] : (w.ask || []);
+  cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>
+    <div class="cx-head"><span class="av">${face(w)}</span><span><b>${esc(w.name)}</b><small>${esc(w.tagline || w.role || '')}</small>
+      ${cxMode === 'guide' ? '' : `<a class="pg" href="#/c/${w.id}">לעמוד של ${esc(w.name)} ←</a>`}</span>
+      <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
+    <div class="msgs"></div>
+    <div class="sugg">${ask.map((a) => `<button>${esc(a)}</button>`).join('')}</div>
+    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
+    <div class="cx-note">השיחות נשמרות כדי לשפר את הדמויות</div>`;
+  $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  drawMsgs();
+  const ta = $('textarea', cx);
+  $('.composer', cx).onsubmit = (e) => { e.preventDefault(); send(ta.value); };
+  ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(ta.value); } };
+  ta.oninput = () => { ta.style.height = '48px'; ta.style.height = Math.min(ta.scrollHeight + 2, 130) + 'px'; ta.style.overflow = ta.scrollHeight > 128 ? 'auto' : 'hidden'; };
+  $('.sugg', cx).onclick = (e) => { if (e.target.tagName === 'BUTTON') send(e.target.textContent); };
+}
+function drawMsgs() {
+  const msgs = $('.msgs', cx), t = threads[cxMode];
+  msgs.innerHTML = `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` +
+    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${esc(m.content)}</p>` : renderText(m.content)}</div>`).join('');
+  $('.sugg', cx).style.display = t.some((m) => m.role === 'user') ? 'none' : '';
+  msgs.scrollTop = msgs.scrollHeight;
+}
+// the anonymous ids the analytics already use, so the dashboard can show a conversation as one thread;
+// own = one of Shlomi's devices (not kept)
+function visitor() {
+  try { return { v: localStorage.getItem('t-v'), s: sessionStorage.getItem('t-s'), r: sessionStorage.getItem('t-r'), own: !!localStorage.getItem('t-ignore'), m: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) }; }
+  catch (e) { return {}; }
+}
+async function send(text) {
+  text = String(text || '').trim();
+  if (!text || busy) return;
+  const mode = cxMode, ta = $('textarea', cx), btn = $('.composer button', cx), msgs = $('.msgs', cx);
+  busy = true; btn.disabled = true; ta.value = ''; ta.style.height = '48px';
+  threads[mode].push({ role: 'user', content: text });
+  t('chat_message', mode);
+  drawMsgs();
+  const bubble = document.createElement('div');
+  bubble.className = 'm bot wait';
+  msgs.appendChild(bubble);
+  msgs.scrollTop = msgs.scrollHeight;
+  let out = '';
+  try {
+    const history = threads[mode].filter((m) => m.role !== 'note').slice(-16);
+    const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode, messages: history, ...visitor() }) });
+    if (res.status === 429) throw new Error('busy');
+    if (!res.ok || !res.body) throw new Error('fail');
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      out += dec.decode(value, { stream: true });
+      if (cxMode !== mode) continue;
+      bubble.classList.remove('wait');
+      bubble.innerHTML = renderText(out, true);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+    threads[mode].push({ role: 'assistant', content: out.trim() });
+    save(mode);
+  } catch (e) {
+    threads[mode].pop();
+    if (cxMode === mode) { $('textarea', cx).value = text; bubble.classList.remove('wait'); bubble.innerHTML = `<p>${e.message === 'busy' ? 'הרבה הודעות בבת אחת. נסו שוב עוד מעט.' : 'משהו נתקע בדרך. נסו לשלוח שוב.'}</p>`; }
+    busy = false; btn.disabled = false;
+    return;
+  }
+  busy = false;
+  if (cxMode === mode) { btn.disabled = false; drawMsgs(); }
+}
+function openChat(mode, text) {
+  cxMode = mode && (mode === 'guide' || C[mode]) ? mode : 'guide';
+  t('chat_open', cxMode);
+  drawChat();
+  cx.classList.add('open'); $('#cx-back').classList.add('open');
+  if (text) send(text); else setTimeout(() => $('textarea', cx)?.focus(), 60);
+}
+function switchChat(mode) {
+  if (mode === cxMode || busy) return;
+  const prev = who(cxMode);
+  cxMode = mode;
+  t('chat_switch', mode);
+  threads[mode] ||= load(mode);
+  if (!threads[mode].length) threads[mode].push({ role: 'note', content: `${who(mode).name} הצטרף/ה לשיחה, דרך ${prev.name}` });
+  drawChat();
+}
+function closeChat() { cx.classList.remove('open'); $('#cx-back').classList.remove('open'); cx.querySelectorAll('video').forEach((v) => v.pause()); }
+$('#cx-back').onclick = closeChat;
+$('#fab').onclick = () => openChat(cxMode);
+
+// ---------- video player + hover previews ----------
+const modal = $('#modal'), player = $('#player');
+function openVideo(id) {
+  const v = V[id];
+  if (!v) return;
+  if (v.url) { window.open(v.url, '_blank', 'noopener'); return; }
+  cx.querySelectorAll('video').forEach((x) => x.pause());
+  t('video', id);
+  player.innerHTML = `<video src="${v.src}" poster="${v.poster || ''}" controls autoplay playsinline></video>
+    <div class="info"><button class="icon-btn close" data-close-video aria-label="סגירה">${ICON.x}</button>
+      ${stag(v.series)}<h2>${esc(v.title)}</h2>${v.teaser ? `<p>${esc(v.teaser)}</p>` : ''}
+      <div class="cast">${v.cast.filter((id) => C[id]).map((id) => `<div><span class="av">${face(C[id])}</span><a class="n" href="#/c/${id}">${esc(C[id].name)}</a>${talkBtn(C[id])}</div>`).join('')}</div></div>`;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeVideo() { modal.classList.remove('open'); player.innerHTML = ''; document.body.style.overflow = ''; }
+modal.onclick = (e) => { if (e.target === modal || e.target.closest('[data-close-video]') || e.target.closest('.cast a')) closeVideo(); };
+if (matchMedia('(hover: hover)').matches) {
+  document.addEventListener('mouseover', (e) => {
+    const card = e.target.closest('.vid');
+    if (!card || card.classList.contains('previewing') || !V[card.dataset.video]?.src) return;
+    card.classList.add('previewing');
+    const vd = document.createElement('video');
+    Object.assign(vd, { src: V[card.dataset.video].src + '#t=2', muted: true, loop: true, playsInline: true, autoplay: true });
+    $('.thumb', card).appendChild(vd);
+    card.addEventListener('mouseleave', () => { vd.remove(); card.classList.remove('previewing'); }, { once: true });
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const sw = e.target.closest('[data-switch]');
+  if (sw) { switchChat(sw.dataset.switch); return; }
+  const vid = e.target.closest('[data-video]');
+  if (vid) { e.preventDefault(); openVideo(vid.dataset.video); return; }
+  const talk = e.target.closest('[data-talk]');
+  if (talk) { e.preventDefault(); closeVideo(); openChat(talk.dataset.talk); return; }
+  if (e.target.closest('[data-close-chat]') || e.target.closest('.cx-head a.pg')) closeChat();
+  if (!e.target.closest('.search')) $('#results').classList.remove('open');
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeVideo(); closeChat(); } });
+
+document.addEventListener('play', (e) => { const id = e.target.dataset && e.target.dataset.vid; if (id && !e.target.dataset.counted) { e.target.dataset.counted = 1; t('video', id); } }, true);
+
+// ---------- search ----------
+const norm = (s) => String(s || '').toLowerCase().replace(/[״"׳'\-–.,]/g, '').replace(/\s+/g, ' ');
+function search(q) {
+  const n = norm(q).trim(), box = $('#results');
+  if (!n) { box.classList.remove('open'); return; }
+  const hits = [];
+  for (const c of W.characters) if (norm([c.name, ...c.aka, c.role, c.tagline].join(' ')).includes(n)) hits.push({ s: norm(c.name).startsWith(n) ? 0 : 1, h: `<a href="#/c/${c.id}">${face(c)}<span>${esc(c.name)}</span><span class="k">דמות</span></a>` });
+  for (const s of W.series) if (norm(s.title + ' ' + s.blurb).includes(n)) hits.push({ s: 2, h: `<a href="#/s/${s.id}"><span class="dot" style="background:${seriesColor(s)};width:12px;height:12px;margin:0 11px"></span><span>${esc(s.title)}</span><span class="k">סדרה</span></a>` });
+  for (const v of W.videos) if (norm(v.title + ' ' + v.teaser).includes(n)) hits.push({ s: 3, h: `<a href="#" data-video="${v.id}">${v.poster ? `<img src="${v.poster}" alt="">` : ''}<span>${esc(v.title)}</span><span class="k">סרטון</span></a>` });
+  hits.sort((a, b) => a.s - b.s);
+  box.innerHTML = hits.slice(0, 10).map((x) => x.h).join('') +
+    `<a href="#" data-ask="${esc(q)}"><span class="gmark" style="width:34px;height:34px;border-radius:8px;flex:none">${ICON.spark}</span><span>לשאול את השלומיוורס: "${esc(q)}"</span></a>`;
+  box.classList.add('open');
+}
+let searchTimer;
+$('#q').addEventListener('input', (e) => { search(e.target.value); clearTimeout(searchTimer); const v = e.target.value.trim(); if (v.length > 1) searchTimer = setTimeout(() => t('search', v), 1500); });
+$('#q').addEventListener('focus', (e) => e.target.value && search(e.target.value));
+$('#results').addEventListener('click', (e) => {
+  const a = e.target.closest('a');
+  if (!a) return;
+  $('#results').classList.remove('open');
+  if (a.dataset.ask) { e.preventDefault(); openChat('guide', a.dataset.ask); }
+  $('#q').value = '';
+});
+
+// ---------- theme ----------
+$('#theme').onclick = () => {
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('wiki-theme', next); } catch (e) {}
+};
+
+// ---------- boot ----------
+fetch('data/wiki.json').then((r) => r.json()).then((data) => {
+  W = data;
+  W.characters.forEach((c) => (C[c.id] = c));
+  W.series.forEach((s) => (S[s.id] = s));
+  W.videos.forEach((v) => (V[v.id] = v));
+  $('#fab-faces').innerHTML = W.characters.filter((c) => c.img).slice(0, 3).map(face).join('');
+  addEventListener('hashchange', route);
+  route();
+});
+</script>
+</body>
+</html>

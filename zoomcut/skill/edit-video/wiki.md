@@ -33,7 +33,15 @@ into `scripts/wiki/work/`, then copied to `public/links/img/`). To change who is
 Keep the words in the middle: Facebook crops the sides on phones and the profile photo covers a bottom corner.
 
 ## A finished video -> the Shlomiverse (step 11 of the workflow)
-After the **Full quality** export, from `c:\workspace\BoostMind`:
+**Publishing a video = publishing it to his sites too** (his words, 2026-10-25: "this is part of publishing a video -
+it should go to my site... everything just one direction"). ONE command does all of it, from `c:\workspace\BoostMind`:
+`python scripts/wiki/publish_site.py <episode-id>` - marks the project done, web copy + poster, fan copy (Terra) for
+anything new (the video, a new character), build, deploy the site + the chat agent, checks the live wiki lists it
+(`✔ on the Shlomiverse: <link>`), and warns (`!`) when a Techy-Tech character has no card on the company site.
+The studio is to run it by itself after every Publish (a "site" job - asked of the tool's session 2026-10-25); until
+that lands, run it yourself right after he publishes. Three videos (dorit-1 and two Demokratovich) missed it because
+their sessions stopped at the socials - never again: a video is not published until this line printed ✔.
+The steps it runs, for when one fails:
 1. **Web copy + poster:** `sh scripts/wiki/encode.sh <episode-id>` (720p, ~10 MB, into `public/wiki/v/`).
 2. **Fan copy** (the title and one-line teaser people see; a new character also gets a tagline, bio and 3 questions):
    `python scripts/wiki/copy_brief.py --only-missing`, then
