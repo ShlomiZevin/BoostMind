@@ -130,6 +130,10 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   echo 0..2, pitch (semitones, timing kept), room 0..1, roomSize (s), level (dB)}`; item `rate` = tape speed (pitch follows); item `duck: dB` dips the voice while
   it plays (`duck_layers` [ids] to dip others); layer `lift {db, fade, of (default "subs"), after}` rises after the last
   item of `of` ends (the music up at the end card).
+- `own_pace` (true; Inspector "Keep its own pace", 2026-10-25): the layer is NOT sped up with the project - music he
+  wants at its real tempo while the video runs at 1.15×. Live: it plays at its own rate on the sped timeline; export:
+  pipeline/layers_audio._own_pace renders it in real time and pre-stretches it so the export's speed-up lands it back on
+  its own tempo (measured 1.00× vs 1.15×). Items still sit where they are on the timeline.
 - **Builders write raw content + these fields; they never bake a setting into a file.**
 - **All of it is live** in the editor and rendered by the same graph in the export (render/ui/layergraph.ts,
   tools/audio_layers.mjs). Only a NEW sound file is prepared (cleaning variants, levels) - in the background.
@@ -177,6 +181,9 @@ Answer: `{ok, rev, stems}`. Every write is logged with its undo in `work/history
 {"op": "item.remove", "layer": "sfx", "id": "x0"}
 {"op": "asset.add", "id": "m.logo.png", "asset": {"kind": "image", "src": "media/logo.png", "w": 800, "h": 800}}
 ```
+Delete a whole layer in the editor: the trash on its name (on hover), Delete with the layer picked, or the Inspector's
+"Delete layer" - always through our own window (render/ui/layers/ask.ts - never the browser's confirm box, his ask);
+Ctrl+Z brings it back.
 `GET /api/p/<id>` - the project, `urls` (where the editor loads each asset), `stems`, the last export.
 
 ## Builders - who makes the items

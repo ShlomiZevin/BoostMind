@@ -1,6 +1,7 @@
 // The inspector's building blocks (design: render/ui/layers/design.md, classes: ../tokens.css) and the one rule for
 // settings: a layer's props are its clips' settings; a clip that overrides one shows it (a "clip only" mark, click =
 // back to the layer's value), and a change goes where the value lives - the clip's own override, else the layer.
+import { ask } from '../ask';
 import React, { useEffect, useRef, useState } from 'react';
 import { newId } from '../../../src/layers/ops.js';
 
@@ -196,7 +197,7 @@ export function LayerState({ P, sound }: { P: InspectorProps; sound?: boolean })
     <ToggleRow label="Shown" on={!layer.hidden} onChange={(v) => S.layerSet({ hidden: !v })} />
     {sound && <ToggleRow label="Heard" on={!layer.muted} onChange={(v) => S.layerSet({ muted: !v })} />}
     <ToggleRow label="Locked" on={!!layer.locked} onChange={(v) => S.layerSet({ locked: v })} />
-    <button className="btn danger" onClick={() => send([{ op: 'layer.remove', id: layer.id }])}>Remove layer</button>
+    <button className="btn danger" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); }}>Delete layer</button>
   </Sec>;
 }
 

@@ -1,0 +1,9 @@
+/* ask.ts - our own "are you sure?" window, in the studio's look */
+.ask { position: fixed; inset: 0; z-index: 500; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; }
+.ask-box { width: min(92vw, 400px); padding: 20px 20px 16px; background: var(--panel); border: 1px solid var(--edge-2); border-radius: 10px; }
+.ask-t { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.35; overflow-wrap: anywhere; }
+.ask-x { margin-top: 6px; font-size: 13px; color: var(--dim); line-height: 1.45; }
+.ask-b { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.ask-b .btn { min-width: 84px; }
+.ask-danger { background: var(--bad, #ef5f5f); border-color: var(--bad, #ef5f5f); color: #fff; font-weight: 600; }
+.ask-danger:hover { filter: brightness(1.08); }

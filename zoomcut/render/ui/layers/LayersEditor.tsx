@@ -7,6 +7,7 @@ import { Player, PlayerRef } from '@remotion/player';
 import { Layers } from '../../src/Layers';
 import { useLayered, build, fmtT } from './api';
 import { Timeline, Sel } from './Timeline';
+import { ask } from './ask';
 import { Media } from './Media';
 import { Inspector } from './Inspector';
 import { LineProps, Media as FootageAssign } from '../editor';
@@ -95,6 +96,12 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         e.preventDefault();
         L.send([{ op: 'item.remove', layer: sel.layer, id: sel.item }], { label: 'delete' });
         setSel({ layer: sel.layer });
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && sel?.layer && !sel.item) {  // the whole layer (asked once)
+        e.preventDefault();
+        const l = project?.layers.find((x: any) => x.id === sel.layer);
+        const n = l?.items?.length || 0;
+        if (l) ask({ title: `Delete the layer "${l.name || l.id}"?`, text: `${n ? `${n} clip${n === 1 ? '' : 's'} go${n === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })
+          .then((yes) => { if (yes) { L.send([{ op: 'layer.remove', id: l.id }], { label: 'delete layer' }); setSel(null); } });
       } else if (e.key === 'Escape') { setSel(null); setLine(null); }
     };
     addEventListener('keydown', k);

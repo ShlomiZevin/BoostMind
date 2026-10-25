@@ -6,6 +6,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
+import { ask } from './ask';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -159,6 +160,13 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const ticks = [];
   for (let s = 0; s <= total / fps; s += step) ticks.push(s);
   const toggle = (l: any, key: 'hidden' | 'muted') => send([{ op: 'layer.update', id: l.id, set: { [key]: !l[key] } }], { label: key });
+  // the whole layer (its name's trash, or Delete with the layer picked) - asked once; Ctrl+Z brings it back
+  const removeLayer = async (l: any) => {
+    const n = l.items?.length || 0;
+    if (!(await ask({ title: `Delete the layer "${l.name || l.id}"?`, text: `${n ? `${n} clip${n === 1 ? '' : 's'} go${n === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' }))) return;
+    send([{ op: 'layer.remove', id: l.id }], { label: 'delete layer' });
+    onSel(null);
+  };
 
   return (
     <div className="tl">
@@ -198,6 +206,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                     {l.kind === 'audio'
                       ? <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.muted ? 'Sound on' : 'Mute'} onClick={(e) => { e.stopPropagation(); toggle(l, 'muted'); }}><SpkIc off={l.muted} /></button>
                       : <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); toggle(l, 'hidden'); }}><EyeIc off={l.hidden} /></button>}
+                    <button className="btn ghost icon ltl-del" style={{ width: 22, height: 22 }} title="Delete this layer (Ctrl+Z brings it back)"
+                      onClick={(e) => { e.stopPropagation(); removeLayer(l); }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
                   </div>
                   <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted ? 0.45 : 1 }}
                     onMouseDown={(e) => { if (e.target === e.currentTarget) { onSel({ layer: l.id }); seekAt(e); } }}>

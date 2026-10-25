@@ -134,6 +134,39 @@ def _audible(l):
     return l["kind"] == "audio" and not l.get("hidden") and not l.get("muted")
 
 
+def _own_pace(ep, project, own, n, sp):
+    """Own pace (props.own_pace - music he wants at its real tempo while the project is sped up, 2026-10-25): its sound
+    is made in REAL time - every item's place on the timeline divided by the speed, so the ducks under the voices land
+    where they will be heard - then stretched to the project's timeline keeping its pitch (atempo 1/speed). The export's
+    speed-up (atempo speed, export_layers) brings it back to exactly its own tempo and pitch. {layer id: n samples}."""
+    import copy
+    real = copy.deepcopy(project)
+    real["duration"] = max(1, int(round(project["duration"] / sp)))
+    for l in real["layers"]:
+        for it in l.get("items") or []:
+            f0 = it.get("from", 0)
+            f1 = f0 + it.get("dur", 0)
+            it["from"] = int(round(f0 / sp))
+            it["dur"] = max(1, int(round(f1 / sp)) - it["from"])
+    n_real = int(round(n / sp))
+    rendered = audio_render.render(ep, real, n_real) or {}
+    out = {}
+    d = ep.work("layers", "own_pace")
+    os.makedirs(d, exist_ok=True)
+    for l in own:
+        x = rendered.get(l["id"])
+        if x is None:
+            x = track(ep, real, next(r for r in real["layers"] if r["id"] == l["id"]), n_real, {})
+        src, dst = os.path.join(d, l["id"] + ".wav"), os.path.join(d, l["id"] + ".f32")
+        audio._write_mono(src, np.asarray(x, dtype=np.float32))
+        run([FFMPEG, "-y", "-v", "error", "-i", src, "-af", f"atempo={1.0 / sp:.6f}", "-f", "f32le", "-ac", "1", "-ar", str(SR), dst])
+        y = np.fromfile(dst, dtype=np.float32)
+        y = y[:n] if len(y) >= n else np.pad(y, (0, n - len(y)))
+        out[l["id"]] = y
+    log(f"  · own pace: {', '.join(l['id'] for l in own)} at its real tempo (the project x{sp})")
+    return out
+
+
 def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
     """All audio layers -> out_wav (stereo, -14 LUFS). stems_dir: also one file per layer for the editor."""
     fps = project["canvas"]["fps"]
@@ -144,6 +177,10 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
     rendered = audio_render.render(ep, project, n)  # the editor's own graph (clip fx, clarity, voice chain): what he heard
     if rendered:
         tracks.update(rendered)
+    sp = float(project.get("speed") or 1)
+    own = [l for l in project["layers"] if l["kind"] == "audio" and (l.get("props") or {}).get("own_pace")]
+    if own and abs(sp - 1) > 1e-3:
+        tracks.update(_own_pace(ep, project, own, n, sp))
     buf = np.zeros(n, dtype=np.float32)
     for l in project["layers"]:
         if _audible(l):

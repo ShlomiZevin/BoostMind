@@ -1,6 +1,7 @@
 // The right panel of the layered editor. Nothing picked: the project (title, speed, colour, add a layer). A layer or
 // an item picked: its panel - the per-kind panels in ./inspect (INSPECTORS) when they exist, otherwise a plain panel
 // that shows every setting the format has (skill/edit-video/layers.md), so nothing is ever hidden from him.
+import { ask } from './ask';
 import React from 'react';
 import { KIND_LABEL, Send } from './api';
 import { SpeedPick } from '../editor';
@@ -145,7 +146,7 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
         <button className="btn" disabled={idx <= 0} onClick={() => send([{ op: 'layer.move', id: layer.id, index: idx - 1 }])}>Down</button>
         <button className="btn" onClick={() => send([{ op: 'layer.update', id: layer.id, set: { [layer.kind === 'audio' ? 'muted' : 'hidden']: !(layer.kind === 'audio' ? layer.muted : layer.hidden) } }])}>
           {layer.kind === 'audio' ? (layer.muted ? 'Sound on' : 'Mute') : layer.hidden ? 'Show' : 'Hide'}</button>
-        <button className="btn" onClick={() => { if (confirm(`Delete the layer "${layer.name || layer.id}"?`)) { send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); onSel(null); } }}>Delete layer</button>
+        <button className="btn" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) { send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); onSel(null); } }}>Delete layer</button>
       </div>
       {layer.owner === 'builder' && <div className="help">Its items come from the analysis; what you change here stays when it runs again.</div>}
     </div>

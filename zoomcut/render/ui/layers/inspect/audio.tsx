@@ -94,6 +94,7 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Level">
       <Slider label="Volume" v={props.volume ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(x, c) => S.layer({ volume: x }, c)} />
       <ToggleRow label="Even out speech level" on={props.level === 'speech'} onChange={(on) => S.layer({ level: on ? 'speech' : null })} />
+      <ToggleRow label="Keep its own pace (not sped up with the project)" on={!!props.own_pace} onChange={(on) => S.layer({ own_pace: on || null })} />
       <Slider label="Rise at the end" v={props.lift?.db || 0} min={0} max={14} step={0.5} def={0} fmt={(v) => (v ? `+${v} dB after the last word` : 'off')}
         onChange={(v, c) => S.layer({ lift: v ? { fade: 1.2, of: 'subs', ...(props.lift || {}), db: v } : null }, c)} />
       {props.lift?.db ? <Slider label="Rise over" v={props.lift.fade ?? 1.2} min={0.2} max={4} step={0.1} def={1.2} fmt={(v) => `${v.toFixed(1)} s`}

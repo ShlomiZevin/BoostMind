@@ -11,6 +11,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { partsOf, activeParts, nextUses, copiesOf, srcAt } from './clock.js';
+// a clip's source time when the project's speed doesn't apply to it: the timeline runs `speed` x faster than real time
+const ownAt = (A: any, f: number, fps: number, speed: number) => (A.in ?? 0) + ((f - A.from) / fps) * (A.rate ?? 1) / (speed || 1);
 import { usePreloaded } from '../../ui/preload';
 import { loadFx } from '../../ui/soundfx';
 import { buildLayer, applyLayer, buildClip, applyClip, clipGainAt, LayerNodes, ClipNodes } from '../../ui/layergraph';
@@ -104,8 +106,11 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
     for (const [copy, n] of Object.entries(nodes.current)) {
       const A = act[copy], el = n.el;
       if (A && playing) {
-        const want = srcAt(A, f, fps);
-        const r = rate * (A.rate ?? 1);
+        // own pace (props.own_pace - music he wants at its real tempo): the project speed doesn't touch it - it plays at
+        // its own rate, and its place in the source moves with real time (the timeline runs `rate` x faster)
+        const own = !!props.own_pace && rate !== 1;
+        const want = own ? ownAt(A, f, fps, rate) : srcAt(A, f, fps);
+        const r = own ? (A.rate ?? 1) : rate * (A.rate ?? 1);
         if (el.playbackRate !== r) el.playbackRate = r;
         const keep = (A.rate ?? 1) === 1;  // a sped-up / slowed clip is a tape (pitch follows); the project speed keeps the pitch
         if ((el as any).preservesPitch !== keep) (el as any).preservesPitch = keep;
@@ -122,7 +127,8 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
         if (!el.paused) el.pause();
         const w = A || waits[copy];  // paused: waits where it will play
         if (w && n.clip) applyClip(n.clip, w);  // (its fx ready before it starts)
-        const to = A ? srcAt(A, f, fps) : w ? srcAt(w, w.from, fps) : 0;
+        const sp = props.own_pace ? rate : 1;  // (paused: where its own pace would be)
+        const to = A ? ownAt(A, f, fps, sp) : w ? ownAt(w, w.from, fps, sp) : 0;
         if (w && !el.seeking && Math.abs(el.currentTime - to) > 0.04) el.currentTime = to;
       }
     }
