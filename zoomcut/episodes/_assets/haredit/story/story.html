@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Suez+One&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; }
+  body { background: #bdb5a6; font-family: 'Frank Ruhl Libre', serif; color: #111; position: relative; }
+  /* the stone wall the notice is glued to */
+  .wall { position: absolute; inset: 0; background:
+      repeating-linear-gradient(0deg, transparent 0 158px, rgba(0,0,0,.08) 158px 162px),
+      repeating-linear-gradient(90deg, transparent 0 318px, rgba(0,0,0,.06) 318px 322px), #c3bbab; }
+  .paper { position: absolute; top: 206px; left: 46px; width: 988px; height: 1418px; background: #f6f2e6;
+    transform: rotate(-0.7deg); box-shadow: 0 6px 18px rgba(0,0,0,.25); padding: 22px; }
+  .tape { position: absolute; width: 150px; height: 44px; background: rgba(240,232,200,.75); top: -18px; }
+  .tape.l { left: 40px; transform: rotate(-6deg); } .tape.r { right: 40px; transform: rotate(5deg); }
+  .frame { border: 9px solid #111; outline: 3px solid #111; outline-offset: -20px; height: 100%; padding: 30px 46px 36px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+  .bsd { position: absolute; top: 30px; right: 40px; font-size: 30px; font-weight: 700; }
+  .kol { font-family: 'Suez One', serif; font-size: 40px; margin-top: 18px; letter-spacing: 1px; }
+  h1 { font-weight: 900; font-size: 128px; line-height: 1.05; margin-top: 2px; white-space: nowrap; }
+  h2 { font-family: 'Suez One', serif; font-size: 92px; line-height: 1.05; color: #a40e0e; }
+  .sub { font-size: 40px; font-weight: 700; margin-top: 10px; }
+  .photo { width: 600px; margin: 12px 0 4px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.35)); }
+  .rule { width: 86%; border-top: 4px double #111; margin: 10px 0; }
+  .mazal { font-size: 40px; font-weight: 700; line-height: 1.2; }
+  .name { font-family: 'Suez One', serif; font-size: 62px; line-height: 1.1; }
+  .details { font-size: 29px; font-weight: 500; line-height: 1.45; margin-top: 4px; }
+  .details b { font-weight: 900; }
+  .cta { font-family: 'Suez One', serif; font-size: 40px; margin-top: 8px; }
+  /* where the link goes: on Instagram he drops the link sticker in the dashed box */
+  .link { margin-top: auto; width: 720px; height: 132px; flex: none;
+    border: 5px dashed #111; border-radius: 22px; background: rgba(255,255,255,.55);
+    display: flex; align-items: center; justify-content: center; font-family: 'Suez One', serif; font-size: 50px; }
+</style>
+</head>
+<body>
+<div class="wall"></div>
+<div class="paper">
+  <div class="tape l"></div><div class="tape r"></div>
+  <div class="frame">
+    <div class="bsd">בס״ד</div>
+    <div class="kol">קול ששון בצוות הדאטה</div>
+    <h1>הודעה משמחת</h1>
+    <h2>הדיפלוי עלה!</h2>
+    <div class="sub">בחסדי שמים, הדיפלוי עלה לפרודקשן ללא תקלות</div>
+    <img class="photo" src="../family-framed.png" alt="">
+    <div class="mazal">מזל טוב לבת ציון החשובה</div>
+    <div class="name">מרת חני פרידמן תחי׳</div>
+    <div class="rule"></div>
+    <div class="details">
+      לבירורים: <b>פלאפון כשר בלבד</b>, אין וואטסאפ.<br>
+      הנידון אושר בהחלטתו של <b>יותם</b>.<br>
+      יציאה בשעה <b>16:20</b> לאיסוף מלכי מהגן.
+    </div>
+    <div class="cta">טקי-טק מגייסת · בואו לעבוד עם חני</div>
+    <div class="link" id="link">👇 הקישור כאן 👇</div>
+  </div>
+</div>
+<script>
+  if (location.hash === '#tiktok') document.getElementById('link').textContent = '🔗 הלינק בביו ⬆️';
+</script>
+</body>
+</html>

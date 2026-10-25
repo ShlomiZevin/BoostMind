@@ -689,6 +689,8 @@
       bio: 'ארז מוביל את צוות ה-Data & AI, ואחראי על המודלים האנליטיים ועל תשתית הנתונים של החברה.' },
     { id: 'yotam', name: 'יותם גולדשטיין', role: 'מהנדס AI בכיר', en: 'Senior AI & Context Engineer', photo: 'yotam.jpg',
       bio: 'יותם מתמחה בפיתוח פתרונות AI מבוססי מודלי שפה ובהנדסת Context למערכות ארגוניות.' },
+    { id: 'hani', name: 'חני פרידמן', role: 'מפתחת Backend', en: 'Backend Engineer', photo: 'hani.jpg',
+      bio: 'חני מפתחת את שירותי ה-Backend ואת ממשקי הנתונים של צוות ה-Data & AI, עם התמחות בוולידציה, ב-Caching ובאמינות שירותים. ידועה ביסודיות ובהקפדה על כל הנחיה ותהליך.' },
     { id: 'vova', name: 'ולדימיר (וובה) קוגן', role: 'ראש תחום תשתיות ו-DevOps', en: 'Infrastructure & DevOps Lead', photo: 'vova.jpg',
       bio: 'וובה אחראי על תשתיות הענן, על תהליכי ה-CI/CD ועל זמינות המערכות של טקי-טק בכל מרכזי הפיתוח.' },
     { id: 'tamir', name: 'תמיר', role: 'ראש צוות אבטחת מידע', en: 'Security Team Lead', photo: null,
@@ -724,7 +726,7 @@
     { head: 'vprd', name: 'חטיבת R&D', en: 'Research & Development', units: [
       { name: 'משרד הארכיטקט הראשי', en: 'Office of the Chief Architect', people: ['rami'] },
       { name: 'פלטפורמת הליבה', en: 'TechyCore™ Core Platform', people: [{ id: 'tzvika', reports: ['ido', { group: 'מפתחי Core', count: 12, where: 'פתח תקווה' }] }] },
-      { name: 'Data & AI', en: 'Data & AI', people: [{ id: 'erez', reports: ['yotam', { open: 'AI Engineer (LLM Agents)' }] }] },
+      { name: 'Data & AI', en: 'Data & AI', people: [{ id: 'erez', reports: ['yotam', 'hani', { open: 'AI Engineer (LLM Agents)' }] }] },
       { name: 'תשתיות ו-DevOps', en: 'Platform & DevOps', people: ['vova'] },
       { name: 'מרכזי פיתוח בחו"ל', en: 'Global Development Centers', people: [
         { group: 'מרכז פיתוח קייב', count: 46, where: 'קייב, אוקראינה' },
@@ -838,5 +840,6 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); document.getElementById('toast').classList.remove('open'); document.getElementById('apply').classList.remove('open'); } });
   document.querySelectorAll('.menu a').forEach((a) => a.addEventListener('click', () => document.getElementById('menu').classList.remove('open')));
 </script>
+<script src="https://boostmind-b052c.web.app/t.js" data-site="techytech" defer></script>
 </body>
 </html>

@@ -70,8 +70,74 @@ the editor stay.
   amulet. A new video: its 540p copy into `public/demokratovich/v/` and replace the "בקרוב" tile.
 - **demokratovich-shut** (2026-10-23, waiting for footage in `Downloads\דמוקרטוביץ-שות`): the rabbi answering his
   audience's questions. Media ready: `demokratovich-poster.jpg` (end poster "יש לך שאלה לרב? / האתר באוויר • הלינק
-  בביו"), his portrait, the emblem. Plan: each question on screen as a `question` card (the tadar style) timed by his
-  words; a CTA box "שלחו שאלה לרב - הלינק בביו" for the last ~10 s; the poster on his last word, held ~4 s.
+  בביו"), his portrait, the emblem. Script 2026-10-23 (Reader id `demokratovich-shut`, הרב + שואל): a pilpul (לך־לך,
+  ״בנימין זאב יטרף״, ״זאב ערבות״ → אל תקרי ערבות אלא ערבים, ״וגר זאב עם כבש... גדי״ → גדי + ערבים) then three
+  audience questions. Prepared as overlays tied to his words (episode.json, `_todo` for after Analyze):
+  - the verses on the empty scroll sticker at the TOP (y 250, over the plaque) with their real sources in Stam;
+  - stickers in the band over the parochet, beside his head (y 680-1000; his head starts ~1000 at person y 450):
+    Leonardo wolf / peaceable-kingdom animals / gavel (sunburst, mint, cut out - an enclosed mint patch needs a
+    colour pass), and HTML stickers (crisp Hebrew): ערבות struck → ערבים, a kashrut-style "סוקר כשר למהדרין /
+    בהשגחת בג״ץ" stamp, the ballot slip "דרך / ישר", the 3.25% threshold chart + "שוטה ופתק בידו!" stamp;
+  - each question as a `question` card (navy, "שאלות הציבור לכבוד הרב") at the top until its answer ends;
+  - polaroid "קהילת שערי בג״ץ באוויר! / הלינק בביו" at the pilpul → questions turn; blinking CTA "יש לך שאלה
+    לרב? / הלינק בביו" over the last question; the poster on "ומעכב את הגאולה".
+  Assets: `_assets/demokratovich/shut/`; stories in `Downloads\דמוקרטוביץ-שות\demokratovich-shut-story-*.jpg`.
+  Done 2026-10-23 (footage `Downloads\drop\שות בחירות`, opening = his take 3): his notes, all kept -
+  - plaque "בית משפט קטן ״שערי בג״ץ״" (same plate / angle, only the words); no לך לך card; hook from frame 0
+    (`start` 0 + `until: "image"` = up to the first sticker); ticker y 1700, under the subtitles;
+  - the questions are HIS voice notes (`media/q1-3.m4a`) played over the start of the answer take, where he sits
+    listening (an edge on the take's start, not a frozen frame); each ends on its last word ("מה דינו" must be heard)
+    and the answer starts right after it; `captions` on each sound = the question's subtitles, white, at his height
+    (`captions_other`); levels: questions ~1 dB under him (gains 6.0 / 5.9 / 5.6), Voice layer `level: "speech"`
+    (never on the Sounds layer - it stacked on the gains, +10 dB);
+  - real politicians as the goat gag, never a face: a cartoon devil in a suit with a name badge "ביבי", the goat in
+    an IDF general's uniform with "גדי"; "בעל נזר הצדק" = an 18th-century judge portrait in a yeshiva-style oval frame,
+    plaque "זש״ל (זכר שופט לברכה)"; the קופת הקולות charity box (a ballot box) + a donation ticker in the site's voice;
+  - the end hold goes AFTER the last word's tail (measure it - "הגאולה" was cut at 17.95, its tail ran to 18.1).
+- **demokratovich-songs** (2026-10-23, `Downloads\drop\שירי בחירות`, one take per song): the medley of election
+  songs. Set `_assets/demokratovich/synagogue-frames.jpg` (Leonardo flare, a 2:3 shot made for the 9:16 frame: the ark,
+  a blank bronze plaque between two EMPTY gold frames) - Bennett / Eisenkot as the Kohen Gadol painted into the frames
+  with `sign` (quads found by the frames' dark interiors), plaque text on the plaque's middle band. The "רק" niggun is
+  split in two (`sequence` `to` / `from` at its one clean break, 14.6 s): part 1 opens, part 2 comes before the finale
+  "עוד ישמע" (his "0:47"). Titles = the RABBI's versions of the songs ("♪ טוב להודות לבג״ץ ♪"), never the real songs'
+  names. The ballot slip of Bennett's list (real: letters רק, "ביחד בראשות נפתלי בנט", CEC 27.9.2026) as an HTML
+  sticker + "לא ביבי!" in red marker (Karantina) beside it. ElevenLabs choir under every song. Singing = speed 1 (he
+  chose 1.3 himself); subtitles by hand (`captions_from: file`; the recogniser hears רק as רצח; add missing ones by op).
+  Next time: a set with pictures painted in (`sign`) gets `bg_blur` ~0.5, not the default 2.2 - the High Priest
+  portraits came out soft in his export ("the background image is not that clear"); make such a set at 2x (upscale).
+- **Saved for a later video** (he: "we need them for later", 2026-10-23): Bennett and Gadi Eisenkot as the Kohen
+  Gadol (Leonardo flare portraits from their Wikipedia photos, two each - he liked both): `_assets/demokratovich/
+  priests/{bennett,eisenkot}-high-priest-{a,b}.jpg` (git-ignored - real people, his use only). In a video: the
+  "תמונת AI" tag; add the path to the project's `media` to see it in the editor.
+- **demokratovich-yamim-noraim** (2026-10-25, `Downloads\drop\תפילות בחירות`, Reader id `demokratovich-yamim-noraim`):
+  the rabbi sings the High Holiday prayers his way (אבינו שופטנו, וכל מאמינים, זכרנו למנדטים, אחינו כל גוש השינוי, קדיש
+  דמוקרטוביץ) on the bimah. One take per passage; 2DEA55EA = a shorter re-take of אחינו, BF935942 has the whole passage.
+  He sings "ואמרו: כדין!" (not the script's "כחוק") - subtitles and the stamp follow him. His notes, all kept:
+  - **The portraits must be sharp and big** ("don't make them pixelized or blur... make them very seen"): a holiday set
+    `_assets/demokratovich/rosh-hashana/set.jpg` (Leonardo flare: white parochet, garlands of white roses + pomegranates
+    over two big empty gold frames), upscaled to 2x; `bg_blur` 0, `bg_dim` false; `sign` painted from the 1024 px
+    originals (`priests/*-rosh-hashana.png`, tight crop hat-to-breastplate), light 1.0, shadow 0. He: "looks like a real
+    shul doing Yamim Noraim prayers". Small "תמונת AI" tags inside each frame's corner.
+  - **Raise him:** these iPhone takes sit low in his camera frame (head top ~1/3 down) - person y 90 (not 450) puts the
+    head top at ~770-850, under the titles (y 662) that sit between the frames and his head. Set it on the Person
+    layer's props AND each item by op (props are never overwritten by a rebuild).
+  - **Stickers = holiday x elections jokes, never just holiday** (his words): a ballot box shaped like a sukkah, the
+    "רק / ביחד" slip dipped in honey, a pomegranate full of "דרך" ballot slips ("פתקים כרימון - מעולה"), Arabs holding
+    willows ("ערבים וערבות" like a Sukkot greeting card - NOT the struck-out ערבות→ערבים gag), the gavel, ספר המדגמים,
+    the 50-55 seats chart. A sticker whose word comes before another sticker's in the same take loses its tie
+    (the search moves on) - pin it by time.
+  - **Hook big and over the top:** "פוב: הגאון הרב דמוקרטוביץ שליט״א / בתפילות מרוממות נפש ומעוררות לב / לרגל הימים
+    הנוראים – ימי הבחירות", gold Stam size 58, 0-6 s, then the prayer titles.
+  - **The end card is already rising during the last line** ("ואמרו", fade 1.5) and the "כדין!" stamp lands on it
+    (its own layer above End card, on the photo's corner - not on his face). New card `rosh-hashana/poster.jpg`: his
+    portrait in a kittel + tallit (flare from rabbi.jpg), "שנה טובה ודמוקרטית!", red "מגבית הימים הנוראים / קופת הקולות •
+    הלינק בביו"; stories in `Downloads\דמוקרטוביץ-ימים-נוראים\`.
+  - **Crowd "can be very weak, the main thing is the rabbi":** all 8 HE voices per take, scored, 4-8 kept; gains
+    close 0.12 / mid 0.11 / far 0.09 = 12-15 dB under him. ~21.7k credits.
+  - **Don't export while he is listening in the editor** ("why do I hear noises while it is exported?"): the export
+    takes the CPU and the editor's playback crackles (the file was clean). Say before exporting.
+- **Sticker with words on it (a badge, a label):** write the words on the square Leonardo image (HTML over the jpg,
+  screenshot), THEN cut it out - cutting first and squeezing the cut-out back into a square stretched two of them.
 
 ## Series "tadar" - spiritual-guru podcast parody (white bob wig, podcast mic), from 2026-10-17
 - `lesson.py new episodes/tadar-N --from tadar-2 --input "<folder>" --takes IMG_xxxx.MP4 --script <reader id>`.
@@ -119,6 +185,65 @@ the editor stay.
 - **Most viewers never reach the end:** the same portrait also pops in mid-video as a small polaroid sticker
   (`media/polaroid.png`, "האתר שלי באוויר!! / הלינק בביו") in the first gap between stickers, ~15 s in, on the side
   away from the wall logo, ~5 s.
+
+## Series "dorit" - Dorit Mercury, senior astrologer & numerologist from Ra'anana (from 2026-10-25)
+- **Her own idea, never another character's look** (his words, 2026-10-25: "don't copy. We need to come with our own
+  idea for this project. Just have a look"). Ayelet = soft die-cut pastel stickers; Dorit = a bossy aunt running her
+  own **"election studio of the sky"**: TV-pundit framing (a "🔮 מבזק אסטרולוגי" strip at the top, a lower third
+  "דורית מרקורי | אסטרולוגית ונומרולוגית בכירה"), **tarot cards** for every point, red rubber stamps ("סיים.",
+  "חד־משמעית"), yellow post-its in marker, a starburst "אירוע נדיר!!!" with the real fact as the asterisk ("*בערך כל
+  36 שנה" - the gap is the joke, like Ayelet's verse sources).
+- **Tarot, not cartoons** ("the cartoon characters are not good. It should be more like tarot cards style"):
+  Rider-Waite ink + watercolour (sunburst, 1024x1536, mint around the card, blank banner + cartouche) - cut out
+  (`cutout_logo.py`), then the Hebrew title + number written on the banner in HTML (`_assets/dorit/tarot/titles.py`,
+  `shoot.mjs`). The politicians she talks about get their own card from their real photo (SKILL.md → Leonardo):
+  נתניהו = Justice (Libra scales), גדי איזנקוט = a king between a bull and a goat in a beret, בנט = The Emperor (rams),
+  לפיד = Scorpio; the Bennett + Lapid "marriage" = both cards under a red X + "לא מאושר / אפילו לא בקפריסין".
+- **Her studio is permanent, each video's pictures are layers on it** (his words: "needs to have her studio
+  background... any character I do several videos... on her studio a map or something, which is an additional
+  layer"): `_assets/dorit/studio.jpg` (flare 1024x1536: a RIDICULOUS kitsch purple-gold living-room "TV studio" -
+  LED strip, tinsel, ring light, leopard tablecloth, hamsa, CRT TV - he rejected a tasteful one: "looks serious, like a
+  painter") with a frontal BLANK board; bg zoom 1 → the board is x 280 y 268 553x480 on the frame. This video's chart
+  (`video/wallmap.png`, her marker on a natal wheel) = an image overlay `behind: true` there (lane "ov.behind", between
+  Set and Person). `bg_blur` 0.8 so the room reads.
+- **Her profile picture is a bad selfie she took herself** ("blur because she doesn't know what she do with the camera"):
+  `_assets/dorit/selfie.jpg` (flare portrait 0.6 from his frame: from below, motion blur, flash, thumb in the corner) -
+  the character page, the polaroid, the end card, the stories, the site. The newspaper-ad portrait (`portrait.jpg`) is
+  for the site's "בתקשורת" clipping.
+- Look: yellow Assistant subtitles (#ffe14a), gold hook / CTA boxes, purple-starry end card; voice preset `news` +
+  RNNoise; music = MYSTERIOUS, in the stars - "4 - stars mystery" (Eleven Music: choir, crystal bells,
+  cosmic drone, no beat) at 0.06; he rejected the cheesy election-night keyboard: "a bit upbeat funny happy, I want it
+  astrological mysterious in the stars" (2026-10-25). Options 4-6 in Media; speed 1.2.
+- **dorit-1** (script 2026-10-25, Reader id `dorit-1`, footage to come in `Downloads\דורית-בחירות`): all 32 overlays tied
+  to her words (script v2 2026-10-25: she opens holding her printed book - the 3D book sticker on "ומחברת" ..
+  "בפברואר"; the card pull: "מה אומרים הקלפים?", Seven of Swords + red X on "לא", Four of Cups + X on "לא משנה", the
+  Wheel big in the middle on "יצא גלגל המזל"; the recogniser heard "רב־המכר" as "רבהם אחר" - anchor on plain words) in episode.json (cards L x 24 / R x 696, y 300, 360-380 wide - beside her head), the "סיים." stamp lands
+  on the Netanyahu card, the polaroid during the bull-vs-goat card, blinking CTA from "התחזית שלי", end card on "לא
+  תהיה פה". Tested on a hidden TTS take before the footage. `_todo` = the end-card hold + fade to black after Analyze.
+  Stories `Downloads\דורית-בחירות\dorit-1-story-{instagram,tiktok}.jpg`. Site: /dorit/.
+- **Her own deck "טארוט מרקורי"** (his idea, 2026-10-25: "her own tarot that she printed... look like the real one, but
+  her version"): the cards she pulls on camera (Four of Cups in her hand, Seven of Swords, the Wheel) are the SAME card
+  on screen and in his hand - Rider-Waite art with a purple-gold border, HER face on the main figure (flare portrait
+  0.8 from `portrait.jpg`; the Wheel's sphinx has her face), "טארוט מרקורי" on top, her logo, "© ד. מרקורי"; a card
+  back (`deck/final/back.png`). `deck/titles.py`, `deck/print.py` → `Downloads\דורית-בחירות	arot-print\טארוט-מרקורי`.
+- **dorit-1 became a LIVE** (his call, 2026-10-25: "פוב: הגעת לסוף הפיד ללייב נומרולוגית... seems like a live with hearts
+  emojis and some questions - don't put too much"): hook "פוב: גללת עד סוף הפיד / ונתקעת בלייב של נומרולוגית 🔮" big
+  (66, light, y 470, 0-5.8 s); the TV pieces out (strip, lower third, ticker, CTA box); three layers of our own added
+  by ops (`_assets/dorit/live/make.py`, `live_ops` in the session): **Live – screen** (top bar with her selfie avatar +
+  LIVE + a viewer count that climbs 1,204 → 2,317 → 3,862, the pinned comment = the CTA, the comment bar), **Live –
+  comments** (6, each right after the line it reacts to, 4 s), **Live – hearts** (bursts rising with item `anim`, one
+  at a time, every 5-7 s). The builder passes only pop / blink, so moving pictures go in as our own layers by op.
+- **A prop held up in his hand (a tarot card, the book) = `matte_engine: "body"`** (hybrid first - it still punched
+  holes in the book and the quality model dropped the mic; body = quality head + BOTH engines combined below the chin kept
+  the whole book and card. Compare with `ImageChops.lighter(quality, fast)` on frames before choosing) (dorit-1, 2026-10-25, his note:
+  "1:24 she shows the cards - but the cards are being cut by the cut algo"): MediaPipe "fast" dropped the card and the
+  hand at the frame's edge; RVM "quality" kept both (tested on a 6 s clip of that moment, `lesson.matte(clip, out,
+  engine)` - fast 3 s, quality 10 s); Any video where he holds something up: body from the first Analyze.
+- **Props he prints and sticks on real objects** (2026-10-25): her self-printed giveaway book "אני אמרתי את זה כבר
+  בפברואר" (`_assets/dorit/book/cover.html`, shot at 2x → `book/print.py`: 14x21 cm + 6x9 inch JPGs and A4 PDFs, 300
+  dpi, cut line) - on the site as a 3D CSS book (spine on the right, Hebrew binding) with a free-copy request; the
+  tarot cards at playing-card size 63x88 mm and tarot size 70x120 mm (`tarot/print.py`, A4 PDFs). All in
+  `Downloads\דורית-בחירות\{book-print,tarot-print}`. Print at 100% / "actual size", never "fit to page".
 
 ## Series "news" - anchor parody (curly red wig), news-1 2026-10-18, "almost perfect"
 - Set `_assets/news/studio.jpg` (world-map wall); anchor `person` scale 1.12, x 230, y 200; `cut.silence: false`.
@@ -181,6 +306,11 @@ the editor stay.
 - Ticker of coins "up yesterday"; lower third "VIP | הקהילה הסגורה". His real name only as he writes it in the hook.
 
 ## Eye contact (he called it perfect, 2026-10-17)
+**Only when the video needs it** (his words, 2026-10-25, haredit-1: "no need for eye contact in this video... I don't
+want it to run when not needed"). **The KEY's presence runs it**: any `"eye_contact"` in episode.json - even
+`{"on": false}` - makes Analyze prepare both versions (~2 min per 90 s take, NVIDIA). Not needed (she talks to people
+around her, looks at a screen, a sketch that isn't a talk to the lens) = **no `eye_contact` key at all**; a project made
+`--from` an earlier one inherits it - delete it before the first Analyze. Ask yourself before every Analyze.
 Default for a talking-to-camera video: `"eye_contact": {"on": true}` = NVIDIA Maxine + our blink handling
 (`tools/eyes_nvidia.py`, key NVIDIA_API_KEY in zoomcut/.env, ~2 min per 90 s take); falls back to v6 by itself if NVIDIA
 fails. A CapCut export next to the take (`<take>*eye*.mp4` or `"file"`) still wins. Off when he looks at a screen /

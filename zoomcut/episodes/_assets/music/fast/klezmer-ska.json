@@ -1,0 +1,101 @@
+{
+ "positive_global_styles": [
+  "fast funny klezmer ska",
+  "160 BPM",
+  "offbeat guitar skanks",
+  "oom-pah tuba",
+  "frantic clarinet melody",
+  "trumpet stabs",
+  "tight energetic drums",
+  "hectic party energy",
+  "comedy",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "gentle",
+  "calm",
+  "sad",
+  "cinematic",
+  "epic",
+  "pads",
+  "drone",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "dark"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick pickup",
+    "drum fill into the groove"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 4000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "clarinet takes the lead",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "brass answers",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "faster and busier",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "big brass hits",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  }
+ ]
+}

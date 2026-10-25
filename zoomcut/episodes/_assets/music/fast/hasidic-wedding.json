@@ -1,0 +1,101 @@
+{
+ "positive_global_styles": [
+  "fast Hasidic wedding band",
+  "165 BPM",
+  "bright electric keyboard organ lead",
+  "trumpet and saxophone riffs",
+  "punchy electronic drum kit with claps",
+  "pumping bass synth",
+  "non-stop dancing at a Jewish wedding",
+  "joyful, comically over the top",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "gentle",
+  "calm",
+  "sad",
+  "cinematic",
+  "epic",
+  "pads",
+  "drone",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "dark",
+  "rock guitar"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick drum pickup",
+    "straight into the groove"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 4000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "keyboard lead, hands clapping",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "trumpet riff answers",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "faster, more claps, bigger drums",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "everything together, euphoric",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  }
+ ]
+}

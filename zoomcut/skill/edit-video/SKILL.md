@@ -145,7 +145,9 @@ The rules:
      by itself once every file has its person (`POST /api/ep/<slug>/files` per pick; it answers `waiting: n` until
      the last one).
    - One camera: the takes, and **Analyze**.
-5. **Analyze through the server** (`POST /api/p/<slug>/build {action: "analyze"}`, wait on `/api/ep/<slug>/job`),
+5. **Eye contact only when the video needs it** (2026-10-25): any `eye_contact` key - even `{"on": false}` - runs it
+   (minutes). Not a talk to the lens -> remove the key before Analyze (`recipes/monologue.md` → Eye contact).
+   **Analyze through the server** (`POST /api/p/<slug>/build {action: "analyze"}`, wait on `/api/ep/<slug>/job`),
    never a parallel CLI run, and only when `GET /api/jobs` → `busy` is empty. The analysis (zoomcut.py / lesson.py)
    ends by writing the project's layers; they appear in the same editor. Then **fill the layers** (hook text, end
    poster, backgrounds, voice cleaning, effects, sounds) with ops - read `layers.md`; copy the look of the closest
@@ -170,7 +172,27 @@ The rules:
    Instagram Reel.
 11. **Put it on the Shlomiverse** - read `wiki.md`: web copy + poster, the fan title (Terra), build, deploy the site
    and the chat. Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
-   about it.
+   about it. **Do it the moment he publishes - don't wait to be asked** (2026-10-25, haredit-1: he had to remind me).
+   A video reaches the wiki only when its project is **done** (`POST /api/ep/<id>/done {done: true}`) and has
+   `out/<id>.mp4`.
+12. **Every place the character and the video must reach - check each one, every video** (his ask, 2026-10-25:
+   "make sure the edit video knows to guide each session to add the character to all these places if it wasn't
+   already, and the character's videos"). For each character in the video, tick what's missing:
+   - [ ] **Characters page** - a profile (`POST /api/characters/<id>`), its portrait, the video in `videos`, the
+     facts the video added (family, catchphrases), then `node zoomcut/tools/character_profiles.mjs`.
+   - [ ] **The world's site** - a Techy-Tech character gets a team card (`public/techietech/index.html` TEAM +
+     the org chart DIVS, photo `team/<id>.jpg` 560x560 corporate headshot) and BOTH copies deployed:
+     `sh techietech-site/deploy.sh` (techytech.web.app) AND `firebase deploy --only hosting` (/techietech/ on the
+     main site). His browser caches techytech for an hour - tell him Ctrl+F5.
+   - [ ] **Their own site** if they have one (a new video tile, its 540p copy) + its button on the links page.
+   - [ ] **The Shlomiverse wiki** (step 11) - character page, portrait, the video, the fan copy.
+   - [ ] **The chat agent** - it learns ONLY from `techietech-api/wiki-brain.json`, written by `build.py`: after the
+     build, `firebase deploy --only functions:wikiChat` from `techietech-api/`, then TEST it: POST
+     `https://europe-west1-boostmind-b052c.cloudfunctions.net/wikiChat` `{"mode": "<id>", "own": true,
+     "messages": [{"role": "user", "content": "<a question about this video>"}]}` (Python, UTF-8; `own` keeps it
+     out of his logs) and read the answer - it must know the new video.
+   Before a main-site deploy: other sessions' unfinished pages ride along - compare the modified `public/` files with
+   the live ones first (md5 of local vs `curl`), and say what else would go out.
 
 ## More of his rules
 - **He can always re-trim the cut himself - in the one editor, in every kind of video** (asked 6 times, last
@@ -181,10 +203,20 @@ The rules:
   yourself: the item's edge pulls back footage up to the take's start / end.
   **The whole-take rule for any session:** a video item points at the WHOLE take (`asset` = the take, `in` = where the
   piece starts in it). Never a file cut down to the piece - then there is nothing to pull back.
+- **Sound is never naked; calls always have the other side** (2026-10-25, haredit-1): every video gets an ambience
+  layer of the place + a bed (reusable comedy beds in `_assets/music/`), and every phone / Teams call gets the
+  other side's mumble in her pauses (`recipes/offscreen-voice.md` → hani). A whispered blessing / drinking is acted,
+  not silence - check the frames of a long pause before cutting it.
 - **Pauses inside a take stay; only the joins BETWEEN takes are tight** (his words, 2026-10-23: "don't cut spaces in
   the same video, only between videos"). One-camera projects with several short takes: `cut.silence: false`. At a
   join the previous take's sound runs on under the next one's start (`cut.join` 0.25 - "continue the sound of the
   previous and start the sound of the next"); each take starts on its first syllable (measure the onset, dB per 10 ms).
+- **A cut that changes the length (`removes`, `keep_pauses`, merge) moves only the builder's items** - everything he
+  placed or trimmed by hand after that point (his own sound layers, `user` items, a hand-trimmed last piece, a
+  duplicate subtitle) stays at its old frame: a gap before the last piece, music past the end (haredit-1,
+  2026-10-25: "something in the end is not right... fit everything again, make them stitch"). After such a cut,
+  shift every hand item after it by the same frames, then check: no gap between Person pieces, nothing past
+  `duration`.
 - **Trim a take's start / end with `cut.edges` [[where the cut put it, where it goes]] - never `cut.removes`** for that.
   removes run AFTER his drags, so the editor's edge stopped moving and he dragged six times for nothing (2026-10-23).
   The natural edges come from `lesson.spans` with no edges / removes. removes = a piece cut out of the middle only.
@@ -221,7 +253,10 @@ The rules:
   "why I can't see the Dorit project on the layers... I want you to create it already"). Never hand over a
   before-footage project with an empty timeline: build it on a stand-in take (step 3b). So, in this order:
   1. **Script** - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line `# <title>`, a
-     `# על המסך – ...` note above each line that gets a sticker / card).
+     `# על המסך – ...` note above each line that gets a sticker / card). **The Reader text = only what the character
+     SAYS** (2026-10-25, haredit-1: he had me strip the `**(stage directions)**` and the `**` marks - "רק את הטקסט
+     שהיא אומרת"). A pasted script = a NEW script id - never paste it over a project's script in the Reader (that
+     overwrote dorit-1's astrology script; restored from `scripts/<id>.txt.bak`).
   2. **Project, at once** - make the footage folder (`Downloads\<series>\<n>`, empty is fine), then
      `POST /api/new {name: "<series>-<n>", folder, from: "<last project of the series>"}`; set its `script` to the id
      and its Hebrew `title` (the copy still points at the old script). Tell him: "refresh the Reader, pick <id>".
@@ -320,8 +355,31 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
 - **Music beds** (2026-10-25, "find the background music suitable... create it with 11 labs or Leonardo"):
   `node zoomcut/tools/elevenlabs_music.mjs <out.mp3> 80 "<prompt>"` (Eleven Music, instrumental). Only 2 requests at
   once on this plan (a third gets 429). Make 3 options in the character's world, put all three in the project's
-  `media`, pick one for `music.sound`; measure its LUFS and set `gain` against a known bed (tadar harp: -17.2 LUFS at
+  `media`, pick one for `music.sound`; **never ask the prompt to be "quiet / sparse / gentle so speech sits on top"** -
+  that made three slow, empty tracks he called awful (2026-10-25); the level is the mix's job. A bed with a
+  character = a composition plan (`node zoomcut/tools/elevenlabs_music.mjs <out.mp3> - <plan.json>`: global styles
+  with the BPM + instruments, negative styles slow / ambient / sparse / vocals, 4 sections). Measure every option's
+  tempo and onsets per second before offering it (he can't be the first to hear a slow one). ~1,200 credits per
+  90 s track; measure its LUFS and set `gain` against a known bed (tadar harp: -17.2 LUFS at
   0.08 → a -9.5 LUFS track ≈ 0.04).
+
+## Keys - where each one lives (read before saying "I have no key")
+Never print a key, never write one into a file in the repo, never ask him for one that is listed here.
+- **OpenAI (GPT: Terra, SOL, Luna, image models through OpenAI)** - two working keys:
+  - **Local scripts / tools:** `OPENAI_API_KEY` in `C:/workspace/aspect/aspect-agent-server/.env`. The one in
+    `BoostMind/.env` is **revoked** (401 on every call - it looks valid, it isn't). `sol.js` reads the cwd's `.env`
+    first, so always pass `--env "C:/workspace/aspect/aspect-agent-server/.env"`. Call it from a script under
+    `BoostMind/scripts/` that reads that path (ad-hoc `grep` of a key out of another project gets blocked).
+  - **His own key** (he gave it 2026-10-24, "use it"): Google Secret Manager on boostmind-b052c as **`WIKI_OPENAI_KEY`** -
+    it runs the live wiki chat (`techietech-api/wiki.js`, `defineSecret('WIKI_OPENAI_KEY')`). In a local script:
+    `KEY=$(gcloud secrets versions access latest --secret=WIKI_OPENAI_KEY --project=boostmind-b052c)` into a variable,
+    never echoed. The project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it.
+  - Models: `gpt-5.6-terra` (his pick for chat and Hebrew copy), `gpt-5.6-sol`; `node ~/.claude/skills/sol-leonardo/scripts/sol.js --models --env ...` lists them.
+- **Leonardo:** `LEONARDO_API_KEY` in aspect-agent-server/.env (`tools/leonardo.mjs` reads it by itself).
+- **ElevenLabs, NVIDIA (eye contact), the Drop, Instagram / Facebook / TikTok / YouTube / X:** `zoomcut/.env`.
+- **Gmail** (sending): aspect-agent-server/.env; **Telegram:** xplace-auto-bidder/.env.
+- **Secrets the deployed functions use** (`gcloud secrets list --project boostmind-b052c`): GMAIL_USER, GMAIL_APP_PASSWORD,
+  WIKI_OPENAI_KEY, LEONARDO_API_KEY, MAPS_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY (not ours to touch).
 
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
@@ -350,6 +408,8 @@ wig, beard kept; 0.5 when the scene changes a lot). Key from aspect-agent-server
 Every recurring character has a profile in the studio (left rail → **Characters**): name, portrait, who they are,
 personality, catchphrases, look, voice preset, **pace** (words per minute), writing rules, relations, their website,
 their videos and their assets. It's where he learns about them and briefs a session ("Copy brief for a session").
+**A new character is not done until it is in every place of workflow step 12** (profile, the world's site, their
+own site, the wiki, the chat agent - tested).
 - **Data:** `zoomcut/characters/<id>/character.json` (format: the fields above - see any existing one; `index.json`
   orders them and names the worlds). Images stay where they are and are referenced by path (`assets.portraits /
   backgrounds / logos / sounds`, `portrait`). Pictures copied into a character folder are gitignored (his face, public repo).
@@ -389,7 +449,7 @@ separately filmed characters). Pick by the footage; never name things after a se
 |---|---|---|
 | several characters, one file each, a meeting / call grid | `recipes/zoom-call.md` | zoomcut.py |
 | one person talking to camera - rabbi lesson, guru podcast (tadar), news anchor, keynote | `recipes/monologue.md` | lesson.py |
-| one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker | `recipes/offscreen-voice.md` | lesson.py |
+| one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker, an office day (Hani) | `recipes/offscreen-voice.md` | lesson.py |
 | a silent stare + her thoughts as voice-over (Gen Z), cinematic | `recipes/genz-thoughts.md` | lesson.py |
 A new kind of video: start from the closest recipe and the closest earlier project, then write its recipe file when
 he signs off.

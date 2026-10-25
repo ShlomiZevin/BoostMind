@@ -1,0 +1,101 @@
+{
+ "positive_global_styles": [
+  "frantic comedic klezmer bulgar",
+  "158 BPM",
+  "wailing clarinet runs",
+  "squeezebox accordion",
+  "oom-pah tuba",
+  "snare rolls and cymbal crashes",
+  "sneaky then hectic, like running late in a hurry",
+  "cartoon comedy timing with sudden hits",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "gentle",
+  "calm",
+  "sad",
+  "cinematic",
+  "epic",
+  "pads",
+  "drone",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "dark",
+  "rock guitar"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick drum pickup",
+    "straight into the groove"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 4000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "sneaky clarinet tiptoe but fast",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "accordion and tuba gallop",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "hectic clarinet runs and crashes",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "full band, hurry to the finish",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  }
+ ]
+}

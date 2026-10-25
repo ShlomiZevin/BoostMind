@@ -147,7 +147,7 @@ def prepare(ls):
                     if mode == "nvidia":
                         open(fell_back, "w").close()
                     log(f"  · eye contact {n} ({'v6, NVIDIA fallback' if mode == 'nvidia' else mode})")
-        mk = matte_path(ls, n)
+        mk = base_matte_path(ls, n)
         if ls.cfg.get("cutout") is False:  # their own place stays: no cut-out needed
             continue
         if not os.path.exists(mk) and ls.cfg.get("matte_engine") in ("hybrid", "body"):
@@ -157,11 +157,81 @@ def prepare(ls):
             matte(t, mk[:-4] + ".part.mkv", ls.cfg.get("matte_engine", "fast"))
             os.replace(mk[:-4] + ".part.mkv", mk)  # a stopped run never leaves a half cut-out that looks finished
             log(f"  · cut out {n}")
+        if prop_cfg(ls, n) and not os.path.exists(matte_path(ls, n)):
+            prop_matte(ls, t, n)
+            log(f"  · a held prop kept by its colour in {n}")
+
+
+def base_matte_path(ls, n):
+    eng = ls.cfg.get("matte_engine", "fast")
+    return ls.work("matte", n + (".mkv" if eng == "fast" else f".{eng}.mkv"))
+
+
+def prop_cfg(ls, n):
+    """episode.json "prop_color": {"<take>" | "*": {"hsv": [[h, s, v], [h, s, v]], "from": s, "to": s, "box": [x0, y0, x1, y1]}} - a held prop
+    of one clear colour that every cut-out engine drops (a lime bottle against a white wall): pixels of that colour
+    (OpenCV HSV, H 0-180) that touch the person are added to the cut-out, between from / to (take seconds)."""
+    pc = ls.cfg.get("prop_color") or {}
+    return pc.get(n) or pc.get("*")
 
 
 def matte_path(ls, n):
-    eng = ls.cfg.get("matte_engine", "fast")
-    return ls.work("matte", n + (".mkv" if eng == "fast" else f".{eng}.mkv"))
+    base, pc = base_matte_path(ls, n), prop_cfg(ls, n)
+    if not pc:
+        return base
+    import hashlib
+    return base[:-4] + ".prop" + hashlib.md5(json.dumps(pc, sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
+
+
+def prop_matte(ls, t, n):
+    """The take's cut-out + the coloured prop (prop_cfg): per frame, the colour's pixels, closed and filled, only the
+    blobs that touch the person (so the same colour in the room stays out), softened at the edge."""
+    import cv2
+    pc, base, out = prop_cfg(ls, n), base_matte_path(ls, n), matte_path(ls, n)
+    lo, hi = (np.array(v, np.uint8) for v in pc["hsv"])
+    f0, f1 = int(pc.get("from", 0) * FPS), int(pc.get("to", 1e9) * FPS)
+    src = subprocess.Popen([FFMPEG, "-v", "error", "-i", t, "-vf", f"scale={MATTE_W}:{MATTE_H}:flags=area,fps={FPS}",
+                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+    mat = subprocess.Popen([FFMPEG, "-v", "error", "-i", base, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE)
+    part = out[:-4] + ".part.mkv"
+    enc = subprocess.Popen([FFMPEG, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", f"{MATTE_W}x{MATTE_H}",
+                            "-r", str(FPS), "-i", "-", "-c:v", "ffv1", part], stdin=subprocess.PIPE)
+    size, k = MATTE_W * MATTE_H, 0
+    near = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    while True:
+        rgb, m = src.stdout.read(size * 3), mat.stdout.read(size)
+        if len(rgb) < size * 3 or len(m) < size:
+            break
+        m = np.frombuffer(m, np.uint8).reshape(MATTE_H, MATTE_W).copy()
+        if f0 <= k <= f1:
+            hsv = cv2.cvtColor(np.frombuffer(rgb, np.uint8).reshape(MATTE_H, MATTE_W, 3), cv2.COLOR_RGB2HSV)
+            c = cv2.inRange(hsv, lo, hi)
+            if pc.get("box"):  # only where the prop can be (fractions x0, y0, x1, y1) - the same colour elsewhere stays out
+                x0, y0, x1, y1 = pc["box"]
+                c[:, :int(x0 * MATTE_W)] = 0
+                c[:, int(x1 * MATTE_W):] = 0
+                c[:int(y0 * MATTE_H)] = 0
+                c[int(y1 * MATTE_H):] = 0
+            c = cv2.morphologyEx(c, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
+            cnt, _ = cv2.findContours(c, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            filled = np.zeros_like(c)
+            cv2.drawContours(filled, cnt, -1, 255, -1)  # the label / reflections inside the prop
+            person = cv2.dilate((m > 128).astype(np.uint8) * 255, near)
+            num, lab = cv2.connectedComponents(filled)
+            keep = np.zeros_like(c)
+            for i in range(1, num):
+                blob = lab == i
+                if blob.sum() > 60 and (person[blob] > 0).any():
+                    keep[blob] = 255
+            keep = cv2.GaussianBlur(cv2.dilate(keep, np.ones((3, 3), np.uint8)), (5, 5), 0)
+            m = np.maximum(m, keep)
+        enc.stdin.write(m.tobytes())
+        k += 1
+    enc.stdin.close()
+    enc.wait()
+    src.wait()
+    mat.wait()
+    os.replace(part, out)
 
 
 def face_boxes(src, out_json):

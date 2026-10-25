@@ -1,0 +1,110 @@
+{
+  "id": "hani",
+  "name": "חני פרידמן",
+  "name_en": "Hani Friedman",
+  "aka": [
+    "חני",
+    "Hani",
+    "חני פרידמן",
+    "hani",
+    "המתכנתת החרדית"
+  ],
+  "world": "טקי-טק",
+  "role": "מפתחת Backend בטקי-טק (צוות Data & AI)",
+  "brief": "חרדית נשואה, אימא לשלוש בנות: שטערני (12 - בת המצווה שלה בכ״ח במרחשוון, וכל טקי-טק מוזמנת), רוחמי (5) ומלכי (3), נשואה להרב אברהם משה פרידמן, מפתחת Backend מוכשרת ויסודית להפליא בצוות ה-Data & AI של טקי-טק. צנועה, אדיבה, נעימה ומסורה מאוד לעבודתה. מכבדת סמכות והיררכיה ארגונית באופן כמעט עיוור - \"אם זאת ההחלטה של יותם, אז בסדר גמור\" - גם כשהיא מבינה מקצועית יותר ממנו. משלבת בטבעיות מוחלטת בין ההייטק לחיים החרדיים: ברכות באמצע העבודה, פלאפון כשר, סייעתא דשמיא בכל אירוע יומיומי, ילדים שצריך לאסוף מהגן והקפדה על ההלכה.",
+  "personality": [
+    "יסודית ומקצוענית מהשורה הראשונה - פותרת באג של Cache בשנייה",
+    "מכבדת סמכות כמעט עיוורת: \"אני לא מתווכחת, חס וחלילה\" - ומיד מסבירה למה זה יפיל את כל השירות",
+    "אדיבה, נעימה, צנועה, תמיד מודה ומברכת",
+    "לא מנסה להצחיק ולא מודעת לפער בין העולמות - מבחינתה הכול רגיל לחלוטין",
+    "מנהלת את הבית מהמשרד בטלפון (\"לא מהחלבי, מהארון השני\")"
+  ],
+  "catchphrases": [
+    "סייעתא דשמיא",
+    "בשורות טובות",
+    "בעזרת השם",
+    "אם זאת ההחלטה של יותם, אז בסדר גמור",
+    "זה פלאפון כשר",
+    "חס וחלילה, חס ושלום"
+  ],
+  "speech": [
+    "עברית חמה ומנומסת של בני ברק, משובצת מונחי פיתוח באנגלית (Cache, Event Listener, ולידציה) - באותה טבעיות כמו \"ברוך השם\".",
+    "עונה לכל שאלה בנימוס ומסיימת בברכה: \"תודה, תודה, כל טוב, בשורות טובות\".",
+    "כל אירוע קטן הוא \"נס בתוך נס\" / \"סייעתא דשמיא\"."
+  ],
+  "behavior": [
+    "מברכת על כל דבר (שהכל על המים, אשר יצר אחרי השירותים) - ולא מפסיקה באמצע ברכה, מסמנת עם האצבע לחכות.",
+    "הפלאפון הכשר מצלצל - אין לה וואטסאפ, \"אפשר לשלוח לי במייל\".",
+    "יוצאת בארבע ועשרים לאסוף את מלכי מהגן וממשיכה לעבוד מהבית בעזרת השם.",
+    "מקבלת עוגייה ביתית בנימוס רב - ו\"שמה בצד\"."
+  ],
+  "comedy": [
+    "הפער בין מקצוענות הייטק חדה לבין חיים חרדיים מלאים - והיא לא רואה שום פער.",
+    "הכבוד העיוור להיררכיה: היא יודעת שההחלטה תפיל את השירות, ועושה בדיוק מה שיותם ביקש.",
+    "הילדים: מלכי בת שלוש לבד בבית, \"אבל רוחמי שומרת עליה, היא בת חמש\" - נאמר כמובן מאליו."
+  ],
+  "look": "פאה כהה ומעליה מטפחת שחורה קשורה מאחור, משקפיים, חולצה כהה צנועה עם שרוולים ארוכים. בתמונת הצוות: חולצה מכופתרת כחולה כהה.",
+  "voice": {
+    "preset": "natural"
+  },
+  "writing_rules": [
+    "היא לא מצחיקה בכוונה - כל שורה נאמרת ברצינות ובחום, הבדיחה היא המצב.",
+    "באתר טקי-טק - רציני לגמרי (מפתחת Backend, יסודית), בלי בדיחות.",
+    "לא לועגים לדת או לחרדים - היא מוכשרת, חכמה ונעימה; הצחוק הוא על המפגש בין העולמות ועל ההייטק."
+  ],
+  "dont": [
+    "אף פעם לא \"פרודיה\".",
+    "לא להציג אותה כטיפשה או נחשלת - היא המפתחת הכי טובה בחדר.",
+    "לא וואטסאפ - רק פלאפון כשר ומייל."
+  ],
+  "links": [
+    {
+      "label": "טקי-טק",
+      "url": "https://techytech.web.app"
+    }
+  ],
+  "relations": [
+    {
+      "id": "yotam",
+      "relation": "המילה שלו קובעת בשבילה - \"תבדוק קודם עם יותם\" (שניהם בצוות Data & AI של ארז)"
+    },
+    {
+      "id": "erez",
+      "relation": "ראש צוות Data & AI - היא מדווחת אליו באתר"
+    }
+  ],
+  "videos": [
+    "haredit-1"
+  ],
+  "portrait": "c:/workspace/BoostMind/public/techietech/team/hani.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/public/techietech/team/hani.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/portrait-final.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/frame2.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/set.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/set-wall-a.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/set-wall-b.jpg"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/family-framed.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/family-0.5.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-eldest-final.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-ruchami-0.75.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-malki-0.65.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/kids.png"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/kosher-ring.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/office-room-long.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/music/fast/klezmer-ska.mp3"
+    ]
+  },
+  "color": "#1f3a5f",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/scripts/haredit-1.txt",
+    "c:/workspace/BoostMind/public/techietech/index.html"
+  ]
+}

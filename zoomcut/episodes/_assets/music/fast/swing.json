@@ -1,0 +1,100 @@
+{
+ "positive_global_styles": [
+  "fast comedic electro swing",
+  "140 BPM",
+  "walking upright bass",
+  "muted trumpet licks",
+  "piano stabs",
+  "swing drums with snappy claps",
+  "quirky busy hurry",
+  "funny",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "gentle",
+  "calm",
+  "sad",
+  "cinematic",
+  "epic",
+  "pads",
+  "drone",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "dark"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick pickup",
+    "drum fill into the groove"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 4000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "muted trumpet lead",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "stop-time breaks",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "busier, more horns",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "energy up",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  }
+ ]
+}

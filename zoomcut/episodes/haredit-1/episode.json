@@ -1,0 +1,330 @@
+{
+  "type": "lesson",
+  "title": "המתכנתת החרדית (haredit-1)",
+  "input_dir": "C:\\Users\\shazbak\\Downloads\\drop\\חרדית",
+  "takes": "*.mp4",
+  "background": "../_assets/haredit/set.jpg",
+  "plaque": [],
+  "matte_engine": "body",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 150
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 66,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "voice": {
+    "preset": "natural"
+  },
+  "cut": {
+    "merge": 0.6,
+    "pad_in": 0.05,
+    "pad_out": 0.15,
+    "join": 0.2,
+    "keep_pauses": {
+      "A0413263-57C3-4110-80C5-5900B09B3A9C": [
+        [
+          6.9,
+          10.9
+        ]
+      ],
+      "940D943B-FDA4-4AA9-852A-5E8E3CF26346": [
+        [
+          6.3,
+          8.1
+        ]
+      ],
+      "085990DB-233D-46F0-AFF3-DB992257B28C": [
+        [
+          3.2,
+          3.8
+        ],
+        [
+          6.6,
+          7.1
+        ],
+        [
+          9,
+          9.45
+        ]
+      ]
+    },
+    "removes": {
+      "A0413263-57C3-4110-80C5-5900B09B3A9C": [
+        [
+          8.7,
+          9.8
+        ]
+      ]
+    }
+  },
+  "overlays": [
+    {
+      "text": "פוב: המתכנתת החרדית\nבצוות שלך",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "light",
+      "opacity": 0.94,
+      "y": 300,
+      "size": 62,
+      "start": 0,
+      "end": 5.5,
+      "hook": true
+    },
+    {
+      "style": "image",
+      "image": "media/kids.png",
+      "plain": true,
+      "behind": true,
+      "x": 20,
+      "y": 560,
+      "w": 300,
+      "text": "",
+      "opacity": 1,
+      "start": 0,
+      "end": null
+    }
+  ],
+  "script": "haredit-1",
+  "sequence": [
+    {
+      "take": "A0413263-57C3-4110-80C5-5900B09B3A9C"
+    },
+    {
+      "take": "052ED865-A16E-47E1-AE97-731C865C0CD5"
+    },
+    {
+      "take": "A2ECBC12-6392-4A5B-BCE4-19DCB1421E63"
+    },
+    {
+      "take": "085990DB-233D-46F0-AFF3-DB992257B28C"
+    },
+    {
+      "take": "C23A26DC-018D-4F0B-A3BB-7D1800F30D94"
+    },
+    {
+      "take": "9C45E87B-A703-40BE-ACD9-3B05C352BD02"
+    },
+    {
+      "take": "B4CA7E8E-1A45-4762-B1A4-B94C57764C35"
+    },
+    {
+      "take": "4011EE6B-F321-4694-8728-83BFA54EF1FB"
+    },
+    {
+      "take": "595FBE14-EB45-49E6-BEE1-81A38C5165B5"
+    },
+    {
+      "take": "940D943B-FDA4-4AA9-852A-5E8E3CF26346"
+    },
+    {
+      "take": "E7F204C7-FDF7-44CF-9C5D-F5172B33D093"
+    }
+  ],
+  "bg_blur": 0.8,
+  "captions_from": "file",
+  "speed": 1.15,
+  "media": [
+    "media/kids.png",
+    "../_assets/haredit/office-room-long.mp3",
+    "../_assets/music/fast/klezmer-ska.mp3",
+    "../_assets/music/fast/montage.mp3",
+    "../_assets/music/fast/chase.mp3",
+    "../_assets/music/fast/swing.mp3"
+  ],
+  "sounds": [
+    {
+      "take": "A2ECBC12-6392-4A5B-BCE4-19DCB1421E63",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "from": 0,
+      "to": 1.6,
+      "at": 10.2,
+      "gain": 0.095,
+      "fade_out": 0.08
+    },
+    {
+      "take": "940D943B-FDA4-4AA9-852A-5E8E3CF26346",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "from": 0,
+      "to": 1.65,
+      "at": 6.45,
+      "gain": 0.095,
+      "fade_out": 0.08
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 2.2,
+      "take": "052ED865-A16E-47E1-AE97-731C865C0CD5",
+      "at": 5.45,
+      "from": 0.1,
+      "to": 1.15
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 2.2,
+      "take": "A2ECBC12-6392-4A5B-BCE4-19DCB1421E63",
+      "at": 1.45,
+      "from": 3.25,
+      "to": 3.8
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 2.2,
+      "take": "A2ECBC12-6392-4A5B-BCE4-19DCB1421E63",
+      "at": 4.5,
+      "from": 6.25,
+      "to": 7.3
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 2.2,
+      "take": "A2ECBC12-6392-4A5B-BCE4-19DCB1421E63",
+      "at": 7.7,
+      "from": 8.6,
+      "to": 9.15
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "phone",
+      "pitch": 1.6,
+      "tempo": 1.1,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 1.3,
+      "take": "085990DB-233D-46F0-AFF3-DB992257B28C",
+      "at": 3.1,
+      "from": 0.8,
+      "to": 2.05
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "phone",
+      "pitch": 1.6,
+      "tempo": 1.1,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 1.3,
+      "take": "085990DB-233D-46F0-AFF3-DB992257B28C",
+      "at": 6.55,
+      "from": 10.6,
+      "to": 11.85
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "phone",
+      "pitch": 1.6,
+      "tempo": 1.1,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 1.3,
+      "take": "085990DB-233D-46F0-AFF3-DB992257B28C",
+      "at": 8.98,
+      "from": 14.85,
+      "to": 16.1
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "phone",
+      "pitch": 1,
+      "tempo": 1.05,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 1.3,
+      "take": "940D943B-FDA4-4AA9-852A-5E8E3CF26346",
+      "at": 8.5,
+      "from": 3.3,
+      "to": 4.15
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "phone",
+      "pitch": 1,
+      "tempo": 1.05,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 1.3,
+      "take": "940D943B-FDA4-4AA9-852A-5E8E3CF26346",
+      "at": 11.35,
+      "from": 11.9,
+      "to": 12.55
+    },
+    {
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "filter": "phone",
+      "pitch": 1,
+      "tempo": 1.05,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "gain": 1.3,
+      "take": "940D943B-FDA4-4AA9-852A-5E8E3CF26346",
+      "at": 13.6,
+      "from": 18.75,
+      "to": 19.7
+    }
+  ],
+  "music": {
+    "sound": "../_assets/music/fast/klezmer-ska.mp3",
+    "gain": 0.05,
+    "fade_in": 0.3,
+    "lift": {
+      "db": 6,
+      "fade": 1
+    }
+  },
+  "prop_color": {
+    "A0413263-57C3-4110-80C5-5900B09B3A9C": {
+      "hsv": [
+        [
+          30,
+          110,
+          110
+        ],
+        [
+          48,
+          255,
+          255
+        ]
+      ],
+      "from": 5,
+      "to": 11.5,
+      "box": [
+        0.4,
+        0,
+        1,
+        1
+      ]
+    }
+  },
+  "done": true
+}

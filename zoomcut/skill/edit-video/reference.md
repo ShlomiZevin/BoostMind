@@ -10,7 +10,11 @@
   marks), `slow` {take: [[from, to, speed]]} (ranges may touch; eased over `slow_ramp`), `slow_mode` mci | blend | dup.
 - **Person:** `cutout` (false = original place), `matte_engine` fast | quality | hybrid | body, `matte_cut`, `keep`
   (desk below / boxes / bright_in / stable), `person` {scale, x, y}, `look` (live colour), `grade` (baked colour; set
-  neutral for a raw person), `eye_contact`.
+  neutral for a raw person), `eye_contact`, `prop_color` {take | "*": {hsv [[h,s,v],[h,s,v]] (OpenCV, H 0-180), from,
+  to (take s), box [x0,y0,x1,y1] fractions}} - a held prop of one clear colour that every engine drops (haredit-1's
+  lime bottle against a white wall: quality, fast and body all lost it): its colour, filled, only blobs touching the
+  person, is added to the cut-out (`work/matte/<take>.<engine>.prop<hash>.mkv`, ~4 s a take; editor + export read it
+  through `matte_path`). Lime green = [[30,110,110],[48,255,255]]. A part of another colour (the grey cap) stays out.
 - **Set:** `background`, `bg_blur` (2.2 default), `bg_dim` (false = the photo's own light), `plaque` / `plaque_quad`,
   `sign` {image, quad [TL,TR,BR,BL] in the photo's pixels, light, warm, shadow} (or a list) - a picture (her logo)
   painted INTO the set photo in perspective, so it zooms, moves and blurs with the room (an image overlay does not).
@@ -49,6 +53,12 @@
   2.0 $3.62, Veo 3.1 $4.78. Leonardo marks up 1.5-3× over list price. **A FAILED clip is still charged** (Veo 3.1
   failed, no reason given, cost $4.78). Gemini Omni Flash takes no start frame → the set and faces drift. Comparison
   page: lybi.ai/lybi/marketing/social (aspect-react-client/public/lybi-site/marketing/social/) + scripts/video-lab.mjs (1 Leonardo token ≈ $0.0015).
+- **A real public figure in a costume, when he asks for it by name** (2026-10-23, Bennett as the Kohen Gadol - his
+  explicit override of "no realistic politicians"; satire, never a believable news scene): the reference is the
+  person's official portrait from Wikipedia (`action=query&prop=pageimages&piprop=original`, download with a UA,
+  check the Commons license), resized to 1024; `portrait ref.jpg prompt.txt out.jpg flare MEDIUM 0.6 1024x1024`
+  ("the same face ... from the reference photo", the costume in detail, "no text"); make 0.6 and 0.8 together and
+  let him pick. Saved to Downloads, never the public repo; in a video it gets the "תמונת AI" tag.
 - Stickers (the guru's own "effort" look): ask for a die-cut sticker with a thick white border on a flat light-mint
   (#CDEBDD) background, then `tools/cutout_logo.py` cuts it to a transparent PNG (mint is removed, white border kept).
 - Sound kit: `tools/horror_sfx.py <out dir> [names]` (synthesized: drone, braam, riser, stinger, heartbeat(_climax),
@@ -60,6 +70,18 @@
 - Background removal: MediaPipe (fast, ~45 fps) default; RVM "quality" ~7 fps; check the body on 4 s with both.
 
 ## Gotchas already paid for
+- **Tool bugs found 2026-10-23 (open - fix each as its own task):** (1) the exporter caches pictures by asset id
+  (`work/layers/public/m.ov<k>.png`, refreshed only when the source is newer) and overlay ids follow the overlay
+  list's order - reorder the overlays and the export shows OLD pictures (the editor is right). Until fixed: delete
+  `work/layers/public/m.ov*.*` before every export. (2) His last subtitle of a take before an off-camera sound stays
+  up through the sound (`end_hint` is None when the last word ends past the picture's join) - end it with an op at
+  the sound's start. (3) The editor: changing one subtitle's length once rippled the cut and set 24 subtitles to
+  1 frame, all marked `user` - undo with the history log's `undo` ops (`work/history/log.jsonl`).
+- **Suspected editor bug (2026-10-23, open):** 36 sound clips with a live `room` effect (`fx.room`) made the editor
+  play "a strange sound and then silence" - his voice too (one AudioContext). The export was fine. Taking `room` off
+  was the fix for demokratovich-songs; test the room effect on a `_` copy before using it on many clips.
+- Overlays tied to words: `to_words` are looked up only in the SAME take (use `hold` to outlast it); a card with no
+  end runs to the next card's start, so items that start together each need their own end.
 - `os.kill(pid, 0)` on Windows TERMINATES the process - use `_alive()` (lesson.py / zoomcut.py).
 - faster-whisper: feed numpy; transcribe per VAD chunk; word times drift ~0.4 s inside long voice notes - transcribe
   each voiced region alone when you cut on words. opencv must be < 5.
@@ -72,6 +94,11 @@
 - Report to the fleet board when asked (alias `video-editing`).
 - **episode.json overlays: write them in time order** (tadar-6, 2026-10-23) - words are matched in list order, each
   searching after the previous one's hit, so an overlay listed after a later one is "not heard".
+- **Few lanes, and plan the timing for it** (2026-10-25, again: "if you have the emojis or stupid images, you can put
+  them on the same layer because they are not on top of each other"). When you write the overlays, time them so they
+  share lanes: one sticker ends before the next starts, a text that would overlap another for a few seconds starts after
+  it (the lower third after the hook). A second lane only for things MEANT to be on screen together (a card + its stamp,
+  two cards side by side). In reports say "N items on M layers" - never call items layers.
 - **Few lanes, not a layer per overlay** (his ask, 2026-10-23: "use a small amount of layers"): the solo builder puts
   the overlays on shared lanes by what they are - Stickers (pictures), Texts (hook, cards, CTA), Ticker, End card
   (full-frame pictures, above the subtitles), Fade to black (`end_black`) - `pipeline/to_layers_solo.py` group_lanes.
@@ -106,8 +133,15 @@
 - **Phone / filter-app voices:** measure before filtering (spectrum bands vs 300-1k, ring-out after words, codec gaps).
   RNNoise swallowed an "אה" even at 70% mix; afftdn barely moves codec damage; a compressor with makeup lifts the hiss.
 - **Headless poster capture:** a 1080x1920 page captured with a clip / element screenshot came out white; a
-  **full-page** screenshot works (puppeteer `fullPage: true`, viewport 1080 wide).
+  **full-page** screenshot works (puppeteer `fullPage: true`, viewport 1080 wide). But a TRANSPARENT PNG
+  (`omitBackground: true`) with `fullPage: true` came out empty (2026-10-25) - viewport = the page size, `fullPage:
+  false`; `_assets/dorit/tarot/shoot.mjs` (jobs json, one browser, in turn) does both kinds.
 - **Windows line endings:** pipeline/*.py and some files are CRLF - a patch script that matches "\n" fails silently;
   normalise, patch, write back.
 - **iPhone / filter-app files:** creation_time = recording time for camera files, export time for app exports (use the
   number in `export_<n>.mov`). Two characters' takes can be uploaded together - frames tell who.
+
+- **Hebrew in an op = send it from Python (urllib, `json.dumps(..., ensure_ascii=False).encode('utf-8')`) or curl
+  `--data-binary @file.json`** - never `curl -d '...'` with Hebrew typed in Git Bash: it arrives as U+FFFD and the
+  editor shows diamonds (haredit-1, 2026-10-25: three subtitles and a layer name). After any op with Hebrew, read the
+  project back and check for '�'.
