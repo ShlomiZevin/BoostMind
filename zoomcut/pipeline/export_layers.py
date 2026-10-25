@@ -1,6 +1,6 @@
 """The one export for every layered project (project.json - skill/edit-video/layers.md).
 
-    python -m pipeline.export_layers episodes/<id> [--quick]
+    python -m pipeline.export_layers episodes/<id> [--quick | --test]
 
 The stack is split into runs: consecutive picture / text / shape / subtitle layers are a GRAPHICS run, consecutive
 video layers (with their backdrops) a VIDEO run.
@@ -13,7 +13,8 @@ video layers (with their backdrops) a VIDEO run.
   3. sound: pipeline/layers_audio.py - the same tracks the editor plays, one gain to -14 LUFS.
   4. mux, the project's speed, checks.
 Gentle on the machine (his PC blue-screens under full load): few pieces at once, few threads, below-normal priority.
---quick: half size, the fastest encoder - a draft to check the edit (out/<id>.draft.mp4)."""
+--quick: half size, the fastest encoder - a draft to check the edit (out/<id>.draft.mp4).
+--test: the phone check - about a third of the size, small and fast, to Telegram (out/<id>.test.mp4; never published)."""
 import argparse
 import json
 import math
@@ -70,8 +71,9 @@ def stack_runs(project):
 
 
 # ---- 1. graphics ---------------------------------------------------------------------------------------------------
-def changes(layers, fps, total):
-    """The frames where something in these layers looks different from the frame before."""
+def changes(layers, fps, total, step=1):
+    """The frames where something in these layers looks different from the frame before. step: moving things (fades,
+    animations, animated styles) drawn every step-th frame - the phone test uses 3 (10 a second is plenty to check)."""
     keys, animated = {0}, animated_styles()
     for l in layers:
         props = l.get("props") or {}
@@ -82,16 +84,16 @@ def changes(layers, fps, total):
             keys.update((a, z))
             fi, fo = it.get("fade_in", props.get("fade_in", 0)) or 0, it.get("fade_out", props.get("fade_out", 0)) or 0
             if fi:
-                keys.update(range(a, a + int(math.ceil(fi * fps)) + 1))
+                keys.update(range(a, a + int(math.ceil(fi * fps)) + 1, step))
             if fo:
-                keys.update(range(z - int(math.ceil(fo * fps)) - 1, z))
+                keys.update(range(z - int(math.ceil(fo * fps)) - 1, z, step))
             for k in (it.get("anim") or {}).values():
                 if k:
-                    keys.update(range(a + int(k[0][0] * fps), a + int(math.ceil(k[-1][0] * fps)) + 1))
+                    keys.update(range(a + int(k[0][0] * fps), a + int(math.ceil(k[-1][0] * fps)) + 1, step))
             if (it.get("style") or props.get("style")) in animated:
-                keys.update(range(a, z))
+                keys.update(range(a, z, step))
             if "{clock}" in str(it.get("text", "")):
-                keys.update(range(a, z, fps))
+                keys.update(range(a, z, max(1, int(round(fps)))))
     return sorted(k for k in keys if 0 <= k < total)
 
 
@@ -117,10 +119,10 @@ def asset_public(ep, project, ids, pub):
     return urls
 
 
-def render_graphics(ep, project, k, layers, scale, total):
+def render_graphics(ep, project, k, layers, scale, total, step=1):
     """One graphics run -> work/layers/g<k>/f-000000.png .. one picture per video frame (held frames hard-linked)."""
     fps = project["canvas"]["fps"]
-    keys = changes(layers, fps, total)
+    keys = changes(layers, fps, total, step)
     out = ep.work("layers", f"g{k}", "x")[:-2]
     raw = os.path.join(out, "raw")
     for d in (out, raw):
@@ -170,6 +172,11 @@ def video_items(project, run_layers):
             out.append({**(l.get("props") or {}), **it, "box": it.get("box") or (l.get("props") or {}).get("box"),
                         "_bd": bd, "_order": (it.get("z", 0), order[l["id"]], j)})
     return sorted(out, key=lambda x: x["_order"])
+
+
+def crf_for(scale):
+    """The encoder's quality by size: full 18, Quick check 24, the phone test 30 (small enough to send as it is)."""
+    return "18" if scale >= 1 else "24" if scale >= 0.45 else "30"
 
 
 def plan_chunks(items, total, min_len=60, max_len=300):
@@ -317,7 +324,7 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
     fc.append(f"{last}format=yuv420p[out]")
     args += ["-filter_complex", ";".join(fc), "-map", "[out]", "-frames:v", str(n), "-r", str(fps),
              "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", "medium" if scale >= 1 else "ultrafast",
-             "-crf", "18" if scale >= 1 else "24", "-pix_fmt", "yuv420p", "-an", out]
+             "-crf", crf_for(scale), "-pix_fmt", "yuv420p", "-an", out]
     r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", creationflags=LOW)
     if r.returncode:
         raise RuntimeError(f"chunk {k} ({c0}-{c1}) failed:\n{r.stderr[-1500:]}")
@@ -353,31 +360,56 @@ def check(final, project, speed, quick):
     return dur, lufs, problems
 
 
-def export(ep, quick=False):
+def at_fps(project, factor):
+    """The same project at fps / factor (the phone test: 15 a second - every timeline position in seconds stays put,
+    so the picture and the sound land exactly where they do in the real file; it just steps a bit)."""
+    import copy
+    p = copy.deepcopy(project)
+    p["canvas"]["fps"] = project["canvas"]["fps"] / factor
+    p["duration"] = int(math.ceil(project["duration"] / factor))
+    for l in p["layers"]:
+        for it in l.get("items", []):
+            it["from"] = it["from"] / factor
+            it["dur"] = max(1, it["dur"] / factor)
+    return p
+
+
+def export(ep, quick=False, test=False):
     t_start = time.time()
     project = projectlib.load(ep)
     if not project:
         sys.exit("✖ no project.json")
+    if test:  # the phone test: half the frames (15 a second) - half the drawing, compositing and encoding
+        project = at_fps(project, 2)
     fps, total = project["canvas"]["fps"], int(project["duration"])
     speed = float(project.get("speed") or 1)
-    scale = 0.5 if quick else 1.0
-    log(f"▶ export {ep.id}{' (quick check)' if quick else ''}: {total} frames, {len(project['layers'])} layers, speed x{speed}")
+    scale = 0.35 if test else 0.5 if quick else 1.0  # (test: 378x672 - reads well on a phone, a few MB)
+    small = quick or test
+    log(f"▶ export {ep.id}{' (phone test)' if test else ' (quick check)' if quick else ''}: {total} frames, {len(project['layers'])} layers, speed x{speed}")
     # film effects (pipeline/film_fx.py): every effect layer acts on what is below the top-most effect layer; the
     # layers above it are drawn on the effected picture
     top = film_fx.top_effect(project)
     ids = [l["id"] for l in project["layers"]]
     sub = lambda keep: {**project, "layers": [l for l in project["layers"] if keep(ids.index(l["id"]))]}
     passes = [stack_runs(sub(lambda i: i < top)), stack_runs(sub(lambda i: i > top))] if top >= 0 else [stack_runs(project)]
-    gdirs, gk = [], 0
+    # the sound doesn't depend on the picture: it is mixed alongside it
+    sound_pool = ThreadPoolExecutor(max_workers=1)
+    sound = sound_pool.submit(layers_audio.mix, ep, project, ep.work("layers", "export.wav"))
+    # the graphics runs are drawn two at a time (a still one - the set - doesn't wait for the long one)
+    gdirs, todo, gk = [], [], 0
     for runs in passes:
         g = {}
         for ri, r_ in enumerate(runs):
             if r_["video"]:
                 r_["items"] = video_items(project, r_["layers"])
             else:
-                g[ri] = render_graphics(ep, project, gk, r_["layers"], scale, total)
+                todo.append((g, ri, gk, r_["layers"]))
                 gk += 1
         gdirs.append(g)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futs = [(g, ri, pool.submit(render_graphics, ep, project, k, ls, scale, total, 3 if test else 1)) for g, ri, k, ls in todo]
+        for g, ri, fu in futs:
+            g[ri] = fu.result()
     runs = [r_ for rs in passes for r_ in rs]
     log(f"  · layers drawn in {time.time() - t_start:.0f}s - putting the videos in")
     all_items = [it for r_ in runs if r_["video"] for it in r_["items"]]
@@ -399,7 +431,7 @@ def export(ep, quick=False):
             pre = min(pre_all, c0)
             low = render_chunk(ep, project, k, c0 - pre, c1, passes[0], gdirs[0], scale, name=f"c{k:04d}.low.mp4")
             fx = ep.work("layers", "chunks", f"c{k:04d}.fx.mp4")
-            film_fx.apply_chunk(ep, project, low, fx, c0, c1 - c0, pre, cw, chh, "18" if scale >= 1 else "24", "medium" if scale >= 1 else "ultrafast")
+            film_fx.apply_chunk(ep, project, low, fx, c0, c1 - c0, pre, cw, chh, crf_for(scale), "medium" if scale >= 1 else "ultrafast")
             o = render_chunk(ep, project, k, c0, c1, passes[1], gdirs[1], scale, base=fx)
         done[0] += c1 - c0
         log(f"Rendered {done[0]}/{total}")
@@ -413,19 +445,21 @@ def export(ep, quick=False):
     silent = ep.work("layers", "video.mp4")
     run([FFMPEG, "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", silent])
     log(f"  · picture done in {time.time() - t_start:.0f}s ({len(chunks)} pieces) - the sound")
-    wav = layers_audio.mix(ep, project, ep.work("layers", "export.wav"))
+    wav = sound.result()
+    sound_pool.shutdown()
     os.makedirs(ep.p("out"), exist_ok=True)
-    final = ep.p("out", f"{ep.id}.draft.mp4" if quick else f"{ep.id}.mp4")
+    final = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4" if quick else f"{ep.id}.mp4")
+    abr = "96k" if test else "192k"
     tmp = final[:-4] + ".tmp.mp4"
     if abs(speed - 1) > 1e-3:  # the project's speed: every layer together, voices keep their pitch
         run([FFMPEG, "-y", "-v", "error", "-i", silent, "-i", wav, "-filter_complex", f"[0:v]setpts=PTS/{speed},fps={fps}[v];[1:a]atempo={speed}[a]",
-             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", "ultrafast" if quick else "medium",
-             "-crf", "24" if quick else "17", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", tmp])
+             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", "ultrafast" if small else "medium",
+             "-crf", "30" if test else "24" if quick else "17", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", abr, "-shortest", "-movflags", "+faststart", tmp])
     else:
         run([FFMPEG, "-y", "-v", "error", "-i", silent, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
-             "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", tmp])
+             "-c:a", "aac", "-b:a", abr, "-shortest", "-movflags", "+faststart", tmp])
     os.replace(tmp, final)
-    dur, lufs, problems = check(final, project, speed, quick)
+    dur, lufs, problems = check(final, project, speed, small)
     if problems:
         log("⚠ problems: " + "; ".join(problems))
     log(f"✔ {final}  ({dur:.1f}s, {lufs} LUFS, {time.time() - t_start:.0f}s)")
@@ -440,5 +474,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("episode")
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--test", action="store_true")
     a = ap.parse_args()
-    export(Episode(a.episode), quick=a.quick)
+    export(Episode(a.episode), quick=a.quick, test=a.test)

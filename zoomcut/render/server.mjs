@@ -79,12 +79,13 @@ function runJob(id, args, _onSuccess, send = [], opts = null) {
   const lesson = readJson(path.join(EPS, id, 'episode.json'), {}).type === 'lesson';
   // a layered project (project.json) exports through the one layered exporter; its builder still analyzes
   const layered = fs.existsSync(path.join(EPS, id, 'project.json'));
-  const cmd = opts?.cmd ? opts.cmd : layered && kind === 'export' ? ['-m', 'pipeline.export_layers', `episodes/${id}`, ...args.filter((a) => a === '--quick')]
+  const cmd = opts?.cmd ? opts.cmd : layered && kind === 'export' ? ['-m', 'pipeline.export_layers', `episodes/${id}`, ...args.filter((a) => a === '--quick' || a === '--test')]
     : lesson ? ['lesson.py', `episodes/${id}`, ...args.filter((a) => a === '--preview')] : ['zoomcut.py', 'build', `episodes/${id}`, ...args];
   const f = jobFiles(id);
   fs.writeFileSync(f.log, '');
   const quick = args.includes('--quick');  // the Quick export: a half-size draft to check the edit
-  writeJson(f.state, { kind, quick, send, sent: false, running: true, code: null, started: Date.now() });
+  const test = args.includes('--test');    // the phone test: small and fast, to Telegram, never published
+  writeJson(f.state, { kind, quick, test, send, sent: false, running: true, code: null, started: Date.now() });
   const out = fs.openSync(f.log, 'a');
   const p = spawn(process.execPath, [path.join(ROOT, 'tools', 'jobwrap.mjs'), f.state, PY, ...cmd],
     { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, detached: true, stdio: ['ignore', out, out], windowsHide: true });
@@ -133,10 +134,10 @@ async function finishSends(id) {
   if (s.kind !== 'export' || s.code !== 0 || s.sent) return;
   writeJson(f.state, { ...s, sent: true });
   for (const ch of s.send || []) {
-    const sh = startShare(id, ch, undefined, !!s.quick);
+    const sh = startShare(id, ch, undefined, s.test ? 'test' : !!s.quick);
     while (sh.running) await new Promise((r) => setTimeout(r, 500));
   }
-  publisher.afterExport(id, !!s.quick);  // (asked in the Publish window: the socials, once the file is made)
+  publisher.afterExport(id, !!(s.quick || s.test));  // (a draft / a test never goes out)  // (asked in the Publish window: the socials, once the file is made)
 }
 // on start: jobs still running from before (or finished while the server was down) are picked up again
 setTimeout(() => {
@@ -645,9 +646,11 @@ app.post('/api/ep/:id/settings', (q, res) => {
 
 // share the exported MP4: {channel: 'email' | 'telegram', to?}
 const shares = {};
+// draft: false (the real file) | true (the Quick check) | 'test' (the phone test - small, marked TEST)
 function startShare(id, channel, to, draft = false) {
   const d = epDir(id);
-  const master = path.join(d, 'out', draft ? `${id}.draft.mp4` : `${id}.mp4`);
+  const test = draft === 'test';
+  const master = path.join(d, 'out', test ? `${id}.test.mp4` : draft ? `${id}.draft.mp4` : `${id}.mp4`);
   const key = `${id}:${channel}`;
   if (shares[key]?.running) return shares[key];
   const job = (shares[key] = { running: true, channel, log: [], ok: null, error: null, started: Date.now() });
@@ -657,13 +660,13 @@ function startShare(id, channel, to, draft = false) {
     const file = await sizedCopy(master, channel, log);
     if (channel === 'email') log(`Sending ${Math.round(fs.statSync(file).size / 1048576)} MB by email…`);
     if (channel === 'email') {
-      const who = await sendEmail({ file, to, subject: draft ? `🧪 ${title} — DRAFT to check (quick export, not for TikTok)` : `🎬 ${title} — ready for TikTok`,
+      const who = await sendEmail({ file, to, subject: test ? `📱 TEST ${title} — look + sound check (not for posting)` : draft ? `🧪 ${title} — DRAFT to check (quick export, not for TikTok)` : `🎬 ${title} — ready for TikTok`,
         text: `${title}
 
 Exported by Sketch Studio. Full-quality master: ${master}` });
       log(`✓ Sent to ${who}`);
     } else {
-      await sendTelegram({ file, caption: draft ? `🧪 ${title} — draft` : `🎬 ${title}`, log });
+      await sendTelegram({ file, caption: test ? `📱 TEST · ${title}` : draft ? `🧪 ${title} — draft` : `🎬 ${title}`, log });
       log('✓ Sent to your Telegram');
     }
     job.ok = true;
@@ -890,7 +893,7 @@ app.post('/api/ep/:id/analyze', (q, res) => res.json(pub(runJob(epDir(q.params.i
 app.post('/api/ep/:id/export', (q, res) => {
   const id = epDir(q.params.id) && q.params.id;
   const send = (q.body && q.body.send) || [];
-  const job = runJob(id, ['--concurrency', '16', ...(q.body?.quick ? ['--quick'] : [])], null, send);  // sent by the server when it ends well, even after a restart
+  const job = runJob(id, ['--concurrency', '16', ...(q.body?.test ? ['--test'] : q.body?.quick ? ['--quick'] : [])], null, send);  // sent by the server when it ends well, even after a restart
   res.json(pub(job));
 });
 app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id]) || null));
