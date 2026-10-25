@@ -9,7 +9,7 @@ it for a video that missed it. Steps (wiki.md "A finished video -> the Shlomiver
   5. deploy the site and the chat agent, then check the live wiki has the video
 A character of the Techy-Tech world without a card on the company site is reported - that card is written by hand.
 """
-import json, os, shutil, subprocess, sys, tempfile, urllib.request
+import glob, json, os, shutil, subprocess, sys, tempfile, time, urllib.request
 
 from canon import HERE, ROOT, ZC, characters, episodes, load_json
 
@@ -43,6 +43,44 @@ def mark_done(eid):
         with open(ep, 'w', encoding='utf8') as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)
     say(f'  · {eid} marked done')
+
+
+def others_pages():
+    """Pages under public/ that differ from the live site - another session's work the deploy would take along
+    (this job's own wiki files aside). [(path, minutes since it changed)]"""
+    out = run(['git', 'status', '--porcelain', '--', 'public'], check=False)
+    files = []
+    for line in out.splitlines():
+        p = line[3:].strip().strip('"')
+        if p.startswith(('public/wiki/data', 'public/wiki/v/', 'public/wiki/img')):
+            continue
+        files += glob.glob(os.path.join(ROOT, p, '**', '*.html'), recursive=True) if p.endswith('/') else [os.path.join(ROOT, p)] if p.endswith('.html') else []
+    res = []
+    for f in files:
+        rel = os.path.relpath(f, os.path.join(ROOT, 'public')).replace('\\', '/')
+        url = 'https://boostmind-b052c.web.app/' + (rel[:-len('index.html')] if rel.endswith('index.html') else rel)
+        try:
+            live = urllib.request.urlopen(f'{url}?n={time.time()}', timeout=20).read()
+        except Exception:
+            live = b''
+        if live != open(f, 'rb').read():
+            res.append((rel, (time.time() - os.path.getmtime(f)) / 60))
+    return res
+
+
+def settle():
+    """The deploy takes the whole site as it is on his PC: a page another session is in the middle of would go live
+    half-done. A page changed in the last 10 minutes = still being worked on -> wait (every 5 minutes, up to 30 - he
+    doesn't mind a few minutes), then deploy anyway and say what went along (2026-10-25)."""
+    for _ in range(6):
+        busy = [p for p, age in others_pages() if age < 10]
+        if not busy:
+            break
+        say(f'  · waiting for another session to finish: {", ".join(busy)}')
+        time.sleep(300)
+    went = [p for p, _ in others_pages()]
+    if went:
+        say(f'  ! went live along with it (other sessions\' changes): {", ".join(went)}')
 
 
 def main():
@@ -90,6 +128,7 @@ def main():
     if not deploy:
         say('  · not deployed (--no-deploy)')
         return
+    settle()
     run('firebase deploy --only hosting --project boostmind-b052c')
     say('  · site deployed')
     run('firebase deploy --only functions:wikiChat --project boostmind-b052c', cwd=os.path.join(ROOT, 'techietech-api'))
