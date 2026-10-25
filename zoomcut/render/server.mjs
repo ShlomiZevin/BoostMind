@@ -355,6 +355,28 @@ app.get('/api/downloads', (_q, res) => {
   }
   res.json(out.sort((a, b) => b.mtime - a.mtime));
 });
+// A new project straight from a script (the Reader's Paste box - his ask, 2026-10-25: "a quick way to add script
+// and project from the reader"): before filming there's no footage yet, so its footage folder is a new Drop folder -
+// Downloads\drop\<name> here and the same project on the phone's Drop page - he films, uploads the takes into it, and
+// the project finds them there. Then the script goes in, as the Reader's own save does.
+app.post('/api/new-from-script', async (q, res) => {
+  const { name, kind, like, text } = q.body || {};
+  const nm = String(name || '').trim();
+  if (!nm) return res.status(400).json({ error: 'Give it a name' });
+  const folder = nm.normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 60);  // (as the Drop names it)
+  const local = path.join(DOWNLOADS, 'drop', folder);
+  fs.mkdirSync(local, { recursive: true });
+  try {  // the project on the phone's Drop page too (an empty folder until the first take)
+    const key = /^DROP_KEY=(.+)$/m.exec(fs.readFileSync(path.join(ROOT, '.env'), 'utf8'))?.[1].trim();
+    if (key) await fetch('https://drop-463727469066.me-west1.run.app/api/mkdir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: key, folder }) });
+  } catch {}
+  const r = await fetch(`http://127.0.0.1:${PORT}/api/new`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: nm, template: kind === 'zoom' ? 'zoom' : 'solo', folder: local, from: kind === 'zoom' ? '' : like || '' }) });
+  const j = await r.json().catch(() => ({ error: 'Could not create it' }));
+  if (!r.ok || j.error) return res.status(400).json({ error: j.error || 'Could not create it' });
+  fs.writeFileSync(scriptFile(j.id), String(text || ''), 'utf8');
+  res.json({ id: j.id, drop: folder });
+});
 app.post('/api/new', (q, res) => {
   const { name, template, folder, from } = q.body || {};
   const id = String(name || '').trim().toLowerCase().replace(/[^a-z0-9א-ת-]+/g, '-').replace(/^-+|-+$/g, '');

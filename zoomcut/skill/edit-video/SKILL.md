@@ -129,7 +129,10 @@ The rules:
    **Look before you plan:** ffprobe each file, frames, transcribe (faster-whisper via `pipeline.transcribe._get_model`,
    feed numpy). Know the footage second by second.
 3. **Pick the recipe** (table below) and read it.
-4. **Make the project** - the editor's "+ New video" (`POST /api/new {name, template: "zoom" | ..., folder, from}`;
+4. **Make the project** - before filming, from a script: the Reader's **Paste → "Create a new project for it"** (one
+   camera / Zoom call, optional "settings like" an earlier project) makes the project with the script AND its Drop folder
+   (`POST /api/new-from-script {name, kind, like, text}`) - he films with the Reader, uploads the takes into that Drop
+   folder, and the project finds them. Or after filming: the editor's "+ New video" (`POST /api/new {name, template: "zoom" | ..., folder, from}`;
    `from` = the closest earlier one-camera project: its set, music, voice, eye contact, look, subtitle style).
    `input_dir` points at his folder - never copy footage. Every new project is a layered one from the first minute
    (an empty project.json) and opens in the one editor with a **"New video"** step:
@@ -206,7 +209,11 @@ The rules:
   Layouts to copy: `recipes/monologue.md` → tadar. Make both as soon as the script arrives - before the footage.
 - **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
   reader then the rest, I'm filming" / "fill it while I'm filming"). He films with the Reader, and **the Reader lists
-  PROJECTS, not scripts** - a script with no project never shows ("I don't see it here"). So, in this order:
+  PROJECTS, not scripts** - a script with no project never shows ("I don't see it here").
+  **"Ready" means he opens the editor and sees every layer on the timeline** - set, wall pictures, stickers, texts,
+  subtitles, music, end card - NOT a plan in episode.json that only Analyze turns into layers (2026-10-25, dorit-1:
+  "why I can't see the Dorit project on the layers... I want you to create it already"). Never hand over a
+  before-footage project with an empty timeline: build it on a stand-in take (step 3b). So, in this order:
   1. **Script** - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line `# <title>`, a
      `# על המסך – ...` note above each line that gets a sticker / card).
   2. **Project, at once** - make the footage folder (`Downloads\<series>\<n>`, empty is fine), then
@@ -218,8 +225,29 @@ The rules:
      card, the mid-video polaroid, the blinking CTA, the end card (`poster`, `fade_in` 1.5, from her last line, no
      `to_words` = to the end), `music.lift`; the files in `media/` + episode.json `media`. What needs the takes
      (re-take overlaps, the end-card hold, the fade to black) goes in `_todo` for right after Analyze.
-  4. Footage arrives -> Analyze -> do the `_todo` -> review -> hand over.
+  3b. **Then BUILD it on a stand-in take, so he SEES every layer in the editor before he films** (his words, 2026-10-25:
+     "when I say to create everything before the actual video, I want you to create it already. So why it's not
+     there?" - dorit-1 had 32 overlays in episode.json and an EMPTY timeline). A stand-in = edge-tts `he-IL-HilaNeural`
+     (or AvriNeural for a man) reading the script's spoken lines over his reference photo, "STAND-IN" burnt in, in
+     `episodes/<id>/stand-in/` (git-ignored); `input_dir` there, eye contact off, Analyze through the studio. Check
+     every overlay landed (count = episode.json overlays) and do the `_todo` on it, so he can move things now.
+  4. Footage arrives -> `input_dir` to his folder, eye contact on -> Analyze (replaces the stand-in) -> redo the
+     take-bound `_todo` (end-card hold, fade) -> review -> hand over.
+     **Trap (dorit-1, 2026-10-25 - "you didn't run the fix eyes to look to the camera"):** the stand-in build saved the
+     Person layer's `eyes: false`, and layer props are never overwritten by a rebuild - the NVIDIA copies were made but
+     the editor kept showing the original eyes. After the real Analyze: `layer.update person props {eyes: true}` by op,
+     and check `GET /api/p/<id>` → the takes' `eyes_engine` is set AND the Person layer's `eyes` is true.
+     **Also:** the Reader edits whichever script is selected - if he pastes a new script over this project's, the
+     analysis subtitles the wrong text (dorit-1 got another video's lines). Before Analyze, read the script's first
+     line; `scripts/<id>.txt.bak` holds the version before the last project-script edit.
   Example: tadar-6 (spiritual-4, elections).
+- **As few layers as possible** (asked 2026-10-23 and again 2026-10-25): stickers / texts that are not on screen
+  together share one layer - time them so they don't overlap; a second layer only for things meant to be seen together.
+  Report "N items on M layers" (reference.md → "Few lanes").
+- **A new character = a new idea** (2026-10-25: "don't copy. We need to come with our own idea for this project"):
+  look at earlier projects for the mechanics, never reuse another character's look (stickers, set, music, posters).
+  **Each character has ONE studio** used by all their videos, and the video's own pictures (a chart on her wall, a
+  map) are separate layers on it (`behind: true` overlays) - never baked into the studio photo.
 - **Real people:** no realistic images of real politicians at invented events; "תמונת AI" tag on realistic AI people.
   His own images / recordings stay out of the public git repo.
 - **Every character is a real person** (2026-10-21): each recurring character gets their own web presence built the
@@ -281,6 +309,11 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
 - He is happy to spend the credits ("you can even use them all") - quality over saving; still say what it cost.
 - Try a big change to his video on a COPY (`<id>-he`: copy episode.json, captions.txt, project.json, media/, work/)
   while he is still checking the original (his ask).
+- **Music beds** (2026-10-25, "find the background music suitable... create it with 11 labs or Leonardo"):
+  `node zoomcut/tools/elevenlabs_music.mjs <out.mp3> 80 "<prompt>"` (Eleven Music, instrumental). Only 2 requests at
+  once on this plan (a third gets 429). Make 3 options in the character's world, put all three in the project's
+  `media`, pick one for `music.sound`; measure its LUFS and set `gain` against a known bed (tadar harp: -17.2 LUFS at
+  0.08 → a -9.5 LUFS track ≈ 0.04).
 
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
@@ -291,7 +324,12 @@ wig, beard kept; 0.5 when the scene changes a lot). Key from aspect-agent-server
   `sunburst` = `openai/gpt-image-2.5-sunburst` - logos / emblems, products, die-cut stickers, flat graphics.
 - **Cheap (his rule):** MEDIUM and the smallest size that works - 1024x1024, 1536x1024 for a wide one. Never HIGH /
   HD / 2x unless he asks. Paid 2026-10-23: sunburst square $0.021, flare portrait $0.024, flare 1536x1024 $0.033.
-- Run several at once (`&` + `wait`), look at every result before using it.
+- Run several at once (`&` + `wait`), look at every result before using it. About 10 queued at once is the cap -
+  beyond it "RATE_LIMIT_EXCEEDED / Too many pending generations": send batches of ~8 and retry the refused ones.
+- **Real politicians as tarot cards / costumes, when he asks** (2026-10-25: "create a BB tarot and Gadi tarot and
+  Bennett and Yair Lapid"): reference = the Wikipedia lead photo (`action=query&prop=pageimages&piprop=original`,
+  a UA header, resized to 1024), `portrait ref.jpg prompt.txt out.jpg flare MEDIUM 0.6|0.8 1024x1536`, both
+  strengths, pick per person; the card carries a "תמונת AI" tag; refs + results stay git-ignored.
 - **No words in the picture** (Hebrew breaks): ask for "no text" and put the words on in HTML / a text layer.
 - A logo or sticker: ask for it on a flat white / mint background, then `tools/cutout_logo.py in.jpg out.png`.
 - A real person's face never - his own face, from his frames. No real politicians at invented events.

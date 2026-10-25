@@ -129,6 +129,12 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   #printpage .pl.solo { grid-template-columns: 1fr; }
   #printpage .pd { color: #555; font-style: italic; padding: 3pt 2.5mm 3pt 0; border-right: 2.5pt solid transparent; break-inside: avoid; }
 }
+/* the Paste box: a new project from the script */
+.np { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; cursor: pointer; }
+.np-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.np-row select { height: 34px; padding: 0 8px; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: var(--r); color: var(--text); }
+.np-hint { width: 100%; font-size: 12px; color: var(--dim); }
+.np-err { min-height: 0; margin-top: 6px; font-size: 12.5px; color: #e9c46a; }
 </style>
 </head>
 <body>
@@ -167,6 +173,13 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <div style="color:var(--dim);margin-bottom:10px;font-size:13px">A dialogue ("Name: text") or a monologue (just the text, one line each — it becomes a prompter). Give it a name to keep it in the list.</div>
   <input id="nm" placeholder="Name (optional) — e.g. תודעה גבוהה">
   <textarea id="txt" placeholder="אמיר: טוב, דניאל, קודם כול...&#10;עופר: חד משמעית.&#10;&#10;— or just the text of a monologue, one line each"></textarea>
+  <label class="np"><input type="checkbox" id="np"> <b>Create a new project for it</b></label>
+  <div class="np-row" id="npRow" hidden>
+    <select id="npKind"><option value="solo">One camera</option><option value="zoom">Zoom call</option></select>
+    <select id="npLike"><option value="">Settings like… (optional)</option></select>
+    <div class="np-hint">Its Drop folder is made too: film, then upload the takes to it from the phone.</div>
+  </div>
+  <div class="np-err" id="npErr"></div>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
     <button class="btn" id="cancel">Cancel</button><button class="btn on" id="use">Use this script</button>
   </div>
@@ -509,7 +522,18 @@ function setMark() { mark = mark === cur ? null : cur; save(); render(); }
 function toMark() { if (mark == null) return; cancelCd(); setPlay(false); go(mark); startWithCountdown(); }
 $('mark').onclick = setMark;
 $('tomark').onclick = toMark;
-$('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('nm').value = ''; $('dlg').showModal(); };
+$('paste').onclick = () => { $('txt').value = store.get('reader-pasted') || ''; $('nm').value = ''; $('np').checked = false; $('npRow').hidden = true; $('npErr').textContent = ''; setUseLabel(); $('dlg').showModal(); };
+// a new project from the script (POST /api/new-from-script): its name is the Name box, its footage folder a new Drop
+// folder; "like" copies an earlier project's settings (one camera: a series' next episode)
+const setUseLabel = () => { $('use').textContent = $('np').checked ? 'Create the project' : 'Use this script'; };
+$('np').onchange = async () => {
+  $('npRow').hidden = !$('np').checked; setUseLabel();
+  if ($('np').checked && $('npLike').options.length < 2) {
+    const eps = await (await fetch('/api/episodes')).json().catch(() => []);
+    for (const e of eps.filter((x) => !x.test)) $('npLike').insertAdjacentHTML('beforeend', `<option value="${e.id}">${(e.title || e.id).replace(/</g, '&lt;')}</option>`);
+  }
+};
+$('npKind').onchange = () => { $('npLike').disabled = $('npKind').value === 'zoom'; };
 $('cancel').onclick = () => $('dlg').close();
 // Copy: the whole script as it is written (names, lines, notes) - or the lines as shown if there is no source text
 $('copy').onclick = async () => {
@@ -536,6 +560,18 @@ $('print').onclick = () => {
 };
 $('use').onclick = async () => {
   const t = $('txt').value, name = $('nm').value.trim();
+  if ($('np').checked) {  // a new project with this script (and its Drop folder)
+    if (!name) { $('npErr').textContent = 'Give the project a name (the Name box above)'; $('nm').focus(); return; }
+    $('use').disabled = true; $('use').textContent = 'Creating…'; $('npErr').textContent = '';
+    const r = await fetch('/api/new-from-script', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, kind: $('npKind').value, like: $('npLike').value, text: t }) }).then((x) => x.json()).catch(() => ({ error: 'Could not create it' }));
+    $('use').disabled = false; setUseLabel();
+    if (r.error) { $('npErr').textContent = r.error; return; }
+    $('dlg').close();
+    await fillPicker();
+    $('ep').value = r.id; $('ep').onchange();  // (the open project in every tool - the editor opens it too)
+    return;
+  }
   $('dlg').close();
   const cur = $('ep').value;
   if (cur && !cur.startsWith('script:')) {  // the current project's script (one project, every tool)
