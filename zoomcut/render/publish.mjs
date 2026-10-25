@@ -152,15 +152,13 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
             headers: { Authorization: `Bearer ${tok.access_token}`, 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ publish_id: init.data.publish_id }) }));
           const st = s.data?.status;
           if (st === 'SEND_TO_USER_INBOX' || st === 'PUBLISH_COMPLETE') {
-            // (a draft can't carry text) - a Telegram that it's waiting for him in the app, then the caption ALONE
-            // in its own message, so one long-press copies exactly it
-            // ONE message: the video's name, the steps, and its caption in a tap-to-copy block (so the right caption is
-            // the one in his hand - not an old draft's text TikTok kept)
+            // (a draft can't carry text) - a Telegram that it's waiting for him in the app (the video's name, the steps),
+            // then the caption ALONE in its own plain message: one long-press copies exactly it (his ask, 2026-10-25)
             const name = post.name || path.basename(file, '.mp4');
             const cap = (post.caption || '').trim();
             const sent = await sendTelegramText(`📱 <b>TikTok – ${tgEsc(name)}</b>\nWaiting for you to approve: TikTok → Inbox → "ready to edit" → add a sound → Post.\n\n`
-              + (cap ? `<b>Caption</b> (tap the box to copy, then paste it in TikTok):\n<pre>${tgEsc(cap)}</pre>` : 'No caption was set for this video.'), { html: true })
-              .then(() => true).catch(() => false);
+              + (cap ? 'The caption is the next message - long-press it, Copy, paste it in TikTok.' : 'No caption was set for this video.'), { html: true })
+              .then(async () => { if (cap) await sendTelegramText(cap); return true; }).catch(() => false);
             return { url: null, note: `Waiting for you in the TikTok app (Inbox → "ready to edit")${sent ? ' - details and the caption in your Telegram' : ''}` };
           }
           if (st === 'FAILED') throw new Error('TikTok: ' + (s.data?.fail_reason || 'failed'));

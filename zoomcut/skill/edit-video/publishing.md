@@ -49,8 +49,8 @@ it's safe to run again. Edit the VIDEOS list for a new batch (the last export of
 
 ## How a publish runs (2026-10-25)
 All platforms at once - each its own job in the Jobs list (Instagram, TikTok, YouTube, X; Facebook's reminder waits
-for Instagram, it needs the Reel's link). Each goes out once, no retries. TikTok: ONE Telegram message - the video's name,
-"waiting for you to approve in the TikTok app (Inbox → ready to edit)", and the caption in a tap-to-copy box (he
-posted one with an old caption TikTok had kept - 2026-10-25). YouTube's
+for Instagram, it needs the Reel's link). Each goes out once, no retries. TikTok: TWO Telegram messages - the video's name +
+"waiting for you to approve in the TikTok app (Inbox → ready to edit)", then the caption ALONE in its own plain message,
+so one long-press copies exactly it (his ask; he once posted with an old caption TikTok had kept - 2026-10-25). YouTube's
 "exceeded the number of videos" = the channel's daily upload limit (it opens ~24 h after a batch): the job says so in
 plain words; `node zoomcut/tools/yt_when_open.mjs <id> public` uploads it the moment it opens.
