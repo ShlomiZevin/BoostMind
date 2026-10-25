@@ -55,5 +55,9 @@ Voice in the edit: natural
 - יותם (גיק-על, מהנדס AI ו-Context בכיר בטקי-טק): המילה שלו קובעת בשבילה - "תבדוק קודם עם יותם" (שניהם בצוות Data & AI של ארז)
 - ארז (ראש צוות Data & AI בטקי-טק - ה-data scientist היחיד): ראש צוות Data & AI - היא מדווחת אליו באתר
 
+## Their website
+https://techytech.web.app
+עובדת בטקי-טק - כרטיס בצוות באתר החברה (public/techietech).
+
 ## Already done - topics and storylines (don't repeat)
 - המתכנתת החרדית (haredit-1)

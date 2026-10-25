@@ -25,5 +25,9 @@ wife-call.mp3, "phone": true, pitch 1.2, gain 0.5, מתחת לרב אחרי צל
 ## People around them
 - הרב דמוקרטוביץ (רב קהילת "שערי בג״ץ" ועמותת "קופת הקולות" - מוסר שיעור שבועי במסכת שלטון ומשפט): בעלה
 
+## Their website
+https://boostmind-b052c.web.app/demokratovich/
+public/demokratovich - אתר הקהילה של בעלה, הרב דמוקרטוביץ (קהילת שערי בג״ץ).
+
 ## Already done - topics and storylines (don't repeat)
 - מתקשרת עם סקר של 63 באמצע השיעור על הבחירות (demokratovich-elections)
