@@ -61,9 +61,14 @@ it should go to my site... everything just one direction"). ONE command does all
 `python scripts/wiki/publish_site.py <episode-id>` - marks the project done, web copy + poster, fan copy (Terra) for
 anything new (the video, a new character), build, deploy the site + the chat agent, checks the live wiki lists it
 (`✔ on the Shlomiverse: <link>`), and warns (`!`) when a Techy-Tech character has no card on the company site.
-The studio is to run it by itself after every Publish (a "site" job - asked of the tool's session 2026-10-25); until
-that lands, run it yourself right after he publishes. Three videos (dorit-1 and two Demokratovich) missed it because
-their sessions stopped at the socials - never again: a video is not published until this line printed ✔.
+**The studio runs it by itself after every Publish** (since 2026-10-25, commit 72d08ff): a publish with any platform
+out queues a "site" job (Jobs panel "Shlomiverse", one at a time - each deploys the whole site), Telegram with the ✔
+link and any "!" warning, or the last log lines on failure. **By hand: `POST /api/ep/<id>/site`** (needs
+`out/<id>.mp4`) - never the script straight from a session while the studio is up: the queue keeps deploys one at a
+time. After a publish, check the Jobs panel's Shlomiverse job ended ✔ and act on any "!" (a Techy-Tech card).
+Keep the script's `✔ on the Shlomiverse:` and `  !` line prefixes - the Telegram reads them. Three videos (dorit-1
+and two Demokratovich) missed the site because their sessions stopped at the socials - a video is not published
+until the ✔.
 The steps it runs, for when one fails:
 1. **Web copy + poster:** `sh scripts/wiki/encode.sh <episode-id>` (720p, ~10 MB, into `public/wiki/v/`).
 2. **Fan copy** (the title and one-line teaser people see; a new character also gets a tagline, bio and 3 questions):

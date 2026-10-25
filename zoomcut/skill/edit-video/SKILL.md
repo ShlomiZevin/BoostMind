@@ -170,8 +170,10 @@ The rules:
 10. **Post it** - read `publishing.md`. The caption you saved in step 7 is in the Send window; **he presses Send**,
    never you. Instagram, TikTok drafts, YouTube Shorts and X are live; Facebook = a Telegram reminder to share the
    Instagram Reel.
-11. **Put it on the Shlomiverse** - `python scripts/wiki/publish_site.py <id>` (from BoostMind; `wiki.md`) - part
-   of publishing, not an extra: web copy + poster, the fan title (Terra), build, deploy the site and the chat. Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
+11. **Put it on the Shlomiverse** - part of publishing, not an extra: the studio's "site" job runs
+   `scripts/wiki/publish_site.py` by itself after every Publish (Jobs panel "Shlomiverse"); by hand
+   `POST /api/ep/<id>/site` (`wiki.md`): web copy + poster, the fan title (Terra), build, deploy the site and the
+   chat. Check it ended ✔ and act on any "!". Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
    about it. **Do it the moment he publishes - don't wait to be asked** (2026-10-25, haredit-1: he had to remind me).
    A video reaches the wiki only when its project is **done** (`POST /api/ep/<id>/done {done: true}`) and has
    `out/<id>.mp4`.
