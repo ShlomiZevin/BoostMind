@@ -49,8 +49,8 @@ function Place({ P }: { P: InspectorProps }) {
   const setBox = (patch: any, commit = true) => (item ? S.item({ box: { ...(item.box || {}), ...patch } }, commit) : S.layer({ box: { ...box, ...patch } }, commit));
   return <Sec title="Position" end={<Ovr S={S} k="box" />}>
     <Row label="Hangs from"><Anchor value={box.anchor || 'tl'} allowed={TEXT_ANCHORS} onPick={(a) => setBox({ anchor: a })} /></Row>
-    <Slider label="Across" v={box.x ?? W / 2} min={0} max={W} step={1} def={W / 2} fmt={fmt.px} onChange={(v, c) => setBox({ x: v }, c)} />
-    <Slider label="Down" v={box.y ?? 0} min={0} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: v }, c)} />
+    <Slider label="Left / right" v={box.x ?? W / 2} min={0} max={W} step={1} def={W / 2} fmt={fmt.px} onChange={(v, c) => setBox({ x: v }, c)} />
+    <Slider label="Up / down" v={box.y ?? 0} min={0} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: v }, c)} />
     <Slider label="Wrap width" v={box.w ?? W} min={120} max={W} step={10} def={W} fmt={fmt.px} onChange={(v, c) => setBox({ w: v >= W ? null : v }, c)} />
   </Sec>;
 }

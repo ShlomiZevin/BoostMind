@@ -54,8 +54,8 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Size and place" end={<Ovr S={S} k="box" />}>
       <Slider label="Size" v={b.w} min={24} max={Math.max(W * 5, b.w)} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />
       <Row label="Place"><Anchor value={spot} allowed={Object.keys(SPOT)} onPick={place} /></Row>
-      <Slider label="Across" v={b.x} min={-b.w} max={W} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ x: Math.round(v), anchor: null }, c)} />
-      <Slider label="Down" v={b.y} min={-b.h} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: Math.round(v), anchor: null }, c)} />
+      <Slider label="Left / right" v={b.x} min={-b.w} max={W} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ x: Math.round(v), anchor: null }, c)} />
+      <Slider label="Up / down" v={b.y} min={-b.h} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: Math.round(v), anchor: null }, c)} />
     </Sec>
     {item && <Sec title="Timing"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
     <ClipTiming P={P} />
@@ -102,7 +102,7 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
       <Opacity P={P} />
     </Sec>
     <Sec title="Box" end={<Ovr S={S} k="box" />}>
-      {(['x', 'y', 'w', 'h'] as const).map((k) => <Slider key={k} label={{ x: 'Across', y: 'Down', w: 'Width', h: 'Height' }[k]} v={box[k] ?? 0} min={0} max={k === 'x' || k === 'w' ? W : H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ [k]: Math.round(v) }, c)} />)}
+      {(['x', 'y', 'w', 'h'] as const).map((k) => <Slider key={k} label={{ x: 'Left / right', y: 'Up / down', w: 'Width', h: 'Height' }[k]} v={box[k] ?? 0} min={0} max={k === 'x' || k === 'w' ? W : H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ [k]: Math.round(v) }, c)} />)}
     </Sec>
     {item && <Sec title="Timing"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
     <ClipTiming P={P} />
@@ -126,8 +126,8 @@ export const EffectInspector: React.FC<InspectorProps> = (P) => {
       {strength && <Slider label={<>Strength <Ovr S={S} k="amount" /></>} v={S.get('amount', F.def)} min={0} max={1} step={0.01} def={F.def} fmt={fmt.pct} onChange={(v, c) => S.set('amount', v, c)} />}
       {kind === 'ghost' && <Slider label="Trail behind" v={layer.props?.ghost_lag ?? 0.2} min={0.05} max={0.6} step={0.01} def={0.2} fmt={fmt.s} onChange={(v, c) => S.layer({ ghost_lag: v }, c)} />}
       {(kind === 'zoom' || kind === 'hits' || kind === 'drift') && <>
-        <Slider label="Centre across" v={(layer.props?.center || [0.5, 0.36])[0]} min={0} max={1} step={0.01} def={0.5} fmt={fmt.pct} onChange={(v, c) => S.layer({ center: [v, (layer.props?.center || [0.5, 0.36])[1]] }, c)} />
-        <Slider label="Centre down" v={(layer.props?.center || [0.5, 0.36])[1]} min={0} max={1} step={0.01} def={0.36} fmt={fmt.pct} onChange={(v, c) => S.layer({ center: [(layer.props?.center || [0.5, 0.36])[0], v] }, c)} />
+        <Slider label="Centre left / right" v={(layer.props?.center || [0.5, 0.36])[0]} min={0} max={1} step={0.01} def={0.5} fmt={fmt.pct} onChange={(v, c) => S.layer({ center: [v, (layer.props?.center || [0.5, 0.36])[1]] }, c)} />
+        <Slider label="Centre up / down" v={(layer.props?.center || [0.5, 0.36])[1]} min={0} max={1} step={0.01} def={0.36} fmt={fmt.pct} onChange={(v, c) => S.layer({ center: [(layer.props?.center || [0.5, 0.36])[0], v] }, c)} />
       </>}
       <Note>{kind === 'zoom' ? 'Zooms in over each clip and holds there.' : kind === 'hits' ? 'Each clip is an impact at its start: a punch-in, a shake, a flash.'
         : kind === 'black' ? 'Each clip is black.' : 'Fades in and out at the ends of each clip.'} Everything below the top effect layer is filtered; layers above it (texts, subtitles) stay clean. Live - the export uses the same curve.</Note>
