@@ -84,6 +84,7 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
     </Sec>
 
     <Sec title="Framing">
+      <ToggleRow label={<>Mirror (flip left ↔ right) <Ovr S={S} k="mirror" /></>} on={!!S.get('mirror', false)} onChange={(v) => S.set('mirror', v || null)} />
       <Row label={<>Fit <Ovr S={S} k="fit" /></>}><Seg options={[['cover', 'Fill'], ['face', 'Face'], ['contain', 'Whole']]} value={fit} onPick={(v) => S.set('fit', v)} /></Row>
       <Slider label={<>Zoom <Ovr S={S} k="zoom" /></>} v={S.get('zoom', 1)} min={fit === 'contain' ? 0.3 : 1} max={3} step={0.01} def={1} fmt={fmt.x} onChange={(v, c) => S.set('zoom', v, c)} />
       <Slider label={<>Left / right <Ovr S={S} k="x" /></>} v={S.get('x', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('x', v, c)} />

@@ -36,6 +36,11 @@ const LookDefs: React.FC<{ looks: any[] }> = ({ looks }) => {
   })}</svg>;
 };
 const isCut = (key: string) => /:(eyes_)?fg$/.test(key);
+// mirror (props.mirror - a book he holds up reads right): the take's picture flips left <-> right and so does its
+// framing, so he stays where he is on screen; the set behind him and every text never flip. The export does the same
+// (export_layers: hflip + the mirrored crop)
+const FLIP = { transform: 'scaleX(-1)' } as const;
+const mirrored = (b: any, box: any, props: any) => (props.mirror ? { ...b, left: box.w - b.left - b.width } : b);
 // the cut-out, LIVE (the take files carry his matte as it is): matte_cut = the halo threshold, a' = (a - c) / (255 - c)
 // (pipeline/cutout.py applies the same curve in the export); keep.below = the desk's band of the take kept in front
 // (+ the asset's still mask of the objects on it); the side fade when his picture doesn't reach the frame's edges
@@ -161,7 +166,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
       const asset = assets[it.asset];
       const box = it.box || layer.props?.box;
       if (!asset || !box) return null;
-      const b = fitBox(asset, box, props);
+      const b = mirrored(fitBox(asset, box, props), box, props);
       const src = blobs[urlOf(key)] || urlOf(key);
       const fg = isCut(key);
       return (
@@ -181,19 +186,19 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
                 return <img src={u} alt="" style={{ position: 'absolute', left: g.left, top: g.top, width: g.width, height: g.height, maxWidth: 'none' }} />;
               })()}
               <video ref={refEl(copy)} src={src} muted playsInline preload="auto"
-                style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none',
+                style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none', ...(props.mirror ? FLIP : {}),
                   filter: (props.matte_cut ?? 0) > 0 ? `url(#mc_${props.matte_cut})` : undefined }} />
               {(() => {  // the kept desk: the same moment of the take as filmed, shown where the desk is
                 const km = keepMask(props.keep?.below, p.urls[`${it.asset}:keep`] || '');
                 const o = other(key);
                 if (!km || !o) return null;
                 return <video ref={refEl(`${copy}~k`)} src={blobs[urlOf(o)] || urlOf(o)} muted playsInline preload="auto"
-                  style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none', ...km }} />;
+                  style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none', ...km, ...(props.mirror ? FLIP : {}) }} />;
               })()}
             </div>
           ) : (
             <video ref={refEl(copy)} src={src} muted playsInline preload="auto"
-              style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none', filter: lookFilter(props.look) }} />
+              style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none', filter: lookFilter(props.look), ...(props.mirror ? FLIP : {}) }} />
           )}
         </div>
       );
@@ -208,7 +213,7 @@ const StillRun: React.FC<{ p: LayersProps; layer: any; parts: any[]; f: number; 
   const it = parts[ai], props = { ...(layer.props || {}), ...it };
   const asset = p.project.assets[it.asset], box = it.box || layer.props?.box;
   if (!asset || !box) return null;
-  const b = fitBox(asset, box, props);
+  const b = mirrored(fitBox(asset, box, props), box, props);
   const u = (k: string) => (p.urls[k] ? (p.static ? staticFile(p.urls[k]) : p.urls[k]) : '');
   const startFrom = Math.round((it.in ?? 0) * p.project.canvas.fps);
   return (
@@ -220,11 +225,11 @@ const StillRun: React.FC<{ p: LayersProps; layer: any; parts: any[]; f: number; 
           {bd && (() => { const img = p.project.assets[bd.props.asset]; const g = backdropBox(img, b.width, b.height, bd.props, { x0: -b.left, y0: -b.top, w: box.w, h: box.h });
             return <Img src={u(bd.props.asset)} style={{ position: 'absolute', left: g.left, top: g.top, width: g.width, height: g.height, maxWidth: 'none' }} />; })()}
           <Sequence from={it.from} layout="none"><OffthreadVideo src={u(it.key)} transparent startFrom={startFrom} muted playbackRate={it.rate || 1}
-            style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none' }} /></Sequence>
+            style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none', ...(props.mirror ? FLIP : {}) }} /></Sequence>
         </div>
       ) : (
         <Sequence from={it.from} layout="none"><OffthreadVideo src={u(it.key) || u(it.asset)} startFrom={startFrom} muted playbackRate={it.rate || 1}
-          style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none', filter: lookFilter(props.look) }} /></Sequence>
+          style={{ position: 'absolute', left: b.left, top: b.top, width: b.width, height: b.height, maxWidth: 'none', filter: lookFilter(props.look), ...(props.mirror ? FLIP : {}) }} /></Sequence>
       )}
     </div>
   );

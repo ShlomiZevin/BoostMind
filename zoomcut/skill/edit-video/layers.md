@@ -75,6 +75,9 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 - Cut-out, live: `matte_cut` 0..254 (edge cleanup), `keep {below}` (the real desk below that fraction of the take's
   height stays in front; asset `keep_static` = the desk objects), `side_ramp` (the sides fade when the picture is
   narrower than the frame - a one-camera person, never grid tiles). The asset's `matte` is the raw matte.
+- `mirror` (true; layer or item - Inspector "Mirror (flip left ↔ right)", 2026-10-25): the take's picture flips left
+  <-> right (with its matte and kept desk) and so does its framing, so he stays in the same place; the set behind him
+  and every text never flip. For a book / sign he holds up to the front camera that reads backwards. Live + export.
 - `eyes` (true / false; default true when the take has it): **eye contact** - the corrected copy of the same frames,
   switched live. The asset's `eyes_src` / `eyes` / `eyes_fg` / `eyes_engine` (nvidia | v6 | capcut) are made by the
   builder action `{action: "eyes", mode: "nvidia" | "neural", strength, dy, nudge, assets: [...], files: {asset:

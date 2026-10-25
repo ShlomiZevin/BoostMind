@@ -241,6 +241,8 @@ The rules:
      analysis subtitles the wrong text (dorit-1 got another video's lines). Before Analyze, read the script's first
      line; `scripts/<id>.txt.bak` holds the version before the last project-script edit.
   Example: tadar-6 (spiritual-4, elections).
+- **Mirror** a take when he holds up a book / sign and the letters read backwards (front camera): the Person layer's
+  Inspector → "Mirror (flip left ↔ right)" (`props.mirror`, layers.md) - his picture flips, the set and texts don't.
 - **As few layers as possible** (asked 2026-10-23 and again 2026-10-25): stickers / texts that are not on screen
   together share one layer - time them so they don't overlap; a second layer only for things meant to be seen together.
   Report "N items on M layers" (reference.md → "Few lanes").
