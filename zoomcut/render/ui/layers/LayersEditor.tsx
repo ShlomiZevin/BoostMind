@@ -175,6 +175,9 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     // a caption or a text: its own length / place only - not its line's picture and voice, nothing after it moves
     // (his rule, 2026-10-23); the plain edit is kept as his (user: true) through rebuilds
     if (l.kind === 'subtitles' || l.kind === 'text') return false;
+    // only his takes (a script line / a take's cut) go to the builder and ripple; a picture, a sticker, a text placed
+    // by the builder is a plain edit - its drag never moves the rest of the video (it shifted everything once, 2026-10-25)
+    if (it.ref.take == null && it.ref.line == null) return false;
     before(side === 'm' ? 'move' : 'trim');
     const live = liveEdit(l, it, side, d);
     L.send([], { commit: false });  // (the drag's own draft goes - the live edit below shows it)

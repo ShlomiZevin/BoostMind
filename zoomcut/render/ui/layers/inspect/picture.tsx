@@ -3,7 +3,7 @@
 import React from 'react';
 import { imageBox } from '../../../src/layers/geometry.js';
 import { FILTERS } from '../../../src/layers/effect_curve.js';
-import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt } from './controls';
+import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
 
 function Thumb({ P, asset, onReplace }: { P: InspectorProps; asset?: string; onReplace: () => void }) {
   const url = asset ? P.urls[asset] : '';
@@ -28,11 +28,10 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
   const S = useSettings(P);
   const W = project.canvas.w, H = project.canvas.h;
   const assetId = S.get('asset');
-  const asset = project.assets?.[assetId];
-  const box = S.get('box', { x: 0, y: 0, w: W / 3 }) || {};
+  const asset = project.assets?.[assetId ?? layer.items?.find((i: any) => i.box)?.asset ?? layer.items?.[0]?.asset];  // (the layer picked: its clip's picture, for its shape)
+  const { box, setBox } = usePlace(P, { x: 0, y: 0, w: W / 3 });
   const b = asset ? imageBox(asset, box) : { x: box.x, y: box.y, w: box.w, h: box.h ?? box.w };
   const spot = Object.keys(SPOT).find((k) => { const [x, y] = SPOT[k](W, H, b.w, b.h); return Math.abs(x - b.x) < 2 && Math.abs(y - b.y) < 2; }) || '';
-  const setBox = (patch: any, commit = true) => (item ? S.item({ box: { ...(item.box || {}), ...patch } }, commit) : S.layer({ box: { ...box, ...patch } }, commit));
   const place = (k: string) => { const [x, y] = SPOT[k](W, H, b.w, b.h); setBox({ x: Math.round(x), y: Math.round(y), anchor: null }); };
   const resize = (w: number, commit: boolean) => {  // keeps its centre where it is
     const h = asset ? (w * asset.h) / asset.w : w;
@@ -90,8 +89,7 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
   const { project, layer, item } = P;
   const S = useSettings(P);
   const W = project.canvas.w, H = project.canvas.h;
-  const box = S.get('box', { x: 0, y: 0, w: W, h: H }) || {};
-  const setBox = (patch: any, commit = true) => (item ? S.item({ box: { ...(item.box || {}), ...patch } }, commit) : S.layer({ box: { ...box, ...patch } }, commit));
+  const { box, setBox } = usePlace(P, { x: 0, y: 0, w: W, h: H });
   return <div className="ins">
     <Head icon={ICON.shape} title={layer.name || 'Shape'} sub={item ? `Shape ${item.id}` : 'Shape layer'} />
     <Sec title="Look">

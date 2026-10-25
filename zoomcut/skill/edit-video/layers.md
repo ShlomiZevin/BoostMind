@@ -187,6 +187,9 @@ Ctrl+Z brings it back. Move a layer: drag its name in the timeline up / down (a 
 list = drawn on top) - `layer.move`.
 End here ⇥ (the layered timeline's bar): the video ends at the playhead - every item past it goes, one across it is
 cut there, `pin: "end"` items move to the new end; one undoable change (`project.duration` + item ops).
+The end's handle on the ruler drags the length left / right (nothing deleted; past the end is dimmed). Dragging a
+clip never takes it past the end (his takes excepted). Only takes ripple - a picture / text a builder placed is a
+plain edit. With a layer picked, Size and place moves what is seen (its clips' own boxes too).
 `GET /api/p/<id>` - the project, `urls` (where the editor loads each asset), `stems`, the last export.
 
 ## Builders - who makes the items

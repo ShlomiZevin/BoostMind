@@ -30,6 +30,24 @@ export function useSettings(P: InspectorProps) {
   };
 }
 
+/** Size and place. A clip picked: its own box. The layer picked: what is SEEN - a clip with its own box wins over the
+ *  layer's, so the panel shows the first such clip's place, and a change moves the layer with every clip of it (a clip's
+ *  own box gets the same place - written, not dropped: a dropped one is gone from the live draft, and the final save
+ *  wouldn't see it). The layer's box used to change while a clip's own box kept the picture where it was - off-screen,
+ *  2026-10-25. */
+export function usePlace(P: InspectorProps, def: any) {
+  const { layer, item, send } = P;
+  const lead = !item ? (layer.items || []).find((i: any) => i.box) : null;
+  const box = (item ? item.box ?? layer.props?.box ?? def : lead ? { ...(layer.props?.box || {}), ...lead.box } : layer.props?.box ?? def) || {};
+  const setBox = (patch: any, commit = true) => {
+    if (item) return send([{ op: 'item.update', layer: layer.id, id: item.id, set: { box: { ...(item.box || {}), ...patch } } }], { commit });
+    const nb = { ...box, ...patch };
+    send([{ op: 'layer.update', id: layer.id, props: { box: nb } },
+      ...(layer.items || []).filter((i: any) => i.box).map((i: any) => ({ op: 'item.update', layer: layer.id, id: i.id, set: { box: nb } }))], { commit });
+  };
+  return { box, setBox };
+}
+
 // ---- time -------------------------------------------------------------------------------------------------------
 const pad = (n: number, w = 2) => String(n).padStart(w, '0');
 /** frames -> "m:ss:ff" */

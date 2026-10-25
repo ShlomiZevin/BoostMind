@@ -2,7 +2,7 @@
 // (render/src/layers/styles.tsx), where they sit, when, and how they come in.
 import React from 'react';
 import { TEXT_STYLES, SUB_STYLES } from '../../../src/layers/styles';
-import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt } from './controls';
+import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
 import { popAnim, blinkAnim, hasPop, hasBlink, mergeAnim } from '../../../src/layers/entrances_solo.js';
 
 const WHITE_ETC = ['#ffffff', '#ffd23f', '#ff6b57', '#111111'];
@@ -44,9 +44,8 @@ function fonts(project: any) {
 function Place({ P }: { P: InspectorProps }) {
   const { project, item } = P;
   const S = useSettings(P);
-  const box = S.get('box', {}) || {};
+  const { box, setBox } = usePlace(P, {});
   const W = project.canvas.w, H = project.canvas.h;
-  const setBox = (patch: any, commit = true) => (item ? S.item({ box: { ...(item.box || {}), ...patch } }, commit) : S.layer({ box: { ...box, ...patch } }, commit));
   return <Sec title="Position" end={<Ovr S={S} k="box" />}>
     <Row label="Hangs from"><Anchor value={box.anchor || 'tl'} allowed={TEXT_ANCHORS} onPick={(a) => setBox({ anchor: a })} /></Row>
     <Slider label="Left / right" v={box.x ?? W / 2} min={0} max={W} step={1} def={W / 2} fmt={fmt.px} onChange={(v, c) => setBox({ x: v }, c)} />

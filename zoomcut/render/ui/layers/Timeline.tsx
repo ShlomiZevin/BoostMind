@@ -125,10 +125,14 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const x0 = e.clientX;
     const asset = project.assets?.[it.asset];
     const rate = it.rate || 1;
+    // never past the video's end: moved there it ends at the end, stretched there it stops at it (his takes excepted -
+    // pulling back footage at the end makes the video longer, their builder re-plans the length)
+    const take = it.ref?.take != null || it.ref?.line != null;
+    const end = take ? Infinity : total;
     const opsFor = (d: number) => {
-      if (side === 'm') return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, it.from + d) } }];
+      if (side === 'm') return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, Math.min(it.from + d, end - it.dur)) } }];
       if (side === 'r') {
-        let dur = Math.max(1, it.dur + d);
+        let dur = Math.max(1, Math.min(it.dur + d, end - it.from));
         if (asset?.duration && it.in != null) dur = Math.min(dur, Math.floor((asset.duration - it.in) / rate * fps));  // never past the take's end
         return [{ op: 'item.update', layer: l.id, id: it.id, set: { dur } }];
       }
@@ -180,6 +184,22 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       else if (it.from + it.dur > f) ops.push({ op: 'item.update', layer: l.id, id: it.id, set: { dur: f - it.from } });
     }
     send(ops, { label: 'end here' });
+  };
+  // the end's handle on the ruler: drag the video's length left / right - live, one undoable change; nothing is
+  // deleted (what runs past the end just isn't in the video); "pin" items follow (ops.js repin)
+  const dragEnd = (e: React.MouseEvent) => {
+    e.stopPropagation(); e.preventDefault();
+    const x0 = e.clientX, t0 = total;
+    let last = t0;
+    const at = (m: MouseEvent) => Math.max(fps, Math.round(t0 + ((m.clientX - x0) / pps) * fps));
+    const mv = (m: MouseEvent) => { const f = at(m); if (f === last) return; last = f; send([{ op: 'project', set: { duration: f } }], { commit: false }); };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up); document.body.style.cursor = '';
+      if (last === t0) { send([], { commit: false }); return; }
+      send([{ op: 'project', set: { duration: last } }], { label: 'video length' });
+    };
+    document.body.style.cursor = 'ew-resize';
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
   // drag a layer by its name up / down: a line shows where it lands; on top in the list = drawn on top. Ctrl+Z undoes
   const [lmove, setLmove] = useState<{ id: string; over?: string; below?: boolean } | null>(null);
@@ -235,6 +255,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             <div className="ltl-name" />
             <div className="ltl-track" style={{ width }} onMouseDown={seekAt}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
+              <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
           {groups.map((g) => (
@@ -287,6 +308,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
               ))}
             </React.Fragment>
           ))}
+          <div className="ltl-after" style={{ left: NW + px(total) }} />
           <div className="playhead" style={{ left: NW + px(frame), height: '100%' }} />
         </div>
       </div>
