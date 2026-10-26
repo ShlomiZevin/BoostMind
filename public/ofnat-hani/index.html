@@ -210,7 +210,7 @@
       <ul><li>התשלום בחנות, באיסוף.</li><li>הפריט נשמר לכן 3 ימי עבודה.</li><li>מידה לא מתאימה? מחליפות במקום.</li></ul>
     </div>
     <form id="f" novalidate>
-      <label class="full">הפריט<select name="item" id="item"></select></label>
+      <label class="full">הפריט<select name="product" id="item"></select></label>
       <label>מידה<select name="size"><option>מידה אחת (מטפחות)</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option><option>46</option><option>48</option><option>50</option></select></label>
       <label>יום איסוף<select name="day"><option>ראשון</option><option>שני</option><option>שלישי</option><option>רביעי</option><option>חמישי</option><option>שישי בבוקר</option></select></label>
       <label>שם<input name="name" id="fName" autocomplete="name"></label>
@@ -295,13 +295,13 @@ form.onsubmit = async (e) => {
   btn.disabled = true; btn.textContent = 'שולחת…'; err.textContent = '';
   try {
     const fd = new FormData();
-    fd.append('site', 'ofnat-hani'); fd.append('choice', f.item.value); fd.append('name', name); fd.append('phone', phone); fd.append('email', email);
+    fd.append('site', 'ofnat-hani'); fd.append('choice', f.product.value); fd.append('name', name); fd.append('phone', phone); fd.append('email', email);
     fd.append('website', f.website.value);
-    fd.append('message', [`פריט: ${f.item.value}`, `מידה: ${f.size.value}`, `יום איסוף: ${f.day.value}`, '', f.msg.value.trim()].join('\n'));
+    fd.append('message', [`פריט: ${f.product.value}`, `מידה: ${f.size.value}`, `יום איסוף: ${f.day.value}`, '', f.msg.value.trim()].join('\n'));
     const r = await fetch(API, { method: 'POST', body: fd });
     if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
     form.reset();
-    window.track && window.track('lead', f.item.value);
+    window.track && window.track('lead', f.product.value);
     pop('תודה, ההזמנה התקבלה!', 'נתקשר אלייך לאשר ולתאם את האיסוף מהחנות ברבי עקיבא. בשורות טובות.');
   } catch (x) {
     err.textContent = x.message === 'too many' ? 'ההזמנה כבר התקבלה, אין צורך לשלוח שוב.' : 'השליחה לא עברה. נסי שוב בעוד רגע.';

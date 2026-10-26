@@ -145,3 +145,5 @@
   `--data-binary @file.json`** - never `curl -d '...'` with Hebrew typed in Git Bash: it arrives as U+FFFD and the
   editor shows diamonds (haredit-1, 2026-10-25: three subtitles and a layer name). After any op with Hebrew, read the
   project back and check for '�'.
+- **A site's form: never name a field `item`, `length` or `namedItem`** - `form.elements.item` is the built-in method,
+  so `f.item.value` is undefined and the order email said "פריט: undefined" (אופנת חני, 2026-10-26, a real order).
