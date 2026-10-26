@@ -8,8 +8,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const API = 'https://cloud.leonardo.ai/api/rest';
-const ENV = 'C:\\workspace\\aspect\\aspect-agent-server\\.env';
-const KEY = process.env.LEONARDO_API_KEY || fs.readFileSync(ENV, 'utf8').split(/\r?\n/).find((l) => l.startsWith('LEONARDO_API_KEY=')).slice(17).trim();
+// the studio's own key (zoomcut/.env - his official Leonardo account, 2026-10-26) first; aspect's only as a fallback
+const ENVS = [new URL('../.env', import.meta.url), 'C:\\workspace\\aspect\\aspect-agent-server\\.env'];
+const keyIn = (f) => { try { return fs.readFileSync(f, 'utf8').split(/\r?\n/).find((l) => l.startsWith('LEONARDO_API_KEY='))?.slice(17).trim(); } catch { return null; } };
+const KEY = process.env.LEONARDO_API_KEY || ENVS.map(keyIn).find(Boolean);
 const MODEL = { flare: 'openai/gpt-image-2.5-flare', sunburst: 'openai/gpt-image-2.5-sunburst' };
 const headers = () => ({ authorization: `Bearer ${KEY}`, accept: 'application/json', 'content-type': 'application/json' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
