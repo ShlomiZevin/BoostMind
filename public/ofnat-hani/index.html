@@ -70,6 +70,7 @@
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }  /* 9 and 6 items: full rows */
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
   .card img { aspect-ratio: 1; object-fit: cover; background: #eee; }
+  [data-cat="daily"] .card img, [data-cat="shabbat"] .card img { aspect-ratio: 3 / 4; }
   .card .b { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .card h3 { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.3; }
   .card .note { font-size: 13px; color: var(--muted); }
@@ -147,18 +148,18 @@
     <a class="cta" href="#order">הזמנה לאיסוף</a>
   </nav>
 </div></header>
-<div class="marquee"><span>✦ מבצע לכבוד החורף: מטפחת שנייה ב-50% הנחה ✦ קולקציית שבת חדשה הגיעה לחנות ✦ איסוף עצמי מהחנות ברחוב רבי עקיבא ✦ כל הבגדים באורך תקני ✦ אין לנו וואטסאפ - הזמנות דרך האתר בלבד ✦</span></div>
+<div class="marquee"><span>✦ מבצע לכבוד החורף: מטפחת שנייה ב-50% הנחה ✦ קולקציית שבת חדשה הגיעה לחנות ✦ איסוף עצמי מהחנות ברחוב רבי עקיבא ✦ כל הבגדים באורך תקני ✦ הקולקציה החדשה - בהצגת חני פרידמן ✦</span></div>
 
 <main class="wrap" id="top">
   <section class="hero">
     <div>
       <h1>ברוכות הבאות<br>ל<em>אופנת חני</em></h1>
-      <p>שמי חני פרידמן. בבוקר אני מפתחת Backend בהייטק, ואחרי שאני אוספת את מלכי מהגן - אני כאן, בחנות. מטפחות, כיסויי ראש ובגדים צנועים ליום-יום ולשבת, בדיוק כמו שהייתי רוצה ללבוש בעצמי.</p>
-      <p>כל פריט עבר את העין שלי. אם משהו לא צנוע מספיק - הוא לא נכנס לחנות.</p>
-      <div class="sign">בברכה, חני</div>
+      <p>מטפחות, כיסויי ראש ובגדים צנועים ליום-יום ולשבת, ברחוב רבי עקיבא בבני ברק. כל הבגדים באורך תקני, שרוול ארוך וצווארון סגור - בלי יוצא מן הכלל.</p>
+      <p>את כל הקולקציה מציגה הפרזנטורית שלנו, <b>חני פרידמן</b>.</p>
+      <div class="sign">הקולקציה החדשה כבר בחנות</div>
       <div class="btns"><a class="btn" href="#tichels">לקולקציית המטפחות</a><a class="btn gold" href="#order">הזמנה לאיסוף מהחנות</a></div>
     </div>
-    <div class="pic"><img src="img/hani-hero.jpg" alt="חני פרידמן בחנות"></div>
+    <div class="pic"><img src="img/hani-cover.jpg" alt="חני פרידמן, הפרזנטורית של אופנת חני"></div>
   </section>
   <div class="facts">
     <div><b>איסוף עצמי</b>מהחנות ברחוב רבי עקיבא</div>
@@ -172,13 +173,13 @@
   <div class="tie">
     <img src="img/hani-tie.jpg" alt="חני קושרת מטפחת">
     <div>
-      <h2>חני מראה: קשירה בשלוש דקות</h2>
+      <h2>הפרזנטורית שלנו מראה: קשירה בשלוש דקות</h2>
       <ol>
         <li>מניחות את המטפחת משולשת, הצד הרחב על המצח.</li>
         <li>מעבירות את הקצוות אחורה, מתחת לחלק התחתון, וקושרות קשר אחד.</li>
         <li>מסובבות את הקצוות, מקיפות את הקשר ומכניסות פנימה. זהו.</li>
       </ol>
-      <div class="q">״אצלי זה לוקח שלוש דקות, גם כשמלכי מחכה ליד הדלת.״</div>
+      <div class="q">״אצלי זה לוקח שלוש דקות, גם כשמלכי מחכה ליד הדלת.״ - חני פרידמן</div>
     </div>
   </div>
 
@@ -186,19 +187,19 @@
   <section class="cat" id="daily"><div class="h"><h2>בגדי יום-יום</h2><p>חצאיות, חולצות ושמלות לכל יום · מידות 36-50</p></div><div class="grid" data-cat="daily"></div></section>
   <section class="cat" id="shabbat"><div class="h"><h2>בגדי שבת</h2><p>לכבוד שבת קודש · מידות 36-50</p></div>
     <div class="shabbat"><div class="grid" data-cat="shabbat"></div>
-      <div class="pick"><img src="img/hani-shabbat.jpg" alt="חני בשמלת שבת"><p><b>הבחירה של חני לשבת:</b> שמלת הנייבי עם צווארון התחרה, ומטפחת השמנת-זהב. ״את השמלה הזאת לבשתי לבת המצווה של שטערני.״</p></div></div></section>
+      <div class="pick"><img src="img/hani-shabbat.jpg" alt="חני בשמלת שבת"><p><b>הבחירה של הפרזנטורית לשבת:</b> שמלת הנייבי עם צווארון התחרה, ומטפחת השמנת-זהב. ״את השמלה הזאת לבשתי לבת המצווה של שטערני.״ - חני פרידמן</p></div></div></section>
 
   <section class="store" id="store">
     <div class="front"><img src="img/front.jpg" alt="חזית החנות ברחוב רבי עקיבא"><div class="board"><div>אופנת חני<small>מטפחות · בגדים צנועים</small></div></div></div>
     <div class="info">
       <h3>החנות ברבי עקיבא</h3>
       <table>
-        <tr><td>ראשון-חמישי</td><td>16:30-21:00</td></tr>
+        <tr><td>ראשון-חמישי</td><td>10:00-13:30 · 16:00-21:00</td></tr>
         <tr><td>שישי וערבי חג</td><td>9:00-12:00</td></tr>
         <tr><td>שבת וחג</td><td class="closed">סגור</td></tr>
       </table>
-      <div class="n">רחוב רבי עקיבא, בני ברק. החנות נפתחת אחרי האיסוף מהגן, בעזרת השם. בבקרים - בתיאום מראש בלבד.</div>
-      <div class="n">אין לנו וואטסאפ. פלאפון כשר. הזמנות ושאלות - דרך הטופס כאן למטה.</div>
+      <div class="n">רחוב רבי עקיבא, בני ברק. חנות לנשים, עם תא מדידה פרטי.</div>
+      <div class="n">הזמנות ושאלות - דרך הטופס כאן למטה. אנחנו חוזרות אלייך טלפונית.</div>
     </div>
   </section>
 
@@ -210,15 +211,15 @@
     </div>
     <form id="f" novalidate>
       <label class="full">הפריט<select name="item" id="item"></select></label>
-      <label>מידה<select name="size"><option>מידה אחת (מטפחות)</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option><option>46</option><option>48</option><option>50</option><option>ילדות 4-12</option></select></label>
+      <label>מידה<select name="size"><option>מידה אחת (מטפחות)</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option><option>46</option><option>48</option><option>50</option></select></label>
       <label>יום איסוף<select name="day"><option>ראשון</option><option>שני</option><option>שלישי</option><option>רביעי</option><option>חמישי</option><option>שישי בבוקר</option></select></label>
       <label>שם<input name="name" id="fName" autocomplete="name"></label>
       <label>טלפון<input name="phone" inputmode="tel" autocomplete="tel"></label>
       <label class="full">אימייל (לא חובה)<input name="email" inputmode="email" autocomplete="email"></label>
-      <label class="full">הערות<textarea name="msg" placeholder="צבע, כמה יחידות, שאלה לחני..."></textarea></label>
+      <label class="full">הערות<textarea name="msg" placeholder="צבע, כמה יחידות, שאלה..."></textarea></label>
       <div class="hp" aria-hidden="true"><label>אתר<input name="website" tabindex="-1" autocomplete="off"></label></div>
       <div class="full" id="err"></div>
-      <div class="full"><button class="btn gold" id="send" type="submit">שליחת הזמנה לחני</button></div>
+      <div class="full"><button class="btn gold" id="send" type="submit">שליחת ההזמנה</button></div>
     </form>
   </section>
 </main>
@@ -248,9 +249,9 @@ const CAT = {
     ['c6', 'שביס תחרה לבן', 'לשבת', 59, 0],
   ],
   daily: [
-    ['d1', 'חצאית פליסה נייבי', 'ארוכה, עם בטנה', 149, 0],
-    ['d2', 'חצאית ג׳ינס ארוכה', 'ישרה, עם שסע מאחור באורך תקני', 159, 0],
-    ['d3', 'חצאית מקסי שחורה', 'גזרת A', 129, 0],
+    ['d1', 'חצאית פליסה נייבי וחולצה לבנה', 'ארוכה, עם בטנה', 149, 0],
+    ['d2', 'חצאית ג׳ינס ארוכה', 'ישרה, באורך תקני', 159, 0],
+    ['d3', 'חצאית מקסי שחורה וקרדיגן', 'גזרת A', 129, 0],
     ['d4', 'חולצה לבנה צווארון עגול', 'שרוול ארוך, בד לא שקוף', 99, 0],
     ['d5', 'שמלת סריג אפורה', 'לחורף, עד הקרסול', 189, 0],
     ['d6', 'קרדיגן ארוך נייבי', 'הולך על הכול', 139, 169],
@@ -261,7 +262,7 @@ const CAT = {
     ['s3', 'סט חולצת תחרה וחצאית שמנת', 'לשבת ולשמחות', 349, 0],
     ['s4', 'שמלה שחורה ברקמת זהב', 'לחתונות ולבר מצוות', 389, 0],
     ['s5', 'חלוק שבת מרופד, כחול רויאל', 'לליל שבת בבית', 199, 0],
-    ['s6', 'שמלת שבת לילדות', 'נייבי, צווארון לבן · 4-12', 149, 0],
+    ['s6', 'שמלת סאטן ירוק אמרלד', 'צווארון גבוה, לשמחות', 319, 0],
   ],
 };
 const sel = document.getElementById('item');
@@ -304,7 +305,7 @@ form.onsubmit = async (e) => {
     pop('תודה, ההזמנה התקבלה!', 'נתקשר אלייך לאשר ולתאם את האיסוף מהחנות ברבי עקיבא. בשורות טובות.');
   } catch (x) {
     err.textContent = x.message === 'too many' ? 'ההזמנה כבר התקבלה, אין צורך לשלוח שוב.' : 'השליחה לא עברה. נסי שוב בעוד רגע.';
-  } finally { btn.disabled = false; btn.textContent = 'שליחת הזמנה לחני'; }
+  } finally { btn.disabled = false; btn.textContent = 'שליחת ההזמנה'; }
 };
 </script>
 <script src="/t.js" data-site="ofnat-hani" defer></script>

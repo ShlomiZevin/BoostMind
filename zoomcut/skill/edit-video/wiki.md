@@ -23,7 +23,7 @@ as `site` - the Characters page shows it; keep all three in step):
 | /ayelet/ | Ayelet Hashachar (תדר) | `public/ayelet/` |
 | /demokratovich/ | Rabbi Demokratovich + the Rabbanit (קהילת שערי בג״ץ) | `public/demokratovich/` |
 | /dorit/ | Dorit Mercury (astrology) | `public/dorit/` |
-| /ofnat-hani/ | Hani Friedman - אופנת חני, her modest-fashion shop on Rabbi Akiva, Bnei Brak (order for pickup -> siteLead `ofnat-hani`) | `public/ofnat-hani/` (her face images git-ignored) |
+| /ofnat-hani/ | אופנת חני - a modest-fashion shop on Rabbi Akiva, Bnei Brak. NOT Hani's shop: Hani Friedman is its presenter and model - she wears every mitpachat and outfit, very modestly (his correction, 2026-10-26). Order for pickup -> siteLead `ofnat-hani` | `public/ofnat-hani/` (every picture with her face git-ignored) |
 | /hindsight/ | Nahor (Zion) Minuf (HINDSIGHT VIP) | `public/hindsight/` |
 | /homo-useless/ | Yuval (Kise) Noah Harari | `public/homo-useless/` |
 | - (none yet) | Gen Z cashier, the gym guy + Sigal, the news anchor | a site of their own is welcome - ask him |
