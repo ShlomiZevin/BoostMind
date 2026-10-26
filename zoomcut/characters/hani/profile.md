@@ -56,8 +56,8 @@ Voice in the edit: natural
 - ארז (ראש צוות Data & AI בטקי-טק - ה-data scientist היחיד): ראש צוות Data & AI - היא מדווחת אליו באתר
 
 ## Their website
-https://techytech.web.app
-עובדת בטקי-טק - כרטיס בצוות באתר החברה (public/techietech).
+https://boostmind-b052c.web.app/ofnat-hani/
+אופנת חני - חנות מטפחות ובגדים צנועים ברחוב רבי עקיבא, בני ברק (public/ofnat-hani). חני מציגה הכול; הזמנה לאיסוף מהחנות -> siteLead 'ofnat-hani' (מייל, בלי תשלום). החנות נפתחת 16:30, אחרי האיסוף מהגן. היא גם מפתחת Backend בטקי-טק (techytech.web.app).
 
 ## Already done - topics and storylines (don't repeat)
 - המתכנתת החרדית (haredit-1)

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אופנת חני | צניעות באופנה · רבי עקיבא, בני ברק</title>
+<meta name="description" content="אופנת חני - מטפחות, כיסויי ראש ובגדים צנועים ליום-יום ולשבת. רחוב רבי עקיבא, בני ברק. הזמנה לאיסוף עצמי מהחנות.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:site_name" content="אופנת חני">
+<meta property="og:title" content="אופנת חני | מטפחות ובגדים צנועים · רבי עקיבא, בני ברק">
+<meta property="og:description" content="מטפחות, כיסויי ראש, בגדי יום-יום ושבת. הזמנה לאיסוף עצמי מהחנות.">
+<meta property="og:url" content="https://boostmind-b052c.web.app/ofnat-hani/">
+<meta property="og:image" content="https://boostmind-b052c.web.app/ofnat-hani/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="אופנת חני | מטפחות ובגדים צנועים">
+<meta name="twitter:description" content="מטפחות, כיסויי ראש, בגדי יום-יום ושבת. איסוף עצמי מהחנות ברבי עקיבא.">
+<meta name="twitter:image" content="https://boostmind-b052c.web.app/ofnat-hani/img/og.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #1c2a4a; --navy-2: #2b3c63; --gold: #b8902f; --gold-l: #e9d7a6; --cream: #faf6ee; --paper: #fff; --ink: #222; --muted: #6b6457; --line: #e6dccb; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; }
+  body { background: var(--cream); color: var(--ink); font-family: 'Heebo', sans-serif; font-size: 17px; line-height: 1.55; }
+  a { color: inherit; }
+  img { display: block; max-width: 100%; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 18px; }
+
+  /* the strip every Bnei Brak shop has */
+  .topbar { background: var(--navy); color: var(--gold-l); font-size: 14px; }
+  .topbar .wrap { display: flex; justify-content: space-between; gap: 12px; padding-top: 6px; padding-bottom: 6px; }
+  header { background: var(--paper); border-bottom: 3px double var(--gold); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-top: 16px; padding-bottom: 14px; flex-wrap: wrap; }
+  .brand { text-decoration: none; display: flex; align-items: center; gap: 12px; }
+  .brand .seal { width: 58px; height: 58px; border-radius: 50%; background: var(--navy); color: var(--gold-l); display: grid; place-items: center;
+    font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 28px; border: 3px solid var(--gold); }
+  .brand b { display: block; font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 36px; color: var(--navy); line-height: 1; }
+  .brand small { display: block; font-size: 14px; color: var(--gold); font-weight: 700; letter-spacing: .5px; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav a { text-decoration: none; font-weight: 700; color: var(--navy); padding: 8px 12px; border-radius: 8px; font-size: 16px; }
+  nav a:hover { background: var(--cream); }
+  nav a.cta { background: var(--gold); color: #fff; }
+  .marquee { background: var(--gold-l); color: var(--navy); font-weight: 700; overflow: hidden; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  /* RTL: the text starts on screen at the right and drifts right; the empty half on its left brings it back round */
+  .marquee span { display: inline-block; padding: 7px 0 7px 0; padding-left: 100%; animation: run 40s linear infinite; }
+  @keyframes run { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+  /* Hani welcomes */
+  .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 34px; align-items: center; padding: 38px 0 30px; }
+  .hero h1 { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 52px; color: var(--navy); line-height: 1.05; }
+  .hero h1 em { font-style: normal; color: var(--gold); }
+  .hero p { font-size: 19px; margin-top: 16px; color: #3b3a36; }
+  .hero .sign { font-family: 'Frank Ruhl Libre', serif; font-weight: 700; font-size: 22px; color: var(--navy); margin-top: 14px; }
+  .hero .pic { border-radius: 16px; overflow: hidden; border: 6px solid var(--paper); box-shadow: 0 6px 22px rgba(28,42,74,.18); }
+  .btn { display: inline-block; text-decoration: none; background: var(--navy); color: #fff; font-weight: 800; padding: 12px 22px; border-radius: 10px; border: 0; cursor: pointer; font-family: inherit; font-size: 17px; }
+  .btn.gold { background: var(--gold); }
+  .hero .btns { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 6px 0 10px; }
+  .facts div { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+  .facts b { display: block; color: var(--navy); font-size: 17px; }
+
+  /* the catalogue */
+  section.cat { padding: 34px 0 10px; }
+  .h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 2px solid var(--gold); padding-bottom: 8px; margin-bottom: 18px; }
+  .h h2 { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 34px; color: var(--navy); }
+  .h p { color: var(--muted); font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }  /* 9 and 6 items: full rows */
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .card img { aspect-ratio: 1; object-fit: cover; background: #eee; }
+  .card .b { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .card h3 { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+  .card .note { font-size: 13px; color: var(--muted); }
+  .card .row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 6px; }
+  .card .price { font-weight: 800; font-size: 19px; color: var(--ink); }
+  .card .price s { color: #a9a29a; font-weight: 500; font-size: 14px; margin-left: 4px; }
+  .card button { background: var(--cream); border: 1px solid var(--gold); color: var(--navy); font-weight: 800; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-family: inherit; font-size: 15px; }
+  .card button:hover { background: var(--gold); color: #fff; }
+  .tag { position: absolute; top: 10px; right: 10px; background: #a3262a; color: #fff; font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 6px; }
+  .card .pic { position: relative; }
+
+  /* how to tie */
+  .tie { display: grid; grid-template-columns: .8fr 1.2fr; gap: 26px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-top: 34px; }
+  .tie img { border-radius: 12px; }
+  .tie h2 { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 30px; color: var(--navy); }
+  .tie ol { margin: 12px 22px 0 0; display: grid; gap: 8px; font-size: 17px; }
+  .tie .q { margin-top: 14px; color: var(--muted); font-style: italic; }
+
+  .shabbat { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+  .shabbat .pick { background: var(--navy); color: #fff; border-radius: 16px; overflow: hidden; }
+  .shabbat .pick p { padding: 12px 14px 16px; font-size: 16px; }
+  .shabbat .pick b { color: var(--gold-l); }
+
+  /* the shop on Rabbi Akiva */
+  .store { display: grid; grid-template-columns: 1.3fr .7fr; gap: 22px; margin-top: 34px; align-items: stretch; }
+  .front { position: relative; border-radius: 16px; overflow: hidden; border: 6px solid var(--paper); box-shadow: 0 6px 22px rgba(28,42,74,.18); }
+  .front .board { position: absolute; left: 18.2%; width: 53.5%; top: 2.2%; height: 22%; display: grid; place-items: center; text-align: center;
+    font-family: 'Frank Ruhl Libre', serif; font-weight: 900; color: var(--navy); font-size: clamp(22px, 5.2vw, 56px); line-height: 1; transform: perspective(600px) rotateY(-4deg); }
+  .front .board small { display: block; font-family: 'Heebo'; font-weight: 700; font-size: .32em; color: var(--gold); margin-top: 4px; }
+  .info { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .info h3 { font-family: 'Frank Ruhl Libre', serif; font-size: 26px; color: var(--navy); margin-bottom: 8px; }
+  .info table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  .info td { padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .info td:last-child { text-align: left; font-weight: 700; }
+  .info .closed { color: #a3262a; }
+  .info .n { margin-top: 12px; font-size: 15px; color: var(--muted); }
+
+  /* the order for pickup */
+  .order { background: var(--navy); color: #fff; border-radius: 18px; padding: 26px; margin: 34px 0; display: grid; grid-template-columns: .8fr 1.2fr; gap: 26px; }
+  .order h2 { font-family: 'Frank Ruhl Libre', serif; font-size: 34px; color: var(--gold-l); line-height: 1.1; }
+  .order .lead { margin-top: 10px; font-size: 17px; opacity: .92; }
+  .order ul { margin: 14px 18px 0 0; font-size: 15px; opacity: .9; display: grid; gap: 6px; }
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  form label { display: grid; gap: 4px; font-size: 14px; font-weight: 700; color: var(--gold-l); }
+  form .full { grid-column: 1 / -1; }
+  input, select, textarea { font-family: inherit; font-size: 16px; padding: 10px 12px; border-radius: 9px; border: 1px solid #50608a; background: #fff; color: var(--ink); width: 100%; }
+  textarea { min-height: 70px; resize: vertical; }
+  .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }  /* (left: -9999px stretches an RTL page) */
+  #err { color: #ffd2cf; min-height: 22px; font-weight: 700; }
+  footer { background: var(--navy); color: var(--gold-l); font-size: 14px; padding: 22px 0 30px; margin-top: 20px; }
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+  .pop { position: fixed; inset: 0; background: rgba(20,28,48,.6); display: none; place-items: center; z-index: 9; padding: 18px; }
+  .pop.on { display: grid; }
+  .pop div { background: var(--paper); border-radius: 16px; padding: 24px 26px; max-width: 420px; text-align: center; border-top: 6px solid var(--gold); }
+  .pop h3 { font-family: 'Frank Ruhl Libre', serif; font-size: 28px; color: var(--navy); }
+  .pop p { margin: 10px 0 16px; }
+
+  @media (max-width: 820px) {
+    .hero, .tie, .store, .order, .shabbat { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 40px; }
+    .facts { grid-template-columns: 1fr 1fr; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    form { grid-template-columns: 1fr; }
+    nav { width: 100%; }
+    .topbar .wrap { flex-direction: column; gap: 2px; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap"><span>בס״ד</span><span>החנות סגורה בשבתות ובחגים · ערב שבת עד 12:00</span></div></div>
+<header><div class="wrap">
+  <a class="brand" href="#top"><span class="seal">ח</span><span><b>אופנת חני</b><small>צניעות באופנה · רבי עקיבא, בני ברק</small></span></a>
+  <nav>
+    <a href="#tichels">מטפחות</a><a href="#covers">כיסויי ראש</a><a href="#daily">יום-יום</a><a href="#shabbat">שבת</a><a href="#store">החנות</a>
+    <a class="cta" href="#order">הזמנה לאיסוף</a>
+  </nav>
+</div></header>
+<div class="marquee"><span>✦ מבצע לכבוד החורף: מטפחת שנייה ב-50% הנחה ✦ קולקציית שבת חדשה הגיעה לחנות ✦ איסוף עצמי מהחנות ברחוב רבי עקיבא ✦ כל הבגדים באורך תקני ✦ אין לנו וואטסאפ - הזמנות דרך האתר בלבד ✦</span></div>
+
+<main class="wrap" id="top">
+  <section class="hero">
+    <div>
+      <h1>ברוכות הבאות<br>ל<em>אופנת חני</em></h1>
+      <p>שמי חני פרידמן. בבוקר אני מפתחת Backend בהייטק, ואחרי שאני אוספת את מלכי מהגן - אני כאן, בחנות. מטפחות, כיסויי ראש ובגדים צנועים ליום-יום ולשבת, בדיוק כמו שהייתי רוצה ללבוש בעצמי.</p>
+      <p>כל פריט עבר את העין שלי. אם משהו לא צנוע מספיק - הוא לא נכנס לחנות.</p>
+      <div class="sign">בברכה, חני</div>
+      <div class="btns"><a class="btn" href="#tichels">לקולקציית המטפחות</a><a class="btn gold" href="#order">הזמנה לאיסוף מהחנות</a></div>
+    </div>
+    <div class="pic"><img src="img/hani-hero.jpg" alt="חני פרידמן בחנות"></div>
+  </section>
+  <div class="facts">
+    <div><b>איסוף עצמי</b>מהחנות ברחוב רבי עקיבא</div>
+    <div><b>תשלום בחנות</b>באיסוף, במזומן או באשראי</div>
+    <div><b>החלפות</b>תוך 14 יום עם קבלה</div>
+    <div><b>אורך תקני</b>בכל הבגדים, בלי יוצא מן הכלל</div>
+  </div>
+
+  <section class="cat" id="tichels"><div class="h"><h2>מטפחות</h2><p>כל המטפחות כותנה, פשתן, קטיפה ושיפון · מידה אחת</p></div><div class="grid" data-cat="tichels"></div></section>
+
+  <div class="tie">
+    <img src="img/hani-tie.jpg" alt="חני קושרת מטפחת">
+    <div>
+      <h2>חני מראה: קשירה בשלוש דקות</h2>
+      <ol>
+        <li>מניחות את המטפחת משולשת, הצד הרחב על המצח.</li>
+        <li>מעבירות את הקצוות אחורה, מתחת לחלק התחתון, וקושרות קשר אחד.</li>
+        <li>מסובבות את הקצוות, מקיפות את הקשר ומכניסות פנימה. זהו.</li>
+      </ol>
+      <div class="q">״אצלי זה לוקח שלוש דקות, גם כשמלכי מחכה ליד הדלת.״</div>
+    </div>
+  </div>
+
+  <section class="cat" id="covers"><div class="h"><h2>כיסויי ראש</h2><p>שביסים, כובעים, טורבנים וסרטים</p></div><div class="grid" data-cat="covers"></div></section>
+  <section class="cat" id="daily"><div class="h"><h2>בגדי יום-יום</h2><p>חצאיות, חולצות ושמלות לכל יום · מידות 36-50</p></div><div class="grid" data-cat="daily"></div></section>
+  <section class="cat" id="shabbat"><div class="h"><h2>בגדי שבת</h2><p>לכבוד שבת קודש · מידות 36-50</p></div>
+    <div class="shabbat"><div class="grid" data-cat="shabbat"></div>
+      <div class="pick"><img src="img/hani-shabbat.jpg" alt="חני בשמלת שבת"><p><b>הבחירה של חני לשבת:</b> שמלת הנייבי עם צווארון התחרה, ומטפחת השמנת-זהב. ״את השמלה הזאת לבשתי לבת המצווה של שטערני.״</p></div></div></section>
+
+  <section class="store" id="store">
+    <div class="front"><img src="img/front.jpg" alt="חזית החנות ברחוב רבי עקיבא"><div class="board"><div>אופנת חני<small>מטפחות · בגדים צנועים</small></div></div></div>
+    <div class="info">
+      <h3>החנות ברבי עקיבא</h3>
+      <table>
+        <tr><td>ראשון-חמישי</td><td>16:30-21:00</td></tr>
+        <tr><td>שישי וערבי חג</td><td>9:00-12:00</td></tr>
+        <tr><td>שבת וחג</td><td class="closed">סגור</td></tr>
+      </table>
+      <div class="n">רחוב רבי עקיבא, בני ברק. החנות נפתחת אחרי האיסוף מהגן, בעזרת השם. בבקרים - בתיאום מראש בלבד.</div>
+      <div class="n">אין לנו וואטסאפ. פלאפון כשר. הזמנות ושאלות - דרך הטופס כאן למטה.</div>
+    </div>
+  </section>
+
+  <section class="order" id="order">
+    <div>
+      <h2>הזמנה לאיסוף מהחנות</h2>
+      <div class="lead">בוחרות פריט, משאירות פרטים, ואנחנו מתקשרות לאשר ולתאם מתי לבוא.</div>
+      <ul><li>התשלום בחנות, באיסוף.</li><li>הפריט נשמר לכן 3 ימי עבודה.</li><li>מידה לא מתאימה? מחליפות במקום.</li></ul>
+    </div>
+    <form id="f" novalidate>
+      <label class="full">הפריט<select name="item" id="item"></select></label>
+      <label>מידה<select name="size"><option>מידה אחת (מטפחות)</option><option>36</option><option>38</option><option>40</option><option>42</option><option>44</option><option>46</option><option>48</option><option>50</option><option>ילדות 4-12</option></select></label>
+      <label>יום איסוף<select name="day"><option>ראשון</option><option>שני</option><option>שלישי</option><option>רביעי</option><option>חמישי</option><option>שישי בבוקר</option></select></label>
+      <label>שם<input name="name" id="fName" autocomplete="name"></label>
+      <label>טלפון<input name="phone" inputmode="tel" autocomplete="tel"></label>
+      <label class="full">אימייל (לא חובה)<input name="email" inputmode="email" autocomplete="email"></label>
+      <label class="full">הערות<textarea name="msg" placeholder="צבע, כמה יחידות, שאלה לחני..."></textarea></label>
+      <div class="hp" aria-hidden="true"><label>אתר<input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="full" id="err"></div>
+      <div class="full"><button class="btn gold" id="send" type="submit">שליחת הזמנה לחני</button></div>
+    </form>
+  </section>
+</main>
+<footer><div class="wrap"><span>אופנת חני · צניעות באופנה · רחוב רבי עקיבא, בני ברק</span><span>החנות סגורה בשבתות ובחגים · בס״ד</span></div></footer>
+<div class="pop" id="pop"><div><h3 id="popH"></h3><p id="popP"></p><button class="btn" onclick="document.getElementById('pop').classList.remove('on')">תודה</button></div></div>
+
+<script>
+// the catalogue: [file, name, note, price, old price (sale) or 0]
+const CAT = {
+  tichels: [
+    ['t1', 'מטפחת סריגה שחורה', 'הקלאסית. הולכת עם הכול', 59, 0],
+    ['t2', 'מטפחת כותנה נייבי', 'ליום-יום, נושמת', 49, 0],
+    ['t3', 'מטפחת פייזלי בורדו-זהב', 'הכי נמכרת בחנות', 79, 99],
+    ['t4', 'מטפחת פשתן בז׳', 'קלילה לקיץ', 59, 0],
+    ['t5', 'מטפחת קטיפה ירוק יער', 'לחורף ולשמחות', 89, 0],
+    ['t6', 'מטפחת אפורה בנקודות', 'לעבודה ולמשרד', 55, 0],
+    ['t7', 'מטפחת שיפון תכלת', 'עדינה ואוורירית', 65, 0],
+    ['t8', 'מטפחת פליסה ורוד עתיק', 'נכנסה השבוע', 69, 0],
+    ['t9', 'מטפחת שבת שמנת-זהב', 'נוצצת בעדינות, לשבת', 89, 0],
+  ],
+  covers: [
+    ['c1', 'שביס סרוג שחור', 'מתחת למטפחת או לבד', 39, 0],
+    ['c2', 'בנדנה קשורה מראש נייבי', 'בלי לקשור, בשנייה', 49, 0],
+    ['c3', 'טורבן שמנת', 'מוכן ללבישה', 69, 0],
+    ['c4', 'כובע לבד שחור', 'לשבת ולשמחות', 149, 0],
+    ['c5', 'סרט פרחוני רחב', 'מעל הפאה', 45, 0],
+    ['c6', 'שביס תחרה לבן', 'לשבת', 59, 0],
+  ],
+  daily: [
+    ['d1', 'חצאית פליסה נייבי', 'ארוכה, עם בטנה', 149, 0],
+    ['d2', 'חצאית ג׳ינס ארוכה', 'ישרה, עם שסע מאחור באורך תקני', 159, 0],
+    ['d3', 'חצאית מקסי שחורה', 'גזרת A', 129, 0],
+    ['d4', 'חולצה לבנה צווארון עגול', 'שרוול ארוך, בד לא שקוף', 99, 0],
+    ['d5', 'שמלת סריג אפורה', 'לחורף, עד הקרסול', 189, 0],
+    ['d6', 'קרדיגן ארוך נייבי', 'הולך על הכול', 139, 169],
+  ],
+  shabbat: [
+    ['s1', 'שמלת שבת נייבי, צווארון תחרה', 'הבחירה של חני', 289, 0],
+    ['s2', 'שמלת קטיפה בורדו', 'לשבתות החורף', 329, 0],
+    ['s3', 'סט חולצת תחרה וחצאית שמנת', 'לשבת ולשמחות', 349, 0],
+    ['s4', 'שמלה שחורה ברקמת זהב', 'לחתונות ולבר מצוות', 389, 0],
+    ['s5', 'חלוק שבת מרופד, כחול רויאל', 'לליל שבת בבית', 199, 0],
+    ['s6', 'שמלת שבת לילדות', 'נייבי, צווארון לבן · 4-12', 149, 0],
+  ],
+};
+const sel = document.getElementById('item');
+for (const [cat, items] of Object.entries(CAT)) {
+  document.querySelector(`[data-cat="${cat}"]`).innerHTML = items.map(([f, n, note, p, old]) => `
+    <div class="card"><div class="pic">${old ? '<span class="tag">מבצע</span>' : ''}<img src="img/p/${f}.jpg" alt="${n}" loading="lazy"></div>
+      <div class="b"><h3>${n}</h3><div class="note">${note}</div>
+        <div class="row"><span class="price">₪${p}${old ? ` <s>₪${old}</s>` : ''}</span><button data-item="${n}">להזמנה</button></div></div></div>`).join('');
+  for (const [, n, , p] of items) sel.add(new Option(`${n} · ₪${p}`, n));
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-item]');
+  if (!b) return;
+  sel.value = b.dataset.item;
+  window.track && window.track('item', b.dataset.item);
+  document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => document.getElementById('fName').focus({ preventScroll: true }), 600);
+});
+
+// the order: an email to the shop (siteLead) - nothing charged, nothing stored; paid in the shop on pickup
+const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/siteLead';
+const okMail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+const form = document.getElementById('f'), btn = document.getElementById('send'), err = document.getElementById('err');
+const pop = (h, p) => { document.getElementById('popH').textContent = h; document.getElementById('popP').textContent = p; document.getElementById('pop').classList.add('on'); };
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const f = form.elements, name = f.name.value.trim(), phone = f.phone.value.trim(), email = f.email.value.trim();
+  if (!name) { err.textContent = 'נא למלא שם.'; return; }
+  if (phone.replace(/\D/g, '').length < 9 && !okMail(email)) { err.textContent = 'נא להשאיר טלפון (או אימייל), כדי שנוכל לחזור אלייך.'; return; }
+  btn.disabled = true; btn.textContent = 'שולחת…'; err.textContent = '';
+  try {
+    const fd = new FormData();
+    fd.append('site', 'ofnat-hani'); fd.append('choice', f.item.value); fd.append('name', name); fd.append('phone', phone); fd.append('email', email);
+    fd.append('website', f.website.value);
+    fd.append('message', [`פריט: ${f.item.value}`, `מידה: ${f.size.value}`, `יום איסוף: ${f.day.value}`, '', f.msg.value.trim()].join('\n'));
+    const r = await fetch(API, { method: 'POST', body: fd });
+    if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
+    form.reset();
+    window.track && window.track('lead', f.item.value);
+    pop('תודה, ההזמנה התקבלה!', 'נתקשר אלייך לאשר ולתאם את האיסוף מהחנות ברבי עקיבא. בשורות טובות.');
+  } catch (x) {
+    err.textContent = x.message === 'too many' ? 'ההזמנה כבר התקבלה, אין צורך לשלוח שוב.' : 'השליחה לא עברה. נסי שוב בעוד רגע.';
+  } finally { btn.disabled = false; btn.textContent = 'שליחת הזמנה לחני'; }
+};
+</script>
+<script src="/t.js" data-site="ofnat-hani" defer></script>
+</body>
+</html>

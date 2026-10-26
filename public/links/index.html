@@ -4,111 +4,288 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>שלומי זוין</title>
-<meta name="description" content="מערכונים קומיים קצרים בטיקטוק ובאינסטגרם">
+<meta name="description" content="מערכונים קומיים קצרים. כל הדמויות, כל הסרטונים, ולדבר איתן.">
 <meta property="og:title" content="שלומי זוין">
-<meta property="og:description" content="מערכונים קומיים קצרים בטיקטוק ובאינסטגרם">
+<meta property="og:description" content="מערכונים קומיים קצרים. כל הדמויות, כל הסרטונים, ולדבר איתן.">
 <meta property="og:image" content="https://boostmind-b052c.web.app/links/shlomi.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="prefetch" href="/wiki/data/wiki.json">
 <style>
-  :root { --bg: #0b0b0d; --card: #151518; --line: rgba(255,255,255,0.09); --text: #f4f3f0; --dim: #a3a1a8; --accent: #ff7a45; }
+  :root { --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.09); --line2: rgba(255,255,255,.16); --text: #f5f4f1; --dim: #a6a3ad; --accent: #ff5b3a; --wa: #25d366; color-scheme: dark; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; min-height: 100svh; display: flex; justify-content: center; padding: 28px 18px 40px; }
-  .wrap { width: 100%; max-width: 440px; text-align: center; }
-  .photo { width: 100%; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
-  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; margin-top: 18px; }
-  .sub { color: var(--dim); font-size: 1.05rem; margin-top: 6px; }
-  .social { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
-  .social a { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 13px; border-radius: 10px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: .95rem; font-weight: 500; transition: border-color .15s; }
-  .social a:hover { border-color: var(--dim); }
-  .social svg { width: 17px; height: 17px; fill: currentColor; }
-  .links { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
-  .link { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); color: var(--text); text-decoration: none; text-align: right; transition: border-color .15s, transform .15s; }
-  .link:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .link .ico { width: 46px; height: 46px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: rgba(255,255,255,0.05); overflow: hidden; }
-  .link .ico img { width: 100%; height: 100%; object-fit: cover; }
-  .link .txt { flex: 1; display: flex; flex-direction: column; gap: 1px; font-size: 1.08rem; font-weight: 700; }
-  .link .txt small { color: var(--dim); font-size: .86rem; font-weight: 400; }
-  .link .arr { color: var(--dim); font-size: 1.15rem; }
-  .link.collab { flex-wrap: wrap; }
-  .link.collab:hover { transform: none; border-color: var(--line); }
-  .acts { display: flex; gap: 8px; width: 100%; }
-  .acts a { flex: 1; justify-content: center; height: 42px; padding: 0 14px; border-radius: 9px; display: inline-flex; align-items: center; font-size: .92rem; font-weight: 700; text-decoration: none; color: var(--text); border: 1px solid var(--line); transition: border-color .15s; }
-  .acts a:first-child { background: var(--accent); color: #1a0d06; border-color: var(--accent); }
-  .acts a:hover { border-color: var(--accent); }
-  /* a wide screen: the photo beside the links, all of it on one screen */
-  @media (min-width: 900px) {
-    body { align-items: center; padding: 48px 32px; }
-    .wrap { max-width: 1000px; display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 64px; align-items: center; text-align: right; }
-    .photo { border-radius: 22px; }
-    h1 { font-size: 3rem; margin-top: 0; line-height: 1.05; }
-    .sub { font-size: 1.2rem; margin-top: 10px; }
-    .social { justify-content: flex-start; margin-top: 22px; }
-    .links { margin-top: 30px; }
-    .link { padding: 16px 18px; }
-    footer { text-align: right; }
+  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; min-height: 100svh; display: flex; justify-content: center; padding: 30px 16px 44px; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+  h3 { font-size: 1.1rem; font-weight: 800; }
+
+  /* me */
+  .me { text-align: center; }
+  .avatar { width: 116px; height: 116px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 2px solid var(--line2); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 68%; transform: scale(1.55); transform-origin: 50% 68%; display: block; }
+  h1 { font-size: 2rem; font-weight: 900; letter-spacing: -.02em; margin-top: 12px; line-height: 1.1; }
+  .sub { color: var(--dim); font-size: 1.02rem; margin-top: 4px; }
+  .social { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+  .social a { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line2); display: grid; place-items: center; transition: border-color .15s; }
+  .social a:hover { border-color: var(--text); }
+  .social svg { width: 19px; height: 19px; fill: currentColor; }
+
+  /* the way into the wiki */
+  .verse { padding: 20px 18px 18px; text-align: center; border-color: var(--line2); }
+  .kicker { display: none; }
+  .verse h2 { font-size: clamp(2.6rem, 12vw, 3.4rem); font-weight: 900; letter-spacing: -.045em; line-height: 1; color: var(--accent); }
+  .faces { display: flex; justify-content: center; margin: 16px 0 4px; padding-inline-start: 14px; min-height: 66px; }
+  .faces a { width: 66px; height: 66px; border-radius: 50%; overflow: hidden; margin-inline-start: -14px; border: 3px solid var(--card); background: var(--card2); transition: transform .15s; position: relative; flex: none; }
+  .faces a:hover, .faces a:focus-visible { transform: translateY(-4px); z-index: 30; }
+  .faces img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .faces span { display: none; }
+  .faces a:nth-child(n+7) { display: none; }
+  .tap { color: var(--dim); font-size: .82rem; }
+  .verse p { font-size: 1.08rem; font-weight: 500; margin-top: 10px; }
+  .ask { display: flex; gap: 8px; margin-top: 14px; }
+  .ask input { flex: 1; min-width: 0; height: 50px; border-radius: 14px; border: 1px solid var(--line2); background: var(--bg); color: var(--text); font: inherit; font-size: 1rem; padding: 0 14px; outline: none; transition: border-color .15s; }
+  .ask input:focus { border-color: var(--accent); }
+  .ask button { width: 50px; height: 50px; border-radius: 14px; background: var(--accent); color: #fff; display: grid; place-items: center; flex: none; }
+  .ask svg { width: 20px; height: 20px; transform: scaleX(-1); }
+  .go { display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; margin-top: 10px; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 800; font-size: 1.08rem; transition: opacity .15s; }
+  .go:hover { opacity: .92; }
+
+  /* collaborations */
+  .collab { display: flex; flex-direction: column; gap: 12px; }
+  .collab .h { display: flex; align-items: center; gap: 12px; }
+  .collab .hicon { width: 48px; height: 48px; border-radius: 12px; flex: none; display: block; }
+  .collab b { display: block; font-size: 1.15rem; font-weight: 800; }
+  .collab small { color: var(--dim); font-size: .9rem; }
+  .acts { display: flex; gap: 8px; }
+  .acts a { flex: 1; height: 46px; border-radius: 12px; border: 1px solid var(--line2); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; transition: border-color .15s, opacity .15s; }
+  .acts a:hover { border-color: var(--text); }
+  .acts svg { width: 19px; height: 19px; }
+  .proof { color: var(--dim); font-size: .86rem; border-top: 1px solid var(--line); padding-top: 12px; }
+  .proof b { display: inline; font-size: inherit; color: var(--text); }
+
+  /* latest videos (from the wiki) */
+  .vids h3 { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; }
+  .vids h3 a { color: var(--dim); font-size: .88rem; font-weight: 500; }
+  .vids h3 a:hover { color: var(--accent); }
+  .vrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .vrow a { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .vrow .th { position: relative; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; background: var(--card2); border: 1px solid var(--line); }
+  .vrow .th img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s; }
+  .vrow a:hover .th img { transform: scale(1.04); }
+  .vrow .th::after { content: '▶'; position: absolute; inset: 0; margin: auto; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; font-size: .85rem; }
+  .vrow span { font-weight: 700; font-size: .88rem; line-height: 1.3; }
+  .vrow a:nth-child(n+4) { display: none; }
+  .vids:empty { display: none; }
+
+  /* the characters' own sites */
+  .sites h3 { margin-bottom: 6px; }
+  .site { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .site:first-of-type { border-top: 0; }
+  .site .ico { width: 44px; height: 44px; flex: none; border-radius: 11px; overflow: hidden; display: grid; place-items: center; background: var(--card2); font-size: 1.3rem; }
+  .site .ico img { width: 100%; height: 100%; object-fit: cover; }
+  .site .t { flex: 1; display: flex; flex-direction: column; font-weight: 700; line-height: 1.25; min-width: 0; }
+  .site small { color: var(--dim); font-size: .85rem; font-weight: 400; }
+  .site .arr { color: var(--dim); }
+  .site:hover .arr { color: var(--accent); }
+  footer { text-align: center; color: var(--dim); font-size: .85rem; margin-top: 6px; }
+
+  /* hero pieces that exist only on wide screens */
+  .wall, .who, .hi { display: none; }
+
+  /* wide screens: the Shlomiverse as a full-width hero (the wiki's wall of faces), then you / videos / contact, then the sites */
+  @media (min-width: 1000px) {
+    body { padding: 28px 28px 48px; }
+    .wrap { max-width: 1320px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; }
+
+    .verse { grid-column: 1 / -1; grid-row: 1; position: relative; overflow: hidden; perspective: 1100px; min-height: 600px; padding: 54px 24px 46px;
+             display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 28px; background: #0e0e12; }
+    .wall { display: flex; position: absolute; top: -30%; bottom: -30%; width: 40%; gap: 14px; transform-style: preserve-3d; opacity: .6; pointer-events: none; }
+    .wall.r { right: -5%; transform: rotateY(-34deg); transform-origin: right center; -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 78%); mask-image: linear-gradient(to left, #000 25%, transparent 78%); }
+    .wall.l { left: -5%; transform: rotateY(34deg); transform-origin: left center; -webkit-mask-image: linear-gradient(to right, #000 25%, transparent 78%); mask-image: linear-gradient(to right, #000 25%, transparent 78%); }
+    .col { flex: 1; display: flex; flex-direction: column; gap: 14px; animation: drift 90s linear infinite; }
+    .col:nth-child(2) { animation-duration: 115s; animation-direction: reverse; }
+    .col:nth-child(3) { animation-duration: 135s; }
+    @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+    .tile { aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; position: relative; background: var(--card2); flex: none; }
+    .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tile span { position: absolute; bottom: 0; inset-inline: 0; padding: 18px 10px 8px; font-weight: 800; font-size: .9rem; color: #fff; background: rgba(0,0,0,.45); }
+    .verse > :not(.wall) { position: relative; z-index: 2; }
+    .kicker { display: block; color: var(--dim); font-size: 1.15rem; font-weight: 500; order: 2; margin-top: 10px; }
+    .verse h2 { font-size: clamp(5rem, 8vw, 7.4rem); letter-spacing: -.05em; order: 1; }
+    .faces, .tap, .verse p { display: none; }
+    .ask { order: 3; width: min(620px, 92%); margin-top: 30px; background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+    .ask input { border: 0; background: none; height: 52px; font-size: 1.12rem; }
+    .ask button { width: 52px; height: 52px; }
+    .who { order: 4; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 20px; max-width: 760px; }
+    .who-l { width: 100%; text-align: center; color: var(--dim); font-size: .92rem; font-weight: 700; margin-bottom: -2px; }
+    .who button { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 70px; font-size: .78rem; color: var(--dim); line-height: 1.2; transition: color .15s; }
+    .who .av { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; background: var(--card2); transition: outline-color .15s, transform .15s; display: grid; place-items: center; }
+    .who .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .who .av.all { background: var(--accent); color: #fff; }
+    .who .av.all svg { width: 55%; height: 55%; }
+    .who button:hover .av { transform: translateY(-3px); }
+    .who button.on { color: var(--text); font-weight: 700; }
+    .who button.on .av { outline-color: var(--accent); }
+    .verse .go { order: 5; width: auto; height: 50px; padding: 0 26px; margin-top: 24px; background: none; border: 2px solid var(--accent); color: var(--text); }
+    .verse .go:hover { background: var(--accent); opacity: 1; }
+
+    .me { grid-column: 1 / 6; grid-row: 2; display: flex; align-items: stretch; text-align: right; background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
+    .avatar { width: 46%; height: auto; aspect-ratio: auto; border-radius: 0; border: 0; margin: 0; flex: none; }
+    .avatar img { transform: none; object-position: 50% 50%; }
+    .me-txt { flex: 1; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .hi { display: block; color: var(--accent); font-weight: 700; font-size: .95rem; }
+    h1 { font-size: 2.4rem; margin-top: 0; }
+    .sub { font-size: 1.05rem; }
+    .social { justify-content: flex-start; margin-top: 16px; gap: 8px; }
+    .social a { width: 42px; height: 42px; }
+
+    .vids { grid-column: 6 / 10; grid-row: 2; padding: 20px; }
+    .vrow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .vrow a:nth-child(4) { display: flex; }
+    .vrow span { font-size: .8rem; }
+
+    .collab { grid-column: 10 / 13; grid-row: 2; padding: 20px; }
+    .acts { flex-direction: column; }
+    .acts a { flex: none; height: 50px; }
+    .acts a:first-child { background: var(--wa); border-color: var(--wa); color: #0b0b0e; }
+    .acts a:first-child svg { fill: #0b0b0e; }
+    .acts a:first-child:hover { opacity: .9; }
+    .proof { margin-top: auto; }
+
+    .sites { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; background: none; border: 0; }
+    .sites h3 { display: none; }
+    .site, .site:first-of-type { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 14px; gap: 10px; transition: border-color .15s, transform .15s; }
+    .site:hover { border-color: var(--line2); transform: translateY(-2px); }
+    .site .ico { width: 40px; height: 40px; }
+    .site .t { font-size: .95rem; }
+    .site small { font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site .arr { display: none; }
+    footer { grid-column: 1 / -1; grid-row: 4; }
   }
-  footer { margin-top: 30px; color: var(--dim); font-size: .85rem; }
+  @media (min-width: 1000px) and (max-width: 1199px) {
+    .me { grid-column: 1 / 7; } .vids { grid-column: 7 / 13; }
+    .collab { grid-column: 1 / -1; grid-row: 3; flex-direction: row; flex-wrap: wrap; align-items: center; }
+    .collab .acts { flex-direction: row; flex: 1; justify-content: flex-end; } .collab .acts a { width: 200px; } .collab .proof { width: 100%; }
+    .sites { grid-row: 4; grid-template-columns: repeat(3, minmax(0, 1fr)); } footer { grid-row: 5; }
+  }
+  @media (prefers-reduced-motion: reduce) { .col { animation: none; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="photo"><img src="shlomi.jpg" alt="שלומי זוין בסטודיו"></div>
-  <div class="info">
-  <h1>שלומי זוין</h1>
-  <p class="sub">מערכונים קומיים קצרים</p>
-
-  <div class="social">
-    <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
-      TikTok</a>
-    <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3.1 0-4.1.06-1.1.05-1.8.22-2.4.46-.7.27-1.2.62-1.8 1.18-.56.57-.91 1.1-1.18 1.8-.24.6-.41 1.3-.46 2.4C2 8.9 2 9.3 2 12s0 3.1.06 4.1c.05 1.1.22 1.8.46 2.4.27.7.62 1.2 1.18 1.8.57.56 1.1.91 1.8 1.18.6.24 1.3.41 2.4.46 1 .05 1.4.06 4.1.06s3.1 0 4.1-.06c1.1-.05 1.8-.22 2.4-.46.7-.27 1.2-.62 1.8-1.18.56-.57.91-1.1 1.18-1.8.24-.6.41-1.3.46-2.4.05-1 .06-1.4.06-4.1s0-3.1-.06-4.1c-.05-1.1-.22-1.8-.46-2.4a4.9 4.9 0 0 0-1.18-1.8 4.9 4.9 0 0 0-1.8-1.18c-.6-.24-1.3-.41-2.4-.46C15.1 2 14.7 2 12 2zm0 1.8c2.67 0 2.99 0 4.04.06.98.04 1.5.2 1.86.34.47.18.8.4 1.15.75.35.35.57.68.75 1.15.14.35.3.88.34 1.86.05 1.05.06 1.37.06 4.04s0 2.99-.06 4.04c-.04.98-.2 1.5-.34 1.86-.18.47-.4.8-.75 1.15-.35.35-.68.57-1.15.75-.35.14-.88.3-1.86.34-1.05.05-1.37.06-4.04.06s-2.99 0-4.04-.06c-.98-.04-1.5-.2-1.86-.34a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.35-.3-.88-.34-1.86C3.8 14.99 3.8 14.67 3.8 12s0-2.99.06-4.04c.04-.98.2-1.5.34-1.86.18-.47.4-.8.75-1.15.35-.35.68-.57 1.15-.75.35-.14.88-.3 1.86-.34C9.01 3.8 9.33 3.8 12 3.8z"/></svg>
-      Instagram</a>
-    <a href="https://www.facebook.com/shazbak/" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21.9v-7.5h2.5l.4-3h-2.9V9.5c0-.86.24-1.45 1.48-1.45h1.58V5.37a21 21 0 0 0-2.3-.12c-2.28 0-3.84 1.39-3.84 3.95v2.2H7.85v3h2.57v7.5h3.08z"/></svg>
-      Facebook</a>
-    <a href="https://x.com/ShlomiZevin" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.73H5.58l11.09 14.44z"/></svg>
-      X</a>
-  </div>
-
-  <div class="links">
-    <a class="link" href="https://techytech.web.app/">
-      <span class="ico" style="background:#fff;color:#0a5cc2;font-weight:800;font-size:17px;letter-spacing:-1px;direction:ltr">&lt;/&gt;</span>
-      <span class="txt">Techy-Tech<small>האתר של טקי-טק</small></span>
-      <span class="arr">←</span>
-    </a>
-    <div class="link collab">
-      <span class="ico">🤝</span>
-      <span class="txt">שיתופי פעולה<small>מותגים וקמפיינים</small></span>
-      <span class="acts">
-        <a href="https://wa.me/972545567213?text=%D7%94%D7%99%D7%99%20%D7%A9%D7%9C%D7%95%D7%9E%D7%99%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94" target="_blank" rel="noopener">WhatsApp</a>
-        <a href="mailto:shlomi@boostart.io?subject=%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94">מייל</a>
-      </span>
+  <header class="me">
+    <div class="avatar"><img src="shlomi.jpg" alt="שלומי זוין בסטודיו"></div>
+    <div class="me-txt">
+      <div><span class="hi">היי, זה אני</span><h1>שלומי זוין</h1><p class="sub">מערכונים קומיים קצרים</p></div>
+    <nav class="social">
+      <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg></a>
+      <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3.1 0-4.1.06-1.1.05-1.8.22-2.4.46-.7.27-1.2.62-1.8 1.18-.56.57-.91 1.1-1.18 1.8-.24.6-.41 1.3-.46 2.4C2 8.9 2 9.3 2 12s0 3.1.06 4.1c.05 1.1.22 1.8.46 2.4.27.7.62 1.2 1.18 1.8.57.56 1.1.91 1.8 1.18.6.24 1.3.41 2.4.46 1 .05 1.4.06 4.1.06s3.1 0 4.1-.06c1.1-.05 1.8-.22 2.4-.46.7-.27 1.2-.62 1.8-1.18.56-.57.91-1.1 1.18-1.8.24-.6.41-1.3.46-2.4.05-1 .06-1.4.06-4.1s0-3.1-.06-4.1c-.05-1.1-.22-1.8-.46-2.4a4.9 4.9 0 0 0-1.18-1.8 4.9 4.9 0 0 0-1.8-1.18c-.6-.24-1.3-.41-2.4-.46C15.1 2 14.7 2 12 2zm0 1.8c2.67 0 2.99 0 4.04.06.98.04 1.5.2 1.86.34.47.18.8.4 1.15.75.35.35.57.68.75 1.15.14.35.3.88.34 1.86.05 1.05.06 1.37.06 4.04s0 2.99-.06 4.04c-.04.98-.2 1.5-.34 1.86-.18.47-.4.8-.75 1.15-.35.35-.68.57-1.15.75-.35.14-.88.3-1.86.34-1.05.05-1.37.06-4.04.06s-2.99 0-4.04-.06c-.98-.04-1.5-.2-1.86-.34a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.35-.3-.88-.34-1.86C3.8 14.99 3.8 14.67 3.8 12s0-2.99.06-4.04c.04-.98.2-1.5.34-1.86.18-.47.4-.8.75-1.15.35-.35.68-.57 1.15-.75.35-.14.88-.3 1.86-.34C9.01 3.8 9.33 3.8 12 3.8z"/></svg></a>
+      <a href="https://www.youtube.com/@shlomizevin" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg></a>
+      <a href="https://www.facebook.com/shazbak/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.5 21.9v-7.5h2.5l.4-3h-2.9V9.5c0-.86.24-1.45 1.48-1.45h1.58V5.37a21 21 0 0 0-2.3-.12c-2.28 0-3.84 1.39-3.84 3.95v2.2H7.85v3h2.57v7.5h3.08z"/></svg></a>
+      <a href="https://x.com/ShlomiZevin" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.73H5.58l11.09 14.44z"/></svg></a>
+    </nav>
     </div>
-    <a class="link" href="/homo-useless/">
-      <span class="ico"><img src="book.jpg" alt=""></span>
-      <span class="txt">Homo Useless<small>הספר החדש של יובל כסא נוח הררי</small></span>
-      <span class="arr">←</span>
-    </a>
-    <a class="link" href="/ayelet/">
-      <span class="ico"><img src="/ayelet/img/logo.png" alt=""></span>
-      <span class="txt">איילת השחר<small>תקשור • אנרגיה • תודעה</small></span>
-      <span class="arr">←</span>
-    </a>
-    <a class="link" href="/yotamverse/">
-      <span class="ico">🛒</span>
-      <span class="txt">החנות של יותם<small>חולצות ועוד</small></span>
-      <span class="arr">←</span>
-    </a>
-  </div>
+  </header>
 
-  <footer>נעים להכיר 👋</footer>
-  </div>
+  <section class="box verse">
+    <div class="kicker">כל הדמויות. כל הסרטונים. ולדבר איתן.</div>
+    <h2>שלומיוורס</h2>
+    <div class="faces" id="faces"></div>
+    <div class="tap">לחצו על דמות כדי לדבר איתה</div>
+    <p>כל הדמויות. כל הסרטונים. ולדבר איתן.</p>
+    <form class="ask" id="ask">
+      <input id="ask-in" placeholder="שאלו דמות משהו…" maxlength="500" autocomplete="off">
+      <button aria-label="שליחה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <div class="who" id="who"></div>
+    <a class="go" href="/wiki/">לשלומיוורס ←</a>
+    <div class="wall r" id="wall-r"></div><div class="wall l" id="wall-l"></div>
+  </section>
+
+  <section class="box collab">
+    <div class="h"><img class="hicon" src="img/collab.jpg" alt=""><span><b>שיתופי פעולה</b><small>מותגים, קמפיינים ושילובי מוצר</small></span></div>
+    <div class="acts">
+      <a href="https://wa.me/972545567213?text=%D7%94%D7%99%D7%99%20%D7%A9%D7%9C%D7%95%D7%9E%D7%99%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#25d366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>WhatsApp</a>
+      <a href="mailto:shlomi@boostart.io?subject=%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>מייל</a>
+    </div>
+  </section>
+
+  <section class="box vids" id="vids"></section>
+
+  <section class="box sites">
+    <h3>האתרים של הדמויות</h3>
+    <a class="site" href="https://techytech.web.app/">
+      <span class="ico" style="background:#fff;color:#0a5cc2;font-weight:800;font-size:16px;letter-spacing:-1px;direction:ltr">&lt;/&gt;</span>
+      <span class="t">Techy-Tech<small>האתר של טקי-טק</small></span><span class="arr">←</span></a>
+    <a class="site" href="/ayelet/">
+      <span class="ico"><img src="/ayelet/img/logo.png" alt=""></span>
+      <span class="t">איילת השחר<small>תקשור • אנרגיה • תודעה</small></span><span class="arr">←</span></a>
+    <a class="site" href="/demokratovich/">
+      <span class="ico"><img src="/demokratovich/img/logo.png" alt=""></span>
+      <span class="t">קהילת שערי בג״ץ<small>שאל את הרב דמוקרטוביץ • תרומות</small></span><span class="arr">←</span></a>
+    <a class="site" href="/hindsight/">
+      <span class="ico"><img src="/hindsight/img/avatar.jpg" alt=""></span>
+      <span class="t">HINDSIGHT VIP<small>הקבוצה הסגורה של נהור (ציון) מינוף</small></span><span class="arr">←</span></a>
+    <a class="site" href="/dorit/">
+      <span class="ico"><img src="/dorit/img/logo.png" alt=""></span>
+      <span class="t">דורית מרקורי<small>התחזית לבחירות • הזמנת מפת לידה</small></span><span class="arr">←</span></a>
+    <a class="site" href="/ofnat-hani/">
+      <span class="ico"><img src="/ofnat-hani/img/logo.png" alt=""></span>
+      <span class="t">אופנת חני<small>מטפחות ובגדים צנועים • רבי עקיבא, בני ברק</small></span><span class="arr">←</span></a>
+    <a class="site" href="/homo-useless/">
+      <span class="ico"><img src="book.jpg" alt=""></span>
+      <span class="t">Homo Useless<small>הספר החדש של יובל כסא נוח הררי</small></span><span class="arr">←</span></a>
+    <a class="site" href="/yotamverse/">
+      <span class="ico"><img src="img/shop.jpg" alt=""></span>
+      <span class="t">החנות של יותם<small>חולצות ועוד</small></span><span class="arr">←</span></a>
+  </section>
+
 </div>
+<script src="/t.js" data-site="links"></script>
+<script>
+const t = (e, x) => window.track && window.track(e, x);
+// the faces and the videos come from the wiki's own data, so new ones show up here by themselves
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+fetch('/wiki/data/wiki.json').then((r) => r.json()).then((w) => {
+  const people = w.characters.filter((c) => c.img).slice(0, 12);
+  // on wide screens the first nine fan out like a hand of cards (--k = place from the middle)
+  document.getElementById('faces').innerHTML = people.map((c, i) => {
+    const k = i - 4;
+    return `<a href="/wiki/#/chat?with=${c.id}" title="${esc(c.name)}" style="--k:${k};--k2:${k * k};z-index:${20 - Math.abs(k)}"><img src="/wiki/${c.img}" alt="${esc(c.name)}"><span>${esc(c.name)}</span></a>`;
+  }).join('');
+  // wide screens: the wiki's drifting walls of faces, and the row of who answers
+  const all = w.characters.filter((c) => c.img), cols = [[], [], [], [], [], []];
+  all.forEach((c, i) => cols[i % 6].push(c));
+  const col = (list) => { const t = list.map((c) => `<div class="tile"><img src="/wiki/${c.img}" alt="" loading="lazy"><span>${esc(c.name)}</span></div>`).join(''); return `<div class="col">${t}${t}</div>`; };
+  document.getElementById('wall-r').innerHTML = cols.slice(0, 3).map(col).join('');
+  document.getElementById('wall-l').innerHTML = cols.slice(3).map(col).join('');
+  document.getElementById('who').innerHTML = '<div class="who-l">מי עונה?</div>' +
+    `<button type="button" class="on" data-who=""><span class="av all"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg></span>כולם</button>` +
+    all.slice(0, 8).map((c) => `<button type="button" data-who="${c.id}"><span class="av"><img src="/wiki/${c.img}" alt=""></span>${esc(c.name)}</button>`).join('');
+  document.getElementById('vids').innerHTML = `<h3>סרטונים אחרונים<a href="/wiki/#/videos">כל הסרטונים ←</a></h3><div class="vrow">` +
+    w.videos.filter((v) => v.poster && v.src).slice(0, 5).map((v) => `<a href="/wiki/#/v/${v.id}"><span class="th"><img src="/wiki/${v.poster}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
+}).catch(() => {});
+let who = '';
+// a face on the phone opens that character's chat in the wiki
+document.getElementById('faces').addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) t('character', a.href.split('with=')[1]); });
+document.getElementById('who').onclick = (e) => {
+  const b = e.target.closest('[data-who]');
+  if (!b) return;
+  who = b.dataset.who;
+  document.querySelectorAll('#who [data-who]').forEach((x) => x.classList.toggle('on', x === b));
+  document.getElementById('ask-in').focus();
+};
+document.getElementById('ask').onsubmit = (e) => {
+  e.preventDefault();
+  const q = document.getElementById('ask-in').value.trim();
+  const to = who ? 'with=' + who + '&' : '';
+  if (q) t('ask', who || 'guide');
+  location.href = q || who ? '/wiki/#/chat?' + to + (q ? 'ask=' + encodeURIComponent(q) : '') : '/wiki/';
+};
+</script>
 </body>
 </html>

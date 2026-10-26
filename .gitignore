@@ -93,6 +93,8 @@ public/demokratovich/v/
 public/demokratovich/img/rabbi.jpg
 public/demokratovich/img/event.jpg
 public/demokratovich/img/og.jpg
+public/dorit/img/
+public/dorit/v/
 
 # TechieTech site: the characters are his face (deployed from this machine)
 public/techietech/team/
@@ -106,3 +108,38 @@ zoomcut/characters/**/*.jpeg
 zoomcut/characters/**/*.png
 zoomcut/characters/**/*.webp
 zoomcut/characters/_paces.json
+
+# characters wiki: his face and the video copies (deployed, not in git), Leonardo/Terra work files
+public/wiki/v/
+public/wiki/img/c/
+scripts/wiki/portraits/
+scripts/wiki/work/
+# Dorit Mercury: his face and the politicians' tarot cards (AI, from their photos) - deployed / used from this machine only
+zoomcut/episodes/_assets/dorit/selfie.jpg
+zoomcut/episodes/_assets/dorit/portrait.jpg
+zoomcut/episodes/_assets/dorit/src/ref.jpg
+zoomcut/episodes/_assets/dorit/src/portrait*.jpg
+zoomcut/episodes/_assets/dorit/tarot/selfie-*.jpg
+zoomcut/episodes/_assets/dorit/tarot/ref/
+zoomcut/episodes/_assets/dorit/tarot/*/bibi*
+zoomcut/episodes/_assets/dorit/tarot/*/gadi*
+zoomcut/episodes/_assets/dorit/tarot/*/bennett*
+zoomcut/episodes/_assets/dorit/tarot/*/lapid*
+zoomcut/episodes/_assets/dorit/tarot/bibi*
+zoomcut/episodes/_assets/dorit/tarot/gadi*
+zoomcut/episodes/_assets/dorit/tarot/bennett*
+zoomcut/episodes/_assets/dorit/tarot/lapid*
+zoomcut/episodes/_assets/dorit/video/lovers.png
+zoomcut/episodes/_assets/dorit/video/polaroid.png
+zoomcut/episodes/_assets/dorit/video/poster.jpg
+zoomcut/episodes/_assets/dorit/deck/**/*.jpg
+zoomcut/episodes/_assets/dorit/deck/**/*.png
+zoomcut/episodes/_assets/dorit/deck/*.jpg
+
+# dorit-1 stand-in take (computer voice + his photo)
+zoomcut/episodes/dorit-1/stand-in/
+
+# Ofnat Hani: his face as Hani (deployed from this machine, never in the public repo)
+public/ofnat-hani/src/
+public/ofnat-hani/img/hani-*.jpg
+public/ofnat-hani/img/og.jpg

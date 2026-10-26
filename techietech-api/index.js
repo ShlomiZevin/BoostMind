@@ -91,9 +91,13 @@ exports.techietechApply = onRequest({
 // The other characters' sites (on boostmind-b052c.web.app): a request emailed to Shlomi, nothing stored, nothing charged.
 //   /ayelet/     - booking a treatment / the workshop (Ayelet Hashachar)
 //   /hindsight/  - joining a membership plan (HINDSIGHT VIP)
+//   /demokratovich/ - a question for the rabbi's Q&A, or a donation pledge (Kehilat Shaarei Bagatz)
 const SITES = {
   ayelet: { from: 'איילת השחר - האתר', subject: (f) => `איילת השחר | בקשה ל${f.choice || 'טיפול'} · ${f.name}`, choice: 'טיפול', page: '/ayelet/' },
   hindsight: { from: 'HINDSIGHT VIP', subject: (f) => `HINDSIGHT VIP | הצטרפות ל-${f.choice || 'קבוצה'} · ${f.name}`, choice: 'מסלול', page: '/hindsight/' },
+  demokratovich: { from: 'קהילת שערי בג״ץ - האתר', subject: (f) => `שערי בג״ץ | ${f.choice || 'פנייה'} · ${f.name}`, choice: 'נושא', page: '/demokratovich/' },
+  dorit: { from: 'דורית מרקורי - האתר', subject: (f) => `דורית מרקורי | הזמנה: ${f.choice || 'מפת לידה'} · ${f.name}`, choice: 'שירות', page: '/dorit/' },
+  'ofnat-hani': { from: 'אופנת חני - האתר', subject: (f) => `אופנת חני | הזמנה לאיסוף: ${f.choice || 'פריט'} · ${f.name}`, choice: 'פריט', page: '/ofnat-hani/' },
 };
 exports.siteLead = onRequest({
   region: 'europe-west1',
@@ -136,3 +140,9 @@ exports.siteLead = onRequest({
   }
   res.json({ ok: true });
 });
+
+// the characters wiki's chat (/wiki/) - see wiki.js
+exports.wikiChat = require('./wiki').wikiChat;
+
+// Shlomi's own analytics (public/t.js -> track, the /stats/ dashboard -> stats) - see analytics.js
+Object.assign(exports, require('./analytics'));

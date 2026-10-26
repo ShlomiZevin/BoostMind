@@ -59,6 +59,10 @@
   ],
   "links": [
     {
+      "label": "אופנת חני",
+      "url": "https://boostmind-b052c.web.app/ofnat-hani/"
+    },
+    {
       "label": "טקי-טק",
       "url": "https://techytech.web.app"
     }
@@ -81,6 +85,9 @@
     "portraits": [
       "c:/workspace/BoostMind/public/techietech/team/hani.jpg",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/portrait-final.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/portrait-2-0.7.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/portrait-2-0.8.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/portrait-3-0.7.jpg",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/frame2.jpg"
     ],
     "backgrounds": [
@@ -88,9 +95,28 @@
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/set-wall-a.jpg",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/set-wall-b.jpg"
     ],
+    "logos": [],
     "other": [
-      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/family-framed.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/zot-hani-logo.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/zot-hani.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-culture-story.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-be-hani-instagram.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-story-instagram.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-story-tiktok.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-batmitzva-invitation.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-420-final.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-420-final-crop.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-sticker-caption.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-sticker-420.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-sticker-sunburst-0.6.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-sticker-flare-0.6.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-sticker-flare-0.75.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-420-stoner.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-420-stoner-leaves.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/story/hani-420-sticker.png",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/family-0.5.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/family-0.6.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/family-framed.png",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-eldest-final.jpg",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-ruchami-0.75.jpg",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-malki-0.65.jpg",
@@ -99,7 +125,10 @@
     "sounds": [
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/kosher-ring.mp3",
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/office-room-long.mp3",
-      "c:/workspace/BoostMind/zoomcut/episodes/_assets/music/fast/klezmer-ska.mp3"
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/music/fast/klezmer-ska.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/music/fast/hasidic-freilach.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/music/fast/hasidic-wedding.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/music/fast/klezmer-bulgar.mp3"
     ]
   },
   "color": "#1f3a5f",
@@ -108,7 +137,7 @@
     "c:/workspace/BoostMind/public/techietech/index.html"
   ],
   "site": {
-    "url": "https://techytech.web.app",
-    "notes": "עובדת בטקי-טק - כרטיס בצוות באתר החברה (public/techietech)."
+    "url": "https://boostmind-b052c.web.app/ofnat-hani/",
+    "notes": "אופנת חני - חנות מטפחות ובגדים צנועים ברחוב רבי עקיבא, בני ברק (public/ofnat-hani). חני מציגה הכול; הזמנה לאיסוף מהחנות -> siteLead 'ofnat-hani' (מייל, בלי תשלום). החנות נפתחת 16:30, אחרי האיסוף מהגן. היא גם מפתחת Backend בטקי-טק (techytech.web.app)."
   }
 }
