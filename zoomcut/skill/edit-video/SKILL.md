@@ -377,7 +377,7 @@ Never print a key, never write one into a file in the repo, never ask him for on
     `KEY=$(gcloud secrets versions access latest --secret=WIKI_OPENAI_KEY --project=boostmind-b052c)` into a variable,
     never echoed. The project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it.
   - Models: `gpt-5.6-terra` (his pick for chat and Hebrew copy), `gpt-5.6-sol`; `node ~/.claude/skills/sol-leonardo/scripts/sol.js --models --env ...` lists them.
-- **Leonardo:** `LEONARDO_API_KEY` in aspect-agent-server/.env (`tools/leonardo.mjs` reads it by itself).
+- **Leonardo:** `LEONARDO_API_KEY` in `zoomcut/.env` - his official account (`tools/leonardo.mjs` reads it by itself; aspect-agent-server/.env only as a fallback).
 - **ElevenLabs, NVIDIA (eye contact), the Drop, Instagram / Facebook / TikTok / YouTube / X:** `zoomcut/.env`.
 - **Gmail** (sending): aspect-agent-server/.env; **Telegram:** xplace-auto-bidder/.env.
 - **Secrets the deployed functions use** (`gcloud secrets list --project boostmind-b052c`): GMAIL_USER, GMAIL_APP_PASSWORD,
