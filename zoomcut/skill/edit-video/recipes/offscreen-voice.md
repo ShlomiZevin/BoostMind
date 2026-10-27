@@ -83,6 +83,10 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   preset; Music = klezmer-ska at volume 0.05 AND his own layer "music-hasidic-freilach" at volume 0.12 (one piece from
   the top, the rest continuing from 14.73 s into the track); no office ambience (he deleted it); speed 1.15. Read
   haredit-1's project.json for the exact props before a new one.
+- **Hani's look = part 1's final layout, copy it too** (2026-10-27: "make the images at the same place of the prev
+  project"): Set = `set-wall-a.jpg` (the wall-only office, he chose it) at box x -302 y -450 w 1800; the kids' photo
+  (`kids.png`) behind her at x -8 y 414 w 398; the framed family photo (`family-framed.png`, Hani + her 3 daughters)
+  behind her at x 573 y 854 w 585 - both layers BELOW Person. Upload them with `?cutout=0`.
 - **haredit-2** (part 2, prepared 2026-10-27 on a stand-in): the calls with Brachi and the house are the point - see
   SKILL.md "ElevenLabs - the whole toolbox"; assets `_assets/haredit/calls/`, 4 lanes (ברכי בטלפון, הבית ברקע,
   אירועים וצלצולים, המשרד); placement plan in its `_todo`.
