@@ -413,7 +413,8 @@ He said "I don't think you are utilizing all of its power with annotation". What
   -> 2.6 s), `filter: phone` - "like chipmunks, a little girl saying stuff quick" (his words, 2026-10-27; plain
   mumble was the step before). **Nobody else speaks but the hero** - no office / colleague mumbles ("I don't need any
   other one speaking"). **Any word is Hebrew TTS, never a sound effect**: the sfx model voiced "mommy" in English -
-  "אמא!" from far = v4 `[crying, shouting from far away] אמאאא! אמא!` + `room`. And **the house events LOUD**
+  "אמא!" on the call = v4 `[crying, shouting] אמאאא! אמא!` DRY + `filter: phone` only - everything heard during a
+  call comes out of the phone: no `room`, and no "far away" in the tag (v4 bakes reverb in; he heard an echo). And **the house events LOUD**
   (gains 0.6-0.9 on a crash / crying / climbing, 2-3x a bed) - in HIS pauses, each answering the line before; under the whole call a looping chaos bed;
   on top the events, each timed to a word (a crash, then the crying, right before "מי בוכה שם?"); all through
   `filter: phone`; the caller deadpan while the house burns, Hani calm over it. Assets: `_assets/haredit/calls/`.
