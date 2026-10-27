@@ -5,7 +5,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Player, PlayerRef } from '@remotion/player';
 import { Layers } from '../../src/Layers';
-import { clockFrame } from '../../src/layers/AudioTrack';
+import { clockFrame, soundDiag, soundClock } from '../../src/layers/AudioTrack';
 import { useLayered, build, fmtT } from './api';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
@@ -54,10 +54,25 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // heard as stutter). A gap of 15+ frames is his jump on the bar: the sound follows that one
   useEffect(() => {
     if (!playing) return;
-    let id = 0;
+    let id = 0, lastT = performance.now(), gap = 0, worst = 0, seeks = 0, sent = performance.now();
     const tick = () => {
       const cf = clockFrame(), pl = player.current;
-      if (cf != null && pl?.isPlaying()) { const d = cf - pl.getCurrentFrame(); if (Math.abs(d) > 2 && Math.abs(d) < 15) pl.seekTo(Math.round(cf)); }
+      // the sound report: one line a second to the studio (episodes/_sound.jsonl) - what this browser really does
+      const t = performance.now(); gap = Math.max(gap, t - lastT); lastT = t;
+      if (cf != null && pl) worst = Math.max(worst, Math.abs(cf - pl.getCurrentFrame()));
+      if (t - sent > 1000) {
+        const ctx: any = (window as any).__zcCtx;
+        fetch('/api/sound-report', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ep,
+          frame: pl?.getCurrentFrame(), clock: cf == null ? null : Math.round(cf), clockOn: soundClock.on, worstGapFrames: Math.round(worst), pictureSeeks: seeks,
+          longestStallMs: Math.round(gap), ctx: ctx && { state: ctx.state, rate: ctx.sampleRate, latencyMs: Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) },
+          layers: soundDiag.layers, why: soundDiag.why, failed: soundDiag.failed.slice(-5) }) }).catch(() => {});
+        sent = t; gap = 0; worst = 0; seeks = 0;
+      }
+      if (cf != null && pl?.isPlaying()) {  // (the picture on the sound as HEARD: the clock minus the audio output's delay)
+        const c: any = (window as any).__zcCtx, heard = cf - ((c?.baseLatency || 0) + (c?.outputLatency || 0)) * soundClock.perSec;
+        const d = heard - pl.getCurrentFrame();
+        if (Math.abs(d) > 3 && Math.abs(d) < 15) { pl.seekTo(Math.round(heard)); seeks++; }
+      }
       id = requestAnimationFrame(tick);
     };
     id = requestAnimationFrame(tick);

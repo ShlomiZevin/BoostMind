@@ -921,6 +921,12 @@ app.post('/api/ep/:id/export', (q, res) => {
 });
 app.get('/api/ep/:id/job', (q, res) => res.json(pub(jobs[q.params.id]) || null));
 // the Jobs panel in one call: what runs now (builds, exports, sends) and the history, newest first
+// the editor's sound report while he plays (LayersEditor): one line a second - read it to see what his browser does
+app.post('/api/sound-report', (q, res) => {
+  const f = path.join(EPS, '_sound.jsonl');
+  try { fs.appendFileSync(f, JSON.stringify({ at: new Date().toISOString(), ...(q.body || {}) }) + '\n'); if (fs.statSync(f).size > 5e6) fs.writeFileSync(f, ''); } catch {}
+  res.json({ ok: true });
+});
 app.get('/api/jobs', (_q, res) => {
   const running = [
     ...drop.running(),  // files from the iPhone coming down

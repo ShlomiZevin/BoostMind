@@ -22,7 +22,7 @@ import type { LayersProps } from '../Layers';
 let shared: AudioContext | null = null;
 let fxReady = false;
 const audioCtx = () => {
-  if (!shared) { shared = new AudioContext(); loadFx(shared).then(() => { fxReady = true; }); }
+  if (!shared) { shared = new AudioContext(); (window as any).__zcCtx = shared; loadFx(shared).then(() => { fxReady = true; }); }
   return shared;
 };
 // every sound layer into ONE bus with a safety limiter before the speakers - as the export has. Layers straight to the
@@ -49,9 +49,12 @@ export const clockFrame = () => (soundClock.on && shared ? soundClock.f0 + Math.
 // decoded sound files, shared by every layer, kept while a layer uses them (a 6-minute voice is ~70 MB decoded)
 const buffers = new Map<string, Promise<AudioBuffer | null>>();
 const users = new Map<string, number>();
+// what his browser does with the sound - LayersEditor sends it to the studio each second while playing (the sound
+// report, episodes/_sound.jsonl): which files are in, re-schedules and why, failed files
+export const soundDiag = { layers: {} as Record<string, { need: number; ready: number; clips: number }>, why: {} as Record<string, number>, failed: [] as string[] };
 const loadBuffer = (u: string) => {
   if (!buffers.has(u)) buffers.set(u, fetch(u).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
-    .then((a) => audioCtx().decodeAudioData(a)).catch(() => { setTimeout(() => buffers.delete(u), 3000); return null; }));
+    .then((a) => audioCtx().decodeAudioData(a)).catch((e) => { soundDiag.failed.push(`${String(u).replace(/^.*[?&]p=/, '').slice(0, 80)}: ${e}`); setTimeout(() => buffers.delete(u), 3000); return null; }));
   return buffers.get(u)!;
 };
 const hold = (us: string[]) => { for (const u of us) users.set(u, (users.get(u) || 0) + 1); };
@@ -174,6 +177,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
     }
     for (const x of old) { try { x.stop(now); } catch {} }  // (the new ones take over at the same moment)
     sched.current = { t0: now, f0: f, sig: live.current.sig, srcs };
+    soundDiag.layers[layer.id] = { need: want.length, ready: want.filter((u) => bufs[u]).length, clips: srcs.length };
     Object.assign(soundClock, { on: true, t0: now, f0: f, perSec: fps * rate });
   };
 
@@ -195,7 +199,9 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
       const at = s ? s.f0 + Math.max(0, ctx.currentTime - s.t0) * fps * rate : NaN;
       // (the picture is kept within 2 frames of the sound by LayersEditor - a bigger gap is a jump he made on the bar)
       if (!s || s.sig !== sig || !(Math.abs(at - f) <= 15)) {
-        (window as any).__atSched?.push({ layer: layer.id, why: !s ? 'play' : s.sig !== sig ? 'change' : 'drift', f, at: Math.round(at) });  // (the test bench)
+        const why = !s ? 'play' : s.sig !== sig ? 'change' : 'drift';
+        soundDiag.why[why] = (soundDiag.why[why] || 0) + 1;
+        (window as any).__atSched?.push({ layer: layer.id, why, f, at: Math.round(at) });  // (the test bench)
         schedule(ctx, f);
       }
     } else if (!playing && sched.current) stopAll();
