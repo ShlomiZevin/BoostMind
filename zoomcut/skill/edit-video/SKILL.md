@@ -383,6 +383,36 @@ Never print a key, never write one into a file in the repo, never ask him for on
 - **Secrets the deployed functions use** (`gcloud secrets list --project boostmind-b052c`): GMAIL_USER, GMAIL_APP_PASSWORD,
   WIKI_OPENAI_KEY, LEONARDO_API_KEY, MAPS_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY (not ours to touch).
 
+### ElevenLabs - the whole toolbox (learned 2026-10-27, haredit-2; docs + github.com/elevenlabs/skills)
+He said "I don't think you are utilizing all of its power with annotation". What it can do, measured:
+- **Speech: `eleven_v4`** (`POST /v1/text-to-speech/<voice>`, `language_code: "he"`, `voice_settings {stability 0.3,
+  similarity_boost 0.75}` - v4 takes only those two; lower stability = more emotion). In Hebrew v4 beat v3: "מלכי
+  עלתה על השיש" came out exact on v4, "מרקי ... לשייש" on v3. Always transcribe a generated line before using it.
+- **Audio tags = the annotation**: inline, in brackets, where the delivery changes - `[panicked, out of breath]`,
+  `[whining]`, `[straining, frustrated]`, `[flat, matter-of-fact]`, `[shouting away from the phone]`, `[sighs]`,
+  `[crying]`, `[whispers]`, `[laughs]`, `[sarcastic]`, `[excited]`; combine them (`[calm again, into the phone]`).
+  Punctuation directs too: `...` = a pause, CAPITALS = stress, `—`/`-` = cut off. Tags are NOT read aloud (checked).
+- **Text to Dialogue** (`POST /v1/text-to-dialogue`, `inputs: [{text, voice_id}]`, `model_id eleven_v4|eleven_v3`,
+  `language_code`, `settings {stability}`, `seed`): a whole multi-voice scene in one file, up to 10 voices / 2,000
+  chars; interruptions = a dash at the cut + `[jumping in]` on the next turn. Use it when the lines overlap each other;
+  separate lines when he needs to move each one (usually - every sound its own item).
+- **`audio_effects`** on TTS and dialogue: `filter_preset_id` (Phone, Low Quality Phone, Bright Phone, Old Radio,
+  Cheap Microphone, Robot), `environment_id` (Small Room, Big Room, Hall, Tunnel, Street, Valley, Forest),
+  `background_noise_id` (Call center, Café, City, Keyboard), `distance`, `pan` (`GET /v1/audio-effects/catalog`).
+  We generate CLEAN and put the phone on in the editor (`filter: phone`, live, adjustable) - bake it only if he asks.
+- **Sound effects** (`POST /v1/sound-generation`, `model_id eleven_text_to_sound_v2`, `duration_seconds` 0.5-30,
+  `prompt_influence` 0.5, `loop: true` for a bed): specific prompts that combine elements and context ("a boy with a
+  plaster leg cast clumsily climbing a wooden kitchen cabinet: wood creaking, doors banging, a heavy thud"). One file
+  per event (each its own item he can move), plus one looping bed under the whole scene.
+- **Voice Design refuses children** (`/v1/text-to-voice/design` -> 403 "safety guidelines" for "a 12-year-old girl") -
+  never rephrase around it. A young character = a young ADULT library voice + `pitch` 1.1 on the item (live): Hebrew
+  library voices `GET /v1/shared-voices?language=he&age=young` - Zina (female, `Tbj9UQjXon5RB9MPEyc2`), Dorian (male).
+  Crying / screaming kids come from sound effects (generic vocalisations), never a designed child voice.
+- **The other side of a chaotic call** (haredit-2, his favourite thing in it - "super funny, though nonchalant"): the
+  caller's lines (v4 + tags) in HIS pauses, each answering the line before; under the whole call a looping chaos bed;
+  on top the events, each timed to a word (a crash, then the crying, right before "מי בוכה שם?"); all through
+  `filter: phone`; the caller deadpan while the house burns, Hani calm over it. Assets: `_assets/haredit/calls/`.
+
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
 `... portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare MEDIUM 0.6 1024x1024` (repaints from a reference: his face,

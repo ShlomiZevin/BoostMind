@@ -1,0 +1,3260 @@
+{
+  "format": "sketch-studio/1",
+  "title": "POV: החרדית של המשרד – חלק 2 (haredit-2)",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 10829,
+  "speed": 1,
+  "assets": {
+    "s.call-house-bed.mp3": {
+      "kind": "audio",
+      "src": "media/call-house-bed.mp3",
+      "duration": 20
+    },
+    "s.call-malki-wail.mp3": {
+      "kind": "audio",
+      "src": "media/call-malki-wail.mp3",
+      "duration": 5
+    },
+    "s.call-yanky-cry.mp3": {
+      "kind": "audio",
+      "src": "media/call-yanky-cry.mp3",
+      "duration": 6
+    },
+    "s.call-crash.mp3": {
+      "kind": "audio",
+      "src": "media/call-crash.mp3",
+      "duration": 3
+    },
+    "s.call-climb.mp3": {
+      "kind": "audio",
+      "src": "media/call-climb.mp3",
+      "duration": 4
+    },
+    "s.call-shower.mp3": {
+      "kind": "audio",
+      "src": "media/call-shower.mp3",
+      "duration": 7
+    },
+    "s.call-mommy-far.mp3": {
+      "kind": "audio",
+      "src": "media/call-mommy-far.mp3",
+      "duration": 2.48
+    },
+    "s.call-cookie-tin.mp3": {
+      "kind": "audio",
+      "src": "media/call-cookie-tin.mp3",
+      "duration": 3
+    },
+    "s.call-brachi-01.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-01.mp3",
+      "duration": 4.8
+    },
+    "s.call-brachi-02.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-02.mp3",
+      "duration": 2.56
+    },
+    "s.call-brachi-03.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-03.mp3",
+      "duration": 2.24
+    },
+    "s.call-brachi-04.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-04.mp3",
+      "duration": 2.32
+    },
+    "s.call-brachi-05.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-05.mp3",
+      "duration": 4
+    },
+    "s.call-brachi-06.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-06.mp3",
+      "duration": 3.04
+    },
+    "s.call-brachi-07.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-07.mp3",
+      "duration": 3.36
+    },
+    "s.call-brachi-08.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-08.mp3",
+      "duration": 2.88
+    },
+    "s.call-brachi-09.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-09.mp3",
+      "duration": 2.88
+    },
+    "s.call-brachi-10.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-10.mp3",
+      "duration": 2.32
+    },
+    "s.call-brachi-11.mp3": {
+      "kind": "audio",
+      "src": "media/call-brachi-11.mp3",
+      "duration": 2.64
+    },
+    "font.stam-ashkenaz": {
+      "kind": "font",
+      "src": "../../fonts/stamashkenazclm-webfont.ttf",
+      "family": "zc-stam-ashkenaz"
+    },
+    "font.assistant": {
+      "kind": "font",
+      "src": "../../fonts/Assistant.ttf",
+      "family": "zc-assistant"
+    },
+    "t.stand-in": {
+      "kind": "video",
+      "src": "stand-in/stand-in.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 361.833,
+      "label": "stand-in",
+      "audio": "work/audio/stand-in.wav",
+      "preview": "work/public/takes/stand-in.plain.mp4",
+      "fg": "work/public/takes/stand-in.webm",
+      "matte": "work/matte/stand-in.mkv"
+    },
+    "m.set": {
+      "kind": "image",
+      "src": "work/public/scene.png",
+      "w": 1024,
+      "h": 1536,
+      "label": "Set - set.jpg"
+    },
+    "m.ov1": {
+      "kind": "image",
+      "src": "media/kids.png",
+      "w": 913,
+      "h": 857
+    },
+    "m.ov2": {
+      "kind": "image",
+      "src": "media/hani-420.png",
+      "w": 808,
+      "h": 1383
+    },
+    "s.0": {
+      "kind": "audio",
+      "src": "../_assets/haredit/kosher-ring.mp3",
+      "label": "kosher-ring"
+    },
+    "s.1": {
+      "kind": "audio",
+      "src": "../_assets/haredit/kosher-ring.mp3",
+      "label": "kosher-ring"
+    },
+    "s.2": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-01.mp3",
+      "label": "brachi-01"
+    },
+    "s.3": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-02.mp3",
+      "label": "brachi-02"
+    },
+    "s.4": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-03.mp3",
+      "label": "brachi-03"
+    },
+    "s.5": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-04.mp3",
+      "label": "brachi-04"
+    },
+    "s.6": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-05.mp3",
+      "label": "brachi-05"
+    },
+    "s.7": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-06.mp3",
+      "label": "brachi-06"
+    },
+    "s.8": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-07.mp3",
+      "label": "brachi-07"
+    },
+    "s.9": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-08.mp3",
+      "label": "brachi-08"
+    },
+    "s.10": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-09.mp3",
+      "label": "brachi-09"
+    },
+    "s.11": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-10.mp3",
+      "label": "brachi-10"
+    },
+    "s.12": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-11.mp3",
+      "label": "brachi-11"
+    },
+    "s.13": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.14": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.15": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.16": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.17": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.18": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.19": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.20": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.21": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.22": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.23": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.24": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.25": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/malki-wail.mp3",
+      "label": "malki-wail"
+    },
+    "s.26": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/climb.mp3",
+      "label": "climb"
+    },
+    "s.27": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/cookie-tin.mp3",
+      "label": "cookie-tin"
+    },
+    "s.28": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/crash.mp3",
+      "label": "crash"
+    },
+    "s.29": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/yanky-cry.mp3",
+      "label": "yanky-cry"
+    },
+    "s.30": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/mommy-far.mp3",
+      "label": "mommy-far"
+    },
+    "s.31": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/shower.mp3",
+      "label": "shower"
+    },
+    "s.32": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.33": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.34": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.35": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.36": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.music": {
+      "kind": "audio",
+      "src": "work/layers/sounds/m2bb9b7f3d1fd3.wav",
+      "duration": 360.967,
+      "label": "Music - klezmer-ska"
+    }
+  },
+  "layers": [
+    {
+      "id": "set",
+      "kind": "image",
+      "name": "Set",
+      "owner": "builder",
+      "props": {
+        "blur": 0.8,
+        "brightness": 0.96,
+        "saturate": 0.95
+      },
+      "items": [
+        {
+          "id": "set",
+          "from": 0,
+          "dur": 10829,
+          "asset": "m.set",
+          "box": {
+            "x": -100,
+            "y": 0,
+            "w": 1280,
+            "h": 1920
+          },
+          "pin": "span",
+          "ref": {
+            "set": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "ov.behind.stickers",
+      "kind": "image",
+      "name": "Stickers",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o1",
+          "from": 0,
+          "dur": 10829,
+          "ref": {
+            "overlay": 1
+          },
+          "pin": "span",
+          "asset": "m.ov1",
+          "box": {
+            "x": 12,
+            "y": 582.3,
+            "w": 400,
+            "h": 375.5
+          },
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "person",
+      "kind": "video",
+      "name": "Person",
+      "owner": "builder",
+      "props": {
+        "fit": "cover",
+        "cutout": true,
+        "eyes": false,
+        "look": {},
+        "matte_cut": 70,
+        "side_ramp": true,
+        "af": "eq=brightness=0.0:contrast=1.05:saturation=1.08,colorbalance=rs=0.06:gs=0.02:bs=-0.06:rm=0.06:bm=-0.06",
+        "box": {
+          "x": 0,
+          "y": 150,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      "items": [
+        {
+          "id": "c0",
+          "from": 0,
+          "dur": 10829,
+          "asset": "t.stand-in",
+          "in": 0.04,
+          "ref": {
+            "take": "stand-in",
+            "a": 0.04
+          },
+          "link": "cut-stand-in-0.04",
+          "box": {
+            "x": 0,
+            "y": 150,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ]
+    },
+    {
+      "id": "ov.stickers",
+      "kind": "image",
+      "name": "Stickers",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o2",
+          "from": 8024,
+          "dur": 115,
+          "ref": {
+            "overlay": 2
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                3.64,
+                1
+              ],
+              [
+                3.6567,
+                0.9415
+              ],
+              [
+                3.6733,
+                0.8834
+              ],
+              [
+                3.69,
+                0.825
+              ],
+              [
+                3.7067,
+                0.7665
+              ],
+              [
+                3.7233,
+                0.7084
+              ],
+              [
+                3.74,
+                0.65
+              ],
+              [
+                3.7567,
+                0.5915
+              ],
+              [
+                3.7733,
+                0.5334
+              ],
+              [
+                3.79,
+                0.475
+              ],
+              [
+                3.8067,
+                0.4165
+              ],
+              [
+                3.8233,
+                0.3584
+              ],
+              [
+                3.84,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov2",
+          "box": {
+            "x": 662.3,
+            "y": 330,
+            "w": 315.5,
+            "h": 540
+          }
+        }
+      ]
+    },
+    {
+      "id": "ov.texts",
+      "kind": "text",
+      "name": "Texts",
+      "owner": "builder",
+      "props": {
+        "style": "pov"
+      },
+      "items": [
+        {
+          "id": "o0",
+          "from": 0,
+          "dur": 165,
+          "ref": {
+            "overlay": 0
+          },
+          "box": {
+            "x": 540,
+            "y": 300,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "פוב: אתה יושב ליד\nהחרדית של המשרד – חלק 2",
+          "style": "pov",
+          "font": "font.assistant",
+          "theme": "light",
+          "size": 62,
+          "hook": true,
+          "box_opacity": 0.94
+        }
+      ]
+    },
+    {
+      "id": "subs",
+      "kind": "subtitles",
+      "name": "Subtitles",
+      "owner": "builder",
+      "props": {
+        "style": "solo",
+        "box": {
+          "x": 540,
+          "y": 1430,
+          "w": 980,
+          "anchor": "t"
+        },
+        "font": "font.assistant",
+        "size": 66,
+        "weight": 800,
+        "color": "#ffffff",
+        "stroke": 10
+      },
+      "items": [
+        {
+          "id": "s0",
+          "from": 0,
+          "dur": 34,
+          "text": "בוקר אור!",
+          "ref": {
+            "cap": "בוקר אור!",
+            "k": 0
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s1",
+          "from": 39,
+          "dur": 42,
+          "text": "בוקר טוב!",
+          "ref": {
+            "cap": "בוקר טוב!",
+            "k": 1
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s2",
+          "from": 92,
+          "dur": 50,
+          "text": "וואו, את לא מבינה",
+          "ref": {
+            "cap": "וואו, את לא מבינה",
+            "k": 2
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s3",
+          "from": 142,
+          "dur": 32,
+          "text": "איזה ניסים!",
+          "ref": {
+            "cap": "איזה ניסים!",
+            "k": 3
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s4",
+          "from": 178,
+          "dur": 48,
+          "text": "ניסי ניסים!",
+          "ref": {
+            "cap": "ניסי ניסים!",
+            "k": 4
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s5",
+          "from": 239,
+          "dur": 35,
+          "text": "הודו להשם כי טוב",
+          "ref": {
+            "cap": "הודו להשם כי טוב",
+            "k": 5
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s6",
+          "from": 274,
+          "dur": 37,
+          "text": "כי לעולם חסדו!",
+          "ref": {
+            "cap": "כי לעולם חסדו!",
+            "k": 6
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s7",
+          "from": 328,
+          "dur": 45,
+          "text": "שרולי שבר אתמול את",
+          "ref": {
+            "cap": "שרולי שבר אתמול את",
+            "k": 7
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s8",
+          "from": 373,
+          "dur": 71,
+          "text": "הרגל. היינו איתו במיון",
+          "ref": {
+            "cap": "הרגל. היינו איתו במיון",
+            "k": 8
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s9",
+          "from": 444,
+          "dur": 40,
+          "text": "עד אחת בלילה.",
+          "ref": {
+            "cap": "עד אחת בלילה.",
+            "k": 9
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s10",
+          "from": 508,
+          "dur": 54,
+          "text": "אבל תקשיבי איזה חסדי",
+          "ref": {
+            "cap": "אבל תקשיבי איזה חסדי",
+            "k": 10
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s11",
+          "from": 570,
+          "dur": 61,
+          "text": "השם. אנחנו מגיעים למיון,",
+          "ref": {
+            "cap": "השם. אנחנו מגיעים למיון,",
+            "k": 11
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s12",
+          "from": 631,
+          "dur": 53,
+          "text": "אברהם משה מחפש חניה,",
+          "ref": {
+            "cap": "אברהם משה מחפש חניה,",
+            "k": 12
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s13",
+          "from": 684,
+          "dur": 30,
+          "text": "אין חניה,",
+          "ref": {
+            "cap": "אין חניה,",
+            "k": 13
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s14",
+          "from": 714,
+          "dur": 63,
+          "text": "מסתובב, מסתובב...",
+          "ref": {
+            "cap": "מסתובב, מסתובב...",
+            "k": 14
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s15",
+          "from": 796,
+          "dur": 72,
+          "text": "פתאום, בדיוק כשאנחנו מגיעים",
+          "ref": {
+            "cap": "פתאום, בדיוק כשאנחנו מגיעים",
+            "k": 15
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s16",
+          "from": 868,
+          "dur": 79,
+          "text": "לחניון... מה אנחנו רואים?",
+          "ref": {
+            "cap": "לחניון... מה אנחנו רואים?",
+            "k": 16
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s17",
+          "from": 999,
+          "dur": 50,
+          "text": "מישהו יוצא עם האוטו!",
+          "ref": {
+            "cap": "מישהו יוצא עם האוטו!",
+            "k": 17
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s18",
+          "from": 1062,
+          "dur": 57,
+          "text": "ממש ליד הכניסה למיון!",
+          "ref": {
+            "cap": "ממש ליד הכניסה למיון!",
+            "k": 18
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s19",
+          "from": 1137,
+          "dur": 43,
+          "text": "את קולטת?!",
+          "ref": {
+            "cap": "את קולטת?!",
+            "k": 19
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s20",
+          "from": 1199,
+          "dur": 36,
+          "text": "תחשבי אם הוא לא",
+          "ref": {
+            "cap": "תחשבי אם הוא לא",
+            "k": 20
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s21",
+          "from": 1235,
+          "dur": 30,
+          "text": "היה יוצא!",
+          "ref": {
+            "cap": "היה יוצא!",
+            "k": 21
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s22",
+          "from": 1278,
+          "dur": 43,
+          "text": "איפה היינו מחנים?",
+          "ref": {
+            "cap": "איפה היינו מחנים?",
+            "k": 22
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s23",
+          "from": 1335,
+          "dur": 32,
+          "text": "איך היינו הולכים עם",
+          "ref": {
+            "cap": "איך היינו הולכים עם",
+            "k": 23
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s24",
+          "from": 1367,
+          "dur": 47,
+          "text": "שרולי עם רגל שבורה?",
+          "ref": {
+            "cap": "שרולי עם רגל שבורה?",
+            "k": 24
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s25",
+          "from": 1438,
+          "dur": 85,
+          "text": "וואו. איזו השגחה פרטית,",
+          "ref": {
+            "cap": "וואו. איזו השגחה פרטית,",
+            "k": 25
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s26",
+          "from": 1523,
+          "dur": 79,
+          "text": "באמת, בכל רגע ורגע.",
+          "ref": {
+            "cap": "באמת, בכל רגע ורגע.",
+            "k": 26
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s27",
+          "from": 1627,
+          "dur": 53,
+          "text": "קחי, תתכבדי.",
+          "ref": {
+            "cap": "קחי, תתכבדי.",
+            "k": 27
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s28",
+          "from": 1685,
+          "dur": 46,
+          "text": "זה עיגוליות של ברכת",
+          "ref": {
+            "cap": "זה עיגוליות של ברכת",
+            "k": 28
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s29",
+          "from": 1731,
+          "dur": 71,
+          "text": "השפע. זה פרווה!",
+          "ref": {
+            "cap": "השפע. זה פרווה!",
+            "k": 29
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s30",
+          "from": 1811,
+          "dur": 46,
+          "text": "אברהם משה הביא אתמול",
+          "ref": {
+            "cap": "אברהם משה הביא אתמול",
+            "k": 30
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s31",
+          "from": 1857,
+          "dur": 32,
+          "text": "משפע עד.",
+          "ref": {
+            "cap": "משפע עד.",
+            "k": 31
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s32",
+          "from": 1904,
+          "dur": 60,
+          "text": "וואו, איזה דברים יש",
+          "ref": {
+            "cap": "וואו, איזה דברים יש",
+            "k": 32
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s33",
+          "from": 1964,
+          "dur": 64,
+          "text": "שם! איזה שפע!",
+          "ref": {
+            "cap": "שם! איזה שפע!",
+            "k": 33
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s34",
+          "from": 2053,
+          "dur": 40,
+          "text": "הם הוציאו עכשיו משחק",
+          "ref": {
+            "cap": "הם הוציאו עכשיו משחק",
+            "k": 34
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s35",
+          "from": 2093,
+          "dur": 76,
+          "text": "לילדים שנקרא ״אבני בניין״.",
+          "ref": {
+            "cap": "לילדים שנקרא ״אבני בניין״.",
+            "k": 35
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s36",
+          "from": 2169,
+          "dur": 30,
+          "text": "זה כמו לגו,",
+          "ref": {
+            "cap": "זה כמו לגו,",
+            "k": 36
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s37",
+          "from": 2199,
+          "dur": 33,
+          "text": "רק בונים עולם של",
+          "ref": {
+            "cap": "רק בונים עולם של",
+            "k": 37
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s38",
+          "from": 2232,
+          "dur": 77,
+          "text": "תורה. אברהם משה לא",
+          "ref": {
+            "cap": "תורה. אברהם משה לא",
+            "k": 38
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s39",
+          "from": 2309,
+          "dur": 42,
+          "text": "מרשה לנו לגו בבית.",
+          "ref": {
+            "cap": "מרשה לנו לגו בבית.",
+            "k": 39
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s40",
+          "from": 2373,
+          "dur": 41,
+          "text": "הרב אמר שלגו זה",
+          "ref": {
+            "cap": "הרב אמר שלגו זה",
+            "k": 40
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s41",
+          "from": 2414,
+          "dur": 31,
+          "text": "מלשון לגויים.",
+          "ref": {
+            "cap": "מלשון לגויים.",
+            "k": 41
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s42",
+          "from": 2460,
+          "dur": 45,
+          "text": "אני לא מתווכחת.",
+          "ref": {
+            "cap": "אני לא מתווכחת.",
+            "k": 42
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s43",
+          "from": 2523,
+          "dur": 47,
+          "text": "נכון שלא מרגישים שזה",
+          "ref": {
+            "cap": "נכון שלא מרגישים שזה",
+            "k": 43
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s44",
+          "from": 2570,
+          "dur": 99,
+          "text": "פרווה? לא,",
+          "ref": {
+            "cap": "פרווה? לא,",
+            "k": 44
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s45",
+          "from": 2669,
+          "dur": 46,
+          "text": "אני חושבת שהבעיה היא",
+          "ref": {
+            "cap": "אני חושבת שהבעיה היא",
+            "k": 45
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s46",
+          "from": 2715,
+          "dur": 59,
+          "text": "בשיטה שקוראת למודל השפה.",
+          "ref": {
+            "cap": "בשיטה שקוראת למודל השפה.",
+            "k": 46
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s47",
+          "from": 2783,
+          "dur": 27,
+          "text": "הוא לא מחזיר את",
+          "ref": {
+            "cap": "הוא לא מחזיר את",
+            "k": 47
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s48",
+          "from": 2810,
+          "dur": 47,
+          "text": "התשובה במבנה שביקשנו,",
+          "ref": {
+            "cap": "התשובה במבנה שביקשנו,",
+            "k": 48
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s49",
+          "from": 2857,
+          "dur": 51,
+          "text": "אז הוספתי הנחיית מערכת",
+          "ref": {
+            "cap": "אז הוספתי הנחיית מערכת",
+            "k": 49
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s50",
+          "from": 2908,
+          "dur": 37,
+          "text": "יותר מפורשת.",
+          "ref": {
+            "cap": "יותר מפורשת.",
+            "k": 50
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s51",
+          "from": 3000,
+          "dur": 30,
+          "text": "חס וחלילה,",
+          "ref": {
+            "cap": "חס וחלילה,",
+            "k": 51
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s52",
+          "from": 3030,
+          "dur": 43,
+          "text": "חס ושלום!",
+          "ref": {
+            "cap": "חס ושלום!",
+            "k": 52
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s53",
+          "from": 3086,
+          "dur": 37,
+          "text": "אני לא אומרת שיותם",
+          "ref": {
+            "cap": "אני לא אומרת שיותם",
+            "k": 53
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s54",
+          "from": 3123,
+          "dur": 60,
+          "text": "טועה. אני רק אוחזת",
+          "ref": {
+            "cap": "טועה. אני רק אוחזת",
+            "k": 54
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s55",
+          "from": 3183,
+          "dur": 38,
+          "text": "בדעה שיש איזושהי בעיה",
+          "ref": {
+            "cap": "בדעה שיש איזושהי בעיה",
+            "k": 55
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s56",
+          "from": 3221,
+          "dur": 24,
+          "text": "במימוש הזה,",
+          "ref": {
+            "cap": "במימוש הזה,",
+            "k": 56
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s57",
+          "from": 3245,
+          "dur": 51,
+          "text": "שהוולידציה לא עוברת כמו",
+          "ref": {
+            "cap": "שהוולידציה לא עוברת כמו",
+            "k": 57
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s58",
+          "from": 3296,
+          "dur": 76,
+          "text": "שצריך. אבל אם יותם",
+          "ref": {
+            "cap": "שצריך. אבל אם יותם",
+            "k": 58
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s59",
+          "from": 3372,
+          "dur": 37,
+          "text": "מעדיף שנישאר עם המימוש",
+          "ref": {
+            "cap": "מעדיף שנישאר עם המימוש",
+            "k": 59
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s60",
+          "from": 3409,
+          "dur": 47,
+          "text": "הקודם, אין שום בעיה",
+          "ref": {
+            "cap": "הקודם, אין שום בעיה",
+            "k": 60
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s61",
+          "from": 3456,
+          "dur": 69,
+          "text": "מבחינתי. אני אוסיף יומני",
+          "ref": {
+            "cap": "מבחינתי. אני אוסיף יומני",
+            "k": 61
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s62",
+          "from": 3525,
+          "dur": 58,
+          "text": "רישום, שנוכל לפחות לראות",
+          "ref": {
+            "cap": "רישום, שנוכל לפחות לראות",
+            "k": 62
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s63",
+          "from": 3583,
+          "dur": 33,
+          "text": "למה זה נופל.",
+          "ref": {
+            "cap": "למה זה נופל.",
+            "k": 63
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s64",
+          "from": 3644,
+          "dur": 39,
+          "text": "השם עוז לעמו ייתן,",
+          "ref": {
+            "cap": "השם עוז לעמו ייתן,",
+            "k": 64
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s65",
+          "from": 3683,
+          "dur": 35,
+          "text": "השם יברך את עמו",
+          "ref": {
+            "cap": "השם יברך את עמו",
+            "k": 65
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s66",
+          "from": 3718,
+          "dur": 108,
+          "text": "בשלום. כן,",
+          "ref": {
+            "cap": "בשלום. כן,",
+            "k": 66
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s67",
+          "from": 3826,
+          "dur": 74,
+          "text": "סליחה, הייתי בברכת המזון.",
+          "ref": {
+            "cap": "סליחה, הייתי בברכת המזון.",
+            "k": 67
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s68",
+          "from": 3903,
+          "dur": 41,
+          "text": "מה רצית?",
+          "ref": {
+            "cap": "מה רצית?",
+            "k": 68
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s69",
+          "from": 4017,
+          "dur": 55,
+          "text": "כן, ברכי,",
+          "ref": {
+            "cap": "כן, ברכי,",
+            "k": 69
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s70",
+          "from": 4072,
+          "dur": 56,
+          "text": "חמודה, מה קרה?",
+          "ref": {
+            "cap": "חמודה, מה קרה?",
+            "k": 70
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s71",
+          "from": 4297,
+          "dur": 44,
+          "text": "מלכי איפה?",
+          "ref": {
+            "cap": "מלכי איפה?",
+            "k": 71
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s72",
+          "from": 4347,
+          "dur": 41,
+          "text": "על השיש?",
+          "ref": {
+            "cap": "על השיש?",
+            "k": 72
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s73",
+          "from": 4393,
+          "dur": 44,
+          "text": "אז תורידי אותה,",
+          "ref": {
+            "cap": "אז תורידי אותה,",
+            "k": 73
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s74",
+          "from": 4437,
+          "dur": 158,
+          "text": "מתוקה. לא,",
+          "ref": {
+            "cap": "מתוקה. לא,",
+            "k": 74
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s75",
+          "from": 4595,
+          "dur": 49,
+          "text": "אל תמשכי אותה מהיד!",
+          "ref": {
+            "cap": "אל תמשכי אותה מהיד!",
+            "k": 75
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s76",
+          "from": 4653,
+          "dur": 43,
+          "text": "מספיק היינו עם שרולי",
+          "ref": {
+            "cap": "מספיק היינו עם שרולי",
+            "k": 76
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s77",
+          "from": 4696,
+          "dur": 47,
+          "text": "במיון, אני לא צריכה",
+          "ref": {
+            "cap": "במיון, אני לא צריכה",
+            "k": 77
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s78",
+          "from": 4743,
+          "dur": 25,
+          "text": "שהיא תפרוק שוב את",
+          "ref": {
+            "cap": "שהיא תפרוק שוב את",
+            "k": 78
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s79",
+          "from": 4768,
+          "dur": 110,
+          "text": "הכתף. כן,",
+          "ref": {
+            "cap": "הכתף. כן,",
+            "k": 79
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s80",
+          "from": 4878,
+          "dur": 39,
+          "text": "זה הוולידציה.",
+          "ref": {
+            "cap": "זה הוולידציה.",
+            "k": 80
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s81",
+          "from": 4932,
+          "dur": 37,
+          "text": "צריך לבדוק את הטוקן",
+          "ref": {
+            "cap": "צריך לבדוק את הטוקן",
+            "k": 81
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s82",
+          "from": 4969,
+          "dur": 49,
+          "text": "לפני שהוא עובר לשרת.",
+          "ref": {
+            "cap": "לפני שהוא עובר לשרת.",
+            "k": 82
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s83",
+          "from": 5033,
+          "dur": 36,
+          "text": "זה בשורה...",
+          "ref": {
+            "cap": "זה בשורה...",
+            "k": 83
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s84",
+          "from": 5078,
+          "dur": 81,
+          "text": "רגע... 84!",
+          "ref": {
+            "cap": "רגע... 84!",
+            "k": 84
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s85",
+          "from": 5170,
+          "dur": 50,
+          "text": "אם לא נגעו בזה.",
+          "ref": {
+            "cap": "אם לא נגעו בזה.",
+            "k": 85
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s86",
+          "from": 5226,
+          "dur": 52,
+          "text": "תבדוק שדסי לא שינתה,",
+          "ref": {
+            "cap": "תבדוק שדסי לא שינתה,",
+            "k": 86
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s87",
+          "from": 5278,
+          "dur": 36,
+          "text": "אני יודעת שהיא עבדה",
+          "ref": {
+            "cap": "אני יודעת שהיא עבדה",
+            "k": 87
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s88",
+          "from": 5314,
+          "dur": 20,
+          "text": "על זה.",
+          "ref": {
+            "cap": "על זה.",
+            "k": 88
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s89",
+          "from": 5426,
+          "dur": 58,
+          "text": "ברכי, אני איתך,",
+          "ref": {
+            "cap": "ברכי, אני איתך,",
+            "k": 89
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s90",
+          "from": 5484,
+          "dur": 60,
+          "text": "איתך, מתוקה שלי.",
+          "ref": {
+            "cap": "איתך, מתוקה שלי.",
+            "k": 90
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s91",
+          "from": 5550,
+          "dur": 44,
+          "text": "מישהו שאל רגע את",
+          "ref": {
+            "cap": "מישהו שאל רגע את",
+            "k": 91
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s92",
+          "from": 5594,
+          "dur": 42,
+          "text": "אימא משהו בעבודה.",
+          "ref": {
+            "cap": "אימא משהו בעבודה.",
+            "k": 92
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s93",
+          "from": 5658,
+          "dur": 43,
+          "text": "מה שרולי עושה?",
+          "ref": {
+            "cap": "מה שרולי עושה?",
+            "k": 93
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s94",
+          "from": 5794,
+          "dur": 51,
+          "text": "מטפס על הארון?",
+          "ref": {
+            "cap": "מטפס על הארון?",
+            "k": 94
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s95",
+          "from": 5853,
+          "dur": 40,
+          "text": "עם הגבס?",
+          "ref": {
+            "cap": "עם הגבס?",
+            "k": 95
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s96",
+          "from": 5970,
+          "dur": 141,
+          "text": "אה, מחפש את העיגוליות.",
+          "ref": {
+            "cap": "אה, מחפש את העיגוליות.",
+            "k": 96
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s97",
+          "from": 6143,
+          "dur": 49,
+          "text": "רגע, אבל הוא בשרי,",
+          "ref": {
+            "cap": "רגע, אבל הוא בשרי,",
+            "k": 97
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s98",
+          "from": 6192,
+          "dur": 108,
+          "text": "לא? אה,",
+          "ref": {
+            "cap": "לא? אה,",
+            "k": 98
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s99",
+          "from": 6353,
+          "dur": 65,
+          "text": "נכון, זה פרווה!",
+          "ref": {
+            "cap": "נכון, זה פרווה!",
+            "k": 99
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s100",
+          "from": 6423,
+          "dur": 38,
+          "text": "את רואה?",
+          "ref": {
+            "cap": "את רואה?",
+            "k": 100
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s101",
+          "from": 6472,
+          "dur": 36,
+          "text": "כל כך טעים שאני",
+          "ref": {
+            "cap": "כל כך טעים שאני",
+            "k": 101
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s102",
+          "from": 6508,
+          "dur": 37,
+          "text": "בעצמי שוכחת.",
+          "ref": {
+            "cap": "בעצמי שוכחת.",
+            "k": 102
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s103",
+          "from": 6564,
+          "dur": 52,
+          "text": "תגידי לו שלקחתי אותן",
+          "ref": {
+            "cap": "תגידי לו שלקחתי אותן",
+            "k": 103
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s104",
+          "from": 6616,
+          "dur": 71,
+          "text": "למשרד. ושלא יטפס לי",
+          "ref": {
+            "cap": "למשרד. ושלא יטפס לי",
+            "k": 104
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s105",
+          "from": 6687,
+          "dur": 36,
+          "text": "עם רגל שבורה.",
+          "ref": {
+            "cap": "עם רגל שבורה.",
+            "k": 105
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s106",
+          "from": 6790,
+          "dur": 42,
+          "text": "מי בוכה שם?",
+          "ref": {
+            "cap": "מי בוכה שם?",
+            "k": 106
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s107",
+          "from": 6853,
+          "dur": 69,
+          "text": "יענקי? מה קרה?",
+          "ref": {
+            "cap": "יענקי? מה קרה?",
+            "k": 107
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s108",
+          "from": 7051,
+          "dur": 55,
+          "text": "דרך על האבני בניין?",
+          "ref": {
+            "cap": "דרך על האבני בניין?",
+            "k": 108
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s109",
+          "from": 7118,
+          "dur": 48,
+          "text": "אני ביקשתי ממנו לאסוף",
+          "ref": {
+            "cap": "אני ביקשתי ממנו לאסוף",
+            "k": 109
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s110",
+          "from": 7166,
+          "dur": 28,
+          "text": "את זה אתמול!",
+          "ref": {
+            "cap": "את זה אתמול!",
+            "k": 110
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s111",
+          "from": 7201,
+          "dur": 43,
+          "text": "זה מה שקורה.",
+          "ref": {
+            "cap": "זה מה שקורה.",
+            "k": 111
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s112",
+          "from": 7248,
+          "dur": 60,
+          "text": "טוב, תעזרי לו,",
+          "ref": {
+            "cap": "טוב, תעזרי לו,",
+            "k": 112
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s113",
+          "from": 7308,
+          "dur": 75,
+          "text": "מתוקה. ושרולי?",
+          "ref": {
+            "cap": "מתוקה. ושרולי?",
+            "k": 113
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s114",
+          "from": 7401,
+          "dur": 59,
+          "text": "צריך עזרה להתקלח?",
+          "ref": {
+            "cap": "צריך עזרה להתקלח?",
+            "k": 114
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s115",
+          "from": 7477,
+          "dur": 34,
+          "text": "איפה אבא?",
+          "ref": {
+            "cap": "איפה אבא?",
+            "k": 115
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s116",
+          "from": 7623,
+          "dur": 56,
+          "text": "עוד לא חזר מהכולל?",
+          "ref": {
+            "cap": "עוד לא חזר מהכולל?",
+            "k": 116
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s117",
+          "from": 7684,
+          "dur": 53,
+          "text": "תנסי אצל ר' שמוליק,",
+          "ref": {
+            "cap": "תנסי אצל ר' שמוליק,",
+            "k": 117
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s118",
+          "from": 7737,
+          "dur": 44,
+          "text": "החברותא שלו.",
+          "ref": {
+            "cap": "החברותא שלו.",
+            "k": 118
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s119",
+          "from": 7782,
+          "dur": 46,
+          "text": "אולי הם עוד באמצע",
+          "ref": {
+            "cap": "אולי הם עוד באמצע",
+            "k": 119
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s120",
+          "from": 7828,
+          "dur": 40,
+          "text": "סדר ב׳.",
+          "ref": {
+            "cap": "סדר ב׳.",
+            "k": 120
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s121",
+          "from": 7868,
+          "dur": 57,
+          "text": "טוב, חמודה,",
+          "ref": {
+            "cap": "טוב, חמודה,",
+            "k": 121
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s122",
+          "from": 7925,
+          "dur": 50,
+          "text": "אימא יוצאת בעזרת השם,",
+          "ref": {
+            "cap": "אימא יוצאת בעזרת השם,",
+            "k": 122
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s123",
+          "from": 7975,
+          "dur": 28,
+          "text": "בלי נדר,",
+          "ref": {
+            "cap": "בלי נדר,",
+            "k": 123
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s124",
+          "from": 8003,
+          "dur": 55,
+          "text": "כמו תמיד בארבע ועשרים.",
+          "ref": {
+            "cap": "כמו תמיד בארבע ועשרים.",
+            "k": 124
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s125",
+          "from": 8069,
+          "dur": 177,
+          "text": "נשיקות. רגע,",
+          "ref": {
+            "cap": "נשיקות. רגע,",
+            "k": 125
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s126",
+          "from": 8246,
+          "dur": 45,
+          "text": "מתי הגרסה עולה?",
+          "ref": {
+            "cap": "מתי הגרסה עולה?",
+            "k": 126
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s127",
+          "from": 8340,
+          "dur": 54,
+          "text": "לא, עברי,",
+          "ref": {
+            "cap": "לא, עברי,",
+            "k": 127
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s128",
+          "from": 8394,
+          "dur": 89,
+          "text": "עברי. מה התאריך העברי?",
+          "ref": {
+            "cap": "עברי. מה התאריך העברי?",
+            "k": 128
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s129",
+          "from": 8532,
+          "dur": 38,
+          "text": "אוי ואבוי!",
+          "ref": {
+            "cap": "אוי ואבוי!",
+            "k": 129
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s130",
+          "from": 8580,
+          "dur": 50,
+          "text": "זה יוצא זאת חנוכה!",
+          "ref": {
+            "cap": "זה יוצא זאת חנוכה!",
+            "k": 130
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s131",
+          "from": 8657,
+          "dur": 38,
+          "text": "אנחנו עושים הדלקת נרות",
+          "ref": {
+            "cap": "אנחנו עושים הדלקת נרות",
+            "k": 131
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s132",
+          "from": 8695,
+          "dur": 38,
+          "text": "אצל חמותי וסעודה עם",
+          "ref": {
+            "cap": "אצל חמותי וסעודה עם",
+            "k": 132
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s133",
+          "from": 8733,
+          "dur": 26,
+          "text": "כל המשפחה,",
+          "ref": {
+            "cap": "כל המשפחה,",
+            "k": 133
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s134",
+          "from": 8759,
+          "dur": 62,
+          "text": "וגיסי עושה סיום מסכת.",
+          "ref": {
+            "cap": "וגיסי עושה סיום מסכת.",
+            "k": 134
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s135",
+          "from": 8842,
+          "dur": 57,
+          "text": "בסדר, שטויות,",
+          "ref": {
+            "cap": "בסדר, שטויות,",
+            "k": 135
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s136",
+          "from": 8899,
+          "dur": 53,
+          "text": "אני אתחבר מחמותי.",
+          "ref": {
+            "cap": "אני אתחבר מחמותי.",
+            "k": 136
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s137",
+          "from": 8969,
+          "dur": 37,
+          "text": "נדליק נרות,",
+          "ref": {
+            "cap": "נדליק נרות,",
+            "k": 137
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s138",
+          "from": 9006,
+          "dur": 48,
+          "text": "חצי שעה בלי מלאכה,",
+          "ref": {
+            "cap": "חצי שעה בלי מלאכה,",
+            "k": 138
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s139",
+          "from": 9054,
+          "dur": 46,
+          "text": "ואחר כך אני אתחבר,",
+          "ref": {
+            "cap": "ואחר כך אני אתחבר,",
+            "k": 139
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s140",
+          "from": 9100,
+          "dur": 35,
+          "text": "בעזרת השם,",
+          "ref": {
+            "cap": "בעזרת השם,",
+            "k": 140
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s141",
+          "from": 9135,
+          "dur": 45,
+          "text": "בלי נדר.",
+          "ref": {
+            "cap": "בלי נדר.",
+            "k": 141
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s142",
+          "from": 9180,
+          "dur": 47,
+          "text": "רק שהאינטרנט הכשר לא",
+          "ref": {
+            "cap": "רק שהאינטרנט הכשר לא",
+            "k": 142
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s143",
+          "from": 9227,
+          "dur": 29,
+          "text": "יחסום אותי.",
+          "ref": {
+            "cap": "יחסום אותי.",
+            "k": 143
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s144",
+          "from": 9268,
+          "dur": 75,
+          "text": "טוב, אני חייבת לצאת.",
+          "ref": {
+            "cap": "טוב, אני חייבת לצאת.",
+            "k": 144
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s145",
+          "from": 9353,
+          "dur": 46,
+          "text": "שיהיה לכולם המשך יום",
+          "ref": {
+            "cap": "שיהיה לכולם המשך יום",
+            "k": 145
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s146",
+          "from": 9399,
+          "dur": 54,
+          "text": "מקסים, בשורות טובות,",
+          "ref": {
+            "cap": "מקסים, בשורות טובות,",
+            "k": 146
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s147",
+          "from": 9453,
+          "dur": 52,
+          "text": "ישועות והצלחות!",
+          "ref": {
+            "cap": "ישועות והצלחות!",
+            "k": 147
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s148",
+          "from": 9533,
+          "dur": 45,
+          "text": "דסי, שלחתי לך את",
+          "ref": {
+            "cap": "דסי, שלחתי לך את",
+            "k": 148
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s149",
+          "from": 9578,
+          "dur": 65,
+          "text": "השינויים, כל הבדיקות עברו.",
+          "ref": {
+            "cap": "השינויים, כל הבדיקות עברו.",
+            "k": 149
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s150",
+          "from": 9653,
+          "dur": 34,
+          "text": "אם יש הערות תכתבי",
+          "ref": {
+            "cap": "אם יש הערות תכתבי",
+            "k": 150
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s151",
+          "from": 9687,
+          "dur": 25,
+          "text": "לי בטימס,",
+          "ref": {
+            "cap": "לי בטימס,",
+            "k": 151
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s152",
+          "from": 9712,
+          "dur": 42,
+          "text": "אני אעבור עליהן בערב",
+          "ref": {
+            "cap": "אני אעבור עליהן בערב",
+            "k": 152
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s153",
+          "from": 9754,
+          "dur": 34,
+          "text": "בעזרת השם.",
+          "ref": {
+            "cap": "בעזרת השם.",
+            "k": 153
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s154",
+          "from": 9811,
+          "dur": 42,
+          "text": "תודה רבה לכולם,",
+          "ref": {
+            "cap": "תודה רבה לכולם,",
+            "k": 154
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s155",
+          "from": 9853,
+          "dur": 27,
+          "text": "כל טוב,",
+          "ref": {
+            "cap": "כל טוב,",
+            "k": 155
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s156",
+          "from": 9880,
+          "dur": 37,
+          "text": "בשורות טובות,",
+          "ref": {
+            "cap": "בשורות טובות,",
+            "k": 156
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s157",
+          "from": 9917,
+          "dur": 134,
+          "text": "להתראות! כן,",
+          "ref": {
+            "cap": "להתראות! כן,",
+            "k": 157
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s158",
+          "from": 10051,
+          "dur": 56,
+          "text": "ברכי, חמודה?",
+          "ref": {
+            "cap": "ברכי, חמודה?",
+            "k": 158
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s159",
+          "from": 10131,
+          "dur": 32,
+          "text": "מה קרה?",
+          "ref": {
+            "cap": "מה קרה?",
+            "k": 159
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s160",
+          "from": 10270,
+          "dur": 60,
+          "text": "שרולי נפל במקלחת?",
+          "ref": {
+            "cap": "שרולי נפל במקלחת?",
+            "k": 160
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s161",
+          "from": 10346,
+          "dur": 57,
+          "text": "טוב, קודם כול תכבי",
+          "ref": {
+            "cap": "טוב, קודם כול תכבי",
+            "k": 161
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s162",
+          "from": 10403,
+          "dur": 20,
+          "text": "את המים,",
+          "ref": {
+            "cap": "את המים,",
+            "k": 162
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s163",
+          "from": 10423,
+          "dur": 87,
+          "text": "מתוקה, ותגידי לו שיחכה.",
+          "ref": {
+            "cap": "מתוקה, ותגידי לו שיחכה.",
+            "k": 163
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s164",
+          "from": 10510,
+          "dur": 47,
+          "text": "אימא כבר מגיעה.",
+          "ref": {
+            "cap": "אימא כבר מגיעה.",
+            "k": 164
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s165",
+          "from": 10657,
+          "dur": 36,
+          "text": "תודה רבה,",
+          "ref": {
+            "cap": "תודה רבה,",
+            "k": 165
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s166",
+          "from": 10693,
+          "dur": 24,
+          "text": "כל טוב,",
+          "ref": {
+            "cap": "כל טוב,",
+            "k": 166
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s167",
+          "from": 10717,
+          "dur": 36,
+          "text": "בשורות טובות,",
+          "ref": {
+            "cap": "בשורות טובות,",
+            "k": 167
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s168",
+          "from": 10753,
+          "dur": 42,
+          "text": "ישועות ונחמות,",
+          "ref": {
+            "cap": "ישועות ונחמות,",
+            "k": 168
+          },
+          "link": "cut-stand-in-0.04"
+        },
+        {
+          "id": "s169",
+          "from": 10795,
+          "dur": 34,
+          "text": "להתראות!",
+          "ref": {
+            "cap": "להתראות!",
+            "k": 169
+          },
+          "link": "cut-stand-in-0.04"
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "kind": "audio",
+      "name": "Voice",
+      "owner": "builder",
+      "props": {
+        "volume": 1,
+        "voice": {
+          "preset": "natural",
+          "lowcut": 60,
+          "warmth": 0,
+          "box": 0,
+          "presence": 0,
+          "deess": 0,
+          "comp": 0
+        }
+      },
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 10829,
+          "asset": "t.stand-in",
+          "in": 0.04,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "stand-in",
+            "a": 0.04
+          },
+          "link": "cut-stand-in-0.04"
+        }
+      ]
+    },
+    {
+      "id": "sfx",
+      "kind": "audio",
+      "name": "ברכי בטלפון",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x2",
+          "from": 4155.42,
+          "dur": 120.273,
+          "asset": "s.2",
+          "gain": 0.96,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 2
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x3",
+          "from": 4493.7,
+          "dur": 64.146,
+          "asset": "s.3",
+          "gain": 1.2,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 3
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x4",
+          "from": 5359.14,
+          "dur": 56.127,
+          "asset": "s.4",
+          "gain": 0.96,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 4
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x5",
+          "from": 5726.82,
+          "dur": 58.132,
+          "asset": "s.5",
+          "gain": 3,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 5
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x6",
+          "from": 5921.58,
+          "dur": 100.227,
+          "asset": "s.6",
+          "gain": 1.32,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 6
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x7",
+          "from": 6247.02,
+          "dur": 76.173,
+          "asset": "s.7",
+          "gain": 2.64,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 7
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x8",
+          "from": 6949.86,
+          "dur": 84.191,
+          "asset": "s.8",
+          "gain": 0.84,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 8
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x9",
+          "from": 7536.9,
+          "dur": 72.164,
+          "asset": "s.9",
+          "gain": 3.84,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 9
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x10",
+          "from": 8133.3,
+          "dur": 72.164,
+          "asset": "s.10",
+          "gain": 6,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 10
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x11",
+          "from": 10199.58,
+          "dur": 58.132,
+          "asset": "s.11",
+          "gain": 3,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 11
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x12",
+          "from": 10579.74,
+          "dur": 66.15,
+          "asset": "s.12",
+          "gain": 1.08,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 12
+          },
+          "in": 0,
+          "rate": 1.1,
+          "fx": {
+            "filter": "phone"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sfx1",
+      "kind": "audio",
+      "name": "הבית ברקע",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x13",
+          "from": 4024.68,
+          "dur": 585,
+          "asset": "s.13",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 13
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x14",
+          "from": 4591.68,
+          "dur": 585,
+          "asset": "s.14",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 14
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x15",
+          "from": 5158.68,
+          "dur": 585,
+          "asset": "s.15",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 15
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x16",
+          "from": 5725.68,
+          "dur": 585,
+          "asset": "s.16",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 16
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x17",
+          "from": 6292.68,
+          "dur": 585,
+          "asset": "s.17",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 17
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x18",
+          "from": 6859.68,
+          "dur": 585,
+          "asset": "s.18",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 18
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x19",
+          "from": 7426.68,
+          "dur": 585,
+          "asset": "s.19",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 19
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x20",
+          "from": 7993.68,
+          "dur": 230.4,
+          "asset": "s.20",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 20
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x21",
+          "from": 8206.2,
+          "dur": 18,
+          "asset": "s.21",
+          "gain": 0.22,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 21
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x22",
+          "from": 10028.16,
+          "dur": 585,
+          "asset": "s.22",
+          "gain": 0.18,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 22
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x23",
+          "from": 10595.16,
+          "dur": 143.4,
+          "asset": "s.23",
+          "gain": 0.18,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 23
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x24",
+          "from": 10720.44,
+          "dur": 18,
+          "asset": "s.24",
+          "gain": 0.18,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 24
+          },
+          "in": 0.2,
+          "fx": {
+            "filter": "phone"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sfx2",
+      "kind": "audio",
+      "name": "אירועים וצלצולים",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x0",
+          "from": 3970.68,
+          "dur": 48,
+          "asset": "s.0",
+          "gain": 0.095,
+          "fade_in": 0.02,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 0
+          },
+          "in": 0
+        },
+        {
+          "id": "x25",
+          "from": 4189.92,
+          "dur": 150,
+          "asset": "s.25",
+          "gain": 0.22,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 25
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x26",
+          "from": 5782.92,
+          "dur": 120,
+          "asset": "s.26",
+          "gain": 0.35,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 26
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x27",
+          "from": 6022.08,
+          "dur": 90,
+          "asset": "s.27",
+          "gain": 1.2,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 27
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x28",
+          "from": 6748.08,
+          "dur": 90,
+          "asset": "s.28",
+          "gain": 0.2,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 28
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x29",
+          "from": 6769.08,
+          "dur": 180,
+          "asset": "s.29",
+          "gain": 0.28,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 29
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x30",
+          "from": 7687.8,
+          "dur": 74.4,
+          "asset": "s.30",
+          "gain": 0.3,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 30
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x1",
+          "from": 9974.16,
+          "dur": 48,
+          "asset": "s.1",
+          "gain": 0.095,
+          "fade_in": 0.02,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 1
+          },
+          "in": 0
+        },
+        {
+          "id": "x31",
+          "from": 10186.08,
+          "dur": 210,
+          "asset": "s.31",
+          "gain": 0.22,
+          "fade_in": 0.03,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 31
+          },
+          "in": 0,
+          "fx": {
+            "filter": "phone"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sfx3",
+      "kind": "audio",
+      "name": "המשרד (טימס ועמיתים)",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x32",
+          "from": 2618.46,
+          "dur": 33.014,
+          "asset": "s.32",
+          "gain": 1.6,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 32
+          },
+          "in": 0.1,
+          "rate": 1.045,
+          "fx": {
+            "filter": "speaker",
+            "pitch": -1.65,
+            "room": 0.3,
+            "roomSize": 1.6
+          }
+        },
+        {
+          "id": "x33",
+          "from": 2970.9,
+          "dur": 30.144,
+          "asset": "s.33",
+          "gain": 1.6,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 33
+          },
+          "in": 6.25,
+          "rate": 1.045,
+          "fx": {
+            "filter": "speaker",
+            "pitch": -1.65,
+            "room": 0.3,
+            "roomSize": 1.6
+          }
+        },
+        {
+          "id": "x35",
+          "from": 3770.22,
+          "dur": 40,
+          "asset": "s.35",
+          "gain": 1.6,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 35
+          },
+          "in": 0.8,
+          "rate": 0.9,
+          "fx": {
+            "room": 0.3,
+            "roomSize": 1.6
+          }
+        },
+        {
+          "id": "x36",
+          "from": 4819.5,
+          "dur": 40,
+          "asset": "s.36",
+          "gain": 1.6,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 36
+          },
+          "in": 10.6,
+          "rate": 0.9,
+          "fx": {
+            "room": 0.3,
+            "roomSize": 1.6
+          }
+        },
+        {
+          "id": "x34",
+          "from": 8316.78,
+          "dur": 18.66,
+          "asset": "s.34",
+          "gain": 1.6,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 34
+          },
+          "in": 3.25,
+          "rate": 1.045,
+          "fx": {
+            "filter": "speaker",
+            "pitch": -1.65,
+            "room": 0.3,
+            "roomSize": 1.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "kind": "audio",
+      "name": "Music",
+      "owner": "builder",
+      "props": {
+        "volume": 0.05,
+        "lift": {
+          "db": 6,
+          "fade": 1,
+          "of": "subs"
+        }
+      },
+      "items": [
+        {
+          "id": "m0",
+          "from": 0,
+          "dur": 10829,
+          "asset": "s.music",
+          "in": 0,
+          "fade_in": 0.3,
+          "fade_out": 2.5,
+          "ref": {
+            "music": 1
+          }
+        }
+      ]
+    }
+  ],
+  "rev": 24,
+  "builder": {
+    "kind": "solo",
+    "from": "lesson.py"
+  },
+  "characters": [],
+  "edit": {
+    "ripple": true
+  },
+  "saved": 1793119315739
+}

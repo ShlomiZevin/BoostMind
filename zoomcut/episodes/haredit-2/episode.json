@@ -1,0 +1,535 @@
+{
+  "type": "lesson",
+  "title": "POV: החרדית של המשרד – חלק 2 (haredit-2)",
+  "input_dir": "C:/workspace/BoostMind/zoomcut/episodes/haredit-2/stand-in",
+  "takes": "stand-in.mp4",
+  "background": "../_assets/haredit/set.jpg",
+  "plaque": [],
+  "matte_engine": "fast",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 150
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 66,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "voice": {
+    "preset": "natural"
+  },
+  "cut": {
+    "merge": 0.6,
+    "pad_in": 0.05,
+    "pad_out": 0.15,
+    "join": 0.2,
+    "silence": false
+  },
+  "overlays": [
+    {
+      "text": "פוב: אתה יושב ליד\nהחרדית של המשרד – חלק 2",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "light",
+      "opacity": 0.94,
+      "y": 300,
+      "size": 62,
+      "start": 0,
+      "end": 5.5,
+      "hook": true
+    },
+    {
+      "style": "image",
+      "image": "media/kids.png",
+      "plain": true,
+      "behind": true,
+      "x": 12,
+      "y": 500,
+      "w": 400,
+      "text": "",
+      "opacity": 1,
+      "start": 0,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "media/hani-420.png",
+      "plain": true,
+      "pop": true,
+      "x": 620,
+      "y": 330,
+      "w": 400,
+      "text": "",
+      "from_words": [
+        "בארבע ועשרים",
+        "ועשרים"
+      ],
+      "to_words": [
+        "נשיקות"
+      ],
+      "hold": 1.5,
+      "start": 267.48,
+      "end": 271.32
+    }
+  ],
+  "script": "haredit-2",
+  "bg_blur": 0.8,
+  "speed": 1.15,
+  "media": [
+    "media/kids.png",
+    "media/hani-420.png",
+    "../_assets/haredit/office-room-long.mp3",
+    "../_assets/music/fast/klezmer-ska.mp3",
+    "../_assets/music/fast/montage.mp3",
+    "../_assets/music/fast/chase.mp3",
+    "../_assets/music/fast/swing.mp3"
+  ],
+  "music": {
+    "sound": "../_assets/music/fast/klezmer-ska.mp3",
+    "gain": 0.05,
+    "fade_in": 0.3,
+    "lift": {
+      "db": 6,
+      "fade": 1
+    }
+  },
+  "sounds": [
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "from": 0,
+      "to": 1.6,
+      "at": 132.396,
+      "gain": 0.095,
+      "fade_out": 0.08,
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "from": 0,
+      "to": 1.6,
+      "at": 332.512,
+      "gain": 0.095,
+      "fade_out": 0.08,
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-01.mp3",
+      "at": 138.554,
+      "gain": 0.96,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-02.mp3",
+      "at": 149.83,
+      "gain": 1.2,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-03.mp3",
+      "at": 178.678,
+      "gain": 0.96,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-04.mp3",
+      "at": 190.934,
+      "gain": 3.0,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-05.mp3",
+      "at": 197.426,
+      "gain": 1.32,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-06.mp3",
+      "at": 208.274,
+      "gain": 2.64,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-07.mp3",
+      "at": 231.702,
+      "gain": 0.84,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-08.mp3",
+      "at": 251.27,
+      "gain": 3.84,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-09.mp3",
+      "at": 271.15,
+      "gain": 6.0,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-10.mp3",
+      "at": 340.026,
+      "gain": 3.0,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/brachi-11.mp3",
+      "at": 352.698,
+      "gain": 1.08,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "pitch": 1.1,
+      "filter": "phone",
+      "lane": 0
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 134.196,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 153.096,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 171.996,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 190.896,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 209.796,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 228.696,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 247.596,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 7.88,
+      "at": 266.496,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 0.8,
+      "at": 273.58,
+      "gain": 0.22,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 19.7,
+      "at": 334.312,
+      "gain": 0.18,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 4.98,
+      "at": 353.212,
+      "gain": 0.18,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "from": 0.2,
+      "to": 0.8,
+      "at": 357.388,
+      "gain": 0.18,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/malki-wail.mp3",
+      "at": 139.704,
+      "gain": 0.22,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/climb.mp3",
+      "at": 192.804,
+      "gain": 0.35,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/cookie-tin.mp3",
+      "at": 200.776,
+      "gain": 1.2,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/crash.mp3",
+      "at": 224.976,
+      "gain": 0.2,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/yanky-cry.mp3",
+      "at": 225.676,
+      "gain": 0.28,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/mommy-far.mp3",
+      "at": 256.3,
+      "gain": 0.3,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/haredit/calls/shower.mp3",
+      "at": 339.576,
+      "gain": 0.22,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "from": 0.1,
+      "to": 1.25,
+      "at": 87.322,
+      "gain": 1.6,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "lane": 3
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "from": 6.25,
+      "to": 7.3,
+      "at": 99.07,
+      "gain": 1.6,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "lane": 3
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "from": 3.25,
+      "to": 3.9,
+      "at": 277.266,
+      "gain": 1.6,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "filter": "speaker",
+      "pitch": 0.95,
+      "tempo": 1.1,
+      "room": true,
+      "lane": 3
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "from": 0.8,
+      "to": 2.0,
+      "at": 125.714,
+      "gain": 1.6,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "pitch": 0.9,
+      "room": true,
+      "lane": 3
+    },
+    {
+      "take": "stand-in",
+      "sound": "../_assets/gym/sigal-mumble.mp3",
+      "from": 10.6,
+      "to": 11.8,
+      "at": 160.69,
+      "gain": 1.6,
+      "fade_in": 0.04,
+      "fade_out": 0.12,
+      "pitch": 0.9,
+      "room": true,
+      "lane": 3
+    }
+  ],
+  "_todo": [
+    "STAND-IN (not footage): stand-in/stand-in.mp4 - Hila reads her lines, a pause left for every call sound (stand-in/gaps.json).",
+    "When his takes arrive: input_dir = his folder, takes = his files (in order: sequence), matte_engine back to 'body', cut.silence back on (remove 'silence': false), eye contact stays OFF (no key).",
+    "Then re-place every sound by its label onto his takes (each sound's 'at' is a stand-in second): the ring before 'כן ברכי חמודה', brachi-0N right after the line it answers, the house bed under each whole call, crash+Yanky before 'מי בוכה שם', climb after 'מטפס על הארון', shower under 'שרולי נפל במקלחת'.",
+    "His phone calls are THE point: Brachi lands in his pauses (he cuts her off), the house never stops under her, Hani stays nonchalant over it."
+  ]
+}
