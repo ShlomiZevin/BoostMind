@@ -138,6 +138,11 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 - **All of it is live** in the editor and rendered by the same graph in the export (render/ui/layergraph.ts,
   tools/audio_layers.mjs). Only a NEW sound file is prepared (cleaning variants, levels) - in the background.
 - One loudness gain for the whole video to -14 LUFS, a limiter for the rare peak - the level never rides.
+- **How the editor plays sound (2026-10-27):** every file decoded once into memory - at the project's speed, pitch kept
+  (the studio's `/pm-tempo`, ffmpeg atempo, cached in `work/public/layers/tempo/`) - and every clip scheduled on the
+  audio clock from Play / a jump on the bar / an edit. The SOUND is the clock: the picture skips ahead to it when the
+  computer is slow (LayersEditor), never the sound after the picture. One limiter on the sum (no crackle). The export
+  never runs this (it renders the same graph offline). A session checking sound: the live preview is now trustworthy.
 
 ### effect - film effects on everything below
 - One effect layer = one filter: props `filter` = `grade` (movie colour) | `dark` | `vignette` | `grain` | `zoom`

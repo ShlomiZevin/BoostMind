@@ -1,19 +1,19 @@
 // An audio layer in the EDITOR, live: moving, trimming, muting, gain, fades, the cleaning, clarity, speech level, the
 // voice chain and every sound effect (filter, pitch, soften, room - render/ui/soundfx.ts) are heard at once; nothing
 // is rebuilt. The graph is render/ui/layergraph.ts - the export renders the very same one offline (tools/audio_layers.mjs).
-// Like VideoTrack: each source gets two persistent <audio> copies (clock.js - the next item's copy waits already
-// seeked), following the Player's frame; the sources are downloaded once into memory (ui/preload.ts).
+// Sound from memory on one clock: each source decoded once into an AudioBuffer (sped up by the studio, pitch kept, when
+// the project speed applies), every clip scheduled on the audio clock from Play / a jump / an edit; clock.js still
+// splits the items into copies (each copy = one clip graph its sources play into).
 // Sources (pipeline/layers_audio.py): urls['<layer>|<asset>|<clean>'] = the take's sound cleaned only (off / mild /
 // strong / fft / nn), at the mix's shared gain; levels[...] = its speech-level gain. The Noise switch picks one - instant.
 // (An older project with only urls['<layer>|<asset>'] - cleaning x level x clarity baked in - plays that, as before.)
 // Levels: sources come at the shared gain g; each clip is brought back to the track's own level (x 1/g) before its
 // fx and the voice chain (they are level-dependent, the export runs them at that level) and the layer goes out x g.
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { partsOf, activeParts, nextUses, copiesOf, srcAt } from './clock.js';
 // a clip's source time when the project's speed doesn't apply to it: the timeline runs `speed` x faster than real time
 const ownAt = (A: any, f: number, fps: number, speed: number) => (A.in ?? 0) + ((f - A.from) / fps) * (A.rate ?? 1) / (speed || 1);
-import { usePreloaded } from '../../ui/preload';
 import { loadFx } from '../../ui/soundfx';
 import { buildLayer, applyLayer, buildClip, applyClip, clipGainAt, LayerNodes, ClipNodes } from '../../ui/layergraph';
 import { prepare, layerGainAt } from './automation.js';
@@ -39,6 +39,27 @@ const masterBus = (ctx: AudioContext) => {
   return bus;
 };
 
+// THE clock while playing: the sound's (the audio clock runs true; the picture falls behind when the computer is busy
+// and catches up in bursts). Every layer schedules from it; the editor keeps the picture on it (LayersEditor) - the
+// way a video player keeps the picture on the sound.
+export const soundClock = { on: false, t0: 0, f0: 0, perSec: 0 };
+/** The frame the sound is at now, while playing (null when stopped). */
+export const clockFrame = () => (soundClock.on && shared ? soundClock.f0 + Math.max(0, shared.currentTime - soundClock.t0) * soundClock.perSec : null);
+
+// decoded sound files, shared by every layer, kept while a layer uses them (a 6-minute voice is ~70 MB decoded)
+const buffers = new Map<string, Promise<AudioBuffer | null>>();
+const users = new Map<string, number>();
+const loadBuffer = (u: string) => {
+  if (!buffers.has(u)) buffers.set(u, fetch(u).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+    .then((a) => audioCtx().decodeAudioData(a)).catch(() => { setTimeout(() => buffers.delete(u), 3000); return null; }));
+  return buffers.get(u)!;
+};
+const hold = (us: string[]) => { for (const u of us) users.set(u, (users.get(u) || 0) + 1); };
+const release = (us: string[]) => {
+  for (const u of us) users.set(u, (users.get(u) || 1) - 1);
+  setTimeout(() => { for (const u of us) if (!users.get(u)) { users.delete(u); buffers.delete(u); } }, 30000);
+};
+
 /** An item's gain at frame f (layergraph.ts clipGainAt). */
 export const itemGain = (it: any, f: number, fps: number) => clipGainAt(it, (f - it.from) / fps, fps);
 
@@ -56,37 +77,47 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
   };
   const parts = useMemo(() => partsOf(layer.items, fps, () => 'audio'), [layer.items, fps]);
   const copies = useMemo(() => copiesOf(parts), [parts]);
-  // in memory: the current cleaning of every asset in use, and the plain / RNNoise ones (the usual switches)
-  const [blobs] = usePreloaded(useMemo(() => {
-    const assets = [...new Set(Object.values(copies).map((k: string) => k.split(':')[0]))];
-    return [...new Set(assets.flatMap((a) => [clean, 'off', 'nn'].map((c) => srcOf(a, c).url)).filter(Boolean))];
-  }, [copies, p.urls, clean]));
+  // sound from MEMORY on ONE clock (2026-10-27, his: "I can't work with an editor which can't play multiple audio layers
+  // normally"): every file decoded once into an AudioBuffer - at the project's speed, pitch kept, made by the studio
+  // (/pm-tempo - ffmpeg atempo, the filter the export speeds its mix with) - and every clip SCHEDULED on the audio clock
+  // when Play starts (and again after a jump or an edit). The old way - an <audio> per clip chased by a sync loop - went
+  // silent whenever one had to load or catch up. The graph (layergraph.ts: gains, fades, fx, voice chain) is the same.
+  const speed = (p as any).playbackRate || 1;
+  const own = !!layer.props?.own_pace;
+  const bufUrl = (asset: string) => {  // the file this layer plays an asset from: sped up when the project speed applies
+    const u = srcOf(asset).url;
+    return !u || own || speed === 1 || !u.includes('/pm/') ? u : `${u.replace('/pm/', '/pm-tempo/')}&s=${speed}`;
+  };
+  const stretch = (asset: string) => (bufUrl(asset) !== srcOf(asset).url ? speed : 1);  // the buffer's own speed
+  const [bufs, setBufs] = useState<Record<string, AudioBuffer | null>>({});
+  const want = useMemo(() => [...new Set(Object.values(copies).map((k: string) => bufUrl(k.split(':')[0])).filter(Boolean))], [copies, p.urls, clean, speed, own]);
+  useEffect(() => {
+    let alive = true;
+    for (const u of want) if (!bufs[u]) loadBuffer(u).then((b) => alive && setBufs((o) => ({ ...o, [u]: b })));
+    hold(want);
+    return () => { alive = false; release(want); };
+  }, [want.join('|')]);
 
-  type Node = { el: HTMLAudioElement; clip?: ClipNodes; src: string; item?: string };
+  type Node = { clip?: ClipNodes };
   const nodes = useRef<Record<string, Node>>({});
   const out = useRef<{ L: LayerNodes; gOut: GainNode; vol: GainNode } | null>(null);
+  const sched = useRef<{ t0: number; f0: number; sig: string; srcs: AudioBufferSourceNode[] } | null>(null);
   const live = useRef<any>({});
   const on = !layer.hidden && !layer.muted;
   const levels = (p as any).levels || {};
   const auto = useMemo(() => prepare(p.project, layer), [p.project.layers, layer]);  // ducks / lift, live from the other layers
-  live.current = { parts, f, playing: !!(p as any).playing, rate: (p as any).playbackRate || 1, volume: on ? Math.max(0, layer.props?.volume ?? 1) : 0,
-    props: layer.props || {}, g: Math.pow(10, ((p as any).gainDb ?? 0) / 20) };
+  // what the schedule depends on: a change of any of it while playing re-schedules from where it is
+  const sig = useMemo(() => JSON.stringify([parts.map((x: any) => [x.copy, x.from, x.dur, x.in, x.rate, x.asset]), want.map((u) => !!bufs[u]), speed, own]), [parts, want, bufs, speed, own]);
+  live.current = { parts, f, playing: !!(p as any).playing, rate: speed, volume: on ? Math.max(0, layer.props?.volume ?? 1) : 0,
+    props: layer.props || {}, g: Math.pow(10, ((p as any).gainDb ?? 0) / 20), sig };
 
-  // the copies: made / pointed at their (in-memory) file as the items or the cleaning change; gone with the layer
   useEffect(() => {
-    for (const [copy, key] of Object.entries(copies)) {
-      const s = srcOf((key as string).split(':')[0]);
-      const src = blobs[s.url] || s.url;
-      const n = nodes.current[copy];
-      if (!n) { const el = new Audio(); el.preload = 'auto'; el.crossOrigin = 'anonymous'; el.src = src; nodes.current[copy] = { el, src }; }
-      else if (n.src !== src && src) { const t = n.el.currentTime; n.el.src = src; n.src = src; n.el.currentTime = t; }  // (the Noise switch: same place, other file)
-    }
-    for (const copy of Object.keys(nodes.current)) if (!(copy in copies)) { nodes.current[copy].el.pause(); nodes.current[copy].el.src = ''; delete nodes.current[copy]; }
-  }, [copies, blobs]);
-  useEffect(() => () => { for (const n of Object.values(nodes.current)) { n.el.pause(); n.el.src = ''; } nodes.current = {}; out.current?.vol.disconnect(); }, []);
+    for (const copy of Object.keys(nodes.current)) if (!(copy in copies)) delete nodes.current[copy];
+  }, [copies]);
+  useEffect(() => () => { stopAll(); nodes.current = {}; out.current?.vol.disconnect(); }, []);
 
   // into Web Audio once it may start (a browser starts sound only after a click - the first Play is one) and the
-  // effects' worklet is loaded
+  // effects' worklet is loaded: the layer's graph, and each copy's clip graph (its gain + fx) the sources go into
   const wire = () => {
     const ctx = audioCtx();
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
@@ -97,15 +128,57 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
       out.current = { L: buildLayer(ctx, gOut), gOut, vol };
       (window as any).__atTap?.(ctx, layer.id, vol);  // (tests: listen to one layer)
     }
-    for (const n of Object.values(nodes.current)) {
-      if (n.clip) continue;
-      try { const c = buildClip(ctx, out.current.L); ctx.createMediaElementSource(n.el).connect(c.gain); n.clip = c; } catch {}
+    for (const copy of Object.keys(copies)) {
+      const n = (nodes.current[copy] ||= {});
+      if (!n.clip) n.clip = buildClip(ctx, out.current.L);
     }
     return ctx;
   };
+  function stopAll() {
+    const s = sched.current;
+    sched.current = null;
+    soundClock.on = false;  (window as any).__atSched?.push({ layer: layer.id, why: 'stop', playing: live.current.playing });
+    if (!s) return;
+    const ctx = audioCtx();
+    for (const n of Object.values(nodes.current)) if (n.clip) { n.clip.gain.gain.cancelScheduledValues(ctx.currentTime); n.clip.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.004); }
+    for (const x of s.srcs) { try { x.stop(ctx.currentTime + 0.02); } catch {} }  // (after the gain is down: no click)
+  }
+  // every clip from frame f on, on the audio clock: when it starts, where in its buffer, at what rate, for how long
+  const schedule = (ctx: AudioContext, f: number) => {
+    const { parts, rate, props, g } = live.current;
+    const old = sched.current?.srcs || [];
+    const now = ctx.currentTime + 0.03;
+    const srcs: AudioBufferSourceNode[] = [];
+    for (const n of Object.values(nodes.current)) n.clip?.gain.gain.cancelScheduledValues(now);
+    for (const P of parts as any[]) {
+      const end = P.from + P.dur, pr = P.rate ?? 1, n = nodes.current[P.copy];
+      if (end <= f || pr <= 1e-6 || !n?.clip) continue;
+      const b = bufs[bufUrl(P.asset)];
+      if (!b) continue;  // (still loading: it joins when it lands - the sig changes)
+      const sf = Math.max(P.from, f);
+      const when = now + (sf - f) / fps / rate;  // the timeline runs `rate` x faster than real time
+      const sb = stretch(P.asset);
+      let off: number, r: number, len: number;
+      if (props.own_pace && rate !== 1) { off = ownAt(P, sf, fps, rate); r = pr; len = ((end - sf) / fps / rate) * pr; }
+      else { off = srcAt(P, sf, fps) / sb; r = pr * (rate / sb); len = ((end - sf) / fps) * pr / sb; }
+      if (off >= b.duration || len <= 0) continue;
+      const x = ctx.createBufferSource();
+      x.buffer = b; x.playbackRate.value = r;
+      x.connect(n.clip.gain);
+      x.start(when, Math.max(0, off), len);
+      srcs.push(x);
+      if (P.from > f) {  // its gain opens exactly when it starts (the per-frame gain follows from the next frame)
+        const s = srcOf(P.asset), lv = s.fresh && props.level === 'speech' ? levels[s.key] ?? 1 : 1;
+        n.clip.gain.gain.setTargetAtTime(itemGain(P, P.from, fps) * lv / (s.scaled ? g : 1), when, 0.003);
+      }
+    }
+    for (const x of old) { try { x.stop(now); } catch {} }  // (the new ones take over at the same moment)
+    sched.current = { t0: now, f0: f, sig: live.current.sig, srcs };
+    Object.assign(soundClock, { on: true, t0: now, f0: f, perSec: fps * rate });
+  };
 
   const sync = () => {
-    const { parts, f, playing, rate, volume, props, g } = live.current;
+    const { parts, f, playing, rate, volume, props, g, sig } = live.current;
     const act = activeParts(parts, f), waits = nextUses(parts, f);
     const ctx = playing || shared ? wire() : null;
     const o = out.current;
@@ -116,39 +189,34 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
       // clarity is live only over the cleaned-only sources (the older baked ones carry it already)
       applyLayer(o.L, { ...props, presence: anyFresh ? props.presence : 0 });
     }
+    if (ctx && playing && ctx.state === 'running') {
+      // (re)schedule: Play, a jump on the bar (the frame is not where the clock says), an edit, a file that landed
+      const s = sched.current;
+      const at = s ? s.f0 + Math.max(0, ctx.currentTime - s.t0) * fps * rate : NaN;
+      // (the picture is kept within 2 frames of the sound by LayersEditor - a bigger gap is a jump he made on the bar)
+      if (!s || s.sig !== sig || !(Math.abs(at - f) <= 15)) {
+        (window as any).__atSched?.push({ layer: layer.id, why: !s ? 'play' : s.sig !== sig ? 'change' : 'drift', f, at: Math.round(at) });  // (the test bench)
+        schedule(ctx, f);
+      }
+    } else if (!playing && sched.current) stopAll();
     for (const [copy, n] of Object.entries(nodes.current)) {
-      const A = act[copy], el = n.el;
+      const A = act[copy];
+      if (!ctx || !n.clip) continue;
       if (A && playing) {
-        // own pace (props.own_pace - music he wants at its real tempo): the project speed doesn't touch it - it plays at
-        // its own rate, and its place in the source moves with real time (the timeline runs `rate` x faster)
-        const own = !!props.own_pace && rate !== 1;
-        const want = own ? ownAt(A, f, fps, rate) : srcAt(A, f, fps);
-        const r = own ? (A.rate ?? 1) : rate * (A.rate ?? 1);
-        if (el.playbackRate !== r) el.playbackRate = r;
-        const keep = (A.rate ?? 1) === 1;  // a sped-up / slowed clip is a tape (pitch follows); the project speed keeps the pitch
-        if ((el as any).preservesPitch !== keep) (el as any).preservesPitch = keep;
-        if (Math.abs(el.currentTime - want) > 0.08) el.currentTime = want;  // (sound drifts are heard sooner than picture)
-        if (el.paused) el.play().catch(() => {});
-        if (ctx && n.clip) {
-          const s = srcOf(A.asset);
-          const lv = s.fresh && props.level === 'speech' ? levels[s.key] ?? 1 : 1;
-          applyClip(n.clip, A);
-          n.clip.gain.gain.setTargetAtTime(itemGain(A, f, fps) * lv / (s.scaled ? g : 1), ctx.currentTime, 0.006);
-        }
+        const s = srcOf(A.asset);
+        const lv = s.fresh && props.level === 'speech' ? levels[s.key] ?? 1 : 1;
+        applyClip(n.clip, A);
+        n.clip.gain.gain.setTargetAtTime(itemGain(A, f, fps) * lv / (s.scaled ? g : 1), ctx.currentTime, 0.006);
       } else {
-        if (ctx && n.clip) n.clip.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.004);  // (out, without a click)
-        if (!el.paused) el.pause();
-        const w = A || waits[copy];  // paused: waits where it will play
-        if (w && n.clip) applyClip(n.clip, w);  // (its fx ready before it starts)
-        const sp = props.own_pace ? rate : 1;  // (paused: where its own pace would be)
-        const to = A ? ownAt(A, f, fps, sp) : w ? ownAt(w, w.from, fps, sp) : 0;
-        if (w && !el.seeking && Math.abs(el.currentTime - to) > 0.04) el.currentTime = to;
+        if (playing) n.clip.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.004);  // (out, without a click)
+        const w = A || waits[copy];
+        if (w) applyClip(n.clip, w);  // (its fx ready before it starts)
       }
     }
-    const dbg = (window as any).__atDebug;  // (the test bench: is each item at this frame heard, in time?)
+    const dbg = (window as any).__atDebug;  // (the test bench: is each item at this frame heard?)
     if (dbg) dbg[layer.id] = Object.entries(act).map(([copy, A]: any) => { const n = nodes.current[copy];
-      return { copy, item: A.id, want: +srcAt(A, f, fps).toFixed(3), at: n ? +n.el.currentTime.toFixed(3) : -1, playing: n ? !n.el.paused : false,
-        gain: n?.clip ? +n.clip.gain.gain.value.toFixed(3) : -1, ready: n ? n.el.readyState : -1 }; });
+      return { copy, item: A.id, want: +srcAt(A, f, fps).toFixed(3), playing: !!(playing && sched.current), ready: bufs[bufUrl(A.asset)] ? 4 : 0,
+        gain: n?.clip ? +n.clip.gain.gain.value.toFixed(3) : -1 }; });
   };
   useEffect(sync);
   return null;

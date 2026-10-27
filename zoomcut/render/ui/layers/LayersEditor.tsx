@@ -5,6 +5,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Player, PlayerRef } from '@remotion/player';
 import { Layers } from '../../src/Layers';
+import { clockFrame } from '../../src/layers/AudioTrack';
 import { useLayered, build, fmtT } from './api';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
@@ -48,6 +49,20 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const frameEl = useRef<HTMLDivElement>(null);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
+  // while playing, the picture follows the SOUND's clock (AudioTrack soundClock): when the computer falls behind on
+  // the picture it skips ahead to the sound - never the other way round (the sound jumping after the picture was
+  // heard as stutter). A gap of 15+ frames is his jump on the bar: the sound follows that one
+  useEffect(() => {
+    if (!playing) return;
+    let id = 0;
+    const tick = () => {
+      const cf = clockFrame(), pl = player.current;
+      if (cf != null && pl?.isPlaying()) { const d = cf - pl.getCurrentFrame(); if (Math.abs(d) > 2 && Math.abs(d) < 15) pl.seekTo(Math.round(cf)); }
+      id = requestAnimationFrame(tick);
+    };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [playing]);
   const [sel, setSel] = useState<Sel>(null);
   const [line, setLine] = useState<number | null>(null);
   const [pick, setPick] = useState<{ kind: string; onPick: (id: string) => void } | null>(null);  // a panel asked for a file from Media
@@ -62,7 +77,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
 
   useEffect(() => {
     const p = player.current; if (!p) return;
-    const fu = (e: any) => setFrame(e.detail.frame), pl = () => setPlaying(true), pa = () => setPlaying(false);
+    // (a seek while playing - his on the bar, or the picture kept on the sound's clock - says 'pause' then 'play' at
+    // once: only a pause that is still a pause a moment later stops the sound, else it restarted on every seek)
+    let paT = 0;
+    const fu = (e: any) => setFrame(e.detail.frame), pl = () => { clearTimeout(paT); setPlaying(true); },
+      pa = () => { clearTimeout(paT); paT = window.setTimeout(() => { if (!player.current?.isPlaying()) setPlaying(false); }, 60); };
     p.addEventListener('frameupdate', fu); p.addEventListener('play', pl); p.addEventListener('pause', pa);
     return () => { p.removeEventListener('frameupdate', fu); p.removeEventListener('play', pl); p.removeEventListener('pause', pa); };
   }, [!!project]);

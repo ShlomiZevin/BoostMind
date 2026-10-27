@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createServer as createVite } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -960,10 +961,34 @@ const readProject = (id) => readJson(projFile(id));
 const verOf = (f) => { try { return Math.round(fs.statSync(f).mtimeMs); } catch { return 0; } };
 // a project's file (an asset, a stem): anything under the studio folder, by its path relative to the project
 app.use('/pm', (_q, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); });
+app.use('/pm-tempo', (_q, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); });
 app.get('/pm/:id', (q, res) => {
   const f = path.resolve(epDir(q.params.id), String(q.query.p || ''));
   if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return res.status(404).end();
   res.sendFile(f, { cacheControl: false, headers: { 'Cache-Control': q.query.v ? 'private, max-age=31536000, immutable' : 'no-cache' } });
+});
+// a sound file at the project's speed, its pitch kept (ffmpeg atempo - the filter the export speeds the mix with): the
+// editor plays sound from memory on one clock (src/layers/AudioTrack.tsx) and needs the sped-up copy decoded, since a
+// buffer can't keep its pitch when played faster. Made once, cached by file + its date + speed.
+const tempoJobs = new Map();
+app.get('/pm-tempo/:id', async (q, res) => {
+  const f = path.resolve(epDir(q.params.id), String(q.query.p || ''));
+  const s = +q.query.s;
+  if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory() || !(s >= 0.5 && s <= 2)) return res.status(404).end();
+  const key = crypto.createHash('sha1').update(`${f}|${fs.statSync(f).mtimeMs}|${s}`).digest('hex').slice(0, 16);
+  const dir = path.join(epDir(q.params.id), 'work', 'public', 'layers', 'tempo'), out = path.join(dir, key + '.wav');
+  if (!fs.existsSync(out)) {
+    if (!tempoJobs.has(out)) tempoJobs.set(out, new Promise((ok) => {
+      fs.mkdirSync(dir, { recursive: true });
+      const tmp = out + '.part.wav';
+      const p = spawn('ffmpeg', ['-y', '-v', 'error', '-i', f, '-vn', '-af', `atempo=${s}`, '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', tmp], { windowsHide: true });
+      p.on('close', (code) => { if (!code) fs.renameSync(tmp, out); tempoJobs.delete(out); ok(); });
+      p.on('error', () => { tempoJobs.delete(out); ok(); });
+    }));
+    await tempoJobs.get(out);
+    if (!fs.existsSync(out)) return res.status(500).end();
+  }
+  res.sendFile(out, { cacheControl: false, headers: { 'Cache-Control': 'private, max-age=31536000, immutable' } });
 });
 // one of the project's own files, whole and with its sound, wherever it lives (footage stays in Downloads) - Media's
 // big window plays it. Only a file the project lists as an asset.
