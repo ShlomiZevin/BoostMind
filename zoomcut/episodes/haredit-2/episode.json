@@ -317,12 +317,13 @@
     {
       "take": "stand-in",
       "sound": "../_assets/haredit/calls/shower.mp3",
-      "at": 339.576,
+      "at": 343.476,
       "gain": 0.55,
-      "fade_in": 0.03,
+      "fade_in": 0.05,
       "fade_out": 0.12,
       "filter": "phone",
-      "lane": 2
+      "lane": 2,
+      "from": 3.9
     },
     {
       "take": "stand-in",
@@ -455,7 +456,7 @@
       "filter": "phone",
       "fade_in": 0.6,
       "fade_out": 0.1,
-      "lane": 1
+      "lane": 3
     },
     {
       "take": "stand-in",
@@ -467,7 +468,7 @@
       "filter": "phone",
       "fade_in": 0.1,
       "fade_out": 0.25,
-      "lane": 1
+      "lane": 3
     }
   ],
   "_todo": [
@@ -475,6 +476,7 @@
     "When his takes arrive: input_dir = his folder, takes = his files (in order: sequence), matte_engine back to 'body', cut.silence back on (remove 'silence': false), eye contact stays OFF (no key).",
     "His phone calls are THE point: Brachi lands in his pauses (he cuts her off), the house never stops under her, Hani stays nonchalant over it.",
     "Brachi = her real lines (brachi-01..11) at pitch 1.7 = chipmunk, through the phone; nobody else speaks but Hani (no office mumble); the distant shout is ima-far-2 ('אמא! אמא!').",
-    "Call 2 (Shruli in the shower): the clean shower-loop runs quietly in the background from Hani's first word of the call ('כן, ברכי') until just after 'ותגידי לו שיחכה', then the water stops (fade 0.25); the shower-with-the-boy stays at 'שרולי נפל במקלחת'. His notes 2026-10-27 - redo this on his real takes."
+    "Call 2 (Shruli in the shower): the clean shower-loop runs quietly in the background from Hani's first word of the call ('כן, ברכי') until just after 'ותגידי לו שיחכה', then the water stops (fade 0.25); the shower-with-the-boy stays at 'שרולי נפל במקלחת'. His notes 2026-10-27 - redo this on his real takes.",
+    "The loud shower (shower.mp3) = only its end, from 3.9 s: the water stops and the boy is annoyed - same moment as now ('שרולי נפל במקלחת'). The quiet shower-loop is on its own lane 'מקלחת' (lane 3)."
   ]
 }

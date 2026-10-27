@@ -93,7 +93,8 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   takes: Brachi = her real lines at pitch 1.7 (chipmunk), nobody else speaks (office lane removed), no climbing,
   "אמא! אמא!" dry through the phone at pitch 1.7, the house events loud; **call 2: a quiet shower runs from Hani's
   first word of the call until just after "ותגידי לו שיחכה", then the water stops** (`shower-loop.mp3`, clean, gain
-  0.12 - it's -9 LUFS); the shower-with-the-boy only at "שרולי נפל במקלחת".
+  0.12 - it's -9 LUFS); the shower-with-the-boy only at "שרולי נפל במקלחת", and only ITS END (`from` 3.9 s of `shower.mp3`: the water stops
+  and the boy is annoyed - the 4 s of water before it was "just noise"); the quiet shower on its own lane "מקלחת".
 - **Sounds that last through a moment** (the shower, a TV, a bed): start with the scene and end on the line that
   stops them (here "שיחכה") - never one short clip that ends on its own (his note: "we need to hear the water, then
   shut down after Hani said to").
