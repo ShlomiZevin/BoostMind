@@ -77,3 +77,12 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   or without a reference); the eldest's portrait is cut from the family photo instead.
 - SOL from a project folder picks the folder's revoked OPENAI key (it reads `./.env` first) - run `sol.js` from
   the scratchpad.
+
+- **Hani's sound = part 1's final mix, copy it into every Hani video** (his words, 2026-10-27: "the setup with her
+  sound and the bg, everything was perfect, we need the same"): Voice layer `fx.pitch` 0.5, `clean: "fft"`, NO voice
+  preset; Music = klezmer-ska at volume 0.05 AND his own layer "music-hasidic-freilach" at volume 0.12 (one piece from
+  the top, the rest continuing from 14.73 s into the track); no office ambience (he deleted it); speed 1.15. Read
+  haredit-1's project.json for the exact props before a new one.
+- **haredit-2** (part 2, prepared 2026-10-27 on a stand-in): the calls with Brachi and the house are the point - see
+  SKILL.md "ElevenLabs - the whole toolbox"; assets `_assets/haredit/calls/`, 4 lanes (ברכי בטלפון, הבית ברקע,
+  אירועים וצלצולים, המשרד); placement plan in its `_todo`.
