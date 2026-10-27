@@ -84,7 +84,16 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
       {busy && <div className="help" style={{ padding: '8px 14px 0' }}>{busy}</div>}
       {pick && <div className="note">Pick a {pick.kind === 'image' ? 'picture' : pick.kind} below</div>}
       {SECTIONS.map(([k, title, test]) => {
-        const list = Object.entries(project.assets || {}).filter(([, a]: any) => test(a)) as [string, any][];
+        // one entry per FILE: a builder makes an asset per placement of a sound (its own filter / pitch), all the same
+        // file - he saw house-bed.mp3 12 times in haredit-2 (2026-10-27). "In use" = any of them is on the timeline
+        const same = new Map<string, string[]>();
+        const list = (Object.entries(project.assets || {}).filter(([, a]: any) => test(a)) as [string, any][]).filter(([id, a]) => {
+          const k = a.src || id, g = same.get(k);
+          if (g) { g.push(id); return false; }
+          same.set(k, [id]);
+          return true;
+        });
+        const inUse = (id: string, a: any) => (same.get(a.src || id) || [id]).some((x) => used.has(x));
         if (!list.length) return null;
         return (
           <div key={k}>
@@ -96,7 +105,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
                     <button className="pm-img" style={{ position: 'relative' }} title="Open it big" onClick={() => (pick && pick.kind === 'image' ? pick.onPick(id) : setPeek(id))}>
                       <img src={urls[id]} loading="lazy" style={{ objectFit: k === 'bg' ? 'cover' : 'contain' }} /><Dot a={a} /></button>
                     <div className="pm-name">{a.label || a.src.split('/').pop()}</div>
-                    {!pick && <button className="pm-use" onClick={() => place(id, a)}>{used.has(id) ? '+ again' : '+ timeline'}</button>}
+                    {!pick && <button className="pm-use" onClick={() => place(id, a)}>{inUse(id, a) ? '+ again' : '+ timeline'}</button>}
                   </div>
                 ))}
               </div>
@@ -107,7 +116,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
                   : <div className="m-ic">Aa</div>}
                 <div className="m-main">
                   <div className="m-name he">{a.label || a.src.split('/').pop()}</div>
-                  <div className="m-sub">{a.kind === 'font' ? a.family : `${a.duration ? a.duration.toFixed(1) + ' s' : ''}${a.w ? ` · ${a.w}×${a.h}` : ''}${used.has(id) ? ' · in use' : ''}`}</div>
+                  <div className="m-sub">{a.kind === 'font' ? a.family : `${a.duration ? a.duration.toFixed(1) + ' s' : ''}${a.w ? ` · ${a.w}×${a.h}` : ''}${inUse(id, a) ? ' · in use' : ''}`}</div>
                 </div>
                 {a.kind !== 'font' && !pick && <button className="pm-use" style={{ width: 70 }} onClick={(e) => { e.stopPropagation(); place(id, a); }}>+ timeline</button>}
               </div>
