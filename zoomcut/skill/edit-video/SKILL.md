@@ -408,8 +408,10 @@ He said "I don't think you are utilizing all of its power with annotation". What
   never rephrase around it. A young character = a young ADULT library voice + `pitch` 1.1 on the item (live): Hebrew
   library voices `GET /v1/shared-voices?language=he&age=young` - Zina (female, `Tbj9UQjXon5RB9MPEyc2`), Dorian (male).
   Crying / screaming kids come from sound effects (generic vocalisations), never a designed child voice.
-- **The other side of a chaotic call** (haredit-2, his favourite thing in it - "super funny, though nonchalant"): the
-  caller's lines (v4 + tags) in HIS pauses, each answering the line before; under the whole call a looping chaos bed;
+- **The other side of a chaotic call** (haredit-2, his favourite thing in it - "super funny, though nonchalant"):
+  **NO words from the caller - only a mumble** (his rule, 2026-10-27: "no need to hear her daughter speak, only the
+  mumble and the sounds"; the sigal mumble at pitch 1.35 for a girl, `filter: phone`), and **the house events LOUD**
+  (gains 0.6-0.9 on a crash / crying / climbing, 2-3x a bed) - in HIS pauses, each answering the line before; under the whole call a looping chaos bed;
   on top the events, each timed to a word (a crash, then the crying, right before "מי בוכה שם?"); all through
   `filter: phone`; the caller deadpan while the house burns, Hani calm over it. Assets: `_assets/haredit/calls/`.
 
