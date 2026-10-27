@@ -15,6 +15,8 @@ episodes/*/media/*.ogg
 episodes/*/media/*.wav
 # the Jobs panel's history (this computer's builds, exports and sends)
 episodes/_jobs.json
+# the editor's sound report while he plays (this computer's)
+episodes/_sound.jsonl
 episodes/*/media/*.jpg
 episodes/*/media/*.jpeg
 episodes/*/media/*.png
