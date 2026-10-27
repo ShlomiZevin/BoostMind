@@ -89,4 +89,11 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   behind her at x 573 y 854 w 585 - both layers BELOW Person. Upload them with `?cutout=0`.
 - **haredit-2** (part 2, prepared 2026-10-27 on a stand-in): the calls with Brachi and the house are the point - see
   SKILL.md "ElevenLabs - the whole toolbox"; assets `_assets/haredit/calls/`, 4 lanes (ברכי בטלפון, הבית ברקע,
-  אירועים וצלצולים, המשרד); placement plan in its `_todo`.
+  אירועים וצלצולים); placement plan in its `_todo`. His notes on the stand-in (2026-10-27), to redo on the real
+  takes: Brachi = her real lines at pitch 1.7 (chipmunk), nobody else speaks (office lane removed), no climbing,
+  "אמא! אמא!" dry through the phone at pitch 1.7, the house events loud; **call 2: a quiet shower runs from Hani's
+  first word of the call until just after "ותגידי לו שיחכה", then the water stops** (`shower-loop.mp3`, clean, gain
+  0.12 - it's -9 LUFS); the shower-with-the-boy only at "שרולי נפל במקלחת".
+- **Sounds that last through a moment** (the shower, a TV, a bed): start with the scene and end on the line that
+  stops them (here "שיחכה") - never one short clip that ends on its own (his note: "we need to hear the water, then
+  shut down after Hani said to").
