@@ -55,7 +55,21 @@ export function useLayered(ep: string) {
     setView(v);
     return v;
   }, [ep]);
-  useEffect(() => { setView(null); setUndo([]); setRedo([]); setDrafts({}); load(); }, [ep]);
+  useEffect(() => {
+    setView(null); setUndo([]); setRedo([]); setDrafts({});
+    // opened while the studio still prepares the sound (soundBusy): keep asking and take the prepared files in when they
+    // land - the voice pointed at copies not made yet and stayed silent until a refresh (haredit-2, 2026-10-27)
+    let stop = false;
+    (async () => {
+      let v = await load();
+      for (let i = 0; !stop && v?.soundBusy && i < 400; i++) {
+        await new Promise((res) => setTimeout(res, 1500));
+        v = await (await fetch(`/api/p/${ep}`)).json().catch(() => null);
+        if (!stop && v) setView((o) => (o ? { ...o, urls: v.urls, stems: v.stems, gainDb: v.gainDb, levels: v.levels } as any : o));
+      }
+    })();
+    return () => { stop = true; };
+  }, [ep]);
 
   // saves go one after the other (each carries the rev it was made on)
   const save = (ops: any[]) => {
