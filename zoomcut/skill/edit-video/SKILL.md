@@ -386,7 +386,7 @@ Never print a key, never write one into a file in the repo, never ask him for on
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
 `... portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare MEDIUM 0.6 1024x1024` (repaints from a reference: his face,
-wig, beard kept; 0.5 when the scene changes a lot). **Key: his official Leonardo account's key in `zoomcut/.env` (`LEONARDO_API_KEY`, set 2026-10-26 - he: "this should be the official API key we are using for our editor to run everything"); the script reads it first, aspect-agent-server only as a fallback. Never another key.**
+wig, beard kept; 0.5 when the scene changes a lot). **Key: his official Leonardo account's key in `zoomcut/.env` (`LEONARDO_API_KEY`, set 2026-10-26 - he: "this should be the official API key we are using for our editor to run everything"); the script reads ONLY it - no fallback; the aspect project runs on its own Leonardo key and the two never cross (his ask, 2026-10-27). Never another key.**
 - **Models - only these two** (his taste, 2026-10-20: "I'm loving more the sunburst and flare models"):
   `flare` = `openai/gpt-image-2.5-flare` - photoreal people, portraits from his frames, sets, event photos;
   `sunburst` = `openai/gpt-image-2.5-sunburst` - logos / emblems, products, die-cut stickers, flat graphics.

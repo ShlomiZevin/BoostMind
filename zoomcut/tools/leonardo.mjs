@@ -8,10 +8,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const API = 'https://cloud.leonardo.ai/api/rest';
-// the studio's own key (zoomcut/.env - his official Leonardo account, 2026-10-26) first; aspect's only as a fallback
-const ENVS = [new URL('../.env', import.meta.url), 'C:\\workspace\\aspect\\aspect-agent-server\\.env'];
-const keyIn = (f) => { try { return fs.readFileSync(f, 'utf8').split(/\r?\n/).find((l) => l.startsWith('LEONARDO_API_KEY='))?.slice(17).trim(); } catch { return null; } };
-const KEY = process.env.LEONARDO_API_KEY || ENVS.map(keyIn).find(Boolean);
+// the studio's own key only (zoomcut/.env - his official Leonardo account, 2026-10-26). Never aspect's: the two
+// projects run on separate Leonardo keys (his ask, 2026-10-27) - a missing key stops here instead of borrowing one
+const ENV = new URL('../.env', import.meta.url);
+const KEY = (() => { try { return fs.readFileSync(ENV, 'utf8').split(/\r?\n/).find((l) => l.startsWith('LEONARDO_API_KEY='))?.slice(17).trim(); } catch { return null; } })();
+if (!KEY) { console.error('LEONARDO_API_KEY missing in zoomcut/.env - the editor uses its own key only'); process.exit(1); }
 const MODEL = { flare: 'openai/gpt-image-2.5-flare', sunburst: 'openai/gpt-image-2.5-sunburst' };
 const headers = () => ({ authorization: `Bearer ${KEY}`, accept: 'application/json', 'content-type': 'application/json' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
