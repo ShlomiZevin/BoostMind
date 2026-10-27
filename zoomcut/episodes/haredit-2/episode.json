@@ -305,15 +305,14 @@
     },
     {
       "take": "stand-in",
-      "sound": "../_assets/haredit/calls/ima-far-2.mp3",
+      "sound": "../_assets/haredit/calls/ima-dry.mp3",
       "at": 256.3,
-      "gain": 1.0,
+      "gain": 0.5,
       "fade_in": 0.03,
       "fade_out": 0.12,
       "filter": "phone",
       "lane": 2,
-      "pitch": 1.15,
-      "room": true
+      "pitch": 1.15
     },
     {
       "take": "stand-in",
