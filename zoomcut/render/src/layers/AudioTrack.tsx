@@ -25,6 +25,19 @@ const audioCtx = () => {
   if (!shared) { shared = new AudioContext(); loadFx(shared).then(() => { fxReady = true; }); }
   return shared;
 };
+// every sound layer into ONE bus with a safety limiter before the speakers - as the export has. Layers straight to the
+// speakers summed over full scale and clipped: crackle ("snow") with a few layers on, measured 176 samples over 1.0 in
+// 12 s of haredit-1 (2026-10-27). Same settings as the one-camera editor's (ui/sound.ts buildMix)
+let bus: AudioNode | null = null;
+const masterBus = (ctx: AudioContext) => {
+  if (!bus) {
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -3.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+    lim.connect(ctx.destination);
+    bus = lim;
+  }
+  return bus;
+};
 
 /** An item's gain at frame f (layergraph.ts clipGainAt). */
 export const itemGain = (it: any, f: number, fps: number) => clipGainAt(it, (f - it.from) / fps, fps);
@@ -80,7 +93,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
     if (!fxReady) return null;
     if (!out.current) {
       const vol = ctx.createGain(), gOut = ctx.createGain();
-      gOut.connect(vol); vol.connect(ctx.destination);
+      gOut.connect(vol); vol.connect(masterBus(ctx));
       out.current = { L: buildLayer(ctx, gOut), gOut, vol };
       (window as any).__atTap?.(ctx, layer.id, vol);  // (tests: listen to one layer)
     }
