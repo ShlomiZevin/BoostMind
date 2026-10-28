@@ -153,7 +153,10 @@ dialog input { width: 100%; height: 38px; margin-bottom: 10px; background: var(-
 .pace .unit { color: var(--dim); }
 .btn.lock.on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
 .ln { position: relative; overflow: hidden; }
-.ln .bar { position: absolute; right: 0; bottom: 0; height: 4px; background: var(--accent); width: 0; }
+/* the line's progress while playing: inside the box, clear of its border and the checkpoint's ring, on a faint track */
+.ln .bar { position: absolute; right: 18px; bottom: 7px; height: 6px; border-radius: 3px; background: var(--accent); width: 0; }
+body.playing .ln.cur::before { content: ''; position: absolute; right: 18px; left: 18px; bottom: 7px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.10); }
+.ln.cur:not(.dir) { padding-bottom: 22px; }  /* (room for it always - no jump when Play starts) */
 .ln .bar.run { transition: width linear; }
 .count { position: fixed; inset: 0; display: none; place-items: center; z-index: 50; background: rgba(19,18,17,0.55); pointer-events: none; }
 .count.on { display: grid; }
@@ -534,7 +537,7 @@ function schedule() {
   const bar = document.querySelector(`.ln[data-i="${cur}"] .bar`);
   if (bar) {  // fill the current bubble's bar over its time
     bar.classList.remove('run'); bar.style.transitionDuration = '0s'; bar.style.width = '0';
-    requestAnimationFrame(() => requestAnimationFrame(() => { bar.classList.add('run'); bar.style.transitionDuration = secs + 's'; bar.style.width = '100%'; }));
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.classList.add('run'); bar.style.transitionDuration = secs + 's'; bar.style.width = 'calc(100% - 36px)'; }));
   }
   timer = setTimeout(() => {
     let n = cur + 1;
@@ -562,6 +565,7 @@ function startWithCountdown() {
 function toggle() { if (cdTimer) { cancelCd(); setPlay(false); } else if (playing) setPlay(false); else startWithCountdown(); }
 function setPlay(on) {
   playing = on;
+  document.body.classList.toggle('playing', on);
   $('play').textContent = on ? '❚❚ Pause' : '▶ Play';
   if (on) { if (lines[cur]?.dir) return go(cur); schedule(); return; }  // (never starts on a direction)
   clearTimeout(timer);
