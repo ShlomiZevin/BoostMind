@@ -22,7 +22,11 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Editor**: `render/ui/layers/` - LayersEditor (shell, routed from editor.tsx when /api/ep says `layered`), Timeline
   (lane per layer, grouped; drag / trim = ops, live while dragging; Ctrl+wheel zooms around the mouse, Alt / Shift+wheel
   scrolls sideways - a native non-passive listener; a caption's or a text's edge / move changes ONLY that item - never its
-  line's picture / voice, nothing ripples - his rule; LayersEditor.onItemEdit hands those to the plain edit); **a click picks a block, only the picked one
+  line's picture / voice, nothing ripples - his rule; LayersEditor.onItemEdit hands those to the plain edit); **a take's edge in a one-camera cut ripples** (his rule, 2026-10-28): longer pushes EVERYTHING after it later, shorter
+  pulls it earlier - the other takes, voice, subtitles, stickers, sounds, his own layers and hand-changed items too - and
+  what spans the edge (the background, the music, a sound of his) grows / shrinks with it; shown while dragging
+  (Timeline onItemPreview -> LayersEditor.liveEdit), then saved by the builder's re-cut, where `pipeline/project.py`
+  merge() moves his items by `timemap()` (by what plays under them, in source seconds of the take); **a click picks a block, only the picked one
   drags** - body = move, its two white grips = start / end, a label shows 'end +0.57 s' - so the edge between two clips
   is never the neighbour's (his rule, 2026-10-23); **Ctrl+Z / Ctrl+Shift+Z undo / redo EVERYTHING**, a builder's
   change too (a video's length re-cut from the take, a line fix, a caption, an Inspector action): the project before

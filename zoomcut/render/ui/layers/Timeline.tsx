@@ -13,6 +13,8 @@ export type Sel = { layer: string; item?: string } | null;
 type Props = {
   project: any; frame: number; sel: Sel; onSel: (s: Sel) => void; onSeek: (f: number) => void; send: Send;
   onItemEdit?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number) => boolean | 'keep';  // a builder item: its builder takes the change
+  // while it drags: the ops that show it (one of his takes in a continuous cut - everything after it moves along), or null
+  onItemPreview?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number, base: any) => any[] | null;
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void;
 };
 
@@ -44,7 +46,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, canUndo, canRedo, onUndo, onRedo }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, canUndo, canRedo, onUndo, onRedo }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -141,19 +143,22 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       dd = Math.max(dd, -it.from);
       return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: it.from + dd, dur: it.dur - dd, ...(it.in != null ? { in: +(it.in + (dd / fps) * rate).toFixed(4) } : {}) } }];
     };
+    // (the frames it really moved - never past the take's ends - from the project as it was when the drag began)
+    const moved = (d: number) => { const s = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
+    const base = project;
     let last = 0;
     const mv = (m: MouseEvent) => {
       const d = Math.round(((m.clientX - x0) / pps) * fps);
       if (d === last) return;
       last = d;
       setDrag({ layer: l.id, item: it.id, d, side });
-      send(opsFor(d), { commit: false });
+      send((onItemPreview && onItemPreview(l, it, side, moved(d), base)) || opsFor(d), { commit: false });
     };
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
       setDrag(null);
       if (!last) { send([], { commit: false }); return; }
-      const taken = onItemEdit && onItemEdit(l, it, side, last);  // the builder takes it
+      const taken = onItemEdit && moved(last) && onItemEdit(l, it, side, moved(last));  // the builder takes it
       if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }  // ('keep': the drag shows until the builder's answer lands)
       send(opsFor(last), { label: side === 'm' ? 'move' : 'trim' });
     };

@@ -158,7 +158,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   //     its next version replaces the live guess when it lands - no "Updating", no wait. The editor never asks which
   //     builder it is.
   const [syncing, setSyncing] = useState(0);
-  const liveEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number) => {
+  const liveEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number, project = L.live) => {
     const ops: any[] = [], seen = new Set<string>();
     const change = (ly: any, x: any) => {
       const set: any = side === 'm' ? { from: Math.max(0, x.from + d) }
@@ -172,14 +172,18 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     // it too (lines that follow each other, as the conversation builder plans them)
     const ripple = !!project.edit?.ripple && (side !== 'm' || !!project.edit?.ripple_move);
     // everything that starts after this item starts (lines overlap a little - the next one starts before this one ends)
+    // (its subtitles are words inside the piece, not the piece: in a ripple they follow the rule below)
     for (const ly of project.layers) for (const x of ly.items || []) {
-      if (x === it || (it.link && x.link === it.link)) change(ly, x);
+      if (x === it || (it.link && x.link === it.link && !(ripple && ly.kind === 'subtitles'))) change(ly, x);
     }
-    if (ripple) {  // everything after it moves with it (texts, sounds, effects too)
-      const shift = side === 'l' ? -d : d;
+    if (ripple) {  // everything after the edge moves with it (texts, sounds, pictures, his own layers too); what spans
+      // the edge - the background, the music, a sound of his - grows / shrinks with it (his rule, 2026-10-28)
+      const shift = side === 'l' ? -d : d, edge = side === 'r' ? it.from + it.dur : it.from;
       for (const ly of project.layers) for (const x of ly.items || []) {
-        if (seen.has(ly.id + '|' + x.id) || x.from <= it.from) continue;
-        ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, x.from + shift) }, user: false });
+        if (seen.has(ly.id + '|' + x.id)) continue;
+        const after = side === 'r' ? x.from >= edge - 0.5 : x.from > edge;
+        if (after) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, x.from + shift) }, user: false });
+        else if (x.from + x.dur > edge + 0.5) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { dur: Math.max(1, x.dur + shift) }, user: false });
       }
     }
     return ops;
@@ -204,14 +208,16 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       }
     })();
   };
+  // the items whose edit is the builder's: one of his takes (a script line / a take's cut). A caption or a text is its own
+  // length / place only - not its line's picture and voice, nothing after it moves (his rule, 2026-10-23); a picture, a
+  // sticker, a text placed by the builder is a plain edit - its drag never moves the rest of the video (2026-10-25)
+  const isTake = (l: any, it: any) => l.owner === 'builder' && !!it.ref && l.kind !== 'subtitles' && l.kind !== 'text'
+    && (it.ref.take != null || it.ref.line != null);
+  // dragging one: the push / pull shows while it moves (the project as it was when the drag began)
+  const onItemPreview = (l: any, it: any, side: 'l' | 'r' | 'm', d: number, base: any) =>
+    isTake(l, it) && project.edit?.ripple && side !== 'm' ? liveEdit(l, it, side, d, base) : null;
   const onItemEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number): boolean | 'keep' => {
-    if (l.owner !== 'builder' || !it.ref) return false;  // a layer of his own: the plain edit is the edit
-    // a caption or a text: its own length / place only - not its line's picture and voice, nothing after it moves
-    // (his rule, 2026-10-23); the plain edit is kept as his (user: true) through rebuilds
-    if (l.kind === 'subtitles' || l.kind === 'text') return false;
-    // only his takes (a script line / a take's cut) go to the builder and ripple; a picture, a sticker, a text placed
-    // by the builder is a plain edit - its drag never moves the rest of the video (it shifted everything once, 2026-10-25)
-    if (it.ref.take == null && it.ref.line == null) return false;
+    if (!isTake(l, it)) return false;  // a layer of his own, a caption, a picture: the plain edit is the edit
     before(side === 'm' ? 'move' : 'trim');
     const live = liveEdit(l, it, side, d);
     L.send([], { commit: false });  // (the drag's own draft goes - the live edit below shows it)
@@ -341,7 +347,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
     </div>
   );
