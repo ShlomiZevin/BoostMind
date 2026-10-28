@@ -37,10 +37,19 @@ export const FILTERS: Record<string, { label: string; stages: Stage[] }> = {
 
 // ---- the pitch shifter: two read heads sweep a delay line in opposite phase, each faded in / out (sin^2), so the
 // sound plays `ratio` times faster through each grain while the grains keep the timing. Window 60 ms (speech).
+// It runs on the audio thread, so it allocates nothing per sample (it made two arrays a sample - 55 of them, one per
+// clip, were 60% of a core in haredit-2, 2026-10-28), and a chain makes one only when it shifts (buildFx / applyFx).
 const PITCH_WORKLET = `
 class ZcPitch extends AudioWorkletProcessor {
   static get parameterDescriptors() { return [{ name: 'ratio', defaultValue: 1, minValue: 0.25, maxValue: 4 }]; }
   constructor() { super(); this.n = 8192; this.buf = new Float32Array(this.n); this.w = 0; this.ph = 0; this.win = Math.round(0.06 * sampleRate); }
+  head(q) {
+    const N = this.n, d = q * this.win + 2;
+    let pos = this.w - d; if (pos < 0) pos += N;
+    const a = Math.floor(pos), f = pos - a, s0 = this.buf[a % N], s1 = this.buf[(a + 1) % N];
+    const g = Math.sin(Math.PI * q);
+    return (s0 + (s1 - s0) * f) * g * g;
+  }
   process(ins, outs, p) {
     const i = ins[0][0], o = outs[0][0];
     if (!o) return true;
@@ -52,14 +61,8 @@ class ZcPitch extends AudioWorkletProcessor {
       this.ph += (1 - r) / W;
       this.ph -= Math.floor(this.ph);
       let y = 0;
-      for (const off of [0, 0.5]) {
-        const q = (this.ph + off) % 1;
-        const d = q * W + 2;
-        let pos = this.w - d; if (pos < 0) pos += N;
-        const a = Math.floor(pos), f = pos - a, s0 = this.buf[a % N], s1 = this.buf[(a + 1) % N];
-        const g = Math.sin(Math.PI * q);
-        y += (s0 + (s1 - s0) * f) * g * g;
-      }
+      y += this.head((this.ph + 0) % 1);
+      y += this.head((this.ph + 0.5) % 1);
       o[k] = y;
       this.w = (this.w + 1) % N;
     }
@@ -116,10 +119,9 @@ export function buildFx(ctx: BaseAudioContext, input?: AudioNode, output?: Audio
   n.pitchIn = ctx.createGain(); n.pitchOut = ctx.createGain(); n.dry = ctx.createGain(); n.wet = ctx.createGain();
   n.chainIn = ctx.createGain(); n.chainOut = ctx.createGain(); n.level = ctx.createGain();
   n.roomDry = ctx.createGain(); n.roomWet = ctx.createGain(); n.rev = ctx.createConvolver(); n.rev.normalize = false;
-  try { n.pitch = new AudioWorkletNode(ctx, 'zc-pitch'); } catch { n.pitch = null; }
-  // pitch: dry (no shift) or through the shifter
+  // pitch: dry (no shift) or through the shifter - made the first time this chain shifts (pitchNode)
+  n.pitch = null;
   n.input.connect(n.dry); n.dry.connect(n.chainIn);
-  if (n.pitch) { n.input.connect(n.wet); n.wet.connect(n.pitch); n.pitch.connect(n.chainIn); }
   n.wet.gain.value = 0;
   n.chainIn.connect(n.chainOut);  // (no filter: straight through - applyFx puts the stages in between)
   n.chainOut.connect(n.level);
@@ -131,7 +133,15 @@ export function buildFx(ctx: BaseAudioContext, input?: AudioNode, output?: Audio
   return n as FxNodes;
 }
 
-const echoScaled = (amount: number): Stage[] => FILTERS.echo.stages.map((s) => ('echo' in s ? { echo: [s.echo[0], s.echo[1], s.echo[2], s.echo[3].map((d) => Math.min(0.95, d * amount))] } as Stage : s));
+// the shifter, wired in once this chain needs it (input -> wet -> shifter -> chainIn, beside the dry path); kept after
+const pitchNode = (n: FxNodes) => {
+  if (n.pitch) return n.pitch;
+  try { n.pitch = new AudioWorkletNode(n.ctx, 'zc-pitch'); } catch { return null; }
+  n.input.connect(n.wet); n.wet.connect(n.pitch); n.pitch.connect(n.chainIn);
+  return n.pitch;
+};
+
+const echoScaled =(amount: number): Stage[] => FILTERS.echo.stages.map((s) => ('echo' in s ? { echo: [s.echo[0], s.echo[1], s.echo[2], s.echo[3].map((d) => Math.min(0.95, d * amount))] } as Stage : s));
 
 /** fx settings -> the chain (glide = live: changes glide ~40 ms; the filter's stages are swapped when it changes). */
 export function applyFx(n: FxNodes, fx: any, glide = true) {
@@ -152,7 +162,7 @@ export function applyFx(n: FxNodes, fx: any, glide = true) {
     n.sig = sig;
   }
   const semis = +(fx.pitch || 0);
-  const shift = Math.abs(semis) > 0.01 && !!n.pitch;
+  const shift = Math.abs(semis) > 0.01 && !!pitchNode(n);
   set(n.dry.gain, shift ? 0 : 1); set(n.wet.gain, shift ? 1 : 0);
   if (n.pitch) set((n.pitch.parameters as any).get('ratio'), Math.pow(2, semis / 12));
   set(n.level.gain, db(+(fx.level || 0)));

@@ -5,7 +5,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Player, PlayerRef } from '@remotion/player';
 import { Layers } from '../../src/Layers';
-import { clockFrame, soundDiag, soundClock } from '../../src/layers/AudioTrack';
+import { clockFrame, soundDiag, soundClock, soundJump } from '../../src/layers/AudioTrack';
 import { useLayered, build, fmtT } from './api';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
@@ -53,7 +53,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const [playing, setPlaying] = useState(false);
   // while playing, the picture follows the SOUND's clock (AudioTrack soundClock): when the computer falls behind on
   // the picture it skips ahead to the sound - never the other way round (the sound jumping after the picture was
-  // heard as stutter). A gap of 15+ frames is his jump on the bar: the sound follows that one
+  // heard as stutter). His jumps tell the sound themselves (seek -> soundJump), so any gap here is the picture's
   useEffect(() => {
     if (!playing) return;
     let id = 0, lastT = performance.now(), gap = 0, worst = 0, seeks = 0, sent = performance.now();
@@ -66,14 +66,14 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         const ctx: any = (window as any).__zcCtx;
         fetch('/api/sound-report', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ep,
           frame: pl?.getCurrentFrame(), clock: cf == null ? null : Math.round(cf), clockOn: soundClock.on, worstGapFrames: Math.round(worst), pictureSeeks: seeks,
-          longestStallMs: Math.round(gap), ctx: ctx && { state: ctx.state, rate: ctx.sampleRate, latencyMs: Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) },
-          layers: soundDiag.layers, why: soundDiag.why, failed: soundDiag.failed.slice(-5) }) }).catch(() => {});
+          longestStallMs: Math.round(gap), ctx: ctx && { state: ctx.state, rate: ctx.sampleRate, hint: 'playback', latencyMs: Math.round(((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000) },
+          layers: soundDiag.layers, why: soundDiag.why, starts: soundDiag.starts, failed: soundDiag.failed.slice(-5) }) }).catch(() => {});
         sent = t; gap = 0; worst = 0; seeks = 0;
       }
       if (cf != null && pl?.isPlaying()) {  // (the picture on the sound as HEARD: the clock minus the audio output's delay)
         const c: any = (window as any).__zcCtx, heard = cf - ((c?.baseLatency || 0) + (c?.outputLatency || 0)) * soundClock.perSec;
         const d = heard - pl.getCurrentFrame();
-        if (Math.abs(d) > 3 && Math.abs(d) < 15) { pl.seekTo(Math.round(heard)); seeks++; }
+        if (Math.abs(d) > 3) { pl.seekTo(Math.round(heard)); seeks++; }
       }
       id = requestAnimationFrame(tick);
     };
@@ -106,7 +106,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const fps = project?.canvas.fps || 30;
   const total = project?.duration || 1;
   const speed = project?.speed || 1;
-  const seek = (f: number) => { const g = Math.max(0, Math.min(total - 1, Math.round(f))); player.current?.seekTo(g); setFrame(g); };
+  const seek = (f: number) => { const g = Math.max(0, Math.min(total - 1, Math.round(f))); soundJump(g); player.current?.seekTo(g); setFrame(g); };
   // picking an item shows it: the video jumps into it when the playhead is outside it
   const pickItem = (s: Sel) => {
     setSel(s); setLine(null);

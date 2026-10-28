@@ -47,6 +47,28 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Sound**: `pipeline/layers_audio.py` - tracks per layer (= audio.mix math; null test on gilad-joins -46 dB), one
   gain to -14 LUFS, stems + prepared sources (`<layer>|<asset>` urls) for the editor. Item moves / trims / gains are
   live in the editor; only a new source (an added sound, a filter change) is re-made (seconds).
+- **Editor playback (AudioTrack.tsx, 2026-10-28 - "the audio is a mess", and his Google Meet in another tab broke up):**
+  every file decoded once, every clip scheduled on ONE AudioContext; the sound is the clock, the picture follows it.
+  - The context is `latencyHint: 'playback'` (bigger buffers; ~90 ms out, the picture allows for it) and runs ONLY
+    while something plays: Play wakes it, a second after the last layer stops it is suspended. Wiring / settings never
+    wake it. Before it ran forever after the first Play, at 'interactive' (10 ms) buffers.
+  - **The audio thread's cost**: `node tools/sound_cost.mjs <id>` builds the project's graph (layergraph.ts, a clip
+    graph per copy) in an OfflineAudioContext and times it. haredit-2: 60% of a core -> 13%. 48 of the 60 points
+    were the pitch shifter: a `zc-pitch` AudioWorkletNode in EVERY fx chain (55), wired in even with no shift, and
+    allocating two arrays a sample. Now soundfx.ts makes it only when a chain shifts (`pitchNode`) and allocates nothing.
+    Export unchanged: its layer tracks null-tested before / after (voice, music bit-identical, the rest <= 3e-8).
+    Never put per-sample allocation or always-on nodes on the audio thread; measure a new effect this way.
+  - **Only his jumps move the sound**: `seek()` in LayersEditor calls `soundJump(f)` (the clock goes there at once, every
+    layer re-schedules from f); the picture follows the sound for ANY gap > 3 frames. Before, a 15-frame gap re-synced
+    the sound to the picture - a picture held up by decoding pulled the sound back. A 3 s gap still re-syncs (safety).
+  - A source swap (cleaning switched, a sound re-made) keeps playing the old buffer until the new one is decoded.
+  - AudioParams are written only when their target changes (`glide`) - not every clip every frame.
+  - **The sound report** (`episodes/_sound.jsonl`, once a second while playing; running totals per page load):
+    `why` = EVENTS (play / jump / change / drift - one per Play or jump however many layers), `starts` = per layer (what
+    `why` meant before). Healthy: one `play` per Play, `jump` = his jumps, no `drift`; `change` only while he edits
+    during playback; frame vs clock = the output delay (~3 frames); `longestStallMs` < 100.
+  - Reading it in 2026-10-27/28: the "drift" were his jumps on the bar while playing, the "play" bursts him replaying a
+    spot, "change" edits while playing - not spontaneous restarts. The stutter was the audio thread's load.
 
 ## Zoom projects: the layers in the older Zoom screen (2026-10-22, before project.json)
 - **Picture per take** - the cut pieces on each character's lane (drag edges / move, as before).
