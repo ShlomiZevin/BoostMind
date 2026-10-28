@@ -147,7 +147,10 @@ move with what plays under them when a take is made longer / shorter. When he sa
    https://drop-463727469066.me-west1.run.app and files land in `Downloads\drop\<folder>` within a minute (the studio
    pulls each minute, then removes it from the Drop - the folder here is the footage; if one is late, `gcloud storage
    ls gs://boostmind-drop/<folder>/` and pull it yourself). **His marks:** in Media he marks takes Use / Don't use with
-   a note (asset `mark` / `note`, layers.md) - read them before picking or changing takes. iPhone
+   a note (asset `mark` / `note`, layers.md) - read them before picking or changing takes. **Every video on the
+   layers is marked Use** (his rule, 2026-10-28 - he was marking them by hand): after anything that puts or changes
+   videos on the layers (Analyze, a builder run, your own ops), run `node tools/mark_used.mjs <ep>` - it marks the
+   unmarked ones Use, keeps his notes, never flips his Don't use (a used ✕ one is listed: tell him). iPhone
    and filter-app files have random names (`13944E36-….MP4`, `export_….mov`):
    - **who is who** from a contact sheet of frames (wig, cap, glasses, shirt); ask once if unsure;
    - **order** from the recording time (`ffprobe … creation_time`; filter-app exports: the number in the name) →
