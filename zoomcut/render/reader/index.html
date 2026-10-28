@@ -101,7 +101,8 @@ body.editing .ln.dir .t { color: var(--dim); }
 .whob { display: inline-flex; align-items: center; gap: 5px; width: max-content; padding: 2px 6px; margin: 0 -6px; border: 0; border-radius: 4px; background: none; cursor: pointer; font-family: inherit; }
 .whob:hover { background: var(--panel-3); color: var(--text); }
 .ln.dir .whob { font-style: normal; font-size: calc(var(--fs) * 0.42); }
-.gap { position: relative; height: 16px; display: flex; align-items: center; justify-content: center; }
+.gap { position: relative; height: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.gap .gd { color: #f0b44c; }
 .gap button { height: 24px; padding: 0 12px; border-radius: 12px; border: 1px dashed var(--edge-2); background: var(--panel); color: var(--dim); font-size: 12.5px; font-weight: 600; cursor: pointer; opacity: 0; transition: opacity .15s; direction: ltr; }
 .gap:hover button { opacity: 1; }
 .gap button:hover { color: var(--text); border: 1px solid var(--accent); }
@@ -133,12 +134,15 @@ body.dragging-line .gap button { opacity: 0; }
 .btn.ck { display: inline-flex; align-items: center; gap: 6px; }
 .btn.ck.on { color: #ffd60a; border-color: #ffd60a; }
 .ln.cur.other .t { color: var(--text); }
-.ln.dir { padding: 6px 18px; }
 .ln.past { opacity: 0.28; }
 .solo .ln .who { display: none; }
 .solo .ln.mine { --c: #ff6b57; }
 dialog input { width: 100%; height: 38px; margin-bottom: 10px; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; padding: 0 12px; direction: rtl; font-size: 15px; }
-.ln.dir .t { font-size: calc(var(--fs) * 0.55); color: var(--faint); font-style: italic; }
+/* a direction (הוראת בימוי): a note to see, not a line to say - Play and the arrows pass it by */
+.ln.dir { margin: 10px 0; padding: 8px 18px; border: 1px dashed var(--edge-2); border-radius: 8px; opacity: 1; cursor: default; }
+.ln.dir .who, .solo .ln.dir .who { display: block; font-size: 12px; font-weight: 700; color: #f0b44c; }
+.ln.dir .t { font-size: calc(var(--fs) * 0.55); color: var(--dim); font-style: italic; }
+.idir { color: var(--faint); font-style: italic; font-weight: 500; font-size: .78em; }
 .btn.play { min-width: 92px; background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.play:hover { background: #ff8270; }
 .pace { display: flex; align-items: center; gap: 6px; color: var(--dim); font-weight: 600; font-size: 13px; }
@@ -277,7 +281,7 @@ function parse(text) {
   const rows = text.split(/\r?\n/).map((r, k) => ({ r: r.trim(), k })).filter(({ r }) => r && !r.startsWith('#'));
   const named = rows.filter(({ r }) => { const m = r.replace(/\*\*/g, '').match(/^([^:：]{1,24})[:：]/); return m && m[1].trim().split(/\s+/).length <= 3; });
   if (rows.length && named.length === 0)
-    return rows.map(({ r, k }) => (/^\[.*\]$/.test(r) ? { dir: true, text: r.slice(1, -1), rows: [k] } : { who: '', text: r, solo: true, rows: [k] }));
+    return rows.map(({ r, k }) => (/^\[.*\]$/.test(r) || /^\(.*\)$/.test(r) ? { dir: true, text: r.slice(1, -1), rows: [k] } : { who: '', text: r, solo: true, rows: [k] }));
   const out = [];
   let pending = null;  // a name standing alone on its line, waiting for its text {who, k}
   for (const { r: raw, k } of rows) {
@@ -369,13 +373,14 @@ function render() {
     }
     const d = document.createElement('div');
     const mine = solo ? i === cur && !l.dir : !l.dir && me && l.who === me;
-    const cls = solo ? (i < cur ? ' past' : i === cur ? ' mine' : ' other') : l.dir ? ' dir' : mine ? ' mine' : me ? ' other' : '';
-    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur ? ' cur' : '') + (i === mark ? ' ckpt' : '')  /* (not 'mark': that is the logo square's class) */ + (cues && !mine && !solo ? ' cue' : '');
+    const cls = l.dir ? '' : solo ? (i < cur ? ' past' : i === cur ? ' mine' : ' other') : mine ? ' mine' : me ? ' other' : '';
+    d.className = 'ln' + (l.dir ? ' dir' : '') + cls + (i === cur && !l.dir ? ' cur' : '') + (i === mark ? ' ckpt' : '')  /* (not 'mark': that is the logo square's class) */ + (cues && !mine && !solo ? ' cue' : '');
     d.dataset.i = i;
     if (!l.dir && l.who) d.style.setProperty('--c', color(l.who));  // (a script with no characters: the solo colour)
     const cut = /[—–-]\s*$/.test(l.text);
-    d.innerHTML = l.dir ? `<div class="t">[${esc(l.text)}]</div>`
-      : `<div class="who">${esc(l.who)}</div><div class="t">${esc(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
+    d.innerHTML = l.dir ? `<div class="who">${DIR}</div><div class="t">${esc(l.text)}</div>`  // a note to see - Play and the arrows pass it by
+      : `<div class="who">${esc(l.who)}</div><div class="t">${spokenHtml(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
+    if (l.dir) { d.onclick = () => { if (!String(window.getSelection() || '').trim()) go(i); }; d.ondblclick = (e) => { e.preventDefault(); setEditing(true, i); }; box.appendChild(d); return; }
     d.insertAdjacentHTML('beforeend', '<div class="bar"></div>' + (i === mark
       ? `<button class="flag" title="Back here and play"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>נקודת התחלה</button>`
       : `<button class="pin" title="Checkpoint here - start again from this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>`));
@@ -397,18 +402,20 @@ function render() {
 function foot() {
   const f = $('foot');
   if (!lines.length) { f.innerHTML = ''; return; }
+  // (counted in spoken lines - directions aren't lines to say)
+  const said = (a, b) => lines.slice(a, b).filter((l) => !l.dir).length, all = said(0), at = said(0, cur + 1);
   if (solo) {
     const left = lines.slice(cur).reduce((t, l) => t + lineSeconds(l), 0);
-    f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span><span>עוד ~${Math.max(1, Math.round(left / 60))} דק׳</span>` +
+    f.innerHTML = `<span>שורה <b>${at}</b> מתוך ${all}</span><span>עוד ~${Math.max(1, Math.round(left / 60))} דק׳</span>` +
       `<span class="keys">Space play/pause · ${mark != null ? 'Home checkpoint (again: start)' : 'Home start'} · ↓ next · ↑ back</span>`;
     return;
   }
   const mineIdx = lines.map((l, i) => (l.who === me ? i : -1)).filter((i) => i >= 0);
   const done = mineIdx.filter((i) => i < cur).length;
   const next = mineIdx.find((i) => i >= cur);
-  f.innerHTML = `<span>שורה <b>${cur + 1}</b> מתוך ${lines.length}</span>` +
+  f.innerHTML = `<span>שורה <b>${at}</b> מתוך ${all}</span>` +
     (me ? `<span>${me}: <b>${Math.min(done + 1, mineIdx.length)}</b> מתוך ${mineIdx.length}</span>` +
-      `<span>${next == null ? 'סיימת את השורות שלך 🎬' : next === cur ? '<b>עכשיו את/ה</b>' : `עוד ${next - cur} שורות עד שלך`}</span>` : '<span>בחר/י דמות למעלה (1-9)</span>') +
+      `<span>${next == null ? 'סיימת את השורות שלך 🎬' : next === cur ? '<b>עכשיו את/ה</b>' : `עוד ${said(cur, next)} שורות עד שלך`}</span>` : '<span>בחר/י דמות למעלה (1-9)</span>') +
     `<span class="keys">Space play/pause · ${mark != null ? 'Home checkpoint (again: start)' : 'Home start'} · ↓ next · ← my next line · → my previous · ↑ back</span>`;
 }
 
@@ -416,7 +423,18 @@ function center() {
   const el = document.querySelector(`.ln[data-i="${cur}"]`) || [...document.querySelectorAll('.ln')].find((x) => +x.dataset.i > cur);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
-function go(i) { cur = Math.max(0, Math.min(lines.length - 1, i)); save(); render(); if (playing) schedule(); }
+// directions (הוראות בימוי) are there to see, never a place to stop: the cursor goes to the nearest spoken line that
+// way (d = 1 forward, -1 back), else the other way
+const DIR = 'הוראת בימוי';
+function spoken(i, d = 1) {
+  for (let k = i; k >= 0 && k < lines.length; k += d) if (!lines[k].dir) return k;
+  for (let k = i; k >= 0 && k < lines.length; k -= d) if (!lines[k].dir) return k;
+  return Math.max(0, Math.min(lines.length - 1, i));
+}
+function go(i, d = 1) { cur = spoken(Math.max(0, Math.min(lines.length - 1, i)), d); save(); render(); if (playing) schedule(); }
+// a spoken line's own (notes in parentheses / brackets): shown small and grey, never counted as words to say
+const NOTE = /\([^)]*\)|\[[^\]]*\]/g;
+const spokenHtml = (t) => esc(t).replace(NOTE, (m) => `<span class="idir">${m}</span>`);
 
 // Play: moves from bubble to bubble at the script's pace (words per minute) plus a short beat; a stage
 // direction a moment, your own lines a little longer (room to act).
@@ -427,7 +445,7 @@ let playing = false, timer = null, wpm = DEFAULT_WPM, locked = false;
 // measure a character's pace: pick the character, Measure, Start when you start saying his line, Stop when you
 // finish - Save sets his pace (the player's own formula, lineSeconds, backwards). A script without characters: the pace.
 let meas = null;  // {i, who, t0, raf, pace, secs}
-const wordsOf = (l) => l.text.split(/\s+/).filter(Boolean).length;
+const wordsOf = (l) => l.text.replace(NOTE, ' ').split(/\s+/).filter(Boolean).length;  // (only what's said)
 function fairLine(who) {
   const words = (l) => wordsOf(l);
   const his = lines.map((l, i) => ({ l, i })).filter(({ l }) => !l.dir && (who ? l.who === who : true) && words(l) > 0);
@@ -498,8 +516,8 @@ document.addEventListener('keydown', (e) => {  // (first: while measuring, Space
 }, true);
 
 function lineSeconds(l) {
-  if (l.dir) return 0.8;
-  const words = l.text.split(/\s+/).filter(Boolean).length;
+  if (l.dir) return 0;  // (Play passes directions by)
+  const words = wordsOf(l);
   const base = 0.3 + words / (((l.who && paces[l.who]) || wpm) / 60);  // the speaker's own pace, if set
   return l.who === me ? base * 1.1 + 0.15 : base;
 }
@@ -513,9 +531,10 @@ function schedule() {
     requestAnimationFrame(() => requestAnimationFrame(() => { bar.classList.add('run'); bar.style.transitionDuration = secs + 's'; bar.style.width = '100%'; }));
   }
   timer = setTimeout(() => {
-    if (cur >= lines.length - 1) return setPlay(false);
     let n = cur + 1;
-    if (cues && me) while (n < lines.length - 1 && lines[n].who !== me && lines[n + 1]?.who !== me) n++;  // cue mode skips hidden lines
+    while (n < lines.length && lines[n].dir) n++;  // directions are passed by
+    if (cues && me) while (n < lines.length - 1 && (lines[n].dir || (lines[n].who !== me && lines[n + 1]?.who !== me))) n++;  // cue mode skips hidden lines
+    if (n >= lines.length) return setPlay(false);
     go(n);
   }, secs * 1000);
 }
@@ -538,7 +557,7 @@ function toggle() { if (cdTimer) { cancelCd(); setPlay(false); } else if (playin
 function setPlay(on) {
   playing = on;
   $('play').textContent = on ? '❚❚ Pause' : '▶ Play';
-  if (on) { schedule(); return; }
+  if (on) { if (lines[cur]?.dir) return go(cur); schedule(); return; }  // (never starts on a direction)
   clearTimeout(timer);
   // a stop: the line is ready again from its start (he records a line whole) - the bar is empty at once, never sliding back
   document.querySelectorAll('.ln .bar').forEach((b) => { b.classList.remove('run'); b.style.transitionDuration = '0s'; b.style.width = '0'; });
@@ -564,11 +583,11 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); return toggle(); }
   if (e.code === 'Space') { e.preventDefault(); return toggle(); }  // Space = play (after the countdown) / pause; Home first = from the start
   if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); }
-  else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); me ? myStep(-1) : go(cur - 1); }  // RTL: right = back
+  else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1, -1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); me ? myStep(-1) : go(cur - 1, -1); }  // RTL: right = back
   else if (e.key === 'ArrowLeft') { e.preventDefault(); me ? myStep(1) : go(cur + 1); }
   else if (e.key === 'Home') { e.preventDefault(); go(mark != null && cur !== mark ? mark : 0); }  // the checkpoint first; on it, Home again = the start
-  else if (e.key === 'End') { e.preventDefault(); go(lines.length - 1); }
+  else if (e.key === 'End') { e.preventDefault(); go(lines.length - 1, -1); }
 });
 $('bigger').onclick = () => { fs = Math.min(64, fs + 3); store.set('reader-fs', fs); render(); };
 $('smaller').onclick = () => { fs = Math.max(16, fs - 3); store.set('reader-fs', fs); render(); };
@@ -695,7 +714,8 @@ const GRIP = '<svg width="12" height="18" viewBox="0 0 14 20" fill="currentColor
 const BIN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
 const CARET = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 const escA = (s) => esc(String(s)).replace(/"/g, '&quot;');
-const rowOf = (l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`);
+const rowOf = (l) => (l.dir ? `(${l.text})` :  // (a direction in parentheses: the pipeline shows it nowhere either)
+  l.solo || !l.who ? l.text : `${l.who}: ${l.text}`);
 const clean = (el) => el.textContent.replace(/\s+/g, ' ').trim();
 function focusEnd(el) {
   el.focus();
@@ -750,8 +770,9 @@ function renderEdit(box) {
     const d = document.createElement('div');
     d.className = 'gap' + (g === lines.length ? ' end' : '');
     d.dataset.g = g;
-    d.innerHTML = '<button title="A new line here">+ Add a line</button>';
-    d.querySelector('button').onclick = () => startAdd(g);
+    d.innerHTML = '<button title="A new line here">+ Add a line</button><button class="gd" title="A note to see while filming - not read, Play passes it by">+ ' + DIR + '</button>';
+    const [bl, bd] = d.querySelectorAll('button');
+    bl.onclick = () => startAdd(g); bd.onclick = () => startAdd(g, true);
     return d;
   };
   box.append(gap(0));
@@ -770,7 +791,7 @@ function lineEl(l, i) {
   d.dataset.i = i;
   if (!l.dir && l.who) d.style.setProperty('--c', color(l.who));
   d.innerHTML = `<button class="grip" title="Drag to move this line">${GRIP}</button>` +
-    `<div class="lb">${solo ? '' : `<button class="who whob" title="Who says it - click to change">${l.dir ? 'Stage direction' : esc(l.who)}${CARET}</button>`}` +
+    `<div class="lb">${solo ? (l.dir ? `<div class="who">${DIR}</div>` : '') : `<button class="who whob" title="Who says it - click to change">${l.dir ? DIR : esc(l.who)}${CARET}</button>`}` +
     `<div class="t" contenteditable="plaintext-only" spellcheck="false">${esc(l.text)}</div></div>` +
     `<button class="ldel" title="Delete this line (Undo brings it back)">${BIN}</button>`;
   const t = d.querySelector('.t');
@@ -794,7 +815,7 @@ function lineEl(l, i) {
 }
 
 // a new line: typed where the + was; it's saved once you leave it with words in it (Enter: saved, and the next new line)
-function startAdd(g) {
+function startAdd(g, dir = false) {
   if (adding) return;
   let who = '';
   if (!solo && lines.length) {
@@ -802,7 +823,7 @@ function startAdd(g) {
     const above = [...lines.slice(0, g)].reverse().find(near), below = lines.slice(g).find(near);
     who = above ? (chars.length === 2 ? chars.find((c) => c !== above.who) : above.who) : below?.who || chars[0] || '';  // two people: the other one answers
   }
-  adding = { at: g, who, dir: false };
+  adding = { at: g, who, dir };
   render();
   const t = document.querySelector('.ln.new .t');
   if (t) { t.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); t.focus(); }
@@ -811,13 +832,13 @@ function newLineEl() {
   const a = adding, d = document.createElement('div');
   d.className = 'ln new';
   d.innerHTML = '<span></span><div class="lb">' + (solo || !lines.length ? '' : `<button class="who whob" title="Who says it - click to change"></button>`) +
-    `<div class="t" contenteditable="plaintext-only" spellcheck="false" data-ph="Type the new line · Enter saves it and starts the next · Esc cancels"></div></div><span></span>`;
+    `<div class="t" contenteditable="plaintext-only" spellcheck="false" data-ph="${a.dir ? 'Type the direction · Enter saves it · Esc cancels' : 'Type the new line · Enter saves it and starts the next · Esc cancels'}"></div></div><span></span>`;
   const t = d.querySelector('.t'), wb = d.querySelector('.whob');
   const paint = () => {
     d.classList.toggle('dir', a.dir);
     if (!a.dir && a.who) d.style.setProperty('--c', color(a.who)); else d.style.removeProperty('--c');
     d.classList.toggle('mine', !a.dir && !!me && a.who === me);
-    if (wb) wb.innerHTML = (a.dir ? 'Stage direction' : esc(a.who || 'Who says it?')) + CARET;
+    if (wb) wb.innerHTML = (a.dir ? DIR : esc(a.who || 'Who says it?')) + CARET;
   };
   paint();
   if (wb) { wb.onmousedown = (e) => e.preventDefault(); wb.onclick = () => whoMenu(wb, a.dir ? null : a.who, (w) => { if (w == null) a.dir = true; else { a.dir = false; a.who = w; } paint(); focusEnd(t); }); }
@@ -836,7 +857,7 @@ function finishAdd(t, how) {
   let text = clean(t);
   if (how === 'esc' || !text) return render();  // nothing typed (or cancelled): no line
   let { who, dir } = a;
-  const m = !solo && text.match(/^([^:：]{1,24})[:：]\s*(.+)$/);  // "Name: text" gives it to someone else
+  const m = !solo && !dir && text.match(/^([^:：]{1,24})[:：]\s*(.+)$/);  // "Name: text" gives it to someone else
   if (m && m[1].trim().split(/\s+/).length <= 3) { who = m[1].trim(); text = m[2].trim(); dir = false; }
   const nl = dir ? { dir: true, text } : solo || !who ? { text, solo: true } : { who, text };
   insLine(a.at, nl);
@@ -847,7 +868,7 @@ function finishAdd(t, how) {
 function whoMenu(btn, current, pick) {
   const m = $('whoMenu');
   m.innerHTML = chars.map((c) => `<button data-w="${escA(c)}"${c === current ? ' class="on"' : ''}><span class="dot" style="background:${color(c)}"></span>${esc(c)}</button>`).join('') +
-    `<div class="sep"></div><button data-dir="1"${current === null ? ' class="on"' : ''}>Stage direction</button>` +
+    `<div class="sep"></div><button data-dir="1"${current === null ? ' class="on"' : ''}>${DIR}</button>` +
     '<input id="whoNew" placeholder="Someone new…">';
   m.querySelectorAll('button').forEach((b) => {
     b.onmousedown = (e) => e.preventDefault();

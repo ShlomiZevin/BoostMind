@@ -91,6 +91,11 @@ One format, one composition, one editor, one export. The format and the API: `la
   change is written to the script file at once, Undo / Ctrl+Z takes it back (a toast offers it too). Each parsed line
   keeps its file rows (`rows`), so a change touches only that line's rows - notes (#), blank rows and layout stay.
   Entering Edit re-reads the file first (another session may have changed it).
+- **Directions (הוראות בימוי) in the Reader:** a row in (parentheses) or [brackets] is a note to SEE while filming, never a
+  line to say: a dashed box labelled הוראת בימוי; Play, ↑/↓ and clicks pass it by (the cursor never stops on one), the
+  line count leaves it out. A note inside a spoken line, "אמיר: שלום (בלחש) לכולם", shows small and grey and isn't
+  counted in the pace. Edit mode: **+ הוראת בימוי** between lines, or the name menu turns a line into one. New ones
+  are written as (text) - the pipeline's script parser shows parentheses nowhere either.
   Paste → "Create a new project for it" makes a project + its Drop folder from a script.
 - **The Reader (his teleprompter while recording):** a pace (wpm) for the script and one per character (the box beside
   each name). **⏱ beside a character** = measure his pace: it picks a fair line of his (closest to ~18 words), Start when
