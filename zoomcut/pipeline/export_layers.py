@@ -315,7 +315,9 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             if op < 0.999:
                 post.append(f"colorchannelmixer=aa={op:.3f}")
             t0, t1 = (a - c0) / fps, (z - c0 - 0.5) / fps
-            post.append(f"setpts=PTS+{t0:.4f}/TB")
+            # exact frame times (a rounded t0 put a third of the cuts a hair late: that frame showed the set without him,
+            # haredit-2 2026-10-28), and the last frame held one more so the window never runs past the clip's end
+            post.append(f"tpad=stop_mode=clone:stop=1,setpts=PTS+{a - c0}/{fps}/TB")
             if r > 0 and not (cutout and not bd):
                 args += ["-loop", "1", "-framerate", str(fps), "-t", f"{ln / fps + 0.1:.4f}", "-i", _mask(ep, w, h, r)]
                 mi = idx
@@ -325,7 +327,7 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             else:
                 fc.append(f"[v{tag}]{','.join(post)}[o{tag}]")
             fc.append(f"{last}[o{tag}]overlay=x={int(round(box['x'] * scale))}:y={int(round(box['y'] * scale))}:eof_action=pass:"
-                      f"enable='between(t,{t0:.4f},{t1:.4f})'[b{tag}]")
+                      f"enable='between(t,{max(0.0, t0 - 0.5 / fps):.5f},{t1:.5f})'[b{tag}]")
             last = f"[b{tag}]"
     fc.append(f"{last}format=yuv420p[out]")
     args += ["-filter_complex", ";".join(fc), "-map", "[out]", "-frames:v", str(n), "-r", str(fps),

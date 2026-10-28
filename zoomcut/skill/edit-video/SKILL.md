@@ -191,7 +191,10 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
    **Anything he holds** (a bottle, a box, a phone, a booklet) - check it in the stills: the cut-out engines drop held
    props or leave them see-through ("a recurring issue", 2026-10-28). Keep it with `props` (draw its box once, it is
-   tracked) - reference.md → Person. Fix what you find first.
+   tracked) - reference.md → Person. **Every full export: `python tools/flash_frames.py <ep>`** - one-frame flashes
+   (he saw "a glitch of empty Hani for a micro second" on some cuts, 2026-10-28: the exporter placed a third of the
+   clips a rounding-hair late, fixed in pipeline/export_layers.py; the check stays). Exit 1 = don't send it.
+   After a rebuild, the picture lane: no two items overlapping, no gaps. Fix what you find first.
 7. **Hand over:** the link, the length, the lines you fixed or could not find, 2-4 timestamps worth his ear, one line
    that he can drag any cut edge to pull footage back. **And the post is already written** (his rule, 2026-10-25):
    every video you make comes with its DEFAULT caption - a hook line + 3-6 hashtags, in the character's voice
@@ -468,6 +471,10 @@ He said "I don't think you are utilizing all of its power with annotation". What
   his next words. Under a side conversation (he talks to a colleague, phone covered) her long nagging plays over him,
   ~7 dB softer, and keeps going until he is back on the phone (generate more lines if it runs out). The background
   (house bed, wails) stays well under her.
+  **The whole call is QUIET** (his words, 2026-10-28, asked three times: "it's coming out of the phone... it can't be
+  louder than her... much quieter"): every lane of the other side (her lines, the house bed, the events, the
+  shower) through `filter: phone`, the lanes at ~0.3-0.35 volume - her words still clear but plainly a phone held
+  to Hani's ear; only the phone ringing on the desk (in the room, no filter) keeps its level.
 
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
