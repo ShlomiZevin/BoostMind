@@ -115,6 +115,9 @@ One format, one composition, one editor, one export. The format and the API: `la
   layers. Shared bits: `ui/common.tsx`, `ui/footage.tsx` (Media), `ui/lineprops.tsx`, `ui/speed.tsx`, `ui/newvideo.tsx`
   (NewVideo + DropCard). tsconfig now checks `ui/` too - keep `npx tsc --noEmit -p render` at 0. Tests after a change to
   ops / merge: `node tools/ops_roundtrip.mjs`, `python tools/merge_test.py` (+ `node tools/geometry_parity.mjs`).
+- **Subtitles tab** (left panel, 2026-10-28 - he missed the old one-camera editor's list): `layers/Subtitles.tsx` - every
+  subtitle of every subtitles layer in time order, the one on screen lit and kept in view, a click picks it (the video
+  jumps there), **Copy all** (words, one per line) / **with times**.
 - **Media Footage is newest first** (his ask, 2026-10-28: "I want last to be first"): by the recording time inside each
   file (ffprobe `com.apple.quicktime.creationdate` / `creation_time`, else the file's date) from the `dates` action
   (`render/actions/dates.mjs`, read only, cached in `work/dates.json`), shown on each row ("28 Oct, 10:57"). Keep this

@@ -565,3 +565,13 @@ a { color: inherit; text-decoration: none; }
 .setup-foot .item { padding: 10px 0; gap: 10px; }
 .setup-foot .item .ctl { display: grid; grid-template-columns: 1fr 1fr; }
 .setup-foot .item .name { font-size: 11.5px; color: var(--faint); }
+
+/* the Subtitles tab (layers/Subtitles.tsx): every subtitle, the one on screen lit */
+.subs-bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: var(--panel); border-bottom: 1px solid var(--edge); }
+.sub-row { display: grid; grid-template-columns: 52px 1fr auto; gap: 8px; align-items: baseline; padding: 7px 12px; cursor: pointer; border-left: 2px solid transparent; transition: background 150ms; }
+.sub-row:hover { background: var(--panel-2, rgba(255,255,255,0.03)); }
+.sub-row.now { border-left-color: var(--accent); background: var(--panel-2, rgba(255,255,255,0.04)); }
+.sub-row.on .sub-x { color: var(--accent); }
+.sub-t { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.sub-x { font-size: 14px; line-height: 1.4; text-align: right; unicode-bidi: plaintext; }
+.sub-l { font-size: 10px; color: var(--faint); }

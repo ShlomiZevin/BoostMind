@@ -14,6 +14,7 @@ import { Inspector } from './Inspector';
 import { LineProps } from '../lineprops';
 import { Media as FootageAssign } from '../footage';
 import { Handles, pickAt } from './Handles';
+import { Subtitles } from './Subtitles';
 import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots } from './Notes';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
@@ -83,7 +84,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const [sel, setSel] = useState<Sel>(null);
   const [line, setLine] = useState<number | null>(null);
   const [pick, setPick] = useState<{ kind: string; onPick: (id: string) => void } | null>(null);  // a panel asked for a file from Media
-  const [tab, setTab] = useState<'media' | 'script'>(() => (localStorage.getItem('zc-ly-tab') as any) || 'media');
+  const [tab, setTab] = useState<'media' | 'script' | 'subs'>(() => (localStorage.getItem('zc-ly-tab') as any) || 'media');
   useEffect(() => { try { localStorage.setItem('zc-ly-tab', tab); } catch {} }, [tab]);
   const [tlH, setTlH] = useState(+(localStorage.getItem('zc-ly-tlh') || 340));
   useEffect(() => { try { localStorage.setItem('zc-ly-tlh', String(tlH)); } catch {} }, [tlH]);
@@ -317,6 +318,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
           <div className="tabs">
             <div className={`tab ${tab === 'media' ? 'on' : ''}`} onClick={() => setTab('media')}>Media</div>
             {script.length > 0 && <div className={`tab ${tab === 'script' ? 'on' : ''}`} onClick={() => setTab('script')}>Script</div>}
+            <div className={`tab ${tab === 'subs' ? 'on' : ''}`} onClick={() => setTab('subs')}>Subtitles</div>
             <div className="grow" />
             {(L.saving || syncing > 0) && <span className="help" style={{ margin: 0 }}>{syncing ? 'syncing the line…' : 'saving…'}</span>}
           </div>
@@ -324,6 +326,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
             {tab === 'media' && setup}
             {tab === 'media' && <Media ep={ep} project={project} urls={L.view!.urls} frame={frame} send={L.send} onLoaded={L.load}
               pick={pick && { kind: pick.kind, onPick: (id) => { pick.onPick(id); setPick(null); } }} />}
+            {tab === 'subs' && <Subtitles project={project} frame={frame} sel={sel} onPick={pickItem} />}
             {tab === 'script' && <div className="lines">
               {script.map((l) => (
                 <div key={l.n} className={`ln ${line === l.n ? 'on' : ''} ${nowLine === l.n ? 'now' : ''} ${l.status === 'skipped' ? 'dropped' : ''}`}
