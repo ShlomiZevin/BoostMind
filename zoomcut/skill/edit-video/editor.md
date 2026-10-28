@@ -96,8 +96,8 @@ One format, one composition, one editor, one export. The format and the API: `la
   line count leaves it out. A note inside a spoken line, "אמיר: שלום (בלחש) לכולם", shows small and grey and isn't
   counted in the pace. Edit mode: **+ הוראת בימוי** between lines, or the name menu turns a line into one. New ones
   are written as (text) - the pipeline's script parser shows parentheses nowhere either.
-- **A click on a line while the Reader plays (or counts down) only stops it** - the place stays; stopped, a click goes
-  to that line (2026-10-28, his ask).
+- **A click on a line while the Reader plays (or counts down) stops it AND goes to that line** - ready to play from
+  there (2026-10-28, his ask).
   Paste → "Create a new project for it" makes a project + its Drop folder from a script.
 - **The Reader (his teleprompter while recording):** a pace (wpm) for the script and one per character (the box beside
   each name). **⏱ beside a character** = measure his pace: it picks a fair line of his (closest to ~18 words), Start when

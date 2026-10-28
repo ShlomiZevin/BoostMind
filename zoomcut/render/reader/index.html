@@ -431,10 +431,10 @@ function spoken(i, d = 1) {
   for (let k = i; k >= 0 && k < lines.length; k -= d) if (!lines[k].dir) return k;
   return Math.max(0, Math.min(lines.length - 1, i));
 }
-// a click on a line: while it plays (or counts down) it only stops - the place stays where it was; stopped, it goes there
+// a click on a line: it stops the playing (or the countdown) and goes to that line
 function lineClick(i) {
   if (String(window.getSelection() || '').trim()) return;  // (selecting text to copy is not a click)
-  if (playing || cdTimer) { cancelCd(); setPlay(false); return; }
+  if (playing || cdTimer) { cancelCd(); setPlay(false); }
   go(i);
 }
 function go(i, d = 1) { cur = spoken(Math.max(0, Math.min(lines.length - 1, i)), d); save(); render(); if (playing) schedule(); }
