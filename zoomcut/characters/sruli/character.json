@@ -1,0 +1,48 @@
+{
+  "id": "sruli",
+  "name": "שרולי פרידמן",
+  "name_en": "Sruli Friedman",
+  "aka": [
+    "שרולי",
+    "sruli"
+  ],
+  "world": "טקי-טק",
+  "role": "הבן של חני, בן 8 - עם רגל שבורה בגבס",
+  "tier": "npc",
+  "brief": "הבן של חני ואברהם משה, בן 8. שבר את הרגל, וההורים היו איתו במיון עד אחת בלילה. גאה מאוד בגבס המצויר שלו. למחרת כבר מטפס על הארון עם הגבס כדי לחפש את העיגוליות (שהן פרווה, אז מותר גם אחרי שניצל), וצריך עזרה להתקלח - ואז נופל במקלחת.",
+  "behavior": [
+    "מטפס על ארונות עם גבס.",
+    "מחפש את העיגוליות שאמא לקחה למשרד.",
+    "צועק לברכי לבוא כשהוא נופל."
+  ],
+  "comedy": [
+    "ילד שלא נעצר לרגע - כל השיחה של חני מהמשרד היא על מה שהוא עושה עכשיו עם הרגל השבורה."
+  ],
+  "themes": [
+    "haredit-2: הרגל השבורה, המיון עד אחת בלילה, מטפס על הארון עם הגבס, נופל במקלחת"
+  ],
+  "look": "בן 8, משקפיים דקים כמו של אמא, כיפת קטיפה שחורה, פאות מסולסלות, חולצה לבנה ומכנסיים שחורים; גבס לבן מהברך עד האצבעות, מלא ציורים של ילדים, וקביים קטנים. חיוך שובב וגאה.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלו"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלו"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/sruli.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/sruli.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/er-exit.jpg"
+    ]
+  },
+  "color": "#2b6cb0",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/sruli.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/er-exit.txt",
+    "c:/workspace/BoostMind/zoomcut/scripts/haredit-2.txt"
+  ]
+}
