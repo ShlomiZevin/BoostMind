@@ -452,6 +452,14 @@ He said "I don't think you are utilizing all of its power with annotation". What
   (gains 0.6-0.9 on a crash / crying / climbing, 2-3x a bed) - in HIS pauses, each answering the line before; under the whole call a looping chaos bed;
   on top the events, each timed to a word (a crash, then the crying, right before "מי בוכה שם?"); all through
   `filter: phone`; the caller deadpan while the house burns, Hani calm over it. Assets: `_assets/haredit/calls/`.
+  **Real words, never mumble slices** (2026-10-28, on his takes: "where it was real speech it works really great";
+  mixed mumble / words = "can't be some understood, some not"): he writes the other side's lines into the script, every
+  line = its own v4 file (`_assets/haredit/calls/brachi-rNN.mp3`; names with niqqud - שְׁרוּלִי - or v4 says
+  "שאולי"), transcribed before use, all levelled to one loudness (-20 dB active, gain per file). His pauses are
+  0.1-0.4 s and her lines 1-3 s at 1.7: **hold his listening pause for her** - `cut.slow {take: [[pause_a, pause_b,
+  speed]]}` so the pause lasts ~90% of her line, `slow_ramp` 0.04 so only the pause slows, never his words; her line
+  starts at the pause. Under a side conversation (he talks to a colleague, phone covered) her long nagging plays
+  over him, ~7 dB softer, no hold.
 
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
