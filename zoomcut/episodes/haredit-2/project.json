@@ -819,7 +819,7 @@
         {
           "id": "c10",
           "from": 1529,
-          "dur": 353,
+          "dur": 180,
           "asset": "t.1B386195-8E42-4B3A-91B9-AE6723A78309",
           "in": 4.27,
           "ref": {
@@ -847,11 +847,12 @@
           },
           "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-10.72",
           "box": {
-            "x": 0,
-            "y": 150,
-            "w": 1080,
-            "h": 1920
-          }
+            "x": -130,
+            "y": 105,
+            "w": 1340,
+            "h": 2382
+          },
+          "user": true
         },
         {
           "id": "c13",
@@ -1216,7 +1217,7 @@
         {
           "id": "c33",
           "from": 5275,
-          "dur": 376,
+          "dur": 371,
           "asset": "t.0F959E09-CAC3-4AFF-AF23-B737F5534097",
           "in": 2.15,
           "ref": {
@@ -1234,10 +1235,10 @@
         },
         {
           "id": "c34",
-          "from": 5651,
-          "dur": 477,
+          "from": 5646,
+          "dur": 482,
           "asset": "t.3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
-          "in": 3.4333,
+          "in": 3.2666,
           "ref": {
             "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
             "a": 3.2
@@ -2498,17 +2499,6 @@
           "user": true
         },
         {
-          "id": "s104",
-          "from": 3496,
-          "dur": 36,
-          "text": "על זה.",
-          "ref": {
-            "cap": "על זה.",
-            "k": 104
-          },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
-        },
-        {
           "id": "s_brachi_with",
           "from": 3503,
           "dur": 29,
@@ -3481,7 +3471,8 @@
         "{\"cap\":\"בשלום. כן,\",\"k\":84}",
         "{\"cap\":\"כן, סליחה,\",\"k\":80}",
         "{\"cap\":\"שיהיה לכולם המשך יום\",\"k\":166}",
-        "{\"cap\":\"מקסים, בשורות טובות,\",\"k\":167}"
+        "{\"cap\":\"מקסים, בשורות טובות,\",\"k\":167}",
+        "{\"cap\":\"על זה.\",\"k\":104}"
       ]
     },
     {
@@ -3995,7 +3986,7 @@
       "name": "ברכי בטלפון",
       "owner": "builder",
       "props": {
-        "volume": 1
+        "volume": 0.5
       },
       "items": [
         {
@@ -4312,7 +4303,7 @@
       "name": "הבית ברקע",
       "owner": "builder",
       "props": {
-        "volume": 1
+        "volume": 0.6
       },
       "items": [
         {
@@ -4419,7 +4410,7 @@
       "name": "אירועים וצלצולים",
       "owner": "builder",
       "props": {
-        "volume": 1
+        "volume": 0.6
       },
       "items": [
         {
@@ -4427,13 +4418,14 @@
           "from": 2793,
           "dur": 30,
           "asset": "s.0",
-          "gain": 0.095,
+          "gain": 0.158,
           "fade_in": 0.02,
           "fade_out": 0.08,
           "ref": {
             "sound": 0
           },
-          "in": 0
+          "in": 0,
+          "user": true
         },
         {
           "id": "x2",
@@ -4521,13 +4513,14 @@
           "from": 5779,
           "dur": 45,
           "asset": "s.11",
-          "gain": 0.2,
+          "gain": 0.333,
           "fade_in": 0.02,
           "fade_out": 0.08,
           "ref": {
             "sound": 11
           },
-          "in": 0
+          "in": 0,
+          "user": true
         },
         {
           "id": "x14",
@@ -4553,7 +4546,7 @@
       "name": "מקלחת",
       "owner": "builder",
       "props": {
-        "volume": 1
+        "volume": 0.6
       },
       "items": [
         {
@@ -4639,7 +4632,7 @@
       "muted": false
     }
   ],
-  "rev": 258,
+  "rev": 264,
   "builder": {
     "kind": "solo",
     "from": "lesson.py"
@@ -4648,7 +4641,7 @@
   "edit": {
     "ripple": true
   },
-  "saved": 1793201063612,
+  "saved": 1793201750753,
   "notes": [
     {
       "id": "nmvs2jl41",
@@ -5261,6 +5254,23 @@
       "text": "תוריד מפה איזה מילי זה נראה שאני קופא ואז מתחיל לזוז",
       "t": 1793200776912,
       "reply": "Her picture now starts 0.23 s later, when she is already moving; the shot before runs on until then. Your 'תודה' is untouched.",
+      "done": true
+    },
+    {
+      "id": "nmvs9ra8n",
+      "at": 1717,
+      "text": "שני וידאוים מתמרגגים.",
+      "t": 1793201304983,
+      "reply": "Fixed: my bigger framing had kept this piece at its old length, so it lay over the next piece of the same take (the two clips blending). It ends where the next one starts now, and both have the same framing.",
+      "done": true
+    },
+    {
+      "id": "nmvs9vyn9",
+      "at": 5649,
+      "text": "תוריד פה מעט במעבר",
+      "t": 1793201523237,
+      "kind": "tighten",
+      "reply": "Trimmed: the shot before the door take runs on only 2 frames now (was 7).",
       "done": true
     }
   ]

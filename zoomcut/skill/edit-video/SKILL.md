@@ -140,6 +140,12 @@ move with what plays under them when a take is made longer / shorter. When he sa
    you can't do or that needs his call: `... reply <id> "the question"` (stays open). Never delete his notes.
 4. Tell him: F5, then a short list - note by note, what changed.
 
+**A piece you change by hand (box, in, dur via ops) becomes `user: true` - a later rebuild never re-cuts it**
+(haredit-2, 2026-10-28: I enlarged one Lego piece, then cut a silence inside that take; my piece kept its old length
+and lay over the new one - he saw "two videos merging"). After every rebuild, check the picture lane: no two items
+overlap, no gaps (`from + dur` of one = `from` of the next), and re-apply your hand change to every new piece of that
+take. A framing for a whole take is better as one change you re-apply than as a one-piece edit you forget.
+
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
    another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.
