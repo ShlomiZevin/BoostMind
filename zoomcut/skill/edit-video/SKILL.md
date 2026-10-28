@@ -257,7 +257,10 @@ The rules:
   1. **Script** - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line `# <title>`, a
      `# על המסך – ...` note above each line that gets a sticker / card). **The Reader text = only what the character
      SAYS** (2026-10-25, haredit-1: he had me strip the `**(stage directions)**` and the `**` marks - "רק את הטקסט
-     שהיא אומרת"). A pasted script = a NEW script id - never paste it over a project's script in the Reader (that
+     שהיא אומרת"). **Directions (הוראות בימוי) ARE wanted (2026-10-28) - on their own row in parentheses**, e.g.
+     `(נכנסת לחדר, מחזיקה טלפון)`: the Reader shows them as a dashed "הוראת בימוי" note that Play never stops on,
+     and the pipeline shows them nowhere. Never inside a spoken line, never with `**`; the line stays only what's said
+     (`editor.md` → "Directions"). A pasted script = a NEW script id - never paste it over a project's script in the Reader (that
      overwrote dorit-1's astrology script; restored from `scripts/<id>.txt.bak`).
   2. **Project, at once** - make the footage folder (`Downloads\<series>\<n>`, empty is fine), then
      `POST /api/new {name: "<series>-<n>", folder, from: "<last project of the series>"}`; set its `script` to the id
