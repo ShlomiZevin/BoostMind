@@ -16,7 +16,7 @@ export const newNote = (at: number): Note => ({ id: 'n' + Date.now().toString(36
 const PinIc = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v13l-7 5-7-5z" /></svg>;
 
 /** The notes on the ruler: a flag each (yellow open, grey answered). Click opens it; drag moves it along the video. */
-export function NotePins({ notes, px, pps, fps, total, onOpen, send }: { notes: Note[]; px: (f: number) => number; pps: number; fps: number; total: number;
+export function NotePins({ notes, hideDone, px, pps, fps, total, onOpen, send }: { notes: Note[]; hideDone?: boolean; px: (f: number) => number; pps: number; fps: number; total: number;
   onOpen: (n: Note) => void; send: Send }) {
   const down = (e: React.MouseEvent, n: Note) => {
     e.stopPropagation(); e.preventDefault();
@@ -36,9 +36,9 @@ export function NotePins({ notes, px, pps, fps, total, onOpen, send }: { notes: 
     };
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
-  return <>{notes.map((n) => (
+  return <>{notes.filter((n) => !(hideDone && n.done)).map((n) => (
     <div key={n.id} data-note={n.id} className={`ltl-note ${n.done ? 'done' : ''}`} style={{ left: px(n.at) }} onMouseDown={(e) => down(e, n)}
-      title={`${n.done ? 'Answered' : 'Note'} at ${fmtT(n.at / fps)}: ${n.text}${n.reply ? `\nClaude: ${n.reply}` : ''}\n(click to open, drag to move)`}><PinIc /></div>))}</>;
+      title={`${n.done ? 'Handled' : 'Open'} note at ${fmtT(n.at / fps)}: ${n.text}${n.reply ? `\nClaude: ${n.reply}` : ''}\n(click to open, drag to move)`}><PinIc /></div>))}</>;
 }
 
 /** The spots on the picture: a ring where a note points, while the playhead is at it (the open one always). */
@@ -86,7 +86,7 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
     <div className="note-win" ref={win} onKeyDown={keys} style={pos ? { left: pos.left, bottom: pos.bottom, top: 'auto' } : undefined}>
       {pos && <div className="note-arrow" style={{ left: pos.arrow }} />}
       <div className="note-h">
-        <span className="grow">{isNew ? 'New note for Claude' : note.done ? 'Note - answered' : 'Note for Claude'}</span>
+        <span className="grow">{isNew ? 'New note for Claude' : 'Note for Claude'}</span>
         <button className="btn ghost" style={{ height: 24, padding: '0 8px', fontSize: 12 }} title="Go to this moment" onClick={() => onSeek(note.at)}>at {fmtT(note.at / fps / speed)}</button>
         <button className="btn ghost icon" style={{ width: 24, height: 24 }} title="Close (Esc) - what you wrote is kept" onClick={close}>✕</button>
       </div>
@@ -95,7 +95,8 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
       <div className="help" style={{ margin: 0 }}>{note.x != null ? 'The spot is marked on the video - click the video to move it.' : 'Optional: click the video to point at the exact spot.'}</div>
       {note.reply && <div className="note-reply"><b>Claude:</b> <span dir="auto">{note.reply}</span></div>}
       <div className="note-acts">
-        {!isNew && <button className="btn" onClick={() => { onSave({ ...note, text: text.trim() || note.text, done: !note.done }); onClose(); }}>{note.done ? 'Reopen' : 'Mark done'}</button>}
+        {!isNew && <label className={`note-handled ${note.done ? 'on' : ''}`} title="Handled = fixed (Claude ticks it when he fixes it; untick to reopen)">
+          <input type="checkbox" checked={!!note.done} onChange={(e) => onSave({ ...note, text: text.trim() || note.text, done: e.target.checked })} /> Handled</label>}
         {note.x != null && <button className="btn ghost" onClick={() => onSave({ ...note, text: text.trim() || note.text, x: undefined, y: undefined })}>Clear the spot</button>}
         <div className="grow" />
         <button className="btn ghost" style={{ color: 'var(--bad)' }} onClick={() => { onDelete(); onClose(); }}>{isNew ? 'Cancel' : 'Delete'}</button>
