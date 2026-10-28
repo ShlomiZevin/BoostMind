@@ -1,42 +1,15 @@
 <!doctype html>
-<html lang="he" dir="rtl"><head><meta charset="utf-8"><link rel="stylesheet" href="flyer.css">
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><link rel="stylesheet" href="news.css">
 <style>
-  :root { --bg: #fff1cf; --ray: #ffd98f; --band: #7a1a10; --edge: #ffd400; }
-  .product { top: 650px; }
-  .product img { height: 600px; transform: rotate(-5deg); border-radius: 8px; border: 4px solid #fff; box-shadow: 0 14px 0 rgba(122, 26, 16, 0.35); }
+  .product .box { position: absolute; top: 0; right: 50px; height: 900px; transform: rotate(3deg); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22); }
+  .product .cookies { position: absolute; bottom: -10px; left: 0; width: 600px; mix-blend-mode: multiply; }
 </style></head>
 <body>
-  <div class="rays"></div>
-  <div class="band-top"><div class="bt">מבצעי השקה בשפע עד!</div></div>
-  <div class="band-bot"><div class="bb">*התמונה להמחשה בלבד. המחירים בתוקף בסניפים המשתתפים.</div></div>
-
-  <div class="logo">שפע עד</div>
-  <div class="dept">מחלקת מאפים</div>
-
-  <div class="head">
-    <div class="big">פרווה?!</div>
-    <div class="small">פשוט לא מרגישים!</div>
-  </div>
-
-  <div class="product"><img src="igulyot-box.jpg"></div>
-
-  <div class="circle" style="top:690px; left:40px; width:210px; height:210px"><b>0%</b><span>חלב</span></div>
-  <div class="burst" style="top:660px; right:30px; width:210px; height:210px; --c:#14204a"><span class="p" style="font-size:66px; color:#ffd400">חדש!</span></div>
-  <div class="burst" style="top:1000px; left:18px; width:320px; height:320px"><span class="t">מבצע השקה</span><span class="p">2 ב־18</span><span class="s">₪ בלבד!</span></div>
-  <div class="burst" style="top:1040px; right:26px; width:250px; height:250px; --c:#14204a"><span class="t" style="color:#ffd400">מבית</span><span class="t" style="font-size:38px">ברכת<br>השפע</span></div>
-
-  <div class="quote" style="top:1268px; right:40px; left:120px">
-    <img src="hani.jpg">
-    <div><div class="q">״לא מרגישים שזה פרווה!״</div><div class="who">ח. פרידמן, בני ברק · לקוחה מרוצה</div></div>
-  </div>
-
-  <div class="checks" style="top:1418px">
-    <div>פרווה למהדרין</div>
-    <div>ללא אבקת חלב</div>
-    <div>מילוי קרם שוקולד</div>
-    <div>אריזה משפחתית 400 ג׳</div>
-  </div>
-
-  <div class="strip">שפע עד · בני ברק · ירושלים · בית שמש · מודיעין עילית · אלעד</div>
-  <div class="fine">מומלץ לאחסן במדף העליון של הארון. החברה אינה אחראית לטיפוס על הארון, גם לא עם גבס. עד גמר המלאי.</div>
+  <div class="top"></div><div class="bot"></div><div class="frame"></div>
+  <div class="logo"><span>שפע עד</span></div>
+  <h1>פרווה?!</h1>
+  <div class="sub">פשוט לא מרגישים.</div>
+  <div class="product"><img class="cookies" src="cookies.jpg"><img class="box" src="igulyot-box.jpg"></div>
+  <div class="price">עיגוליות ברכת השפע · 2 ב־<b>18 <i>₪</i></b></div>
+  <div class="branches">בני ברק · ירושלים · בית שמש · מודיעין עילית · אלעד</div>
 </body></html>

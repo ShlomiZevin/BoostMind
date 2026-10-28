@@ -111,13 +111,15 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   - Hand items made for a stand-in (the set, the kids photo, his music layer) keep the stand-in's length - trim them
     to the real one.
   - Takes the `sequence` doesn't use still get cut out (minutes each) - narrow `takes` to the used files first.
-- **Her product ads = שפע עד flyers** (his notes on the first try, 2026-10-28: "a lot of empty space... fill the
-  story... cheap like שפע עד but a GOOD ad - cheap but good", and the lego one must say "לגו זה לגויים"): packed
-  supermarket flyer, colour to every edge (sunburst rays, red bands top / bottom with text), the product big on a
-  white tilted card, price bursts, a navy circle, a "satisfied customer" quote from Hani (her photo) tied to the
-  video's joke, a ✔ box, the branches strip, fine print with the punchline. `_assets/haredit/ads/` (flyer.css +
-  one html per ad, shot with `_assets/dorit/tarot/shoot.mjs ads/jobs.json`). A white-background product photo on a
-  coloured page: a card, never `mix-blend-mode: multiply` (it turned the blue box green).
+- **Her product ads = a plain שפע עד newspaper ad** (2026-10-28, two rounds). Round 1 (a clean poster) was "a lot
+  of empty space"; round 2 (a packed flyer: bursts, stars, ✔ box, a Hani quote, fine print) was worse - "text on
+  top of text, you added stuff I didn't ask. Don't add Hani. It's a real advertisement in a newspaper. The image
+  of the product should be MUCH bigger." What works: white page with red bands top / bottom (no text in them), the
+  store logo, ONE headline (his: "לגו? זה לגויים."), one sub-line, the product photo ~900 px filling the middle
+  (Leonardo: "products fill the frame edge to edge, plain white background"), one price line, the branches.
+  Nothing he didn't ask for. `_assets/haredit/ads/` (news.css + one html per ad, shot with
+  `_assets/dorit/tarot/shoot.mjs ads/jobs.json`). Secular One has no ₪ - set it in Heebo. A white-background
+  photo blends on white; `mix-blend-mode: multiply` on a coloured page or over another picture shows through.
 - **Sounds that last through a moment** (the shower, a TV, a bed): start with the scene and end on the line that
   stops them (here "שיחכה") - never one short clip that ends on its own (his note: "we need to hear the water, then
   shut down after Hani said to").

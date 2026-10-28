@@ -1,0 +1,27 @@
+/* שפע עד - a plain newspaper ad: the store, one headline, the product as big as it goes, the price, the branches.
+   Nothing else (his notes, 2026-10-28). 1080x1920; words stay out of the top 240 / bottom 300 */
+@import url('https://fonts.googleapis.com/css2?family=Secular+One&family=Suez+One&family=Heebo:wght@500;700;800;900&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; }
+body { direction: rtl; font-family: 'Heebo', sans-serif; background: #fff; color: #14204a; position: relative; }
+
+.top, .bot { position: absolute; left: 0; right: 0; background: #d8141c; }
+.top { top: 0; height: 236px; }
+.bot { bottom: 0; height: 292px; }
+.frame { position: absolute; top: 236px; bottom: 292px; left: 0; right: 0; border-left: 16px solid #d8141c; border-right: 16px solid #d8141c; }
+
+.logo { position: absolute; top: 262px; left: 0; right: 0; text-align: center; }
+.logo span { display: inline-block; background: #d8141c; color: #fff; font-family: 'Suez One', serif; font-size: 60px; line-height: 1;
+  padding: 8px 40px 16px; border-radius: 14px; }
+
+h1 { position: absolute; top: 362px; left: 30px; right: 30px; text-align: center; font-family: 'Secular One', sans-serif;
+  font-weight: 400; font-size: 132px; line-height: 1; color: #d8141c; }
+.sub { position: absolute; top: 506px; left: 30px; right: 30px; text-align: center; font-family: 'Secular One', sans-serif;
+  font-size: 58px; line-height: 1.1; color: #14204a; }
+
+.product { position: absolute; top: 590px; left: 16px; right: 16px; height: 900px; }
+
+.price { position: absolute; top: 1492px; left: 30px; right: 30px; text-align: center; font-weight: 900; font-size: 56px; color: #14204a; }
+.price b { color: #d8141c; font-family: 'Secular One', sans-serif; font-weight: 400; font-size: 72px; }
+.branches { position: absolute; top: 1572px; left: 30px; right: 30px; text-align: center; font-weight: 700; font-size: 30px; color: #14204a; }
+.price i { font-style: normal; font-family: 'Heebo', sans-serif; font-weight: 900; }
