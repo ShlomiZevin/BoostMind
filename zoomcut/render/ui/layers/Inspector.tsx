@@ -9,6 +9,8 @@ import { newId } from '../../src/layers/ops.js';
 import { TEXT_STYLES, SUB_STYLES } from '../../src/layers/styles';
 import { FILTERS } from '../../src/layers/effect_curve.js';
 
+const mmss = (s: number) => { const r = Math.round(s); return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`; };  // (the length in minutes, 2:55 - his ask)
+
 const panels = import.meta.glob('./inspect/index.ts', { eager: true }) as Record<string, any>;
 const INSPECTORS: Record<string, React.FC<any>> = Object.values(panels)[0]?.INSPECTORS || {};
 
@@ -87,7 +89,7 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
         <div className="row2"><label>Title</label><input className="field he" defaultValue={project.title} key={project.title} onBlur={(e) => e.target.value !== project.title && send([{ op: 'project', set: { title: e.target.value } }])} /></div>
         <div className="sec">Speed</div>
         <SpeedPick speed={project.speed || 1} onSpeed={(v) => send([{ op: 'project', set: { speed: v } }], { label: 'speed' })} />
-        <div className="row2"><label>Length</label><span>{(project.duration / fps / (project.speed || 1)).toFixed(1)} s{project.speed !== 1 ? ` · ${(project.duration / fps).toFixed(1)} s at 1×` : ''}</span></div>
+        <div className="row2"><label>Length</label><span>{mmss(project.duration / fps / (project.speed || 1))}{project.speed !== 1 ? ` · ${mmss(project.duration / fps)} at 1×` : ''}</span></div>
         <div className="row2"><label>Background</label><input type="color" value={project.canvas.color || '#000000'} onChange={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }], { commit: false })}
           onBlur={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }])} style={{ width: 40, height: 30, border: 0, background: 'none' }} /></div>
         <div className="help">The whole video, every layer together. Export makes the file at this speed.</div>
