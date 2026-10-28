@@ -117,6 +117,20 @@ The rules:
 5. **Show before applying** a look or sound change: stills of the tiles (big AND small), short before / after mp3s.
 6. **Time-box debugging:** two or three attempts, then the simplest route that works.
 
+## "fix notes" - his notes on the timeline (2026-10-28)
+He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N) puts a yellow flag on the ruler at the
+playhead, his words in a window right above it, optionally a spot he clicked on the picture. They live in project.json
+`notes: [{id, at (frame), text, x?, y? (canvas px), done?, reply?}]` - saved, Ctrl+Z, kept through rebuilds, and they
+move with what plays under them when a take is made longer / shorter. When he says **"fix notes"** (or "תתקן את
+ההערות"):
+1. `node tools/notes.mjs <ep>` - every open note: when, his words, the spot, EVERY layer's item at that frame (ids,
+   times, words, refs) and a still of that exact frame with his spot boxed (`episodes/<ep>/work/notes/<id>.png` -
+   LOOK at it). Which project: the one he is on (ask if unsure).
+2. Fix each one the right way (this skill's rules: ops API with the rev / the builder - never hand-edit project.json).
+3. Answer each: `node tools/notes.mjs <ep> done <id> "what I did"` (he reads it on the note and can reopen it); a note
+   you can't do or that needs his call: `... reply <id> "the question"` (stays open). Never delete his notes.
+4. Tell him: F5, then a short list - note by note, what changed.
+
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
    another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.

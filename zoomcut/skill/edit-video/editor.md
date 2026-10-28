@@ -87,6 +87,11 @@ One format, one composition, one editor, one export. The format and the API: `la
   folder from Downloads, optional settings from an earlier project; POST /api/new).
 - One project in every tool (editor, Reader, Karaoke) - localStorage/sessionStorage "zc-ep", studio/bar.js StudioProject.
   The Reader shows the project's script (episode.json `"script"` → scripts/<id>.txt); Paste saves into it.
+- **Notes for Claude (2026-10-28, his ask):** `render/ui/layers/Notes.tsx` (+ notes.css) - "+ Note" on the timeline bar /
+  N = a note at the playhead (window opens right above its flag on the ruler - his ask; click the video = the spot, a
+  ring there while the playhead is at it; Ctrl+Enter / Esc / click Save keeps the words, an empty new one just goes);
+  flags on the ruler (yellow open, grey answered; click opens, drag moves); stored as project.json `notes` through the
+  'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
 - **Reader Edit mode (2026-10-28, replaced the hidden double-click / hover-+ editing he found unintuitive):** the **Edit**
   button (or E, or double-click a line) turns the script into a document with a bar: "Editing the script · ✓ Saved ·
   Undo · Done". Click any line and type (Enter = done with it, Esc = back as it was); **drag the ⠿ handle** to move a

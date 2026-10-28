@@ -13,6 +13,7 @@ import { Media } from './Media';
 import { Inspector } from './Inspector';
 import { LineProps, Media as FootageAssign } from '../editor';
 import { Handles, pickAt } from './Handles';
+import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots } from './Notes';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
 export class LayersBoundary extends React.Component<{ children: React.ReactNode }, { err: string | null }> {
@@ -111,6 +112,28 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     const it = s?.item && project?.layers.find((l: any) => l.id === s.layer)?.items?.find((i: any) => i.id === s.item);
     if (it && (frame < it.from || frame >= it.from + it.dur)) seek(it.from + Math.min(it.dur - 1, Math.round(fps * 0.4)));
   };
+  // notes for Claude (Notes.tsx): the open one's window; a new one is only saved once it has words
+  const notes = notesOf(project);
+  const [noteOpen, setNoteOpen] = useState<{ note: Note; isNew: boolean } | null>(null);
+  const openNote = (n: Note | null) => {
+    player.current?.pause();
+    if (n) { seek(n.at); setNoteOpen({ note: n, isNew: false }); } else setNoteOpen({ note: newNote(frame), isNew: true });
+  };
+  const saveNote = (n: Note) => {
+    const c: Note = { ...n };
+    if (c.x == null) { delete c.x; delete c.y; }
+    const has = notes.some((x) => x.id === c.id);
+    saveNotes(L.send, has ? notes.map((x) => (x.id === c.id ? c : x)) : [...notes, c], has ? 'note' : 'new note');
+    setNoteOpen((o) => (o && o.note.id === c.id ? { note: c, isNew: false } : o));
+  };
+  const deleteNote = (id: string) => { if (notes.some((x) => x.id === id)) saveNotes(L.send, notes.filter((x) => x.id !== id), 'delete note'); };
+  const noteSpot = (e: React.MouseEvent) => {  // (the note's window is open: a click on the video points at the spot)
+    const r = frameEl.current!.getBoundingClientRect();
+    const x = Math.round(((e.clientX - r.left) / r.width) * project.canvas.w), y = Math.round(((e.clientY - r.top) / r.height) * project.canvas.h);
+    if (noteOpen!.isNew) setNoteOpen({ ...noteOpen!, note: { ...noteOpen!.note, x, y } });
+    else saveNote({ ...noteOpen!.note, x, y });
+  };
+
   const inputProps = useMemo(() => project && ({ project, urls: L.view!.urls, mode: 'full' as const, playing, playbackRate: speed, gainDb: (L.view as any).gainDb ?? 0 }),
     [project, L.view?.urls, (L.view as any)?.gainDb, playing, speed]);
 
@@ -125,6 +148,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       else if (e.key === 'ArrowRight') { e.preventDefault(); seek(frame + (e.shiftKey ? fps : 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(frame - (e.shiftKey ? fps : 1)); }
       else if (e.key === 'Home') { e.preventDefault(); seek(0); }
+      else if ((e.key === 'n' || e.key === 'N' || e.key === 'מ') && !e.ctrlKey && !e.metaKey && !e.altKey && !noteOpen) { e.preventDefault(); openNote(null); }
       else if (e.key === 'End') { e.preventDefault(); seek(total - 1); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && sel?.item) {
         e.preventDefault();
@@ -312,9 +336,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
 
         <div className="pane viewer">
           <div className="monitor">
-            <div className="frame" ref={frameEl} style={{ position: 'relative', aspectRatio: `${project.canvas.w}/${project.canvas.h}` }}
-              onClick={(e) => { const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else player.current?.toggle(); }}>
-              <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />
+            <div ref={frameEl} style={{ position: 'relative', aspectRatio: `${project.canvas.w}/${project.canvas.h}` }}
+              className={`frame ${noteOpen ? 'note-pick' : ''}`}
+              onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else player.current?.toggle(); }}>
+              {!noteOpen && <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />}
+              <NoteSpots notes={notes} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
               {inputProps && <Player ref={player} component={Layers as any} inputProps={inputProps} durationInFrames={total} fps={fps}
                 compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay={false} playbackRate={speed}
                 numberOfSharedAudioTags={0} style={{ width: '100%', height: '100%' }} />}
@@ -347,8 +373,10 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} notes={notes} onNote={openNote}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
+      {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}
+        onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} />}
     </div>
   );
 }
