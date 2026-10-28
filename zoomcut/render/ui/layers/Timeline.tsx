@@ -144,7 +144,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: it.from + dd, dur: it.dur - dd, ...(it.in != null ? { in: +(it.in + (dd / fps) * rate).toFixed(4) } : {}) } }];
     };
     // (the frames it really moved - never past the take's ends - from the project as it was when the drag began)
-    const moved = (d: number) => { const s = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
+    const moved = (d: number) => { const s: any = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
     const base = project;
     let last = 0;
     const mv = (m: MouseEvent) => {

@@ -132,7 +132,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       {(sel || st) && <span className="pb-tick">{st === 'done' ? '✓' : st === 'failed' ? '!' : st === 'publishing' || st === 'running' ? <span className="pb-spin" /> : '✓'}</span>}
     </button>
   );
-  const results = [
+  const results: { id: string; name: string; state: string; text: any; url?: string | null }[] = [
     ...Object.entries(sends).map(([c, s]: any) => ({ id: c, name: c === 'email' ? 'Email' : 'Telegram', state: s.running ? 'publishing' : s.ok ? 'done' : 'failed',
       text: s.running ? (s.log?.at(-1) || 'sending…') : s.ok ? (s.log?.at(-1) || 'sent') : s.error })),
     ...Object.entries(run?.items || {}).map(([id, it]) => ({ id, name: (platforms || []).find((x) => x.id === id)?.name || id, state: it.state,

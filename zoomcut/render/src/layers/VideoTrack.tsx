@@ -160,7 +160,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   return <>
     <LookDefs looks={[layer.props?.look, ...(layer.items || []).map((i: any) => i.look)]} />
     <MatteDefs cuts={[layer.props?.matte_cut ?? 0, ...(layer.items || []).map((i: any) => i.matte_cut ?? 0)]} />
-    {Object.entries(copies).map(([copy, key]) => {
+    {Object.entries(copies as Record<string, string>).map(([copy, key]) => {
       const it = act[copy] || waits[copy] || parts.filter((x: any) => x.copy === copy).at(-1);
       const props = { ...(layer.props || {}), ...it };
       const asset = assets[it.asset];

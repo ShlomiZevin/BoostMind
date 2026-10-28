@@ -7,7 +7,7 @@ import { newId } from '../../../src/layers/ops.js';
 
 export type InspectorProps = {
   project: any; layer: any; item: any | null; urls: Record<string, string>;
-  send: (ops: any[], opts?: { commit?: boolean }) => void;
+  send: (ops: any[], opts?: { commit?: boolean; label?: string }) => void;
   fps: number; frame: number;
   pickAsset: (kind: 'image' | 'video' | 'audio' | 'font', onPick: (id: string) => void) => void;
   build?: (action: string, args?: any) => Promise<void>;  // a builder action (POST /api/p/:id/build) - a job the editor follows

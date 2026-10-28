@@ -120,7 +120,7 @@ export const EffectInspector: React.FC<InspectorProps> = (P) => {
     <Head icon={ICON.effect} title={layer.name || F.label} sub={item ? `${F.label} · clip ${item.id}` : `Effect layer · ${layer.items?.length || 0} clips`} />
     <Sec title="Effect">
       <Row label="Filter"><select className="ins-select" value={kind} onChange={(e) => S.layer({ filter: e.target.value, amount: null })}>
-        {Object.entries(FILTERS).map(([k, f]) => <option key={k} value={k}>{f.label}</option>)}</select></Row>
+        {Object.entries(FILTERS as Record<string, any>).map(([k, f]) => <option key={k} value={k}>{f.label}</option>)}</select></Row>
       {strength && <Slider label={<>Strength <Ovr S={S} k="amount" /></>} v={S.get('amount', F.def)} min={0} max={1} step={0.01} def={F.def} fmt={fmt.pct} onChange={(v, c) => S.set('amount', v, c)} />}
       {kind === 'ghost' && <Slider label="Trail behind" v={layer.props?.ghost_lag ?? 0.2} min={0.05} max={0.6} step={0.01} def={0.2} fmt={fmt.s} onChange={(v, c) => S.layer({ ghost_lag: v }, c)} />}
       {(kind === 'zoom' || kind === 'hits' || kind === 'drift') && <>
