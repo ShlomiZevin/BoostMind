@@ -95,6 +95,29 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   first word of the call until just after "ותגידי לו שיחכה", then the water stops** (`shower-loop.mp3`, clean, gain
   0.12 - it's -9 LUFS); the shower-with-the-boy only at "שרולי נפל במקלחת", and only ITS END (`from` 3.9 s of `shower.mp3`: the water stops
   and the boy is annoyed - the 4 s of water before it was "just noise"); the quiet shower on its own lane "מקלחת".
+- **haredit-2 on his real takes (2026-10-28)** - 20 files, several takes of a passage, one added later (he "forgot
+  to bless on the cookie" and shot the blessing alone; it was recorded between other takes - look at frames, the
+  recogniser hears nothing in a whisper). How it was built: transcribe every file, pick repeats (`sequence`, cut where
+  the next take starts the sentence again - measure the dip between words at 10 ms), `cut.silence: false` (his
+  pauses stay - the calls need them), `lead_in` for acted silent moments (blessing + bite, whispered grace, the hand
+  to the colleague as the phone rings). His ad-libs go into the Reader script so the subtitles follow him.
+  - **The record tap**: a ~1 s bump (tapping record) counts as voice with `silence: false` - the piece starts 1-4 s
+    early on him waiting. Give each such take a `from` just before the first word.
+  - **Whispers get hand-timed subtitles**: the aligner squeezes or drops words it can't hear - add / move those
+    subtitle items with ops (`item.add` / `item.update` on `subs`), then freeze (`captions_from: "file"`): a changed
+    `sequence` re-makes captions.txt from the script and drops the fixes.
+  - **His call pauses are short (0.15-0.5 s)**: Brachi = a chipmunk slice per pause, from the tail of Hani's line
+    into her next word (raw length = window x 1.7); the house bed never stops (lower while she covers the phone).
+  - Hand items made for a stand-in (the set, the kids photo, his music layer) keep the stand-in's length - trim them
+    to the real one.
+  - Takes the `sequence` doesn't use still get cut out (minutes each) - narrow `takes` to the used files first.
+- **Her product ads = שפע עד flyers** (his notes on the first try, 2026-10-28: "a lot of empty space... fill the
+  story... cheap like שפע עד but a GOOD ad - cheap but good", and the lego one must say "לגו זה לגויים"): packed
+  supermarket flyer, colour to every edge (sunburst rays, red bands top / bottom with text), the product big on a
+  white tilted card, price bursts, a navy circle, a "satisfied customer" quote from Hani (her photo) tied to the
+  video's joke, a ✔ box, the branches strip, fine print with the punchline. `_assets/haredit/ads/` (flyer.css +
+  one html per ad, shot with `_assets/dorit/tarot/shoot.mjs ads/jobs.json`). A white-background product photo on a
+  coloured page: a card, never `mix-blend-mode: multiply` (it turned the blue box green).
 - **Sounds that last through a moment** (the shower, a TV, a bed): start with the scene and end on the line that
   stops them (here "שיחכה") - never one short clip that ends on its own (his note: "we need to hear the water, then
   shut down after Hani said to").

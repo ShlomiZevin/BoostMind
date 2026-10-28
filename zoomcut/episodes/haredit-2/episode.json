@@ -1,483 +1,500 @@
 {
- "type": "lesson",
- "title": "POV: החרדית של המשרד – חלק 2 (haredit-2)",
- "input_dir": "C:/workspace/BoostMind/zoomcut/episodes/haredit-2/stand-in",
- "takes": "stand-in.mp4",
- "background": "../_assets/haredit/set.jpg",
- "plaque": [],
- "matte_engine": "fast",
- "matte_cut": 70,
- "person": {
-  "scale": 1,
-  "x": 0,
-  "y": 150
- },
- "captions_y": 1430,
- "captions_style": {
-  "font": "assistant",
-  "weight": 800,
-  "size": 66,
-  "color": "#ffffff",
-  "stroke": 10
- },
- "voice": {
-  "preset": "natural"
- },
- "cut": {
-  "merge": 0.6,
-  "pad_in": 0.05,
-  "pad_out": 0.15,
-  "join": 0.2,
-  "silence": false
- },
- "overlays": [
-  {
-   "text": "פוב: אתה יושב ליד\nהחרדית של המשרד – חלק 2",
-   "style": "pov",
-   "font": "assistant",
-   "theme": "light",
-   "opacity": 0.94,
-   "y": 300,
-   "size": 62,
-   "start": 0,
-   "end": 5.5,
-   "hook": true
+  "type": "lesson",
+  "title": "POV: החרדית של המשרד – חלק 2 (haredit-2)",
+  "input_dir": "C:\\Users\\shazbak\\Downloads\\drop\\חרדית חדש",
+  "takes": "*.mp4",
+  "background": "../_assets/haredit/set.jpg",
+  "plaque": [],
+  "matte_engine": "body",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 150
   },
-  {
-   "style": "image",
-   "image": "media/kids.png",
-   "plain": true,
-   "behind": true,
-   "x": 12,
-   "y": 500,
-   "w": 400,
-   "text": "",
-   "opacity": 1,
-   "start": 0,
-   "end": null
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 66,
+    "color": "#ffffff",
+    "stroke": 10
   },
-  {
-   "style": "image",
-   "image": "media/hani-420.png",
-   "plain": true,
-   "pop": true,
-   "x": 620,
-   "y": 330,
-   "w": 400,
-   "text": "",
-   "from_words": [
-    "בארבע ועשרים",
-    "ועשרים"
-   ],
-   "to_words": [
-    "נשיקות"
-   ],
-   "hold": 1.5,
-   "start": 267.48,
-   "end": 271.32
-  }
- ],
- "script": "haredit-2",
- "bg_blur": 0.8,
- "speed": 1.15,
- "media": [
-  "media/kids.png",
-  "media/hani-420.png",
-  "../_assets/haredit/office-room-long.mp3",
-  "../_assets/music/fast/klezmer-ska.mp3",
-  "../_assets/music/fast/montage.mp3",
-  "../_assets/music/fast/chase.mp3",
-  "../_assets/music/fast/swing.mp3"
- ],
- "music": {
-  "sound": "../_assets/music/fast/klezmer-ska.mp3",
-  "gain": 0.05,
-  "fade_in": 0.3,
-  "lift": {
-   "db": 6,
-   "fade": 1
-  }
- },
- "sounds": [
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/kosher-ring.mp3",
-   "from": 0,
-   "to": 1.6,
-   "at": 132.396,
-   "gain": 0.095,
-   "fade_out": 0.08,
-   "lane": 2
+  "voice": {
+    "preset": "natural"
   },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/kosher-ring.mp3",
-   "from": 0,
-   "to": 1.6,
-   "at": 332.512,
-   "gain": 0.095,
-   "fade_out": 0.08,
-   "lane": 2
+  "cut": {
+    "merge": 0.6,
+    "pad_in": 0.05,
+    "pad_out": 0.15,
+    "join": 0.2,
+    "silence": false,
+    "lead_in": {
+      "044C9A77-DB44-4675-9164-3D69DED52505": [
+        0.7,
+        1.235
+      ],
+      "196E183D-38F6-40DD-AB68-F629F8303C7D": [
+        2.4,
+        5.95
+      ],
+      "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2": [
+        0.7,
+        2.75
+      ]
+    }
   },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 134.196,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
+  "overlays": [
+    {
+      "text": "פוב: אתה יושב ליד\nהחרדית של המשרד – חלק 2",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "light",
+      "opacity": 0.94,
+      "y": 300,
+      "size": 62,
+      "start": 0,
+      "end": 5.5,
+      "hook": true
+    },
+    {
+      "style": "image",
+      "image": "media/kids.png",
+      "plain": true,
+      "behind": true,
+      "x": 12,
+      "y": 500,
+      "w": 400,
+      "text": "",
+      "opacity": 1,
+      "start": 0,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "media/hani-420.png",
+      "plain": true,
+      "pop": true,
+      "x": 620,
+      "y": 330,
+      "w": 400,
+      "text": "",
+      "from_words": [
+        "בארבע ועשרים",
+        "ועשרים"
+      ],
+      "to_words": [
+        "נשיקות"
+      ],
+      "hold": 1.5,
+      "start": 161.74,
+      "end": 164.66
+    }
+  ],
+  "script": "haredit-2",
+  "bg_blur": 0.8,
+  "speed": 1.15,
+  "media": [
+    "media/kids.png",
+    "media/hani-420.png",
+    "../_assets/haredit/office-room-long.mp3",
+    "../_assets/music/fast/klezmer-ska.mp3",
+    "../_assets/music/fast/montage.mp3",
+    "../_assets/music/fast/chase.mp3",
+    "../_assets/music/fast/swing.mp3"
+  ],
+  "music": {
+    "sound": "../_assets/music/fast/klezmer-ska.mp3",
+    "gain": 0.05,
+    "fade_in": 0.3,
+    "lift": {
+      "db": 6,
+      "fade": 1
+    }
   },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 153.096,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 171.996,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 190.896,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 209.796,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 228.696,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 247.596,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 7.88,
-   "at": 266.496,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 0.8,
-   "at": 273.58,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 19.7,
-   "at": 334.312,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 4.98,
-   "at": 353.212,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/house-bed.mp3",
-   "from": 0.2,
-   "to": 0.8,
-   "at": 357.388,
-   "gain": 0.3,
-   "fade_in": 0.4,
-   "fade_out": 0.6,
-   "filter": "phone",
-   "lane": 1
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/malki-wail.mp3",
-   "at": 139.704,
-   "gain": 0.6,
-   "fade_in": 0.03,
-   "fade_out": 0.12,
-   "filter": "phone",
-   "lane": 2
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/cookie-tin.mp3",
-   "at": 200.776,
-   "gain": 2.0,
-   "fade_in": 0.03,
-   "fade_out": 0.12,
-   "filter": "phone",
-   "lane": 2
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/crash.mp3",
-   "at": 224.976,
-   "gain": 0.6,
-   "fade_in": 0.03,
-   "fade_out": 0.12,
-   "filter": "phone",
-   "lane": 2
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/yanky-cry.mp3",
-   "at": 225.676,
-   "gain": 0.8,
-   "fade_in": 0.03,
-   "fade_out": 0.12,
-   "filter": "phone",
-   "lane": 2
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/ima-dry.mp3",
-   "at": 256.3,
-   "gain": 0.4,
-   "fade_in": 0.03,
-   "fade_out": 0.12,
-   "filter": "phone",
-   "lane": 2,
-   "pitch": 1.7
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/shower.mp3",
-   "at": 343.476,
-   "gain": 0.55,
-   "fade_in": 0.05,
-   "fade_out": 0.12,
-   "filter": "phone",
-   "lane": 2,
-   "from": 3.9
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-01.mp3",
-   "at": 138.554,
-   "gain": 0.96,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-02.mp3",
-   "at": 149.83,
-   "gain": 1.2,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-03.mp3",
-   "at": 178.678,
-   "gain": 0.96,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-04.mp3",
-   "at": 190.934,
-   "gain": 3.0,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-05.mp3",
-   "at": 197.426,
-   "gain": 1.32,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-06.mp3",
-   "at": 208.274,
-   "gain": 2.64,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-07.mp3",
-   "at": 231.702,
-   "gain": 0.84,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-08.mp3",
-   "at": 251.27,
-   "gain": 3.84,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-09.mp3",
-   "at": 271.15,
-   "gain": 6.0,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-10.mp3",
-   "at": 340.026,
-   "gain": 3.0,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/brachi-11.mp3",
-   "at": 352.698,
-   "gain": 1.08,
-   "pitch": 1.7,
-   "filter": "phone",
-   "fade_in": 0.03,
-   "fade_out": 0.1,
-   "lane": 0
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/shower-loop.mp3",
-   "from": 0.1,
-   "to": 14.9,
-   "at": 334.3,
-   "gain": 0.12,
-   "filter": "phone",
-   "fade_in": 0.6,
-   "fade_out": 0.1,
-   "lane": 3
-  },
-  {
-   "take": "stand-in",
-   "sound": "../_assets/haredit/calls/shower-loop.mp3",
-   "from": 0.1,
-   "to": 1.0,
-   "at": 349.0,
-   "gain": 0.12,
-   "filter": "phone",
-   "fade_in": 0.1,
-   "fade_out": 0.25,
-   "lane": 3
-  }
- ],
- "_todo": [
-  "STAND-IN (not footage): stand-in/stand-in.mp4 - Hila reads her lines, a pause left for every call sound (stand-in/gaps.json).",
-  "When his takes arrive: input_dir = his folder, takes = his files (in order: sequence), matte_engine back to 'body', cut.silence back on (remove 'silence': false), eye contact stays OFF (no key).",
-  "His phone calls are THE point: Brachi lands in his pauses (he cuts her off), the house never stops under her, Hani stays nonchalant over it.",
-  "Brachi = her real lines (brachi-01..11) at pitch 1.7 = chipmunk, through the phone; nobody else speaks but Hani (no office mumble); the distant shout is ima-far-2 ('אמא! אמא!').",
-  "Call 2 (Shruli in the shower): the clean shower-loop runs quietly in the background from Hani's first word of the call ('כן, ברכי') until just after 'ותגידי לו שיחכה', then the water stops (fade 0.25); the shower-with-the-boy stays at 'שרולי נפל במקלחת'. His notes 2026-10-27 - redo this on his real takes.",
-  "The loud shower (shower.mp3) = only its end, from 3.9 s: the water stops and the boy is annoyed - same moment as now ('שרולי נפל במקלחת'). The quiet shower-loop is on its own lane 'מקלחת' (lane 3).",
-  "2026-10-28 script update (stage directions now in the Reader): NEW election line after 'איזו השגחה פרטית' ('לא כל כך שמעתי... שלוחים טובים') - the stand-in does not have it; the asker is never heard (only Hani speaks), she answers into a short listening beat. The cookie line is now 'תתכבדי. בטח. סליחה שלא הצעתי... זה פרווה! היית מאמינה?'. Subtitles come from the script by itself (directions skipped). Re-place every sound on his real takes as above."
- ]
+  "sounds": [
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "at": 0.75,
+      "from": 0,
+      "to": 1.6,
+      "gain": 0.095,
+      "fade_out": 0.08,
+      "lane": 2
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 2.35,
+      "from": 0.2,
+      "to": 12.0,
+      "gain": 0.3,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 14.05,
+      "from": 2.0,
+      "to": 13.7,
+      "gain": 0.12,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 2.9,
+      "from": 0.2,
+      "to": 19.3,
+      "gain": 0.3,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 0.85,
+      "from": 0.2,
+      "to": 15.4,
+      "gain": 0.3,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 1.25,
+      "from": 5.0,
+      "to": 14.2,
+      "gain": 0.3,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/calls/malki-wail.mp3",
+      "at": 4.3,
+      "gain": 0.6,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/calls/brachi-01.mp3",
+      "at": 4.2,
+      "from": 0.0,
+      "to": 1.27,
+      "gain": 0.96,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/calls/brachi-02.mp3",
+      "at": 8.35,
+      "from": 0.0,
+      "to": 1.19,
+      "gain": 1.2,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "sound": "../_assets/haredit/calls/brachi-03.mp3",
+      "at": 24.45,
+      "from": 0.0,
+      "to": 2.21,
+      "gain": 0.96,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/brachi-04.mp3",
+      "at": 8.45,
+      "from": 0.0,
+      "to": 1.53,
+      "gain": 3.0,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/brachi-05.mp3",
+      "at": 10.95,
+      "from": 1.9,
+      "to": 3.01,
+      "gain": 1.32,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/cookie-tin.mp3",
+      "at": 12.0,
+      "gain": 2.0,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/brachi-06.mp3",
+      "at": 13.7,
+      "from": 0.0,
+      "to": 1.02,
+      "gain": 2.64,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/crash.mp3",
+      "at": 21.25,
+      "gain": 0.6,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "sound": "../_assets/haredit/calls/yanky-cry.mp3",
+      "at": 21.85,
+      "gain": 0.8,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
+      "sound": "../_assets/haredit/calls/brachi-07.mp3",
+      "at": 3.8,
+      "from": 0.0,
+      "to": 1.36,
+      "gain": 0.84,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
+      "sound": "../_assets/haredit/calls/brachi-08.mp3",
+      "at": 13.95,
+      "from": 0.0,
+      "to": 1.45,
+      "gain": 3.84,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6",
+      "sound": "../_assets/haredit/calls/ima-dry.mp3",
+      "at": 2.0,
+      "gain": 0.4,
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2,
+      "pitch": 1.7
+    },
+    {
+      "take": "5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6",
+      "sound": "../_assets/haredit/calls/brachi-09.mp3",
+      "at": 10.1,
+      "from": 0.0,
+      "to": 1.36,
+      "gain": 6.0,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "at": 6.7,
+      "from": 0,
+      "to": 1.6,
+      "gain": 0.095,
+      "fade_out": 0.08,
+      "lane": 2
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 9.2,
+      "from": 0.2,
+      "to": 8.6,
+      "gain": 0.3,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "sound": "../_assets/haredit/calls/shower-loop.mp3",
+      "at": 9.3,
+      "from": 0.1,
+      "to": 6.95,
+      "gain": 0.12,
+      "filter": "phone",
+      "fade_in": 0.6,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "sound": "../_assets/haredit/calls/brachi-10.mp3",
+      "at": 10.85,
+      "from": 0.15,
+      "to": 1.42,
+      "gain": 3.0,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "sound": "../_assets/haredit/calls/shower.mp3",
+      "at": 11.5,
+      "from": 3.9,
+      "gain": 0.55,
+      "fade_in": 0.05,
+      "fade_out": 0.12,
+      "filter": "phone",
+      "lane": 2
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "sound": "../_assets/haredit/calls/brachi-11.mp3",
+      "at": 16.95,
+      "from": 0.0,
+      "to": 1.27,
+      "gain": 1.08,
+      "pitch": 1.7,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    }
+  ],
+  "_todo": [
+    "2026-10-28: on his real takes (Downloads/drop/חרדית חדש, 20 files). Edit order + picked repeats in `sequence`; cut.silence false (his pauses stay, joins tight); lead_in = the acted silent moments (blessing over the cookie, whispered grace, the hand to the colleague as the phone rings, the second cookie).",
+    "Calls: his pauses are short (0.15-0.5 s) - Brachi = chipmunk slices from the tail of Hani's line into her next word (she cuts her off); the house bed never stops under call 1 (quieter while she covers the phone for the colleague); call 2: the quiet shower from 'כן, ברכי' until just after 'שיחכה', the loud shower only its end (from 3.9) at 'שרולי נפל במקלחת'.",
+    "Nobody else speaks but Hani (no office mumble). Eye contact OFF (no key)."
+  ],
+  "sequence": [
+    {
+      "take": "25212FAD-B90C-4BAB-A705-C2C4A5855B4F",
+      "to": 6.95
+    },
+    {
+      "take": "4E44A278-D91D-4738-9EAC-35E0D0F94D4D"
+    },
+    {
+      "take": "4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6"
+    },
+    {
+      "take": "044C9A77-DB44-4675-9164-3D69DED52505",
+      "from": 0.7,
+      "to": 4.4
+    },
+    {
+      "take": "BC6C820D-3698-423C-A16C-C6A04DB9E741",
+      "from": 5.2
+    },
+    {
+      "take": "1B386195-8E42-4B3A-91B9-AE6723A78309",
+      "from": 3.9
+    },
+    {
+      "take": "58BD328D-26FA-4910-8437-42E714C72496",
+      "from": 4.75
+    },
+    {
+      "take": "F1D1C898-8032-466E-9A4A-8735F83800A8",
+      "to": 11.35,
+      "from": 3.8
+    },
+    {
+      "take": "724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
+      "from": 3.4
+    },
+    {
+      "take": "196E183D-38F6-40DD-AB68-F629F8303C7D"
+    },
+    {
+      "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
+      "to": 25.72
+    },
+    {
+      "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+      "from": 2.95
+    },
+    {
+      "take": "A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
+      "to": 15.88
+    },
+    {
+      "take": "5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6"
+    },
+    {
+      "take": "CB1C677F-489B-44F0-81FF-C6A14B38C36D",
+      "from": 3.85
+    },
+    {
+      "take": "0F959E09-CAC3-4AFF-AF23-B737F5534097",
+      "from": 1.95
+    },
+    {
+      "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
+      "from": 2.7
+    }
+  ],
+  "captions_from": "file"
 }

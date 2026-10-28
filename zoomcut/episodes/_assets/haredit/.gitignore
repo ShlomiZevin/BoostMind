@@ -6,3 +6,8 @@ eldest-*
 family-*
 kids.*
 story/*.jpg
+hani-head.png
+malki-head.png
+*.png
+ads/hani.jpg
+ads/*-story.jpg
