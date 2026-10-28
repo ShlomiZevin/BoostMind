@@ -72,12 +72,64 @@ select option { background: var(--panel); color: var(--text); }
   border-radius: 4px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); color: #e8e4de; cursor: pointer; }
 .ln:hover .pin { display: inline-flex; }
 .ln .pin:hover { color: #1a1400; background: #ffd60a; border-color: #ffd60a; }
-/* add a line after this one (hover) */
-.t.editing:empty::before { content: attr(data-ph); color: var(--faint); }
-.ln .addl { position: absolute; left: 44px; top: 8px; width: 28px; height: 28px; display: none; align-items: center; justify-content: center;
-  border-radius: 4px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); color: #e8e4de; cursor: pointer; font-size: 18px; line-height: 1; }
-.ln:hover .addl { display: inline-flex; }
-.ln .addl:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
+/* Edit mode: the script as a document - type in any line, drag its handle to move it, + between lines adds one,
+   the bin deletes it, the name above it changes who says it. Every change saves by itself; Undo / Ctrl+Z takes it back */
+.editbar { display: none; align-items: center; gap: 12px; padding: 9px 16px; background: var(--panel-2); border-bottom: 1px solid var(--accent); flex-wrap: wrap; }
+body.editing .editbar { display: flex; }
+.editbar > b { font-size: 14px; }
+.editbar .eh { color: var(--dim); font-size: 13px; }
+.editbar .eh svg { vertical-align: -3px; }
+.st { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--dim); }
+.st.ok { color: #6fcf8a; }
+.st.err { color: #e9c46a; }
+.st .btn { height: 28px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.ed { display: inline-flex; align-items: center; gap: 6px; }
+body.editing .ln { grid-template-columns: 28px 1fr 32px; column-gap: 10px; align-items: start; margin: 0; opacity: 1; cursor: default; }
+body.editing .ln.cur { border-color: transparent; }
+body.editing .ln .t { color: var(--text); cursor: text; outline: none; border-radius: 4px; padding: 2px 6px; margin: 0 -6px; transition: background .15s, box-shadow .15s; }
+body.editing .ln .t:hover { background: var(--panel-2); }
+body.editing .ln .t:focus { background: var(--panel-2); box-shadow: 0 0 0 2px var(--accent); }
+body.editing .ln.dir .t { color: var(--dim); }
+.ln .lb { display: grid; gap: 2px; min-width: 0; }
+.ln .t:empty::before { content: attr(data-ph); color: var(--faint); font-weight: 500; font-style: normal; font-size: calc(var(--fs) * 0.6); }
+.grip { width: 28px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--faint); cursor: grab; touch-action: none; }
+.grip:hover { color: var(--text); background: var(--panel-3); }
+.ldel { width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--faint); cursor: pointer; opacity: 0; transition: opacity .15s, background .15s; }
+.ln:hover .ldel, .ln:focus-within .ldel { opacity: 1; }
+.ldel:hover { color: #fff; background: #c2453a; }
+.whob { display: inline-flex; align-items: center; gap: 5px; width: max-content; padding: 2px 6px; margin: 0 -6px; border: 0; border-radius: 4px; background: none; cursor: pointer; font-family: inherit; }
+.whob:hover { background: var(--panel-3); color: var(--text); }
+.ln.dir .whob { font-style: normal; font-size: calc(var(--fs) * 0.42); }
+.gap { position: relative; height: 16px; display: flex; align-items: center; justify-content: center; }
+.gap button { height: 24px; padding: 0 12px; border-radius: 12px; border: 1px dashed var(--edge-2); background: var(--panel); color: var(--dim); font-size: 12.5px; font-weight: 600; cursor: pointer; opacity: 0; transition: opacity .15s; direction: ltr; }
+.gap:hover button { opacity: 1; }
+.gap button:hover { color: var(--text); border: 1px solid var(--accent); }
+.gap.end { height: 56px; }
+.gap.end button { opacity: 1; height: 32px; padding: 0 16px; font-size: 13px; }
+.gap.drop::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 2px; background: var(--accent); }
+.gap.drop button { opacity: 0 !important; }
+body.dragging-line, body.dragging-line * { cursor: grabbing !important; user-select: none; }
+body.dragging-line .gap button { opacity: 0; }
+.ln.dragging { opacity: .35 !important; }
+.ln.new { border: 1px dashed var(--edge-2); }
+.ln.flash { animation: flash 1.4s ease-out; }
+@keyframes flash { from { background: rgba(255,107,87,0.28); } }
+@media (hover: none) { .gap button { opacity: .7; } .ldel { opacity: 1; } }
+/* who says the line: a small list under its name */
+.whomenu { position: fixed; z-index: 70; display: none; flex-direction: column; min-width: 230px; padding: 6px; background: var(--panel); border: 1px solid var(--edge-2); border-radius: 6px; box-shadow: 0 10px 28px rgba(0,0,0,.45); direction: rtl; }
+.whomenu.on { display: flex; }
+.whomenu button { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border: 0; border-radius: 4px; background: none; cursor: pointer; font-size: 15px; font-weight: 600; text-align: right; }
+.whomenu button:hover { background: var(--hover); }
+.whomenu button.on { background: var(--accent-soft); }
+.whomenu .dot { width: 10px; height: 10px; border-radius: 50%; }
+.whomenu .sep { height: 1px; margin: 4px 0; background: var(--edge); }
+.whomenu input { height: 34px; margin-top: 4px; padding: 0 10px; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 4px; color: var(--text); font: inherit; font-size: 14px; direction: rtl; }
+.whomenu input:focus { outline: none; border-color: var(--accent); }
+/* what a change did, with its Undo */
+.toast { position: fixed; left: 50%; bottom: 62px; z-index: 65; display: flex; align-items: center; gap: 12px; padding: 7px 7px 7px 14px; background: var(--panel-3); border: 1px solid var(--edge-2); border-radius: 6px; font-weight: 600; opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: opacity .15s, transform .15s; }
+.toast.on { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.toast .btn { height: 28px; }
 .btn.ck { display: inline-flex; align-items: center; gap: 6px; }
 .btn.ck.on { color: #ffd60a; border-color: #ffd60a; }
 .ln.cur.other .t { color: var(--text); }
@@ -109,7 +161,6 @@ dialog input { width: 100%; height: 38px; margin-bottom: 10px; background: var(-
 .foot b { color: var(--text); }
 .keys { color: var(--faint); font-size: 12px; direction: ltr; }
 .empty { text-align: center; color: var(--faint); padding: 80px 20px; font-size: 18px; }
-.ln .t.editing { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; background: var(--panel-2); cursor: text; }
 dialog { background: var(--panel); color: var(--text); border: 1px solid var(--edge-2); border-radius: 12px; width: min(760px, 92vw); padding: 18px; }
 dialog::backdrop { background: rgba(0,0,0,0.6); }
 dialog textarea { display: block; width: 100%; height: 50vh; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; padding: 12px; direction: rtl; font-size: 16px; line-height: 1.6; resize: none; }
@@ -151,6 +202,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <button class="btn" id="paste" title="Paste a script">Paste</button>
   <button class="btn" id="copy" title="Copy the whole script (names and lines, as written)">Copy</button>
   <button class="btn" id="print" title="Print the script: every line with who says it; the character you play is marked">Print</button>
+  <button class="btn ed" id="edit" title="Edit the script: type in any line, drag lines to another place, add or delete lines (E)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit</button>
   <div class="grow"></div>
   <button class="btn play" id="play" title="Play / pause (Space)">▶ Play</button>
   <select id="cd" title="Countdown before it starts"><option value="0">⏱ No countdown</option><option value="3">⏱ 3 s</option><option value="5">⏱ 5 s</option><option value="10">⏱ 10 s</option></select>
@@ -164,6 +216,14 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <button class="btn" id="bigger" title="Bigger text">A+</button>
 </div>
 <div class="roles" id="roles"></div>
+<div class="editbar" id="editbar">
+  <b>Editing the script</b>
+  <span class="eh">Click a line and type · drag <svg width="10" height="14" viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.7"/><circle cx="10" cy="4" r="1.7"/><circle cx="4" cy="10" r="1.7"/><circle cx="10" cy="10" r="1.7"/><circle cx="4" cy="16" r="1.7"/><circle cx="10" cy="16" r="1.7"/></svg> to move a line · <b>+</b> between lines adds one · the name changes who says it</span>
+  <div class="grow"></div>
+  <span class="st" id="saveSt"></span>
+  <button class="btn" id="undo" title="Undo the last change (Ctrl+Z)" disabled>Undo</button>
+  <button class="btn play" id="done" title="Back to reading (Esc)">Done</button>
+</div>
 <div class="meas" id="meas">
   <div class="meas-who" id="measWho"></div>
   <div class="meas-t" id="measT">Press Space (or Start) the moment you start saying the highlighted line</div>
@@ -173,6 +233,8 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
 <div class="script" id="script"><div class="empty">Pick a project - its script shows here.</div></div>
 <div class="foot" id="foot"></div>
 <div class="count" id="count"><b id="countN"></b></div>
+<div class="whomenu" id="whoMenu"></div>
+<div class="toast" id="toast"></div>
 
 <dialog id="dlg">
   <div style="font-weight:700;margin-bottom:4px">Paste a script</div>
@@ -202,33 +264,36 @@ const $ = (id) => document.getElementById(id);
 let lines = [], chars = [], me = null, cur = 0, src = '', cues = false, solo = false, raw = '';
 let mark = null;  // the checkpoint line (per script)
 let paces = {};  // a character's own pace (wpm) in this script - when you play, each line waits at its speaker's pace
+let editing = false, undos = [], adding = null;  // Edit mode; the script's text before each change; a new line being typed {at, who, dir}
+let saveQ = Promise.resolve(), saving = 0, failed = false;  // the writes to the script file, one after another
 let fs = +(store.get('reader-fs') || 30);
 
 // Splits a pasted script into speakers and lines. Understands "Name: text", "**Name:** text", lines that
 // wrap onto the next line, [stage directions], and screenplay layout (the name alone on a line, the text under it).
+// Every line keeps `rows`: the rows of the file it came from - so editing, moving or deleting a line changes only
+// those rows and the rest of the file stays as it was written (notes, blank rows, layout).
 function parse(text) {
   // a monologue (no "Name:" anywhere): every line is its own bubble - the reader becomes a prompter
-  const rows = text.split(/\r?\n/).map((r) => r.trim()).filter((r) => r && !r.startsWith('#'));
-  const named = rows.filter((r) => { const m = r.replace(/\*\*/g, '').match(/^([^:：]{1,24})[:：]/); return m && m[1].trim().split(/\s+/).length <= 3; });
+  const rows = text.split(/\r?\n/).map((r, k) => ({ r: r.trim(), k })).filter(({ r }) => r && !r.startsWith('#'));
+  const named = rows.filter(({ r }) => { const m = r.replace(/\*\*/g, '').match(/^([^:：]{1,24})[:：]/); return m && m[1].trim().split(/\s+/).length <= 3; });
   if (rows.length && named.length === 0)
-    return rows.map((r) => (/^\[.*\]$/.test(r) ? { dir: true, text: r.slice(1, -1) } : { who: '', text: r, solo: true }));
+    return rows.map(({ r, k }) => (/^\[.*\]$/.test(r) ? { dir: true, text: r.slice(1, -1), rows: [k] } : { who: '', text: r, solo: true, rows: [k] }));
   const out = [];
-  let pending = null;  // a name standing alone on its line, waiting for its text
-  for (let raw of text.split(/\r?\n/)) {
-    raw = raw.trim();
-    if (!raw || raw.startsWith('#')) { continue; }
-    if (/^\[.*\]$/.test(raw) || /^\(.*\)$/.test(raw)) { out.push({ dir: true, text: raw.slice(1, -1) }); continue; }
+  let pending = null;  // a name standing alone on its line, waiting for its text {who, k}
+  for (const { r: raw, k } of rows) {
+    if (/^\[.*\]$/.test(raw) || /^\(.*\)$/.test(raw)) { out.push({ dir: true, text: raw.slice(1, -1), rows: [k] }); continue; }
     const clean = raw.replace(/\*\*/g, '');
     const m = clean.match(/^([^:：]{1,24})[:：]\s*(.*)$/);
     if (m && m[1].trim().split(/\s+/).length <= 3) {
-      if (m[2].trim()) { out.push({ who: m[1].trim(), text: m[2].trim() }); pending = null; }
-      else pending = m[1].trim();  // "Name:" alone - the text comes next
+      if (m[2].trim()) { out.push({ who: m[1].trim(), text: m[2].trim(), rows: [k] }); pending = null; }
+      else pending = { who: m[1].trim(), k };  // "Name:" alone - the text comes next
       continue;
     }
-    if (pending) { out.push({ who: pending, text: clean }); pending = null; continue; }
+    if (pending) { out.push({ who: pending.who, text: clean, rows: [pending.k, k] }); pending = null; continue; }
     const words = clean.split(/\s+/);
-    if (words.length <= 2 && !/[.!?,—–-]$/.test(clean) && clean.length <= 18) { pending = clean; continue; }  // screenplay name
-    if (out.length && !out[out.length - 1].dir) out[out.length - 1].text += ' ' + clean;  // a wrapped line
+    if (words.length <= 2 && !/[.!?,—–-]$/.test(clean) && clean.length <= 18) { pending = { who: clean, k }; continue; }  // screenplay name
+    const last = out[out.length - 1];
+    if (last && !last.dir) { last.text += ' ' + clean; last.rows.push(k); }  // a wrapped line
   }
   return out;
 }
@@ -236,6 +301,7 @@ function parse(text) {
 function load(text, key) {
   src = key;
   raw = text;
+  undos = []; adding = null; failed = false; status();  // (Undo belongs to the script it was made in)
   lines = parse(text);
   solo = lines.some((l) => l.solo);
   chars = solo ? [] : [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
@@ -292,6 +358,8 @@ function render() {
     roles.appendChild(wrap);
   });
   const box = $('script');
+  document.documentElement.style.setProperty('--fs', fs + 'px');
+  if (editing) { renderEdit(box); foot(); return; }
   if (!lines.length) { box.innerHTML = '<div class="empty">Pick a project - its script shows here.</div>'; foot(); return; }
   box.innerHTML = '';
   lines.forEach((l, i) => {
@@ -311,13 +379,11 @@ function render() {
     d.insertAdjacentHTML('beforeend', '<div class="bar"></div>' + (i === mark
       ? `<button class="flag" title="Back here and play"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>נקודת התחלה</button>`
       : `<button class="pin" title="Checkpoint here - start again from this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>`));
-    d.insertAdjacentHTML('beforeend', '<button class="addl" title="Add a line after this one (A)">+</button>');
-    d.querySelector('.addl').onclick = (e) => { e.stopPropagation(); addLine(i); };
     const fl = d.querySelector('.flag'), pin = d.querySelector('.pin');  // the mouse: set it on this line, or go back to it
     if (fl) fl.onclick = (e) => { e.stopPropagation(); toMark(); };
     if (pin) pin.onclick = (e) => { e.stopPropagation(); mark = i; save(); render(); };
     d.onclick = () => { if (!String(window.getSelection() || '').trim()) go(i); };  // selecting text to copy is not a jump
-    d.ondblclick = (e) => { e.preventDefault(); editLine(i); };
+    d.ondblclick = (e) => { e.preventDefault(); setEditing(true, i); };  // straight into Edit, typing in this line
     box.appendChild(d);
   });
   document.documentElement.style.setProperty('--fs', fs + 'px');
@@ -485,8 +551,13 @@ const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>':
 
 document.addEventListener('keydown', (e) => {
   if ($('dlg').open || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;  // typing: no shortcuts
-  if ((e.key === 'e' || e.key === 'E' || e.key === 'ק') && lines[cur]) { e.preventDefault(); return editLine(cur); }
-  if ((e.key === 'a' || e.key === 'A' || e.key === 'ש') && lines[cur]) { e.preventDefault(); return addLine(cur); }
+  if (editing) {  // (the prompter's keys rest while editing)
+    if (e.key === 'Escape') { e.preventDefault(); return setEditing(false); }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z' || e.key === 'ז')) { e.preventDefault(); return undo(); }
+    return;
+  }
+  if ((e.key === 'e' || e.key === 'E' || e.key === 'ק') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); return setEditing(true, lines[cur] ? cur : null); }
+  if ((e.key === 'a' || e.key === 'A' || e.key === 'ש') && !e.ctrlKey && !e.metaKey && lines[cur]) { e.preventDefault(); return setEditing(true).then(() => startAdd(cur + 1)); }
   if (/^[1-9]$/.test(e.key) && chars[+e.key - 1]) return pick(chars[+e.key - 1]);
   if (e.code === 'KeyM') { e.preventDefault(); return setMark(); }
   if (e.code === 'KeyB') { e.preventDefault(); return toMark(); }
@@ -502,7 +573,7 @@ document.addEventListener('keydown', (e) => {
 $('bigger').onclick = () => { fs = Math.min(64, fs + 3); store.set('reader-fs', fs); render(); };
 $('smaller').onclick = () => { fs = Math.max(16, fs - 3); store.set('reader-fs', fs); render(); };
 $('cues').onclick = () => { cues = !cues; render(); if (playing) schedule(); };
-$('play').onclick = () => toggle();
+$('play').onclick = () => { if (editing) setEditing(false); toggle(); };
 $('cd').onchange = () => { cdSecs = +$('cd').value; store.set('reader-cd', cdSecs); $('cd').blur(); };
 showCd();
 function showPace() {
@@ -614,134 +685,326 @@ addEventListener('storage', (e) => {  // a project picked in the editor or Karao
   if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage && e.newValue !== $('ep').value) { $('ep').value = e.newValue; $('ep').onchange(); }
 });
 
-// ---- edit a line: double-click it (or E for the current one), Enter saves, Esc cancels --------------------------
-function editLine(i) {
-  if (!lines[i] || document.querySelector('.t.editing')) return;
-  setPlay(false);
-  cancelCd();
-  if (cur !== i) go(i);  // go() redraws the script - so the line is picked up after it
-  const el = document.querySelector(`.ln[data-i="${i}"] .t`);
-  if (!el) return;
-  const before = lines[i].text;
-  el.textContent = before;  // without the [ ] of a stage direction
-  el.contentEditable = 'plaintext-only';
-  el.classList.add('editing');
+// ---- Edit mode: the script as a document --------------------------------------------------------------------------
+// ✎ Edit (or double-click a line, E, A) - every line is typed in place; the handle drags it to another place; + between
+// lines adds one; the bin deletes it; the name above a line changes who says it (or makes it a stage direction).
+// ONE rule for what saves: every change is written to the script file the moment it's made - leaving a line you typed
+// in, a drop, a delete (the bar shows Saving… / ✓ Saved / Not saved + Retry). Esc in a line puts it back as it was;
+// Undo / Ctrl+Z takes back the last change, again and again. Done (or Esc) goes back to reading.
+const GRIP = '<svg width="12" height="18" viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.7"/><circle cx="10" cy="4" r="1.7"/><circle cx="4" cy="10" r="1.7"/><circle cx="10" cy="10" r="1.7"/><circle cx="4" cy="16" r="1.7"/><circle cx="10" cy="16" r="1.7"/></svg>';
+const BIN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+const CARET = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const escA = (s) => esc(String(s)).replace(/"/g, '&quot;');
+const rowOf = (l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`);
+const clean = (el) => el.textContent.replace(/\s+/g, ' ').trim();
+function focusEnd(el) {
   el.focus();
-  document.getSelection().selectAllChildren(el);
-  let done = false;
-  const finish = async (keep) => {
-    if (done) return;
-    done = true;
-    el.contentEditable = 'false';
-    const after = el.textContent.replace(/\s+/g, ' ').trim();
-    if (keep && after && after !== before) await saveLine(i, before, after);
-    render();
-  };
-  el.onkeydown = (e) => {
-    e.stopPropagation();
-    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
-    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
-  };
-  el.onblur = () => finish(true);
+  const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
 }
 
-// ---- add a line: the + on a line (or A for the current one) - a new line right after it, typed in place --------
-// Enter keeps it, Esc / empty drops it. It takes that line's speaker; "Name: text" gives it to someone else.
-function addLine(i) {
-  if (!lines[i] || document.querySelector('.t.editing')) return;
-  setPlay(false);
-  cancelCd();
-  const base = lines[i];
-  const near = (l) => l && !l.dir && l.who;
-  const who = solo ? '' : base.dir ? ((lines.slice(i + 1).find(near) || [...lines.slice(0, i)].reverse().find(near))?.who || '') : base.who;
-  const nl = solo ? { who: '', text: '', solo: true } : { who, text: '' };
-  lines.splice(i + 1, 0, nl);
-  if (mark != null && mark > i) mark++;
-  go(i + 1);  // (redraws the script with the new, empty line)
-  const el = document.querySelector(`.ln[data-i="${i + 1}"] .t`);
-  if (!el) return;
-  el.contentEditable = 'plaintext-only';
-  el.classList.add('editing');
-  el.dataset.ph = solo ? 'the new line' : `${who || 'Name'}: the new line`;
-  el.focus();
-  let done = false;
-  const finish = async (keep) => {
-    if (done) return;
-    done = true;
-    el.contentEditable = 'false';
-    let text = el.textContent.replace(/\s+/g, ' ').trim();
-    if (!keep || !text) {  // nothing typed: the line goes
-      lines.splice(i + 1, 1);
-      if (mark != null && mark > i) mark--;
-      go(i);
-      return;
-    }
-    const m = !solo && text.match(/^([^:：]{1,24})[:：]\s*(.+)$/);
-    if (m && m[1].trim().split(/\s+/).length <= 3) { nl.who = m[1].trim(); text = m[2].trim(); }
-    nl.text = text;
-    if (!solo) chars = [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
-    await insertRaw(i, nl);
+async function setEditing(on, focusI = null) {
+  if (on && editing) { if (focusI != null) focusLine(focusI); return; }
+  if (!on && !editing) return;
+  if (!on) {
+    document.activeElement?.blur?.();  // (a line still being typed in is saved on the way out)
+    if (failed) { persist(); return; }  // not saved: Done tries again and stays until it is
+    editing = false; adding = null; closeWho();
+    document.body.classList.remove('editing'); $('edit').classList.remove('on');
     render();
-  };
-  el.onkeydown = (e) => {
-    e.stopPropagation();
-    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
-    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
-  };
-  el.onblur = () => finish(true);
-}
-// the new line into the original text, right after line i's row (the rest of the file as it was)
-async function insertRaw(i, nl) {
-  const row = nl.dir ? `[${nl.text}]` : nl.solo || !nl.who ? nl.text : `${nl.who}: ${nl.text}`;
-  const before = lines[i].text, nth = lines.slice(0, i).filter((l) => l.text === before).length;
-  const rows = raw.split(/\r?\n/);
-  let seen = 0, at = -1;
-  for (let r = 0; r < rows.length; r++) {
-    if (rows[r].trim().startsWith('#') || !rows[r].includes(before)) continue;
-    if (seen++ === nth) { at = r; break; }
+    return;
   }
-  if (at >= 0) rows.splice(at + 1, 0, row);
-  const next = at >= 0 ? rows.join('\n')
-    : [...raw.split(/\r?\n/).filter((r) => r.trim().startsWith('#')), ...lines.map((l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`))].join('\n');
-  await writeScript(next);
+  setPlay(false); cancelCd(); measureClose();
+  // fresh from the file first - another tool or session may have changed it since it was opened here
+  const fresh = await fetchScript(src);
+  if (fresh != null && fresh !== raw) { raw = fresh; reparse(); undos = []; }  // (an Undo from before would undo that change too)
+  editing = true;
+  document.body.classList.add('editing'); $('edit').classList.add('on');
+  status();
+  render();
+  if (focusI != null && lines[focusI]) focusLine(focusI); else center();
+}
+function focusLine(i) {
+  const t = document.querySelector(`.ln[data-i="${i}"] .t`);
+  if (!t) return;
+  t.scrollIntoView({ block: 'center' });
+  focusEnd(t);
+}
+async function fetchScript(key) {
+  const u = key.startsWith('script:') ? `/api/scripts/${encodeURIComponent(key.slice(7))}` : key && !key.startsWith('pasted:') ? `/api/ep/${key}/script` : null;
+  if (!u) return null;
+  try { const r = await fetch(u, { cache: 'no-store' }); return r.ok ? await r.text() : null; } catch { return null; }
+}
+function reparse() {
+  lines = parse(raw);
+  solo = lines.some((l) => l.solo);
+  chars = solo ? [] : [...new Set(lines.filter((l) => !l.dir).map((l) => l.who))];
+  if (me && !chars.includes(me)) me = null;
+  cur = Math.max(0, Math.min(cur, lines.length - 1));
+  if (mark != null && mark >= lines.length) mark = null;
 }
 
-async function saveLine(i, before, after) {
-  // the line in the original text: the n-th raw line holding this text (n = how many lines before it say the same)
-  const nth = lines.slice(0, i).filter((l) => l.text === before).length;
-  const rows = raw.split(/\r?\n/);
-  let seen = 0, at = -1;
-  for (let r = 0; r < rows.length; r++) {
-    if (rows[r].trim().startsWith('#') || !rows[r].includes(before)) continue;
-    if (seen++ === nth) { at = r; break; }
-  }
-  let next;
-  if (at >= 0) {
-    rows[at] = rows[at].replace(before, after);
-    next = rows.join('\n');
-  } else {  // the line was wrapped over several rows in the file: write the script out again, line by line
-    lines[i].text = after;
-    const head = raw.split(/\r?\n/).filter((r) => r.trim().startsWith('#'));
-    next = [...head, ...lines.map((l) => (l.dir ? `[${l.text}]` : l.solo || !l.who ? l.text : `${l.who}: ${l.text}`))].join('\n');
-  }
-  lines[i].text = after;
-  await writeScript(next);
+function renderEdit(box) {
+  box.innerHTML = '';
+  const gap = (g) => {
+    const d = document.createElement('div');
+    d.className = 'gap' + (g === lines.length ? ' end' : '');
+    d.dataset.g = g;
+    d.innerHTML = '<button title="A new line here">+ Add a line</button>';
+    d.querySelector('button').onclick = () => startAdd(g);
+    return d;
+  };
+  box.append(gap(0));
+  if (!lines.length && adding) box.prepend(newLineEl());
+  lines.forEach((l, i) => {
+    if (adding?.at === i) box.append(newLineEl());
+    box.append(lineEl(l, i));
+    if (i === lines.length - 1 && adding?.at === lines.length) box.append(newLineEl());
+    box.append(gap(i + 1));
+  });
+  if (!lines.length) box.querySelector('.gap').classList.add('end');
 }
-// the script's text, saved where it came from (a saved script, a project's script.txt, or the pasted one)
-async function writeScript(next) {
+function lineEl(l, i) {
+  const d = document.createElement('div');
+  d.className = 'ln' + (l.dir ? ' dir' : '') + (!solo && !l.dir && me && l.who === me ? ' mine' : '') + (i === mark ? ' ckpt' : '');
+  d.dataset.i = i;
+  if (!l.dir && l.who) d.style.setProperty('--c', color(l.who));
+  d.innerHTML = `<button class="grip" title="Drag to move this line">${GRIP}</button>` +
+    `<div class="lb">${solo ? '' : `<button class="who whob" title="Who says it - click to change">${l.dir ? 'Stage direction' : esc(l.who)}${CARET}</button>`}` +
+    `<div class="t" contenteditable="plaintext-only" spellcheck="false">${esc(l.text)}</div></div>` +
+    `<button class="ldel" title="Delete this line (Undo brings it back)">${BIN}</button>`;
+  const t = d.querySelector('.t');
+  t.onfocus = () => { cur = i; };
+  t.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); t.blur(); }  // done with this line (saved)
+    if (e.key === 'Escape') { e.preventDefault(); t.textContent = lines[i].text; t.blur(); }  // back as it was
+  };
+  t.onblur = () => {
+    if (!t.isConnected || !lines[i]) return;
+    const v = clean(t);
+    if (!v) { t.textContent = lines[i].text; return; }  // (emptied: kept as it was - the bin deletes a line)
+    if (v !== lines[i].text) { setText(i, v); t.textContent = lines[i].text; }
+  };
+  const wb = d.querySelector('.whob');
+  if (wb) { wb.onmousedown = (e) => e.preventDefault(); wb.onclick = () => whoMenu(wb, l.dir ? null : l.who, (w) => setWho(i, w)); }
+  d.querySelector('.ldel').onclick = () => delLine(i);
+  d.querySelector('.grip').onpointerdown = (e) => startDrag(e, i, d);
+  return d;
+}
+
+// a new line: typed where the + was; it's saved once you leave it with words in it (Enter: saved, and the next new line)
+function startAdd(g) {
+  if (adding) return;
+  let who = '';
+  if (!solo && lines.length) {
+    const near = (l) => !l.dir && l.who;
+    const above = [...lines.slice(0, g)].reverse().find(near), below = lines.slice(g).find(near);
+    who = above ? (chars.length === 2 ? chars.find((c) => c !== above.who) : above.who) : below?.who || chars[0] || '';  // two people: the other one answers
+  }
+  adding = { at: g, who, dir: false };
+  render();
+  const t = document.querySelector('.ln.new .t');
+  if (t) { t.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); t.focus(); }
+}
+function newLineEl() {
+  const a = adding, d = document.createElement('div');
+  d.className = 'ln new';
+  d.innerHTML = '<span></span><div class="lb">' + (solo || !lines.length ? '' : `<button class="who whob" title="Who says it - click to change"></button>`) +
+    `<div class="t" contenteditable="plaintext-only" spellcheck="false" data-ph="Type the new line · Enter saves it and starts the next · Esc cancels"></div></div><span></span>`;
+  const t = d.querySelector('.t'), wb = d.querySelector('.whob');
+  const paint = () => {
+    d.classList.toggle('dir', a.dir);
+    if (!a.dir && a.who) d.style.setProperty('--c', color(a.who)); else d.style.removeProperty('--c');
+    d.classList.toggle('mine', !a.dir && !!me && a.who === me);
+    if (wb) wb.innerHTML = (a.dir ? 'Stage direction' : esc(a.who || 'Who says it?')) + CARET;
+  };
+  paint();
+  if (wb) { wb.onmousedown = (e) => e.preventDefault(); wb.onclick = () => whoMenu(wb, a.dir ? null : a.who, (w) => { if (w == null) a.dir = true; else { a.dir = false; a.who = w; } paint(); focusEnd(t); }); }
+  t.onkeydown = (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); finishAdd(t, 'enter'); }
+    if (e.key === 'Escape') { e.preventDefault(); finishAdd(t, 'esc'); }
+  };
+  t.onblur = (e) => { if (t.isConnected && !e.relatedTarget?.closest?.('#whoMenu')) finishAdd(t, 'blur'); };
+  return d;
+}
+function finishAdd(t, how) {
+  const a = adding;
+  if (!a) return;
+  adding = null;
+  let text = clean(t);
+  if (how === 'esc' || !text) return render();  // nothing typed (or cancelled): no line
+  let { who, dir } = a;
+  const m = !solo && text.match(/^([^:：]{1,24})[:：]\s*(.+)$/);  // "Name: text" gives it to someone else
+  if (m && m[1].trim().split(/\s+/).length <= 3) { who = m[1].trim(); text = m[2].trim(); dir = false; }
+  const nl = dir ? { dir: true, text } : solo || !who ? { text, solo: true } : { who, text };
+  insLine(a.at, nl);
+  if (how === 'enter') startAdd(a.at + 1);
+}
+
+// who says it: the script's characters, a stage direction, or someone new
+function whoMenu(btn, current, pick) {
+  const m = $('whoMenu');
+  m.innerHTML = chars.map((c) => `<button data-w="${escA(c)}"${c === current ? ' class="on"' : ''}><span class="dot" style="background:${color(c)}"></span>${esc(c)}</button>`).join('') +
+    `<div class="sep"></div><button data-dir="1"${current === null ? ' class="on"' : ''}>Stage direction</button>` +
+    '<input id="whoNew" placeholder="Someone new…">';
+  m.querySelectorAll('button').forEach((b) => {
+    b.onmousedown = (e) => e.preventDefault();
+    b.onclick = () => { closeWho(false); pick(b.dataset.dir ? null : b.dataset.w); };
+  });
+  $('whoNew').onkeydown = (e) => {
+    e.stopPropagation();
+    const v = e.target.value.trim();
+    if (e.key === 'Enter' && v) { e.preventDefault(); closeWho(false); pick(v); }
+    if (e.key === 'Escape') { e.preventDefault(); closeWho(); }
+  };
+  const r = btn.getBoundingClientRect();
+  m.classList.add('on');
+  m.style.top = `${Math.round(Math.min(r.bottom + 6, innerHeight - m.offsetHeight - 8))}px`;
+  m.style.left = `${Math.round(Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, r.right - m.offsetWidth)))}px`;
+}
+function closeWho(back = true) {
+  if (!$('whoMenu').classList.contains('on')) return;
+  $('whoMenu').classList.remove('on');
+  if (back && adding) { const t = document.querySelector('.ln.new .t'); if (t) focusEnd(t); }
+}
+document.addEventListener('pointerdown', (e) => { if (!e.target.closest('#whoMenu, .whob')) closeWho(); }, true);
+addEventListener('scroll', () => closeWho(), { passive: true });
+
+// drag a line by its handle: a line shows where it lands; the page scrolls near the top / bottom
+function startDrag(e, i, el) {
+  if (e.button !== 0 || adding) return;
+  e.preventDefault();
+  document.activeElement?.blur?.();  // (a line being typed in is saved first - the page stays as it is)
+  const gaps = [...document.querySelectorAll('#script .gap')];
+  el.classList.add('dragging'); document.body.classList.add('dragging-line');
+  let y = e.clientY, g = null, raf = 0;
+  const pickGap = () => {
+    let best = null, bd = Infinity;
+    for (const x of gaps) { const r = x.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - y); if (d < bd) { bd = d; best = x; } }
+    g = best && +best.dataset.g !== i && +best.dataset.g !== i + 1 ? +best.dataset.g : null;  // (its own place: no move)
+    gaps.forEach((x) => x.classList.toggle('drop', g != null && x === best));
+  };
+  const top = document.querySelector('.hdr').getBoundingClientRect().bottom, bottom = innerHeight - 50, edge = 80;
+  const roll = () => {
+    if (y < top + edge) scrollBy(0, -Math.ceil((top + edge - y) / 5));
+    else if (y > bottom - edge) scrollBy(0, Math.ceil((y - (bottom - edge)) / 5));
+    pickGap();
+    raf = requestAnimationFrame(roll);
+  };
+  const mv = (ev) => { y = ev.clientY; };
+  const end = (drop) => () => {
+    cancelAnimationFrame(raf);
+    removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', cancel);
+    el.classList.remove('dragging'); document.body.classList.remove('dragging-line');
+    gaps.forEach((x) => x.classList.remove('drop'));
+    if (drop && g != null) moveLine(i, g);
+  };
+  const up = end(true), cancel = end(false);
+  addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', cancel);
+  raf = requestAnimationFrame(roll);
+}
+
+// ---- the changes: each one is the file's new text (only the line's own rows touched), then saved ----------------
+// the file's rows after a change: some dropped, some replaced, new ones put before row `at`
+function edited({ drop = [], put = {}, at = null, add = [] }) {
+  const rows = raw.split(/\r?\n/), out = [];
+  rows.forEach((r, k) => { if (k === at) out.push(...add); if (!drop.includes(k)) out.push(k in put ? put[k] : r); });
+  if (at != null && at >= rows.length) out.push(...add);
+  return out.join(raw.includes('\r\n') ? '\r\n' : '\n');
+}
+// the row a line put before line g starts at (g = the number of lines: after the last one)
+const rowAt = (g) => (g < lines.length ? lines[g].rows[0] : lines.length ? Math.max(...lines[lines.length - 1].rows) + 1 : raw.split(/\r?\n/).length);
+// map: where an old line index goes (-1: gone) - the current line and the checkpoint follow their lines
+function change(next, { map = (k) => k, msg = '', redraw = true, focus = null } = {}) {
+  if (next === raw) return;
+  undos.push({ raw, cur, mark });
+  if (undos.length > 200) undos.shift();
   raw = next;
+  const c = map(cur), m = mark == null ? -1 : map(mark);
+  cur = c < 0 ? cur - 1 : c; mark = m < 0 ? null : m;
+  reparse(); save();
+  if (redraw) render();
+  if (focus != null) document.querySelector(`.ln[data-i="${focus}"]`)?.classList.add('flash');
+  persist();
+  if (msg) toast(msg);
+}
+function setText(i, text) {
+  const l = lines[i], rows = raw.split(/\r?\n/), k = l.rows[0];
+  const one = l.rows.length === 1 && rows[k].includes(l.text);  // the text in its row, the row's layout kept
+  const n = lines.length;
+  change(edited(one ? { put: { [k]: rows[k].replace(l.text, () => text) } } : { put: { [k]: rowOf({ ...l, text }) }, drop: l.rows.slice(1) }), { redraw: false });
+  if (lines.length !== n || lines[i]?.text !== text) render();  // (the text changed how the script reads, e.g. a "Name:" in a monologue)
+}
+function setWho(i, who) {
+  const l = lines[i], nl = who == null ? { dir: true, text: l.text } : { who, text: l.text };
+  if (who == null ? l.dir : !l.dir && l.who === who) return;
+  change(edited({ put: { [l.rows[0]]: rowOf(nl) }, drop: l.rows.slice(1) }), { msg: who == null ? 'Now a stage direction' : `Now ${who} says it`, focus: i });
+}
+function delLine(i) {
+  change(edited({ drop: lines[i].rows }), { map: (k) => (k === i ? -1 : k > i ? k - 1 : k), msg: 'Line deleted' });
+}
+function moveLine(i, g) {
+  const l = lines[i], rows = raw.split(/\r?\n/), to = g > i ? g - 1 : g;
+  change(edited({ drop: l.rows, at: rowAt(g), add: l.rows.map((k) => rows[k]) }), {
+    map: (k) => (k === i ? to : k > i && k <= to ? k - 1 : k < i && k >= to ? k + 1 : k), msg: 'Line moved', focus: to });
+}
+function insLine(g, nl) {
+  change(edited({ at: rowAt(g), add: [rowOf(nl)] }), { map: (k) => (k >= g ? k + 1 : k) });
+}
+function undo() {
+  if (adding) { adding = null; render(); }
+  const u = undos.pop();
+  if (!u) return;
+  raw = u.raw; cur = u.cur; mark = u.mark;
+  reparse(); save(); render(); persist();
+  toast('Undone');
+}
+
+// the writes, in order; the bar says where they stand
+function persist() {
+  const text = raw;
+  saving++; status();
+  saveQ = saveQ.then(() => writeScript(text)).then((ok) => { failed = !ok; }).finally(() => { saving--; status(); });
+}
+function status() {
+  const s = $('saveSt');
+  if (!s) return;
+  const local = src.startsWith('pasted:');
+  s.className = 'st' + (saving ? '' : failed ? ' err' : undos.length ? ' ok' : '');
+  s.innerHTML = saving ? 'Saving…' : failed ? 'Not saved <button class="btn" id="retry">Retry</button>'
+    : undos.length ? (local ? '✓ Saved in this browser' : '✓ Saved') : 'Every change saves by itself';
+  $('retry')?.addEventListener('click', persist);
+  $('undo').disabled = !undos.length;
+}
+addEventListener('beforeunload', (e) => { if (saving || failed) { e.preventDefault(); e.returnValue = ''; } });
+function toast(msg) {
+  const t = $('toast');
+  t.innerHTML = `<span>${esc(msg)}</span>` + (undos.length ? '<button class="btn" id="toastU">Undo</button>' : '');
+  t.classList.add('on');
+  $('toastU')?.addEventListener('click', undo);
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 4500);
+}
+$('edit').onclick = () => setEditing(!editing);
+$('done').onclick = () => setEditing(false);
+$('undo').onclick = undo;
+
+// the script's text, saved where it came from (a saved script, a project's script.txt, or the pasted one) - true if it was
+async function writeScript(next) {
   try {
-    if (src.startsWith('script:')) {
-      await fetch(`/api/scripts/${encodeURIComponent(src.slice(7))}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: next }) });
-    } else if (src.startsWith('pasted:')) {
+    if (src.startsWith('script:'))
+      return (await fetch(`/api/scripts/${encodeURIComponent(src.slice(7))}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: next }) })).ok;
+    if (src.startsWith('pasted:')) {
       const key = 'pasted:' + hash(next);  // the pasted script's state (character, place, pace) moves with it
       store.set('reader-' + key, store.get('reader-' + src) || '{}');
       store.set('reader-pasted', next);
       src = key;
-    } else if (src) {
-      await fetch(`/api/ep/${src}/script`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: next }) });
+      return true;
     }
-  } catch {}
+    if (src) return (await fetch(`/api/ep/${src}/script`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: next }) })).ok;
+    return true;
+  } catch { return false; }
 }
 
 let known = [];

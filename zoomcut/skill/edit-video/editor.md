@@ -83,8 +83,14 @@ One format, one composition, one editor, one export. The format and the API: `la
   folder from Downloads, optional settings from an earlier project; POST /api/new).
 - One project in every tool (editor, Reader, Karaoke) - localStorage/sessionStorage "zc-ep", studio/bar.js StudioProject.
   The Reader shows the project's script (episode.json `"script"` → scripts/<id>.txt); Paste saves into it.
-- **Reader lines (2026-10-25):** double-click a line (or E) to edit it; the **+** on a line (or A) adds a new line right after
-  it - same speaker, or type "Name: text" for another; Esc / empty drops it. Both save into the script file in place.
+- **Reader Edit mode (2026-10-28, replaced the hidden double-click / hover-+ editing he found unintuitive):** the **Edit**
+  button (or E, or double-click a line) turns the script into a document with a bar: "Editing the script · ✓ Saved ·
+  Undo · Done". Click any line and type (Enter = done with it, Esc = back as it was); **drag the ⠿ handle** to move a
+  line; **+ Add a line** between lines (Enter saves it and starts the next, "Name: text" for someone else, Esc cancels);
+  the bin deletes; the name above a line opens who-says-it (a character, Stage direction, someone new). ONE rule: every
+  change is written to the script file at once, Undo / Ctrl+Z takes it back (a toast offers it too). Each parsed line
+  keeps its file rows (`rows`), so a change touches only that line's rows - notes (#), blank rows and layout stay.
+  Entering Edit re-reads the file first (another session may have changed it).
   Paste → "Create a new project for it" makes a project + its Drop folder from a script.
 - **The Reader (his teleprompter while recording):** a pace (wpm) for the script and one per character (the box beside
   each name). **⏱ beside a character** = measure his pace: it picks a fair line of his (closest to ~18 words), Start when
