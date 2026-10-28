@@ -456,10 +456,12 @@ He said "I don't think you are utilizing all of its power with annotation". What
   mixed mumble / words = "can't be some understood, some not"): he writes the other side's lines into the script, every
   line = its own v4 file (`_assets/haredit/calls/brachi-rNN.mp3`; names with niqqud - שְׁרוּלִי - or v4 says
   "שאולי"), transcribed before use, all levelled to one loudness (-20 dB active, gain per file). His pauses are
-  0.1-0.4 s and her lines 1-3 s at 1.7: **hold his listening pause for her** - `cut.slow {take: [[pause_a, pause_b,
-  speed]]}` so the pause lasts ~90% of her line, `slow_ramp` 0.04 so only the pause slows, never his words; her line
-  starts at the pause. Under a side conversation (he talks to a colleague, phone covered) her long nagging plays
-  over him, ~7 dB softer, no hold.
+  0.1-0.4 s and her lines 1-3 s at 1.7: **never slow him down to make room** (tried `cut.slow` on his pauses -
+  "don't make Hani go slower when she talks to Brachi - if you need, make Brachi speak faster", 2026-10-28; near-frozen
+  pieces also went black in the export) - her line starts on his pause at `tempo` 1.3 (+ pitch 1.7) and may run under
+  his next words. Under a side conversation (he talks to a colleague, phone covered) her long nagging plays over him,
+  ~7 dB softer, and keeps going until he is back on the phone (generate more lines if it runs out). The background
+  (house bed, wails) stays well under her.
 
 ## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
