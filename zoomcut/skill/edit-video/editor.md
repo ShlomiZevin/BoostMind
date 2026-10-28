@@ -87,6 +87,12 @@ One format, one composition, one editor, one export. The format and the API: `la
   folder from Downloads, optional settings from an earlier project; POST /api/new).
 - One project in every tool (editor, Reader, Karaoke) - localStorage/sessionStorage "zc-ep", studio/bar.js StudioProject.
   The Reader shows the project's script (episode.json `"script"` → scripts/<id>.txt); Paste saves into it.
+- **One editor only (2026-10-28 cleanup, he reviewed and switched):** `ui/editor.tsx` is just the shell (top bar, project
+  menu, jobs, Send / Publish) and opens every layered project in LayersEditor. The old Zoom view, LessonView and
+  classic.html / main.tsx are gone; a project made before layers shows a "Made before layers" card - Re-analyze builds its
+  layers. Shared bits: `ui/common.tsx`, `ui/footage.tsx` (Media), `ui/lineprops.tsx`, `ui/speed.tsx`, `ui/newvideo.tsx`
+  (NewVideo + DropCard). tsconfig now checks `ui/` too - keep `npx tsc --noEmit -p render` at 0. Tests after a change to
+  ops / merge: `node tools/ops_roundtrip.mjs`, `python tools/merge_test.py` (+ `node tools/geometry_parity.mjs`).
 - **Notes for Claude (2026-10-28, his ask):** `render/ui/layers/Notes.tsx` (+ notes.css) - "+ Note" on the timeline bar /
   N = a note at the playhead (window opens right above its flag on the ruler - his ask; click the video = the spot, a
   ring there while the playhead is at it; Ctrl+Enter / Esc / click Save keeps the words, an empty new one just goes);
