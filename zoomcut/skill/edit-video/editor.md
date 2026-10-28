@@ -90,7 +90,7 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Notes for Claude (2026-10-28, his ask):** `render/ui/layers/Notes.tsx` (+ notes.css) - "+ Note" on the timeline bar /
   N = a note at the playhead (window opens right above its flag on the ruler - his ask; click the video = the spot, a
   ring there while the playhead is at it; Ctrl+Enter / Esc / click Save keeps the words, an empty new one just goes);
-  flags on the ruler (yellow open, grey handled; click opens, drag moves); each note's "Handled" checkbox (= `done`; a session ticks it with `notes.mjs done`), "Hide / Show handled (n)" on the bar hides their flags and rings (localStorage zc-notes-done); stored as project.json `notes` through the
+  flags on the ruler (yellow open, grey handled; click opens, drag moves); ready-made notes as chips in the window (`PRESETS` in Notes.tsx: Tighten the cut = kind `tighten`, Cut the silence = `silence` - one click fills the words, again = off; more go in that list + SKILL.md "fix notes"); each note's "Handled" checkbox (= `done`; a session ticks it with `notes.mjs done`), "Hide / Show handled (n)" on the bar hides their flags and rings (localStorage zc-notes-done); stored as project.json `notes` through the
   'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
 - **Reader Edit mode (2026-10-28, replaced the hidden double-click / hover-+ editing he found unintuitive):** the **Edit**
   button (or E, or double-click a line) turns the script into a document with a bar: "Editing the script · ✓ Saved ·

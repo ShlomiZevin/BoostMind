@@ -46,8 +46,24 @@ const at = (f) => [...p.layers].reverse().flatMap((l) => (l.items || []).filter(
   const line = i.ref?.line != null ? (p.script || []).find((s) => s.n === i.ref.line) : null;
   const what = i.text != null ? `"${i.text}"` : line ? `line ${line.n} "${line.text}"` : a ? path.basename(String(a.src)) : '';
   const ref = i.ref ? ' ref ' + JSON.stringify(i.ref) : '';
-  return `   ${l.hidden || l.muted ? '(off) ' : ''}${l.kind.padEnd(9)} ${l.id} / ${i.id}  ${(i.from / fps).toFixed(2)}-${((i.from + i.dur) / fps).toFixed(2)} s  ${what}${ref}${i.user ? '  (his)' : ''}`;
+  const src = i.in != null && (l.kind === 'video' || l.kind === 'audio') ? `  @ ${(i.in + ((f - i.from) / fps) * (i.rate || 1)).toFixed(2)} s in the source` : '';
+  return `   ${l.hidden || l.muted ? '(off) ' : ''}${l.kind.padEnd(9)} ${l.id} / ${i.id}  ${(i.from / fps).toFixed(2)}-${((i.from + i.dur) / fps).toFixed(2)} s  ${what}${ref}${src}${i.user ? '  (his)' : ''}`;
 }));
+
+// "tighten the cut": the join between two clips nearest the note, on each video layer (end of one = start of the next)
+const KIND = { tighten: 'TIGHTEN THE CUT - the join nearest this moment: no gap / pause between the two clips',
+  silence: 'CUT THE SILENCE - remove the pause at this moment (his ask overrides "pauses inside a take stay")' };
+const joins = (f) => p.layers.filter((l) => l.kind === 'video' && !l.hidden).flatMap((l) => {
+  const it = [...(l.items || [])].sort((a, b) => a.from - b.from);
+  const out = [];
+  for (let k = 0; k + 1 < it.length; k++) {
+    const a = it[k], b = it[k + 1], e = a.from + a.dur;
+    if (Math.abs(b.from - e) > fps * 0.5) continue;
+    const s = (x, g) => (x.in != null ? ` (source ${x.ref?.take || ''} ${(x.in + ((g - x.from) / fps) * (x.rate || 1)).toFixed(2)} s)` : '');
+    out.push({ d: Math.abs(e - f), t: `   ${l.id}: ${a.id} ends ${(e / fps).toFixed(2)} s${s(a, e)} -> ${b.id} starts ${(b.from / fps).toFixed(2)} s${s(b, b.from)}` });
+  }
+  return out;
+}).sort((x, y) => x.d - y.d).slice(0, 2).map((x) => x.t);
 
 let still = null;
 if (!flag('--no-stills')) {
@@ -75,7 +91,9 @@ if (!flag('--no-stills')) {
 console.log(`${ep}: ${list.length} note${list.length === 1 ? '' : 's'}${speed !== 1 ? ` (times as he sees them, at ${speed}x)` : ''}\n`);
 for (const n of list) {
   console.log(`● ${n.id}${n.done ? ' (done)' : ''}  at ${mmss(n.at)}  (frame ${Math.round(n.at)} of ${p.duration})${n.x != null ? `  spot x ${n.x}, y ${n.y} of ${p.canvas.w}x${p.canvas.h}` : ''}`);
+  if (n.kind) console.log(`  kind: ${n.kind} = ${KIND[n.kind] || n.kind}`);
   console.log(`  his note: ${n.text}`);
+  if (n.kind === 'tighten') console.log(['  nearest join:', ...(joins(n.at).length ? joins(n.at) : ['   (no two clips meet near here)'])].join('\n'));
   if (n.reply) console.log(`  replied: ${n.reply}`);
   console.log('  on screen / heard there:');
   console.log(at(n.at).join('\n') || '   (nothing)');

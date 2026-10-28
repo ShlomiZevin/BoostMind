@@ -7,7 +7,13 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { fmtT, Send } from './api';
 import './notes.css';
 
-export type Note = { id: string; at: number; text: string; x?: number; y?: number; done?: boolean; reply?: string; t?: number };
+export type Note = { id: string; at: number; text: string; kind?: string; x?: number; y?: number; done?: boolean; reply?: string; t?: number };
+
+// ready-made notes (his ask, 2026-10-28) - one click; `kind` tells the session exactly what to do (SKILL.md "fix notes")
+export const PRESETS = [
+  { kind: 'tighten', label: 'Tighten the cut', text: 'Tighten the cut: bring these two clips closer together - no gap or pause between them.' },
+  { kind: 'silence', label: 'Cut the silence', text: 'Cut the silence here.' },
+];
 
 export const notesOf = (project: any): Note[] => (Array.isArray(project?.notes) ? project.notes : []);
 export const saveNotes = (send: Send, next: Note[], label = 'note') => send([{ op: 'project', set: { notes: next } }], { label });
@@ -54,6 +60,7 @@ export function NoteSpots({ notes, frame, fps, canvas, open }: { notes: Note[]; 
 export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose, onSeek }: { note: Note; isNew: boolean; fps: number; speed: number;
   onSave: (n: Note) => void; onDelete: () => void; onClose: () => void; onSeek: (f: number) => void }) {
   const [text, setText] = useState(note.text);
+  const [kind, setKind] = useState(note.kind);
   const box = useRef<HTMLTextAreaElement>(null);
   const win = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; bottom: number; arrow: number } | null>(null);
@@ -70,10 +77,17 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
     addEventListener('resize', place);
     return () => removeEventListener('resize', place);
   }, [note.id, note.at]);
-  useEffect(() => { setText(note.text); }, [note.id]);
+  useEffect(() => { setText(note.text); setKind(note.kind); }, [note.id]);
+  const preset = (p: typeof PRESETS[number]) => {  // (again = off; its words go only where his own aren't)
+    const was = PRESETS.find((x) => x.kind === kind), mine = text.trim() && text.trim() !== was?.text;
+    if (kind === p.kind) { setKind(undefined); if (!mine) setText(''); return; }
+    setKind(p.kind);
+    if (!mine) setText(p.text);
+    box.current?.focus();
+  };
   useEffect(() => { box.current?.focus(); }, [note.id]);
   const close = () => {  // (closing keeps what he wrote - nothing is lost; an empty new note just goes)
-    if (text.trim() && text !== note.text) onSave({ ...note, text: text.trim() });
+    if (text.trim() && (text !== note.text || kind !== note.kind)) onSave({ ...note, text: text.trim(), kind });
     else if (isNew && !text.trim()) onDelete();
     onClose();
   };
@@ -90,14 +104,16 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
         <button className="btn ghost" style={{ height: 24, padding: '0 8px', fontSize: 12 }} title="Go to this moment" onClick={() => onSeek(note.at)}>at {fmtT(note.at / fps / speed)}</button>
         <button className="btn ghost icon" style={{ width: 24, height: 24 }} title="Close (Esc) - what you wrote is kept" onClick={close}>✕</button>
       </div>
+      <div className="note-presets">{PRESETS.map((p) => (
+        <button key={p.kind} className={`note-chip ${kind === p.kind ? 'on' : ''}`} onClick={() => preset(p)} title={p.text}>{p.label}</button>))}</div>
       <textarea ref={box} className="field note-text" dir="auto" rows={5} value={text} onChange={(e) => setText(e.target.value)}
         placeholder="What's wrong here and what to fix… (Ctrl+Enter saves)" />
       <div className="help" style={{ margin: 0 }}>{note.x != null ? 'The spot is marked on the video - click the video to move it.' : 'Optional: click the video to point at the exact spot.'}</div>
       {note.reply && <div className="note-reply"><b>Claude:</b> <span dir="auto">{note.reply}</span></div>}
       <div className="note-acts">
         {!isNew && <label className={`note-handled ${note.done ? 'on' : ''}`} title="Handled = fixed (Claude ticks it when he fixes it; untick to reopen)">
-          <input type="checkbox" checked={!!note.done} onChange={(e) => onSave({ ...note, text: text.trim() || note.text, done: e.target.checked })} /> Handled</label>}
-        {note.x != null && <button className="btn ghost" onClick={() => onSave({ ...note, text: text.trim() || note.text, x: undefined, y: undefined })}>Clear the spot</button>}
+          <input type="checkbox" checked={!!note.done} onChange={(e) => onSave({ ...note, text: text.trim() || note.text, kind, done: e.target.checked })} /> Handled</label>}
+        {note.x != null && <button className="btn ghost" onClick={() => onSave({ ...note, text: text.trim() || note.text, kind, x: undefined, y: undefined })}>Clear the spot</button>}
         <div className="grow" />
         <button className="btn ghost" style={{ color: 'var(--bad)' }} onClick={() => { onDelete(); onClose(); }}>{isNew ? 'Cancel' : 'Delete'}</button>
         <button className="btn primary" disabled={!text.trim()} onClick={close}>Save</button>
