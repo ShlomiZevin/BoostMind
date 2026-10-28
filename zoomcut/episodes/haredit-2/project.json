@@ -7,8 +7,8 @@
     "fps": 30,
     "color": "#0b0b0b"
   },
-  "duration": 6473,
-  "speed": 1.15,
+  "duration": 6199,
+  "speed": 1.05,
   "assets": {
     "font.stam-ashkenaz": {
       "kind": "font",
@@ -63,43 +63,43 @@
     },
     "s.2": {
       "kind": "audio",
-      "src": "../_assets/haredit/calls/house-bed.mp3",
-      "label": "house-bed"
-    },
-    "s.3": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/house-bed.mp3",
-      "label": "house-bed"
-    },
-    "s.4": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/house-bed.mp3",
-      "label": "house-bed"
-    },
-    "s.5": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/house-bed.mp3",
-      "label": "house-bed"
-    },
-    "s.6": {
-      "kind": "audio",
       "src": "../_assets/haredit/calls/malki-wail.mp3",
       "label": "malki-wail"
     },
-    "s.7": {
+    "s.3": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-01.mp3",
       "label": "brachi-01"
     },
-    "s.8": {
+    "s.4": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-01.mp3",
+      "label": "brachi-01"
+    },
+    "s.5": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-05.mp3",
+      "label": "brachi-05"
+    },
+    "s.6": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-02.mp3",
       "label": "brachi-02"
     },
-    "s.9": {
+    "s.7": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.8": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-03.mp3",
       "label": "brachi-03"
+    },
+    "s.9": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
     },
     "s.10": {
       "kind": "audio",
@@ -133,73 +133,73 @@
     },
     "s.16": {
       "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.17": {
+      "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-07.mp3",
       "label": "brachi-07"
     },
-    "s.17": {
+    "s.18": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-07.mp3",
+      "label": "brachi-07"
+    },
+    "s.19": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-06.mp3",
+      "label": "brachi-06"
+    },
+    "s.20": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-08.mp3",
       "label": "brachi-08"
     },
-    "s.18": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/ima-dry.mp3",
-      "label": "ima-dry"
-    },
-    "s.19": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/brachi-09.mp3",
-      "label": "brachi-09"
-    },
-    "s.20": {
-      "kind": "audio",
-      "src": "../_assets/haredit/kosher-ring.mp3",
-      "label": "kosher-ring"
-    },
     "s.21": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/brachi-02.mp3",
+      "label": "brachi-02"
+    },
+    "s.22": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/house-bed.mp3",
       "label": "house-bed"
     },
-    "s.22": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/shower-loop.mp3",
-      "label": "shower-loop"
-    },
     "s.23": {
       "kind": "audio",
-      "src": "../_assets/haredit/calls/brachi-10.mp3",
-      "label": "brachi-10"
+      "src": "../_assets/haredit/calls/ima-dry.mp3",
+      "label": "ima-dry"
     },
     "s.24": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/shower.mp3",
-      "label": "shower"
-    },
-    "s.25": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/brachi-11.mp3",
-      "label": "brachi-11"
-    },
-    "s.26": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/brachi-07.mp3",
-      "label": "brachi-07"
-    },
-    "s.27": {
-      "kind": "audio",
-      "src": "../_assets/haredit/calls/brachi-08.mp3",
-      "label": "brachi-08"
-    },
-    "s.28": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-09.mp3",
       "label": "brachi-09"
     },
-    "s.29": {
+    "s.25": {
+      "kind": "audio",
+      "src": "../_assets/haredit/kosher-ring.mp3",
+      "label": "kosher-ring"
+    },
+    "s.26": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/house-bed.mp3",
+      "label": "house-bed"
+    },
+    "s.27": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/shower-loop.mp3",
+      "label": "shower-loop"
+    },
+    "s.28": {
       "kind": "audio",
       "src": "../_assets/haredit/calls/brachi-10.mp3",
       "label": "brachi-10"
+    },
+    "s.29": {
+      "kind": "audio",
+      "src": "../_assets/haredit/calls/shower.mp3",
+      "label": "shower"
     },
     "s.30": {
       "kind": "audio",
@@ -238,8 +238,8 @@
     },
     "s.music": {
       "kind": "audio",
-      "src": "work/layers/sounds/m29c3a6a0c4b19.wav",
-      "duration": 215.767,
+      "src": "work/layers/sounds/m2bf0716cd13d0.wav",
+      "duration": 206.633,
       "label": "Music - klezmer-ska"
     },
     "s.music-hasidic-freilach.mp3": {
@@ -269,7 +269,8 @@
       "audio": "work/audio/044C9A77-DB44-4675-9164-3D69DED52505.wav",
       "preview": "work/public/takes/044C9A77-DB44-4675-9164-3D69DED52505.plain.mp4",
       "fg": "work/public/takes/044C9A77-DB44-4675-9164-3D69DED52505.webm",
-      "matte": "work/matte/044C9A77-DB44-4675-9164-3D69DED52505.body.propec86aba0.mkv"
+      "matte": "work/matte/044C9A77-DB44-4675-9164-3D69DED52505.body.prop538148c1.mkv",
+      "mark": "use"
     },
     "t.0F959E09-CAC3-4AFF-AF23-B737F5534097": {
       "kind": "video",
@@ -281,7 +282,8 @@
       "audio": "work/audio/0F959E09-CAC3-4AFF-AF23-B737F5534097.wav",
       "preview": "work/public/takes/0F959E09-CAC3-4AFF-AF23-B737F5534097.plain.mp4",
       "fg": "work/public/takes/0F959E09-CAC3-4AFF-AF23-B737F5534097.webm",
-      "matte": "work/matte/0F959E09-CAC3-4AFF-AF23-B737F5534097.body.mkv"
+      "matte": "work/matte/0F959E09-CAC3-4AFF-AF23-B737F5534097.body.mkv",
+      "mark": "use"
     },
     "t.196E183D-38F6-40DD-AB68-F629F8303C7D": {
       "kind": "video",
@@ -305,7 +307,8 @@
       "audio": "work/audio/1B386195-8E42-4B3A-91B9-AE6723A78309.wav",
       "preview": "work/public/takes/1B386195-8E42-4B3A-91B9-AE6723A78309.plain.mp4",
       "fg": "work/public/takes/1B386195-8E42-4B3A-91B9-AE6723A78309.webm",
-      "matte": "work/matte/1B386195-8E42-4B3A-91B9-AE6723A78309.body.mkv"
+      "matte": "work/matte/1B386195-8E42-4B3A-91B9-AE6723A78309.body.prop824cb6bd.mkv",
+      "mark": "use"
     },
     "t.25212FAD-B90C-4BAB-A705-C2C4A5855B4F": {
       "kind": "video",
@@ -317,7 +320,8 @@
       "audio": "work/audio/25212FAD-B90C-4BAB-A705-C2C4A5855B4F.wav",
       "preview": "work/public/takes/25212FAD-B90C-4BAB-A705-C2C4A5855B4F.plain.mp4",
       "fg": "work/public/takes/25212FAD-B90C-4BAB-A705-C2C4A5855B4F.webm",
-      "matte": "work/matte/25212FAD-B90C-4BAB-A705-C2C4A5855B4F.body.mkv"
+      "matte": "work/matte/25212FAD-B90C-4BAB-A705-C2C4A5855B4F.body.mkv",
+      "mark": "use"
     },
     "t.3A53DF88-0643-4044-9FD8-A8D5CBF0C073": {
       "kind": "video",
@@ -329,7 +333,8 @@
       "audio": "work/audio/3A53DF88-0643-4044-9FD8-A8D5CBF0C073.wav",
       "preview": "work/public/takes/3A53DF88-0643-4044-9FD8-A8D5CBF0C073.plain.mp4",
       "fg": "work/public/takes/3A53DF88-0643-4044-9FD8-A8D5CBF0C073.webm",
-      "matte": "work/matte/3A53DF88-0643-4044-9FD8-A8D5CBF0C073.body.mkv"
+      "matte": "work/matte/3A53DF88-0643-4044-9FD8-A8D5CBF0C073.body.mkv",
+      "mark": "use"
     },
     "t.4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6": {
       "kind": "video",
@@ -341,7 +346,8 @@
       "audio": "work/audio/4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6.wav",
       "preview": "work/public/takes/4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6.plain.mp4",
       "fg": "work/public/takes/4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6.webm",
-      "matte": "work/matte/4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6.body.mkv"
+      "matte": "work/matte/4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6.body.mkv",
+      "mark": "use"
     },
     "t.4E44A278-D91D-4738-9EAC-35E0D0F94D4D": {
       "kind": "video",
@@ -353,7 +359,8 @@
       "audio": "work/audio/4E44A278-D91D-4738-9EAC-35E0D0F94D4D.wav",
       "preview": "work/public/takes/4E44A278-D91D-4738-9EAC-35E0D0F94D4D.plain.mp4",
       "fg": "work/public/takes/4E44A278-D91D-4738-9EAC-35E0D0F94D4D.webm",
-      "matte": "work/matte/4E44A278-D91D-4738-9EAC-35E0D0F94D4D.body.mkv"
+      "matte": "work/matte/4E44A278-D91D-4738-9EAC-35E0D0F94D4D.body.mkv",
+      "mark": "use"
     },
     "t.58BD328D-26FA-4910-8437-42E714C72496": {
       "kind": "video",
@@ -365,7 +372,8 @@
       "audio": "work/audio/58BD328D-26FA-4910-8437-42E714C72496.wav",
       "preview": "work/public/takes/58BD328D-26FA-4910-8437-42E714C72496.plain.mp4",
       "fg": "work/public/takes/58BD328D-26FA-4910-8437-42E714C72496.webm",
-      "matte": "work/matte/58BD328D-26FA-4910-8437-42E714C72496.body.mkv"
+      "matte": "work/matte/58BD328D-26FA-4910-8437-42E714C72496.body.mkv",
+      "mark": "use"
     },
     "t.5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6": {
       "kind": "video",
@@ -377,7 +385,8 @@
       "audio": "work/audio/5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6.wav",
       "preview": "work/public/takes/5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6.plain.mp4",
       "fg": "work/public/takes/5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6.webm",
-      "matte": "work/matte/5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6.body.mkv"
+      "matte": "work/matte/5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6.body.mkv",
+      "mark": "use"
     },
     "t.724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A": {
       "kind": "video",
@@ -389,7 +398,8 @@
       "audio": "work/audio/724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A.wav",
       "preview": "work/public/takes/724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A.plain.mp4",
       "fg": "work/public/takes/724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A.webm",
-      "matte": "work/matte/724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A.body.mkv"
+      "matte": "work/matte/724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A.body.mkv",
+      "mark": "use"
     },
     "t.759BC0AF-9BCC-44CE-AECF-123339768A86": {
       "kind": "video",
@@ -401,7 +411,8 @@
       "audio": "work/audio/759BC0AF-9BCC-44CE-AECF-123339768A86.wav",
       "preview": "work/public/takes/759BC0AF-9BCC-44CE-AECF-123339768A86.plain.mp4",
       "fg": "work/public/takes/759BC0AF-9BCC-44CE-AECF-123339768A86.webm",
-      "matte": "work/matte/759BC0AF-9BCC-44CE-AECF-123339768A86.body.mkv"
+      "matte": "work/matte/759BC0AF-9BCC-44CE-AECF-123339768A86.body.mkv",
+      "mark": "use"
     },
     "t.815901F3-04F0-4FF3-8812-0258EBE63999": {
       "kind": "video",
@@ -413,7 +424,8 @@
       "audio": "work/audio/815901F3-04F0-4FF3-8812-0258EBE63999.wav",
       "preview": "work/public/takes/815901F3-04F0-4FF3-8812-0258EBE63999.plain.mp4",
       "fg": "work/public/takes/815901F3-04F0-4FF3-8812-0258EBE63999.webm",
-      "matte": "work/matte/815901F3-04F0-4FF3-8812-0258EBE63999.body.mkv"
+      "matte": "work/matte/815901F3-04F0-4FF3-8812-0258EBE63999.body.mkv",
+      "mark": "use"
     },
     "t.A5C85CFA-F715-4D2B-852B-EFF482EBF091": {
       "kind": "video",
@@ -437,7 +449,8 @@
       "audio": "work/audio/A9AE0054-5649-402D-9E4F-5C7AE1C05B50.wav",
       "preview": "work/public/takes/A9AE0054-5649-402D-9E4F-5C7AE1C05B50.plain.mp4",
       "fg": "work/public/takes/A9AE0054-5649-402D-9E4F-5C7AE1C05B50.webm",
-      "matte": "work/matte/A9AE0054-5649-402D-9E4F-5C7AE1C05B50.body.mkv"
+      "matte": "work/matte/A9AE0054-5649-402D-9E4F-5C7AE1C05B50.body.mkv",
+      "mark": "use"
     },
     "t.BC6C820D-3698-423C-A16C-C6A04DB9E741": {
       "kind": "video",
@@ -449,7 +462,8 @@
       "audio": "work/audio/BC6C820D-3698-423C-A16C-C6A04DB9E741.wav",
       "preview": "work/public/takes/BC6C820D-3698-423C-A16C-C6A04DB9E741.plain.mp4",
       "fg": "work/public/takes/BC6C820D-3698-423C-A16C-C6A04DB9E741.webm",
-      "matte": "work/matte/BC6C820D-3698-423C-A16C-C6A04DB9E741.body.prop01d90e13.mkv"
+      "matte": "work/matte/BC6C820D-3698-423C-A16C-C6A04DB9E741.body.mkv",
+      "note": "Same part as CA80BF04 (סליחה, תתכבדי) - you marked both; CA80BF04 is in the video, this one is not"
     },
     "t.CA80BF04-3975-44F9-B847-C8F5DAF1F28D": {
       "kind": "video",
@@ -461,7 +475,8 @@
       "audio": "work/audio/CA80BF04-3975-44F9-B847-C8F5DAF1F28D.wav",
       "preview": "work/public/takes/CA80BF04-3975-44F9-B847-C8F5DAF1F28D.plain.mp4",
       "fg": "work/public/takes/CA80BF04-3975-44F9-B847-C8F5DAF1F28D.webm",
-      "matte": "work/matte/CA80BF04-3975-44F9-B847-C8F5DAF1F28D.body.mkv"
+      "matte": "work/matte/CA80BF04-3975-44F9-B847-C8F5DAF1F28D.body.propff71cdb2.mkv",
+      "mark": "use"
     },
     "t.CB1C677F-489B-44F0-81FF-C6A14B38C36D": {
       "kind": "video",
@@ -473,7 +488,8 @@
       "audio": "work/audio/CB1C677F-489B-44F0-81FF-C6A14B38C36D.wav",
       "preview": "work/public/takes/CB1C677F-489B-44F0-81FF-C6A14B38C36D.plain.mp4",
       "fg": "work/public/takes/CB1C677F-489B-44F0-81FF-C6A14B38C36D.webm",
-      "matte": "work/matte/CB1C677F-489B-44F0-81FF-C6A14B38C36D.body.mkv"
+      "matte": "work/matte/CB1C677F-489B-44F0-81FF-C6A14B38C36D.body.mkv",
+      "mark": "use"
     },
     "t.ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2": {
       "kind": "video",
@@ -485,7 +501,8 @@
       "audio": "work/audio/ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2.wav",
       "preview": "work/public/takes/ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2.plain.mp4",
       "fg": "work/public/takes/ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2.webm",
-      "matte": "work/matte/ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2.body.mkv"
+      "matte": "work/matte/ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2.body.mkv",
+      "mark": "use"
     },
     "t.F1D1C898-8032-466E-9A4A-8735F83800A8": {
       "kind": "video",
@@ -497,7 +514,8 @@
       "audio": "work/audio/F1D1C898-8032-466E-9A4A-8735F83800A8.wav",
       "preview": "work/public/takes/F1D1C898-8032-466E-9A4A-8735F83800A8.plain.mp4",
       "fg": "work/public/takes/F1D1C898-8032-466E-9A4A-8735F83800A8.webm",
-      "matte": "work/matte/F1D1C898-8032-466E-9A4A-8735F83800A8.body.mkv"
+      "matte": "work/matte/F1D1C898-8032-466E-9A4A-8735F83800A8.body.mkv",
+      "mark": "use"
     }
   },
   "layers": [
@@ -515,7 +533,7 @@
         {
           "id": "set",
           "from": 0,
-          "dur": 6473,
+          "dur": 6199,
           "asset": "m.set-wall-a.jpg",
           "box": {
             "x": -302,
@@ -540,7 +558,7 @@
         {
           "id": "o1",
           "from": 0,
-          "dur": 6473,
+          "dur": 6199,
           "ref": {
             "overlay": 1
           },
@@ -561,7 +579,7 @@
         {
           "id": "f0",
           "from": 0,
-          "dur": 6473,
+          "dur": 6199,
           "asset": "m.family-framed.png",
           "box": {
             "x": 573,
@@ -594,13 +612,14 @@
           "y": 150,
           "w": 1080,
           "h": 1920
-        }
+        },
+        "mirror": true
       },
       "items": [
         {
           "id": "c0",
           "from": 0,
-          "dur": 182,
+          "dur": 177,
           "asset": "t.25212FAD-B90C-4BAB-A705-C2C4A5855B4F",
           "in": 0.68,
           "ref": {
@@ -609,23 +628,24 @@
           },
           "link": "cut-25212FAD-B90C-4BAB-A705-C2C4A5855B4F-0.68",
           "box": {
-            "x": 0,
-            "y": 150,
-            "w": 1080,
-            "h": 1920
-          }
+            "x": -60,
+            "y": 90,
+            "w": 1200,
+            "h": 2133
+          },
+          "user": true
         },
         {
           "id": "c1",
-          "from": 182,
+          "from": 177,
           "dur": 723,
           "asset": "t.4E44A278-D91D-4738-9EAC-35E0D0F94D4D",
-          "in": 0.61,
+          "in": 0.9,
           "ref": {
             "take": "4E44A278-D91D-4738-9EAC-35E0D0F94D4D",
-            "a": 0.61
+            "a": 0.9
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61",
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9",
           "box": {
             "x": 0,
             "y": 150,
@@ -635,7 +655,7 @@
         },
         {
           "id": "c2",
-          "from": 905,
+          "from": 900,
           "dur": 336,
           "asset": "t.4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6",
           "in": 0.71,
@@ -653,15 +673,15 @@
         },
         {
           "id": "c3",
-          "from": 1241,
-          "dur": 16,
+          "from": 1236,
+          "dur": 46,
           "asset": "t.044C9A77-DB44-4675-9164-3D69DED52505",
-          "in": 0.7,
+          "in": 1.3,
           "ref": {
             "take": "044C9A77-DB44-4675-9164-3D69DED52505",
-            "a": 0.7
+            "a": 1.3
           },
-          "link": "cut-044C9A77-DB44-4675-9164-3D69DED52505-0.7",
+          "link": "cut-044C9A77-DB44-4675-9164-3D69DED52505-1.3",
           "box": {
             "x": 0,
             "y": 150,
@@ -671,15 +691,15 @@
         },
         {
           "id": "c4",
-          "from": 1257,
-          "dur": 89,
-          "asset": "t.044C9A77-DB44-4675-9164-3D69DED52505",
-          "in": 1.24,
+          "from": 1282,
+          "dur": 250,
+          "asset": "t.CA80BF04-3975-44F9-B847-C8F5DAF1F28D",
+          "in": 4.25,
           "ref": {
-            "take": "044C9A77-DB44-4675-9164-3D69DED52505",
-            "a": 1.24
+            "take": "CA80BF04-3975-44F9-B847-C8F5DAF1F28D",
+            "a": 4.25
           },
-          "link": "cut-044C9A77-DB44-4675-9164-3D69DED52505-1.24",
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25",
           "box": {
             "x": 0,
             "y": 150,
@@ -689,15 +709,15 @@
         },
         {
           "id": "c5",
-          "from": 1346,
-          "dur": 229,
-          "asset": "t.BC6C820D-3698-423C-A16C-C6A04DB9E741",
-          "in": 5.2,
+          "from": 1532,
+          "dur": 367,
+          "asset": "t.1B386195-8E42-4B3A-91B9-AE6723A78309",
+          "in": 4.27,
           "ref": {
-            "take": "BC6C820D-3698-423C-A16C-C6A04DB9E741",
-            "a": 5.2
+            "take": "1B386195-8E42-4B3A-91B9-AE6723A78309",
+            "a": 4.27
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2",
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27",
           "box": {
             "x": 0,
             "y": 150,
@@ -707,15 +727,15 @@
         },
         {
           "id": "c6",
-          "from": 1575,
-          "dur": 378,
-          "asset": "t.1B386195-8E42-4B3A-91B9-AE6723A78309",
-          "in": 3.9,
+          "from": 1899,
+          "dur": 46,
+          "asset": "t.58BD328D-26FA-4910-8437-42E714C72496",
+          "in": 5.98,
           "ref": {
-            "take": "1B386195-8E42-4B3A-91B9-AE6723A78309",
-            "a": 3.9
+            "take": "58BD328D-26FA-4910-8437-42E714C72496",
+            "a": 5.98
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9",
+          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.98",
           "box": {
             "x": 0,
             "y": 150,
@@ -725,15 +745,15 @@
         },
         {
           "id": "c7",
-          "from": 1953,
-          "dur": 74,
-          "asset": "t.58BD328D-26FA-4910-8437-42E714C72496",
-          "in": 5.05,
+          "from": 1945,
+          "dur": 204,
+          "asset": "t.F1D1C898-8032-466E-9A4A-8735F83800A8",
+          "in": 4.17,
           "ref": {
-            "take": "58BD328D-26FA-4910-8437-42E714C72496",
-            "a": 5.05
+            "take": "F1D1C898-8032-466E-9A4A-8735F83800A8",
+            "a": 4.17
           },
-          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.05",
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17",
           "box": {
             "x": 0,
             "y": 150,
@@ -743,15 +763,15 @@
         },
         {
           "id": "c8",
-          "from": 2027,
-          "dur": 220,
-          "asset": "t.F1D1C898-8032-466E-9A4A-8735F83800A8",
-          "in": 3.8,
+          "from": 2149,
+          "dur": 437,
+          "asset": "t.724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
+          "in": 3.86,
           "ref": {
-            "take": "F1D1C898-8032-466E-9A4A-8735F83800A8",
-            "a": 3.8
+            "take": "724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
+            "a": 3.86
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8",
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86",
           "box": {
             "x": 0,
             "y": 150,
@@ -761,15 +781,15 @@
         },
         {
           "id": "c9",
-          "from": 2247,
-          "dur": 451,
-          "asset": "t.724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
-          "in": 3.4,
+          "from": 2586,
+          "dur": 24,
+          "asset": "t.759BC0AF-9BCC-44CE-AECF-123339768A86",
+          "in": 0.3,
           "ref": {
-            "take": "724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
-            "a": 3.4
+            "take": "759BC0AF-9BCC-44CE-AECF-123339768A86",
+            "a": 0.3
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4",
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-0.3",
           "box": {
             "x": 0,
             "y": 150,
@@ -779,15 +799,15 @@
         },
         {
           "id": "c10",
-          "from": 2698,
-          "dur": 101,
-          "asset": "t.196E183D-38F6-40DD-AB68-F629F8303C7D",
-          "in": 2.4,
+          "from": 2610,
+          "dur": 70,
+          "asset": "t.759BC0AF-9BCC-44CE-AECF-123339768A86",
+          "in": 3.5,
           "ref": {
-            "take": "196E183D-38F6-40DD-AB68-F629F8303C7D",
-            "a": 2.4
+            "take": "759BC0AF-9BCC-44CE-AECF-123339768A86",
+            "a": 3.5
           },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-2.4",
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-3.5",
           "box": {
             "x": 0,
             "y": 150,
@@ -797,15 +817,15 @@
         },
         {
           "id": "c11",
-          "from": 2799,
-          "dur": 105,
-          "asset": "t.196E183D-38F6-40DD-AB68-F629F8303C7D",
-          "in": 6.02,
+          "from": 2680,
+          "dur": 90,
+          "asset": "t.759BC0AF-9BCC-44CE-AECF-123339768A86",
+          "in": 6.19,
           "ref": {
-            "take": "196E183D-38F6-40DD-AB68-F629F8303C7D",
-            "a": 6.02
+            "take": "759BC0AF-9BCC-44CE-AECF-123339768A86",
+            "a": 6.19
           },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02",
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-6.19",
           "box": {
             "x": 0,
             "y": 150,
@@ -815,15 +835,15 @@
         },
         {
           "id": "c12",
-          "from": 2904,
-          "dur": 55,
+          "from": 2770,
+          "dur": 28,
           "asset": "t.ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
-          "in": 0.7,
+          "in": 1.85,
           "ref": {
             "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
-            "a": 0.7
+            "a": 1.85
           },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-0.7",
+          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-1.85",
           "box": {
             "x": 0,
             "y": 150,
@@ -833,7 +853,7 @@
         },
         {
           "id": "c13",
-          "from": 2959,
+          "from": 2798,
           "dur": 681,
           "asset": "t.ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
           "in": 2.82,
@@ -851,8 +871,8 @@
         },
         {
           "id": "c14",
-          "from": 3640,
-          "dur": 575,
+          "from": 3479,
+          "dur": 455,
           "asset": "t.815901F3-04F0-4FF3-8812-0258EBE63999",
           "in": 2.95,
           "ref": {
@@ -869,8 +889,26 @@
         },
         {
           "id": "c15",
-          "from": 4215,
-          "dur": 431,
+          "from": 3934,
+          "dur": 99,
+          "asset": "t.815901F3-04F0-4FF3-8812-0258EBE63999",
+          "in": 18.83,
+          "ref": {
+            "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+            "a": 18.83
+          },
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-18.83",
+          "box": {
+            "x": 0,
+            "y": 150,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c16",
+          "from": 4033,
+          "dur": 440,
           "asset": "t.A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
           "in": 1.31,
           "ref": {
@@ -886,8 +924,8 @@
           }
         },
         {
-          "id": "c16",
-          "from": 4646,
+          "id": "c17",
+          "from": 4473,
           "dur": 263,
           "asset": "t.5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6",
           "in": 1.57,
@@ -904,34 +942,16 @@
           }
         },
         {
-          "id": "c17",
-          "from": 4909,
-          "dur": 651,
+          "id": "c18",
+          "from": 4736,
+          "dur": 388,
           "asset": "t.CB1C677F-489B-44F0-81FF-C6A14B38C36D",
-          "in": 3.85,
+          "in": 4.26,
           "ref": {
             "take": "CB1C677F-489B-44F0-81FF-C6A14B38C36D",
-            "a": 3.85
+            "a": 4.26
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85",
-          "box": {
-            "x": 0,
-            "y": 150,
-            "w": 1080,
-            "h": 1920
-          }
-        },
-        {
-          "id": "c18",
-          "from": 5560,
-          "dur": 375,
-          "asset": "t.0F959E09-CAC3-4AFF-AF23-B737F5534097",
-          "in": 1.95,
-          "ref": {
-            "take": "0F959E09-CAC3-4AFF-AF23-B737F5534097",
-            "a": 1.95
-          },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95",
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26",
           "box": {
             "x": 0,
             "y": 150,
@@ -941,15 +961,51 @@
         },
         {
           "id": "c19",
-          "from": 5935,
-          "dur": 538,
+          "from": 5124,
+          "dur": 227,
+          "asset": "t.CB1C677F-489B-44F0-81FF-C6A14B38C36D",
+          "in": 17.97,
+          "ref": {
+            "take": "CB1C677F-489B-44F0-81FF-C6A14B38C36D",
+            "a": 17.97
+          },
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97",
+          "box": {
+            "x": 0,
+            "y": 150,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c20",
+          "from": 5351,
+          "dur": 362,
+          "asset": "t.0F959E09-CAC3-4AFF-AF23-B737F5534097",
+          "in": 2.37,
+          "ref": {
+            "take": "0F959E09-CAC3-4AFF-AF23-B737F5534097",
+            "a": 2.37
+          },
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37",
+          "box": {
+            "x": 0,
+            "y": 150,
+            "w": 1080,
+            "h": 1920
+          }
+        },
+        {
+          "id": "c21",
+          "from": 5713,
+          "dur": 486,
           "asset": "t.3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
-          "in": 2.7,
+          "in": 3.15,
           "ref": {
             "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
-            "a": 2.7
+            "a": 3.15
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7",
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15",
           "box": {
             "x": 0,
             "y": 150,
@@ -965,166 +1021,9 @@
       "name": "Stickers",
       "owner": "builder",
       "props": {},
-      "items": [
-        {
-          "id": "o2",
-          "from": 4843,
-          "dur": 88,
-          "ref": {
-            "overlay": 2
-          },
-          "anim": {
-            "scale": [
-              [
-                0.0,
-                0.3
-              ],
-              [
-                0.0167,
-                0.447
-              ],
-              [
-                0.0333,
-                0.5742
-              ],
-              [
-                0.05,
-                0.6842
-              ],
-              [
-                0.0667,
-                0.7775
-              ],
-              [
-                0.0833,
-                0.8549
-              ],
-              [
-                0.1,
-                0.9185
-              ],
-              [
-                0.1167,
-                0.9691
-              ],
-              [
-                0.1333,
-                1.0078
-              ],
-              [
-                0.15,
-                1.0361
-              ],
-              [
-                0.1667,
-                1.055
-              ],
-              [
-                0.1833,
-                1.0659
-              ],
-              [
-                0.2,
-                1.0699
-              ],
-              [
-                0.2167,
-                1.0683
-              ],
-              [
-                0.2333,
-                1.0623
-              ],
-              [
-                0.25,
-                1.0531
-              ],
-              [
-                0.2667,
-                1.042
-              ],
-              [
-                0.2833,
-                1.0302
-              ],
-              [
-                0.3,
-                1.0188
-              ],
-              [
-                0.3167,
-                1.0092
-              ],
-              [
-                0.3333,
-                1.0025
-              ],
-              [
-                0.35,
-                1.0
-              ],
-              [
-                2.72,
-                1.0
-              ],
-              [
-                2.7367,
-                0.9416
-              ],
-              [
-                2.7533,
-                0.8835
-              ],
-              [
-                2.77,
-                0.825
-              ],
-              [
-                2.7867,
-                0.7666
-              ],
-              [
-                2.8033,
-                0.7085
-              ],
-              [
-                2.82,
-                0.65
-              ],
-              [
-                2.8367,
-                0.5916
-              ],
-              [
-                2.8533,
-                0.5335
-              ],
-              [
-                2.87,
-                0.475
-              ],
-              [
-                2.8867,
-                0.4166
-              ],
-              [
-                2.9033,
-                0.3585
-              ],
-              [
-                2.92,
-                0.3
-              ]
-            ]
-          },
-          "asset": "m.ov2",
-          "box": {
-            "x": 662.3,
-            "y": 330.0,
-            "w": 315.5,
-            "h": 540.0
-          }
-        }
+      "items": [],
+      "removed": [
+        "{\"overlay\":2}"
       ]
     },
     {
@@ -1144,10 +1043,10 @@
             "overlay": 0
           },
           "box": {
-            "x": 540.0,
-            "y": 300.0,
+            "x": 540,
+            "y": 300,
             "anchor": "t",
-            "w": 940.0
+            "w": 940
           },
           "text": "פוב: אתה יושב ליד\nהחרדית של המשרד – חלק 2",
           "style": "pov",
@@ -1270,7 +1169,7 @@
         {
           "id": "s8",
           "from": 155,
-          "dur": 28,
+          "dur": 22,
           "text": "כי לעולם חסדו!",
           "ref": {
             "cap": "כי לעולם חסדו!",
@@ -1280,227 +1179,227 @@
         },
         {
           "id": "s9",
-          "from": 183,
-          "dur": 35,
+          "from": 177,
+          "dur": 28,
           "text": "שרולי שבר אתמול את",
           "ref": {
             "cap": "שרולי שבר אתמול את",
             "k": 9
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s10",
-          "from": 218,
+          "from": 205,
           "dur": 27,
           "text": "הרגל. היינו איתו במיון",
           "ref": {
             "cap": "הרגל. היינו איתו במיון",
             "k": 10
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s11",
-          "from": 245,
+          "from": 232,
           "dur": 26,
           "text": "עד אחת בלילה.",
           "ref": {
             "cap": "עד אחת בלילה.",
             "k": 11
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s12",
-          "from": 271,
+          "from": 258,
           "dur": 27,
           "text": "אבל תקשיבי איזה חסדי",
           "ref": {
             "cap": "אבל תקשיבי איזה חסדי",
             "k": 12
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s13",
-          "from": 298,
-          "dur": 51,
+          "from": 285,
+          "dur": 50,
           "text": "השם. אנחנו מגיעים למיון,",
           "ref": {
             "cap": "השם. אנחנו מגיעים למיון,",
             "k": 13
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s14",
-          "from": 349,
-          "dur": 42,
+          "from": 335,
+          "dur": 43,
           "text": "אברהם משה מחפש חניה,",
           "ref": {
             "cap": "אברהם משה מחפש חניה,",
             "k": 14
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s15",
-          "from": 391,
+          "from": 378,
           "dur": 24,
           "text": "אין חניה,",
           "ref": {
             "cap": "אין חניה,",
             "k": 15
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s16",
-          "from": 415,
-          "dur": 32,
+          "from": 402,
+          "dur": 31,
           "text": "מסתובב, מסתובב...",
           "ref": {
             "cap": "מסתובב, מסתובב...",
             "k": 16
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s17",
-          "from": 447,
-          "dur": 38,
+          "from": 433,
+          "dur": 39,
           "text": "פתאום, בדיוק כשאנחנו מגיעים",
           "ref": {
             "cap": "פתאום, בדיוק כשאנחנו מגיעים",
             "k": 17
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s18",
-          "from": 485,
-          "dur": 64,
+          "from": 472,
+          "dur": 63,
           "text": "לחניון... מה אנחנו רואים?",
           "ref": {
             "cap": "לחניון... מה אנחנו רואים?",
             "k": 18
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s19",
-          "from": 555,
+          "from": 541,
           "dur": 36,
           "text": "מישהו יוצא עם האוטו!",
           "ref": {
             "cap": "מישהו יוצא עם האוטו!",
             "k": 19
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s20",
-          "from": 591,
+          "from": 577,
           "dur": 39,
           "text": "ממש ליד הכניסה למיון!",
           "ref": {
             "cap": "ממש ליד הכניסה למיון!",
             "k": 20
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s21",
-          "from": 630,
-          "dur": 31,
+          "from": 616,
+          "dur": 32,
           "text": "את קולטת?!",
           "ref": {
             "cap": "את קולטת?!",
             "k": 21
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s22",
-          "from": 661,
-          "dur": 25,
+          "from": 648,
+          "dur": 24,
           "text": "תחשבי אם הוא לא",
           "ref": {
             "cap": "תחשבי אם הוא לא",
             "k": 22
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s23",
-          "from": 686,
+          "from": 672,
           "dur": 16,
           "text": "היה יוצא!",
           "ref": {
             "cap": "היה יוצא!",
             "k": 23
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s24",
-          "from": 702,
-          "dur": 26,
+          "from": 688,
+          "dur": 27,
           "text": "איפה היינו מחנים?",
           "ref": {
             "cap": "איפה היינו מחנים?",
             "k": 24
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s25",
-          "from": 728,
-          "dur": 20,
+          "from": 715,
+          "dur": 19,
           "text": "איך היינו הולכים עם",
           "ref": {
             "cap": "איך היינו הולכים עם",
             "k": 25
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s26",
-          "from": 748,
+          "from": 734,
           "dur": 37,
           "text": "שרולי עם הרגל השבורה?",
           "ref": {
             "cap": "שרולי עם הרגל השבורה?",
             "k": 26
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s27",
-          "from": 785,
+          "from": 771,
           "dur": 69,
           "text": "וואו. איזו השגחה פרטית,",
           "ref": {
             "cap": "וואו. איזו השגחה פרטית,",
             "k": 27
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s28",
-          "from": 854,
-          "dur": 57,
+          "from": 840,
+          "dur": 64,
           "text": "באמת, בכל רגע ורגע.",
           "ref": {
             "cap": "באמת, בכל רגע ורגע.",
             "k": 28
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "s29",
-          "from": 911,
+          "from": 906,
           "dur": 23,
           "text": "הבחירות? לא כל כך",
           "ref": {
@@ -1511,7 +1410,7 @@
         },
         {
           "id": "s30",
-          "from": 934,
+          "from": 929,
           "dur": 35,
           "text": "שמעתי, ראיתי רק שיהדות",
           "ref": {
@@ -1522,7 +1421,7 @@
         },
         {
           "id": "s31",
-          "from": 969,
+          "from": 964,
           "dur": 36,
           "text": "התורה שבעה-שמונה מנדטים,",
           "ref": {
@@ -1533,7 +1432,7 @@
         },
         {
           "id": "s32",
-          "from": 1005,
+          "from": 1000,
           "dur": 19,
           "text": "ברוך השם.",
           "ref": {
@@ -1544,7 +1443,7 @@
         },
         {
           "id": "s33",
-          "from": 1024,
+          "from": 1019,
           "dur": 43,
           "text": "אברהם משה אמר שהרב",
           "ref": {
@@ -1555,7 +1454,7 @@
         },
         {
           "id": "s34",
-          "from": 1067,
+          "from": 1062,
           "dur": 30,
           "text": "אמר עכשיו שצריך הרבה",
           "ref": {
@@ -1566,7 +1465,7 @@
         },
         {
           "id": "s35",
-          "from": 1097,
+          "from": 1092,
           "dur": 29,
           "text": "סייעתא דשמיא.",
           "ref": {
@@ -1577,7 +1476,7 @@
         },
         {
           "id": "s36",
-          "from": 1126,
+          "from": 1121,
           "dur": 38,
           "text": "אנחנו את ההשתדלות שלנו",
           "ref": {
@@ -1588,7 +1487,7 @@
         },
         {
           "id": "s37",
-          "from": 1164,
+          "from": 1159,
           "dur": 52,
           "text": "עשינו, בעזרת השם שיהיו",
           "ref": {
@@ -1599,7 +1498,7 @@
         },
         {
           "id": "s38",
-          "from": 1216,
+          "from": 1211,
           "dur": 36,
           "text": "שלוחים טובים.",
           "ref": {
@@ -1610,1447 +1509,1437 @@
         },
         {
           "id": "s_bless",
-          "from": 1250,
-          "dur": 45,
+          "from": 1247,
+          "dur": 40,
           "text": "בורא מיני מזונות",
           "user": true
         },
         {
           "id": "s39",
-          "from": 1346,
-          "dur": 42,
-          "text": "מה? סליחה,",
+          "from": 1287,
+          "dur": 53,
+          "text": "סליחה, תתכבדי,",
           "ref": {
-            "cap": "מה? סליחה,",
+            "cap": "סליחה, תתכבדי,",
             "k": 39
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s40",
-          "from": 1388,
-          "dur": 22,
-          "text": "בטח, תתכבדי.",
+          "from": 1340,
+          "dur": 36,
+          "text": "בטח. סליחה שלא הצעתי.",
           "ref": {
-            "cap": "בטח, תתכבדי.",
+            "cap": "בטח. סליחה שלא הצעתי.",
             "k": 40
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s41",
-          "from": 1410,
-          "dur": 27,
-          "text": "סליחה שלא הצעתי.",
-          "ref": {
-            "cap": "סליחה שלא הצעתי.",
-            "k": 41
-          },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
-        },
-        {
-          "id": "s42",
-          "from": 1437,
-          "dur": 23,
+          "from": 1376,
+          "dur": 26,
           "text": "זה עיגוליות של ברכת",
           "ref": {
             "cap": "זה עיגוליות של ברכת",
+            "k": 41
+          },
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
+        },
+        {
+          "id": "s42",
+          "from": 1402,
+          "dur": 33,
+          "text": "השפע. אברהם משה הביא",
+          "ref": {
+            "cap": "השפע. אברהם משה הביא",
             "k": 42
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s43",
-          "from": 1460,
-          "dur": 46,
-          "text": "השפע. אברהם משה היה",
+          "from": 1435,
+          "dur": 27,
+          "text": "אתמול, הוא היה אתמול",
           "ref": {
-            "cap": "השפע. אברהם משה היה",
+            "cap": "אתמול, הוא היה אתמול",
             "k": 43
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s44",
-          "from": 1506,
-          "dur": 24,
-          "text": "אתמול בשפע עד.",
+          "from": 1462,
+          "dur": 19,
+          "text": "בשפע עד.",
           "ref": {
-            "cap": "אתמול בשפע עד.",
+            "cap": "בשפע עד.",
             "k": 44
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s45",
-          "from": 1530,
-          "dur": 22,
+          "from": 1481,
+          "dur": 29,
           "text": "זה פרווה!",
           "ref": {
             "cap": "זה פרווה!",
             "k": 45
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s46",
-          "from": 1552,
-          "dur": 23,
+          "from": 1510,
+          "dur": 22,
           "text": "היית מאמינה?",
           "ref": {
             "cap": "היית מאמינה?",
             "k": 46
           },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "s47",
-          "from": 1575,
-          "dur": 33,
+          "from": 1532,
+          "dur": 21,
           "text": "וואו, איזה דברים יש",
           "ref": {
             "cap": "וואו, איזה דברים יש",
             "k": 47
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s48",
-          "from": 1608,
-          "dur": 25,
+          "from": 1553,
+          "dur": 26,
           "text": "שם! איזה שפע!",
           "ref": {
             "cap": "שם! איזה שפע!",
             "k": 48
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s49",
-          "from": 1633,
+          "from": 1579,
           "dur": 15,
           "text": "את לא מבינה,",
           "ref": {
             "cap": "את לא מבינה,",
             "k": 49
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s50",
-          "from": 1648,
+          "from": 1594,
           "dur": 21,
           "text": "הם הוציאו עכשיו משחק",
           "ref": {
             "cap": "הם הוציאו עכשיו משחק",
             "k": 50
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s51",
-          "from": 1669,
-          "dur": 41,
+          "from": 1615,
+          "dur": 40,
           "text": "לילדים שנקרא ״אבני בניין״.",
           "ref": {
             "cap": "לילדים שנקרא ״אבני בניין״.",
             "k": 51
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s52",
-          "from": 1710,
-          "dur": 29,
+          "from": 1655,
+          "dur": 30,
           "text": "זה כמו לגו,",
           "ref": {
             "cap": "זה כמו לגו,",
             "k": 52
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s53",
-          "from": 1739,
+          "from": 1685,
           "dur": 19,
           "text": "רק בונים עולם של",
           "ref": {
             "cap": "רק בונים עולם של",
             "k": 53
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s54",
-          "from": 1758,
-          "dur": 39,
+          "from": 1704,
+          "dur": 38,
           "text": "תורה. אברהם משה לא",
           "ref": {
             "cap": "תורה. אברהם משה לא",
             "k": 54
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s55",
-          "from": 1797,
-          "dur": 25,
+          "from": 1742,
+          "dur": 26,
           "text": "מרשה לנו לגו בבית.",
           "ref": {
             "cap": "מרשה לנו לגו בבית.",
             "k": 55
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s56",
-          "from": 1822,
+          "from": 1768,
           "dur": 27,
           "text": "הוא אומר שהרב אמר",
           "ref": {
             "cap": "הוא אומר שהרב אמר",
             "k": 56
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s57",
-          "from": 1849,
-          "dur": 62,
-          "text": "שלגו זה מלשון לגויים.",
+          "from": 1795,
+          "dur": 61,
+          "text": "שלגו זה מלשון לגו-יים.",
           "ref": {
-            "cap": "שלגו זה מלשון לגויים.",
+            "cap": "שלגו זה מלשון לגו-יים.",
             "k": 57
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s58",
-          "from": 1911,
-          "dur": 22,
+          "from": 1856,
+          "dur": 23,
           "text": "אני לא מתווכחת,",
           "ref": {
             "cap": "אני לא מתווכחת,",
             "k": 58
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s59",
-          "from": 1933,
-          "dur": 32,
+          "from": 1879,
+          "dur": 20,
           "text": "ברוך השם.",
           "ref": {
             "cap": "ברוך השם.",
             "k": 59
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
           "id": "s60",
-          "from": 1971,
-          "dur": 39,
+          "from": 1899,
+          "dur": 29,
           "text": "נכון שלא מרגישים שזה",
           "ref": {
             "cap": "נכון שלא מרגישים שזה",
             "k": 60
           },
-          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.05"
+          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.98"
         },
         {
           "id": "s61",
-          "from": 2010,
-          "dur": 17,
+          "from": 1928,
+          "dur": 28,
           "text": "פרווה?",
           "ref": {
             "cap": "פרווה?",
             "k": 61
           },
-          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.05"
+          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.98"
         },
         {
           "id": "s62",
-          "from": 2027,
-          "dur": 42,
-          "text": "לא, אני חושבת שהבעיה",
-          "ref": {
-            "cap": "לא, אני חושבת שהבעיה",
-            "k": 62
-          },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
-        },
-        {
-          "id": "s63",
-          "from": 2069,
+          "from": 1976,
           "dur": 32,
           "text": "היא בשיטה שקוראת למודל",
           "ref": {
             "cap": "היא בשיטה שקוראת למודל",
-            "k": 63
+            "k": 62
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17"
         },
         {
-          "id": "s64",
-          "from": 2101,
+          "id": "s63",
+          "from": 2008,
           "dur": 30,
           "text": "השפה. הוא לא מחזיר",
           "ref": {
             "cap": "השפה. הוא לא מחזיר",
-            "k": 64
+            "k": 63
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17"
         },
         {
-          "id": "s65",
-          "from": 2131,
+          "id": "s64",
+          "from": 2038,
           "dur": 54,
           "text": "את התשובה במבנה שביקשנו,",
           "ref": {
             "cap": "את התשובה במבנה שביקשנו,",
-            "k": 65
+            "k": 64
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17"
         },
         {
-          "id": "s66",
-          "from": 2185,
+          "id": "s65",
+          "from": 2092,
           "dur": 35,
           "text": "אז הוספתי הנחיית מערכת",
           "ref": {
             "cap": "אז הוספתי הנחיית מערכת",
-            "k": 66
+            "k": 65
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17"
         },
         {
-          "id": "s67",
-          "from": 2220,
-          "dur": 31,
+          "id": "s66",
+          "from": 2127,
+          "dur": 22,
           "text": "יותר מפורשת.",
           "ref": {
             "cap": "יותר מפורשת.",
-            "k": 67
+            "k": 66
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17"
         },
         {
-          "id": "s68",
-          "from": 2251,
-          "dur": 33,
+          "id": "s67",
+          "from": 2149,
+          "dur": 24,
           "text": "לא! חס וחלילה,",
           "ref": {
             "cap": "לא! חס וחלילה,",
-            "k": 68
+            "k": 67
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s69",
-          "from": 2284,
-          "dur": 20,
+          "id": "s68",
+          "from": 2173,
+          "dur": 19,
           "text": "חס ושלום!",
           "ref": {
             "cap": "חס ושלום!",
-            "k": 69
+            "k": 68
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s70",
-          "from": 2304,
+          "id": "s69",
+          "from": 2192,
           "dur": 33,
           "text": "אני לא אומרת שיותם",
           "ref": {
             "cap": "אני לא אומרת שיותם",
-            "k": 70
+            "k": 69
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s71",
-          "from": 2337,
+          "id": "s70",
+          "from": 2225,
           "dur": 34,
           "text": "טועה. אני רק אוחזת",
           "ref": {
             "cap": "טועה. אני רק אוחזת",
-            "k": 71
+            "k": 70
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s72",
-          "from": 2371,
-          "dur": 54,
+          "id": "s71",
+          "from": 2259,
+          "dur": 55,
           "text": "בדעה שיש איזושהי בעיה",
           "ref": {
             "cap": "בדעה שיש איזושהי בעיה",
-            "k": 72
+            "k": 71
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s73",
-          "from": 2425,
+          "id": "s72",
+          "from": 2314,
           "dur": 24,
           "text": "במימוש הזה,",
           "ref": {
             "cap": "במימוש הזה,",
-            "k": 73
+            "k": 72
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s74",
-          "from": 2449,
-          "dur": 35,
+          "id": "s73",
+          "from": 2338,
+          "dur": 34,
           "text": "שהוולידציה לא עוברת כמו",
           "ref": {
             "cap": "שהוולידציה לא עוברת כמו",
-            "k": 74
+            "k": 73
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s75",
-          "from": 2484,
+          "id": "s74",
+          "from": 2372,
           "dur": 44,
           "text": "שצריך. אבל אם יותם",
           "ref": {
             "cap": "שצריך. אבל אם יותם",
-            "k": 75
+            "k": 74
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s76",
-          "from": 2528,
+          "id": "s75",
+          "from": 2416,
           "dur": 31,
           "text": "מעדיף שנישאר עם המימוש",
           "ref": {
             "cap": "מעדיף שנישאר עם המימוש",
-            "k": 76
+            "k": 75
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s77",
-          "from": 2559,
+          "id": "s76",
+          "from": 2447,
           "dur": 24,
           "text": "הקודם, אז אין שום",
           "ref": {
             "cap": "הקודם, אז אין שום",
-            "k": 77
+            "k": 76
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s78",
-          "from": 2583,
-          "dur": 19,
+          "id": "s77",
+          "from": 2471,
+          "dur": 20,
           "text": "בעיה מבחינתי.",
           "ref": {
             "cap": "בעיה מבחינתי.",
-            "k": 78
+            "k": 77
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s79",
-          "from": 2602,
-          "dur": 28,
+          "id": "s78",
+          "from": 2491,
+          "dur": 27,
           "text": "אני פשוט אוסיף יומני",
           "ref": {
             "cap": "אני פשוט אוסיף יומני",
-            "k": 79
+            "k": 78
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s80",
-          "from": 2630,
+          "id": "s79",
+          "from": 2518,
           "dur": 46,
           "text": "רישום, שנוכל לפחות לראות",
           "ref": {
             "cap": "רישום, שנוכל לפחות לראות",
-            "k": 80
+            "k": 79
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
         },
         {
-          "id": "s81",
-          "from": 2676,
+          "id": "s80",
+          "from": 2564,
           "dur": 32,
           "text": "למה זה נופל.",
           "ref": {
             "cap": "למה זה נופל.",
+            "k": 80
+          },
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
+        },
+        {
+          "id": "s_grace1",
+          "from": 2613,
+          "dur": 66,
+          "text": "השם עוז לעמו ייתן,",
+          "user": true
+        },
+        {
+          "id": "s_grace2",
+          "from": 2680,
+          "dur": 26,
+          "text": "השם יברך את עמו בשלום.",
+          "user": true
+        },
+        {
+          "id": "s81",
+          "from": 2706,
+          "dur": 24,
+          "text": "כן, סליחה,",
+          "ref": {
+            "cap": "כן, סליחה,",
             "k": 81
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-6.19",
+          "user": true
         },
         {
           "id": "s82",
-          "from": 2721,
-          "dur": 52,
-          "text": "השם עוז לעמו ייתן,",
+          "from": 2730,
+          "dur": 21,
+          "text": "הייתי בברכת המזון.",
           "ref": {
-            "cap": "השם עוז לעמו ייתן,",
+            "cap": "הייתי בברכת המזון.",
             "k": 82
           },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02",
-          "user": true
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-6.19"
         },
         {
           "id": "s83",
-          "from": 2775,
-          "dur": 64,
-          "text": "השם יברך את עמו בשלום.",
-          "ref": {
-            "cap": "השם יברך את עמו",
-            "k": 83
-          },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02",
-          "user": true
-        },
-        {
-          "id": "s84",
-          "from": 2840,
-          "dur": 7,
-          "text": "כן,",
-          "ref": {
-            "cap": "בשלום. כן,",
-            "k": 84
-          },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02",
-          "user": true
-        },
-        {
-          "id": "s85",
-          "from": 2847,
-          "dur": 32,
-          "text": "סליחה, הייתי בברכת המזון.",
-          "ref": {
-            "cap": "סליחה, הייתי בברכת המזון.",
-            "k": 85
-          },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02"
-        },
-        {
-          "id": "s86",
-          "from": 2879,
-          "dur": 28,
+          "from": 2751,
+          "dur": 27,
           "text": "מה רצית?",
           "ref": {
             "cap": "מה רצית?",
-            "k": 86
+            "k": 83
           },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02"
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-6.19"
         },
         {
-          "id": "s87",
-          "from": 2958,
-          "dur": 15,
+          "id": "s84",
+          "from": 2789,
+          "dur": 23,
           "text": "כן, ברכי,",
           "ref": {
             "cap": "כן, ברכי,",
-            "k": 87
+            "k": 84
           },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-0.7"
+          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-1.85"
         },
         {
-          "id": "s88",
-          "from": 2973,
+          "id": "s85",
+          "from": 2812,
           "dur": 43,
           "text": "חמודה, מה קרה?",
           "ref": {
             "cap": "חמודה, מה קרה?",
+            "k": 85
+          },
+          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
+        },
+        {
+          "id": "s86",
+          "from": 2860,
+          "dur": 34,
+          "text": "מלכי איפה?",
+          "ref": {
+            "cap": "מלכי איפה?",
+            "k": 86
+          },
+          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
+        },
+        {
+          "id": "s87",
+          "from": 2894,
+          "dur": 34,
+          "text": "על השיש?",
+          "ref": {
+            "cap": "על השיש?",
+            "k": 87
+          },
+          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
+        },
+        {
+          "id": "s88",
+          "from": 2928,
+          "dur": 24,
+          "text": "אז תורידי אותה,",
+          "ref": {
+            "cap": "אז תורידי אותה,",
             "k": 88
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s89",
-          "from": 3021,
-          "dur": 34,
-          "text": "מלכי איפה?",
+          "from": 2952,
+          "dur": 38,
+          "text": "מתוקה. לא,",
           "ref": {
-            "cap": "מלכי איפה?",
+            "cap": "מתוקה. לא,",
             "k": 89
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s90",
-          "from": 3055,
-          "dur": 34,
-          "text": "על השיש?",
+          "from": 2990,
+          "dur": 33,
+          "text": "אל תמשכי אותה מהיד!",
           "ref": {
-            "cap": "על השיש?",
+            "cap": "אל תמשכי אותה מהיד!",
             "k": 90
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s91",
-          "from": 3089,
-          "dur": 24,
-          "text": "אז תורידי אותה,",
+          "from": 3023,
+          "dur": 27,
+          "text": "מספיק היינו עם שרולי",
           "ref": {
-            "cap": "אז תורידי אותה,",
+            "cap": "מספיק היינו עם שרולי",
             "k": 91
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s92",
-          "from": 3113,
-          "dur": 38,
-          "text": "מתוקה. לא,",
+          "from": 3050,
+          "dur": 30,
+          "text": "במיון, אני לא צריכה",
           "ref": {
-            "cap": "מתוקה. לא,",
+            "cap": "במיון, אני לא צריכה",
             "k": 92
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s93",
-          "from": 3151,
-          "dur": 33,
-          "text": "אל תמשכי אותה מהיד!",
+          "from": 3080,
+          "dur": 23,
+          "text": "שוב פעם שהיא תפרוק",
           "ref": {
-            "cap": "אל תמשכי אותה מהיד!",
+            "cap": "שוב פעם שהיא תפרוק",
             "k": 93
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s94",
-          "from": 3184,
-          "dur": 27,
-          "text": "מספיק היינו עם שרולי",
+          "from": 3103,
+          "dur": 31,
+          "text": "לי את הכתף.",
           "ref": {
-            "cap": "מספיק היינו עם שרולי",
+            "cap": "לי את הכתף.",
             "k": 94
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s95",
-          "from": 3211,
-          "dur": 30,
-          "text": "במיון, אני לא צריכה",
+          "from": 3134,
+          "dur": 39,
+          "text": "כן, זה הוולידציה.",
           "ref": {
-            "cap": "במיון, אני לא צריכה",
+            "cap": "כן, זה הוולידציה.",
             "k": 95
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s96",
-          "from": 3241,
-          "dur": 23,
-          "text": "שוב פעם שהיא תפרוק",
+          "from": 3184,
+          "dur": 37,
+          "text": "צריך לבדוק את הטוקן",
           "ref": {
-            "cap": "שוב פעם שהיא תפרוק",
+            "cap": "צריך לבדוק את הטוקן",
             "k": 96
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s97",
-          "from": 3264,
-          "dur": 31,
-          "text": "לי את הכתף.",
+          "from": 3221,
+          "dur": 32,
+          "text": "לפני שהוא עובר לשרת.",
           "ref": {
-            "cap": "לי את הכתף.",
+            "cap": "לפני שהוא עובר לשרת.",
             "k": 97
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s98",
-          "from": 3295,
-          "dur": 39,
-          "text": "כן, זה הוולידציה.",
+          "from": 3253,
+          "dur": 27,
+          "text": "זה בשורה...",
           "ref": {
-            "cap": "כן, זה הוולידציה.",
+            "cap": "זה בשורה...",
             "k": 98
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s99",
-          "from": 3345,
-          "dur": 37,
-          "text": "צריך לבדוק את הטוקן",
+          "from": 3280,
+          "dur": 63,
+          "text": "רגע... 84!",
           "ref": {
-            "cap": "צריך לבדוק את הטוקן",
+            "cap": "רגע... 84!",
             "k": 99
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s100",
-          "from": 3382,
-          "dur": 32,
-          "text": "לפני שהוא עובר לשרת.",
+          "from": 3355,
+          "dur": 31,
+          "text": "אם לא נגעו בזה.",
           "ref": {
-            "cap": "לפני שהוא עובר לשרת.",
+            "cap": "אם לא נגעו בזה.",
             "k": 100
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s101",
-          "from": 3414,
-          "dur": 27,
-          "text": "זה בשורה...",
+          "from": 3386,
+          "dur": 41,
+          "text": "תבדוק שדסי לא שינתה",
           "ref": {
-            "cap": "זה בשורה...",
+            "cap": "תבדוק שדסי לא שינתה",
             "k": 101
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s102",
-          "from": 3441,
-          "dur": 63,
-          "text": "רגע... 84!",
+          "from": 3427,
+          "dur": 12,
+          "text": "את זה,",
           "ref": {
-            "cap": "רגע... 84!",
+            "cap": "את זה,",
             "k": 102
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s103",
-          "from": 3516,
-          "dur": 31,
-          "text": "אם לא נגעו בזה.",
+          "from": 3439,
+          "dur": 34,
+          "text": "אני יודעת שהיא עבדה",
           "ref": {
-            "cap": "אם לא נגעו בזה.",
+            "cap": "אני יודעת שהיא עבדה",
             "k": 103
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s104",
-          "from": 3547,
-          "dur": 41,
-          "text": "תבדוק שדסי לא שינתה",
+          "from": 3473,
+          "dur": 36,
+          "text": "על זה.",
           "ref": {
-            "cap": "תבדוק שדסי לא שינתה",
+            "cap": "על זה.",
             "k": 104
           },
           "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
         },
         {
           "id": "s105",
-          "from": 3588,
-          "dur": 12,
-          "text": "את זה,",
-          "ref": {
-            "cap": "את זה,",
-            "k": 105
-          },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
-        },
-        {
-          "id": "s106",
-          "from": 3600,
-          "dur": 34,
-          "text": "אני יודעת שהיא עבדה",
-          "ref": {
-            "cap": "אני יודעת שהיא עבדה",
-            "k": 106
-          },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
-        },
-        {
-          "id": "s107",
-          "from": 3634,
-          "dur": 36,
-          "text": "על זה.",
-          "ref": {
-            "cap": "על זה.",
-            "k": 107
-          },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-2.82"
-        },
-        {
-          "id": "s108",
-          "from": 3670,
+          "from": 3509,
           "dur": 14,
           "text": "אני איתך,",
           "ref": {
             "cap": "אני איתך,",
+            "k": 105
+          },
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
+        },
+        {
+          "id": "s106",
+          "from": 3523,
+          "dur": 21,
+          "text": "מתוקה שלי.",
+          "ref": {
+            "cap": "מתוקה שלי.",
+            "k": 106
+          },
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
+        },
+        {
+          "id": "s107",
+          "from": 3544,
+          "dur": 28,
+          "text": "פשוט מישהו שאל רגע",
+          "ref": {
+            "cap": "פשוט מישהו שאל רגע",
+            "k": 107
+          },
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
+        },
+        {
+          "id": "s108",
+          "from": 3572,
+          "dur": 47,
+          "text": "את אימא משהו בעבודה.",
+          "ref": {
+            "cap": "את אימא משהו בעבודה.",
             "k": 108
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s109",
-          "from": 3684,
-          "dur": 21,
-          "text": "מתוקה שלי.",
+          "from": 3619,
+          "dur": 45,
+          "text": "מה שרולי עושה?",
           "ref": {
-            "cap": "מתוקה שלי.",
+            "cap": "מה שרולי עושה?",
             "k": 109
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s110",
-          "from": 3705,
-          "dur": 28,
-          "text": "פשוט מישהו שאל רגע",
+          "from": 3664,
+          "dur": 25,
+          "text": "מטפס על הארון?",
           "ref": {
-            "cap": "פשוט מישהו שאל רגע",
+            "cap": "מטפס על הארון?",
             "k": 110
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s111",
-          "from": 3733,
-          "dur": 47,
-          "text": "את אימא משהו בעבודה.",
+          "from": 3689,
+          "dur": 36,
+          "text": "עם הגבס?",
           "ref": {
-            "cap": "את אימא משהו בעבודה.",
+            "cap": "עם הגבס?",
             "k": 111
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s112",
-          "from": 3780,
-          "dur": 45,
-          "text": "מה שרולי עושה?",
+          "from": 3733,
+          "dur": 40,
+          "text": "מחפש את העיגוליות?",
           "ref": {
-            "cap": "מה שרולי עושה?",
+            "cap": "מחפש את העיגוליות?",
             "k": 112
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s113",
-          "from": 3825,
-          "dur": 25,
-          "text": "מטפס על הארון?",
+          "from": 3773,
+          "dur": 28,
+          "text": "אבל הוא בשרי,",
           "ref": {
-            "cap": "מטפס על הארון?",
+            "cap": "אבל הוא בשרי,",
             "k": 113
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s114",
-          "from": 3850,
-          "dur": 36,
-          "text": "עם הגבס?",
+          "from": 3801,
+          "dur": 22,
+          "text": "לא? אה,",
           "ref": {
-            "cap": "עם הגבס?",
+            "cap": "לא? אה,",
             "k": 114
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s115",
-          "from": 3894,
-          "dur": 40,
-          "text": "מחפש את העיגוליות?",
+          "from": 3823,
+          "dur": 29,
+          "text": "זה בכלל פרווה,",
           "ref": {
-            "cap": "מחפש את העיגוליות?",
+            "cap": "זה בכלל פרווה,",
             "k": 115
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s116",
-          "from": 3934,
-          "dur": 28,
-          "text": "אבל הוא בשרי,",
+          "from": 3852,
+          "dur": 22,
+          "text": "נכון! את רואה?",
           "ref": {
-            "cap": "אבל הוא בשרי,",
+            "cap": "נכון! את רואה?",
             "k": 116
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s117",
-          "from": 3962,
-          "dur": 22,
-          "text": "לא? אה,",
+          "from": 3874,
+          "dur": 26,
+          "text": "זה כל כך טעים",
           "ref": {
-            "cap": "לא? אה,",
+            "cap": "זה כל כך טעים",
             "k": 117
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s118",
-          "from": 3984,
-          "dur": 29,
-          "text": "זה בכלל פרווה,",
+          "from": 3900,
+          "dur": 22,
+          "text": "שלא שמים לב שזה",
           "ref": {
-            "cap": "זה בכלל פרווה,",
+            "cap": "שלא שמים לב שזה",
             "k": 118
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s119",
-          "from": 4013,
-          "dur": 22,
-          "text": "נכון! את רואה?",
+          "from": 3922,
+          "dur": 40,
+          "text": "פרווה. תגידי לו שלקחתי",
           "ref": {
-            "cap": "נכון! את רואה?",
+            "cap": "פרווה. תגידי לו שלקחתי",
             "k": 119
           },
           "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
         },
         {
           "id": "s120",
-          "from": 4035,
-          "dur": 26,
-          "text": "זה כל כך טעים",
-          "ref": {
-            "cap": "זה כל כך טעים",
-            "k": 120
-          },
-          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
-        },
-        {
-          "id": "s121",
-          "from": 4061,
-          "dur": 22,
-          "text": "שלא שמים לב שזה",
-          "ref": {
-            "cap": "שלא שמים לב שזה",
-            "k": 121
-          },
-          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
-        },
-        {
-          "id": "s122",
-          "from": 4083,
-          "dur": 61,
-          "text": "פרווה. תגידי לו שלקחתי",
-          "ref": {
-            "cap": "פרווה. תגידי לו שלקחתי",
-            "k": 122
-          },
-          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
-        },
-        {
-          "id": "s123",
-          "from": 4144,
-          "dur": 15,
+          "from": 3962,
+          "dur": 14,
           "text": "אותן למשרד.",
           "ref": {
             "cap": "אותן למשרד.",
-            "k": 123
+            "k": 120
           },
-          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-18.83"
         },
         {
-          "id": "s124",
-          "from": 4159,
-          "dur": 31,
+          "id": "s121",
+          "from": 3976,
+          "dur": 32,
           "text": "ושלא יטפס לי עם",
           "ref": {
             "cap": "ושלא יטפס לי עם",
-            "k": 124
+            "k": 121
           },
-          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-18.83"
         },
         {
-          "id": "s125",
-          "from": 4190,
+          "id": "s122",
+          "from": 4008,
           "dur": 25,
           "text": "רגל שבורה.",
           "ref": {
             "cap": "רגל שבורה.",
-            "k": 125
+            "k": 122
           },
-          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-2.95"
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-18.83"
         },
         {
-          "id": "s126",
-          "from": 4215,
+          "id": "s123",
+          "from": 4033,
           "dur": 41,
           "text": "מי בוכה שם?",
           "ref": {
             "cap": "מי בוכה שם?",
+            "k": 123
+          },
+          "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
+        },
+        {
+          "id": "s124",
+          "from": 4075,
+          "dur": 44,
+          "text": "יענקי? מה קרה?",
+          "ref": {
+            "cap": "יענקי? מה קרה?",
+            "k": 124
+          },
+          "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
+        },
+        {
+          "id": "s125",
+          "from": 4119,
+          "dur": 48,
+          "text": "דרך על האבני בניין?",
+          "ref": {
+            "cap": "דרך על האבני בניין?",
+            "k": 125
+          },
+          "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
+        },
+        {
+          "id": "s126",
+          "from": 4167,
+          "dur": 51,
+          "text": "אני ביקשתי ממנו לאסוף",
+          "ref": {
+            "cap": "אני ביקשתי ממנו לאסוף",
             "k": 126
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s127",
-          "from": 4257,
-          "dur": 44,
-          "text": "יענקי? מה קרה?",
+          "from": 4218,
+          "dur": 23,
+          "text": "את זה אתמול!",
           "ref": {
-            "cap": "יענקי? מה קרה?",
+            "cap": "את זה אתמול!",
             "k": 127
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s128",
-          "from": 4301,
-          "dur": 48,
-          "text": "דרך על האבני בניין?",
+          "from": 4241,
+          "dur": 34,
+          "text": "זה מה שקורה.",
           "ref": {
-            "cap": "דרך על האבני בניין?",
+            "cap": "זה מה שקורה.",
             "k": 128
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s129",
-          "from": 4349,
-          "dur": 51,
-          "text": "אני ביקשתי ממנו לאסוף",
+          "from": 4277,
+          "dur": 27,
+          "text": "טוב, תעזרי לו,",
           "ref": {
-            "cap": "אני ביקשתי ממנו לאסוף",
+            "cap": "טוב, תעזרי לו,",
             "k": 129
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s130",
-          "from": 4400,
-          "dur": 23,
-          "text": "את זה אתמול!",
+          "from": 4304,
+          "dur": 45,
+          "text": "מתוקה. ושרולי?",
           "ref": {
-            "cap": "את זה אתמול!",
+            "cap": "מתוקה. ושרולי?",
             "k": 130
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s131",
-          "from": 4423,
-          "dur": 34,
-          "text": "זה מה שקורה.",
+          "from": 4349,
+          "dur": 44,
+          "text": "צריך עזרה להתקלח?",
           "ref": {
-            "cap": "זה מה שקורה.",
+            "cap": "צריך עזרה להתקלח?",
             "k": 131
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s132",
-          "from": 4459,
-          "dur": 27,
-          "text": "טוב, תעזרי לו,",
+          "from": 4393,
+          "dur": 31,
+          "text": "איפה אבא?",
           "ref": {
-            "cap": "טוב, תעזרי לו,",
+            "cap": "איפה אבא?",
             "k": 132
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s133",
-          "from": 4486,
-          "dur": 45,
-          "text": "מתוקה. ושרולי?",
+          "from": 4424,
+          "dur": 49,
+          "text": "עוד לא חזר מהכולל?",
           "ref": {
-            "cap": "מתוקה. ושרולי?",
+            "cap": "עוד לא חזר מהכולל?",
             "k": 133
           },
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
           "id": "s134",
-          "from": 4531,
-          "dur": 44,
-          "text": "צריך עזרה להתקלח?",
-          "ref": {
-            "cap": "צריך עזרה להתקלח?",
-            "k": 134
-          },
-          "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
-        },
-        {
-          "id": "s135",
-          "from": 4575,
-          "dur": 31,
-          "text": "איפה אבא?",
-          "ref": {
-            "cap": "איפה אבא?",
-            "k": 135
-          },
-          "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
-        },
-        {
-          "id": "s136",
-          "from": 4606,
-          "dur": 40,
-          "text": "עוד לא חזר מהכולל?",
-          "ref": {
-            "cap": "עוד לא חזר מהכולל?",
-            "k": 136
-          },
-          "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
-        },
-        {
-          "id": "s137",
-          "from": 4646,
+          "from": 4473,
           "dur": 31,
           "text": "טוב, תנסי אצל ר'",
           "ref": {
             "cap": "טוב, תנסי אצל ר'",
+            "k": 134
+          },
+          "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
+        },
+        {
+          "id": "s135",
+          "from": 4504,
+          "dur": 31,
+          "text": "שמוליק, זה החברותא שלו.",
+          "ref": {
+            "cap": "שמוליק, זה החברותא שלו.",
+            "k": 135
+          },
+          "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
+        },
+        {
+          "id": "s136",
+          "from": 4535,
+          "dur": 18,
+          "text": "אולי הם עוד באמצע",
+          "ref": {
+            "cap": "אולי הם עוד באמצע",
+            "k": 136
+          },
+          "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
+        },
+        {
+          "id": "s137",
+          "from": 4553,
+          "dur": 28,
+          "text": "סדר ב׳.",
+          "ref": {
+            "cap": "סדר ב׳.",
             "k": 137
           },
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
           "id": "s138",
-          "from": 4677,
-          "dur": 31,
-          "text": "שמוליק, זה החברותא שלו.",
+          "from": 4581,
+          "dur": 24,
+          "text": "טוב, חמודה,",
           "ref": {
-            "cap": "שמוליק, זה החברותא שלו.",
+            "cap": "טוב, חמודה,",
             "k": 138
           },
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
           "id": "s139",
-          "from": 4708,
-          "dur": 18,
-          "text": "אולי הם עוד באמצע",
+          "from": 4605,
+          "dur": 34,
+          "text": "אימא יוצאת בעזרת השם,",
           "ref": {
-            "cap": "אולי הם עוד באמצע",
+            "cap": "אימא יוצאת בעזרת השם,",
             "k": 139
           },
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
           "id": "s140",
-          "from": 4726,
-          "dur": 28,
-          "text": "סדר ב׳.",
+          "from": 4639,
+          "dur": 20,
+          "text": "בלי נדר,",
           "ref": {
-            "cap": "סדר ב׳.",
+            "cap": "בלי נדר,",
             "k": 140
           },
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
           "id": "s141",
-          "from": 4754,
-          "dur": 24,
-          "text": "טוב, חמודה,",
+          "from": 4659,
+          "dur": 33,
+          "text": "כמו תמיד בארבע ועשרים.",
           "ref": {
-            "cap": "טוב, חמודה,",
+            "cap": "כמו תמיד בארבע ועשרים.",
             "k": 141
           },
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
           "id": "s142",
-          "from": 4778,
-          "dur": 34,
-          "text": "אימא יוצאת בעזרת השם,",
+          "from": 4692,
+          "dur": 44,
+          "text": "נשיקות, מתוקה שלי.",
           "ref": {
-            "cap": "אימא יוצאת בעזרת השם,",
+            "cap": "נשיקות, מתוקה שלי.",
             "k": 142
           },
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
           "id": "s143",
-          "from": 4812,
-          "dur": 20,
-          "text": "בלי נדר,",
-          "ref": {
-            "cap": "בלי נדר,",
-            "k": 143
-          },
-          "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
-        },
-        {
-          "id": "s144",
-          "from": 4832,
-          "dur": 33,
-          "text": "כמו תמיד בארבע ועשרים.",
-          "ref": {
-            "cap": "כמו תמיד בארבע ועשרים.",
-            "k": 144
-          },
-          "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
-        },
-        {
-          "id": "s145",
-          "from": 4865,
-          "dur": 47,
-          "text": "נשיקות, מתוקה שלי.",
-          "ref": {
-            "cap": "נשיקות, מתוקה שלי.",
-            "k": 145
-          },
-          "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
-        },
-        {
-          "id": "s146",
-          "from": 4912,
-          "dur": 51,
+          "from": 4736,
+          "dur": 42,
           "text": "רגע, מתי הגרסה עולה?",
           "ref": {
             "cap": "רגע, מתי הגרסה עולה?",
-            "k": 146
+            "k": 143
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s147",
-          "from": 4963,
+          "id": "s144",
+          "from": 4778,
           "dur": 25,
           "text": "לא, עברי,",
           "ref": {
             "cap": "לא, עברי,",
-            "k": 147
+            "k": 144
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s148",
-          "from": 4988,
+          "id": "s145",
+          "from": 4803,
           "dur": 48,
           "text": "עברי. מה התאריך העברי?",
           "ref": {
             "cap": "עברי. מה התאריך העברי?",
-            "k": 148
+            "k": 145
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s149",
-          "from": 5036,
+          "id": "s146",
+          "from": 4851,
           "dur": 23,
           "text": "תן לי לעבור רגע",
           "ref": {
             "cap": "תן לי לעבור רגע",
-            "k": 149
+            "k": 146
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s150",
-          "from": 5059,
+          "id": "s147",
+          "from": 4874,
           "dur": 47,
           "text": "ביומן. אוי ואבוי לי!",
           "ref": {
             "cap": "ביומן. אוי ואבוי לי!",
-            "k": 150
+            "k": 147
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s151",
-          "from": 5106,
+          "id": "s148",
+          "from": 4921,
           "dur": 37,
           "text": "כן, זה יוצא זאת",
           "ref": {
             "cap": "כן, זה יוצא זאת",
-            "k": 151
+            "k": 148
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s152",
-          "from": 5143,
+          "id": "s149",
+          "from": 4958,
           "dur": 45,
           "text": "חנוכה! נר שמיני.",
           "ref": {
             "cap": "חנוכה! נר שמיני.",
-            "k": 152
+            "k": 149
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s153",
-          "from": 5188,
+          "id": "s150",
+          "from": 5003,
           "dur": 35,
           "text": "אנחנו עושים הדלקת נרות",
           "ref": {
             "cap": "אנחנו עושים הדלקת נרות",
-            "k": 153
+            "k": 150
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s154",
-          "from": 5223,
+          "id": "s151",
+          "from": 5038,
           "dur": 30,
           "text": "אצל חמותי וסעודה עם",
           "ref": {
             "cap": "אצל חמותי וסעודה עם",
-            "k": 154
+            "k": 151
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s155",
-          "from": 5253,
+          "id": "s152",
+          "from": 5068,
           "dur": 18,
           "text": "כל המשפחה,",
           "ref": {
             "cap": "כל המשפחה,",
-            "k": 155
+            "k": 152
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s156",
-          "from": 5271,
-          "dur": 55,
+          "id": "s153",
+          "from": 5086,
+          "dur": 38,
           "text": "וגיסי עושה סיום מסכת.",
           "ref": {
             "cap": "וגיסי עושה סיום מסכת.",
-            "k": 156
+            "k": 153
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "s157",
-          "from": 5331,
-          "dur": 24,
+          "id": "s154",
+          "from": 5124,
+          "dur": 22,
           "text": "בסדר, שטויות,",
           "ref": {
             "cap": "בסדר, שטויות,",
-            "k": 157
+            "k": 154
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s158",
-          "from": 5355,
+          "id": "s155",
+          "from": 5146,
           "dur": 30,
           "text": "אני אתחבר מחמותי.",
           "ref": {
             "cap": "אני אתחבר מחמותי.",
-            "k": 158
+            "k": 155
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s159",
-          "from": 5385,
-          "dur": 15,
+          "id": "s156",
+          "from": 5176,
+          "dur": 16,
           "text": "נדליק נרות,",
           "ref": {
             "cap": "נדליק נרות,",
-            "k": 159
+            "k": 156
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s160",
-          "from": 5400,
+          "id": "s157",
+          "from": 5192,
           "dur": 33,
           "text": "חצי שעה בלי מלאכה,",
           "ref": {
             "cap": "חצי שעה בלי מלאכה,",
-            "k": 160
+            "k": 157
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s161",
-          "from": 5433,
+          "id": "s158",
+          "from": 5225,
           "dur": 33,
           "text": "ואחר כך אני אתחבר,",
           "ref": {
             "cap": "ואחר כך אני אתחבר,",
-            "k": 161
+            "k": 158
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s162",
-          "from": 5466,
-          "dur": 19,
+          "id": "s159",
+          "from": 5258,
+          "dur": 18,
           "text": "בעזרת השם,",
           "ref": {
             "cap": "בעזרת השם,",
-            "k": 162
+            "k": 159
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s163",
-          "from": 5485,
-          "dur": 14,
+          "id": "s160",
+          "from": 5276,
+          "dur": 15,
           "text": "בלי נדר.",
           "ref": {
             "cap": "בלי נדר.",
-            "k": 163
+            "k": 160
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s164",
-          "from": 5499,
+          "id": "s161",
+          "from": 5291,
           "dur": 36,
           "text": "רק שלא יחסום אותי",
           "ref": {
             "cap": "רק שלא יחסום אותי",
-            "k": 164
+            "k": 161
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s165",
-          "from": 5535,
-          "dur": 27,
+          "id": "s162",
+          "from": 5327,
+          "dur": 24,
           "text": "האינטרנט הכשר.",
           "ref": {
             "cap": "האינטרנט הכשר.",
-            "k": 165
+            "k": 162
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
         },
         {
-          "id": "s166",
-          "from": 5562,
-          "dur": 26,
+          "id": "s163",
+          "from": 5351,
+          "dur": 16,
           "text": "מה השעה?",
           "ref": {
             "cap": "מה השעה?",
-            "k": 166
+            "k": 163
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s167",
-          "from": 5588,
-          "dur": 29,
+          "id": "s164",
+          "from": 5367,
+          "dur": 28,
           "text": "כבר ארבע ועשרים?",
           "ref": {
             "cap": "כבר ארבע ועשרים?",
-            "k": 167
+            "k": 164
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s168",
-          "from": 5617,
+          "id": "s165",
+          "from": 5395,
           "dur": 23,
           "text": "אני חייבת לצאת.",
           "ref": {
             "cap": "אני חייבת לצאת.",
-            "k": 168
+            "k": 165
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
+        },
+        {
+          "id": "s166",
+          "from": 5418,
+          "dur": 38,
+          "text": "שיהיה לכולם המשך יום",
+          "ref": {
+            "cap": "שיהיה לכולם המשך יום",
+            "k": 166
+          },
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
           "id": "s169",
-          "from": 5640,
+          "from": 5418.4,
           "dur": 21,
           "text": "שיהיה לכולם המשך יום",
           "ref": {
@@ -3062,7 +2951,7 @@
         },
         {
           "id": "s170",
-          "from": 5661,
+          "from": 5439.4,
           "dur": 65,
           "text": "מקסים, בשורות טובות,",
           "ref": {
@@ -3073,291 +2962,285 @@
           "user": true
         },
         {
-          "id": "s171",
-          "from": 5726,
+          "id": "s167",
+          "from": 5456,
+          "dur": 48,
+          "text": "מקסים, בשורות טובות,",
+          "ref": {
+            "cap": "מקסים, בשורות טובות,",
+            "k": 167
+          },
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
+        },
+        {
+          "id": "s168",
+          "from": 5504,
           "dur": 31,
           "text": "ישועות והצלחות!",
           "ref": {
             "cap": "ישועות והצלחות!",
-            "k": 171
+            "k": 168
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s172",
-          "from": 5757,
+          "id": "s169~1",
+          "from": 5535,
           "dur": 36,
           "text": "דסי, שלחתי לך את",
           "ref": {
             "cap": "דסי, שלחתי לך את",
-            "k": 172
+            "k": 169
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s173",
-          "from": 5793,
-          "dur": 47,
+          "id": "s170~1",
+          "from": 5571,
+          "dur": 48,
           "text": "השינויים, כל הבדיקות עברו.",
           "ref": {
             "cap": "השינויים, כל הבדיקות עברו.",
-            "k": 173
+            "k": 170
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s174",
-          "from": 5840,
-          "dur": 24,
+          "id": "s171",
+          "from": 5619,
+          "dur": 23,
           "text": "אם יש הערות תכתבי",
           "ref": {
             "cap": "אם יש הערות תכתבי",
-            "k": 174
+            "k": 171
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s175",
-          "from": 5864,
-          "dur": 14,
+          "id": "s172",
+          "from": 5642,
+          "dur": 15,
           "text": "לי בטימס,",
           "ref": {
             "cap": "לי בטימס,",
-            "k": 175
+            "k": 172
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s176",
-          "from": 5878,
-          "dur": 16,
+          "id": "s173",
+          "from": 5657,
+          "dur": 15,
           "text": "אז אני אעבור עליהן",
           "ref": {
             "cap": "אז אני אעבור עליהן",
-            "k": 176
+            "k": 173
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s177",
-          "from": 5894,
-          "dur": 33,
+          "id": "s174",
+          "from": 5672,
+          "dur": 34,
           "text": "בערב בעזרת השם בלי",
           "ref": {
             "cap": "בערב בעזרת השם בלי",
-            "k": 177
+            "k": 174
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s178",
-          "from": 5927,
-          "dur": 14,
+          "id": "s175",
+          "from": 5706,
+          "dur": 7,
           "text": "נדר.",
           "ref": {
             "cap": "נדר.",
-            "k": 178
+            "k": 175
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "s179",
-          "from": 5941,
-          "dur": 34,
+          "id": "s176",
+          "from": 5713,
+          "dur": 27,
           "text": "תודה רבה לכולם.",
           "ref": {
             "cap": "תודה רבה לכולם.",
-            "k": 179
+            "k": 176
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s180",
-          "from": 5975,
+          "id": "s177",
+          "from": 5740,
           "dur": 26,
           "text": "רגע, לקחתי את כל",
           "ref": {
             "cap": "רגע, לקחתי את כל",
-            "k": 180
+            "k": 177
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s181",
-          "from": 6001,
+          "id": "s178",
+          "from": 5766,
           "dur": 37,
           "text": "השקיות? כן.",
           "ref": {
             "cap": "השקיות? כן.",
-            "k": 181
+            "k": 178
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s182",
-          "from": 6038,
+          "id": "s179",
+          "from": 5803,
           "dur": 39,
           "text": "טוב, בשורות טובות,",
           "ref": {
             "cap": "טוב, בשורות טובות,",
-            "k": 182
+            "k": 179
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s183",
-          "from": 6077,
-          "dur": 32,
+          "id": "s180",
+          "from": 5842,
+          "dur": 31,
           "text": "להתראות! כמעט שכחתי את",
           "ref": {
             "cap": "להתראות! כמעט שכחתי את",
-            "k": 183
+            "k": 180
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s184",
-          "from": 6109,
+          "id": "s181",
+          "from": 5873,
           "dur": 27,
           "text": "הפלאפון שלי.",
           "ref": {
             "cap": "הפלאפון שלי.",
-            "k": 184
+            "k": 181
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s185",
-          "from": 6136,
-          "dur": 24,
+          "id": "s182",
+          "from": 5900,
+          "dur": 25,
           "text": "כן, ברכי,",
           "ref": {
             "cap": "כן, ברכי,",
-            "k": 185
+            "k": 182
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s186",
-          "from": 6160,
-          "dur": 41,
+          "id": "s183",
+          "from": 5925,
+          "dur": 40,
           "text": "מתוקה, מה קורה?",
           "ref": {
             "cap": "מתוקה, מה קורה?",
-            "k": 186
+            "k": 183
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s187",
-          "from": 6201,
+          "id": "s184",
+          "from": 5965,
           "dur": 46,
           "text": "שרולי נפל במקלחת?",
           "ref": {
             "cap": "שרולי נפל במקלחת?",
-            "k": 187
+            "k": 184
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s188",
-          "from": 6247,
+          "id": "s185",
+          "from": 6011,
           "dur": 35,
           "text": "טוב, קודם כול תכבי",
           "ref": {
             "cap": "טוב, קודם כול תכבי",
-            "k": 188
+            "k": 185
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s189",
-          "from": 6282,
-          "dur": 13,
+          "id": "s186",
+          "from": 6046,
+          "dur": 14,
           "text": "את המים,",
           "ref": {
             "cap": "את המים,",
-            "k": 189
+            "k": 186
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s190",
-          "from": 6295,
-          "dur": 52,
+          "id": "s187",
+          "from": 6060,
+          "dur": 51,
           "text": "מתוקה, ותגידי לו שיחכה.",
           "ref": {
             "cap": "מתוקה, ותגידי לו שיחכה.",
-            "k": 190
+            "k": 187
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s191",
-          "from": 6347,
+          "id": "s188",
+          "from": 6111,
           "dur": 34,
           "text": "אימא כבר מגיעה.",
           "ref": {
             "cap": "אימא כבר מגיעה.",
-            "k": 191
+            "k": 188
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s192",
-          "from": 6381,
-          "dur": 24,
+          "id": "s189",
+          "from": 6145,
+          "dur": 25,
           "text": "תודה רבה,",
           "ref": {
             "cap": "תודה רבה,",
-            "k": 192
+            "k": 189
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s193",
-          "from": 6405,
+          "id": "s190",
+          "from": 6170,
           "dur": 11,
           "text": "הכל טוב,",
           "ref": {
             "cap": "הכל טוב,",
-            "k": 193
+            "k": 190
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         },
         {
-          "id": "s194",
-          "from": 6416,
-          "dur": 20,
+          "id": "s191",
+          "from": 6181,
+          "dur": 18,
           "text": "בשורות טובות,",
           "ref": {
             "cap": "בשורות טובות,",
-            "k": 194
+            "k": 191
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
-        },
-        {
-          "id": "s195",
-          "from": 6436,
-          "dur": 20,
-          "text": "ישועות ונחמות,",
-          "ref": {
-            "cap": "ישועות ונחמות,",
-            "k": 195
-          },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
-        },
-        {
-          "id": "s196",
-          "from": 6456,
-          "dur": 17,
-          "text": "להתראות!",
-          "ref": {
-            "cap": "להתראות!",
-            "k": 196
-          },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         }
+      ],
+      "removed": [
+        "{\"cap\":\"השם עוז לעמו ייתן,\",\"k\":82}",
+        "{\"cap\":\"השם יברך את עמו\",\"k\":83}",
+        "{\"cap\":\"בשלום. כן,\",\"k\":84}"
       ]
     },
     {
@@ -3376,7 +3259,7 @@
         {
           "id": "v0",
           "from": 0,
-          "dur": 188,
+          "dur": 183,
           "asset": "t.25212FAD-B90C-4BAB-A705-C2C4A5855B4F",
           "in": 0.68,
           "fade_in": 0.012,
@@ -3389,21 +3272,21 @@
         },
         {
           "id": "v1",
-          "from": 182,
+          "from": 177,
           "dur": 729,
           "asset": "t.4E44A278-D91D-4738-9EAC-35E0D0F94D4D",
-          "in": 0.61,
+          "in": 0.9,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "4E44A278-D91D-4738-9EAC-35E0D0F94D4D",
-            "a": 0.61
+            "a": 0.9
           },
-          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.61"
+          "link": "cut-4E44A278-D91D-4738-9EAC-35E0D0F94D4D-0.9"
         },
         {
           "id": "v2",
-          "from": 905,
+          "from": 900,
           "dur": 342,
           "asset": "t.4AE7ACAE-45B5-43A9-AD71-9871DEE2BDD6",
           "in": 0.71,
@@ -3417,147 +3300,147 @@
         },
         {
           "id": "v3",
-          "from": 1241,
-          "dur": 16,
+          "from": 1236,
+          "dur": 52,
           "asset": "t.044C9A77-DB44-4675-9164-3D69DED52505",
-          "in": 0.7,
+          "in": 1.3,
           "fade_in": 0.012,
-          "fade_out": 0.012,
+          "fade_out": 0.2,
           "ref": {
             "take": "044C9A77-DB44-4675-9164-3D69DED52505",
-            "a": 0.7
+            "a": 1.3
           },
-          "link": "cut-044C9A77-DB44-4675-9164-3D69DED52505-0.7"
+          "link": "cut-044C9A77-DB44-4675-9164-3D69DED52505-1.3"
         },
         {
           "id": "v4",
-          "from": 1257,
-          "dur": 95,
-          "asset": "t.044C9A77-DB44-4675-9164-3D69DED52505",
-          "in": 1.24,
+          "from": 1282,
+          "dur": 256,
+          "asset": "t.CA80BF04-3975-44F9-B847-C8F5DAF1F28D",
+          "in": 4.25,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
-            "take": "044C9A77-DB44-4675-9164-3D69DED52505",
-            "a": 1.24
+            "take": "CA80BF04-3975-44F9-B847-C8F5DAF1F28D",
+            "a": 4.25
           },
-          "link": "cut-044C9A77-DB44-4675-9164-3D69DED52505-1.24"
+          "link": "cut-CA80BF04-3975-44F9-B847-C8F5DAF1F28D-4.25"
         },
         {
           "id": "v5",
-          "from": 1346,
-          "dur": 235,
-          "asset": "t.BC6C820D-3698-423C-A16C-C6A04DB9E741",
-          "in": 5.2,
-          "fade_in": 0.012,
-          "fade_out": 0.2,
-          "ref": {
-            "take": "BC6C820D-3698-423C-A16C-C6A04DB9E741",
-            "a": 5.2
-          },
-          "link": "cut-BC6C820D-3698-423C-A16C-C6A04DB9E741-5.2"
-        },
-        {
-          "id": "v6",
-          "from": 1575,
-          "dur": 384,
+          "from": 1532,
+          "dur": 373,
           "asset": "t.1B386195-8E42-4B3A-91B9-AE6723A78309",
-          "in": 3.9,
+          "in": 4.27,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "1B386195-8E42-4B3A-91B9-AE6723A78309",
-            "a": 3.9
+            "a": 4.27
           },
-          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-3.9"
+          "link": "cut-1B386195-8E42-4B3A-91B9-AE6723A78309-4.27"
         },
         {
-          "id": "v7",
-          "from": 1953,
-          "dur": 80,
+          "id": "v6",
+          "from": 1899,
+          "dur": 52,
           "asset": "t.58BD328D-26FA-4910-8437-42E714C72496",
-          "in": 5.05,
+          "in": 5.98,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "58BD328D-26FA-4910-8437-42E714C72496",
-            "a": 5.05
+            "a": 5.98
           },
-          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.05"
+          "link": "cut-58BD328D-26FA-4910-8437-42E714C72496-5.98"
         },
         {
-          "id": "v8",
-          "from": 2027,
-          "dur": 226,
+          "id": "v7",
+          "from": 1945,
+          "dur": 210,
           "asset": "t.F1D1C898-8032-466E-9A4A-8735F83800A8",
-          "in": 3.8,
+          "in": 4.17,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "F1D1C898-8032-466E-9A4A-8735F83800A8",
-            "a": 3.8
+            "a": 4.17
           },
-          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-3.8"
+          "link": "cut-F1D1C898-8032-466E-9A4A-8735F83800A8-4.17"
         },
         {
-          "id": "v9",
-          "from": 2247,
-          "dur": 457,
+          "id": "v8",
+          "from": 2149,
+          "dur": 443,
           "asset": "t.724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
-          "in": 3.4,
+          "in": 3.86,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A",
-            "a": 3.4
+            "a": 3.86
           },
-          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.4"
+          "link": "cut-724FEB6B-7D6E-4CEE-8FAE-581A45AB6C3A-3.86"
+        },
+        {
+          "id": "v9",
+          "from": 2586,
+          "dur": 30,
+          "asset": "t.759BC0AF-9BCC-44CE-AECF-123339768A86",
+          "in": 0.3,
+          "fade_in": 0.012,
+          "fade_out": 0.2,
+          "ref": {
+            "take": "759BC0AF-9BCC-44CE-AECF-123339768A86",
+            "a": 0.3
+          },
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-0.3"
         },
         {
           "id": "v10",
-          "from": 2698,
-          "dur": 107,
-          "asset": "t.196E183D-38F6-40DD-AB68-F629F8303C7D",
-          "in": 2.4,
+          "from": 2610,
+          "dur": 76,
+          "asset": "t.759BC0AF-9BCC-44CE-AECF-123339768A86",
+          "in": 3.5,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
-            "take": "196E183D-38F6-40DD-AB68-F629F8303C7D",
-            "a": 2.4
+            "take": "759BC0AF-9BCC-44CE-AECF-123339768A86",
+            "a": 3.5
           },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-2.4"
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-3.5"
         },
         {
           "id": "v11",
-          "from": 2799,
-          "dur": 111,
-          "asset": "t.196E183D-38F6-40DD-AB68-F629F8303C7D",
-          "in": 6.02,
+          "from": 2680,
+          "dur": 96,
+          "asset": "t.759BC0AF-9BCC-44CE-AECF-123339768A86",
+          "in": 6.19,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
-            "take": "196E183D-38F6-40DD-AB68-F629F8303C7D",
-            "a": 6.02
+            "take": "759BC0AF-9BCC-44CE-AECF-123339768A86",
+            "a": 6.19
           },
-          "link": "cut-196E183D-38F6-40DD-AB68-F629F8303C7D-6.02"
+          "link": "cut-759BC0AF-9BCC-44CE-AECF-123339768A86-6.19"
         },
         {
           "id": "v12",
-          "from": 2904,
-          "dur": 61,
+          "from": 2770,
+          "dur": 28,
           "asset": "t.ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
-          "in": 0.7,
+          "in": 1.85,
           "fade_in": 0.012,
-          "fade_out": 0.2,
+          "fade_out": 0.012,
           "ref": {
             "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
-            "a": 0.7
+            "a": 1.85
           },
-          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-0.7"
+          "link": "cut-ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2-1.85"
         },
         {
           "id": "v13",
-          "from": 2959,
+          "from": 2798,
           "dur": 687,
           "asset": "t.ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
           "in": 2.82,
@@ -3571,8 +3454,8 @@
         },
         {
           "id": "v14",
-          "from": 3640,
-          "dur": 581,
+          "from": 3479,
+          "dur": 461,
           "asset": "t.815901F3-04F0-4FF3-8812-0258EBE63999",
           "in": 2.95,
           "fade_in": 0.012,
@@ -3585,8 +3468,22 @@
         },
         {
           "id": "v15",
-          "from": 4215,
-          "dur": 437,
+          "from": 3934,
+          "dur": 105,
+          "asset": "t.815901F3-04F0-4FF3-8812-0258EBE63999",
+          "in": 18.83,
+          "fade_in": 0.012,
+          "fade_out": 0.2,
+          "ref": {
+            "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
+            "a": 18.83
+          },
+          "link": "cut-815901F3-04F0-4FF3-8812-0258EBE63999-18.83"
+        },
+        {
+          "id": "v16",
+          "from": 4033,
+          "dur": 446,
           "asset": "t.A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
           "in": 1.31,
           "fade_in": 0.012,
@@ -3598,8 +3495,8 @@
           "link": "cut-A9AE0054-5649-402D-9E4F-5C7AE1C05B50-1.31"
         },
         {
-          "id": "v16",
-          "from": 4646,
+          "id": "v17",
+          "from": 4473,
           "dur": 269,
           "asset": "t.5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6",
           "in": 1.57,
@@ -3612,46 +3509,60 @@
           "link": "cut-5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6-1.57"
         },
         {
-          "id": "v17",
-          "from": 4909,
-          "dur": 657,
+          "id": "v18",
+          "from": 4736,
+          "dur": 394,
           "asset": "t.CB1C677F-489B-44F0-81FF-C6A14B38C36D",
-          "in": 3.85,
+          "in": 4.26,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "CB1C677F-489B-44F0-81FF-C6A14B38C36D",
-            "a": 3.85
+            "a": 4.26
           },
-          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-3.85"
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-4.26"
         },
         {
-          "id": "v18",
-          "from": 5560,
-          "dur": 381,
+          "id": "v19",
+          "from": 5124,
+          "dur": 233,
+          "asset": "t.CB1C677F-489B-44F0-81FF-C6A14B38C36D",
+          "in": 17.97,
+          "fade_in": 0.012,
+          "fade_out": 0.2,
+          "ref": {
+            "take": "CB1C677F-489B-44F0-81FF-C6A14B38C36D",
+            "a": 17.97
+          },
+          "link": "cut-CB1C677F-489B-44F0-81FF-C6A14B38C36D-17.97"
+        },
+        {
+          "id": "v20",
+          "from": 5351,
+          "dur": 368,
           "asset": "t.0F959E09-CAC3-4AFF-AF23-B737F5534097",
-          "in": 1.95,
+          "in": 2.37,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "0F959E09-CAC3-4AFF-AF23-B737F5534097",
-            "a": 1.95
+            "a": 2.37
           },
-          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-1.95"
+          "link": "cut-0F959E09-CAC3-4AFF-AF23-B737F5534097-2.37"
         },
         {
-          "id": "v19",
-          "from": 5935,
-          "dur": 538,
+          "id": "v21",
+          "from": 5713,
+          "dur": 486,
           "asset": "t.3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
-          "in": 2.7,
+          "in": 3.15,
           "fade_in": 0.012,
           "fade_out": 0.012,
           "ref": {
             "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
-            "a": 2.7
+            "a": 3.15
           },
-          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-2.7"
+          "link": "cut-3A53DF88-0643-4044-9FD8-A8D5CBF0C073-3.15"
         }
       ]
     },
@@ -3665,17 +3576,68 @@
       },
       "items": [
         {
-          "id": "x7",
-          "from": 3003.61,
+          "id": "x3",
+          "from": 2848.4,
           "dur": 25.765,
-          "asset": "s.7",
-          "gain": 0.96,
+          "asset": "s.3",
+          "gain": 1.4,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
-            "sound": 7
+            "sound": 3
           },
-          "in": 0.0,
+          "in": 0,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x4",
+          "from": 2891.9,
+          "dur": 12.353,
+          "asset": "s.4",
+          "gain": 1.31,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 4
+          },
+          "in": 1.4,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x5",
+          "from": 2925.2,
+          "dur": 9.176,
+          "asset": "s.5",
+          "gain": 1.93,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 5
+          },
+          "in": 0.1,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x6",
+          "from": 2972,
+          "dur": 24.529,
+          "asset": "s.6",
+          "gain": 2.75,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 6
+          },
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3683,33 +3645,16 @@
         },
         {
           "id": "x8",
-          "from": 3125.41,
-          "dur": 24.529,
+          "from": 3446.9,
+          "dur": 39,
           "asset": "s.8",
-          "gain": 1.2,
+          "gain": 1.62,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 8
           },
-          "in": 0.0,
-          "rate": 1.7,
-          "fx": {
-            "filter": "phone"
-          }
-        },
-        {
-          "id": "x9",
-          "from": 3607.9,
-          "dur": 39.0,
-          "asset": "s.9",
-          "gain": 0.96,
-          "fade_in": 0.03,
-          "fade_out": 0.08,
-          "ref": {
-            "sound": 9
-          },
-          "in": 0.0,
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3717,16 +3662,16 @@
         },
         {
           "id": "x10",
-          "from": 3808.21,
+          "from": 3654.5,
           "dur": 25.765,
           "asset": "s.10",
-          "gain": 3.0,
+          "gain": 4.3,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 10
           },
-          "in": 0.0,
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3734,10 +3679,10 @@
         },
         {
           "id": "x11",
-          "from": 3875.41,
-          "dur": 27.0,
+          "from": 3729.2,
+          "dur": 27,
           "asset": "s.11",
-          "gain": 1.32,
+          "gain": 3.23,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
@@ -3751,33 +3696,16 @@
         },
         {
           "id": "x13",
-          "from": 3964.21,
-          "dur": 21.0,
+          "from": 3809.3,
+          "dur": 21,
           "asset": "s.13",
-          "gain": 2.64,
+          "gain": 6.64,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 13
           },
-          "in": 0.0,
-          "rate": 1.7,
-          "fx": {
-            "filter": "phone"
-          }
-        },
-        {
-          "id": "x16",
-          "from": 4289.4,
-          "dur": 27.529,
-          "asset": "s.16",
-          "gain": 0.84,
-          "fade_in": 0.03,
-          "fade_out": 0.08,
-          "ref": {
-            "sound": 16
-          },
-          "in": 0.0,
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3785,16 +3713,33 @@
         },
         {
           "id": "x17",
-          "from": 4594.8,
-          "dur": 28.235,
+          "from": 4066.6,
+          "dur": 14.118,
           "asset": "s.17",
-          "gain": 3.84,
+          "gain": 1.35,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 17
           },
-          "in": 0.0,
+          "in": 1.6,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x18",
+          "from": 4115.5,
+          "dur": 27.529,
+          "asset": "s.18",
+          "gain": 1.56,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 18
+          },
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3802,31 +3747,82 @@
         },
         {
           "id": "x19",
-          "from": 4900.79,
-          "dur": 30.0,
+          "from": 4347.4,
+          "dur": 21.529,
           "asset": "s.19",
-          "gain": 6.0,
+          "gain": 2.71,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 19
           },
-          "in": 0.0,
+          "in": 1.48,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
           }
         },
         {
-          "id": "x23",
-          "from": 6187.21,
-          "dur": 27.0,
-          "asset": "s.23",
-          "gain": 3.0,
+          "id": "x20",
+          "from": 4420.3,
+          "dur": 28.235,
+          "asset": "s.20",
+          "gain": 6.52,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
-            "sound": 23
+            "sound": 20
+          },
+          "in": 0,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x21",
+          "from": 4467.7,
+          "dur": 14.471,
+          "asset": "s.21",
+          "gain": 1.47,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 21
+          },
+          "in": 1.4,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x24",
+          "from": 4731.9,
+          "dur": 30,
+          "asset": "s.24",
+          "gain": 10.97,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 24
+          },
+          "in": 0,
+          "rate": 1.7,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x28",
+          "from": 5951.71,
+          "dur": 27,
+          "asset": "s.28",
+          "gain": 3.96,
+          "fade_in": 0.03,
+          "fade_out": 0.08,
+          "ref": {
+            "sound": 28
           },
           "in": 0.15,
           "rate": 1.7,
@@ -3835,17 +3831,17 @@
           }
         },
         {
-          "id": "x25",
-          "from": 6370.81,
-          "dur": 18.0,
-          "asset": "s.25",
-          "gain": 1.08,
+          "id": "x30",
+          "from": 6135.31,
+          "dur": 18,
+          "asset": "s.30",
+          "gain": 1.8,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
-            "sound": 25
+            "sound": 30
           },
-          "in": 0.0,
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3864,10 +3860,10 @@
       "items": [
         {
           "id": "x1",
-          "from": 2953.5,
-          "dur": 354.0,
+          "from": 2785,
+          "dur": 354,
           "asset": "s.1",
-          "gain": 0.3,
+          "gain": 0.2,
           "fade_in": 0.4,
           "fade_out": 0.6,
           "ref": {
@@ -3879,47 +3875,31 @@
           }
         },
         {
-          "id": "x2",
-          "from": 3295.9,
-          "dur": 351.0,
-          "asset": "s.2",
-          "gain": 0.12,
+          "id": "x7",
+          "from": 3134.9,
+          "dur": 351,
+          "asset": "s.7",
+          "gain": 0.08,
           "fade_in": 0.4,
           "fade_out": 0.6,
           "ref": {
-            "sound": 2
+            "sound": 7
           },
-          "in": 2.0,
+          "in": 2,
           "fx": {
             "filter": "phone"
           }
         },
         {
-          "id": "x3",
-          "from": 3640.0,
-          "dur": 573.0,
-          "asset": "s.3",
-          "gain": 0.3,
+          "id": "x9",
+          "from": 3479,
+          "dur": 573,
+          "asset": "s.9",
+          "gain": 0.2,
           "fade_in": 0.4,
           "fade_out": 0.6,
           "ref": {
-            "sound": 3
-          },
-          "in": 0.2,
-          "fx": {
-            "filter": "phone"
-          }
-        },
-        {
-          "id": "x4",
-          "from": 4215.0,
-          "dur": 456.0,
-          "asset": "s.4",
-          "gain": 0.3,
-          "fade_in": 0.4,
-          "fade_out": 0.6,
-          "ref": {
-            "sound": 4
+            "sound": 9
           },
           "in": 0.2,
           "fx": {
@@ -3927,31 +3907,47 @@
           }
         },
         {
-          "id": "x5",
-          "from": 4646.0,
-          "dur": 276.0,
-          "asset": "s.5",
-          "gain": 0.3,
+          "id": "x16",
+          "from": 4033,
+          "dur": 456,
+          "asset": "s.16",
+          "gain": 0.2,
           "fade_in": 0.4,
           "fade_out": 0.6,
           "ref": {
-            "sound": 5
+            "sound": 16
           },
-          "in": 5.0,
+          "in": 0.2,
           "fx": {
             "filter": "phone"
           }
         },
         {
-          "id": "x21",
-          "from": 6130.0,
-          "dur": 252.0,
-          "asset": "s.21",
-          "gain": 0.3,
+          "id": "x22",
+          "from": 4473,
+          "dur": 276,
+          "asset": "s.22",
+          "gain": 0.2,
           "fade_in": 0.4,
           "fade_out": 0.6,
           "ref": {
-            "sound": 21
+            "sound": 22
+          },
+          "in": 5,
+          "fx": {
+            "filter": "phone"
+          }
+        },
+        {
+          "id": "x26",
+          "from": 5894.5,
+          "dur": 252,
+          "asset": "s.26",
+          "gain": 0.2,
+          "fade_in": 0.4,
+          "fade_out": 0.6,
+          "ref": {
+            "sound": 26
           },
           "in": 0.2,
           "fx": {
@@ -3971,8 +3967,8 @@
       "items": [
         {
           "id": "x0",
-          "from": 2905.5,
-          "dur": 48.0,
+          "from": 2770,
+          "dur": 30,
           "asset": "s.0",
           "gain": 0.095,
           "fade_in": 0.02,
@@ -3980,112 +3976,112 @@
           "ref": {
             "sound": 0
           },
-          "in": 0.0
+          "in": 0
         },
         {
-          "id": "x6",
-          "from": 3003.4,
-          "dur": 150.0,
-          "asset": "s.6",
-          "gain": 0.6,
+          "id": "x2",
+          "from": 2842.4,
+          "dur": 150,
+          "asset": "s.2",
+          "gain": 0.45,
           "fade_in": 0.03,
           "fade_out": 0.12,
           "ref": {
-            "sound": 6
+            "sound": 2
           },
-          "in": 0.0,
+          "in": 0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x12",
-          "from": 3911.5,
-          "dur": 90.0,
+          "from": 3750.5,
+          "dur": 90,
           "asset": "s.12",
-          "gain": 2.0,
+          "gain": 2,
           "fade_in": 0.03,
           "fade_out": 0.12,
           "ref": {
             "sound": 12
           },
-          "in": 0.0,
+          "in": 0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x14",
-          "from": 4189.0,
-          "dur": 90.0,
+          "from": 4006.6,
+          "dur": 90,
           "asset": "s.14",
-          "gain": 0.6,
+          "gain": 0.45,
           "fade_in": 0.03,
           "fade_out": 0.12,
           "ref": {
             "sound": 14
           },
-          "in": 0.0,
+          "in": 0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x15",
-          "from": 4207.0,
-          "dur": 180.0,
+          "from": 4024.6,
+          "dur": 180,
           "asset": "s.15",
-          "gain": 0.8,
+          "gain": 0.56,
           "fade_in": 0.03,
           "fade_out": 0.12,
           "ref": {
             "sound": 15
           },
-          "in": 0.0,
+          "in": 0,
           "fx": {
             "filter": "phone"
           }
         },
         {
-          "id": "x18",
-          "from": 4658.9,
+          "id": "x23",
+          "from": 4485.9,
           "dur": 36.318,
-          "asset": "s.18",
+          "asset": "s.23",
           "gain": 0.4,
           "fade_in": 0.03,
           "fade_out": 0.12,
           "ref": {
-            "sound": 18
+            "sound": 23
           },
-          "in": 0.0,
+          "in": 0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
           }
         },
         {
-          "id": "x20",
-          "from": 6055.0,
-          "dur": 48.0,
-          "asset": "s.20",
+          "id": "x25",
+          "from": 5819.5,
+          "dur": 48,
+          "asset": "s.25",
           "gain": 0.095,
           "fade_in": 0.02,
           "fade_out": 0.08,
           "ref": {
-            "sound": 20
+            "sound": 25
           },
-          "in": 0.0
+          "in": 0
         },
         {
-          "id": "x24",
-          "from": 6199.0,
-          "dur": 93.0,
-          "asset": "s.24",
+          "id": "x29",
+          "from": 5963.5,
+          "dur": 93,
+          "asset": "s.29",
           "gain": 0.55,
           "fade_in": 0.05,
           "fade_out": 0.12,
           "ref": {
-            "sound": 24
+            "sound": 29
           },
           "in": 3.9,
           "fx": {
@@ -4104,15 +4100,15 @@
       },
       "items": [
         {
-          "id": "x22",
-          "from": 6133.0,
+          "id": "x27",
+          "from": 5897.5,
           "dur": 205.5,
-          "asset": "s.22",
+          "asset": "s.27",
           "gain": 0.12,
           "fade_in": 0.6,
           "fade_out": 0.25,
           "ref": {
-            "sound": 22
+            "sound": 27
           },
           "in": 0.1,
           "fx": {
@@ -4137,8 +4133,8 @@
       "items": [
         {
           "id": "m0",
-          "from": 0.0,
-          "dur": 6473.0,
+          "from": 0,
+          "dur": 6199,
           "asset": "s.music",
           "in": 0,
           "fade_in": 0.3,
@@ -4155,23 +4151,23 @@
         {
           "id": "i0",
           "from": 0,
-          "dur": 2659,
+          "dur": 2547.2,
           "asset": "s.music-hasidic-freilach.mp3",
           "in": 0,
           "gain": 1.01
         },
         {
           "id": "i1",
-          "from": 2633,
-          "dur": 2245,
+          "from": 2521.2,
+          "dur": 2183.8,
           "asset": "s.music-hasidic-freilach.mp3",
           "in": 14.7334,
           "gain": 1.01
         },
         {
           "id": "i2",
-          "from": 4852,
-          "dur": 1621,
+          "from": 4679,
+          "dur": 1520,
           "asset": "s.music-hasidic-freilach.mp3",
           "in": 14.7334,
           "gain": 1.01
@@ -4186,7 +4182,7 @@
       "muted": true
     }
   ],
-  "rev": 46,
+  "rev": 130,
   "builder": {
     "kind": "solo",
     "from": "lesson.py"
@@ -4195,5 +4191,227 @@
   "edit": {
     "ripple": true
   },
-  "saved": 1793183892178
+  "saved": 1793192371242,
+  "notes": [
+    {
+      "id": "nmvs2jl41",
+      "at": 183,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793189188513,
+      "kind": "tighten",
+      "reply": "Tightened: the first take ends on 'חסדו', the next starts on 'שרולי'.",
+      "done": true
+    },
+    {
+      "id": "nmvs2kavz",
+      "at": 900,
+      "text": "חסר שהיא מנשקת את הידיים",
+      "t": 1793189221919,
+      "reply": "The kiss was right after 'ורגע' in your take - the take now runs 0.4 s longer to show it.",
+      "done": true
+    },
+    {
+      "id": "nmvs2msp4",
+      "at": 1254,
+      "text": "לקצר פה הרבה את הלקיחה והאכילה והמילמול",
+      "t": 1793189338312,
+      "kind": "tighten",
+      "reply": "Cut down a lot: the blessing take is now only the cookie at the mouth with the mumble (1.5 s instead of 3.5 s), no long grab and no long chewing.",
+      "done": true
+    },
+    {
+      "id": "nmvs2nfj7",
+      "at": 1272,
+      "text": "אחרי הברכה רואים אותה מולן המסך לוחצת ואוכלת ואז מה....\nצריך פה \"בורא מיני מזונות\" כתבית",
+      "t": 1793189367907,
+      "reply": "'בורא מיני מזונות' now sits over the whole mumble, from the bite until 'סליחה'.",
+      "done": true
+    },
+    {
+      "id": "nmvs2npvq",
+      "at": 1282,
+      "text": "גם את הלעיסק לא צריך הרבה",
+      "t": 1793189381318,
+      "kind": "tighten",
+      "reply": "The chewing is out - it goes straight to 'סליחה, תתכבדי'.",
+      "done": true
+    },
+    {
+      "id": "nmvs2obiv",
+      "at": 1304,
+      "text": "שתתחיל מסליחה בטח תתכבדי. בלי ה\"מה.\"\nאולי יש וידאו יותר טוב לקטע שמבקשים ממנה",
+      "t": 1793189409367,
+      "reply": "Switched to the take you marked (CA80BF04): it starts on 'סליחה, תתכבדי, בטח' - no 'מה?'. The box stays in the cut-out there too.",
+      "done": true
+    },
+    {
+      "id": "nmvs2oxqw",
+      "at": 1532,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793189438168,
+      "kind": "tighten",
+      "reply": "Tightened: 'וואו' starts right after 'מאמינה?'.",
+      "done": true
+    },
+    {
+      "id": "nmvs2pafb",
+      "at": 1571,
+      "text": "dont see the box",
+      "t": 1793189454599,
+      "reply": "The box now stays while you toss it aside (and half a second at the edge - after that the tracker runs onto the wall, so it stops there).",
+      "done": true
+    },
+    {
+      "id": "nmvs2pofc",
+      "at": 1827,
+      "text": "לגו-יים",
+      "t": 1793189472744,
+      "reply": "Subtitle now: 'שלגו זה מלשון לגו-יים.'",
+      "done": true
+    },
+    {
+      "id": "nmvs2qfzu",
+      "at": 1899,
+      "text": "tighten",
+      "t": 1793189508474,
+      "reply": "Tightened: 0.9 s of quiet before 'נכון שלא מרגישים' is out.",
+      "done": true
+    },
+    {
+      "id": "nmvs2qws0",
+      "at": 1944,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793189530224,
+      "kind": "tighten",
+      "reply": "Tightened: the Teams take starts on its first word.",
+      "done": true
+    },
+    {
+      "id": "nmvs2r66r",
+      "at": 2149,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793189542419,
+      "kind": "tighten",
+      "reply": "Tightened: 'לא! חס וחלילה' starts right after the previous line.",
+      "done": true
+    },
+    {
+      "id": "nmvs2s44v",
+      "at": 2629,
+      "text": "see taht you used the video i marked as to use. and show her with the finger and the end of the bless wiht \"יברך את עמו בשלום\" she membles the caption there",
+      "t": 1793189586415,
+      "reply": "Switched to the take you marked (759BC0AF): the finger 'wait', then the lips, then the mumbled 'שלום שלום' with the caption 'השם יברך את עמו בשלום.' and 'השם עוז לעמו ייתן,' over the lips before it.",
+      "done": true
+    },
+    {
+      "id": "nmvs2zxqw",
+      "at": 2770,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.\nthe transition to the phone after מה רצית should bve immediatly",
+      "t": 1793189951384,
+      "kind": "tighten",
+      "reply": "The phone part now starts right after 'מה רצית?': the ring starts on the cut, she turns and answers (0.9 s instead of 2 s).",
+      "done": true
+    },
+    {
+      "id": "nmvs30dh6",
+      "at": 2877,
+      "text": "generatl about malchi need to here her speklaing louder thatn the whoile mess in the whjole comnversstaion with her mom.",
+      "t": 1793189971770,
+      "reply": "Brachi is louder over the whole call: every one of her lines set to the same level, and the house noise, Malki's wail, the crash and Yanky's crying turned down under her.",
+      "done": true
+    },
+    {
+      "id": "nmvs329i8",
+      "at": 3424,
+      "text": "make suer you used the video i marked as use",
+      "t": 1793190059936,
+      "reply": "Yes - ECEF4B82 (marked Use) is the one here.",
+      "done": true
+    },
+    {
+      "id": "nmvs33zpx",
+      "at": 3730,
+      "text": "sometimes you hear malchi great and sometime just silence do you need me to tell you where malchi speaks?",
+      "t": 1793190140565,
+      "reply": "Added Brachi's answers where she was silent: after 'מלכי איפה?', 'על השיש?', 'מי בוכה שם?', 'ושרולי?' and 'מהכולל?' (that one got a short pause opened for it). If a spot is still off, a note on it is enough.",
+      "done": true
+    },
+    {
+      "id": "nmvs34ljz",
+      "at": 3934,
+      "text": "Cut the silence here.",
+      "t": 1793190168863,
+      "kind": "silence",
+      "reply": "Cut: the pause between 'פרווה.' and 'תגידי לו' (0.5 s).",
+      "done": true
+    },
+    {
+      "id": "nmvs35gn6",
+      "at": 4097,
+      "text": "malchi answers are not synched with conv.",
+      "t": 1793190209154,
+      "reply": "Re-timed: every Brachi answer now starts right as Hani's question ends (here: after 'מה קרה?', not in the middle of it).",
+      "done": true
+    },
+    {
+      "id": "nmvs36am5",
+      "at": 4729,
+      "text": "no need 4:20 sticker",
+      "t": 1793190247997,
+      "reply": "Removed the 4:20 sticker.",
+      "done": true
+    },
+    {
+      "id": "nmvs36ko0",
+      "at": 4739,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793190261024,
+      "kind": "tighten",
+      "reply": "Tightened: 'רגע, מתי הגרסה עולה?' starts right after 'נשיקות'.",
+      "done": true
+    },
+    {
+      "id": "nmvs36ybh",
+      "at": 5127,
+      "text": "Cut the silence here.",
+      "t": 1793190278717,
+      "kind": "silence",
+      "reply": "Cut: the pause between 'סיום מסכת.' and 'בסדר, שטויות' (0.6 s).",
+      "done": true
+    },
+    {
+      "id": "nmvs378jt",
+      "at": 5351,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793190291977,
+      "kind": "tighten",
+      "reply": "Tightened: 'מה השעה?' starts right after the previous line.",
+      "done": true
+    },
+    {
+      "id": "nmvs37nbp",
+      "at": 5713,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793190311125,
+      "kind": "tighten",
+      "reply": "Tightened: 'תודה רבה לכולם' starts right after 'נדר'.",
+      "done": true
+    },
+    {
+      "id": "nmvs3aqr8",
+      "at": 6199,
+      "text": "finish a bit before here",
+      "t": 1793190455540,
+      "reply": "Ends now on 'הכל טוב, בשורות טובות' - before she walks out and 'ישועות ונחמות, להתראות'. Drag the end out if you want those back.",
+      "done": true
+    },
+    {
+      "id": "nmvs3cay5",
+      "at": 45,
+      "text": "make it a bit wider and to down a bvit bit.\ni dont want to see the emptyt sides and down empty.",
+      "t": 1793190528365,
+      "reply": "Made the first shot bigger and lower (box 1200 wide, from y 90) - no empty sides or bottom.",
+      "done": true
+    }
+  ]
 }

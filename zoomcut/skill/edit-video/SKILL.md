@@ -150,7 +150,10 @@ move with what plays under them when a take is made longer / shorter. When he sa
    a note (asset `mark` / `note`, layers.md) - read them before picking or changing takes. **Every video on the
    layers is marked Use** (his rule, 2026-10-28 - he was marking them by hand): after anything that puts or changes
    videos on the layers (Analyze, a builder run, your own ops), run `node tools/mark_used.mjs <ep>` - it marks the
-   unmarked ones Use, keeps his notes, never flips his Don't use (a used ✕ one is listed: tell him). iPhone
+   unmarked ones Use, keeps his notes, never flips his Don't use (a used ✕ one is listed: tell him). **His Use marks are the takes to use** (2026-10-28, haredit-2: he
+   marked 759BC0AF / CA80BF04 and the cut still had the older takes - "see that you used the video I marked"): every
+   Use take that is not in the cut replaces the take of the same passage. Two Use takes of one passage = pick one,
+   clear the other's mark and note why on it ("same part as X - X is in the video"), so Media shows only what plays. iPhone
    and filter-app files have random names (`13944E36-….MP4`, `export_….mov`):
    - **who is who** from a contact sheet of frames (wig, cap, glasses, shirt); ask once if unsure;
    - **order** from the recording time (`ffprobe … creation_time`; filter-app exports: the number in the name) →

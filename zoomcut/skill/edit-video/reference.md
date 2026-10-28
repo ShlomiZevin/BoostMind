@@ -48,7 +48,8 @@
 - **Film look** (`fx`): `grade_amount` + `grade`, `dark`, `vignette`, `grain`, `zoom`, `drift`, `flicker`, `ghost` +
   `ghost_lag`, `times` {id: [start, end]}, `fade`, `center`, `hits` [{at | sound, kick, shake, flash}], `blackouts`
   [{sound, offset}], `black`.
-- **Captions:** `captions_style`, `captions_y`, `captions_other` {color, y}, `captions_from: "file"` (freeze),
+- **Captions:** `captions_style`, `captions_y`, `captions_other` {color, y}, `captions_from: "file"` (freeze), - captions.txt has ONE `== <take>` section per take (every take is listed, even unused): swapping a take = put the
+  text under that take's existing section, never a second header with the same take (the empty one wins - haredit-2, 2026-10-28),
   `script` (Reader id), `intro_video` / `intro_sound`, `media`, `_todo` (notes for the next session - ignored).
 
 ## Tools

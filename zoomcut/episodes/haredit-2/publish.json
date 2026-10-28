@@ -1,0 +1,21 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "יום רגיל של חני:\nשבר במיון, באג בוולידציה, ושרולי על הארון עם הגבס.\nובארבע ועשרים היא בחוץ.\n\n#הייטקס #הייטק #צרותבהייטק #טקיטק #קומדיה",
+  "title": "המתכנתת החרדית – חלק 2",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false
+}

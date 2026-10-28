@@ -187,7 +187,14 @@ def matte_path(ls, n):
     if not pc:
         return base
     import hashlib
-    return base[:-4] + ".prop" + hashlib.md5(json.dumps(pc, sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
+
+    def same(v):  # 1 and 1.0 are one setting (the studio's JS rewrites episode.json with 1.0 as 1)
+        if isinstance(v, dict):
+            return {k: same(x) for k, x in v.items()}
+        if isinstance(v, list):
+            return [same(x) for x in v]
+        return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v
+    return base[:-4] + ".prop" + hashlib.md5(json.dumps(same(pc), sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
 
 
 def prop_matte(ls, t, n):
