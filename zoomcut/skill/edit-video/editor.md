@@ -119,6 +119,7 @@ One format, one composition, one editor, one export. The format and the API: `la
   file (ffprobe `com.apple.quicktime.creationdate` / `creation_time`, else the file's date) from the `dates` action
   (`render/actions/dates.mjs`, read only, cached in `work/dates.json`), shown on each row ("28 Oct, 10:57"). Keep this
   order in any list of his takes; "the last take" = the newest recording.
+  Its header switches **All / Not added** (only the videos on no layer yet; remembered in localStorage zc-media-new).
 - **Notes for Claude (2026-10-28, his ask):** `render/ui/layers/Notes.tsx` (+ notes.css) - "+ Note" on the timeline bar /
   N = a note at the playhead (window opens right above its flag on the ruler - his ask; click the video = the spot, a
   ring there while the playhead is at it; Ctrl+Enter / Esc / click Save keeps the words, an empty new one just goes);

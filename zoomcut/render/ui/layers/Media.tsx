@@ -54,6 +54,9 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
   const [dates, setDates] = useState<Record<string, number>>({});
   const vids = Object.keys(project.assets || {}).filter((id) => project.assets[id].kind === 'video').sort().join('|');
   useEffect(() => { build(ep, { action: 'dates' }).then((r: any) => { if (r?.dates) setDates(r.dates); }).catch(() => {}); }, [ep, vids]);
+  // Footage: all, or only the videos not on the timeline yet (his ask, 2026-10-28) - remembered
+  const [onlyNew, setOnlyNew] = useState(() => { try { return localStorage.getItem('zc-media-new') === '1'; } catch { return false; } });
+  useEffect(() => { try { localStorage.setItem('zc-media-new', onlyNew ? '1' : '0'); } catch {} }, [onlyNew]);
   const when = (id: string) => (dates[id] ? new Date(dates[id]).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
   const W = project.canvas.w, H = project.canvas.h, fps = project.canvas.fps;
   const add = async (files: FileList | null) => {
@@ -102,9 +105,16 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
         const inUse = (id: string, a: any) => (same.get(a.src || id) || [id]).some((x) => used.has(x));
         if (k === 'video') list.sort(([x], [y]) => (dates[y] || 0) - (dates[x] || 0));  // (newest first; no date yet: last)
         if (!list.length) return null;
+        const shown = k === 'video' && onlyNew ? list.filter(([id, a]) => !inUse(id, a)) : list;
         return (
           <div key={k}>
-            <div className="m-sec">{title}<span>{list.length}</span></div>
+            <div className="m-sec">{title}{k === 'video'
+              ? <span className="m-show">
+                  <button className={onlyNew ? '' : 'on'} onClick={() => setOnlyNew(false)} title="Every video">All {list.length}</button>
+                  <button className={onlyNew ? 'on' : ''} onClick={() => setOnlyNew(true)} title="Only the videos that are not on the timeline yet">Not added {list.filter(([id, a]) => !inUse(id, a)).length}</button>
+                </span>
+              : <span>{list.length}</span>}</div>
+            {k === 'video' && onlyNew && !shown.length && <div className="help" style={{ padding: '4px 14px 8px' }}>Every video is on the timeline.</div>}
             {(k === 'bg' || k === 'image') ? (
               <div className="pm-grid">
                 {list.map(([id, a]) => (
@@ -116,7 +126,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
                   </div>
                 ))}
               </div>
-            ) : list.map(([id, a]) => (
+            ) : shown.map(([id, a]) => (
               <div key={id} className="m-row" onClick={() => (pick && pick.kind === a.kind ? pick.onPick(id) : null)}>
                 {a.kind === 'video' ? <span className="mk-wrap"><PeekThumb src={`/api/p/${ep}/thumb?asset=${encodeURIComponent(id)}`} onPlay={() => (pick ? pick.kind === 'video' && pick.onPick(id) : setPeek(id))} /><Dot a={a} /></span>
                   : a.kind === 'audio' ? <span className="mk-wrap"><button className="m-ic" style={{ cursor: 'pointer', border: 0, font: 'inherit', color: 'inherit' }} title="Listen" onClick={(e) => { e.stopPropagation(); pick ? pick.kind === 'audio' && pick.onPick(id) : setPeek(id); }}>♪</button><Dot a={a} /></span>
