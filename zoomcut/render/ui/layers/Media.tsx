@@ -4,7 +4,7 @@
 // it Use / Don't use with a note ("the first part from this take"). Kept on the asset (mark, note), for him and for
 // whoever edits the project (the skill reads them); the list only gets a small sign on a marked file's picture.
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, upload } from './api';
+import { Send, upload, build } from './api';
 import { newId } from '../../src/layers/ops.js';
 import { VideoPeek, PeekThumb } from './VideoPeek';
 
@@ -49,6 +49,12 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
   const fileIn = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState('');
   const [peek, setPeek] = useState<string | null>(null);  // the file open big
+  // when each video was recorded (render/actions/dates.mjs - the phone's time inside the file): Footage newest first
+  // (his ask, 2026-10-28: "I want last to be first"); asked again when videos come or go
+  const [dates, setDates] = useState<Record<string, number>>({});
+  const vids = Object.keys(project.assets || {}).filter((id) => project.assets[id].kind === 'video').sort().join('|');
+  useEffect(() => { build(ep, { action: 'dates' }).then((r: any) => { if (r?.dates) setDates(r.dates); }).catch(() => {}); }, [ep, vids]);
+  const when = (id: string) => (dates[id] ? new Date(dates[id]).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
   const W = project.canvas.w, H = project.canvas.h, fps = project.canvas.fps;
   const add = async (files: FileList | null) => {
     for (const f of Array.from(files || [])) {
@@ -94,6 +100,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
           return true;
         });
         const inUse = (id: string, a: any) => (same.get(a.src || id) || [id]).some((x) => used.has(x));
+        if (k === 'video') list.sort(([x], [y]) => (dates[y] || 0) - (dates[x] || 0));  // (newest first; no date yet: last)
         if (!list.length) return null;
         return (
           <div key={k}>
@@ -116,7 +123,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
                   : <div className="m-ic">Aa</div>}
                 <div className="m-main">
                   <div className="m-name he">{a.label || a.src.split('/').pop()}</div>
-                  <div className="m-sub">{a.kind === 'font' ? a.family : `${a.duration ? a.duration.toFixed(1) + ' s' : ''}${a.w ? ` · ${a.w}×${a.h}` : ''}${inUse(id, a) ? ' · in use' : ''}`}</div>
+                  <div className="m-sub">{a.kind === 'font' ? a.family : `${a.duration ? a.duration.toFixed(1) + ' s' : ''}${a.w ? ` · ${a.w}×${a.h}` : ''}${when(id) ? ` · ${when(id)}` : ''}${inUse(id, a) ? ' · in use' : ''}`}</div>
                 </div>
                 {a.kind !== 'font' && !pick && <button className="pm-use" style={{ width: 70 }} onClick={(e) => { e.stopPropagation(); place(id, a); }}>+ timeline</button>}
               </div>
