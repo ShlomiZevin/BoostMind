@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://boostmind-b052c.web.app/shefa-ad/img/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Suez+One&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Suez+One&family=Frank+Ruhl+Libre:wght@700&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
   /* שפע עד - the discount store from Hani Friedman's world: a cheap newspaper flyer that works (same look as the ads) */
   :root { --red: #d8141c; --navy: #14204a; --yellow: #ffd400; --paper: #fff; --bg: #f3efe6; --line: #14204a; }
@@ -27,7 +27,8 @@
   a { color: inherit; }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
 
-  .strip { background: var(--navy); color: #fff; font-weight: 700; font-size: 15px; text-align: center; padding: 7px 12px; }
+  .bsd { position: absolute; top: 6px; right: 12px; font-family: 'Frank Ruhl Libre', serif; font-weight: 700; font-size: 14px; color: #fff; }
+  .strip { position: relative; background: var(--navy); color: #fff; font-weight: 700; font-size: 15px; text-align: center; padding: 7px 12px; }
   header { background: var(--red); color: #fff; }
   header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; }
   .logo { font-family: 'Suez One', serif; font-size: 46px; line-height: 1; letter-spacing: 0.5px; text-decoration: none; }
@@ -89,7 +90,7 @@
 </style>
 </head>
 <body>
-<div class="strip">משלוחים עד הבית · כל יום עד 16:20 בדיוק · בלי נדר</div>
+<div class="strip"><span class="bsd">בס״ד</span>משלוחים עד הבית · כל יום עד 16:20 בדיוק · בלי נדר</div>
 <header>
   <div class="wrap">
     <a class="logo" href="#">שפע עד<small>שפע של מבצעים. עד הבית.</small></a>
@@ -115,14 +116,14 @@
     <div class="deals">
       <div class="deal big"><span class="tag">להיט השבוע</span><img src="img/igulyot.jpg" alt=""><h3>עיגוליות ברכת השפע</h3><div class="what">פרווה?! פשוט לא מרגישים. כשר למהדרין, 400 גרם.</div><div class="price">2 ב־18 <i>₪</i></div></div>
       <div class="deal big"><span class="tag">חדש</span><img src="img/avnei-binyan.jpg" alt=""><h3>אבני בניין · מזבח הקטורת</h3><div class="what">לגו? זה לגו-יים. אצלנו בונים עולם של תורה. 248 חלקים.</div><div class="price">29.90 <i>₪</i></div></div>
-      <div class="deal"><h3>שקיות אקסטרה גדולות</h3><div class="what">100 יחידות. לוקחים את כל השקיות בבת אחת.</div><div class="price">9.90 <i>₪</i></div></div>
-      <div class="deal"><h3>פלאפון כשר</h3><div class="what">מצלצל רק כשבאמת צריך. ובדרך כלל זו ברכי.</div><div class="price">149 <i>₪</i></div></div>
-      <div class="deal"><h3>נרות חנוכה · 44 נרות</h3><div class="what">נר שמיני נופל על יום העלאת הגרסה? לא באשמתנו.</div><div class="price">12.90 <i>₪</i></div></div>
-      <div class="deal"><h3>מגבונים לחים · מארז 12</h3><div class="what">לבית עם תשעה ילדים זה בדיוק ליומיים.</div><div class="price">24.90 <i>₪</i></div></div>
-      <div class="deal"><h3>חלות לשבת</h3><div class="what">רכות, מתוקות, נגמרות ביום חמישי בעשר.</div><div class="price">2 ב־15 <i>₪</i></div></div>
-      <div class="deal"><h3>שניצל עוף · 1 ק״ג</h3><div class="what">בשרי. העיגוליות - פרווה. שאלו את שרולי.</div><div class="price">34.90 <i>₪</i></div></div>
-      <div class="deal"><h3>מפת שולחן ניילון</h3><div class="what">לסעודה אצל החמות. עמידה גם בסיום מסכת.</div><div class="price">7.90 <i>₪</i></div></div>
-      <div class="deal"><h3>מיץ ענבים · 1.5 ליטר</h3><div class="what">לקידוש, להבדלה, ולילד שבוכה.</div><div class="price">11.90 <i>₪</i></div></div>
+      <div class="deal"><img src="img/bags.jpg" alt="שקיות אקסטרה גדולות"><h3>שקיות אקסטרה גדולות</h3><div class="what">100 יחידות. לוקחים את כל השקיות בבת אחת.</div><div class="price">9.90 <i>₪</i></div></div>
+      <div class="deal"><img src="img/phone.jpg" alt="פלאפון כשר"><h3>פלאפון כשר</h3><div class="what">מצלצל רק כשבאמת צריך. ובדרך כלל זו ברכי.</div><div class="price">149 <i>₪</i></div></div>
+      <div class="deal"><img src="img/candles.jpg" alt="נרות חנוכה · 44 נרות"><h3>נרות חנוכה · 44 נרות</h3><div class="what">נר שמיני נופל על יום העלאת הגרסה? לא באשמתנו.</div><div class="price">12.90 <i>₪</i></div></div>
+      <div class="deal"><img src="img/wipes.jpg" alt="מגבונים לחים · מארז 12"><h3>מגבונים לחים · מארז 12</h3><div class="what">לבית עם תשעה ילדים זה בדיוק ליומיים.</div><div class="price">24.90 <i>₪</i></div></div>
+      <div class="deal"><img src="img/challah.jpg" alt="חלות לשבת"><h3>חלות לשבת</h3><div class="what">רכות, מתוקות, נגמרות ביום חמישי בעשר.</div><div class="price">2 ב־15 <i>₪</i></div></div>
+      <div class="deal"><img src="img/schnitzel.jpg" alt="שניצל עוף · 1 ק״ג"><h3>שניצל עוף · 1 ק״ג</h3><div class="what">בשרי. העיגוליות - פרווה. שאלו את שרולי.</div><div class="price">34.90 <i>₪</i></div></div>
+      <div class="deal"><img src="img/tablecloth.jpg" alt="מפת שולחן ניילון"><h3>מפת שולחן ניילון</h3><div class="what">לסעודה אצל החמות. עמידה גם בסיום מסכת.</div><div class="price">7.90 <i>₪</i></div></div>
+      <div class="deal"><img src="img/grapejuice.jpg" alt="מיץ ענבים · 1.5 ליטר"><h3>מיץ ענבים · 1.5 ליטר</h3><div class="what">לקידוש, להבדלה, ולילד שבוכה.</div><div class="price">11.90 <i>₪</i></div></div>
     </div>
   </div>
 </section>

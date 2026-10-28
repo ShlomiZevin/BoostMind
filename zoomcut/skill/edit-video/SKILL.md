@@ -287,6 +287,19 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   tied to the video's punchline. Nothing important in the top 240 px or the bottom 300 px (the apps' bars). Made as
   HTML + headless Chrome at 1080x1920, ONE render per call (parallel renders sharing a profile fail silently).
   Layouts to copy: `recipes/monologue.md` → tadar. Make both as soon as the script arrives - before the footage.
+- **Story clips from story posters** (haredit-2 ads, 2026-10-28: "send me both stories as short movies of 10 seconds
+  with the music of the Chani movies on 1.2 and add a poster at the end"): 1080x1920, 10 s - the poster with a slow
+  push-in (zoom 1.00 -> 1.06) for ~7 s, a 0.25 s slide to an END CARD in the same look (the shop / site / CTA in his
+  words) for ~3 s with a slight zoom-out; the series' music (`episodes/<series>/media`) through `atempo` at the speed he
+  names, fade in 0.15 / out 0.8, `loudnorm` -14 LUFS; a different part of the track for each clip. ffmpeg trap: a
+  looped still is 25 fps unless `-loop 1 -framerate 30` - the first try came out 6 s with no end card; count the frames
+  (300) and look at a still from the end card before sending. End card = HTML + `_assets/dorit/tarot/shoot.mjs`, like
+  the posters (`_assets/haredit/ads/booklet.html`). Telegram: an English caption (a Hebrew one in curl -F failed, 400).
+- **A shop / brand from a video gets a site** when he asks (שפע עד, `public/shefa-ad/`): the same look as its ads,
+  בס״ד at the top (a Haredi brand - his note), a photo for EVERY product (Leonardo packshots on white, MEDIUM, one
+  per call - never text-only cards), jokes from the video's world in the copy, phone-width check. Then every list
+  (wiki.md -> "A NEW site") and a deploy only after checking nothing else unfinished rides along (compare each
+  changed page under public/ with the live one).
 - **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
   reader then the rest, I'm filming" / "fill it while I'm filming"). He films with the Reader, and **the Reader lists
   PROJECTS, not scripts** - a script with no project never shows ("I don't see it here").
