@@ -512,6 +512,19 @@ wig, beard kept; 0.5 when the scene changes a lot). **Key: his official Leonardo
   `<meta name="robots" content="noindex">` so a search for the real name never lands on it; faces are his own
   (Leonardo from his frames), never the real person's; nothing collected or charged.
 
+- **Family members of a character** (Hani's husband and nine kids, 2026-10-28): a child = `portrait` from the parent's
+  portrait at 0.6 ("the son of the woman in the reference - a clear family resemblance"); one who looks like the other
+  parent = that parent's picture as the reference. A spouse who must NOT look like her = a plain `image`. Studio
+  portraits on light grey, like the rest of the family; a scene with two people = both pictures side by side as ONE
+  reference ("the woman on the left... the boy on the right"). Then a profile per person and relations both ways.
+- **Leonardo and children:** it refuses ("failed" / "rejected", ~$0.03 each) a picture with TWO young children, and a
+  crying child most of the time (the first one slipped through); after a few refusals it refused even plain child
+  portraits that had worked an hour before. Don't loop: two photos side by side as an album is the honest fallback;
+  a child pasted in by hand (GrabCut + shadow) looked fake - he called it "terrible". Ask him before spending more.
+- **The family WhatsApp** (his ask: Hani "sends" the story photos to the family): Hani has a kosher phone, so she writes
+  from the office computer ("חני · מהמחשב בעבודה"), seen on Grandma's phone; a real-looking group - the photo, her
+  caption, two or three replies from Grandma / an aunt / an uncle. NO stickers ("the sticker makes it not realistic").
+  `_assets/haredit/wa/` (wa.css + one HTML per photo, shot with shoot.mjs).
 ## Characters - the multiverse (his ask, 2026-10-23)
 Every recurring character has a profile in the studio (left rail → **Characters**): name, portrait, who they are,
 personality, catchphrases, look, voice preset, **pace** (words per minute), writing rules, relations, their website,
