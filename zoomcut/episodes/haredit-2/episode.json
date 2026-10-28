@@ -87,8 +87,8 @@
         "נשיקות"
       ],
       "hold": 1.5,
-      "start": 161.74,
-      "end": 164.66
+      "start": 161.44,
+      "end": 164.36
     }
   ],
   "script": "haredit-2",
@@ -196,9 +196,9 @@
     {
       "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
       "sound": "../_assets/haredit/calls/brachi-01.mp3",
-      "at": 4.2,
+      "at": 4.307,
       "from": 0.0,
-      "to": 1.27,
+      "to": 1.46,
       "gain": 0.96,
       "pitch": 1.7,
       "filter": "phone",
@@ -209,9 +209,9 @@
     {
       "take": "ECEF4B82-C36E-4BC9-9E5B-20F336BA6BB2",
       "sound": "../_assets/haredit/calls/brachi-02.mp3",
-      "at": 8.35,
+      "at": 8.367,
       "from": 0.0,
-      "to": 1.19,
+      "to": 1.39,
       "gain": 1.2,
       "pitch": 1.7,
       "filter": "phone",
@@ -235,9 +235,9 @@
     {
       "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
       "sound": "../_assets/haredit/calls/brachi-04.mp3",
-      "at": 8.45,
+      "at": 8.557,
       "from": 0.0,
-      "to": 1.53,
+      "to": 1.46,
       "gain": 3.0,
       "pitch": 1.7,
       "filter": "phone",
@@ -248,9 +248,9 @@
     {
       "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
       "sound": "../_assets/haredit/calls/brachi-05.mp3",
-      "at": 10.95,
+      "at": 10.797,
       "from": 1.9,
-      "to": 3.01,
+      "to": 3.43,
       "gain": 1.32,
       "pitch": 1.7,
       "filter": "phone",
@@ -271,9 +271,9 @@
     {
       "take": "815901F3-04F0-4FF3-8812-0258EBE63999",
       "sound": "../_assets/haredit/calls/brachi-06.mp3",
-      "at": 13.7,
+      "at": 13.757,
       "from": 0.0,
-      "to": 1.02,
+      "to": 1.19,
       "gain": 2.64,
       "pitch": 1.7,
       "filter": "phone",
@@ -304,9 +304,9 @@
     {
       "take": "A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
       "sound": "../_assets/haredit/calls/brachi-07.mp3",
-      "at": 3.8,
+      "at": 3.79,
       "from": 0.0,
-      "to": 1.36,
+      "to": 1.56,
       "gain": 0.84,
       "pitch": 1.7,
       "filter": "phone",
@@ -317,9 +317,9 @@
     {
       "take": "A9AE0054-5649-402D-9E4F-5C7AE1C05B50",
       "sound": "../_assets/haredit/calls/brachi-08.mp3",
-      "at": 13.95,
+      "at": 13.97,
       "from": 0.0,
-      "to": 1.45,
+      "to": 1.6,
       "gain": 3.84,
       "pitch": 1.7,
       "filter": "phone",
@@ -341,9 +341,9 @@
     {
       "take": "5D8D6D4C-DA7A-4928-BDC8-98421F1D09A6",
       "sound": "../_assets/haredit/calls/brachi-09.mp3",
-      "at": 10.1,
+      "at": 10.063,
       "from": 0.0,
-      "to": 1.36,
+      "to": 1.7,
       "gain": 6.0,
       "pitch": 1.7,
       "filter": "phone",
@@ -388,9 +388,9 @@
     {
       "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
       "sound": "../_assets/haredit/calls/brachi-10.mp3",
-      "at": 10.85,
+      "at": 11.107,
       "from": 0.15,
-      "to": 1.42,
+      "to": 1.68,
       "gain": 3.0,
       "pitch": 1.7,
       "filter": "phone",
@@ -412,9 +412,9 @@
     {
       "take": "3A53DF88-0643-4044-9FD8-A8D5CBF0C073",
       "sound": "../_assets/haredit/calls/brachi-11.mp3",
-      "at": 16.95,
+      "at": 17.227,
       "from": 0.0,
-      "to": 1.27,
+      "to": 1.02,
       "gain": 1.08,
       "pitch": 1.7,
       "filter": "phone",
@@ -454,7 +454,7 @@
     },
     {
       "take": "58BD328D-26FA-4910-8437-42E714C72496",
-      "from": 4.75
+      "from": 5.05
     },
     {
       "take": "F1D1C898-8032-466E-9A4A-8735F83800A8",
