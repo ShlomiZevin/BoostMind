@@ -1,0 +1,33 @@
+{
+  "id": "shterni",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "שטערני פרידמן",
+  "name_en": "Shterni Friedman",
+  "aka": [
+    "שטערני"
+  ],
+  "role": "הבת הבכורה של חני, בת 12",
+  "color": "#3d4f8a",
+  "brief": "הבכורה, בת 12. בת המצווה שלה בכ״ח במרחשוון, וכל טקי-טק מוזמנת. משתמשת במחשב של סבא כדי להיות בקבוצה המשפחתית.",
+  "look": "בת 12, משקפיים דקים, צמה ארוכה אחת, שמלה כחולה צנועה עם צווארון לבן.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלה"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלה"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-eldest-final.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-eldest-final.jpg"
+    ]
+  },
+  "themes": [
+    "haredit-1: בת המצווה של שטערני"
+  ]
+}

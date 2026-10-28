@@ -1,0 +1,31 @@
+{
+  "id": "moishi",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "מוישי פרידמן",
+  "name_en": "Moishi Friedman",
+  "aka": [
+    "מוישי"
+  ],
+  "role": "התינוק של חני ואברהם משה, בן שנה - נראה בדיוק כמו אבא",
+  "color": "#9c4221",
+  "brief": "בן שנה, הקטן במשפחה, ונראה בדיוק כמו אבא שלו: פנים עגולות, עיניים חומות ושיער חום-ערמוני (בלי זקן, כמובן). יושב בצד ומסתכל בתמיהה על כל מה שקורה.",
+  "look": "תינוק שמנמן בן שנה, שיער חום-ערמוני מתולתל, בגד גוף לבן, כיפה קטנה.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלו"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלו - נראה בדיוק כמוהו"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/baby.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/baby.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/baby-room.jpg"
+    ]
+  }
+}

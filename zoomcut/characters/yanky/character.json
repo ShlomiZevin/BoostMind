@@ -1,0 +1,34 @@
+{
+  "id": "yanky",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "יענקי פרידמן",
+  "name_en": "Yanky Friedman",
+  "aka": [
+    "יענקי"
+  ],
+  "role": "הבן של חני, בן 6 - זה שדרך על האבני בניין",
+  "color": "#b7791f",
+  "brief": "בן 6. הוציא את כל האבני בניין ולא אסף, למרות שאמא ביקשה אתמול - ואז דרך עליהן ובכה. היחיד במשפחה בלי משקפיים.",
+  "look": "בן 6, בלי משקפיים, כיפת קטיפה שחורה, פאות מסולסלות קצרות, חולצה לבנה עם ציציות, מכנסיים כחולים כהים, גרביים. רווח בשיניים הקדמיות.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלו"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלו"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/yanky.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/yanky.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/yanky-ouch.jpg"
+    ]
+  },
+  "themes": [
+    "haredit-2: דרך על האבני בניין ובוכה"
+  ]
+}

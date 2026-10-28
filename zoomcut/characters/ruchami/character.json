@@ -1,0 +1,30 @@
+{
+  "id": "ruchami",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "רוחמי פרידמן",
+  "name_en": "Ruchami Friedman",
+  "aka": [
+    "רוחמי"
+  ],
+  "role": "הבת של חני, בת 5",
+  "color": "#2f855a",
+  "brief": "בת 5, עם שתי צמות, סרטים לבנים ומשקפיים קטנים.",
+  "look": "בת 5, שתי צמות עם סרטים לבנים, משקפיים קטנים, שמלה כחולה עם צווארון לבן.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלה"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלה"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-ruchami.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-ruchami.jpg"
+    ]
+  }
+}

@@ -30,8 +30,32 @@
       "relation": "אשתו"
     },
     {
+      "id": "shterni",
+      "relation": "הבת הבכורה, בת 12"
+    },
+    {
+      "id": "brachi",
+      "relation": "בת 10"
+    },
+    {
       "id": "sruli",
-      "relation": "הבן שלו"
+      "relation": "בן 8, עם הגבס"
+    },
+    {
+      "id": "yanky",
+      "relation": "בן 6"
+    },
+    {
+      "id": "ruchami",
+      "relation": "בת 5"
+    },
+    {
+      "id": "malki",
+      "relation": "בת 3"
+    },
+    {
+      "id": "moishi",
+      "relation": "התינוק - נראה בדיוק כמוהו"
     }
   ],
   "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/avraham-moshe-3.jpg",

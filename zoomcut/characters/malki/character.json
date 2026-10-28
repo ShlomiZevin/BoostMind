@@ -1,0 +1,33 @@
+{
+  "id": "malki",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "מלכי פרידמן",
+  "name_en": "Malki Friedman",
+  "aka": [
+    "מלכי"
+  ],
+  "role": "הבת של חני, בת 3 - זו שמטפסת על השיש",
+  "color": "#c53030",
+  "brief": "בת 3 ושובבה. מטפסת על השיש במטבח ולא מקשיבה לברכי. חני יוצאת בארבע ועשרים לאסוף אותה.",
+  "look": "בת 3, שתי קוקיות עם סיכות לבנות, שמלה כחולה עם צווארון לבן, חיוך שובב.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלה"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלה"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-malki.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/daughter-malki.jpg"
+    ]
+  },
+  "themes": [
+    "haredit-2: על השיש, ברכי מושכת אותה ביד"
+  ]
+}
