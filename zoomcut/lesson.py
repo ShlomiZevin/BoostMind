@@ -159,7 +159,7 @@ def prepare(ls):
             log(f"  · cut out {n}")
         if prop_cfg(ls, n) and not os.path.exists(matte_path(ls, n)):
             prop_matte(ls, t, n)
-            log(f"  · a held prop kept by its colour in {n}")
+            log(f"  · a held prop kept in {n}" + (" (tracked from its box)" if prop_cfg(ls, n).get("track") else " (by its colour)"))
 
 
 def base_matte_path(ls, n):
@@ -172,7 +172,14 @@ def prop_cfg(ls, n):
     of one clear colour that every cut-out engine drops (a lime bottle against a white wall): pixels of that colour
     (OpenCV HSV, H 0-180) that touch the person are added to the cut-out, between from / to (take seconds)."""
     pc = ls.cfg.get("prop_color") or {}
-    return pc.get(n) or pc.get("*")
+    col = pc.get(n) or pc.get("*")
+    # episode.json "props": {"<take>": [{"box": [x0, y0, x1, y1], "from": s, "to": s}]} - a held prop of any colours
+    # (a cookie box, a phone): its box drawn once on the frame at `from` (fractions of the frame), tracked through
+    # the take, the prop separated from the room inside the box each frame - the editor's "paint what to keep"
+    tr = (ls.cfg.get("props") or {}).get(n)
+    if not col and not tr:
+        return None
+    return {**(col or {}), **({"track": tr} if tr else {})}
 
 
 def matte_path(ls, n):
@@ -188,8 +195,10 @@ def prop_matte(ls, t, n):
     blobs that touch the person (so the same colour in the room stays out), softened at the edge."""
     import cv2
     pc, base, out = prop_cfg(ls, n), base_matte_path(ls, n), matte_path(ls, n)
-    lo, hi = (np.array(v, np.uint8) for v in pc["hsv"])
-    f0, f1 = int(pc.get("from", 0) * FPS), int(pc.get("to", 1e9) * FPS)
+    lo, hi = (np.array(v, np.uint8) for v in pc["hsv"]) if pc.get("hsv") else (None, None)
+    f0, f1 = (int(pc.get("from", 0) * FPS), int(pc.get("to", 1e9) * FPS)) if pc.get("hsv") else (1, 0)
+    tracks = [{"box": p["box"], "f0": int(p.get("from", 0) * FPS), "f1": int(p.get("to", 1e9) * FPS), "tk": None, "rect": None}
+              for p in pc.get("track", [])]
     src = subprocess.Popen([FFMPEG, "-v", "error", "-i", t, "-vf", f"scale={MATTE_W}:{MATTE_H}:flags=area,fps={FPS}",
                             "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
     mat = subprocess.Popen([FFMPEG, "-v", "error", "-i", base, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE)
@@ -225,6 +234,9 @@ def prop_matte(ls, t, n):
                     keep[blob] = 255
             keep = cv2.GaussianBlur(cv2.dilate(keep, np.ones((3, 3), np.uint8)), (5, 5), 0)
             m = np.maximum(m, keep)
+        for tr in tracks:
+            if tr["f0"] <= k <= tr["f1"]:
+                m = np.maximum(m, tracked_prop(tr, np.frombuffer(rgb, np.uint8).reshape(MATTE_H, MATTE_W, 3), m))
         enc.stdin.write(m.tobytes())
         k += 1
     enc.stdin.close()
@@ -232,6 +244,57 @@ def prop_matte(ls, t, n):
     src.wait()
     mat.wait()
     os.replace(part, out)
+
+
+def tracked_prop(tr, rgb, m):
+    """One frame of a tracked prop (prop_cfg "track"): the box follows the prop (OpenCV CSRT, started from the box
+    drawn at `from`), and inside it GrabCut tells the prop from the room - the drawn box is "probably the prop", a
+    margin around it "probably the room", the person "surely kept". Only the part touching the person or the frame's
+    edge stays (a held prop is in a hand or cut by the frame), softened at the edge."""
+    import cv2
+    H, W = rgb.shape[:2]
+    bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    if tr["tk"] is None:
+        x0, y0, x1, y1 = tr["box"]
+        r = (int(x0 * W), int(y0 * H), max(8, int((x1 - x0) * W)), max(8, int((y1 - y0) * H)))
+        tr["tk"] = cv2.TrackerCSRT_create()
+        tr["tk"].init(bgr, r)
+        tr["rect"] = r
+    else:
+        ok, r = tr["tk"].update(bgr)
+        if ok:
+            tr["rect"] = tuple(int(v) for v in r)
+    x, y, w, h = tr["rect"]
+    pw, ph = int(w * 0.12) + 6, int(h * 0.12) + 6
+    X0, Y0, X1, Y1 = max(0, x - pw), max(0, y - ph), min(W, x + w + pw), min(H, y + h + ph)
+    if X1 - X0 < 16 or Y1 - Y0 < 16:
+        return np.zeros_like(m)
+    crop = bgr[Y0:Y1, X0:X1]
+    gc = np.full(crop.shape[:2], cv2.GC_PR_BGD, np.uint8)
+    gc[max(0, y - Y0):y + h - Y0, max(0, x - X0):x + w - X0] = cv2.GC_PR_FGD
+    gc[m[Y0:Y1, X0:X1] > 200] = cv2.GC_FGD
+    if not (gc == cv2.GC_PR_BGD).any():
+        gc[0, :] = cv2.GC_PR_BGD
+    try:
+        cv2.grabCut(crop, gc, None, np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64), 3, cv2.GC_INIT_WITH_MASK)
+    except cv2.error:
+        return np.zeros_like(m)
+    fg = ((gc == cv2.GC_FGD) | (gc == cv2.GC_PR_FGD)).astype(np.uint8) * 255
+    fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    fg = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
+    full = np.zeros_like(m)
+    full[Y0:Y1, X0:X1] = fg
+    person = cv2.dilate((m > 128).astype(np.uint8) * 255, np.ones((15, 15), np.uint8))
+    edge = np.zeros_like(m)
+    edge[:3, :] = edge[-3:, :] = 255
+    edge[:, :3] = edge[:, -3:] = 255
+    num, lab, st, _ = cv2.connectedComponentsWithStats(full)
+    keep = np.zeros_like(m)
+    for i in range(1, num):
+        blob = lab == i
+        if st[i, cv2.CC_STAT_AREA] > 150 and ((person[blob] > 0).any() or (edge[blob] > 0).any()):
+            keep[blob] = 255
+    return cv2.GaussianBlur(keep, (5, 5), 0)
 
 
 def face_boxes(src, out_json):

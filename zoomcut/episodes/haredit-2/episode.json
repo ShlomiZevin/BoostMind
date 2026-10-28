@@ -496,5 +496,33 @@
       "from": 2.7
     }
   ],
-  "captions_from": "file"
+  "captions_from": "file",
+  "props": {
+    "044C9A77-DB44-4675-9164-3D69DED52505": [
+      {
+        "what": "the cookie box",
+        "box": [
+          0,
+          0.48,
+          0.46,
+          1.0
+        ],
+        "from": 0.7,
+        "to": 4.4
+      }
+    ],
+    "BC6C820D-3698-423C-A16C-C6A04DB9E741": [
+      {
+        "what": "the cookie box",
+        "box": [
+          0,
+          0.47,
+          0.5,
+          1.0
+        ],
+        "from": 5.2,
+        "to": 7.0
+      }
+    ]
+  }
 }

@@ -269,7 +269,7 @@
       "audio": "work/audio/044C9A77-DB44-4675-9164-3D69DED52505.wav",
       "preview": "work/public/takes/044C9A77-DB44-4675-9164-3D69DED52505.plain.mp4",
       "fg": "work/public/takes/044C9A77-DB44-4675-9164-3D69DED52505.webm",
-      "matte": "work/matte/044C9A77-DB44-4675-9164-3D69DED52505.body.mkv"
+      "matte": "work/matte/044C9A77-DB44-4675-9164-3D69DED52505.body.propec86aba0.mkv"
     },
     "t.0F959E09-CAC3-4AFF-AF23-B737F5534097": {
       "kind": "video",
@@ -449,7 +449,7 @@
       "audio": "work/audio/BC6C820D-3698-423C-A16C-C6A04DB9E741.wav",
       "preview": "work/public/takes/BC6C820D-3698-423C-A16C-C6A04DB9E741.plain.mp4",
       "fg": "work/public/takes/BC6C820D-3698-423C-A16C-C6A04DB9E741.webm",
-      "matte": "work/matte/BC6C820D-3698-423C-A16C-C6A04DB9E741.body.mkv"
+      "matte": "work/matte/BC6C820D-3698-423C-A16C-C6A04DB9E741.body.prop01d90e13.mkv"
     },
     "t.CA80BF04-3975-44F9-B847-C8F5DAF1F28D": {
       "kind": "video",
@@ -976,7 +976,7 @@
           "anim": {
             "scale": [
               [
-                0,
+                0.0,
                 0.3
               ],
               [
@@ -1061,11 +1061,11 @@
               ],
               [
                 0.35,
-                1
+                1.0
               ],
               [
                 2.72,
-                1
+                1.0
               ],
               [
                 2.7367,
@@ -1120,9 +1120,9 @@
           "asset": "m.ov2",
           "box": {
             "x": 662.3,
-            "y": 330,
+            "y": 330.0,
             "w": 315.5,
-            "h": 540
+            "h": 540.0
           }
         }
       ]
@@ -1144,10 +1144,10 @@
             "overlay": 0
           },
           "box": {
-            "x": 540,
-            "y": 300,
+            "x": 540.0,
+            "y": 300.0,
             "anchor": "t",
-            "w": 940
+            "w": 940.0
           },
           "text": "פוב: אתה יושב ליד\nהחרדית של המשרד – חלק 2",
           "style": "pov",
@@ -3675,7 +3675,7 @@
           "ref": {
             "sound": 7
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3692,7 +3692,7 @@
           "ref": {
             "sound": 8
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3701,7 +3701,7 @@
         {
           "id": "x9",
           "from": 3607.9,
-          "dur": 39,
+          "dur": 39.0,
           "asset": "s.9",
           "gain": 0.96,
           "fade_in": 0.03,
@@ -3709,7 +3709,7 @@
           "ref": {
             "sound": 9
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3720,13 +3720,13 @@
           "from": 3808.21,
           "dur": 25.765,
           "asset": "s.10",
-          "gain": 3,
+          "gain": 3.0,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 10
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3735,7 +3735,7 @@
         {
           "id": "x11",
           "from": 3875.41,
-          "dur": 27,
+          "dur": 27.0,
           "asset": "s.11",
           "gain": 1.32,
           "fade_in": 0.03,
@@ -3752,7 +3752,7 @@
         {
           "id": "x13",
           "from": 3964.21,
-          "dur": 21,
+          "dur": 21.0,
           "asset": "s.13",
           "gain": 2.64,
           "fade_in": 0.03,
@@ -3760,7 +3760,7 @@
           "ref": {
             "sound": 13
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3777,7 +3777,7 @@
           "ref": {
             "sound": 16
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3794,7 +3794,7 @@
           "ref": {
             "sound": 17
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3803,15 +3803,15 @@
         {
           "id": "x19",
           "from": 4900.79,
-          "dur": 30,
+          "dur": 30.0,
           "asset": "s.19",
-          "gain": 6,
+          "gain": 6.0,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
             "sound": 19
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3820,9 +3820,9 @@
         {
           "id": "x23",
           "from": 6187.21,
-          "dur": 27,
+          "dur": 27.0,
           "asset": "s.23",
-          "gain": 3,
+          "gain": 3.0,
           "fade_in": 0.03,
           "fade_out": 0.08,
           "ref": {
@@ -3837,7 +3837,7 @@
         {
           "id": "x25",
           "from": 6370.81,
-          "dur": 18,
+          "dur": 18.0,
           "asset": "s.25",
           "gain": 1.08,
           "fade_in": 0.03,
@@ -3845,7 +3845,7 @@
           "ref": {
             "sound": 25
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -3865,7 +3865,7 @@
         {
           "id": "x1",
           "from": 2953.5,
-          "dur": 354,
+          "dur": 354.0,
           "asset": "s.1",
           "gain": 0.3,
           "fade_in": 0.4,
@@ -3881,7 +3881,7 @@
         {
           "id": "x2",
           "from": 3295.9,
-          "dur": 351,
+          "dur": 351.0,
           "asset": "s.2",
           "gain": 0.12,
           "fade_in": 0.4,
@@ -3889,15 +3889,15 @@
           "ref": {
             "sound": 2
           },
-          "in": 2,
+          "in": 2.0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x3",
-          "from": 3640,
-          "dur": 573,
+          "from": 3640.0,
+          "dur": 573.0,
           "asset": "s.3",
           "gain": 0.3,
           "fade_in": 0.4,
@@ -3912,8 +3912,8 @@
         },
         {
           "id": "x4",
-          "from": 4215,
-          "dur": 456,
+          "from": 4215.0,
+          "dur": 456.0,
           "asset": "s.4",
           "gain": 0.3,
           "fade_in": 0.4,
@@ -3928,8 +3928,8 @@
         },
         {
           "id": "x5",
-          "from": 4646,
-          "dur": 276,
+          "from": 4646.0,
+          "dur": 276.0,
           "asset": "s.5",
           "gain": 0.3,
           "fade_in": 0.4,
@@ -3937,15 +3937,15 @@
           "ref": {
             "sound": 5
           },
-          "in": 5,
+          "in": 5.0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x21",
-          "from": 6130,
-          "dur": 252,
+          "from": 6130.0,
+          "dur": 252.0,
           "asset": "s.21",
           "gain": 0.3,
           "fade_in": 0.4,
@@ -3972,7 +3972,7 @@
         {
           "id": "x0",
           "from": 2905.5,
-          "dur": 48,
+          "dur": 48.0,
           "asset": "s.0",
           "gain": 0.095,
           "fade_in": 0.02,
@@ -3980,12 +3980,12 @@
           "ref": {
             "sound": 0
           },
-          "in": 0
+          "in": 0.0
         },
         {
           "id": "x6",
           "from": 3003.4,
-          "dur": 150,
+          "dur": 150.0,
           "asset": "s.6",
           "gain": 0.6,
           "fade_in": 0.03,
@@ -3993,7 +3993,7 @@
           "ref": {
             "sound": 6
           },
-          "in": 0,
+          "in": 0.0,
           "fx": {
             "filter": "phone"
           }
@@ -4001,23 +4001,23 @@
         {
           "id": "x12",
           "from": 3911.5,
-          "dur": 90,
+          "dur": 90.0,
           "asset": "s.12",
-          "gain": 2,
+          "gain": 2.0,
           "fade_in": 0.03,
           "fade_out": 0.12,
           "ref": {
             "sound": 12
           },
-          "in": 0,
+          "in": 0.0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x14",
-          "from": 4189,
-          "dur": 90,
+          "from": 4189.0,
+          "dur": 90.0,
           "asset": "s.14",
           "gain": 0.6,
           "fade_in": 0.03,
@@ -4025,15 +4025,15 @@
           "ref": {
             "sound": 14
           },
-          "in": 0,
+          "in": 0.0,
           "fx": {
             "filter": "phone"
           }
         },
         {
           "id": "x15",
-          "from": 4207,
-          "dur": 180,
+          "from": 4207.0,
+          "dur": 180.0,
           "asset": "s.15",
           "gain": 0.8,
           "fade_in": 0.03,
@@ -4041,7 +4041,7 @@
           "ref": {
             "sound": 15
           },
-          "in": 0,
+          "in": 0.0,
           "fx": {
             "filter": "phone"
           }
@@ -4057,7 +4057,7 @@
           "ref": {
             "sound": 18
           },
-          "in": 0,
+          "in": 0.0,
           "rate": 1.7,
           "fx": {
             "filter": "phone"
@@ -4065,8 +4065,8 @@
         },
         {
           "id": "x20",
-          "from": 6055,
-          "dur": 48,
+          "from": 6055.0,
+          "dur": 48.0,
           "asset": "s.20",
           "gain": 0.095,
           "fade_in": 0.02,
@@ -4074,12 +4074,12 @@
           "ref": {
             "sound": 20
           },
-          "in": 0
+          "in": 0.0
         },
         {
           "id": "x24",
-          "from": 6199,
-          "dur": 93,
+          "from": 6199.0,
+          "dur": 93.0,
           "asset": "s.24",
           "gain": 0.55,
           "fade_in": 0.05,
@@ -4105,7 +4105,7 @@
       "items": [
         {
           "id": "x22",
-          "from": 6133,
+          "from": 6133.0,
           "dur": 205.5,
           "asset": "s.22",
           "gain": 0.12,
@@ -4137,8 +4137,8 @@
       "items": [
         {
           "id": "m0",
-          "from": 0,
-          "dur": 6473,
+          "from": 0.0,
+          "dur": 6473.0,
           "asset": "s.music",
           "in": 0,
           "fade_in": 0.3,
@@ -4186,7 +4186,7 @@
       "muted": true
     }
   ],
-  "rev": 45,
+  "rev": 46,
   "builder": {
     "kind": "solo",
     "from": "lesson.py"
@@ -4195,5 +4195,5 @@
   "edit": {
     "ripple": true
   },
-  "saved": 1793183198243
+  "saved": 1793183892178
 }

@@ -154,7 +154,9 @@ The rules:
    earlier project as ops.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
-   Fix what you find first.
+   **Anything he holds** (a bottle, a box, a phone, a booklet) - check it in the stills: the cut-out engines drop held
+   props or leave them see-through ("a recurring issue", 2026-10-28). Keep it with `props` (draw its box once, it is
+   tracked) - reference.md → Person. Fix what you find first.
 7. **Hand over:** the link, the length, the lines you fixed or could not find, 2-4 timestamps worth his ear, one line
    that he can drag any cut edge to pull footage back. **And the post is already written** (his rule, 2026-10-25):
    every video you make comes with its DEFAULT caption - a hook line + 3-6 hashtags, in the character's voice

@@ -15,6 +15,16 @@
   lime bottle against a white wall: quality, fast and body all lost it): its colour, filled, only blobs touching the
   person, is added to the cut-out (`work/matte/<take>.<engine>.prop<hash>.mkv`, ~4 s a take; editor + export read it
   through `matte_path`). Lime green = [[30,110,110],[48,255,255]]. A part of another colour (the grey cap) stays out.
+  `props` {take: [{what, box [x0,y0,x1,y1] (fractions of the frame at `from`), from, to (take s)}]} - **the general
+  fix for a held prop of any colours** (his ask, 2026-10-28: "if the character holds something like a bottle or the
+  cookie box, it's also cut out - I want to keep it... in CapCut you paint the areas you want to save"): the box is
+  drawn once, OpenCV CSRT tracks it, GrabCut separates the prop from the room inside it every frame (the person =
+  surely kept, a margin = probably the room), only blobs touching the person or the frame's edge stay (`tracked_prop`
+  in lesson.py; same `.prop<hash>.mkv` file, ~1 s of work per second of prop). How to use it: he says what to keep
+  ("the cookie box"); render the take's frames at `from` with a 10x10 grid (`drawgrid=w=iw/10:h=ih/10`), read the
+  box off, and preview before the build (cut-out over green, before / after - haredit-2's `proptest.py` pattern).
+  End `to` before the prop leaves the frame - the tracker then locks on the wall (haredit-2: box flew out at 7.0 s).
+  Segment Anything 2 would track better but installing it from GitHub needs his permission (blocked 2026-10-28).
 - **Set:** `background`, `bg_blur` (2.2 default), `bg_dim` (false = the photo's own light), `plaque` / `plaque_quad`,
   `sign` {image, quad [TL,TR,BR,BL] in the photo's pixels, light, warm, shadow} (or a list) - a picture (her logo)
   painted INTO the set photo in perspective, so it zooms, moves and blurs with the room (an image overlay does not).
