@@ -116,6 +116,8 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // notes for Claude (Notes.tsx): the open one's window; a new one is only saved once it has words
   const notes = notesOf(project);
   const [noteOpen, setNoteOpen] = useState<{ note: Note; isNew: boolean } | null>(null);
+  const [showDone, setShowDone] = useState(() => localStorage.getItem('zc-notes-done') !== '0');  // handled notes on the timeline
+  useEffect(() => { try { localStorage.setItem('zc-notes-done', showDone ? '1' : '0'); } catch {} }, [showDone]);
   const openNote = (n: Note | null) => {
     player.current?.pause();
     if (n) { seek(n.at); setNoteOpen({ note: n, isNew: false }); } else setNoteOpen({ note: newNote(frame), isNew: true });
@@ -341,7 +343,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
               className={`frame ${noteOpen ? 'note-pick' : ''}`}
               onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else player.current?.toggle(); }}>
               {!noteOpen && <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />}
-              <NoteSpots notes={notes} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
+              <NoteSpots notes={showDone ? notes : notes.filter((n) => !n.done)} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
               {inputProps && <Player ref={player} component={Layers as any} inputProps={inputProps} durationInFrames={total} fps={fps}
                 compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay={false} playbackRate={speed}
                 numberOfSharedAudioTags={0} style={{ width: '100%', height: '100%' }} />}
@@ -374,7 +376,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} notes={notes} onNote={openNote}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} notes={notes} onNote={openNote} showDone={showDone} onShowDone={setShowDone}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
       {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}
         onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} />}

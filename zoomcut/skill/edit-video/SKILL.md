@@ -127,6 +127,15 @@ move with what plays under them when a take is made longer / shorter. When he sa
    times, words, refs) and a still of that exact frame with his spot boxed (`episodes/<ep>/work/notes/<id>.png` -
    LOOK at it). Which project: the one he is on (ask if unsure).
 2. Fix each one the right way (this skill's rules: ops API with the rev / the builder - never hand-edit project.json).
+   Ready-made notes carry a `kind` (one click in his note window; the tool prints what each needs):
+   - `tighten` = **Tighten the cut**: the join nearest the note (the tool prints it, with source seconds) - close the
+     gap / pause between the two clips: one camera = that take's `cut.edges` (`/api/ep/<id>/trim` - the same as his
+     drag; everything after moves), down to the last / first word (check `work/transcripts`, never clip a word, keep the
+     project's `join` overlap); Zoom = the line's `pause_before` / timing fix.
+   - `silence` = **Cut the silence**: remove the pause at that moment - one camera = `cut.removes` {take: [[a, b]]} in
+     the take's seconds (the tool prints "@ N s in the source"; measure the pause edges from the words / the voice
+     level). His note overrides "pauses inside a take stay" for THAT pause only. A whisper, a stare, acting in it is
+     not silence - look at the still / frames first and reply with a question if it is acted.
 3. Answer each: `node tools/notes.mjs <ep> done <id> "what I did"` (he reads it on the note and can reopen it); a note
    you can't do or that needs his call: `... reply <id> "the question"` (stays open). Never delete his notes.
 4. Tell him: F5, then a short list - note by note, what changed.

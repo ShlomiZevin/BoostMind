@@ -15,6 +15,15 @@
 .note-arrow { position: absolute; bottom: -7px; width: 12px; height: 12px; margin-left: -6px; transform: rotate(45deg); background: var(--panel);
   border-right: 1px solid var(--edge-2); border-bottom: 1px solid var(--edge-2); }
 .note-h { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: #f0b44c; }
+.note-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.note-chip { height: 26px; padding: 0 10px; border-radius: 13px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim, inherit);
+  font: inherit; font-size: 12px; cursor: pointer; transition: border-color 150ms, color 150ms; }
+.note-chip:hover { border-color: #f0b44c; color: var(--text, inherit); }
+.note-chip.on { border-color: #f0b44c; background: rgba(240, 180, 76, 0.14); color: #f0b44c; }
 .note-text { width: 100%; box-sizing: border-box; resize: vertical; min-height: 96px; font: inherit; font-size: 14px; line-height: 1.45; unicode-bidi: plaintext; }
 .note-reply { font-size: 13px; line-height: 1.45; padding: 8px 10px; border-radius: 6px; background: var(--panel-3, rgba(255, 255, 255, 0.05)); unicode-bidi: plaintext; }
+.note-handled { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--edge-2); border-radius: 6px;
+  font-size: 13px; cursor: pointer; user-select: none; }
+.note-handled.on { color: var(--ok); border-color: currentColor; }
+.note-handled input { margin: 0; accent-color: var(--ok); }
 .note-acts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

@@ -17,7 +17,7 @@ type Props = {
   // while it drags: the ops that show it (one of his takes in a continuous cut - everything after it moves along), or null
   onItemPreview?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number, base: any) => any[] | null;
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void;
-  notes?: Note[]; onNote?: (n: Note | null) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
+  notes?: Note[]; onNote?: (n: Note | null) => void; showDone?: boolean; onShowDone?: (v: boolean) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
 
 const TH = 30;  // lane height
@@ -48,7 +48,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, canUndo, canRedo, onUndo, onRedo, notes = [], onNote }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, showDone = true, onShowDone }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -251,6 +251,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           title="The video ends at the playhead - everything after it goes, in every layer (an end card pinned to the end moves with it). Ctrl+Z undoes">End here ⇥</button>
         {onNote && <button className="btn" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={() => onNote(null)}
           title="A note for Claude at the playhead: what's wrong here and what to fix - then tell Claude &quot;fix notes&quot; (N)">+ Note{notes.some((n) => !n.done) ? ` · ${notes.filter((n) => !n.done).length} open` : ''}</button>}
+        {onShowDone && notes.some((n) => n.done) && <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={() => onShowDone(!showDone)}
+          title={showDone ? 'Hide the handled notes on the timeline' : 'Show the handled notes on the timeline'}>{showDone ? 'Hide' : 'Show'} handled ({notes.filter((n) => n.done).length})</button>}
         <div className="grow" />
         <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="The whole video in view"
           onClick={() => { const w = (lanes.current?.clientWidth || 1000) - NW; setPps(Math.max(8, (w - 40) / (total / fps))); }}>Fit</button>
@@ -264,7 +266,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             <div className="ltl-name" />
             <div className="ltl-track" style={{ width }} onMouseDown={seekAt}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
-              {onNote && <NotePins notes={notes} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
+              {onNote && <NotePins notes={notes} hideDone={!showDone} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
