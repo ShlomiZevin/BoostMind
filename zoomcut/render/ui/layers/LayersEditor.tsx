@@ -11,7 +11,8 @@ import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
 import { Media } from './Media';
 import { Inspector } from './Inspector';
-import { LineProps, Media as FootageAssign } from '../editor';
+import { LineProps } from '../lineprops';
+import { Media as FootageAssign } from '../footage';
 import { Handles, pickAt } from './Handles';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back

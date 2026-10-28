@@ -4,7 +4,7 @@
 import { ask } from './ask';
 import React from 'react';
 import { KIND_LABEL, Send } from './api';
-import { SpeedPick } from '../editor';
+import { SpeedPick } from '../speed';
 import { newId } from '../../src/layers/ops.js';
 import { TEXT_STYLES, SUB_STYLES } from '../../src/layers/styles';
 import { FILTERS } from '../../src/layers/effect_curve.js';
