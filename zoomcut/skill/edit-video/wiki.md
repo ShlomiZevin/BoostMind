@@ -24,6 +24,7 @@ as `site` - the Characters page shows it; keep all three in step):
 | /demokratovich/ | Rabbi Demokratovich + the Rabbanit (קהילת שערי בג״ץ) | `public/demokratovich/` |
 | /dorit/ | Dorit Mercury (astrology) | `public/dorit/` |
 | /ofnat-hani/ | אופנת חני - a modest-fashion shop on Rabbi Akiva, Bnei Brak. NOT Hani's shop: Hani Friedman is its presenter and model - she wears every mitpachat and outfit, very modestly (his correction, 2026-10-26). Order for pickup -> siteLead `ofnat-hani` | `public/ofnat-hani/` (every picture with her face git-ignored) |
+| /shefa-ad/ | שפע עד - the discount supermarket of Hani Friedman's world (haredit-2: the עיגוליות ברכת השפע she eats, the אבני בניין "לגו זה לגו-יים"); its weekly booklet, branches, hours to 16:20. The stories' end card points here | `public/shefa-ad/` (ads + end card: `zoomcut/episodes/_assets/haredit/ads/`) |
 | /hindsight/ | Nahor (Zion) Minuf (HINDSIGHT VIP) | `public/hindsight/` |
 | /homo-useless/ | Yuval (Kise) Noah Harari | `public/homo-useless/` |
 | - (none yet) | Gen Z cashier, the gym guy + Sigal, the news anchor | a site of their own is welcome - ask him |
