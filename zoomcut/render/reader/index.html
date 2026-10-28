@@ -380,14 +380,14 @@ function render() {
     const cut = /[—–-]\s*$/.test(l.text);
     d.innerHTML = l.dir ? `<div class="who">${DIR}</div><div class="t">${esc(l.text)}</div>`  // a note to see - Play and the arrows pass it by
       : `<div class="who">${esc(l.who)}</div><div class="t">${spokenHtml(l.text)}</div>${mine && cut ? '<span class="badge">נקטע כאן — תמשיך לדבר</span>' : ''}`;
-    if (l.dir) { d.onclick = () => { if (!String(window.getSelection() || '').trim()) go(i); }; d.ondblclick = (e) => { e.preventDefault(); setEditing(true, i); }; box.appendChild(d); return; }
+    if (l.dir) { d.onclick = () => lineClick(i); d.ondblclick = (e) => { e.preventDefault(); setEditing(true, i); }; box.appendChild(d); return; }
     d.insertAdjacentHTML('beforeend', '<div class="bar"></div>' + (i === mark
       ? `<button class="flag" title="Back here and play"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>נקודת התחלה</button>`
       : `<button class="pin" title="Checkpoint here - start again from this line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>`));
     const fl = d.querySelector('.flag'), pin = d.querySelector('.pin');  // the mouse: set it on this line, or go back to it
     if (fl) fl.onclick = (e) => { e.stopPropagation(); toMark(); };
     if (pin) pin.onclick = (e) => { e.stopPropagation(); mark = i; save(); render(); };
-    d.onclick = () => { if (!String(window.getSelection() || '').trim()) go(i); };  // selecting text to copy is not a jump
+    d.onclick = () => lineClick(i);  // selecting text to copy is not a jump
     d.ondblclick = (e) => { e.preventDefault(); setEditing(true, i); };  // straight into Edit, typing in this line
     box.appendChild(d);
   });
@@ -430,6 +430,12 @@ function spoken(i, d = 1) {
   for (let k = i; k >= 0 && k < lines.length; k += d) if (!lines[k].dir) return k;
   for (let k = i; k >= 0 && k < lines.length; k -= d) if (!lines[k].dir) return k;
   return Math.max(0, Math.min(lines.length - 1, i));
+}
+// a click on a line: while it plays (or counts down) it only stops - the place stays where it was; stopped, it goes there
+function lineClick(i) {
+  if (String(window.getSelection() || '').trim()) return;  // (selecting text to copy is not a click)
+  if (playing || cdTimer) { cancelCd(); setPlay(false); return; }
+  go(i);
 }
 function go(i, d = 1) { cur = spoken(Math.max(0, Math.min(lines.length - 1, i)), d); save(); render(); if (playing) schedule(); }
 // a spoken line's own (notes in parentheses / brackets): shown small and grey, never counted as words to say
