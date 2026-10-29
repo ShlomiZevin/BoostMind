@@ -1,7 +1,7 @@
-# Character profile: מוישי פרידמן (Moishi Friedman)
+# Character profile: שלוימי פרידמן (Shloimi Friedman)
 Read this before you write anything for or about this character - it is who they are. Next I'll tell you what we're writing.
 
-**התינוק של חני ואברהם משה, בן שנה - נראה בדיוק כמו אבא** · טקי-טק · also: מוישי
+**התינוק של חני ואברהם משה, בן שנה - נראה בדיוק כמו אבא** · טקי-טק · also: שלוימי
 
 ## Who they are
 בן שנה, הקטן במשפחה, ונראה בדיוק כמו אבא שלו: פנים עגולות, עיניים חומות ושיער חום-ערמוני (בלי זקן, כמובן). יושב בצד ומסתכל בתמיהה על כל מה שקורה.

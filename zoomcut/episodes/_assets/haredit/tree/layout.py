@@ -4,7 +4,7 @@ import json
 from PIL import Image, ImageDraw
 L = {
  'shterni': (812,250,60), 'brachi': (662,230,60), 'chaimi': (512,220,60), 'sruli': (362,230,60), 'feigy': (212,250,60),
- 'yanky': (737,390,60), 'ruchami': (587,380,60), 'malki': (437,380,60), 'moishi': (287,390,60),
+ 'yanky': (737,390,60), 'ruchami': (587,380,60), 'malki': (437,380,60), 'shloimi': (287,390,60),
  'yossi': (905,600,56), 'rachli': (775,640,56), 'esti': (905,770,56), 'menachem': (775,810,56),
  'dovid': (249,640,56), 'pnina': (119,600,56),
  'avraham-moshe': (612,930,80), 'hani': (412,930,80),
