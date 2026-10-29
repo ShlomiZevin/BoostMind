@@ -1,1 +1,3 @@
 node_modules/
+# /all/ - his private list (served only after sign-in); scripts/all/catalog.py writes it
+catalog.json

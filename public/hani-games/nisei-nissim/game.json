@@ -1,0 +1,9 @@
+{
+  "slug": "nisei-nissim",
+  "title": "ניסי ניסים!",
+  "tagline": "הבית, המשרד, תשעה ילדים, ונס בתוך נס",
+  "status": "soon",
+  "cover": "cover.jpg",
+  "badges": ["ניגונים בלבד", "לכל המשפחה"],
+  "best": { "key": "hani-games:nisei-nissim:best", "label": "נקודות" }
+}

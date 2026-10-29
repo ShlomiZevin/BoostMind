@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>המשחקייה של חני | משחקים כשרים למהדרין לכל המשפחה</title>
+<meta name="description" content="המשחקייה של חני פרידמן - משחקים כשרים למהדרין לכל המשפחה. בלי פרסומות, בלי צ'אט, ניגונים בלבד, והאתר שומר שבת.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:site_name" content="המשחקייה של חני">
+<meta property="og:title" content="המשחקייה של חני · כשר למהדרין">
+<meta property="og:description" content="משחקים כשרים לכל המשפחה. בלי פרסומות, בלי צ'אט, ניגונים בלבד, ושומר שבת.">
+<meta property="og:url" content="https://boostmind-b052c.web.app/hani-games/">
+<meta property="og:image" content="https://boostmind-b052c.web.app/hani-games/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boostmind-b052c.web.app/hani-games/img/og.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* המשחקייה של חני - Hani Friedman's kosher games corner (haredit world). The games are built by other sessions, each
+     in its own folder (ketoret/, nisei-nissim/) with a game.json this page reads for its card: title, tagline,
+     status live|soon, cover, badges, best.key (localStorage, a number). The page keeps Shabbat (Bnei Brak times). */
+  :root { --navy: #1d2a4d; --ink: #22223a; --gold: #c8962e; --cream: #f5efe2; --paper: #fbf8f1; --sky: #3d7fc4; --line: rgba(29, 42, 77, 0.18); }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  body { margin: 0; font-family: Heebo, Arial, sans-serif; color: var(--ink); background: var(--cream); line-height: 1.55; }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+  .strip { position: relative; background: var(--navy); color: var(--cream); font-weight: 700; font-size: 14px; text-align: center; padding: 7px 56px; }
+  .bsd { position: absolute; top: 6px; right: 14px; font-family: 'Frank Ruhl Libre', serif; font-size: 14px; }
+  .strip b { color: var(--gold); }
+
+  header { background: var(--paper); border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; }
+  .logo { text-decoration: none; line-height: 1.1; }
+  .logo b { display: block; font-family: 'Suez One', serif; font-weight: 400; font-size: clamp(28px, 5vw, 38px); color: var(--navy); }
+  .logo small { font-weight: 700; font-size: 15px; color: #5b5b70; }
+  .seal { width: 92px; height: 92px; flex: none; }
+
+  .hero { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .hero .wrap { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; padding-top: 44px; padding-bottom: 44px; }
+  .hero h1 { font-family: 'Suez One', serif; font-weight: 400; color: var(--navy); font-size: clamp(40px, 6.4vw, 70px); line-height: 1.05; margin: 0 0 18px; }
+  .hero h1 em { font-style: normal; color: var(--sky); }
+  .note { font-size: 19px; margin: 0 0 12px; max-width: 34em; }
+  .sign { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 20px; margin: 18px 0 24px; }
+  .sign small { display: block; font-family: Heebo; font-weight: 500; font-size: 15px; color: #5b5b70; }
+  .btn { display: inline-block; background: var(--navy); color: #fff; font-weight: 800; font-size: 18px; text-decoration: none; padding: 12px 24px; border-radius: 10px; transition: background 0.15s; }
+  .btn:hover { background: #2d3f6e; }
+  .hero figure { margin: 0; }
+  .hero figure img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 18px; border: 1px solid var(--line); }
+
+  section { padding: 56px 0; }
+  h2 { font-family: 'Suez One', serif; font-weight: 400; color: var(--navy); font-size: clamp(32px, 4.6vw, 46px); margin: 0 0 6px; line-height: 1.1; }
+  .sub { font-size: 18px; color: #5b5b70; margin: 0 0 28px; }
+
+  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  .game { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; text-decoration: none; transition: transform 0.15s, border-color 0.15s; }
+  a.game:hover { transform: translateY(-3px); border-color: var(--navy); }
+  .cover { position: relative; aspect-ratio: 4 / 3; background: var(--c, var(--navy)); display: grid; place-items: center; overflow: hidden; }
+  .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cover .t { font-family: 'Suez One', serif; color: #fff; font-size: 40px; line-height: 1.1; text-align: center; padding: 0 24px; }
+  .soon { position: absolute; top: 14px; left: 14px; background: var(--gold); color: var(--navy); font-weight: 900; font-size: 15px; padding: 4px 12px; border-radius: 30px; }
+  .game .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .game h3 { font-family: 'Suez One', serif; font-weight: 400; font-size: 27px; margin: 0; color: var(--navy); line-height: 1.15; }
+  .game p { margin: 0; font-size: 17px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .badges span { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 30px; border: 1px solid var(--line); background: var(--paper); }
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: auto; padding-top: 12px; }
+  .play { background: var(--navy); color: #fff; font-weight: 800; padding: 9px 18px; border-radius: 10px; }
+  .game.off .play { background: #b9b9c6; }
+  .best { font-weight: 700; font-size: 15px; color: #5b5b70; }
+
+  .rules { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .rule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .rule { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .rule svg { width: 40px; height: 40px; color: var(--navy); }
+  .rule h3 { font-size: 20px; font-weight: 900; margin: 10px 0 4px; color: var(--navy); }
+  .rule p { margin: 0; font-size: 16px; }
+  .rule .n { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; color: var(--gold); font-size: 18px; float: left; }
+
+  footer { padding: 34px 0 46px; text-align: center; font-size: 15px; color: #5b5b70; }
+  footer b { color: var(--navy); font-family: 'Suez One', serif; font-weight: 400; font-size: 22px; display: block; margin-bottom: 4px; }
+  footer p { margin: 4px 0; }
+
+  /* Shabbat */
+  .shabbat { position: fixed; inset: 0; z-index: 10; background: var(--navy); color: var(--cream); display: none; place-items: center; text-align: center; padding: 24px; }
+  body.locked .shabbat { display: grid; }
+  body.locked { overflow: hidden; }
+  .shabbat svg { width: 120px; height: 120px; margin: 0 auto 10px; color: var(--gold); }
+  .shabbat h2 { color: var(--cream); font-size: clamp(54px, 12vw, 96px); }
+  .shabbat p { font-size: 20px; margin: 8px 0; }
+  .shabbat .count { font-family: 'Suez One', serif; font-size: clamp(36px, 8vw, 56px); color: var(--gold); margin: 14px 0 4px; direction: ltr; }
+
+  @media (max-width: 820px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 26px; padding-top: 30px; }
+    .hero figure { order: -1; max-width: 420px; }
+    .rule-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .strip { padding: 7px 44px; font-size: 13px; }
+    .seal { width: 72px; height: 72px; }
+    .rule-grid { grid-template-columns: 1fr; }
+    .games { grid-template-columns: 1fr; }
+    section { padding: 42px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="shabbat" role="dialog" aria-label="שבת שלום">
+  <div>
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 26c-3-4 0-7 0-10 3 2 4 6 0 10zM42 26c-3-4 0-7 0-10 3 2 4 6 0 10z"/>
+      <rect x="18" y="28" width="8" height="22" rx="1.5"/><rect x="38" y="28" width="8" height="22" rx="1.5"/>
+      <path d="M12 54h40"/>
+    </svg>
+    <h2>שבת שלום</h2>
+    <p>המשחקייה שומרת שבת ונפתחת שוב במוצאי שבת.</p>
+    <div class="count" id="count">--:--:--</div>
+    <p>צאת השבת בבני ברק: <b id="havdala"></b></p>
+  </div>
+</div>
+
+<div class="strip"><span class="bsd">בס״ד</span><span id="strip">משחקים כשרים למהדרין · בלי פרסומות · בלי צ'אט · <b>האתר שומר שבת</b></span></div>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="./"><b>המשחקייה של חני</b><small>משחקים כשרים לכל המשפחה</small></a>
+    <svg class="seal" viewBox="0 0 120 120" role="img" aria-label="כשר למהדרין, בהשגחה פרטית">
+      <defs><path id="arcT" d="M19 60 A41 41 0 0 1 101 60"/><path id="arcB" d="M11 60 A49 49 0 0 0 109 60"/></defs>
+      <circle cx="60" cy="60" r="57" fill="#1d2a4d"/>
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#c8962e" stroke-width="1.5"/>
+      <circle cx="60" cy="60" r="34" fill="none" stroke="#c8962e" stroke-width="1.5"/>
+      <text font-family="Heebo" font-weight="800" font-size="12" fill="#f5efe2"><textPath href="#arcT" startOffset="50%" text-anchor="middle">בהשגחה פרטית</textPath></text>
+      <text font-family="Heebo" font-weight="800" font-size="12" fill="#f5efe2"><textPath href="#arcB" startOffset="50%" text-anchor="middle">משחקייה מסוננת</textPath></text>
+      <text x="13" y="64" text-anchor="middle" font-size="9" fill="#c8962e">✦</text><text x="107" y="64" text-anchor="middle" font-size="9" fill="#c8962e">✦</text>
+      <text x="60" y="57" text-anchor="middle" font-family="Suez One" font-size="17" fill="#c8962e">כשר</text>
+      <text x="60" y="75" text-anchor="middle" font-family="Suez One" font-size="13" fill="#f5efe2">למהדרין</text>
+    </svg>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1>משחקים <em>כשרים למהדרין</em>, לכל המשפחה</h1>
+      <p class="note">בעזרת השם. הילדים ביקשו משחקים, ולא מצאתי משהו שאפשר לסמוך עליו בעיניים עצומות. אז בניתי בעצמי, בערבים, אחרי שהקטנים נרדמו.</p>
+      <p class="note">כל משחק כאן עבר בדיקה שלי, שורה אחרי שורה, ובאישור של אברהם משה כמובן. אין פרסומות, אין צ'אט, ויש רק ניגונים.</p>
+      <p class="sign">חני פרידמן<small>מפתחת Backend, אמא לתשעה בלי עין הרע</small></p>
+      <a class="btn" href="#games">למשחקים</a>
+    </div>
+    <figure><img src="img/hani.jpg" alt="חני פרידמן ליד שולחן האוכל, עם טאבלט, קופת צדקה, ספר תהילים ואבני בניין" width="900" height="900"></figure>
+  </div>
+</div>
+
+<section id="games">
+  <div class="wrap">
+    <h2>המשחקים</h2>
+    <p class="sub">משחקים חדשים עולים בעזרת השם בכל פעם שיש ערב שקט.</p>
+    <div class="games" id="list"></div>
+  </div>
+</section>
+
+<section class="rules" id="rules">
+  <div class="wrap">
+    <h2>תקנון הכשרות</h2>
+    <p class="sub">שישה כללים. בלי יוצאים מן הכלל.</p>
+    <div class="rule-grid">
+      <div class="rule"><span class="n">א׳</span>
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="9" width="30" height="20" rx="3"/><path d="M14 34h12M8 6l24 28"/></svg>
+        <h3>בלי פרסומות</h3><p>אף פרסומת. לא באמצע, לא בסוף, ולא ״רק חמש שניות״.</p></div>
+      <div class="rule"><span class="n">ב׳</span>
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9h26v17H18l-7 6v-6H7z"/><path d="M8 6l24 28"/></svg>
+        <h3>בלי צ'אט</h3><p>אין צ'אט, אין ״חברים״, אין זרים. רק אתם והמשחק.</p></div>
+      <div class="rule"><span class="n">ג׳</span>
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 29V9l17-3v19"/><circle cx="11" cy="29" r="4"/><circle cx="28" cy="25" r="4"/></svg>
+        <h3>ניגונים בלבד</h3><p>מוזיקה של ניגונים בלי מילים, ובלי קול שירה.</p></div>
+      <div class="rule"><span class="n">ד׳</span>
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 23l6-6M14 19l-4 4a5 5 0 0 0 7 7l4-4M26 21l4-4a5 5 0 0 0-7-7l-4 4"/><path d="M6 6l28 28"/></svg>
+        <h3>בלי קישורים החוצה</h3><p>מה שבמשחקייה נשאר במשחקייה. שום לחיצה לא מוציאה לאינטרנט.</p></div>
+      <div class="rule"><span class="n">ה׳</span>
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 15c-2-3 0-5 0-7 2 1 3 4 0 7zM27 15c-2-3 0-5 0-7 2 1 3 4 0 7z"/><rect x="10" y="17" width="6" height="15" rx="1"/><rect x="24" y="17" width="6" height="15" rx="1"/><path d="M6 35h28"/></svg>
+        <h3>שומר שבת</h3><p>בכניסת השבת המשחקייה ננעלת מעצמה, ונפתחת במוצאי שבת.</p></div>
+      <div class="rule"><span class="n">ו׳</span>
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="21" r="13"/><path d="M20 13v8l5 4M16 4h8"/></svg>
+        <h3>עשרים דקות</h3><p>אחרי עשרים דקות משחק עושים הפסקה. אולי פרק תהילים?</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>המשחקייה של חני</b>
+    <p>נבנה בס״ד, בערבים, על ידי חני פרידמן. השרת יציב ברוך השם.</p>
+    <p>הערות והצעות למשחקים? אין וואטסאפ. אפשר במייל.</p>
+    <p>תשפ״ז</p>
+  </div>
+</footer>
+
+<script>
+  // The games: each folder describes itself in game.json (written by the session that builds the game)
+  const GAMES = [{ slug: 'nisei-nissim', color: '#3d7fc4' }, { slug: 'ketoret', color: '#a8762a' }];
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const best = key => { try { const v = Number(localStorage.getItem(key)); return v > 0 ? v : 0; } catch (e) { return 0; } };
+
+  async function card(g) {
+    let m = { title: g.slug, status: 'soon' };
+    try { const r = await fetch(g.slug + '/game.json', { cache: 'no-cache' }); if (r.ok) m = await r.json(); } catch (e) {}
+    const live = m.status === 'live';
+    const el = document.createElement(live ? 'a' : 'div');
+    el.className = 'game' + (live ? '' : ' off');
+    if (live) el.href = g.slug + '/';
+    el.style.setProperty('--c', g.color);
+    const b = m.best && best(m.best.key);
+    el.innerHTML = `
+      <div class="cover"><span class="t">${esc(m.title)}</span>${live && m.cover ? `<img src="${esc(g.slug + '/' + m.cover)}" alt="" onerror="this.remove()">` : ''}${live ? '' : '<span class="soon">בקרוב</span>'}</div>
+      <div class="body">
+        <h3>${esc(m.title)}</h3>
+        ${m.tagline ? `<p>${esc(m.tagline)}</p>` : ''}
+        <div class="badges">${(m.badges || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+        <div class="foot"><span class="play">${live ? 'לשחק' : 'בקרוב, בעזרת השם'}</span>${b ? `<span class="best">השיא שלך: ${b.toLocaleString('he-IL')} ${esc(m.best.label || '')}</span>` : ''}</div>
+      </div>`;
+    return el;
+  }
+  (async () => {
+    const list = document.getElementById('list');
+    for (const el of await Promise.all(GAMES.map(card))) list.appendChild(el);
+  })();
+
+  // Shabbat in Bnei Brak: candle lighting = Friday's sunset - 30 min, havdalah = Saturday's sunset + 40 min
+  const LAT = 32.084, LNG = 34.834, rad = Math.PI / 180;
+  function sunset(y, m, d) { // ms UTC, NOAA sunrise equation
+    const jd = Date.UTC(y, m - 1, d, 12) / 86400000 + 2440587.5;
+    const J = Math.round(jd - 2451545 + 0.0008) - LNG / 360;
+    const M = (357.5291 + 0.98560028 * J) % 360;
+    const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+    const L = (M + C + 180 + 102.9372) % 360;
+    const transit = 2451545 + J + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+    const dec = Math.asin(Math.sin(L * rad) * Math.sin(23.4397 * rad));
+    const w = Math.acos((Math.sin(-0.833 * rad) - Math.sin(LAT * rad) * Math.sin(dec)) / (Math.cos(LAT * rad) * Math.cos(dec))) / rad;
+    return (transit + w / 360 - 2440587.5) * 86400000;
+  }
+  const IL = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
+  const hhmm = t => new Date(t).toLocaleTimeString('he-IL', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit' });
+  function window_() {
+    const p = Object.fromEntries(IL.formatToParts(new Date(Date.now())).map(x => [x.type, x.value]));
+    const day = { Fri: 0, Sat: -1 }[p.weekday];
+    if (day === undefined) return null;
+    const fri = new Date(Date.UTC(+p.year, +p.month - 1, +p.day + day));
+    const sat = new Date(fri.getTime() + 86400000);
+    return { start: sunset(fri.getUTCFullYear(), fri.getUTCMonth() + 1, fri.getUTCDate()) - 30 * 60000,
+             end: sunset(sat.getUTCFullYear(), sat.getUTCMonth() + 1, sat.getUTCDate()) + 40 * 60000 };
+  }
+  const preview = new URLSearchParams(location.search).has('preview');
+  function tick() {
+    const w = window_(), now = Date.now();
+    const locked = !!w && now >= w.start && now < w.end && !preview;
+    document.body.classList.toggle('locked', locked);
+    if (w && now < w.start) document.getElementById('strip').innerHTML = `הדלקת נרות בבני ברק ${hhmm(w.start)} · <b>המשחקייה ננעלת בכניסת השבת</b>`;
+    if (locked) {
+      const s = Math.max(0, Math.floor((w.end - now) / 1000));
+      document.getElementById('count').textContent = [s / 3600, (s % 3600) / 60, s % 60].map(x => String(Math.floor(x)).padStart(2, '0')).join(':');
+      document.getElementById('havdala').textContent = hhmm(w.end);
+    }
+  }
+  tick(); setInterval(tick, 1000);
+</script>
+<script src="/t.js" data-site="hani-games" defer></script>
+</body>
+</html>

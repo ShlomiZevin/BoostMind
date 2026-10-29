@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>הכול · שלומי</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Shlomi's private list of everything he runs. The list comes from the `stats` function (his Google account only);
+     it is built by scripts/all/catalog.py - run it and redeploy stats when a new project appears. */
+  :root { --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.16); --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff5b3a; color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.45; min-height: 100svh; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 14px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -.02em; }
+  h1 small { color: var(--dim); font-size: .9rem; font-weight: 500; margin-inline-start: 8px; }
+  .q { flex: 1; min-width: 200px; max-width: 440px; margin-inline-start: auto; height: 42px; border-radius: 11px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; padding: 0 14px; outline: none; }
+  .q:focus { border-color: var(--accent); }
+  .jump { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  .jump a { font-size: .82rem; padding: 4px 11px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
+  .jump a:hover { color: var(--text); border-color: var(--line2); }
+  .jump b { color: var(--faint); font-weight: 500; margin-inline-start: 4px; }
+  section { margin-top: 26px; scroll-margin-top: 130px; }
+  h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 10px; display: flex; gap: 8px; align-items: baseline; }
+  h2 span { color: var(--faint); font-size: .85rem; font-weight: 500; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 8px; }
+  .it { position: relative; border-radius: 12px; background: var(--card); border: 1px solid var(--line); transition: border-color .15s, opacity .15s; min-width: 0; }
+  .it:hover { border-color: var(--accent); }
+  .it > a { display: flex; flex-direction: column; gap: 2px; padding: 11px 13px; min-width: 0; }
+  .arc { display: none; position: absolute; bottom: 8px; left: 8px; font-size: .74rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--card2); border: 1px solid var(--line2); color: var(--dim); }
+  .arc:hover { color: var(--text); border-color: var(--text); }
+  @media (hover: hover) { .it:hover .arc { display: block; } }
+  .shelf { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .shelf summary { cursor: pointer; color: var(--dim); font-weight: 800; font-size: 1.05rem; padding: 10px 0; list-style: none; }
+  .shelf summary::-webkit-details-marker { display: none; }
+  .shelf summary::before { content: '▸ '; }
+  .shelf[open] summary::before { content: '▾ '; }
+  .shelf .it { opacity: .62; }
+  .shelf .it:hover { opacity: 1; }
+  .it b { font-size: .95rem; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .it small { color: var(--faint); font-size: .76rem; direction: ltr; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { display: flex; gap: 6px; align-items: center; font-size: .74rem; color: var(--dim); }
+  .tag { padding: 0 7px; border-radius: 99px; border: 1px solid var(--line2); }
+  .tag.hot { color: var(--accent); border-color: var(--accent); }
+  .gate { max-width: 420px; margin: 18vh auto 0; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .gate p { color: var(--dim); }
+  .btn { height: 48px; padding: 0 24px; border-radius: 99px; background: var(--accent); color: #fff; font-weight: 700; }
+  .none { color: var(--faint); margin-top: 30px; }
+  @media (max-width: 640px) { .wrap { padding: 12px 12px 40px; } .grid { grid-template-columns: 1fr; } .q { max-width: none; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="gate"><h1>הכול</h1><p>כל האתרים, הכלים, ההצעות והשרתים שלך במקום אחד. רק לחשבון הגוגל של שלומי.</p>
+    <button class="btn" id="signin">כניסה עם Google</button><p class="err" id="err"></p></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey: 'AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90', authDomain: 'boostmind-b052c.firebaseapp.com', projectId: 'boostmind-b052c' });
+const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/stats?catalog=1';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const auth = firebase.auth();
+let cat = null, archived = new Set(), shelfOpen = false;
+$('#signin').onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => ($('#err').textContent = e.message));
+auth.onAuthStateChanged(async (u) => {
+  if (!u) return;
+  const res = await fetch(API, { headers: { authorization: 'Bearer ' + (await u.getIdToken()) } });
+  if (!res.ok) { $('#app').innerHTML = `<div class="gate"><h1>אין גישה</h1><p>${esc(u.email)}</p><button class="btn" onclick="firebase.auth().signOut().then(()=>location.reload())">החלפת חשבון</button></div>`; return; }
+  cat = await res.json();
+  archived = new Set(cat.archived || []);
+  try { localStorage.setItem('t-ignore', '1'); } catch (e) {}   // his own browser never counts in the analytics
+  draw('');
+});
+
+const norm = (s) => String(s || '').toLowerCase().replace(/[״"׳'\-–.,·|]/g, ' ').replace(/\s+/g, ' ');
+function draw(q) {
+  const n = norm(q).trim();
+  const items = cat.items.filter((i) => !n || norm(i.title + ' ' + i.url + ' ' + i.tag).includes(n));
+  const byG = {}, shelf = [];
+  for (const i of items) (archived.has(i.url) ? shelf : (byG[i.g] ||= [])).push(i);
+  for (const list of Object.values(byG)) list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));   // newest first
+  const groups = cat.groups.filter((g) => byG[g.id]);
+  if (!$('header')) {
+    $('#app').innerHTML = `<header><h1>הכול<small>${cat.items.length} קישורים · עודכן ${esc(cat.built.replace('T', ' '))}</small></h1>
+      <input class="q" id="q" placeholder="חיפוש: שם, כתובת, לקוח…" autocomplete="off"><nav class="jump" id="jump"></nav></header><main id="list"></main>`;
+    $('#q').oninput = (e) => draw(e.target.value);
+    $('#q').focus();
+  }
+  $('#jump').innerHTML = groups.map((g) => `<a href="#g-${g.id}">${esc(g.title)}<b>${byG[g.id].length}</b></a>`).join('');
+  const card = (i, inShelf) => `<div class="it"><a href="${esc(i.url)}" target="_blank" rel="noopener"><b>${esc(i.title)}</b><small>${esc(i.url.replace(/^https?:\/\//, ''))}</small>
+      ${i.tag || i.date ? `<span class="meta">${i.tag ? `<span class="tag ${/ניהול|כספת/.test(i.tag) ? 'hot' : ''}">${esc(i.tag)}</span>` : ''}${i.date ? esc(i.date.split('-').reverse().join('.')) : ''}</span>` : ''}</a>
+      <button class="arc" data-url="${esc(i.url)}" data-on="${inShelf ? '' : '1'}">${inShelf ? 'החזרה' : 'לארכיון'}</button></div>`;
+  $('#list').innerHTML = (groups.map((g) => `<section id="g-${g.id}"><h2>${esc(g.title)}<span>${byG[g.id].length}</span></h2><div class="grid">${byG[g.id].map((i) => card(i)).join('')}</div></section>`).join('')
+    || '<p class="none">לא נמצא</p>')
+    + (shelf.length ? `<details class="shelf" id="shelf" ${shelfOpen || n ? 'open' : ''}><summary>ארכיון · ${shelf.length}</summary><div class="grid">${shelf.map((i) => card(i, true)).join('')}</div></details>` : '');
+  const sh = $('#shelf');
+  if (sh) sh.ontoggle = () => (shelfOpen = sh.open);
+}
+
+// archive / restore: the change shows at once, then the server keeps it (his account only)
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.arc');
+  if (!b) return;
+  const url = b.dataset.url, on = !!b.dataset.on;
+  on ? archived.add(url) : archived.delete(url);
+  draw($('#q').value);
+  try {
+    const res = await fetch(API.replace('catalog=1', 'archive=1'), { method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (await auth.currentUser.getIdToken()) }, body: JSON.stringify({ url, on }) });
+    if (!res.ok) throw new Error();
+  } catch (err) { on ? archived.delete(url) : archived.add(url); draw($('#q').value); alert('לא נשמר, נסו שוב'); }
+});
+</script>
+</body>
+</html>

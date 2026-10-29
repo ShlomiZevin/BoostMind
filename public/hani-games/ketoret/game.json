@@ -1,0 +1,9 @@
+{
+  "slug": "ketoret",
+  "title": "אבני בניין: מזבח הקטורת",
+  "tagline": "בונים את מזבח הקטורת, אבן אחרי אבן",
+  "status": "soon",
+  "cover": "cover.jpg",
+  "badges": ["אבני בניין, לא לגו", "לכל המשפחה"],
+  "best": { "key": "hani-games:ketoret:best", "label": "נקודות" }
+}
