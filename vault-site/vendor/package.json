@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "description": "Bundles the Firebase SDK for Vault",
+  "scripts": {
+    "build": "sh build.sh"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "firebase": "13.1.0"
+  }
+}

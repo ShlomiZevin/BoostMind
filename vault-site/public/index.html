@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<title>Vault</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+<link rel="modulepreload" href="firebase.js">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+
+<!-- Starting up -->
+<section id="screen-loading" class="auth">
+  <div class="auth-card">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>Vault</div>
+    <p class="lead" id="loading-text">Opening...</p>
+    <button id="loading-retry" class="btn block" type="button" hidden>Try again</button>
+  </div>
+</section>
+
+<!-- Not signed in -->
+<section id="screen-signin" class="auth" hidden>
+  <div class="auth-card">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>Vault</div>
+    <h1>One vault, every device</h1>
+    <p class="lead">Sign in with Google once on each device. Your master password still encrypts everything before it leaves the device, so the cloud only ever holds scrambled data.</p>
+    <p id="signin-error" class="error" hidden></p>
+    <button id="signin-btn" class="btn primary block" type="button">Continue with Google</button>
+    <div class="install-hint" data-install-hint hidden>
+      <b>iPhone tip:</b> tap Share <span class="share-glyph" aria-hidden="true"></span> then <b>Add to Home Screen</b> to open Vault like an app.
+    </div>
+    <button class="btn block install-btn" data-install-btn type="button" hidden>Install Vault as an app</button>
+  </div>
+</section>
+
+<!-- First run: create the vault -->
+<section id="screen-setup" class="auth" hidden>
+  <div class="auth-card">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>Vault</div>
+    <h1>Create your vault</h1>
+    <p class="lead">Pick one master password. It encrypts everything before it is saved, and it is never sent anywhere.</p>
+    <form id="form-setup" autocomplete="off">
+      <label class="field">
+        <span>Master password</span>
+        <input id="setup-pw" type="password" required minlength="10" autocomplete="new-password">
+      </label>
+      <div class="meter" aria-hidden="true"><div id="setup-meter"></div></div>
+      <p id="setup-meter-label" class="hint">At least 10 characters. A long phrase beats a short tricky word.</p>
+      <label class="field">
+        <span>Repeat it</span>
+        <input id="setup-pw2" type="password" required autocomplete="new-password">
+      </label>
+      <p id="setup-error" class="error" hidden></p>
+      <button class="btn primary block" type="submit">Create vault</button>
+    </form>
+    <p class="warn-note">If you forget the master password, the vault cannot be opened, not by you and not by anyone else. Write it down somewhere safe.</p>
+    <div class="divider"><span>or</span></div>
+    <button id="setup-restore" class="btn block" type="button">Restore from a backup file</button>
+    <p class="account-line"><span data-account></span> · <button class="link-btn" data-signout type="button">Sign out</button></p>
+  </div>
+</section>
+
+<!-- Locked -->
+<section id="screen-unlock" class="auth" hidden>
+  <div class="auth-card">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>Vault</div>
+    <h1>Unlock</h1>
+    <p id="unlock-lead" class="lead">Enter your master password.</p>
+    <form id="form-unlock" autocomplete="off">
+      <label class="field">
+        <span>Master password</span>
+        <input id="unlock-pw" type="password" required autocomplete="current-password">
+      </label>
+      <p id="unlock-error" class="error" hidden></p>
+      <button id="unlock-btn" class="btn primary block" type="submit">Unlock</button>
+    </form>
+    <div class="install-hint" data-install-hint hidden>
+      <b>iPhone tip:</b> tap Share <span class="share-glyph" aria-hidden="true"></span> then <b>Add to Home Screen</b> to open Vault like an app.
+    </div>
+    <p class="account-line"><span data-account></span> · <button class="link-btn" data-signout type="button">Sign out</button></p>
+    <button id="unlock-erase" class="link-btn danger-text" type="button">Forgot it? Erase the vault</button>
+  </div>
+</section>
+
+<!-- Unlocked -->
+<section id="screen-main" hidden>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="logo" aria-hidden="true"></span>Vault</div>
+      <input id="search" class="search" type="search" placeholder="Search" autocomplete="off" spellcheck="false">
+      <div class="top-actions">
+        <button id="btn-add" class="btn primary" type="button">+ Add</button>
+        <button id="btn-theme" class="btn icon" type="button" title="Light / dark" aria-label="Toggle theme"><span class="i-theme"></span></button>
+        <div class="menu-wrap">
+          <button id="btn-menu" class="btn icon" type="button" title="More" aria-label="More" aria-haspopup="true" aria-expanded="false"><span class="i-dots"></span></button>
+          <div id="menu" class="menu" hidden>
+            <p class="menu-account" data-account></p>
+            <button data-act="backup" type="button">Download backup file</button>
+            <button data-act="restore" type="button">Import a backup file</button>
+            <button data-act="stash" type="button" hidden>Bring in earlier logins</button>
+            <button data-act="change" type="button">Change master password</button>
+            <button data-act="install" data-install-btn type="button" hidden>Install as an app</button>
+            <button data-act="signout" type="button">Sign out of this device</button>
+            <hr>
+            <button data-act="erase" type="button" class="danger-text">Erase the vault</button>
+          </div>
+        </div>
+        <button id="btn-lock" class="btn" type="button">Lock</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="stash-banner" class="banner" hidden>
+      <span>This device still holds earlier logins under a different master password.</span>
+      <button id="stash-merge" class="btn small" type="button">Bring them in</button>
+    </div>
+    <div class="list-head">
+      <span id="list-count" class="muted"></span>
+      <span id="sync-status" class="sync" data-state="synced">Synced</span>
+    </div>
+    <div id="list" class="list"></div>
+    <div id="empty" class="empty" hidden>
+      <h2>Nothing saved yet</h2>
+      <p class="muted">Add your first login. Use the generator for new accounts so every site gets its own password.</p>
+      <button id="empty-add" class="btn primary" type="button">+ Add a login</button>
+    </div>
+    <p id="no-results" class="empty muted" hidden>No matches.</p>
+  </main>
+</section>
+
+<!-- Add / edit -->
+<dialog id="dlg-entry">
+  <form id="form-entry" method="dialog" autocomplete="off">
+    <h2 id="entry-title">Add login</h2>
+    <label class="field"><span>Name</span><input id="e-name" required placeholder="Gmail, Bank, Netflix..." autocomplete="off"></label>
+    <label class="field"><span>Website</span><input id="e-url" placeholder="example.com" autocomplete="off" spellcheck="false"></label>
+    <label class="field"><span>Username / email</span><input id="e-user" autocomplete="off" spellcheck="false"></label>
+    <div class="field">
+      <span>Password</span>
+      <div class="input-row">
+        <input id="e-pass" type="password" autocomplete="off" spellcheck="false" class="mono">
+        <button id="e-reveal" class="btn" type="button">Show</button>
+        <button id="e-gen" class="btn" type="button">Generate</button>
+      </div>
+      <div class="gen-opts">
+        <label class="inline">Length <input id="g-len" type="range" min="8" max="64" value="20"> <b id="g-len-val">20</b></label>
+        <label class="inline"><input id="g-sym" type="checkbox" checked> Symbols</label>
+      </div>
+    </div>
+    <label class="field"><span>Notes</span><textarea id="e-notes" rows="3" placeholder="Security questions, PIN, account number..."></textarea></label>
+    <div class="dlg-actions">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn primary" type="submit" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Password prompt (restore / change) -->
+<dialog id="dlg-pass">
+  <form id="form-pass" method="dialog" autocomplete="off">
+    <h2 id="pass-title"></h2>
+    <p id="pass-lead" class="muted"></p>
+    <label class="field" id="pass-f1"><span id="pass-l1"></span><input id="pass-1" type="password" autocomplete="off"></label>
+    <label class="field" id="pass-f2"><span>New master password</span><input id="pass-2" type="password" autocomplete="new-password"></label>
+    <label class="field" id="pass-f3"><span>Repeat new password</span><input id="pass-3" type="password" autocomplete="new-password"></label>
+    <p id="pass-error" class="error" hidden></p>
+    <div class="dlg-actions">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button id="pass-ok" class="btn primary" type="submit" value="ok">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Confirm -->
+<dialog id="dlg-confirm">
+  <form method="dialog">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-text" class="muted"></p>
+    <label class="field" id="confirm-type-f" hidden><span id="confirm-type-l"></span><input id="confirm-type" autocomplete="off"></label>
+    <div class="dlg-actions">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button id="confirm-ok" class="btn danger" type="submit" value="ok">Delete</button>
+    </div>
+  </form>
+</dialog>
+
+<input id="file-input" type="file" accept=".json,application/json" hidden>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+</body>
+</html>
