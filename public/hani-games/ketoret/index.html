@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1b2a5a">
+<title>אבני בניין – מזבח הקטורת</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="hani-games" defer></script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<style>
+:root{--ink:#1b2a5a;--card:#fffaf0;--gold:#ffc94a;--gold2:#e09a1c;--blue:#2f6fd1;--green:#2bb673;--red:#e5484d;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#1b2a5a;font-family:Rubik,system-ui,sans-serif;color:var(--ink);touch-action:none;overscroll-behavior:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#ui{position:fixed;inset:0;pointer-events:none}
+#ui *{pointer-events:auto}
+#ui #say,#ui #hani,#ui .float,#ui #tutDim,#ui #tutDim *,#ui .dragBrk,#ui .dragBrk *{pointer-events:none}
+button{font-family:inherit;border:0;cursor:pointer}
+
+#hud{position:absolute;top:calc(var(--safe-t) + 8px);left:8px;right:8px;display:flex;align-items:center;gap:8px;pointer-events:none}
+#hud>*{pointer-events:auto}
+.ibtn{width:44px;height:44px;border-radius:14px;background:#fff3;backdrop-filter:blur(4px);display:grid;place-items:center}
+.ibtn svg{width:26px;height:26px;fill:#fff}
+#scoreBox{flex:1;text-align:center;color:#fff;line-height:1.05}
+#score{font-weight:900;font-size:30px;text-shadow:0 2px 0 var(--ink),0 0 10px #0008}
+#row{font-size:14px;font-weight:700;color:var(--gold)}
+#stabWrap{width:118px}
+#stabLbl{font-size:12px;font-weight:700;color:#fff;text-align:center;margin-bottom:3px}
+#stab{height:14px;border-radius:7px;background:#0006;border:2px solid #fff8;overflow:hidden}
+#stabFill{height:100%;width:100%;background:linear-gradient(90deg,#ff6b6b,#ffc94a 40%,#2bb673 75%);background-size:118px 100%;transition:width .3s}
+#stab.low{animation:blink .5s infinite}
+@keyframes blink{50%{border-color:var(--red)}}
+
+#hani{position:absolute;left:-4px;bottom:calc(var(--safe-b) + 90px);width:min(42vw,240px);filter:drop-shadow(0 6px 10px #0007);transform-origin:50% 100%;transition:transform .15s}
+#hani.pop{transform:scale(1.05)}
+#say{position:absolute;left:calc(min(42vw,240px) - 14px);right:12px;bottom:calc(var(--safe-b) + 170px);max-width:300px;background:var(--card);border-radius:18px;padding:9px 14px;font-size:16px;font-weight:700;line-height:1.3;box-shadow:0 4px 12px #0006;opacity:0;transition:opacity .2s;text-align:center}
+#say.on{opacity:1}
+#say:after{content:"";position:absolute;left:-10px;bottom:16px;border:10px solid transparent;border-left:0;border-right-color:var(--card)}
+
+#tray{position:absolute;left:8px;right:8px;bottom:calc(var(--safe-b) + 10px);height:76px;display:flex;align-items:center;justify-content:center;gap:10px;background:#0b1636aa;border-radius:22px;padding:0 10px}
+.slot{flex:1;height:64px;display:grid;place-items:center;border-radius:14px;background:#ffffff14;touch-action:none}
+.slot.empty{opacity:.3}
+.brk{height:30px;border-radius:5px;background:radial-gradient(circle at 50% 38%,#fff3b0 0 22%,transparent 23%) 0 0/var(--u) 100%,linear-gradient(#ffe07a,#f0bf3a 45%,#c98f16);box-shadow:inset 0 -3px 0 #a87510,0 3px 6px #0007;pointer-events:none}
+#swap{width:64px;height:64px;border-radius:16px;background:linear-gradient(#5aa0ff,var(--blue));color:#fff;font-weight:900;font-size:13px;line-height:1.1;box-shadow:0 4px 0 #1d4a99;position:relative}
+#swap b{position:absolute;top:-6px;left:-6px;background:var(--gold);color:var(--ink);width:24px;height:24px;border-radius:12px;display:grid;place-items:center;font-size:14px}
+#swap:disabled{opacity:.4}
+#swap.hint{animation:glow .8s infinite alternate}
+@keyframes glow{to{box-shadow:0 4px 0 #1d4a99,0 0 22px 6px #ffd76a}}
+.dragBrk{position:absolute;transform:translate(-50%,-50%);z-index:6;opacity:.85}
+
+.float{position:absolute;font-weight:900;font-size:22px;color:var(--gold);text-shadow:0 2px 0 var(--ink);animation:up 1.1s ease-out forwards;transform:translate(-50%,-50%);white-space:nowrap}
+.float.bad{color:#ff8a8a}
+@keyframes up{to{margin-top:-60px;opacity:0}}
+.toast{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);background:var(--card);border-radius:20px;padding:12px 22px;font-size:22px;font-weight:900;box-shadow:0 8px 24px #0009;text-align:center;animation:toast 2.4s ease forwards;pointer-events:none}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}12%{opacity:1;transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0}}
+
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px);background:linear-gradient(#1b2a5a00,#1b2a5acc 45%,#1b2a5aee)}
+.screen.on{display:flex}
+.titleArt{width:min(90vw,480px);max-height:30vh;object-fit:contain;filter:drop-shadow(0 6px 10px #0009)}
+.screen .head{width:min(46vw,220px);filter:drop-shadow(0 6px 10px #0008)}
+.big{min-width:220px;padding:16px 28px;border-radius:30px;font-size:24px;font-weight:900;color:var(--ink);background:linear-gradient(#ffe07a,var(--gold) 50%,var(--gold2));box-shadow:0 5px 0 #9a6a0c}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #9a6a0c}
+.mid{min-width:200px;padding:12px 22px;border-radius:24px;font-size:18px;font-weight:700;color:var(--ink);background:#fff;box-shadow:0 4px 0 #a9b5d5;text-decoration:none;display:inline-block;text-align:center}
+.best{color:#fff;font-size:17px;font-weight:700}
+.best b{color:var(--gold)}
+.over-h{font-size:30px;font-weight:900;color:#fff;margin:0;text-align:center}
+.over-line{background:var(--card);border-radius:18px;padding:10px 16px;font-weight:700;max-width:340px;text-align:center}
+.over-score{font-size:56px;font-weight:900;color:var(--gold);text-shadow:0 3px 0 var(--ink);line-height:1}
+.newrec{font-size:22px;font-weight:900;color:#fff;background:var(--green);padding:4px 14px;border-radius:14px}
+
+#tutDim{position:absolute;inset:0;display:none}
+#tutDim.on{display:block}
+#tutHole{position:absolute;border-radius:50%;box-shadow:0 0 0 200vmax #0a1230cc;border:3px solid var(--gold);transition:all .3s}
+#tutCard{position:absolute;left:12px;right:12px;display:none;background:var(--card);border-radius:20px;padding:14px 16px 12px;box-shadow:0 8px 24px #000a;max-width:460px;margin:0 auto}
+#tutCard.on{display:block}
+#tutText{font-size:18px;font-weight:700;line-height:1.35;min-height:48px}
+#tutText .ok{color:var(--green)}
+#tutBar{height:6px;background:#dde3f2;border-radius:3px;margin:10px 0 8px;overflow:hidden}
+#tutBar i{display:block;height:100%;background:var(--blue);width:0;transition:width .3s}
+#tutRow{display:flex;align-items:center;gap:10px}
+#tutCount{flex:1;font-size:14px;color:#6a7899;font-weight:700}
+#tutSkip{background:none;color:#6a7899;font-size:15px;font-weight:700;padding:8px}
+#tutNext{padding:10px 26px;border-radius:20px;font-size:18px;font-weight:900;color:#fff;background:var(--blue)}
+#tutNext:disabled{background:#c3cbe0}
+.keyhint{font-size:12px;color:#9aa6c2;font-weight:500}
+@media (hover:none){.keyhint{display:none}}
+#loading{position:fixed;inset:0;display:grid;place-items:center;color:#fff;font-size:20px;font-weight:700;background:#1b2a5a;z-index:9}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <img id="hani" src="assets/pose-chin.png" alt="">
+  <div id="say"></div>
+  <div id="hud" style="display:none">
+    <div id="stabWrap"><div id="stabLbl">יציבות</div><div id="stab"><div id="stabFill"></div></div></div>
+    <div id="scoreBox"><div id="score">0</div><div id="row"></div></div>
+    <button class="ibtn" id="pauseBtn" aria-label="הפסקה"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+    <button class="ibtn sndBtn" aria-label="צליל"></button>
+  </div>
+  <div id="tray" style="display:none">
+    <div class="slot" data-i="0"></div><div class="slot" data-i="1"></div><div class="slot" data-i="2"></div>
+    <button id="swap">יענקי<br>מביא<b>3</b></button>
+  </div>
+
+  <div class="screen on" id="start">
+    <img class="titleArt" src="assets/title.png" alt="אבני בניין – מזבח הקטורת">
+    <img class="head" src="assets/pose-chin.png" alt="">
+    <button class="big" id="playBtn">בונים!</button>
+    <button class="mid" id="howBtn">איך משחקים</button>
+    <div class="best" id="bestStart"></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <a class="mid" href="/hani-games/">לכל המשחקים</a>
+      <button class="ibtn sndBtn" aria-label="צליל"></button>
+    </div>
+  </div>
+  <div class="screen" id="over">
+    <p class="over-h" id="overH">המגדל נפל</p>
+    <img class="head" src="assets/pose-talk.png" alt="" style="width:min(36vw,160px)">
+    <div class="over-line" id="overLine"></div>
+    <div class="over-score" id="overScore">0</div>
+    <div id="overRec"></div>
+    <div class="best" id="bestOver"></div>
+    <button class="big" id="againBtn">בונים שוב</button>
+    <a class="mid" href="/hani-games/">לכל המשחקים</a>
+  </div>
+  <div class="screen" id="paused">
+    <p class="over-h">הפסקה קטנה</p>
+    <div class="over-line">"המזבח מחכה. אבני הבניין לא בורחות."</div>
+    <button class="big" id="resumeBtn">ממשיכים</button>
+    <button class="mid" id="quitBtn">יציאה לתפריט</button>
+  </div>
+
+  <div id="tutDim"><div id="tutHole"></div></div>
+  <div id="tutCard">
+    <div id="tutText"></div>
+    <div id="tutBar"><i></i></div>
+    <div id="tutRow"><span id="tutCount"></span><button id="tutSkip">דלגו <span class="keyhint">(Esc)</span></button><button id="tutNext">הבא</button></div>
+  </div>
+</div>
+<div id="loading">רגע, טוען... בסייעתא דשמיא</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
