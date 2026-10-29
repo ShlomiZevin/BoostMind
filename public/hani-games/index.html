@@ -216,7 +216,7 @@
     el.style.setProperty('--c', g.color);
     const b = m.best && best(m.best.key);
     el.innerHTML = `
-      <div class="cover"><span class="t">${esc(m.title)}</span>${live && m.cover ? `<img src="${esc(g.slug + '/' + m.cover)}" alt="" onerror="this.remove()">` : ''}${live ? '' : '<span class="soon">בקרוב</span>'}</div>
+      <div class="cover"><span class="t">${esc(m.title)}</span>${m.cover ? `<img src="${esc(g.slug + '/' + m.cover)}" alt="" onerror="this.remove()">` : ''}${live ? '' : '<span class="soon">בקרוב</span>'}</div>
       <div class="body">
         <h3>${esc(m.title)}</h3>
         ${m.tagline ? `<p>${esc(m.tagline)}</p>` : ''}
