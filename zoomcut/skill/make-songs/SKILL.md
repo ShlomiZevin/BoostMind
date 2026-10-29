@@ -25,6 +25,12 @@ before any heavy job, commit only your files).
 - **Don't change his voice**: no pitch correction / resynthesis (my WORLD tuning = "terrible", twice). Effects only:
   echo, room, light compression / de-ess, his speakerphone filter; quieter than you'd think; he wanted the boys
   louder than the girls.
+- **The singers blend INTO the backing, like the original** (2026-10-29: "the original song, the singers are heard
+  really weak... lower it, and we have many many singers"): measure the original's own balance (Demucs stems,
+  ebur128 over the part: "זוט חני" vocal -13.2 vs backing -11.4 = 1.8 LU under) and set his voices to it or a bit
+  lower (we landed on the voices together 3 LU under the music). **Four voices at most** (girls lead + double, boys
+  lead + double); the other takes stay as muted layers. Measure AFTER the effects: an export's rendered tracks
+  `work/layers/render/<layer>.<key>.track.f32` (48 kHz mono, before the layer's volume - add 20·log10(volume)).
 - **He trims the clip himself** (a timeline note "שיתחיל מכאן", End here) - follow his marks, never undo them.
 
 ## The workflow
