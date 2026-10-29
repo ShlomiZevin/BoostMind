@@ -1123,7 +1123,8 @@ app.get('/api/p/:id/thumb', (q, res) => {
 // a file for the project's Media (picture, sound, video): saved in media/, measured, added as an asset
 app.post('/api/p/:id/assets', express.raw({ type: '*/*', limit: '300mb' }), async (q, res) => {
   const { apply, validate } = await opsLib;
-  const d = epDir(q.params.id), project = readProject(q.params.id);
+  let d; try { d = epDir(q.params.id); } catch { return res.status(404).json({ error: 'no such project' }); }  // (thrown in an async route it took the whole studio down)
+  const project = readProject(q.params.id);
   if (!project) return res.status(404).json({ error: 'no project.json' });
   const name = path.basename(String(q.query.name || 'file')).replace(/[^\w.\-א-ת ]+/g, '_');
   const ext = path.extname(name).toLowerCase();

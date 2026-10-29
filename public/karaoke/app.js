@@ -375,6 +375,7 @@ function renderWordsCard() {
   if (S.isVideo || !S.song) return;
   const ev = $('empty-video'), ls = S.lyrics || [], title = esc(S.songName.replace(/\.[^.]+$/, ''));
   ev.classList.toggle('words', !!ls.length);
+  $('screen').classList.toggle('pin', !!ls.length);  // the words stay in view while many tracks scroll
   if (!ls.length) {
     ev.innerHTML = `<div class="big-note">${MUSIC_SVG.replace(/16/g, '34')}</div><b>${title}</b><span>An audio song. Add its words to see them here while you sing, or choose a karaoke video.</span><button class="btn" id="words-open">Add the words</button>`;
   } else if (timedLines().length) {
