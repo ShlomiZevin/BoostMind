@@ -1,0 +1,59 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
+/* "How to get Hani's look" story, 1080x1920: Hani full-body (hani-look.jpg, Leonardo) with arrows to each item -
+   what it is, where it's bought (the items are from her shop site, אופנת חני), how to wear it - and the inner-beauty line.
+   Nothing important above y 240 or below ~1760. Render: shoot.mjs jobs-look.json */
+@import url('https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@500;700;800;900&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:1080px; height:1920px; overflow:hidden; font-family:Heebo, sans-serif; background:#bfbdc0; color:#1c2a4a; }
+.suez { font-family:'Suez One', serif; font-weight:400; }
+.photo { position:absolute; top:330px; left:188px; width:703px; height:1250px; object-fit:cover;
+  -webkit-mask-image:linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 6%, #000 92%, transparent 100%);
+  -webkit-mask-composite:source-in; mask-composite:intersect; }
+.kick { position:absolute; top:250px; left:0; right:0; text-align:center; font-weight:800; font-size:30px; color:#8a6a1f; letter-spacing:.5px; }
+.title { position:absolute; top:282px; left:0; right:0; text-align:center; font-size:70px; line-height:1; }
+svg { position:absolute; inset:0; width:1080px; height:1920px; }
+.l { position:absolute; width:318px; }
+.l.r { right:32px; text-align:right; }
+.l.lf { left:32px; text-align:right; }
+.l b { display:block; font-weight:900; font-size:31px; line-height:1.15; }
+.l i { display:block; font-style:normal; font-weight:800; font-size:23px; color:#8a6a1f; margin-top:4px; }
+.l span { display:block; font-weight:500; font-size:25px; line-height:1.3; margin-top:6px; color:#26324f; }
+.inner { position:absolute; top:1562px; left:60px; right:60px; background:#1c2a4a; color:#faf6ee; border-radius:26px;
+  padding:22px 30px 24px; text-align:center; }
+.inner .k { font-weight:800; font-size:28px; color:#e9d7a6; margin-bottom:6px; }
+.inner .t { font-size:50px; line-height:1.1; }
+.inner .t em { font-style:normal; color:#e9d7a6; }
+.inner .s { font-weight:500; font-size:27px; margin-top:10px; color:#e6e1d6; }
+.inner .s b { color:#e9d7a6; font-weight:800; }
+</style></head><body>
+<img class="photo" src="hani-look.jpg">
+<div class="kick">אופנת חני · רבי עקיבא, בני ברק</div>
+<div class="title suez">איך משיגים את הלוק של חני</div>
+
+<svg viewBox="0 0 1080 1920" fill="none" stroke="#1c2a4a" stroke-width="3" stroke-linecap="round">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0L10 5L0 10z" fill="#1c2a4a" stroke="none"/></marker></defs>
+  <!-- right column -->
+  <path d="M728 432 C680 432 640 436 604 444" marker-end="url(#a)"/>
+  <path d="M728 708 C700 708 690 714 670 724" marker-end="url(#a)"/>
+  <path d="M728 1120 C700 1120 680 1116 656 1112" marker-end="url(#a)"/>
+  <!-- left column -->
+  <path d="M352 452 C420 452 470 470 512 484" marker-end="url(#a)"/>
+  <path d="M352 742 C430 742 490 752 536 760" marker-end="url(#a)"/>
+  <path d="M352 1452 C420 1460 470 1500 496 1524" marker-end="url(#a)"/>
+</svg>
+
+<div class="l r" style="top:388px"><b>מטפחת סריגה שחורה</b><i>אופנת חני · ₪59</i><span>משולש על הפאה, קשר אחד מאחור, והקצוות קדימה על הכתפיים.</span></div>
+<div class="l r" style="top:664px"><b>חולצה מכופתרת נייבי</b><i>אופנת חני · יום-יום</i><span>מכופתרת עד הצוואר, שרוול עד שורש כף היד.</span></div>
+<div class="l r" style="top:1076px"><b>חצאית מקסי שחורה</b><i>אופנת חני · יום-יום</i><span>גזרת A, עד הקרסול. באורך תקני, הולכת עם הכול.</span></div>
+
+<div class="l lf" style="top:408px"><b>משקפיים דקות</b><i>עוד מלפני החתונה</i><span>ברוך השם, מחזיקות מעמד.</span></div>
+<div class="l lf" style="top:698px"><b>פלאפון כשר</b><i>חנות הסלולר הכשר בשכונה</i><span>תמיד ביד. וואטסאפ אין, אפשר לשלוח במייל.</span></div>
+<div class="l lf" style="top:1370px"><b>נעלי בובה שטוחות</b><i>בלי עקב, בלי רעש</i><span>לרוץ בארבע ועשרים לגן של מלכי.</span></div>
+
+<div class="inner">
+  <div class="k">אשת חיל מי ימצא</div>
+  <div class="t suez">אבל העיקר: <em>כל כבודה בת מלך פנימה</em></div>
+  <div class="s">שקר החן והבל היופי, אשה יראת ה׳ היא תתהלל · <b>חני</b></div>
+</div>
+</body></html>
