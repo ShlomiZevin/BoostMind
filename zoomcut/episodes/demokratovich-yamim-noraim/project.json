@@ -1,0 +1,3754 @@
+{
+  "format": "sketch-studio/1",
+  "title": "הרב דמוקרטוביץ – תפילות הימים הנוראים",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 4464,
+  "speed": 1.5,
+  "assets": {
+    "font.stam-ashkenaz": {
+      "kind": "font",
+      "src": "../../fonts/stamashkenazclm-webfont.ttf",
+      "family": "zc-stam-ashkenaz"
+    },
+    "font.assistant": {
+      "kind": "font",
+      "src": "../../fonts/Assistant.ttf",
+      "family": "zc-assistant"
+    },
+    "t.302CD451-D0B1-44CE-802C-7F68A0839AA2": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/302CD451-D0B1-44CE-802C-7F68A0839AA2.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 19.537,
+      "label": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "audio": "work/audio/302CD451-D0B1-44CE-802C-7F68A0839AA2.wav",
+      "preview": "work/public/takes/302CD451-D0B1-44CE-802C-7F68A0839AA2.plain.mp4",
+      "fg": "work/public/takes/302CD451-D0B1-44CE-802C-7F68A0839AA2.webm",
+      "matte": "work/matte/302CD451-D0B1-44CE-802C-7F68A0839AA2.quality.mkv"
+    },
+    "t.49EFEF34-59C8-4743-8BC0-746D7DEE3E62": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/49EFEF34-59C8-4743-8BC0-746D7DEE3E62.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 20.605,
+      "label": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "audio": "work/audio/49EFEF34-59C8-4743-8BC0-746D7DEE3E62.wav",
+      "preview": "work/public/takes/49EFEF34-59C8-4743-8BC0-746D7DEE3E62.plain.mp4",
+      "fg": "work/public/takes/49EFEF34-59C8-4743-8BC0-746D7DEE3E62.webm",
+      "matte": "work/matte/49EFEF34-59C8-4743-8BC0-746D7DEE3E62.quality.mkv"
+    },
+    "t.9A1D0156-3D3E-4000-9898-7F8401E8BF39": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/9A1D0156-3D3E-4000-9898-7F8401E8BF39.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 29.805,
+      "label": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "audio": "work/audio/9A1D0156-3D3E-4000-9898-7F8401E8BF39.wav",
+      "preview": "work/public/takes/9A1D0156-3D3E-4000-9898-7F8401E8BF39.plain.mp4",
+      "fg": "work/public/takes/9A1D0156-3D3E-4000-9898-7F8401E8BF39.webm",
+      "matte": "work/matte/9A1D0156-3D3E-4000-9898-7F8401E8BF39.quality.mkv"
+    },
+    "t.AAF33CA1-36EE-47A3-A5E9-1125338FCC1F": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/AAF33CA1-36EE-47A3-A5E9-1125338FCC1F.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 12.203,
+      "label": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+      "audio": "work/audio/AAF33CA1-36EE-47A3-A5E9-1125338FCC1F.wav",
+      "preview": "work/public/takes/AAF33CA1-36EE-47A3-A5E9-1125338FCC1F.plain.mp4",
+      "fg": "work/public/takes/AAF33CA1-36EE-47A3-A5E9-1125338FCC1F.webm",
+      "matte": "work/matte/AAF33CA1-36EE-47A3-A5E9-1125338FCC1F.quality.mkv"
+    },
+    "t.AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 14.837,
+      "label": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "audio": "work/audio/AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1.wav",
+      "preview": "work/public/takes/AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1.plain.mp4",
+      "fg": "work/public/takes/AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1.webm",
+      "matte": "work/matte/AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1.quality.mkv"
+    },
+    "t.BF935942-36C5-4433-BB3A-0E331E6619FC": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/BF935942-36C5-4433-BB3A-0E331E6619FC.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 21.638,
+      "label": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "audio": "work/audio/BF935942-36C5-4433-BB3A-0E331E6619FC.wav",
+      "preview": "work/public/takes/BF935942-36C5-4433-BB3A-0E331E6619FC.plain.mp4",
+      "fg": "work/public/takes/BF935942-36C5-4433-BB3A-0E331E6619FC.webm",
+      "matte": "work/matte/BF935942-36C5-4433-BB3A-0E331E6619FC.quality.mkv"
+    },
+    "t.C7CF1F1A-7399-4F4A-A466-6B368FADA628": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/C7CF1F1A-7399-4F4A-A466-6B368FADA628.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 24.238,
+      "label": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+      "audio": "work/audio/C7CF1F1A-7399-4F4A-A466-6B368FADA628.wav",
+      "preview": "work/public/takes/C7CF1F1A-7399-4F4A-A466-6B368FADA628.plain.mp4",
+      "fg": "work/public/takes/C7CF1F1A-7399-4F4A-A466-6B368FADA628.webm",
+      "matte": "work/matte/C7CF1F1A-7399-4F4A-A466-6B368FADA628.quality.mkv"
+    },
+    "t.E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/תפילות בחירות/E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 20.237,
+      "label": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "audio": "work/audio/E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF.wav",
+      "preview": "work/public/takes/E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF.plain.mp4",
+      "fg": "work/public/takes/E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF.webm",
+      "matte": "work/matte/E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF.quality.mkv"
+    },
+    "m.set": {
+      "kind": "image",
+      "src": "work/public/scene.png",
+      "w": 2048,
+      "h": 3072,
+      "label": "Set - set.jpg"
+    },
+    "m.plaque": {
+      "kind": "image",
+      "src": "work/public/plaque.png",
+      "w": 2048,
+      "h": 3072,
+      "label": "Plaque"
+    },
+    "m.ov6": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/honey.png",
+      "w": 984,
+      "h": 771
+    },
+    "m.ov7": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/shut/gavel.png",
+      "w": 700,
+      "h": 489
+    },
+    "m.ov8": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/honey.png",
+      "w": 984,
+      "h": 771
+    },
+    "m.ov9": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/rimon-derech.png",
+      "w": 883,
+      "h": 950
+    },
+    "m.ov10": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/rak-honey.png",
+      "w": 700,
+      "h": 970
+    },
+    "m.ov11": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/shut/gavel.png",
+      "w": 700,
+      "h": 489
+    },
+    "m.ov12": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/sefer.png",
+      "w": 711,
+      "h": 897
+    },
+    "m.ov13": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/chart-50-55.png",
+      "w": 700,
+      "h": 580
+    },
+    "m.ov14": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/sukkah-kalpi.png",
+      "w": 893,
+      "h": 872
+    },
+    "m.ov16": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/kadin.png",
+      "w": 720,
+      "h": 480
+    },
+    "m.ov15": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/aravot.png",
+      "w": 989,
+      "h": 879
+    },
+    "m.ov18": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/ai-tag.png",
+      "w": 160,
+      "h": 50
+    },
+    "m.ov19": {
+      "kind": "image",
+      "src": "../_assets/black.png",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.ov17": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/ai-tag.png",
+      "w": 160,
+      "h": 50
+    },
+    "m.ov20": {
+      "kind": "image",
+      "src": "media/poster.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.ov21": {
+      "kind": "image",
+      "src": "../_assets/black.png",
+      "w": 1080,
+      "h": 1920
+    },
+    "s.0": {
+      "kind": "audio",
+      "src": "media/he/9A1D0156-Amit.far.mp3",
+      "label": "9A1D0156-Amit.far"
+    },
+    "s.1": {
+      "kind": "audio",
+      "src": "media/he/9A1D0156-Itai.mid.mp3",
+      "label": "9A1D0156-Itai.mid"
+    },
+    "s.2": {
+      "kind": "audio",
+      "src": "media/he/9A1D0156-Itamar.mid.mp3",
+      "label": "9A1D0156-Itamar.mid"
+    },
+    "s.3": {
+      "kind": "audio",
+      "src": "media/he/9A1D0156-Omer.mid.mp3",
+      "label": "9A1D0156-Omer.mid"
+    },
+    "s.4": {
+      "kind": "audio",
+      "src": "media/he/9A1D0156-Tomer.far.mp3",
+      "label": "9A1D0156-Tomer.far"
+    },
+    "s.5": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Amit.far.mp3",
+      "label": "AC38835F-Amit.far"
+    },
+    "s.6": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Dorian.close.mp3",
+      "label": "AC38835F-Dorian.close"
+    },
+    "s.7": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Itai.mid.mp3",
+      "label": "AC38835F-Itai.mid"
+    },
+    "s.8": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Itamar.mid.mp3",
+      "label": "AC38835F-Itamar.mid"
+    },
+    "s.9": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Nimrod.close.mp3",
+      "label": "AC38835F-Nimrod.close"
+    },
+    "s.10": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Omer.mid.mp3",
+      "label": "AC38835F-Omer.mid"
+    },
+    "s.11": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Tomer.far.mp3",
+      "label": "AC38835F-Tomer.far"
+    },
+    "s.12": {
+      "kind": "audio",
+      "src": "media/he/AC38835F-Viktor.close.mp3",
+      "label": "AC38835F-Viktor.close"
+    },
+    "s.13": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Amit.far.mp3",
+      "label": "302CD451-Amit.far"
+    },
+    "s.14": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Dorian.close.mp3",
+      "label": "302CD451-Dorian.close"
+    },
+    "s.15": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Itai.mid.mp3",
+      "label": "302CD451-Itai.mid"
+    },
+    "s.16": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Itamar.mid.mp3",
+      "label": "302CD451-Itamar.mid"
+    },
+    "s.17": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Nimrod.close.mp3",
+      "label": "302CD451-Nimrod.close"
+    },
+    "s.18": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Tomer.far.mp3",
+      "label": "302CD451-Tomer.far"
+    },
+    "s.19": {
+      "kind": "audio",
+      "src": "media/he/302CD451-Viktor.close.mp3",
+      "label": "302CD451-Viktor.close"
+    },
+    "s.20": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Amit.far.mp3",
+      "label": "BF935942-Amit.far"
+    },
+    "s.21": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Dorian.close.mp3",
+      "label": "BF935942-Dorian.close"
+    },
+    "s.22": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Itai.mid.mp3",
+      "label": "BF935942-Itai.mid"
+    },
+    "s.23": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Itamar.mid.mp3",
+      "label": "BF935942-Itamar.mid"
+    },
+    "s.24": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Nimrod.close.mp3",
+      "label": "BF935942-Nimrod.close"
+    },
+    "s.25": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Omer.mid.mp3",
+      "label": "BF935942-Omer.mid"
+    },
+    "s.26": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Tomer.far.mp3",
+      "label": "BF935942-Tomer.far"
+    },
+    "s.27": {
+      "kind": "audio",
+      "src": "media/he/BF935942-Viktor.close.mp3",
+      "label": "BF935942-Viktor.close"
+    },
+    "s.28": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Amit.far.mp3",
+      "label": "49EFEF34-Amit.far"
+    },
+    "s.29": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Dorian.close.mp3",
+      "label": "49EFEF34-Dorian.close"
+    },
+    "s.30": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Itai.mid.mp3",
+      "label": "49EFEF34-Itai.mid"
+    },
+    "s.31": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Itamar.mid.mp3",
+      "label": "49EFEF34-Itamar.mid"
+    },
+    "s.32": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Nimrod.close.mp3",
+      "label": "49EFEF34-Nimrod.close"
+    },
+    "s.33": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Omer.mid.mp3",
+      "label": "49EFEF34-Omer.mid"
+    },
+    "s.34": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Tomer.far.mp3",
+      "label": "49EFEF34-Tomer.far"
+    },
+    "s.35": {
+      "kind": "audio",
+      "src": "media/he/49EFEF34-Viktor.close.mp3",
+      "label": "49EFEF34-Viktor.close"
+    },
+    "s.36": {
+      "kind": "audio",
+      "src": "media/he/C7CF1F1A-Amit.far.mp3",
+      "label": "C7CF1F1A-Amit.far"
+    },
+    "s.37": {
+      "kind": "audio",
+      "src": "media/he/C7CF1F1A-Dorian.close.mp3",
+      "label": "C7CF1F1A-Dorian.close"
+    },
+    "s.38": {
+      "kind": "audio",
+      "src": "media/he/C7CF1F1A-Nimrod.close.mp3",
+      "label": "C7CF1F1A-Nimrod.close"
+    },
+    "s.39": {
+      "kind": "audio",
+      "src": "media/he/C7CF1F1A-Omer.mid.mp3",
+      "label": "C7CF1F1A-Omer.mid"
+    },
+    "s.40": {
+      "kind": "audio",
+      "src": "media/he/AAF33CA1-Amit.far.mp3",
+      "label": "AAF33CA1-Amit.far"
+    },
+    "s.41": {
+      "kind": "audio",
+      "src": "media/he/AAF33CA1-Dorian.close.mp3",
+      "label": "AAF33CA1-Dorian.close"
+    },
+    "s.42": {
+      "kind": "audio",
+      "src": "media/he/AAF33CA1-Itamar.mid.mp3",
+      "label": "AAF33CA1-Itamar.mid"
+    },
+    "s.43": {
+      "kind": "audio",
+      "src": "media/he/AAF33CA1-Omer.mid.mp3",
+      "label": "AAF33CA1-Omer.mid"
+    },
+    "s.44": {
+      "kind": "audio",
+      "src": "media/he/AAF33CA1-Viktor.close.mp3",
+      "label": "AAF33CA1-Viktor.close"
+    },
+    "s.45": {
+      "kind": "audio",
+      "src": "media/he/E4AFDE44-Amit.far.mp3",
+      "label": "E4AFDE44-Amit.far"
+    },
+    "s.46": {
+      "kind": "audio",
+      "src": "media/he/E4AFDE44-Dorian.close.mp3",
+      "label": "E4AFDE44-Dorian.close"
+    },
+    "s.47": {
+      "kind": "audio",
+      "src": "media/he/E4AFDE44-Itamar.mid.mp3",
+      "label": "E4AFDE44-Itamar.mid"
+    },
+    "s.48": {
+      "kind": "audio",
+      "src": "media/he/E4AFDE44-Omer.mid.mp3",
+      "label": "E4AFDE44-Omer.mid"
+    },
+    "s.49": {
+      "kind": "audio",
+      "src": "media/he/E4AFDE44-Tomer.far.mp3",
+      "label": "E4AFDE44-Tomer.far"
+    },
+    "s.50": {
+      "kind": "audio",
+      "src": "media/he/E4AFDE44-Viktor.close.mp3",
+      "label": "E4AFDE44-Viktor.close"
+    },
+    "m.kadin-stamp": {
+      "kind": "image",
+      "src": "../_assets/demokratovich/rosh-hashana/kadin.png",
+      "w": 720,
+      "h": 480,
+      "label": "חותמת כדין"
+    }
+  },
+  "layers": [
+    {
+      "id": "set",
+      "kind": "image",
+      "name": "Set",
+      "owner": "builder",
+      "props": {
+        "blur": 0
+      },
+      "items": [
+        {
+          "id": "set",
+          "from": 0,
+          "dur": 4464,
+          "asset": "m.set",
+          "box": {
+            "x": -100,
+            "y": 0,
+            "w": 1280,
+            "h": 1920
+          },
+          "pin": "span",
+          "ref": {
+            "set": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "plaque",
+      "kind": "image",
+      "name": "Plaque",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "plaque",
+          "from": 0,
+          "dur": 4464,
+          "asset": "m.plaque",
+          "box": {
+            "x": -100,
+            "y": 0,
+            "w": 1280,
+            "h": 1920
+          },
+          "pin": "span",
+          "ref": {
+            "plaque": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "person",
+      "kind": "video",
+      "name": "Person",
+      "owner": "builder",
+      "props": {
+        "fit": "cover",
+        "cutout": true,
+        "eyes": false,
+        "look": {},
+        "matte_cut": 30,
+        "side_ramp": true,
+        "af": "eq=brightness=0.0:contrast=1.05:saturation=1.08,colorbalance=rs=0.06:gs=0.02:bs=-0.06:rm=0.06:bm=-0.06",
+        "box": {
+          "x": 0,
+          "y": 90,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      "items": [
+        {
+          "id": "c0",
+          "from": 0,
+          "dur": 835,
+          "asset": "t.9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+          "in": 1.15,
+          "ref": {
+            "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+            "a": 1.15
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c1",
+          "from": 835,
+          "dur": 384,
+          "asset": "t.AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+          "in": 1.39,
+          "ref": {
+            "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+            "a": 1.39
+          },
+          "link": "cut-AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1-1.39",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c2",
+          "from": 1219,
+          "dur": 531,
+          "asset": "t.302CD451-D0B1-44CE-802C-7F68A0839AA2",
+          "in": 1.05,
+          "ref": {
+            "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+            "a": 1.05
+          },
+          "link": "cut-302CD451-D0B1-44CE-802C-7F68A0839AA2-1.05",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c3",
+          "from": 1750,
+          "dur": 553,
+          "asset": "t.BF935942-36C5-4433-BB3A-0E331E6619FC",
+          "in": 1.42,
+          "ref": {
+            "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+            "a": 1.42
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c4",
+          "from": 2303,
+          "dur": 534,
+          "asset": "t.49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+          "in": 1.5,
+          "ref": {
+            "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+            "a": 1.5
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c5",
+          "from": 2837,
+          "dur": 658,
+          "asset": "t.C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+          "in": 1.38,
+          "ref": {
+            "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+            "a": 1.38
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c6",
+          "from": 3495,
+          "dur": 310,
+          "asset": "t.AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+          "in": 0.98,
+          "ref": {
+            "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+            "a": 0.98
+          },
+          "link": "cut-AAF33CA1-36EE-47A3-A5E9-1125338FCC1F-0.98",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c7",
+          "from": 3805,
+          "dur": 552,
+          "asset": "t.E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+          "in": 1.19,
+          "ref": {
+            "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+            "a": 1.19
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c8",
+          "from": 4357,
+          "dur": 105,
+          "asset": "t.E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+          "in": 19.6,
+          "rate": 0,
+          "ref": {
+            "hold": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+            "at": 19.6
+          },
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        },
+        {
+          "id": "c9",
+          "from": 4462,
+          "dur": 2,
+          "asset": "t.E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+          "in": 19.6,
+          "ref": {
+            "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+            "a": 19.6
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-19.6",
+          "box": {
+            "x": 0,
+            "y": 90,
+            "w": 1080,
+            "h": 1920
+          },
+          "user": true
+        }
+      ]
+    },
+    {
+      "id": "ov.stickers",
+      "kind": "image",
+      "name": "Stickers",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o10",
+          "from": 86,
+          "dur": 354,
+          "ref": {
+            "overlay": 10
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                11.6,
+                1
+              ],
+              [
+                11.6167,
+                0.9416
+              ],
+              [
+                11.6333,
+                0.8835
+              ],
+              [
+                11.65,
+                0.825
+              ],
+              [
+                11.6667,
+                0.7666
+              ],
+              [
+                11.6833,
+                0.7085
+              ],
+              [
+                11.7,
+                0.65
+              ],
+              [
+                11.7167,
+                0.5916
+              ],
+              [
+                11.7333,
+                0.5335
+              ],
+              [
+                11.75,
+                0.475
+              ],
+              [
+                11.7667,
+                0.4166
+              ],
+              [
+                11.7833,
+                0.3585
+              ],
+              [
+                11.8,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov10",
+          "box": {
+            "x": 33,
+            "y": 931,
+            "w": 249.7,
+            "h": 346
+          },
+          "opacity": 1,
+          "user": true
+        },
+        {
+          "id": "o9",
+          "from": 1109,
+          "dur": 107,
+          "ref": {
+            "overlay": 9
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                3.36,
+                1
+              ],
+              [
+                3.3767,
+                0.9416
+              ],
+              [
+                3.3933,
+                0.8835
+              ],
+              [
+                3.41,
+                0.825
+              ],
+              [
+                3.4267,
+                0.7666
+              ],
+              [
+                3.4433,
+                0.7085
+              ],
+              [
+                3.46,
+                0.65
+              ],
+              [
+                3.4767,
+                0.5916
+              ],
+              [
+                3.4933,
+                0.5335
+              ],
+              [
+                3.51,
+                0.475
+              ],
+              [
+                3.5267,
+                0.4166
+              ],
+              [
+                3.5433,
+                0.3585
+              ],
+              [
+                3.56,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov9",
+          "box": {
+            "x": 24,
+            "y": 700.1,
+            "w": 260,
+            "h": 279.7
+          },
+          "opacity": 1
+        },
+        {
+          "id": "o12",
+          "from": 1443,
+          "dur": 288,
+          "ref": {
+            "overlay": 12
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                9.4,
+                1
+              ],
+              [
+                9.4167,
+                0.9415
+              ],
+              [
+                9.4333,
+                0.8834
+              ],
+              [
+                9.45,
+                0.825
+              ],
+              [
+                9.4667,
+                0.7665
+              ],
+              [
+                9.4833,
+                0.7084
+              ],
+              [
+                9.5,
+                0.65
+              ],
+              [
+                9.5167,
+                0.5915
+              ],
+              [
+                9.5333,
+                0.5334
+              ],
+              [
+                9.55,
+                0.475
+              ],
+              [
+                9.5667,
+                0.4165
+              ],
+              [
+                9.5833,
+                0.3584
+              ],
+              [
+                9.6,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov12",
+          "box": {
+            "x": 36,
+            "y": 690.6,
+            "w": 240,
+            "h": 302.8
+          },
+          "opacity": 1
+        },
+        {
+          "id": "o13",
+          "from": 2209,
+          "dur": 111,
+          "ref": {
+            "overlay": 13
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                3.5,
+                1
+              ],
+              [
+                3.5167,
+                0.9416
+              ],
+              [
+                3.5333,
+                0.8835
+              ],
+              [
+                3.55,
+                0.825
+              ],
+              [
+                3.5667,
+                0.7666
+              ],
+              [
+                3.5833,
+                0.7085
+              ],
+              [
+                3.6,
+                0.65
+              ],
+              [
+                3.6167,
+                0.5916
+              ],
+              [
+                3.6333,
+                0.5335
+              ],
+              [
+                3.65,
+                0.475
+              ],
+              [
+                3.6667,
+                0.4166
+              ],
+              [
+                3.6833,
+                0.3585
+              ],
+              [
+                3.7,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov13",
+          "box": {
+            "x": 766.2,
+            "y": 700,
+            "w": 295.7,
+            "h": 245
+          },
+          "opacity": 1
+        },
+        {
+          "id": "o14",
+          "from": 2712,
+          "dur": 133,
+          "ref": {
+            "overlay": 14
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                4.22,
+                1
+              ],
+              [
+                4.2367,
+                0.9416
+              ],
+              [
+                4.2533,
+                0.8835
+              ],
+              [
+                4.27,
+                0.825
+              ],
+              [
+                4.2867,
+                0.7666
+              ],
+              [
+                4.3033,
+                0.7085
+              ],
+              [
+                4.32,
+                0.65
+              ],
+              [
+                4.3367,
+                0.5916
+              ],
+              [
+                4.3533,
+                0.5335
+              ],
+              [
+                4.37,
+                0.475
+              ],
+              [
+                4.3867,
+                0.4166
+              ],
+              [
+                4.4033,
+                0.3585
+              ],
+              [
+                4.42,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov14",
+          "box": {
+            "x": 24.1,
+            "y": 700,
+            "w": 289.8,
+            "h": 283
+          },
+          "opacity": 1
+        },
+        {
+          "id": "o15",
+          "from": 3880,
+          "dur": 143,
+          "ref": {
+            "overlay": 15
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                4.56,
+                1
+              ],
+              [
+                4.5767,
+                0.9416
+              ],
+              [
+                4.5933,
+                0.8835
+              ],
+              [
+                4.61,
+                0.825
+              ],
+              [
+                4.6267,
+                0.7666
+              ],
+              [
+                4.6433,
+                0.7085
+              ],
+              [
+                4.66,
+                0.65
+              ],
+              [
+                4.6767,
+                0.5916
+              ],
+              [
+                4.6933,
+                0.5335
+              ],
+              [
+                4.71,
+                0.475
+              ],
+              [
+                4.7267,
+                0.4166
+              ],
+              [
+                4.7433,
+                0.3585
+              ],
+              [
+                4.76,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov15",
+          "box": {
+            "x": 770,
+            "y": 700.2,
+            "w": 300,
+            "h": 266.6
+          },
+          "opacity": 1
+        }
+      ],
+      "removed": [
+        "{\"overlay\":16}"
+      ]
+    },
+    {
+      "id": "ov.stickers.2",
+      "kind": "image",
+      "name": "Stickers 2",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o11",
+          "from": 951,
+          "dur": 261,
+          "ref": {
+            "overlay": 11
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ],
+              [
+                8.5,
+                1
+              ],
+              [
+                8.5167,
+                0.9415
+              ],
+              [
+                8.5333,
+                0.8834
+              ],
+              [
+                8.55,
+                0.825
+              ],
+              [
+                8.5667,
+                0.7665
+              ],
+              [
+                8.5833,
+                0.7084
+              ],
+              [
+                8.6,
+                0.65
+              ],
+              [
+                8.6167,
+                0.5915
+              ],
+              [
+                8.6333,
+                0.5334
+              ],
+              [
+                8.65,
+                0.475
+              ],
+              [
+                8.6667,
+                0.4165
+              ],
+              [
+                8.6833,
+                0.3585
+              ],
+              [
+                8.7,
+                0.3
+              ]
+            ]
+          },
+          "asset": "m.ov11",
+          "box": {
+            "x": 790,
+            "y": 720.2,
+            "w": 270,
+            "h": 188.6
+          },
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "ov.stickers.3",
+      "kind": "image",
+      "name": "Stickers 3",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o17",
+          "from": 0,
+          "dur": 4464,
+          "ref": {
+            "overlay": 17
+          },
+          "pin": "span",
+          "asset": "m.ov17",
+          "box": {
+            "x": 112,
+            "y": 564.2,
+            "w": 117,
+            "h": 36.6
+          },
+          "opacity": 1
+        }
+      ],
+      "hidden": true
+    },
+    {
+      "id": "ov.stickers.4",
+      "kind": "image",
+      "name": "Stickers 4",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o18",
+          "from": 0,
+          "dur": 4464,
+          "ref": {
+            "overlay": 18
+          },
+          "pin": "span",
+          "asset": "m.ov18",
+          "box": {
+            "x": 777,
+            "y": 564.2,
+            "w": 117,
+            "h": 36.6
+          },
+          "opacity": 1
+        }
+      ],
+      "hidden": true
+    },
+    {
+      "id": "ov.texts",
+      "kind": "text",
+      "name": "Texts",
+      "owner": "builder",
+      "props": {
+        "style": "pov"
+      },
+      "items": [
+        {
+          "id": "o0",
+          "from": 0,
+          "dur": 180,
+          "ref": {
+            "overlay": 0
+          },
+          "box": {
+            "x": 540,
+            "y": 658,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "פוב: הגאון הרב דמוקרטוביץ שליט״א\nבתפילות מרוממות נפש ומעוררות לב\nלרגל הימים הנוראים – ימי הבחירות",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 56,
+          "box_opacity": 0.75,
+          "user": true
+        },
+        {
+          "id": "o1",
+          "from": 183,
+          "dur": 644,
+          "ref": {
+            "overlay": 1
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ אבינו שופטנו ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "box_opacity": 0.75,
+          "user": true
+        },
+        {
+          "id": "o2",
+          "from": 842,
+          "dur": 370,
+          "ref": {
+            "overlay": 2
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ וכל מאמינים ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "hold": 0.3,
+          "box_opacity": 0.75
+        },
+        {
+          "id": "o3",
+          "from": 1260,
+          "dur": 461,
+          "ref": {
+            "overlay": 3
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ זכרנו למנדטים ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "hold": 0.3,
+          "box_opacity": 0.75
+        },
+        {
+          "id": "o4",
+          "from": 1754,
+          "dur": 544,
+          "ref": {
+            "overlay": 4
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ אחינו כל גוש השינוי ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "box_opacity": 0.75
+        },
+        {
+          "id": "o5",
+          "from": 2344,
+          "dur": 498,
+          "ref": {
+            "overlay": 5
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ אחינו כל גוש השינוי ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "hold": 0.3,
+          "box_opacity": 0.75
+        },
+        {
+          "id": "o6",
+          "from": 2875,
+          "dur": 626,
+          "ref": {
+            "overlay": 6
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ קדיש דמוקרטוביץ ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "hold": 0.3,
+          "box_opacity": 0.75
+        },
+        {
+          "id": "o7",
+          "from": 3502,
+          "dur": 299,
+          "ref": {
+            "overlay": 7
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ קדיש דמוקרטוביץ ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "box_opacity": 0.75
+        },
+        {
+          "id": "o8",
+          "from": 3860,
+          "dur": 160,
+          "ref": {
+            "overlay": 8
+          },
+          "box": {
+            "x": 540,
+            "y": 662,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "♪ קדיש דמוקרטוביץ ♪",
+          "style": "pov",
+          "font": "font.stam-ashkenaz",
+          "theme": "gold",
+          "size": 50,
+          "hold": 0.3,
+          "box_opacity": 0.75
+        }
+      ]
+    },
+    {
+      "id": "ov.ticker",
+      "kind": "text",
+      "name": "Ticker",
+      "owner": "builder",
+      "props": {
+        "style": "ticker"
+      },
+      "items": [
+        {
+          "id": "o19",
+          "from": 0,
+          "dur": 4236,
+          "ref": {
+            "overlay": 19
+          },
+          "box": {
+            "x": 0,
+            "y": 1690,
+            "anchor": "tl"
+          },
+          "text": "🕯 מגבית הימים הנוראים 🕯 3.25 ₪ – אחוז החסימה • 61 ₪ – רוב קואליציוני: הרב יקרא בשמכם בתפילת זכרנו למנדטים • 120 ₪ – כנסת שלמה • כל תרומה מובאת להצבעה בוועד העמותה • תרומה שנדחתה – ניתן לערער לבג״ץ • שנה טובה ודמוקרטית • הלינק בביו ⬆️",
+          "style": "ticker",
+          "font": "font.assistant",
+          "theme": "dark",
+          "size": 38,
+          "speed": 130,
+          "t0": 0,
+          "tw": 4059,
+          "bg": "rgba(0,0,0,0.60)"
+        }
+      ]
+    },
+    {
+      "id": "subs",
+      "kind": "subtitles",
+      "name": "Subtitles",
+      "owner": "builder",
+      "props": {
+        "style": "solo",
+        "box": {
+          "x": 540,
+          "y": 1470,
+          "w": 980,
+          "anchor": "t"
+        }
+      },
+      "items": [
+        {
+          "id": "s0",
+          "from": 104,
+          "dur": 61,
+          "text": "חננו ועננו.",
+          "ref": {
+            "cap": "חננו ועננו.",
+            "k": 0
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s1",
+          "from": 187,
+          "dur": 97,
+          "text": "אבינו שופטנו,",
+          "ref": {
+            "cap": "אבינו שופטנו,",
+            "k": 1
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s2",
+          "from": 286,
+          "dur": 40,
+          "text": "חננו ועננו,",
+          "ref": {
+            "cap": "חננו ועננו,",
+            "k": 2
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s3",
+          "from": 327,
+          "dur": 52,
+          "text": "כי אין בנו רוב",
+          "ref": {
+            "cap": "כי אין בנו רוב",
+            "k": 3
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s4",
+          "from": 379,
+          "dur": 188,
+          "text": "הנדרש. עשה עמנו צדקה",
+          "ref": {
+            "cap": "הנדרש. עשה עמנו צדקה",
+            "k": 4
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s5",
+          "from": 567,
+          "dur": 159,
+          "text": "וחסד. עשה עמנו צדקה",
+          "ref": {
+            "cap": "וחסד. עשה עמנו צדקה",
+            "k": 5
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s6",
+          "from": 726,
+          "dur": 82,
+          "text": "וחסד, והעבירנו.",
+          "ref": {
+            "cap": "וחסד, והעבירנו.",
+            "k": 6
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "s7",
+          "from": 842,
+          "dur": 149,
+          "text": "וכל מאמינים שהוא שופט",
+          "ref": {
+            "cap": "וכל מאמינים שהוא שופט",
+            "k": 7
+          },
+          "link": "cut-AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1-1.39"
+        },
+        {
+          "id": "s8",
+          "from": 991,
+          "dur": 168,
+          "text": "צדק, הסופר ומונה מנדטים",
+          "ref": {
+            "cap": "צדק, הסופר ומונה מנדטים",
+            "k": 8
+          },
+          "link": "cut-AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1-1.39"
+        },
+        {
+          "id": "s9",
+          "from": 1159,
+          "dur": 56,
+          "text": "למשרתים.",
+          "ref": {
+            "cap": "למשרתים.",
+            "k": 9
+          },
+          "link": "cut-AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1-1.39"
+        },
+        {
+          "id": "s10",
+          "from": 1234,
+          "dur": 89,
+          "text": "זכרנו למנדטים,",
+          "ref": {
+            "cap": "זכרנו למנדטים,",
+            "k": 10
+          },
+          "link": "cut-302CD451-D0B1-44CE-802C-7F68A0839AA2-1.05"
+        },
+        {
+          "id": "s11",
+          "from": 1323,
+          "dur": 87,
+          "text": "מלך חפץ במנדטים,",
+          "ref": {
+            "cap": "מלך חפץ במנדטים,",
+            "k": 11
+          },
+          "link": "cut-302CD451-D0B1-44CE-802C-7F68A0839AA2-1.05"
+        },
+        {
+          "id": "s12",
+          "from": 1420,
+          "dur": 96,
+          "text": "וכתבנו בספר המדגמים,",
+          "ref": {
+            "cap": "וכתבנו בספר המדגמים,",
+            "k": 12
+          },
+          "link": "cut-302CD451-D0B1-44CE-802C-7F68A0839AA2-1.05"
+        },
+        {
+          "id": "s13",
+          "from": 1516,
+          "dur": 208,
+          "text": "למענך בג״ץ חיים.",
+          "ref": {
+            "cap": "למענך בג״ץ חיים.",
+            "k": 13
+          },
+          "link": "cut-302CD451-D0B1-44CE-802C-7F68A0839AA2-1.05"
+        },
+        {
+          "id": "s14",
+          "from": 1750,
+          "dur": 150,
+          "text": "אחינו כל גוש השינוי,",
+          "ref": {
+            "cap": "אחינו כל גוש השינוי,",
+            "k": 14
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42"
+        },
+        {
+          "id": "s15",
+          "from": 1900,
+          "dur": 126,
+          "text": "אחינו כל גוש השינוי,",
+          "ref": {
+            "cap": "אחינו כל גוש השינוי,",
+            "k": 15
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42"
+        },
+        {
+          "id": "s16",
+          "from": 2026,
+          "dur": 92,
+          "text": "היושבים באופוזיציה ולא",
+          "ref": {
+            "cap": "היושבים באופוזיציה ולא",
+            "k": 16
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42"
+        },
+        {
+          "id": "s17",
+          "from": 2118,
+          "dur": 91,
+          "text": "בקואליציה, העומדים בין",
+          "ref": {
+            "cap": "בקואליציה, העומדים בין",
+            "k": 17
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42"
+        },
+        {
+          "id": "s18",
+          "from": 2209,
+          "dur": 99,
+          "text": "חמישים לחמישים וחמישה.",
+          "ref": {
+            "cap": "חמישים לחמישים וחמישה.",
+            "k": 18
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42"
+        },
+        {
+          "id": "s19",
+          "from": 2378,
+          "dur": 75,
+          "text": "יפסוק עליהם,",
+          "ref": {
+            "cap": "יפסוק עליהם,",
+            "k": 19
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5"
+        },
+        {
+          "id": "s20",
+          "from": 2453,
+          "dur": 125,
+          "text": "ויוציאם מצרה לרווחה,",
+          "ref": {
+            "cap": "ויוציאם מצרה לרווחה,",
+            "k": 20
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5"
+        },
+        {
+          "id": "s21",
+          "from": 2578,
+          "dur": 52,
+          "text": "משעבוד לדיקטטורה,",
+          "ref": {
+            "cap": "משעבוד לדיקטטורה,",
+            "k": 21
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5"
+        },
+        {
+          "id": "s22",
+          "from": 2630,
+          "dur": 94,
+          "text": "ומעריצות הרוב לדמוקרטיה,",
+          "ref": {
+            "cap": "ומעריצות הרוב לדמוקרטיה,",
+            "k": 22
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5"
+        },
+        {
+          "id": "s23",
+          "from": 2729,
+          "dur": 115,
+          "text": "השתא בעגלא ובזמן קריב.",
+          "ref": {
+            "cap": "השתא בעגלא ובזמן קריב.",
+            "k": 23
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5"
+        },
+        {
+          "id": "s24",
+          "from": 2858,
+          "dur": 124,
+          "text": "יתגדל ויתקדש שמיה דבג״ץ,",
+          "ref": {
+            "cap": "יתגדל ויתקדש שמיה דבג״ץ,",
+            "k": 24
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s25",
+          "from": 2983,
+          "dur": 64,
+          "text": "בעלמא די דמוקרטי,",
+          "ref": {
+            "cap": "בעלמא די דמוקרטי,",
+            "k": 25
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s26",
+          "from": 3047,
+          "dur": 44,
+          "text": "וימליך שופטי,",
+          "ref": {
+            "cap": "וימליך שופטי,",
+            "k": 26
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s27",
+          "from": 3091,
+          "dur": 38,
+          "text": "ויצמח פסקי,",
+          "ref": {
+            "cap": "ויצמח פסקי,",
+            "k": 27
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s28",
+          "from": 3129,
+          "dur": 47,
+          "text": "ויקרב דיני,",
+          "ref": {
+            "cap": "ויקרב דיני,",
+            "k": 28
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s29",
+          "from": 3176,
+          "dur": 130,
+          "text": "בחייכון וביומיכון ובחיי",
+          "ref": {
+            "cap": "בחייכון וביומיכון ובחיי",
+            "k": 29
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s30",
+          "from": 3306,
+          "dur": 58,
+          "text": "דכל גוש השינוי,",
+          "ref": {
+            "cap": "דכל גוש השינוי,",
+            "k": 30
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s31",
+          "from": 3370,
+          "dur": 79,
+          "text": "בעגלא ובזמן קריב,",
+          "ref": {
+            "cap": "בעגלא ובזמן קריב,",
+            "k": 31
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s32",
+          "from": 3450,
+          "dur": 40,
+          "text": "ואמרו: כדין!",
+          "ref": {
+            "cap": "ואמרו: כדין!",
+            "k": 32
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "s33",
+          "from": 3587,
+          "dur": 97,
+          "text": "דכל בית שופטי ישראל,",
+          "ref": {
+            "cap": "דכל בית שופטי ישראל,",
+            "k": 33
+          },
+          "link": "cut-AAF33CA1-36EE-47A3-A5E9-1125338FCC1F-0.98"
+        },
+        {
+          "id": "s34",
+          "from": 3692,
+          "dur": 55,
+          "text": "בבג״ץ ובזמן קריב,",
+          "ref": {
+            "cap": "בבג״ץ ובזמן קריב,",
+            "k": 34
+          },
+          "link": "cut-AAF33CA1-36EE-47A3-A5E9-1125338FCC1F-0.98"
+        },
+        {
+          "id": "s35",
+          "from": 3747,
+          "dur": 65,
+          "text": "ואמרו: כדין!",
+          "ref": {
+            "cap": "ואמרו: כדין!",
+            "k": 35
+          },
+          "link": "cut-AAF33CA1-36EE-47A3-A5E9-1125338FCC1F-0.98"
+        },
+        {
+          "id": "s36",
+          "from": 3812,
+          "dur": 78,
+          "text": "יהא שלמא רבה עם",
+          "ref": {
+            "cap": "יהא שלמא רבה עם",
+            "k": 36
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19"
+        },
+        {
+          "id": "s37",
+          "from": 3890,
+          "dur": 74,
+          "text": "ערבייא, וחיים עלינו ועל",
+          "ref": {
+            "cap": "ערבייא, וחיים עלינו ועל",
+            "k": 37
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19"
+        },
+        {
+          "id": "s38",
+          "from": 3964,
+          "dur": 58,
+          "text": "כל גוש השינוי.",
+          "ref": {
+            "cap": "כל גוש השינוי.",
+            "k": 38
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19"
+        },
+        {
+          "id": "s39",
+          "from": 4067,
+          "dur": 134,
+          "text": "יאי יאי יאי...",
+          "ref": {
+            "cap": "יאי יאי יאי...",
+            "k": 39
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19"
+        },
+        {
+          "id": "s40",
+          "from": 4238,
+          "dur": 77,
+          "text": "ואמרו: כדין!",
+          "ref": {
+            "cap": "ואמרו: כדין!",
+            "k": 40
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19"
+        },
+        {
+          "id": "h1",
+          "from": 2,
+          "dur": 100,
+          "text": "אבינו שופטנו,",
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15",
+          "user": true
+        },
+        {
+          "id": "h2",
+          "from": 2305,
+          "dur": 72,
+          "text": "הבג״ץ יפסוק,",
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5",
+          "user": true
+        },
+        {
+          "id": "h3",
+          "from": 3498,
+          "dur": 88,
+          "text": "תתקבל עתירתהון ופסיקיהון",
+          "link": "cut-AAF33CA1-36EE-47A3-A5E9-1125338FCC1F-0.98",
+          "user": true
+        }
+      ]
+    },
+    {
+      "id": "ov.end",
+      "kind": "image",
+      "name": "End card",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o20",
+          "from": 4239,
+          "dur": 225,
+          "ref": {
+            "overlay": 20
+          },
+          "pin": "span",
+          "fade_in": 1.5,
+          "asset": "m.ov20",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "id": "k1",
+          "from": 4310,
+          "dur": 154,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.3
+              ],
+              [
+                0.0167,
+                0.447
+              ],
+              [
+                0.0333,
+                0.5742
+              ],
+              [
+                0.05,
+                0.6842
+              ],
+              [
+                0.0667,
+                0.7775
+              ],
+              [
+                0.0833,
+                0.8549
+              ],
+              [
+                0.1,
+                0.9185
+              ],
+              [
+                0.1167,
+                0.9691
+              ],
+              [
+                0.1333,
+                1.0078
+              ],
+              [
+                0.15,
+                1.0361
+              ],
+              [
+                0.1667,
+                1.055
+              ],
+              [
+                0.1833,
+                1.0659
+              ],
+              [
+                0.2,
+                1.0699
+              ],
+              [
+                0.2167,
+                1.0683
+              ],
+              [
+                0.2333,
+                1.0623
+              ],
+              [
+                0.25,
+                1.0531
+              ],
+              [
+                0.2667,
+                1.042
+              ],
+              [
+                0.2833,
+                1.0302
+              ],
+              [
+                0.3,
+                1.0188
+              ],
+              [
+                0.3167,
+                1.0092
+              ],
+              [
+                0.3333,
+                1.0025
+              ],
+              [
+                0.35,
+                1
+              ]
+            ]
+          },
+          "asset": "m.kadin-stamp",
+          "box": {
+            "x": 610,
+            "y": 610,
+            "w": 440,
+            "h": 293
+          },
+          "opacity": 1
+        }
+      ],
+      "props": {},
+      "id": "stamp",
+      "kind": "image",
+      "name": "חותמת כדין",
+      "hidden": false
+    },
+    {
+      "id": "ov.fade",
+      "kind": "image",
+      "name": "Fade to black",
+      "owner": "builder",
+      "props": {},
+      "items": [
+        {
+          "id": "o21",
+          "from": 4440,
+          "dur": 24,
+          "ref": {
+            "overlay": 21
+          },
+          "pin": "span",
+          "fade_in": 0.8,
+          "asset": "m.ov21",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "kind": "audio",
+      "name": "Voice",
+      "owner": "builder",
+      "props": {
+        "volume": 1,
+        "voice": {
+          "preset": "natural",
+          "lowcut": 60,
+          "warmth": 0,
+          "box": 0,
+          "presence": 0,
+          "deess": 0,
+          "comp": 0
+        }
+      },
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 843,
+          "asset": "t.9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+          "in": 1.15,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+            "a": 1.15
+          },
+          "link": "cut-9A1D0156-3D3E-4000-9898-7F8401E8BF39-1.15"
+        },
+        {
+          "id": "v1",
+          "from": 835,
+          "dur": 392,
+          "asset": "t.AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+          "in": 1.39,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+            "a": 1.39
+          },
+          "link": "cut-AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1-1.39"
+        },
+        {
+          "id": "v2",
+          "from": 1219,
+          "dur": 539,
+          "asset": "t.302CD451-D0B1-44CE-802C-7F68A0839AA2",
+          "in": 1.05,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+            "a": 1.05
+          },
+          "link": "cut-302CD451-D0B1-44CE-802C-7F68A0839AA2-1.05"
+        },
+        {
+          "id": "v3",
+          "from": 1750,
+          "dur": 561,
+          "asset": "t.BF935942-36C5-4433-BB3A-0E331E6619FC",
+          "in": 1.42,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+            "a": 1.42
+          },
+          "link": "cut-BF935942-36C5-4433-BB3A-0E331E6619FC-1.42"
+        },
+        {
+          "id": "v4",
+          "from": 2303,
+          "dur": 542,
+          "asset": "t.49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+          "in": 1.5,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+            "a": 1.5
+          },
+          "link": "cut-49EFEF34-59C8-4743-8BC0-746D7DEE3E62-1.5"
+        },
+        {
+          "id": "v5",
+          "from": 2837,
+          "dur": 666,
+          "asset": "t.C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+          "in": 1.38,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+            "a": 1.38
+          },
+          "link": "cut-C7CF1F1A-7399-4F4A-A466-6B368FADA628-1.38"
+        },
+        {
+          "id": "v6",
+          "from": 3495,
+          "dur": 318,
+          "asset": "t.AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+          "in": 0.98,
+          "fade_in": 0.012,
+          "fade_out": 0.267,
+          "ref": {
+            "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+            "a": 0.98
+          },
+          "link": "cut-AAF33CA1-36EE-47A3-A5E9-1125338FCC1F-0.98"
+        },
+        {
+          "id": "v7",
+          "from": 3805,
+          "dur": 552,
+          "asset": "t.E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+          "in": 1.19,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+            "a": 1.19
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-1.19"
+        },
+        {
+          "id": "v9",
+          "from": 4462,
+          "dur": 2,
+          "asset": "t.E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+          "in": 19.6,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+            "a": 19.6
+          },
+          "link": "cut-E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF-19.6"
+        }
+      ]
+    },
+    {
+      "id": "sfx",
+      "kind": "audio",
+      "name": "קהל – נמרוד",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x9",
+          "from": 835,
+          "dur": 383.67,
+          "asset": "s.9",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 9
+          },
+          "in": 1.401
+        },
+        {
+          "id": "x17",
+          "from": 1219,
+          "dur": 530.46,
+          "asset": "s.17",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 17
+          },
+          "in": 1.068
+        },
+        {
+          "id": "x24",
+          "from": 1750,
+          "dur": 552.51,
+          "asset": "s.24",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 24
+          },
+          "in": 1.433
+        },
+        {
+          "id": "x32",
+          "from": 2303,
+          "dur": 533.49,
+          "asset": "s.32",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 32
+          },
+          "in": 1.517
+        },
+        {
+          "id": "x38",
+          "from": 2837,
+          "dur": 657.36,
+          "asset": "s.38",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 38
+          },
+          "in": 1.398
+        }
+      ]
+    },
+    {
+      "id": "sfx1",
+      "kind": "audio",
+      "name": "קהל – דוריאן",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x6",
+          "from": 835.45,
+          "dur": 384,
+          "asset": "s.6",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 6
+          },
+          "in": 1.39
+        },
+        {
+          "id": "x14",
+          "from": 1219.6,
+          "dur": 531,
+          "asset": "s.14",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 14
+          },
+          "in": 1.05
+        },
+        {
+          "id": "x21",
+          "from": 1750.45,
+          "dur": 552.9,
+          "asset": "s.21",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 21
+          },
+          "in": 1.42
+        },
+        {
+          "id": "x29",
+          "from": 2303.48,
+          "dur": 534,
+          "asset": "s.29",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 29
+          },
+          "in": 1.5
+        },
+        {
+          "id": "x37",
+          "from": 2837.48,
+          "dur": 657.9,
+          "asset": "s.37",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 37
+          },
+          "in": 1.38
+        },
+        {
+          "id": "x41",
+          "from": 3495.45,
+          "dur": 309.9,
+          "asset": "s.41",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 41
+          },
+          "in": 0.98
+        },
+        {
+          "id": "x46",
+          "from": 3805.63,
+          "dur": 553.5,
+          "asset": "s.46",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 46
+          },
+          "in": 1.19
+        }
+      ]
+    },
+    {
+      "id": "sfx2",
+      "kind": "audio",
+      "name": "קהל – ויקטור",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x12",
+          "from": 835,
+          "dur": 383.73,
+          "asset": "s.12",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 12
+          },
+          "in": 1.399
+        },
+        {
+          "id": "x19",
+          "from": 1219,
+          "dur": 530.88,
+          "asset": "s.19",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 19
+          },
+          "in": 1.054
+        },
+        {
+          "id": "x27",
+          "from": 1750,
+          "dur": 552.6,
+          "asset": "s.27",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 27
+          },
+          "in": 1.43
+        },
+        {
+          "id": "x35",
+          "from": 2303,
+          "dur": 533.82,
+          "asset": "s.35",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 35
+          },
+          "in": 1.506
+        },
+        {
+          "id": "x44",
+          "from": 3495,
+          "dur": 309.6,
+          "asset": "s.44",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 44
+          },
+          "in": 0.99
+        },
+        {
+          "id": "x50",
+          "from": 3805,
+          "dur": 553.41,
+          "asset": "s.50",
+          "gain": 0.12,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 50
+          },
+          "in": 1.193
+        }
+      ]
+    },
+    {
+      "id": "sfx3",
+      "kind": "audio",
+      "name": "קהל – איתמר",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x2",
+          "from": 0.3,
+          "dur": 834.9,
+          "asset": "s.2",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 2
+          },
+          "in": 1.15
+        },
+        {
+          "id": "x8",
+          "from": 835.12,
+          "dur": 384,
+          "asset": "s.8",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 8
+          },
+          "in": 1.39
+        },
+        {
+          "id": "x16",
+          "from": 1219.21,
+          "dur": 531,
+          "asset": "s.16",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 16
+          },
+          "in": 1.05
+        },
+        {
+          "id": "x23",
+          "from": 1750.12,
+          "dur": 552.9,
+          "asset": "s.23",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 23
+          },
+          "in": 1.42
+        },
+        {
+          "id": "x31",
+          "from": 2303.3,
+          "dur": 534,
+          "asset": "s.31",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 31
+          },
+          "in": 1.5
+        },
+        {
+          "id": "x42",
+          "from": 3495.36,
+          "dur": 309.9,
+          "asset": "s.42",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 42
+          },
+          "in": 0.98
+        },
+        {
+          "id": "x47",
+          "from": 3805.36,
+          "dur": 553.5,
+          "asset": "s.47",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 47
+          },
+          "in": 1.19
+        }
+      ]
+    },
+    {
+      "id": "sfx4",
+      "kind": "audio",
+      "name": "קהל – איתי",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x1",
+          "from": 0.9,
+          "dur": 834.9,
+          "asset": "s.1",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 1
+          },
+          "in": 1.15
+        },
+        {
+          "id": "x7",
+          "from": 835.99,
+          "dur": 384,
+          "asset": "s.7",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 7
+          },
+          "in": 1.39
+        },
+        {
+          "id": "x15",
+          "from": 1219.87,
+          "dur": 531,
+          "asset": "s.15",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 15
+          },
+          "in": 1.05
+        },
+        {
+          "id": "x22",
+          "from": 1750.93,
+          "dur": 552.9,
+          "asset": "s.22",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 22
+          },
+          "in": 1.42
+        },
+        {
+          "id": "x30",
+          "from": 2303.96,
+          "dur": 534,
+          "asset": "s.30",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 30
+          },
+          "in": 1.5
+        }
+      ]
+    },
+    {
+      "id": "sfx5",
+      "kind": "audio",
+      "name": "קהל – עומר",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x3",
+          "from": 0,
+          "dur": 834.48,
+          "asset": "s.3",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 3
+          },
+          "in": 1.164
+        },
+        {
+          "id": "x10",
+          "from": 835,
+          "dur": 383.67,
+          "asset": "s.10",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 10
+          },
+          "in": 1.401
+        },
+        {
+          "id": "x25",
+          "from": 1750,
+          "dur": 552.48,
+          "asset": "s.25",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 25
+          },
+          "in": 1.434
+        },
+        {
+          "id": "x33",
+          "from": 2303,
+          "dur": 533.82,
+          "asset": "s.33",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 33
+          },
+          "in": 1.506
+        },
+        {
+          "id": "x39",
+          "from": 2837,
+          "dur": 657.57,
+          "asset": "s.39",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 39
+          },
+          "in": 1.391
+        },
+        {
+          "id": "x43",
+          "from": 3495,
+          "dur": 309.51,
+          "asset": "s.43",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 43
+          },
+          "in": 0.993
+        },
+        {
+          "id": "x48",
+          "from": 3805,
+          "dur": 553.26,
+          "asset": "s.48",
+          "gain": 0.11,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 48
+          },
+          "in": 1.198
+        }
+      ]
+    },
+    {
+      "id": "sfx6",
+      "kind": "audio",
+      "name": "קהל – עמית",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x0",
+          "from": 0.75,
+          "dur": 834.9,
+          "asset": "s.0",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 0
+          },
+          "in": 1.15
+        },
+        {
+          "id": "x5",
+          "from": 835.84,
+          "dur": 384,
+          "asset": "s.5",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 5
+          },
+          "in": 1.39
+        },
+        {
+          "id": "x13",
+          "from": 1219.78,
+          "dur": 531,
+          "asset": "s.13",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 13
+          },
+          "in": 1.05
+        },
+        {
+          "id": "x20",
+          "from": 1750.6,
+          "dur": 552.9,
+          "asset": "s.20",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 20
+          },
+          "in": 1.42
+        },
+        {
+          "id": "x28",
+          "from": 2303.84,
+          "dur": 534,
+          "asset": "s.28",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 28
+          },
+          "in": 1.5
+        },
+        {
+          "id": "x36",
+          "from": 2837.84,
+          "dur": 657.9,
+          "asset": "s.36",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 36
+          },
+          "in": 1.38
+        },
+        {
+          "id": "x40",
+          "from": 3495.75,
+          "dur": 309.9,
+          "asset": "s.40",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 40
+          },
+          "in": 0.98
+        },
+        {
+          "id": "x45",
+          "from": 3805.69,
+          "dur": 553.5,
+          "asset": "s.45",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 45
+          },
+          "in": 1.19
+        }
+      ]
+    },
+    {
+      "id": "sfx7",
+      "kind": "audio",
+      "name": "קהל – תומר",
+      "owner": "builder",
+      "props": {
+        "volume": 1
+      },
+      "items": [
+        {
+          "id": "x4",
+          "from": 1.11,
+          "dur": 834.9,
+          "asset": "s.4",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 4
+          },
+          "in": 1.15
+        },
+        {
+          "id": "x11",
+          "from": 836.08,
+          "dur": 384,
+          "asset": "s.11",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 11
+          },
+          "in": 1.39
+        },
+        {
+          "id": "x18",
+          "from": 1220.32,
+          "dur": 531,
+          "asset": "s.18",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 18
+          },
+          "in": 1.05
+        },
+        {
+          "id": "x26",
+          "from": 1751.17,
+          "dur": 552.9,
+          "asset": "s.26",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 26
+          },
+          "in": 1.42
+        },
+        {
+          "id": "x34",
+          "from": 2304.11,
+          "dur": 534,
+          "asset": "s.34",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 34
+          },
+          "in": 1.5
+        },
+        {
+          "id": "x49",
+          "from": 3806.23,
+          "dur": 553.5,
+          "asset": "s.49",
+          "gain": 0.09,
+          "fade_in": 0.04,
+          "fade_out": 0.25,
+          "ref": {
+            "sound": 49
+          },
+          "in": 1.19
+        }
+      ],
+      "muted": false
+    }
+  ],
+  "rev": 31,
+  "builder": {
+    "kind": "solo",
+    "from": "lesson.py"
+  },
+  "characters": [
+    "demokratovich"
+  ],
+  "edit": {
+    "ripple": true
+  },
+  "saved": 1792954344833
+}

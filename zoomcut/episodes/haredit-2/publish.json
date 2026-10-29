@@ -17,5 +17,35 @@
     }
   },
   "afterExport": false,
-  "dry": false
+  "dry": false,
+  "last": {
+    "at": 1793204229713,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfC1p_2jxBw/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\")"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/8ybRZAcI4Tw",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2115477811456524393",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfC1p_2jxBw/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
 }

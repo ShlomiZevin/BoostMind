@@ -1,0 +1,1049 @@
+{
+  "type": "lesson",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/שירי בחירות",
+  "takes": "*.mp4",
+  "background": "../_assets/demokratovich/synagogue-frames.jpg",
+  "plaque": [
+    "בית משפט קטן",
+    "״שערי בג״ץ״",
+    "בנשיאות כבוד הרב",
+    "דמוקרטוביץ שליט״א"
+  ],
+  "captions_font": "stam-ashkenaz",
+  "person": {
+    "scale": 1,
+    "y": 450
+  },
+  "captions_y": 1470,
+  "matte_engine": "quality",
+  "matte_cut": 30,
+  "title": "הרב דמוקרטוביץ – מחרוזת שירי הבחירות (זמרים בעברית)",
+  "overlays": [
+    {
+      "text": "מחרוזת שירי הבחירות\nשל הגאון דמוקרטוביץ שליט״א",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 48,
+      "start": 0,
+      "end": 7.12
+    },
+    {
+      "text": "♪ מעלת גושנו ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 7.37,
+      "end": 16.25
+    },
+    {
+      "text": "♪ אנא עבדא שופטיא ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 16.5,
+      "end": 19.18
+    },
+    {
+      "text": "♪ לא לפחד מהמדגם ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 19.43,
+      "end": 24.98
+    },
+    {
+      "text": "♪ טוב להודות לבג״ץ ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 25.23,
+      "end": 29.82
+    },
+    {
+      "text": "♪ גוש השינוי חי ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 30.07,
+      "end": 36.32
+    },
+    {
+      "text": "♪ הושיע את גושך ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 36.57,
+      "end": 42.18
+    },
+    {
+      "text": "♪ רק... רק... רק... ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 42.43,
+      "end": 46.35
+    },
+    {
+      "text": "♪ קול גדי וקול נפתלי ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 46.6,
+      "end": 58.28
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/rak.png",
+      "plain": true,
+      "pop": true,
+      "x": 560,
+      "y": 690,
+      "w": 480,
+      "h": 227,
+      "text": "",
+      "opacity": 1,
+      "start": 1,
+      "end": 6.97
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/rak.png",
+      "plain": true,
+      "pop": true,
+      "x": 560,
+      "y": 690,
+      "w": 480,
+      "h": 227,
+      "text": "",
+      "opacity": 1,
+      "start": 42.73,
+      "end": 46.2
+    },
+    {
+      "text": "🕯 תרומות לקהילה 🕯 3.25 ₪ – אחוז החסימה • 61 ₪ – רוב קואליציוני: הרב יקרא בשמכם בספירת הקולות • 120 ₪ – כנסת שלמה • כל תרומה מובאת להצבעה בוועד העמותה • תרומה שנדחתה – ניתן לערער לבג״ץ • הלינק בביו ⬆️",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.6,
+      "y": 1700,
+      "size": 38,
+      "speed": 130,
+      "start": 0,
+      "end": 58.23
+    },
+    {
+      "style": "image",
+      "image": "media/demokratovich-poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 1,
+      "poster": true,
+      "start": 58.13,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 68,
+      "end": null,
+      "fade_in": 1.8,
+      "text": "",
+      "end_black": true
+    }
+  ],
+  "bg": {
+    "zoom": 1,
+    "x": 0,
+    "y": 0
+  },
+  "speed": 1.2,
+  "plaque_bg": {
+    "cx": 570,
+    "top": 168,
+    "w": 290,
+    "size": 36,
+    "flat_size": 80
+  },
+  "plaque_quad": [
+    [
+      398,
+      170
+    ],
+    [
+      625,
+      170
+    ],
+    [
+      625,
+      374
+    ],
+    [
+      398,
+      374
+    ]
+  ],
+  "plaque_inset": 0.94,
+  "media": [
+    "media/demokratovich-poster.jpg",
+    "../_assets/demokratovich/synagogue-frames.jpg",
+    "../_assets/demokratovich/shut/rak.png",
+    "media/he/3DAD4BF9-Amit.far.mp3",
+    "media/he/3DAD4BF9-Dorian.close.mp3",
+    "media/he/3DAD4BF9-Itai.mid.mp3",
+    "media/he/3DAD4BF9-Itamar.mid.mp3",
+    "media/he/3DAD4BF9-Nimrod.close.mp3",
+    "media/he/3DAD4BF9-Omer.mid.mp3",
+    "media/he/3DAD4BF9-Tomer.far.mp3",
+    "media/he/3DAD4BF9-Viktor.close.mp3",
+    "media/he/4DC10B25-Amit.far.mp3",
+    "media/he/4DC10B25-Dorian.close.mp3",
+    "media/he/4DC10B25-Itai.mid.mp3",
+    "media/he/4DC10B25-Itamar.mid.mp3",
+    "media/he/4DC10B25-Nimrod.close.mp3",
+    "media/he/4DC10B25-Omer.mid.mp3",
+    "media/he/4DC10B25-Tomer.far.mp3",
+    "media/he/4DC10B25-Viktor.close.mp3",
+    "media/he/712F8F15-Amit.far.mp3",
+    "media/he/712F8F15-Dorian.close.mp3",
+    "media/he/712F8F15-Itai.mid.mp3",
+    "media/he/712F8F15-Itamar.mid.mp3",
+    "media/he/712F8F15-Nimrod.close.mp3",
+    "media/he/712F8F15-Tomer.far.mp3",
+    "media/he/93865CA1-Amit.far.mp3",
+    "media/he/93865CA1-Itai.mid.mp3",
+    "media/he/93865CA1-Itamar.mid.mp3",
+    "media/he/93865CA1-Tomer.far.mp3",
+    "media/he/94917564-Amit.far.mp3",
+    "media/he/94917564-Dorian.close.mp3",
+    "media/he/94917564-Itai.mid.mp3",
+    "media/he/94917564-Itamar.mid.mp3",
+    "media/he/94917564-Nimrod.close.mp3",
+    "media/he/94917564-Omer.mid.mp3",
+    "media/he/94917564-Tomer.far.mp3",
+    "media/he/94917564-Viktor.close.mp3",
+    "media/he/94D6EE6F-Dorian.close.mp3",
+    "media/he/94D6EE6F-Nimrod.close.mp3",
+    "media/he/94D6EE6F-Tomer.far.mp3",
+    "media/he/94D6EE6F-Viktor.close.mp3",
+    "media/he/DC18A679-Amit.far.mp3",
+    "media/he/DC18A679-Dorian.close.mp3",
+    "media/he/DC18A679-Itai.mid.mp3",
+    "media/he/DC18A679-Itamar.mid.mp3",
+    "media/he/DC18A679-Nimrod.close.mp3",
+    "media/he/DC18A679-Tomer.far.mp3",
+    "media/he/F158B2E2-Amit.far.mp3",
+    "media/he/F158B2E2-Dorian.close.mp3",
+    "media/he/F158B2E2-Itamar.mid.mp3",
+    "media/he/F158B2E2-Nimrod.close.mp3",
+    "media/he/F158B2E2-Omer.mid.mp3",
+    "media/he/F158B2E2-Tomer.far.mp3",
+    "media/he/F158B2E2-Viktor.close.mp3"
+  ],
+  "speaker_name": "הרב",
+  "sequence": [
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "to": 8.95
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62"
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB"
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A"
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410"
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98"
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6"
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "from": 9.25,
+      "to": 13.7
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7"
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "from": 15.6
+    }
+  ],
+  "cut": {
+    "silence": false,
+    "join": 0.25,
+    "edges": {
+      "93865CA1-7C2A-41A8-9AFA-C3E576E851AA": [
+        [
+          0.75,
+          1.4
+        ]
+      ],
+      "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB": [
+        [
+          0.35,
+          1
+        ],
+        [
+          4.37,
+          4.2
+        ]
+      ],
+      "DC18A679-7206-43AC-859D-55781A13E410": [
+        [
+          0.68,
+          1.01
+        ]
+      ],
+      "712F8F15-9E67-405F-AABC-FE46892FB80A": [
+        [
+          0.77,
+          0.85
+        ]
+      ]
+    }
+  },
+  "inserts": [],
+  "sign": [
+    {
+      "image": "../_assets/demokratovich/priests/bennett-frame.jpg",
+      "quad": [
+        [
+          138,
+          163
+        ],
+        [
+          286,
+          163
+        ],
+        [
+          286,
+          392
+        ],
+        [
+          138,
+          392
+        ]
+      ],
+      "light": 0.92
+    },
+    {
+      "image": "../_assets/demokratovich/priests/eisenkot-frame.jpg",
+      "quad": [
+        [
+          736,
+          163
+        ],
+        [
+          885,
+          163
+        ],
+        [
+          885,
+          391
+        ],
+        [
+          736,
+          391
+        ]
+      ],
+      "light": 0.92
+    }
+  ],
+  "captions_from": "file",
+  "sounds": [
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.4,
+      "at": 1.455,
+      "to": 8.933
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.4,
+      "at": 1.448,
+      "to": 8.933
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.4,
+      "at": 1.422,
+      "to": 8.933
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.4,
+      "at": 1.421,
+      "to": 8.933
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.13,
+      "at": 1.173,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Dorian.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.13,
+      "at": 1.142,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.13,
+      "at": 1.166,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.13,
+      "at": 1.15,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Nimrod.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.143,
+      "at": 1.13,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Omer.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.15,
+      "at": 1.13,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.13,
+      "at": 1.139,
+      "to": 10.53
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/he/94917564-Viktor.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.14,
+      "at": 1.13,
+      "to": 10.53
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/he/94D6EE6F-Dorian.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1,
+      "at": 1,
+      "to": 4.2
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/he/94D6EE6F-Nimrod.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.015,
+      "at": 1,
+      "to": 4.2
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/he/94D6EE6F-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1,
+      "at": 1.016,
+      "to": 4.2
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/he/94D6EE6F-Viktor.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.003,
+      "at": 1,
+      "to": 4.2
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/he/712F8F15-Amit.far.mp3",
+      "gain": 0.32,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 0.85,
+      "at": 0.898,
+      "to": 6.917
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/he/712F8F15-Dorian.close.mp3",
+      "gain": 0.416,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 0.85,
+      "at": 0.857,
+      "to": 6.917
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/he/712F8F15-Itai.mid.mp3",
+      "gain": 0.384,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 0.85,
+      "at": 0.882,
+      "to": 6.917
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/he/712F8F15-Itamar.mid.mp3",
+      "gain": 0.384,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 0.85,
+      "at": 0.866,
+      "to": 6.917
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/he/712F8F15-Nimrod.close.mp3",
+      "gain": 0.416,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 0.867,
+      "at": 0.85,
+      "to": 6.917
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/he/712F8F15-Tomer.far.mp3",
+      "gain": 0.32,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 0.85,
+      "at": 0.864,
+      "to": 6.917
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/he/DC18A679-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.01,
+      "at": 1.056,
+      "to": 6.11
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/he/DC18A679-Dorian.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.01,
+      "at": 1.015,
+      "to": 6.11
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/he/DC18A679-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.01,
+      "at": 1.04,
+      "to": 6.11
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/he/DC18A679-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.01,
+      "at": 1.033,
+      "to": 6.11
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/he/DC18A679-Nimrod.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.029,
+      "at": 1.01,
+      "to": 6.11
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/he/DC18A679-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.01,
+      "at": 1.022,
+      "to": 6.11
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 0.77,
+      "at": 0.814,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Dorian.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 0.77,
+      "at": 0.773,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 0.77,
+      "at": 0.807,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 0.77,
+      "at": 0.791,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Nimrod.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 0.782,
+      "at": 0.77,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Omer.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 0.798,
+      "at": 0.77,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 0.77,
+      "at": 0.78,
+      "to": 7.537
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/he/3DAD4BF9-Viktor.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 0.779,
+      "at": 0.77,
+      "to": 7.537
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 0.68,
+      "at": 0.722,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Dorian.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 0.68,
+      "at": 0.681,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 0.68,
+      "at": 0.715,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 0.68,
+      "at": 0.699,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Nimrod.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 0.694,
+      "at": 0.68,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Omer.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 0.701,
+      "at": 0.68,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 0.68,
+      "at": 0.688,
+      "to": 6.813
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/he/4DC10B25-Viktor.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 0.682,
+      "at": 0.68,
+      "to": 6.813
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 9.25,
+      "at": 9.3,
+      "to": 13.7
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 2.5,
+      "lane": 7,
+      "from": 15.6,
+      "at": 15.65,
+      "to": 26.967
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 9.25,
+      "at": 9.293,
+      "to": 13.7
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Itai.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 2.5,
+      "lane": 4,
+      "from": 15.6,
+      "at": 15.643,
+      "to": 26.967
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 9.25,
+      "at": 9.267,
+      "to": 13.7
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 2.5,
+      "lane": 3,
+      "from": 15.6,
+      "at": 15.617,
+      "to": 26.967
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 9.25,
+      "at": 9.275,
+      "to": 13.7
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/he/93865CA1-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 2.5,
+      "lane": 6,
+      "from": 15.6,
+      "at": 15.625,
+      "to": 26.967
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Amit.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 0.9,
+      "at": 0.947,
+      "to": 13.1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Dorian.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 0.9,
+      "at": 0.916,
+      "to": 13.1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Itamar.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 0.9,
+      "at": 0.924,
+      "to": 13.1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Nimrod.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 0.918,
+      "at": 0.9,
+      "to": 13.1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Omer.mid.mp3",
+      "gain": 0.24,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 0.925,
+      "at": 0.9,
+      "to": 13.1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Tomer.far.mp3",
+      "gain": 0.2,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 0.9,
+      "at": 0.923,
+      "to": 13.1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/he/F158B2E2-Viktor.close.mp3",
+      "gain": 0.26,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 0.906,
+      "at": 0.9,
+      "to": 13.1
+    }
+  ],
+  "done": true
+}

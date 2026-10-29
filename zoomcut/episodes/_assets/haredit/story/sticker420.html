@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Heebo:wght@800;900&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1080px; background: transparent; overflow: hidden; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <path id="arcTop" d="M 170 540 A 370 370 0 0 1 910 540" />
+    <clipPath id="inside"><circle cx="540" cy="540" r="430" /></clipPath>
+  </defs>
+  <!-- the die-cut sticker: white edge, then the three rings, dark middle -->
+  <circle cx="540" cy="540" r="532" fill="#fff" />
+  <circle cx="540" cy="540" r="508" fill="#e0362c" />
+  <circle cx="540" cy="540" r="482" fill="#f6c400" />
+  <circle cx="540" cy="540" r="456" fill="#1e9a47" />
+  <circle cx="540" cy="540" r="430" fill="#141922" />
+  <text font-family="Bungee" font-size="42" fill="#f6c400" letter-spacing="7" text-anchor="middle">
+    <textPath xlink:href="#arcTop" startOffset="50%">THE ORIGINAL</textPath>
+  </text>
+
+  <g clip-path="url(#inside)"><g transform="translate(14,40)">
+    <!-- speed lines: late for the gan -->
+    <g stroke="#f6c400" stroke-width="11" stroke-linecap="round">
+      <line x1="150" y1="470" x2="235" y2="470" />
+      <line x1="128" y1="530" x2="228" y2="530" />
+      <line x1="155" y1="590" x2="232" y2="590" />
+    </g>
+    <!-- the dress, the shoes -->
+    <path d="M 290 425 L 470 425 L 505 640 Q 385 662 255 640 Z" fill="#1d2a44" />
+    <ellipse cx="320" cy="648" rx="30" ry="12" fill="#0b0d12" />
+    <ellipse cx="440" cy="648" rx="30" ry="12" fill="#0b0d12" />
+    <!-- the arm to the pram's handle -->
+    <path d="M 450 465 Q 535 500 600 470" fill="none" stroke="#1d2a44" stroke-width="32" stroke-linecap="round" />
+    <circle cx="604" cy="468" r="15" fill="#e9b99a" />
+    <!-- her head (the real photo), big like a bobblehead -->
+    <image xlink:href="hani-head.png" x="220" y="182" width="330" height="275" preserveAspectRatio="xMidYMax meet" />
+
+    <!-- the pram, Malki peeking out -->
+    <line x1="592" y1="458" x2="645" y2="548" stroke="#c9ced6" stroke-width="13" stroke-linecap="round" />
+    <image xlink:href="malki-head.png" x="662" y="455" width="118" height="100" preserveAspectRatio="xMidYMax meet" />
+    <path d="M 630 548 L 860 548 Q 855 650 745 656 Q 640 652 630 548 Z" fill="#e8e2d4" stroke="#b9b1a0" stroke-width="5" />
+    <path d="M 745 548 A 115 115 0 0 1 860 433 L 860 548 Z" fill="#2f63b5" />
+    <g fill="none" stroke="#e8e8e8" stroke-width="10">
+      <circle cx="672" cy="700" r="40" /><circle cx="822" cy="700" r="40" />
+    </g>
+    <g stroke="#e8e8e8" stroke-width="5">
+      <line x1="672" y1="660" x2="672" y2="740" /><line x1="632" y1="700" x2="712" y2="700" />
+      <line x1="822" y1="660" x2="822" y2="740" /><line x1="782" y1="700" x2="862" y2="700" />
+    </g>
+    <!-- a little smoke behind the wheels -->
+    <g fill="#9aa3ad" opacity=".85">
+      <circle cx="600" cy="718" r="18" /><circle cx="570" cy="702" r="13" /><circle cx="546" cy="718" r="9" /><circle cx="528" cy="702" r="6" />
+    </g>
+  </g></g>
+
+  <text x="540" y="884" font-family="Bungee" font-size="150" fill="#1e9a47" stroke="#f6c400" stroke-width="6" paint-order="stroke" text-anchor="middle" direction="ltr">4:20</text>
+  <text x="540" y="932" font-family="Heebo" font-weight="900" font-size="36" fill="#f6c400" text-anchor="middle">שעת ההוצאה מהגנים</text>
+</svg>
+</body>
+</html>

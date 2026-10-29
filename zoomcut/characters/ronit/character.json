@@ -125,5 +125,10 @@
     "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/episode.json",
     "c:/workspace/BoostMind/zoomcut/episodes/ronit-joins/backgrounds/prompts/ronit.txt",
     "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/corrections.json"
-  ]
+  ],
+  "pace": {
+    "wpm": 235,
+    "at": 1792782652565,
+    "script": "gilad-joins"
+  }
 }

@@ -17,6 +17,7 @@ export function DropCard() {
     <div className="nv-sec">From the iPhone <span>full quality, any size</span></div>
     <div style={{ display: 'flex', gap: 6 }}>
       <button className="btn" style={{ flex: 1 }} onClick={() => setQr(!qr)}>{qr ? 'Hide the QR' : 'QR for the phone'}</button>
+      <a className="btn" href="/api/drop/open" target="_blank" rel="noreferrer" title="Every project and file in the Drop, on this computer (rename, delete)">Open the Drop</a>
       <button className="btn ghost" onClick={() => api('/api/drop/sync', {})} title="Look for new files now (it also looks every minute)">Check now</button>
     </div>
     {qr && <div className="drop-qr">

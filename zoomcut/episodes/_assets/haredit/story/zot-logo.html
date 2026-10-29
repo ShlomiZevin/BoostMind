@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;800&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 768px; height: 1376px; overflow: hidden; }
+  img { display: block; width: 768px; height: 1376px; }
+  /* the company's logo + the CTA, bottom-left, in the image's own colours: neon pink #e824ae on see-through dark purple */
+  /* the CTA higher, an empty gap under it for his link sticker, the logo at the bottom */
+  .block { position: absolute; left: 22px; top: 880px; display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+  .block .cta { order: 1; }
+  .block .gap { order: 2; height: 140px; }
+  .block .logo { order: 3; }
+  .logo { display: flex; align-items: center; gap: 14px; direction: ltr;
+    background: rgba(24,15,38,.68); border: 3px solid rgba(232,36,174,.9); padding: 12px 24px 12px 14px; border-radius: 18px;
+    box-shadow: 0 0 20px rgba(232,36,174,.5), inset 0 0 14px rgba(232,36,174,.2); font-family: 'Heebo', sans-serif; }
+  .mark { color: #fff; background: #e824ae; font-weight: 800; font-size: 30px; padding: 4px 12px; border-radius: 10px;
+    box-shadow: 0 0 14px rgba(232,36,174,.85); }
+  .name b { display: block; font-size: 37px; color: #fff; font-weight: 800; line-height: 1.05; text-shadow: 0 0 10px rgba(232,36,174,.9); }
+  .name small { display: block; font-size: 16px; color: #f3b6e0; letter-spacing: 1px; }
+  .cta { font-family: 'Heebo', sans-serif; font-weight: 800; font-size: 38px; color: #fff; background: #e824ae; padding: 8px 24px 10px;
+    border-radius: 40px; box-shadow: 0 0 18px rgba(232,36,174,.8); }
+</style>
+</head>
+<body>
+<img src="zot-hani.jpg" alt="">
+<div class="block">
+  <div class="logo"><span class="mark">&lt;/&gt;</span><span class="name"><b>Techy-Tech</b><small>Enterprise Solutions</small></span></div>
+  <div class="cta">בואו לעבוד עם חני</div>
+  <div class="gap"></div>
+</div>
+</body>
+</html>

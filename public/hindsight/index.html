@@ -519,5 +519,6 @@
   const vid = document.getElementById('vid');
   fetch('v/week-1.mp4', { method: 'HEAD' }).then((r) => { if (r.ok && (r.headers.get('content-type') || '').startsWith('video')) { vid.src = 'v/week-1.mp4'; document.getElementById('video').hidden = false; } }).catch(() => {});
 </script>
+<script src="/t.js" data-site="hindsight" defer></script>
 </body>
 </html>

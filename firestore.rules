@@ -149,5 +149,11 @@ service cloud.firestore {
       allow read: if true;
       allow update, delete: if false;
     }
+    // ─── Vault (boostmind-vault.web.app) ─────────────────────────
+    // One password vault per Google account. The blob is encrypted in the
+    // browser with the master password; only its owner can read or write it.
+    match /vaults/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
   }
 }

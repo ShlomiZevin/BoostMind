@@ -1,0 +1,887 @@
+{
+  "type": "lesson",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/שות בחירות",
+  "takes": "[A3B60][95FD61][59E283]*[0-9A-F][0-9A-F].mp4",
+  "background": "../_assets/demokratovich/synagogue.jpg",
+  "plaque": [
+    "בית משפט קטן ״שערי בג״ץ״",
+    "בנשיאות כבוד הרב",
+    "דמוקרטוביץ שליט״א"
+  ],
+  "captions_font": "stam-ashkenaz",
+  "person": {
+    "scale": 1,
+    "y": 450
+  },
+  "captions_y": 1470,
+  "matte_engine": "quality",
+  "matte_cut": 30,
+  "title": "הרב דמוקרטוביץ – שו״ת הלכות בחירות",
+  "overlays": [
+    {
+      "text": "שיעורו של הגאון דמוקרטוביץ:\nפרשת לך־לך ושו״ת בהלכות בחירות",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 533,
+      "size": 50,
+      "start": 0,
+      "until": "image",
+      "end": 11.58
+    },
+    {
+      "text": "🕯 תרומות לקהילה 🕯 3.25 ₪ – אחוז החסימה • 61 ₪ – רוב קואליציוני: הרב יקרא בשמכם בספירת הקולות • 120 ₪ – כנסת שלמה • כל תרומה מובאת להצבעה בוועד העמותה • תרומה שנדחתה – ניתן לערער לבג״ץ • הלינק בביו ⬆️",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.6,
+      "y": 1700,
+      "size": 38,
+      "speed": 130,
+      "start": 0,
+      "end": 85.7
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/scroll.png",
+      "plain": true,
+      "pop": true,
+      "x": 90,
+      "y": 250,
+      "w": 900,
+      "h": 433,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ובנימין זאב",
+        "בנימין זאב",
+        "זאב יטרף"
+      ],
+      "to_words": [
+        "זאב יטרף",
+        "יטרף"
+      ],
+      "hold": 2.6,
+      "start": 11.63,
+      "end": 15.87
+    },
+    {
+      "text": "בנימין זאב יטרף\n(בראשית מ״ט, כ״ז)",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "light",
+      "opacity": 0,
+      "y": 315,
+      "size": 68,
+      "pop": true,
+      "from_words": [
+        "ובנימין זאב",
+        "בנימין זאב",
+        "זאב יטרף"
+      ],
+      "to_words": [
+        "זאב יטרף",
+        "יטרף"
+      ],
+      "hold": 2.6,
+      "start": 11.63,
+      "end": 15.87
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/wolf.png",
+      "plain": true,
+      "pop": true,
+      "x": 660,
+      "y": 690,
+      "w": 380,
+      "h": 333,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ובנימין זאב",
+        "בנימין זאב",
+        "זאב יטרף"
+      ],
+      "to_words": [
+        "זאב יטרף",
+        "יטרף"
+      ],
+      "hold": 2.6,
+      "start": 11.63,
+      "end": 15.87
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/devil.png",
+      "plain": true,
+      "pop": true,
+      "x": 40,
+      "y": 600,
+      "w": 280,
+      "h": 487,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ובנימין זאב",
+        "בנימין זאב",
+        "זאב יטרף"
+      ],
+      "to_words": [
+        "זאב יטרף",
+        "יטרף"
+      ],
+      "hold": 2.6,
+      "start": 11.63,
+      "end": 15.87
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/scroll.png",
+      "plain": true,
+      "pop": true,
+      "x": 90,
+      "y": 250,
+      "w": 900,
+      "h": 433,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מצינו בירמיהו",
+        "זאב ערבות",
+        "בירמיהו"
+      ],
+      "to_words": [
+        "אל הערבים",
+        "הערבים",
+        "אלא ערבים"
+      ],
+      "hold": 0.35,
+      "start": 17.53,
+      "end": 23.42
+    },
+    {
+      "text": "זאב ערבות ישדדם\n(ירמיהו ה׳, ו׳)",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "light",
+      "opacity": 0,
+      "y": 315,
+      "size": 68,
+      "pop": true,
+      "from_words": [
+        "מצינו בירמיהו",
+        "זאב ערבות",
+        "בירמיהו"
+      ],
+      "to_words": [
+        "אל הערבים",
+        "הערבים",
+        "אלא ערבים"
+      ],
+      "hold": 0.35,
+      "start": 17.53,
+      "end": 23.42
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/arvim.png",
+      "plain": true,
+      "pop": true,
+      "x": 30,
+      "y": 680,
+      "w": 400,
+      "h": 316,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ואל תקרי",
+        "אל תקרי",
+        "תקרי ערבות"
+      ],
+      "to_words": [
+        "אל הערבים",
+        "הערבים",
+        "אלא ערבים"
+      ],
+      "hold": 0.35,
+      "start": 20.71,
+      "end": 23.42
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/scroll.png",
+      "plain": true,
+      "pop": true,
+      "x": 90,
+      "y": 250,
+      "w": 900,
+      "h": 433,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מצינו בישעיהו",
+        "וגר זאב",
+        "בישעיהו"
+      ],
+      "to_words": [
+        "גדי ירבץ",
+        "עם גדי"
+      ],
+      "hold": 0,
+      "start": 23.38,
+      "end": 27.82
+    },
+    {
+      "text": "וגר זאב עם כבש\nונמר עם גדי ירבץ\n(ישעיהו י״א, ו׳)",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "light",
+      "opacity": 0,
+      "y": 330,
+      "size": 48,
+      "pop": true,
+      "from_words": [
+        "מצינו בישעיהו",
+        "וגר זאב",
+        "בישעיהו"
+      ],
+      "to_words": [
+        "גדי ירבץ",
+        "עם גדי"
+      ],
+      "hold": 0,
+      "start": 23.38,
+      "end": 27.82
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/animals.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 700,
+      "w": 420,
+      "h": 272,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מצינו בישעיהו",
+        "וגר זאב",
+        "בישעיהו"
+      ],
+      "to_words": [
+        "גדי ירבץ",
+        "עם גדי"
+      ],
+      "hold": 0,
+      "start": 23.38,
+      "end": 27.82
+    },
+    {
+      "style": "image",
+      "image": "../_assets/tadar/spiritual-3/scroll.png",
+      "plain": true,
+      "pop": true,
+      "x": 90,
+      "y": 250,
+      "w": 900,
+      "h": 433,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "נמצאנו למדים",
+        "נמצינו למדים",
+        "שעתיד גדי"
+      ],
+      "to_words": [
+        "ויחד יטרפו את בנימין",
+        "יטרפו את בנימין",
+        "את בנימין"
+      ],
+      "hold": 0.3,
+      "start": 27.84,
+      "end": 33.42
+    },
+    {
+      "text": "נמצינו למדים:\nגדי + ערבים\n= יטרפו את בנימין",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "light",
+      "opacity": 0,
+      "y": 330,
+      "size": 52,
+      "pop": true,
+      "from_words": [
+        "נמצאנו למדים",
+        "נמצינו למדים",
+        "שעתיד גדי"
+      ],
+      "to_words": [
+        "ויחד יטרפו את בנימין",
+        "יטרפו את בנימין",
+        "את בנימין"
+      ],
+      "hold": 0.3,
+      "start": 27.84,
+      "end": 33.42
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/devil.png",
+      "plain": true,
+      "pop": true,
+      "x": 40,
+      "y": 600,
+      "w": 280,
+      "h": 487,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ויחד יטרפו",
+        "יטרפו את"
+      ],
+      "to_words": [
+        "יטרפו את בנימין",
+        "את בנימין"
+      ],
+      "hold": 0,
+      "start": 31.3,
+      "end": 33.12
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/goat.png",
+      "plain": true,
+      "pop": true,
+      "x": 70,
+      "y": 620,
+      "w": 240,
+      "h": 419,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ומי הוא גדי",
+        "ומי הוא",
+        "הוא גדי"
+      ],
+      "to_words": [
+        "הרי זה גדי",
+        "זה גדי"
+      ],
+      "hold": 0.2,
+      "start": 33.16,
+      "end": 35.02
+    },
+    {
+      "style": "image",
+      "image": "media/polaroid.png",
+      "plain": true,
+      "pop": true,
+      "x": 30,
+      "y": 660,
+      "w": 300,
+      "h": 387,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "עד כאן לפלפולא",
+        "עד כאן לפלפולה",
+        "עד כאן"
+      ],
+      "to_words": [
+        "שאלות הציבור",
+        "משאלות הציבור",
+        "הציבור"
+      ],
+      "mid_card": true,
+      "hold": 0.3,
+      "start": 34.93,
+      "end": 42.09
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/gavel.png",
+      "plain": true,
+      "pop": true,
+      "x": 680,
+      "y": 720,
+      "w": 360,
+      "h": 251,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ובסייעתא",
+        "נעסוק עתה",
+        "שופטיה",
+        "דשופטיא"
+      ],
+      "to_words": [
+        "שאלות הציבור",
+        "משאלות הציבור",
+        "הציבור"
+      ],
+      "hold": 0.3,
+      "start": 36.47,
+      "end": 42.09
+    },
+    {
+      "style": "question",
+      "text": "אדם שנכשל וקרא סקר של פילבר, מה דינו?",
+      "label": "שאלות הציבור לכבוד הרב",
+      "y": 260,
+      "w": 860,
+      "size": 34,
+      "label_size": 32,
+      "accent": "#14286b",
+      "variant": "instagram",
+      "opacity": 0.85,
+      "sound": 0,
+      "hold": 30,
+      "start": 41.67,
+      "end": 56.05
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/kosher.png",
+      "plain": true,
+      "pop": true,
+      "x": 30,
+      "y": 690,
+      "w": 380,
+      "h": 274,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "צריך התרת",
+        "התרת סקרים",
+        "סקרים בפני"
+      ],
+      "to_words": [
+        "בבית משפט",
+        "לעדות בבית",
+        "לפסול אותו"
+      ],
+      "start": 46.69,
+      "end": 56.59
+    },
+    {
+      "style": "question",
+      "text": "אדם שהצביע בבחירות הקודמות לגוש השני, ועכשיו הוא מבקש לחזור בתשובה. האם תשובתו מתקבלת?",
+      "label": "שאלות הציבור לכבוד הרב",
+      "y": 260,
+      "w": 860,
+      "size": 34,
+      "label_size": 32,
+      "accent": "#14286b",
+      "variant": "instagram",
+      "opacity": 0.85,
+      "sound": 1,
+      "hold": 30,
+      "start": 56.08,
+      "end": 75
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/judge.png",
+      "plain": true,
+      "pop": true,
+      "x": 700,
+      "y": 640,
+      "w": 340,
+      "h": 446,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "בעל הנזר",
+        "הנזר צדק",
+        "נזר הצדק",
+        "כבר כתב"
+      ],
+      "to_words": [
+        "ננעלים בפני",
+        "בפני ישר",
+        "בפני השב"
+      ],
+      "start": 63.52,
+      "end": 67.34
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/pushke.png",
+      "plain": true,
+      "pop": true,
+      "x": 690,
+      "y": 640,
+      "w": 350,
+      "h": 425,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ובלבד שמכאן",
+        "שמכאן",
+        "ובלבד"
+      ],
+      "to_words": [
+        "יקבל עליו",
+        "ובלבד שמכאן",
+        "שמכאן"
+      ],
+      "start": 67.34,
+      "end": 70.2
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/ballot.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 700,
+      "w": 380,
+      "h": 297,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ואיזוהי",
+        "ואיזוהי דרך",
+        "זו שפתקה",
+        "שפתקה"
+      ],
+      "to_words": [
+        "ושמה ישר",
+        "שמה ישר"
+      ],
+      "hold": 1,
+      "start": 71.1,
+      "end": 76.12
+    },
+    {
+      "style": "question",
+      "text": "אדם שמצביע למפלגה שאינה עוברת את אחוז החסימה, מה דינו?",
+      "label": "שאלות הציבור לכבוד הרב",
+      "y": 260,
+      "w": 860,
+      "size": 34,
+      "label_size": 32,
+      "accent": "#14286b",
+      "variant": "instagram",
+      "opacity": 0.85,
+      "sound": 2,
+      "hold": 5.3,
+      "start": 75.03,
+      "end": 85.83
+    },
+    {
+      "text": "יש לך שאלה לרב? 📜\nהלינק בביו ⬆️",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "gold",
+      "opacity": 0.85,
+      "y": 640,
+      "size": 46,
+      "blink": true,
+      "to_words": [
+        "ומעכב את הגאולה",
+        "את הגאולה",
+        "ומעכב"
+      ],
+      "end": 85.73,
+      "sound": 2,
+      "hold": 5.2,
+      "start": 75.03
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/threshold.png",
+      "plain": true,
+      "pop": true,
+      "x": 680,
+      "y": 780,
+      "w": 380,
+      "h": 287,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "שוטה ופתק",
+        "שותה ופתק",
+        "ופתק בידו",
+        "זה שוטה",
+        "זה שותה"
+      ],
+      "to_words": [
+        "ומעכב את הגאולה",
+        "את הגאולה",
+        "ומעכב"
+      ],
+      "start": 80.86,
+      "end": 87.6
+    },
+    {
+      "style": "image",
+      "image": "media/demokratovich-poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 1.5,
+      "poster": true,
+      "from_words": [
+        "ומעכב את הגאולה",
+        "את הגאולה",
+        "ומעכב"
+      ],
+      "start": 85.94,
+      "end": 90.3
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 89.8,
+      "end": null,
+      "fade_in": 0.5,
+      "text": "",
+      "end_black": true
+    }
+  ],
+  "bg": {
+    "zoom": 1.46,
+    "x": -76,
+    "y": 218
+  },
+  "speed": 1.2,
+  "plaque_bg": {
+    "cx": 570,
+    "top": 168,
+    "w": 290,
+    "size": 36,
+    "flat_size": 74
+  },
+  "plaque_quad": [
+    [
+      403,
+      239
+    ],
+    [
+      738,
+      218
+    ],
+    [
+      738,
+      361
+    ],
+    [
+      403,
+      375
+    ]
+  ],
+  "plaque_inset": 0.9,
+  "media": [
+    "media/demokratovich-poster.jpg",
+    "media/demokratovich-rabbi.jpg",
+    "media/demokratovich-logo.png",
+    "media/polaroid.png",
+    "../_assets/demokratovich/shut/wolf.png",
+    "../_assets/demokratovich/shut/animals.png",
+    "../_assets/demokratovich/shut/gavel.png",
+    "../_assets/demokratovich/shut/arvim.png",
+    "../_assets/demokratovich/shut/kosher.png",
+    "../_assets/demokratovich/shut/ballot.png",
+    "../_assets/demokratovich/shut/threshold.png",
+    "../_assets/tadar/spiritual-3/scroll.png",
+    "../_assets/demokratovich/shut/pushke.png",
+    "media/q1.m4a",
+    "media/q2.m4a",
+    "media/q3.m4a",
+    "../_assets/demokratovich/shut/judge.png",
+    "../_assets/demokratovich/shut/goat.png",
+    "../_assets/demokratovich/shut/devil.png"
+  ],
+  "script": "demokratovich-shut",
+  "speaker_name": "הרב",
+  "_todo": "After this build: ticker end + CTA hold just before the poster; black fade start = the length - 0.5 s; check every overlay found its words.",
+  "sequence": [
+    {
+      "take": "A956369A-E1F1-4357-9B9B-DF3139A4A110"
+    },
+    {
+      "take": "35E7FAAC-4C99-40EF-9243-3B1296841812"
+    },
+    {
+      "take": "AF25E895-B6AE-4904-A31C-31182F2EF331"
+    },
+    {
+      "take": "6689C8E3-810A-4716-ABB0-BBEC72400C75"
+    },
+    {
+      "take": "BD3576DE-8028-4699-8496-21696F44A673"
+    },
+    {
+      "take": "01E38CA5-5318-4892-A26E-2693660EF136"
+    },
+    {
+      "take": "A99CEF13-F4B1-4AFB-BE85-F978CA39C77C"
+    }
+  ],
+  "cut": {
+    "silence": false,
+    "edges": {
+      "35E7FAAC-4C99-40EF-9243-3B1296841812": [
+        [
+          0.34,
+          7.98
+        ]
+      ],
+      "AF25E895-B6AE-4904-A31C-31182F2EF331": [
+        [
+          0.68,
+          4.37
+        ]
+      ],
+      "6689C8E3-810A-4716-ABB0-BBEC72400C75": [
+        [
+          0.37,
+          3.97
+        ]
+      ],
+      "BD3576DE-8028-4699-8496-21696F44A673": [
+        [
+          0.35,
+          1.3
+        ]
+      ],
+      "01E38CA5-5318-4892-A26E-2693660EF136": [
+        [
+          0.72,
+          2.35
+        ]
+      ],
+      "A99CEF13-F4B1-4AFB-BE85-F978CA39C77C": [
+        [
+          0.95,
+          5.85
+        ]
+      ]
+    },
+    "join": 0.25
+  },
+  "inserts": [
+    {
+      "take": "A99CEF13-F4B1-4AFB-BE85-F978CA39C77C",
+      "at": 18.1,
+      "seconds": 3,
+      "end_card": true
+    }
+  ],
+  "sounds": [
+    {
+      "take": "BD3576DE-8028-4699-8496-21696F44A673",
+      "sound": "media/q1.m4a",
+      "from": 1.55,
+      "to": 6.8,
+      "at": 1.35,
+      "gain": 6,
+      "denoise": true,
+      "echo": 0.3,
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "captions": [
+        [
+          1.6,
+          2.5,
+          "כבוד הרב,"
+        ],
+        [
+          2.5,
+          4.75,
+          "אדם שנכשל וקרא סקר"
+        ],
+        [
+          4.75,
+          6.45,
+          "של פילבר, מה דינו?"
+        ]
+      ]
+    },
+    {
+      "take": "01E38CA5-5318-4892-A26E-2693660EF136",
+      "sound": "media/q2.m4a",
+      "from": 1.2,
+      "to": 8.2,
+      "at": 2.45,
+      "gain": 5.9,
+      "denoise": true,
+      "echo": 0.3,
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "captions": [
+        [
+          1.25,
+          1.75,
+          "כבוד הרב,"
+        ],
+        [
+          1.75,
+          3.1,
+          "אדם שהצביע בבחירות הקודמות"
+        ],
+        [
+          3.1,
+          4.7,
+          "לגוש השני, ועכשיו"
+        ],
+        [
+          4.7,
+          6.2,
+          "הוא מבקש לחזור בתשובה."
+        ],
+        [
+          6.2,
+          7.55,
+          "האם תשובתו מתקבלת?"
+        ]
+      ]
+    },
+    {
+      "take": "A99CEF13-F4B1-4AFB-BE85-F978CA39C77C",
+      "sound": "media/q3.m4a",
+      "from": 0.8,
+      "to": 6.25,
+      "at": 5.9,
+      "gain": 5.6,
+      "denoise": true,
+      "echo": 0.3,
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "captions": [
+        [
+          0.85,
+          2.8,
+          "אדם שמצביע למפלגה"
+        ],
+        [
+          2.8,
+          5,
+          "שאינה עוברת את אחוז החסימה,"
+        ],
+        [
+          5,
+          5.7,
+          "מה דינו?"
+        ]
+      ]
+    }
+  ],
+  "captions_other": {
+    "y": 1470,
+    "color": "#ffffff"
+  },
+  "done": true
+}

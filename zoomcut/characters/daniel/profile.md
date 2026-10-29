@@ -31,6 +31,8 @@ Catchphrases (use sparingly, only where they come naturally):
 - אבל לא—
 - טוב, תודה, אני—
 
+165 words per minute (measured on a real script) - a 10-second line is about 28 words; keep lines to what fits the moment.
+
 ## What's funny about them
 - הוא היחיד שמבין משהו ואף פעם לא מגיע לפועל של המשפט - ובכל זאת הוא זה שמואשם בחוסר גמישות וב"מיינדסט".
 - הצופה הוא דניאל: ה-POV ("פוב: העלו אותך לשיחת הנהלה בנושא AI כדי לתת חוו״ד מקצועית") שם את כל מי שמכיר את זה מהעבודה בנעליים שלו.

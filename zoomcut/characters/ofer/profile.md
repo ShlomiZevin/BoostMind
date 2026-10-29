@@ -36,6 +36,8 @@ Catchphrases (use sparingly, only where they come naturally):
 - אפשר להתקדם בלי להתקדם פורמלית.
 - שלילי. שבוע הבא אני בסנטוריני.
 
+150 words per minute (measured on a real script) - a 10-second line is about 25 words; keep lines to what fits the moment.
+
 ## What's funny about them
 - איש ה"חד משמעית" שמסכים עם מי שדיבר אחרון - גם עם גלעד כשהוא קוטל את אמיר.
 - ה"אתגר" שלו תמיד נגמר באותה מסקנה, והפתרונות שלו סותרים את עצמם ("להתקדם בלי להתקדם").

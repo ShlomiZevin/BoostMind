@@ -1,0 +1,1140 @@
+{
+  "type": "lesson",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/תפילות בחירות",
+  "takes": "[3-9A-F]*.mp4",
+  "background": "../_assets/demokratovich/rosh-hashana/set.jpg",
+  "plaque": [
+    "קהילת ״שערי בג״ץ״",
+    "תפילות הימים הנוראים",
+    "בנשיאות כבוד הרב",
+    "דמוקרטוביץ שליט״א"
+  ],
+  "captions_font": "stam-ashkenaz",
+  "person": {
+    "scale": 1,
+    "y": 90
+  },
+  "captions_y": 1470,
+  "matte_engine": "quality",
+  "matte_cut": 30,
+  "title": "הרב דמוקרטוביץ – תפילות הימים הנוראים",
+  "overlays": [
+    {
+      "text": "פוב: הגאון הרב דמוקרטוביץ שליט״א\nבתפילות מרוממות נפש ומעוררות לב\nלרגל הימים הנוראים – ימי הבחירות",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 58,
+      "start": 0,
+      "end": 6
+    },
+    {
+      "text": "♪ אבינו שופטנו ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "start": 6.1,
+      "end": 27.55
+    },
+    {
+      "text": "♪ וכל מאמינים ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "from_words": [
+        "וכל",
+        "מאמינים"
+      ],
+      "to_words": [
+        "למשרתים",
+        "מנדטים"
+      ],
+      "hold": 0.3,
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "start": 28.08,
+      "end": 40.42
+    },
+    {
+      "text": "♪ זכרנו למנדטים ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "from_words": [
+        "זוכרינו",
+        "זכרנו",
+        "למנדטים"
+      ],
+      "to_words": [
+        "חיים"
+      ],
+      "hold": 0.3,
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "start": 42.01,
+      "end": 57.39
+    },
+    {
+      "text": "♪ אחינו כל גוש השינוי ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "start": 58.45,
+      "end": 76.6
+    },
+    {
+      "text": "♪ אחינו כל גוש השינוי ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "from_words": [
+        "הבג״ץ",
+        "הבגץ",
+        "יפסוק"
+      ],
+      "to_words": [
+        "קריב"
+      ],
+      "hold": 0.3,
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "start": 78.13,
+      "end": 94.73
+    },
+    {
+      "text": "♪ קדיש דמוקרטוביץ ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "from_words": [
+        "התקדל",
+        "יתגדל",
+        "ויתקדל",
+        "ויתקדש"
+      ],
+      "to_words": [
+        "מרוקדין",
+        "קריבי",
+        "קריב"
+      ],
+      "hold": 0.3,
+      "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+      "start": 95.84,
+      "end": 116.7
+    },
+    {
+      "text": "♪ קדיש דמוקרטוביץ ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "start": 116.75,
+      "end": 126.7
+    },
+    {
+      "text": "♪ קדיש דמוקרטוביץ ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 662,
+      "size": 50,
+      "from_words": [
+        "יהשל",
+        "אמר",
+        "רבאי",
+        "עם",
+        "ערוויה"
+      ],
+      "to_words": [
+        "השינוי",
+        "השינויה"
+      ],
+      "hold": 0.3,
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "start": 128.66,
+      "end": 133.98
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/rimon-derech.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 700,
+      "w": 260,
+      "h": 280,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מונה",
+        "מנדטים",
+        "הצופר"
+      ],
+      "to_words": [
+        "למשרתים"
+      ],
+      "hold": 0.4,
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "start": 36.96,
+      "end": 40.52
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/rak-honey.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 690,
+      "w": 250,
+      "h": 346,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "חוננו",
+        "חננו",
+        "בנינו"
+      ],
+      "to_words": [
+        "הנדרש"
+      ],
+      "hold": 0.4,
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "start": 2.85,
+      "end": 14.65
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/../shut/gavel.png",
+      "plain": true,
+      "pop": true,
+      "x": 790,
+      "y": 720,
+      "w": 270,
+      "h": 189,
+      "text": "",
+      "opacity": 1,
+      "start": 31.7,
+      "end": 40.4
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/sefer.png",
+      "plain": true,
+      "pop": true,
+      "x": 36,
+      "y": 690,
+      "w": 240,
+      "h": 304,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "בספר",
+        "המדגמים"
+      ],
+      "to_words": [
+        "חיים"
+      ],
+      "hold": 0.6,
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "start": 48.09,
+      "end": 57.69
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/chart-50-55.png",
+      "plain": true,
+      "pop": true,
+      "x": 764,
+      "y": 700,
+      "w": 300,
+      "h": 245,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "חמישים",
+        "בין"
+      ],
+      "to_words": [
+        "וחמישה"
+      ],
+      "hold": 0.8,
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "start": 73.64,
+      "end": 77.34
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/sukkah-kalpi.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 700,
+      "w": 290,
+      "h": 283,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "אשתה",
+        "השתא",
+        "בגלה",
+        "בעגלא"
+      ],
+      "to_words": [
+        "קריב"
+      ],
+      "hold": 0.4,
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "start": 90.41,
+      "end": 94.83
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/aravot.png",
+      "plain": true,
+      "pop": true,
+      "x": 770,
+      "y": 700,
+      "w": 300,
+      "h": 267,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ערוויה",
+        "ערבייא",
+        "רבאי"
+      ],
+      "to_words": [
+        "השינוי",
+        "השינויה"
+      ],
+      "hold": 0.4,
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "start": 129.32,
+      "end": 134.08
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/kadin.png",
+      "plain": true,
+      "pop": true,
+      "x": 610,
+      "y": 610,
+      "w": 440,
+      "h": 293,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ואמרוקדין",
+        "כדין",
+        "מרוקדין",
+        "ואמרו"
+      ],
+      "to_words": [
+        "ואמרוקדין",
+        "כדין",
+        "מרוקדין"
+      ],
+      "hold": 2.2,
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "start": 143.68,
+      "end": 147.28
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/ai-tag.png",
+      "plain": true,
+      "x": 112,
+      "y": 562,
+      "w": 117,
+      "h": 41,
+      "text": "",
+      "opacity": 1,
+      "start": 0,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/rosh-hashana/ai-tag.png",
+      "plain": true,
+      "x": 777,
+      "y": 562,
+      "w": 117,
+      "h": 41,
+      "text": "",
+      "opacity": 1,
+      "start": 0,
+      "end": null
+    },
+    {
+      "text": "🕯 מגבית הימים הנוראים 🕯 3.25 ₪ – אחוז החסימה • 61 ₪ – רוב קואליציוני: הרב יקרא בשמכם בתפילת זכרנו למנדטים • 120 ₪ – כנסת שלמה • כל תרומה מובאת להצבעה בוועד העמותה • תרומה שנדחתה – ניתן לערער לבג״ץ • שנה טובה ודמוקרטית • הלינק בביו ⬆️",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.6,
+      "y": 1700,
+      "size": 38,
+      "speed": 130,
+      "start": 0,
+      "end": 141.2
+    },
+    {
+      "style": "image",
+      "image": "media/poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 1.5,
+      "poster": true,
+      "start": 141.3,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 0.8,
+      "end_black": true,
+      "start": 148,
+      "end": null
+    }
+  ],
+  "bg": {
+    "zoom": 1,
+    "x": 0,
+    "y": 0
+  },
+  "speed": 1.2,
+  "plaque_bg": {
+    "cx": 570,
+    "top": 168,
+    "w": 290,
+    "size": 36,
+    "flat_size": 80
+  },
+  "plaque_quad": [
+    [
+      842,
+      414
+    ],
+    [
+      1198,
+      414
+    ],
+    [
+      1198,
+      718
+    ],
+    [
+      842,
+      718
+    ]
+  ],
+  "plaque_inset": 0.94,
+  "media": [
+    "media/poster.jpg",
+    "../_assets/demokratovich/rosh-hashana/set.jpg",
+    "../_assets/demokratovich/rosh-hashana/sefer.png",
+    "../_assets/demokratovich/rosh-hashana/chart-50-55.png",
+    "../_assets/demokratovich/rosh-hashana/ai-tag.png",
+    "../_assets/demokratovich/rosh-hashana/rabbi-kittel.jpg",
+    "../_assets/demokratovich/shut/gavel.png",
+    "../_assets/demokratovich/priests/bennett-rosh-hashana.png",
+    "../_assets/demokratovich/priests/eisenkot-rosh-hashana.png",
+    "../_assets/demokratovich/rosh-hashana/kadin.png",
+    "../_assets/demokratovich/rosh-hashana/kachok.png",
+    "../_assets/demokratovich/rosh-hashana/rak-honey.png",
+    "../_assets/demokratovich/rosh-hashana/sukkah-kalpi.png",
+    "../_assets/demokratovich/rosh-hashana/aravot.png",
+    "../_assets/demokratovich/rosh-hashana/rimon-derech.png"
+  ],
+  "speaker_name": "הרב",
+  "cut": {
+    "silence": false,
+    "join": 0.25
+  },
+  "inserts": [
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "at": 19.6,
+      "seconds": 3.5,
+      "end_card": true
+    }
+  ],
+  "sign": [
+    {
+      "image": "../_assets/demokratovich/priests/bennett-rosh-hashana.png",
+      "quad": [
+        [
+          326,
+          498
+        ],
+        [
+          654,
+          498
+        ],
+        [
+          654,
+          972
+        ],
+        [
+          326,
+          972
+        ]
+      ],
+      "light": 1,
+      "warm": 0.06,
+      "shadow": 0
+    },
+    {
+      "image": "../_assets/demokratovich/priests/eisenkot-rosh-hashana.png",
+      "quad": [
+        [
+          1390,
+          498
+        ],
+        [
+          1718,
+          498
+        ],
+        [
+          1718,
+          972
+        ],
+        [
+          1390,
+          972
+        ]
+      ],
+      "light": 1,
+      "warm": 0.06,
+      "shadow": 0
+    }
+  ],
+  "script": "demokratovich-yamim-noraim",
+  "bg_blur": 0,
+  "bg_dim": false,
+  "_todo": [
+    "Congregation answers 'כחוק!' after his 'ואמרו: כחוק!' - the choir voices on his own 'כחוק' (or a re-said one), loud, a beat after him.",
+    "Speed: singing - check with him (songs-he was 1.2).",
+    "Check stills: portraits sharp and fully visible (bg_blur 0, bg_dim false, painted from the 1024px originals into a 2x set), stickers never over the frames (frames end y ~610), titles at y 690 between frames and his head."
+  ],
+  "captions_from": "file",
+  "sequence": [
+    {
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39"
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1"
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2"
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC"
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62"
+    },
+    {
+      "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628"
+    },
+    {
+      "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F"
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF"
+    }
+  ],
+  "sounds": [
+    {
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "sound": "media/he/9A1D0156-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.15,
+      "at": 1.175,
+      "to": 28.98
+    },
+    {
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "sound": "media/he/9A1D0156-Itai.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.15,
+      "at": 1.18,
+      "to": 28.98
+    },
+    {
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "sound": "media/he/9A1D0156-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.15,
+      "at": 1.16,
+      "to": 28.98
+    },
+    {
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "sound": "media/he/9A1D0156-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.164,
+      "at": 1.15,
+      "to": 28.98
+    },
+    {
+      "take": "9A1D0156-3D3E-4000-9898-7F8401E8BF39",
+      "sound": "media/he/9A1D0156-Tomer.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.15,
+      "at": 1.187,
+      "to": 28.98
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.39,
+      "at": 1.418,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.39,
+      "at": 1.405,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Itai.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.39,
+      "at": 1.423,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.39,
+      "at": 1.394,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Nimrod.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.401,
+      "at": 1.39,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.401,
+      "at": 1.39,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Tomer.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.39,
+      "at": 1.426,
+      "to": 14.19
+    },
+    {
+      "take": "AC38835F-F9D5-4CA2-B38B-5E6CC61FF9A1",
+      "sound": "media/he/AC38835F-Viktor.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.399,
+      "at": 1.39,
+      "to": 14.19
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.05,
+      "at": 1.076,
+      "to": 18.75
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.05,
+      "at": 1.07,
+      "to": 18.75
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Itai.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.05,
+      "at": 1.079,
+      "to": 18.75
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.05,
+      "at": 1.057,
+      "to": 18.75
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Nimrod.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.068,
+      "at": 1.05,
+      "to": 18.75
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Tomer.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.05,
+      "at": 1.094,
+      "to": 18.75
+    },
+    {
+      "take": "302CD451-D0B1-44CE-802C-7F68A0839AA2",
+      "sound": "media/he/302CD451-Viktor.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.054,
+      "at": 1.05,
+      "to": 18.75
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.42,
+      "at": 1.44,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.42,
+      "at": 1.435,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Itai.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.42,
+      "at": 1.451,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.42,
+      "at": 1.424,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Nimrod.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.433,
+      "at": 1.42,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.434,
+      "at": 1.42,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Tomer.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.42,
+      "at": 1.459,
+      "to": 19.85
+    },
+    {
+      "take": "BF935942-36C5-4433-BB3A-0E331E6619FC",
+      "sound": "media/he/BF935942-Viktor.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.43,
+      "at": 1.42,
+      "to": 19.85
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.5,
+      "at": 1.528,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.5,
+      "at": 1.516,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Itai.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 4,
+      "from": 1.5,
+      "at": 1.532,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.5,
+      "at": 1.51,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Nimrod.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.517,
+      "at": 1.5,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.506,
+      "at": 1.5,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Tomer.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.5,
+      "at": 1.537,
+      "to": 19.3
+    },
+    {
+      "take": "49EFEF34-59C8-4743-8BC0-746D7DEE3E62",
+      "sound": "media/he/49EFEF34-Viktor.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.506,
+      "at": 1.5,
+      "to": 19.3
+    },
+    {
+      "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+      "sound": "media/he/C7CF1F1A-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.38,
+      "at": 1.408,
+      "to": 23.31
+    },
+    {
+      "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+      "sound": "media/he/C7CF1F1A-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.38,
+      "at": 1.396,
+      "to": 23.31
+    },
+    {
+      "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+      "sound": "media/he/C7CF1F1A-Nimrod.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "from": 1.398,
+      "at": 1.38,
+      "to": 23.31
+    },
+    {
+      "take": "C7CF1F1A-7399-4F4A-A466-6B368FADA628",
+      "sound": "media/he/C7CF1F1A-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.391,
+      "at": 1.38,
+      "to": 23.31
+    },
+    {
+      "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+      "sound": "media/he/AAF33CA1-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 0.98,
+      "at": 1.005,
+      "to": 11.31
+    },
+    {
+      "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+      "sound": "media/he/AAF33CA1-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 0.98,
+      "at": 0.995,
+      "to": 11.31
+    },
+    {
+      "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+      "sound": "media/he/AAF33CA1-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 0.98,
+      "at": 0.992,
+      "to": 11.31
+    },
+    {
+      "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+      "sound": "media/he/AAF33CA1-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 0.993,
+      "at": 0.98,
+      "to": 11.31
+    },
+    {
+      "take": "AAF33CA1-36EE-47A3-A5E9-1125338FCC1F",
+      "sound": "media/he/AAF33CA1-Viktor.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 0.99,
+      "at": 0.98,
+      "to": 11.31
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "sound": "media/he/E4AFDE44-Amit.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 6,
+      "from": 1.19,
+      "at": 1.213,
+      "to": 19.64
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "sound": "media/he/E4AFDE44-Dorian.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "from": 1.19,
+      "at": 1.211,
+      "to": 19.64
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "sound": "media/he/E4AFDE44-Itamar.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "from": 1.19,
+      "at": 1.202,
+      "to": 19.64
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "sound": "media/he/E4AFDE44-Omer.mid.mp3",
+      "gain": 0.11,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 5,
+      "from": 1.198,
+      "at": 1.19,
+      "to": 19.64
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "sound": "media/he/E4AFDE44-Tomer.far.mp3",
+      "gain": 0.09,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 7,
+      "from": 1.19,
+      "at": 1.231,
+      "to": 19.64
+    },
+    {
+      "take": "E4AFDE44-CE0C-45D7-8240-2B57D6F8D2BF",
+      "sound": "media/he/E4AFDE44-Viktor.close.mp3",
+      "gain": 0.12,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "from": 1.193,
+      "at": 1.19,
+      "to": 19.64
+    }
+  ],
+  "done": true
+}

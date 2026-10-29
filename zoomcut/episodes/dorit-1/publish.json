@@ -1,0 +1,51 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "פוב: גללת עד סוף הפיד ונתקעת בלייב של נומרולוגית 🔮\nמפת לידה אישית + הספר שלה בחינם - הלינק בביו.\n#דוריתמרקורי #אסטרולוגיה #בחירות2026 #קומדיה #סאטירה",
+  "title": "פוב: נתקעת בלייב של נומרולוגית | דורית מרקורי – התחזית לבחירות",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "last": {
+    "at": 1792947331223,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/De7LvMJir1L/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/ub6vMOJ9JDs",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2114400253449261285",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/De7LvMJir1L/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
+}

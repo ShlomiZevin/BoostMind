@@ -155,5 +155,6 @@
     "media/techytech-card.png",
     "media/techytech-poster.png"
   ],
-  "speed": 1.25
+  "speed": 1.25,
+  "done": true
 }

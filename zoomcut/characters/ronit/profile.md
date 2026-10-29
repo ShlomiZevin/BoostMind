@@ -34,6 +34,8 @@ Catchphrases (use sparingly, only where they come naturally):
 - תנו לי לבדוק את זה קודם עם גלעד.
 - נכון. לחלוטין.
 
+235 words per minute (measured on a real script) - a 10-second line is about 39 words; keep lines to what fits the moment.
+
 ## What's funny about them
 - היחידה שמציגה עמדה נגדית ועוצרת הכול - עד שהמנכ"ל נכנס והיא מתקפלת בשנייה.
 - הבקרה שלה לא משנה כלום: היא בודקת מי אישר, מבקשת לא להתקדם, ואז נעלמת לחודש בדולומיטים ומסכימה שהאשם הוא דניאל.

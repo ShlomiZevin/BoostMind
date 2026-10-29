@@ -1,0 +1,51 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "הרב דמוקרטוביץ בתפילות מרוממות נפש לרגל הימים הנוראים - ימי הבחירות. #הרבדמוקרטוביץ #בחירות\n",
+  "title": "הרב דמוקרטוביץ – תפילות הימים הנוראים",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "last": {
+    "at": 1792921568527,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/De6aQwGFE0Y/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "In your TikTok drafts - open TikTok, add a sound, post. The caption is in your Telegram to copy"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/BZQfBDjJE5A",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2114292412151484481",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/De6aQwGFE0Y/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
+}

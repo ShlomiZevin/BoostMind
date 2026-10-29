@@ -1,0 +1,751 @@
+{
+  "type": "lesson",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/שירי בחירות",
+  "takes": "*.mp4",
+  "background": "../_assets/demokratovich/synagogue-frames.jpg",
+  "plaque": [
+    "בית משפט קטן",
+    "״שערי בג״ץ״",
+    "בנשיאות כבוד הרב",
+    "דמוקרטוביץ שליט״א"
+  ],
+  "captions_font": "stam-ashkenaz",
+  "person": {
+    "scale": 1,
+    "y": 450
+  },
+  "captions_y": 1470,
+  "matte_engine": "quality",
+  "matte_cut": 30,
+  "title": "הרב דמוקרטוביץ – מחרוזת שירי הבחירות",
+  "overlays": [
+    {
+      "text": "מחרוזת שירי הבחירות\nשל הגאון דמוקרטוביץ שליט״א",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 48,
+      "start": 0,
+      "end": 7.12
+    },
+    {
+      "text": "♪ מעלת גושנו ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 7.37,
+      "end": 16.25
+    },
+    {
+      "text": "♪ אנא עבדא שופטיא ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 16.5,
+      "end": 19.68
+    },
+    {
+      "text": "♪ לא לפחד מהמדגם ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 19.93,
+      "end": 25.48
+    },
+    {
+      "text": "♪ טוב להודות לבג״ץ ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 25.73,
+      "end": 30.32
+    },
+    {
+      "text": "♪ גוש השינוי חי ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 30.57,
+      "end": 36.82
+    },
+    {
+      "text": "♪ הושיע את גושך ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 37.07,
+      "end": 42.68
+    },
+    {
+      "text": "♪ רק... רק... רק... ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 42.93,
+      "end": 60.15
+    },
+    {
+      "text": "♪ קול גדי וקול נפתלי ♪",
+      "style": "pov",
+      "font": "stam-ashkenaz",
+      "theme": "gold",
+      "opacity": 0.75,
+      "y": 520,
+      "size": 50,
+      "start": 60.4,
+      "end": 70.73
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/rak.png",
+      "plain": true,
+      "pop": true,
+      "x": 560,
+      "y": 690,
+      "w": 480,
+      "h": 227,
+      "text": "",
+      "opacity": 1,
+      "start": 1,
+      "end": 6.97
+    },
+    {
+      "style": "image",
+      "image": "../_assets/demokratovich/shut/rak.png",
+      "plain": true,
+      "pop": true,
+      "x": 560,
+      "y": 690,
+      "w": 480,
+      "h": 227,
+      "text": "",
+      "opacity": 1,
+      "start": 43.23,
+      "end": 59.9
+    },
+    {
+      "text": "🕯 תרומות לקהילה 🕯 3.25 ₪ – אחוז החסימה • 61 ₪ – רוב קואליציוני: הרב יקרא בשמכם בספירת הקולות • 120 ₪ – כנסת שלמה • כל תרומה מובאת להצבעה בוועד העמותה • תרומה שנדחתה – ניתן לערער לבג״ץ • הלינק בביו ⬆️",
+      "style": "ticker",
+      "font": "assistant",
+      "theme": "dark",
+      "opacity": 0.6,
+      "y": 1700,
+      "size": 38,
+      "speed": 130,
+      "start": 0,
+      "end": 70.73
+    },
+    {
+      "style": "image",
+      "image": "media/demokratovich-poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 1.5,
+      "poster": true,
+      "start": 70.83,
+      "end": null
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "start": 75,
+      "end": null,
+      "fade_in": 0.5,
+      "text": "",
+      "end_black": true
+    }
+  ],
+  "bg": {
+    "zoom": 1,
+    "x": 0,
+    "y": 0
+  },
+  "speed": 1.2,
+  "plaque_bg": {
+    "cx": 570,
+    "top": 168,
+    "w": 290,
+    "size": 36,
+    "flat_size": 80
+  },
+  "plaque_quad": [
+    [
+      398,
+      170
+    ],
+    [
+      625,
+      170
+    ],
+    [
+      625,
+      374
+    ],
+    [
+      398,
+      374
+    ]
+  ],
+  "plaque_inset": 0.94,
+  "media": [
+    "media/demokratovich-poster.jpg",
+    "../_assets/demokratovich/synagogue-frames.jpg",
+    "../_assets/demokratovich/shut/rak.png",
+    "media/choir-93865CA1.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-93865CA1.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-93865CA1.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-93865CA1.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-94917564.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-94917564.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-94917564.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-94917564.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-94D6EE6F.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-94D6EE6F.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-94D6EE6F.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-94D6EE6F.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-712F8F15.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-712F8F15.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-712F8F15.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-712F8F15.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-DC18A679.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-DC18A679.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-DC18A679.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-DC18A679.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-3DAD4BF9.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-3DAD4BF9.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-3DAD4BF9.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-3DAD4BF9.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-4DC10B25.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-4DC10B25.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-4DC10B25.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-4DC10B25.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-93865CA1.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-93865CA1.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-93865CA1.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-93865CA1.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+    "media/choir-F158B2E2.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+    "media/choir-F158B2E2.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+    "media/choir-F158B2E2.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+    "media/choir-F158B2E2.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3"
+  ],
+  "speaker_name": "הרב",
+  "sequence": [
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "to": 8.95
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62"
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB"
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A"
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410"
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98"
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6"
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "from": 9.25
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7"
+    }
+  ],
+  "cut": {
+    "silence": false,
+    "join": 0.25,
+    "edges": {
+      "93865CA1-7C2A-41A8-9AFA-C3E576E851AA": [
+        [
+          0.75,
+          1.4
+        ]
+      ],
+      "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB": [
+        [
+          0.35,
+          1
+        ],
+        [
+          4.37,
+          4.7
+        ]
+      ],
+      "DC18A679-7206-43AC-859D-55781A13E410": [
+        [
+          0.68,
+          1.01
+        ]
+      ],
+      "712F8F15-9E67-405F-AABC-FE46892FB80A": [
+        [
+          0.77,
+          0.85
+        ]
+      ]
+    }
+  },
+  "inserts": [
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "at": 13.05,
+      "seconds": 3,
+      "end_card": true
+    }
+  ],
+  "sign": [
+    {
+      "image": "../_assets/demokratovich/priests/bennett-frame.jpg",
+      "quad": [
+        [
+          138,
+          163
+        ],
+        [
+          286,
+          163
+        ],
+        [
+          286,
+          392
+        ],
+        [
+          138,
+          392
+        ]
+      ],
+      "light": 0.92
+    },
+    {
+      "image": "../_assets/demokratovich/priests/eisenkot-frame.jpg",
+      "quad": [
+        [
+          736,
+          163
+        ],
+        [
+          885,
+          163
+        ],
+        [
+          885,
+          391
+        ],
+        [
+          736,
+          391
+        ]
+      ],
+      "light": 0.92
+    }
+  ],
+  "captions_from": "file",
+  "sounds": [
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 1.422,
+      "at": 1.4,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0,
+      "to": 8.95
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 1.4,
+      "at": 1.422,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1,
+      "to": 8.95
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 1.4,
+      "at": 1.444,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2,
+      "to": 8.95
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 1.409,
+      "at": 1.4,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3,
+      "to": 8.95
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/choir-94917564.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 1.145,
+      "at": 1.13,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/choir-94917564.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 1.13,
+      "at": 1.15,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/choir-94917564.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 1.13,
+      "at": 1.172,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "94917564-1E9F-4685-B93A-D66361DD6B62",
+      "sound": "media/choir-94917564.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 1.141,
+      "at": 1.13,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/choir-94D6EE6F.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 1.017,
+      "at": 1,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/choir-94D6EE6F.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 1,
+      "at": 1.018,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/choir-94D6EE6F.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 1,
+      "at": 1.04,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "94D6EE6F-4BA7-413D-84E4-C350A7D05CFB",
+      "sound": "media/choir-94D6EE6F.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 1.004,
+      "at": 1,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/choir-712F8F15.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 0.869,
+      "at": 0.85,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/choir-712F8F15.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 0.85,
+      "at": 0.875,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/choir-712F8F15.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 0.85,
+      "at": 0.888,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "712F8F15-9E67-405F-AABC-FE46892FB80A",
+      "sound": "media/choir-712F8F15.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 0.856,
+      "at": 0.85,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/choir-DC18A679.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 1.031,
+      "at": 1.01,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/choir-DC18A679.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 1.01,
+      "at": 1.033,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/choir-DC18A679.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 1.01,
+      "at": 1.046,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "DC18A679-7206-43AC-859D-55781A13E410",
+      "sound": "media/choir-DC18A679.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 1.018,
+      "at": 1.01,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/choir-3DAD4BF9.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 0.784,
+      "at": 0.77,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/choir-3DAD4BF9.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 0.77,
+      "at": 0.791,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/choir-3DAD4BF9.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 0.77,
+      "at": 0.813,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "3DAD4BF9-A37C-4A65-B08A-38A6B88B3C98",
+      "sound": "media/choir-3DAD4BF9.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 0.78,
+      "at": 0.77,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/choir-4DC10B25.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 0.696,
+      "at": 0.68,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/choir-4DC10B25.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 0.68,
+      "at": 0.699,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/choir-4DC10B25.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 0.68,
+      "at": 0.721,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "4DC10B25-9E37-423F-A6C1-7D410B387EF6",
+      "sound": "media/choir-4DC10B25.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 0.692,
+      "at": 0.68,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 9.268,
+      "at": 9.25,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 9.25,
+      "at": 9.276,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 9.25,
+      "at": 9.289,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "93865CA1-7C2A-41A8-9AFA-C3E576E851AA",
+      "sound": "media/choir-93865CA1.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 9.255,
+      "at": 9.25,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/choir-F158B2E2.wav.voices/nPczCjzI2devNBz1zQrb.mp3",
+      "from": 0.92,
+      "at": 0.9,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 0
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/choir-F158B2E2.wav.voices/pqHfZKP75CvOlQylNhV4.mp3",
+      "from": 0.9,
+      "at": 0.924,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 1
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/choir-F158B2E2.wav.voices/N2lVS1w4EtoT3dr4eOWO.mp3",
+      "from": 0.9,
+      "at": 0.937,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 2
+    },
+    {
+      "take": "F158B2E2-097E-488F-AEFD-A7EB7DE098F7",
+      "sound": "media/choir-F158B2E2.wav.voices/CwhRBWXzGAHq8TQ4Fs17.mp3",
+      "from": 0.907,
+      "at": 0.9,
+      "gain": 0.36,
+      "fade_in": 0.04,
+      "fade_out": 0.25,
+      "lane": 3
+    }
+  ],
+  "done": true
+}

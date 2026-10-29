@@ -50,6 +50,7 @@ EXTRA = [
     ('verse', 'תמונת פרופיל ישנה', SITE + '/links/profile.jpg', 'תמונה'),
     ('verse', 'קאבר פייסבוק', SITE + '/links/img/fb-cover-2x.jpg', 'תמונה'),
     ('characters', 'Techy-Tech (הדומיין שלו)', 'https://techytech.web.app', 'אתר'),
+    ('verse', 'שלומידגם - ליל הבחירות', 'https://shlomidgam.web.app', 'אתר'),
     # his tools
     ('tools', 'Vault', 'https://boostmind-vault.web.app', 'כספת'),
     ('tools', 'Sketch Studio - העורך', 'http://localhost:4747', 'מקומי'),

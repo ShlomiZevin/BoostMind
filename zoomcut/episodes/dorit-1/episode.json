@@ -1,0 +1,768 @@
+{
+  "type": "lesson",
+  "series": "dorit",
+  "title": "דורית מרקורי – התחזית לבחירות (dorit-1)",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/אסטרולוגיה",
+  "takes": "*.[mM][pP]4",
+  "background": "../_assets/dorit/studio.jpg",
+  "music": {
+    "sound": "../_assets/dorit/music/4 - stars mystery.mp3",
+    "gain": 0.06,
+    "lift": {
+      "db": 8,
+      "fade": 1.2
+    }
+  },
+  "grade": {
+    "warm": 0.03,
+    "saturation": 1.08,
+    "brightness": 0.02,
+    "contrast": 1.04
+  },
+  "matte_engine": "body",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 200
+  },
+  "bg": {
+    "zoom": 1,
+    "x": 0,
+    "y": 0
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 68,
+    "color": "#ffe14a",
+    "stroke": 10
+  },
+  "speed": 1.2,
+  "voice": {
+    "preset": "news"
+  },
+  "cut": {
+    "merge": 1.1,
+    "pad_in": 0.12,
+    "pad_out": 0.45,
+    "join": 0.06,
+    "above_floor": 28,
+    "voice_above_floor": 30
+  },
+  "eye_contact": {
+    "on": true
+  },
+  "speaker_name": "דורית מרקורי",
+  "script": "dorit-1",
+  "media": [
+    "../_assets/dorit/studio.jpg",
+    "../_assets/dorit/video/wallmap.png",
+    "../_assets/dorit/video/poster.jpg",
+    "../_assets/dorit/video/polaroid.png",
+    "../_assets/dorit/video/logo.png",
+    "../_assets/dorit/video/rare.png",
+    "../_assets/dorit/video/book.png",
+    "../_assets/dorit/video/x.png",
+    "../_assets/dorit/book/cover.jpg",
+    "../_assets/dorit/video/done.png",
+    "../_assets/dorit/video/clear.png",
+    "../_assets/dorit/video/gadi.png",
+    "../_assets/dorit/video/again.png",
+    "../_assets/dorit/video/lovers.png",
+    "../_assets/dorit/tarot/final/pundit.png",
+    "../_assets/dorit/tarot/final/conjunction.png",
+    "../_assets/dorit/tarot/final/bibi-b.png",
+    "../_assets/dorit/tarot/final/venus.png",
+    "../_assets/dorit/tarot/final/farewell.png",
+    "../_assets/dorit/tarot/final/gadi-a.png",
+    "../_assets/dorit/tarot/final/clash.png",
+    "../_assets/dorit/tarot/final/bennett-b.png",
+    "../_assets/dorit/tarot/final/lapid-b.png",
+    "../_assets/dorit/tarot/final/tower.png",
+    "../_assets/dorit/tarot/final/israel.png",
+    "../_assets/dorit/deck/final/sevenswords.png",
+    "../_assets/dorit/deck/final/fourcups.png",
+    "../_assets/dorit/deck/final/wheel.png",
+    "../_assets/dorit/deck/final/back.png",
+    "../_assets/dorit/selfie.jpg",
+    "../_assets/dorit/portrait.jpg",
+    "../_assets/dorit/music/1 - election night keyboard.mp3",
+    "../_assets/dorit/music/2 - psychic hotline.mp3",
+    "../_assets/dorit/music/3 - analysis panel.mp3",
+    "../_assets/dorit/music/4 - stars mystery.mp3",
+    "../_assets/dorit/music/5 - crystal ball.mp3",
+    "../_assets/dorit/music/6 - zodiac night.mp3"
+  ],
+  "overlays": [
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/wallmap.png",
+      "plain": true,
+      "behind": true,
+      "x": 280,
+      "y": 268,
+      "w": 553,
+      "h": 480,
+      "text": "",
+      "opacity": 1,
+      "start": 0,
+      "end": null
+    },
+    {
+      "text": "פוב: גללת עד סוף הפיד\nונתקעת בלייב של נומרולוגית 🔮",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "light",
+      "opacity": 0.94,
+      "y": 470,
+      "size": 66,
+      "start": 0,
+      "end": 5.8,
+      "hook": true
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/book.png",
+      "plain": true,
+      "pop": true,
+      "x": 620,
+      "y": 420,
+      "w": 460,
+      "h": 591,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מחברת רב המכר",
+        "ומחברת",
+        "אני אמרתי את זה",
+        "אמרתי את זה כבר"
+      ],
+      "to_words": [
+        "מוזמנים להיכנס",
+        "להיכנס"
+      ],
+      "hold": 0.3,
+      "start": 5.87,
+      "end": 15.63
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/pundit.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 627,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "הרבה מאוד פרשנים",
+        "פרשנים שמדברים"
+      ],
+      "to_words": [
+        "כרגע בשמיים",
+        "בשמיים"
+      ],
+      "hold": -0.12,
+      "start": 16.97,
+      "end": 25.99
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/conjunction.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 440,
+      "w": 360,
+      "h": 600,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "צמידות נדירה",
+        "צמדות נדירה",
+        "בין שבתאי לנפטון",
+        "נדירה בין"
+      ],
+      "to_words": [
+        "בית השלטון",
+        "השלטון"
+      ],
+      "hold": 0.05,
+      "start": 26.11,
+      "end": 32.82
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/rare.png",
+      "plain": true,
+      "pop": true,
+      "x": 560,
+      "y": 470,
+      "w": 500,
+      "h": 368,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "צמידות נדירה",
+        "צמדות נדירה",
+        "בין שבתאי לנפטון",
+        "נדירה בין"
+      ],
+      "to_words": [
+        "בית השלטון",
+        "השלטון"
+      ],
+      "hold": 0.05,
+      "start": 26.11,
+      "end": 32.82
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/bibi-b.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 440,
+      "w": 380,
+      "h": 629,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "נתניהו הוא מזל",
+        "מזל מאזניים"
+      ],
+      "to_words": [
+        "כמובן סיים",
+        "נתניהו סיים",
+        "סיים"
+      ],
+      "hold": 0.7,
+      "start": 33.45,
+      "end": 50.51
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/venus.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 619,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ונוס ששולטת",
+        "ששולטת במאזניים"
+      ],
+      "to_words": [
+        "בבית השמיני",
+        "השמיני"
+      ],
+      "hold": 0.05,
+      "start": 36.43,
+      "end": 41.94
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/farewell.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 606,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "בית של סיומים",
+        "של סיומים"
+      ],
+      "to_words": [
+        "ופרדות ושחרור",
+        "ופרידות ושחרור",
+        "ושחרור",
+        "ושחרות"
+      ],
+      "hold": -0.12,
+      "start": 42.93,
+      "end": 46.31
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/done.png",
+      "plain": true,
+      "pop": true,
+      "x": 20,
+      "y": 660,
+      "w": 420,
+      "h": 223,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מבחינתי נתניהו",
+        "נתניהו סיים"
+      ],
+      "to_words": [
+        "סיים"
+      ],
+      "hold": 0.7,
+      "start": 46.43,
+      "end": 50.51
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/gadi-a.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 440,
+      "w": 380,
+      "h": 619,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "גדי איזנקוט",
+        "עכשיו גדי"
+      ],
+      "to_words": [
+        "על ידי שבתאי",
+        "נשלט על ידי"
+      ],
+      "hold": 0.2,
+      "start": 51.01,
+      "end": 60.41
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/gadi.png",
+      "plain": true,
+      "pop": true,
+      "x": 640,
+      "y": 470,
+      "w": 420,
+      "h": 352,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "קוראים לו גדי",
+        "אבל קוראים"
+      ],
+      "to_words": [
+        "על ידי שבתאי",
+        "שבתאי"
+      ],
+      "hold": 0.2,
+      "start": 55.21,
+      "end": 60.41
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/clash.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 568,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "התנגשות קשה",
+        "יש פה התנגשות"
+      ],
+      "to_words": [
+        "מסוכסכים עם",
+        "מסוכסכים",
+        "אורנוס"
+      ],
+      "hold": 0.05,
+      "start": 61.41,
+      "end": 69.84
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/polaroid.png",
+      "plain": true,
+      "pop": true,
+      "x": 10,
+      "y": 470,
+      "w": 380,
+      "h": 496,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "שניהם עם קרניים",
+        "שניהם עקשנים"
+      ],
+      "to_words": [
+        "מסוכסכים עם",
+        "מסוכסכים",
+        "אורנוס"
+      ],
+      "hold": 0.05,
+      "mid_card": true,
+      "start": 64.33,
+      "end": 69.84
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/bennett-b.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 440,
+      "w": 360,
+      "h": 579,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "לגבי בנט ולפיד",
+        "בנט ולפיד"
+      ],
+      "to_words": [
+        "לא רואה שם עתיד",
+        "שם עתיד"
+      ],
+      "hold": -0.12,
+      "start": 71.01,
+      "end": 75.77
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/lapid-b.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 649,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "לגבי בנט ולפיד",
+        "בנט ולפיד"
+      ],
+      "to_words": [
+        "לא רואה שם עתיד",
+        "שם עתיד"
+      ],
+      "hold": -0.12,
+      "start": 71.01,
+      "end": 75.77
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/lovers.png",
+      "plain": true,
+      "pop": true,
+      "x": 115,
+      "y": 400,
+      "w": 850,
+      "h": 765,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "טלה ועקרב",
+        "זה חיבור"
+      ],
+      "to_words": [
+        "בקפריסטין",
+        "בקפריסין",
+        "אזרחיים"
+      ],
+      "hold": 0.3,
+      "start": 75.89,
+      "end": 83.71
+    },
+    {
+      "text": "🔮 מה אומרים הקלפים?",
+      "style": "pov",
+      "font": "assistant",
+      "theme": "gold",
+      "opacity": 0.9,
+      "y": 440,
+      "size": 54,
+      "from_words": [
+        "בוא נראה מה",
+        "בואו נראה מה",
+        "מה אומרים הקלפים"
+      ],
+      "to_words": [
+        "שזה יוצא",
+        "מה יוצא",
+        "יוצא"
+      ],
+      "hold": 0.2,
+      "start": 84.33,
+      "end": 92.19
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/deck/final/sevenswords.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 440,
+      "w": 360,
+      "h": 631,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "שבע חרבות",
+        "חרבות",
+        "שבע החרבות"
+      ],
+      "to_words": [
+        "סליחה"
+      ],
+      "hold": -0.12,
+      "start": 92.29,
+      "end": 94.55
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/x.png",
+      "plain": true,
+      "pop": true,
+      "x": 40,
+      "y": 560,
+      "w": 330,
+      "h": 330,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "חרבות לא",
+        "לא סליחה",
+        "לא"
+      ],
+      "to_words": [
+        "סליחה"
+      ],
+      "hold": -0.12,
+      "start": 92.77,
+      "end": 94.55
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/deck/final/fourcups.png",
+      "plain": true,
+      "pop": true,
+      "x": 24,
+      "y": 440,
+      "w": 360,
+      "h": 561,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "ארבע גביעים",
+        "ארבעה גביעים",
+        "גביעים"
+      ],
+      "to_words": [
+        "לא משנה",
+        "משנה"
+      ],
+      "hold": -0.12,
+      "start": 94.89,
+      "end": 96.83
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/x.png",
+      "plain": true,
+      "pop": true,
+      "x": 40,
+      "y": 560,
+      "w": 330,
+      "h": 330,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "לא משנה",
+        "משנה"
+      ],
+      "to_words": [
+        "לא משנה",
+        "משנה"
+      ],
+      "hold": -0.12,
+      "start": 96.29,
+      "end": 96.83
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/deck/final/wheel.png",
+      "plain": true,
+      "pop": true,
+      "x": 250,
+      "y": 420,
+      "w": 580,
+      "h": 972,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "יצא גלגל המזל",
+        "גלגל המזל"
+      ],
+      "to_words": [
+        "לנקודת ההתחלה",
+        "ההתחלה"
+      ],
+      "hold": 0.3,
+      "start": 97.15,
+      "end": 106.19
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/clear.png",
+      "plain": true,
+      "pop": true,
+      "x": 130,
+      "y": 560,
+      "w": 820,
+      "h": 320,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "התחזית שלי",
+        "שלי חד משמעית"
+      ],
+      "to_words": [
+        "חד משמעית",
+        "משמעית"
+      ],
+      "hold": 0.4,
+      "start": 106.58,
+      "end": 109.72
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/tower.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 607,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "אף אחד לא יצליח",
+        "להרכיב ממשלה"
+      ],
+      "to_words": [
+        "להרכיב ממשלה",
+        "ממשלה"
+      ],
+      "hold": 0.3,
+      "start": 109.32,
+      "end": 112.88
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/again.png",
+      "plain": true,
+      "pop": true,
+      "x": 34,
+      "y": 480,
+      "w": 420,
+      "h": 352,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "הולכים לבחירות",
+        "לבחירות נוספות"
+      ],
+      "to_words": [
+        "נוספות"
+      ],
+      "hold": 0.6,
+      "start": 113.48,
+      "end": 116.12
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/tarot/final/israel.png",
+      "plain": true,
+      "pop": true,
+      "x": 696,
+      "y": 440,
+      "w": 360,
+      "h": 606,
+      "text": "",
+      "opacity": 1,
+      "from_words": [
+        "מדינת ישראל היא",
+        "היא מזל שור"
+      ],
+      "to_words": [
+        "יציבות פוליטית",
+        "פוליטית"
+      ],
+      "hold": 0.05,
+      "start": 118.98,
+      "end": 124.19
+    },
+    {
+      "style": "image",
+      "image": "../_assets/dorit/video/poster.jpg",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 1.5,
+      "poster": true,
+      "from_words": [
+        "לא תהיה פה",
+        "יציבות פוליטית"
+      ],
+      "start": 121.54,
+      "end": 127.7
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "start": 127.2,
+      "end": null,
+      "fade_in": 0.5,
+      "end_black": true
+    }
+  ],
+  "bg_blur": 0.8,
+  "denoise": {
+    "rnn": "models/rnnoise/cb.rnnn"
+  },
+  "_todo": "Built on his takes 2026-10-25. Person layer eyes set true by op (the stand-in had saved eyes:false). Review stills, then hand over.",
+  "plaque": [],
+  "inserts": [
+    {
+      "take": "C5160878-63FE-4992-8D77-59D3EE2851DE",
+      "at": 24.65,
+      "seconds": 3,
+      "end_card": true
+    }
+  ],
+  "sequence": [
+    {
+      "take": "E158880F-D38D-4965-9D5B-1D51084C3F62",
+      "to": 110.95
+    },
+    {
+      "take": "C5160878-63FE-4992-8D77-59D3EE2851DE"
+    }
+  ],
+  "done": true
+}

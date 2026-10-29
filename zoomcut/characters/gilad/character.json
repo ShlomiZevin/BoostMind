@@ -120,5 +120,10 @@
     "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/backgrounds/prompts/gilad.txt",
     "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/feedback_interruption_overlap.md",
     "c:/workspace/BoostMind/zoomcut/episodes/gilad-joins/corrections.json"
-  ]
+  ],
+  "pace": {
+    "wpm": 170,
+    "at": 1792782652562,
+    "script": "gilad-joins"
+  }
 }

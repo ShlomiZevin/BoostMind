@@ -290,8 +290,8 @@
       "y": 1170,
       "size": 60,
       "blink": true,
-      "start": 92.0,
-      "end": 111.85
+      "start": 92,
+      "end": 109.93
     },
     {
       "style": "image",
@@ -381,8 +381,9 @@
     {
       "take": "IMG_0113",
       "at": 20.3,
-      "seconds": 3.0,
+      "seconds": 3,
       "end_card": true
     }
-  ]
+  ],
+  "done": true
 }

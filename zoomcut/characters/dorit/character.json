@@ -1,0 +1,139 @@
+{
+  "id": "dorit",
+  "name": "דורית מרקורי",
+  "name_en": "Dorit Mercury",
+  "aka": [
+    "דורית",
+    "Dorit",
+    "דורית מרקורי",
+    "dorit",
+    "מרקורי"
+  ],
+  "world": "דורית מרקורי – אסטרולוגיה ונומרולוגיה",
+  "role": "אסטרולוגית ונומרולוגית בכירה (30 שנה, רעננה)",
+  "brief": "דורית מרקורי, בת 58, גרושה פעמיים, מרעננה. עוסקת באסטרולוגיה ונומרולוגיה כבר 30 שנה: מפות לידה, זוגיות, קריירה, בריאות, פוליטיקה ותחזיות. דודה ישראלית קולנית שהפכה את האסטרולוגיה למקצוע מדעי ואת עצמה לסמכות עליונה - מחברת תאריכי לידה, שמות, מזלות וכוכבים בהיגיון מופרך לגמרי ומציגה כל חישוב כעובדה מדעית. בסרטונים היא \"פרשנית בכירה\" באולפן הבחירות שהקימה בסלון: מפת השמיים על הלוח, קלפי טארוט, חותמות ופתקים צהובים בכתב ידה.",
+  "personality": [
+    "דעתנית, שתלטנית, פסקנית וקצת חטטנית",
+    "חמה ועממית, אבל מתנשאת כשמערערים על הידע שלה",
+    "שילוב של דודה שמתערבת לכולם בחיים, מורה למתמטיקה ופרשנית פוליטית בכירה",
+    "אגו מקצועי עצום וצורך בלתי נשלט להיות צודקת",
+    "מתערבת בחיים של אנשים גם כשלא ביקשו",
+    "תחזית שנכשלה = שעת הלידה שקיבלה הייתה שגויה; תחזית שהצליחה במקרה = מזכירה שנים"
+  ],
+  "catchphrases": [
+    "זה אסטרולוגיה בסיסית, חבר׳ה.",
+    "שבתאי לא נותן לו. פשוט לא נותן.",
+    "אני אמרתי את זה כבר בפברואר. יש הקלטה.",
+    "אני לא יודעת מי עשה לה את המפה, אבל יש שם עבודה.",
+    "תקשיבו לי טוב, עם פלוטו בבית השמיני לא מתחתנים. נקודה.",
+    "בקיצור, אין לו סיכוי. שבתאי גמר אותו.",
+    "אז מבחינתי X סיים."
+  ],
+  "speech": [
+    "מהיר, נחרץ, מעט נוזף, הבעות פנים מוגזמות ומבט חודר למצלמה.",
+    "משלבת מונחים אסטרולוגיים מקצועיים (צמידות, נסיגה, בית עשירי, שליט המזל) עם עברית יומיומית של דודה - מסבירה באריכות ואז פוסקת במשפט אחד (\"בקיצור, אין לו סיכוי\").",
+    "פותחת נגד מישהו (\"אני רואה הרבה פרשנים... ואף אחד לא מתייחס ל...\") ונגמרת בתחזית \"חד־משמעית\" ובמשפט שהיא \"אומרת כבר שנים\"."
+  ],
+  "behavior": [
+    "מנתחת פוליטיקאים לפי המזל ולפי השם (\"גדי\" = מזל גדי = שבתאי), ופוסקת מי סיים ומי לא.",
+    "לא מאשרת זוגות שהמזלות שלהם לא מסתדרים - \"אפילו לא לנישואים אזרחיים\"."
+  ],
+  "comedy": [
+    "הפער בין המראה העממי והמרושל לבין הסמכות המקצועית שהיא מייחסת לעצמה.",
+    "שטויות מוחלטות ברצינות של פרופסור לפיזיקה - היגיון מופרך שמוצג כמדע.",
+    "בניגוד לאיילת השחר (רוחנית, רכה, תודעה) - דורית לא רוחנית בכלל: היא \"מדעית\", בוטה, ובטוחה שהיא קובעת מי יהיה ראש הממשלה."
+  ],
+  "themes": [
+    "התחזית לבחירות: צמידות שבתאי-נפטון בבית העשירי (\"פעם במאות שנים\" - בפועל כל 36 שנה), נתניהו מאזניים + ונוס בנסיגה בבית השמיני = סיים, גדי איזנקוט שור אבל השם גדי נשלט על ידי שבתאי, בנט (טלה) ולפיד (עקרב) - \"לא הייתי מאשרת אפילו לנישואים אזרחיים\", אף אחד לא ירכיב ממשלה, וכל עוד ישראל מזל שור - אין יציבות (dorit-1; script: dorit-1)",
+    "הספר שלה: \"אני אמרתי את זה כבר בפברואר\" - המדריך המדעי לאסטרולוגיה ונומרולוגיה, מהדורה 3 מורחבת, מודפס במשרד וכרוך בספירלה, חינם (\"מתנה מדורית\", \"רב מכר* - *במשפחה\", ציטוט מהגרוש השני). באתר: אזור \"הספר שלי\" עם ספר תלת־ממדי ובקשת עותק חינם (choice: ספר במתנה)."
+  ],
+  "look": "אישה מלאה, פנים עגולות, שיער חום קצר, מתולתל ופרוע, גבות מודגשות ועיניים גדולות; גופייה לבנה בצילום. מראה מעט מרושל, עממי ולא מתאמץ - דודה ישראלית קולנית. בפורטרט של המקומון: חולצה סגולה, צעיף מזלות זהב, עגילי חישוק ותליון שור. תמונת הפרופיל שלה = סלפי גרוע שצילמה בעצמה: מטושטש, מלמטה, פלאש, האגודל בפינה.",
+  "voice": {
+    "preset": "news",
+    "notes": "dorit-1: preset news + RNNoise (cb.rnnn). מוזיקה: מסתורית, בכוכבים - \"4 - stars mystery\" (ElevenLabs Music: מקהלה, פעמוני קריסטל, דרון קוסמי, בלי ביט) ב-0.06. הוא דחה את מוזיקת ערב הבחירות על האורגנית: \"upbeat funny happy\"."
+  },
+  "writing_rules": [
+    "כל דמות היא אדם אמיתי: האתר שלה בקול שלה, אף פעם לא \"פרודיה\" ולא השם של שלומי.",
+    "הגרפיקה שלה = טארוט (Rider-Waite) - קלפים עם כותרות בעברית, והפוליטיקאים שהיא מדברת עליהם מצוירים כקלפי טארוט (תמונת AI). לא מדבקות קרטון (הוא דחה אותן).",
+    "חותמות (\"סיים.\", \"חד־משמעית\"), פתקים צהובים בכתב ידה, וכוכבית עם האמת הקטנה (\"*בערך כל 36 שנה\") - הפער הוא הבדיחה.",
+    "הסטודיו שלה קבוע לכל הסרטונים (סלון קיטשי סגול-זהב, ניאון LED, נמר, טבעת אור) עם לוח לבן ריק - כל סרטון שם עליו מפה משלו כשכבה נפרדת (behind).",
+    "כל סרטון: מבזק אסטרולוגי למעלה, כתובית תחתונה \"דורית מרקורי | אסטרולוגית ונומרולוגית בכירה\", טיקר \"הלינק בביו\", קופסת זהב מהבהבת, פולארויד הסלפי באמצע, פוסטר סיום ושני סטורי פוסטרים.",
+    "תמונת הפרופיל שלה היא הסלפי הגרוע (כך היא הייתה מצלמת את עצמה).",
+    "יש לה חפיסה משלה - \"טארוט מרקורי\": קלפי ריידר-וייט עם מסגרת סגולה-זהב והפנים שלה על הדמות הראשית. קלף שהיא שולפת במצלמה = אותו קלף על המסך וביד (מודפס)."
+  ],
+  "dont": [
+    "היא אדם אמיתי: אף פעם לא \"פרודיה\", ואף פעם לא השם של שלומי.",
+    "לא מדבקות קרטון, לא הסגנון של איילת."
+  ],
+  "site": {
+    "url": "https://boostmind-b052c.web.app/dorit/",
+    "notes": "public/dorit - אתר וויקס 2014 של דודה: התחזית לבחירות עם קלפי הטארוט, \"יש הקלטה!\", הורוסקופ יומי, מחשבון נומרולוגי, שירותים ומחירים. CTA: הזמנת מפת לידה / ייעוץ - נשלח במייל לשלומי (siteLead \"dorit\"). אזור הספר (#book) עם בקשת עותק חינם."
+  },
+  "links": [
+    {
+      "label": "האתר של דורית",
+      "url": "https://boostmind-b052c.web.app/dorit/"
+    },
+    {
+      "label": "תסריט ב-Reader: dorit-1 (התחזית לבחירות)",
+      "url": "c:/workspace/BoostMind/zoomcut/scripts/dorit-1.txt"
+    }
+  ],
+  "videos": [
+    "dorit-1"
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/selfie.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/selfie.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/portrait.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/src/portrait.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/src/ref.jpg"
+    ],
+    "backgrounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/studio.jpg"
+    ],
+    "logos": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/video/logo.png"
+    ],
+    "sounds": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/music/4 - stars mystery.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/music/5 - crystal ball.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/music/6 - zodiac night.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/music/1 - election night keyboard.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/music/2 - psychic hotline.mp3",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/music/3 - analysis panel.mp3"
+    ],
+    "other": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/video/poster.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/video/polaroid.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/video/wallmap.png",
+      "C:/Users/shazbak/Downloads/דורית-בחירות/dorit-1-story-instagram.jpg",
+      "C:/Users/shazbak/Downloads/דורית-בחירות/dorit-1-story-tiktok.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/pundit.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/conjunction.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/venus.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/farewell.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/clash.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/tower.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/wheel.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/israel.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/bibi-b.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/gadi-a.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/bennett-b.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/tarot/final/lapid-b.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/book/cover.jpg",
+      "C:/Users/shazbak/Downloads/דורית-בחירות/book-print",
+      "C:/Users/shazbak/Downloads/דורית-בחירות/tarot-print",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/deck/final/fourcups.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/deck/final/sevenswords.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/deck/final/wheel.png",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/dorit/deck/final/back.png"
+    ]
+  },
+  "color": "#ffd54a",
+  "sources": [
+    "c:/workspace/BoostMind/zoomcut/scripts/dorit-1.txt",
+    "c:/workspace/BoostMind/zoomcut/episodes/dorit-1/episode.json"
+  ]
+}

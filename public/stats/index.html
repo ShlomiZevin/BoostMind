@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>נתונים · שלומיוורס</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Shlomi's own analytics: what people do on /links/, /wiki/ and the characters' sites. Data: the `stats` function. */
+  :root { --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.16); --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff5b3a; --bar: #ff7a5c; --grid: rgba(255,255,255,.07); color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.5; min-height: 100svh; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; }
+  header { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+  h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -.02em; }
+  h1 small { color: var(--dim); font-size: .95rem; font-weight: 500; margin-inline-start: 8px; }
+  .range { display: flex; gap: 6px; margin-inline-start: auto; }
+  .range button, .btn { height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); color: var(--dim); font-size: .9rem; font-weight: 600; transition: color .15s, border-color .15s; }
+  .range button:hover, .btn:hover { color: var(--text); }
+  .range button.on { color: var(--text); border-color: var(--text); }
+  .gate { max-width: 420px; margin: 18vh auto 0; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .gate p { color: var(--dim); }
+  .gate .btn { height: 48px; padding: 0 24px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 1rem; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .kpi span { color: var(--dim); font-size: .85rem; display: block; }
+  .kpi b { font-size: 1.9rem; font-weight: 900; letter-spacing: -.02em; line-height: 1.2; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-top: 14px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; min-width: 0; }
+  .box h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .box h2 small { color: var(--faint); font-size: .8rem; font-weight: 500; }
+  .chart { position: relative; height: 170px; }
+  .chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .tip { position: absolute; pointer-events: none; background: var(--card2); border: 1px solid var(--line2); border-radius: 8px; padding: 4px 9px; font-size: .82rem; white-space: nowrap; transform: translate(50%, -110%); display: none; z-index: 2; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th { text-align: right; color: var(--faint); font-weight: 600; font-size: .78rem; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  td.n { text-align: left; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+  td.nm { width: 100%; }
+  .meter { height: 4px; border-radius: 4px; background: var(--bar); margin-top: 4px; opacity: .85; }
+  .who { display: flex; align-items: center; gap: 8px; }
+  .who img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+  .empty { color: var(--faint); font-size: .88rem; padding: 6px 0; }
+  .feed { max-height: 520px; overflow-y: auto; }
+  .feed td { font-size: .84rem; white-space: nowrap; }
+  .feed td.what { white-space: normal; }
+  .pill { font-size: .72rem; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line2); color: var(--dim); }
+  .err { color: #ff8a73; margin-top: 10px; }
+  .threads { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; }
+  .thread { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); }
+  .thread summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 9px 12px; }
+  .thread summary::-webkit-details-marker { display: none; }
+  .thread summary img, .gdot { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
+  .gdot { background: var(--accent); }
+  .thread summary b { font-weight: 800; white-space: nowrap; }
+  .thread .tq { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .thread summary small { color: var(--faint); font-size: .76rem; white-space: nowrap; }
+  .convo { display: flex; flex-direction: column; gap: 8px; padding: 4px 12px 14px; }
+  .convo .b { max-width: 85%; padding: 8px 12px; border-radius: 14px; font-size: .9rem; line-height: 1.5; }
+  .convo .me { align-self: flex-end; background: var(--accent); color: #111; border-start-end-radius: 4px; }
+  .convo .them { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-start-start-radius: 4px; }
+  .convo i { display: block; font-style: normal; font-size: .7rem; opacity: .7; margin-top: 2px; }
+  @media (max-width: 640px) { .thread summary small { display: none; } }
+  .mine { color: var(--dim); font-size: .85rem; margin: -8px 0 16px; }
+  .mine a { color: var(--text); text-decoration: underline; }
+  @media (max-width: 640px) { .wrap { padding: 16px 12px 40px; } .grid2 { grid-template-columns: 1fr; } .range { margin-inline-start: 0; width: 100%; } .feed td:nth-child(5), .feed th:nth-child(5), .feed td:nth-child(6), .feed th:nth-child(6) { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="gate" id="gate">
+    <h1>נתונים</h1>
+    <p>הדשבורד של שלומיוורס, דף הלינקים ואתרי הדמויות. כניסה עם חשבון הגוגל של שלומי.</p>
+    <button class="btn" id="signin">כניסה עם Google</button>
+    <div class="err" id="gate-err"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({ apiKey: 'AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90', authDomain: 'boostmind-b052c.firebaseapp.com', projectId: 'boostmind-b052c' });
+const API = location.hostname === 'localhost' ? 'http://localhost:5181/stats' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/stats';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (n) => (n || 0).toLocaleString('he-IL');
+let range = 7, names = { c: {}, v: {} }, data = null;
+
+// the labels people see for what was done
+const EV = { view: 'נכנס לדף', character: 'פתח דמות', chat_open: 'פתח שיחה', chat_message: 'שלח הודעה', chat_switch: 'העביר לשיחה', ask: 'שאל בתיבה',
+  video: 'צפה בסרטון', site: 'עבר לאתר', contact: 'פנה לשת״פ', social: 'עבר לרשת', search: 'חיפש', click: 'לחץ על קישור' };
+const SITE = { links: 'דף הלינקים', wiki: 'הוויקי', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', other: 'אחר' };
+const SRC = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
+const label = (e, x) => e === 'contact' ? (x === 'whatsapp' ? 'WhatsApp' : 'מייל') : (names.c[x]?.name || names.v[x] || SITE[x] || SRC[x] || (x === 'guide' ? 'המדריך' : x));
+
+// ---------- sign in ----------
+const auth = firebase.auth();
+$('#signin').onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => ($('#gate-err').textContent = e.message));
+auth.onAuthStateChanged((u) => { if (u) load(); });
+
+async function load() {
+  const u = auth.currentUser;
+  if (!u) return;
+  try {
+    if (!Object.keys(names.c).length) {
+      const w = await fetch('/wiki/data/wiki.json').then((r) => r.json());
+      w.characters.forEach((c) => (names.c[c.id] = c));
+      w.videos.forEach((v) => (names.v[v.id] = v.title));
+    }
+    const res = await fetch(`${API}?days=${range}&limit=400`, { headers: { authorization: 'Bearer ' + (await u.getIdToken()) } });
+    if (res.status === 403) { $('#app').innerHTML = `<div class="gate"><h1>אין גישה</h1><p>${esc(u.email)} הוא לא החשבון של הדשבורד.</p><button class="btn" onclick="firebase.auth().signOut().then(()=>location.reload())">החלפת חשבון</button></div>`; return; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    const ch = await fetch(`${API}?chats=1&days=${range}`, { headers: { authorization: 'Bearer ' + (await u.getIdToken()) } });
+    data.chats = ch.ok ? (await ch.json()).chats : [];
+    try { localStorage.setItem('t-ignore', '1'); } catch (e) {}   // the owner's browser stops counting itself
+    draw();
+  } catch (e) { $('#app').innerHTML = `<div class="gate"><h1>משהו לא נטען</h1><p class="err">${esc(e.message)}</p><button class="btn" onclick="location.reload()">לנסות שוב</button></div>`; }
+}
+
+// ---------- the numbers ----------
+function sum(days, f) { return days.reduce((a, d) => a + (f(d) || 0), 0); }
+function byPrefix(days, ev) {   // n["chat_message|ayelet"] -> { ayelet: 3 }
+  const out = {};
+  for (const d of days) for (const [k, v] of Object.entries(d.n || {})) if (k.startsWith(ev + '|')) out[k.slice(ev.length + 1)] = (out[k.slice(ev.length + 1)] || 0) + v;
+  return out;
+}
+function merge(days, field) { const out = {}; for (const d of days) for (const [k, v] of Object.entries(d[field] || {})) out[k] = (out[k] || 0) + v; return out; }
+function dayList() {   // every day in the range, including empty ones
+  const out = [], have = Object.fromEntries(data.days.map((d) => [d.d, d]));
+  for (let i = range - 1; i >= 0; i--) {
+    const d = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date(Date.now() - i * 864e5));
+    out.push(have[d] || { d, n: {} });
+  }
+  return out;
+}
+
+function draw() {
+  const days = dayList(), n = (k) => sum(days, (d) => d.n?.[k]);
+  const k = [['מבקרים', sum(days, (d) => d.visitors)], ['מבקרים חדשים', sum(days, (d) => d.new_visitors)], ['צפיות בדפים', n('view')],
+    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['פניות לשת״פ', n('contact')]];
+  const chars = {};
+  for (const [ev, col] of [['character', 0], ['chat_open', 1], ['chat_message', 2]]) for (const [id, v] of Object.entries(byPrefix(days, ev))) (chars[id] ||= [0, 0, 0])[col] += v;
+  const charRows = Object.entries(chars).sort((a, b) => (b[1][2] + b[1][1] + b[1][0]) - (a[1][2] + a[1][1] + a[1][0]));
+  const searches = data.events.filter((e) => e.e === 'search').map((e) => e.x.toLowerCase());
+  const sCount = {}; searches.forEach((s) => (sCount[s] = (sCount[s] || 0) + 1));
+
+  $('#app').innerHTML = `
+    <header><h1>נתונים<small>${range === 1 ? 'היום' : range + ' ימים אחרונים'}</small></h1>
+      <div class="range">${[[1, 'היום'], [7, '7 ימים'], [30, '30 ימים'], [90, '90 ימים']].map(([v, l]) => `<button data-r="${v}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}
+      <button class="btn" id="refresh" title="רענון">↻</button><a class="btn" href="/all/" style="display:inline-flex;align-items:center">כל האתרים</a></div></header>
+    <div class="mine">המכשיר הזה לא נספר בנתונים. בטלפון ובמחשב השני: לפתוח את הדף הזה פעם אחת. ל-Techy-Tech (דומיין נפרד): <a href="https://techytech.web.app/?notrack=1" target="_blank" rel="noopener">לחיצה אחת כאן</a>.</div>
+    <div class="kpis">${k.map(([l, v]) => `<div class="kpi"><span>${l}</span><b>${fmt(v)}</b></div>`).join('')}</div>
+    <div class="grid2">
+      <div class="box"><h2>מבקרים ביום</h2><div class="chart" id="ch1"></div></div>
+      <div class="box"><h2>הודעות לדמויות ביום</h2><div class="chart" id="ch2"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="box"><h2>דמויות<small>עמוד · שיחות · הודעות</small></h2>${charRows.length ? `<table><tr><th>דמות</th><th>עמוד</th><th>שיחות</th><th>הודעות</th></tr>${charRows.map(([id, [a, b, c]]) => `<tr><td class="nm"><span class="who">${names.c[id]?.img ? `<img src="/wiki/${names.c[id].img}" alt="">` : ''}${esc(label('', id))}</span></td><td class="n">${fmt(a)}</td><td class="n">${fmt(b)}</td><td class="n">${fmt(c)}</td></tr>`).join('')}</table>` : '<div class="empty">עוד אין</div>'}</div>
+      ${rank('סרטונים', byPrefix(days, 'video'), 'צפיות')}
+      ${rank('אתרים', merge(days, 'site'), 'כניסות')}
+      ${rank('מעברים לאתרי הדמויות', byPrefix(days, 'site'), 'לחיצות')}
+      ${rank('מאיפה הגיעו', merge(days, 'src'), 'מבקרים')}
+      ${rank('מכשיר', merge(days, 'dev'), 'מבקרים', { phone: 'טלפון', desktop: 'מחשב' })}
+      ${rank('פניות ורשתות', { ...byPrefix(days, 'contact'), ...byPrefix(days, 'social') }, 'לחיצות')}
+      ${rank('מה שאלו בתיבה', byPrefix(days, 'ask'), 'שאלות')}
+      ${rank('חיפושים אחרונים', sCount, 'פעמים')}
+    </div>
+    ${chatsBox()}
+    <div class="box" style="margin-top:14px"><h2>מה קורה עכשיו<small>${data.events.length} הפעולות האחרונות · שעון ישראל</small></h2>
+      <div class="feed"><table><tr><th>מתי</th><th>איפה</th><th>מה</th><th>מאיפה</th><th>מכשיר</th><th>מבקר</th></tr>
+      ${data.events.map((e) => `<tr><td>${new Date(e.t).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td><td>${esc(SITE[e.p] || e.p)}</td>
+        <td class="what">${esc(EV[e.e] || e.e)}${e.x && e.e !== 'view' ? ` · <b>${esc(label(e.e, e.x))}</b>` : e.e === 'view' ? ` <span class="pill">${esc(e.x)}</span>` : ''}</td>
+        <td>${esc(SRC[e.r] || e.r)}</td><td>${e.m ? 'טלפון' : 'מחשב'}</td><td><span class="pill">${esc(e.v)}</span></td></tr>`).join('')}</table></div></div>`;
+  bars($('#ch1'), days.map((d) => [d.d, d.visitors || 0]), 'מבקרים');
+  bars($('#ch2'), days.map((d) => [d.d, d.n?.chat_message || 0]), 'הודעות');
+  document.querySelectorAll('[data-r]').forEach((b) => (b.onclick = () => { range = +b.dataset.r; load(); }));
+  $('#refresh').onclick = load;
+}
+// the conversations: one thread per visitor's session with one character, newest first; open one to read it
+function chatsBox() {
+  const threads = {};
+  for (const c of data.chats || []) (threads[(c.s || c.v) + '|' + c.mode] ||= []).push(c);
+  const list = Object.values(threads).map((t) => t.sort((a, b) => a.t - b.t)).sort((a, b) => b[b.length - 1].t - a[a.length - 1].t);
+  const when = (t) => new Date(t).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const reply = (a) => esc(a).replace(/\[\[video:([\w-]+)\]\]/g, (_, id) => `<span class="pill">▶ ${esc(names.v[id] || id)}</span>`)
+    .replace(/\[\[char:([\w-]+)\]\]/g, (_, id) => `<span class="pill">→ ${esc(names.c[id]?.name || id)}</span>`).replace(/\n/g, '<br>');
+  const who = (mode) => mode === 'guide' ? 'המדריך' : (names.c[mode]?.name || mode);
+  return `<div class="box" style="margin-top:14px"><h2>שיחות עם הדמויות<small>${list.length} שיחות · ${(data.chats || []).length} הודעות</small></h2>
+    ${list.length ? `<div class="threads">${list.map((t) => { const last = t[t.length - 1], c = names.c[last.mode];
+      return `<details class="thread"><summary>${c?.img ? `<img src="/wiki/${c.img}" alt="">` : '<span class="gdot"></span>'}<b>${esc(who(last.mode))}</b>
+        <span class="tq">${esc(t[0].q.slice(0, 70))}</span><small>${t.length} · ${when(last.t)} · ${esc(SRC[last.r] || last.r || '')} · ${last.m ? 'טלפון' : 'מחשב'}</small></summary>
+        <div class="convo">${t.map((x) => `<div class="b me">${esc(x.q)}<i>${when(x.t)}</i></div><div class="b them">${reply(x.a)}</div>`).join('')}</div></details>`; }).join('')}</div>`
+      : '<div class="empty">עוד אין שיחות מאז שהשמירה הופעלה</div>'}</div>`;
+}
+function rank(title, obj, unit, map) {
+  const rows = Object.entries(obj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const max = rows.length ? rows[0][1] : 1;
+  return `<div class="box"><h2>${title}<small>${unit}</small></h2>${rows.length ? `<table>${rows.map(([key, v]) => `<tr><td class="nm">${esc(map?.[key] || label('', key))}<div class="meter" style="width:${Math.max(4, (v / max) * 100)}%"></div></td><td class="n">${fmt(v)}</td></tr>`).join('')}</table>` : '<div class="empty">עוד אין</div>'}</div>`;
+}
+
+// ---------- one-series bar chart, with a hover tooltip ----------
+function bars(el, rows, unit) {
+  const W = el.clientWidth || 500, H = 170, padB = 22, padT = 8, n = rows.length;
+  const max = Math.max(1, ...rows.map((r) => r[1])), step = W / n, bw = Math.max(2, Math.min(28, step - 2));
+  const y = (v) => H - padB - (v / max) * (H - padB - padT);
+  const every = Math.ceil(n / 7);
+  const grid = [0, .5, 1].map((f) => { const v = Math.round(max * f), yy = y(v); return `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/><text x="${W}" y="${yy - 3}" fill="var(--faint)" font-size="10" text-anchor="end">${fmt(v)}</text>`; }).join('');
+  const marks = rows.map(([d, v], i) => {
+    const x = W - (i + 1) * step + (step - bw) / 2, top = y(v), h = H - padB - top;   // right to left: today on the left
+    const lbl = i % every === 0 || i === n - 1 ? `<text x="${x + bw / 2}" y="${H - 6}" fill="var(--faint)" font-size="10" text-anchor="middle">${d.slice(8)}/${d.slice(5, 7)}</text>` : '';
+    return `<g data-d="${d}" data-v="${v}"><rect x="${W - (i + 1) * step}" y="0" width="${step}" height="${H - padB}" fill="transparent"/>${v ? `<rect x="${x}" y="${top}" width="${bw}" height="${h}" rx="${Math.min(4, bw / 2)}" fill="var(--bar)"/>` : ''}${lbl}</g>`;
+  }).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}${marks}</svg><div class="tip"></div>`;
+  const tip = el.querySelector('.tip');
+  el.querySelectorAll('g[data-d]').forEach((g) => {
+    g.onmouseenter = () => { const r = g.getBoundingClientRect(), p = el.getBoundingClientRect(); tip.style.display = 'block'; tip.style.right = (p.right - r.right + r.width / 2) + 'px'; tip.style.top = '0px';
+      tip.textContent = `${g.dataset.d.slice(8)}/${g.dataset.d.slice(5, 7)} · ${fmt(+g.dataset.v)} ${unit}`; };
+    g.onmouseleave = () => (tip.style.display = 'none');
+  });
+}
+</script>
+</body>
+</html>

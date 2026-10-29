@@ -36,6 +36,8 @@ Catchphrases (use sparingly, only where they come naturally):
 - יש לי כבר קצת קילומטראז׳ בעולמות האלה.
 - יישור קו על מה? עוד אין לכם קו.
 
+170 words per minute (measured on a real script) - a 10-second line is about 28 words; keep lines to what fits the moment.
+
 ## What's funny about them
 - נשמע כמו המבוגר האחראי ששואל את השאלות הנכונות - אבל פוסל כל כיוון, כך שגם הפגישה שלו נגמרת בלי כלום, ודניאל, שיכול לענות על ה-IP, מורד מהשיחה.
 - קנה המידה: 200-300 מיליון דולר בשנה הם "נחמד".

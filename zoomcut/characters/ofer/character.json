@@ -134,5 +134,10 @@
     "c:/workspace/BoostMind/zoomcut/render/ui/editor.css",
     "c:/workspace/BoostMind/zoomcut/scripts/זום-3.txt",
     "c:/workspace/BoostMind/zoomcut/episodes/agentic-sync-test/script.txt"
-  ]
+  ],
+  "pace": {
+    "wpm": 150,
+    "at": 1792782652563,
+    "script": "gilad-joins"
+  }
 }

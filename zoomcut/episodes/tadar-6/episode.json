@@ -360,8 +360,9 @@
     {
       "take": "586D1398-5BD0-45C2-A2B7-DC5C2945A405",
       "at": 66.4,
-      "seconds": 3.0,
+      "seconds": 3,
       "end_card": true
     }
-  ]
+  ],
+  "done": true
 }

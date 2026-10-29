@@ -39,6 +39,8 @@ Catchphrases (use sparingly, only where they come naturally):
 - בואו נייצר פה התקדמות שלא מייצרת מחויבות, אבל כן מייצרת מומנטום.
 - דניאל, אתה יכול לרדת מהשיחה.
 
+160 words per minute (measured on a real script) - a 10-second line is about 27 words; keep lines to what fits the moment.
+
 ## What's funny about them
 - הפער בין "אנחנו רוצים לזוז מהר" לבין זה שהוא לא נותן לאיש היחיד שמבין משהו לסיים חצי משפט - ובסוף מאשים דווקא אותו ב"מקלות בגלגלים".
 - כל ויכוח נגמר ב"אז אנחנו מסונכרנים" כשברור שאף אחד לא מסונכרן (רונית: "לא. אנחנו לא מסונכרנים.").

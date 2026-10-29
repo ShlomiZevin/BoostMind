@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=block" rel="stylesheet">
+<style>
+  :root { --navy: #0b2545; --blue: #0a5cc2; --sky: #e8f0fb; --ink: #1c2633; --muted: #5b6878; --line: #dde3ea; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; }
+  body { background: #fff; font-family: 'Heebo', sans-serif; color: var(--ink); position: relative; }
+  /* a real employer-branding shot: her at the office, the room out of focus behind her */
+  .photo { position: absolute; top: 0; left: 0; width: 1080px; height: 1170px; overflow: hidden; background: #d9dde2; }
+  .photo .room { position: absolute; top: -40px; left: -40px; width: 1160px; height: 1740px; object-fit: cover; filter: blur(5px) brightness(1.04); }
+  .photo .her { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 1060px; }
+  .logo { position: absolute; top: 262px; left: 56px; display: flex; align-items: center; gap: 12px; direction: ltr;
+    background: #fff; padding: 10px 18px; border-radius: 14px; }
+  .mark { background: var(--blue); color: #fff; font-weight: 800; font-size: 24px; padding: 4px 10px; border-radius: 8px; }
+  .logo b { font-size: 28px; color: var(--navy); font-weight: 800; }
+  .panel { position: absolute; top: 1170px; left: 0; right: 0; padding: 40px 64px 0; }
+  h1 { font-size: 112px; font-weight: 900; color: var(--navy); line-height: 1; letter-spacing: -1px; }
+  .who { font-size: 32px; color: var(--muted); margin-top: 14px; }
+  .who b { color: var(--ink); font-weight: 700; }
+  .quote { font-size: 36px; font-weight: 500; line-height: 1.35; margin-top: 22px; padding-right: 22px; border-right: 6px solid var(--blue); }
+  .cta { position: absolute; top: 1530px; left: 64px; right: 64px; height: 92px; background: var(--blue); color: #fff; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 36px; font-weight: 700; }
+  .cta span { font-weight: 400; opacity: .9; }
+  .box { position: absolute; top: 1640px; left: 50%; transform: translateX(-50%); width: 640px; height: 120px; border: 5px dashed var(--blue);
+    border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 700; color: var(--blue); }
+  .url { position: absolute; top: 1640px; left: 0; right: 0; text-align: center; direction: ltr; font-size: 38px; font-weight: 700; color: var(--navy); }
+  .tags { position: absolute; top: 1462px; right: 64px; left: 64px; font-size: 34px; font-weight: 700; color: var(--blue); direction: rtl; }
+  .tags i { font-style: normal; color: var(--muted); font-weight: 500; margin-right: 18px; direction: ltr; unicode-bidi: isolate; }
+  .chips { position: absolute; top: 1080px; right: 56px; display: flex; gap: 14px; }
+  .chips span { background: var(--blue); color: #fff; font-size: 36px; font-weight: 800; padding: 10px 24px; border-radius: 40px; }
+  .chips .en { background: #fff; color: var(--navy); direction: ltr; }
+</style>
+</head>
+<body>
+<div class="photo">
+  <img class="room" src="../set.jpg" alt="">
+  <img class="her" src="hani-full.png" alt="">
+</div>
+<div class="logo"><span class="mark">&lt;/&gt;</span><b>Techy-Tech</b></div>
+<div class="panel">
+  <h1>תהיו חני.</h1>
+  <div class="who"><b>חני פרידמן</b> · מפתחת Backend, צוות Data &amp; AI</div>
+  <div class="quote">״בטקי-טק אני כותבת קוד שמחזיק את המערכת, ויוצאת בזמן לאסוף את הבנות.״</div>
+</div>
+<div class="chips"><span>#תהיוחני</span><span class="en">#LifeAtTechyTech</span></div>
+<div class="url">techytech.web.app/#careers</div>
+<div class="cta">טקי-טק מגייסת <span id="ctasub">· הלינק בביו</span></div>
+<div class="box" id="box">הקישור כאן</div>
+<script>
+  // Instagram: he drops the link sticker in the box; elsewhere the address is written out
+  if (location.hash === '#ig') { document.getElementById('ctasub').textContent = '· הלינק כאן 👇'; document.querySelector('.url').style.display = 'none'; }
+  else document.getElementById('box').style.display = 'none';
+</script>
+</body>
+</html>
