@@ -10,15 +10,15 @@ SRC = 'chat-fixed.png'
 # label: (cream y-centre, cream x0, x1, name), (gold y-centre, x0, x1, tag)  - measured from the image
 L = [
   ((291.5, 636, 920, 'מטפחת סריגה שחורה'), (331.5, 758, 916, 'אופנת חני · ₪59')),
-  ((322.5, 75, 297, 'משקפיים דקות'),      (364.0, 118, 292, 'עוד מלפני החתונה')),
-  ((559.5, 664, 919, 'חולצה מכופתרת נייבי'), (600.0, 737, 916, 'אופנת חני · יום-יום')),
-  ((567.5, 115, 296, 'פלאפון כשר'),        (608.0, 45, 293, 'חנות הסלולר הכשר בשכונה')),
-  ((908.5, 669, 919, 'חצאית מקסי שחורה'),  (949.5, 737, 916, 'אופנת חני · יום-יום')),
-  ((1163.5, 42, 292, 'נעלי בובה שטוחות'),  (1206.0, 95, 279, 'בלי עקב, בלי רעש')),
+  ((322.5, 75, 297, 'משקפיים דקות'),      (364.0, 118, 292, 'אופטיקה בשכונה · ₪250')),
+  ((559.5, 664, 919, 'חולצה מכופתרת נייבי'), (600.0, 737, 916, 'אופנת חני · ₪99')),
+  ((567.5, 115, 296, 'פלאפון כשר'),        (608.0, 45, 293, 'סלולר כשר בשכונה · ₪199')),
+  ((908.5, 669, 919, 'חצאית מקסי שחורה'),  (949.5, 737, 916, 'אופנת חני · ₪129')),
+  ((1163.5, 42, 292, 'נעלי בובה שטוחות'),  (1206.0, 95, 292, 'נעליים ברבי עקיבא · ₪149')),
 ]
 CH, GH = 45, 31          # pill heights
 # the gold dots each arrow starts from (the erase takes them with the pills)
-DOTS = [(630, 292), (300, 321), (660, 558), (300, 567), (662, 907), (291, 1209)]
+DOTS = [(630, 292), (300, 321), (660, 558), (300, 567), (662, 907), (302, 1211)]
 im = Image.open(SRC).convert('RGB'); px = im.load(); W, H = im.size
 a = np.asarray(im).astype(int)
 
@@ -52,7 +52,7 @@ im.save('chat-nopills.png')
 pills = []
 for (cy, cx0, cx1, name), (gy, gx0, gx1, tag) in L:
     pills.append(f'<div class="c" style="top:{cy - CH / 2}px;left:{cx0}px;width:{cx1 - cx0}px">{name}</div>')
-    pills.append(f'<div class="g" style="top:{gy - GH / 2}px;left:{gx0}px;width:{gx1 - gx0}px">{tag}</div>')
+    pills.append(f'<div class="g" style="top:{gy - GH / 2}px;right:{W - gx1}px">{tag}</div>')
 pills += [f'<i style="left:{x - 5}px;top:{y - 5}px"></i>' for x, y in DOTS]
 html = f'''<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
 /* written by fix_pills.py */
@@ -63,7 +63,7 @@ html, body {{ width:{W}px; height:{H}px; overflow:hidden; background:url(chat-no
 .c {{ height:{CH}px; border-radius:{CH / 2}px; background:rgb{CREAM}; color:rgb(16,28,63); font-weight:800; font-size:26px;
   box-shadow:0 2px 6px rgba(28,42,74,0.13); padding-bottom:2px; }}
 i {{ position:absolute; width:10px; height:10px; border-radius:50%; background:rgb{GOLD}; }}
-.g {{ height:{GH}px; border-radius:{GH / 2}px; background:rgb{GOLD}; color:#fff; font-weight:700; font-size:17.5px; padding-bottom:1px; }}
+.g {{ height:{GH}px; border-radius:{GH / 2}px; background:rgb{GOLD}; color:#fff; font-weight:700; font-size:17.5px; padding:0 15px 1px; }}
 </style></head><body>
 {chr(10).join(pills)}
 </body></html>'''
