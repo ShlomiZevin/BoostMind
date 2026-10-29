@@ -237,6 +237,13 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    the live ones first (md5 of local vs `curl`), and say what else would go out.
 
 ## More of his rules
+- **A song clip from people's sung takes** (zot-hani-karaoke, 2026-10-29): every take its own audio layer (the WHOLE
+  original take, one item per line placed on the beat with `in`), the processing live in the layer's `voice` chain
+  (low cut, warmth, presence, de-ess, comp, a little room) - NEVER a resynthesized / pitch-corrected file: my WORLD
+  tuning made it "terrible". Two or three voices at a time (lead + a double; the rest muted layers he can turn on),
+  vocals ~1 dB under the music. The words = the `lyric` text style ("a word here, a word there" - not karaoke), the
+  font from the poster's look (Rubik Spray Paint for a brush-graffiti title, `fonts/`). He trims the start / end
+  himself (a note "שיתחיל מכאן", End here) - follow it.
 - **He can always re-trim the cut himself - in the one editor, in every kind of video** (asked 6 times, last
   2026-10-22: "make sure I can drag videos to start before them and after them... always on partial videos"): every
   cut piece's edge drags out to take more of the original take, or in to take less. Zoom: the drag becomes a line
@@ -259,6 +266,13 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   2026-10-25: "something in the end is not right... fit everything again, make them stitch"). After such a cut,
   shift every hand item after it by the same frames, then check: no gap between Person pieces, nothing past
   `duration`.
+- **Silent acting is content** (his words, 2026-10-29: "at the start I rock, scratch my head, play with the glasses - I
+  need that bit, you cut it because there's no talking"): before trimming a take to its first word, LOOK at the frames
+  before it (a contact sheet every second). Business without words (fidgeting, a look, a prop) stays; only the hand on
+  the phone at the very start goes. Then move hand-placed overlays by the same shift (word-tied ones follow by themselves).
+- **A `sequence` `to` right after a word eats it**: the join fades the piece out over its last 0.27 s, so a cut 0.05 s
+  after "סוקר" lost the word ("לא שומעים את הסוף", 2026-10-29). Leave >= 0.3 s after the last word; if the next word
+  follows too closely, keep the sentence in one take and start the next take after its repeat.
 - **Trim a take's start / end with `cut.edges` [[where the cut put it, where it goes]] - never `cut.removes`** for that.
   removes run AFTER his drags, so the editor's edge stopped moving and he dragged six times for nothing (2026-10-23).
   The natural edges come from `lesson.spans` with no edges / removes. removes = a piece cut out of the middle only.

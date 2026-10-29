@@ -4,5 +4,6 @@
   { "id": "arimo",         "name": "Arimo",                   "file": "Arimo.ttf",                   "weight": 700 },
   { "id": "abraham",       "name": "Abraham",                 "file": "Abraham-Regular.ttf",         "weight": 400 },
   { "id": "stam-ashkenaz", "name": "Stam Ashkenaz",           "file": "stamashkenazclm-webfont.ttf", "weight": 400 },
-  { "id": "stam-sefarad",  "name": "Stam Sefarad",            "file": "stamsefaradclm-webfont.ttf",  "weight": 400 }
+  { "id": "stam-sefarad",  "name": "Stam Sefarad",            "file": "stamsefaradclm-webfont.ttf",  "weight": 400 },
+  { "id": "spray",         "name": "Rubik Spray Paint",       "file": "RubikSprayPaint-Regular.ttf", "weight": 400 }
 ]

@@ -111,6 +111,12 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
     seconds since the item began, counted across rows; knobs `size` (84), `color`, `fill` (#ff2d95), `stroke` (9),
     `strokeColor`, `nextSize` (0.58), `font`, `weight`. One item per line, back to back. Word times for a known song:
     the original vocal stem (Demucs) - Whisper word spans snapped to where the singer actually sings.
+  - `lyric` (2026-10-29 - he wanted "a word here, a word there, fade in, fade out... a cool video clip, not a regular
+    karaoke") - a lyric-video line: each word pops in when it's sung (big + blurred -> sharp, a small random tilt) and
+    stays; the line drifts up and fades out at the item's end. `text` rows by `\n`, `*word*` / `*a run*` = accent
+    (`fill` colour, `accent` x size); `words` like karaoke (counted without the *); knobs `size` (96), `color`, `fill`
+    (#ff3ea5), `accent` (1.35), `stroke` (8), `strokeColor`, `tilt` (deg, rows alternate), `align` center | right |
+    left. Vary each line's box / align / tilt so the words land in different places.
 - `font` is a font asset id (`font.assistant`); none = the UI font.
 
 ### subtitles

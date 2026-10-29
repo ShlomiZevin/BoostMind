@@ -84,8 +84,45 @@ export const TEXT_STYLES: Record<string, { label: string; animated?: boolean; re
   // each word (split on spaces) is sung, seconds since the item began; next (the line after it). knobs: size (84),
   // color (#fff), fill (#ff2d95), stroke (9), strokeColor (#1b0a24), nextSize (0.58 of size), font, weight (800)
   karaoke: { label: 'Karaoke line', animated: true, render: ({ it, text, fonts, t }) => <Karaoke it={it} text={text} fonts={fonts} t={t} /> },
+  // a lyric-video line ("a word here, a word there"): each word pops in when it's sung - from big and blurred to sharp,
+  // a little tilt - and stays; the line drifts up and fades out at the item's end. text: rows by \n, *word* = accent
+  // (fill colour, bigger; "*a b*" marks a run). words [[a, b], ...] like karaoke (counted without the *). knobs: size
+  // (96), color (#fff), fill (#ff3ea5), accent (1.35 x size), stroke (8), strokeColor, tilt (deg, rows alternate),
+  // align (center | right | left), font, weight
+  lyric: { label: 'Lyric video words', animated: true, render: ({ it, text, fonts, t }) => <Lyric it={it} text={text} fonts={fonts} t={t} /> },
   ...SOLO_TEXT_STYLES,  // the one-camera engine's styles (styles_solo.tsx): ticker, ...
 };
+
+function Lyric({ it, text, fonts, t }: StyleProps) {
+  const size = it.size || 96, end = it.dur != null ? it.dur / 30 : 1e9, times: number[][] = it.words || [];
+  const font = fontOf({ ...it, weight: it.weight ?? 800 }, fonts, 800);
+  const ink: any = { WebkitTextStroke: `${it.stroke ?? 8}px ${it.strokeColor || '#1b0a24'}`, paintOrder: 'stroke fill' };
+  // rows of words; "*" opens / closes the accent
+  let on = false, n = 0;
+  const rows = String(text).split('\n').map((r) => r.split(/\s+/).filter(Boolean).map((tok) => {
+    if (tok.startsWith('*')) on = true;
+    const w = { w: tok.replace(/\*/g, ''), acc: on, i: n++ };
+    if (tok.endsWith('*')) on = false;
+    return w;
+  }));
+  const seed = String(it.id || '').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
+  const rnd = (i: number) => { const x = Math.sin(seed * 0.001 + i * 12.9898) * 43758.5453; return x - Math.floor(x); };
+  const out = clamp01((end - t) / 0.3), tilt = it.tilt ?? 3;
+  const justify = it.align === 'right' ? 'flex-start' : it.align === 'left' ? 'flex-end' : 'center';  // (rtl: start = right)
+  return <div style={{ direction: 'rtl', display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: it.box?.w ?? 960,
+    opacity: out, transform: `translateY(${-t * 7}px) scale(${1 + (1 - out) * 0.08})`, ...font }}>
+    {rows.map((row, r) => <div key={r} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: justify, gap: `0 ${Math.round(size * 0.24)}px`,
+      transform: `rotate(${(r % 2 ? 1 : -1) * tilt}deg)`, marginTop: r ? -Math.round(size * 0.12) : 0 }}>
+      {row.map(({ w, acc, i }) => {
+        const [a] = times[i] || [0];
+        const k = clamp01((t - a + 0.04) / 0.22), e = ease(k);
+        return <span key={i} style={{ display: 'inline-block', fontSize: Math.round(size * (acc ? it.accent ?? 1.35 : 1)), lineHeight: 1.12,
+          color: acc ? it.fill || '#ff3ea5' : it.color || '#fff', opacity: e, filter: k < 1 ? `blur(${(1 - k) * 10}px)` : undefined,
+          transform: `translateY(${(1 - e) * -26}px) scale(${1.55 - 0.55 * e}) rotate(${(rnd(i) - 0.5) * 7}deg)`, ...ink }}>{w}</span>;
+      })}
+    </div>)}
+  </div>;
+}
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const ease = (v: number) => 1 - Math.pow(1 - clamp01(v), 3);
@@ -114,7 +151,7 @@ function Karaoke({ it, text, fonts, t }: StyleProps) {
       })}
     </div>)}
     {it.next && <div style={{ fontSize: Math.round(size * (it.nextSize ?? 0.58)), lineHeight: 1.2, color: 'rgba(255,255,255,0.62)', maxWidth: it.box?.w ?? 980,
-      ...font, fontWeight: 700, WebkitTextStroke: `${Math.max(3, Math.round(stroke * 0.6))}px ${sc}`, paintOrder: 'stroke fill' } as any}>{String(it.next).replace(/\n/g, ' ')}</div>}
+      ...font, WebkitTextStroke: `${Math.max(3, Math.round(stroke * 0.6))}px ${sc}`, paintOrder: 'stroke fill' } as any}>{String(it.next).replace(/\n/g, ' ')}</div>}
   </div>;
 }
 
