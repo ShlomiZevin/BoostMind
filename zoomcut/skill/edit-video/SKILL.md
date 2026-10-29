@@ -243,7 +243,8 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   tuning made it "terrible". Two or three voices at a time (lead + a double; the rest muted layers he can turn on),
   vocals ~1 dB under the music. The words = the `lyric` text style ("a word here, a word there" - not karaoke), the
   font from the poster's look (Rubik Spray Paint for a brush-graffiti title, `fonts/`). He trims the start / end
-  himself (a note "שיתחיל מכאן", End here) - follow it.
+  himself (a note "שיתחיל מכאן", End here) - follow it. **The whole recipe and its tools: the `make-songs` skill**
+  (`skill/make-songs/SKILL.md`).
 - **He can always re-trim the cut himself - in the one editor, in every kind of video** (asked 6 times, last
   2026-10-22: "make sure I can drag videos to start before them and after them... always on partial videos"): every
   cut piece's edge drags out to take more of the original take, or in to take less. Zoom: the drag becomes a line
@@ -256,6 +257,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   layer of the place + a bed (reusable comedy beds in `_assets/music/`), and every phone / Teams call gets the
   other side's mumble in her pauses (`recipes/offscreen-voice.md` → hani). A whispered blessing / drinking is acted,
   not silence - check the frames of a long pause before cutting it.
+- **HOW HE WANTS A ONE-CAMERA CUT - do exactly this, nothing more** (said three times on demokratovich-nechama,
+  2026-10-29: "your cuts are really bad... each video stops when it stops, the next starts where he talks, a little
+  room to hear the end and the start of the word - and that's it, don't cut more things"):
+  `cut` = {silence: false, join: 0}; every take starts ~0.15 s before its first syllable and ends ~0.3 s after its last
+  word (measure dB per 50 ms; `edges` / `sequence` from-to); no overlap, no fades eating words, no extra pieces. Only
+  exceptions: a silent opening he acts in (`lead_in`), and a stumble he redid in the next take (cut the stumble).
+  Someone heard off-screen (a question): the picture under it comes ONLY from the take where he listens; if it is too
+  short, speed the sound up (`tempo`) - never borrow footage from other takes. Room echo on anyone: very, very gentle
+  (`room` ~0.1, "light, pleasant to the ear"). A noise filter that colours his voice: back to the original.
 - **Pauses inside a take stay; only the joins BETWEEN takes are tight** (his words, 2026-10-23: "don't cut spaces in
   the same video, only between videos"). One-camera projects with several short takes: `cut.silence: false`. At a
   join the previous take's sound runs on under the next one's start (`cut.join` 0.25 - "continue the sound of the
