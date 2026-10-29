@@ -1,0 +1,31 @@
+{
+  "type": "lesson",
+  "title": "hani-games-promo",
+  "input_dir": "C:/Users/shazbak/Downloads/hani-friedman/promo",
+  "takes": "*.[mM][pPoO][4vV]",
+  "background": "../_assets/tadar/studio.jpg",
+  "plaque": [],
+  "matte_engine": "hybrid",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 0
+  },
+  "captions_y": 1330,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 64,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "voice": "natural",
+  "cut": {
+    "merge": 0.6,
+    "pad_in": 0.08,
+    "pad_out": 0.35,
+    "join": 0.08
+  },
+  "overlays": []
+}

@@ -1,0 +1,807 @@
+{
+  "format": "sketch-studio/1",
+  "title": "המשחקייה של חני - קדימון",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#f5efe2"
+  },
+  "duration": 494,
+  "speed": 1,
+  "assets": {
+    "m.hero.jpg": {
+      "kind": "image",
+      "src": "media/hero.jpg",
+      "w": 1024,
+      "h": 1024
+    },
+    "m.nisei-nissim-a.jpg": {
+      "kind": "image",
+      "src": "media/nisei-nissim-a.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.nisei-nissim-c.jpg": {
+      "kind": "image",
+      "src": "media/nisei-nissim-c.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.ketoret-a.jpg": {
+      "kind": "image",
+      "src": "media/ketoret-a.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.ketoret-c.jpg": {
+      "kind": "image",
+      "src": "media/ketoret-c.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.gan-run-a.jpg": {
+      "kind": "image",
+      "src": "media/gan-run-a.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.gan-run-c.jpg": {
+      "kind": "image",
+      "src": "media/gan-run-c.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.shekel-tov-a.jpg": {
+      "kind": "image",
+      "src": "media/shekel-tov-a.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.shekel-tov-c.jpg": {
+      "kind": "image",
+      "src": "media/shekel-tov-c.jpg",
+      "w": 1080,
+      "h": 1920
+    },
+    "m.seal.png": {
+      "kind": "image",
+      "src": "media/seal.png",
+      "w": 600,
+      "h": 600
+    },
+    "font.SuezOne.ttf": {
+      "kind": "font",
+      "src": "media/SuezOne.ttf",
+      "family": "zc-SuezOne"
+    },
+    "font.Assistant.ttf": {
+      "kind": "font",
+      "src": "media/Assistant.ttf",
+      "family": "zc-Assistant"
+    },
+    "s.zot-hani-song.mp3": {
+      "kind": "audio",
+      "src": "media/zot-hani-song.mp3",
+      "duration": 16.448
+    }
+  },
+  "layers": [
+    {
+      "items": [
+        {
+          "id": "hero",
+          "asset": "m.hero.jpg",
+          "from": 0,
+          "dur": 78,
+          "box": {
+            "x": -420,
+            "y": 0,
+            "w": 1920
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                1
+              ],
+              [
+                2.6,
+                1.07
+              ]
+            ]
+          }
+        },
+        {
+          "id": "nisei-nissim-a",
+          "asset": "m.nisei-nissim-a.jpg",
+          "from": 75,
+          "dur": 36,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "fade_in": 0.15
+        },
+        {
+          "id": "nisei-nissim-c",
+          "asset": "m.nisei-nissim-c.jpg",
+          "from": 111,
+          "dur": 39,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                1
+              ],
+              [
+                1.3,
+                1.05
+              ]
+            ]
+          }
+        },
+        {
+          "id": "ketoret-a",
+          "asset": "m.ketoret-a.jpg",
+          "from": 150,
+          "dur": 36,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "fade_in": 0.15
+        },
+        {
+          "id": "ketoret-c",
+          "asset": "m.ketoret-c.jpg",
+          "from": 186,
+          "dur": 39,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                1
+              ],
+              [
+                1.3,
+                1.05
+              ]
+            ]
+          }
+        },
+        {
+          "id": "gan-run-a",
+          "asset": "m.gan-run-a.jpg",
+          "from": 225,
+          "dur": 36,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "fade_in": 0.15
+        },
+        {
+          "id": "gan-run-c",
+          "asset": "m.gan-run-c.jpg",
+          "from": 261,
+          "dur": 39,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                1
+              ],
+              [
+                1.3,
+                1.05
+              ]
+            ]
+          }
+        },
+        {
+          "id": "shekel-tov-a",
+          "asset": "m.shekel-tov-a.jpg",
+          "from": 300,
+          "dur": 36,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "fade_in": 0.15
+        },
+        {
+          "id": "shekel-tov-c",
+          "asset": "m.shekel-tov-c.jpg",
+          "from": 336,
+          "dur": 39,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                1
+              ],
+              [
+                1.3,
+                1.05
+              ]
+            ]
+          }
+        }
+      ],
+      "props": {},
+      "id": "pics",
+      "kind": "image",
+      "name": "תמונות"
+    },
+    {
+      "items": [
+        {
+          "id": "b1",
+          "from": 0,
+          "dur": 78,
+          "box": {
+            "x": 0,
+            "y": 1150,
+            "w": 1080,
+            "h": 770
+          },
+          "fill": "rgba(29,42,77,0.9)",
+          "fade_in": 0.3
+        },
+        {
+          "id": "page",
+          "from": 375,
+          "dur": 119,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          },
+          "fill": "#f5efe2",
+          "fade_in": 0.2
+        }
+      ],
+      "props": {},
+      "id": "band",
+      "kind": "shape",
+      "name": "רצועה"
+    },
+    {
+      "items": [
+        {
+          "id": "o1",
+          "from": 4,
+          "dur": 74,
+          "text": "בשעה טובה ומוצלחת",
+          "box": {
+            "x": 540,
+            "y": 1250,
+            "w": 980,
+            "anchor": "t"
+          },
+          "style": "plain",
+          "size": 54,
+          "color": "#c8962e",
+          "font": "font.Assistant.ttf",
+          "weight": 800,
+          "align": "center",
+          "fade_in": 0.25,
+          "fade_out": 0.2
+        },
+        {
+          "id": "o2",
+          "from": 12,
+          "dur": 66,
+          "text": "עלה לאוויר!",
+          "box": {
+            "x": 540,
+            "y": 1330,
+            "w": 980,
+            "anchor": "t"
+          },
+          "style": "plain",
+          "size": 150,
+          "color": "#f5efe2",
+          "font": "font.SuezOne.ttf",
+          "weight": 400,
+          "align": "center",
+          "fade_in": 0.25,
+          "fade_out": 0.2
+        },
+        {
+          "id": "o3",
+          "from": 24,
+          "dur": 54,
+          "text": "המשחקייה של חני",
+          "box": {
+            "x": 540,
+            "y": 1530,
+            "w": 980,
+            "anchor": "t"
+          },
+          "style": "plain",
+          "size": 92,
+          "color": "#c8962e",
+          "font": "font.SuezOne.ttf",
+          "weight": 400,
+          "align": "center",
+          "fade_in": 0.25,
+          "fade_out": 0.2
+        },
+        {
+          "id": "o4",
+          "from": 32,
+          "dur": 46,
+          "text": "משחקים כשרים למהדרין לכל המשפחה",
+          "box": {
+            "x": 540,
+            "y": 1680,
+            "w": 980,
+            "anchor": "t"
+          },
+          "style": "plain",
+          "size": 44,
+          "color": "#f5efe2",
+          "font": "font.Assistant.ttf",
+          "weight": 700,
+          "align": "center",
+          "fade_in": 0.25,
+          "fade_out": 0.2
+        }
+      ],
+      "props": {},
+      "id": "opener",
+      "kind": "text",
+      "name": "פתיחה"
+    },
+    {
+      "items": [
+        {
+          "id": "cap-nisei-nissim",
+          "from": 111,
+          "dur": 39,
+          "text": "הבית קורס, השרת נופל –\nוחני אומרת ״ברוך השם״",
+          "box": {
+            "x": 540,
+            "y": 1480,
+            "w": 900,
+            "anchor": "t"
+          },
+          "style": "pov",
+          "theme": "dark",
+          "size": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.1
+        },
+        {
+          "id": "cap-ketoret",
+          "from": 186,
+          "dur": 39,
+          "text": "בונים עם חני\nאת מזבח הקטורת",
+          "box": {
+            "x": 540,
+            "y": 1480,
+            "w": 900,
+            "anchor": "t"
+          },
+          "style": "pov",
+          "theme": "dark",
+          "size": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.1
+        },
+        {
+          "id": "cap-gan-run",
+          "from": 261,
+          "dur": 39,
+          "text": "4:20, ומלכי מחכה בגן –\nרכבת קלה או אוטובוס?",
+          "box": {
+            "x": 540,
+            "y": 1480,
+            "w": 900,
+            "anchor": "t"
+          },
+          "style": "pov",
+          "theme": "dark",
+          "size": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.1
+        },
+        {
+          "id": "cap-shekel-tov",
+          "from": 336,
+          "dur": 39,
+          "text": "ממלאים את קופת הצדקה\nבלי לשון הרע",
+          "box": {
+            "x": 540,
+            "y": 1480,
+            "w": 900,
+            "anchor": "t"
+          },
+          "style": "pov",
+          "theme": "dark",
+          "size": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.1
+        }
+      ],
+      "props": {},
+      "id": "captions",
+      "kind": "text",
+      "name": "שורות המשחקים"
+    },
+    {
+      "items": [
+        {
+          "id": "r0",
+          "from": 381,
+          "dur": 54,
+          "text": "כשר למהדרין",
+          "box": {
+            "x": 540,
+            "y": 760,
+            "anchor": "t"
+          },
+          "style": "pill",
+          "bg": "#1d2a4d",
+          "color": "#f5efe2",
+          "size": 78,
+          "radius": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.15,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.8
+              ],
+              [
+                0.18,
+                1.06
+              ],
+              [
+                0.3,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "id": "r1",
+          "from": 387,
+          "dur": 48,
+          "text": "בלי פרסומות",
+          "box": {
+            "x": 540,
+            "y": 935,
+            "anchor": "t"
+          },
+          "style": "pill",
+          "bg": "#1d2a4d",
+          "color": "#f5efe2",
+          "size": 78,
+          "radius": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.15,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.8
+              ],
+              [
+                0.18,
+                1.06
+              ],
+              [
+                0.3,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "id": "r2",
+          "from": 393,
+          "dur": 42,
+          "text": "בלי צ'אט",
+          "box": {
+            "x": 540,
+            "y": 1110,
+            "anchor": "t"
+          },
+          "style": "pill",
+          "bg": "#1d2a4d",
+          "color": "#f5efe2",
+          "size": 78,
+          "radius": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.15,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.8
+              ],
+              [
+                0.18,
+                1.06
+              ],
+              [
+                0.3,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "id": "r3",
+          "from": 399,
+          "dur": 36,
+          "text": "ניגונים בלבד",
+          "box": {
+            "x": 540,
+            "y": 1285,
+            "anchor": "t"
+          },
+          "style": "pill",
+          "bg": "#1d2a4d",
+          "color": "#f5efe2",
+          "size": 78,
+          "radius": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.15,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.8
+              ],
+              [
+                0.18,
+                1.06
+              ],
+              [
+                0.3,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "id": "r4",
+          "from": 405,
+          "dur": 30,
+          "text": "שומר שבת",
+          "box": {
+            "x": 540,
+            "y": 1460,
+            "anchor": "t"
+          },
+          "style": "pill",
+          "bg": "#1d2a4d",
+          "color": "#f5efe2",
+          "size": 78,
+          "radius": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.15,
+          "fade_out": 0.15,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.8
+              ],
+              [
+                0.18,
+                1.06
+              ],
+              [
+                0.3,
+                1
+              ]
+            ]
+          }
+        }
+      ],
+      "props": {},
+      "id": "rules",
+      "kind": "text",
+      "name": "תקנון הכשרות"
+    },
+    {
+      "items": [
+        {
+          "id": "e1",
+          "from": 441,
+          "dur": 53,
+          "text": "המשחקייה של חני",
+          "box": {
+            "x": 540,
+            "y": 920,
+            "w": 980,
+            "anchor": "t"
+          },
+          "style": "plain",
+          "size": 118,
+          "color": "#1d2a4d",
+          "font": "font.SuezOne.ttf",
+          "weight": 400,
+          "align": "center",
+          "fade_in": 0.25,
+          "fade_out": 0.2
+        },
+        {
+          "id": "e2",
+          "from": 447,
+          "dur": 47,
+          "text": "ניסי ניסים · אבני בניין · רצים לגן · שקל טוב",
+          "box": {
+            "x": 540,
+            "y": 1080,
+            "w": 980,
+            "anchor": "t"
+          },
+          "style": "plain",
+          "size": 50,
+          "color": "#22223a",
+          "font": "font.Assistant.ttf",
+          "weight": 700,
+          "align": "center",
+          "fade_in": 0.25,
+          "fade_out": 0.2
+        },
+        {
+          "id": "e3",
+          "from": 453,
+          "dur": 41,
+          "text": "הקישור בביו",
+          "box": {
+            "x": 540,
+            "y": 1250,
+            "anchor": "t"
+          },
+          "style": "pill",
+          "bg": "#e0218a",
+          "color": "#ffffff",
+          "size": 74,
+          "radius": 60,
+          "font": "font.Assistant.ttf",
+          "fade_in": 0.2
+        }
+      ],
+      "props": {},
+      "id": "end",
+      "kind": "text",
+      "name": "סיום"
+    },
+    {
+      "items": [
+        {
+          "id": "s1",
+          "asset": "m.seal.png",
+          "from": 375,
+          "dur": 60,
+          "box": {
+            "x": 540,
+            "y": 480,
+            "w": 400,
+            "anchor": "c"
+          },
+          "fade_in": 0.2,
+          "anim": {
+            "scale": [
+              [
+                0,
+                0.85
+              ],
+              [
+                0.25,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "id": "s2",
+          "asset": "m.seal.png",
+          "from": 435,
+          "dur": 59,
+          "box": {
+            "x": 540,
+            "y": 640,
+            "w": 420,
+            "anchor": "c"
+          },
+          "anim": {
+            "scale": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                1.04
+              ]
+            ]
+          }
+        }
+      ],
+      "props": {},
+      "id": "seal",
+      "kind": "image",
+      "name": "החותמת"
+    },
+    {
+      "items": [
+        {
+          "id": "m1",
+          "asset": "s.zot-hani-song.mp3",
+          "in": 0,
+          "from": 0,
+          "dur": 494,
+          "gain": 1
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "music",
+      "kind": "audio",
+      "name": "זוט חני - השיר"
+    }
+  ],
+  "rev": 16,
+  "builder": {
+    "kind": "solo",
+    "actions": [
+      {
+        "id": "analyze",
+        "label": "Analyze the footage"
+      }
+    ]
+  },
+  "saved": 1793269685156
+}
