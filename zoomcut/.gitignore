@@ -20,3 +20,12 @@ episodes/_sound.jsonl
 episodes/*/media/*.jpg
 episodes/*/media/*.jpeg
 episodes/*/media/*.png
+# every wav stays on this computer (big; the mp3 next to it is what we keep), and so do the choir's split voices and
+# the per-singer voice takes the song pipeline makes (media/he/ - made again from the plan)
+episodes/**/*.wav
+episodes/**/*.wav.voices/
+episodes/*/media/he/
+# his own phone recordings stay on this computer (public repo)
+episodes/*/media/*.m4a
+# pictures and sounds he turned down
+episodes/_assets/**/rejected/
