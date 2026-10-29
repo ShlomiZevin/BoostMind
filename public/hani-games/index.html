@@ -20,7 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
   /* המשחקייה של חני - Hani Friedman's kosher games corner (haredit world). The games are built by other sessions, each
-     in its own folder (ketoret/, nisei-nissim/) with a game.json this page reads for its card: title, tagline,
+     in its own folder (ketoret/, nisei-nissim/, gan-run/, shekel-tov/) with a game.json this page reads for its card: title, tagline,
      status live|soon, cover, badges, best.key (localStorage, a number). The page keeps Shabbat (Bnei Brak times). */
   :root { --navy: #1d2a4d; --ink: #22223a; --gold: #c8962e; --cream: #f5efe2; --paper: #fbf8f1; --sky: #3d7fc4; --line: rgba(29, 42, 77, 0.18); }
   * { box-sizing: border-box; }
@@ -86,10 +86,11 @@
   footer b { color: var(--navy); font-family: 'Suez One', serif; font-weight: 400; font-size: 22px; display: block; margin-bottom: 4px; }
   footer p { margin: 4px 0; }
 
-  /* the song: "זוט חני", the chorus on repeat (it starts with the first tap - browsers block sound before that) */
+  /* the song: "זוט חני" - the karaoke clip's sound on repeat (it starts with the first tap - browsers block sound before
+     that); the clip itself plays in the section, and the song pauses while it does */
   .song { background: #1b1030; color: #f3eaf7; }
-  .song .wrap { display: grid; grid-template-columns: 340px 1fr; gap: 44px; align-items: center; }
-  .song img { width: 100%; height: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); }
+  .song .wrap { display: grid; grid-template-columns: 380px 1fr; gap: 56px; align-items: center; }
+  .song video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; background: #000; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 18px 50px rgba(224, 33, 138, 0.35), 0 4px 14px rgba(0, 0, 0, 0.45); }
   .song h2 { color: #fff; }
   .song .sub { color: #d8c8e4; }
   .song p { font-size: 18px; margin: 0 0 14px; }
@@ -101,7 +102,7 @@
   .sound { position: fixed; left: 16px; bottom: 16px; z-index: 5; width: 50px; height: 50px; border-radius: 50%; border: 0; background: #e0218a; color: #fff; display: none; place-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
   .sound.show { display: grid; }
   .sound svg { width: 22px; height: 22px; }
-  @media (max-width: 820px) { .song .wrap { grid-template-columns: 1fr; gap: 26px; } .song img { max-width: 300px; } }
+  @media (max-width: 820px) { .song .wrap { grid-template-columns: 1fr; gap: 26px; } .song video { max-width: 340px; margin: 0 auto; } .song .wrap > div { text-align: center; } }
 
   /* Shabbat */
   .shabbat { position: fixed; inset: 0; z-index: 10; background: var(--navy); color: var(--cream); display: none; place-items: center; text-align: center; padding: 24px; }
@@ -184,13 +185,13 @@
 
 <section class="song" id="song">
   <div class="wrap">
-    <img src="img/zot-hani.jpg" alt="זוט חני - חני פרידמן ליד השולחן במשרד" width="720" height="1290" loading="lazy">
+    <video id="clip" src="video/zot-hani.mp4" poster="video/zot-hani.jpg" controls playsinline preload="none" width="720" height="1280" aria-label="הקליפ של זוט חני"></video>
     <div>
       <h2>זוט חני</h2>
       <p class="sub">השיר שהחברים מהצוות בטקי-טק הכינו לחני</p>
-      <p>הפזמון, בגרסת קריוקי: כל השיר בלי מילים, חוץ משתי מילים, ״זוט חני״.</p>
+      <p>הקליפ, בגרסת קריוקי: המילים רצות על המסך, ואפשר לשיר עם חני.</p>
       <button class="playsong" id="playsong" type="button"><span id="playico"></span><span id="playtxt">להשמיע את השיר</span></button>
-      <div class="heter"><b>לתשומת לב הגולשים:</b> הקול בשיר הוא קול ממוחשב, שנוצר בבינה מלאכותית, ואינו קול של אישה. השיר עולה כאן על דעת הרב ובהסכמתו.</div>
+      <div class="heter"><b>לתשומת לב הגולשים:</b> קולות הנשים בשיר הם קול ממוחשב, שנוצר בבינה מלאכותית, ואינם קול של אישה. השיר עולה כאן על דעת הרב ובהסכמתו.</div>
     </div>
   </div>
 </section>
@@ -233,7 +234,7 @@
 
 <script>
   // The games: each folder describes itself in game.json (written by the session that builds the game)
-  const GAMES = [{ slug: 'nisei-nissim', color: '#3d7fc4' }, { slug: 'ketoret', color: '#a8762a' }];
+  const GAMES = [{ slug: 'nisei-nissim', color: '#3d7fc4' }, { slug: 'ketoret', color: '#a8762a' }, { slug: 'gan-run', color: '#e8772a' }, { slug: 'shekel-tov', color: '#2f6fd1' }];
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const best = key => { try { const v = Number(localStorage.getItem(key)); return v > 0 ? v : 0; } catch (e) { return 0; } };
 
@@ -318,13 +319,16 @@
   const toggle = () => { if (song.paused) { pref.set('on'); start(); } else { song.pause(); pref.set('off'); paint(); } };
   document.getElementById('playsong').onclick = e => { e.stopPropagation(); toggle(); };
   soundBtn.onclick = e => { e.stopPropagation(); toggle(); };
-  const first = e => { if (e.target.closest && e.target.closest('#playsong, #sound')) return; if (pref.get() !== 'off' && song.paused) start(); };
+  const first = e => { if (e.target.closest && e.target.closest('#playsong, #sound, #clip')) return; if (pref.get() !== 'off' && song.paused) start(); };
   addEventListener('pointerdown', first, { once: true }); addEventListener('keydown', first, { once: true });
   let heard = false;
-  song.onplay = () => { paint(); if (!heard && window.track) { heard = true; track('song', 'zot-hani'); } };
+  song.onplay = () => { paint(); const c = document.getElementById('clip'); if (c && !c.paused) c.pause(); if (!heard && window.track) { heard = true; track('song', 'zot-hani'); } };
   song.onpause = paint;
+  // the clip: the song steps aside while it plays (their on/off choice stays as it was)
+  const clip = document.getElementById('clip'); let seen = false;
+  clip.onplay = () => { song.pause(); if (!seen && window.track) { seen = true; track('song', 'zot-hani-clip'); } };
   paint(); if (pref.get() !== 'off') start();
-  setInterval(() => { if (document.body.classList.contains('locked') && !song.paused) song.pause(); }, 1000);
+  setInterval(() => { if (document.body.classList.contains('locked')) { if (!song.paused) song.pause(); if (!clip.paused) clip.pause(); } }, 1000);
 </script>
 <script src="/t.js" data-site="hani-games" defer></script>
 </body>
