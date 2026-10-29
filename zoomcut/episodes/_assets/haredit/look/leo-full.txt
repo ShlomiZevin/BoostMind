@@ -1,0 +1,26 @@
+Recreate the first reference image exactly as a finished 9:16 Instagram story poster: the same layout, the same design and the same proportions - a full-body photo of the Haredi woman standing in the centre on a plain light-grey studio background, with Hebrew fashion "get the look" labels and curved gold arrows on both sides, a big navy title at the top and a framed navy panel at the bottom. Her face, glasses, black knitted tichel and outfit exactly as in the references (the second reference is her face).
+
+SAFE AREA - IMPORTANT: leave the top 12% of the image completely empty plain grey (nothing at all there), and leave the bottom 9% completely empty plain grey. Everything - בס"ד, the title, the labels, the panel - sits between those two empty bands.
+
+All text is Hebrew, right-to-left, spelled exactly as written here, nothing added, nothing left out:
+
+Top right, small: בס״ד
+Small gold line with thin gold rules on both sides: אופנת חני · רבי עקיבא, בני ברק
+Big bold navy title: איך משיגים את הלוק של חני
+Under it a thin gold rule with a small diamond.
+
+Six labels, each = a cream rounded pill with the bold navy name, under it a small gold pill tag, under it navy text; a curved gold arrow from the pill to the item on her:
+Right side, top (arrow to the tichel): מטפחת סריגה שחורה / tag: אופנת חני · ₪59 / text: משולש על הפאה, קשר אחד מאחור, והקצוות קדימה על הכתפיים.
+Right side, middle (arrow to the blouse): חולצה מכופתרת נייבי / tag: אופנת חני · יום-יום / text: מכופתרת עד הצוואר, שרוול עד שורש כף היד.
+Right side, lower (arrow to the skirt): חצאית מקסי שחורה / tag: אופנת חני · יום-יום / text: גזרת A, עד הקרסול. באורך תקני, הולכת עם הכול.
+Left side, top (arrow to the glasses): משקפיים דקות / tag: עוד מלפני החתונה / text: ברוך השם, מחזיקות מעמד.
+Left side, middle (arrow to the phone in her hand): פלאפון כשר / tag: חנות הסלולר הכשר בשכונה / text: תמיד ביד. וואטסאפ אין, אפשר לשלוח במייל.
+Left side, lower (arrow to the shoes): נעלי בובה שטוחות / tag: בלי עקב, בלי רעש / text: לרוץ בארבע ועשרים לגן של מלכי.
+
+Bottom panel: solid navy, rounded, with a thin gold inner frame:
+small gold line with rules on both sides: הפריט החשוב ביותר בלוק
+very big cream-gold title with small gold flourishes on both sides: מידות טובות
+cream line: ״פיה פתחה בחכמה ותורת חסד על לשונה״
+small gold line with rules on both sides: ״שקר החן והבל היופי״
+
+Clean, elegant, modest, high-end magazine style. Sharp, perfectly readable Hebrew typography.

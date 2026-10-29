@@ -234,7 +234,7 @@
 
 <script>
   // The games: each folder describes itself in game.json (written by the session that builds the game)
-  const GAMES = [{ slug: 'nisei-nissim', color: '#3d7fc4' }, { slug: 'ketoret', color: '#a8762a' }, { slug: 'gan-run', color: '#e8772a' }, { slug: 'shekel-tov', color: '#2f6fd1' }];
+  const GAMES = [{ slug: 'nisei-nissim', color: '#3d7fc4' }, { slug: 'ketoret', color: '#a8762a' }, { slug: 'gan-run', color: '#e8772a' }, { slug: 'shekel-tov', color: '#2f6fd1' }, { slug: 'yosef', color: '#24406e' }];
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const best = key => { try { const v = Number(localStorage.getItem(key)); return v > 0 ? v : 0; } catch (e) { return 0; } };
 

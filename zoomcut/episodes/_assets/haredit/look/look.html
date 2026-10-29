@@ -1,59 +1,87 @@
 <!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
 /* "How to get Hani's look" story, 1080x1920: Hani full-body (hani-look.jpg, Leonardo) with arrows to each item -
-   what it is, where it's bought (the items are from her shop site, אופנת חני), how to wear it - and the inner-beauty line.
-   Nothing important above y 240 or below ~1760. Render: shoot.mjs jobs-look.json */
+   what it is, where it's bought (the items are from her shop site, אופנת חני), how to wear it - and the last "item",
+   מידות טובות. The look follows the version Shlomi liked (cream name pills, gold tags, the framed navy panel).
+   Nothing important above y 240 or below ~1760. The arrows are drawn by the script from the laid-out labels.
+   Render: shoot.mjs jobs-look.json */
 @import url('https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@500;700;800;900&display=swap');
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:1080px; height:1920px; overflow:hidden; font-family:Heebo, sans-serif; background:#bfbdc0; color:#1c2a4a; }
 .suez { font-family:'Suez One', serif; font-weight:400; }
-.photo { position:absolute; top:330px; left:188px; width:703px; height:1250px; object-fit:cover;
-  -webkit-mask-image:linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 6%, #000 92%, transparent 100%);
+.photo { position:absolute; top:385px; left:221px; width:638px; height:1135px; object-fit:cover;
+  -webkit-mask-image:linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
   -webkit-mask-composite:source-in; mask-composite:intersect; }
-.kick { position:absolute; top:250px; left:0; right:0; text-align:center; font-weight:800; font-size:30px; color:#8a6a1f; letter-spacing:.5px; }
-.title { position:absolute; top:282px; left:0; right:0; text-align:center; font-size:70px; line-height:1; }
-svg { position:absolute; inset:0; width:1080px; height:1920px; }
-.l { position:absolute; width:318px; }
-.l.r { right:32px; text-align:right; }
-.l.lf { left:32px; text-align:right; }
-.l b { display:block; font-weight:900; font-size:31px; line-height:1.15; }
-.l i { display:block; font-style:normal; font-weight:800; font-size:23px; color:#8a6a1f; margin-top:4px; }
-.l span { display:block; font-weight:500; font-size:25px; line-height:1.3; margin-top:6px; color:#26324f; }
-.inner { position:absolute; top:1562px; left:60px; right:60px; background:#1c2a4a; color:#faf6ee; border-radius:26px;
-  padding:22px 30px 24px; text-align:center; }
-.inner .k { font-weight:800; font-size:28px; color:#e9d7a6; margin-bottom:6px; }
-.inner .t { font-size:50px; line-height:1.1; }
-.inner .t em { font-style:normal; color:#e9d7a6; }
-.inner .s { font-weight:500; font-size:27px; margin-top:10px; color:#e6e1d6; }
-.inner .s b { color:#e9d7a6; font-weight:800; }
+.bsd { position:absolute; top:196px; right:44px; font-weight:800; font-size:30px; }
+.kick { position:absolute; top:244px; left:120px; right:120px; display:flex; align-items:center; gap:22px;
+  font-weight:800; font-size:30px; color:#8a6a1f; white-space:nowrap; }
+.kick::before, .kick::after, .rule::before, .rule::after, .pk::before, .pk::after, .ps::before, .ps::after
+  { content:''; flex:1; height:2px; background:#a8823a; }
+.title { position:absolute; top:282px; left:0; right:0; text-align:center; font-size:76px; line-height:1; }
+.rule { position:absolute; top:374px; left:300px; right:300px; display:flex; align-items:center; gap:14px; }
+.rule i { width:12px; height:12px; background:#a8823a; transform:rotate(45deg); }
+#arrows { position:absolute; inset:0; width:1080px; height:1920px; }
+.l { position:absolute; width:362px; display:flex; flex-direction:column; align-items:flex-start; }
+.l.r { right:30px; }
+.l.lf { left:30px; }
+.l b { background:#fbf7ee; border-radius:40px; padding:7px 20px 9px; font-weight:900; font-size:30px; line-height:1.2; white-space:nowrap;
+  box-shadow:0 3px 10px rgba(28,42,74,0.12); }
+.l i { background:#a8823a; color:#fff; border-radius:30px; padding:3px 16px 5px; font-style:normal; font-weight:800; font-size:23px; margin:10px 10px 0 0; }
+.l span { font-weight:500; font-size:26px; line-height:1.32; margin-top:10px; color:#26324f; }
+.panel { position:absolute; top:1508px; left:44px; right:44px; height:254px; background:#1c2a4a; border-radius:26px; color:#faf6ee; text-align:center; }
+.panel::before { content:''; position:absolute; inset:9px; border:2px solid #a8823a; border-radius:19px; }
+.pk { position:absolute; top:24px; left:110px; right:110px; display:flex; align-items:center; gap:20px; font-weight:800; font-size:28px; color:#e9d7a6; white-space:nowrap; }
+.pt { position:absolute; top:60px; left:0; right:0; display:flex; align-items:center; justify-content:center; gap:30px; font-size:92px; line-height:1; color:#f0dca8; }
+.pt svg { width:66px; height:40px; }
+.pq { position:absolute; top:160px; left:0; right:0; font-weight:800; font-size:36px; }
+.ps { position:absolute; top:207px; left:190px; right:190px; display:flex; align-items:center; gap:18px; font-weight:700; font-size:24px; color:#e9d7a6; white-space:nowrap; }
+.ps::before, .ps::after { height:1.5px; }
 </style></head><body>
 <img class="photo" src="hani-look.jpg">
+<div class="bsd">בס״ד</div>
 <div class="kick">אופנת חני · רבי עקיבא, בני ברק</div>
 <div class="title suez">איך משיגים את הלוק של חני</div>
+<div class="rule"><i></i></div>
 
-<svg viewBox="0 0 1080 1920" fill="none" stroke="#1c2a4a" stroke-width="3" stroke-linecap="round">
-  <defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-    <path d="M0 0L10 5L0 10z" fill="#1c2a4a" stroke="none"/></marker></defs>
-  <!-- right column -->
-  <path d="M728 432 C680 432 640 436 604 444" marker-end="url(#a)"/>
-  <path d="M728 708 C700 708 690 714 670 724" marker-end="url(#a)"/>
-  <path d="M728 1120 C700 1120 680 1116 656 1112" marker-end="url(#a)"/>
-  <!-- left column -->
-  <path d="M352 452 C420 452 470 470 512 484" marker-end="url(#a)"/>
-  <path d="M352 742 C430 742 490 752 536 760" marker-end="url(#a)"/>
-  <path d="M352 1452 C420 1460 470 1500 496 1524" marker-end="url(#a)"/>
-</svg>
+<svg id="arrows" viewBox="0 0 1080 1920"></svg>
 
-<div class="l r" style="top:388px"><b>מטפחת סריגה שחורה</b><i>אופנת חני · ₪59</i><span>משולש על הפאה, קשר אחד מאחור, והקצוות קדימה על הכתפיים.</span></div>
-<div class="l r" style="top:664px"><b>חולצה מכופתרת נייבי</b><i>אופנת חני · יום-יום</i><span>מכופתרת עד הצוואר, שרוול עד שורש כף היד.</span></div>
-<div class="l r" style="top:1076px"><b>חצאית מקסי שחורה</b><i>אופנת חני · יום-יום</i><span>גזרת A, עד הקרסול. באורך תקני, הולכת עם הכול.</span></div>
+<!-- data-to: the point on Hani the arrow ends at -->
+<div class="l r" style="top:420px" data-to="598,500"><b>מטפחת סריגה שחורה</b><i>אופנת חני · ₪59</i><span>משולש על הפאה, קשר אחד מאחור, והקצוות קדימה על הכתפיים.</span></div>
+<div class="l r" style="top:686px" data-to="654,748"><b>חולצה מכופתרת נייבי</b><i>אופנת חני · יום-יום</i><span>מכופתרת עד הצוואר, שרוול עד שורש כף היד.</span></div>
+<div class="l r" style="top:1010px" data-to="640,1096"><b>חצאית מקסי שחורה</b><i>אופנת חני · יום-יום</i><span>גזרת A, עד הקרסול. באורך תקני, הולכת עם הכול.</span></div>
 
-<div class="l lf" style="top:408px"><b>משקפיים דקות</b><i>עוד מלפני החתונה</i><span>ברוך השם, מחזיקות מעמד.</span></div>
-<div class="l lf" style="top:698px"><b>פלאפון כשר</b><i>חנות הסלולר הכשר בשכונה</i><span>תמיד ביד. וואטסאפ אין, אפשר לשלוח במייל.</span></div>
-<div class="l lf" style="top:1370px"><b>נעלי בובה שטוחות</b><i>בלי עקב, בלי רעש</i><span>לרוץ בארבע ועשרים לגן של מלכי.</span></div>
+<div class="l lf" style="top:440px" data-to="522,527"><b>משקפיים דקות</b><i>עוד מלפני החתונה</i><span>ברוך השם, מחזיקות מעמד.</span></div>
+<div class="l lf" style="top:716px" data-to="545,780"><b>פלאפון כשר</b><i>חנות הסלולר הכשר בשכונה</i><span>תמיד ביד. וואטסאפ אין, אפשר לשלוח במייל.</span></div>
+<div class="l lf" style="top:1270px" data-to="498,1462"><b>נעלי בובה שטוחות</b><i>בלי עקב, בלי רעש</i><span>לרוץ בארבע ועשרים לגן של מלכי.</span></div>
 
-<div class="inner">
-  <div class="k">אשת חיל מי ימצא</div>
-  <div class="t suez">אבל העיקר: <em>כל כבודה בת מלך פנימה</em></div>
-  <div class="s">שקר החן והבל היופי, אשה יראת ה׳ היא תתהלל · <b>חני</b></div>
+<div class="panel">
+  <div class="pk">הפריט החשוב ביותר בלוק</div>
+  <div class="pt"><svg viewBox="0 0 66 40"><use href="#fl"/></svg><span class="suez">מידות טובות</span><svg viewBox="0 0 66 40" style="transform:scaleX(-1)"><use href="#fl"/></svg></div>
+  <div class="pq">״פיה פתחה בחכמה ותורת חסד על לשונה״</div>
+  <div class="ps">״שקר החן והבל היופי״</div>
 </div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <!-- a small flourish beside מידות טובות (mirrored on the other side) -->
+  <g id="fl" fill="none" stroke="#a8823a" stroke-width="2.5" stroke-linecap="round">
+    <path d="M4 20 H40"/><path d="M40 20 C46 8 58 8 60 16 C62 24 52 26 50 20"/><path d="M40 20 C46 32 58 32 60 24"/>
+    <path d="M20 20 C24 12 30 12 32 16"/><path d="M20 20 C24 28 30 28 32 24"/>
+    <rect x="58" y="16.5" width="7" height="7" transform="rotate(45 61.5 20)" fill="#a8823a" stroke="none"/>
+  </g></defs></svg>
+
+<script>
+// each arrow: a dot at the inner edge of the label's name pill, a soft curve, an arrowhead on Hani
+const svg = document.getElementById('arrows'), NS = 'http://www.w3.org/2000/svg', C = '#9a7a3a';
+svg.innerHTML = `<defs><marker id="h" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="${C}"/></marker></defs>`;
+for (const l of document.querySelectorAll('.l')) {
+  const [tx, ty] = l.dataset.to.split(',').map(Number), p = l.querySelector('b').getBoundingClientRect();
+  const right = l.classList.contains('r'), sx = right ? p.left - 4 : p.right + 4, sy = p.top + p.height / 2;
+  const mx = (sx + tx) / 2;
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', `M${sx} ${sy} C${mx} ${sy} ${mx} ${ty} ${tx} ${ty}`);
+  path.setAttribute('fill', 'none'); path.setAttribute('stroke', C); path.setAttribute('stroke-width', '2.5'); path.setAttribute('marker-end', 'url(#h)');
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('cx', sx); dot.setAttribute('cy', sy); dot.setAttribute('r', '5'); dot.setAttribute('fill', C);
+  svg.append(path, dot);
+}
+</script>
 </body></html>
