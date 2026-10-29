@@ -108,6 +108,17 @@ select { width: 100%; height: 40px; border-radius: 10px; border: 1px solid var(-
 .empty-video .big-note { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: 4px; }
 .empty-video span { color: var(--dim); font-size: 13px; max-width: 260px; }
 .empty-video .btn { margin-top: 8px; }
+/* the song's words on the screen (an audio song) */
+.empty-video.words { position: relative; padding: 18px 22px; }
+.lyr { display: flex; flex-direction: column; gap: 10px; width: 100%; font-family: "Segoe UI", Arial, system-ui, sans-serif; }
+.lyr-prev { color: var(--faint); font-size: 15px; min-height: 22px; }
+.lyr-cur { color: var(--text); font-size: 26px; font-weight: 700; line-height: 1.25; min-height: 33px; }
+.lyr-next { color: var(--dim); font-size: 17px; min-height: 25px; }
+.lyr-all { width: 100%; max-height: 100%; overflow-y: auto; font: 600 16px/1.6 "Segoe UI", Arial, system-ui, sans-serif; }
+.lyr-edit { position: absolute; top: 10px; inset-inline-end: 10px; color: var(--dim); }
+.words-dialog { width: min(560px, calc(100vw - 32px)); }
+.words-dialog textarea { width: 100%; min-height: 240px; resize: vertical; box-sizing: border-box; border-radius: 10px; border: 1px solid var(--edge-2); background: var(--panel-2); color: var(--text); padding: 10px 12px; font: 15px/1.6 "Segoe UI", Arial, system-ui, sans-serif; }
+.words-dialog textarea:focus { outline: none; border-color: var(--accent); }
 .cnt { grid-area: 1 / 1; display: grid; place-items: center; font: 700 80px Inter, sans-serif; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.6); pointer-events: none; }
 
 /* song card */

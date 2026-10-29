@@ -169,6 +169,19 @@
     <div class="note hidden" id="export-note"></div>
   </div>
 
+  <div class="dialog words-dialog hidden" id="dialog-words">
+    <div class="dialog-h"><b>Words</b><button class="ibtn icon" data-close>✕</button></div>
+    <div class="sub">One line per row. They show on the screen while you play and record, and they're saved with this song, so every recording of it has them.</div>
+    <textarea id="words-text" dir="auto" spellcheck="false" placeholder="Paste or type the words here — one line per row"></textarea>
+    <div class="note hidden" id="words-tap"></div>
+    <div class="row">
+      <button class="btn" id="words-time">Time the lines</button>
+      <div class="grow"></div>
+      <button class="btn primary" id="words-save">Save</button>
+    </div>
+    <div class="sub">Timing: press <b>Time the lines</b> — the song plays from the start — and tap Space as each line begins. Or put the time before a line yourself: <span dir="ltr">[0:04.2]</span></div>
+  </div>
+
   <div class="menu hidden" id="lane-menu"></div>
   <div class="toast hidden" id="toast"></div>
 

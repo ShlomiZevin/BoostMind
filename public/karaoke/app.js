@@ -28,7 +28,11 @@ function flash(el) { el.classList.remove('flash'); void el.offsetWidth; el.class
 const setToggle = (el, on) => el.setAttribute('aria-checked', on ? 'true' : 'false');
 const isOn = (el) => el.getAttribute('aria-checked') === 'true';
 function openPanel(id) { $('scrim').classList.remove('hidden'); $(id).classList.remove('hidden'); }
-function closePanels() { ['drawer-setup', 'drawer-projects', 'dialog-export'].forEach((i) => $(i).classList.add('hidden')); $('scrim').classList.add('hidden'); $('lane-menu').classList.add('hidden'); }
+function closePanels() {
+  if (tapping) stopTapping(false);
+  ['drawer-setup', 'drawer-projects', 'dialog-export', 'dialog-words'].forEach((i) => $(i).classList.add('hidden')); $('scrim').classList.add('hidden'); $('lane-menu').classList.add('hidden');
+}
+const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 $('scrim').onclick = closePanels;
 document.querySelectorAll('[data-close]').forEach((b) => (b.onclick = closePanels));
 
@@ -101,7 +105,9 @@ $('file').onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return;
   closePanels();
   if (!(await loadSong(f, f.name))) return;
-  store('songs', 'readwrite', (s) => s.put({ key: S.songKey, name: f.name, blob: f })).catch(() => {});
+  // the same song chosen again keeps what it already has (singers removed, words)
+  store('songs', 'readonly', (s) => s.get(S.songKey)).catch(() => null)
+    .then((rec) => store('songs', 'readwrite', (s) => s.put({ ...(rec || {}), key: S.songKey, name: f.name, blob: f }))).catch(() => {});
   S.proj = { id: Date.now(), songKey: S.songKey, songName: f.name, created: Date.now(), settings: { sng: 80, guide: 100, guidePlay: false }, layers: [],
     studio: studioProject() || undefined };  // inside Sketch Studio: the project this song belongs to
   addLayer();
@@ -118,7 +124,7 @@ async function loadSong(blob, name) {
     $('song-kind').textContent = /\.(mp4|mov|m4v|webm)$/i.test(name) || (blob.type || '').startsWith('video') ? 'Try another video, or its MP3' : 'Try an MP3 or M4A';
     return false;
   }
-  S.songMono = mono(S.song); S.songName = name; S.songKey = `${name}|${blob.size}`; S.songBlob = blob; S.key = null;
+  S.songMono = mono(S.song); S.songName = name; S.songKey = `${name}|${blob.size}`; S.songBlob = blob; S.key = null; S.lyrics = [];
   S.inst = S.instMono = S.guide = null;
   const title = name.replace(/\.[^.]+$/, '');
   $('song-name').textContent = title; $('song-title').textContent = title;
@@ -131,6 +137,7 @@ async function loadSong(blob, name) {
   $('split-ctl').classList.add('hidden'); $('split-note').classList.add('hidden'); $('split-bar').classList.add('hidden');
   const cached = await store('songs', 'readonly', (st) => st.get(S.songKey)).catch(() => null);
   if (cached && cached.stems) await useStems(cached.stems.inst, cached.stems.voc, true);
+  S.lyrics = (cached && cached.lyrics) || []; renderWordsCard();
   setTimeout(() => { S.key = detectKey(backingMono(), S.song.sampleRate); showStyle(); }, 50);
   updateSteps();
   return true;
@@ -232,7 +239,7 @@ function renderLanes() {
         </div>
         <div class="lane-chips">
           <button class="chip style" data-style="${l.id}" title="This track's voice style — change it on the right">${STYLES[l.fx.style].name}${l._busy ? ' <span class="spinner"></span>' : ''}</button>
-          <button class="chip ${l.clean ? '' : 'off'}" data-clean="${l.id}" title="Clean noise: removes fan, hum and room hiss">${l.clean ? '✓ ' : ''}Clean</button>
+          <button class="chip ${l.clean ? '' : 'off'}" data-clean="${l.id}" title="Clean noise (AI voice cleaner): removes fan, AC hum and room hiss">${l.clean ? '✓ ' : ''}Clean</button>
         </div>
       </div>
       <canvas data-lane="${l.id}"></canvas>
@@ -312,7 +319,7 @@ function setVideo(blob, name) {
   $('thumb').innerHTML = MUSIC_SVG.replace(/16/g, '22');
   if (!S.isVideo) {
     vid.removeAttribute('src'); vid.load();
-    $('empty-video').innerHTML = `<div class="big-note">${MUSIC_SVG.replace(/16/g, '34')}</div><b>${S.songName.replace(/\.[^.]+$/, '')}</b><span>An audio song — no lyrics video. Choose a karaoke video to see the words while you sing.</span>`;
+    renderWordsCard();
     return;
   }
   vidUrl = URL.createObjectURL(blob);
@@ -352,6 +359,100 @@ function followVideo(getPos) {
 }
 function stopVideo() { clearInterval(follow); vid.pause(); vid.playbackRate = 1; }
 function parkVideo() { if (vidUrl && !vid.seeking && Math.abs(vid.currentTime - S.playhead) > 0.2) { lastSeek = performance.now(); vid.currentTime = Math.min(S.playhead, (vid.duration || 1) - 0.05); } }
+
+// ---------- the song's words (an audio song): typed once, saved with the song, shown on the screen ----------
+// A line is { t: seconds in the song or null, text }. Written as text, a timed line starts with [m:ss.cc].
+function parseWords(txt) {
+  return txt.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).map((s) => {
+    const m = s.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
+    return m ? { t: +m[1] * 60 + +m[2], text: m[3].trim() } : { t: null, text: s };
+  }).filter((l) => l.text);
+}
+const stamp = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, '0')}`;
+const wordsText = (ls) => ls.map((l) => (l.t != null ? `[${stamp(l.t)}] ` : '') + l.text).join('\n');
+const timedLines = () => (S.lyrics || []).filter((l) => l.t != null).sort((a, b) => a.t - b.t);
+function renderWordsCard() {
+  if (S.isVideo || !S.song) return;
+  const ev = $('empty-video'), ls = S.lyrics || [], title = esc(S.songName.replace(/\.[^.]+$/, ''));
+  ev.classList.toggle('words', !!ls.length);
+  if (!ls.length) {
+    ev.innerHTML = `<div class="big-note">${MUSIC_SVG.replace(/16/g, '34')}</div><b>${title}</b><span>An audio song. Add its words to see them here while you sing, or choose a karaoke video.</span><button class="btn" id="words-open">Add the words</button>`;
+  } else if (timedLines().length) {
+    ev.innerHTML = `<div class="lyr" id="lyr"><div class="lyr-prev" dir="auto"></div><div class="lyr-cur" dir="auto"></div><div class="lyr-next" dir="auto"></div></div><button class="chip lyr-edit" id="words-open">Edit words</button>`;
+    showWords(S.playhead);
+  } else {
+    ev.innerHTML = `<div class="lyr-all">${ls.map((l) => `<div dir="auto">${esc(l.text)}</div>`).join('')}</div><button class="chip lyr-edit" id="words-open">Edit words</button>`;
+  }
+  $('words-open').onclick = openWords;
+}
+function showWords(t) {
+  const box = $('lyr'); if (!box) return;
+  const ls = timedLines();
+  let i = -1;
+  for (let k = 0; k < ls.length; k++) if (ls[k].t <= t + 0.25) i = k;   // a line appears a beat before it's sung
+  const key = `${i}|${ls.length}`;
+  if (box.dataset.k === key) return;
+  box.dataset.k = key;
+  const [p, c, n] = box.children;
+  p.textContent = i > 0 ? ls[i - 1].text : '';
+  c.textContent = i >= 0 ? ls[i].text : '';
+  n.textContent = ls[i + 1] ? ls[i + 1].text : '';
+}
+async function saveWords(ls) {
+  S.lyrics = ls;
+  const rec = await store('songs', 'readonly', (st) => st.get(S.songKey)).catch(() => null);
+  await store('songs', 'readwrite', (st) => st.put({ ...(rec || { key: S.songKey, name: S.songName, blob: S.songBlob }), lyrics: ls })).catch(() => {});
+  renderWordsCard();
+}
+function openWords() {
+  if (!S.song) return;
+  $('words-text').value = wordsText(S.lyrics || []);
+  $('words-tap').classList.add('hidden');
+  openPanel('dialog-words');
+  $('words-text').focus();
+}
+$('words-save').onclick = async () => {
+  if (tapping) stopTapping(false);
+  const ls = parseWords($('words-text').value);
+  await saveWords(ls);
+  closePanels();
+  toast(!ls.length ? 'Words removed from this song.' : ls.some((l) => l.t != null) ? 'Words saved. They follow the song while you play and record.' : 'Words saved. Time the lines to have them follow the song.', 3500);
+};
+// timing: the song plays from the start, and every tap stamps the next line
+let tapping = null;
+function showTap() {
+  const n = $('words-tap'); n.className = 'note ok';
+  n.innerHTML = `Line ${tapping.i + 1} of ${tapping.lines.length}. Tap Space (or Tap) as it starts:<br><b dir="auto">${esc(tapping.lines[tapping.i].text)}</b>`;
+}
+function tap() {
+  const T = tapping;
+  if (S.mode !== 'playing') return stopTapping(false);
+  // what you hear is the clock minus the output delay; a tap comes a little after the line starts
+  T.lines[T.i].t = Math.max(0, +(curPos() - (S.ctx.outputLatency || 0) - 0.15).toFixed(2));
+  T.i += 1;
+  $('words-text').value = wordsText(T.lines);
+  if (T.i >= T.lines.length) stopTapping(true); else showTap();
+}
+function stopTapping(done) {
+  tapping = null; pause();
+  $('words-text').readOnly = false; $('words-time').textContent = 'Time the lines';
+  const n = $('words-tap');
+  if (done) { n.className = 'note ok'; n.textContent = 'Every line has its time. Press Save, or Time the lines again.'; } else n.classList.add('hidden');
+}
+$('words-time').onclick = (e) => {
+  if (tapping) return tap();
+  if (S.mode !== 'idle') return;
+  const ls = parseWords($('words-text').value);
+  if (!ls.length) return toast('Paste or type the words first, one line per row.', 3000);
+  ls.forEach((l) => (l.t = null));
+  tapping = { i: 0, lines: ls };
+  $('words-text').value = wordsText(ls); $('words-text').readOnly = true;
+  e.currentTarget.textContent = 'Tap'; e.currentTarget.blur();
+  showTap(); play(0);
+};
+// Space taps while timing (and never plays / pauses or presses a focused button)
+window.addEventListener('keydown', (e) => { if (tapping && e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (!e.repeat) tap(); } }, true);
+window.addEventListener('keyup', (e) => { if (tapping && e.key === ' ') { e.preventDefault(); e.stopPropagation(); } }, true);
 
 // ---------- microphone ----------
 const BT = /airpods|bluetooth|headset|hands-?free|beats|buds|bose|sony|jabra/i;
@@ -456,10 +557,42 @@ $('calib').onclick = async () => {
 };
 
 // ---------- what each vocal track sounds like: cleaned, tuned, then its voice style ----------
+// Clean = RNNoise, the neural voice cleaner (fan, AC hum, room hiss - what the old spectral gate left behind),
+// loaded from the CDN the first time; the spectral gate stays as the fallback when it can't load.
+let rnnLib = null;
+const RNN_DELAY = 960;  // RNNoise's output is 20 ms late (measured, 48 kHz) - shifted back so the take stays on the beat
+async function rnnClean(x, sr) {
+  rnnLib = rnnLib || import('https://cdn.jsdelivr.net/npm/@shiguredo/rnnoise-wasm@2025.1.5/dist/rnnoise.js').then((m) => m.Rnnoise.load());
+  const rnn = await rnnLib, N = rnn.frameSize;
+  const resample = async (y, from, to) => {   // RNNoise works at 48 kHz
+    if (from === to) return y;
+    const b = new AudioBuffer({ length: y.length, sampleRate: from, numberOfChannels: 1 }); b.copyToChannel(y, 0);
+    const o = new OfflineAudioContext(1, Math.ceil((y.length * to) / from), to), s = o.createBufferSource();
+    s.buffer = b; s.connect(o.destination); s.start();
+    return (await o.startRendering()).getChannelData(0);
+  };
+  const y = await resample(x, sr, 48000), out = new Float32Array(y.length), st = rnn.createDenoiseState(), f = new Float32Array(N);
+  try {
+    for (let i = 0; i < y.length + RNN_DELAY; i += N) {
+      for (let k = 0; k < N; k++) f[k] = (y[i + k] || 0) * 32768;   // it expects 16-bit sample values
+      st.processFrame(f);
+      for (let k = 0; k < N; k++) { const j = i + k - RNN_DELAY; if (j >= 0 && j < out.length) out[j] = f[k] / 32768; }
+    }
+  } finally { st.destroy(); }
+  const back = await resample(out, 48000, sr);
+  return back.length === x.length ? back : (() => { const z = new Float32Array(x.length); z.set(back.subarray(0, x.length)); return z; })();
+}
+async function ensureClean(l) {
+  if (!l.clean || !l.data.length || (l._clean && l._cleanV === l.v)) return;
+  const v = l.v;
+  let y;
+  try { y = await rnnClean(l.data, l.sr); }
+  catch (e) { console.warn('RNNoise unavailable, using the simple cleaner', e); y = denoise(l.data, l.sr, 0.8); }
+  if (l.v === v) { l._clean = y; l._cleanV = v; }
+}
 function cleaned(l) {
   if (!l.clean || !l.data.length) return l.data;
-  if (!l._clean || l._cleanV !== l.v) { l._clean = denoise(l.data, l.sr, 0.8); l._cleanV = l.v; }
-  return l._clean;
+  return l._clean && l._cleanV === l.v ? l._clean : l.data;   // (process() cleans it first)
 }
 const layerKey = () => (S.proj && S.proj.settings.key ? (([t, m]) => ({ tonic: +t, mode: m }))(S.proj.settings.key.split(':')) : S.key || { tonic: 0, mode: 'chromatic' });
 const procSig = (l) => `${l.v}|${l.clean}|${l.fx.tune.toFixed(2)}|${STYLES[l.fx.style].tuneSpeed}|${JSON.stringify(layerKey())}`;
@@ -475,7 +608,8 @@ function process(l, delay = 60) {
   if (!l.data.length) return Promise.resolve();
   l._busy = true; renderLanes(); showStyle();
   return new Promise((done) => {
-    procTimers[l.id] = setTimeout(() => {
+    procTimers[l.id] = setTimeout(async () => {
+      await ensureClean(l);
       const sig = procSig(l);
       let y = cleaned(l);
       if (l.fx.tune > 0.01) {
@@ -538,7 +672,7 @@ $('t-play').onclick = () => (S.mode === 'playing' ? pause() : S.mode === 'idle' 
 $('t-start').onclick = () => seek(0);
 $('t-back').onclick = () => seek((S.mode === 'playing' ? curPos() : S.playhead) - 5);
 $('t-fwd').onclick = () => seek((S.mode === 'playing' ? curPos() : S.playhead) + 5);
-function showPos() { $('pos').textContent = fmtT(S.playhead); $('dur').textContent = `/ ${fmt(S.song ? projEnd() : 0)}`; placePlayhead(); }
+function showPos() { $('pos').textContent = fmtT(S.playhead); $('dur').textContent = `/ ${fmt(S.song ? projEnd() : 0)}`; placePlayhead(); showWords(S.playhead); }
 let raf = 0, lastDraw = 0;
 function loop() {
   cancelAnimationFrame(raf);
@@ -649,7 +783,8 @@ function showStyle() {
   $('knobs').innerHTML = KNOBS.map(([k, name, expl]) => `
     <div class="knob k"><div class="knob-h"><b>${name}</b><span id="kv-${k}">${Math.round(fx[k] * 100)}%</span></div>
       <span class="sub">${expl}</span><input type="range" min="0" max="100" value="${Math.round(fx[k] * 100)}" data-knob="${k}" ${has ? '' : 'disabled'}></div>`).join('');
-  $('styles').querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => setStyle(active(), b.dataset.k)));
+  // the chosen style clicked again = no style (your voice as it is)
+  $('styles').querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => setStyle(active(), active().fx.style === b.dataset.k ? 'natural' : b.dataset.k)));
   $('knobs').querySelectorAll('[data-knob]').forEach((inp) => {
     const k = inp.dataset.knob;
     inp.oninput = () => { const l2 = active(); l2.fx[k] = +inp.value / 100; $(`kv-${k}`).textContent = `${inp.value}%`; if (k !== 'tune') replay(); };
