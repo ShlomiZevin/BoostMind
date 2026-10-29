@@ -105,6 +105,12 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   - `tag` - a call name tag with a microphone: `size` (32 big, 26 small).
   - `toast` - a notice box with an icon: `size`, `icon` ("none" to drop it).
   - `pill` - a solid pill (the red "removed" stamp, a button): `bg`, `color`, `size`, `radius`.
+  - `karaoke` (2026-10-29, the "זוט חני" karaoke clip) - a sing-along line: each word fills with `fill` while it's
+    sung (right to left), the sung word pops, the line rises in and fades out at the item's ends, `next` (the line after
+    it) waits dimmed under it. item: `text` (`\n` = its own row break), `words` [[a, b], ...] = when each word is sung,
+    seconds since the item began, counted across rows; knobs `size` (84), `color`, `fill` (#ff2d95), `stroke` (9),
+    `strokeColor`, `nextSize` (0.58), `font`, `weight`. One item per line, back to back. Word times for a known song:
+    the original vocal stem (Demucs) - Whisper word spans snapped to where the singer actually sings.
 - `font` is a font asset id (`font.assistant`); none = the UI font.
 
 ### subtitles

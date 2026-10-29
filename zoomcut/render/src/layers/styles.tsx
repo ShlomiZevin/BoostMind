@@ -79,8 +79,44 @@ export const TEXT_STYLES: Record<string, { label: string; animated?: boolean; re
   pill: { label: 'Pill', render: ({ it, text }) => (
     <div style={{ background: it.bg || '#e02828', color: it.color || '#fff', fontFamily: UI_FONT, fontWeight: it.weight ?? 700, fontSize: it.size || 64,
       padding: it.pad || '10px 28px', borderRadius: it.radius ?? 12, direction: 'rtl', whiteSpace: 'nowrap' }}>{text}</div>) },
+  // a sing-along line: each word fills with `fill` while it's sung (right to left), the sung word pops a little, the
+  // line rises in and fades out, the next line waits dimmed under it. item: text (one line), words [[a, b], ...] = when
+  // each word (split on spaces) is sung, seconds since the item began; next (the line after it). knobs: size (84),
+  // color (#fff), fill (#ff2d95), stroke (9), strokeColor (#1b0a24), nextSize (0.58 of size), font, weight (800)
+  karaoke: { label: 'Karaoke line', animated: true, render: ({ it, text, fonts, t }) => <Karaoke it={it} text={text} fonts={fonts} t={t} /> },
   ...SOLO_TEXT_STYLES,  // the one-camera engine's styles (styles_solo.tsx): ticker, ...
 };
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+const ease = (v: number) => 1 - Math.pow(1 - clamp01(v), 3);
+function Karaoke({ it, text, fonts, t }: StyleProps) {
+  const size = it.size || 84, end = it.dur != null ? it.dur / 30 : 1e9;
+  const font = fontOf({ ...it, weight: it.weight ?? 800 }, fonts, 800);
+  // rows = the line's own breaks (\n); words are counted across rows, so `words` stays one list
+  const rows = String(text).split('\n').map((r) => r.split(/\s+/).filter(Boolean)), times: number[][] = it.words || [];
+  const firstOf = rows.map((_, r) => rows.slice(0, r).reduce((n, x) => n + x.length, 0));
+  const stroke = it.stroke ?? 9, sc = it.strokeColor || '#1b0a24';
+  const ink: any = { WebkitTextStroke: `${stroke}px ${sc}`, paintOrder: 'stroke fill' };
+  const inA = ease(t / 0.28), out = clamp01((end - t) / 0.22);  // rises in, fades out at the item's end
+  return <div style={{ direction: 'rtl', textAlign: 'center', opacity: Math.min(inA, out), transform: `translateY(${(1 - inA) * 40}px)`,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: Math.round(size * 0.28) }}>
+    {rows.map((row, r) => <div key={r} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: `0 ${Math.round(size * 0.26)}px`, maxWidth: it.box?.w ?? 980,
+      fontSize: size, lineHeight: 1.18, marginTop: r ? -Math.round(size * 0.2) : 0, ...font }}>
+      {row.map((w, j) => {
+        const i = firstOf[r] + j, [a, b] = times[i] || [0, 0.001];
+        const p = clamp01((t - a) / Math.max(0.05, b - a));
+        const pop = t >= a && t < a + 0.35 ? 1 + 0.09 * Math.sin(Math.PI * clamp01((t - a) / 0.35)) : 1;
+        return <span key={i} style={{ position: 'relative', display: 'inline-block', transform: `scale(${pop})`, transformOrigin: '50% 70%' }}>
+          <span style={{ color: it.color || '#fff', ...ink }}>{w}</span>
+          {/* the sung part: the same word in the fill colour, revealed from the right (Hebrew reads right to left) */}
+          <span aria-hidden style={{ position: 'absolute', inset: 0, color: it.fill || '#ff2d95', ...ink, clipPath: `inset(-20% 0 -20% ${(1 - p) * 100}%)` }}>{w}</span>
+        </span>;
+      })}
+    </div>)}
+    {it.next && <div style={{ fontSize: Math.round(size * (it.nextSize ?? 0.58)), lineHeight: 1.2, color: 'rgba(255,255,255,0.62)', maxWidth: it.box?.w ?? 980,
+      ...font, fontWeight: 700, WebkitTextStroke: `${Math.max(3, Math.round(stroke * 0.6))}px ${sc}`, paintOrder: 'stroke fill' } as any}>{String(it.next).replace(/\n/g, ' ')}</div>}
+  </div>;
+}
 
 // subtitles: "zoom" = a dark box with the speaker's name first ("side" items: said on the side, amber)
 export const SUB_STYLES: Record<string, { label: string; render: React.FC<StyleProps> }> = {
