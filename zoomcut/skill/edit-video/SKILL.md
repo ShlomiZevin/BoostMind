@@ -420,6 +420,12 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
   tempo and onsets per second before offering it (he can't be the first to hear a slow one). ~1,200 credits per
   90 s track; measure its LUFS and set `gain` against a known bed (tadar harp: -17.2 LUFS at
   0.08 → a -9.5 LUFS track ≈ 0.04).
+  **A sad Hasidic niggun** (demokratovich-nechama, 2026-10-29): a crying clarinet in freygish = "a holocaust song"; a
+  wordless solo + choir plan = "too empty"; what he loved ("מודז'יץ זה ענק!!!") = a composition plan, Modzitz-style
+  men's choir in rich harmony, charming tenor/baritone, solemn and noble with a hopeful lift, strings + clarinet + piano
+  + bass, 72 BPM, negative styles tragic / crying / funeral / sparse / empty; wordless lines ("Ai dai dai...") give the
+  men's voices. File: `_assets/demokratovich/nechama/niggun-E-modzitz.mp3` + `niggun-E-plan.json`. A plan with
+  vocals costs ~3,400 credits per 90 s (~₪0.25). Send options to his Telegram as audio (sendAudio, a title each).
 
 ## Keys - where each one lives (read before saying "I have no key")
 Never print a key, never write one into a file in the repo, never ask him for one that is listed here.
