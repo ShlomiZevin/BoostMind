@@ -1,0 +1,84 @@
+{
+ "positive_global_styles": [
+  "klezmer-influenced Hasidic niggun",
+  "clarinet lead",
+  "men's choir singing along",
+  "charming warm male voices",
+  "wordless singing",
+  "wistful but steady, serious",
+  "accordion",
+  "violin",
+  "upright bass",
+  "soft frame drum",
+  "80 bpm",
+  "Jewish Eastern European"
+ ],
+ "negative_global_styles": [
+  "tragic",
+  "crying",
+  "sobbing",
+  "funeral",
+  "holocaust",
+  "ambient",
+  "sparse",
+  "empty",
+  "slow drone",
+  "pop",
+  "electronic",
+  "drum kit",
+  "english words",
+  "female voice"
+ ],
+ "sections": [
+  {
+   "section_name": "Clarinet",
+   "positive_local_styles": [
+    "clarinet states the melody",
+    "accordion and bass groove"
+   ],
+   "negative_local_styles": [
+    "sparse"
+   ],
+   "duration_ms": 20000,
+   "lines": []
+  },
+  {
+   "section_name": "Men sing",
+   "positive_local_styles": [
+    "men's choir sings the melody in unison",
+    "clarinet answers"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 25000,
+   "lines": [
+    "Yai bam bam, yai bam bam",
+    "Dai dai dai, yai bam bam"
+   ]
+  },
+  {
+   "section_name": "Together",
+   "positive_local_styles": [
+    "choir in harmony with clarinet and violin",
+    "fuller"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 25000,
+   "lines": [
+    "Oy yai yai, dai dai dai",
+    "Yai bam bam, dai dai"
+   ]
+  },
+  {
+   "section_name": "End",
+   "positive_local_styles": [
+    "clarinet and choir together",
+    "resolves warmly"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 20000,
+   "lines": [
+    "Yai bam bam bam"
+   ]
+  }
+ ]
+}

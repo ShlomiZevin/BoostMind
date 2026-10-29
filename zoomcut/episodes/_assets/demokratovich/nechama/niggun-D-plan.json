@@ -1,0 +1,91 @@
+{
+ "positive_global_styles": [
+  "Chabad farbrengen niggun",
+  "warm charming baritone lead",
+  "men's choir",
+  "wordless singing",
+  "minor key but warm and dignified",
+  "serious and soulful",
+  "clarinet and violin doubling the melody",
+  "accordion",
+  "upright bass",
+  "light frame drum",
+  "steady 76 bpm",
+  "Jewish Hasidic"
+ ],
+ "negative_global_styles": [
+  "tragic",
+  "crying",
+  "sobbing",
+  "funeral",
+  "holocaust",
+  "ambient",
+  "sparse",
+  "empty",
+  "slow drone",
+  "pop",
+  "electronic",
+  "drum kit",
+  "english words",
+  "female voice"
+ ],
+ "sections": [
+  {
+   "section_name": "Lead",
+   "positive_local_styles": [
+    "baritone sings the melody with warmth",
+    "clarinet answers",
+    "bass and accordion steady underneath"
+   ],
+   "negative_local_styles": [
+    "sparse"
+   ],
+   "duration_ms": 20000,
+   "lines": [
+    "Yai dai dai, yai dai dai dai",
+    "Yai dai dai dai, dai dai dai"
+   ]
+  },
+  {
+   "section_name": "Choir",
+   "positive_local_styles": [
+    "men's choir joins in unison",
+    "violin and clarinet together",
+    "frame drum enters"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 25000,
+   "lines": [
+    "Yai dai dai, yai dai dai dai",
+    "Bam bam bam, yai dai dai"
+   ]
+  },
+  {
+   "section_name": "B part",
+   "positive_local_styles": [
+    "choir in rich harmony",
+    "melody rises, noble and hopeful",
+    "full band"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 25000,
+   "lines": [
+    "Oy, yai yai yai, dai dai dai",
+    "Yai dai dai, bam bam bam"
+   ]
+  },
+  {
+   "section_name": "Return",
+   "positive_local_styles": [
+    "back to the first theme",
+    "choir and band together",
+    "ends on a held chord"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 20000,
+   "lines": [
+    "Yai dai dai, yai dai dai dai"
+   ]
+  }
+ ]
+}

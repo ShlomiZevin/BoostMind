@@ -1,0 +1,7 @@
+{"positive_global_styles":["hasidic niggun","wordless male singing","men's choir","minor key","Ahava Rabbah freygish mode","slow 64 bpm","violin","accordion","melancholic","longing","Jewish Eastern European"],
+ "negative_global_styles":["english words","pop","electronic","drum kit","upbeat","female voice"],
+ "sections":[
+  {"section_name":"Solo","positive_local_styles":["solo male tenor voice","rubato","soft violin drone"],"negative_local_styles":["choir"],"duration_ms":20000,"lines":["Ai, ai, ai, ai, ai","Oy, ai, ai, ai, ai"]},
+  {"section_name":"Choir joins","positive_local_styles":["men's choir joins in unison","accordion chords","violin answers"],"negative_local_styles":[],"duration_ms":25000,"lines":["Ai, ai, ai, yai, yai, yai","Bam, bam, bam, ai, ai, ai"]},
+  {"section_name":"Rise","positive_local_styles":["choir in harmony","emotional peak","violin soaring above"],"negative_local_styles":[],"duration_ms":25000,"lines":["Yai, yai, yai, yai, ai, ai","Oy, oy, oy, ai, ai, ai"]},
+  {"section_name":"Outro","positive_local_styles":["solo voice returns alone","violin","fading"],"negative_local_styles":["choir"],"duration_ms":20000,"lines":["Ai, ai, ai, ai"]}]}

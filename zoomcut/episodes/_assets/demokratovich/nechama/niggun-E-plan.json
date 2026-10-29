@@ -1,0 +1,90 @@
+{
+ "positive_global_styles": [
+  "Modzitz style Hasidic niggun",
+  "men's choir in rich harmony",
+  "charming tenor and baritone voices",
+  "wordless singing",
+  "solemn, noble, majestic",
+  "minor key with a hopeful lift",
+  "string ensemble",
+  "clarinet",
+  "piano",
+  "upright bass",
+  "moderate 72 bpm",
+  "sung at a rebbe's tish",
+  "Jewish"
+ ],
+ "negative_global_styles": [
+  "tragic",
+  "crying",
+  "sobbing",
+  "funeral",
+  "holocaust",
+  "ambient",
+  "sparse",
+  "empty",
+  "slow drone",
+  "pop",
+  "electronic",
+  "drum kit",
+  "english words",
+  "female voice"
+ ],
+ "sections": [
+  {
+   "section_name": "Opening",
+   "positive_local_styles": [
+    "men's choir hums the theme",
+    "strings and piano support",
+    "dignified"
+   ],
+   "negative_local_styles": [
+    "sparse"
+   ],
+   "duration_ms": 20000,
+   "lines": [
+    "Mmm, ai dai dai dai",
+    "Ai dai dai, dai dai"
+   ]
+  },
+  {
+   "section_name": "Theme",
+   "positive_local_styles": [
+    "tenor leads, choir answers in harmony",
+    "clarinet ornaments"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 25000,
+   "lines": [
+    "Ai dai dai, yai dai dai",
+    "Yai yai yai, dai dai dai"
+   ]
+  },
+  {
+   "section_name": "Rise",
+   "positive_local_styles": [
+    "the whole choir rises, majestic",
+    "strings swell",
+    "hopeful"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 25000,
+   "lines": [
+    "Oy, ai dai dai dai",
+    "Yai dai dai, ai dai dai"
+   ]
+  },
+  {
+   "section_name": "Close",
+   "positive_local_styles": [
+    "the theme returns, warm and serious",
+    "held final chord"
+   ],
+   "negative_local_styles": [],
+   "duration_ms": 20000,
+   "lines": [
+    "Ai dai dai dai"
+   ]
+  }
+ ]
+}
