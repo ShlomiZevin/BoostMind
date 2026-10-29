@@ -92,10 +92,12 @@ let range = 7, names = { c: {}, v: {} }, data = null;
 
 // the labels people see for what was done
 const EV = { view: 'נכנס לדף', character: 'פתח דמות', chat_open: 'פתח שיחה', chat_message: 'שלח הודעה', chat_switch: 'העביר לשיחה', ask: 'שאל בתיבה',
-  video: 'צפה בסרטון', site: 'עבר לאתר', contact: 'פנה לשת״פ', social: 'עבר לרשת', search: 'חיפש', click: 'לחץ על קישור' };
-const SITE = { links: 'דף הלינקים', wiki: 'הוויקי', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', other: 'אחר' };
+  video: 'צפה בסרטון', site: 'עבר לאתר', contact: 'פנה לשת״פ', social: 'עבר לרשת', search: 'חיפש', click: 'לחץ על קישור',
+  game_open: 'פתח משחק', game_start: 'התחיל סיבוב', game_over: 'סיים סיבוב', song: 'השמיע שיר' };
+const SITE = { links: 'דף הלינקים', wiki: 'הוויקי', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', other: 'אחר' };
 const SRC = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
-const label = (e, x) => e === 'contact' ? (x === 'whatsapp' ? 'WhatsApp' : 'מייל') : (names.c[x]?.name || names.v[x] || SITE[x] || SRC[x] || (x === 'guide' ? 'המדריך' : x));
+const GAME = { ketoret: 'אבני בניין: מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'zot-hani': 'זוט חני' };   // games and songs (/hani-games/)
+const label = (e, x) => e === 'contact' ? (x === 'whatsapp' ? 'WhatsApp' : 'מייל') : (names.c[x]?.name || names.v[x] || SITE[x] || GAME[x] || SRC[x] || (x === 'guide' ? 'המדריך' : x));
 
 // ---------- sign in ----------
 const auth = firebase.auth();
@@ -142,10 +144,13 @@ function dayList() {   // every day in the range, including empty ones
 function draw() {
   const days = dayList(), n = (k) => sum(days, (d) => d.n?.[k]);
   const k = [['מבקרים', sum(days, (d) => d.visitors)], ['מבקרים חדשים', sum(days, (d) => d.new_visitors)], ['צפיות בדפים', n('view')],
-    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['פניות לשת״פ', n('contact')]];
+    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['סיבובי משחק', n('game_start')], ['פניות לשת״פ', n('contact')]];
   const chars = {};
   for (const [ev, col] of [['character', 0], ['chat_open', 1], ['chat_message', 2]]) for (const [id, v] of Object.entries(byPrefix(days, ev))) (chars[id] ||= [0, 0, 0])[col] += v;
   const charRows = Object.entries(chars).sort((a, b) => (b[1][2] + b[1][1] + b[1][0]) - (a[1][2] + a[1][1] + a[1][0]));
+  const games = {};   // the games: card opens, rounds started, rounds finished
+  for (const [ev, col] of [['game_open', 0], ['game_start', 1], ['game_over', 2]]) for (const [id, v] of Object.entries(byPrefix(days, ev))) (games[id] ||= [0, 0, 0])[col] += v;
+  const gameRows = Object.entries(games).sort((a, b) => (b[1][1] - a[1][1]) || (b[1][0] - a[1][0]));
   const searches = data.events.filter((e) => e.e === 'search').map((e) => e.x.toLowerCase());
   const sCount = {}; searches.forEach((s) => (sCount[s] = (sCount[s] || 0) + 1));
 
@@ -161,6 +166,7 @@ function draw() {
     </div>
     <div class="grid2">
       <div class="box"><h2>דמויות<small>עמוד · שיחות · הודעות</small></h2>${charRows.length ? `<table><tr><th>דמות</th><th>עמוד</th><th>שיחות</th><th>הודעות</th></tr>${charRows.map(([id, [a, b, c]]) => `<tr><td class="nm"><span class="who">${names.c[id]?.img ? `<img src="/wiki/${names.c[id].img}" alt="">` : ''}${esc(label('', id))}</span></td><td class="n">${fmt(a)}</td><td class="n">${fmt(b)}</td><td class="n">${fmt(c)}</td></tr>`).join('')}</table>` : '<div class="empty">עוד אין</div>'}</div>
+      <div class="box"><h2>משחקים<small>נפתח · סיבובים · הסתיימו</small></h2>${gameRows.length ? `<table><tr><th>משחק</th><th>נפתח</th><th>סיבובים</th><th>הסתיימו</th></tr>${gameRows.map(([id, [a, b, c]]) => `<tr><td class="nm">${esc(label('', id))}</td><td class="n">${fmt(a)}</td><td class="n">${fmt(b)}</td><td class="n">${fmt(c)}</td></tr>`).join('')}</table>` : '<div class="empty">עוד אין</div>'}</div>
       ${rank('סרטונים', byPrefix(days, 'video'), 'צפיות')}
       ${rank('אתרים', merge(days, 'site'), 'כניסות')}
       ${rank('מעברים לאתרי הדמויות', byPrefix(days, 'site'), 'לחיצות')}

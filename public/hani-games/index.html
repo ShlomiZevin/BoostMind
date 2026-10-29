@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>המשחקייה של חני | משחקים כשרים למהדרין לכל המשפחה</title>
-<meta name="description" content="המשחקייה של חני פרידמן - משחקים כשרים למהדרין לכל המשפחה. בלי פרסומות, בלי צ'אט, ניגונים בלבד, והאתר שומר שבת.">
+<meta name="description" content="המשחקייה של חני פרידמן - משחקים כשרים למהדרין לכל המשפחה, פרויקט הגמר של פנינה ברגר במסלול הכשרת מפתחות. בלי פרסומות, בלי צ'אט, ניגונים בלבד, והאתר שומר שבת.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="he_IL">
 <meta property="og:site_name" content="המשחקייה של חני">
@@ -165,8 +165,8 @@
   <div class="wrap">
     <div>
       <h1>משחקים <em>כשרים למהדרין</em>, לכל המשפחה</h1>
-      <p class="note">בעזרת השם. הילדים ביקשו משחקים, ולא מצאתי משהו שאפשר לסמוך עליו בעיניים עצומות. אז בניתי בעצמי, בערבים, אחרי שהקטנים נרדמו.</p>
-      <p class="note">כל משחק כאן עבר בדיקה שלי, שורה אחרי שורה, ובאישור של אברהם משה כמובן. אין פרסומות, אין צ'אט, ויש רק ניגונים.</p>
+      <p class="note">בעזרת השם. הילדים ביקשו משחקים, ולא מצאתי משהו שאפשר לסמוך עליו בעיניים עצומות. אז גיסתי פנינה, שבדיוק סיימה את מסלול הכשרת המפתחות בסמינר, בנתה את המשחקייה כפרויקט הגמר שלה.</p>
+      <p class="note">אני עברתי על כל שורה, ואברהם משה אישר כמובן. אין פרסומות, אין צ'אט, ויש רק ניגונים.</p>
       <p class="sign">חני פרידמן<small>מפתחת Backend, אמא לתשעה בלי עין הרע</small></p>
       <a class="btn" href="#games">למשחקים</a>
     </div>
@@ -225,7 +225,7 @@
 <footer>
   <div class="wrap">
     <b>המשחקייה של חני</b>
-    <p>נבנה בס״ד, בערבים, על ידי חני פרידמן. השרת יציב ברוך השם.</p>
+    <p>נבנה בס״ד על ידי פנינה ברגר, בוגרת מסלול הכשרת מפתחות בסמינר בית יעקב, ונבדק שורה אחרי שורה על ידי חני פרידמן. השרת יציב ברוך השם.</p>
     <p>הערות והצעות למשחקים? אין וואטסאפ. אפשר במייל.</p>
     <p>תשפ״ז</p>
   </div>
@@ -243,7 +243,7 @@
     const live = m.status === 'live';
     const el = document.createElement(live ? 'a' : 'div');
     el.className = 'game' + (live ? '' : ' off');
-    if (live) el.href = g.slug + '/';
+    if (live) { el.href = g.slug + '/'; el.addEventListener('click', () => window.track && track('game_open', g.slug)); }
     el.style.setProperty('--c', g.color);
     const b = m.best && best(m.best.key);
     el.innerHTML = `
@@ -320,7 +320,9 @@
   soundBtn.onclick = e => { e.stopPropagation(); toggle(); };
   const first = e => { if (e.target.closest && e.target.closest('#playsong, #sound')) return; if (pref.get() !== 'off' && song.paused) start(); };
   addEventListener('pointerdown', first, { once: true }); addEventListener('keydown', first, { once: true });
-  song.onplay = song.onpause = paint;
+  let heard = false;
+  song.onplay = () => { paint(); if (!heard && window.track) { heard = true; track('song', 'zot-hani'); } };
+  song.onpause = paint;
   paint(); if (pref.get() !== 'off') start();
   setInterval(() => { if (document.body.classList.contains('locked') && !song.paused) song.pause(); }, 1000);
 </script>

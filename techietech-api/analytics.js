@@ -27,6 +27,10 @@ const EVENTS = new Set([
   'social',        // TikTok / Instagram / YouTube / Facebook / X            x = network
   'search',        // the wiki search box                          x = the search words (40 chars)
   'click',         // any other link out                           x = where
+  'game_open',     // a game's card was clicked on /hani-games/     x = game slug
+  'game_start',    // a round of a game started                    x = game slug
+  'game_over',     // a round of a game ended                      x = game slug
+  'song',          // a site's song started playing                x = song id
 ]);
 const SITES = new Set(['links', 'wiki', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'homo-useless', 'techytech', 'yotamverse', 'other']);
 const SOURCES = new Set(['tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
