@@ -979,7 +979,20 @@ function save() {
     const rec = { ...p, updated: Date.now(), layers: p.layers.map((l) => ({ id: l.id, name: l.name, sr: l.sr, vol: l.vol, shift: l.shift, mute: l.mute, clean: l.clean, fx: l.fx, mixDb: l.mixDb || 0, parts: l.parts || [], data: l.data.buffer.slice(0) })) };
     await store('projects', 'readwrite', (s) => s.put(rec)).catch(() => {});
     listProjects();
+    sendTakes();
   }, 600);
+}
+// on the PC (Sketch Studio) every track's raw recording is copied to Downloads\karaoke\<song>\<track>.wav as well,
+// so a session can work on the takes (otherwise they live only in this browser)
+async function sendTakes() {
+  if (location.port !== '4747' || !S.proj) return;
+  const song = (S.proj.songName || S.songName || 'song').replace(/\.[^.]+$/, '');
+  for (const l of S.proj.layers) {
+    if (!l.data.length || l._sentV === l.v) continue;
+    const b = new AudioBuffer({ length: l.data.length, sampleRate: l.sr, numberOfChannels: 1 }); b.copyToChannel(l.data, 0);
+    const r = await fetch(`/api/karaoke/take?song=${encodeURIComponent(song)}&track=${encodeURIComponent(l.name)}`, { method: 'POST', body: wav(b) }).catch(() => null);
+    if (r && r.ok) l._sentV = l.v;
+  }
 }
 function migrate(l, i) {
   // projects from earlier versions: autotune/tune settings become the new voice style
@@ -1003,6 +1016,7 @@ async function openProject(rec) {
   S.activeId = S.proj.layers[0].id;
   openStudio();
   S.proj.layers.forEach((l) => process(l));
+  sendTakes();
 }
 async function listProjects() {
   const all = ((await store('projects', 'readonly', (s) => s.getAll()).catch(() => [])) || []).sort((a, b) => (b.updated || b.created) - (a.updated || a.created));

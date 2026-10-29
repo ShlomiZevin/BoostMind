@@ -733,6 +733,16 @@ app.post('/api/ep/:id/overlays', (q, res) => {
 app.use('/fonts', express.static(path.join(ROOT, 'fonts')));
 // Karaoke Booth lives in the BoostMind site; served here too so both tools sit behind one menu on the PC
 app.use('/karaoke', express.static('C:/workspace/BoostMind/public/karaoke'));
+// ...and on this PC it copies every vocal track's raw recording here (song-aligned: sample 0 = the song's start), so a
+// session can hear, measure and clean his takes - the page itself keeps them only in the browser
+app.post('/api/karaoke/take', express.raw({ type: '*/*', limit: '400mb' }), (q, res) => {
+  const safe = (s) => String(s || '').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim().slice(0, 80) || 'untitled';
+  const dir = path.join(DOWNLOADS, 'karaoke', safe(q.query.song));
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${safe(q.query.track)}.wav`);
+  fs.writeFileSync(file, q.body);
+  res.json({ ok: true, file });
+});
 // Script Reader: read the whole script while filming, with the character you're playing lit up
 app.use('/reader', express.static(path.join(HERE, 'reader')));
 app.use('/studio', express.static(path.join(HERE, 'studio')));  // the shared top bar + the shell
