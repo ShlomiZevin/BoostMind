@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>הצלילים של חני | ערכת צלילים למשחקים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* The Hani sound pack for the games - every sound from haredit-1/2, level-matched; the list is sounds.json
+     (built by zoomcut/episodes/_assets/haredit/games/sounds.py) */
+  :root { --navy: #1d2a4d; --ink: #22223a; --gold: #c8962e; --cream: #f5efe2; --line: rgba(29, 42, 77, 0.18); }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  body { margin: 0; font-family: Heebo, Arial, sans-serif; color: var(--ink); background: var(--cream); line-height: 1.5; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 56px; }
+  h1 { font-family: 'Suez One', serif; font-weight: 400; color: var(--navy); font-size: clamp(34px, 6vw, 48px); margin: 0 0 6px; line-height: 1.1; }
+  .sub { margin: 0 0 8px; font-size: 17px; }
+  .dev { direction: ltr; text-align: left; font: 14px/1.5 ui-monospace, Consolas, monospace; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 14px 0 26px; overflow-wrap: anywhere; }
+  .dev a { color: var(--navy); }
+  h2 { font-family: 'Suez One', serif; font-weight: 400; color: var(--navy); font-size: 26px; margin: 30px 0 10px; }
+  .row { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .row button { flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--navy); color: #fff; cursor: pointer; display: grid; place-items: center; transition: background 0.15s; }
+  .row button:hover { background: #2d3f6e; }
+  .row button svg { width: 16px; height: 16px; }
+  .row.on button { background: var(--gold); }
+  .t { flex: 1; min-width: 0; }
+  .t b { display: block; font-weight: 700; font-size: 16px; }
+  .t code { direction: ltr; display: inline-block; font: 13px ui-monospace, Consolas, monospace; color: #5b5b70; }
+  .meta { flex: none; font-size: 13px; color: #5b5b70; text-align: left; }
+  .meta a { color: var(--navy); font-weight: 700; text-decoration: none; display: block; }
+  .loop { color: var(--gold); font-weight: 800; }
+</style>
+</head>
+<body>
+<main>
+  <h1>הצלילים של חני</h1>
+  <p class="sub">כל הצלילים מהסרטונים של חני, מוכנים למשחקים: הפלאפון הכשר, המלמול בטלפון, ברכי מתקשרת, הילדים, הבית, הרקעים והניגון. כולם באותה עוצמה בערך (קצרים -16 LUFS, רקעים ולולאות -20).</p>
+  <div class="dev">sounds.json: <a href="sounds.json">https://boostmind-b052c.web.app/hani-games/sounds/sounds.json</a><br>
+    each file: https://boostmind-b052c.web.app/hani-games/sounds/&lt;id&gt;.mp3 · from a game on this site: /hani-games/sounds/&lt;id&gt;.mp3</div>
+  <div id="list"></div>
+</main>
+<script>
+  const PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6z"/></svg>';
+  const STOP = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="10" rx="1"/></svg>';
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let audio = null, playing = null;
+  function stop() { if (audio) audio.pause(); if (playing) { playing.classList.remove('on'); playing.querySelector('button').innerHTML = PLAY; } audio = playing = null; }
+  fetch('sounds.json', { cache: 'no-cache' }).then(r => r.json()).then(d => {
+    const list = document.getElementById('list');
+    for (const [g, title] of Object.entries(d.groups)) {
+      const h = document.createElement('h2'); h.textContent = title; list.appendChild(h);
+      for (const s of d.sounds.filter(x => x.group === g)) {
+        const row = document.createElement('div'); row.className = 'row';
+        row.innerHTML = `<button aria-label="השמע">${PLAY}</button>
+          <div class="t"><b>${esc(s.label)}</b><code>${esc(s.file)}</code></div>
+          <div class="meta">${s.seconds.toFixed(1)} שנ׳${s.loop ? ' · <span class="loop">לולאה</span>' : ''}<a href="${esc(s.file)}" download>הורדה</a></div>`;
+        row.querySelector('button').onclick = () => {
+          const was = playing === row; stop(); if (was) return;
+          audio = new Audio(s.file); audio.play(); audio.onended = stop;
+          playing = row; row.classList.add('on'); row.querySelector('button').innerHTML = STOP;
+        };
+        list.appendChild(row);
+      }
+    }
+  });
+</script>
+</body>
+</html>

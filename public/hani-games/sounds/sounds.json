@@ -1,0 +1,301 @@
+{
+ "base": "https://boostmind-b052c.web.app/hani-games/sounds/",
+ "groups": {
+  "phone": "הפלאפון הכשר",
+  "brachi": "ברכי מתקשרת",
+  "kids": "הילדים",
+  "house": "הבית",
+  "ambience": "רקעים",
+  "music": "מוזיקה"
+ },
+ "sounds": [
+  {
+   "id": "phone-ring",
+   "file": "phone-ring.mp3",
+   "group": "phone",
+   "label": "הפלאפון הכשר מצלצל",
+   "seconds": 6.0,
+   "loop": false
+  },
+  {
+   "id": "phone-ring-2",
+   "file": "phone-ring-2.mp3",
+   "group": "phone",
+   "label": "הפלאפון הכשר מצלצל (גרסה ב׳)",
+   "seconds": 6.0,
+   "loop": false
+  },
+  {
+   "id": "mumble-phone",
+   "file": "mumble-phone.mp3",
+   "group": "phone",
+   "label": "מלמול בצד השני של הטלפון (בלי מילים אמיתיות)",
+   "seconds": 16.84,
+   "loop": false
+  },
+  {
+   "id": "brachi-01",
+   "file": "brachi-01.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״אמא, מלכי שוב מטפסת. אני אומרת לה לרדת והיא לא מקשיבה לי.״",
+   "seconds": 1.96,
+   "loop": false
+  },
+  {
+   "id": "brachi-02",
+   "file": "brachi-02.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״על השיש במטבח!״",
+   "seconds": 0.63,
+   "loop": false
+  },
+  {
+   "id": "brachi-03",
+   "file": "brachi-03.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״אני מנסה, אמא! אני מושכת אותה ביד והיא לא רוצה לרדת!״",
+   "seconds": 1.94,
+   "loop": false
+  },
+  {
+   "id": "brachi-04",
+   "file": "brachi-04.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״אמא, היא עדיין לא יורדת. ויענקי הוציא את כל האבני בניין... ושרולי קורא לי מהחדר... אמא, את שומעת אותי?״",
+   "seconds": 6.4,
+   "loop": false
+  },
+  {
+   "id": "brachi-05",
+   "file": "brachi-05.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״אמא, שרולי עכשיו מטפס על הארון!״",
+   "seconds": 1.03,
+   "loop": false
+  },
+  {
+   "id": "brachi-06",
+   "file": "brachi-06.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״מטפס על הארון בחדר!״",
+   "seconds": 0.73,
+   "loop": false
+  },
+  {
+   "id": "brachi-07",
+   "file": "brachi-07.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״כן! הוא מחפש את העיגוליות!״",
+   "seconds": 0.94,
+   "loop": false
+  },
+  {
+   "id": "brachi-08",
+   "file": "brachi-08.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״אבל אמא, זה פרווה.״",
+   "seconds": 0.9,
+   "loop": false
+  },
+  {
+   "id": "brachi-09",
+   "file": "brachi-09.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״כן, יענקי! הוא דרך על האבני בניין ועכשיו כואב לו!״",
+   "seconds": 1.66,
+   "loop": false
+  },
+  {
+   "id": "brachi-10",
+   "file": "brachi-10.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״הוא רוצה להתקלח, אבל הוא אומר שהוא לא יכול לבד עם הגבס.״",
+   "seconds": 1.56,
+   "loop": false
+  },
+  {
+   "id": "brachi-11",
+   "file": "brachi-11.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״הוא עוד לא חזר מהכולל, התקשרתי אליו והוא לא עונה.״",
+   "seconds": 1.4,
+   "loop": false
+  },
+  {
+   "id": "brachi-12",
+   "file": "brachi-12.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״טוב, אמא, מתי את חוזרת?״",
+   "seconds": 1.13,
+   "loop": false
+  },
+  {
+   "id": "brachi-13",
+   "file": "brachi-13.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״טוב, אמא, ביי!״",
+   "seconds": 0.83,
+   "loop": false
+  },
+  {
+   "id": "brachi-14",
+   "file": "brachi-14.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״אמא, שרולי נפל במקלחת!״",
+   "seconds": 1.0,
+   "loop": false
+  },
+  {
+   "id": "brachi-15",
+   "file": "brachi-15.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״כן, הוא החליק עם הגבס, והוא צועק לי שאני אבוא, אבל הכל מים.״",
+   "seconds": 2.07,
+   "loop": false
+  },
+  {
+   "id": "brachi-16",
+   "file": "brachi-16.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״טוב, אמא, אבל הוא לא מצליח לקום.״",
+   "seconds": 1.33,
+   "loop": false
+  },
+  {
+   "id": "brachi-17",
+   "file": "brachi-17.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״ועכשיו מלכי בוכה, והיא רוצה רק אותך, ויענקי לקח לי את הכיסא... אמא? אמא! למה את לא עונה לי?״",
+   "seconds": 4.41,
+   "loop": false
+  },
+  {
+   "id": "brachi-18",
+   "file": "brachi-18.mp3",
+   "group": "brachi",
+   "label": "ברכי בטלפון: ״יענקי!״",
+   "seconds": 0.52,
+   "loop": false
+  },
+  {
+   "id": "kids-ima-1",
+   "file": "kids-ima-1.mp3",
+   "group": "kids",
+   "label": "ילד קורא ״אמא! אמא!״",
+   "seconds": 2.24,
+   "loop": false
+  },
+  {
+   "id": "kids-ima-2",
+   "file": "kids-ima-2.mp3",
+   "group": "kids",
+   "label": "״אמא! אמא!״ מהחדר השני",
+   "seconds": 2.4,
+   "loop": false
+  },
+  {
+   "id": "kids-ima-3",
+   "file": "kids-ima-3.mp3",
+   "group": "kids",
+   "label": "״אמא! אמא!״ מרחוק",
+   "seconds": 2.32,
+   "loop": false
+  },
+  {
+   "id": "kids-ma-ma",
+   "file": "kids-ma-ma.mp3",
+   "group": "kids",
+   "label": "״מה? מה?״ מרחוק",
+   "seconds": 2.48,
+   "loop": false
+  },
+  {
+   "id": "malki-wail",
+   "file": "malki-wail.mp3",
+   "group": "kids",
+   "label": "מלכי בוכה (יללה ארוכה)",
+   "seconds": 5.0,
+   "loop": false
+  },
+  {
+   "id": "yanky-cry",
+   "file": "yanky-cry.mp3",
+   "group": "kids",
+   "label": "יענקי בוכה (דרך על האבני בניין)",
+   "seconds": 6.0,
+   "loop": false
+  },
+  {
+   "id": "climb-oy",
+   "file": "climb-oy.mp3",
+   "group": "kids",
+   "label": "ילד מטפס ונאנח",
+   "seconds": 4.0,
+   "loop": false
+  },
+  {
+   "id": "crash",
+   "file": "crash.mp3",
+   "group": "house",
+   "label": "משהו נופל ומתנפץ",
+   "seconds": 3.0,
+   "loop": false
+  },
+  {
+   "id": "cookie-tin",
+   "file": "cookie-tin.mp3",
+   "group": "house",
+   "label": "קופסת העיגוליות נפתחת",
+   "seconds": 3.0,
+   "loop": false
+  },
+  {
+   "id": "shower",
+   "file": "shower.mp3",
+   "group": "house",
+   "label": "מקלחת נפתחת",
+   "seconds": 7.0,
+   "loop": false
+  },
+  {
+   "id": "shower-loop",
+   "file": "shower-loop.mp3",
+   "group": "house",
+   "label": "מים זורמים במקלחת (לולאה)",
+   "seconds": 15.0,
+   "loop": true
+  },
+  {
+   "id": "house-ambience",
+   "file": "house-ambience.mp3",
+   "group": "ambience",
+   "label": "רקע של בית מלא ילדים (לולאה)",
+   "seconds": 20.0,
+   "loop": true
+  },
+  {
+   "id": "office-ambience",
+   "file": "office-ambience.mp3",
+   "group": "ambience",
+   "label": "רקע של משרד ההייטק (לולאה, 22 שניות)",
+   "seconds": 22.0,
+   "loop": true
+  },
+  {
+   "id": "office-ambience-long",
+   "file": "office-ambience-long.mp3",
+   "group": "ambience",
+   "label": "רקע של משרד ההייטק (לולאה, 2 דקות)",
+   "seconds": 122.0,
+   "loop": true
+  },
+  {
+   "id": "niggun-freilach",
+   "file": "niggun-freilach.mp3",
+   "group": "music",
+   "label": "ניגון חסידי שמח, כלי בלבד",
+   "seconds": 90.04,
+   "loop": true
+  }
+ ]
+}
