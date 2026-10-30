@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>יוסף מוקיר שבת – טיזר מוקרא</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@700;900&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* the read-aloud teaser, 1080x1920. window.at(t) sets every layer for second t (render.js --page teaser.html steps it; render-teaser-audio.js lays the
+   narration, niggun and sounds on the same TL). Pages 1-5 read in full, stops on the cap in the wind - the rest is in the game. Bottom 260px clear. */
+*{box-sizing:border-box;margin:0}
+html,body{width:1080px;height:1920px;overflow:clip}
+body{position:relative;contain:paint}
+body{font-family:Rubik,sans-serif;color:#24304a;background:radial-gradient(circle at 50% 25%,#fffdf6,#ecdcb8)}
+body::before{content:"";position:absolute;inset:0;background:radial-gradient(#e2cfa4 2.5px,transparent 3px) 0 0/44px 44px;opacity:.5}
+.scene{position:absolute;inset:0;opacity:0}
+.brand{position:absolute;top:120px;left:0;right:0;text-align:center;font-weight:900;font-size:42px}
+.brand i{font-style:normal;display:inline-block;background:#24406e;color:#fff;border-radius:40px;padding:8px 34px}
+h1{font-family:'Noto Serif Hebrew',serif;font-weight:900;color:#1f3763;text-align:center;line-height:1.12}
+.frame{position:absolute;border-radius:30px;overflow:hidden;box-shadow:0 0 0 9px #fff,0 0 0 13px #e3d6b4,0 24px 50px #24406e40}
+.frame img{display:block;width:100%;height:100%;object-fit:cover;transform-origin:50% 50%}
+.hani{position:absolute;bottom:0;filter:drop-shadow(0 14px 22px #24406e55)}
+.pill{display:inline-block;background:#3aa565;color:#fff;font-weight:900;font-size:68px;padding:12px 56px;border-radius:60px;box-shadow:0 8px 0 #23784a}
+.num{position:absolute;top:230px;left:0;right:0;text-align:center;font-weight:900;font-size:36px;color:#8a6a2a}
+.text{position:absolute;top:1010px;left:80px;right:80px;font-family:'Noto Serif Hebrew',serif;font-weight:700;font-size:50px;line-height:1.55;text-align:right}
+.text p{transition:none;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<div class="scene" id="intro">
+  <div class="brand"><i>המשחקייה של חני</i></div>
+  <h1 style="position:absolute;top:240px;left:40px;right:40px;font-size:96px">המשחקייה של חני<br>מציגה:</h1>
+  <div class="frame" style="left:70px;right:70px;top:540px;height:627px;transform:rotate(-3deg)"><img src="../art/v2/cover.png"></div>
+  <img class="hani" src="hani-real/glad-cut.png" style="height:720px;left:50%;margin-left:-146px">
+</div>
+
+<div id="pages"></div>
+
+<div class="scene" id="end">
+  <div class="brand"><i>המשחקייה של חני</i></div>
+  <h1 style="position:absolute;top:230px;left:40px;right:40px;font-size:100px">לאן נפל הכובע?</h1>
+  <div style="position:absolute;top:400px;left:60px;right:60px;text-align:center;font-size:52px;font-weight:700;line-height:1.4">המשך הסיפור – ועוד 10 משחקים<br>עכשיו במשחקייה של חני</div>
+  <div class="frame" style="left:90px;right:90px;top:600px;height:600px;transform:rotate(2deg)"><img src="../art/v2/cover.png"></div>
+  <div style="position:absolute;top:1290px;right:60px;width:520px;text-align:center"><span class="pill">עלה עכשיו!</span>
+    <p style="margin-top:26px;font-size:46px;font-weight:700">הקישור בביו</p></div>
+  <img class="hani" src="hani-real/point-cut.png" style="height:760px;left:0">
+</div>
+
+<script>
+// narration lengths (assets/audio/p01-p05.mp3) - keep in sync if the narration changes
+const DUR = [20.69, 17.4, 16.51, 20.43, 10.92];
+const INTRO = 4.5, LEAD = 0.9, TAIL = 1.4, END = 7;
+const TL = []; let t = INTRO;
+for (let i = 0; i < DUR.length; i++) { TL.push({ i, start: t, voice: t + LEAD, end: t + LEAD + DUR[i] + TAIL }); t = TL[i].end; }
+const END_AT = t, TOTAL = t + END;
+window.TL = TL; window.TOTAL = TOTAL; window.END_AT = END_AT; window.INTRO = INTRO;
+const pages = document.getElementById('pages');
+let story;
+const ready = fetch('../story.json').then((r) => r.json()).then((s) => {
+  story = s;
+  TL.forEach((p) => {
+    const d = document.createElement('div'); d.className = 'scene'; d.id = 'pg' + p.i;
+    const lines = s.pages[p.i].lines;
+    d.innerHTML = `<div class="brand"><i>יוסף מוקיר שבת</i></div><div class="num">עמוד ${p.i + 1}</div>
+      <div class="frame" style="left:60px;right:60px;top:310px;height:640px"><img src="../assets/pages/p0${p.i + 1}.jpg"></div>
+      <div class="text">${lines.map((l) => `<p>${l}</p>`).join('')}</div>`;
+    pages.appendChild(d);
+    // line timing ~ share of letters
+    const len = lines.map((l) => l.replace(/[֑-ׇ]/g, '').length), sum = len.reduce((a, b) => a + b, 0);
+    let acc = 0; p.lines = len.map((n) => { const a = acc; acc += n / sum; return a; });
+  });
+});
+const clamp = (x) => Math.max(0, Math.min(1, x)), ease = (x) => x * x * (3 - 2 * x);
+function fade(el, t, a, b, f = 0.6) { el.style.opacity = ease(clamp((t - a) / f)) * (1 - ease(clamp((t - (b - f)) / f))); }
+window.at = (t) => {
+  const intro = document.getElementById('intro'); fade(intro, t, -1, INTRO + 0.3);
+  intro.querySelector('.frame').style.transform = `rotate(-3deg) scale(${1 + 0.02 * t})`;
+  TL.forEach((p) => {
+    const el = document.getElementById('pg' + p.i); if (!el) return;
+    fade(el, t, p.start - 0.3, p.end + 0.3);
+    el.querySelector('.frame img').style.transform = `scale(${1.02 + 0.08 * clamp((t - p.start) / (p.end - p.start))})`;
+    const k = (t - p.voice) / DUR[p.i];
+    el.querySelectorAll('.text p').forEach((q, j) => {
+      const on = k >= p.lines[j] && (j === p.lines.length - 1 || k < p.lines[j + 1]);
+      q.style.color = k < 0 ? '#24304a' : on ? '#1f3763' : '#24304a';
+      q.style.opacity = k < 0 ? 0.85 : on ? 1 : 0.4;
+    });
+  });
+  fade(document.getElementById('end'), t, END_AT - 0.3, TOTAL + 5);
+};
+ready.then(() => at(0));
+</script>
+</body>
+</html>
