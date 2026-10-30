@@ -1,0 +1,103 @@
+{
+  "_sprite": "One object for a children's book game, in exactly the same simple illustration style as the reference pictures (black outline, flat soft colours). Only the object, whole, nothing cut by the edges, on a transparent background. No text unless asked.",
+  "_scene": "A game background for a children's book game, in exactly the same simple illustration style as the reference pictures. Wide, calm, no people, no text.",
+  "shtender": {
+    "kind": "sprite",
+    "prompt": "A wooden yeshiva lectern (shtender) with an open Gemara on it, seen from the front, as wide as it is tall."
+  },
+  "laptop": {
+    "kind": "sprite",
+    "prompt": "An open silver laptop seen from the front, its screen glowing blue with lines of code."
+  },
+  "gemara": {
+    "kind": "sprite",
+    "prompt": "A big open Gemara (Talmud volume), seen from the front, held up open."
+  },
+  "zvi-sign": {
+    "kind": "sprite",
+    "ref": "art/v2/zvi-2.png",
+    "prompt": "Tzvi Kaplan from the reference (navy cap reading \"ברית המשרתים\", thin black sunglasses, linen blazer), upper body, arrogant, swinging a big protest sign on a stick like a hammer. The sign reads \"תתגייס!\" in big bold black Hebrew letters, spelled exactly like that."
+  },
+  "workers": {
+    "kind": "sprite",
+    "ref": "art/v2/p07.png",
+    "prompt": "The two Haredi restaurant workers from the reference (the older plump one with the grey beard and the young thin one with the short red beard, white aprons), seen from the side, running fast towards the LEFT together, carrying one big steaming cholent pot between them. Full bodies, feet visible."
+  },
+  "puddle": {
+    "kind": "sprite",
+    "prompt": "A blue rain puddle on the ground, flat, seen from a low side angle."
+  },
+  "boxes": {
+    "kind": "sprite",
+    "prompt": "A small stack of two cardboard boxes, side view."
+  },
+  "stroller": {
+    "kind": "sprite",
+    "prompt": "An empty dark-blue baby stroller, side view."
+  },
+  "door": {
+    "kind": "sprite",
+    "ref": "art/pages-v1/p01.jpg",
+    "prompt": "The entrance of an old Bnei Brak apartment building with a wooden door and a mezuzah, and Yosef from the reference (black kippa, round glasses, black beard, white shirt) standing in the open doorway waving happily."
+  },
+  "yeshiva": {
+    "kind": "scene",
+    "prompt": "Inside a big bright beit midrash (yeshiva study hall): tall bookshelves full of holy books along the back wall, big windows, warm light, a wooden floor. The lower two thirds of the picture is open floor with nothing on it."
+  },
+  "street": {
+    "kind": "scene",
+    "prompt": "Rabbi Akiva street in Bnei Brak on a Friday afternoon, seen from the side like a side-scrolling game: a row of old apartment buildings and small shops with no readable signs, a sidewalk running along the whole bottom of the picture, a soft orange sky before Shabbat."
+  },
+  "whack-bg": {
+    "kind": "scene",
+    "prompt": "A whack-a-mole game board. The front and middle of the picture: the wooden floor of a beit midrash, completely empty (the game puts the lecterns there). The back: the wall opens with huge windows onto a glowing MODERN hi-tech city - shiny glass towers, big screens, a train, drones - clearly the modern working world outside, calling. Bright daylight."
+  },
+  "shtender2": {
+    "kind": "sprite",
+    "prompt": "A big wooden yeshiva shtender (lectern) built like a closed wooden box, seen from the front and a little above, an open Gemara lying on its slanted top. On its front panel the Hebrew words \"עולמה של תורה\" are carved in gold letters, spelled exactly like that. Wider than it is tall."
+  },
+  "pop-a": {
+    "kind": "sprite",
+    "ref": "assets/sprites/face-a.png",
+    "prompt": "A young Haredi man (black kippa, black beard, white shirt) seen from the chest up, popping up excitedly, holding an open laptop and looking up and away with dreamy eyes towards the modern world - he wants to go out and work in hi-tech. Only the chest up."
+  },
+  "pop-b": {
+    "kind": "sprite",
+    "ref": "assets/sprites/face-h.png",
+    "prompt": "A Haredi man (black hat, brown beard, white shirt) seen from the chest up, popping up eagerly, holding a smartphone and a laptop bag, looking away towards the modern world - he wants to go out and work in hi-tech. Only the chest up."
+  },
+  "bonked-a": {
+    "kind": "sprite",
+    "ref": "assets/sprites/face-a.png",
+    "prompt": "The same young Haredi man (black kippa, black beard, white shirt) from the chest up, just bonked in a cartoon way: dizzy swirly eyes, little stars circling his head, a funny smile, now holding an open Gemara instead of a laptop. Only the chest up. Funny, not hurt."
+  },
+  "bonked-b": {
+    "kind": "sprite",
+    "ref": "assets/sprites/face-h.png",
+    "prompt": "The same Haredi man (black hat, brown beard, white shirt) from the chest up, just bonked in a cartoon way: dizzy swirly eyes, little stars circling his head, a funny smile, now holding an open Gemara. Only the chest up. Funny, not hurt."
+  },
+  "sign-hammer": {
+    "kind": "sprite",
+    "prompt": "A white cardboard protest sign on a wooden stick, tilted like a hammer mid-swing, reading \"תתגייס!\" in big bold black Hebrew letters, spelled exactly like that."
+  },
+  "zvi-up-r": {
+    "kind": "sprite",
+    "ref": "art/v2/zvi-2.png",
+    "prompt": "Tzvi Kaplan from the reference (navy cap reading \"ברית המשרתים\", thin black sunglasses, linen blazer, black t-shirt, jeans, white sneakers), FULL BODY, arrogant and determined, holding a big white protest sign on a wooden stick with both hands. The sign reads \"שוויון בנטל\" in big bold black Hebrew letters, spelled exactly like that and readable (not mirrored). He faces to the RIGHT and has lifted the sign high above and behind his head, winding up to swing it down onto something in front of him on his right."
+  },
+  "zvi-hit-r": {
+    "kind": "sprite",
+    "ref": "art/v2/zvi-2.png",
+    "prompt": "Tzvi Kaplan from the reference (navy cap reading \"ברית המשרתים\", thin black sunglasses, linen blazer, black t-shirt, jeans, white sneakers), FULL BODY, arrogant and determined, holding a big white protest sign on a wooden stick with both hands. The sign reads \"שוויון בנטל\" in big bold black Hebrew letters, spelled exactly like that and readable (not mirrored). He faces to the RIGHT, leaning forward, and has just swung the sign DOWN in front of him on his right like a hammer - the sign is low, at his waist height, flat side down. Cartoon motion lines."
+  },
+  "zvi-up-l": {
+    "kind": "sprite",
+    "ref": "art/v2/zvi-2.png",
+    "prompt": "Tzvi Kaplan from the reference (navy cap reading \"ברית המשרתים\", thin black sunglasses, linen blazer, black t-shirt, jeans, white sneakers), FULL BODY, arrogant and determined, holding a big white protest sign on a wooden stick with both hands. The sign reads \"שוויון בנטל\" in big bold black Hebrew letters, spelled exactly like that and readable (not mirrored). He faces to the LEFT and has lifted the sign high above and behind his head, winding up to swing it down onto something in front of him on his left."
+  },
+  "zvi-hit-l": {
+    "kind": "sprite",
+    "ref": "art/v2/zvi-2.png",
+    "prompt": "Tzvi Kaplan from the reference (navy cap reading \"ברית המשרתים\", thin black sunglasses, linen blazer, black t-shirt, jeans, white sneakers), FULL BODY, arrogant and determined, holding a big white protest sign on a wooden stick with both hands. The sign reads \"שוויון בנטל\" in big bold black Hebrew letters, spelled exactly like that and readable (not mirrored). He faces to the LEFT, leaning forward, and has just swung the sign DOWN in front of him on his left like a hammer - the sign is low, at his waist height, flat side down. Cartoon motion lines."
+  }
+}

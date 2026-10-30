@@ -1,0 +1,9 @@
+{
+  "slug": "shekel-tov",
+  "title": "שקל טוב",
+  "tagline": "השכנים זורקים מטבעות מהמרפסות – ואתם ממלאים את קופת הצדקה. רק בלי לשון הרע!",
+  "status": "live",
+  "cover": "cover.jpg",
+  "badges": ["ניגונים בלבד", "לכל המשפחה"],
+  "best": { "key": "hani-games:shekel-tov:best", "label": "שקלים" }
+}

@@ -457,7 +457,7 @@ const POSE = n => `assets/pose-${n}.png`;
 ['calm', 'surprised', 'joy', 'phone', 'chin', 'tehilim', 'talk'].forEach(n => { const i = new Image(); i.src = POSE(n); });
 let poseT = 0, sayT = 0, sayPri = 0, curPose = 'chin', idleT = 4;
 function setPose(n, dur = 0) {
-  if (curPose !== n) { curPose = n; haniEl.src = POSE(n); haniEl.classList.add('pop'); setTimeout(() => haniEl.classList.remove('pop'), 150); }
+  if (curPose !== n) { curPose = n; haniEl.src = POSE(n); haniEl.classList.toggle('wide', n === 'joy'); haniEl.classList.add('pop'); setTimeout(() => haniEl.classList.remove('pop'), 150); }
   if (dur) poseT = dur;
 }
 function say(t, dur = 2.4, pri = 1) {
@@ -529,13 +529,13 @@ function reset() {
   fillTray(true); drawSeams(); drawRingGlow(); hud();
 }
 function startGame() {
-  reset(); state = 'play'; show(null); playing(true);
+  reset(); state = 'play'; show(null); playing(true); window.track && track('game_start', 'ketoret');
   say('אמה על אמה, ואמתיים קומתו. בונים בסייעתא דשמיא!', 3, 2);
   setTimeout(drawTray, 50);
 }
 function gameOver(h, line) {
   if (state !== 'play') return;
-  state = 'over';
+  state = 'over'; window.track && track('game_over', 'ketoret');
   const prev = best(), rec = score > prev;
   if (rec) store.set(KEY.best, score);
   setTimeout(() => {

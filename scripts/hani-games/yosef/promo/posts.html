@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>המשחקייה של חני – יוסף מוקיר שבת – פוסטים וסטוריז</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@700;900&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* .post = 1080x1350 Instagram post, .story = 1080x1920 story (render-posts.js -> out/post-N.jpg, out/story-N.jpg).
+   Rules: Hani in every one (real = hani-real/*-cut.png, drawn = nisei-nissim poses, MODEST poses only), simple words, launch day "עלה עכשיו",
+   full frame (dotted paper, big pictures, game objects), no picture over text, stories keep the bottom 260px clear. */
+*{box-sizing:border-box;margin:0}
+body{background:#888;font-family:Rubik,sans-serif;color:#24304a;padding:20px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.post,.story{position:relative;width:1080px;height:1350px;overflow:hidden;background:radial-gradient(circle at 50% 25%,#fffdf6,#ecdcb8)}
+.story{height:1920px}
+.post::before,.story::before{content:"";position:absolute;inset:0;background:radial-gradient(#e2cfa4 2.5px,transparent 3px) 0 0/44px 44px;opacity:.5}
+.navy{background:radial-gradient(circle at 50% 25%,#3a5794,#1a2d52);color:#fff}
+.navy::before{background:radial-gradient(#ffffff22 2.5px,transparent 3px) 0 0/44px 44px;opacity:1}
+.top{position:absolute;top:36px;left:0;right:0;text-align:center;font-weight:900;font-size:40px;color:#24406e}
+.top i{font-style:normal;display:inline-block;background:#24406e;color:#fff;border-radius:40px;padding:6px 30px}
+.navy .top i{background:#f2b632;color:#1a2d52}
+.hani{position:absolute;bottom:0;filter:drop-shadow(0 14px 22px #24406e55)}
+.blk{position:absolute;left:44px;right:44px;text-align:center}
+h2{font-family:'Noto Serif Hebrew',serif;font-weight:900;font-size:96px;line-height:1.12;text-wrap:balance;color:#1f3763}
+.navy h2{color:#fff}
+.say{font-size:48px;line-height:1.4;font-weight:500;text-wrap:pretty}
+.say b{color:#c2581e}
+.navy .say b{color:#f2b632}
+.frame{position:absolute;border-radius:30px;overflow:hidden;box-shadow:0 0 0 9px #fff,0 0 0 13px #e3d6b4,0 24px 50px #24406e40}
+.frame img{display:block;width:100%;height:100%;object-fit:cover}
+.phone{position:absolute;width:250px;height:487px;border-radius:40px;background:#1d2433;padding:12px;box-shadow:0 20px 40px #0006}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:30px;display:block}
+.pill{display:inline-block;background:#3aa565;color:#fff;font-weight:900;font-size:62px;padding:12px 56px;border-radius:60px;box-shadow:0 8px 0 #23784a}
+.chips{position:absolute;display:flex;flex-direction:column;gap:16px}
+.chips span{background:#fff;border-radius:22px;padding:12px 26px;font-size:40px;font-weight:900;color:#24406e;box-shadow:0 5px 0 #e3d6b4;width:max-content}
+.deco{position:absolute;filter:drop-shadow(0 8px 10px #0003)}
+.note{background:#fff;border-radius:30px;padding:30px 36px;box-shadow:0 8px 0 #e3d6b4;font-size:44px;line-height:1.4;font-weight:500}
+.note b{color:#1f3763;font-weight:900}
+.kosher{display:inline-block;border:5px solid #3aa565;color:#23784a;border-radius:20px;padding:8px 26px;font-weight:900;font-size:42px;background:#fff}
+.link{display:inline-block;background:#fff;color:#1f3763;border-radius:24px;padding:16px 34px;font-weight:900;font-size:44px;direction:ltr;box-shadow:0 6px 0 #e3d6b4}
+</style>
+</head>
+<body>
+
+<!-- ================= POSTS 1080x1350 ================= -->
+
+<!-- 1. a new game is up - his favourite layout, filled; real Hani glad -->
+<div class="post" id="p1">
+  <div class="top"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:110px"><h2 style="font-size:108px">משחק חדש<br>במשחקייה!</h2></div>
+  <div class="frame" style="left:40px;top:400px;width:600px;height:400px;transform:rotate(-4deg)"><img src="../art/v2/cover.png"></div>
+  <div style="position:absolute;left:96px;top:858px"><span class="pill">עלה עכשיו!</span></div>
+  <div class="chips" style="left:56px;top:1000px"><span>ספר מוקרא</span><span>10 משחקים</span></div>
+  <img class="deco" src="../assets/sprites/diamond.png" style="left:420px;top:1010px;width:130px;transform:rotate(-12deg)">
+  <img class="deco" src="../assets/sprites/card.png" style="left:420px;top:1170px;width:140px;transform:rotate(10deg)">
+  <img class="hani" src="hani-real/glad-cut.png" style="height:880px;right:20px">
+</div>
+
+<!-- 2. the story (simple) -->
+<div class="post" id="p2">
+  <div class="top"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:108px"><h2>הסיפור</h2>
+    <p class="say" style="margin-top:10px">יוסף, אברך מבני ברק, חוסך את כל ה<b>תן ביס</b> לשבת.<br>צבי קפלן, מיליונר מהייטק, מגלה שכל הכסף שלו<br>עתיד לעבור ליוסף… <b>ומנסה לברוח מזה.</b></p></div>
+  <div class="frame" style="left:40px;top:500px;width:480px;height:320px;transform:rotate(-3deg)"><img src="../assets/pages/p02.jpg"></div>
+  <div class="frame" style="left:120px;top:880px;width:480px;height:320px;transform:rotate(3deg)"><img src="../assets/pages/p04.jpg"></div>
+  <img class="deco" src="../assets/sprites/cap.png" style="left:560px;top:520px;width:150px;transform:rotate(12deg)">
+  <img class="deco" src="../assets/sprites/diamond.png" style="left:600px;top:700px;width:100px;transform:rotate(-10deg)">
+  <img class="hani" src="../../nisei-nissim/assets/pose-chin.png" style="height:560px;right:16px">
+</div>
+
+<!-- 3. ten games -->
+<div class="post navy" id="p3">
+  <div class="top"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:108px"><h2>קוראים ומשחקים</h2>
+    <p class="say" style="margin-top:8px">10 עמודים – ובכל עמוד <b>משחק קטן</b> על הסיפור</p></div>
+  <div class="phone" style="left:40px;top:340px;transform:rotate(-6deg)"><img src="../shots/w-phone-0.png"></div>
+  <div class="phone" style="left:300px;top:360px;transform:rotate(2deg)"><img src="../shots/n-phone-wind.png"></div>
+  <div class="phone" style="left:40px;top:850px;transform:rotate(4deg)"><img src="../shots/g9-play.png"></div>
+  <div class="phone" style="left:300px;top:870px;transform:rotate(-3deg)"><img src="../shots/g7-play.png"></div>
+  <img class="deco" src="../assets/sprites/coin.png" style="left:580px;top:1180px;width:90px">
+  <img class="hani" src="hani-real/phone-cut.png" style="height:900px;right:0">
+</div>
+
+<!-- 4. a read-aloud book -->
+<div class="post" id="p4">
+  <div class="top"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:108px"><h2>ספר מוקרא</h2>
+    <p class="say" style="margin-top:8px">כל עמוד מוקרא, עם טקסט מנוקד<br>וניגונים בלבד – <b>מתאים לכל המשפחה</b></p></div>
+  <div class="phone" style="left:60px;top:430px;width:360px;height:700px;border-radius:52px;padding:16px;transform:rotate(-3deg)"><img src="../shots/phone-p01.png" style="border-radius:38px"></div>
+  <img class="deco" src="../assets/sprites/challah.png" style="left:440px;top:1060px;width:180px;transform:rotate(-6deg)">
+  <img class="deco" src="../assets/sprites/candles.png" style="left:470px;top:820px;width:120px;transform:rotate(5deg)">
+  <img class="hani" src="hani-real/book-cut.png" style="height:860px;right:10px">
+</div>
+
+<!-- 5. who made it - the family: the gisa (developer), Hani, Avraham Moshe (Hani's husband) - kosher -->
+<div class="post" id="p5">
+  <div class="top"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:100px"><h2 style="font-size:88px">מי פיתחה?</h2></div>
+  <div class="blk" style="top:225px"><div class="note" style="font-size:40px;padding:22px 30px">את המשחק פיתחה <b>שינדי מלכה פרידמן, הגיסה של חני</b> – <b>בוגרת סמינר הרב וולף</b> (מסלול בינה יתרה לפיתוח תוכנה), שסיימה עכשיו הכשרה לחרדיות.</div>
+    <div style="margin-top:20px;display:flex;gap:14px;justify-content:center">
+      <span class="kosher" style="font-size:32px">✓ ניגונים בלבד, בלי שירת נשים</span>
+      <span class="kosher" style="font-size:32px">✓ בלי צ'אט ופרסומות</span>
+    </div>
+  </div>
+  <div style="position:absolute;top:610px;left:0;right:0;display:flex;justify-content:space-around;font-weight:900;font-size:34px;color:#24406e;padding:0 40px">
+    <span>שינדי – המפתחת</span><span>חני</span><span>אברהם משה</span></div>
+  <img class="hani" src="hani-real/avraham-moshe-cut.png" style="height:590px;left:20px">
+  <img class="hani" src="hani-real/glad-cut.png" style="height:680px;left:50%;margin-left:-141px">
+  <img class="hani" src="hani-real/gisa-cut.png" style="height:690px;right:40px">
+</div>
+
+<!-- 6. Shabbat shalom -->
+<div class="post navy" id="p6">
+  <div class="top"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:110px">
+    <h2 style="font-size:84px">״מַאן דְּיָזִיף שַׁבְּתָא,<br>פָּרְעֵיהּ שַׁבְּתָא״</h2>
+    <div style="margin-top:18px;font-size:42px;font-weight:700;color:#f2b632">יוסף מוקיר שבת – עלה עכשיו במשחקייה של חני</div></div>
+  <div class="frame" style="left:50px;top:470px;width:560px;height:373px;transform:rotate(-3deg)"><img src="../assets/pages/p09.jpg"></div>
+  <div style="position:absolute;top:900px;left:50px;width:560px;text-align:center;font-family:'Noto Serif Hebrew',serif;font-weight:900;font-size:90px;color:#fff">שבת שלום!</div>
+  <img class="deco" src="../assets/sprites/candles.png" style="left:80px;top:1060px;width:190px">
+  <img class="deco" src="../assets/sprites/challah.png" style="left:330px;top:1110px;width:230px">
+  <img class="hani" src="../../nisei-nissim/assets/pose-tehilim.png" style="right:10px;height:640px">
+</div>
+
+<!-- ================= STORIES 1080x1920 (bottom 260px clear) ================= -->
+
+<!-- S1. launch -->
+<div class="story" id="s1">
+  <div class="top" style="top:120px"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:210px"><h2 style="font-size:120px">משחק חדש<br>במשחקייה!</h2></div>
+  <div class="frame" style="left:70px;right:70px;top:520px;height:627px;transform:rotate(-3deg)"><img src="../art/v2/cover.png"></div>
+  <div style="position:absolute;left:60px;top:1250px"><span class="pill" style="font-size:70px">עלה עכשיו!</span></div>
+  <div class="chips" style="left:70px;top:1410px"><span>ספר מוקרא</span><span>10 משחקים</span></div>
+  <img class="hani" src="hani-real/glad-cut.png" style="height:760px;right:50px">
+</div>
+
+<!-- S2. the cliffhanger -->
+<div class="story navy" id="s2">
+  <div class="top" style="top:120px"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:210px"><h2 style="font-size:100px">יהלום אחד.<br>כובע אחד.<br>רוח אחת חזקה…</h2></div>
+  <div class="frame" style="left:60px;right:60px;top:690px;height:560px"><img src="../assets/pages/p05.jpg"></div>
+  <div style="position:absolute;top:1310px;right:50px;width:500px;text-align:right"><p class="say" style="font-size:56px">לאן נפל הכובע<br>של צבי קפלן?<br><b>גלו במשחקייה של חני!</b></p></div>
+  <img class="hani" src="../../nisei-nissim/assets/pose-surprised.png" style="height:560px;left:30px">
+</div>
+
+<!-- S3. ten games -->
+<div class="story" id="s3">
+  <div class="top" style="top:120px"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:210px"><h2 style="font-size:104px">10 משחקים<br>בתוך ספר אחד</h2></div>
+  <div class="phone" style="left:60px;top:520px;transform:rotate(-6deg)"><img src="../shots/g1-play.png"></div>
+  <div class="phone" style="left:300px;top:540px;transform:rotate(3deg)"><img src="../shots/w-phone-0.png"></div>
+  <div class="phone" style="left:60px;top:1060px;transform:rotate(3deg)"><img src="../shots/g8-play.png"></div>
+  <div class="phone" style="left:300px;top:1080px;transform:rotate(-4deg)"><img src="../shots/g10-play.png"></div>
+  <img class="hani" src="hani-real/phone-cut.png" style="height:1180px;right:-10px">
+</div>
+
+<!-- S4. who made it - the family -->
+<div class="story" id="s4">
+  <div class="top" style="top:120px"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:210px"><h2 style="font-size:104px">מי פיתחה?</h2></div>
+  <div class="blk" style="top:360px"><div class="note" style="font-size:46px">את המשחק פיתחה <b>שינדי מלכה פרידמן, הגיסה של חני</b> – <b>בוגרת סמינר הרב וולף</b> (מסלול בינה יתרה לפיתוח תוכנה), שסיימה עכשיו הכשרה לחרדיות.</div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:16px;align-items:center">
+      <span class="kosher">✓ ניגונים בלבד, בלי שירת נשים</span>
+      <span class="kosher">✓ בלי צ'אט, בלי פרסומות</span>
+    </div>
+  </div>
+  <div style="position:absolute;top:1010px;left:0;right:0;display:flex;justify-content:space-around;font-weight:900;font-size:36px;color:#24406e;padding:0 30px">
+    <span>שינדי – המפתחת</span><span>חני</span><span>אברהם משה</span></div>
+  <img class="hani" src="hani-real/avraham-moshe-cut.png" style="height:780px;left:0">
+  <img class="hani" src="hani-real/glad-cut.png" style="height:860px;left:50%;margin-left:-176px">
+  <img class="hani" src="hani-real/gisa-cut.png" style="height:870px;right:20px">
+</div>
+
+<!-- S5. play now -->
+<div class="story navy" id="s5">
+  <div class="top" style="top:120px"><i>המשחקייה של חני</i></div>
+  <div class="blk" style="top:210px"><h2 style="font-size:116px">עכשיו<br>במשחקייה של חני</h2></div>
+  <div class="frame" style="left:90px;right:90px;top:600px;height:600px;transform:rotate(2deg)"><img src="../art/v2/cover.png"></div>
+  <div style="position:absolute;top:1300px;right:60px;width:520px;text-align:center"><span class="pill" style="font-size:66px">שחקו עכשיו!</span>
+    <p class="say" style="margin-top:26px">הקישור בביו</p>
+    <img src="../assets/sprites/diamond.png" style="width:120px;margin-top:10px;transform:rotate(-14deg)"></div>
+  <img class="hani" src="hani-real/book-cut.png" style="height:640px;left:40px">
+</div>
+
+</body>
+</html>

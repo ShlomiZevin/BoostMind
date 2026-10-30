@@ -87,7 +87,7 @@ function canvasTex(w, h, draw) {
 
 // ───────────────────────── the world (Blender models: assets/models/*.glb) ─────────────────────────
 const P = { // where things are
-  counterTop: 1.1, stove: V(-3.45, 1.1, -7.45), sink: V(-2.2, 1.1, -7.45), malkiCounter: V(-0.95, 1.1, -7.45),
+  counterTop: 1.1, stove: V(-3.45, 1.1, -7.45), sink: V(-2.2, 1.1, -7.45), dairySink: V(-0.95, 1.1, -7.45), diapers: V(3.25, .55, -1.05), malkiCounter: V(-0.95, 1.1, -7.45),
   cupboard: V(1.45, 0, -7.55), sruliClimb: V(1.45, 1.35, -6.9), couch: V(2.6, .5, -1.0),
   rug: V(0.2, 0, -3.5), stairsFoot: V(3.4, 0, -4.9), washer: V(-3.85, 0, -5.4), table: V(-2.0, 0, -3.7),
   desk: V(0, 0, 6.35), hani: V(0, 0, 5.75), phone: V(-1.05, .93, 6.6), tzedaka: V(1.1, .93, 6.45),
@@ -159,7 +159,19 @@ function buildWorld() {
   box(1.05, .65, .05, 0x7aa6c9, 2.9, 1.9, -7.97, scene, { emissive: 0x3a5a7a, emissiveIntensity: .2 }).castShadow = false;
 
   const F = 1.25; // library furniture is in real metres; the cast is cartoon-sized
-  M3('counter_stove', P.stove.x, 0, -7.55, 0, F); M3('counter_sink', P.sink.x, 0, -7.55, 0, F); M3('counter', -0.95, 0, -7.55, 0, F);
+  M3('counter_stove', P.stove.x, 0, -7.55, 0, F); const meatC = M3('counter_sink', P.sink.x, 0, -7.55, 0, F); M3('counter_sink', P.dairySink.x, 0, -7.55, 0, F);
+  {
+    // a red towel and a sign at the meat sink, a blue one at the dairy sink
+    const b = new THREE.Box3().setFromObject(meatC), front = b.max.z + .02;
+    for (const [x, c, he] of [[P.sink.x, '#d23b45', 'בשרי'], [P.dairySink.x, '#2f6fd1', 'חלבי']]) {
+      box(.26, .34, .025, c === '#d23b45' ? 0xd23b45 : 0x2f6fd1, x + .3, .82, front).castShadow = false;
+      const t = canvasTex(160, 64, (g, w, h) => { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.fillStyle = c; g.fillRect(4, 4, w - 8, h - 8); g.fillStyle = '#fff'; g.font = 'bold 40px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(he, w / 2, h / 2 + 2); });
+      const sign = mesh(new THREE.PlaneGeometry(.5, .2), new THREE.MeshBasicMaterial({ map: t }), x, 1.36, -8.01); sign.castShadow = false;
+    }
+    // the oven door of the stove counter, glowing when someone left it on
+    ovenGlow = box(.62, .3, .02, mat(0xff7a1a, { emissive: 0xff5a00, emissiveIntensity: 1.2 }).clone(), P.stove.x, .42, front - .005);
+    ovenGlow.castShadow = false; ovenGlow.visible = false; ovenFront = V(P.stove.x, .45, front + .1);
+  }
   const fridge = M3('fridge', 0.15, 0, -7.6, 0, F);
   {
     // the fridge door that swings open, with the cold light inside
@@ -176,6 +188,8 @@ function buildWorld() {
   M3('dining_table', P.table.x, 0, P.table.z, 0, 1.0);
   for (const dx of [-.55, .55]) M3('chair', P.table.x + dx, 0, P.table.z - 1.0, 0, F);
   M3('sofa', P.couch.x, 0, -1.1, 0, .95);
+  diaperPack = new THREE.Group(); diaperPack.position.copy(P.diapers); scene.add(diaperPack);
+  box(.42, .3, .26, 0xffffff, 0, .15, 0, diaperPack); box(.43, .08, .27, 0x7ac8ff, 0, .2, 0, diaperPack); box(.12, .12, .27, 0xffd34a, .1, .1, .005, diaperPack);
   M3('bookshelf', -4.05, 0, -1.9, Math.PI / 2, F);
   M3('tall_plant', 4.0, 0, -1.2, 0, F);
   // rug, blocks and a half-built golden altar
@@ -233,7 +247,7 @@ function buildWorld() {
   M3('filing_cabinet', -3.95, 0, 6.6, Math.PI / 2, F);
   M3('tall_plant', 4.0, 0, 6.6, 0, F); M3('plant', -3.9, 0, -.6, 0, F); M3('tall_plant', 4.0, 0, .8, 0, F);
 }
-let laptopLid, laptopLidMat, phoneObj, serverLed, erezScreen, fridgeDoor, fridgeLight, fridgeTop, boardInk, boardSpot, printerLed, jamPaper, scribble;
+let ovenGlow, ovenFront, dishObj, diaperPack, laptopLid, laptopLidMat, phoneObj, serverLed, erezScreen, fridgeDoor, fridgeLight, fridgeTop, boardInk, boardSpot, printerLed, jamPaper, scribble;
 
 // ───────────────────────── people ─────────────────────────
 function makeKid(o) {
@@ -366,7 +380,7 @@ function updDiscs(dt) {
 
 // ───────────────────────── sound ─────────────────────────
 const SND = { ctx: null, raw: {}, buf: {}, on: store.get(KEY.snd) !== '0', last: {}, master: null, music: null };
-const OWN = ['pop-1', 'pop-2', 'win-1', 'win-2', 'win-3', 'fail-1', 'fail-2', 'fail-3', 'cry', 'rub-1', 'rub-2', 'hold', 'alarm', 'zap', 'boil', 'miracle', 'munch', 'click', 'over', 'combo', 'whoosh'];
+const OWN = ['pop-1', 'pop-2', 'win-1', 'win-2', 'win-3', 'fail-1', 'fail-2', 'fail-3', 'cry', 'rub-1', 'rub-2', 'hold', 'alarm', 'zap', 'boil', 'miracle', 'munch', 'click', 'over', 'combo', 'whoosh', 'meet-1', 'meet-2', 'sizzle', 'knob'];
 // Hani's own sounds live once on the site (/hani-games/sounds/); a local copy sits in ../hani-sounds/
 const HS_BASE = window.HS_BASE || (location.pathname.includes('/hani-games/') ? '/hani-games/sounds/' : '../hani-sounds/');
 const BRACHI = Array.from({ length: 18 }, (_, i) => 'brachi-' + String(i + 1).padStart(2, '0'));
@@ -438,7 +452,7 @@ function say(text, dur = 2.4, pri = 1, call = false) {
 
 // ───────────────────────── the events ─────────────────────────
 const IC = n => `assets/ic-${n}.png`;
-for (let i = 0; i < 23; i++) new Image().src = IC(i);
+for (let i = 0; i < 27; i++) new Image().src = IC(i);
 const kidUp = (k, h) => () => kids[k].position.clone().add(V(0, h, 0));
 const DEFS = [
   {
@@ -649,11 +663,88 @@ const DEFS = [
     sayWin: ['נכון! אשריך, חיימי.', 'יפה מאוד. משנה שגורה בפה, ברוך השם.'],
   },
   {
-    id: 'tehilim', act: 'החזיקו לקרוא', he: 'רגע של תהילים', ic: 12, g: 'hold', T: 6, bonus: true, anchor: () => P.tehilim.clone().add(V(1.3, -.4, .8)),
+    id: 'milchig', act: 'גררו לכיור החלבי', he: 'צלחת חלבית בכיור הבשרי!', ic: 23, g: 'drag', T: 8.5, anchor: () => P.sink.clone().add(V(0, .75, .2)), target: () => P.dairySink.clone().add(V(0, .3, .2)),
+    start(ev) { dish(0x2f6fd1, P.sink); },
+    upd(ev) { dishObj.rotation.z = Math.sin(now * 6) * .1; },
+    win() { moveDish(P.dairySink); },
+    fail() { play('fail', .6); setTimeout(() => { dishObj.visible = false; }, 800); },
+    sayWin: ['ברוך השם, החלבי חזר לכיור החלבי.', 'כל דבר במקום שלו. ברוך השם.'],
+    sayFail: ['צלחת חלבית בכיור הבשרי. נשאל את הרב, בעזרת השם.', 'נתייעץ עם הרב. בינתיים – הצידה.'],
+  },
+  {
+    id: 'fleishig', act: 'גררו לכיור הבשרי', he: 'סיר בשרי בכיור החלבי!', ic: 23, g: 'drag', T: 8.5, anchor: () => P.dairySink.clone().add(V(0, .75, .2)), target: () => P.sink.clone().add(V(0, .3, .2)),
+    start(ev) { dish(0xd23b45, P.dairySink); },
+    upd(ev) { dishObj.rotation.z = Math.sin(now * 6) * .1; },
+    win() { moveDish(P.sink); },
+    fail() { play('fail', .6); setTimeout(() => { dishObj.visible = false; }, 800); },
+    sayWin: ['ברוך השם, הבשרי בכיור הבשרי.', 'הפרדה בין בשר לחלב – גם בכיור. ברוך השם.'],
+    sayFail: ['בשרי בכיור החלבי. נשאל את הרב, בעזרת השם.', 'נתייעץ עם הרב. הכל לטובה.'],
+  },
+  {
+    id: 'diaper', act: 'גררו טיטול למוישי', he: 'מוישי צריך טיטול!', ic: 24, g: 'drag', T: 9, kid: 'moishi', anchor: () => P.diapers.clone().add(V(0, .9, 0)), target: () => kids.moishi.position.clone().add(V(0, .3, 0)),
+    start(ev) { kids.moishi.userData.busy = true; kidsCall(); },
+    upd(ev, dt, k) {
+      const m = kids.moishi; m.rotation.z = Math.sin(now * 8) * .05 * (1 + k);
+      if (Math.random() < dt * (3 + k * 6)) emit(m.position.clone().add(V(rnd(-.2, .2), .5, rnd(-.1, .1))), { color: 0x9bc45a, vel: V(rnd(-.15, .15), .5, 0), life: 1.4, size: .05, grow: 1.5, grav: .2, op: .55 });
+    },
+    win() { const m = kids.moishi; const d = box(.2, .12, .14, 0xffffff, P.diapers.x, P.diapers.y + .4, P.diapers.z); moveTo(d, m.position.clone().add(V(0, .25, 0)), .55, .6, () => { scene.remove(d); burst(m.position.clone().add(V(0, .4, 0)), 0xbfe8ff, 12); }); },
+    fail() { play('cry', .7); play('fail', .5); },
+    end() { kids.moishi.rotation.z = 0; kids.moishi.userData.busy = false; },
+    sayWin: ['טיטול חדש, ברוך השם. מוישי נקי ומאושר.', 'מוישי׳לה, עכשיו אפשר לזחול הלאה.'],
+    sayFail: ['מוישי עוד מחכה לטיטול. עוד רגע, בעזרת השם.'],
+  },
+  {
+    id: 'oven', act: 'סובבו לכבות', he: 'התנור נשאר דולק!', ic: 25, g: 'circle', T: 9, anchor: () => ovenFront.clone().add(V(0, .7, .6)),
+    start(ev) { ovenGlow.visible = true; ev.snd = play('sizzle', .4); },
+    upd(ev, dt, k) {
+      ovenGlow.material.emissiveIntensity = (.8 + k * 1.2 + Math.sin(now * 9) * .25) * (1 - ev.prog * .8);
+      if (Math.random() < dt * (2 + k * 14) * (1 - ev.prog)) emit(P.stove.clone().add(V(rnd(-.3, .3), .05, rnd(.1, .4))), { color: k > .6 ? 0x555555 : 0x999999, vel: V(rnd(-.2, .2), rnd(.5, 1), rnd(0, .3)), life: 1.6, size: .1, grow: 2.5, grav: .3, op: .55 });
+    },
+    win() { play('knob', .8); },
+    fail() { for (let i = 0; i < 18; i++) emit(ovenFront.clone(), { color: 0x444444, vel: V(rnd(-.8, .8), rnd(.6, 1.6), rnd(0, 1)), life: 2, size: .16, grow: 2, grav: .2, op: .7 }); play('fail', .7); },
+    end(ev) { ovenGlow.visible = false; ev.snd && ev.snd.stop(); },
+    sayWin: ['כיביתי את התנור. ברוך השם, העוגה יצאה בזמן.', 'התנור כבוי. סייעתא דשמיא.'],
+    sayFail: ['העוגה קצת שרופה. ברוך השם, יש עוד עיגוליות.', 'נפתח חלון לאוורר. הכל לטובה.'],
+  },
+  {
+    id: 'meeting', act: 'הקישו להצטרף', he: 'פגישת טימס מתחילה!', ic: 26, g: 'tap', T: 7, anchor: () => V(-2.5, 1.0, 7.0),
+    start(ev) { ev.snd = play('meet', .6); laptopLidMat && laptopLidMat.emissive.set(0x5b5fc7); },
+    upd(ev) { if (laptopLidMat) laptopLidMat.emissiveIntensity = .6 + Math.sin(now * 8) * .35; },
+    win(ev) { ev.faceT = 2.2; },
+    fail() { play('fail', .4); },
+    end(ev) { ev.snd && ev.snd.stop(); laptopLidMat && laptopLidMat.emissive.set(0x000000); },
+    sayWin: ['שלום לכולם, אני כאן. ברוך השם, שומעים אותי?', 'הצטרפתי. אפשר להתחיל, בעזרת השם.'],
+    sayFail: ['הפגישה התחילה בלעדיי. אבקש הקלטה, בעזרת השם.'],
+  },
+  {
+    id: 'tehilim', act: 'החזיקו לקרוא', he: 'תהילים לרפואה', ic: 12, g: 'hold', hold: 2.2, T: 8, bonus: true, anchor: () => P.tehilim.clone().add(V(1.3, -.4, .8)),
+    start(ev) {
+      // a request in Hani's tehilim group: for a recovery or in someone's memory
+      ev.kind = pick(TEHILIM); ev.he = ev.kind.he;
+      say(ev.kind.ask, 2.8, 2);
+    },
+    upd(ev) { if (ev.ptr !== null) { setFace(5); faceT = .4; if (!ev.read) { ev.read = true; say(ev.kind.verse, 3, 3); } } },
     win() { burst(P.tehilim.clone().add(V(0, .3, 0)), 0xffe08a, 16); },
-    sayWin: ['רגע של תהילים. עכשיו אפשר להמשיך.', 'ברוך השם. כוחות מחודשים.'],
+    sayWin: ['אמן. בשורות טובות.', 'ברוך השם, עוד פרק נאמר.'],
   },
 ];
+// Hani's tehilim group asks for a chapter
+const TEHILIM = [
+  { he: 'תהילים לרפואה', ask: 'בקבוצה ביקשו: פרק תהילים לרפואת רבקה בת שרה.', verse: '״שיר למעלות, אשא עיני אל ההרים, מאין יבוא עזרי...״' },
+  { he: 'תהילים לרפואה', ask: 'בקבוצה ביקשו: פרק תהילים לרפואת משה בן לאה.', verse: '״שיר למעלות, אשא עיני אל ההרים, מאין יבוא עזרי...״' },
+  { he: 'תהילים לעילוי נשמה', ask: 'בקבוצה ביקשו: פרק תהילים לעילוי נשמת יעקב בן אברהם.', verse: '״מזמור לדוד, ה׳ רועי לא אחסר...״' },
+  { he: 'תהילים לעילוי נשמה', ask: 'בקבוצה ביקשו: פרק תהילים לעילוי נשמת חנה בת מרים.', verse: '״מזמור לדוד, ה׳ רועי לא אחסר...״' },
+];
+function dish(color, at) {
+  if (!dishObj) {
+    dishObj = new THREE.Group(); scene.add(dishObj);
+    cyl(.2, .16, .04, 0xffffff, 0, 0, 0, dishObj, 24);
+    dishObj.userData.rim = mesh(new THREE.TorusGeometry(.19, .025, 8, 24), mat(0xffffff).clone(), 0, .02, 0, dishObj); dishObj.userData.rim.rotation.x = Math.PI / 2;
+  }
+  dishObj.userData.rim.material.color.set(color);
+  dishObj.position.copy(at).add(V(0, .08, .05)); dishObj.rotation.set(-.5, 0, 0); dishObj.visible = true;
+}
+function moveDish(to) { moveTo(dishObj, to.clone().add(V(0, .08, .05)), .5, .45, () => setTimeout(() => { dishObj.visible = false; }, 1800)); }
 const CALLERS = [
   { he: 'ברכי מתקשרת!', brachi: true, win: ['כן ברכי\'לה? הלחם במקפיא, ברוך השם.', 'ברכי, אפשר לשלוח לי במייל.', 'כן ברכי, מותר לאכול במבה לפני ארוחת ערב. אחת.'], fail: ['ברכי תתקשר שוב, בעזרת השם. היא תמיד מתקשרת שוב.'] },
   { he: 'אברהם משה מתקשר', win: ['בסדר גמור, תישאר בכולל. הכל בשליטה, ברוך השם.', 'ברוך השם, הוא חוזר בשמונה. בעזרת השם.'], fail: ['אברהם משה התקשר... אחזור אליו בעזרת השם.'] },
@@ -757,6 +848,8 @@ function canSpawn(d) {
   if (d.kid && kids[d.kid].userData.busy) return false;
   if (d.id === 'pot' && potObj && potObj.visible) return false;
   if (d.g === 'quiz' && active.some(e => e.def.g === 'quiz')) return false;
+  const busyWith = { milchig: ['fleishig'], fleishig: ['milchig'], bug: ['meeting'], meeting: ['bug'] }[d.id];
+  if (busyWith && active.some(e => busyWith.includes(e.def.id))) return false;
   return true;
 }
 function spawn(def, opt = {}) {
@@ -925,7 +1018,7 @@ addEventListener('pointercancel', e => release(e.pointerId));
 // ───────────────────────── HUD ─────────────────────────
 const livesEl = $('lives');
 function hud() {
-  if (livesEl.children.length !== 3) livesEl.innerHTML = [0, 1, 2].map(() => `<img src="${IC(11)}" alt="">`).join('');
+  if (livesEl.children.length !== 3) livesEl.innerHTML = [0, 1, 2].map(() => '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 2.9 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3.1 1.7-1.9 3.1-3.1 5.3-3.1 3.8 0 5.8 4.1 4.3 7.4C19.5 16.4 12 21 12 21z"/></svg>').join('');
   [...livesEl.children].forEach((im, i) => im.classList.toggle('gone', i >= lives));
   $('score').firstChild.nodeValue = score;
   const mult = 1 + Math.min(3, Math.floor(streak / 3)) * .5;
@@ -947,15 +1040,16 @@ function clearAll() {
   active.length = 0; ptrs.clear(); closeQuiz();
   for (const k of Object.values(kids)) { k.rotation.set(0, k.userData.homeRot, 0); if (k.userData.busy) goHome(k); }
   if (potObj) potObj.visible = false;
+  if (dishObj) dishObj.visible = false;
 }
-function reset() { clearAll(); time = 0; score = 0; lives = 3; streak = 0; meter = 0; freezeT = 0; spawnT = 1.2; saves = 0; firstOrder = ['phone', 'malki', 'washer', 'server', 'fridge', 'test', 'babycry', 'printer', 'pot', 'yotam']; hud(); }
+function reset() { clearAll(); time = 0; score = 0; lives = 3; streak = 0; meter = 0; freezeT = 0; spawnT = 1.2; saves = 0; firstOrder = ['phone', 'malki', 'washer', 'meeting', 'milchig', 'server', 'diaper', 'fridge', 'test', 'oven', 'babycry', 'printer', 'tehilim', 'fleishig', 'pot', 'yotam']; hud(); }
 let firstOrder = [];
 function startGame() {
-  reset(); state = 'play'; show(null); playing(true);
+  reset(); state = 'play'; show(null); playing(true); window.track && track('game_start', 'nisei-nissim');
   say('בוקר טוב! בעזרת השם יהיה יום רגוע.', 2.4, 1);
 }
 function gameOver() {
-  state = 'over';
+  state = 'over'; window.track && track('game_over', 'nisei-nissim');
   play('over', .8); setMusicRate(1);
   const prev = best(), rec = score > prev;
   if (rec) store.set(KEY.best, score);
@@ -1002,14 +1096,14 @@ const STEPS = [
   { text: 'זו <b>חני פרידמן</b>: מפתחת בכירה בטקי־טק, ואמא לתשעה ילדים, ברוך השם. היא עובדת ברוגע... וכל השאר קורה בבת אחת.', spot: worldSpot(() => V(0, 2.3, 5.75), 110) },
   { text: 'למעלה – <b>הבית</b> בבני ברק. למטה – <b>המשרד</b>. בעיות יצוצו בשני המקומות, ולפעמים בכמה מקומות ביחד.', spot: worldSpot(() => V(0, .5, -4.2), 120) },
   { text: '<b>המטרה:</b> להחזיק מעמד כמה שיותר. כל בעיה שפותרים = נקודות. כמה הצלות ברצף = נקודות כפולות.', spot: rectSpot($('score')) },
-  { text: 'אלה 3 <b>עיגוליות</b> של ברכת השפע. בעיה שלא טופלה בזמן – עיגולית נאכלת. נגמרו העיגוליות – נגמר הסיבוב.', spot: rectSpot($('lives')) },
+  { text: 'אלה 3 <b>לבבות</b>. בעיה שלא טופלה בזמן – לב אחד הולך. נגמרו הלבבות – נגמר הסיבוב.', spot: rectSpot($('lives')) },
   { text: 'כל בעיה מופיעה ב<b>בועה</b>, והטבעת סביבה היא השעון. <b>לחיצה:</b> הפלאפון הכשר מצלצל – לחצו על הבועה!', try: 'phone', spot: evSpot('phone') },
   { text: '<b>גרירה:</b> מלכי על השיש! גררו את הבועה אל העיגול המהבהב על השטיח.', try: 'malki', spot: evSpot('malki') },
   { text: '<b>שפשוף:</b> מכונת הכביסה מציפה! שפשפו את הבועה הלוך ושוב, עד שהרצפה יבשה.', try: 'washer', spot: evSpot('washer') },
   { text: '<b>החזקה:</b> השרת מתחמם! החזיקו את האצבע על הבועה עד שהיא מתמלאת.', try: 'server', spot: evSpot('server') },
   { text: '<b>סיבוב:</b> מוישי בוכה! סובבו את האצבע מסביב לבועה, כמו לנדנד אותו.', try: 'babycry', spot: evSpot('babycry') },
   { text: 'פתרתם שתי בעיות בתוך שתי שניות? זה <b>נס בתוך נס!</b> – בונוס של 150 נקודות. שתי אצבעות עובדות ביחד.' },
-  { text: 'מעל כל בועה כתוב <b>מה לעשות</b>, ויד קטנה מראה איך. <b>בועה זהובה</b> = בונוס (כמו רגע של תהילים): היא לא חובה, אבל ממלאת את המד מהר.', show: 'tehilim', spot: evSpot('tehilim') },
+  { text: 'מעל כל בועה כתוב <b>מה לעשות</b>, ויד קטנה מראה איך. <b>בועה זהובה</b> = תהילים: ביקשו פרק לרפואה או לעילוי נשמה. מחזיקים קצת יותר, וזה ממלא את המד מהר.', show: 'tehilim', spot: evSpot('tehilim') },
   { text: 'כל הצלה ממלאת את <b>מד סייעתא דשמיא</b>.', spot: rectSpot($('meter')) },
   { text: 'המד מלא! לחצו על <b>״ניסי ניסים!״</b> – הכאוס נעצר וכל הבעיות נפתרות בבת אחת.', try: 'miracle', spot: rectSpot($('miracle')) },
   { text: 'מוכנים? ככל שהזמן עובר – יותר בעיות בבת אחת, והשעון מהיר יותר. <b>בהצלחה, ובשורות טובות!</b>', last: true },
@@ -1128,7 +1222,7 @@ function spawner(dt) {
     const dragging = [...ptrs.values()].some(p => p.ev.def.g === 'drag');
     const ok = DEFS.filter(x => canSpawn(x) && (!x.bonus || time > 15));
     if (dragging && ok.some(x => x.id === 'phone') && Math.random() < .35) d = DEFS.find(x => x.id === 'phone');
-    else if (ok.length) d = pick(ok.filter(x => !x.bonus || Math.random() < .35));
+    else if (ok.length) d = pick(ok.filter(x => !x.bonus || Math.random() < .6));
   }
   if (d && spawn(d)) spawnT = Math.max(.75, 3.3 - time * .027) * rnd(.7, 1.3);
   else spawnT = .3;
@@ -1140,7 +1234,7 @@ function updEvents(dt) {
     const ticking = state === 'play' && freezeT <= 0;
     if (ticking) ev.rem -= dt;
     if (ev.def.g === 'hold') {
-      if (ev.ptr !== null) ev.prog = Math.min(1, ev.prog + realDt / HOLD_TIME);
+      if (ev.ptr !== null) ev.prog = Math.min(1, ev.prog + realDt / (ev.def.hold || HOLD_TIME));
       else ev.prog = Math.max(0, ev.prog - realDt * .6);
       if (ev.prog >= 1) { const id = ev.ptr; finish(ev, true); if (id !== null) ptrs.delete(id); continue; }
     }
@@ -1181,7 +1275,8 @@ function updHani(dt) {
   if (popT > 0) popT -= dt;
   const pop = popT > 0 ? 1 + Math.sin(popT / .18 * Math.PI) * .04 : 1;
   const breathe = 1 + Math.sin(now * 2.2) * .008;
-  haniFig.scale.set(FIG_H * .8 * pop, FIG_H * pop * breathe, 1);
+  const pim = haniFig.material.map.image, asp = pim && pim.width ? pim.width / pim.height : .8; // the joy pose is wider (raised hands)
+  haniFig.scale.set(FIG_H * asp * pop, FIG_H * pop * breathe, 1);
   haniFig.position.x = shakeT > 0 ? Math.sin(now * 50) * .06 : 0;
   haniFig.position.y = .55 + (cheer ? Math.abs(Math.sin(now * 8)) * .1 : 0);
   if (faceT > 0) return;

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>יוסף מוקיר שבת – וידאו</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@700;900&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* a 1080x1920 timeline; window.at(t) puts every layer where it is at second t (render.js steps it frame by frame).
+   Layout rule: no picture ever covers text - every block has its own band. Instagram covers the bottom ~260px and the right edge. */
+*{box-sizing:border-box;margin:0}
+html,body{width:1080px;height:1920px;overflow:clip;background:#fffaf0;font-family:Rubik,sans-serif;color:#24304a}
+#stage{position:fixed;inset:0;overflow:hidden}
+.paper{position:fixed;inset:0;background:radial-gradient(circle at 50% 30%,#fffdf6,#f3e8cf)}
+.layer{position:absolute;inset:0;opacity:0}
+.navy{background:radial-gradient(circle at 50% 30%,#34508a,#1c3159)}
+/* chapter: brand 70-130 | picture 170-837 | caption 880-1110 | phone + label 1150-1650 */
+.pic{position:absolute;left:40px;right:40px;top:170px;height:667px;border-radius:34px;overflow:hidden;box-shadow:0 0 0 8px #fff,0 0 0 12px #e3d6b4,0 30px 60px #24406e33}
+.pic img{width:100%;height:100%;object-fit:cover;transform-origin:50% 50%}
+.num{position:absolute;top:72px;right:60px;background:#24406e;color:#fff;font-weight:900;font-size:40px;padding:10px 30px;border-radius:40px;direction:ltr}
+.brand{position:absolute;top:80px;left:60px;font-weight:900;font-size:36px;color:#24406e}
+.cap{position:absolute;left:60px;right:60px;top:880px;height:230px;display:flex;flex-direction:column;justify-content:center;font-family:'Noto Serif Hebrew',serif;font-weight:900;font-size:74px;line-height:1.22;text-align:center;text-wrap:balance}
+.cap small{display:block;font-family:Rubik,sans-serif;font-weight:700;font-size:42px;color:#8a6a2a;margin-top:12px}
+.phone{position:absolute;left:110px;top:1150px;width:256px;height:500px;border-radius:44px;background:#1d2433;padding:15px;box-shadow:0 26px 50px #0005}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:31px}
+.tag{position:absolute;left:420px;top:1300px;width:480px;font-weight:900;font-size:48px;color:#fff;background:#3aa565;border-radius:30px;padding:22px 30px;text-align:center;box-shadow:0 8px 0 #23784a}
+.tag small{display:block;font-weight:500;font-size:34px;margin-top:6px}
+/* intro: Hani presents */
+#intro .h1{position:absolute;top:300px;left:0;right:0;text-align:center;color:#f2b632;font-weight:900;font-size:96px}
+#intro .h2{position:absolute;top:440px;left:0;right:0;text-align:center;color:#fff;font-family:'Noto Serif Hebrew',serif;font-weight:900;font-size:110px}
+#intro .hani{position:absolute;bottom:0;left:50%;height:1150px;transform:translateX(-50%);transform-origin:50% 100%}
+/* cover */
+#cover img.cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#cover .shade{position:absolute;inset:0;background:linear-gradient(#24406e00 40%,#24406edd)}
+.title{position:absolute;left:50px;right:50px;bottom:560px}
+.title img{width:100%}
+.sub{position:absolute;left:60px;right:60px;bottom:440px;text-align:center;color:#fff;font-weight:900;font-size:62px;text-shadow:0 4px 12px #0008}
+.soon{position:absolute;left:50%;bottom:300px;transform:translateX(-50%);background:#f2b632;color:#3b2a00;font-weight:900;font-size:72px;padding:18px 70px;border-radius:70px;box-shadow:0 10px 0 #d9901a}
+/* end: title, the promise, where - then Hani below them */
+#end .t2{position:absolute;left:80px;right:80px;top:150px}
+#end .t2 img{width:100%;filter:drop-shadow(0 6px 0 #0004)}
+#end .big{position:absolute;left:60px;right:60px;top:420px;text-align:center;color:#fff;font-family:'Noto Serif Hebrew',serif;font-weight:900;font-size:88px;line-height:1.25}
+#end .big small{display:block;font-family:Rubik;font-weight:700;font-size:46px;color:#f2b632;margin-top:22px}
+#end .where{position:absolute;left:0;right:0;top:900px;text-align:center;color:#fff;font-weight:900;font-size:56px}
+#end .where small{display:block;font-weight:500;font-size:40px;opacity:.85;margin-top:10px}
+#end .hani{position:absolute;bottom:0;left:50%;height:760px;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="paper"></div>
+<div id="stage"></div>
+<script>
+const CH = [
+  ['יוסף חוסך את כל התן ביס – לשבת', '', 'חוסכים תן ביס', 'g1-play'],
+  ['צבי קפלן: ״לגייס את כולם!״', '', 'צבי מכה', 'w-phone-0'],
+  ['ה-AI של צבי: ״הכול יעבור ליוסף מוקיר שבת!״', '', 'איפה יוסף?', 'g3-play'],
+  ['צבי מוכר הכול – וקונה יהלום אחד', '', 'היהלום הכי גדול', 'g4-play'],
+  ['רוח על גשר קפלן – הכובע עף!', '', 'הרוח והכובע', 'n-phone-wind'],
+  ['הכובע נופל למשאית של ״המסעדה היהודית״', '', 'איפה היהלום?', 'g6-play'],
+  ['נשאר סיר צ׳ולנט אחד – רצים ליוסף', '', 'רצים ליוסף', 'g7-play'],
+  ['יוסף משלם בכל התן ביס שלו', '', 'משלמים בתן ביס', 'g8-play'],
+  ['מה מסתתר בתוך הצ׳ולנט?', '', 'פותחים את הסיר', 'g9-play'],
+  ['״מַאן דְּיָזִיף שַׁבְּתָא – פָּרְעֵיהּ שַׁבְּתָא״', 'מסכת שבת קי״ט', 'עושר רב', 'g10-play'],
+];
+const HANI = '../../nisei-nissim/assets/';
+const I1 = 3, T0 = 7, CHD = 5, END = T0 + CH.length * CHD, TOTAL = END + 4.5;
+const st = document.getElementById('stage');
+st.insertAdjacentHTML('beforeend', `<div class="layer navy" id="intro"><div class="h1">המשחקייה של חני</div><div class="h2">מציגה:</div><img class="hani" src="hani-real/glad-cut.png"></div>`);
+st.insertAdjacentHTML('beforeend', `<div class="layer" id="cover"><img class="cv" src="../assets/pages/p07.jpg"><div class="shade"></div>
+  <div class="title"><img src="../assets/title.png"></div><div class="sub">סיפור ומשחק לכל המשפחה</div><div class="soon">עלה עכשיו!</div></div>`);
+CH.forEach(([a, b, game, shot], i) => {
+  const n = String(i + 1).padStart(2, '0');
+  st.insertAdjacentHTML('beforeend', `<div class="layer" id="c${i}">
+    <div class="brand">המשחקייה של חני</div><div class="num">${i + 1} / 10</div>
+    <div class="pic"><img src="../assets/pages/p${n}.jpg"></div>
+    <div class="cap"><div>${a}</div>${b ? `<small>${b}</small>` : ''}</div>
+    ${game ? `<div class="phone"><img src="../shots/${shot}.png"></div><div class="tag">בכל עמוד – משחק!<small>${game}</small></div>` : ''}
+  </div>`);
+});
+st.insertAdjacentHTML('beforeend', `<div class="layer navy" id="end"><div class="t2"><img src="../assets/title.png"></div>
+  <div class="big">10 עמודים.<br>10 משחקים.<small>ספר מוקרא • ניגונים בלבד</small></div>
+  <div class="where">עכשיו במשחקייה של חני<small>הקישור בביו</small></div><img class="hani" src="hani-real/book-cut.png"></div>`);
+const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+// a layer slides in from the left so it is fully in at a, and slides out to the right ending at b
+function slide(el, t, a, b, dur = .6) {
+  if (t < a - dur || t > b) { el.style.opacity = 0; return false; }
+  const k = ease((t - (a - dur)) / dur), o = ease((t - (b - dur)) / dur);
+  el.style.opacity = 1; el.style.transform = `translateX(${(1 - k) * -100 + o * 100}%)`; return true;
+}
+function at(t) {
+  const intro = document.getElementById('intro');
+  if (t <= I1) { const o = ease((t - (I1 - .6)) / .6); intro.style.opacity = 1; intro.style.transform = `translateX(${o * 100}%)`;
+    intro.querySelector('.hani').style.transform = `translateX(-50%) translateY(${(1 - ease(t / .9)) * 500}px)`; }
+  else intro.style.opacity = 0;
+  const cv = document.getElementById('cover');
+  if (slide(cv, t, I1, T0)) { cv.querySelector('.cv').style.transform = `scale(${1.08 + (t - I1) * .04})`; cv.querySelector('.soon').style.transform = `translateX(-50%) scale(${1 + Math.sin(t * 6) * .04})`; }
+  CH.forEach((_, i) => {
+    const el = document.getElementById('c' + i), s = T0 + i * CHD, u = (t - s) / CHD;
+    if (!slide(el, t, s, i === CH.length - 1 ? END : s + CHD)) return;
+    el.querySelector('.pic img').style.transform = `scale(${1.02 + u * .12}) translate(${(i % 2 ? -1 : 1) * u * 18}px, ${-u * 10}px)`;
+    const ph = el.querySelector('.phone'), tg = el.querySelector('.tag');
+    if (ph) { const p = ease((u - .15) / .2); ph.style.transform = `translateY(${(1 - p) * 800}px) rotate(${-5 + p * 2}deg)`; tg.style.transform = `scale(${ease((u - .28) / .15)})`; }
+    const cap = el.querySelector('.cap'); cap.style.transform = `translateY(${(1 - ease((u - .03) / .16)) * 40}px)`; cap.style.opacity = ease((u - .03) / .16);
+  });
+  const en = document.getElementById('end');
+  if (t >= END - .6) { const e = ease((t - (END - .6)) / .6); en.style.opacity = 1; en.style.transform = `translateX(${(1 - e) * -100}%)`;
+    en.querySelector('.hani').style.transform = `translateX(-50%) translateY(${(1 - ease((t - END) / .6)) * 700}px)`; }
+  else en.style.opacity = 0;
+}
+window.at = at; window.TOTAL = TOTAL;
+at(0);
+</script>
+</body>
+</html>

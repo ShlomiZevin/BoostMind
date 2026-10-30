@@ -1,0 +1,31 @@
+{
+  "_common": "An illustration for a Haredi children's picture book, in exactly the same simple style as the reference pictures. Yosef (the young Haredi man with the black kippa, round glasses and black beard) and Tzvi Kaplan (the arrogant secular tech millionaire with the navy cap reading \"ברית המשרתים\", thin black sunglasses, linen blazer) must look exactly like they do in the references. Wide picture, everything important well inside the frame, nobody's hands or head cut by the edges. No text anywhere except where asked.",
+  "cover": {
+    "model": "sunburst",
+    "prompt": "The book's cover. Yosef on the right, happily lifting the lid of a big cholent pot with a huge sparkling diamond inside. Tzvi Kaplan on the left, arrogant, arms crossed, wearing his \"ברית המשרתים\" cap. Behind them the three blue glass towers of the BSR towers in Bnei Brak, Shabbat candles and challahs on a table. Across the top, the title \"יוסף מוקיר שבת\" in big bold navy letters with a gold outline, spelled exactly like that, fully inside the picture with a wide margin on every side. The title must not cover any face."
+  },
+  "p02": {
+    "prompt": "Tzvi Kaplan in his glass hi-tech office high in the BSR towers in Bnei Brak, leaning back in an expensive chair with his feet on the desk, laptop, smug face. Leaning against the wall: Israeli flags and blank protest signs. Through the window, the Bnei Brak skyline."
+  },
+  "p03": {
+    "prompt": "Night. Tzvi Kaplan in front of a huge screen of his artificial-intelligence system. On the screen: Yosef's smiling portrait, and arrows carrying piles of money, a penthouse and a car towards Yosef. Tzvi is shocked, his sunglasses slipping down his nose, his coffee spilling."
+  },
+  "p04": {
+    "prompt": "Tzvi Kaplan at a jeweller's glass counter (an elderly jeweller in a vest behind it), holding one enormous sparkling diamond and sewing it into his navy \"ברית המשרתים\" cap with a needle and thread. In the background, small pictures of what he sold: a penthouse with a red X over it, a white electric car being towed away, a stock chart going down. There is only ONE cap: he holds it in his hands while sewing, so his head is bare (grey styled hair, sunglasses)."
+  },
+  "p05": {
+    "prompt": "Thursday evening in Tel Aviv. Tzvi Kaplan stands on a bridge over Kaplan street among protesters with Israeli flags, waving a protest sign that reads \"שוויון בנטל\" in big black Hebrew letters, spelled exactly like that. A strong gust of wind blows his navy cap off his head - it flies away into the air, he grabs at it in panic. Leaves and flags blowing. City lights below. The other protesters are only a few secular MEN in modest t-shirts and long trousers (no women at all, this is a Haredi children's book), and no Haredim and no Yosef in this picture."
+  },
+  "p06": {
+    "prompt": "Under the bridge drives a white food-supply truck with the Hebrew words \"המסעדה היהודית\" written on its side, spelled exactly like that,, its back open, full of big cholent pots. The navy cap lands in the back of the truck, and a huge sparkling diamond pops out of it and rolls into the biggest cholent pot. Night, streetlights. Tzvi is a small figure up on the bridge, horrified. Yosef is NOT in this picture, and nobody stands next to the truck. There is only ONE cap - the one falling into the truck: Tzvi on the bridge is bare-headed (grey hair), holding his head."
+  },
+  "p07": {
+    "prompt": "Friday afternoon, just before Shabbat, in the kitchen of a small Jewish restaurant in Bnei Brak. Two Haredi restaurant workers in white aprons stand next to one big unsold cholent pot. One shrugs, worried. The other has an idea and points out of the door. A wall clock shows it is almost Shabbat, empty shelves. The two workers must look clearly different from Yosef: neither wears glasses; one is older and plump with a grey beard, the other young and thin with a short red beard."
+  },
+  "p08": {
+    "prompt": "At the door of Yosef's small apartment in Bnei Brak, the two Haredi restaurant workers hand Yosef the big cholent pot. Yosef pays happily by holding up his phone showing an orange meal-card app, an orange meal card in his other hand. Several of his small children peek out curiously from behind him."
+  },
+  "p10": {
+    "prompt": "Yosef, now rich and glowing with happiness, at a beautiful Shabbat table with his wife and their seven small children. His wife is a modest Haredi woman: hair fully covered by an elegant head covering, long sleeves, a long dress, smiling. The children: boys with kippot, little girls in modest dresses. Candles, challahs, wine cup, the cholent pot, the diamond sparkling. Through the window, far away, Tzvi Kaplan without his cap looks in, sulking."
+  }
+}

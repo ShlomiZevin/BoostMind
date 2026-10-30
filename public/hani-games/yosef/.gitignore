@@ -1,3 +1,7 @@
 # Hani art (his face) stays out of the public repo
 cover.jpg
 assets/
+*.jpg
+*.png
+*.webp
+art/
