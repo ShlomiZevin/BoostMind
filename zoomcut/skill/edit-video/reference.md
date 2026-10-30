@@ -53,7 +53,7 @@
   `script` (Reader id), `intro_video` / `intro_sound`, `media`, `_todo` (notes for the next session - ignored).
 
 ## Tools
-- Images: Leonardo GPT Image 2.5 flare / sunburst only (SKILL.md → "Leonardo" for which model when): `node
+- Images: GPT Image 2.5 flare / sunburst only, on OpenAI directly, Leonardo as the fallback (SKILL.md → "Pictures" for which model when): `node
   zoomcut/tools/leonardo.mjs image prompt.txt out.jpg flare MEDIUM 1024x1024`; `portrait <ref> <prompt> <out> flare MEDIUM 0.6 1024x1024`
   re-lights / re-does a photo from a reference (the lit store from the dark one). **Work cheap (his rule):** MEDIUM
   and the smallest size that does the job - HIGH / HD / 2x only when he asks (HIGH was $0.076 square, $0.11 wide).

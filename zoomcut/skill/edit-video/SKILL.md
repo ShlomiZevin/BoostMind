@@ -463,7 +463,9 @@ Never print a key, never write one into a file in the repo, never ask him for on
     `KEY=$(gcloud secrets versions access latest --secret=WIKI_OPENAI_KEY --project=boostmind-b052c)` into a variable,
     never echoed. The project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it.
   - Models: `gpt-5.6-terra` (his pick for chat and Hebrew copy), `gpt-5.6-sol`; `node ~/.claude/skills/sol-leonardo/scripts/sol.js --models --env ...` lists them.
-- **Leonardo:** `LEONARDO_API_KEY` in `zoomcut/.env` - his official account (`tools/leonardo.mjs` reads it by itself; aspect-agent-server/.env only as a fallback).
+- **Pictures and sound effects** (`tools/leonardo.mjs`): `OPENAI_API_KEY` (pictures, direct), `ELEVENLABS_API_KEY`
+  (sounds, direct) and `LEONARDO_API_KEY` (the fallback + video) - all in `zoomcut/.env`, the editor's own keys; the
+  tool reads only that file. A missing OpenAI key = it says so and goes to Leonardo - never borrow another project's.
 - **ElevenLabs, NVIDIA (eye contact), the Drop, Instagram / Facebook / TikTok / YouTube / X:** `zoomcut/.env`.
 - **Gmail** (sending): aspect-agent-server/.env; **Telegram:** xplace-auto-bidder/.env.
 - **Secrets the deployed functions use** (`gcloud secrets list --project boostmind-b052c`): GMAIL_USER, GMAIL_APP_PASSWORD,
@@ -519,17 +521,24 @@ He said "I don't think you are utilizing all of its power with annotation". What
   shower) through `filter: phone`, the lanes at ~0.3-0.35 volume - her words still clear but plainly a phone held
   to Hani's ear; only the phone ringing on the desk (in the room, no filter) keeps its level.
 
-## Leonardo - every picture we make (sets, portraits, logos, stickers, posters' art)
+## Pictures - every picture we make (sets, portraits, logos, stickers, posters' art)
 `node zoomcut/tools/leonardo.mjs image <prompt.txt> <out.jpg> <flare|sunburst> MEDIUM 1024x1024` and
 `... portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare MEDIUM 0.6 1024x1024` (repaints from a reference: his face,
-wig, beard kept; 0.5 when the scene changes a lot). **Key: his official Leonardo account's key in `zoomcut/.env` (`LEONARDO_API_KEY`, set 2026-10-26 - he: "this should be the official API key we are using for our editor to run everything"); the script reads ONLY it - no fallback; the aspect project runs on its own Leonardo key and the two never cross (his ask, 2026-10-27). Never another key.**
+wig, beard kept; 0.5 when the scene changes a lot).
+**Since 2026-10-30 the same commands call OpenAI directly** (pictures) and **ElevenLabs directly** (`sfx` / `loop`) -
+the very models Leonardo resells, 30-67% cheaper for pictures, ~4x for sound, same quality (measured side by side,
+faces from references held). Leonardo only as the fallback - the tool says why and switches by itself on a refusal,
+an error or a missing key - and for `video`; `--leonardo` forces it. OpenAI has no reference-strength dial: the
+strength (0.5 / 0.6 / 0.8) becomes a sentence in the prompt ("keep exactly the face, pose and position"...). Each
+result line says which side made it and what it cost. **Key: his official Leonardo account's key in `zoomcut/.env` (`LEONARDO_API_KEY`, set 2026-10-26 - he: "this should be the official API key we are using for our editor to run everything"); the script reads ONLY it - no fallback; the aspect project runs on its own Leonardo key and the two never cross (his ask, 2026-10-27). Never another key.**
 - **Models - only these two** (his taste, 2026-10-20: "I'm loving more the sunburst and flare models"):
   `flare` = `openai/gpt-image-2.5-flare` - photoreal people, portraits from his frames, sets, event photos;
   `sunburst` = `openai/gpt-image-2.5-sunburst` - logos / emblems, products, die-cut stickers, flat graphics.
 - **Cheap (his rule):** MEDIUM and the smallest size that works - 1024x1024, 1536x1024 for a wide one. Never HIGH /
-  HD / 2x unless he asks. Paid 2026-10-23: sunburst square $0.021, flare portrait $0.024, flare 1536x1024 $0.033.
-- Run several at once (`&` + `wait`), look at every result before using it. About 10 queued at once is the cap -
-  beyond it "RATE_LIMIT_EXCEEDED / Too many pending generations": send batches of ~8 and retry the refused ones.
+  HD / 2x unless he asks. Direct on OpenAI (2026-10-30): 1024x1024 MEDIUM $0.013, 1024x1536 $0.010, a portrait from
+  a reference $0.019 (Leonardo charged $0.021 / $0.030 / $0.033).
+- Run several at once (`&` + `wait`), look at every result before using it; batches of ~8 (Leonardo, the fallback,
+  refuses beyond ~10 pending - "RATE_LIMIT_EXCEEDED").
 - **Real politicians as tarot cards / costumes, when he asks** (2026-10-25: "create a BB tarot and Gadi tarot and
   Bennett and Yair Lapid"): reference = the Wikipedia lead photo (`action=query&prop=pageimages&piprop=original`,
   a UA header, resized to 1024), `portrait ref.jpg prompt.txt out.jpg flare MEDIUM 0.6|0.8 1024x1536`, both

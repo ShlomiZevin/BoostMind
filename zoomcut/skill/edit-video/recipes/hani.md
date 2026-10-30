@@ -43,7 +43,7 @@ Read `episodes/haredit-2/project.json` and make the same layers with ops (`POST 
 | Music | `_assets/music/fast/klezmer-ska.mp3` | volume 0.05 |
 | music-hasidic-freilach | his own second bed | volume 0.12 |
 Speed 1.15-1.17. Upload pictures with `POST /api/p/<id>/assets?name=<file>&cutout=0`. No office ambience (he
-deleted it). New pictures (a prop, an ad, a family photo) = Leonardo, flare for people / sunburst for products,
+deleted it). New pictures (a prop, an ad, a family photo) = `tools/leonardo.mjs` (OpenAI direct), flare for people / sunburst for products,
 MEDIUM 1024 - but children: see SKILL.md → "Leonardo and children" before spending.
 
 ## 3. The phone calls - the heart of the video
