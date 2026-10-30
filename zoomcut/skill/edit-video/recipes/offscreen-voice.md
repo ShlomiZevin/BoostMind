@@ -32,6 +32,7 @@ He acts to the other voice in one continuous take; the other voice is a sound la
   - Measure, don't guess: fx.wav vs voice_dn.wav dB over each line's window (`work/public/`).
 
 ## Series "hani" - Hani Friedman, Haredi backend developer at Techy-Tech (haredit-1, 2026-10-25)
+**Making a new Hani video? Start with `hani.md`** - the steps in order and every note from haredit-2.
 One camera at her desk; she talks to colleagues around her, a Teams call, her daughter Malki on the phone, a caller
 on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team card, Data & AI under Erez, next to Yotam).
 - Set `_assets/haredit/set.jpg` (Techy-Tech open space behind her partition: tzedakah box, prayer book, mug on the
