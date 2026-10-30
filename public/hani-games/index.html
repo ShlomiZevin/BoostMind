@@ -33,6 +33,9 @@
   .strip { position: relative; background: var(--navy); color: var(--cream); font-weight: 700; font-size: 14px; text-align: center; padding: 7px 56px; }
   .bsd { position: absolute; top: 6px; right: 14px; font-family: 'Frank Ruhl Libre', serif; font-size: 14px; }
   .strip b { color: var(--gold); }
+  .strip i { font-style: normal; white-space: nowrap; display: inline-block; }
+  .strip s { text-decoration: none; }   /* a phrase never breaks inside; the strip breaks between phrases */
+  @media (max-width: 600px) { .strip i { display: block; } .strip s { display: none; } }   /* phones: one phrase per line, no dot */
 
   header { background: var(--paper); border-bottom: 1px solid var(--line); }
   header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; }
@@ -142,7 +145,7 @@
 </div>
 
 <button class="sound" id="sound" type="button" aria-label="השיר: הפעלה / השתקה"></button>
-<div class="strip"><span class="bsd">בס״ד</span><span id="strip">משחקים כשרים למהדרין · בלי פרסומות · בלי צ'אט · <b>האתר שומר שבת</b></span></div>
+<div class="strip"><span class="bsd">בס״ד</span><span id="strip"><i>משחקים כשרים למהדרין · בלי פרסומות</i><s> · </s><i>בלי צ'אט · <b>האתר שומר שבת</b></i></span></div>
 
 <header>
   <div class="wrap">
@@ -290,7 +293,7 @@
     const w = window_(), now = Date.now();
     const locked = !!w && now >= w.start && now < w.end && !preview;
     document.body.classList.toggle('locked', locked);
-    if (w && now < w.start) document.getElementById('strip').innerHTML = `הדלקת נרות בבני ברק ${hhmm(w.start)} · <b>המשחקייה ננעלת בכניסת השבת</b>`;
+    if (w && now < w.start) document.getElementById('strip').innerHTML = `<i>הדלקת נרות בבני ברק ${hhmm(w.start)}</i><s> · </s><i><b>המשחקייה ננעלת בכניסת השבת</b></i>`;
     if (locked) {
       const s = Math.max(0, Math.floor((w.end - now) / 1000));
       document.getElementById('count').textContent = [s / 3600, (s % 3600) / 60, s % 60].map(x => String(Math.floor(x)).padStart(2, '0')).join(':');
