@@ -192,6 +192,10 @@ end must show at once, with the real footage there.
   (2026-10-24, sandbox app = drafts; the caption goes to his Telegram - sendTelegramText - since a draft takes no
   text). `{save: true}` only fills the window (a session prepares the post). How to write the post: publishing.md. Results: Jobs history
   (kind publish) + episode.json publish.last. **Never post a test without his OK** - posts are public.
+  **A platform fails → the video comes to his Telegram by itself** (his ask, 2026-10-30, after TikTok's
+  `spam_risk_too_many_pending_share`): the full-quality export (or, over the bot's 50 MB, the best copy that fits),
+  what failed and why, then the caption alone to copy - he uploads by hand (`handBack`, a "send" job). TikTok's inbox
+  takes ~5 waiting drafts per 24 h; drafts he never opens keep counting - don't send test drafts.
 - **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
   `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project
   boostmind-b052c`; key in zoomcut/.env DROP_KEY - the studio's "+ New video" → From the iPhone shows the QR with it).

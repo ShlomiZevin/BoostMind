@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
-import { sendTelegramText, tgEsc } from './share.mjs';
+import { sendTelegramText, tgEsc, sendTelegram, sizedCopy } from './share.mjs';
 
 const DROP = 'https://drop-463727469066.me-west1.run.app';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -256,8 +256,28 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       const pj = readJson(pubFile(id), {});  // the results stay with the project
       writeJson(pubFile(id), { ...pj, afterExport: false, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } });
       if (Object.values(r.items).some((it) => it.state === 'done')) site(id);  // out on a social -> on his sites too
+      const failed = post.platforms.filter((p) => r.items[p].state === 'failed');
+      if (failed.length) handBack(id, post, failed.map((p) => [P[p].name, r.items[p].error]), file);
     })();
     return r;
+  }
+
+  // a platform refused it (TikTok's "too many pending shares", a lost key...) -> the video comes to his Telegram so he
+  // uploads it by hand (his ask, 2026-10-30): the full-quality export itself, or - over the bot's 50 MB - the best copy
+  // that fits (Telegram's limit); then the caption alone, one long-press to copy. A "send" job in the Jobs list.
+  async function handBack(id, post, failed, file) {
+    const started = Date.now();
+    try {
+      const send = await sizedCopy(file, 'telegram', () => {});
+      const full = send === file;
+      const why = failed.map(([n, e]) => `${n}: ${e}`).join('\n');
+      await sendTelegram({ file: send, caption: `⚠ ${post.name} - didn't go out on ${failed.map(([n]) => n).join(', ')}:\n${why}`.slice(0, 850)
+        + `\n\nHere it is ${full ? 'in full quality' : 'as big as Telegram takes (the full file is over 50 MB)'} - upload it by hand.${post.caption.trim() ? ' The caption is the next message.' : ''}` });
+      if (post.caption.trim()) await sendTelegramText(post.caption.trim());
+      recordJob({ id, kind: 'send', channel: 'telegram', started, ended: Date.now(), ok: true, line: `✓ ${failed.map(([n]) => n).join(', ')} failed - the video is in your Telegram to upload by hand` });
+    } catch (e) {
+      recordJob({ id, kind: 'send', channel: 'telegram', started, ended: Date.now(), ok: false, line: `Couldn't send it to your Telegram: ${String(e.message || e).slice(0, 200)}` });
+    }
   }
 
   // ---- his sites: a published video goes on the Shlomiverse (the wiki + the links page) by itself, every time - videos
