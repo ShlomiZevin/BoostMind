@@ -601,6 +601,7 @@ separately filmed characters). Pick by the footage; never name things after a se
 | several characters, one file each, a meeting / call grid | `recipes/zoom-call.md` | zoomcut.py |
 | one person talking to camera - rabbi lesson, guru podcast (tadar), news anchor, keynote | `recipes/monologue.md` | lesson.py |
 | one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker, an office day (Hani) | `recipes/offscreen-voice.md` | lesson.py |
+| **a new Hani Friedman video (haredit-N)** - read this FIRST: the steps + every lesson from haredit-2 | `recipes/hani.md` (then `offscreen-voice.md`) | lesson.py |
 | a silent stare + her thoughts as voice-over (Gen Z), cinematic | `recipes/genz-thoughts.md` | lesson.py |
 A new kind of video: start from the closest recipe and the closest earlier project, then write its recipe file when
 he signs off.
