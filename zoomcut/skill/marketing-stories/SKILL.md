@@ -61,20 +61,29 @@ connected to the edge, plus enclosed gaps (between a head covering and the neck 
 there). `--hole-top 0.35` keeps enclosed grey/white lower down (a laptop, a white shirt, tzitzit). Check on a coloured
 background at full size around the head before using.
 
-## The read-aloud teaser (1080x1920, with sound)
-A page = HTML with `window.at(t)` (every layer set for second t), rendered frame by frame with Playwright, then the
-sound mixed with ffmpeg (`tools/render-teaser.js` is the working example):
-- intro with the host ("…מציגה:") → the book pages one by one: the page picture slowly zooming, the text with niqqud,
-  the line being read highlighted (timing ≈ share of letters) → stop right on the cliffhanger line → an end card with
-  the open question + "עכשיו ב…" + the host.
-- Read only the first part of the story (he: "don't give everything").
-- Sound: the product's own narration files, the brand's background niggun under everything and **ducked under the
-  voice by a sidechain compressor** (smooth, no hand-made volume steps), the product's own sounds on the beats (page
-  turn per page, wind on the wind line, a whoosh + win on the end card). Use several variants of a repeated sound.
-- Keep the narration timings in ONE place (the page and the mixer share the same TL formula).
-- Clip the page (`html,body{overflow:clip}` + `body{contain:paint}`): an RTL page that overflows renders shifted
-  sideways in screenshots.
-- Big file? Re-encode before upload (`-crf 23`).
+## The launch teaser video (1080x1920, with sound) - what he signed off on
+**A teaser is an ANNOUNCEMENT, not the story**: "new - now on the site - go read, hear and play". A tiny story hook only
+(3 short lines), trailer pace ("much, much faster", "like a movie teaser - but Haredi, so a bit lame"). My first two
+versions told the whole story slowly - rejected. **The host (Hani) is the hook** - big and clear in every frame.
+- **Frames are designed by the image model too** (same as the stories): one frame per beat, the host big in each, the
+  product art shown WHOLE, the beat's words baked in. My HTML-composited frames looked "like a draft" and cropped the
+  pictures. Keep the frames in their own folder (`frames-art/`), never in a render temp folder.
+- **A trailer voice-over** (ElevenLabs, one of the 8 Hebrew men's voices - play him all 8 saying the opening line in
+  one file and let him pick by ear): "<brand> מציגה:" → "חדש!" → the product's NAME → the hook lines (from the real
+  narration) → what it is ("ספר מוקרא, עשרה משחקים") → "עכשיו באתר!".
+- **Tight**: trim silence at both ends of every clip, shorten pauses inside, speed the voice up (VO 1.2, narration 1.3),
+  lay everything back to back - `tools/build-teaser.js` builds the whole timeline from a short BEATS list (frame + what's
+  said over it) by measuring the cut clips. Changing the video = editing BEATS, not times.
+- **A radio-ad disclaimer at the end** (he loved it): kosher / supervision, not active on Shabbat and holidays, music
+  only, no chat or ads, who developed it, "images for illustration only" - read fast (x1.35 was right; x1.7 too fast),
+  and the fine print on screen **synced line by line to the words** (scribe word timestamps), never covering the host's
+  hands or a button. Check with him that any certification claim is true.
+- Sound: niggun under everything, ducked by a sidechain compressor; whoosh on every cut, a thud on title hits, the
+  product's own sounds on their beats.
+- **Draft first**: `render-teaser.js --draft` (12 fps, half size) for review; full quality only after he says so.
+- Clip the page (`html,body{overflow:clip}` + `body{contain:paint}`) - an overflowing RTL page renders shifted.
+- The model keeps writing a word-final vav as a final nun (עכשין): avoid such words in baked text (כבר באתר!,
+  כנסו לשחק!) and let the voice say them; zoom-proofread every frame.
 
 ## The silent chapter video (for a song he adds in Instagram)
 ~5 s per chapter (slow - 2.5 s was too fast), host in the intro and the end card, each chapter = page picture +
