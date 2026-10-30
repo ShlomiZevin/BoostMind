@@ -20,7 +20,9 @@ const BEATS = [
   { img: 'f4', say: [vo('millionaire'), read('p03', 12.3, 16.5)], sfx: [['whoosh', 0, 0.4], ['thud-2', 0.05, 0.6]] },
   { img: 'f5', say: [vo('diamond'), read('p05', 7.5, 10.9)], sfx: [['whoosh', 0, 0.4], ['gust-1', 'v1', 0.6], ['gust-2', 'v1+1.4', 0.55]] },
   { img: 'f6', say: [vo('book'), vo('games')], sfx: [['whoosh', 0, 0.4], ['pop-1', 'v1', 0.45], ['pop-2', 'v1+0.5', 0.45]] },
-  { img: 'f7', say: [vo('now'), { f: 'promo/out/vo/disclaimer.mp3', tempo: 1.35, keep: true, gain: 0.85, fine: true }], sfx: [['whoosh', 0, 0.5], ['win-1', 0.3, 0.45]], tail: 0.7 },
+  { img: 'f7', say: [vo('now'), { f: 'promo/out/vo/disclaimer.mp3', tempo: 1.35, keep: true, gain: 0.85, fine: true }], sfx: [['whoosh', 0, 0.5], ['win-1', 0.3, 0.45]], tail: 0.5 },
+  // the way in: the bio link is a list of ALL his links - say and show exactly what to look for, and hold it
+  { img: 'steps', say: [{ f: 'promo/out/vo/bio.mp3', tempo: 1.05 }], sfx: [['whoosh', 0, 0.5], ['pop-1', 'v0+2.2', 0.4]], tail: 3.0 },
 ];
 // the fine print, and how many spoken words each line is (the reading says "על ידי" for ע״י, and stops "מסלול בינה יתרה")
 const FINE = [['המשחק כשר למהדרין, בפיקוח רבני', 5], ['אינו פועל בשבתות ובחגים', 4], ['ניגונים בלבד, ללא שירת נשים', 5], ['ללא צ׳אט וללא פרסומות', 4],
@@ -70,7 +72,7 @@ async function words(file) {
       tl.sfx.push([n, +s.toFixed(3), g]);
     }
   }
-  tl.total = +t.toFixed(3); tl.fine.to = tl.total;
+  tl.total = +t.toFixed(3); tl.fine.to = tl.frames.find((f) => f.img === 'f7').to;
   fs.writeFileSync(path.join(__dirname, 'teaser-tl.json'), JSON.stringify(tl, null, 1), 'utf8');
   console.log('total', tl.total, 's |', tl.frames.map((f) => `${f.img} ${(f.to - f.from).toFixed(1)}`).join(' | '));
 })().catch((e) => { console.error('FAILED', e.message); process.exit(1); });

@@ -14,6 +14,18 @@ body{position:relative;contain:paint;background:#000;font-family:Rubik,sans-seri
 .fr img{width:100%;height:100%;object-fit:cover;transform-origin:50% 40%}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 #fine{position:absolute;left:470px;right:30px;top:1500px;height:160px;overflow:hidden;opacity:0;background:#0b1428d9;border-radius:24px;padding:14px 26px}
+#steps{position:absolute;inset:0;background:radial-gradient(circle at 50% 25%,#fffdf6,#ecdcb8)}
+#steps::before{content:"";position:absolute;inset:0;background:radial-gradient(#e2cfa4 2.5px,transparent 3px) 0 0/44px 44px;opacity:.5}
+#steps h2{position:absolute;top:120px;left:0;right:0;text-align:center;font-size:96px;font-weight:900;color:#1f3763}
+#steps ol{position:absolute;top:270px;right:60px;left:60px;list-style:none;padding:0}
+#steps li{display:flex;align-items:center;gap:22px;font-size:54px;font-weight:900;color:#24406e;margin-bottom:22px}
+#steps li b{flex:none;width:84px;height:84px;border-radius:50%;background:#f2b632;color:#14213d;display:flex;align-items:center;justify-content:center;font-size:52px}
+#steps li em{font-style:normal;color:#c2581e}
+.hs{position:absolute;bottom:0;left:-20px;width:auto !important;height:1000px !important;object-fit:contain !important;filter:drop-shadow(0 14px 22px #0005)}
+.lt{position:absolute;top:640px;right:40px;width:470px;background:#fff;border-radius:44px;padding:34px 30px;box-shadow:0 20px 50px #24406e33}
+.lt .who{text-align:center;font-weight:900;font-size:34px;color:#24406e;margin-bottom:22px}
+.lt .btn{height:84px;border-radius:42px;background:#e7e1d3;margin-bottom:20px}
+.lt .hot{background:#3aa565;color:#fff;font-weight:900;font-size:44px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 0 #3aa56588}
 #fine div{color:#fff;font-size:25px;font-weight:500;line-height:1.45;text-align:center}
 </style>
 </head>
@@ -25,7 +37,14 @@ const clamp = (x) => Math.max(0, Math.min(1, x)), ease = (x) => x * x * (3 - 2 *
 const ready = fetch('teaser-tl.json').then((r) => r.json()).then((tl) => {
   TL = tl; window.TOTAL = tl.total;
   const st = document.getElementById('stage');
-  tl.frames.forEach((f) => { st.insertAdjacentHTML('beforeend', `<div class="fr"><img src="frames-art/${f.img}.png"></div>`); f.el = st.lastElementChild; });
+  tl.frames.forEach((f) => {
+    if (f.img === 'steps') st.insertAdjacentHTML('beforeend', `<div class="fr"><div id="steps"><h2>איך מגיעים?</h2>
+      <ol><li><b>1</b>נכנסים לקישור בביו</li><li><b>2</b>מחפשים: <em>המשחקייה של חני</em></li><li><b>3</b>נכנסים ומשחקים!</li></ol>
+      <div class="lt"><div class="who">כל הקישורים שלי</div><div class="btn"></div><div class="btn"></div><div class="btn hot">המשחקייה של חני</div><div class="btn"></div><div class="btn"></div></div>
+      <img class="hs" src="hani-real/point-cut.png"></div></div>`);
+    else st.insertAdjacentHTML('beforeend', `<div class="fr"><img src="frames-art/${f.img}.png"></div>`);
+    f.el = st.lastElementChild;
+  });
   document.getElementById('fineIn').innerHTML = tl.fine.lines.map((l) => `<div>${l.text}</div>`).join('');
 });
 window.at = (t) => {
@@ -35,13 +54,17 @@ window.at = (t) => {
     const on = t >= f.from && t < f.to, u = (t - f.from) / (f.to - f.from);
     f.el.style.opacity = on ? 1 : 0; if (!on) return;
     const p = i ? ease(clamp((t - f.from) / 0.3)) : 1;           // punch in on the cut
-    f.el.querySelector('img').style.transform = `scale(${1.0 + (1 - p) * 0.12 + u * 0.05})`;
+    if (f.img === 'steps') {   // the steps come in one by one, then the right link pulses
+      f.el.querySelectorAll('li').forEach((li, j) => { const k = ease(clamp((t - f.from - 0.15 - j * 0.9) / 0.3)); li.style.opacity = k; li.style.transform = `translateX(${(1 - k) * -60}px)`; });
+      const hot = f.el.querySelector('.hot'), h = clamp((t - f.from - 2.0) / 0.3), pulse = h * (1 + Math.sin((t - f.from) * 7) * 0.04);
+      hot.style.transform = `scale(${0.9 + 0.1 * h + (pulse - h)})`; hot.style.boxShadow = `0 0 0 ${h * (10 + Math.sin((t - f.from) * 7) * 6)}px #f2b632`;
+    } else f.el.querySelector('img').style.transform = `scale(${1.0 + (1 - p) * 0.12 + u * 0.05})`;
     if (i) cut = t - f.from;
   });
   document.getElementById('flash').style.opacity = cut < 0.12 ? 0.55 * (1 - cut / 0.12) : 0;
   // fine print: each line lights up exactly when it is said (times from build-teaser.js), the box scrolls to keep it in view
   const fn = TL.fine, fe = document.getElementById('fine'), inner = document.getElementById('fineIn');
-  fe.style.opacity = t < fn.lines[0].at - 0.25 ? 0 : ease(clamp((t - (fn.lines[0].at - 0.25)) / 0.25));
+  fe.style.opacity = t < fn.lines[0].at - 0.25 || t >= fn.to ? 0 : ease(clamp((t - (fn.lines[0].at - 0.25)) / 0.25));
   let cur = 0; fn.lines.forEach((l, i) => { if (t >= l.at) cur = i; });
   const rows = [...inner.children], lh = rows[0] ? rows[0].offsetHeight : 36;
   const nx = fn.lines[cur + 1] ? fn.lines[cur + 1].at : fn.to, k = ease(clamp((t - fn.lines[cur].at) / Math.min(0.25, nx - fn.lines[cur].at)));

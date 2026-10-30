@@ -80,6 +80,9 @@ versions told the whole story slowly - rejected. **The host (Hani) is the hook**
   hands or a button. Check with him that any certification claim is true.
 - Sound: niggun under everything, ducked by a sidechain compressor; whoosh on every cut, a thud on title hits, the
   product's own sounds on their beats.
+- **End with "how do you get there"** and HOLD it (~9 s): his bio link is a list of ALL his links, so people won't find
+  it. A clear frame + the voice: 1 נכנסים לקישור בביו, 2 מחפשים: <brand name>, 3 נכנסים ומשחקים - with a mock link list
+  where the brand's button lights up and pulses, the host pointing at it.
 - **Draft first**: `render-teaser.js --draft` (12 fps, half size) for review; full quality only after he says so.
 - Clip the page (`html,body{overflow:clip}` + `body{contain:paint}`) - an overflowing RTL page renders shifted.
 - The model keeps writing a word-final vav as a final nun (עכשין): avoid such words in baked text (כבר באתר!,
