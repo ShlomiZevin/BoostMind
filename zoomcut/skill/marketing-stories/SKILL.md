@@ -1,6 +1,6 @@
 ---
 name: marketing-stories
-description: Make the launch marketing for a new game / product of Shlomi's (Hani's playhouse "המשחקייה של חני", Plaxzy, any brand) - Instagram stories and posts designed by GPT image 2.5 (sunburst / flare) from REAL photos of the people + the product's own art, a read-aloud teaser video (narration + niggun ducked under it + sounds, stops on a cliffhanger) and a silent chapter video for a song. Use whenever he says marketing, promo, stories, סטוריז, posts, פוסטים, teaser, טיזר, launch, "tell people the game is up", or hands over a promo HANDOFF.
+description: Make the launch marketing for a new game / product of Shlomi's (Hani's playhouse "המשחקייה של חני", Plaxzy, any brand) - Instagram stories and posts designed by GPT image 2.5 (sunburst / flare) from REAL photos of the people + the product's own art, a fast launch teaser video (model-designed frames with the host as the hook, trailer voice-over, a tiny story hook, a radio-ad disclaimer, a 'how do you get there' end frame) and optionally a silent chapter video for a song. Use whenever he says marketing, promo, stories, סטוריז, posts, פוסטים, teaser, טיזר, launch, "tell people the game is up", or hands over a promo HANDOFF.
 ---
 
 # marketing-stories - launch marketing from real people + real product art
@@ -14,7 +14,9 @@ on screen (open the file / give the full path), don't push them to Telegram unle
   pasted around text boxes) was "a mess, no logic". The fix: give gpt-image-2.5 all the pictures + the exact text and
   say what the story is FOR; it composes the scene and the Hebrew typography together. Sunburst and flare both do
   good Hebrew.
-- **Real people, from real photos.** If you have no realistic photo of a person, ask him first. From one portrait you
+- **Real people, from real photos.** If you have no realistic photo of a person, ask him first. A picture he pastes in
+  the chat is already saved on disk (the session's `images/` folder, the path is shown with it) - use that path, never
+  go searching the disk for it ("it's here, don't you get it?"). From one portrait you
   can generate more poses (`--ref` the portrait); show every new picture before building on it. People he gives you
   (photos he pastes) are used as-is, as references.
 - **Modesty is the brand** (Haredi audience): calm, restrained poses - hands clasped, holding a phone / book / laptop,
@@ -51,8 +53,16 @@ Run the stories in parallel (`&` ... `wait`). Up to ~5 references work well.
 change only <the word>: <what the letter must be and why it is wrong now>". That fixed it in one go where re-generating
 didn't.
 
+## New characters (a relative, a developer...)
+When the story needs a person who has no photo (Hani's sister-in-law who "developed" the game): generate a realistic
+person in the host's photo style (`--ref` the host photo), matching the audience (Haredi: modest, unmarried girl with a
+braid, married woman's hair covered), show 2 options, let him pick. Then **ask for the name** (Haredi names often come
+as two first names - offer options) and check the age reads right. A real person's photo he gives (the husband) is used
+as-is. For a "family photo" give the model all of them as references in one prompt - it places them together far
+better than pasted cut-outs.
+
 ## Posts (1080x1350)
-Ask whether he wants them at all ("למה צריך פוסטים?" - stories + the teaser may be enough). If yes, the same way
+Ask whether he wants them at all ("למה צריך פוסטים?" - for Yosef he used stories + the teaser only; the teaser is the post). If yes, the same way
 as the stories (prompt files + references), size 1024x1280-ish, then fit to 1080x1350.
 
 ## Cut-outs (when you DO need a person on its own, e.g. in a video)
@@ -69,7 +79,8 @@ versions told the whole story slowly - rejected. **The host (Hani) is the hook**
   product art shown WHOLE, the beat's words baked in. My HTML-composited frames looked "like a draft" and cropped the
   pictures. Keep the frames in their own folder (`frames-art/`), never in a render temp folder.
 - **A trailer voice-over** (ElevenLabs, one of the 8 Hebrew men's voices - play him all 8 saying the opening line in
-  one file and let him pick by ear): "<brand> מציגה:" → "חדש!" → the product's NAME → the hook lines (from the real
+  one file and let him pick by ear - print each voice's START SECOND in that file, he answers "the one at 19 sec"; the
+  plan allows 5 ElevenLabs requests at once, run 4): "<brand> מציגה:" → "חדש!" → the product's NAME → the hook lines (from the real
   narration) → what it is ("ספר מוקרא, עשרה משחקים") → "עכשיו באתר!".
 - **Tight**: trim silence at both ends of every clip, shorten pauses inside, speed the voice up (VO 1.2, narration 1.3),
   lay everything back to back - `tools/build-teaser.js` builds the whole timeline from a short BEATS list (frame + what's
@@ -86,7 +97,8 @@ versions told the whole story slowly - rejected. **The host (Hani) is the hook**
 - **Draft first**: `render-teaser.js --draft` (12 fps, half size) for review; full quality only after he says so.
 - Clip the page (`html,body{overflow:clip}` + `body{contain:paint}`) - an overflowing RTL page renders shifted.
 - The model keeps writing a word-final vav as a final nun (עכשין): avoid such words in baked text (כבר באתר!,
-  כנסו לשחק!) and let the voice say them; zoom-proofread every frame.
+  כנסו לשחק!) and let the voice say them; zoom-proofread every frame. An edit pass may also re-frame the picture a
+  little - re-check the host's hands and the edges after it.
 
 ## The silent chapter video (for a song he adds in Instagram)
 ~5 s per chapter (slow - 2.5 s was too fast), host in the intro and the end card, each chapter = page picture +
