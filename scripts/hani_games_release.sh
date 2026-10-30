@@ -15,4 +15,8 @@ print('was:', g.get('status')); g['status'] = 'live'
 open(p, 'w', encoding='utf-8').write(json.dumps(g, ensure_ascii=False, indent=2) + '\n')
 PY
 firebase deploy --only hosting --project boostmind-b052c | grep -i "deploy complete\|error"
-curl -s "https://boostmind-b052c.web.app/hani-games/$slug/game.json" | grep -q '"status": *"live"' && echo "LIVE: https://boostmind-b052c.web.app/hani-games/$slug/"
+for i in 1 2 3 4 5 6; do   # the new release can take a few seconds to reach the edge
+  curl -s "https://boostmind-b052c.web.app/hani-games/$slug/game.json?v=$RANDOM" | grep -q '"status": *"live"' && { echo "LIVE: https://boostmind-b052c.web.app/hani-games/$slug/"; exit 0; }
+  sleep 5
+done
+echo "deployed, but the live game.json does not say live yet - check it"; exit 1
