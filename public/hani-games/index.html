@@ -255,7 +255,7 @@
         <h3>${esc(m.title)}</h3>
         ${m.tagline ? `<p>${esc(m.tagline)}</p>` : ''}
         <div class="badges">${(m.badges || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>
-        <div class="foot"><span class="play">${live ? 'לשחק' : 'בקרוב, בעזרת השם'}</span>${b ? `<span class="best">השיא שלך: ${b.toLocaleString('he-IL')} ${esc(m.best.label || '')}</span>` : ''}</div>
+        <div class="foot"><span class="play">${live ? 'לשחק' : 'בקרוב, בלי נדר, בעזרת השם'}</span>${b ? `<span class="best">השיא שלך: ${b.toLocaleString('he-IL')} ${esc(m.best.label || '')}</span>` : ''}</div>
       </div>`;
     return el;
   }
