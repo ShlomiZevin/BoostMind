@@ -85,6 +85,17 @@
         "source": "/sicilia/**",
         "destination": "/sicilia/index.html"
       }
+    ],
+    "headers": [
+      {
+        "source": "/hani-games/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
     ]
   },
   "firestore": {
