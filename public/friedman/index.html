@@ -25,7 +25,17 @@
   body { margin: 0; background: #e9dcbc; color: #2a1c10; font-family: 'Frank Ruhl Libre', serif; line-height: 1.55; }
   main { max-width: 860px; margin: 0 auto; padding: 28px 16px 48px; }
   .sheet { background: #f1e4c3; border: 1px solid rgba(42, 28, 16, 0.25); box-shadow: 0 6px 20px rgba(42, 28, 16, 0.12); }
+  .sheet { position: relative; }
   .sheet img { display: block; width: 100%; height: auto; }
+  /* every face on the tree opens that person's whole picture (img/full/, the Leonardo originals) */
+  .face { position: absolute; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: zoom-in; transition: box-shadow 0.15s; }
+  .face:hover, .face:focus-visible { outline: none; box-shadow: 0 0 0 3px #b48a3a; }
+  .view { border: 0; padding: 0; background: transparent; max-width: none; max-height: none; width: 100%; height: 100%; }
+  .view::backdrop { background: rgba(26, 17, 8, 0.88); }
+  .view figure { margin: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; cursor: zoom-out; }
+  .view img { display: block; max-width: 100%; max-height: calc(100% - 70px); border: 6px solid #f1e4c3; border-radius: 6px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45); }
+  .view figcaption { background: #fbf3df; border: 1px solid #b48a3a; border-radius: 16px; padding: 2px 18px 4px; font-weight: 900; font-size: 22px; color: #2a1c10; }
+  .view .x { position: fixed; top: 12px; left: 12px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #f1e4c3; color: #2a1c10; font: 700 28px/1 serif; cursor: pointer; }
   .words { max-width: 640px; margin: 30px auto 0; text-align: center; }
   .words p { margin: 0; font-size: 19px; }
   .words p + p { margin-top: 10px; }
@@ -35,13 +45,43 @@
 </head>
 <body>
 <main>
-  <div class="sheet"><img src="img/poster.jpg" alt="עץ המשפחה של משפחת פרידמן: הסבים והסבתות בשורשים, אבא ואמא על הגזע, הדודים והדודות על הענפים ותשעת הילדים בצמרת. מעל: והיה כעץ שתול על פלגי מים אשר פריו יתן בעתו" width="1600" height="3103"></div>
+  <div class="sheet"><img src="img/poster.jpg" alt="עץ המשפחה של משפחת פרידמן: הסבים והסבתות בשורשים, אבא ואמא על הגזע, הדודים והדודות על הענפים ותשעת הילדים בצמרת. מעל: והיה כעץ שתול על פלגי מים אשר פריו יתן בעתו" width="1600" height="3103">
+    <button class="face" type="button" data-img="img/full/shterni.jpg" data-name="שטערני" aria-label="שטערני" style="left:73.02%;top:24.28%;width:12.30%;height:6.34%"></button>
+    <button class="face" type="button" data-img="img/full/brachi.jpg" data-name="ברכי" aria-label="ברכי" style="left:58.41%;top:23.22%;width:12.21%;height:6.29%"></button>
+    <button class="face" type="button" data-img="img/full/chaimi.jpg" data-name="חיימי" aria-label="חיימי" style="left:43.76%;top:22.85%;width:12.21%;height:6.29%"></button>
+    <button class="face" type="button" data-img="img/full/sruli.jpg" data-name="שרולי" aria-label="שרולי" style="left:29.11%;top:23.21%;width:12.21%;height:6.29%"></button>
+    <button class="face" type="button" data-img="img/full/feigy.jpg" data-name="פייגי" aria-label="פייגי" style="left:14.49%;top:24.31%;width:12.21%;height:6.29%"></button>
+    <button class="face" type="button" data-img="img/full/yanky.jpg" data-name="יענקי" aria-label="יענקי" style="left:65.86%;top:31.46%;width:12.11%;height:6.24%"></button>
+    <button class="face" type="button" data-img="img/full/ruchami.jpg" data-name="רוחמי" aria-label="רוחמי" style="left:51.13%;top:30.99%;width:12.21%;height:6.29%"></button>
+    <button class="face" type="button" data-img="img/full/malki.jpg" data-name="מלכי" aria-label="מלכי" style="left:36.46%;top:31.00%;width:12.21%;height:6.29%"></button>
+    <button class="face" type="button" data-img="img/full/shloimi.jpg" data-name="שלוימי" aria-label="שלוימי" style="left:21.83%;top:31.47%;width:12.11%;height:6.24%"></button>
+    <button class="face" type="button" data-img="img/full/yossi.jpg" data-name="דוד יוסי" aria-label="דוד יוסי" style="left:82.79%;top:42.27%;width:11.33%;height:5.84%"></button>
+    <button class="face" type="button" data-img="img/full/rachli.jpg" data-name="דודה רחלי" aria-label="דודה רחלי" style="left:69.74%;top:44.32%;width:11.52%;height:5.94%"></button>
+    <button class="face" type="button" data-img="img/full/esti.jpg" data-name="דודה אסתי" aria-label="דודה אסתי" style="left:83.02%;top:50.91%;width:11.23%;height:5.79%"></button>
+    <button class="face" type="button" data-img="img/full/menachem.jpg" data-name="דוד מנחם" aria-label="דוד מנחם" style="left:69.87%;top:53.04%;width:11.43%;height:5.89%"></button>
+    <button class="face" type="button" data-img="img/full/dovid.jpg" data-name="דוד נחמן" aria-label="דוד נחמן" style="left:18.62%;top:44.32%;width:11.52%;height:5.94%"></button>
+    <button class="face" type="button" data-img="img/full/pnina.jpg" data-name="דודה פנינה" aria-label="דודה פנינה" style="left:5.71%;top:42.24%;width:11.43%;height:5.89%"></button>
+    <button class="face" type="button" data-img="img/full/avraham-moshe.jpg" data-name="אבא" aria-label="אבא" style="left:51.72%;top:57.93%;width:15.72%;height:8.11%"></button>
+    <button class="face" type="button" data-img="img/full/hani.jpg" data-name="אמא" aria-label="אמא" style="left:32.50%;top:57.94%;width:15.72%;height:8.11%"></button>
+    <button class="face" type="button" data-img="img/full/saba-friedman.jpg" data-name="סבא פרידמן" aria-label="סבא פרידמן" style="left:75.99%;top:74.70%;width:12.79%;height:6.60%"></button>
+    <button class="face" type="button" data-img="img/full/savta-friedman.jpg" data-name="סבתא פרידמן" aria-label="סבתא פרידמן" style="left:61.20%;top:76.79%;width:12.70%;height:6.55%"></button>
+    <button class="face" type="button" data-img="img/full/saba-berger.jpg" data-name="סבא ברגר" aria-label="סבא ברגר" style="left:25.95%;top:76.77%;width:12.70%;height:6.55%"></button>
+    <button class="face" type="button" data-img="img/full/savta-berger.jpg" data-name="סבתא ברגר" aria-label="סבתא ברגר" style="left:11.09%;top:74.69%;width:12.79%;height:6.60%"></button>
+  </div>
   <div class="words">
     <p>בעזרת השם, לקראת בת המצווה שלי עשיתי עבודת שורשים על המשפחה שלנו. בשורשים סבא וסבתא פרידמן מבני ברק וסבא וסבתא ברגר מירושלים, על הגזע אבא ואמא, על הענפים הדודים והדודות, ולמעלה אנחנו, תשעת האחים והאחיות, בלי עין הרע.</p>
     <p>תודה לסבא שהשאיל לי את המחשב, ולאמא שעזרה עם התמונות.</p>
     <p class="sig">שטערני פרידמן · כיתה ו׳ · כ״ח במרחשוון</p>
   </div>
 </main>
+<dialog class="view" id="view" aria-label="תמונה"><figure><img id="vimg" alt=""><figcaption id="vname"></figcaption></figure><button class="x" type="button" aria-label="סגירה">×</button></dialog>
+<script>
+  // a face on the tree -> that person's whole picture; a tap anywhere (or Esc) closes it
+  const view = document.getElementById('view'), vimg = document.getElementById('vimg'), vname = document.getElementById('vname');
+  for (const b of document.querySelectorAll('.face')) b.onclick = () => { vimg.src = b.dataset.img; vimg.alt = b.dataset.name; vname.textContent = b.dataset.name; view.showModal(); };
+  view.onclick = () => view.close();
+  view.onclose = () => { vimg.removeAttribute('src'); };
+</script>
 <script src="/t.js" data-site="friedman" defer></script>
 </body>
 </html>
