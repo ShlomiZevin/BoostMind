@@ -110,7 +110,7 @@ const tooMany = (ip) => {
 exports.wikiChat = onRequest({
   region: 'europe-west1',
   secrets: [OPENAI_API_KEY],
-  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^http:\/\/localhost(:\d+)?$/],
+  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^http:\/\/localhost(:\d+)?$/],
   maxInstances: 4,
   concurrency: 20,
   memory: '512MiB',

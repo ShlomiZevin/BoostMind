@@ -45,7 +45,7 @@ function parse(req) {
 exports.techietechApply = onRequest({
   region: 'europe-west1',
   secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
-  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/],
+  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/],
   maxInstances: 3,
   memory: '256MiB',
   timeoutSeconds: 60,
@@ -102,7 +102,7 @@ const SITES = {
 exports.siteLead = onRequest({
   region: 'europe-west1',
   secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
-  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/],
+  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/],
   maxInstances: 3,
   memory: '256MiB',
   timeoutSeconds: 60,

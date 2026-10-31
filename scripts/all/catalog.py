@@ -60,6 +60,10 @@ EXTRA = [
     ('tools', 'Firebase console', 'https://console.firebase.google.com/project/boostmind-b052c/overview', 'קונסול'),
     ('tools', 'Google Cloud console', 'https://console.cloud.google.com/home/dashboard?project=boostmind-b052c', 'קונסול'),
     ('tools', 'Firestore', 'https://console.firebase.google.com/project/boostmind-b052c/firestore', 'קונסול'),
+    # Boostart - his freelance work, its own repo (c:\workspace\boostart) and project (boostart-pro) since 2026-10-31
+    ('boostart', 'Boostart - דף העליי (pro.boostart.io)', 'https://boostart-pro.web.app/', 'אתר'),
+    ('boostart', 'Boostart - ערכת המכרזים הממשלתיים', 'https://boostart-pro.web.app/gov/', 'אתר'),
+    ('boostart', 'Boostart - Firebase console', 'https://console.firebase.google.com/project/boostart-pro/overview', 'קונסול'),
     # other sites
     ('other_sites', 'Trip Planner', 'https://boostart-trips.web.app', 'אתר'),
     ('other_sites', 'Trip Planner - דף משקיעים', 'https://boostart-trips.web.app/invest', 'אתר'),
