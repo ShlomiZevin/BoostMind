@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שלומיוורס</title>
+<!-- The home address "/" of this site serves two domains: shlomiverse.com (the links page is its home) and wholos.com
+     (still attached here until Wholos moves to its own project - its landing page is /wholos/). firebase.json rewrites
+     "/" to this file. -->
+<script>
+  (function () {
+    var wholos = /(^|\.)wholos\.com$/.test(location.hostname);
+    location.replace((wholos ? '/wholos/' : '/links/') + location.search + location.hash);
+  })();
+</script>
+<style>body{margin:0;background:#0b0b0e;color:#f5f4f1;font:16px/1.5 Heebo,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh}a{color:#ff7a3d}</style>
+</head>
+<body>
+<noscript><a href="/links/">שלומיוורס</a></noscript>
+</body>
+</html>
