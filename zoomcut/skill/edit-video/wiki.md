@@ -9,8 +9,8 @@ finish in the studio is not on the site until you run the steps below.
 |---|---|---|
 | **Links page** - the link in ALL his social bios | https://boostmind-b052c.web.app/links/ | `public/links/index.html` |
 | **שלומיוורס** - the wiki of every character, every video, and a chat with each character | https://boostmind-b052c.web.app/wiki/ | `public/wiki/index.html`, data `public/wiki/data/wiki.json` |
-| **His analytics dashboard** (Google sign-in, only shlomi@boostart.io) | https://boostmind-b052c.web.app/stats/ | `public/stats/index.html` |
-| **Everything he runs** (private, Google sign-in): every page, the Vault, tools, servers | https://boostmind-b052c.web.app/all/ | `scripts/all/catalog.py` -> redeploy `stats` |
+| **His analytics dashboard** (private: his link with the key, or the code box - once per device) | https://boostmind-b052c.web.app/stats/ | `public/stats/index.html` |
+| **Everything he runs** (private: his link / code, once per device): every page, the Vault, tools, servers | https://boostmind-b052c.web.app/all/ | `scripts/all/catalog.py` -> redeploy `stats` |
 | The characters' own sites | the table below | `public/<site>/` |
 
 **Every character site** (each character's profile has it as `site.url`, each world in `zoomcut/characters/index.json`
@@ -61,11 +61,29 @@ into `scripts/wiki/work/`, then copied to `public/links/img/`). To change who is
 Keep the words in the middle: Facebook crops the sides on phones and the profile photo covers a bottom corner.
 
 ## A finished video -> the Shlomiverse (step 11 of the workflow)
+
+**UPLOADING A VIDEO TO THE VERSE - THE ONE PATH** (his ask, 2026-10-31: "super clear to the editor skill and zoomcut")
+1. The video's project is finished and has its full export (`zoomcut/episodes/<id>/out/<id>.mp4`), and every character
+   in it lists the episode in their studio profile's `videos` (that is how the verse knows the cast).
+2. **He presses Publish** in the studio -> the studio queues a **"site" job** by itself (Jobs panel "Shlomiverse").
+   No publish (an old video, a socials-only miss)? **`POST http://localhost:4747/api/ep/<id>/site`** - the queue keeps
+   deploys one at a time. Only with the studio down: `python scripts/wiki/publish_site.py <id>` from BoostMind.
+3. The job puts it everywhere it can by itself: the wiki (the video, each character's page, fan copy by Terra), the
+   links page's videos strip (it reads the wiki's data), the chat agent (every character can talk about it), then the
+   safe deploy (`scripts/deploy.sh` - pulls Hani's games first) and a check that the live wiki lists it.
+4. It then checks **every other place** each character must reach and prints one `  !` line per gap: no portrait,
+   a Techy-Tech person with no card on the company site, a character site with no links-page button, a character
+   site that shows videos but not this one. **Act on every `!` line** (SKILL.md step 12) and deploy again with
+   `bash scripts/deploy.sh`. The same lines reach his Telegram.
+5. **A video is published only at `✔ on the Shlomiverse: <link>`** - give him that link.
+Never deploy with a bare `firebase deploy --only hosting`: it can put old Hani game files back.
+The verse is moving to **https://shlomiverse.com** (same site, same paths - every old link keeps working).
+
 **Publishing a video = publishing it to his sites too** (his words, 2026-10-25: "this is part of publishing a video -
 it should go to my site... everything just one direction"). ONE command does all of it, from `c:\workspace\BoostMind`:
 `python scripts/wiki/publish_site.py <episode-id>` - marks the project done, web copy + poster, fan copy (Terra) for
 anything new (the video, a new character), build, deploy the site + the chat agent, checks the live wiki lists it
-(`✔ on the Shlomiverse: <link>`), and warns (`!`) when a Techy-Tech character has no card on the company site.
+(`✔ on the Shlomiverse: <link>`), and warns (`!`) for every place a character hasn't reached yet (see the one path above).
 **The studio runs it by itself after every Publish** (since 2026-10-25, commit 72d08ff): a publish with any platform
 out queues a "site" job (Jobs panel "Shlomiverse", one at a time - each deploys the whole site), Telegram with the ✔
 link and any "!" warning, or the last log lines on failure. **By hand: `POST /api/ep/<id>/site`** (needs
@@ -82,7 +100,7 @@ The steps it runs, for when one fails:
    read the answer, then `python scripts/wiki/merge_copy.py`. **Terra, not SOL** (his call). The copy lives in
    `scripts/wiki/copy.json` - fix a line there by hand any time.
 3. **Build:** `python scripts/wiki/build.py` - it lists anything still MISSING (an encode, a copy line).
-4. **Deploy:** `firebase deploy --only hosting --project boostmind-b052c`, and because the chat knows every
+4. **Deploy:** `bash scripts/deploy.sh` (from BoostMind; it pulls Hani's games first), and because the chat knows every
    transcript: `firebase deploy --only functions:wikiChat --project boostmind-b052c` from `techietech-api/`.
 5. Check the video on the wiki (the character's page and the videos page) and tell him its link
    (`/wiki/#/v/<episode-id>`).
@@ -113,6 +131,14 @@ A video that lives only on TikTok / Instagram (old ones): add `{"url", "title", 
   characters' sites. The faces and videos come from `wiki.json` by themselves.
 - **No emoji as icons** - make the icon with Leonardo (3D clay, on the card's solid colour; `public/links/img/`).
 - No "נעים להכיר", no "בין השאר" line. His photo is never stretched or covered (his face looked low).
+- **The spotlight** (`<section class="spot">`, right under his socials on the phone, a banner above the hero on
+  desktop): ONE slot for whatever he is pushing now (first: Hani's playhouse). His focus moves between characters, so
+  it is a slot, never a permanent favourite: to move it, replace that section (picture, pill, title, line, links, the
+  row of five) and set `--spot` to that world's own colour; small images go in `public/links/img/spot/`. The pill
+  always says "עכשיו בשלומיוורס" (his pick) - never describe the content ("חדש · 4 משחקים" was wrong; "עכשיו בפוקוס" dumb). Clicks count as `site` and as
+  `click` `spotlight:<data-spot>` in /stats/.
+- **The wordmark is two-tone everywhere:** שלומי in the text colour, וורס in orange (`שלומי<b>וורס</b>`), like the
+  FB cover and the YouTube banner. Never one colour.
 
 ## His analytics (own, not Google Analytics)
 - `public/t.js` on every page; the wiki and links page add their moments with `window.track(event, target)`.

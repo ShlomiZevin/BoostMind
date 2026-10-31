@@ -9,7 +9,7 @@ it for a video that missed it. Steps (wiki.md "A finished video -> the Shlomiver
   5. deploy the site and the chat agent, then check the live wiki has the video
 A character of the Techy-Tech world without a card on the company site is reported - that card is written by hand.
 """
-import glob, json, os, shutil, subprocess, sys, tempfile, time, urllib.request
+import glob, json, os, re, shutil, subprocess, sys, tempfile, time, urllib.request
 
 from canon import HERE, ROOT, ZC, characters, episodes, load_json
 
@@ -83,6 +83,40 @@ def settle():
         say(f'  ! went live along with it (other sessions\' changes): {", ".join(went)}')
 
 
+def places(eid, cast, world):
+    """The places a video's characters must reach. Done here: the wiki (their page + the video), the links page's
+    videos (it reads wiki.json), the chat agent's brain. Checked and reported with '  !' (a session adds it):
+    the character's portrait, a Techy-Tech card on the company site, their own site on the links page and the video
+    on their own site."""
+    out = []
+    brain = open(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json'), encoding='utf8').read()
+    if f'"{eid}"' not in brain and eid not in brain:
+        out.append(f'  ! the chat agent\'s brain has no {eid} - rerun scripts/wiki/build.py')
+    company = open(os.path.join(ROOT, 'public', 'techietech', 'index.html'), encoding='utf8').read()
+    links = open(os.path.join(ROOT, 'public', 'links', 'index.html'), encoding='utf8').read()
+    for cid in cast:
+        c = world.get(cid, {})
+        name = c.get('name', cid)
+        if not os.path.exists(os.path.join(ROOT, 'public', 'wiki', 'img', 'c', cid + '.jpg')):  # build.py's output
+            out.append(f'  ! {name} has no portrait on the wiki - give the studio profile one (assets.portraits) or add scripts/wiki/portraits/<id>.jpg')
+        if c.get('world') == 'טקי-טק' and f"id: '{cid}'" not in company:
+            out.append(f'  ! {name} works at Techy-Tech but has no card on the company site - add it (SKILL.md step 12)')
+        url = (c.get('site') or {}).get('url', '')
+        m = re.match(r'https://(?:boostmind-b052c\.web\.app|(?:www\.)?shlomiverse\.com)/([\w-]+)/', url)
+        if not m or m.group(1) == 'techietech':
+            continue
+        folder = os.path.join(ROOT, 'public', m.group(1))
+        if f'/{m.group(1)}/' not in links:
+            out.append(f'  ! {name}\'s site /{m.group(1)}/ has no button on the links page')
+        files = [open(f, encoding='utf8', errors='ignore').read()
+                 for f in glob.glob(os.path.join(folder, '**', '*.*'), recursive=True) if f.endswith(('.html', '.js', '.json'))]
+        # only a site that shows videos at all (a shop or a family tree doesn't); its own file names differ from the
+        # episode ids, so this is a question for the session, not a certainty
+        if any('<video' in t for t in files) and not any(eid in t for t in files):
+            out.append(f"  ! {name}'s own site /{m.group(1)}/ shows videos but not {eid} - add it if it belongs there (SKILL.md step 12)")
+    return out or [f'  · {eid}: every place checked - nothing missing']
+
+
 def main():
     ids = [a for a in sys.argv[1:] if not a.startswith('--')]
     deploy = '--no-deploy' not in sys.argv
@@ -116,20 +150,17 @@ def main():
         raise SystemExit('the build still misses:\n' + '\n'.join(missing))
     say('  · built: ' + next((l for l in out.splitlines() if l.startswith('wiki.json')), 'wiki.json'))
 
-    # Techy-Tech people need a card on the company site (written by hand: a corporate bio, a headshot)
-    site = open(os.path.join(ROOT, 'public', 'techietech', 'index.html'), encoding='utf8').read()
-    world = {c['id']: c for c in chars}
+    # every place each character of the video must reach (SKILL.md step 12) - what can't be done here is reported
     for i in ids:
-        for cid in eps.get(i, {}).get('cast', []):
-            c = world.get(cid, {})
-            if c.get('world') == 'טקי-טק' and f"id: '{cid}'" not in site:
-                say(f'  ! {c.get("name", cid)} works at Techy-Tech but has no card on the company site - add it (SKILL.md step 12)')
+        for line in places(i, eps.get(i, {}).get('cast', []), {c['id']: c for c in chars}):
+            say(line)
 
     if not deploy:
         say('  · not deployed (--no-deploy)')
         return
     settle()
-    run('firebase deploy --only hosting --project boostmind-b052c')
+    # the safe deploy: it pulls Hani's games from live first, so a video publish never puts old game files back
+    run([shutil.which('bash') or 'C:/Program Files/Git/bin/bash.exe', 'scripts/deploy.sh'])
     say('  · site deployed')
     run('firebase deploy --only functions:wikiChat --project boostmind-b052c', cwd=os.path.join(ROOT, 'techietech-api'))
     say('  · chat agent deployed (it knows the new videos)')

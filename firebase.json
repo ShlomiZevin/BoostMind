@@ -49,16 +49,16 @@
       },
       {
         "source": "/boostart{,/}",
-        "destination": "https://boostart-pro.web.app/",
+        "destination": "https://pro.boostart.io/",
         "type": 301
       },
       {
         "source": "/boostart/:rest*",
-        "destination": "https://boostart-pro.web.app/:rest*",
+        "destination": "https://pro.boostart.io/:rest*",
         "type": 301
       },
       {
-        "destination": "https://boostart-pro.web.app/",
+        "destination": "https://pro.boostart.io/",
         "type": 301,
         "regex": "^/(ai-algorithms|ai-copilot-n8n|ai-dating-mgmt|ai-implementation|ai-native-dev|ai-os-engineer|ai-personalized-pod|b2b-medusa-store|bancs-ogen|claude-automation|claude-cowork-mentor|claude-guide|cloud-architect|cpai-fintech|crm-custom|edu-cto|erez-ai-mentor|erp-construction-ai|eyeloveyou|eyeloveyou-chat|family-tv|food-ecommerce|fullstack-ai-agents|home-improvement-ai|insurance-crm-ai|island-proposal|jewelry-store|legal-ai-automation|lovable-migration|magen-crm|marketplace-mvp|marketplace-users|ml-fraud-detection|mortgage-brand|pdf-calculator|privacy-platform|progress|realestate-3d|realestate-ai|senior-saas-backend|smart-agent|tarot-ai-chat|thegapper|torah-lessons|travel-ops|webrtc-tv-poc|wolt-proposal|aspect-insights)(/.*)?$"
       }

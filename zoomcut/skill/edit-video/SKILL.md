@@ -210,7 +210,8 @@ take. A framing for a whole take is better as one change you re-apply than as a 
 10. **Post it** - read `publishing.md`. The caption you saved in step 7 is in the Send window; **he presses Send**,
    never you. Instagram, TikTok drafts, YouTube Shorts and X are live; Facebook = a Telegram reminder to share the
    Instagram Reel.
-11. **Put it on the Shlomiverse** - part of publishing, not an extra: the studio's "site" job runs
+11. **Put it on the Shlomiverse (= "upload it to the verse")** - part of publishing, not an extra; the ONE path is
+   in `wiki.md` "A finished video -> the Shlomiverse". The studio's "site" job runs
    `scripts/wiki/publish_site.py` by itself after every Publish (Jobs panel "Shlomiverse"); by hand
    `POST /api/ep/<id>/site` (`wiki.md`): web copy + poster, the fan title (Terra), build, deploy the site and the
    chat. Check it ended ✔ and act on any "!". Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
@@ -219,12 +220,14 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    `out/<id>.mp4`.
 12. **Every place the character and the video must reach - check each one, every video** (his ask, 2026-10-25:
    "make sure the edit video knows to guide each session to add the character to all these places if it wasn't
-   already, and the character's videos"). For each character in the video, tick what's missing:
+   already, and the character's videos"). **The site job checks these by itself** (`places()` in publish_site.py)
+   and prints one `  !` line per gap - a missing portrait, a Techy-Tech card, a site without a links-page button, a
+   character site that shows videos but not this one. Act on every `!` line. For each character in the video:
    - [ ] **Characters page** - a profile (`POST /api/characters/<id>`), its portrait, the video in `videos`, the
      facts the video added (family, catchphrases), then `node zoomcut/tools/character_profiles.mjs`.
    - [ ] **The world's site** - a Techy-Tech character gets a team card (`public/techietech/index.html` TEAM +
      the org chart DIVS, photo `team/<id>.jpg` 560x560 corporate headshot) and BOTH copies deployed:
-     `sh techietech-site/deploy.sh` (techytech.web.app) AND `firebase deploy --only hosting` (/techietech/ on the
+     `sh techietech-site/deploy.sh` (techytech.web.app) AND `bash scripts/deploy.sh` (/techietech/ on the
      main site). His browser caches techytech for an hour - tell him Ctrl+F5.
    - [ ] **Their own site** if they have one (a new video tile, its 540p copy) + its button on the links page.
    - [ ] **The Shlomiverse wiki** (step 11) - character page, portrait, the video, the fan copy.
@@ -266,6 +269,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   Someone heard off-screen (a question): the picture under it comes ONLY from the take where he listens; if it is too
   short, speed the sound up (`tempo`) - never borrow footage from other takes. Room echo on anyone: very, very gentle
   (`room` ~0.1, "light, pleasant to the ear"). A noise filter that colours his voice: back to the original.
+- **RNNoise (clean "nn") swallows the first word after a long silence** (demokratovich-nechama, 2026-10-29: "the
+  first רבותיי sounds bad"): after his 10 s silent opening it cut that word by 25-45 dB (the rest of his speech ~10 dB).
+  Measure the word raw vs the nn source (`work/public/layers/src/voice__t.<take>__nn.wav`); fix = split the voice item
+  around the word and play the word from its own audio layer with the same voice props and `clean: off` (layer.add +
+  item.update/item.add, 0.03 s fades) - his cleaning choice on the main layer stays.
+- **A music bed shorter than the video**: it fades out and goes silent mid-video ("a break in the niggun at 1:02").
+  Glue it: end the first music item before the track's fade-out (`fade_out` 1.0) and a second item of the same track,
+  1 s earlier, back into its theme (`in` = a section start, `fade_in` 1.0). Check the bed's length against the video's
+  when you set it.
 - **Pauses inside a take stay; only the joins BETWEEN takes are tight** (his words, 2026-10-23: "don't cut spaces in
   the same video, only between videos"). One-camera projects with several short takes: `cut.silence: false`. At a
   join the previous take's sound runs on under the next one's start (`cut.join` 0.25 - "continue the sound of the
@@ -399,7 +411,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
     HTML and shot with headless Chrome (his portrait, the logo, the name, one line in the character's voice, the CTA);
     og:title / description / url / image (ABSOLUTE https URL - WhatsApp ignores a relative one) + og:image:width /
     height + `twitter:card` summary_large_image. Check with `curl -A "WhatsApp/2.23" <url>`.
-  - Deploy the site (`firebase deploy --only hosting --project boostmind-b052c` from BoostMind), check the URLs 200,
+  - Deploy the site (`bash scripts/deploy.sh` from BoostMind - never a bare `firebase deploy`), check the URLs 200,
     add the links-page button, and give the video a poster / CTA that sends them to the bio.
 
 ## ElevenLabs - more people from his own voice (his call, 2026-10-23: "it might be a game changer")
