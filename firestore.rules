@@ -91,12 +91,6 @@ service cloud.firestore {
     match /party-rsvp/{docId} {
       allow read, write: if true;
     }
-    match /fleet_sessions/{docId} {
-      allow read, write: if true;
-    }
-    match /fleet_notes/{docId} {
-      allow read, write: if true;
-    }
     match /defaultExercisePhotos/{docId} {
       allow read, write: if true;
     }
