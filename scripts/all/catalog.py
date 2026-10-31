@@ -52,7 +52,10 @@ EXTRA = [
     ('characters', 'Techy-Tech (הדומיין שלו)', 'https://techytech.web.app', 'אתר'),
     ('verse', 'שלומידגם - ליל הבחירות', 'https://shlomidgam.web.app', 'אתר'),
     # his tools
-    ('tools', 'Vault', 'https://boostmind-vault.web.app', 'כספת'),
+    # personal tools - their own repo (c:\workspace\shlomi-tools) and project (shlomi-tools) since 2026-10-31
+    ('tools', 'Vault', 'https://shlomi-vault.web.app', 'כספת'),
+    ('tools', 'החבושים - הספר', 'https://chavushim.web.app', 'אתר'),
+    ('tools', 'shlomi-tools - Firebase console', 'https://console.firebase.google.com/project/shlomi-tools/overview', 'קונסול'),
     ('tools', 'Sketch Studio - העורך', 'http://localhost:4747', 'מקומי'),
     ('tools', 'Karaoke Booth (מקומי)', 'http://localhost:4747/karaoke/', 'מקומי'),
     ('tools', 'הדרופ - העלאת צילומים מהאייפון', 'https://drop-463727469066.me-west1.run.app', 'שרת'),
@@ -69,6 +72,7 @@ EXTRA = [
     ('other_sites', 'Trip Planner - דף משקיעים', 'https://boostart-trips.web.app/invest', 'אתר'),
     ('other_sites', 'Plaxzy (של נועם)', 'https://plaxzy.com', 'אתר'),
     ('other_sites', 'wholos.com', 'https://wholos.com', 'אתר'),
+    ('other_sites', 'Wholos - Firebase console (wholos-app, c:\\workspace\\wholos)', 'https://console.firebase.google.com/project/wholos-app/overview', 'קונסול'),
     # servers (Cloud Run / functions on boostmind-b052c)
     ('servers', 'wikiChat - הצ\'אט של הדמויות', 'https://console.cloud.google.com/run/detail/europe-west1/wikichat/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'track + stats - האנליטיקס', 'https://console.cloud.google.com/run/detail/europe-west1/track/metrics?project=boostmind-b052c', 'פונקציה'),
