@@ -31,7 +31,7 @@
       : /t\.co\/|twitter|x\.com/.test(ref) ? 'x'
       : /google\./.test(ref) ? 'google'
       : /whatsapp/i.test(ua + ref) ? 'whatsapp'
-      : /boostmind-b052c|techytech/.test(ref) ? 'internal'
+      : /boostmind-b052c|shlomiverse\.com|techytech/.test(ref) ? 'internal'
       : ref ? 'other' : 'direct';
     ss('t-r', source);
   }
@@ -47,7 +47,7 @@
   };
 
   // links out: contact, socials, the characters' sites, anything else
-  var SITE_OF = { '/ayelet': 'ayelet', '/demokratovich': 'demokratovich', '/hindsight': 'hindsight', '/homo-useless': 'homo-useless', '/yotamverse': 'yotamverse', 'techytech.web.app': 'techytech' };
+  var SITE_OF = { '/ayelet': 'ayelet', '/demokratovich': 'demokratovich', '/hindsight': 'hindsight', '/homo-useless': 'homo-useless', '/yotamverse': 'yotamverse', '/hani-games': 'hani-games', '/friedman': 'friedman', '/ofnat-hani': 'ofnat-hani', '/dorit': 'dorit', '/shefa-ad': 'shefa-ad', '/birkat-hashefa': 'birkat-hashefa', '/micro-comedy': 'micro-comedy', '/shlomi-zevin': 'shlomi-zevin', 'techytech.web.app': 'techytech' };
   document.addEventListener('click', function (ev) {
     var a = ev.target.closest && ev.target.closest('a[href]');
     if (!a || a.hasAttribute('data-t-skip')) return;
@@ -56,7 +56,7 @@
     if (/^mailto:/.test(h)) return window.track('contact', 'mail');
     var net = /tiktok\.com/.test(h) ? 'tiktok' : /instagram\.com/.test(h) ? 'instagram' : /youtube\.com|youtu\.be/.test(h) ? 'youtube' : /facebook\.com/.test(h) ? 'facebook' : /(^|\/\/)(x|twitter)\.com/.test(h) ? 'x' : '';
     if (net) return window.track('social', net);
-    var path = h.replace(/^https:\/\/boostmind-b052c\.web\.app/, '');
+    var path = h.replace(/^https:\/\/(boostmind-b052c\.web\.app|(www\.)?shlomiverse\.com)/, '');
     for (var k in SITE_OF) if (path.indexOf(k) === 0 || path.indexOf('//' + k) >= 0) return SITE_OF[k] === site ? undefined : window.track('site', SITE_OF[k]);
     if (/^https?:\/\//.test(h) && h.indexOf(location.host) < 0) window.track('click', h.replace(/^https?:\/\//, '').slice(0, 60));
   }, true);
