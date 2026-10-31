@@ -4,23 +4,27 @@ This repo and its Firebase project (`boostmind-b052c`) are **the Shlomiverse**: 
 built on it - the links page (his bio link), the characters' wiki, the characters' sites, Hani's games, the stats, and
 Sketch Studio (`zoomcut/`), the editor he makes his videos with.
 
-**Client proposals are no longer here.** Since 2026-10-31 they live in their own repo and project:
-`c:\workspace\boostart` → `https://pro.boostart.io/` (Firebase `boostart-pro`). Proposal and outreach work - XPLACE
-messages, the Boostart "about me" page, the `proposal-doc` skill, `shlomi-zevin-profile.md` - happens there; read its
-CLAUDE.md. The old `boostmind-b052c.web.app/boostart/` and old proposal links redirect there (`firebase.json`).
+**Only the Shlomiverse lives here** (since 2026-10-31). Everything else has its own repo and Firebase project, so a
+Shlomiverse deploy never touches it:
 
-The project will get its own `.co.il` domain (Shlomi is buying it). Push notifications and the "add to home screen"
-app wait for that domain, because both belong to one web address.
+| What | Repo | Project / address |
+|---|---|---|
+| Client proposals, the Boostart "about me" page, XPLACE outreach, the `proposal-doc` skill, old demo sources | `c:\workspace\boostart` | `boostart-pro` → https://pro.boostart.io/ |
+| Wholos (the app, its server, landing page, marketing - `MARKETING.md`, `BRAND-PLAYBOOK.md`) | `c:\workspace\wholos` | `wholos-app` → wholos.com |
+| The Vault, the Chavushim book, Fleet's data | `c:\workspace\shlomi-tools` | `shlomi-tools` |
+| Veyra (was `findom/`) | `c:\workspace\veyra` | `veyra-queens` |
+| The trip planner and its chat server | `c:\workspace\trip-planner` | `boostart-trips` |
 
-## Wholos - a separate workstream, for now
+Old links to any of them redirect from here (`firebase.json`). Work on one of them happens in its repo - read its
+CLAUDE.md. Don't add anything that isn't the Shlomiverse to this repo or project.
 
-הריפו הזה מכיל גם את **Wholos** (אפליקציית האימונים והתזונה) ואת השיווק שלה. היא עוברת לפרויקט משלה בשלב נפרד
-(יש לה משתמשים - זהירות). עד אז היא כאן. הכתובת הראשית `/` היא `public/home.html`: ב-shlomiverse.com היא מובילה לדף הלינקים, וב-wholos.com (שעדיין מחובר לאתר הזה) לדף של Wholos.
+The Shlomiverse's address is **shlomiverse.com** (same site as boostmind-b052c.web.app, so old links keep working).
+Push notifications and the "add to home screen" app belong to that address.
 
-- `MARKETING.md` — **onboarding מלא לסשן שיווק של Wholos.** מי אתה, מה המוצר,
-  הכללים, הכלים, הפייפליינים, לוח המשימות והמלכודות. לקרוא לפני כל עבודת שיווק.
-- `BRAND-PLAYBOOK.md` — מה לעשות כששם המותג, המסר או כרטיס השיתוף משתנים.
-- `matzav-marketing/LEONARDO.md` — יצירת תמונות: מודלים, מחירים, ואיך עברית נשברת.
+**Until Wholos's switch is finished** its live pages (`public/wholos*`, `public/marketing*`, `public/matzav*`,
+`brand-strip`, `meeting-sergio`, `trial-options`, `uploads`, `wellbeing`, `breathe`) stay in `public/` as frozen
+copies, because wholos.com is still served from this site; `public/home.html` sends wholos.com to `/wholos/`. Don't
+edit them here - Wholos work happens in `c:\workspace\wholos`.
 
 ## A new page or site - every session, every time
 

@@ -1,3 +1,0 @@
-OK -> out/hours.md  (545 chars, gpt-5.6-terra, 689 tokens)
-  input 471 · output 218 (reasoning 0)
-Read it with the Read tool — printing Hebrew to this console will mangle it.

@@ -1,3 +1,0 @@
-OK -> out/email-telos.md  (427 chars, gpt-5.6-terra, 432 tokens)
-  input 263 · output 169 (reasoning 0)
-Read it with the Read tool — printing Hebrew to this console will mangle it.
