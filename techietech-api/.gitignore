@@ -1,3 +1,5 @@
 node_modules/
 # /all/ - his private list (served only after sign-in); scripts/all/catalog.py writes it
 catalog.json
+# the owner code's fingerprint for /stats/ and /all/ (analytics.js) - never in the public repo
+owner.json

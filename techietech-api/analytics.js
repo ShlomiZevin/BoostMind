@@ -11,6 +11,11 @@ if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 const { FieldValue, Timestamp } = admin.firestore;
 const OWNER = 'shlomi@boostart.io';
+const crypto = require('crypto');
+// fingerprint of the key in his private links to /stats/ and /all/ (the key itself is only in his bookmarks).
+// It lives in owner.json - git-ignored (this repo is public and a short code's hash is easy to reverse), deployed with the function.
+const OWNER_KEY_SHA256 = require('./owner.json').ownerKeySha256;
+const wrongKey = new Map();   // address -> times of wrong codes (the stats function runs as one instance)
 const KEEP_DAYS = 90;
 
 // what a visitor can do; anything else is dropped
@@ -34,7 +39,7 @@ const EVENTS = new Set([
 ]);
 const SITES = new Set(['links', 'wiki', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'homo-useless', 'techytech', 'yotamverse', 'other']);
 const SOURCES = new Set(['tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
-const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
+const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 
 const clean = (v, n) => String(v ?? '').replace(/[^\p{L}\p{N} _\-./:]/gu, '').trim().slice(0, n);
 const key = (v) => clean(v, 40).toLowerCase().replace(/[^a-z0-9_-]/g, '_') || '_';   // a safe field name for counters
@@ -83,12 +88,22 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
 });
 
 exports.stats = onRequest({ region: 'europe-west1', maxInstances: 1, memory: '256MiB', timeoutSeconds: 30,
-  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^http:\/\/localhost(:\d+)?$/] }, async (req, res) => {
-  const token = (req.get('authorization') || '').replace(/^Bearer /, '');
-  try {
-    const user = await admin.auth().verifyIdToken(token);
-    if (user.email !== OWNER || !user.email_verified) return res.status(403).json({ error: 'not_owner' });
-  } catch { return res.status(401).json({ error: 'sign_in' }); }
+  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/] }, async (req, res) => {
+  // his private link (/stats/#k=..., /all/#k=...): the pages send `Key <key>`; only its SHA-256 lives here.
+  // A Google sign-in as shlomi@boostart.io still works too.
+  const auth = req.get('authorization') || '';
+  if (auth.startsWith('Key ')) {
+    // 10 wrong codes an hour from one address and it stops answering, so a short code can't be guessed
+    const now = Date.now(), fails = (wrongKey.get(req.ip) || []).filter((t) => now - t < 3600e3);
+    if (fails.length >= 10) return res.status(429).json({ error: 'too_many' });
+    const got = crypto.createHash('sha256').update(auth.slice(4)).digest();
+    if (!crypto.timingSafeEqual(got, Buffer.from(OWNER_KEY_SHA256, 'hex'))) { fails.push(now); wrongKey.set(req.ip, fails); return res.status(401).json({ error: 'key' }); }
+  } else {
+    try {
+      const user = await admin.auth().verifyIdToken(auth.replace(/^Bearer /, ''));
+      if (user.email !== OWNER || !user.email_verified) return res.status(403).json({ error: 'not_owner' });
+    } catch { return res.status(401).json({ error: 'sign_in' }); }
+  }
   // /all/ - his private list of everything he runs (scripts/all/catalog.py writes it), plus what he archived there
   const shelf = db.collection('owner').doc('all');
   if (req.query.archive && req.method === 'POST') {   // { url, on: true | false }
