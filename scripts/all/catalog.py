@@ -79,8 +79,9 @@ EXTRA = [
     ('servers', 'siteLead - טפסים מאתרי הדמויות', 'https://console.cloud.google.com/run/detail/europe-west1/sitelead/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'techietechApply - קורות חיים לטקי-טק', 'https://console.cloud.google.com/run/detail/europe-west1/techietechapply/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'drop', 'https://console.cloud.google.com/run/detail/me-west1/drop/metrics?project=boostmind-b052c', 'שרת'),
-    ('servers', 'trip-chat', 'https://console.cloud.google.com/run/detail/me-west1/trip-chat/metrics?project=boostmind-b052c', 'שרת'),
-    ('servers', 'workout-ai', 'https://console.cloud.google.com/run/detail/me-west1/workout-ai/metrics?project=boostmind-b052c', 'שרת'),
+    ('servers', 'trip-chat (boostart-trips)', 'https://console.cloud.google.com/run/detail/me-west1/trip-chat/metrics?project=boostart-trips', 'שרת'),
+    ('servers', 'trip-chat הישן - רק לקישורי שיתוף שכבר נשלחו', 'https://console.cloud.google.com/run/detail/me-west1/trip-chat/metrics?project=boostmind-b052c', 'שרת'),
+    ('servers', 'workout-ai - שרת Wholos (wholos-app)', 'https://console.cloud.google.com/run/detail/me-west1/workout-ai/metrics?project=wholos-app', 'שרת'),
     ('servers', 'כל השירותים ב-Cloud Run', 'https://console.cloud.google.com/run?project=boostmind-b052c', 'קונסול'),
 ]
 
