@@ -7,10 +7,10 @@ finish in the studio is not on the site until you run the steps below.
 ## Addresses
 | What | Where | Files |
 |---|---|---|
-| **Links page** - the link in ALL his social bios | https://boostmind-b052c.web.app/links/ | `public/links/index.html` |
-| **שלומיוורס** - the wiki of every character, every video, and a chat with each character | https://boostmind-b052c.web.app/wiki/ | `public/wiki/index.html`, data `public/wiki/data/wiki.json` |
-| **His analytics dashboard** (private: his link with the key, or the code box - once per device) | https://boostmind-b052c.web.app/stats/ | `public/stats/index.html` |
-| **Everything he runs** (private: his link / code, once per device): every page, the Vault, tools, servers | https://boostmind-b052c.web.app/all/ | `scripts/all/catalog.py` -> redeploy `stats` |
+| **Links page** - the link in ALL his social bios | https://shlomiverse.com/links/ (old: boostmind-b052c.web.app/links/ - same site) | `public/links/index.html` |
+| **שלומיוורס** - the wiki of every character, every video, and a chat with each character | https://shlomiverse.com/wiki/ (old: boostmind-b052c.web.app/wiki/ - same site) | `public/wiki/index.html`, data `public/wiki/data/wiki.json` |
+| **His analytics dashboard** (private: his link with the key, or the code box - once per device) | https://shlomiverse.com/stats/ (old: boostmind-b052c.web.app/stats/ - same site) | `public/stats/index.html` |
+| **Everything he runs** (private: his link / code, once per device): every page, the Vault, tools, servers | https://shlomiverse.com/all/ (old: boostmind-b052c.web.app/all/ - same site) | `scripts/all/catalog.py` -> redeploy `stats` |
 | The characters' own sites | the table below | `public/<site>/` |
 
 **Every character site** (each character's profile has it as `site.url`, each world in `zoomcut/characters/index.json`

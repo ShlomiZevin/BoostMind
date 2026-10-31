@@ -16,7 +16,7 @@ from canon import HERE, ROOT, ZC, characters, episodes, load_json
 STUDIO = 'http://localhost:4747'
 SOL = os.path.expanduser('~/.claude/skills/sol-leonardo/scripts/sol.js')
 KEYS = 'C:/workspace/aspect/aspect-agent-server/.env'  # the working OpenAI key (BoostMind's own is revoked)
-WIKI = 'https://boostmind-b052c.web.app/wiki/'
+WIKI = 'https://shlomiverse.com/wiki/'
 
 
 def say(m):
