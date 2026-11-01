@@ -235,7 +235,9 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      build, `firebase deploy --only functions:wikiChat` from `techietech-api/`, then TEST it: POST
      `https://europe-west1-boostmind-b052c.cloudfunctions.net/wikiChat` `{"mode": "<id>", "own": true,
      "messages": [{"role": "user", "content": "<a question about this video>"}]}` (Python, UTF-8; `own` keeps it
-     out of his logs) and read the answer - it must know the new video.
+     out of his logs) and read the answer - it must know the new video. The chat answers 3 questions a day without an
+     account (since 2026-11-01, counted per `v` visitor id, else per address) - send `"v": "test<anything new>"` so a
+     test isn't refused (429 `quota`).
    Before a main-site deploy: other sessions' unfinished pages ride along - compare the modified `public/` files with
    the live ones first (md5 of local vs `curl`), and say what else would go out.
 

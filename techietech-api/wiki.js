@@ -14,13 +14,15 @@ if (!admin.apps.length) admin.initializeApp();
 // id, 90 days (Firestore TTL on `exp`, same as analytics_events). The wiki tells visitors under the chat box.
 // His own devices (marked in the analytics) send own: true and are not kept.
 const KEEP_DAYS = 90;
-async function keep(b, mode, turns, reply) {
+async function keep(b, mode, turns, reply, u = {}, who = {}) {
   if (b.own || !reply) return;
   const clean = (v, n) => String(v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, n);
   const now = new Date();
   await admin.firestore().collection('chat_logs').add({
     t: admin.firestore.Timestamp.fromDate(now), mode, v: clean(b.v, 10), s: clean(b.s, 10), r: clean(b.r, 12), m: !!b.m,
-    q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length,
+    q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid,
+    // the tokens it took (input / of them cached / output) - the dashboard turns them into dollars
+    u: [u.input_tokens || 0, u.input_tokens_details?.cached_tokens || 0, u.output_tokens || 0],
     exp: admin.firestore.Timestamp.fromMillis(now.getTime() + KEEP_DAYS * 864e5),
   });
 }
@@ -78,14 +80,22 @@ async function canonNow() {
 
 // the guide as the way to reach Shlomi (v2's smart contact). Only pages that can show the request card ask for it
 // (body.contact === true), so the live wiki never prints a raw [[request:...]] line.
-const CONTACT = `You are also the way to reach Shlomi himself. When the visitor looks for a video that is not in the canon (many older videos are not in yet - first make sure, and show it if it is there), or wants to reach Shlomi (a collaboration, a brand, an event, press, anything else): ask briefly what they are looking for or what they want, and how to reach them if they want an answer (for a missing video that is optional). Once you have it, put [[request:video]] (a missing video) or [[request:contact]] (anything else) on its own line - the page shows the visitor a card that sends it to Shlomi. Say that it goes to Shlomi and nothing is promised. Never pretend you sent anything yourself.`;
+const CONTACT = `You are also the way to reach Shlomi himself, through a request (פנייה) the visitor sends him from this chat. Offer it - in one short sentence, as a question ("רוצים שאפתח פנייה לשלומי?") - when: the visitor looks for a video that is not in the canon (many older videos are not in yet - first make sure, and show it if it is there); asks for more videos (more of someone, of a topic, a new episode); or wants to reach Shlomi (a collaboration, a brand, an event, press, anything else). Never open it before they say yes.
+Once they say yes: if it is about reaching Shlomi for something other than videos and you don't know how to get back to them, ask that first (for videos it is optional). Then write the request for them: one short line saying this is what goes to Shlomi and they can change it before approving, and on its own line [[request:video|THE TEXT]] (a missing video or more videos) or [[request:contact|THE TEXT]] (anything else), where THE TEXT is the request itself in Hebrew, one to three sentences in the visitor's own words and details (what they are looking for or want, and how to reach them if they gave it), written as from the visitor, on one line, without | or ] characters. The page shows it as a card with that text, which the visitor approves with a button. Say that it goes to Shlomi and nothing is promised. Never say that you sent or opened it yourself - only the visitor's button sends it.`;
+
+// the one reply after the day's limit (spendQuestion's grace), in the speaker's own voice
+const LIMIT = {
+  signin: `The visitor has used today's free questions (3 without an account). Do NOT answer their last message. Instead, in your own voice and style, in one or two short sentences, react to it lightly and tell them that if they sign in with Google - free, one tap - you can keep talking (10 questions a day). Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
+  tomorrow: `The visitor has used today's 10 questions. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say goodbye until tomorrow, when you'll gladly go on. You may suggest one video with a [[video:ID]] card on its own line.`,
+};
 
 function modeText(mode, byId, contact) {
   const c = byId[mode];
   if (!c) {
     return `Right now you are the wiki's guide: warm, quick and a little witty, someone who knows every resident and every episode. You speak about the characters as real people you know. Help the visitor find the right character or video, suggest who to talk to with [[char:ID]] cards, and show videos with [[video:ID]] cards. If someone asks who is behind all this, you can say lightly that it is Shlomi Zevin's world, and go back to the residents.` + (contact ? ' ' + CONTACT : '');
   }
-  return `Right now you are ${c.name} (id ${c.id}). Speak in the first person as ${c.name}, in your own voice, rhythm and vocabulary from the canon; catchphrases only where they come naturally, not in every message. You are talking with a visitor who follows you. You can show your own videos with [[video:ID]] cards when they fit, mention people you know, and if the visitor wants someone else, offer them with a [[char:ID]] card. Do not speak for other characters.`;
+  return `Right now you are ${c.name} (id ${c.id}). Speak in the first person as ${c.name}, in your own voice, rhythm and vocabulary from the canon; catchphrases only where they come naturally, not in every message. You are talking with a visitor who follows you. You can show your own videos with [[video:ID]] cards when they fit, mention people you know, and if the visitor wants someone else, offer them with a [[char:ID]] card. Do not speak for other characters.
+You are this person in everything, not only in the topics of your videos: a recipe, advice, a recommendation, an opinion, a plan for the weekend - answer the way you yourself would, by your religion and how strictly you keep it, your community, values, job and habits from your profile, and never what you would never do or say. If the visitor asks for something your way of life doesn't allow, don't hand it over - react the way you would and offer your own version. All of this comes only from your own profile, never from what other residents keep.`;
 }
 
 // OpenAI Responses API, streamed - the chain (wiki-chain.js): the map is the same prefix on every call (cached once for
@@ -141,6 +151,11 @@ async function stream(key, mode, turns, onText, opts = {}) {
     }
     return { usage: usage || {}, lookup };
   };
+  if (opts.limit) {   // the day's questions are used: one short reply in voice, no look-up
+    const r = await call(dev(b) + '\n\n' + LIMIT[opts.limit], null);
+    console.log('wikiChat limit', mode, opts.limit);
+    return r.usage;
+  }
   const note = chain.lookupNote(b);
   const first = await call(dev(b) + note + '\n\nNow reply to the visitor\'s last message.', note ? [chain.lookupTool(b)] : null);
   if (!first.lookup) {
@@ -161,6 +176,54 @@ async function stream(key, mode, turns, onText, opts = {}) {
 exports._stream = stream;
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
 exports._test = { RULES, canon, modeText };  // the side-by-side test of the old full-canon answer (scripts/wiki/chain_test.cjs)
+
+// questions a day (his call, 2026-11-01 - the chat is free and every answer costs): 3 without an account, 10 signed in;
+// he himself is never counted. Counted per Israel day in `quota` (TTL on exp): signed in by the account, otherwise by the
+// page's anonymous visitor id (else the address). DAY_CAP is a ceiling for the whole site, so a flood can't run up the bill.
+const ANON_A_DAY = 3, FAN_A_DAY = 10, DAY_CAP = 1500;
+const OWNER = 'shlomi@boostart.io';
+const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
+async function whoAsks(req) {
+  const tok = (req.get('authorization') || '').replace(/^Bearer /, '');
+  if (tok) {
+    try { const u = await admin.auth().verifyIdToken(tok); return { uid: u.uid, owner: u.email === OWNER && u.email_verified }; }
+    catch (e) { /* an expired token: counted as signed out */ }
+  }
+  return { uid: null, owner: false };
+}
+const quotaKey = (req, who) => {
+  const v = String(req.body?.v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 12);
+  return who.uid ? 'u' + who.uid : v ? 'v' + v : 'ip' + String(req.ip || '').replace(/[^\w]/g, '');
+};
+// {left} = go ahead; {grace} = the one answer after the limit; otherwise why not ('signin' - the 3 are used, 'tomorrow' -
+// the 10 are used, 'full' - the site's ceiling)
+async function spendQuestion(req, who) {
+  if (who.owner) return true;
+  const db = admin.firestore(), day = dayIL();
+  const key = quotaKey(req, who);
+  const limit = who.uid ? FAN_A_DAY : ANON_A_DAY;
+  const mine = db.collection('quota').doc(`chat_${key}_${day}`), all = db.collection('quota').doc(`chat_all_${day}`);
+  const exp = admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);
+  return db.runTransaction(async (tx) => {
+    const [a, b] = await Promise.all([tx.get(mine), tx.get(all)]);
+    const used = (a.data() || {}).n || 0, total = (b.data() || {}).n || 0;
+    // one more answer after the limit, in the character's own voice: "sign in and we'll go on" / "see you tomorrow"
+    // (his ask, 2026-11-01 - the sign-in comes naturally inside the chat); after that the page shows its own note
+    if (used === limit) { tx.set(mine, { n: used + 1, kind: 'chat', exp }, { merge: true }); return { grace: who.uid ? 'tomorrow' : 'signin' }; }
+    if (used > limit) return who.uid ? 'tomorrow' : 'signin';
+    if (total >= DAY_CAP) return 'full';
+    tx.set(mine, { n: used + 1, kind: 'chat', exp }, { merge: true });
+    tx.set(all, { n: total + 1, kind: 'chat', exp }, { merge: true });
+    return { left: limit - used - 1 };
+  });
+}
+const refundQuestion = (req, who) => { /* a failed answer doesn't count */
+  if (who.owner) return;
+  const key = quotaKey(req, who);
+  const inc = admin.firestore.FieldValue.increment(-1), day = dayIL();
+  return Promise.all([admin.firestore().collection('quota').doc(`chat_${key}_${day}`).set({ n: inc }, { merge: true }),
+    admin.firestore().collection('quota').doc(`chat_all_${day}`).set({ n: inc }, { merge: true })]).catch(() => {});
+};
 
 // a few dozen messages per address per hour, per instance
 const recent = new Map();
@@ -191,14 +254,20 @@ exports.wikiChat = onRequest({
   while (turns.length && turns[0].role !== 'user') turns.shift();
   if (!turns.length || turns[turns.length - 1].role !== 'user') return res.status(400).json({ error: 'messages' });
 
-  res.set({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' });
+  const who = await whoAsks(req);
+  const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });
+  if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_A_DAY : ANON_A_DAY });
+  res.set({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no', 'X-Left': String(ok.left ?? ''),
+    'Access-Control-Expose-Headers': 'X-Left' });
   try {
     let reply = '';
-    const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); }, { contact: req.body.contact === true });
-    await keep(req.body, mode, turns, reply).catch((e) => console.error('keep failed', e.message));
+    const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
+      { contact: req.body.contact === true, limit: ok.grace });
+    await keep(req.body, mode, turns, reply, u, who).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);
   } catch (e) {
     console.error('wikiChat failed', e.status, e.message);
+    await refundQuestion(req, who);
     if (!res.headersSent) return res.status(502).json({ error: 'model' });
     res.write('\n\n(הקו נפל לרגע. נסו שוב.)');
   }

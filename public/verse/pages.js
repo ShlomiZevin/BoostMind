@@ -271,15 +271,30 @@ document.addEventListener('click', async (e) => {
 });
 
 // ---------- the guide's contact card ----------
-export function requestCard(kind, mode) {
+// With a text (his ask, 2026-11-01): the guide offered a request, the visitor said yes and the guide wrote it - the card
+// shows exactly that, to edit and approve. Without one (older replies): their last messages. One already sent stays
+// "sent" when the chat is drawn again (kept by its text, on this device).
+const rqKey = (kind, text) => 'rq-sent:' + kind + ':' + [...String(text)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7);
+export function requestCard(kind, mode, text) {
   if (mode !== 'guide') return '';
-  const said = (threads.guide || []).filter((m) => m.role === 'user').slice(-3).map((m) => m.content).join('\n');
-  return `<form class="rq" data-rq="${kind === 'video' ? 'video' : 'contact'}">
-    <b>${esc(kind === 'video' ? T.rqVideoTitle : T.rqContactTitle)}</b>
-    <textarea name="text" maxlength="3000" placeholder="${esc(T.rqText)}">${esc(said)}</textarea>
+  kind = kind === 'video' ? 'video' : 'contact';
+  const said = text ? text.trim() : (threads.guide || []).filter((m) => m.role === 'user').slice(-3).map((m) => m.content).join('\n');
+  const key = rqKey(kind, said);
+  try { if (localStorage.getItem(key)) return `<div class="rq sent"><b>${esc(T.rqSent)}</b></div>`; } catch (e) {}
+  // a note to Shlomi inside the reply, not a form (designed with GPT Image, 2026-11-01): the text as a quote he can edit,
+  // an underline field for the way back, one button
+  return `<form class="rq" data-rq="${kind}" data-key="${key}">
+    <div class="rq-h">${I.mail}<span>${esc(kind === 'video' ? T.rqVideoTitle : T.rqContactTitle)}</span></div>
+    <label class="rq-q"><textarea name="text" maxlength="3000" rows="4" placeholder="${esc(T.rqText)}">${esc(said)}</textarea>${I.edit}</label>
     <input name="contact" maxlength="160" placeholder="${esc(T.rqContact)}" value="">
-    <button class="vx-btn main block">${esc(T.rqSend)}</button>
+    <button class="rq-go">${I.plane}<span>${esc(text ? T.rqApprove : T.rqSend)}</span></button>
     <small>${esc(T.rqNote)}</small></form>`;
+}
+// a character asks the visitor to sign in, in their own voice, when the day's 3 free questions are used (wiki.js puts
+// [[signin]] under that reply): one Google button inside the bubble. Signed in already = nothing.
+export function signinCard(again) {
+  if (st.user) return '';
+  return `<div class="si"><button data-chat-signin="${again ? 'again' : 'box'}">${I.google}<span>${esc(T.signinGoogle)}</span></button><small>${esc(T.chatFree)}</small></div>`;
 }
 document.addEventListener('submit', async (e) => {
   const f = e.target.closest('[data-rq]');
@@ -292,6 +307,7 @@ document.addEventListener('submit', async (e) => {
   try {
     await call('request', { kind: f.dataset.rq, text: f.text.value, contact: f.contact.value });
     track('request', f.dataset.rq);
+    try { localStorage.setItem(f.dataset.key, '1'); } catch (e) {}
     f.classList.add('sent');
     f.innerHTML = `<b>${esc(T.rqSent)}</b>`;
   } catch (x) { btn.disabled = false; toast(T.rqFailed); }

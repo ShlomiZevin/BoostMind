@@ -102,6 +102,13 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
   res.status(204).send('');
 });
 
+async function allUsers() {
+  const out = [];
+  let next;
+  do { const r = await admin.auth().listUsers(1000, next); out.push(...r.users); next = r.pageToken; } while (next && out.length < 50000);
+  return out;
+}
+
 exports.stats = onRequest({ region: 'europe-west1', maxInstances: 1, memory: '256MiB', timeoutSeconds: 30,
   cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/] }, async (req, res) => {
   // his private link (/stats/#k=..., /all/#k=...): the pages send `Key <key>`; only its SHA-256 lives here.
@@ -136,12 +143,19 @@ exports.stats = onRequest({ region: 'europe-west1', maxInstances: 1, memory: '25
     const snap = await db.collection('chat_logs').orderBy('t', 'desc').limit(600).get();
     return res.json({ chats: snap.docs.map((d) => { const c = d.data(); return { ...c, t: c.t.toMillis(), exp: undefined }; }).filter((c) => c.t >= since) });
   }
-  const [days, events] = await Promise.all([
+  const [days, events, users, fans] = await Promise.all([
     db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
     db.collection('analytics_events').orderBy('t', 'desc').limit(Math.min(parseInt(req.query.limit, 10) || 300, 1000)).get(),
+    allUsers(),
+    db.collection('fans').select().get(),
   ]);
+  const fan = new Set(fans.docs.map((d) => d.id));
   res.json({
     from,
+    // every account (Firebase Auth): when it signed up, when it was last in, and whether it joined the Shlomiverse
+    // (has a name there) - the page counts sign-ups per day. No emails here; those are on /backstage/
+    accounts: users.map((u) => ({ c: Date.parse(u.metadata.creationTime) || 0, l: Date.parse(u.metadata.lastRefreshTime || u.metadata.lastSignInTime) || 0,
+      f: fan.has(u.uid), g: u.providerData.length > 0 })),
     days: days.docs.map((d) => d.data()),
     events: events.docs.map((d) => { const e = d.data(); return { ...e, t: e.t.toMillis(), exp: undefined }; }),
   });

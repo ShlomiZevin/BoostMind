@@ -141,10 +141,22 @@ function dayList() {   // every day in the range, including empty ones
   return out;
 }
 
+// accounts (Firebase Auth, from the stats function): sign-ups per Israel day, who was in during the range, who joined
+const dayOf = (ms) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date(ms));
+function accounts(days) {
+  const all = (data.accounts || []).filter((a) => a.g), first = days[0].d, per = {};
+  for (const a of all) if (a.c) per[dayOf(a.c)] = (per[dayOf(a.c)] || 0) + 1;
+  return { per, joined: all.filter((a) => a.c && dayOf(a.c) >= first).length, active: all.filter((a) => a.l && dayOf(a.l) >= first).length,
+    fans: all.filter((a) => a.f).length, total: all.length };
+}
+// what the chat cost, from the tokens each kept answer took (gpt-5.6-terra list price per 1M: $2 in, $0.20 cached, $12 out)
+const chatCost = (list) => list.reduce((a, c) => { const [i, k, o] = c.u || [0, 0, 0]; return a + ((i - k) * 2 + k * 0.2 + o * 12) / 1e6; }, 0);
+
 function draw() {
-  const days = dayList(), n = (k) => sum(days, (d) => d.n?.[k]);
+  const days = dayList(), n = (k) => sum(days, (d) => d.n?.[k]), acc = accounts(days);
   const k = [['מבקרים', sum(days, (d) => d.visitors)], ['מבקרים חדשים', sum(days, (d) => d.new_visitors)], ['צפיות בדפים', n('view')],
-    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['סיבובי משחק', n('game_start')], ['פניות לשת״פ', n('contact')], ['כניסות לחשבון', n('sign_in')], ['רעיונות לשלומיוורס', n('idea')]];
+    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['סיבובי משחק', n('game_start')], ['פניות לשת״פ', n('contact')], ['כניסות לחשבון', n('sign_in')], ['רעיונות לשלומיוורס', n('idea')],
+    ['נרשמו', acc.joined], ['היו מחוברים', acc.active], ['רשומים לשלומיוורס', acc.fans], ['חשבונות בסך הכול', acc.total]];
   const chars = {};
   for (const [ev, col] of [['character', 0], ['chat_open', 1], ['chat_message', 2]]) for (const [id, v] of Object.entries(byPrefix(days, ev))) (chars[id] ||= [0, 0, 0])[col] += v;
   const charRows = Object.entries(chars).sort((a, b) => (b[1][2] + b[1][1] + b[1][0]) - (a[1][2] + a[1][1] + a[1][0]));
@@ -163,6 +175,10 @@ function draw() {
     <div class="grid2">
       <div class="box"><h2>מבקרים ביום</h2><div class="chart" id="ch1"></div></div>
       <div class="box"><h2>הודעות לדמויות ביום</h2><div class="chart" id="ch2"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="box"><h2>הרשמות ביום<small>חשבון Google חדש</small></h2><div class="chart" id="ch3"></div></div>
+      <div class="box"><h2>כניסות לחשבון ביום</h2><div class="chart" id="ch4"></div></div>
     </div>
     <div class="grid2">
       <div class="box"><h2>דמויות<small>עמוד · שיחות · הודעות</small></h2>${charRows.length ? `<table><tr><th>דמות</th><th>עמוד</th><th>שיחות</th><th>הודעות</th></tr>${charRows.map(([id, [a, b, c]]) => `<tr><td class="nm"><span class="who">${names.c[id]?.img ? `<img src="${/^https?:/.test(names.c[id].img) ? names.c[id].img : '/wiki/' + names.c[id].img}" alt="">` : ''}${esc(label('', id))}</span></td><td class="n">${fmt(a)}</td><td class="n">${fmt(b)}</td><td class="n">${fmt(c)}</td></tr>`).join('')}</table>` : '<div class="empty">עוד אין</div>'}</div>
@@ -190,6 +206,8 @@ function draw() {
         <td>${esc(SRC[e.r] || e.r)}</td><td>${e.m ? 'טלפון' : 'מחשב'}</td><td><span class="pill">${esc(e.v)}</span></td></tr>`).join('')}</table></div></div>`;
   bars($('#ch1'), days.map((d) => [d.d, d.visitors || 0]), 'מבקרים');
   bars($('#ch2'), days.map((d) => [d.d, d.n?.chat_message || 0]), 'הודעות');
+  bars($('#ch3'), days.map((d) => [d.d, acc.per[d.d] || 0]), 'נרשמו');
+  bars($('#ch4'), days.map((d) => [d.d, d.n?.sign_in || 0]), 'כניסות');
   document.querySelectorAll('[data-r]').forEach((b) => (b.onclick = () => { range = +b.dataset.r; load(); }));
   $('#refresh').onclick = load;
 }
@@ -200,9 +218,9 @@ function chatsBox() {
   const list = Object.values(threads).map((t) => t.sort((a, b) => a.t - b.t)).sort((a, b) => b[b.length - 1].t - a[a.length - 1].t);
   const when = (t) => new Date(t).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   const reply = (a) => esc(a).replace(/\[\[video:([\w-]+)\]\]/g, (_, id) => `<span class="pill">▶ ${esc(names.v[id] || id)}</span>`)
-    .replace(/\[\[char:([\w-]+)\]\]/g, (_, id) => `<span class="pill">→ ${esc(names.c[id]?.name || id)}</span>`).replace(/\n/g, '<br>');
+    .replace(/\[\[char:([\w-]+)\]\]/g, (_, id) => `<span class="pill">→ ${esc(names.c[id]?.name || id)}</span>`).replace(/\[\[request:(\w+)(?:\|([^\]]*))?\]\]/g, (_, k, t) => `<span class="pill">פנייה · ${esc(RQ[k] || k)}${t ? ': ' + t : ''}</span>`).replace(/\[\[signin\]\]/g, '<span class="pill">→ הזמנה להתחבר</span>').replace(/\n/g, '<br>');
   const who = (mode) => mode === 'guide' ? 'המדריך' : (names.c[mode]?.name || mode);
-  return `<div class="box" style="margin-top:14px"><h2>שיחות עם הדמויות<small>${list.length} שיחות · ${(data.chats || []).length} הודעות</small></h2>
+  return `<div class="box" style="margin-top:14px"><h2>שיחות עם הדמויות<small>${list.length} שיחות · ${(data.chats || []).length} הודעות${(data.chats || []).some((c) => c.u) ? ` · עלות משוערת $${chatCost(data.chats).toFixed(2)}` : ''}</small></h2>
     ${list.length ? `<div class="threads">${list.map((t) => { const last = t[t.length - 1], c = names.c[last.mode];
       return `<details class="thread"><summary>${c?.img ? `<img src="${/^https?:/.test(c.img) ? c.img : '/wiki/' + c.img}" alt="">` : '<span class="gdot"></span>'}<b>${esc(who(last.mode))}</b>
         <span class="tq">${esc(t[0].q.slice(0, 70))}</span><small>${t.length} · ${when(last.t)} · ${esc(SRC[last.r] || last.r || '')} · ${last.m ? 'טלפון' : 'מחשב'}</small></summary>

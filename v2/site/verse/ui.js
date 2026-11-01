@@ -24,6 +24,8 @@ export const I = {
   minus: s('<path d="M5 12h14"/>', ' stroke-width="2.2"'),
   plus: s('<path d="M12 5v14M5 12h14"/>', ' stroke-width="2.2"'),
   send: s('<path d="M5 12h14M13 6l6 6-6 6"/>', ' stroke-width="2.4"'),
+  mail: s('<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7.5 8 6 8-6"/>'),
+  plane: s('<path d="M21 3 10 14"/><path d="M21 3 14.5 21l-4.5-7-7-4.5z"/>'),
   heartless: '',
   sound: s('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
   install: s('<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v7M9 11.5l3 3 3-3"/>'),

@@ -1,11 +1,11 @@
 // The Shlomiverse's social layer, wired into the wiki page (/wiki/): the page calls HOOK.* at its seams, this file fills
 // them. Loaded as a module after the wiki's own script; if the wiki rendered first, it routes again.
 import { T } from './copy.js';
-import { st, onState } from './state.js';
+import { st, onState, needFan } from './state.js';
 import { openPlayer, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack } from './stories.js';
 import { communityPage, businessPage, homeBand, onIdeas } from './community.js';
-import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, refresh, setCurrent } from './pages.js';
+import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
 
 Object.assign(HOOK, {
@@ -23,6 +23,10 @@ Object.assign(HOOK, {
   heroHi,
   homeSlot,
   requestCard,
+  signinCard,
+  // the chat sends the account with each question (10 a day signed in, 3 without), and signs in from its note
+  chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
+  chatSignIn: () => needFan(T.why.chat),
   afterRoute(page, id) {
     // where the video page / stories go back to: the page under them
     const h = location.hash || '#/';
