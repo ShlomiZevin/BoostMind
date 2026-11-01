@@ -1008,3 +1008,7 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
 @media (min-width: 900px) { .vp-mark img { width: 96px; } }
 .vp-line { opacity: 0; transition: opacity .7s; }
 .vp.line-on .vp-line, .vp.paused .vp-line { opacity: 1; transition-duration: .2s; }
+
+/* the "75 דמויות · 203 סרטונים" line under the hero: on a pill, so the faces behind it don't swallow it */
+section.hero .scroll-hint { color: rgba(255, 255, 255, .85); font-weight: 600; padding: 6px 14px; border-radius: 99px;
+  background: rgba(11, 11, 14, .72); border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }

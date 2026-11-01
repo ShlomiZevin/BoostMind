@@ -78,6 +78,7 @@ C = {  # id: (description, ref)
  'eisenkot': ("A cautious Israeli politician in his 60s giving a statement: short grey-blond hair, short grey beard, dark polo shirt. A serious, statesmanlike, slightly blank expression. Background: a plain blue party backdrop with no text instead of the grey studio.", None),
  'yinon-magal': ("An excited Israeli TV news pundit in his 50s: curly grey-blond hair, short beard, light shirt. A dramatic, urgent 'we are heading for an event' expression. Background: a softly blurred TV studio with red and blue lights instead of the grey studio. No logos or text.", None),
  'mordechai-david': ("A loud Israeli street activist in his 40s shouting at the camera: dark baseball cap, short beard, grey tank top. A fierce, fired-up expression. Background: a softly blurred sea strait with cargo ships instead of the grey studio. No logos or text.", None),
+ 'neve-dugi': ("An Israeli woman in her 40s, calm and precise, about to quote her husband's own message back to him: straight black bob with bangs, black top. Smooth, clean-shaven feminine face - no beard, no stubble, no beard shadow. A cool, raised-eyebrow 'shall I go on?' look. Background: a softly blurred home kitchen with grocery bags instead of the grey studio.", None),
 }
 
 def run(cid):

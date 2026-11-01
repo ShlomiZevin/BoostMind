@@ -2,6 +2,12 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<!-- shlomiverse.com/ serves this page itself (firebase.json), no hop through another page: the address becomes /wiki/
+     before anything relative loads. wholos.com shares this site until it moves: its home is /wholos/. -->
+<script>
+  if (/(^|\.)wholos\.com$/.test(location.hostname)) location.replace('/wholos/' + location.search + location.hash);
+  else if (location.pathname === '/') history.replaceState(null, '', '/wiki/' + location.search + location.hash);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>שלומיוורס · הוויקי של הדמויות</title>
 <meta name="description" content="כל הדמויות, כל הסרטונים, ואפשר לדבר עם כולן.">

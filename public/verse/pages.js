@@ -303,6 +303,7 @@ export const setCurrent = (page, id) => { cur = { page: page || '', id: id || ''
 export function refresh(now) {
   cancelAnimationFrame(pending);
   pending = requestAnimationFrame(() => {
+    if (typeof W === 'undefined' || !W) return;            // the wiki's data isn't here yet - its own first draw comes after
     if (document.querySelector('.vp, .sv, .nk')) return;   // never under the video, the stories or the name screen
     if (!['', 'notes', 'me', 'install', 'saved', 'my-characters', 'my-stickers', 'community'].includes(cur.page)) return;
     if (cur.page === '' && !now && document.activeElement && document.activeElement.id === 'ask-in') return;
