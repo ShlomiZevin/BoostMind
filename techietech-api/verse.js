@@ -781,13 +781,21 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
     }
     // the automatic check by hand (the schedule runs it every 15 minutes)
     if (op === 'autoAnnounce') return res.json(await autoAnnounce());
-    // a character's story, written by Shlomi: a line, maybe a picture or a short clip; followers hear about it
+    // a character's story, written by Shlomi: a line, maybe a picture or a short clip, maybe a button with a link (a new
+    // game, a video, a site); followers hear about it - or, with everyone=yes, every account (big news only, his call)
     if (op === 'story') {
       const { fields: f, file, tooBig } = await parseStory(req);
       if (!idOk(f.char)) return res.status(400).json({ error: 'char' });
       if (tooBig) return res.status(400).json({ error: 'file_size' });
       const text = clip(String(f.text || '').trim(), 600);
       if (!text && !file) return res.status(400).json({ error: 'empty' });
+      let link = null;
+      if (f.link && String(f.link).trim()) {
+        const url = String(f.link).trim();
+        // an address on the web, a page of this site (/hani-games/...) or a place in the wiki (#/c/hani)
+        if (!/^(https?:\/\/[^\s"'<>]+|\/[^\s"'<>]*|#\/[^\s"'<>]*)$/.test(url) || url.length > 500) return res.status(400).json({ error: 'link' });
+        link = { url, label: clip(oneLine(f.linkLabel || '', 40), 40) || 'לפתוח' };
+      }
       const ref = db.collection('stories').doc();
       let media = null;
       if (file && file.data.length) {
@@ -799,15 +807,21 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       }
       const { byId } = await _canon();
       const name = byId[f.char]?.name || f.char;
-      await ref.set({ char: f.char, text, media, hidden: false, t: FieldValue.serverTimestamp() });
+      await ref.set({ char: f.char, text, media, link, hidden: false, t: FieldValue.serverTimestamp() });
       let fans = [], sent = 0;
-      if (f.notify !== 'no') {
-        fans = await followersOf([f.char]);
-        await Promise.all(fans.map((uid) => note(uid, { kind: 'story', storyId: ref.id, char: f.char, from: name, text: text.slice(0, 140) })));
+      const everyone = f.everyone === 'yes';
+      if (f.notify !== 'no' || everyone) {
+        fans = everyone ? (await db.collection('fans').select().get()).docs.map((d) => d.id) : await followersOf([f.char]);
+        const n = { kind: 'story', storyId: ref.id, char: f.char, from: name, text: text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() };
+        for (let i = 0; i < fans.length; i += 400) {   // the bell, in batches (every account can be thousands)
+          const batch = db.batch();
+          fans.slice(i, i + 400).forEach((uid) => batch.set(db.collection('fans').doc(uid).collection('notes').doc(), n));
+          await batch.commit();
+        }
         sent = await push(fans, { title: `סטורי חדש מ${name}`, body: text.slice(0, 140) || name, url: `/wiki/#/story/${f.char}`, icon: faceUrl(f.char), badge: BADGE,
           image: media?.kind === 'image' ? media.url : undefined, tag: 'story_' + f.char });
       }
-      return res.json({ ok: true, id: ref.id, fans: fans.length, sent });
+      return res.json({ ok: true, id: ref.id, fans: fans.length, sent, everyone });
     }
     return res.status(400).json({ error: 'op' });
   } catch (e) {

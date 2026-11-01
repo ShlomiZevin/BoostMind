@@ -284,6 +284,13 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 .sv-shade { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, .45), transparent 20%, transparent 55%, rgba(0, 0, 0, .65)); z-index: 1; pointer-events: none; }
 .sv-tap { position: absolute; top: 80px; bottom: 0; width: 50%; z-index: 2; }
 .sv-tap.next { left: 0; } .sv-tap.prev { right: 0; }
+/* a story's button (a new game, a video, a site) - over the tap zones, the line moves up above it */
+.sv-cta { position: absolute; inset-inline: 22px; bottom: calc(26px + env(safe-area-inset-bottom)); z-index: 4; display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 56px; border-radius: 999px; background: var(--vx-accent); color: #fff; font-weight: 800; font-size: 1.1rem; box-shadow: var(--vx-glow); text-decoration: none; }
+.sv-cta:active { transform: scale(.98); }
+.sv-cta svg { width: 20px; height: 20px; flex: none; }
+.with-cta .sv-text { bottom: calc(100px + env(safe-area-inset-bottom)); }
+.with-cta .sv-plain { padding-bottom: 110px; }
 
 /* ---------- the bell (#/notes) and me (#/me) ---------- */
 .nt-page, .me-page { max-width: 760px; margin: 0 auto; padding: 0 16px 40px; }

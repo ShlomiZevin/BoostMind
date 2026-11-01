@@ -146,6 +146,12 @@
   .phone .sv-text { font-size: 1.05rem; bottom: 24px; inset-inline: 14px; }
   .phone .sv-plain .sv-text { font-size: 1.25rem; }
   .phone .sv-head { top: 14px; }
+  .phone .sv-cta { height: 40px; font-size: .9rem; bottom: 16px; inset-inline: 14px; }
+  .phone .with-cta .sv-text { bottom: 68px; }
+  .st-link { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .st-link input { min-width: 0; height: 46px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; padding: 0 14px; outline: 0; }
+  .st-link input:focus { border-color: var(--accent); }
+  @media (max-width: 640px) { .st-link { grid-template-columns: 1fr; } }
   .hint { color: var(--dim); font-size: .92rem; }
   .ok { color: #7fe3a1; font-weight: 700; }
   /* the gate */
@@ -884,34 +890,42 @@ function story() {
       <textarea id="st-text" maxlength="600" placeholder="משפט אחד, בקול של הדמות"></textarea>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px">
         <label class="file">${IC.file}תמונה או סרטון קצר<input type="file" id="st-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"></label><span id="st-fname" class="hint"></span></div>
-      <div style="margin-top:14px"><label class="toggle"><input type="checkbox" id="st-notify" checked><i></i>לשלוח התראה לעוקבים</label></div>
+      <span class="lbl">כפתור עם קישור (לא חובה)</span>
+      <div class="st-link"><input id="st-label" maxlength="40" placeholder="מה כתוב על הכפתור, למשל: לשחק עכשיו"><input id="st-link" dir="ltr" placeholder="https://… או /hani-games/…"></div>
+      <div style="margin-top:14px;display:grid;gap:10px"><label class="toggle"><input type="checkbox" id="st-notify" checked><i></i>לשלוח התראה לעוקבים</label>
+        <label class="toggle"><input type="checkbox" id="st-all"><i></i>לשלוח לכל השלומיוורס</label></div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px"><button class="btn main" id="st-go" ${pick ? '' : 'disabled'}>${IC.plus}לפרסם</button><span id="st-msg" class="hint"></span></div>
     </div><div class="phone" id="st-prev"></div></div>
     <div class="card-h" style="margin-top:24px"><h2>סטוריז שעלו</h2></div>
-    <div>${L.stories.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${face(x.char)}<div class="body"><b>${esc(C[x.char]?.name || x.char)}</b> <small>· ${ago(x.t)}</small>${x.media ? ` <span class="tag">${x.media.kind === 'video' ? 'סרטון' : 'תמונה'}</span>` : ''}<p>${esc(x.text)}</p></div>${hideBtn('story', x)}</div>`).join('') || '<div class="empty">עוד אין.</div>'}</div>`;
+    <div>${L.stories.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${face(x.char)}<div class="body"><b>${esc(C[x.char]?.name || x.char)}</b> <small>· ${ago(x.t)}</small>${x.media ? ` <span class="tag">${x.media.kind === 'video' ? 'סרטון' : 'תמונה'}</span>` : ''}${x.link ? ` <span class="tag">כפתור: ${esc(x.link.label)}</span>` : ''}<p>${esc(x.text)}</p></div>${hideBtn('story', x)}</div>`).join('') || '<div class="empty">עוד אין.</div>'}</div>`;
   const prev = () => {
-    const text = $('#st-text').value.trim();
+    const text = $('#st-text').value.trim(), link = $('#st-link').value.trim();
     const media = file ? (file.type.startsWith('video/') ? `<video class="sv-media" src="${URL.createObjectURL(file)}" autoplay muted loop playsinline></video>` : `<img class="sv-media" src="${URL.createObjectURL(file)}" alt="">`) : '';
-    $('#st-prev').innerHTML = pick ? `<div class="sv-box" style="--c:${C[pick].color || '#ff6a1f'}">
+    $('#st-prev').innerHTML = pick ? `<div class="sv-box${link ? ' with-cta' : ''}" style="--c:${C[pick].color || '#ff6a1f'}">
       <div class="sv-head">${face(pick)}<span><b>${esc(C[pick].name)}</b><br><small>עכשיו</small></span></div>
-      ${media ? `${media}<div class="sv-shade"></div>${text ? `<div class="sv-text">${esc(text)}</div>` : ''}` : `<div class="sv-plain"><div class="sv-text">${esc(text || '...')}</div></div>`}</div>` : '<div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בחרו דמות</div></div>';
+      ${media ? `${media}<div class="sv-shade"></div>${text ? `<div class="sv-text">${esc(text)}</div>` : ''}` : `<div class="sv-plain"><div class="sv-text">${esc(text || '...')}</div></div>`}${link ? `<span class="sv-cta">${esc($('#st-label').value.trim() || 'לפתוח')}</span>` : ''}</div>` : '<div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בחרו דמות</div></div>';
   };
   prev();
-  $('#st-text').oninput = prev;
+  $('#st-text').oninput = prev; $('#st-link').oninput = prev; $('#st-label').oninput = prev;
   $('#st-file').onchange = (e) => { file = e.target.files[0] || null; $('#st-fname').textContent = file ? file.name : ''; prev(); };
   $('#st-go').onclick = async () => {
     const text = $('#st-text').value.trim();
     if (!pick || (!text && !file)) return;
     const fd = new FormData();
     fd.append('char', pick); fd.append('text', text); fd.append('notify', $('#st-notify').checked ? 'yes' : 'no');
+    if ($('#st-link').value.trim()) { fd.append('link', $('#st-link').value.trim()); fd.append('linkLabel', $('#st-label').value.trim()); }
+    if ($('#st-all').checked) {
+      if (!confirm('לשלוח התראה לכל החשבונות בשלומיוורס?')) return;
+      fd.append('everyone', 'yes');
+    }
     if (file) fd.append('file', file, file.name);
     $('#st-go').disabled = true; $('#st-msg').textContent = 'מעלה…';
     try {
       const r = await api('story', fd, true);
       file = null;
-      $('#st-msg').innerHTML = `<span class="ok">עלה. ${r.fans} עוקבים קיבלו את זה בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.</span>`;
+      $('#st-msg').innerHTML = `<span class="ok">עלה. ${r.fans} ${r.everyone ? 'חשבונות' : 'עוקבים'} קיבלו את זה בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.</span>`;
       setTimeout(refresh, 1400);
-    } catch (e) { $('#st-go').disabled = false; $('#st-msg').textContent = e.message === 'file_size' ? 'הקובץ גדול מדי (עד 30MB)' : 'לא עלה: ' + e.message; }
+    } catch (e) { $('#st-go').disabled = false; $('#st-msg').textContent = e.message === 'file_size' ? 'הקובץ גדול מדי (עד 30MB)' : e.message === 'link' ? 'הקישור לא תקין (https://… או /…)' : 'לא עלה: ' + e.message; }
   };
 }
 

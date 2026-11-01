@@ -69,9 +69,13 @@ export function openStory(char) {
     el.querySelector('[data-ago]').textContent = ago(x.ms);
     const slot = el.querySelector('[data-slot]');
     const text = x.text ? `<div class="sv-text">${esc(x.text)}</div>` : '';
-    if (x.media?.kind === 'video') slot.innerHTML = `<video class="sv-media" src="${esc(x.media.url)}" playsinline autoplay></video>${text}`;
-    else if (x.media?.kind === 'image') slot.innerHTML = `<img class="sv-media" src="${esc(x.media.url)}" alt="">${text}`;
-    else slot.innerHTML = `<div class="sv-plain">${text}</div>`;
+    // a story's button (a new game, a video, a site): another site opens in a new tab, ours in this one
+    const out = x.link && /^https?:/.test(x.link.url) && !x.link.url.startsWith(location.origin);
+    const cta = x.link ? `<a class="sv-cta" href="${esc(x.link.url)}"${out ? ' target="_blank" rel="noopener"' : ''} data-cta>${esc(x.link.label)}${I.next}</a>` : '';
+    slot.classList.toggle('with-cta', !!x.link);
+    if (x.media?.kind === 'video') slot.innerHTML = `<video class="sv-media" src="${esc(x.media.url)}" playsinline autoplay></video>${text}${cta}`;
+    else if (x.media?.kind === 'image') slot.innerHTML = `<img class="sv-media" src="${esc(x.media.url)}" alt="">${text}${cta}`;
+    else slot.innerHTML = `<div class="sv-plain">${text}</div>${cta}`;
     const vid = slot.querySelector('video');
     const start = performance.now();
     const len = () => (vid && vid.duration ? vid.duration * 1000 : Math.min(9000, 4000 + (x.text || '').length * 45));
@@ -100,6 +104,7 @@ export function openStory(char) {
     show();
   };
   el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-cta]')) { track('story_link', char); cancelAnimationFrame(SV.raf); return; }
     if (e.target.closest('[data-next]')) go(1);
     else if (e.target.closest('[data-prev]')) go(-1);
     else if (e.target.closest('[data-x]')) location.hash = backTo;
