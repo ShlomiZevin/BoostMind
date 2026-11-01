@@ -1032,6 +1032,7 @@ const projectView = (q, id) => {
   const stems = Object.keys(sj.stems || {}).map((layer) => ({ layer, src: url(`work/public/layers/stems/${layer}.wav`) }));
   // each audio layer's sources as the editor plays them item by item: "<layer>|<asset>" (filtered, evened out, shared gain)
   for (const [k, s] of Object.entries(sj.sources || {})) urls[k] = url(`work/public/layers/src/${s.file}`);
+  soundFresh(id, project, sj);
   return { project, urls, stems, gainDb: sj.gain_db ?? 0, levels: sj.levels || {}, soundBusy: !!soundBusy[id],  // (levels: '<layer>|<asset>|<clean>' -> speech-level gain, applied live)
     output: exportDone(id) ? `/media/${id}/out` : null, outputStale: exportStale(id), job: pub(jobs[id]) };
 };
@@ -1065,6 +1066,31 @@ const restem = (id) => new Promise((done) => {
   p.stderr.on('data', (b) => (err += b));
   p.on('close', (code) => done(code ? err.slice(-400) : null));
 });
+// the editor must play what the export makes (haredit-3, 2026-11-01: the solo builder put his takes in without an op, the
+// sources were never made, the editor played the raw takes and the export the NN-cleaned ones - "not what I hear").
+// Whatever wrote project.json, a source the editor would miss (or one older than its file) is made on the next look.
+const soundTried = {};
+const soundFresh = (id, project, sj) => {
+  if (soundBusy[id]) return;
+  const have = sj.sources || {}, d = epDir(id), stale = [];
+  const made = (k) => have[k] && fs.existsSync(path.join(d, 'work', 'public', 'layers', 'src', have[k].file));
+  for (const l of project.layers || []) {
+    if (l.kind !== 'audio' || l.hidden) continue;
+    const voice = (l.items || []).some((it) => project.assets?.[it.asset]?.kind === 'video');
+    for (const it of l.items || []) {
+      const aid = it.asset ?? l.props?.asset, a = project.assets?.[aid];
+      if (!a || it.hidden) continue;
+      const k = voice ? `${l.id}|${aid}|${l.props?.clean || 'off'}` : `${l.id}|${aid}`;
+      const f = path.resolve(d, a.audio || a.src || '');
+      if (!made(k) || (fs.existsSync(f) && fs.statSync(f).mtimeMs > have[k].v + 1000)) stale.push(k);
+    }
+  }
+  const sig = [...new Set(stale)].sort().join(',');
+  if (!sig || soundTried[id] === sig) return;  // (once per gap: a failing make doesn't loop)
+  soundTried[id] = sig;
+  console.log('sound for', id, '- making the sources the editor lacks:', sig.slice(0, 200));
+  soundBusy[id] = restem(id).then((e) => { delete soundBusy[id]; if (e) console.log('sound for', id, e); });
+};
 const opsLib = import('./src/layers/ops.js');
 app.post('/api/p/:id/ops', async (q, res) => {
   const { apply, validate, inverse } = await opsLib;
