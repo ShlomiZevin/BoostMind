@@ -150,11 +150,13 @@ def main():
     out_series.sort(key=lambda s: -len(s['videos']))
 
     site_card, site_list = site_cards(out_series, out_chars, {c['id']: c for c in chars})
+    topics = site_topics(site_list)
     site = {'series': out_series, 'characters': out_chars,
             'videos': [{k: v for k, v in x.items() if not k.startswith('_')} for x in videos],
             'sites': site_card,   # card id -> card ([[site:ID]] in the chat)
             # every site once, for a list on the page: {id, url, title, about, img, whose, in (the site a game is part of)}
-            'site_list': [{**s, 'img': site_card[s['id']]['img']} for s in site_list]}
+            # + topic (a SITE_TOPICS key) and tagline, by AI (site_topics)
+            'site_list': [{**s, 'img': site_card[s['id']]['img'], **topics.get(s['id'], {})} for s in site_list]}
     with open(os.path.join(PUB, 'data', 'wiki.json'), 'w', encoding='utf8') as f:
         json.dump(site, f, ensure_ascii=False, separators=(',', ':'))
 
@@ -291,6 +293,49 @@ def cards(videos):
         except Exception as e:  # no key / no network: the teaser stands in, the next build tries again
             print('cards: not written now -', str(e)[:200])
     return {k: v['card'] for k, v in have.items()}
+
+
+SITE_TOPICS = {'shop': 'חנויות', 'games': 'משחקים', 'spirit': 'רוחניות ותחזיות', 'community': 'קהילה ודת',
+               'business': 'עסקים והייטק', 'culture': 'ספרים, משפחה ותרבות'}
+
+
+def site_topics(sites):
+    """The sites page groups the sites by subject (his ask, 2026-11-01: "you wrote Hani and then all the rest, lazy").
+    Per site the AI picks a `topic` (one of SITE_TOPICS) and writes a short Hebrew `tagline` in the site's own voice -
+    judgement is the AI's, never a list here (his rule). Terra (it is shown to visitors), once per site: kept in
+    site_topics.json with the hash of what it was given; only new / changed sites are sent, in one call."""
+    path = os.path.join(HERE, 'site_topics.json')
+    have = load_json(path, {}) or {}
+    h = lambda s: hashlib.md5(('topics-v1' + s['title'] + s['about'] + (s.get('in') or '')).encode('utf8')).hexdigest()[:10]
+    todo = [s for s in sites if have.get(s['id'], {}).get('h') != h(s)]
+    if todo:
+        try:
+            env = dict(l.rstrip('\n').split('=', 1) for l in open(os.path.join(ZC, '.env'), encoding='utf8') if '=' in l and not l.startswith('#'))
+            items = [{'id': s['id'], 'title': s['title'], 'about': s['about'][:400], 'owner': ', '.join(s['whose']),
+                      **({'a game inside': s['in']} if s.get('in') else {})} for s in todo]
+            prompt = ('These are the websites of characters in a Hebrew comedy world (each character treats their site as '
+                      'completely real). For each site: (1) "topic" - the ONE subject a visitor would look for it under, one '
+                      'of these keys: ' + json.dumps(SITE_TOPICS, ensure_ascii=False) + '; (2) "tagline" - one short Hebrew '
+                      'line, at most 45 characters, in the site\'s own voice (as the site itself would say it, serious, no '
+                      'explaining the joke, no emoji) - what you get there.\n' + json.dumps(items, ensure_ascii=False) +
+                      '\nAnswer JSON only: {"<id>": {"topic": "<key>", "tagline": "<line>"}, ...}')
+            body = json.dumps({'model': 'gpt-5.6-terra', 'input': prompt, 'reasoning': {'effort': 'low'},
+                               'text': {'format': {'type': 'json_object'}}}).encode()
+            req = urllib.request.Request('https://api.openai.com/v1/responses', data=body, headers={
+                'Authorization': 'Bearer ' + env['OPENAI_API_KEY'].strip().strip('"\''), 'Content-Type': 'application/json'})
+            r = json.loads(urllib.request.urlopen(req, timeout=300).read())
+            out = json.loads(next(c['text'] for o in r['output'] if o['type'] == 'message' for c in o['content'] if c['type'] == 'output_text'))
+            for s in todo:
+                x = out.get(s['id']) or {}
+                if x.get('topic') in SITE_TOPICS:
+                    have[s['id']] = {'h': h(s), 'topic': x['topic'], 'tagline': (x.get('tagline') or '').strip()}
+            u = r.get('usage', {})
+            print(f"site topics: {len(todo)} by AI, ${(u.get('input_tokens', 0) * 2 + u.get('output_tokens', 0) * 12) / 1e6:.4f}")
+            with open(path, 'w', encoding='utf8') as f:
+                json.dump(have, f, ensure_ascii=False, indent=1)
+        except Exception as e:  # no key / no network: the page shows them under 'עוד', the next build tries again
+            print('site topics: not written now -', str(e)[:200])
+    return {k: {'topic': v['topic'], 'tagline': v['tagline']} for k, v in have.items()}
 
 
 if __name__ == '__main__':
