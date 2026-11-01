@@ -633,6 +633,71 @@ async function autoAnnounce() {
 }
 exports.verseAutoAnnounce = onSchedule({ schedule: 'every 15 minutes', region: REGION, secrets: SECRETS, timeoutSeconds: 120, memory: '512MiB' }, async () => { await autoAnnounce(); });
 
+// every account (Firebase Auth) with where it came from - the admin page's people and its numbers
+async function peopleList() {
+  const users = [];
+  let next;
+  do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users); next = r.pageToken; } while (next && users.length < 50000);
+  const [fans, sites] = await Promise.all([db.collection('fans').select('nick', 'official').get(), db.collection('siteUsers').select('sites').get()]);
+  const fan = Object.fromEntries(fans.docs.map((d) => [d.id, d.data()]));
+  const site = Object.fromEntries(sites.docs.map((d) => [d.id, d.data().sites || []]));
+  return users.map((u) => ({ uid: u.uid, email: u.email || null, name: u.displayName || null, photo: u.photoURL || null,
+    created: Date.parse(u.metadata.creationTime) || null, last: Date.parse(u.metadata.lastRefreshTime || u.metadata.lastSignInTime) || null,
+    google: u.providerData.length > 0, fan: u.uid in fan, nick: fan[u.uid]?.nick || null, official: !!fan[u.uid]?.official, sites: site[u.uid] || [] }));
+}
+
+// the numbers Terra answers from: 90 days of counters (without page routes / search words), every account (no emails -
+// those stay here), the conversations per day and character with the latest questions, the community. Israel time.
+async function askData(q) {
+  const from = dayIL(new Date(Date.now() - 89 * 864e5));
+  const hm = (ms) => (ms ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(ms)) : null);
+  const [d, people, chats, comments, ideas, requests] = await Promise.all([
+    db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
+    peopleList(),
+    db.collection('chat_logs').where('t', '>=', Timestamp.fromMillis(Date.now() - 30 * 864e5)).orderBy('t', 'desc').limit(4000).select('t', 'mode', 'q', 'n', 'in', 's', 'v').get(),
+    db.collection('comments').orderBy('t', 'desc').limit(300).select('t', 'videoId', 'char', 'nick').get(),
+    db.collection('ideas').orderBy('t', 'desc').limit(100).select('t', 'text', 'votes', 'kind').get(),
+    db.collection('requests').orderBy('t', 'desc').limit(200).select('t', 'kind', 'done', 'site').get(),
+  ]);
+  const days = d.docs.map((x) => {
+    const v = x.data(), n = {};
+    for (const [k, c] of Object.entries(v.n || {})) if (!/^(view|search|click)\|/.test(k)) n[k] = c;
+    return { d: v.d, visitors: v.visitors || 0, new_visitors: v.new_visitors || 0, src: v.src || {}, dev: v.dev || {}, site_views: v.site || {}, n };
+  });
+  const perDay = {};
+  for (const x of chats.docs) {
+    const c = x.data(), day = dayIL(c.t.toDate()), k = `${day}|${c.mode}`;
+    perDay[k] = perDay[k] || { day, character: c.mode, messages: 0, signed_in: 0, threads: new Set() };
+    perDay[k].messages++; if (c.in) perDay[k].signed_in++; perDay[k].threads.add(c.s || c.v);
+  }
+  const pack = {
+    now_israel: hm(Date.now()), today: dayIL(),
+    notes: 'days[].n = event counts ("event" total, "event|x" by what: chat_message|<character id or guide>, video|<video id>, site|<site id>, game_start|<game>, sign_in|new|back, request|<kind>, follow|<character>...). visitors = unique visitors that day, src = where they came from (by first visit of the day), dev = phone/desktop. people = every account (google = real Google sign-in; fan = joined the Shlomiverse with a name; sites = character sites they sent something from). chats = the chat with the characters (each visitor message = one answer).',
+    characters: Object.fromEntries(Object.values((await _canon()).byId || {}).map((c) => [c.id, c.name])),
+    days,
+    people: people.filter((p) => p.google).map((p) => ({ joined: hm(p.created), last_seen: hm(p.last), name: p.nick || p.name || null, shlomiverse: p.fan, sites: p.sites })),
+    chats_per_day: Object.values(perDay).map((x) => ({ day: x.day, character: x.character, messages: x.messages, conversations: x.threads.size, signed_in_messages: x.signed_in })),
+    latest_questions: chats.docs.slice(0, 250).map((x) => { const c = x.data(); return { at: hm(c.t.toMillis()), to: c.mode, q: String(c.q || '').slice(0, 140) }; }),
+    comments: comments.docs.map((x) => { const c = x.data(); return { at: hm(c.t?.toMillis?.()), video: c.videoId, by_character: c.char || null }; }),
+    ideas: ideas.docs.map((x) => { const c = x.data(); return { at: hm(c.t?.toMillis?.()), text: c.text, votes: c.votes || 0, kind: c.kind }; }),
+    requests: requests.docs.map((x) => { const c = x.data(); return { at: hm(c.t?.toMillis?.()), kind: c.kind, done: !!c.done, site: c.site || null }; }),
+  };
+  const r = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST', headers: { authorization: `Bearer ${openaiKey()}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-5.6-terra', reasoning: { effort: 'medium' }, max_output_tokens: 4000, store: false,
+      instructions: `You are the data analyst of Shlomi's admin page for שלומיוורס (his comedy universe site: videos, characters people chat with, games, character sites). Answer his question from the DATA only, in Hebrew, short and exact: first one line with the answer and the key number(s), then - only if it helps - a small markdown table (at most 12 rows) or 2-4 short bullet lines. Compute carefully (sum, compare periods, percentages). Dates are Israel time. If the data can't answer it, say exactly what is missing. Never invent numbers. No preamble.`,
+      input: [{ role: 'user', content: `DATA:\n${JSON.stringify(pack)}\n\nQUESTION: ${q}` }],
+    }),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error('ask ' + r.status + ' ' + JSON.stringify(j.error || {}).slice(0, 200));
+  const answer = (j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('\n').trim();
+  console.log('owner ask', q.slice(0, 80), JSON.stringify(j.usage || {}));
+  const u = j.usage || {};
+  return { answer, cost: (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * 2 + (u.input_tokens_details?.cached_tokens || 0) * 0.2 + (u.output_tokens || 0) * 12) / 1e6 };
+}
+
 exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
@@ -658,16 +723,41 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
     }
     // everyone with an account (his ask, 2026-11-01): the verse's fans and whoever signed in on a character's site to
     // send something - from Firebase Auth itself, so nobody is missing, with where they came from
-    if (op === 'people') {
-      const users = [];
-      let next;
-      do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users); next = r.pageToken; } while (next && users.length < 50000);
-      const [fans, sites] = await Promise.all([db.collection('fans').select('nick').get(), db.collection('siteUsers').select('sites').get()]);
-      const nick = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().nick || '']));
-      const site = Object.fromEntries(sites.docs.map((d) => [d.id, d.data().sites || []]));
-      return res.json({ people: users.map((u) => ({ uid: u.uid, email: u.email || null, name: u.displayName || null, photo: u.photoURL || null,
-        created: Date.parse(u.metadata.creationTime) || null, last: Date.parse(u.metadata.lastRefreshTime || u.metadata.lastSignInTime) || null,
-        fan: u.uid in nick, nick: nick[u.uid] || null, sites: site[u.uid] || [] })) });
+    if (op === 'people') return res.json({ people: await peopleList() });
+    // ---------- his one admin page (2026-11-01: Backstage + the stats page, "a really admin, super powerful tool") ----------
+    // the per-day counters (analytics.js) for the range and the one before it (the trend), the newest events, every account
+    if (op === 'stats') {
+      const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 180);
+      const from = dayIL(new Date(Date.now() - (2 * days - 1) * 864e5));
+      const [d, ev, people] = await Promise.all([
+        db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
+        db.collection('analytics_events').orderBy('t', 'desc').limit(400).get(),
+        peopleList(),
+      ]);
+      return res.json({ days: d.docs.map((x) => x.data()), people,
+        events: ev.docs.map((x) => { const e = x.data(); delete e.exp; return { ...e, t: e.t.toMillis() }; }) });
+    }
+    // the conversations (wiki.js keeps them): a time range (from / to in ms), or everything one account said (uid)
+    if (op === 'chats') {
+      const snap = req.query.uid
+        ? await db.collection('chat_logs').where('uid', '==', String(req.query.uid)).limit(500).get()
+        : await db.collection('chat_logs').where('t', '>=', Timestamp.fromMillis(+req.query.from || Date.now() - 864e5))
+          .where('t', '<', Timestamp.fromMillis(+req.query.to || Date.now() + 6e4)).orderBy('t', 'desc').limit(3000).get();
+      return res.json({ chats: snap.docs.map((x) => { const c = x.data(); delete c.exp; return { id: x.id, ...c, t: c.t.toMillis() }; }) });
+    }
+    // conversations he starred (the funny ones) - one list in owner/chatStars, by thread key (session|character)
+    if (op === 'stars') return res.json({ stars: ((await db.collection('owner').doc('chatStars').get()).data() || {}).keys || [] });
+    if (op === 'star') {
+      const k = String(b.key || '').slice(0, 80);
+      if (!k) return res.status(400).json({ error: 'key' });
+      await db.collection('owner').doc('chatStars').set({ keys: b.on === false ? FieldValue.arrayRemove(k) : FieldValue.arrayUnion(k) }, { merge: true });
+      return res.json({ ok: true });
+    }
+    // "שאלו את הנתונים": a question in plain words, answered by Terra from a compact pack of the real numbers
+    if (op === 'ask') {
+      const q = String(b.q || '').trim().slice(0, 600);
+      if (!q) return res.status(400).json({ error: 'q' });
+      return res.json(await askData(q));
     }
     if (op === 'hide') {
       const col = b.kind === 'sticker' ? 'stickers' : b.kind === 'story' ? 'stories' : b.kind === 'idea' ? 'ideas' : 'comments';

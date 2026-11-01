@@ -20,7 +20,7 @@ async function keep(b, mode, turns, reply, u = {}, who = {}) {
   const now = new Date();
   await admin.firestore().collection('chat_logs').add({
     t: admin.firestore.Timestamp.fromDate(now), mode, v: clean(b.v, 10), s: clean(b.s, 10), r: clean(b.r, 12), m: !!b.m,
-    q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid,
+    q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid, uid: who.uid || null,   // uid: the admin page shows a person's conversations
     // the tokens it took (input / of them cached / output) - the dashboard turns them into dollars
     u: [u.input_tokens || 0, u.input_tokens_details?.cached_tokens || 0, u.output_tokens || 0],
     exp: admin.firestore.Timestamp.fromMillis(now.getTime() + KEEP_DAYS * 864e5),
