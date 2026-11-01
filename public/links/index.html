@@ -7,223 +7,196 @@
 <meta name="description" content="מערכונים קומיים קצרים. כל הדמויות, כל הסרטונים, ולדבר איתן.">
 <meta property="og:title" content="שלומי זוין">
 <meta property="og:description" content="מערכונים קומיים קצרים. כל הדמויות, כל הסרטונים, ולדבר איתן.">
-<meta property="og:image" content="https://boostmind-b052c.web.app/links/shlomi.jpg">
+<meta property="og:image" content="https://shlomiverse.com/links/shlomi.jpg">
+<meta name="theme-color" content="#0b0b0e">
+<link rel="icon" type="image/png" sizes="32x32" href="/verse/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/verse/favicon-192.png">
+<link rel="icon" href="/verse/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/verse/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://storage.googleapis.com" crossorigin>
+<!-- His bio link, in the Shlomiverse v2 look (GPT Image mockups Documents/shlomiverse-v2-design/golive/O-links-desktop.jpg,
+     P-links-phone.jpg). Phone first: him, the spotlight, the way into the Shlomiverse, collaborations, videos, the sites.
+     Desktop: two columns - him + collaborations + the sites on the right, the Shlomiverse + spotlight + videos on the left. -->
 <style>
-  :root { --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.09); --line2: rgba(255,255,255,.16); --text: #f5f4f1; --dim: #a6a3ad; --accent: #ff5b3a; --wa: #25d366; color-scheme: dark; }
+  :root { --bg: #0b0b0e; --glass: rgba(22, 21, 26, .72); --glass2: rgba(255, 255, 255, .06); --line: rgba(255, 255, 255, .12); --line2: rgba(255, 255, 255, .2);
+          --text: #f5f4f1; --dim: #a6a3ad; --accent: #ff6a1f; --accent2: #ff8a3d; --wa: #25d366; color-scheme: dark; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; min-height: 100svh; display: flex; justify-content: center; padding: 30px 16px 44px; }
+  html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
+  body { background: radial-gradient(ellipse 120% 60% at 50% -12%, rgba(255, 106, 31, .38), transparent 60%), var(--bg); background-attachment: fixed;
+         color: var(--text); font-family: 'Heebo', sans-serif; min-height: 100svh; overflow-x: hidden; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-  .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; }
-  .box { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
-  h3 { font-size: 1.1rem; font-weight: 800; }
+  .wrap { width: 100%; max-width: 480px; margin: 0 auto; padding: 30px 16px 28px; display: flex; flex-direction: column; gap: 14px; }
+  .side, .main { display: contents; }
+  .box { background: var(--glass); border: 1px solid var(--line); border-radius: 24px; padding: 18px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  h3 { font-size: 1.15rem; font-weight: 800; }
+  /* phone order (the DOM is grouped for the desktop columns) */
+  .me { order: 1; } .spot { order: 2; } .verse { order: 3; } .collab { order: 4; } .vids { order: 5; } .sites { order: 6; } .foot { order: 7; }
+
+  /* the top bar: desktop only (on the phone he is the top of the page) */
+  .top { display: none; }
 
   /* me */
   .me { text-align: center; }
-  .avatar { width: 116px; height: 116px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 2px solid var(--line2); }
+  .avatar { width: 124px; height: 124px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 3px solid var(--accent);
+            box-shadow: 0 0 0 5px rgba(255, 106, 31, .16), 0 10px 40px rgba(255, 106, 31, .35); }
   .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 68%; transform: scale(1.55); transform-origin: 50% 68%; display: block; }
-  h1 { font-size: 2rem; font-weight: 900; letter-spacing: -.02em; margin-top: 12px; line-height: 1.1; }
-  .sub { color: var(--dim); font-size: 1.02rem; margin-top: 4px; }
-  .social { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
-  .social a { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line2); display: grid; place-items: center; transition: border-color .15s; }
-  .social a:hover { border-color: var(--text); }
+  h1 { font-size: 2.05rem; font-weight: 900; letter-spacing: -.02em; margin-top: 14px; line-height: 1.1; }
+  .sub { color: var(--dim); font-size: 1.04rem; margin-top: 4px; }
+  .social { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+  .social a { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--line2); background: var(--glass2); display: grid; place-items: center; transition: border-color .15s, background .15s; }
+  .social a:hover { border-color: var(--accent); background: rgba(255, 106, 31, .12); }
   .social svg { width: 19px; height: 19px; fill: currentColor; }
 
   /* the spotlight: one slot for whatever is in focus right now (swap the <section class="spot"> below, --spot = its colour) */
-  .spot { --spot: var(--accent); position: relative; margin-top: 16px; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 30px 12px 12px; border-radius: 20px; background: var(--card); border: 1.5px solid var(--spot); }
-  .spot-pic { width: 76px; height: 76px; border-radius: 14px; overflow: hidden; display: block; background: var(--card2); }
+  .spot { --spot: var(--accent); position: relative; margin-top: 16px; display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 12px; padding: 30px 14px 14px;
+          border: 1.5px solid color-mix(in srgb, var(--spot) 70%, transparent); box-shadow: 0 10px 40px color-mix(in srgb, var(--spot) 14%, transparent); }
+  .spot-pic { width: 82px; height: 82px; border-radius: 16px; overflow: hidden; display: block; background: var(--glass2); }
   .spot-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .spot-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .spot-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
   .onair { position: absolute; top: 0; inset-inline-start: 16px; transform: translateY(-50%); z-index: 3; display: inline-flex; align-items: center; gap: 7px;
-           background: var(--bg); border: 1.5px solid rgba(255,255,255,.28); border-radius: 99px; padding: 7px 14px 7px 15px; white-space: nowrap; line-height: 1; }
-  .onair i { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex: none; animation: live 1.6s ease-in-out infinite; }
+           background: #141317; border: 1px solid var(--line2); border-radius: 99px; padding: 7px 14px 7px 15px; white-space: nowrap; line-height: 1; }
+  .onair i { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; flex: none; animation: live 1.6s ease-in-out infinite; box-shadow: 0 0 10px #22c55e; }
   @keyframes live { 50% { opacity: .3; } }
-  .onair span { display: inline-flex; align-items: center; gap: 3px; font-size: .95rem; font-weight: 700; color: #dcd9e2; position: relative; top: 2px; }  /* "עכשיו ב-" centred on the wordmark; Heebo's letters sit high in their box, so the line drops 2px to the true middle (measured) */
-  .onair strong { font-size: 1.2rem; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
+  .onair span { display: inline-flex; align-items: center; gap: 3px; font-size: .92rem; font-weight: 700; color: #dcd9e2; position: relative; top: 2px; }
+  .onair strong { font-size: 1.16rem; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
   .onair strong b { color: var(--accent); font-weight: inherit; }
-  .spot-txt b { font-size: clamp(1.05rem, 5.2vw, 1.22rem); font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
-  .spot-txt small { color: var(--dim); font-size: .86rem; line-height: 1.3; }
-  .spot-go { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--spot); color: #0b0b0e; display: grid; place-items: center; font-weight: 900; font-size: 0; transition: opacity .15s; }
-  .spot-go::before { content: '←'; font-size: 1.1rem; }
-  .spot-main:hover .spot-go { opacity: .9; }
-  .spot-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .spot-txt b { font-size: clamp(1.1rem, 5.4vw, 1.3rem); font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
+  .spot-txt small { color: var(--dim); font-size: .88rem; line-height: 1.35; }
+  .spot-go { flex: none; width: 42px; height: 42px; border-radius: 50%; background: var(--spot); color: #0b0b0e; display: grid; place-items: center; font-weight: 900; font-size: 0; transition: transform .15s; }
+  .spot-go::before { content: '←'; font-size: 1.15rem; }
+  .spot-main:hover .spot-go { transform: translateX(-3px); }
+  .spot-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
   .spot-row a { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .spot-row img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 9px; display: block; border: 1px solid var(--line); transition: transform .15s; }
+  .spot-row img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--line); transition: transform .15s; }
   .spot-row a:hover img { transform: translateY(-2px); }
   .spot-row span { display: none; font-size: .78rem; font-weight: 700; line-height: 1.2; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .spot-row i { position: absolute; top: 4px; inset-inline-start: 4px; font-style: normal; font-size: .62rem; font-weight: 800; background: var(--spot); color: #0b0b0e; padding: 0 6px; border-radius: 99px; }
 
-  /* the way into the wiki */
-  .verse { padding: 20px 18px 18px; text-align: center; border-color: var(--line2); }
-  .kicker { display: none; }
-  .verse h2 { font-size: clamp(2.6rem, 12vw, 3.4rem); font-weight: 900; letter-spacing: -.045em; line-height: 1; color: var(--text); }
-  .verse h2 b { color: var(--accent); font-weight: inherit; }  /* the wordmark: שלומי in white, וורס in orange - everywhere */
-  .faces { display: flex; justify-content: center; margin: 16px 0 4px; padding-inline-start: 14px; min-height: 66px; }
-  .faces a { width: 66px; height: 66px; border-radius: 50%; overflow: hidden; margin-inline-start: -14px; border: 3px solid var(--card); background: var(--card2); transition: transform .15s; position: relative; flex: none; }
+  /* the way into the Shlomiverse: the logo, faces, one orange button */
+  .verse { position: relative; overflow: hidden; text-align: center; padding: 18px 18px 18px; border-color: rgba(255, 106, 31, .35);
+           background: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(255, 106, 31, .2), transparent 70%), var(--glass); }
+  .verse-logo { display: block; width: min(250px, 70%); margin: 0 auto; filter: drop-shadow(0 8px 30px rgba(255, 106, 31, .45)); }
+  .verse-logo img { width: 100%; height: auto; display: block; }
+  .faces { display: flex; justify-content: center; margin: 10px 0 2px; padding-inline-start: 12px; min-height: 58px; }
+  .faces a { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; margin-inline-start: -12px; border: 2px solid #1a191e; background: var(--glass2); transition: transform .15s; position: relative; flex: none; }
   .faces a:hover, .faces a:focus-visible { transform: translateY(-4px); z-index: 30; }
   .faces img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .faces span { display: none; }
   .faces a:nth-child(n+7) { display: none; }
-  .tap { color: var(--dim); font-size: .82rem; }
-  .verse p { font-size: 1.08rem; font-weight: 500; margin-top: 10px; }
-  .ask { display: flex; gap: 8px; margin-top: 14px; }
-  .ask input { flex: 1; min-width: 0; height: 50px; border-radius: 14px; border: 1px solid var(--line2); background: var(--bg); color: var(--text); font: inherit; font-size: 1rem; padding: 0 14px; outline: none; transition: border-color .15s; }
-  .ask input:focus { border-color: var(--accent); }
-  .ask button { width: 50px; height: 50px; border-radius: 14px; background: var(--accent); color: #fff; display: grid; place-items: center; flex: none; }
-  .ask svg { width: 20px; height: 20px; transform: scaleX(-1); }
-  .go { display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; margin-top: 10px; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 800; font-size: 1.08rem; transition: opacity .15s; }
-  .go:hover { opacity: .92; }
+  .verse p { font-size: 1rem; font-weight: 500; margin-top: 12px; }
+  .go { display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; margin-top: 14px; border-radius: 99px; background: var(--accent); color: #fff;
+        font-weight: 800; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(255, 106, 31, .4); transition: transform .15s, box-shadow .15s; }
+  .go:hover { transform: translateY(-1px); box-shadow: 0 14px 36px rgba(255, 106, 31, .5); }
 
   /* collaborations */
-  .collab { display: flex; flex-direction: column; gap: 12px; }
+  .collab { display: flex; flex-direction: column; gap: 14px; }
   .collab .h { display: flex; align-items: center; gap: 12px; }
-  .collab .hicon { width: 48px; height: 48px; border-radius: 12px; flex: none; display: block; }
-  .collab b { display: block; font-size: 1.15rem; font-weight: 800; }
-  .collab small { color: var(--dim); font-size: .9rem; }
-  .acts { display: flex; gap: 8px; }
-  .acts a { flex: 1; height: 46px; border-radius: 12px; border: 1px solid var(--line2); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; transition: border-color .15s, opacity .15s; }
-  .acts a:hover { border-color: var(--text); }
-  .acts svg { width: 19px; height: 19px; }
-  .proof { color: var(--dim); font-size: .86rem; border-top: 1px solid var(--line); padding-top: 12px; }
-  .proof b { display: inline; font-size: inherit; color: var(--text); }
+  .collab .hicon { width: 50px; height: 50px; border-radius: 50%; flex: none; display: block; border: 1px solid var(--line2); object-fit: cover; }
+  .collab b { display: block; font-size: 1.18rem; font-weight: 800; }
+  .collab small { color: var(--dim); font-size: .92rem; }
+  .acts { display: flex; gap: 10px; }
+  .acts a { flex: 1; height: 50px; border-radius: 99px; border: 1px solid var(--line2); background: var(--glass2); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; transition: border-color .15s, background .15s; }
+  .acts a:hover { border-color: var(--text); background: rgba(255, 255, 255, .1); }
+  .acts svg { width: 20px; height: 20px; }
 
   /* latest videos (from the wiki) */
-  .vids h3 { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; }
-  .vids h3 a { color: var(--dim); font-size: .88rem; font-weight: 500; }
-  .vids h3 a:hover { color: var(--accent); }
-  .vrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .vrow a { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .vrow .th { position: relative; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; background: var(--card2); border: 1px solid var(--line); }
+  .vids h3 { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .vids h3 a { color: var(--dim); font-size: .88rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border: 1px solid var(--line); border-radius: 99px; }
+  .vids h3 a:hover { color: var(--text); border-color: var(--line2); }
+  .vrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .vrow a { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+  .vrow .th { position: relative; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: var(--glass2); border: 1px solid var(--line); }
   .vrow .th img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s; }
   .vrow a:hover .th img { transform: scale(1.04); }
-  .vrow .th::after { content: '▶'; position: absolute; inset: 0; margin: auto; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; font-size: .85rem; }
+  .vrow .th::after { content: ''; position: absolute; inset: 0; margin: auto; width: 42px; height: 42px; border-radius: 50%;
+                     background: rgba(0, 0, 0, .5) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z' fill='white'/%3E%3C/svg%3E") 55% 50% / 18px no-repeat;
+                     border: 1px solid rgba(255, 255, 255, .25); backdrop-filter: blur(4px); }
   .vrow span { font-weight: 700; font-size: .88rem; line-height: 1.3; }
   .vrow a:nth-child(n+4) { display: none; }
   .vids:empty { display: none; }
 
-  /* the characters' own sites */
-  .sites h3 { margin-bottom: 6px; }
-  .site { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
-  .site:first-of-type { border-top: 0; }
-  .site .ico { width: 44px; height: 44px; flex: none; border-radius: 11px; overflow: hidden; display: grid; place-items: center; background: var(--card2); font-size: 1.3rem; }
+  /* the characters' own sites: every one a clear button */
+  .sites h3 { margin-bottom: 12px; }
+  .site-list { display: flex; flex-direction: column; gap: 8px; }
+  .site { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 10px; border: 1px solid var(--line); border-radius: 18px; background: var(--glass2); transition: border-color .15s, background .15s, transform .15s; }
+  .site:hover { border-color: var(--line2); background: rgba(255, 255, 255, .09); transform: translateY(-1px); }
+  .site .ico { width: 44px; height: 44px; flex: none; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: #1d1d23; font-size: 1.3rem; text-align: center; }
   .site .ico img { width: 100%; height: 100%; object-fit: cover; }
   .site .t { flex: 1; display: flex; flex-direction: column; font-weight: 700; line-height: 1.25; min-width: 0; }
-  .site small { color: var(--dim); font-size: .85rem; font-weight: 400; }
-  .site .arr { color: var(--dim); }
-  .site:hover .arr { color: var(--accent); }
-  footer { text-align: center; color: var(--dim); font-size: .85rem; margin-top: 6px; }
+  .site small { color: var(--dim); font-size: .84rem; font-weight: 400; }
+  .site .arr { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line2); display: grid; place-items: center; color: var(--dim); font-size: .9rem; transition: color .15s, border-color .15s, background .15s; }
+  .site:hover .arr { color: #fff; border-color: var(--accent); background: var(--accent); }
 
-  /* hero pieces that exist only on wide screens */
-  .wall, .who, .hi { display: none; }
+  .foot { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--dim); font-size: .86rem; padding: 10px 0 0; }
+  .foot img { width: 34px; height: auto; }
 
-  /* wide screens: the Shlomiverse as a full-width hero (the wiki's wall of faces), then you / videos / contact, then the sites */
   @media (min-width: 1000px) {
-    body { padding: 28px 28px 48px; }
-    .wrap { max-width: 1320px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; }
+    .wrap { max-width: 1240px; padding: 0 28px 40px; display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 20px; align-items: start; }
+    .side, .main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    .side { position: sticky; top: 20px; }
+    .top { display: flex; grid-column: 1 / -1; align-items: center; gap: 28px; height: 76px; }
+    .top .brand img { width: 128px; height: auto; display: block; filter: drop-shadow(0 4px 18px rgba(255, 106, 31, .4)); }
+    .top nav { display: flex; gap: 26px; font-weight: 700; color: #dcd9e2; }
+    .top nav a:hover { color: #fff; }
+    .top .me-btn { margin-inline-start: auto; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 16px; border-radius: 99px; border: 1px solid var(--line); background: var(--glass); font-weight: 700; }
+    .top .me-btn img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+    .top .me-btn.out { padding: 0 20px; background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    .spot { grid-column: 1 / -1; grid-row: 1; grid-template-columns: minmax(260px, 27%) minmax(0, 1fr) minmax(0, 40%); gap: 28px; padding: 0; border-radius: 24px; overflow: visible; margin-top: 18px; min-height: 240px; align-items: center; }
-    .spot-pic { width: auto; height: 100%; border-radius: 0; border-start-start-radius: 23px; border-end-start-radius: 23px; align-self: stretch; }
+    .me { margin-top: 0; background: var(--glass); border: 1px solid var(--line); border-radius: 26px; padding: 30px 24px 26px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+    .avatar { width: 150px; height: 150px; }
+    h1 { font-size: 2.4rem; }
+    .collab { padding: 22px 24px; }
+    .collab .acts a:first-child { border-color: rgba(37, 211, 102, .5); }
+
+    .sites { grid-column: 1 / -1; padding: 24px; }
+    .site-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .site small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .verse { display: grid; grid-template-columns: minmax(0, 1fr) 40%; grid-template-areas: "faces logo" "line logo" "go logo"; align-items: center; column-gap: 26px;
+             text-align: start; padding: 30px 34px; min-height: 330px; background: radial-gradient(ellipse 60% 90% at 15% 50%, rgba(255, 106, 31, .22), transparent 70%), var(--glass); }
+    .verse-logo { grid-area: logo; width: 100%; max-width: 330px; justify-self: center; }
+    .faces { grid-area: faces; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 0; margin: 0; }
+    .faces a { width: 82px; height: 82px; margin: 0; border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 0 0 3px rgba(255, 106, 31, .5); }
+    .faces a:nth-child(n+7) { display: block; }
+    .faces a:nth-child(n+9) { display: none; }
+    .verse p { grid-area: line; text-align: center; font-size: 1.15rem; font-weight: 700; margin-top: 18px; }
+    .go { grid-area: go; height: 56px; font-size: 1.15rem; }
+
+    .spot { margin-top: 14px; grid-template-columns: 150px minmax(0, 1fr); padding: 34px 20px 18px; column-gap: 20px; }
+    .spot-pic { width: 150px; height: 150px; grid-row: span 2; border-radius: 18px; }
     .spot-pic img { object-position: 50% 30%; }
-    .spot-main { flex-direction: column; align-items: flex-start; gap: 16px; padding: 24px 0; }
-    .spot-txt { gap: 8px; }
-    .onair { inset-inline-start: calc(27% + 28px); padding: 8px 17px 8px 18px; gap: 10px; }
-    .onair span { font-size: 1.02rem; top: 1.25px; } .onair strong { font-size: 1.32rem; }
-    .spot-txt b { font-size: clamp(1.8rem, 2.7vw, 2.9rem); letter-spacing: -.03em; white-space: nowrap; }
-    .spot-txt small { font-size: 1.05rem; }
-    .spot-go { width: auto; height: 48px; padding: 0 24px; border-radius: 99px; font-size: 1.02rem; }
+    .spot-txt b { font-size: 1.7rem; letter-spacing: -.02em; }
+    .spot-txt small { font-size: 1rem; }
+    .spot-go { width: auto; height: 46px; padding: 0 22px; border-radius: 99px; font-size: 1rem; }
     .spot-go::before { content: none; }
-    .spot-row { grid-column: auto; gap: 10px; padding-inline-end: 24px; }
+    .spot-row { grid-column: 2; gap: 10px; }
     .spot-row img { border-radius: 12px; }
     .spot-row span { display: block; }
-    .spot-row i { font-size: .72rem; top: 6px; inset-inline-start: 6px; }
 
-    .verse { grid-column: 1 / -1; grid-row: 2; position: relative; overflow: hidden; perspective: 1100px; min-height: 600px; padding: 54px 24px 46px;
-             display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 28px; background: #0e0e12; }
-    .wall { display: flex; position: absolute; top: -30%; bottom: -30%; width: 40%; gap: 14px; transform-style: preserve-3d; opacity: .6; pointer-events: none; }
-    .wall.r { right: -5%; transform: rotateY(-34deg); transform-origin: right center; -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 78%); mask-image: linear-gradient(to left, #000 25%, transparent 78%); }
-    .wall.l { left: -5%; transform: rotateY(34deg); transform-origin: left center; -webkit-mask-image: linear-gradient(to right, #000 25%, transparent 78%); mask-image: linear-gradient(to right, #000 25%, transparent 78%); }
-    .col { flex: 1; display: flex; flex-direction: column; gap: 14px; animation: drift 90s linear infinite; }
-    .col:nth-child(2) { animation-duration: 115s; animation-direction: reverse; }
-    .col:nth-child(3) { animation-duration: 135s; }
-    @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-    .tile { aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; position: relative; background: var(--card2); flex: none; }
-    .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .tile span { position: absolute; bottom: 0; inset-inline: 0; padding: 18px 10px 8px; font-weight: 800; font-size: .9rem; color: #fff; background: rgba(0,0,0,.45); }
-    .verse > :not(.wall) { position: relative; z-index: 2; }
-    .kicker { display: block; color: var(--dim); font-size: 1.15rem; font-weight: 500; order: 2; margin-top: 10px; }
-    .verse h2 { font-size: clamp(5rem, 8vw, 7.4rem); letter-spacing: -.05em; order: 1; }
-    .faces, .tap, .verse p { display: none; }
-    .ask { order: 3; width: min(620px, 92%); margin-top: 30px; background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
-    .ask input { border: 0; background: none; height: 52px; font-size: 1.12rem; }
-    .ask button { width: 52px; height: 52px; }
-    .who { order: 4; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 20px; max-width: 760px; }
-    .who-l { width: 100%; text-align: center; color: var(--dim); font-size: .92rem; font-weight: 700; margin-bottom: -2px; }
-    .who button { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 70px; font-size: .78rem; color: var(--dim); line-height: 1.2; transition: color .15s; }
-    .who .av { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; background: var(--card2); transition: outline-color .15s, transform .15s; display: grid; place-items: center; }
-    .who .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .who .av.all { background: var(--accent); color: #fff; }
-    .who .av.all svg { width: 55%; height: 55%; }
-    .who button:hover .av { transform: translateY(-3px); }
-    .who button.on { color: var(--text); font-weight: 700; }
-    .who button.on .av { outline-color: var(--accent); }
-    .verse .go { order: 5; width: auto; height: 50px; padding: 0 26px; margin-top: 24px; background: none; border: 2px solid var(--accent); color: var(--text); }
-    .verse .go:hover { background: var(--accent); opacity: 1; }
-
-    .me { grid-column: 1 / 6; grid-row: 3; display: flex; align-items: stretch; text-align: right; background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
-    .avatar { width: 46%; height: auto; aspect-ratio: auto; border-radius: 0; border: 0; margin: 0; flex: none; }
-    .avatar img { transform: none; object-position: 50% 50%; }
-    .me-txt { flex: 1; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-    .hi { display: block; color: var(--accent); font-weight: 700; font-size: .95rem; }
-    h1 { font-size: 2.4rem; margin-top: 0; }
-    .sub { font-size: 1.05rem; }
-    .social { justify-content: flex-start; margin-top: 16px; gap: 8px; }
-    .social a { width: 42px; height: 42px; }
-
-    .vids { grid-column: 6 / 10; grid-row: 3; padding: 20px; }
-    .vrow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .vids { padding: 22px; }
+    .vrow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .vrow a:nth-child(4) { display: flex; }
-    .vrow span { font-size: .8rem; }
-
-    .collab { grid-column: 10 / 13; grid-row: 3; padding: 20px; }
-    .acts { flex-direction: column; }
-    .acts a { flex: none; height: 50px; }
-    .acts a:first-child { background: var(--wa); border-color: var(--wa); color: #0b0b0e; }
-    .acts a:first-child svg { fill: #0b0b0e; }
-    .acts a:first-child:hover { opacity: .9; }
-    .proof { margin-top: auto; }
-
-    .sites { grid-column: 1 / -1; grid-row: 4; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; background: none; border: 0; }
-    .sites h3 { display: none; }
-    .site, .site:first-of-type { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 14px; gap: 10px; transition: border-color .15s, transform .15s; }
-    .site:hover { border-color: var(--line2); transform: translateY(-2px); }
-    .site .ico { width: 40px; height: 40px; }
-    .site .t { font-size: .95rem; }
-    .site small { font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .site .arr { display: none; }
-    footer { grid-column: 1 / -1; grid-row: 5; }
+    .foot { grid-column: 1 / -1; padding-top: 10px; }
   }
-  @media (min-width: 1000px) and (max-width: 1199px) {
-    .me { grid-column: 1 / 7; } .vids { grid-column: 7 / 13; }
-    .collab { grid-column: 1 / -1; grid-row: 4; flex-direction: row; flex-wrap: wrap; align-items: center; }
-    .collab .acts { flex-direction: row; flex: 1; justify-content: flex-end; } .collab .acts a { width: 200px; } .collab .proof { width: 100%; }
-    .sites { grid-row: 5; grid-template-columns: repeat(3, minmax(0, 1fr)); } footer { grid-row: 6; }
-    .spot { grid-template-columns: minmax(220px, 26%) minmax(0, 1fr) minmax(0, 38%); gap: 20px; } .onair { inset-inline-start: calc(26% + 20px); } .spot-row { grid-template-columns: repeat(4, minmax(0, 1fr)); } .spot-row a:nth-child(5) { display: none; }
-  }
-  @media (prefers-reduced-motion: reduce) { .col, .onair i { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .onair i { animation: none; } }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <header class="top">
+    <a class="brand" href="/wiki/" aria-label="שלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
+    <nav><a href="/wiki/#/characters">דמויות</a><a href="/wiki/#/videos">סרטונים</a><a href="/wiki/#/community">קהילה</a><a href="/wiki/#/business">לעסקים</a></nav>
+    <a class="me-btn out" id="me-btn" href="/wiki/">כניסה</a>
+  </header>
+
+  <div class="side">
   <header class="me">
     <div class="avatar"><img src="shlomi.jpg" alt="שלומי זוין בסטודיו"></div>
-    <div class="me-txt">
-      <div><span class="hi">היי, זה אני</span><h1>שלומי זוין</h1><p class="sub">מערכונים קומיים קצרים</p></div>
+    <h1>שלומי זוין</h1><p class="sub">מערכונים קומיים קצרים</p>
     <nav class="social">
       <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg></a>
       <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3.1 0-4.1.06-1.1.05-1.8.22-2.4.46-.7.27-1.2.62-1.8 1.18-.56.57-.91 1.1-1.18 1.8-.24.6-.41 1.3-.46 2.4C2 8.9 2 9.3 2 12s0 3.1.06 4.1c.05 1.1.22 1.8.46 2.4.27.7.62 1.2 1.18 1.8.57.56 1.1.91 1.8 1.18.6.24 1.3.41 2.4.46 1 .05 1.4.06 4.1.06s3.1 0 4.1-.06c1.1-.05 1.8-.22 2.4-.46.7-.27 1.2-.62 1.8-1.18.56-.57.91-1.1 1.18-1.8.24-.6.41-1.3.46-2.4.05-1 .06-1.4.06-4.1s0-3.1-.06-4.1c-.05-1.1-.22-1.8-.46-2.4a4.9 4.9 0 0 0-1.18-1.8 4.9 4.9 0 0 0-1.8-1.18c-.6-.24-1.3-.41-2.4-.46C15.1 2 14.7 2 12 2zm0 1.8c2.67 0 2.99 0 4.04.06.98.04 1.5.2 1.86.34.47.18.8.4 1.15.75.35.35.57.68.75 1.15.14.35.3.88.34 1.86.05 1.05.06 1.37.06 4.04s0 2.99-.06 4.04c-.04.98-.2 1.5-.34 1.86-.18.47-.4.8-.75 1.15-.35.35-.68.57-1.15.75-.35.14-.88.3-1.86.34-1.05.05-1.37.06-4.04.06s-2.99 0-4.04-.06c-.98-.04-1.5-.2-1.86-.34a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.35-.3-.88-.34-1.86C3.8 14.99 3.8 14.67 3.8 12s0-2.99.06-4.04c.04-.98.2-1.5.34-1.86.18-.47.4-.8.75-1.15.35-.35.68-.57 1.15-.75.35-.14.88-.3 1.86-.34C9.01 3.8 9.33 3.8 12 3.8z"/></svg></a>
@@ -231,14 +204,31 @@
       <a href="https://www.facebook.com/shazbak/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.5 21.9v-7.5h2.5l.4-3h-2.9V9.5c0-.86.24-1.45 1.48-1.45h1.58V5.37a21 21 0 0 0-2.3-.12c-2.28 0-3.84 1.39-3.84 3.95v2.2H7.85v3h2.57v7.5h3.08z"/></svg></a>
       <a href="https://x.com/ShlomiZevin" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3zm-1.08 16.17h1.7L7.4 4.73H5.58l11.09 14.44z"/></svg></a>
     </nav>
-    </div>
   </header>
+
+  <section class="box collab">
+    <div class="h"><img class="hicon" src="img/collab.jpg" alt=""><span><b>שיתופי פעולה</b><small>מותגים, קמפיינים ושילובי מוצר</small></span></div>
+    <div class="acts">
+      <a href="https://wa.me/972545567213?text=%D7%94%D7%99%D7%99%20%D7%A9%D7%9C%D7%95%D7%9E%D7%99%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#25d366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>WhatsApp</a>
+      <a href="mailto:shlomi@boostart.io?subject=%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>מייל</a>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="main">
+  <section class="box verse">
+    <a class="verse-logo" href="/wiki/"><img src="/verse/logo-512.png" alt="שלומיוורס"></a>
+    <div class="faces" id="faces"></div>
+    <p>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</p>
+    <a class="go" href="/wiki/">לשלומיוורס ←</a>
+  </section>
 
   <!-- THE SPOTLIGHT - whatever is in focus now. To move it to another character: replace this section (pic,
        title, line, links, the row of five) and set --spot to that world's own colour. One spotlight at a time. -->
-  <section class="spot" id="spot" data-spot="hani-games" style="--spot:#c8962e">
+  <section class="box spot" id="spot" data-spot="hani-games" style="--spot:#c8962e">
     <div class="onair"><i></i><span>עכשיו ב-<strong>שלומי<b>וורס</b></strong></span></div>
-    <a class="spot-pic" href="/hani-games/"><picture><source media="(min-width: 1000px)" srcset="img/spot/hani-wide.jpg"><img src="img/spot/hani-face.jpg" alt="חני"></picture></a>
+    <a class="spot-pic" href="/hani-games/"><img src="img/spot/hani-face.jpg" alt="חני"></a>
     <a class="spot-main" href="/hani-games/">
       <span class="spot-txt"><b>המשחקייה של חני</b><small>משחקים כשרים לכל המשפחה. ניגונים בלבד, ושומר שבת.</small></span>
       <span class="spot-go">לשחק ←</span>
@@ -252,33 +242,12 @@
     </div>
   </section>
 
-  <section class="box verse">
-    <div class="kicker">כל הדמויות. כל הסרטונים. ולדבר איתן.</div>
-    <h2>שלומי<b>וורס</b></h2>
-    <div class="faces" id="faces"></div>
-    <div class="tap">לחצו על דמות כדי לדבר איתה</div>
-    <p>כל הדמויות. כל הסרטונים. ולדבר איתן.</p>
-    <form class="ask" id="ask">
-      <input id="ask-in" placeholder="שאלו דמות משהו…" maxlength="500" autocomplete="off">
-      <button aria-label="שליחה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-    </form>
-    <div class="who" id="who"></div>
-    <a class="go" href="/wiki/">לשלומיוורס ←</a>
-    <div class="wall r" id="wall-r"></div><div class="wall l" id="wall-l"></div>
-  </section>
-
-  <section class="box collab">
-    <div class="h"><img class="hicon" src="img/collab.jpg" alt=""><span><b>שיתופי פעולה</b><small>מותגים, קמפיינים ושילובי מוצר</small></span></div>
-    <div class="acts">
-      <a href="https://wa.me/972545567213?text=%D7%94%D7%99%D7%99%20%D7%A9%D7%9C%D7%95%D7%9E%D7%99%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#25d366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 1.9 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>WhatsApp</a>
-      <a href="mailto:shlomi@boostart.io?subject=%D7%A9%D7%99%D7%AA%D7%95%D7%A3%20%D7%A4%D7%A2%D7%95%D7%9C%D7%94"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>מייל</a>
-    </div>
-  </section>
-
   <section class="box vids" id="vids"></section>
+  </div>
 
   <section class="box sites">
     <h3>האתרים של הדמויות</h3>
+    <div class="site-list">
     <a class="site" href="https://techytech.web.app/">
       <span class="ico" style="background:#fff;color:#0a5cc2;font-weight:800;font-size:16px;letter-spacing:-1px;direction:ltr">&lt;/&gt;</span>
       <span class="t">Techy-Tech<small>האתר של טקי-טק</small></span><span class="arr">←</span></a>
@@ -318,8 +287,10 @@
     <a class="site" href="/yotamverse/">
       <span class="ico"><img src="img/shop.jpg" alt=""></span>
       <span class="t">החנות של יותם<small>חולצות ועוד</small></span><span class="arr">←</span></a>
+    </div>
   </section>
 
+  <footer class="foot"><img src="/verse/logo-160.png" alt=""><span>אנשים אמיתיים. יקום מקביל.</span></footer>
 </div>
 <script src="/t.js" data-site="links"></script>
 <script>
@@ -328,45 +299,28 @@ const t = (e, x) => window.track && window.track(e, x);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // the wiki's data from the Shlomiverse's bucket (live without a deploy), else the site's own copy; media paths may be absolute
 const wikiUrl = (p) => (/^https?:/.test(p) ? p : '/wiki/' + p);
+// the impressions he keeps off the floating faces (the same list as the wiki's NOT_IN_HERO)
+const NOT_IN_HERO = new Set(['omer-koli', 'oded', 'yotam-zamri', 'bennett', 'naor-zion', 'alex-daniel', 'techytech']);
 fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject()))
   .catch(() => fetch('/wiki/data/wiki.json').then((r) => r.json())).then((w) => {
-  const people = w.characters.filter((c) => c.img).slice(0, 12);
-  // on wide screens the first nine fan out like a hand of cards (--k = place from the middle)
-  document.getElementById('faces').innerHTML = people.map((c, i) => {
-    const k = i - 4;
-    return `<a href="/wiki/#/chat?with=${c.id}" title="${esc(c.name)}" style="--k:${k};--k2:${k * k};z-index:${20 - Math.abs(k)}"><img src="${wikiUrl(c.img)}" alt="${esc(c.name)}"><span>${esc(c.name)}</span></a>`;
-  }).join('');
-  // wide screens: the wiki's drifting walls of faces, and the row of who answers
-  const all = w.characters.filter((c) => c.img), cols = [[], [], [], [], [], []];
-  all.forEach((c, i) => cols[i % 6].push(c));
-  const col = (list) => { const t = list.map((c) => `<div class="tile"><img src="${wikiUrl(c.img)}" alt="" loading="lazy"><span>${esc(c.name)}</span></div>`).join(''); return `<div class="col">${t}${t}</div>`; };
-  document.getElementById('wall-r').innerHTML = cols.slice(0, 3).map(col).join('');
-  document.getElementById('wall-l').innerHTML = cols.slice(3).map(col).join('');
-  document.getElementById('who').innerHTML = '<div class="who-l">מי עונה?</div>' +
-    `<button type="button" class="on" data-who=""><span class="av all"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg></span>כולם</button>` +
-    all.slice(0, 8).map((c) => `<button type="button" data-who="${c.id}"><span class="av"><img src="${wikiUrl(c.img)}" alt=""></span>${esc(c.name)}</button>`).join('');
+  const people = w.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).slice(0, 10);
+  document.getElementById('faces').innerHTML = people.map((c) =>
+    `<a href="/wiki/#/c/${c.id}" title="${esc(c.name)}"><img src="${wikiUrl(c.img)}" alt="${esc(c.name)}"></a>`).join('');
   document.getElementById('vids').innerHTML = `<h3>סרטונים אחרונים<a href="/wiki/#/videos">כל הסרטונים ←</a></h3><div class="vrow">` +
-    w.videos.filter((v) => v.poster && v.src && !v.archive).slice(0, 5).map((v) => `<a href="/wiki/#/v/${v.id}"><span class="th"><img src="${wikiUrl(v.poster)}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
+    w.videos.filter((v) => v.poster && v.src && !v.archive).slice(0, 4).map((v) => `<a href="/wiki/#/v/${v.id}"><span class="th"><img src="${wikiUrl(v.poster)}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
 }).catch(() => {});
+// signed in to the Shlomiverse (the note the site keeps): their face in the top bar, else "כניסה"
+try {
+  const me = JSON.parse(localStorage.getItem('vx-me') || 'null');
+  if (me && me.nick) {
+    const b = document.getElementById('me-btn');
+    b.classList.remove('out'); b.href = '/wiki/#/me';
+    b.innerHTML = `<span>${esc(me.nick)}</span>` + (me.photo ? `<img src="${esc(me.photo)}" alt="">` : '');
+  }
+} catch (e) { /* private mode */ }
 // the spotlight slot is counted on its own too, by what it shows
 document.getElementById('spot').addEventListener('click', (e) => { if (e.target.closest('a')) t('click', 'spotlight:' + e.currentTarget.dataset.spot); });
-let who = '';
-// a face on the phone opens that character's chat in the wiki
-document.getElementById('faces').addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) t('character', a.href.split('with=')[1]); });
-document.getElementById('who').onclick = (e) => {
-  const b = e.target.closest('[data-who]');
-  if (!b) return;
-  who = b.dataset.who;
-  document.querySelectorAll('#who [data-who]').forEach((x) => x.classList.toggle('on', x === b));
-  document.getElementById('ask-in').focus();
-};
-document.getElementById('ask').onsubmit = (e) => {
-  e.preventDefault();
-  const q = document.getElementById('ask-in').value.trim();
-  const to = who ? 'with=' + who + '&' : '';
-  if (q) t('ask', who || 'guide');
-  location.href = q || who ? '/wiki/#/chat?' + to + (q ? 'ask=' + encodeURIComponent(q) : '') : '/wiki/';
-};
+document.getElementById('faces').addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) t('character', a.href.split('/c/')[1]); });
 </script>
 </body>
 </html>

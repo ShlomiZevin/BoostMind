@@ -6,9 +6,45 @@
     "x",
     "facebook"
   ],
-  "caption": "יום רגיל של חני:\nאברהם משה עשה תאונה, יענקי עשה במכנסיים, ושרולי החליק על זה.\nובארבע ועשרים היא בחוץ. ניסי ניסים.\n\n#הייטקס #הייטק #צרותבהייטק #טקיטק #קומדיה",
+  "caption": "יום רגיל של חני:\nאברהם משה עשה תאונה, יענקי עשה במכנסיים, ושרולי החליק על זה.\nובארבע ועשרים היא בחוץ. ניסי ניסים.\n\n#הייטקס #הייטק #צרותבהייטק #שלומיוורס",
   "title": "המתכנתת החרדית – חלק 3",
-  "options": {},
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
   "afterExport": false,
-  "dry": false
+  "dry": false,
+  "last": {
+    "at": 1793529963152,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfMi9D3jtIP/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\")"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/WfJbMqfstH4",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2116844038556921907",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "failed",
+        "error": "fetch failed"
+      }
+    }
+  }
 }

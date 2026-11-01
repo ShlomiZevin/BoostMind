@@ -45,13 +45,13 @@ export function openPlayer(id, q = {}) {
       <video playsinline webkit-playsinline preload="auto" crossorigin="anonymous" poster="${abs(v.poster)}" src="${abs(v.src)}"></video>
       <div class="vp-dim"></div>
       <div class="vp-big">${I.play}</div>
-      <div class="vp-mark">${wordmark()}</div>
+      <div class="vp-mark"><img src="/verse/logo-160.png" alt=""></div>
       <div class="vp-line"><i></i></div>
     </div>
     <div class="vp-ui">
       <div class="vp-head">
         ${lead ? `<a class="vp-who" href="#/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
-        <a class="vp-brand" href="#/" data-close aria-label="חזרה לשלומיוורס">${wordmark(T.tagline)}</a>
+        <a class="vp-brand" href="#/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
       </div>
       <div class="vp-rail">
         <button data-sticker><span class="vx-round main">${I.sticker}</span>${esc(T.sticker)}</button>
@@ -109,21 +109,22 @@ export function openPlayer(id, q = {}) {
     const p = e.target.value / 10;
     e.target.style.setProperty('--p', p + '%');
     if (video.duration) video.currentTime = (p / 100) * video.duration;
-    keepUi();
   });
 
-  // one tap: pause + controls; another tap on the picture: play + naked again
+  // a tap on the picture shows / hides everything around it (comments, save, the episode bar) and never stops the video -
+  // he wants to look at the sides while it keeps playing. Stopping is the play/pause button (or space). A paused video
+  // starts again from a tap too.
   $('.vp-stage', el).addEventListener('click', (e) => {
     if (e.target.closest('button')) return;
     if (video.muted && $('.vp-sound', el)) { video.muted = false; $('.vp-sound', el).remove(); return; }
-    if (el.classList.contains('ui') && !video.paused) { setUi(false); return; }
-    if (video.paused) { video.play(); setUi(false); } else { video.pause(); setUi(true); }
+    if (video.paused) { video.play(); return; }
+    setUi(!el.classList.contains('ui'));
   });
   el.addEventListener('click', (e) => {
     const b = e.target.closest('button, a');
     if (!b) return;
     if (b.matches('[data-close]')) { e.preventDefault(); close(); }
-    else if (b.matches('[data-pp]')) { if (video.paused) { video.play(); setUi(false, 1200); } else { video.pause(); setUi(true); } }
+    else if (b.matches('[data-pp]')) { if (video.paused) video.play(); else { video.pause(); setUi(true); } }
     else if (b.matches('[data-comments]')) openComments();
     else if (b.matches('[data-save]')) save(id);
     else if (b.matches('[data-share]')) share(v);
@@ -144,7 +145,7 @@ export function openPlayer(id, q = {}) {
   });
   P.key = (e) => {
     if (document.querySelector('.vx-sheet, .st, input:focus, textarea:focus')) return;
-    if (e.key === ' ') { e.preventDefault(); video.paused ? video.play() : video.pause(); setUi(video.paused); }
+    if (e.key === ' ') { e.preventDefault(); if (video.paused) video.play(); else { video.pause(); setUi(true); } }
     if (e.key === 'Escape') close();
     if (e.key === 'ArrowDown' && eps[n + 1]) location.replace('#/v/' + eps[n + 1].id);
     if (e.key === 'ArrowUp' && eps[n - 1]) location.replace('#/v/' + eps[n - 1].id);
@@ -162,7 +163,6 @@ function setUi(on, ms) {
   P.el.classList.toggle('ui', on || !!ms);
   if (ms) P.hideT = setTimeout(() => P && !P.video.paused && P.el.classList.remove('ui'), ms);
 }
-const keepUi = () => { if (P && !P.video.paused) setUi(false, 3000); };
 function paint() {
   const { el, v } = P;
   const saved = st.saves.has(v.id);

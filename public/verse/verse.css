@@ -974,3 +974,11 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
   .nk-card .grow { display: none; }
   .nk-card #nk-go { margin-top: 6px; }
 }
+
+/* the video page carries the real logo (he asked): a small glowing one at the top centre while it plays, a bigger one in
+   the bar when the sides are open */
+.vp-mark { opacity: .9; }
+.vp-mark img { display: block; width: 66px; height: auto; filter: drop-shadow(0 2px 10px rgba(0, 0, 0, .55)) drop-shadow(0 0 14px rgba(255, 106, 31, .35)); }
+.vp-brand img { display: block; width: 84px; height: auto; filter: drop-shadow(0 2px 12px rgba(0, 0, 0, .5)) drop-shadow(0 0 16px rgba(255, 106, 31, .35)); }
+@media (max-width: 420px) { .vp-brand img { width: 70px; } }
+@media (min-width: 900px) { .vp-mark img { width: 78px; } .vp-brand img { width: 96px; } }
