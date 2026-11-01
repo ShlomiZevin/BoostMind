@@ -230,6 +230,12 @@
     .site-t.solo .st-games { grid-area: games; }
     .site-t.solo .st-ft { grid-area: ft; align-self: end; }
   }
+  /* @tags: coloured in what was sent and, through a mirror behind the box, while typing (atMirror) */
+  .atag { color: var(--accent); }
+  .m.me .atag { color: #fff; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .atm-back { position: absolute; pointer-events: none; overflow: hidden; overflow-wrap: break-word; border-style: solid; border-color: transparent; margin: 0; z-index: 0; }
+  .atm-field { position: relative; z-index: 1; color: transparent !important; -webkit-text-fill-color: transparent; caret-color: var(--text); background: transparent !important; }
+  .atm-field::placeholder { color: var(--faint); -webkit-text-fill-color: var(--faint); }
   .sg-who { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid var(--line2); display: block; flex: none; }
   .sg-who img, .sg-who .ph { width: 100%; height: 100%; object-fit: cover; display: block; }
   @media (max-width: 760px) {
@@ -688,11 +694,53 @@ function bindHero() {
   });
 }
 
+// ---------- an @tag stays a tag (his ask, 2026-11-01: "a special different font colour all the way, not regular text") ----------
+// In what was sent: @<a character's name> in the accent colour. In a text box while typing: a text box can't colour part of
+// its own text, so a mirror right behind it draws the same text with the tags coloured, and the box's own letters are
+// see-through (its caret, selection and placeholder stay). Only the colour changes - same font and weight, so the
+// letters line up exactly. Used by the chat box, the home box, the comments and the idea sheet (window.atMirror).
+const reEsc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+let atRe = null;
+const atTags = (h) => {   // h = escaped text
+  if (!atRe) { const names = W.characters.map((c) => esc(c.name)).filter(Boolean).sort((a, b) => b.length - a.length); atRe = names.length ? new RegExp('@(' + names.map(reEsc).join('|') + ')', 'g') : /$^/; }
+  return h.replace(atRe, (m) => `<span class="atag">${m}</span>`);
+};
+function atMirror(el) {
+  if (!el || el.dataset.atm || typeof W === 'undefined' || !W) return;
+  el.dataset.atm = '1';
+  const back = document.createElement('div');
+  back.className = 'atm-back'; back.setAttribute('aria-hidden', 'true');
+  el.parentNode.insertBefore(back, el);
+  if (getComputedStyle(el.parentNode).position === 'static') el.parentNode.style.position = 'relative';
+  const COPY = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'wordSpacing', 'textAlign', 'direction', 'textIndent', 'boxSizing',
+    'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+    'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'];
+  let bg = '', fg = '';
+  const sync = () => {
+    const cs = getComputedStyle(el);
+    for (const p of COPY) back.style[p] = cs[p];
+    if (!bg) { bg = cs.backgroundColor; fg = cs.color; el.classList.add('atm-field'); }
+    Object.assign(back.style, { left: el.offsetLeft + 'px', top: el.offsetTop + 'px', width: el.offsetWidth + 'px', height: el.offsetHeight + 'px',
+      background: bg, whiteSpace: el.tagName === 'TEXTAREA' ? 'pre-wrap' : 'pre', color: fg });
+    back.innerHTML = atTags(esc(el.value)) + '​';
+    back.scrollTop = el.scrollTop; back.scrollLeft = el.scrollLeft;
+  };
+  // the value set from code (a picked @name, the box cleared after sending) redraws too
+  const d = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');
+  Object.defineProperty(el, 'value', { configurable: true, get() { return d.get.call(this); }, set(v) { d.set.call(this, v); requestAnimationFrame(sync); } });
+  el.addEventListener('input', sync);
+  el.addEventListener('scroll', () => { back.scrollTop = el.scrollTop; back.scrollLeft = el.scrollLeft; });
+  if ('ResizeObserver' in window) new ResizeObserver(() => requestAnimationFrame(sync)).observe(el);
+  sync();
+}
+window.atMirror = atMirror;
+
 // "@" + a letter or two in a text box: the characters whose name has it (names that start with it first), in a row above
 // the box; a tap writes "@name " in place. The same as in the comments.
 function attachAt(input, onPick) {
   if (!input || input.dataset.at) return;
   input.dataset.at = '1';
+  atMirror(input);
   const form = input.closest('form');
   const box = document.createElement('div');
   box.className = 'at-box'; box.hidden = true;
@@ -809,7 +857,7 @@ function drawChat() {
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
   msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
-    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(esc(m.content))}</p>` : renderText(m.content)}</div>`).join('');
+    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(atTags(esc(m.content)))}</p>` : renderText(m.content)}</div>`).join('');
   $('.sugg', cx).style.display = t.some((m) => m.role === 'user') ? 'none' : '';
   msgs.scrollTop = msgs.scrollHeight;
 }

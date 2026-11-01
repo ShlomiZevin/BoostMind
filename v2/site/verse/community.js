@@ -83,6 +83,7 @@ async function ideaSheet() {
       <div class="ids-who"></div>
       <button class="vx-btn main block" data-send>${esc(T.ideaSend)}</button><p class="ids-note">${esc(T.ideaNote)}</p></div>`, { cls: 'ids-sheet' });
   const ta = h.el.querySelector('textarea'), atBox = h.el.querySelector('.ids-at'), who = h.el.querySelector('.ids-who');
+  window.atMirror?.(ta);   // an @tag stays coloured while typing
   // the faces row: whoever they picked comes first (even if they're far down the list), then everyone else
   const drawWho = () => {
     const rest = all.filter((c) => c.img && !chosen.includes(c.id));

@@ -328,6 +328,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
         <button class="send" disabled aria-label="שליחה">${I.send}</button></form>
       <div class="cm-note">${esc(T.cmNote)}</div>`;
     const ta = $('textarea', compose), send = $('.send', compose), atBox = $('.cm-at', compose);
+    window.atMirror?.(ta);   // an @tag stays coloured while typing (the wiki page's mirror)
     ta.oninput = () => {
       send.disabled = !ta.value.trim();
       ta.style.height = '48px'; ta.style.height = Math.min(ta.scrollHeight + 2, 120) + 'px';
