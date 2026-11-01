@@ -150,7 +150,8 @@ def main():
     out_series.sort(key=lambda s: -len(s['videos']))
 
     site = {'series': out_series, 'characters': out_chars,
-            'videos': [{k: v for k, v in x.items() if not k.startswith('_')} for x in videos]}
+            'videos': [{k: v for k, v in x.items() if not k.startswith('_')} for x in videos],
+            'sites': site_cards(out_series, out_chars)}
     with open(os.path.join(PUB, 'data', 'wiki.json'), 'w', encoding='utf8') as f:
         json.dump(site, f, ensure_ascii=False, separators=(',', ':'))
 
@@ -171,6 +172,36 @@ def main():
     print('brain:', os.path.getsize(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json')) // 1024, 'KB')
     for m in missing:
         print('MISSING', m)
+
+
+PUBLIC = 'https://shlomiverse.com'  # his address since 2026-10-31 (the same site as boostmind-b052c.web.app)
+
+
+def site_cards(series, chars):
+    """The characters' own sites as chat cards ([[site:<character or series id>]] - his ask, 2026-11-01: a link should
+    be a nice card with its picture, like the video cards). Per site: its <title> and og:image, read from the page
+    itself in public/ (techytech.web.app is public/techietech/)."""
+    import re as _re
+    out, by_url = {}, {}
+    for x in [*series, *chars]:
+        url = (x.get('site') or '').replace('https://boostmind-b052c.web.app', PUBLIC)
+        if not url:
+            continue
+        if url not in by_url:
+            path = 'techietech' if 'techytech.web.app' in url else url.split('://', 1)[1].partition('/')[2].strip('/')
+            page = os.path.join(ROOT, 'public', *path.split('/'), 'index.html')
+            title, img = x.get('title') or x.get('name'), None
+            if os.path.exists(page):
+                h = open(page, encoding='utf8').read()
+                m = _re.search(r'<title>([^<]+)', h)
+                title = (_re.split(r'\s*[|—✨•]\s*', m.group(1))[0].strip() if m else title)
+                m = _re.search(r'og:image"\s+content="([^"]+)', h)
+                if m:
+                    img = m.group(1) if m.group(1).startswith('http') else url.rstrip('/') + '/' + m.group(1)
+                    img = img.replace('https://boostmind-b052c.web.app', PUBLIC)
+            by_url[url] = {'url': url, 'title': title, 'img': img, 'host': url.split('://', 1)[1].rstrip('/')}
+        out[x['id']] = by_url[url]
+    return out
 
 
 def cards(videos):

@@ -2853,7 +2853,7 @@
         "fx": {
           "pitch": 0.5
         },
-        "clean": "nn"
+        "clean": "strong"
       },
       "items": [
         {
@@ -3744,7 +3744,7 @@
       "muted": false
     }
   ],
-  "rev": 178,
+  "rev": 185,
   "builder": {
     "kind": "solo",
     "from": "lesson.py"
@@ -3753,7 +3753,7 @@
     "ripple": true
   },
   "characters": [],
-  "saved": 1793529181232,
+  "saved": 1793532163061,
   "notes": [
     {
       "id": "nmvxlca6i",

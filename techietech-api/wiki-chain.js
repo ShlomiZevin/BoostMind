@@ -22,12 +22,16 @@ const routerTask = (scope) => `ROUTING STEP - do not answer the visitor. Read th
 The visitor is talking with ${scope.name} (${scope.self}). Only these residents may be picked (the people ${scope.name} knows): ${scope.allowed.join(', ') || 'none'}.` : ''}
 Answer JSON only: {"characters": ["id", ...], "videos": ["id", ...]}`;
 
+// the sites live on shlomiverse.com (the same site as boostmind-b052c.web.app, his public address since 2026-10-31)
+const pub = (u) => (typeof u === 'string' ? u : u?.url || '').replace('https://boostmind-b052c.web.app', 'https://shlomiverse.com');
+exports.pub = pub;
+
 exports.mapText = (brain) => {
   const lines = ['# The Shlomiverse map (everything that exists; full details of the residents and videos a question is about come with it)', '## Series'];
-  for (const w of brain.worlds) lines.push(`${w.id} | ${w.title} | ${w.blurb || ''}${w.brief ? ' | ' + w.brief : ''}`);
-  lines.push('## Residents (id | name | also called | world | role | tagline)');
+  for (const w of brain.worlds) lines.push(`${w.id} | ${w.title} | ${w.blurb || ''}${w.brief ? ' | ' + w.brief : ''}${w.site ? ' | site: ' + pub(w.site) : ''}`);
+  lines.push('## Residents (id | name | also called | world | role | tagline | their own site)');
   for (const c of brain.characters) {
-    lines.push([c.id, c.name, (c.aka || []).join(', '), c.world || '', c.role || '', c.tagline || ''].join(' | '));
+    lines.push([c.id, c.name, (c.aka || []).join(', '), c.world || '', c.role || '', c.tagline || '', pub(c.site)].join(' | '));
   }
   lines.push('## Videos (id | date | title | cast | what happens)');
   for (const v of brain.videos) lines.push([v.id, v.date || '', v.title, (v.cast || []).join(', '), v.card || v.teaser || ''].join(' | '));
@@ -66,7 +70,7 @@ exports.material = (cur, charIds, videoIds) => {
   const add = (s) => { if (size + s.length > MAX_MATERIAL) return false; out.push(s); size += s.length; return true; };
   for (const id of new Set(charIds)) {
     const c = cur.byId[id];
-    if (c) add('### Resident ' + id + ' (full profile)\n' + JSON.stringify(c));
+    if (c) add('### Resident ' + id + ' (full profile)\n' + JSON.stringify(c).replaceAll('https://boostmind-b052c.web.app', 'https://shlomiverse.com'));
   }
   for (const id of new Set(videoIds)) {
     const v = cur.videos[id];

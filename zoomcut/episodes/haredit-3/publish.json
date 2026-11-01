@@ -19,31 +19,32 @@
   "afterExport": false,
   "dry": false,
   "last": {
-    "at": 1793529963152,
+    "at": 1793532334116,
     "items": {
       "instagram": {
         "state": "done",
-        "url": "https://www.instagram.com/reel/DfMi9D3jtIP/",
+        "url": "https://www.instagram.com/reel/DfMnjUZAlaN/",
         "note": "posted PUBLIC - grid + Reels tab"
       },
       "tiktok": {
         "state": "done",
         "url": null,
-        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\")"
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
       },
       "youtube": {
         "state": "done",
-        "url": "https://youtube.com/shorts/WfJbMqfstH4",
+        "url": "https://youtube.com/shorts/cGOa6IpFmGw",
         "note": "uploaded as PUBLIC"
       },
       "x": {
         "state": "done",
-        "url": "https://x.com/ShlomiZevin/status/2116844038556921907",
+        "url": "https://x.com/ShlomiZevin/status/2116853968097759270",
         "note": "posted PUBLIC"
       },
       "facebook": {
-        "state": "failed",
-        "error": "fetch failed"
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfMnjUZAlaN/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
       }
     }
   }
