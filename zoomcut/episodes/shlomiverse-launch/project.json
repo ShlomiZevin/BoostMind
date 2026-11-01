@@ -1,0 +1,67 @@
+{
+  "format": "sketch-studio/1",
+  "title": "שלומיוורס - ההשקה",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 435,
+  "speed": 1,
+  "assets": {
+    "v.shlomiverse-launch.mp4": {
+      "kind": "video",
+      "src": "media/shlomiverse-launch.mp4",
+      "w": 1080,
+      "h": 1920,
+      "duration": 14.5,
+      "mark": "use"
+    }
+  },
+  "layers": [
+    {
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 435,
+          "asset": "v.shlomiverse-launch.mp4",
+          "in": 0,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ],
+      "props": {
+        "fit": "cover"
+      },
+      "id": "picture",
+      "kind": "video",
+      "name": "Picture"
+    },
+    {
+      "items": [
+        {
+          "id": "a0",
+          "from": 0,
+          "dur": 435,
+          "asset": "v.shlomiverse-launch.mp4",
+          "in": 0,
+          "gain": 1
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "sound",
+      "kind": "audio",
+      "name": "Music"
+    }
+  ],
+  "rev": 4,
+  "saved": 1793548728476
+}

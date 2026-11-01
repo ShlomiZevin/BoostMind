@@ -1,0 +1,24 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "הדמויות שלי כבר לא גרות רק בפיד.\nעכשיו יש להן כתובת ודעות.\nאפשר לדבר איתן. אפשר להפגיש ביניהן.\nהקישור בביו: shlomiverse.com\n\n#שלומיוורס #קומדיהישראלית #הומורישראלי #מערכונים",
+  "title": "שלומיוורס נפתח. דברו עם הדמויות.",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    },
+    "x": {
+      "text": "כל הדמויות במקום אחד. הטעות הייתה לתת להן אינטרנט.\n\n#שלומיוורס"
+    }
+  },
+  "afterExport": false,
+  "dry": false
+}
