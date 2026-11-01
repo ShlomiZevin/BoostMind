@@ -230,6 +230,11 @@
   .mv video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: #000; }
   .mv .mv-t { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--card2); padding: 8px 10px; font-size: .86rem; font-weight: 700; }
   .mv .mv-t button { color: var(--c); font-size: .8rem; font-weight: 700; flex: none; }
+  .ms { display: block; width: min(300px, 100%); border-radius: 14px; overflow: hidden; background: var(--card2); border: 1px solid var(--line2); color: inherit; text-decoration: none; }
+  .ms img { display: block; width: 100%; aspect-ratio: 1.91 / 1; object-fit: cover; background: #000; }
+  .ms .ms-t { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; }
+  .ms b { display: block; font-size: .95rem; line-height: 1.25; } .ms small { color: var(--dim); font-size: .78rem; direction: ltr; display: block; text-align: right; }
+  .ms .go { color: var(--c); font-weight: 800; font-size: .84rem; flex: none; }
   .mc { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); }
   .mc .av { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--cc); }
   .mc .av img, .mc .av .ph { width: 100%; height: 100%; object-fit: cover; }
@@ -563,7 +568,7 @@ function renderText(text, streaming) {
     let para = [];
     const flush = () => { if (para.length) parts.push(`<p>${para.map(esc).join('<br>')}</p>`); para = []; };
     for (const line of block.split('\n')) {
-      const m = line.trim().match(/^\[\[(video|char|request):([\w-]+)\]\]$/);
+      const m = line.trim().match(/^\[\[(video|char|request|site):([\w-]+)\]\]$/);
       if (m && m[1] === 'video' && V[m[2]]) {
         flush();
         const v = V[m[2]];
@@ -574,6 +579,10 @@ function renderText(text, streaming) {
         flush();
         const c = C[m[2]];
         parts.push(`<div class="mc" style="--cc:${color(c)}"><span class="av">${face(c)}</span><span><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role)}</small></span><button data-switch="${c.id}">להעביר לשיחה</button></div>`);
+      } else if (m && m[1] === 'site' && (W.sites || {})[m[2]]) {
+        flush();
+        const st = W.sites[m[2]];
+        parts.push(`<a class="ms" href="${esc(st.url)}" target="_blank" rel="noopener">${st.img ? `<img src="${esc(st.img)}" alt="" loading="lazy">` : ''}<span class="ms-t"><span><b>${esc(st.title)}</b><small>${esc(st.host)}</small></span><span class="go">לאתר ←</span></span></a>`);
       } else if (m && m[1] === 'request' && HOOK.requestCard) {
         flush();
         parts.push(streaming ? '' : HOOK.requestCard(m[2], cxMode));
