@@ -149,9 +149,12 @@ def main():
                            'videos': [v['id'] for v in videos if v['series'] == sid]})
     out_series.sort(key=lambda s: -len(s['videos']))
 
+    site_card, site_list = site_cards(out_series, out_chars, {c['id']: c for c in chars})
     site = {'series': out_series, 'characters': out_chars,
             'videos': [{k: v for k, v in x.items() if not k.startswith('_')} for x in videos],
-            'sites': site_cards(out_series, out_chars)}
+            'sites': site_card,   # card id -> card ([[site:ID]] in the chat)
+            # every site once, for a list on the page: {id, url, title, about, img, whose, in (the site a game is part of)}
+            'site_list': [{**s, 'img': site_card[s['id']]['img']} for s in site_list]}
     with open(os.path.join(PUB, 'data', 'wiki.json'), 'w', encoding='utf8') as f:
         json.dump(site, f, ensure_ascii=False, separators=(',', ':'))
 
@@ -164,6 +167,7 @@ def main():
                         'videos': c['videos'], 'tagline': c['tagline'], 'bio': c['bio']} for c in out_chars],
         'videos': [{'id': v['id'], 'title': v['title'], 'teaser': v['teaser'], 'cast': v['cast'], 'date': v.get('date', ''),
                     'card': card.get(v['id']) or v['teaser'], 'transcript': v['_transcript']} for v in videos],
+        'sites': site_list,
     }
     with open(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json'), 'w', encoding='utf8') as f:
         json.dump(brain, f, ensure_ascii=False, separators=(',', ':'))
@@ -177,31 +181,80 @@ def main():
 PUBLIC = 'https://shlomiverse.com'  # his address since 2026-10-31 (the same site as boostmind-b052c.web.app)
 
 
-def site_cards(series, chars):
-    """The characters' own sites as chat cards ([[site:<character or series id>]] - his ask, 2026-11-01: a link should
-    be a nice card with its picture, like the video cards). Per site: its <title> and og:image, read from the page
-    itself in public/ (techytech.web.app is public/techietech/)."""
+def site_cards(series, chars, raw):
+    """Every site of the Shlomiverse as a chat card (his ask, 2026-11-01: a link should be a nice card with its
+    picture, like the video cards; and the chat must know ALL the sites - it missed Hani's games). A site = a world's
+    site, a character's `site` or any of their `links` that lives here (shlomiverse.com / techytech.web.app), and every
+    game inside one (a folder with a game.json - Hani's games). Per site its title, og:image and description, read
+    from the page in public/ (techytech.web.app is public/techietech/).
+    Returns (cards, sites): cards = {card id: {url, title, img, host}} for the page - keyed by the site's own id (its
+    folder, '/' -> '-') and, as before, by every resident / series id whose main site it is; sites = the list for the
+    chat's map: {id, url, title, about, whose}."""
     import re as _re
-    out, by_url = {}, {}
+    by_url, owners = {}, {}
+
+    def read(url, fallback):
+        url = url.replace('https://boostmind-b052c.web.app', PUBLIC).rstrip('/') + '/'
+        if 'techytech.web.app' in url or url == PUBLIC + '/techietech/':
+            url, path = 'https://techytech.web.app', 'techietech'
+        elif url.startswith(PUBLIC + '/'):
+            path = url[len(PUBLIC) + 1:].strip('/')
+        else:
+            return None
+        if url in by_url:
+            return by_url[url]
+        page = os.path.join(ROOT, 'public', *path.split('/'), 'index.html')
+        if not path or not os.path.exists(page):
+            return None
+        h = open(page, encoding='utf8').read()
+        game = os.path.join(os.path.dirname(page), 'game.json')
+        g = json.load(open(game, encoding='utf8')) if os.path.exists(game) else {}
+        m = _re.search(r'<title>([^<]+)', h)
+        parts = _re.split(r'\s*[|—✨•]\s*', m.group(1).strip()) if m else [fallback]
+        m = _re.search(r'og:description"\s+content="([^"]+)', h)
+        about = []
+        for x in [*parts[1:], g.get('tagline', ''), m.group(1) if m else '']:
+            if x and not any(x in a or a in x for a in about):
+                about.append(x)
+        about = ' - '.join(about)
+        m = _re.search(r'og:image"\s+content="([^"]+)', h)
+        img = m.group(1) if m else ('cover.jpg' if os.path.exists(os.path.join(os.path.dirname(page), 'cover.jpg')) else None)
+        if img and not img.startswith('http'):
+            img = url.rstrip('/') + '/' + img
+        sid = 'techytech' if path == 'techietech' else path.replace('/', '-')
+        by_url[url] = {'id': sid, 'url': url, 'title': g.get('title') or parts[0], 'about': about,
+                       'img': img and img.replace('https://boostmind-b052c.web.app', PUBLIC), 'host': url.split('://', 1)[1].rstrip('/')}
+        # the games inside it
+        for sub in sorted(os.listdir(os.path.dirname(page))):
+            gj = os.path.join(os.path.dirname(page), sub, 'game.json')
+            if os.path.exists(gj) and json.load(open(gj, encoding='utf8')).get('status', 'live') == 'live':
+                s = read(url + sub + '/', sub)
+                if s:
+                    s['in'] = sid
+        return by_url[url]
+
+    cards = {}
     for x in [*series, *chars]:
-        url = (x.get('site') or '').replace('https://boostmind-b052c.web.app', PUBLIC)
-        if not url:
-            continue
-        if url not in by_url:
-            path = 'techietech' if 'techytech.web.app' in url else url.split('://', 1)[1].partition('/')[2].strip('/')
-            page = os.path.join(ROOT, 'public', *path.split('/'), 'index.html')
-            title, img = x.get('title') or x.get('name'), None
-            if os.path.exists(page):
-                h = open(page, encoding='utf8').read()
-                m = _re.search(r'<title>([^<]+)', h)
-                title = (_re.split(r'\s*[|—✨•]\s*', m.group(1))[0].strip() if m else title)
-                m = _re.search(r'og:image"\s+content="([^"]+)', h)
-                if m:
-                    img = m.group(1) if m.group(1).startswith('http') else url.rstrip('/') + '/' + m.group(1)
-                    img = img.replace('https://boostmind-b052c.web.app', PUBLIC)
-            by_url[url] = {'url': url, 'title': title, 'img': img, 'host': url.split('://', 1)[1].rstrip('/')}
-        out[x['id']] = by_url[url]
-    return out
+        r = raw.get(x['id'], {})
+        urls = [x.get('site')] + [l.get('url') for l in r.get('links') or [] if isinstance(l, dict)]
+        for i, u in enumerate(urls):
+            s = u and read(u, x.get('title') or x.get('name'))
+            if not s:
+                continue
+            if x['id'] not in owners.setdefault(s['url'], []):
+                owners[s['url']].append(x['id'])
+            if i == 0:
+                cards[x['id']] = s
+    sites = []
+    for s in by_url.values():
+        whose = owners.get(s['url']) or owners.get(next((o['url'] for o in by_url.values() if o['id'] == s.get('in')), ''), [])
+        card = {k: s[k] for k in ('url', 'title', 'img', 'host')}
+        cards[s['id']] = card
+        for k in list(cards):
+            if cards[k] is s:
+                cards[k] = card
+        sites.append({'id': s['id'], 'url': s['url'], 'title': s['title'], 'about': s['about'], 'whose': whose, 'in': s.get('in')})
+    return cards, sites
 
 
 def cards(videos):

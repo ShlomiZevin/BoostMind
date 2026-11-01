@@ -33,6 +33,11 @@ exports.mapText = (brain) => {
   for (const c of brain.characters) {
     lines.push([c.id, c.name, (c.aka || []).join(', '), c.world || '', c.role || '', c.tagline || '', pub(c.site)].join(' | '));
   }
+  // every site of the world (build.py site_cards - his ask, 2026-11-01: the chat must know ALL of them, Hani's games too)
+  if (brain.sites?.length) {
+    lines.push('## Sites - every site in the Shlomiverse (card id | name | address | what it is | whose). Asked about one, how to get to it, or to play / buy / order: show it with [[site:card id]] on its own line');
+    for (const s of brain.sites) lines.push([s.id, s.title, s.url, s.about, s.whose.join(', ') + (s.in ? ` - a game in ${s.in}` : '')].join(' | '));
+  }
   lines.push('## Videos (id | date | title | cast | what happens)');
   for (const v of brain.videos) lines.push([v.id, v.date || '', v.title, (v.cast || []).join(', '), v.card || v.teaser || ''].join(' | '));
   return lines.join('\n');

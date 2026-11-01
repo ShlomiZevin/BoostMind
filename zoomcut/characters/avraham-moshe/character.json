@@ -69,5 +69,15 @@
   "sources": [
     "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/avraham-moshe-3.txt",
     "c:/workspace/BoostMind/zoomcut/scripts/haredit-2.txt"
+  ],
+  "links": [
+    {
+      "label": "מאפיית ברכת השפע - מחזיק את הקופסה בשם אשתו",
+      "url": "https://shlomiverse.com/birkat-hashefa/"
+    },
+    {
+      "label": "משפחת פרידמן - עץ המשפחה",
+      "url": "https://shlomiverse.com/friedman/"
+    }
   ]
 }

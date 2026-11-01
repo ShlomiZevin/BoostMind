@@ -66,6 +66,22 @@
     {
       "label": "טקי-טק",
       "url": "https://techytech.web.app"
+    },
+    {
+      "label": "המשחקייה של חני - משחקים כשרים למהדרין (נבנתה ע״י גיסתה פנינה ברגר, חני בדקה כל שורה)",
+      "url": "https://shlomiverse.com/hani-games/"
+    },
+    {
+      "label": "שפע עד - הסופר של השכונה",
+      "url": "https://shlomiverse.com/shefa-ad/"
+    },
+    {
+      "label": "מאפיית ברכת השפע - העיגוליות",
+      "url": "https://shlomiverse.com/birkat-hashefa/"
+    },
+    {
+      "label": "משפחת פרידמן - עץ המשפחה (עבודת השורשים של שטערני)",
+      "url": "https://shlomiverse.com/friedman/"
     }
   ],
   "relations": [

@@ -29,5 +29,11 @@
   },
   "themes": [
     "haredit-1: בת המצווה של שטערני"
+  ],
+  "links": [
+    {
+      "label": "משפחת פרידמן - עבודת השורשים שלי לבת המצווה",
+      "url": "https://shlomiverse.com/friedman/"
+    }
   ]
 }
