@@ -367,9 +367,10 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     if (q.body?.save) { savePost(id, post, !!readJson(pubFile(id), {}).afterExport); return res.json({ saved: true }); }
     if (!post.platforms.length) return res.status(400).json({ error: 'Pick where to publish' });
     if (!fs.existsSync(master(id))) return res.status(400).json({ error: 'Export the video first' });
-    // never a file older than his last change (public and can't be undone) - export again first. Checked before
-    // anything is written (publish.json isn't watched by exportStale anyway)
-    if (isStale(id)) return res.status(409).json({ error: 'The video changed after this export - export again first' });
+    // never a file older than his last change (public and can't be undone) - export again first, unless he picked
+    // "the last export as is" in the window ({useLast}, his ask 2026-11-01). Checked before anything is written
+    // (publish.json isn't watched by exportStale anyway)
+    if (isStale(id) && !q.body?.useLast) return res.status(409).json({ error: 'The video changed after this export - export again first' });
     if (runs[id]?.running) return res.status(409).json({ error: 'Already publishing this video' });
     savePost(id, post, false);
     res.json({ run: run(id, post, !!q.body?.dry) });  // (once: no retries - a failed platform says so, he decides)

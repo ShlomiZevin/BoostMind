@@ -106,8 +106,10 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
   // one caption for every platform (X takes its first 280, without links - the server does it)
   const post = () => ({ platforms: picked.map((p) => p.id), caption, title: yTitle, options: { instagram: opt.instagram, youtube: opt.youtube } });
   const isStale = !!file?.stale;
-  // an up-to-date full export goes out as is; otherwise the button exports first
-  const exportFirst = !file || isStale || !!(draft && draft.exported > file.exported);
+  // an up-to-date full export goes out as is; otherwise the button exports first - or, his pick, the last export as is
+  const outdated = !!file && (isStale || !!(draft && draft.exported > file.exported));
+  const [useLast, setUseLast] = useState(false);
+  const exportFirst = !file || (outdated && !useLast);
   const n = picked.length + chans.length;
   const go = async () => {
     setErr('');
@@ -122,7 +124,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       setSends((s) => ({ ...s, [c]: j.error && !j.channel ? { running: false, ok: false, error: j.error, log: [] } : j }));
     }
     if (picked.length) {
-      const r = await api(`/api/ep/${ep}/publish`, post());
+      const r = await api(`/api/ep/${ep}/publish`, { ...post(), useLast: outdated });
       if (r.error) setErr(r.error); else setRun(r.run);
     }
   };
@@ -205,8 +207,15 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
 
         {err && <div className="pb-err">{err}</div>}
         <div className="pb-foot">
-          <div className="pb-file">{file && !exportFirst ? `Sends the export from ${when(file.exported)} as is` : file && isStale ? 'You changed the video since the last export - it exports again first'
-            : draft && !file ? 'This is a quick test - the button makes the full-quality export first' : 'It exports the video first, then sends'}</div>
+          {outdated && !running ? <div className="pb-which">
+            <span>{isStale ? 'You changed the video since the last export' : 'A newer quick test exists'}</span>
+            <div className="pb-seg">
+              <button className={!useLast ? 'on' : ''} onClick={() => setUseLast(false)}>Export again first</button>
+              <button className={useLast ? 'on' : ''} onClick={() => setUseLast(true)}>Use the export from {when(file!.exported)}</button>
+            </div>
+          </div>
+          : <div className="pb-file">{file && !exportFirst ?`Sends the export from ${when(file.exported)} as is` : file && isStale ? 'You changed the video since the last export - it exports again first'
+            : draft && !file ? 'This is a quick test - the button makes the full-quality export first' : 'It exports the video first, then sends'}</div>}
           {running ? <button className="pb-go ghost" onClick={onClose}>Sending… you can close this</button>
             : started && !n ? <button className="pb-go" onClick={onClose}>Done</button>
             : <button className="pb-go" onClick={go}>{n ? `${exportFirst ? 'Export & send' : 'Send'} to ${n}` : exportFirst ? 'Just export' : 'Pick where it goes'}</button>}

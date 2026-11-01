@@ -91,4 +91,11 @@
 .pb-test b { font-size: 14px; }
 .pb-test small { font-size: 11.5px; color: var(--dim); }
 .pb-file { font-size: 11.5px; color: var(--faint); margin-bottom: 8px; width: 100%; }
+/* an outdated export: export again, or send the last one as is (his pick) */
+.pb-which { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; font-size: 11.5px; color: var(--faint); }
+.pb-seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--edge); border-radius: 8px; overflow: hidden; }
+.pb-seg button { padding: 8px 6px; border: 0; background: var(--panel-2); color: var(--dim); font: inherit; font-size: 12px; cursor: pointer; transition: background .15s, color .15s; }
+.pb-seg button + button { border-left: 1px solid var(--edge); }
+.pb-seg button:hover { color: var(--text); }
+.pb-seg button.on { background: color-mix(in srgb, var(--accent) 14%, var(--panel-2)); color: var(--text); font-weight: 600; }
 .pb-foot { flex-direction: column; align-items: stretch; gap: 0; }
