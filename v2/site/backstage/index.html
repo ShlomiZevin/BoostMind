@@ -166,8 +166,8 @@
     /* the top bar already says which page this is */
     main.main:not(.ov) .top h1 { display: none; }
     .mtop { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
-    .mtop img { width: 92px; }
-    .mtop h1 { font-size: 1.8rem; font-weight: 900; flex: 1; }
+    .mtop img { width: 80px; }
+    .mtop h1 { font-size: 1.5rem; font-weight: 900; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mtop a { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line2); background: var(--card2); }
     .mtop a svg { width: 20px; height: 20px; }
     .top { margin-bottom: 14px; } .top h1 { font-size: 1.6rem; }
@@ -317,6 +317,10 @@
   .person .tags { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; flex: none; max-width: 40%; }
   .ofc { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; margin-inline-start: 4px; vertical-align: -2px; }
   .ofc svg { width: 11px; height: 11px; }
+  .mtop .rf { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line2); background: var(--card2); flex: none; }
+  .mtop .rf svg { width: 20px; height: 20px; }
+  [data-refresh].spin svg { animation: rfspin .8s linear infinite; }
+  @keyframes rfspin { to { transform: rotate(-360deg); } }
   .menu-list { display: flex; flex-direction: column; gap: 8px; }
   .menu-list button { display: flex; align-items: center; gap: 12px; height: 58px; padding: 0 16px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); font-weight: 800; font-size: 1.02rem; text-align: start; }
   .menu-list svg { width: 22px; height: 22px; color: var(--accent); }
@@ -386,6 +390,7 @@ const IC = {
   alert: s('<path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2h.01"/>'),
   live: s('<circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/>'),
   game: s('<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/>'),
+  refresh: s('<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.5v4h-4"/>'),
   globe: s('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>'),
 };
 const LOGO_LIKE = '<img src="/verse/logo-160.png" alt="">';
@@ -449,6 +454,20 @@ async function load() {
   draw();
 }
 async function refresh() { [L, S] = await Promise.all([api('list'), api('stats&days=45')]); draw(); }
+// the refresh button (top of the phone, the side menu on a computer): everything again - numbers, conversations, stars
+let refreshing = false;
+async function refreshAll() {
+  if (refreshing) return;
+  refreshing = true;
+  document.querySelectorAll('[data-refresh]').forEach((x) => x.classList.add('spin'));
+  try {
+    [L, S] = await Promise.all([api('list'), api('stats&days=45'), loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]);
+  } catch (e) {}
+  refreshing = false;
+  const y = scrollY;
+  draw();
+  scrollTo(0, y);
+}
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
 const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story']];
@@ -474,8 +493,8 @@ function draw() {
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
-      <nav class="nav foot"><a href="/wiki/" target="_blank">${IC.out}<span>לאתר</span></a><a href="/all/" target="_blank">${IC.globe}<span>כל הדפים שלי</span></a></nav></aside>
-    <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
+      <nav class="nav foot"><button data-refresh>${IC.refresh}<span>רענון</span></button><a href="/wiki/" target="_blank">${IC.out}<span>לאתר</span></a><a href="/all/" target="_blank">${IC.globe}<span>כל הדפים שלי</span></a></nav></aside>
+    <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
   ({ overview, chats, data, people, requests, content, publish, more })[tab]();
@@ -912,6 +931,7 @@ function video() {
 // ---------- clicks ----------
 document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-close]')) { closeSheet(); return; }
+  if (e.target.closest('[data-refresh]')) { refreshAll(); return; }
   const st = e.target.closest('[data-star]');
   if (st) {   // a star on a conversation (in the list or in the open one) - kept on the server
     e.stopPropagation();
