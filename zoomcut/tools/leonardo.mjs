@@ -139,7 +139,7 @@ if (cmd === 'balance') {
   console.log(`paid tokens: ${me.apiPaidTokens ?? '?'}  subscription tokens: ${me.apiSubscriptionTokens ?? '?'}`);
 } else if (cmd === 'portrait' || cmd === 'image') {
   const ref = cmd === 'portrait' ? a.shift() : null;
-  const [promptFile, out, model = 'flare', quality = 'HIGH'] = a;
+  const [promptFile, out, model = 'flare', quality = 'MEDIUM'] = a;  // his rule: never HIGH unless he asks
   const strength = ref ? (a[4] || 'HIGH') : null;
   const dims = ((ref ? a[5] : a[4]) || '1024x1536').split('x').map(Number);
   const prompt = fs.readFileSync(promptFile, 'utf8').trim();

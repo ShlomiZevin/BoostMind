@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אבי בלונים ואירועים | קשתות, בלונים ובלי הליום</title>
+<meta name="description" content="קשתות בלונים, עיצוב לימי הולדת, בר ובת מצווה, ברית ואירועי משרד. יש גם בלי הליום: תולים מהתקרה, אותו דבר בדיוק.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:site_name" content="אבי בלונים ואירועים">
+<meta property="og:title" content="אבי בלונים ואירועים - בלי הליום, עם שכל">
+<meta property="og:description" content="רוצים בלונים מלמעלה? תולים מלמעלה. למה לשלם עוד 400 ₪ על גז שעושה קול מצחיק?">
+<meta property="og:url" content="https://shlomiverse.com/avi-balloons/">
+<meta property="og:image" content="https://shlomiverse.com/avi-balloons/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="אבי בלונים ואירועים - בלי הליום, עם שכל">
+<meta name="twitter:description" content="רוצים בלונים מלמעלה? תולים מלמעלה. למה לשלם עוד 400 ₪ על גז שעושה קול מצחיק?">
+<meta name="twitter:image" content="https://shlomiverse.com/avi-balloons/img/og.jpg">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --pink: #ff2e88; --pink-d: #d81b6f; --teal: #10b8c4; --teal-d: #0a8f99; --yellow: #ffd23f; --wa: #25d366; --ink: #1f1f2b; --muted: #636379; --bg: #fff8fb; --line: #f1dbe6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; overflow-x: clip; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Rubik', sans-serif; font-size: 17px; line-height: 1.55; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 18px; }
+  h2 { font-size: clamp(26px, 4.4vw, 38px); font-weight: 900; line-height: 1.15; }
+
+  /* the running sale banner */
+  .bar { background: var(--ink); color: var(--yellow); font-weight: 700; font-size: 15px; overflow: hidden; overflow: clip; white-space: nowrap; direction: ltr; contain: paint; position: relative; height: 40px; }
+  .bar .run { position: absolute; left: 0; top: 0; display: inline-block; padding: 9px 0; animation: run 26s linear infinite; }
+  .bar .run span { margin: 0 34px; direction: rtl; unicode-bidi: isolate; display: inline-block; }
+  .bar .run span::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--pink); margin-left: 10px; vertical-align: 1px; }
+  @keyframes run { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+  header { background: #fff; border-bottom: 3px solid var(--pink); position: sticky; top: 0; z-index: 5; }
+  header .wrap { display: flex; align-items: center; gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+  header img { width: 46px; }
+  header .nm { font-weight: 900; font-size: 21px; line-height: 1.1; }
+  header .sl { font-size: 13px; color: var(--muted); }
+  header .go { margin-right: auto; background: var(--wa); color: #fff; text-decoration: none; font-weight: 800; padding: 10px 16px; border-radius: 999px; font-size: 15px; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  header .go svg { width: 18px; height: 18px; }
+
+  .hero { background: linear-gradient(135deg, #fff 0%, #ffe8f2 55%, #e2fbfd 100%); padding: 38px 0 46px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; gap: 34px; align-items: center; }
+  .kicker { color: var(--teal-d); font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+  .hero h1 { font-size: clamp(36px, 6.4vw, 62px); font-weight: 900; line-height: 1.04; margin-bottom: 16px; }
+  .hero h1 em { font-style: normal; color: var(--pink); }
+  .hero p { font-size: 19px; color: #3d3d50; margin-bottom: 22px; max-width: 520px; }
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { display: inline-block; text-decoration: none; font-weight: 800; padding: 15px 24px; border-radius: 14px; font-size: 17px; border: 0; cursor: pointer; font-family: inherit; }
+  .btn.p { background: var(--pink); color: #fff; box-shadow: 0 6px 0 var(--pink-d); }
+  .btn.s { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
+  .pic { position: relative; }
+  .pic img { border-radius: 22px; box-shadow: 0 18px 40px rgba(31,31,43,.18); aspect-ratio: 1; object-fit: cover; width: 100%; }
+  .stamp { position: absolute; bottom: -16px; right: -10px; background: var(--yellow); color: var(--ink); font-weight: 900; font-size: 17px; padding: 12px 16px; border-radius: 14px; transform: rotate(-4deg); box-shadow: 0 6px 18px rgba(0,0,0,.15); }
+  .cap { font-size: 13px; color: var(--muted); margin-top: 22px; text-align: center; }
+
+  /* no helium - the main event */
+  .nh { background: var(--teal); color: #fff; padding: 52px 0; }
+  .nh .tag { display: inline-block; background: var(--yellow); color: var(--ink); font-weight: 800; font-size: 14px; padding: 5px 12px; border-radius: 999px; margin-bottom: 12px; }
+  .nh ul { list-style: none; margin: 18px 0 28px; display: grid; gap: 8px; font-size: 19px; }
+  .nh li { padding-right: 26px; position: relative; }
+  .nh li::before { content: ''; position: absolute; right: 0; top: 10px; width: 14px; height: 14px; border-radius: 50%; background: var(--yellow); }
+  .cmp { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; }
+  .cmp figure { background: #fff; color: var(--ink); border-radius: 18px; overflow: hidden; }
+  .cmp figure img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
+  .cmp figcaption { padding: 12px 14px; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .cmp figcaption b { color: var(--pink); white-space: nowrap; }
+  .cmp .eq { font-size: 64px; font-weight: 900; color: var(--yellow); line-height: 1; }
+  .punch { text-align: center; font-size: clamp(28px, 5vw, 44px); font-weight: 900; margin-top: 26px; }
+
+  /* packages */
+  .pk { padding: 56px 0; }
+  .pk .sub { color: var(--muted); font-size: 18px; margin: 10px 0 30px; max-width: 700px; }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch; }
+  .card { background: #fff; border: 2px solid var(--line); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+  .card img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
+  .card .b { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+  .card .badge { font-size: 13px; font-weight: 800; color: var(--teal-d); margin-bottom: 4px; }
+  .card h3 { font-size: 22px; font-weight: 900; }
+  .card .price { font-size: 38px; font-weight: 900; color: var(--pink); line-height: 1.1; margin: 4px 0 6px; }
+  .card .price small { font-size: 15px; color: var(--muted); font-weight: 500; }
+  .card .note { font-size: 15px; color: var(--muted); margin-bottom: 12px; }
+  .card ul { list-style: none; font-size: 15px; display: grid; gap: 5px; margin-bottom: 12px; }
+  .card li { padding-right: 20px; position: relative; }
+  .card li.y::before, .card li.n::before { position: absolute; right: 0; top: 0; font-weight: 900; }
+  .card li.y::before { content: '+'; color: var(--teal-d); }
+  .card li.n { color: #9a9aab; text-decoration: line-through; text-decoration-color: rgba(154,154,171,.6); }
+  .card li.n::before { content: '−'; color: #c33; text-decoration: none; }
+  .card .pick { margin-top: auto; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 12px; font-weight: 800; font-family: inherit; font-size: 16px; cursor: pointer; }
+  .card.best { border: 4px solid var(--pink); transform: translateY(-8px); box-shadow: 0 14px 30px rgba(255,46,136,.25); position: relative; }
+  .card.best .ribbon { position: absolute; top: 12px; left: -36px; background: var(--pink); color: #fff; font-weight: 900; font-size: 13px; padding: 5px 40px; transform: rotate(-35deg); }
+  .card.best .pick { background: var(--pink); }
+  .card .vs { font-size: 13px; color: var(--pink-d); font-weight: 700; margin-bottom: 10px; }
+
+  /* how the trade works */
+  .lg { background: #fff; padding: 56px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 26px; counter-reset: r; }
+  .rule { background: var(--bg); border-radius: 16px; padding: 18px; position: relative; padding-top: 52px; }
+  .rule::before { counter-increment: r; content: counter(r); position: absolute; top: 14px; right: 18px; width: 30px; height: 30px; border-radius: 50%; background: var(--teal); color: #fff; font-weight: 900; display: grid; place-items: center; }
+  .rule h3 { font-size: 19px; font-weight: 800; margin-bottom: 6px; }
+  .rule p { font-size: 16px; color: #48485c; }
+
+  .thu { background: var(--yellow); padding: 34px 0; }
+  .thu .wrap { display: flex; gap: 22px; align-items: center; }
+  .thu .day { flex: none; background: var(--ink); color: var(--yellow); font-weight: 900; font-size: 22px; border-radius: 16px; padding: 14px 18px; text-align: center; line-height: 1.1; }
+  .thu .day b { display: block; font-size: 46px; }
+  .thu p { font-size: 18px; margin-top: 6px; }
+
+  .gu { padding: 56px 0; }
+  .gu .box { background: var(--ink); color: #fff; border-radius: 24px; padding: 34px; display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center; }
+  .gu .box img { width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 5px solid var(--pink); }
+  .gu .wh { color: var(--yellow); font-weight: 700; font-size: 15px; letter-spacing: .5px; }
+  .gu p { font-size: 18px; color: #e3e3ee; margin-top: 10px; }
+
+  .rv { padding: 0 0 56px; }
+  .revs { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 22px; }
+  .rev { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 18px; }
+  .stars { display: flex; gap: 2px; margin-bottom: 8px; }
+  .stars svg { width: 18px; height: 18px; fill: var(--yellow); stroke: #e0a800; stroke-width: 1; }
+  .rev p { font-size: 16px; }
+  .rev b { display: block; margin-top: 10px; font-size: 15px; color: var(--muted); }
+
+  .hr { background: #fff; padding: 46px 0; border-top: 1px solid var(--line); }
+  .hr .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
+  .hr table { width: 100%; border-collapse: collapse; font-size: 18px; margin-top: 14px; }
+  .hr td { padding: 10px 4px; border-bottom: 1px dashed var(--line); }
+  .hr td:last-child { text-align: left; font-weight: 700; }
+  .hr .note { background: #e9fbfc; border-right: 5px solid var(--teal); padding: 16px 18px; border-radius: 10px; font-size: 17px; }
+
+  .fm { background: linear-gradient(160deg, var(--pink) 0%, #ff5fa4 100%); padding: 56px 0; color: #fff; }
+  .fm .wrap { max-width: 720px; }
+  .fm .sub { font-size: 18px; margin: 8px 0 22px; opacity: .95; }
+  form { background: #fff; color: var(--ink); border-radius: 20px; padding: 22px; display: grid; gap: 12px; grid-template-columns: 1fr 1fr; box-shadow: 0 16px 40px rgba(0,0,0,.15); }
+  form label { display: grid; gap: 4px; font-size: 14px; font-weight: 700; }
+  form .full { grid-column: 1 / -1; }
+  input, select, textarea { font-family: inherit; font-size: 17px; padding: 12px; border: 2px solid var(--line); border-radius: 10px; background: #fff; width: 100%; }
+  textarea { min-height: 96px; resize: vertical; }
+  form .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+  #send { grid-column: 1 / -1; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 16px; font-size: 19px; font-weight: 900; font-family: inherit; cursor: pointer; }
+  #send:disabled { opacity: .6; }
+  #err { grid-column: 1 / -1; color: #c3123f; font-weight: 700; min-height: 1em; font-size: 15px; }
+
+  footer { background: var(--ink); color: #c9c9d6; padding: 30px 0 90px; font-size: 14px; }
+  footer .line { color: #fff; font-weight: 800; font-size: 17px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  footer .line img { width: 34px; }
+  footer p { margin-top: 4px; }
+
+  .float { position: fixed; bottom: 16px; left: 16px; background: var(--wa); color: #fff; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(0,0,0,.25); z-index: 6; }
+  .float svg { width: 32px; height: 32px; }
+
+  .pop { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; place-items: center; z-index: 9; padding: 20px; }
+  .pop.on { display: grid; }
+  .pop div { background: #fff; border-radius: 20px; padding: 28px; max-width: 420px; text-align: center; }
+  .pop h3 { font-size: 26px; font-weight: 900; color: var(--pink); }
+  .pop p { margin: 10px 0 18px; }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 720px) {
+    header .sl { display: none; }
+    header .go span { display: none; }
+    .hero .wrap { grid-template-columns: 1fr; }
+    .hero .pic { order: -1; max-width: 420px; margin: 0 auto; }
+    .cmp { grid-template-columns: 1fr; }
+    .cmp .eq { text-align: center; font-size: 48px; }
+    .cards { grid-template-columns: 1fr; }
+    .card.best { transform: none; }
+    .thu .wrap { flex-direction: column; align-items: flex-start; }
+    .gu .box { grid-template-columns: 1fr; text-align: center; padding: 26px 20px; }
+    .gu .box img { margin: 0 auto; }
+    .hr .wrap { grid-template-columns: 1fr; }
+    form { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar" aria-label="מבצעים"><div class="run">
+  <span>מבצע סוגרים פינה: חבילת בלי הליום החל מ־149 ₪</span><span>מורידים במחיר? מורידים גם מהחבילה. זה עובד ביחד.</span><span>קשת ליום חמישי? לא מתקשרים בחמישי שאין בלונים.</span>
+  <span>מבצע סוגרים פינה: חבילת בלי הליום החל מ־149 ₪</span><span>מורידים במחיר? מורידים גם מהחבילה. זה עובד ביחד.</span><span>קשת ליום חמישי? לא מתקשרים בחמישי שאין בלונים.</span>
+</div></div>
+
+<header><div class="wrap">
+  <img src="img/logo.png" alt="">
+  <div><div class="nm">אבי בלונים ואירועים</div><div class="sl">סוגרים קשת, סוגרים פינה</div></div>
+  <a class="go" href="#order"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.1.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z"/></svg><span>להצעת מחיר</span></a>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div>
+    <div class="kicker">ימי הולדת · בר/בת מצווה · ברית · משרד · כל סיבה לעשות אווירה</div>
+    <h1>בלונים שעושים כניסה. <em>לא חור בכיס.</em></h1>
+    <p>קשתות בלונים, עיצוב אירועים ופתרון חכם בלי הליום. רוצים שהבלונים יהיו למעלה? תולים אותם מהתקרה למטה. אותו דבר בדיוק.</p>
+    <div class="btns">
+      <a class="btn p" href="#order">להצעת מחיר / שריון קשת</a>
+      <a class="btn s" href="#logic">תראו איך עובד התחום</a>
+    </div>
+  </div>
+  <div class="pic">
+    <img src="img/avi.jpg" alt="אבי, בעל העסק">
+    <div class="stamp">הבחירה החכמה: בלי הליום</div>
+  </div>
+</div></section>
+
+<section class="nh" id="nohelium"><div class="wrap">
+  <span class="tag">החבילה שאבי לוקח אישית</span>
+  <h2>בלי הליום. בלי ויכוחים. אותו דבר בדיוק.</h2>
+  <ul>
+    <li>בלונים מהרצפה למעלה או מהתקרה למטה - בסוף הם באוויר.</li>
+    <li>תלייה על חוטים מהתקרה: נראית מעולה, עולה פחות.</li>
+    <li>הליום זה גז שעושה קול מצחיק. בשביל זה לשלם עוד 400 ₪?</li>
+    <li>רוצים לחסוך וגם לקבל אפקט? הנה, הסברתי איך זה עובד.</li>
+  </ul>
+  <div class="cmp">
+    <figure><img src="img/floor.jpg" alt="בלוני הליום עומדים מהרצפה כלפי מעלה" loading="lazy"><figcaption>בלונים עומדים מהרצפה כלפי מעלה <b>+400 ₪</b></figcaption></figure>
+    <div class="eq">=</div>
+    <figure><img src="img/hang.jpg" alt="בלונים תלויים מהתקרה כלפי מטה" loading="lazy"><figcaption>בלונים תלויים מהתקרה כלפי מטה <b>149 ₪</b></figcaption></figure>
+  </div>
+  <div class="punch">מה ההבדל? אותו דבר בדיוק.</div>
+</div></section>
+
+<section class="pk" id="packages"><div class="wrap">
+  <h2>חבילות בלונים. תקשיבו רגע, תקשיבו טוב.</h2>
+  <p class="sub">כל מחיר מביא איתו חבילה. מורידים במחיר = מורידים מהחבילה. אי אפשר פרימיום במחיר בסיס, זה לא עובד ככה.</p>
+  <div class="cards" id="cards"></div>
+</div></section>
+
+<section class="lg" id="logic"><div class="wrap">
+  <h2>איך עובד התחום</h2>
+  <div class="rules">
+    <div class="rule"><h3>מורידים במחיר? מורידים מהחבילה.</h3><p>רוצים פחות לשלם, אין בעיה. פשוט יורדים בכמות, בהתקנה, בתוספות או בהליום. הכול ביחד, לא רק המחיר.</p></div>
+    <div class="rule"><h3>הליום הוא תוספת, לא חוק טבע.</h3><p>הליום עולה כסף, מחזיק לפי תנאים, ועושה קול מצחיק. בלונים מהתקרה נותנים אפקט מצוין בלי הסיפור.</p></div>
+    <div class="rule"><h3>קשת צריך לשריין.</h3><p>קשת לא יוצאת מהמגירה. צריך צבעים, בלונים, זמן התקנה ותיאום. סוגרים מראש, נושמים רגוע.</p></div>
+    <div class="rule"><h3>תמונה עוזרת. מילה כמו „יפה” פחות.</h3><p>שלחו צבעים, השראה, מקום האירוע ותאריך. אבי אומר מה אפשר, מה מיותר ומה עולה.</p></div>
+    <div class="rule"><h3>אין הפתעות, יש מע״מ.</h3><p>המחיר של החבילה ברור. תוספות, נסיעה חריגה ושעות מיוחדות נסגרים לפני. מע״מ זה כבר עניין של המדינה.</p></div>
+  </div>
+</div></section>
+
+<section class="thu"><div class="wrap">
+  <div class="day">יום<b>ה׳</b></div>
+  <div><h2>אירוע ביום חמישי? לא מחכים לחמישי.</h2>
+  <p>אל תתקשרו ביום חמישי שאין בלונים בקשת. בחמישי כולם נזכרים, כולם צריכים למחר, וכולם רוצים בדיוק את הצבע שנגמר. שריינו מוקדם.</p></div>
+</div></section>
+
+<section class="gu"><div class="wrap"><div class="box">
+  <img src="img/avi.jpg" alt="אבי">
+  <div><div class="wh">בינינו?</div><h2>ההבטחה של אבי: אני לא מרוויח עליכם.</h2>
+  <p>אבי לא דוחף מה שלא צריך. אם בלי הליום מתאים יותר - הוא יגיד בלי הליום. אם צריך קשת אמיתית - הוא יגיד קשת אמיתית. משלמים על מה שמקבלים, מקבלים מה שסגרנו.</p></div>
+</div></div></section>
+
+<section class="rv"><div class="wrap">
+  <h2>מה אומרים הלקוחות</h2>
+  <div class="revs" id="revs"></div>
+</div></section>
+
+<section class="hr"><div class="wrap">
+  <div><h2>שעות שירות - בין סט לסט</h2>
+    <table>
+      <tr><td>א׳–ה׳</td><td>09:00–20:30</td></tr>
+      <tr><td>ו׳</td><td>09:00–13:00</td></tr>
+      <tr><td>שבת</td><td>סגור, אלא אם סגרנו לפני</td></tr>
+    </table></div>
+  <div class="note">עונים לשיחות ולהודעות בין סטים בחדר הכושר. לא באמצע סקוואט. אם אין מענה, שולחים הודעה עם תאריך ותמונה.</div>
+</div></section>
+
+<section class="fm" id="order"><div class="wrap">
+  <h2>להצעת מחיר / שריון קשת</h2>
+  <p class="sub">תשלחו פרטים. אבי חוזר בין סט לסט, מסביר מה מתאים וסוגר אתכם על משהו יפה.</p>
+  <form id="f" novalidate>
+    <label>שם מלא<input name="name" id="fName" autocomplete="name"></label>
+    <label>טלפון<input name="phone" type="tel" inputmode="tel" autocomplete="tel"></label>
+    <label>תאריך האירוע<input name="date" type="date"></label>
+    <label>איזו חבילה מעניינת אתכם?<select name="pkg" id="pkg"></select></label>
+    <label class="full">מה האירוע, איפה, כמה אנשים ואיזה צבעים?<textarea name="msg"></textarea></label>
+    <label class="hp" aria-hidden="true">אתר<input name="website" tabindex="-1" autocomplete="off"></label>
+    <div id="err" role="alert"></div>
+    <button id="send" type="submit">שלחו לאבי</button>
+  </form>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="line"><img src="img/logo.png" alt="">אבי בלונים ואירועים - סוגרים קשת, סוגרים פינה.</div>
+  <p>כל המחירים לפני מע״מ.</p>
+  <p>מע״מ זה לא אני, מע״מ זה המדינה - עם המדינה תדברו.</p>
+  <p>מחיר סופי נקבע לפי תאריך, מיקום, היקף התקנה ותוספות שסוכמו מראש.</p>
+</div></footer>
+
+<a class="float" href="#order" aria-label="להצעת מחיר"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.1.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z"/></svg></a>
+
+<div class="pop" id="pop"><div><h3 id="popH"></h3><p id="popP"></p><button class="btn p" onclick="this.closest('.pop').classList.remove('on')">סגירה</button></div></div>
+
+<script>
+// the packages: [id, name, price, badge, note, picture, included, not included, best]
+const PK = [
+  ['no-helium', 'בלי הליום', 149, 'מומלץ - אותו דבר בדיוק', 'הפתרון החכם והמשתלם לתקרה, קיר או פינת צילום.', 'hang',
+    ['עד 50 בלונים בצבעי האירוע', 'תלייה מהתקרה על חוטים', 'סידור פינת צילום קטנה', 'בחירת עד 2 צבעים', 'איסוף עצמי או התקנה בתיאום'],
+    ['אין הליום', 'אין קשת רצפה מלאה', 'אין פירוק בסוף האירוע'], true],
+  ['basic-200', 'בסיס 200', 200, 'בסיס, כמו שאומרים: בסיס', 'למי שרוצים בלונים מסודרים, בלי להתחיל לבנות ארמון.', 'wall',
+    ['עד 70 בלונים', 'עיצוב קיר או כניסה', 'עד 2 צבעים', 'סידור בסיסי במקום', 'תיאום טלפוני לפני האירוע'],
+    ['אין הליום', 'אין קשת בלונים מלאה', 'אין פירוק', 'אין תוספות של הרגע האחרון']],
+  ['400', 'חבילת 400', 400, 'החבילה שעושה עבודה', 'קשת יפה, נוכחות בכניסה, ואבי מגיע לסדר את זה כמו שצריך.', 'arch',
+    ['קשת בלונים עד 2.5 מטר', 'עד 120 בלונים', 'עד 3 צבעים', 'התקנה במקום האירוע', 'פינת צילום משלימה', 'תיאום והגעה בשעה שסגרנו'],
+    ['אין הליום', 'אין עיצוב תקרה מלא', 'אין פירוק לאחר האירוע']],
+  ['premium', 'פרימיום', 800, 'כולל הליום - 400 ₪ יותר בשביל הגז', 'למי שמתעקשים על הליום, קשת גדולה וכל מה שמסביב.', 'floor',
+    ['קשת בלונים גדולה עד 4 מטר', 'בלוני הליום עם משקולות', 'עד 180 בלונים', 'עיצוב כניסה ופינת צילום', 'עד 4 צבעים', 'התקנה במקום', 'פירוק בסיסי בתיאום'],
+    ['אין שינוי קונספט ביום האירוע', 'אין קסמים, יש בלונים']],
+];
+const sel = document.getElementById('pkg');
+document.getElementById('cards').innerHTML = PK.map(([id, n, p, badge, note, pic, yes, no, best]) => `
+  <div class="card${best ? ' best' : ''}">${best ? '<div class="ribbon">הכי משתלם</div>' : ''}<img src="img/${pic}.jpg" alt="${n}" loading="lazy">
+    <div class="b"><div class="badge">${badge}</div><h3>${n}</h3><div class="price">${p} ₪ <small>לפני מע״מ</small></div>
+      ${best ? '<div class="vs">חוסכים 51 ₪ מול הבסיס. ו־651 ₪ מול הגז.</div>' : ''}
+      <div class="note">${note}</div>
+      <ul>${yes.map((x) => `<li class="y">${x}</li>`).join('')}${no.map((x) => `<li class="n">${x}</li>`).join('')}</ul>
+      <button class="pick" data-pkg="${n}">רוצה את זה</button></div></div>`).join('');
+for (const [, n, p] of PK) sel.add(new Option(`${n} · ${p} ₪`, n));
+sel.add(new Option('עוד לא יודע/ת - שאבי יסביר', 'לא יודע'));
+
+const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+const REVS = [
+  ['סיגל', 'בסוף לקחתי בלי הליום. אבי תלה מהתקרה וזה באמת נראה אותו דבר בדיוק. הוא צדק, אבל שלא יתרגל.'],
+  ['יניב', 'קשת לבר מצווה, הגעה בזמן, צבעים בדיוק כמו בתמונה. אבי דיבר איתי כאילו אני מתווכח איתו, אבל יצא פצצה.'],
+  ['ליאור', 'אני מהחדר כושר. שמעתי את כל השיחה עם סיגל, ואז הזמנתי גם. הבן אדם מבין בלונים וגם יודע להרים משקלים.'],
+  ['מורן', 'עשינו יום הולדת במשרד. חבילת 400, קשת בכניסה ופינת צילום. כל המשרד צילם, אף אחד לא שאל אם יש הליום.'],
+];
+document.getElementById('revs').innerHTML = REVS.map(([n, t]) => `<div class="rev"><div class="stars">${STAR.repeat(5)}</div><p>${t}</p><b>${n}</b></div>`).join('');
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-pkg]');
+  if (!b) return;
+  sel.value = b.dataset.pkg;
+  window.track && window.track('package', b.dataset.pkg);
+  document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => document.getElementById('fName').focus({ preventScroll: true }), 600);
+});
+
+// the request: an email to the business (siteLead) - nothing charged, nothing stored
+const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/siteLead';
+const form = document.getElementById('f'), btn = document.getElementById('send'), err = document.getElementById('err');
+const pop = (h, p) => { document.getElementById('popH').textContent = h; document.getElementById('popP').textContent = p; document.getElementById('pop').classList.add('on'); };
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const f = form.elements, name = f.name.value.trim(), phone = f.phone.value.trim();
+  if (!name || phone.replace(/\D/g, '').length < 9 || !f.date.value) { err.textContent = 'תקשיבו רגע: חסר שם, טלפון או תאריך אירוע.'; return; }
+  btn.disabled = true; btn.textContent = 'רגע, אבי מסיים סט...'; err.textContent = '';
+  try {
+    const fd = new FormData();
+    fd.append('site', 'avi-balloons'); fd.append('choice', f.pkg.value); fd.append('name', name); fd.append('phone', phone);
+    fd.append('when', f.date.value); fd.append('website', f.website.value);
+    fd.append('message', [`חבילה: ${f.pkg.value}`, `תאריך האירוע: ${f.date.value}`, '', f.msg.value.trim()].join('\n'));
+    const r = await fetch(API, { method: 'POST', body: fd });
+    if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
+    form.reset();
+    window.track && window.track('lead', f.pkg.value);
+    pop('קיבלנו. סוגרים פינה.', 'הפרטים אצל אבי. הוא יחזור אליכם בהקדם, בין סט לסט.');
+  } catch (x) {
+    err.textContent = x.message === 'too many' ? 'הבקשה כבר התקבלה, אין צורך לשלוח שוב.' : 'לא נשלח. תנסו שוב בעוד רגע.';
+  } finally { btn.disabled = false; btn.textContent = 'שלחו לאבי'; }
+};
+</script>
+<script src="/t.js" data-site="avi-balloons" defer></script>
+</body>
+</html>

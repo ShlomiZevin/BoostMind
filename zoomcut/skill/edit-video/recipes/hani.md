@@ -25,9 +25,22 @@ He gives a script. Make it a project at once so it shows in the Reader:
 2. **The other side of every call goes in the script too** - he writes Brachi's (or whoever's) real lines. If he
    didn't, write them in her voice (deadpan 10-year-old reporting disaster), show him, and add them. Real words,
    never mumble: "where it was real speech it works really great".
-3. Footage folder `Downloads\drop\<his folder>` (empty is fine), then
+   **Brachi's lines go in the Reader as direction rows** - `(ברכי – אימא, ברח ליענקי במכנסיים!)` right after the line
+   she answers (haredit-3, 2026-10-30): he sees where to leave her pause while filming, Play never stops on them, and
+   the pipeline ignores them (a spoken row of hers would count as a "missing" line of his).
+   **A dash, never a colon** (2026-11-01): the Reader takes any row starting "Name:" as a character - even inside
+   parentheses - and Hani's lines (no "Name:") then vanish; he saw only "הוראת בימוי". Check the script has no `:`
+   outside the `#` title row.
+3. Footage folder `Downloads\drop\haredit-N` + the same folder on the phone's Drop page (`POST
+   https://drop-463727469066.me-west1.run.app/api/mkdir {k: DROP_KEY from zoomcut/.env, folder}`), then
    `POST /api/new {name: "haredit-3", folder, from: "haredit-2"}` - `from` copies the set, music, voice, look.
-   Set the project's `script` to `haredit-3` and its Hebrew `title`. Tell him: "refresh the Reader, pick haredit-3".
+   Set the project's `script` to `haredit-3` and its Hebrew `title` (episode.json - `script` is not a config key).
+   Tell him: "refresh the Reader, pick haredit-3".
+   - **Never the Reader's "Create a new project… settings like haredit-2"** (`/api/new-from-script` with `like`): the
+     copy keeps `script: "haredit-2"`, so the new text is written OVER haredit-2's script (found 2026-10-30, not yet
+     fixed in the tool).
+   - `from` also carries the old video's take-bound keys: delete `sequence`, `props`, `captions_from`, `cut.removes`
+     and `media` (its `media/` paths don't exist in the new folder) before the first Analyze.
 
 ## 2. Hani's look and sound - copy haredit-2 exactly (he: "everything was perfect, we need the same")
 Read `episodes/haredit-2/project.json` and make the same layers with ops (`POST /api/p/<id>/ops {rev, ops}`):
@@ -68,6 +81,10 @@ and lives in `_assets/haredit/calls/` (haredit-2's files are there - reuse the h
   clumsily climbing a wooden kitchen cabinet: wood creaking, doors banging, a heavy thud").
 - One looping chaos bed under the whole call (`house-bed.mp3`) + one file per event (crash, crying, cookie tin,
   shower), each its own item, timed to a word (the crash, then the crying, right before "מי בוכה שם?").
+- **Only what happens DURING the call is heard happening** (his note, haredit-3, 2026-10-30): Sruli slipped minutes
+  before Brachi calls ("the father asked her to call") - so no fall / thud, but the hurt kid moaning in the
+  background through the whole call (`sruli3-moan.mp3`, a wordless sfx loop, ~8 dB under Brachi) + one v4
+  `[groaning in pain] אוי... כואב` (pitch 1.4) right after she reports it. Ask: is this event live or already over?
 - **Any word is TTS, never a sound effect** (the sfx model said "mommy" in English): "אמא! אמא!" = v4
   `[crying, shouting] אמאאא! אמא!` dry.
 - A sound that lasts through a moment (shower, TV) starts with the scene and stops on the line that stops it
@@ -78,8 +95,8 @@ and lives in `_assets/haredit/calls/` (haredit-2's files are there - reuse the h
 Upload each file (`/assets?name=`), then audio layers with ops:
 | lane | what | volume |
 |---|---|---|
-| ברכי בטלפון | her lines: `fx {filter: "phone"}`, pitch 1.7 (chipmunk), tempo ~1.3 | 0.3 |
-| הבית ברקע | the looping house bed, `filter: phone` | 0.35 |
+| ברכי בטלפון | her lines: item `fx {filter: "phone"}` + the SAME filter on the layer (`layer.update props.fx`) = a stronger phone; **pitch 1.6, tempo 1.0** (haredit-3: "brachi is way too fast" at 1.7x1.3) | **0.8** ("לא שומעים את ברכי") |
+| הבית ברקע | the looping house bed, `filter: phone` | **0.18** - the house under her, never over her |
 | אירועים וצלצולים | crashes, crying, the ring (ring without filter) | 0.35 |
 | מקלחת | the shower loop, `filter: phone` | 0.35 |
 - **Chipmunk = pitch 1.7** on the item (it speeds up with it: 4.8 s → 2.6 s). His words: "like chipmunks, a little
@@ -112,6 +129,18 @@ He uploads through the Drop (iPhone; random file names). Several takes of a pass
 6. A held prop the cut-out drops (cookie box) = episode.json `props` (reference.md); a sign read backwards =
    Person → Mirror.
 7. Analyze through the studio. Then re-place every call item on the real pauses (they moved).
+8. **No behind-the-scenes arm** (his words, haredit-3, 2026-11-01): "when you see my arm reaching from the mobile
+   which is taking the shot ... I just clicked on record and pull my hand back. It's like behind the scenes." Every
+   take's head and tail: a contact sheet every 0.15 s around the first / last word; the big blurred arm near the lens
+   (usually bottom-right, ~0.6-1.3 s after the tap, ~0.6 s after the last word) is out - `sequence` from / to.
+   **His hands on his head, gestures, the phone at the ear are acting - they stay.** He wants this automatic in the
+   editor one day (tool work, separate).
+9. **Put the call sounds straight on the takes** - episode.json `sounds` are in take seconds, so place them from the
+   word timings + a 10 ms energy scan (Whisper hides pauses inside words) BEFORE Analyze; the builder lays them.
+   His real pauses in a call are 0.3-0.7 s: trim Brachi to the part that fits (`from` / `to` on the item - "אמא, ברח
+   ליענקי במכנסיים" without the rest), split a line around his reaction ("כן, אמא!" → his "אוי ואבוי" → the rest),
+   or make a shorter line. An acted moment before the first word (leaning to the fridge, listening on the phone) =
+   `cut.lead_in` {take: [a, b]} with b BEFORE the piece's first start (else it's ignored).
 
 ## 6. Check before he sees it
 - `matched X/Y · N missing` - a missing line: measure and transcribe that span before calling it missing; if it's
@@ -186,6 +215,39 @@ His notes are in `episodes/haredit-2/project.json` → `notes` (each with my rep
 **Export**
 - Run `tools/flash_frames.py` on every export: a third of the cuts once showed one frame of the empty set.
 - He keeps his own edits (speed 1.17, a subtitle split, a Brachi line he removed) - a rebuild must never undo them.
+
+**His notes on haredit-3 (2026-11-01, 19 notes) - do these before he has to say them**
+- **Brachi must be heard**: Brachi lane 0.55, house lane 0.18, both still `filter: phone`.
+- **The pickup is a moment**: start the call take while she is working, the ring, she looks at the phone, picks up -
+  not on the first word. The ring (`kosher-ring.mp3`, gain 0.6, in the room) must be clearly audible both times.
+- A call that starts on a new take: the hand is ALREADY at the ear (after the record arm), never the phone rising.
+- **"דסי" before a line is part of the line** - keep it and put it in the subtitles (the aligner dropped it: whisper
+  heard "טסי"). Check every take's first word against the audio.
+- **Never a lead_in right before speech**: the 0.2 s join crossfade fades out the first word ("דסי" was lost). Pull
+  the piece's start back with `cut.edges` {take: [[was, now]]} instead - one continuous piece. `was` must be the
+  RAW span edge (`lesson.spans(ls, take)`), not the timeline item's end (23.39, not 23.2).
+- Acted beats after a line stay (kissing the hands after "חס ושלום") - extend the end with `edges` up to the arm.
+- **A box / sign to the front camera reads backwards** -> `mirror: true` on that piece (item.update, after the last
+  rebuild) + `props` so the cut-out keeps it solid ("לא רואים את העיגוליות").
+- End on the punchline he marks ("את הפלאפון שכחתי!"), not on the extra goodbye.
+- Every pause between his lines he hears is a note: after Analyze cut each 0.25 s+ dead pause (10 ms energy scan).
+- **Mirror every take** (person layer `mirror: true`): he films with the front camera, so all of it is mirrored -
+  "need to mirror all the videos so it would make sense" (not only the piece with the box).
+- **Brachi answers EVERY line of his that asks or repeats** ("ברח ליענקי במכנסיים?" -> "כן!", "הלו?" -> "אמא!"),
+  and while he talks to a colleague she nags LOUD the whole time ("she needs to drive Hani crazy") - never softer.
+  Say the thing he reacts to plainly ("זה לא פיפי, זה קקי!" before "זה גדויילים?").
+- Fit her by the audio energy, not Whisper's word ends (Whisper ends "מה קרה?" 0.2 s early - she came in on top of
+  him). Where his reply repeats her words, drop her opening word so his echo comes after hers.
+- A volume he once set on a Brachi item (`user: true`) survives every rebuild with its old rate - after changing her
+  speed, check the lane for user items and set them to the new values.
+- **Hani says the news out loud** (his re-shoot, 2026-11-01: "אוי ואבוי, שרולי החליק על הגדויילים של יענקי"): the
+  viewer must hear the event from HER, not only from the chipmunk on the phone - when writing the script, give Hani
+  a line that repeats each piece of news. A re-shot line goes in as its own `sequence` entry between the takes, its
+  head pulled back with `edges` to the hand-at-ear beat (room for Brachi), mirrored like the rest (layer mirror).
+- **Trap: `sounds` items are named by their index** (`x12` = sounds[12]); a deleted item is remembered by that index
+  (layer `removed`). Deleting or inserting a sound in episode.json shifts every later id - an old deletion then hides
+  a different sound (the ring vanished). After changing `sounds`, check the call lanes item by item; clear stale
+  `removed` with `layer.update {set: {removed: []}}`.
 
 ## What he rejected (don't repeat)
 Mumble slices instead of words · other voices in the office · the call louder than Hani · slow-motion on Hani to fit

@@ -1,0 +1,51 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "זוט חני - גרסת קריוקי 🎤 עכשיו תורכם לשיר איתה\n#הייטקס #הייטק #צרותבהייטק #טקיטק #קומדיה #קריוקי",
+  "title": "זוט חני - גרסת קריוקי | שרים עם חני",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "last": {
+    "at": 1793270698744,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfE0l0wl2rb/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/fe4Px0S3PjI",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2115756606377918736",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfE0l0wl2rb/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
+}

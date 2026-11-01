@@ -1,0 +1,24 @@
+rules_version = '2';
+// The Shlomiverse's fans (techietech-api/verse.js). Fans only READ here; every write goes through the `verse` function.
+// At go-live these blocks are added to the root firestore.rules (the rest of that file is other apps).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function me(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    // a fan's own profile, saves, likes, stamps and bell - only they see it
+    match /fans/{uid} { allow read: if me(uid); }
+    match /fans/{uid}/{sub=**} { allow read: if me(uid); }
+
+    // comments and posted stickers are public; a query must ask for hidden == false (and status == 'live')
+    match /comments/{id} { allow read: if resource.data.hidden == false; }
+    match /stickers/{id} {
+      allow read: if (resource.data.status == 'live' && resource.data.hidden == false) || me(resource.data.uid);
+    }
+    match /stories/{id} { allow read: if resource.data.hidden == false; }
+    // the community wall: everyone reads the ideas Shlomi didn't hide (votes live under the fan, read by them only)
+    match /ideas/{id} { allow read: if resource.data.hidden == false; }
+    match /videoStats/{id} { allow read: if true; }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

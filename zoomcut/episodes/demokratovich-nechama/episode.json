@@ -28,7 +28,7 @@
       "y": 662,
       "size": 48,
       "start": 0,
-      "end": 6
+      "end": 14.63
     },
     {
       "style": "image",
@@ -50,18 +50,18 @@
         "מערכת"
       ],
       "hold": 0.5,
-      "start": 17.72,
-      "end": 23.36
+      "start": 25.21,
+      "end": 30.85
     },
     {
       "style": "image",
       "image": "../_assets/demokratovich/nechama/pass.png",
       "plain": true,
       "pop": true,
-      "x": 24,
-      "y": 720,
-      "w": 420,
-      "h": 225,
+      "x": 10,
+      "y": 650,
+      "w": 360,
+      "h": 193,
       "text": "",
       "opacity": 1,
       "from_words": [
@@ -74,8 +74,8 @@
         "קול אחד"
       ],
       "hold": 0.8,
-      "start": 28.16,
-      "end": 32.18
+      "start": 35.65,
+      "end": 39.67
     },
     {
       "style": "image",
@@ -88,17 +88,8 @@
       "h": 433,
       "text": "",
       "opacity": 1,
-      "from_words": [
-        "כל המציל",
-        "המציל"
-      ],
-      "to_words": [
-        "ומלואו",
-        "גוש"
-      ],
-      "hold": 0.8,
-      "start": 33.92,
-      "end": 38.7
+      "start": 41.65,
+      "end": 46.1
     },
     {
       "text": "כל המציל קול אחד מישראל\nכאילו הציל גוש ומלואו\n(סנהדרין ד׳, ה׳ – בשינוי קל)",
@@ -109,27 +100,18 @@
       "y": 320,
       "size": 44,
       "pop": true,
-      "from_words": [
-        "כל המציל",
-        "המציל"
-      ],
-      "to_words": [
-        "ומלואו",
-        "גוש"
-      ],
-      "hold": 0.8,
-      "start": 33.92,
-      "end": 38.7
+      "start": 41.65,
+      "end": 46.1
     },
     {
       "style": "image",
       "image": "../_assets/demokratovich/nechama/kitzin.png",
       "plain": true,
       "pop": true,
-      "x": 24,
-      "y": 700,
-      "w": 380,
-      "h": 312,
+      "x": 10,
+      "y": 640,
+      "w": 320,
+      "h": 263,
       "text": "",
       "opacity": 1,
       "from_words": [
@@ -141,8 +123,8 @@
         "איבד"
       ],
       "hold": 0.6,
-      "start": 61.52,
-      "end": 73.54
+      "start": 66.62,
+      "end": 78.64
     },
     {
       "style": "image",
@@ -155,16 +137,8 @@
       "h": 433,
       "text": "",
       "opacity": 1,
-      "from_words": [
-        "הכול בידי",
-        "בידי"
-      ],
-      "to_words": [
-        "שופטיא"
-      ],
-      "hold": 0.8,
-      "start": 80.03,
-      "end": 79.93
+      "start": 84.22,
+      "end": 87.97
     },
     {
       "text": "הכול בידי דמוקרטיא\nחוץ מפסקי שופטיא\n(ברכות ל״ג ע״ב – בשינוי קל)",
@@ -175,16 +149,8 @@
       "y": 320,
       "size": 44,
       "pop": true,
-      "from_words": [
-        "הכול בידי",
-        "בידי"
-      ],
-      "to_words": [
-        "שופטיא"
-      ],
-      "hold": 0.8,
-      "start": 80.03,
-      "end": 82.87
+      "start": 84.22,
+      "end": 87.97
     },
     {
       "style": "image",
@@ -197,16 +163,8 @@
       "h": 433,
       "text": "",
       "opacity": 1,
-      "from_words": [
-        "ורבות מחשבות",
-        "מחשבות"
-      ],
-      "to_words": [
-        "תקום"
-      ],
-      "hold": 0.8,
-      "start": 82.97,
-      "end": 87.69
+      "start": 87.97,
+      "end": 92.32
     },
     {
       "text": "ורבות מחשבות בלב סוקר\nועצת בג״ץ היא תקום\n(משלי י״ט, כ״א – בשינוי קל)",
@@ -217,16 +175,8 @@
       "y": 320,
       "size": 44,
       "pop": true,
-      "from_words": [
-        "ורבות מחשבות",
-        "מחשבות"
-      ],
-      "to_words": [
-        "תקום"
-      ],
-      "hold": 0.8,
-      "start": 82.97,
-      "end": 87.69
+      "start": 87.97,
+      "end": 92.32
     },
     {
       "style": "question",
@@ -239,14 +189,8 @@
       "accent": "#14286b",
       "variant": "instagram",
       "opacity": 0.85,
-      "from_words": [
-        "המשותפת",
-        "כבוד הרב"
-      ],
-      "to_words": [
-        "נתניהו"
-      ],
-      "hold": 0.6
+      "start": 92.32,
+      "end": 100.67
     },
     {
       "style": "image",
@@ -267,8 +211,8 @@
         "הרשויות"
       ],
       "hold": 0.6,
-      "start": 94.37,
-      "end": 99.45
+      "start": 101.35,
+      "end": 106.43
     },
     {
       "style": "image",
@@ -291,8 +235,8 @@
         "זש״ל"
       ],
       "hold": 1.2,
-      "start": 104.11,
-      "end": 112.19
+      "start": 110.57,
+      "end": 118.65
     },
     {
       "style": "image",
@@ -305,16 +249,8 @@
       "h": 433,
       "text": "",
       "opacity": 1,
-      "from_words": [
-        "ששערי",
-        "שערי הקלפיות"
-      ],
-      "to_words": [
-        "ננעלים"
-      ],
-      "hold": 0.8,
-      "start": 113.57,
-      "end": 116.13
+      "start": 117.37,
+      "end": 124.62
     },
     {
       "text": "גם בשעה ששערי הקלפיות ננעלים\nשערי בג״ץ אינם ננעלים\n(ברכות ל״ב ע״ב – בשינוי קל)",
@@ -325,16 +261,8 @@
       "y": 320,
       "size": 44,
       "pop": true,
-      "from_words": [
-        "ששערי",
-        "שערי הקלפיות"
-      ],
-      "to_words": [
-        "ננעלים"
-      ],
-      "hold": 0.8,
-      "start": 113.57,
-      "end": 116.13
+      "start": 117.37,
+      "end": 124.62
     },
     {
       "text": "🕯 קופת הקולות – קרן הנחמה לגוש 🕯 כל תרומה מובאת להצבעה בוועד העמותה • ערעור על תוצאות הבחירות – 61 ₪ • ״כל המציל קול אחד מישראל...״ • הלינק בביו ⬆️",
@@ -346,7 +274,7 @@
       "size": 38,
       "speed": 130,
       "start": 0,
-      "end": null
+      "end": 124.69
     },
     {
       "style": "image",
@@ -363,8 +291,22 @@
         "וישועת",
         "כהרף"
       ],
-      "start": 118.33,
-      "end": 123.27
+      "start": 124.79,
+      "end": 129.7
+    },
+    {
+      "style": "image",
+      "image": "../_assets/black.png",
+      "plain": true,
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1920,
+      "text": "",
+      "fade_in": 0.6,
+      "end_black": true,
+      "start": 129.1,
+      "end": null
     }
   ],
   "bg": {
@@ -412,12 +354,61 @@
     "../_assets/demokratovich/nechama/niggun-E-modzitz.mp3",
     "../_assets/demokratovich/nechama/niggun-F-klezmer.mp3",
     "../_assets/demokratovich/priests/bennett-nechama.png",
-    "../_assets/demokratovich/priests/eisenkot-nechama.png"
+    "../_assets/demokratovich/priests/eisenkot-nechama.png",
+    "media/q2.m4a"
   ],
   "speaker_name": "הרב",
   "cut": {
     "silence": false,
-    "join": 0.25
+    "join": 0,
+    "lead_in": {
+      "11D2751C-0BCC-4B3E-91EA-E31C9B65CD63": [
+        3.4,
+        14.25
+      ],
+      "701D2763-E451-46B8-A945-8F4855CB304C": [
+        1.3,
+        2.6
+      ]
+    },
+    "removes": {
+      "701D2763-E451-46B8-A945-8F4855CB304C": [
+        [
+          2.6,
+          4.4
+        ]
+      ]
+    },
+    "edges": {
+      "11D2751C-0BCC-4B3E-91EA-E31C9B65CD63": [
+        [
+          14.35,
+          14.25
+        ]
+      ],
+      "556D2E6D-B952-4F98-8483-2C1C86A7FF5A": [
+        [
+          28.37,
+          28.65
+        ]
+      ],
+      "759565C9-AD3E-402D-BFA2-BA0FE45691F3": [
+        [
+          4.03,
+          3.88
+        ],
+        [
+          22.7,
+          23
+        ]
+      ],
+      "F64C434E-CF67-469A-9933-976902FE08F9": [
+        [
+          32.7,
+          33
+        ]
+      ]
+    }
   },
   "sign": [
     {
@@ -474,14 +465,13 @@
   "bg_dim": false,
   "_todo": [
     "Music: E (Modzitz, his pick 2026-10-29: 'מודז'יץ זה ענק!!!') at gain 0.042 (-11.7 LUFS vs the harp bed) - check it sits ~10 dB under his voice after Analyze; lift on the end card.",
-    "The שואל line is NOT in the takes - told him 2026-10-29; it goes in 701D's listening pause (4.4-8.9 s) as a voice note like demokratovich-shut, captions_other.",
     "After Analyze: hook start 0; check 'overlay words not heard' and pin those by time; person y (90 last time) against his framing - head top under the hook (y 662).",
     "After Analyze: end card already rising during the last line ('וישועת בג״ץ כהרף עין'), hold ~3 s after the last word's tail (insert), ticker ends before the card, fade to black at the very end.",
     "Stills: the verse scroll sits over the frames only while the verse is said; Bennett / Eisenkot sharp (2x set, bg_blur 0) the rest of the time."
   ],
   "music": {
     "sound": "../_assets/demokratovich/nechama/niggun-E-modzitz.mp3",
-    "gain": 0.042,
+    "gain": 0.1,
     "lift": {
       "db": 8,
       "fade": 1.2
@@ -490,32 +480,71 @@
   "sequence": [
     {
       "take": "11D2751C-0BCC-4B3E-91EA-E31C9B65CD63",
-      "to": 25.2
+      "to": 24.9
     },
     {
-      "take": "556D2E6D-B952-4F98-8483-2C1C86A7FF5A"
+      "take": "556D2E6D-B952-4F98-8483-2C1C86A7FF5A",
+      "from": 4.4
     },
     {
-      "take": "759565C9-AD3E-402D-BFA2-BA0FE45691F3"
+      "take": "759565C9-AD3E-402D-BFA2-BA0FE45691F3",
+      "from": 3.9
     },
     {
       "take": "F64C434E-CF67-469A-9933-976902FE08F9",
-      "to": 31.0
+      "from": 5.5,
+      "to": 33
     },
     {
       "take": "701D2763-E451-46B8-A945-8F4855CB304C",
       "to": 20.5
     },
     {
-      "take": "C0672F83-DEC9-40DC-B6D3-5B592DC858AD"
+      "take": "C0672F83-DEC9-40DC-B6D3-5B592DC858AD",
+      "from": 3.35
     }
   ],
   "inserts": [
     {
       "take": "C0672F83-DEC9-40DC-B6D3-5B592DC858AD",
       "at": 20.3,
-      "seconds": 3.0,
+      "seconds": 3,
       "end_card": true
     }
-  ]
+  ],
+  "captions_other": {
+    "y": 1470,
+    "color": "#ffffff"
+  },
+  "sounds": [
+    {
+      "take": "701D2763-E451-46B8-A945-8F4855CB304C",
+      "sound": "media/q2.m4a",
+      "from": 0.45,
+      "to": 6.15,
+      "at": 1.3,
+      "gain": 2.6,
+      "room": 0.1,
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "captions": [
+        [
+          0.45,
+          2.1,
+          "כבוד הרב, אבל המשותפת"
+        ],
+        [
+          2.1,
+          4.28,
+          "מדברת על קווי 67, על חוק השבות..."
+        ],
+        [
+          4.28,
+          6.05,
+          "לא עדיף כבר לשבת עם נתניהו?"
+        ]
+      ]
+    }
+  ],
+  "done": true
 }

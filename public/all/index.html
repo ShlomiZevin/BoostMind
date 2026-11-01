@@ -57,28 +57,30 @@
 </head>
 <body>
 <div class="wrap" id="app">
-  <div class="gate"><h1>הכול</h1><p>כל האתרים, הכלים, ההצעות והשרתים שלך במקום אחד. רק לחשבון הגוגל של שלומי.</p>
-    <button class="btn" id="signin">כניסה עם Google</button><p class="err" id="err"></p></div>
+  <div class="gate"><h1>הכול</h1><p>טוען…</p></div>
 </div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
-firebase.initializeApp({ apiKey: 'AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90', authDomain: 'boostmind-b052c.firebaseapp.com', projectId: 'boostmind-b052c' });
+// his private link: /all/#k=<key> once per device - the key stays in this browser and leaves the address bar
+const KEY = (() => {
+  const m = location.hash.match(/k=([\w-]+)/);
+  try { if (m) { localStorage.setItem('owner-key', m[1]); history.replaceState(null, '', location.pathname + location.search); } return localStorage.getItem('owner-key'); }
+  catch (e) { return m ? m[1] : null; }
+})();
+const AUTH = { authorization: 'Key ' + KEY };
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/stats?catalog=1';
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const auth = firebase.auth();
 let cat = null, archived = new Set(), shelfOpen = false;
-$('#signin').onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => ($('#err').textContent = e.message));
-auth.onAuthStateChanged(async (u) => {
-  if (!u) return;
-  const res = await fetch(API, { headers: { authorization: 'Bearer ' + (await u.getIdToken()) } });
-  if (!res.ok) { $('#app').innerHTML = `<div class="gate"><h1>אין גישה</h1><p>${esc(u.email)}</p><button class="btn" onclick="firebase.auth().signOut().then(()=>location.reload())">החלפת חשבון</button></div>`; return; }
+const noKey = (bad) => { try { localStorage.removeItem('owner-key'); } catch (e) {} document.querySelector('#app').innerHTML = `<div class="gate"><h1>הכול</h1><p>${bad ? 'הקוד לא נכון' : 'דף פרטי. הקוד פעם אחת, והמכשיר הזה יזכור.'}</p><form id="kf" style="display:flex;gap:8px"><input id="ki" type="password" placeholder="קוד גישה" autocomplete="current-password" style="height:46px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#15151a;color:#f5f4f1;font:inherit;padding:0 14px;min-width:200px"><button class="btn">כניסה</button></form><small style="color:#6f6c77">רמז: טלפון</small></div>`; document.querySelector('#ki').focus(); document.querySelector('#kf').onsubmit = (e) => { e.preventDefault(); const v = document.querySelector('#ki').value.trim(); if (!v) return; try { localStorage.setItem('owner-key', v); } catch (err) {} location.reload(); }; };
+(async () => {
+  if (!KEY) return noKey();
+  const res = await fetch(API, { headers: AUTH });
+  if (!res.ok) return noKey(true);
   cat = await res.json();
   archived = new Set(cat.archived || []);
   try { localStorage.setItem('t-ignore', '1'); } catch (e) {}   // his own browser never counts in the analytics
   draw('');
-});
+})();
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[״"׳'\-–.,·|]/g, ' ').replace(/\s+/g, ' ');
 function draw(q) {
@@ -114,7 +116,7 @@ document.addEventListener('click', async (e) => {
   draw($('#q').value);
   try {
     const res = await fetch(API.replace('catalog=1', 'archive=1'), { method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (await auth.currentUser.getIdToken()) }, body: JSON.stringify({ url, on }) });
+      headers: { 'content-type': 'application/json', ...AUTH }, body: JSON.stringify({ url, on }) });
     if (!res.ok) throw new Error();
   } catch (err) { on ? archived.delete(url) : archived.add(url); draw($('#q').value); alert('לא נשמר, נסו שוב'); }
 });

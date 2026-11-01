@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="prefetch" href="/wiki/data/wiki.json">
+<link rel="preconnect" href="https://storage.googleapis.com" crossorigin>
 <style>
   :root { --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.09); --line2: rgba(255,255,255,.16); --text: #f5f4f1; --dim: #a6a3ad; --accent: #ff5b3a; --wa: #25d366; color-scheme: dark; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,10 +34,36 @@
   .social a:hover { border-color: var(--text); }
   .social svg { width: 19px; height: 19px; fill: currentColor; }
 
+  /* the spotlight: one slot for whatever is in focus right now (swap the <section class="spot"> below, --spot = its colour) */
+  .spot { --spot: var(--accent); position: relative; margin-top: 16px; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 30px 12px 12px; border-radius: 20px; background: var(--card); border: 1.5px solid var(--spot); }
+  .spot-pic { width: 76px; height: 76px; border-radius: 14px; overflow: hidden; display: block; background: var(--card2); }
+  .spot-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .spot-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .spot-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  .onair { position: absolute; top: 0; inset-inline-start: 16px; transform: translateY(-50%); z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+           background: var(--bg); border: 1.5px solid rgba(255,255,255,.28); border-radius: 99px; padding: 7px 14px 7px 15px; white-space: nowrap; line-height: 1; }
+  .onair i { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; flex: none; animation: live 1.6s ease-in-out infinite; }
+  @keyframes live { 50% { opacity: .3; } }
+  .onair span { display: inline-flex; align-items: center; gap: 3px; font-size: .95rem; font-weight: 700; color: #dcd9e2; position: relative; top: 2px; }  /* "עכשיו ב-" centred on the wordmark; Heebo's letters sit high in their box, so the line drops 2px to the true middle (measured) */
+  .onair strong { font-size: 1.2rem; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
+  .onair strong b { color: var(--accent); font-weight: inherit; }
+  .spot-txt b { font-size: clamp(1.05rem, 5.2vw, 1.22rem); font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
+  .spot-txt small { color: var(--dim); font-size: .86rem; line-height: 1.3; }
+  .spot-go { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--spot); color: #0b0b0e; display: grid; place-items: center; font-weight: 900; font-size: 0; transition: opacity .15s; }
+  .spot-go::before { content: '←'; font-size: 1.1rem; }
+  .spot-main:hover .spot-go { opacity: .9; }
+  .spot-row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .spot-row a { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .spot-row img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 9px; display: block; border: 1px solid var(--line); transition: transform .15s; }
+  .spot-row a:hover img { transform: translateY(-2px); }
+  .spot-row span { display: none; font-size: .78rem; font-weight: 700; line-height: 1.2; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .spot-row i { position: absolute; top: 4px; inset-inline-start: 4px; font-style: normal; font-size: .62rem; font-weight: 800; background: var(--spot); color: #0b0b0e; padding: 0 6px; border-radius: 99px; }
+
   /* the way into the wiki */
   .verse { padding: 20px 18px 18px; text-align: center; border-color: var(--line2); }
   .kicker { display: none; }
-  .verse h2 { font-size: clamp(2.6rem, 12vw, 3.4rem); font-weight: 900; letter-spacing: -.045em; line-height: 1; color: var(--accent); }
+  .verse h2 { font-size: clamp(2.6rem, 12vw, 3.4rem); font-weight: 900; letter-spacing: -.045em; line-height: 1; color: var(--text); }
+  .verse h2 b { color: var(--accent); font-weight: inherit; }  /* the wordmark: שלומי in white, וורס in orange - everywhere */
   .faces { display: flex; justify-content: center; margin: 16px 0 4px; padding-inline-start: 14px; min-height: 66px; }
   .faces a { width: 66px; height: 66px; border-radius: 50%; overflow: hidden; margin-inline-start: -14px; border: 3px solid var(--card); background: var(--card2); transition: transform .15s; position: relative; flex: none; }
   .faces a:hover, .faces a:focus-visible { transform: translateY(-4px); z-index: 30; }
@@ -101,7 +127,23 @@
     body { padding: 28px 28px 48px; }
     .wrap { max-width: 1320px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; }
 
-    .verse { grid-column: 1 / -1; grid-row: 1; position: relative; overflow: hidden; perspective: 1100px; min-height: 600px; padding: 54px 24px 46px;
+    .spot { grid-column: 1 / -1; grid-row: 1; grid-template-columns: minmax(260px, 27%) minmax(0, 1fr) minmax(0, 40%); gap: 28px; padding: 0; border-radius: 24px; overflow: visible; margin-top: 18px; min-height: 240px; align-items: center; }
+    .spot-pic { width: auto; height: 100%; border-radius: 0; border-start-start-radius: 23px; border-end-start-radius: 23px; align-self: stretch; }
+    .spot-pic img { object-position: 50% 30%; }
+    .spot-main { flex-direction: column; align-items: flex-start; gap: 16px; padding: 24px 0; }
+    .spot-txt { gap: 8px; }
+    .onair { inset-inline-start: calc(27% + 28px); padding: 8px 17px 8px 18px; gap: 10px; }
+    .onair span { font-size: 1.02rem; top: 1.25px; } .onair strong { font-size: 1.32rem; }
+    .spot-txt b { font-size: clamp(1.8rem, 2.7vw, 2.9rem); letter-spacing: -.03em; white-space: nowrap; }
+    .spot-txt small { font-size: 1.05rem; }
+    .spot-go { width: auto; height: 48px; padding: 0 24px; border-radius: 99px; font-size: 1.02rem; }
+    .spot-go::before { content: none; }
+    .spot-row { grid-column: auto; gap: 10px; padding-inline-end: 24px; }
+    .spot-row img { border-radius: 12px; }
+    .spot-row span { display: block; }
+    .spot-row i { font-size: .72rem; top: 6px; inset-inline-start: 6px; }
+
+    .verse { grid-column: 1 / -1; grid-row: 2; position: relative; overflow: hidden; perspective: 1100px; min-height: 600px; padding: 54px 24px 46px;
              display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 28px; background: #0e0e12; }
     .wall { display: flex; position: absolute; top: -30%; bottom: -30%; width: 40%; gap: 14px; transform-style: preserve-3d; opacity: .6; pointer-events: none; }
     .wall.r { right: -5%; transform: rotateY(-34deg); transform-origin: right center; -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 78%); mask-image: linear-gradient(to left, #000 25%, transparent 78%); }
@@ -133,7 +175,7 @@
     .verse .go { order: 5; width: auto; height: 50px; padding: 0 26px; margin-top: 24px; background: none; border: 2px solid var(--accent); color: var(--text); }
     .verse .go:hover { background: var(--accent); opacity: 1; }
 
-    .me { grid-column: 1 / 6; grid-row: 2; display: flex; align-items: stretch; text-align: right; background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
+    .me { grid-column: 1 / 6; grid-row: 3; display: flex; align-items: stretch; text-align: right; background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
     .avatar { width: 46%; height: auto; aspect-ratio: auto; border-radius: 0; border: 0; margin: 0; flex: none; }
     .avatar img { transform: none; object-position: 50% 50%; }
     .me-txt { flex: 1; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
@@ -143,12 +185,12 @@
     .social { justify-content: flex-start; margin-top: 16px; gap: 8px; }
     .social a { width: 42px; height: 42px; }
 
-    .vids { grid-column: 6 / 10; grid-row: 2; padding: 20px; }
+    .vids { grid-column: 6 / 10; grid-row: 3; padding: 20px; }
     .vrow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
     .vrow a:nth-child(4) { display: flex; }
     .vrow span { font-size: .8rem; }
 
-    .collab { grid-column: 10 / 13; grid-row: 2; padding: 20px; }
+    .collab { grid-column: 10 / 13; grid-row: 3; padding: 20px; }
     .acts { flex-direction: column; }
     .acts a { flex: none; height: 50px; }
     .acts a:first-child { background: var(--wa); border-color: var(--wa); color: #0b0b0e; }
@@ -156,7 +198,7 @@
     .acts a:first-child:hover { opacity: .9; }
     .proof { margin-top: auto; }
 
-    .sites { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; background: none; border: 0; }
+    .sites { grid-column: 1 / -1; grid-row: 4; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; padding: 0; background: none; border: 0; }
     .sites h3 { display: none; }
     .site, .site:first-of-type { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 14px; gap: 10px; transition: border-color .15s, transform .15s; }
     .site:hover { border-color: var(--line2); transform: translateY(-2px); }
@@ -164,15 +206,16 @@
     .site .t { font-size: .95rem; }
     .site small { font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .site .arr { display: none; }
-    footer { grid-column: 1 / -1; grid-row: 4; }
+    footer { grid-column: 1 / -1; grid-row: 5; }
   }
   @media (min-width: 1000px) and (max-width: 1199px) {
     .me { grid-column: 1 / 7; } .vids { grid-column: 7 / 13; }
-    .collab { grid-column: 1 / -1; grid-row: 3; flex-direction: row; flex-wrap: wrap; align-items: center; }
+    .collab { grid-column: 1 / -1; grid-row: 4; flex-direction: row; flex-wrap: wrap; align-items: center; }
     .collab .acts { flex-direction: row; flex: 1; justify-content: flex-end; } .collab .acts a { width: 200px; } .collab .proof { width: 100%; }
-    .sites { grid-row: 4; grid-template-columns: repeat(3, minmax(0, 1fr)); } footer { grid-row: 5; }
+    .sites { grid-row: 5; grid-template-columns: repeat(3, minmax(0, 1fr)); } footer { grid-row: 6; }
+    .spot { grid-template-columns: minmax(220px, 26%) minmax(0, 1fr) minmax(0, 38%); gap: 20px; } .onair { inset-inline-start: calc(26% + 20px); } .spot-row { grid-template-columns: repeat(4, minmax(0, 1fr)); } .spot-row a:nth-child(5) { display: none; }
   }
-  @media (prefers-reduced-motion: reduce) { .col { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .col, .onair i { animation: none; } }
 </style>
 </head>
 <body>
@@ -191,9 +234,27 @@
     </div>
   </header>
 
+  <!-- THE SPOTLIGHT - whatever is in focus now. To move it to another character: replace this section (pic,
+       title, line, links, the row of five) and set --spot to that world's own colour. One spotlight at a time. -->
+  <section class="spot" id="spot" data-spot="hani-games" style="--spot:#c8962e">
+    <div class="onair"><i></i><span>עכשיו ב-<strong>שלומי<b>וורס</b></strong></span></div>
+    <a class="spot-pic" href="/hani-games/"><picture><source media="(min-width: 1000px)" srcset="img/spot/hani-wide.jpg"><img src="img/spot/hani-face.jpg" alt="חני"></picture></a>
+    <a class="spot-main" href="/hani-games/">
+      <span class="spot-txt"><b>המשחקייה של חני</b><small>משחקים כשרים לכל המשפחה. ניגונים בלבד, ושומר שבת.</small></span>
+      <span class="spot-go">לשחק ←</span>
+    </a>
+    <div class="spot-row">
+      <a href="/hani-games/yosef/"><img src="img/spot/yosef.jpg" alt="" loading="lazy"><span>יוסף מוקיר שבת</span></a>
+      <a href="/hani-games/gan-run/"><img src="img/spot/gan-run.jpg" alt="" loading="lazy"><span>רצים לגן!</span></a>
+      <a href="/hani-games/shekel-tov/"><img src="img/spot/shekel-tov.jpg" alt="" loading="lazy"><span>שקל טוב</span></a>
+      <a href="/hani-games/nisei-nissim/"><img src="img/spot/nisei-nissim.jpg" alt="" loading="lazy"><span>ניסי ניסים!</span></a>
+      <a href="/hani-games/ketoret/"><img src="img/spot/ketoret.jpg" alt="" loading="lazy"><span>מזבח הקטורת</span></a>
+    </div>
+  </section>
+
   <section class="box verse">
     <div class="kicker">כל הדמויות. כל הסרטונים. ולדבר איתן.</div>
-    <h2>שלומיוורס</h2>
+    <h2>שלומי<b>וורס</b></h2>
     <div class="faces" id="faces"></div>
     <div class="tap">לחצו על דמות כדי לדבר איתה</div>
     <p>כל הדמויות. כל הסרטונים. ולדבר איתן.</p>
@@ -262,25 +323,30 @@
 const t = (e, x) => window.track && window.track(e, x);
 // the faces and the videos come from the wiki's own data, so new ones show up here by themselves
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-fetch('/wiki/data/wiki.json').then((r) => r.json()).then((w) => {
+// the wiki's data from the Shlomiverse's bucket (live without a deploy), else the site's own copy; media paths may be absolute
+const wikiUrl = (p) => (/^https?:/.test(p) ? p : '/wiki/' + p);
+fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject()))
+  .catch(() => fetch('/wiki/data/wiki.json').then((r) => r.json())).then((w) => {
   const people = w.characters.filter((c) => c.img).slice(0, 12);
   // on wide screens the first nine fan out like a hand of cards (--k = place from the middle)
   document.getElementById('faces').innerHTML = people.map((c, i) => {
     const k = i - 4;
-    return `<a href="/wiki/#/chat?with=${c.id}" title="${esc(c.name)}" style="--k:${k};--k2:${k * k};z-index:${20 - Math.abs(k)}"><img src="/wiki/${c.img}" alt="${esc(c.name)}"><span>${esc(c.name)}</span></a>`;
+    return `<a href="/wiki/#/chat?with=${c.id}" title="${esc(c.name)}" style="--k:${k};--k2:${k * k};z-index:${20 - Math.abs(k)}"><img src="${wikiUrl(c.img)}" alt="${esc(c.name)}"><span>${esc(c.name)}</span></a>`;
   }).join('');
   // wide screens: the wiki's drifting walls of faces, and the row of who answers
   const all = w.characters.filter((c) => c.img), cols = [[], [], [], [], [], []];
   all.forEach((c, i) => cols[i % 6].push(c));
-  const col = (list) => { const t = list.map((c) => `<div class="tile"><img src="/wiki/${c.img}" alt="" loading="lazy"><span>${esc(c.name)}</span></div>`).join(''); return `<div class="col">${t}${t}</div>`; };
+  const col = (list) => { const t = list.map((c) => `<div class="tile"><img src="${wikiUrl(c.img)}" alt="" loading="lazy"><span>${esc(c.name)}</span></div>`).join(''); return `<div class="col">${t}${t}</div>`; };
   document.getElementById('wall-r').innerHTML = cols.slice(0, 3).map(col).join('');
   document.getElementById('wall-l').innerHTML = cols.slice(3).map(col).join('');
   document.getElementById('who').innerHTML = '<div class="who-l">מי עונה?</div>' +
     `<button type="button" class="on" data-who=""><span class="av all"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg></span>כולם</button>` +
-    all.slice(0, 8).map((c) => `<button type="button" data-who="${c.id}"><span class="av"><img src="/wiki/${c.img}" alt=""></span>${esc(c.name)}</button>`).join('');
+    all.slice(0, 8).map((c) => `<button type="button" data-who="${c.id}"><span class="av"><img src="${wikiUrl(c.img)}" alt=""></span>${esc(c.name)}</button>`).join('');
   document.getElementById('vids').innerHTML = `<h3>סרטונים אחרונים<a href="/wiki/#/videos">כל הסרטונים ←</a></h3><div class="vrow">` +
-    w.videos.filter((v) => v.poster && v.src).slice(0, 5).map((v) => `<a href="/wiki/#/v/${v.id}"><span class="th"><img src="/wiki/${v.poster}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
+    w.videos.filter((v) => v.poster && v.src && !v.archive).slice(0, 5).map((v) => `<a href="/wiki/#/v/${v.id}"><span class="th"><img src="${wikiUrl(v.poster)}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
 }).catch(() => {});
+// the spotlight slot is counted on its own too, by what it shows
+document.getElementById('spot').addEventListener('click', (e) => { if (e.target.closest('a')) t('click', 'spotlight:' + e.currentTarget.dataset.spot); });
 let who = '';
 // a face on the phone opens that character's chat in the wiki
 document.getElementById('faces').addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) t('character', a.href.split('with=')[1]); });

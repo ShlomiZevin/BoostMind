@@ -282,8 +282,8 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
 
   // ---- his sites: a published video goes on the Shlomiverse (the wiki + the links page) by itself, every time - videos
   // whose sessions skipped the wiki steps were missing there (2026-10-25). scripts/wiki/publish_site.py does it all
-  // (done, web copy, Terra's fan copy, build, deploy, live check); here it is a "site" job, one at a time (it deploys
-  // the whole hosting site), its lines the job's log, a Telegram with the link or the error.
+  // (done, web copy, Terra's fan copy, build, push to the Shlomiverse's bucket - no deploy since 2026-10-31 - live check);
+  // here it is a "site" job, one at a time, its lines the job's log, a Telegram with the link or the error.
   const BM = path.resolve(ROOT, '..');
   const sites = { queue: [], cur: null };
   function site(id) {

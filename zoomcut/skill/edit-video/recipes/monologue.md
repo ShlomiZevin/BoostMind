@@ -136,6 +136,37 @@ the editor stay.
     close 0.12 / mid 0.11 / far 0.09 = 12-15 dB under him. ~21.7k credits.
   - **Don't export while he is listening in the editor** ("why do I hear noises while it is exported?"): the export
     takes the CPU and the editor's playback crackles (the file was clean). Say before exporting.
+- **demokratovich-nechama** (2026-10-29, Drop `הרב שיעור אמונה לתוצאות הבחירות`, Reader `demokratovich-nechama`): the post-election
+  consolation sermon. Mourning set `_assets/demokratovich/nechama/set.jpg` (same shul at night, chandeliers off, memorial
+  candles; 2x, Bennett/Eisenkot painted at light 0.82). Bed: the Modzitz niggun (SKILL.md → Music beds) at volume 0.1
+  (0.042 was ~23 dB under him, inaudible). Re-takes: 11D2 to 25.2 (556D redoes "הרי אנחנו"), F64C to 31.0 (701D opens with
+  "ועצת בג״ץ"), 701D to 20.5 (C067 redoes "וכדברי השופט"). These takes sit LOW (head top 43% down): person scale 1.05,
+  y -80. A judge "said with זש״ל" = a tzaddik picture: an 18th-century judge (flare) in the crowned gold leaflet frame
+  (`rosh-hashana/tzadik-frame.png`), זש״ל on its ribbon, a gold name plaque (`nechama/judge-tzadik.png`). Verses on the
+  scroll with the REAL source they twist (סנהדרין ד׳ ה׳, ברכות ל״ג ע״ב, משלי י״ט כ״א, ברכות ל״ב ע״ב).
+  **Tight, except the opening** (his notes): a lesson is cut every pause > 0.25 s (`cut` = {join 0.18} - NOT the
+  `silence: false` a project made `from` a singing video inherits; that left 2-3 s pauses everywhere, "you made a mess").
+  Silence kept only where it is content: `lead_in` {take: [3.4, 14.0]} = his opening (rocking, head scratch, glasses).
+  The שואל = his voice note (`media/q1.m4a`, a sound tied to F64C at the end of "תקום", gain 5 = his quiet phone note
+  +14 dB, `skip` its breaths, white `captions`) over REAL listening footage: F64C's silent tail (`edges` to 34.25, before
+  his hand goes to the phone) + 701D's settled first seconds (`lead_in` [1.3, 2.65]) + his pause (`keep_pauses`), with
+  his repeat of "ועצת בג״ץ" taken out (`removes`). The question ends 0.1 s before "הרי זה פשוט".
+  **The question as recorded** (his note: "the original sounds better than what you edited"): no `skip`, no `denoise` -
+  only `room` 0.3 (asked from inside the shul). More listening footage instead of cutting it: C067's silent start
+  (`lead_in` ending BEFORE any blip - a noise at 2.6 s made the lead skip) as an extra sequence segment. Script
+  subtitles land on silent listening footage ("they come up on top of each other") - remove those items and put the
+  real line back where he says it. Music: skip the track's silent top (`in` 1.6 on the music item, "start it earlier").
+  **What he signed off on ("now it looks much, much, much better")**: the simple cut (SKILL.md → HOW HE WANTS A
+  ONE-CAMERA CUT), voice cleaning OFF (RNNoise coloured his voice - "the original sounds better"), music at -17 dB
+  (layer volume 0.141) with no cleaning on it, room echo ~0.1 on the question, and his RE-RECORDED question
+  (`media/q2.m4a`, 5.55 s - fits 701D's 5.6 s of listening at its own speed; the first one, sped to 1.37x and level
+  with him only on paper, "we can't hear it and it's too fast"). Level a voice note by LUFS against his take
+  (-15.4) - same loudness, gain = 10^(dB/20) (his note -23.6 -> gain 2.6).
+  **Every rebuild renumbers the script subtitles**: lines he/you fixed by hand stay (user) and the builder adds its
+  own version again next to them - after each rebuild list the subtitles, remove the duplicates (removal is kept)
+  and check for overlaps (none may overlap).
+  Every re-cut moves hand-pinned cards: re-place them from the voice pieces (take second -> timeline), and re-time
+  items he moved (user: true keeps their old time).
 - **Sticker with words on it (a badge, a label):** write the words on the square Leonardo image (HTML over the jpg,
   screenshot), THEN cut it out - cutting first and squeezing the cut-out back into a square stretched two of them.
 

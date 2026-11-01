@@ -1,0 +1,50 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "חדש במשחקייה של חני: יוסף מוקיר שבת!\nספר מוקרא ועשרה משחקים - אברך הייטקיסט מבני ברק, מיליונר אחד ויהלום אחד. כשר למהדרין: ניגונים בלבד, בלי צ'אט, בלי פרסומות, ושומר שבת. הקישור בביו\n#חניפרידמן #הייטק #הייטקס #צרותבהייטק",
+  "title": "יוסף מוקיר שבת | חדש במשחקייה של חני",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "last": {
+    "at": 1793355335098,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfHV-8BiXhI/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "failed",
+        "error": "TikTok: spam_risk_too_many_pending_share"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/tShVeVTUmT4",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2116111520077648346",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfHV-8BiXhI/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
+}

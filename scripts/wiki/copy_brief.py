@@ -6,7 +6,7 @@
 then merge the JSON from the answer into scripts/wiki/copy.json (merge_copy.py).
 """
 import json, os, sys
-from canon import characters, episodes, load_json, HERE
+from canon import characters, episodes, reels, load_json, HERE
 
 only_missing = '--only-missing' in sys.argv
 copy = load_json(os.path.join(HERE, 'copy.json'), {'characters': {}, 'videos': {}, 'worlds': {}})
@@ -43,6 +43,11 @@ for e in eps:
     if only_missing and e['id'] in copy['videos']:
         continue
     parts.append(f"### {e['id']} | {e['editor_title']} | משתתפים: {', '.join(e['cast']) or '?'}\n{e['transcript'][:6000]}")
+for r in reels():  # his old Instagram reels: the words on screen set it up, the speech is the punch
+    if only_missing and r['id'] in copy['videos']:
+        continue
+    parts.append(f"### {r['id']} | רילס מאינסטגרם ({r['date'][:4]}) | משתתפים: {', '.join(r['cast'])}\n"
+                 f"טקסט על המסך: {r.get('on_screen', '')}\nדיבור: {r.get('transcript', '')}")
 
 os.makedirs(os.path.join(HERE, 'work'), exist_ok=True)
 out = os.path.join(HERE, 'work', 'copy-brief.txt')

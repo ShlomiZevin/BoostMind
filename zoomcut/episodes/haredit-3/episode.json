@@ -1,0 +1,503 @@
+{
+  "type": "lesson",
+  "title": "POV: אתה יושב ליד החרדית של המשרד – חלק 3 (haredit-3)",
+  "input_dir": "C:/Users/shazbak/Downloads/drop/חני - 3",
+  "takes": "*.mp4",
+  "background": "../_assets/haredit/set-wall-a.jpg",
+  "plaque": [],
+  "matte_engine": "body",
+  "matte_cut": 70,
+  "person": {
+    "scale": 1,
+    "x": 0,
+    "y": 150
+  },
+  "captions_y": 1430,
+  "captions_style": {
+    "font": "assistant",
+    "weight": 800,
+    "size": 66,
+    "color": "#ffffff",
+    "stroke": 10
+  },
+  "voice": {
+    "preset": "natural"
+  },
+  "cut": {
+    "merge": 0.6,
+    "pad_in": 0.05,
+    "pad_out": 0.15,
+    "join": 0.2,
+    "silence": false,
+    "removes": {
+      "648399CD-0EB9-4E67-AC85-44915272A25A": [
+        [
+          11.13,
+          11.42
+        ],
+        [
+          20.58,
+          20.85
+        ]
+      ],
+      "EE1A80D2-F8CA-4A70-8ECE-5EEEF4A44AFA": [
+        [
+          15.36,
+          15.62
+        ]
+      ],
+      "E53E1AB0-023A-4E4E-A74F-7D64DDE61606": [
+        [
+          10.62,
+          11.0
+        ],
+        [
+          18.47,
+          18.82
+        ]
+      ],
+      "550D39CD-F66C-4E1A-8F40-DF7D01023D8F": [
+        [
+          14.97,
+          15.24
+        ]
+      ],
+      "CD2E229E-B384-486A-BC96-98CDBAE333BD": [
+        [
+          9.1,
+          9.4
+        ],
+        [
+          14.3,
+          14.75
+        ]
+      ]
+    },
+    "edges": {
+      "550D39CD-F66C-4E1A-8F40-DF7D01023D8F": [
+        [
+          4.01,
+          2.8
+        ]
+      ],
+      "95672834-BF97-4826-B393-BAE1DFBDB181": [
+        [
+          3.47,
+          1.25
+        ]
+      ],
+      "E53E1AB0-023A-4E4E-A74F-7D64DDE61606": [
+        [
+          23.39,
+          24.0
+        ]
+      ],
+      "4EC0A1B4-3ED8-4120-BB9F-31180E7CC190": [
+        [
+          0.5,
+          1.12
+        ],
+        [
+          3.81,
+          4.0
+        ]
+      ]
+    }
+  },
+  "overlays": [],
+  "script": "haredit-3",
+  "bg_blur": 0,
+  "speed": 1.15,
+  "media": [],
+  "music": {
+    "sound": "../_assets/music/fast/klezmer-ska.mp3",
+    "gain": 0.05,
+    "fade_in": 0.3,
+    "lift": {
+      "db": 6,
+      "fade": 1
+    }
+  },
+  "sounds": [
+    {
+      "take": "550D39CD-F66C-4E1A-8F40-DF7D01023D8F",
+      "sound": "../_assets/haredit/calls/tupperware.mp3",
+      "at": 2.8,
+      "gain": 2.0,
+      "fade_in": 0.1,
+      "fade_out": 0.5,
+      "lane": 2
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "at": 1.5,
+      "gain": 0.6,
+      "from": 0,
+      "to": 1.5,
+      "fade_out": 0.08,
+      "lane": 2
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r01.mp3",
+      "at": 5.25,
+      "gain": 2.07,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0.45,
+      "to": 2.25,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r10.mp3",
+      "at": 10.5,
+      "gain": 0.69,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r02b.mp3",
+      "at": 13.5,
+      "gain": 1.55,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r03.mp3",
+      "at": 7.3,
+      "gain": 1.88,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0,
+      "to": 0.5,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r03.mp3",
+      "at": 16.34,
+      "gain": 1.88,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0,
+      "to": 0.5,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/yanky3-lo-rotze.mp3",
+      "at": 17.05,
+      "gain": 0.35,
+      "pitch": 1.5,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "lane": 2
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r04.mp3",
+      "at": 18.35,
+      "gain": 3.1,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0.75,
+      "to": 1.95,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/brachi3-r05.mp3",
+      "at": 22.62,
+      "gain": 4.36,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 1.38,
+      "to": 2.72,
+      "lane": 0
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 2.9,
+      "gain": 0.15,
+      "from": 0.2,
+      "to": 19.9,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 22.3,
+      "gain": 0.15,
+      "from": 0.2,
+      "to": 6.3,
+      "fade_in": 0.4,
+      "fade_out": 0.6,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "8363A3AB-4606-4C1A-BFE3-25C2D1D556EB",
+      "sound": "../_assets/haredit/kosher-ring.mp3",
+      "at": 15.3,
+      "gain": 0.6,
+      "from": 0,
+      "to": 1.5,
+      "fade_out": 0.08,
+      "lane": 2
+    },
+    {
+      "take": "8363A3AB-4606-4C1A-BFE3-25C2D1D556EB",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 16.4,
+      "gain": 0.15,
+      "from": 0.2,
+      "to": 3.4,
+      "fade_in": 0.4,
+      "fade_out": 0.3,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "8363A3AB-4606-4C1A-BFE3-25C2D1D556EB",
+      "sound": "../_assets/haredit/calls/sruli3-moan.mp3",
+      "at": 16.4,
+      "gain": 1.95,
+      "from": 0,
+      "to": 3.0,
+      "fade_in": 0.6,
+      "fade_out": 0.2,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "8363A3AB-4606-4C1A-BFE3-25C2D1D556EB",
+      "sound": "../_assets/haredit/calls/brachi3-r06.mp3",
+      "at": 17.12,
+      "gain": 1.43,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0,
+      "to": 0.4,
+      "lane": 0
+    },
+    {
+      "take": "8363A3AB-4606-4C1A-BFE3-25C2D1D556EB",
+      "sound": "../_assets/haredit/calls/brachi3-r06.mp3",
+      "at": 18.98,
+      "gain": 1.43,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0.7,
+      "to": 2.1,
+      "lane": 0
+    },
+    {
+      "take": "E1137148-9F48-4710-9A6E-EBD7C5944C07",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 3.05,
+      "gain": 0.15,
+      "from": 5.55,
+      "to": 13.2,
+      "fade_in": 0.05,
+      "fade_out": 0.8,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "E1137148-9F48-4710-9A6E-EBD7C5944C07",
+      "sound": "../_assets/haredit/calls/sruli3-moan.mp3",
+      "at": 3.05,
+      "gain": 1.95,
+      "from": 5.15,
+      "to": 13.0,
+      "fade_in": 0.05,
+      "fade_out": 0.8,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "4EC0A1B4-3ED8-4120-BB9F-31180E7CC190",
+      "sound": "../_assets/haredit/calls/sruli3-oy.mp3",
+      "at": 3.45,
+      "gain": 3.0,
+      "pitch": 1.4,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.12,
+      "lane": 2
+    },
+    {
+      "take": "4EC0A1B4-3ED8-4120-BB9F-31180E7CC190",
+      "sound": "../_assets/haredit/calls/brachi3-r07b.mp3",
+      "at": 3.6,
+      "gain": 1.65,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 1.45,
+      "to": 2.95,
+      "lane": 0
+    },
+    {
+      "take": "E1137148-9F48-4710-9A6E-EBD7C5944C07",
+      "sound": "../_assets/haredit/calls/car-keys-search.mp3",
+      "at": 3.9,
+      "gain": 0.6,
+      "filter": "phone",
+      "fade_in": 0.05,
+      "fade_out": 0.3,
+      "lane": 2
+    },
+    {
+      "take": "E1137148-9F48-4710-9A6E-EBD7C5944C07",
+      "sound": "../_assets/haredit/calls/brachi3-r09.mp3",
+      "at": 10.33,
+      "gain": 2.03,
+      "pitch": 1.6,
+      "tempo": 1.0,
+      "filter": "phone",
+      "fade_in": 0.03,
+      "fade_out": 0.08,
+      "from": 0,
+      "to": 1.85,
+      "lane": 0
+    },
+    {
+      "take": "4EC0A1B4-3ED8-4120-BB9F-31180E7CC190",
+      "sound": "../_assets/haredit/calls/house-bed.mp3",
+      "at": 1.3,
+      "from": 3.6,
+      "to": 6.6,
+      "gain": 0.15,
+      "fade_in": 0.05,
+      "fade_out": 0.05,
+      "filter": "phone",
+      "lane": 1
+    },
+    {
+      "take": "4EC0A1B4-3ED8-4120-BB9F-31180E7CC190",
+      "sound": "../_assets/haredit/calls/sruli3-moan.mp3",
+      "at": 1.3,
+      "from": 3.1,
+      "to": 6.1,
+      "gain": 1.95,
+      "fade_in": 0.05,
+      "fade_out": 0.05,
+      "filter": "phone",
+      "lane": 1
+    }
+  ],
+  "_todo": "haredit-3 on his real takes (2026-11-01, Drop folder 'חני - 3'). Takes start after his arm goes back from the recording phone and end before it reaches again (his rule). 6B5E5EEE = an earlier, incomplete take of call 1 - not used. Call sounds are on the takes' seconds in 'sounds'. Stand-in setup kept in episode.standin.bak.json.",
+  "sequence": [
+    {
+      "take": "AF2E574B-BE89-4306-AEF6-BD19591CE499",
+      "from": 4.98,
+      "to": 13.15
+    },
+    {
+      "take": "648399CD-0EB9-4E67-AC85-44915272A25A",
+      "from": 2.15,
+      "to": 25.35
+    },
+    {
+      "take": "EE1A80D2-F8CA-4A70-8ECE-5EEEF4A44AFA",
+      "from": 2.8,
+      "to": 20.82
+    },
+    {
+      "take": "E53E1AB0-023A-4E4E-A74F-7D64DDE61606",
+      "from": 3.48,
+      "to": 24.05
+    },
+    {
+      "take": "550D39CD-F66C-4E1A-8F40-DF7D01023D8F",
+      "from": 2.8,
+      "to": 25.95
+    },
+    {
+      "take": "8B97FB57-1D46-4A9F-AFD4-4817E232F4CB",
+      "from": 0.5,
+      "to": 5.55
+    },
+    {
+      "take": "CD2E229E-B384-486A-BC96-98CDBAE333BD",
+      "from": 1.4,
+      "to": 19.6
+    },
+    {
+      "take": "95672834-BF97-4826-B393-BAE1DFBDB181",
+      "from": 1.25,
+      "to": 28.3
+    },
+    {
+      "take": "8363A3AB-4606-4C1A-BFE3-25C2D1D556EB",
+      "from": 1.15,
+      "to": 19.3
+    },
+    {
+      "take": "4EC0A1B4-3ED8-4120-BB9F-31180E7CC190",
+      "from": 1.1,
+      "to": 4.0
+    },
+    {
+      "take": "E1137148-9F48-4710-9A6E-EBD7C5944C07",
+      "from": 3.05,
+      "to": 17.9
+    }
+  ],
+  "props": {
+    "8B97FB57-1D46-4A9F-AFD4-4817E232F4CB": [
+      {
+        "what": "the עיגוליות box",
+        "box": [
+          0.42,
+          0.33,
+          1,
+          1
+        ],
+        "from": 0.5,
+        "to": 5.5
+      }
+    ]
+  }
+}

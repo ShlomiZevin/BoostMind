@@ -138,6 +138,7 @@ zoomcut/episodes/_assets/dorit/deck/*.jpg
 
 # dorit-1 stand-in take (computer voice + his photo)
 zoomcut/episodes/dorit-1/stand-in/
+zoomcut/episodes/gym-2/stand-in/
 
 # Ofnat Hani: his face as Hani (deployed from this machine, never in the public repo)
 public/ofnat-hani/src/
@@ -150,3 +151,9 @@ episodes/haredit-2/stand-in/
 # Python caches
 __pycache__/
 *.pyc
+# Avi Balloons (the gym guy's site): his face and the og card (deployed from this machine, never in the public repo)
+public/avi-balloons/img/avi.jpg
+public/avi-balloons/img/og.jpg
+drafts/avi-balloons/
+# Remotion's downloaded headless Chrome (a binary, re-downloads itself)
+zoomcut/.remotion/

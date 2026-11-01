@@ -98,6 +98,7 @@ const SITES = {
   demokratovich: { from: 'קהילת שערי בג״ץ - האתר', subject: (f) => `שערי בג״ץ | ${f.choice || 'פנייה'} · ${f.name}`, choice: 'נושא', page: '/demokratovich/' },
   dorit: { from: 'דורית מרקורי - האתר', subject: (f) => `דורית מרקורי | הזמנה: ${f.choice || 'מפת לידה'} · ${f.name}`, choice: 'שירות', page: '/dorit/' },
   'ofnat-hani': { from: 'אופנת חני - האתר', subject: (f) => `אופנת חני | הזמנה לאיסוף: ${f.choice || 'פריט'} · ${f.name}`, choice: 'פריט', page: '/ofnat-hani/' },
+  'avi-balloons': { from: 'אבי בלונים ואירועים - האתר', subject: (f) => `אבי בלונים | הצעת מחיר: ${f.choice || 'חבילה'} · ${f.name}`, choice: 'חבילה', page: '/avi-balloons/' },
 };
 exports.siteLead = onRequest({
   region: 'europe-west1',
@@ -146,3 +147,7 @@ exports.wikiChat = require('./wiki').wikiChat;
 
 // Shlomi's own analytics (public/t.js -> track, the /stats/ dashboard -> stats) - see analytics.js
 Object.assign(exports, require('./analytics'));
+
+// the Shlomiverse's fans: accounts, follows, comments, stickers, stories, push (shlomiverse.com/wiki/) - see verse.js.
+// Live since 2026-11-01 (v2/dev.mjs runs the same code in the emulators). Needs the VERSE_VAPID_PRIVATE secret.
+Object.assign(exports, require('./verse'));

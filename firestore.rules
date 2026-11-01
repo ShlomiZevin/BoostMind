@@ -149,5 +149,19 @@ service cloud.firestore {
     match /vaults/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
+    // ─── The Shlomiverse's fans (techietech-api/verse.js) ───────────
+    // Fans only READ here; every write goes through the `verse` function.
+    match /fans/{uid} { allow read: if request.auth != null && request.auth.uid == uid; }
+    match /fans/{uid}/{sub=**} { allow read: if request.auth != null && request.auth.uid == uid; }
+    // comments and posted stickers are public; a query must ask for hidden == false (and status == 'live')
+    match /comments/{id} { allow read: if resource.data.hidden == false; }
+    match /stickers/{id} {
+      allow read: if (resource.data.status == 'live' && resource.data.hidden == false)
+                  || (request.auth != null && request.auth.uid == resource.data.uid);
+    }
+    match /stories/{id} { allow read: if resource.data.hidden == false; }
+    // the community wall: everyone reads the ideas Shlomi didn't hide
+    match /ideas/{id} { allow read: if resource.data.hidden == false; }
+    match /videoStats/{id} { allow read: if true; }
   }
 }

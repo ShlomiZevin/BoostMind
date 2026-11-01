@@ -62,6 +62,15 @@ Keep the words in the middle: Facebook crops the sides on phones and the profile
 
 ## A finished video -> the Shlomiverse (step 11 of the workflow)
 
+**The content is live without a deploy (his ask, 2026-10-31: "adding videos will be without deploy, no code stuff").**
+The wiki's videos, posters, portraits and `wiki.json` live in the bucket **gs://shlomiverse-media/wiki/** (public),
+the chat's brain in **gs://shlomiverse-private/wiki-brain.json**. The wiki, the links page and the stats page read
+`https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json` (falling back to the site's own copy; a local
+preview on localhost reads the local one), and wikiChat reloads its brain from the bucket every 3 minutes. So any
+content change = `python scripts/wiki/build.py` + **`node scripts/wiki/push.cjs`** (uploads only what changed, a few
+seconds; `--dry` shows what would go). No `deploy.sh`, no wikiChat deploy, nothing of another session's goes along.
+Deploy only when the CODE of a page or of wikiChat changes.
+
 **UPLOADING A VIDEO TO THE VERSE - THE ONE PATH** (his ask, 2026-10-31: "super clear to the editor skill and zoomcut")
 1. The video's project is finished and has its full export (`zoomcut/episodes/<id>/out/<id>.mp4`), and every character
    in it lists the episode in their studio profile's `videos` (that is how the verse knows the cast).
@@ -70,11 +79,12 @@ Keep the words in the middle: Facebook crops the sides on phones and the profile
    deploys one at a time. Only with the studio down: `python scripts/wiki/publish_site.py <id>` from BoostMind.
 3. The job puts it everywhere it can by itself: the wiki (the video, each character's page, fan copy by Terra), the
    links page's videos strip (it reads the wiki's data), the chat agent (every character can talk about it), then the
-   safe deploy (`scripts/deploy.sh` - pulls Hani's games first) and a check that the live wiki lists it.
+   push (`scripts/wiki/push.cjs`, no deploy) and a check that the live wiki lists it.
 4. It then checks **every other place** each character must reach and prints one `  !` line per gap: no portrait,
    a Techy-Tech person with no card on the company site, a character site with no links-page button, a character
-   site that shows videos but not this one. **Act on every `!` line** (SKILL.md step 12) and deploy again with
-   `bash scripts/deploy.sh`. The same lines reach his Telegram.
+   site that shows videos but not this one. **Act on every `!` line** (SKILL.md step 12): a wiki/profile fix = build.py
+   + push.cjs; a page of his own site (the company site, a character site) = `bash scripts/deploy.sh`. The same lines
+   reach his Telegram.
 5. **A video is published only at `✔ on the Shlomiverse: <link>`** - give him that link.
 Never deploy with a bare `firebase deploy --only hosting`: it can put old Hani game files back.
 The verse is moving to **https://shlomiverse.com** (same site, same paths - every old link keeps working).
@@ -82,7 +92,7 @@ The verse is moving to **https://shlomiverse.com** (same site, same paths - ever
 **Publishing a video = publishing it to his sites too** (his words, 2026-10-25: "this is part of publishing a video -
 it should go to my site... everything just one direction"). ONE command does all of it, from `c:\workspace\BoostMind`:
 `python scripts/wiki/publish_site.py <episode-id>` - marks the project done, web copy + poster, fan copy (Terra) for
-anything new (the video, a new character), build, deploy the site + the chat agent, checks the live wiki lists it
+anything new (the video, a new character), build, push (no deploy), checks the live wiki lists it
 (`✔ on the Shlomiverse: <link>`), and warns (`!`) for every place a character hasn't reached yet (see the one path above).
 **The studio runs it by itself after every Publish** (since 2026-10-25, commit 72d08ff): a publish with any platform
 out queues a "site" job (Jobs panel "Shlomiverse", one at a time - each deploys the whole site), Telegram with the ✔
@@ -100,12 +110,17 @@ The steps it runs, for when one fails:
    read the answer, then `python scripts/wiki/merge_copy.py`. **Terra, not SOL** (his call). The copy lives in
    `scripts/wiki/copy.json` - fix a line there by hand any time.
 3. **Build:** `python scripts/wiki/build.py` - it lists anything still MISSING (an encode, a copy line).
-4. **Deploy:** `bash scripts/deploy.sh` (from BoostMind; it pulls Hani's games first), and because the chat knows every
-   transcript: `firebase deploy --only functions:wikiChat --project boostmind-b052c` from `techietech-api/`.
+4. **Push:** `node scripts/wiki/push.cjs` (from BoostMind) - the wiki, the links page and the chat have it within
+   seconds / 3 minutes. No deploy.
 5. Check the video on the wiki (the character's page and the videos page) and tell him its link
    (`/wiki/#/v/<episode-id>`).
-A video that lives only on TikTok / Instagram (old ones): add `{"url", "title", "cast": [ids]}` to
-`scripts/wiki/clips.json` and build.
+**Old videos are history, not news (his rule, 2026-10-31):** the wiki home's "סרטונים אחרונים" row, its characters grid
+(newest videos first) and the links page's latest row are for what he makes NOW. Every video carries its real `date`
+(an editor export: its export time; an old reel: its Instagram date) and the wiki sorts by it. His old Instagram reels
+come in through the **insta-to-verse** skill (`scripts/insta/`, subtitles burned in) into `scripts/wiki/reels.json`
+with `archive: true` - they sit on the character's page and the videos page at their own date and never in a
+'latest' row (`fresh()` in public/wiki/index.html, `!v.archive` in public/links/index.html). Keep it that way in any
+redesign. (`scripts/wiki/clips.json` - a link-only TikTok/Instagram video - is the older route; prefer the import.)
 
 ## The fan copy - how the wiki talks about the characters
 - Inside the wiki the characters are **real people**: a fan wiki written from inside their world. Never "parody",
@@ -118,8 +133,24 @@ A video that lives only on TikTok / Instagram (old ones): add `{"url", "title", 
 ## The chat (each character in their own voice)
 - `techietech-api/wiki.js` - OpenAI **gpt-5.6-terra** (his choice over Claude), key in Secret Manager as
   `WIKI_OPENAI_KEY` (the project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it).
-- It knows `techietech-api/wiki-brain.json` (written by build.py: full profiles + transcripts) - **redeploy wikiChat
-  after every build**, or it won't know the new video.
+- It knows `techietech-api/wiki-brain.json` (written by build.py: full profiles + transcripts), read from
+  gs://shlomiverse-private/wiki-brain.json every 3 minutes - **push.cjs after every build**, no redeploy (the bundled
+  copy is only the fallback; redeploy wikiChat only when wiki.js itself changes).
+- **The chain (2026-10-31, his ask - cheaper and smarter):** a question no longer carries the whole brain. The
+  instructions = the rules + a short **map** (one line per character, an AI-written **card** per video - build.py writes
+  the cards into `scripts/wiki/cards.json`, Luna, once per video). **One call that decides by itself (2026-11-01):**
+  the answer call (Terra) gets what is already in hand (a character: themself + own videos; the guide: what the talk
+  was about) and a `look_up` tool. Small talk is answered at once; a question about someone / what happened in a video
+  makes it call look_up (by meaning - "the whispering teacher", "a video about an elevator", follow-ups) and a second
+  call answers with their full profiles + transcripts. (Before, a router call ran before EVERY answer - "היי" waited
+  1.1-1.8 s for nothing; now 0.6-1.0 s to the first word; questions ~2 s, as before.) Code:
+  `techietech-api/wiki-chain.js` (base / lookupTool / merge); log lines `wikiChat one call` / `wikiChat look_up`.
+  Timing test: `node scripts/wiki/speed_test.cjs`. Was ~1.3¢ a question cached / ~11¢ after a push and growing
+  with every video; now ~0.4-0.75¢ a question live (~4¢ the first after a push), nearly flat as the wiki grows.
+  **Who knows whom (his rule):** the guide knows everyone and keeps what the talk was about (Rosenblum, then Yotam -
+  both answered). A character speaks only in their own voice and knows only their world (all of Techy-Tech know each
+  other) and the people linked in `relations`; anyone else "I don't know them personally". Side-by-side test vs the old
+  full-brain chat: `node scripts/wiki/chain_test.cjs` (~$1-3). Past ~400 videos: add embeddings as a first filter.
 - In a reply, `[[video:id]]` plays that video inside the bubble; `[[char:id]]` offers "bring them into the chat".
 - Safety it keeps: real distress / medication / money / law -> out of the joke, kindly, ERAN 1201. Ayelet and Nahor
   never give harmful advice to a real person.

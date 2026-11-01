@@ -68,6 +68,7 @@
   .tile img { width: 100%; height: 100%; object-fit: cover; }
   .tile span { position: absolute; bottom: 0; inset-inline: 0; padding: 22px 12px 10px; font-weight: 800; font-size: .95rem; color: #fff; background: rgba(0,0,0,.45); }
   .hero-in { position: relative; z-index: 2; width: min(720px, 92vw); text-align: center; padding-top: 40px; }
+  .brand b, .wordmark b { color: var(--accent); font-weight: inherit; }  /* the wordmark: שלומי in the text colour, וורס in orange - everywhere */
   .wordmark { font-size: clamp(3.4rem, 10vw, 7.4rem); font-weight: 900; letter-spacing: -.045em; line-height: .9; }
   .wordmark small { display: block; font-size: clamp(1rem, 1.7vw, 1.45rem); letter-spacing: 0; font-weight: 700; color: var(--dim); margin-top: 16px; line-height: 1.3; }
   .ask { margin-top: 30px; display: flex; align-items: center; gap: 10px; background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 8px; box-shadow: 0 10px 40px rgba(0,0,0,.45); }
@@ -283,7 +284,7 @@
 <body>
 <header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="#/">שלומיוורס<span class="pill">וויקי</span></a>
+    <a class="brand" href="#/"><span>שלומי<b>וורס</b></span><span class="pill">וויקי</span></a>
     <nav class="nav">
       <a href="#/characters" data-nav="characters">דמויות</a>
       <a href="#/series" data-nav="series">סדרות</a>
@@ -344,8 +345,10 @@ const card = (c) => `<div class="card" style="--c:${color(c)}">
   <a class="pic" href="#/c/${c.id}">${face(c)}</a>
   <div class="body"><a class="name" href="#/c/${c.id}">${esc(c.name)}</a><span class="tag-line">${esc(c.tagline || c.role)}</span>
   <div class="foot">${stag(c.series)}${talkBtn(c)}</div></div></div>`;
+// the home page is for what he makes now: his old Instagram reels (archive) sit at their own date, never in 'latest'
+const fresh = () => W.videos.filter((v) => !v.archive);
 // characters with the newest videos first (W.videos is newest first), the rest in the canon's order
-const byNewest = (list) => list.map((c, k) => [c, W.videos.findIndex((v) => v.cast.includes(c.id)), k])
+const byNewest = (list) => list.map((c, k) => [c, fresh().findIndex((v) => v.cast.includes(c.id)), k])
   .sort((a, b) => ((a[1] < 0 ? 1e9 : a[1]) - (b[1] < 0 ? 1e9 : b[1])) || a[2] - b[2]).map((x) => x[0]);
 const vcard = (v) => `<button class="vid" data-video="${v.id}">
   <div class="thumb">${v.poster ? `<img src="${v.poster}" alt="" loading="lazy">` : ''}<div class="play"><span>${ICON.play}</span></div>${v.url ? '<span class="ext">TikTok</span>' : ''}</div>
@@ -375,7 +378,7 @@ const pages = {
     const who = [GUIDE, ...W.characters.filter((c) => c.img).slice(0, 7)];
     return `<section class="hero">${wall()}
       <div class="hero-in">
-        <h1 class="wordmark">שלומיוורס<small>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</small></h1>
+        <h1 class="wordmark">שלומי<b>וורס</b><small>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</small></h1>
         <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
           <input id="ask-in" placeholder="שאלו את השלומיוורס…" autocomplete="off" maxlength="1200">
           <button aria-label="שליחה">${ICON.send}</button></form>
@@ -385,7 +388,7 @@ const pages = {
       <span class="scroll-hint">↓ ${W.characters.length} דמויות · ${W.videos.length} סרטונים</span></section>
       <div class="wrap">
       <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
-        <div class="row">${W.videos.slice(0, 14).map(vcard).join('')}</div></section>
+        <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
         <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="#/series">כל הסדרות ←</a></div>
@@ -681,7 +684,10 @@ $('#theme').onclick = () => {
 };
 
 // ---------- boot ----------
-fetch('data/wiki.json').then((r) => r.json()).then((data) => {
+// the content lives in the Shlomiverse's bucket (scripts/wiki/push.cjs), so a new video is live without a deploy;
+// the site's own copy is the fallback, and what a local preview (localhost) shows
+const DATA = /^(localhost|127\.)/.test(location.hostname) ? 'data/wiki.json' : 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
+fetch(DATA, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject())).catch(() => fetch('data/wiki.json').then((r) => r.json())).then((data) => {
   W = data;
   W.characters.forEach((c) => (C[c.id] = c));
   W.series.forEach((s) => (S[s.id] = s));

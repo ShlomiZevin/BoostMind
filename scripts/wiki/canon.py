@@ -30,6 +30,12 @@ def characters():
     return out, index.get('worlds', {})
 
 
+def reels():
+    """His old Instagram reels brought into the wiki (scripts/insta, scripts/wiki/reels.json): history, not news -
+    each keeps its Instagram date and is marked archive (never in the 'latest' rows)."""
+    return load_json(os.path.join(HERE, 'reels.json'), [])
+
+
 def export_path(eid):
     p = os.path.join(ZC, 'episodes', eid, 'out', f'{eid}.mp4')
     return p if os.path.exists(p) else None

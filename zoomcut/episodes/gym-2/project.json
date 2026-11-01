@@ -1,0 +1,1329 @@
+{
+  "format": "sketch-studio/1",
+  "title": "gym-2",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 1198,
+  "speed": 1.2,
+  "assets": {
+    "font.stam-ashkenaz": {
+      "kind": "font",
+      "src": "../../fonts/stamashkenazclm-webfont.ttf",
+      "family": "zc-stam-ashkenaz"
+    },
+    "font.assistant": {
+      "kind": "font",
+      "src": "../../fonts/Assistant.ttf",
+      "family": "zc-assistant"
+    },
+    "t.1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/מכון/1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 12.17,
+      "label": "1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F",
+      "audio": "work/audio/1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F.wav",
+      "preview": "work/public/takes/1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F.plain.mp4",
+      "fg": "work/public/takes/1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F.webm",
+      "matte": "work/matte/1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F.quality.mkv",
+      "mark": "use"
+    },
+    "t.89F7AF8B-249E-4231-9873-1D330A73ECF1": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/מכון/89F7AF8B-249E-4231-9873-1D330A73ECF1.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 21.438,
+      "label": "89F7AF8B-249E-4231-9873-1D330A73ECF1",
+      "audio": "work/audio/89F7AF8B-249E-4231-9873-1D330A73ECF1.wav",
+      "preview": "work/public/takes/89F7AF8B-249E-4231-9873-1D330A73ECF1.plain.mp4",
+      "fg": "work/public/takes/89F7AF8B-249E-4231-9873-1D330A73ECF1.webm",
+      "matte": "work/matte/89F7AF8B-249E-4231-9873-1D330A73ECF1.quality.mkv",
+      "mark": "use"
+    },
+    "t.AF56F4E8-1584-463E-9534-7B8B10650F06": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/מכון/AF56F4E8-1584-463E-9534-7B8B10650F06.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 8.937,
+      "label": "AF56F4E8-1584-463E-9534-7B8B10650F06",
+      "audio": "work/audio/AF56F4E8-1584-463E-9534-7B8B10650F06.wav",
+      "preview": "work/public/takes/AF56F4E8-1584-463E-9534-7B8B10650F06.plain.mp4",
+      "fg": "work/public/takes/AF56F4E8-1584-463E-9534-7B8B10650F06.webm",
+      "matte": "work/matte/AF56F4E8-1584-463E-9534-7B8B10650F06.quality.mkv",
+      "mark": "use"
+    },
+    "t.B6E703F0-5ECB-434F-9942-36DB56123A63": {
+      "kind": "video",
+      "src": "../../../../../Users/shazbak/Downloads/drop/מכון/B6E703F0-5ECB-434F-9942-36DB56123A63.mp4",
+      "w": 720,
+      "h": 1280,
+      "duration": 7.337,
+      "label": "B6E703F0-5ECB-434F-9942-36DB56123A63",
+      "audio": "work/audio/B6E703F0-5ECB-434F-9942-36DB56123A63.wav",
+      "preview": "work/public/takes/B6E703F0-5ECB-434F-9942-36DB56123A63.plain.mp4",
+      "fg": "work/public/takes/B6E703F0-5ECB-434F-9942-36DB56123A63.webm",
+      "matte": "work/matte/B6E703F0-5ECB-434F-9942-36DB56123A63.quality.mkv",
+      "mark": "use"
+    },
+    "m.set": {
+      "kind": "image",
+      "src": "work/public/scene.png",
+      "w": 1088,
+      "h": 1920,
+      "label": "Set - gym.jpg"
+    },
+    "s.0": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.1": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.2": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.3": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.4": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.5": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.6": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.7": {
+      "kind": "audio",
+      "src": "../_assets/gym/sigal-mumble.mp3",
+      "label": "sigal-mumble"
+    },
+    "s.8": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_rack.mp3",
+      "label": "sfx_rack"
+    },
+    "s.9": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_grunt.mp3",
+      "label": "sfx_grunt"
+    },
+    "s.10": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_drop.mp3",
+      "label": "sfx_drop"
+    },
+    "s.11": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_plates.mp3",
+      "label": "sfx_plates"
+    },
+    "s.12": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_rack.mp3",
+      "label": "sfx_rack"
+    },
+    "s.13": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_grunt.mp3",
+      "label": "sfx_grunt"
+    },
+    "s.14": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_drop.mp3",
+      "label": "sfx_drop"
+    },
+    "s.15": {
+      "kind": "audio",
+      "src": "../_assets/gym/sfx_plates.mp3",
+      "label": "sfx_plates"
+    },
+    "s.music": {
+      "kind": "audio",
+      "src": "work/layers/sounds/m291eba1ecca96.wav",
+      "duration": 39.933,
+      "label": "Music - bed_crowd"
+    },
+    "a.gym-music": {
+      "kind": "audio",
+      "src": "../_assets/gym/music.mp3",
+      "label": "מוזיקת מכון"
+    }
+  },
+  "layers": [
+    {
+      "id": "set",
+      "kind": "image",
+      "name": "Set",
+      "owner": "builder",
+      "props": {
+        "blur": 2.2,
+        "brightness": 0.96,
+        "saturate": 0.95
+      },
+      "items": [
+        {
+          "id": "set",
+          "from": 0,
+          "dur": 1198,
+          "asset": "m.set",
+          "box": {
+            "x": -1250,
+            "y": -776,
+            "w": 3208,
+            "h": 5664
+          },
+          "pin": "span",
+          "ref": {
+            "set": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "person",
+      "kind": "video",
+      "name": "Person",
+      "owner": "builder",
+      "props": {
+        "fit": "cover",
+        "cutout": true,
+        "eyes": false,
+        "look": {},
+        "matte_cut": 70,
+        "side_ramp": true,
+        "af": "eq=brightness=0.0:contrast=1.05:saturation=1.08,colorbalance=rs=0.06:gs=0.02:bs=-0.06:rm=0.06:bm=-0.06",
+        "box": {
+          "x": -99,
+          "y": 34,
+          "w": 1210,
+          "h": 2151
+        }
+      },
+      "items": [
+        {
+          "id": "c1",
+          "from": 552,
+          "dur": 156,
+          "asset": "t.B6E703F0-5ECB-434F-9942-36DB56123A63",
+          "in": 0.83,
+          "ref": {
+            "take": "B6E703F0-5ECB-434F-9942-36DB56123A63",
+            "a": 0.83
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83",
+          "box": {
+            "x": -99,
+            "y": 34,
+            "w": 1208,
+            "h": 2150
+          }
+        },
+        {
+          "id": "c2",
+          "from": 708,
+          "dur": 304,
+          "asset": "t.1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F",
+          "in": 1.13,
+          "ref": {
+            "take": "1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F",
+            "a": 1.13
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13",
+          "box": {
+            "x": -99,
+            "y": 34,
+            "w": 1208,
+            "h": 2150
+          },
+          "user": true
+        },
+        {
+          "id": "c3",
+          "from": 1012,
+          "dur": 186,
+          "asset": "t.AF56F4E8-1584-463E-9534-7B8B10650F06",
+          "in": 1.13,
+          "ref": {
+            "take": "AF56F4E8-1584-463E-9534-7B8B10650F06",
+            "a": 0.83
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83",
+          "box": {
+            "x": -99,
+            "y": 34,
+            "w": 1208,
+            "h": 2150
+          },
+          "user": true
+        },
+        {
+          "id": "c0",
+          "from": 0,
+          "dur": 552,
+          "asset": "t.89F7AF8B-249E-4231-9873-1D330A73ECF1",
+          "in": 1.33,
+          "ref": {
+            "take": "89F7AF8B-249E-4231-9873-1D330A73ECF1",
+            "a": 1.33
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33",
+          "box": {
+            "x": -99,
+            "y": 34,
+            "w": 1208,
+            "h": 2150
+          },
+          "user": true
+        }
+      ],
+      "removed": [
+        "{\"a\":1.33,\"take\":\"89F7AF8B-249E-4231-9873-1D330A73ECF1\"}",
+        "{\"a\":0.8,\"take\":\"B6E703F0-5ECB-434F-9942-36DB56123A63\"}",
+        "{\"a\":1.1,\"take\":\"1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F\"}",
+        "{\"a\":0.82,\"take\":\"AF56F4E8-1584-463E-9534-7B8B10650F06\"}"
+      ]
+    },
+    {
+      "id": "ov.texts",
+      "kind": "text",
+      "name": "Texts",
+      "owner": "builder",
+      "props": {
+        "style": "pov"
+      },
+      "items": [
+        {
+          "id": "o0",
+          "from": 0,
+          "dur": 1198,
+          "ref": {
+            "overlay": 0
+          },
+          "pin": "span",
+          "box": {
+            "x": 540,
+            "y": 270,
+            "anchor": "t",
+            "w": 940
+          },
+          "text": "פוב: הבחור הזה שמנהל את העסק הפרטי מהמכון – וסיגל רוצה הנחה",
+          "style": "pov",
+          "font": "font.assistant",
+          "theme": "dark",
+          "size": 77,
+          "padX": 40,
+          "padY": 14,
+          "box_opacity": 0.75
+        }
+      ]
+    },
+    {
+      "id": "subs",
+      "kind": "subtitles",
+      "name": "Subtitles",
+      "owner": "builder",
+      "props": {
+        "style": "solo",
+        "box": {
+          "x": 540,
+          "y": 1480,
+          "w": 980,
+          "anchor": "t"
+        },
+        "font": "font.assistant",
+        "size": 66,
+        "weight": 800,
+        "color": "#ffffff",
+        "stroke": 10
+      },
+      "items": [
+        {
+          "id": "open1",
+          "from": 2,
+          "dur": 48,
+          "text": "סיגל, סיגל, תעצרי רגע,",
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33",
+          "user": true
+        },
+        {
+          "id": "s1",
+          "from": 50,
+          "dur": 40,
+          "text": "תעצרי, תני לי לענות!",
+          "ref": {
+            "cap": "תעצרי, תני לי לענות!",
+            "k": 1
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s2",
+          "from": 90,
+          "dur": 35,
+          "text": "אם את רוצה להוריד",
+          "ref": {
+            "cap": "אם את רוצה להוריד",
+            "k": 2
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s3",
+          "from": 125,
+          "dur": 40,
+          "text": "במחיר תקשיבי לי רגע",
+          "ref": {
+            "cap": "במחיר תקשיבי לי רגע",
+            "k": 3
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s4",
+          "from": 165,
+          "dur": 29,
+          "text": "טוב! אם את רוצה",
+          "ref": {
+            "cap": "טוב! אם את רוצה",
+            "k": 4
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s5",
+          "from": 194,
+          "dur": 36,
+          "text": "להוריד, אין בעיה!",
+          "ref": {
+            "cap": "להוריד, אין בעיה!",
+            "k": 5
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s6",
+          "from": 230,
+          "dur": 30,
+          "text": "אבל את צריכה להבין",
+          "ref": {
+            "cap": "אבל את צריכה להבין",
+            "k": 6
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s7",
+          "from": 260,
+          "dur": 40,
+          "text": "שאנחנו מורידים גם דברים",
+          "ref": {
+            "cap": "שאנחנו מורידים גם דברים",
+            "k": 7
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s8",
+          "from": 300,
+          "dur": 30,
+          "text": "מהחבילה! את לא יכולה",
+          "ref": {
+            "cap": "מהחבילה! את לא יכולה",
+            "k": 8
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s9",
+          "from": 330,
+          "dur": 39,
+          "text": "לצפות לקבל חבילת פרימיום,",
+          "ref": {
+            "cap": "לצפות לקבל חבילת פרימיום,",
+            "k": 9
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s10",
+          "from": 369,
+          "dur": 32,
+          "text": "אבל לשלם על חבילת",
+          "ref": {
+            "cap": "אבל לשלם על חבילת",
+            "k": 10
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s11",
+          "from": 401,
+          "dur": 29,
+          "text": "בסיס! זה לא עובד",
+          "ref": {
+            "cap": "בסיס! זה לא עובד",
+            "k": 11
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s12",
+          "from": 430,
+          "dur": 52,
+          "text": "ככה! אז בלי הליום!",
+          "ref": {
+            "cap": "ככה! אז בלי הליום!",
+            "k": 12
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s13",
+          "from": 482,
+          "dur": 19,
+          "text": "בלי הליום,",
+          "ref": {
+            "cap": "בלי הליום,",
+            "k": 13
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s14",
+          "from": 501,
+          "dur": 24,
+          "text": "סיגל! זה מה שאני",
+          "ref": {
+            "cap": "סיגל! זה מה שאני",
+            "k": 14
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s15",
+          "from": 525,
+          "dur": 27,
+          "text": "מנסה להסביר לך!",
+          "ref": {
+            "cap": "מנסה להסביר לך!",
+            "k": 15
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "s16",
+          "from": 552,
+          "dur": 33,
+          "text": "את רוצה גם לחסוך",
+          "ref": {
+            "cap": "את רוצה גם לחסוך",
+            "k": 16
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83"
+        },
+        {
+          "id": "s17",
+          "from": 585,
+          "dur": 47,
+          "text": "וגם שהבלונים יעמדו?",
+          "ref": {
+            "cap": "וגם שהבלונים יעמדו?",
+            "k": 17
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83"
+        },
+        {
+          "id": "s18",
+          "from": 632,
+          "dur": 28,
+          "text": "אני לא צועק,",
+          "ref": {
+            "cap": "אני לא צועק,",
+            "k": 18
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83"
+        },
+        {
+          "id": "s19",
+          "from": 660,
+          "dur": 28,
+          "text": "אני פשוט מסביר לך",
+          "ref": {
+            "cap": "אני פשוט מסביר לך",
+            "k": 19
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83"
+        },
+        {
+          "id": "s20",
+          "from": 688,
+          "dur": 20,
+          "text": "איך זה עובד!",
+          "ref": {
+            "cap": "איך זה עובד!",
+            "k": 20
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83"
+        },
+        {
+          "id": "s21",
+          "from": 708,
+          "dur": 48,
+          "text": "סיגל, את רוצה שהבלונים",
+          "ref": {
+            "cap": "סיגל, את רוצה שהבלונים",
+            "k": 21
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s22",
+          "from": 756,
+          "dur": 60,
+          "text": "יעמדו מהרצפה כלפי מעלה,",
+          "ref": {
+            "cap": "יעמדו מהרצפה כלפי מעלה,",
+            "k": 22
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s23",
+          "from": 816,
+          "dur": 38,
+          "text": "נכון? מעולה!",
+          "ref": {
+            "cap": "נכון? מעולה!",
+            "k": 23
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s24",
+          "from": 854,
+          "dur": 45,
+          "text": "אז תתלי אותם מהתקרה",
+          "ref": {
+            "cap": "אז תתלי אותם מהתקרה",
+            "k": 24
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s25",
+          "from": 899,
+          "dur": 34,
+          "text": "כלפי מטה,",
+          "ref": {
+            "cap": "כלפי מטה,",
+            "k": 25
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s26",
+          "from": 933,
+          "dur": 22,
+          "text": "בלי הליום!",
+          "ref": {
+            "cap": "בלי הליום!",
+            "k": 26
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s27",
+          "from": 955,
+          "dur": 20,
+          "text": "מה ההבדל?",
+          "ref": {
+            "cap": "מה ההבדל?",
+            "k": 27
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s28",
+          "from": 975,
+          "dur": 37,
+          "text": "אותו דבר בדיוק!",
+          "ref": {
+            "cap": "אותו דבר בדיוק!",
+            "k": 28
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "s29",
+          "from": 1012,
+          "dur": 28,
+          "text": "הליום זה בסך הכל",
+          "ref": {
+            "cap": "הליום זה בסך הכל",
+            "k": 29
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s30",
+          "from": 1040,
+          "dur": 37,
+          "text": "גז שעושה קול מצחיק.",
+          "ref": {
+            "cap": "גז שעושה קול מצחיק.",
+            "k": 30
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s31",
+          "from": 1077,
+          "dur": 25,
+          "text": "בשביל זה שווה עוד",
+          "ref": {
+            "cap": "בשביל זה שווה עוד",
+            "k": 31
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s32",
+          "from": 1102,
+          "dur": 25,
+          "text": "400 שקל?",
+          "ref": {
+            "cap": "400 שקל?",
+            "k": 32
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s33",
+          "from": 1127,
+          "dur": 20,
+          "text": "אני לא יודע,",
+          "ref": {
+            "cap": "אני לא יודע,",
+            "k": 33
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s34",
+          "from": 1147,
+          "dur": 16,
+          "text": "תחליטי את,",
+          "ref": {
+            "cap": "תחליטי את,",
+            "k": 34
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s35",
+          "from": 1163,
+          "dur": 21,
+          "text": "אני רק מסביר לך",
+          "ref": {
+            "cap": "אני רק מסביר לך",
+            "k": 35
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        },
+        {
+          "id": "s36",
+          "from": 1184,
+          "dur": 14,
+          "text": "איך זה עובד.",
+          "ref": {
+            "cap": "איך זה עובד.",
+            "k": 36
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        }
+      ],
+      "removed": [
+        "{\"cap\":\"סיגל, סיגל,\",\"k\":0}",
+        "{\"cap\":\"סיגל, תעצרי רגע,\",\"k\":1}",
+        "{\"cap\":\"תעצרי, תני לי לענות!\",\"k\":2}",
+        "{\"cap\":\"אם את רוצה להוריד\",\"k\":3}",
+        "{\"cap\":\"במחיר תקשיבי לי רגע\",\"k\":4}",
+        "{\"cap\":\"טוב! אם את רוצה\",\"k\":5}",
+        "{\"cap\":\"להוריד, אין בעיה!\",\"k\":6}",
+        "{\"cap\":\"אבל את צריכה להבין\",\"k\":7}",
+        "{\"cap\":\"שאנחנו מורידים גם דברים\",\"k\":8}",
+        "{\"cap\":\"מהחבילה! את לא יכולה\",\"k\":9}",
+        "{\"cap\":\"לצפות לקבל חבילת פרימיום,\",\"k\":10}",
+        "{\"cap\":\"אבל לשלם על חבילת\",\"k\":11}",
+        "{\"cap\":\"בסיס! זה לא עובד\",\"k\":12}",
+        "{\"cap\":\"ככה! אז בלי הליום!\",\"k\":13}",
+        "{\"cap\":\"בלי הליום,\",\"k\":14}",
+        "{\"cap\":\"סיגל! זה מה שאני\",\"k\":15}",
+        "{\"cap\":\"מנסה להסביר לך!\",\"k\":16}",
+        "{\"cap\":\"את\",\"k\":17}",
+        "{\"cap\":\"רוצה גם לחסוך וגם\",\"k\":18}",
+        "{\"cap\":\"שהבלונים יעמדו?\",\"k\":19}",
+        "{\"cap\":\"אני לא צועק,\",\"k\":20}",
+        "{\"cap\":\"אני פשוט מסביר לך\",\"k\":21}",
+        "{\"cap\":\"איך זה עובד!\",\"k\":22}",
+        "{\"cap\":\"סיגל,\",\"k\":23}",
+        "{\"cap\":\"את רוצה שהבלונים יעמדו\",\"k\":24}",
+        "{\"cap\":\"מהרצפה כלפי מעלה,\",\"k\":25}",
+        "{\"cap\":\"נכון? מעולה!\",\"k\":26}",
+        "{\"cap\":\"אז תתלי אותם מהתקרה\",\"k\":27}",
+        "{\"cap\":\"כלפי מטה,\",\"k\":28}",
+        "{\"cap\":\"בלי הליום!\",\"k\":29}",
+        "{\"cap\":\"מה ההבדל?\",\"k\":30}",
+        "{\"cap\":\"אותו דבר בדיוק!\",\"k\":31}",
+        "{\"cap\":\"הליום\",\"k\":32}",
+        "{\"cap\":\"זה בסך הכל גז\",\"k\":33}",
+        "{\"cap\":\"שעושה קול מצחיק.\",\"k\":34}",
+        "{\"cap\":\"בשביל זה שווה עוד\",\"k\":35}",
+        "{\"cap\":\"400 שקל?\",\"k\":36}",
+        "{\"cap\":\"אני לא יודע,\",\"k\":37}",
+        "{\"cap\":\"תחליטי את,\",\"k\":38}",
+        "{\"cap\":\"אני רק מסביר לך\",\"k\":39}",
+        "{\"cap\":\"איך זה עובד.\",\"k\":40}",
+        "{\"cap\":\"את\",\"k\":16}",
+        "{\"cap\":\"סיגל,\",\"k\":22}",
+        "{\"cap\":\"הליום\",\"k\":31}",
+        "{\"cap\":\"סיגל, תעצרי רגע,\",\"k\":0}",
+        "{\"cap\":\"רוצה גם לחסוך וגם\",\"k\":17}",
+        "{\"cap\":\"את רוצה שהבלונים יעמדו\",\"k\":23}",
+        "{\"cap\":\"זה בסך הכל גז\",\"k\":32}"
+      ]
+    },
+    {
+      "id": "voice",
+      "kind": "audio",
+      "name": "Voice",
+      "owner": "builder",
+      "props": {
+        "volume": 2,
+        "voice": {
+          "lowcut": 50,
+          "warmth": -5,
+          "box": -4.5,
+          "presence": -2.5,
+          "deess": 0.1,
+          "comp": 0.25,
+          "room": 0.25,
+          "roomSize": 0.9,
+          "preset": "hall",
+          "boost": -3,
+          "bypass": null
+        },
+        "clean": "fft"
+      },
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 552,
+          "asset": "t.89F7AF8B-249E-4231-9873-1D330A73ECF1",
+          "in": 1.33,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "89F7AF8B-249E-4231-9873-1D330A73ECF1",
+            "a": 1.33
+          },
+          "link": "cut-89F7AF8B-249E-4231-9873-1D330A73ECF1-1.33"
+        },
+        {
+          "id": "v1",
+          "from": 552,
+          "dur": 156,
+          "asset": "t.B6E703F0-5ECB-434F-9942-36DB56123A63",
+          "in": 0.83,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "B6E703F0-5ECB-434F-9942-36DB56123A63",
+            "a": 0.83
+          },
+          "link": "cut-B6E703F0-5ECB-434F-9942-36DB56123A63-0.83"
+        },
+        {
+          "id": "v2",
+          "from": 708,
+          "dur": 295,
+          "asset": "t.1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F",
+          "in": 1.13,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F",
+            "a": 1.13
+          },
+          "link": "cut-1F97D768-D9C0-4F02-BB8A-EE9D0ED09B7F-1.13"
+        },
+        {
+          "id": "v3",
+          "from": 1003,
+          "dur": 195,
+          "asset": "t.AF56F4E8-1584-463E-9534-7B8B10650F06",
+          "in": 0.83,
+          "fade_in": 0.012,
+          "fade_out": 0.012,
+          "ref": {
+            "take": "AF56F4E8-1584-463E-9534-7B8B10650F06",
+            "a": 0.83
+          },
+          "link": "cut-AF56F4E8-1584-463E-9534-7B8B10650F06-0.83"
+        }
+      ]
+    },
+    {
+      "id": "sfx",
+      "kind": "audio",
+      "name": "Sounds",
+      "owner": "builder",
+      "props": {
+        "volume": 2
+      },
+      "items": [
+        {
+          "id": "sg0",
+          "from": 0,
+          "dur": 29.2,
+          "asset": "s.0",
+          "in": 6.2,
+          "rate": 1.4375,
+          "gain": 9.75,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 0
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg1",
+          "from": 133.5,
+          "dur": 18.8,
+          "asset": "s.1",
+          "in": 10.5,
+          "rate": 1.4375,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 1
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg2",
+          "from": 445.5,
+          "dur": 18.8,
+          "asset": "s.2",
+          "in": 4.5,
+          "rate": 1.4375,
+          "gain": 11.05,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 2
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg3",
+          "from": 552,
+          "dur": 25,
+          "asset": "s.3",
+          "in": 18.6,
+          "rate": 1.4375,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 3
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg4",
+          "from": 623.7,
+          "dur": 17.7,
+          "asset": "s.4",
+          "in": 11.95,
+          "rate": 1.4375,
+          "gain": 11.05,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 4
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg5",
+          "from": 707,
+          "dur": 23,
+          "asset": "s.5",
+          "in": 0.1,
+          "rate": 1.4375,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 5
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg6",
+          "from": 829.2,
+          "dur": 10.4,
+          "asset": "s.6",
+          "in": 12.2,
+          "rate": 1.4375,
+          "gain": 11.05,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 6
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sg7",
+          "from": 1002,
+          "dur": 25,
+          "asset": "s.7",
+          "in": 14.8,
+          "rate": 1.4375,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.12,
+          "ref": {
+            "sound": 7
+          },
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": -2.42,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        }
+      ],
+      "muted": false,
+      "removed": [
+        "{\"sound\":0}",
+        "{\"sound\":1}",
+        "{\"sound\":2}",
+        "{\"sound\":3}",
+        "{\"sound\":4}",
+        "{\"sound\":5}",
+        "{\"sound\":6}",
+        "{\"sound\":7}"
+      ]
+    },
+    {
+      "id": "sfx1",
+      "kind": "audio",
+      "name": "Sounds 2",
+      "owner": "builder",
+      "props": {
+        "volume": 0.22
+      },
+      "items": [
+        {
+          "id": "x8",
+          "from": 59.1,
+          "dur": 90,
+          "asset": "s.8",
+          "gain": 0.4,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 8
+          },
+          "in": 0
+        },
+        {
+          "id": "x9",
+          "from": 230.1,
+          "dur": 90,
+          "asset": "s.9",
+          "gain": 0.35,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 9
+          },
+          "in": 0
+        },
+        {
+          "id": "x10",
+          "from": 380.1,
+          "dur": 60,
+          "asset": "s.10",
+          "gain": 0.4,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 10
+          },
+          "in": 0
+        },
+        {
+          "id": "x11",
+          "from": 659.1,
+          "dur": 90,
+          "asset": "s.11",
+          "gain": 0.35,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 11
+          },
+          "in": 0
+        },
+        {
+          "id": "x12",
+          "from": 758.1,
+          "dur": 90,
+          "asset": "s.12",
+          "gain": 0.4,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 12
+          },
+          "in": 0
+        },
+        {
+          "id": "x13",
+          "from": 902.1,
+          "dur": 90,
+          "asset": "s.13",
+          "gain": 0.35,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 13
+          },
+          "in": 0
+        },
+        {
+          "id": "x14",
+          "from": 1044.1,
+          "dur": 60,
+          "asset": "s.14",
+          "gain": 0.4,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 14
+          },
+          "in": 0
+        },
+        {
+          "id": "x15",
+          "from": 1143.1,
+          "dur": 90,
+          "asset": "s.15",
+          "gain": 0.35,
+          "fade_in": 0.02,
+          "fade_out": 0.06,
+          "ref": {
+            "sound": 15
+          },
+          "in": 0
+        }
+      ],
+      "muted": false
+    },
+    {
+      "items": [
+        {
+          "id": "gm0",
+          "from": 0,
+          "dur": 600,
+          "asset": "a.gym-music",
+          "in": 0,
+          "gain": 0.45,
+          "fade_in": 1,
+          "fade_out": 0.012
+        },
+        {
+          "id": "gm1",
+          "from": 600,
+          "dur": 595,
+          "asset": "a.gym-music",
+          "in": 0,
+          "gain": 0.45,
+          "fade_in": 0.012,
+          "fade_out": 0.012
+        },
+        {
+          "id": "gm2",
+          "from": 1195,
+          "dur": 3,
+          "asset": "a.gym-music",
+          "in": 0,
+          "gain": 0.45,
+          "fade_in": 0.012,
+          "fade_out": 2
+        }
+      ],
+      "props": {
+        "volume": 0.22
+      },
+      "id": "gymmusic",
+      "kind": "audio",
+      "name": "מוזיקת מכון"
+    },
+    {
+      "id": "music",
+      "kind": "audio",
+      "name": "Music",
+      "owner": "builder",
+      "props": {
+        "volume": 0.2,
+        "presence": 1
+      },
+      "items": [
+        {
+          "id": "m0",
+          "from": 0,
+          "dur": 1197.999,
+          "asset": "s.music",
+          "in": 0,
+          "fade_in": 1.5,
+          "fade_out": 2.5,
+          "ref": {
+            "music": 1
+          }
+        }
+      ],
+      "muted": false
+    }
+  ],
+  "rev": 73,
+  "builder": {
+    "kind": "solo",
+    "from": "lesson.py"
+  },
+  "edit": {
+    "ripple": true
+  },
+  "characters": [
+    "gym-guy",
+    "sigal"
+  ],
+  "saved": 1793526349764,
+  "notes": [
+    {
+      "id": "nmvxmkkbg",
+      "at": 551,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793525157340,
+      "kind": "tighten",
+      "reply": "Tightened: take 1 ends right on 'להסביר לך!', take 2 starts on 'את' - no pause between them.",
+      "done": true
+    },
+    {
+      "id": "nmvxmkt1i",
+      "at": 705,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793525168646,
+      "kind": "tighten",
+      "reply": "Tightened: take 2 ends on 'עובד!', take 3 starts on 'סיגל' - no pause.",
+      "done": true
+    },
+    {
+      "id": "nmvxmlcl6",
+      "at": 1006,
+      "text": "Tighten the cut: bring these two clips closer together - no gap or pause between them.",
+      "t": 1793525193978,
+      "kind": "tighten",
+      "reply": "Tightened: take 3 ends on 'בדיוק!', take 4's voice starts on 'הליום' right after (its picture switches 0.3 s later, so you don't see yourself stepping back).",
+      "done": true
+    },
+    {
+      "id": "nmvxmljpn",
+      "at": 1198,
+      "text": "סיים כאן",
+      "t": 1793525203211,
+      "reply": "Ends here, on 'איך זה עובד.'",
+      "done": true
+    }
+  ]
+}

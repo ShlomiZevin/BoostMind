@@ -1,0 +1,6 @@
+C:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/games/stories/jobs-games-instagram.json
+C:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/games/stories/jobs-games-tiktok.json
+C:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/games/stories/jobs-nisei-instagram.json
+C:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/games/stories/jobs-nisei-tiktok.json
+C:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/games/stories/jobs-kosher-instagram.json
+C:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/games/stories/jobs-kosher-tiktok.json

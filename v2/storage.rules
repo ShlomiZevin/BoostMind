@@ -1,0 +1,8 @@
+rules_version = '2';
+// local emulator only: stickers and story media are written by the functions and read by anyone (live: the public
+// shlomiverse-media bucket)
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /verse/{all=**} { allow read: if true; allow write: if false; }
+  }
+}

@@ -588,7 +588,11 @@ own site, the wiki, the chat agent - tested).
 - **Every video:**
   - Before you build it, find its characters on the page (`GET /api/characters`).
   - **A new character gets a profile first:** `POST /api/characters/<id> {patch: {...}}` with name, world, role and brief
-    from the script, a portrait from his frame (or Leonardo `portrait` from it), the look and the voice preset.
+    from the script, a portrait from his frame, the look and the voice preset.
+  - **The profile picture is made on OpenAI directly with GPT Image 2.5 flare (or sunburst)** - his rule, 2026-10-31:
+    `node zoomcut/tools/leonardo.mjs portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare LOW 0.6 1024x1024`
+    (`OPENAI_API_KEY` in `zoomcut/.env`; LOW is enough, MEDIUM at most, never HIGH; ~$0.01 LOW / $0.019 MEDIUM).
+    Never Leonardo for it (the tool only falls back there by itself on an OpenAI error - say so if it does).
   - Then the video lists them: project.json `"characters": [ids]`. The builders fill it (Zoom: the participants;
     one camera: the series' character). Check it, and add a guest character by hand.
   - Use the profile when writing for the character: the catchphrases, the writing rules (e.g. Yotam speaks in the first

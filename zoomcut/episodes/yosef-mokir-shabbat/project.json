@@ -1,0 +1,67 @@
+{
+  "format": "sketch-studio/1",
+  "title": "יוסף מוקיר שבת - המשחקייה של חני",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 1288,
+  "speed": 1.15,
+  "assets": {
+    "v.yosef-teaser.mp4": {
+      "kind": "video",
+      "src": "media/yosef-teaser.mp4",
+      "w": 1080,
+      "h": 1920,
+      "duration": 42.92,
+      "mark": "use"
+    }
+  },
+  "layers": [
+    {
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 1288,
+          "asset": "v.yosef-teaser.mp4",
+          "in": 0,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ],
+      "props": {
+        "fit": "cover"
+      },
+      "id": "video",
+      "kind": "video",
+      "name": "הסרטון"
+    },
+    {
+      "items": [
+        {
+          "id": "a0",
+          "from": 0,
+          "dur": 1288,
+          "asset": "v.yosef-teaser.mp4",
+          "in": 0
+        }
+      ],
+      "props": {},
+      "id": "sound",
+      "kind": "audio",
+      "name": "הסאונד"
+    }
+  ],
+  "rev": 7,
+  "saved": 1793354025513,
+  "characters": [
+    "hani"
+  ]
+}

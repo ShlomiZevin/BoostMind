@@ -36,8 +36,23 @@ const EVENTS = new Set([
   'game_start',    // a round of a game started                    x = game slug
   'game_over',     // a round of a game ended                      x = game slug
   'song',          // a site's song started playing                x = song id
+  // the Shlomiverse's fans (verse.js): signed-in actions, still anonymous here
+  'sign_in',       // a fan signed in with Google                  x = 'new' | 'back'
+  'follow',        // a fan followed a character                   x = character id
+  'push_optin',    // notifications turned on                      x = 'ok' | 'denied' | 'guide' (the iPhone home-screen guide)
+  'comment',       // a comment was posted                         x = video id
+  'save',          // a video was saved                            x = video id
+  'share',         // the share button                             x = video id
+  'sticker_create',// "sticker from the moment" made a sticker     x = video id
+  'stamp',         // a fan stamped another fan's sticker          x = video id
+  'story_view',    // a character's story was opened               x = character id
+  'request',       // a request reached Shlomi                    x = 'video' | 'contact' | 'business' | 'bug'
+  'like',          // a comment got a like (the planet)            x = video id
+  'idea',          // an idea went on the community wall           x = 'episode' | 'character' | 'meet' | 'other'
+  'vote',          // +1 on someone's idea                         x = 'on' | 'off'
+  'chat_new',      // "new conversation" in the chat               x = character id or 'guide'
 ]);
-const SITES = new Set(['links', 'wiki', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'other']);
+const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'other']);
 const SOURCES = new Set(['tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
 const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 

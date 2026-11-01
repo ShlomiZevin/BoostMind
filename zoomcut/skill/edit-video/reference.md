@@ -158,3 +158,12 @@
   project back and check for '�'.
 - **A site's form: never name a field `item`, `length` or `namedItem`** - `form.elements.item` is the built-in method,
   so `f.item.value` is undefined and the order email said "פריט: undefined" (אופנת חני, 2026-10-26, a real order).
+- **Exporter race (open, 2026-10-29):** the first export of a project with NEW pictures can fail with WinError 32 in
+  `export_layers.asset_public` - two graphics threads copy the same file into work/layers/public at once. Export again
+  (the files are there now). Fix = a lock around asset_public (tool work, its own task).
+- **Cleaning does nothing in the editor until the sources exist (open, 2026-10-29):** the Noise switch (off / mild /
+  strong / nn) plays prepared files in `work/public/layers/src/` made by `python -m pipeline.layers_audio
+  episodes/<id>` - the server runs it only when a NEW sound source appears, not after Analyze. A project with none
+  plays the raw takes whatever the switch says (his "terrible hum" on demokratovich-nechama while it said NN).
+  Check the folder after every build; run the step if it's missing. Fix = run it after every build (tool task).
+

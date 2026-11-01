@@ -1,4 +1,4 @@
-"""A published video -> all his sites, in one run: python scripts/wiki/publish_site.py <episode-id>... [--no-deploy]
+"""A published video -> all his sites, in one run: python scripts/wiki/publish_site.py <episode-id>... [--no-push]
 
 The studio runs it by itself after every Publish (render/publish.mjs, a "site" job in the Jobs list); a session runs
 it for a video that missed it. Steps (wiki.md "A finished video -> the Shlomiverse"):
@@ -6,7 +6,8 @@ it for a video that missed it. Steps (wiki.md "A finished video -> the Shlomiver
   2. the web copy + poster (encode.sh)
   3. the fan copy for anything new - the video's title / teaser, a new character's tagline / bio / questions (Terra)
   4. the build (wiki.json for the wiki and the links page, wiki-brain.json for the chat agent)
-  5. deploy the site and the chat agent, then check the live wiki has the video
+  5. push the content (scripts/wiki/push.cjs - the videos, wiki.json and the chat's brain to the Shlomiverse's bucket;
+     live in seconds, no deploy since 2026-10-31), then check the live wiki has the video
 A character of the Techy-Tech world without a card on the company site is reported - that card is written by hand.
 """
 import glob, json, os, re, shutil, subprocess, sys, tempfile, time, urllib.request
@@ -17,6 +18,7 @@ STUDIO = 'http://localhost:4747'
 SOL = os.path.expanduser('~/.claude/skills/sol-leonardo/scripts/sol.js')
 KEYS = 'C:/workspace/aspect/aspect-agent-server/.env'  # the working OpenAI key (BoostMind's own is revoked)
 WIKI = 'https://shlomiverse.com/wiki/'
+LIVE_DATA = 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json'  # what the wiki reads (push.cjs)
 
 
 def say(m):
@@ -119,7 +121,7 @@ def places(eid, cast, world):
 
 def main():
     ids = [a for a in sys.argv[1:] if not a.startswith('--')]
-    deploy = '--no-deploy' not in sys.argv
+    push = not ({'--no-push', '--no-deploy'} & set(sys.argv))
     if not ids:
         raise SystemExit(__doc__)
     for eid in ids:
@@ -155,19 +157,17 @@ def main():
         for line in places(i, eps.get(i, {}).get('cast', []), {c['id']: c for c in chars}):
             say(line)
 
-    if not deploy:
-        say('  · not deployed (--no-deploy)')
+    if not push:
+        say('  · not pushed (--no-push)')
         return
-    settle()
-    # the safe deploy: it pulls Hani's games from live first, so a video publish never puts old game files back
-    run([shutil.which('bash') or 'C:/Program Files/Git/bin/bash.exe', 'scripts/deploy.sh'])
-    say('  · site deployed')
-    run('firebase deploy --only functions:wikiChat --project boostmind-b052c', cwd=os.path.join(ROOT, 'techietech-api'))
-    say('  · chat agent deployed (it knows the new videos)')
-    live = urllib.request.urlopen(f'{WIKI}data/wiki.json?n={os.getpid()}', timeout=30).read().decode('utf8')
+    # no deploy: the content goes to the bucket the wiki, the links page and the chat read (no other session's page
+    # can go along, and Hani's games are never touched)
+    run(['node', 'scripts/wiki/push.cjs'])
+    say('  · pushed - live on the wiki now, the chat agent knows it within 3 minutes')
+    live = urllib.request.urlopen(f'{LIVE_DATA}?n={os.getpid()}', timeout=30).read().decode('utf8')
     gone = [i for i in ids if f'"{i}"' not in live]
     if gone:
-        raise SystemExit(f'deployed, but the live wiki does not list: {", ".join(gone)}')
+        raise SystemExit(f'pushed, but the live wiki does not list: {", ".join(gone)}')
     for i in ids:
         say(f'✔ on the Shlomiverse: {WIKI}#/v/{i}')
 

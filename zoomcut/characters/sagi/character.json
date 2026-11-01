@@ -11,7 +11,8 @@
   "brief": "שגיא הוא \"איש הקורקינט\" של טקי-טק. באתר הוא Customer Success Manager (ההחלטה של שלומי) בחטיבת הפיתוח העסקי של עופר: מלווה את לקוחות ה-Enterprise מההטמעה ועד הרחבת השימוש, ותחתיו צוות Customer Success של 18 בפתח תקווה ובבוסטון. עדיין אין לו סרטון.",
   "behavior": [
     "\"איש הקורקינט\" - הקורקינט הוא הסימן שלו (scooter guy).",
-    "מלווה את לקוחות ה-Enterprise לאורך כל מחזור החיים, מההטמעה ועד הרחבת השימוש (אתר)."
+    "מלווה את לקוחות ה-Enterprise לאורך כל מחזור החיים, מההטמעה ועד הרחבת השימוש (אתר).",
+    "גם כשה-AI מאיים להחליף את כולם, יש לו רק שיחה אחת בטלפון: \"לא דואג, יהיה בסדר, נעשה משלוחים על הקורקינט\"."
   ],
   "themes": [
     "עדיין בלי סרטון - קיים רק בתרשים הארגוני של האתר (site: techietech)."
@@ -55,6 +56,7 @@
   "color": "#f1c40f",
   "sources": [
     "C:/Users/shazbak/.claude/projects/c--workspace-BoostMind/memory/project_techy_tech.md",
-    "c:/workspace/BoostMind/public/techietech/index.html"
+    "c:/workspace/BoostMind/public/techietech/index.html",
+    "instagram reels 17999946662988524"
   ]
 }

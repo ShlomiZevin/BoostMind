@@ -30,6 +30,37 @@ He acts to the other voice in one continuous take; the other voice is a sound la
     `"tempo": 1.15` ("cartoon but real"), `"room": true` (the same room as his voice), gain 1.9 (2.4 in his pause) →
     5-8 dB under his voice. A phone voice needs 150-250%: the Volume slider goes to 300%.
   - Measure, don't guess: fx.wav vs voice_dn.wav dB over each line's window (`work/public/`).
+- **gym-2** (2026-11-01, "same background and same music - it was great"): `from: gym-1` (set, bed, hall voice, speed
+  1.2), 4 iPhone takes in the Drop folder "מכון". **His verdict on my first cut: "terrible - lots of silence, you can
+  see me start shooting"**, and what he wants instead:
+  - **Between takes the talk is continuous**: each take ends ~0.1 s after its last word and the next starts ~0.05 s
+    before its first syllable - no gap. NEVER lengthen a take end for a listening beat (I did, for Sigal - it made the
+    gaps). Pauses INSIDE a take stay.
+  - **Never show him starting the recording**: every iPhone take opens with him stepping back from the phone (~0.3 s
+    after the first syllable in some takes). Look at a contact sheet of 0.5-1.5 s per take: start after he is in place
+    (take 1: skip his first "סיגל", start on the second), or, when the first word is said while he still moves, delay
+    only the PICTURE 0.3 s (ops on the Person items: the previous piece +9 frames, this one `from`+9 / `in`+0.3 / `dur`-9)
+    - the voice starts on time over the previous take's last frames. The cut-out also grabs the black wall hexagon
+    while he's close.
+  - **Sigal must be heard** (~5 dB under him in his pauses): speakerphone squashes everything (5:1 compressor + soft
+    clip) - item `gain` does almost nothing. Use the item's `fx.level` (dB after the filter): +6 with his voice boost
+    9.5. Place her in his real pauses (only ~0.3 s here - he talks non-stop) and over every join, cutting in under him.
+  - **The gym music audible**: the crowd bed has it at -33 LUFS (inaudible); its own layer "מוזיקת מכון" =
+    `_assets/gym/music.mp3` (20 s seamless loop, -9.3 LUFS) at gain 0.45, items of 600 frames.
+  - **Bigger, higher, subtitles lower**: episode.json `person` {scale 1.12, x -35, y 264} (= box x -99, y 34, w 1208,
+    h 2150) - set it THERE, not as ops on each Person item: an item you touch by op becomes `user` and the next
+    replan (any edge drag) puts a fresh builder item beside it (two pictures on one lane). Removing a builder item by
+    op is remembered as his deletion - the replan won't bring it back; add it again yourself. Subtitles box y 1480.
+  - His second round ("tighten all cuts"): tighten notes at every join = end on the last word (+0.02 s by dB), start on
+    the first syllable (-0.02 s); "סיים כאן" at the very end = the take's end there.
+  - Traps: the studio's recogniser dropped take 1's last 3 s, so the cut ended the take there - check every piece's
+    end against the voice (dB). Subtitles drift at every join after that - fix the WORDS (`work/words/<take>.json`,
+    from faster-whisper, first word clamped to the measured onset) and replan; hand-made subtitle items get
+    duplicated by the next replan. Keep the script's words = the take's words (I trimmed "סיגל ×3" to ×2 in the script
+    and take 1's subtitles vanished).
+- **Paste → "Create a new project" with "settings like X" copies X's `script` key** - the new text overwrote X's script
+  (gym.txt, restored from git). Until the tool is fixed: right after creating, set `script` to the new id and write
+  `scripts/<id>.txt`; check X's script is still X's.
 
 ## Series "hani" - Hani Friedman, Haredi backend developer at Techy-Tech (haredit-1, 2026-10-25)
 **Making a new Hani video? Start with `hani.md`** - the steps in order and every note from haredit-2.

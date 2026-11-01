@@ -2,11 +2,50 @@
   "platforms": [
     "instagram",
     "tiktok",
-    "youtube"
+    "youtube",
+    "x",
+    "facebook"
   ],
   "caption": "בשעה טובה ומוצלחת: המשחקייה של חני עלתה לאוויר!\nמשחקים כשרים למהדרין לכל המשפחה - ניגונים בלבד, בלי פרסומות, ושומר שבת. הקישור בביו\n#חניפרידמן #טקיטק #הייטק #משחקים #קומדיה",
   "title": "המשחקייה של חני עלתה לאוויר | משחקים כשרים למהדרין",
-  "options": {},
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
   "afterExport": false,
-  "dry": false
+  "dry": false,
+  "last": {
+    "at": 1793270581701,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfE0XqUDCFi/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/BeoBXCcYoro",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2115755913764127073",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfE0XqUDCFi/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
 }
