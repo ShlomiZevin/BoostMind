@@ -232,7 +232,9 @@
   }
   /* @tags: coloured in what was sent and, through a mirror behind the box, while typing (atMirror) */
   .atag { color: var(--accent); }
-  .m.me .atag { color: #fff; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  /* in a sent message the tag is a link to the character's page: a soft pill, no underline */
+  .m .atag { display: inline-block; padding: 0 7px; margin: 0 1px; border-radius: 99px; background: rgba(255, 106, 31, .16); color: var(--accent); font-weight: 800; text-decoration: none; line-height: 1.55; }
+  .m.me .atag { background: rgba(255, 255, 255, .24); color: #fff; }
   .atm-back { position: absolute; pointer-events: none; overflow: hidden; overflow-wrap: break-word; border-style: solid; border-color: transparent; margin: 0; z-index: 0; }
   .atm-field { position: relative; z-index: 1; color: transparent !important; -webkit-text-fill-color: transparent; caret-color: var(--text); background: transparent !important; }
   .atm-field::placeholder { color: var(--faint); -webkit-text-fill-color: var(--faint); }
@@ -700,10 +702,15 @@ function bindHero() {
 // see-through (its caret, selection and placeholder stay). Only the colour changes - same font and weight, so the
 // letters line up exactly. Used by the chat box, the home box, the comments and the idea sheet (window.atMirror).
 const reEsc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-let atRe = null;
-const atTags = (h) => {   // h = escaped text
-  if (!atRe) { const names = W.characters.map((c) => esc(c.name)).filter(Boolean).sort((a, b) => b.length - a.length); atRe = names.length ? new RegExp('@(' + names.map(reEsc).join('|') + ')', 'g') : /$^/; }
-  return h.replace(atRe, (m) => `<span class="atag">${m}</span>`);
+let atRe = null, atId = {};
+// h = escaped text; link: true = each tag opens the character's page (in a sent message), false = colour only (the mirror)
+const atTags = (h, link) => {
+  if (!atRe) {
+    for (const c of W.characters) if (c.name) atId[esc(c.name)] = c.id;
+    const names = Object.keys(atId).sort((a, b) => b.length - a.length);
+    atRe = names.length ? new RegExp('@(' + names.map(reEsc).join('|') + ')', 'g') : /$^/;
+  }
+  return h.replace(atRe, (m, n) => (link ? `<a class="atag" href="#/c/${atId[n]}">${m}</a>` : `<span class="atag">${m}</span>`));
 };
 function atMirror(el) {
   if (!el || el.dataset.atm || typeof W === 'undefined' || !W) return;
@@ -857,7 +864,7 @@ function drawChat() {
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
   msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
-    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(atTags(esc(m.content)))}</p>` : renderText(m.content)}</div>`).join('');
+    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(atTags(esc(m.content), true))}</p>` : renderText(m.content)}</div>`).join('');
   $('.sugg', cx).style.display = t.some((m) => m.role === 'user') ? 'none' : '';
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -1012,6 +1019,7 @@ document.addEventListener('click', (e) => {
     });
     return;
   }
+  if (e.target.closest('.m a.atag')) closeChat();   // a tag in a message opens the character's page under the chat
   const tj = e.target.closest('[data-topic-jump]');
   if (tj) { document.getElementById('topic-' + tj.dataset.topicJump)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   const out = e.target.closest('[data-site-out]');
