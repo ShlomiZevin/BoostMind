@@ -456,9 +456,19 @@ const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עו
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
 const unchecked = () => L.comments.filter((c) => c.unchecked && !c.hidden).length;
+// the numbers on the menu = what is NEW since he last opened that part (his ask: "can I make the mark disappear?") -
+// opening פניות / תוכן clears it; something new brings it back. Kept on this device.
+const seen = (k) => { try { return +localStorage.getItem('bs-seen-' + k) || 0; } catch (e) { return 0; } };
+const markSeen = (k) => { try { localStorage.setItem('bs-seen-' + k, String(Date.now())); } catch (e) {} };
+const badges = () => ({
+  requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
+  content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length
+    + (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('content'), Date.now() - 7 * 864e5)).length,
+});
 function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', ideas: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
-  const badge = { requests: openReq(), content: unchecked() + newIdeas() };
+  if (tab === 'requests' || tab === 'content') markSeen(tab);
+  const badge = badges();
   const phoneTab = ['requests', 'content', 'publish'].includes(tab) ? 'more' : tab;
   const moreBadge = badge.requests + badge.content;
   $('#app').innerHTML = `<div class="app">
@@ -475,7 +485,7 @@ const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
 const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
-  const b = { requests: openReq(), content: unchecked() + newIdeas() };
+  const b = badges();
   $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['content', 'תוכן: תגובות, רעיונות, סטיקרים', 'content'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
