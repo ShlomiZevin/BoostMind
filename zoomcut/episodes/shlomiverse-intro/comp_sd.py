@@ -61,9 +61,42 @@ if APPROACH:
         if f_ < 0.02 or i + 1 >= len(seq_): return a_
         b_ = np.asarray(Image.open(seq_[i + 1]).convert('RGB')).astype(np.float32) / 255
         return a_ * (1 - f_) + b_ * f_
+    # v4: no jump onto the exact logo. Measure the clip's last frame against the logo frame (ECC, affine) and its colour,
+    # ease the clip onto that geometry/colour before the hit, then dissolve slowly to the logo under the glow swell.
+    SMOOTH_END = '--smooth-end' in sys.argv
+    if SMOOTH_END:
+        def _g(a): return cv2.cvtColor((np.clip(a, 0, 1) * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY).astype(np.float32) / 255
+        last = np.asarray(Image.open(seqB[-1]).convert('RGB')).astype(np.float32) / 255
+        _lf = paste_logo(backdrop())
+        _m = np.zeros((H, W), np.uint8); _m[380:1340, 60:1020] = 255
+        _cc, WARP = cv2.findTransformECC(_g(_lf), _g(last), np.eye(2, 3, dtype=np.float32), cv2.MOTION_AFFINE,
+                                         (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 300, 1e-6), _m, 5)
+        _al = cv2.warpAffine(last, WARP, (W, H), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REFLECT)
+        GAIN = (_lf[380:1340, 60:1020].reshape(-1, 3).mean(0) + 1e-3) / (_al[380:1340, 60:1020].reshape(-1, 3).mean(0) + 1e-3)
+        print('ECC', round(float(_cc), 4), 'warp', WARP.round(4).tolist(), 'gain', GAIN.round(3))
+    def align_to_logo(img, w):
+        if w <= 0: return img
+        M = np.eye(2, 3, dtype=np.float32) + (WARP - np.eye(2, 3, dtype=np.float32)) * w
+        out = cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REFLECT)
+        out = out * (1 + (GAIN - 1) * w)
+        blur = cv2.GaussianBlur(out, (0, 0), 1.6)                 # a touch crisper, towards the sharp logo
+        return np.clip(out + (out - blur) * 0.6 * w, 0, 1)
+    # the near clip's own motion is fast right to its last frame; a speed curve lets it settle instead of stopping dead
+    CLIP_S = (len(seqB) - 1) / FPS
+    T_STOP = T_LOGO + 0.35; DEC = 1.2; T_DEC = T_STOP - DEC
+    V0 = CLIP_S / ((T_DEC - T_HAND) + DEC / 2)
+    def clip_pos(t):           # seconds into the reversed near clip
+        if t <= T_DEC: return (t - T_HAND) * V0
+        u = min(t, T_STOP) - T_DEC
+        return (T_DEC - T_HAND) * V0 + V0 * (u - u * u / (2 * DEC))
+    def end_clip_frame(t):
+        fr_ = frame_at(seqB, clip_pos(t) * FPS)
+        return align_to_logo(fr_, sm((t - (T_LOGO - 0.6)) / (T_STOP - T_LOGO + 0.6)))
     def approach_bg(t):
         if t >= T_HAND:
             fr_ = frame_at(seqB, (t - T_HAND) * FPS * SPEED_B)
+            if SMOOTH_END:   # the clip slows to a stop (no freeze) and is eased onto the logo's geometry and colour
+                return end_clip_frame(t)
             lock = sm((t - (T_LOGO - 0.30)) / 0.30)
             return fr_ * (1 - lock) + logo_frame * lock
         # far part: galaxy dive -> plate, and the planet sprite growing at a constant rate (no pop-in)
@@ -284,6 +317,9 @@ def enc(path, crop):
                              '-i', music, '-vf', crop, '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
                              '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', path], stdin=subprocess.PIPE)
 NF = int(round(DUR * FPS))
+END_CLIP = None
+if not APPROACH: SMOOTH_END = False
+NO_HIT = '--no-hit' in sys.argv   # for measuring the base hand-over without the hit's light
 def frame(f):
     t = f / FPS
     k = int(round((t - t_seq0) * FPS))
@@ -296,15 +332,35 @@ def frame(f):
     elif t < T_LOGO:
         fr = bg.copy() if k < 0 else logo_frame.copy()
     else:
-        fr = zoom(logo_frame, 1.0 + 0.035 * sm((t - T_LOGO) / (DUR - T_LOGO)))
+        base = logo_frame
+        if APPROACH and SMOOTH_END:
+            d = sm((t - T_LOGO - 0.15) / 0.95)                     # long, eased dissolve under the glow swell
+            if d < 1:
+                base = end_clip_frame(t) * (1 - d) + logo_frame * d
+        fr = zoom(base, 1.0 + 0.035 * sm((t - T_LOGO) / (DUR - T_LOGO)))
     fr = fr.copy()
     if SPACE:   # under the characters; a touch lighter over the AI galaxy, a whisper on the end card
-        fr = space_fx(fr, t, 1.0 if t < T_LOGO else 0.8)
+        fr = space_fx(fr, t, 1.0 - 0.2 * sm((t - T_LOGO) / 1.5) if SMOOTH_END else (1.0 if t < T_LOGO else 0.8))
     if flyers and t < T_LOGO:
         draw_flyers(fr, t)
     fade_in = sm(t / 0.9)
     # the final hit: flash, flare streak, the logo's glow pulsing
-    if SHEEN and t >= T_LOGO - 0.04:
+    if SHEEN and SMOOTH_END and not NO_HIT and t > T_LOGO - 0.6:
+        # one continuous light curve: a build before the hit, the swell on it, settling after - nothing switches on at once
+        u = t - T_LOGO
+        pre_ = sm((u + 0.6) / 0.6)
+        swell = sm(u / 0.14) * math.exp(-max(0.0, u - 0.14) * 1.1) if u > 0 else 0.0
+        rise = sm(u / 0.30) * math.exp(-max(0.0, u - 0.30) * 0.9) if u > 0 else 0.0
+        st_ = 0.6 * pre_ * (math.exp(-max(0.0, u) * 1.2)) + 1.1 * rise
+        gl_ = 0.2 * pre_ + 0.75 * swell
+        fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.22 * swell + streak * st_ + glow_full * gl_, 0, 1))
+        if 0.12 <= u <= 1.5:
+            p_ = -1.0 + 2.2 * sm((u - 0.12) / 1.25)
+            band_ = np.exp(-(((xx - LOGO_CX) * 0.82 + (yy - LOGO_CY) * 0.57) / (LOGO_W * 0.5) - p_) ** 2 / 0.012)
+            fr = 1 - (1 - fr) * (1 - np.clip((band_ * LOGO_A)[..., None] * np.array([1.0, 0.86, 0.66], np.float32) * 0.55 * sm((u - 0.12) / 0.2), 0, 1))
+    elif NO_HIT:
+        pass
+    elif SHEEN and t >= T_LOGO - 0.04:
         u = t - T_LOGO
         swell = sm(u / 0.14) * math.exp(-max(0.0, u - 0.14) * 1.1)          # rim glow swells and settles
         rise = sm(u / 0.30) * math.exp(-max(0.0, u - 0.30) * 0.9)            # a soft anamorphic streak rises and fades
@@ -318,7 +374,7 @@ def frame(f):
         fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.6 * e + streak * 1.6 * math.exp(-(t - T_LOGO) * 1.6), 0, 1))
         fr = 1 - (1 - fr) * (1 - np.clip(glow_full * (0.25 + 0.8 * e), 0, 1))
     # a soft build of glow + flare in the half second before the hit
-    pre = sm((t - (T_LOGO - 0.6)) / 0.6) if t < T_LOGO else 0
+    pre = sm((t - (T_LOGO - 0.6)) / 0.6) if t < T_LOGO and not SMOOTH_END and not NO_HIT else 0
     if pre > 0:
         fr = 1 - (1 - fr) * (1 - np.clip(streak * 0.6 * pre, 0, 1))
     if GLINT and T_LOGO <= t < T_LOGO + 1.4:
