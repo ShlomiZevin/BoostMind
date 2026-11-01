@@ -248,6 +248,7 @@ async function api(op, body, isForm) {
 }
 const ago = (ms) => { if (!ms) return ''; const m = (Date.now() - ms) / 6e4; return m < 60 ? `לפני ${Math.max(1, Math.round(m))} דק'` : m < 1440 ? `לפני ${Math.round(m / 60)} שע'` : new Date(ms).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' }); };
 const fmt = (n) => (n || 0).toLocaleString('he-IL');
+const stamp = (ms) => ms ? new Date(ms).toLocaleString('he-IL', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';  // a full date + time (people)
 const hi = () => { const h = new Date().getHours(); return h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב'; };
 
 let W, C = {}, V = {}, L = null, tab = (location.hash.match(/^#(\w+)/) || [])[1] || 'overview', pick = null, file = null;
@@ -361,7 +362,7 @@ let P = null, pQuery = '';
 async function people() {
   if (!P) {
     $('#pane').innerHTML = '<div class="empty">טוען…</div>';
-    try { P = (await api('people')).people.sort((a, b) => (b.last || b.created || 0) - (a.last || a.created || 0)); }
+    try { P = (await api('people')).people.sort((a, b) => (b.created || 0) - (a.created || 0)); }  // newest sign-up first, always (his ask)
     catch (e) { if (tab === 'people') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; return; }
     if (tab !== 'people') return;
   }
@@ -374,7 +375,7 @@ async function people() {
       <button class="btn" id="pp-copy">${IC.mail}העתקת המיילים${q ? ' (מהחיפוש)' : ''}</button></div></div>
     <div>${list.map((p) => `<div class="item">${p.photo ? `<span class="vx-av"><img src="${esc(p.photo)}" alt="" referrerpolicy="no-referrer"></span>` : ini(p.name || p.email)}
       <div class="body"><b>${esc(p.name || p.nick || (p.email || '').split('@')[0] || '?')}</b>${p.nick && p.nick !== p.name ? ` <small>· ${esc(p.nick)}</small>` : ''}
-        <p>${p.email ? `<a href="mailto:${esc(p.email)}" style="color:#ff9a5c" dir="ltr">${esc(p.email)}</a>` : '-'} · הצטרף/ה ${ago(p.created)}${p.last ? ` · נראה/תה ${ago(p.last)}` : ''}</p>
+        <p>${p.email ? `<a href="mailto:${esc(p.email)}" style="color:#ff9a5c" dir="ltr">${esc(p.email)}</a>` : '-'} · נרשם/ה <bdi>${stamp(p.created)}</bdi>${p.last ? ` · נראה/תה לאחרונה <bdi>${stamp(p.last)}</bdi>` : ''}</p>
         <p>${from(p) || '<span class="tag">רק נכנס/ה</span>'}</p></div></div>`).join('') || '<div class="empty">אין כאן אף אחד.</div>'}</div>`;
   const inp = $('#pp-q');
   inp.oninput = () => { pQuery = inp.value; const pos = inp.selectionStart; people(); const n = $('#pp-q'); n.focus(); n.setSelectionRange(pos, pos); };
