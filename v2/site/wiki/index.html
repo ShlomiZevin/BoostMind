@@ -101,6 +101,20 @@
   .wordmark { font-size: clamp(3.4rem, 10vw, 7.4rem); font-weight: 900; letter-spacing: -.045em; line-height: .9; }
   .wordmark small { display: block; font-size: clamp(1rem, 1.7vw, 1.45rem); letter-spacing: 0; font-weight: 700; color: var(--dim); margin-top: 16px; line-height: 1.3; }
   .ask { margin-top: 30px; display: flex; align-items: center; gap: 10px; background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 8px; box-shadow: 0 10px 40px rgba(0,0,0,.45); }
+  .ask, .composer { position: relative; }
+  /* the @ list: one character per line above the box (like WhatsApp / Instagram); its buttons must not take the send
+     button's look, hence the !important resets */
+  .at-box { position: absolute; bottom: calc(100% + 8px); inset-inline: 0; z-index: 30; display: flex; flex-direction: column; gap: 2px; max-height: 270px; overflow-y: auto;
+            padding: 6px; background: rgba(24, 23, 28, .98); border: 1px solid var(--line2); border-radius: 18px; box-shadow: 0 14px 36px rgba(0, 0, 0, .55); text-align: start; }
+  .at-box[hidden] { display: none; }
+  .at-box button.at-i { display: flex !important; align-items: center; gap: 12px; width: 100% !important; height: auto !important; min-height: 52px; padding: 6px 8px !important;
+                        border-radius: 12px !important; background: transparent !important; border: 0 !important; color: var(--text) !important; text-align: start; transform: none !important; }
+  .at-box button.at-i:hover, .at-box button.at-i:active { background: rgba(255, 255, 255, .08) !important; }
+  .at-box .av { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex: none; background: var(--card2); }
+  .at-box .av img, .at-box .av .ph { width: 100%; height: 100%; object-fit: cover; }
+  .at-box .n { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+  .at-box .n b { font-size: .98rem; font-weight: 800; }
+  .at-box .n small { font-size: .8rem; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ask .spark { width: 40px; height: 40px; display: grid; place-items: center; color: var(--accent); flex: none; }
   .ask .spark svg { width: 22px; height: 22px; }
   .ask input { flex: 1; min-width: 0; height: 48px; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 1.12rem; }
@@ -446,13 +460,13 @@ const pages = {
       <div class="hero-in">
         <h1 class="wordmark hero-logo"><img src="/verse/logo-512.png" alt="שלומיוורס">${heroLine()}</h1>
         <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
-          <input id="ask-in" placeholder="שאלו את השלומיוורס…" autocomplete="off" maxlength="1200">
+          <input id="ask-in" placeholder="שאלו משהו, או @ לדמות" autocomplete="off" maxlength="1200">
           <button aria-label="שליחה">${ICON.send}</button></form>
         <div class="who" id="who"><div class="who-l">מי עונה?</div>
           ${who.map((c) => `<button type="button" data-who="${c.id}" class="${c.id === heroWho ? 'on' : ''}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.id === 'guide' ? 'כולם' : c.name)}</button>`).join('')}</div>
       </div>
       <span class="scroll-hint">↓ ${W.characters.length} דמויות · ${W.videos.length} סרטונים</span></section>
-      <div class="wrap">${HOOK.homeSlot ? HOOK.homeSlot() : ''}${sections}</div>`;
+      <div class="wrap"><div id="home-slot">${HOOK.homeSlot ? HOOK.homeSlot() : ''}</div>${sections}</div>`;
   },
   characters(q) {
     const list = W.characters.filter((c) => !q.s || c.series === q.s);
@@ -547,6 +561,50 @@ function bindHero() {
     $('#ask-in').focus();
   };
   $('#ask').onsubmit = (e) => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (q) t('ask', heroWho); openChat(heroWho, q || null); $('#ask-in').value = ''; };
+  attachAt($('#ask-in'), (id) => {
+    heroWho = id;
+    // someone who isn't in the row of faces joins it (right after "everyone"), so it's clear who will answer
+    if (!$(`#who [data-who="${id}"]`)) {
+      const c = C[id];
+      $('#who [data-who="guide"]').insertAdjacentHTML('afterend', `<button type="button" data-who="${c.id}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.name)}</button>`);
+    }
+    document.querySelectorAll('#who [data-who]').forEach((x) => x.classList.toggle('on', x.dataset.who === id));
+  });
+}
+
+// "@" + a letter or two in a text box: the characters whose name has it (names that start with it first), in a row above
+// the box; a tap writes "@name " in place. The same as in the comments.
+function attachAt(input, onPick) {
+  if (!input || input.dataset.at) return;
+  input.dataset.at = '1';
+  const form = input.closest('form');
+  const box = document.createElement('div');
+  box.className = 'at-box'; box.hidden = true;
+  form.append(box);
+  const atQuery = () => (/@([^\s@]{0,20})$/.exec(input.value.slice(0, input.selectionStart)) || [])[1];
+  input.addEventListener('input', () => {
+    const q = atQuery();
+    if (q === undefined) { box.hidden = true; return; }
+    const ql = q.toLowerCase();
+    const hits = W.characters.filter((c) => c.name && c.name.toLowerCase().includes(ql))
+      .sort((a, b) => (b.name.toLowerCase().startsWith(ql) - a.name.toLowerCase().startsWith(ql))).slice(0, 6);
+    box.innerHTML = hits.map((c) => `<button type="button" class="at-i" data-at="${c.id}"><span class="av">${face(c)}</span><span class="n"><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role || '')}</small></span></button>`).join('');
+    box.hidden = !hits.length;
+  });
+  box.addEventListener('mousedown', (e) => e.preventDefault());   // keep the keyboard up
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-at]');
+    if (!b) return;
+    const c = C[b.dataset.at], pos = input.selectionStart;
+    const before = input.value.slice(0, pos).replace(/@([^\s@]{0,20})$/, '@' + c.name + ' ');
+    input.value = before + input.value.slice(pos);
+    input.selectionStart = input.selectionEnd = before.length;
+    box.hidden = true;
+    input.focus();
+    input.dispatchEvent(new Event('input'));
+    if (onPick) onPick(c.id);
+  });
+  input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 200));
 }
 const onScroll = () => $('#top').classList.toggle('solid', scrollY > 40);
 addEventListener('scroll', onScroll, { passive: true });
@@ -613,7 +671,7 @@ function drawChat() {
     <div class="msgs"></div>
     <div class="sugg">${ask.map((a) => `<button>${esc(a)}</button>`).join('')}</div>
     <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
-    <div class="cx-note">השיחות נשמרות כדי לשפר את הדמויות</div>`;
+    <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div>`;
   $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
   const ta = $('textarea', cx);
@@ -621,6 +679,7 @@ function drawChat() {
   ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(ta.value); } };
   ta.oninput = () => { ta.style.height = '48px'; ta.style.height = Math.min(ta.scrollHeight + 2, 130) + 'px'; ta.style.overflow = ta.scrollHeight > 128 ? 'auto' : 'hidden'; };
   $('.sugg', cx).onclick = (e) => { if (e.target.tagName === 'BUTTON') send(e.target.textContent); };
+  attachAt(ta);
 }
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
@@ -687,11 +746,10 @@ function openChat(mode, text) {
 }
 function switchChat(mode) {
   if (mode === cxMode || busy) return;
-  const prev = who(cxMode);
   cxMode = mode;
   t('chat_switch', mode);
   threads[mode] ||= load(mode);
-  if (!threads[mode].length) threads[mode].push({ role: 'note', content: `${joined(mode)}, דרך ${prev.name}` });
+  if (!threads[mode].length) threads[mode].push({ role: 'note', content: joined(mode) });
   drawChat();
 }
 function closeChat() { cx.classList.remove('open'); $('#cx-back').classList.remove('open'); cx.querySelectorAll('video').forEach((v) => v.pause()); }

@@ -49,8 +49,14 @@ pages.install = installPage;
 onState(() => { renderTop(); paintFollow(); refresh(); });
 onStories(() => refresh());
 
-// the wiki rendered before this module arrived (the Firebase SDK loads first): route again, now with everything
-if (window.WIKI_READY) { if (typeof closeVideo === 'function') closeVideo(); route(); }
+// the wiki rendered before this module arrived (the Firebase SDK loads first). On the home: fill in only the account parts
+// (the greeting, their block under the hero) - redrawing the whole page reloaded the wall of faces, and he saw the site
+// "load twice". Any other page routes again, now with the follow buttons and the rest.
+if (window.WIKI_READY) {
+  const atHome = !(location.hash.slice(1) || '/').split('?')[0].split('/')[1];
+  if (atHome && document.getElementById('home-slot')) { if (HOOK.afterRoute) HOOK.afterRoute(''); refresh(true); }
+  else { if (typeof closeVideo === 'function') closeVideo(); route(); }
+}
 console.debug('[verse] ready', st.user ? 'signed in' : 'signed out');
 
 // the floating "talk to the characters" button hides while the footer (its links) is on screen

@@ -298,7 +298,7 @@ document.addEventListener('submit', async (e) => {
 });
 
 // ---------- keeping the open page current when the account / data changes ----------
-let cur = { page: '', id: '' }, pending = 0;
+let cur = { page: '', id: '' }, pending = 0, lastSlot = null;
 export const setCurrent = (page, id) => { cur = { page: page || '', id: id || '' }; };
 export function refresh(now) {
   cancelAnimationFrame(pending);
@@ -307,6 +307,14 @@ export function refresh(now) {
     if (document.querySelector('.vp, .sv, .nk')) return;   // never under the video, the stories or the name screen
     if (!['', 'notes', 'me', 'install', 'saved', 'my-characters', 'my-stickers', 'community'].includes(cur.page)) return;
     if (cur.page === '' && !now && document.activeElement && document.activeElement.id === 'ask-in') return;
+    if (!cur.page && $('#home-slot') && $('section.hero')) {
+      // the home is already drawn: only its two account-dependent pieces change, the wall of faces stays as it is
+      const slot = HOOK.homeSlot ? HOOK.homeSlot() : '';
+      if (slot !== lastSlot) { $('#home-slot').innerHTML = slot; lastSlot = slot; }
+      const line = $('section.hero .hero-logo small'), fresh = heroLine();
+      if (line && line.outerHTML !== fresh) line.outerHTML = fresh;
+      return;
+    }
     const [, qs] = location.hash.split('?');
     const q = Object.fromEntries(new URLSearchParams(qs || ''));
     $('#app').innerHTML = pages[cur.page || 'home'](q, cur.id);
