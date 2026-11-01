@@ -8,7 +8,7 @@
     "color": "#0b0b0b"
   },
   "duration": 435,
-  "speed": 1,
+  "speed": 1.15,
   "assets": {
     "v.shlomiverse-launch.mp4": {
       "kind": "video",
@@ -62,6 +62,6 @@
       "name": "Music"
     }
   ],
-  "rev": 4,
-  "saved": 1793548728476
+  "rev": 7,
+  "saved": 1793549718264
 }

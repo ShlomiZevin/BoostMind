@@ -1,0 +1,11 @@
+Design an Instagram story (vertical 9:16) in a series called "מילון חני–עברי" - a fun, warm, beautifully designed "dictionary" that explains Haredi expressions to a secular Israeli audience, presented by Hani Friedman, the Haredi software developer from a comedy series (she is never funny on purpose - she is sincere, warm and proud). Every story in the series must look like part of one consistent design system: a classic dictionary page feel - warm cream paper, a deep navy blue and a touch of gold, an elegant serif Hebrew headline font plus a clean sans-serif for the explanation, a small "מילון חני–עברי" header label at the top, thin decorative rules, like an elegant printed dictionary entry, polished and modern.
+
+The woman in the reference is Hani: keep her face exactly (the same face, the same thin rectangular glasses, the black knitted tichel covering all her hair, the modest navy blouse buttoned to the collar). She is modest: calm, restrained pose, hands low or holding a book; no raised arms, no showy posing. Her hands and fingers are never cut by the frame. Text never covers her face.
+
+All text is Hebrew, spelled exactly as given, right to left. Use only the text given below - no other words, no English, no emoji. Keep the bottom 15% of the image free of text (Instagram covers it).
+
+THIS STORY: the cover of the series. Hani stands proudly holding a thick, elegant old dictionary book with both hands at chest height (no text on the book), a warm proud smile, looking at the camera.
+Text:
+- Title, big: "מילון חני–עברי"
+- Subtitle: "המילון של חני פרידמן – החרדית של המשרד"
+- A small line: "הביטויים מהמערכונים, בעברית רגילה"

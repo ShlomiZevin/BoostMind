@@ -1,41 +1,16 @@
 <!doctype html>
-<html lang="he" dir="rtl"><head><meta charset="utf-8">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@400;500;700;800;900&family=Frank+Ruhl+Libre:wght@700;900&display=swap');
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 1080px; height: 1350px; overflow: hidden; }
-body { direction: rtl; font-family: 'Heebo', sans-serif; background: #fbf6ea; color: #14306b; position: relative; }
-.photo { position: absolute; top: 0; left: 0; width: 1080px; height: 930px; object-fit: cover; object-position: 50% 0%; }
-.panel { position: absolute; top: 900px; left: 0; right: 0; bottom: 0; background: #fbf6ea; border-top: 10px solid #1f4fbf;
-  padding: 30px 50px 0; }
-h1 { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 64px; line-height: 1.05; text-align: center; color: #14306b; }
-h1 em { font-style: normal; color: #c4161c; }
-ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 22px 30px; margin-top: 34px; }
-li { font-size: 31px; white-space: nowrap; font-weight: 700; line-height: 1.2; padding-right: 44px; position: relative; color: #1d2a55; }
-li::before { content: ''; position: absolute; right: 0; top: 4px; width: 32px; height: 32px; border-radius: 50%; background: #1f4fbf;
-  -webkit-mask: none; }
-li::after { content: ''; position: absolute; right: 11px; top: 9px; width: 9px; height: 17px; border: solid #fff; border-width: 0 4px 4px 0; transform: rotate(45deg); }
-.foot { position: absolute; bottom: 26px; left: 0; right: 0; text-align: center; font-size: 26px; font-weight: 500; color: #3a4466; }
-.foot b { color: #14306b; }
-.burst { position: absolute; top: 560px; left: 26px; width: 300px; height: 300px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; color: #fff; text-align: center; transform: rotate(-9deg); }
-.burst::before { content: ''; position: absolute; inset: 0; background: #c4161c;
-  clip-path: polygon(50% 0%, 61% 12%, 75% 6%, 79% 21%, 94% 22%, 89% 37%, 100% 50%, 89% 63%, 94% 78%, 79% 79%, 75% 94%, 61% 88%, 50% 100%, 39% 88%, 25% 94%, 21% 79%, 6% 78%, 11% 63%, 0% 50%, 11% 37%, 6% 22%, 21% 21%, 25% 6%, 39% 12%); }
-.burst span { position: relative; }
-.burst .a { font-weight: 700; font-size: 27px; line-height: 1.15; }
-.burst .b { font-family: 'Suez One', serif; font-size: 40px; line-height: 1.05; margin-top: 4px; }
-</style></head>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><link rel="stylesheet" href="post.css"></head>
 <body>
-  <img class="photo" src="musach.jpg">
-  <div class="burst"><span class="a">שכחתם<br>איפה האוטו?</span><span class="b">הוא<br>אצלנו!</span></div>
+  <img class="photo" src="musach.jpg" style="object-position:50% 0%">
+  <div class="burst" style="left:26px;top:560px;transform:rotate(-9deg)"><span class="a">הנחה מיוחדת</span><span class="b">לאברכי<br>כוללים</span></div>
   <div class="panel">
-    <h1>נכנסים על גרר – <em>יוצאים</em><br>בעזרת השם בלי נדר</h1>
+    <h1>המוסך המשפחתי <em>של בני ברק</em><br>שירות אמין כבר 30 שנה</h1>
     <ul>
-      <li>פחחות, צבע ומכונאות כללית</li>
-      <li>שמאי צמוד שרואה ניסים</li>
-      <li>מומחים לרכבי 9 מקומות</li>
-      <li>מניין מנחה במוסך ב־13:30</li>
+      <li>מכונאות כללית וחשמל רכב</li>
+      <li>פחחות וצבע</li>
+      <li>הכנה לטסט ובדיקות</li>
+      <li>מומחים לרכבי 7–9 מקומות</li>
     </ul>
   </div>
-  <div class="foot"><b>מוסך ויחנו ויסעו</b> · אזור התעשייה, בני ברק · סגור בשבתות וחגים</div>
+  <div class="foot"><b>מוסך ויחנו ויסעו</b> · אזור התעשייה, בני ברק<br>א׳–ה׳ 7:30–18:00 · ו׳ וערבי חג עד 12:00 · סגור בשבתות וחגים</div>
 </body></html>

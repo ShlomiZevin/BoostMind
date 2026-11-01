@@ -1,0 +1,13 @@
+Design a real, professional advertisement (a 4:5 Instagram post that would also run in a Haredi weekly newspaper in Bnei Brak) for a family car garage called "מוסך ויחנו ויסעו" in the Bnei Brak industrial zone. It must look like a real, polished local-business ad made by a good graphic designer: bold, clean, trustworthy, strong hierarchy, a garage-appropriate palette (deep blue, white, a touch of red or yellow), a clear logo lock-up for the garage name, icons for the services, everything aligned and balanced. Not a joke, not a meme - a straight ad.
+
+The photo in the reference is the ad's main picture: use it as is - the same people (faces, beard, glasses, clothes exactly), the same garage, sign, cars and street. You may crop and frame it, but never cover a face with text. Remove any phone number from the picture; the ad has no phone number anywhere.
+
+All text is Hebrew, spelled exactly as given, right to left, with clean modern Hebrew fonts. Use only the text given below - no other words, no English, no prices, no phone numbers, no website.
+
+THIS AD: bodywork after an accident - the garage handles everything. The picture: a crashed car arriving at the garage.
+Text:
+- Logo: "מוסך ויחנו ויסעו"
+- Headline: "אחרי תאונה?"
+- Sub-headline: "אנחנו מטפלים בהכל"
+- Points, each with an icon: "שמאי במקום" · "מול הביטוח עד הסוף" · "פחחות וצבע" · "רכב חלופי"
+Footer line (small, at the bottom): "אזור התעשייה, בני ברק" and "א׳–ה׳ 7:30–18:00 · ו׳ וערבי חג עד 12:00 · סגור בשבתות וחגים"

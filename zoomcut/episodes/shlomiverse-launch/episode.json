@@ -27,5 +27,6 @@
     "pad_out": 0.35,
     "join": 0.08
   },
-  "overlays": []
+  "overlays": [],
+  "done": false
 }
