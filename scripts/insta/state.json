@@ -1729,5 +1729,72 @@
    "bennett"
   ],
   "wiki_id": "ig-18089499605176010"
+ },
+ "17921052057251049": {
+  "status": "asked",
+  "ask_no": 1,
+  "asked_in": "grid-y7 2026-11-01"
+ },
+ "18188808349359656": {
+  "status": "asked",
+  "ask_no": 2,
+  "asked_in": "grid-y7 2026-11-01"
+ },
+ "18067815881636613": {
+  "status": "asked",
+  "ask_no": 2,
+  "asked_in": "grid-y7 2026-11-01"
+ },
+ "18179309770375380": {
+  "status": "on-wiki",
+  "cast": [
+   "feiglin"
+  ],
+  "wiki_id": "ig-18179309770375380"
+ },
+ "18398890960183287": {
+  "status": "on-wiki",
+  "cast": [
+   "neighbor"
+  ],
+  "wiki_id": "ig-18398890960183287"
+ },
+ "18055816811412175": {
+  "status": "on-wiki",
+  "cast": [
+   "night-guy"
+  ],
+  "wiki_id": "ig-18055816811412175"
+ },
+ "18099617854905924": {
+  "status": "on-wiki",
+  "cast": [
+   "erez",
+   "gilad",
+   "ofer",
+   "daniel"
+  ],
+  "wiki_id": "ig-18099617854905924"
+ },
+ "17948320553962019": {
+  "status": "on-wiki",
+  "cast": [
+   "genz"
+  ],
+  "wiki_id": "ig-17948320553962019"
+ },
+ "18307078723275579": {
+  "status": "on-wiki",
+  "cast": [
+   "dor-eckstein"
+  ],
+  "wiki_id": "ig-18307078723275579"
+ },
+ "18093288425053068": {
+  "status": "on-wiki",
+  "cast": [
+   "yaniv"
+  ],
+  "wiki_id": "ig-18093288425053068"
  }
 }

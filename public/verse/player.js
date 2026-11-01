@@ -102,7 +102,7 @@ export function openPlayer(id, q = {}) {
     if (Date.now() - lastSave > 3000) { lastSave = Date.now(); remember(id, t, d); }
   });
   video.addEventListener('loadedmetadata', () => { $('[data-dur]', el).textContent = mmss(video.duration); });
-  video.addEventListener('play', () => { el.classList.remove('paused'); $('[data-pp]', el).innerHTML = I.pause; });
+  video.addEventListener('play', () => { el.classList.remove('paused'); $('[data-pp]', el).innerHTML = I.pause; flashLine(); });
   video.addEventListener('pause', () => { el.classList.add('paused'); $('[data-pp]', el).innerHTML = I.play; });
   video.addEventListener('ended', () => { remember(id, video.duration, video.duration); setUi(true); });
   $('[data-scrub]', el).addEventListener('input', (e) => {
@@ -119,6 +119,7 @@ export function openPlayer(id, q = {}) {
     if (video.muted && $('.vp-sound', el)) { video.muted = false; $('.vp-sound', el).remove(); return; }
     if (video.paused) { video.play(); return; }
     setUi(!el.classList.contains('ui'));
+    flashLine();
   });
   el.addEventListener('click', (e) => {
     const b = e.target.closest('button, a');
@@ -156,6 +157,13 @@ export function openPlayer(id, q = {}) {
 function deepLinks(q) {
   if (q.c) setTimeout(() => openComments({ focus: q.c }), 300);
   else if (q.sticker) setTimeout(() => openComments({ tab: 's', focus: q.sticker }), 300);
+}
+// the thin time line at the bottom: a moment after the video starts or after a tap, then it fades (he: "it remains")
+function flashLine() {
+  if (!P) return;
+  P.el.classList.add('line-on');
+  clearTimeout(P.lineT);
+  P.lineT = setTimeout(() => P && P.el.classList.remove('line-on'), 2500);
 }
 function setUi(on, ms) {
   if (!P) return;
