@@ -9,7 +9,7 @@ const Fn = await import(`${SDK}/firebase-functions.js`);
 export const LOCAL = /^(localhost|127\.)/.test(location.hostname);
 // LIVE: boostmind-b052c's web app (`firebase apps:sdkconfig web`; a web API key is public by design). On shlomiverse.com the
 // Google sign-in stays on the Shlomiverse's own address (Safari blocks the cross-site way); elsewhere firebaseapp.com
-const LIVE_CONFIG = { apiKey: 'AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90', authDomain: location.hostname.endsWith('shlomiverse.com') ? location.hostname : 'boostmind-b052c.firebaseapp.com', projectId: 'boostmind-b052c', storageBucket: 'boostmind-b052c.firebasestorage.app', messagingSenderId: '463727469066', appId: '1:463727469066:web:fe01da10c04d395d55f5f3' };
+const LIVE_CONFIG = { apiKey: 'AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90', authDomain: 'boostmind-b052c.firebaseapp.com', projectId: 'boostmind-b052c', storageBucket: 'boostmind-b052c.firebasestorage.app', messagingSenderId: '463727469066', appId: '1:463727469066:web:fe01da10c04d395d55f5f3' };
 const app = initializeApp(LOCAL ? { apiKey: 'local-key', authDomain: 'localhost', projectId: 'demo-shlomiverse', appId: 'local' } : LIVE_CONFIG);
 
 export const auth = A.getAuth(app);
