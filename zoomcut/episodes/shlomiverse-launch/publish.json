@@ -1,6 +1,9 @@
 {
   "platforms": [
-    "youtube"
+    "instagram",
+    "tiktok",
+    "x",
+    "facebook"
   ],
   "caption": "הדמויות שלי כבר לא גרות רק בפיד.\nעכשיו יש להן כתובת ודעות.\nאפשר לדבר איתן. אפשר להפגיש ביניהן.\nהקישור בביו.\n\n#שלומיוורס #קומדיה #הומור #פוריו",
   "title": "שלומיוורס נפתח. דברו עם הדמויות.",
@@ -15,13 +18,50 @@
   "afterExport": false,
   "dry": false,
   "last": {
-    "at": 1793550051192,
+    "at": 1793553806377,
     "items": {
-      "youtube": {
+      "instagram": {
         "state": "done",
-        "url": "https://youtube.com/shorts/nlm2cRByfPs",
-        "note": "uploaded as PUBLIC"
+        "url": "https://www.instagram.com/reel/DfNQkqJiRH5/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2116943854851035383",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfNQkqJiRH5/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
       }
+    }
+  },
+  "published": {
+    "youtube": {
+      "at": 1793550051192,
+      "url": "https://youtube.com/shorts/nlm2cRByfPs"
+    },
+    "x": {
+      "at": 1793553721117,
+      "url": "https://x.com/ShlomiZevin/status/2116943854851035383"
+    },
+    "tiktok": {
+      "at": 1793553744132,
+      "url": null
+    },
+    "instagram": {
+      "at": 1793553806027,
+      "url": "https://www.instagram.com/reel/DfNQkqJiRH5/"
+    },
+    "facebook": {
+      "at": 1793553806375,
+      "url": "https://www.instagram.com/reel/DfNQkqJiRH5/"
     }
   }
 }
