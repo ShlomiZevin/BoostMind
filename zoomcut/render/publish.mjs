@@ -209,8 +209,9 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       connected: () => ({ ok: true, note: 'a Telegram reminder - you share the Instagram Reel to Facebook' }),
       limits: {},
       async publish(file, post, log, items) {  // (runs after Instagram - ORDER)
-        const ig = items?.instagram;
-        if (!ig || ig.state !== 'done' || !ig.url) throw new Error('Instagram didn\'t go out - nothing to share to Facebook');
+        // this run's Reel, else the one already up (Facebook picked on its own, later)
+        const ig = items?.instagram?.state === 'done' ? items.instagram : post.published?.instagram;
+        if (!ig?.url) throw new Error('Instagram didn\'t go out - nothing to share to Facebook');
         await sendTelegramText(`Your Instagram Reel is up ✓\n${ig.url}\n\nNow Facebook: open it in Instagram → ⋯ → "Share to Facebook"`);
         return { url: ig.url, note: 'Telegram reminder sent - share the Reel to Facebook from Instagram' };
       },
@@ -223,13 +224,25 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   const epFile = (id) => path.join(epDir(id), 'episode.json');  // (read only: the title)
   const pubFile = (id) => path.join(epDir(id), 'publish.json');
   const master = (id) => path.join(epDir(id), 'out', `${id}.mp4`);
+  // where the video is already up: { platform: { at, url } } - publish.json's `published`, plus what came before it
+  // (the Jobs history and the last run), so videos published before 2026-11-01 show theirs too
+  function publishedOf(id) {
+    const out = {}, pj = readJson(pubFile(id), {});
+    const add = (p, at, url) => { if (P[p] && at && !(out[p]?.at >= at)) out[p] = { at, url: url || null }; };
+    for (const j of readJson(path.join(path.dirname(epDir(id)), '_jobs.json'), [])) {
+      if (j.id === id && j.kind === 'publish' && j.ok) add(j.channel, j.ended, (String(j.line).match(/https?:\/\/\S+/) || [])[0]);
+    }
+    for (const [p, v] of Object.entries(pj.last?.items || {})) if (v.state === 'done') add(p, pj.last.at, v.url);
+    for (const [p, v] of Object.entries(pj.published || {})) add(p, v.at, v.url);
+    return out;
+  }
   // a Quick check or the phone test - shown in the window, never published (the newest of the two)
   const draftOf = (id) => [`${id}.test.mp4`, `${id}.draft.mp4`].map((n) => path.join(epDir(id), 'out', n)).filter((f) => fs.existsSync(f))
     .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0] || path.join(epDir(id), 'out', `${id}.draft.mp4`);
   function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
     const file = master(id);
-    post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)), name: readJson(epFile(id), {}).title || id };  // (Instagram before Facebook's reminder; the video's name for messages)
+    post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)), name: readJson(epFile(id), {}).title || id, published: publishedOf(id) };  // (Instagram before Facebook's reminder; the video's name for messages)
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
     (async () => {
       // every platform at once (his ask, 2026-10-25) - each its own job in the Jobs list; Facebook's reminder waits for
@@ -245,6 +258,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
           const res = dry ? (log('dry run - nothing sent'), await sleep(300), { url: null, note: `dry run: ${path.basename(file)} → ${A.name}` }) : await A.publish(file, post, log, r.items);
           Object.assign(it, { state: 'done', url: res.url || null, note: res.note || '' });
         } catch (e) { Object.assign(it, { state: 'failed', error: String(e.message || e).slice(0, 300) }); }
+        it.ended = Date.now();
         if (!dry) recordJob({ id, kind: 'publish', channel: p, started: it.started, ended: Date.now(), ok: it.state === 'done', line: it.state === 'done' ? `${A.name}: ${it.url || it.note}` : `${A.name}: ${it.error}` });
       };
       const tasks = {};
@@ -253,8 +267,9 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       await Promise.all(Object.values(tasks));
       r.running = false; r.ended = Date.now();
       if (dry) return;
-      const pj = readJson(pubFile(id), {});  // the results stay with the project
-      writeJson(pubFile(id), { ...pj, afterExport: false, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } });
+      const pj = readJson(pubFile(id), {});  // the results stay with the project; `published` = where it's up, kept across runs
+      const up = Object.fromEntries(Object.entries(r.items).filter(([, v]) => v.state === 'done').map(([k, v]) => [k, { at: v.ended || r.ended, url: v.url || null }]));
+      writeJson(pubFile(id), { ...pj, afterExport: false, published: { ...publishedOf(id), ...up }, last: { at: r.ended, items: Object.fromEntries(Object.entries(r.items).map(([k, v]) => [k, { state: v.state, url: v.url, note: v.note, error: v.error }])) } });
       if (Object.values(r.items).some((it) => it.state === 'done')) site(id);  // out on a social -> on his sites too
       const failed = post.platforms.filter((p) => r.items[p].state === 'failed');
       if (failed.length) handBack(id, post, failed.map((p) => [P[p].name, r.items[p].error]), file);
@@ -335,7 +350,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
     let draft = null;  // a Quick check (half size) - shown in the window, never published
     try { draft = { exported: fs.statSync(draftOf(q.params.id)).mtimeMs }; } catch {}
-    res.json({ post: pj, run: runs[q.params.id] || null, title: e.title || q.params.id, file, draft });
+    res.json({ post: pj, run: runs[q.params.id] || null, published: publishedOf(q.params.id), title: e.title || q.params.id, file, draft });
   });
   // the video the window shows: the full export, else the Quick check draft
   app.get('/api/ep/:id/publish/video', (q, res) => {

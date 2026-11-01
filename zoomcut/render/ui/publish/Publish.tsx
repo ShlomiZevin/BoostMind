@@ -51,6 +51,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
   const [duration, setDuration] = useState(0);
   const [file, setFile] = useState<{ name: string; size: number; exported: number; stale: boolean } | null>(null);
   const [draft, setDraft] = useState<{ exported: number } | null>(null);  // a Quick check - shown, never published
+  const [published, setPublished] = useState<Record<string, { at: number; url: string | null }>>({});  // where it's already up
 
   useEffect(() => {
     (async () => {
@@ -67,13 +68,18 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       const picks: string[] = post?.platforms || last.platforms || [];
       setOn(Object.fromEntries(pl.map((p: Platform) => [p.id, p.ok && picks.includes(p.id)])));
       if (post?.options || last.options) setOpt((o: any) => ({ ...o, ...(last.options || {}), ...(post?.options || {}) }));
-      if (cur.run) setRun(cur.run);
+      setPublished(cur.published || {});
+      if (cur.run?.running) setRun(cur.run);  // (a finished run doesn't lock the window - he publishes again whenever he likes)
     })();
   }, [ep]);
-  // a publish going on: follow it
+  // a publish going on: follow it; when it ends, the picks clear and each tile shows where it's up now
   useEffect(() => {
     if (!run?.running) return;
-    const t = setTimeout(async () => { const cur = await api(`/api/ep/${ep}/publish`); setRun(cur.run); }, 1200);
+    const t = setTimeout(async () => {
+      const cur = await api(`/api/ep/${ep}/publish`);
+      setRun(cur.run);
+      if (!cur.run?.running) { setPublished(cur.published || {}); setOn({}); }
+    }, 1200);
     return () => clearTimeout(t);
   }, [run]);
   // Telegram / Email going out: follow them
@@ -84,6 +90,8 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       const next = { ...sends };
       for (const c of live) next[c] = await api(`/api/ep/${ep}/share/${c}`);
       setSends(next);
+      const over = live.filter((c) => !next[c]?.running);
+      if (over.length) setCh((h) => ({ ...h, ...Object.fromEntries(over.map((c) => [c, false])) }));
     }, 1200);
     return () => clearTimeout(t);
   }, [sends]);
@@ -125,10 +133,12 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
   const xNote = on.x && (caption.length > 280 || /https?:\/\//.test(caption));
 
   const tile = (id: string, name: string, sel: boolean, toggle: () => void, disabled = false, st?: string) => (
-    <button key={id} className={`pb-tile ${sel ? 'on' : ''} ${disabled ? 'off' : ''} ${st ? 'st-' + st : ''}`} disabled={disabled || started} onClick={toggle}
-      title={disabled ? 'Not connected yet' : id === 'facebook' ? 'A Telegram reminder to share the Instagram Reel' : id === 'tiktok' ? 'To your TikTok drafts' : ''}>
+    <button key={id} className={`pb-tile ${sel ? 'on' : ''} ${disabled ? 'off' : ''} ${st ? 'st-' + st : ''}`} disabled={disabled || running} onClick={toggle}
+      title={disabled ? 'Not connected yet' : (published[id] ? `Already up here since ${when(published[id].at)} - pick it to publish again. ` : '')
+        + (id === 'facebook' ? 'A Telegram reminder to share the Instagram Reel' : id === 'tiktok' ? 'To your TikTok drafts' : '')}>
       <Mark id={id} size={34} />
       <span className="pb-tile-n">{name}</span>
+      {published[id] && <span className="pb-tile-was">✓ {new Date().toDateString() === new Date(published[id].at).toDateString() ? 'today' : new Date(published[id].at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>}
       {(sel || st) && <span className="pb-tick">{st === 'done' ? '✓' : st === 'failed' ? '!' : st === 'publishing' || st === 'running' ? <span className="pb-spin" /> : '✓'}</span>}
     </button>
   );
@@ -156,9 +166,9 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
           </div>
           <div className="pb-capbox">
             <div className="pb-l">Caption <span>{caption.length ? caption.length : ''}</span></div>
-            <textarea className="pb-cap he" dir="auto" value={caption} disabled={started} placeholder="What goes under the video - text, #hashtags"
+            <textarea className="pb-cap he" dir="auto" value={caption} disabled={running} placeholder="What goes under the video - text, #hashtags"
               onChange={(e) => setCaption(e.target.value)} />
-            {canTest && <button className="pb-test" disabled={started} onClick={() => { onTest(); onClose(); }}>
+            {canTest && <button className="pb-test" disabled={running} onClick={() => { onTest(); onClose(); }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></svg>
               <span><b>Test on my phone</b><small>fast, low quality - to your Telegram</small></span></button>}
           </div>
@@ -175,7 +185,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
         </div>
 
         {/* the few options, only for what's picked */}
-        {!started && (on.instagram || on.youtube || xNote) && (
+        {!running && (on.instagram || on.youtube || xNote) && (
           <div className="pb-opts">
             {on.instagram && <div className="pb-o"><span>Instagram</span>
               <select value={opt.instagram?.reelsOnly ? 'reels' : 'grid'} onChange={(e) => setOpt({ ...opt, instagram: { reelsOnly: e.target.value === 'reels' } })}>
@@ -197,8 +207,8 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
         <div className="pb-foot">
           <div className="pb-file">{file && !exportFirst ? `Sends the export from ${when(file.exported)} as is` : file && isStale ? 'You changed the video since the last export - it exports again first'
             : draft && !file ? 'This is a quick test - the button makes the full-quality export first' : 'It exports the video first, then sends'}</div>
-          {started && !running ? <button className="pb-go" onClick={onClose}>Done</button>
-            : running ? <button className="pb-go ghost" onClick={onClose}>Sending… you can close this</button>
+          {running ? <button className="pb-go ghost" onClick={onClose}>Sending… you can close this</button>
+            : started && !n ? <button className="pb-go" onClick={onClose}>Done</button>
             : <button className="pb-go" onClick={go}>{n ? `${exportFirst ? 'Export & send' : 'Send'} to ${n}` : exportFirst ? 'Just export' : 'Pick where it goes'}</button>}
         </div>
       </div>

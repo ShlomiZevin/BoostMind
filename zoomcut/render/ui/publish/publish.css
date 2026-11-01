@@ -30,6 +30,7 @@
 .pb-tile.off { opacity: .35; }
 .pb-tile:disabled { cursor: default; }
 .pb-tile-n { font-size: 12px; font-weight: 600; }
+.pb-tile-was { margin-top: -4px; font-size: 10.5px; color: var(--ok); white-space: nowrap; }
 .pb-tick { position: absolute; top: 5px; right: 6px; font-size: 11px; font-weight: 800; color: var(--accent); line-height: 1; }
 .pb-tile.st-done .pb-tick { color: var(--ok); }
 .pb-tile.st-failed .pb-tick { color: var(--bad); }
