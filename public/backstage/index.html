@@ -425,7 +425,7 @@ const hi = () => { const h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia
 
 // ---------- faces ----------
 let W, C = {}, V = {}, L = null, S = null, tab = (location.hash.match(/^#(\w+)/) || [])[1] || 'overview', pick = null, file = null;
-let rqKind = 'all', rqQuery = '', contentSeg = 'comments', publishSeg = 'story', range = 7;
+let rqKind = 'all', rqQuery = '', contentSeg = 'comments', publishSeg = 'story', range = 1;   // today first (his ask)
 const GUIDE_FACE = '<span class="vx-av"><span class="gmark"><img src="/verse/logo-160.png" alt=""></span></span>';
 const face = (id) => id === 'guide' ? GUIDE_FACE : C[id]?.img ? `<span class="vx-av ring"><img src="${abs(C[id].img)}" alt="" loading="lazy"></span>` : `<span class="vx-av">${esc((C[id]?.name || '?')[0])}</span>`;
 const cname = (id) => id === 'guide' ? 'המדריך' : C[id]?.name || id;
@@ -452,7 +452,7 @@ async function refresh() { [L, S] = await Promise.all([api('list'), api('stats&d
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
 const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story']];
-const TITLE = Object.fromEntries(TABS.map(([k, l]) => [k, l]));
+const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
 const unchecked = () => L.comments.filter((c) => c.unchecked && !c.hidden).length;
@@ -668,20 +668,21 @@ function breakdown(list, label) {
   </div>`;
 }
 function data() {
-  const n = range, list = days(n), sel = drillDay && list.find((d) => d.d === drillDay);
+  // today's numbers by default; the chart always shows at least a week, so today has days to compare with
+  const n = range, list = days(n), chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
   $('#pane').innerHTML = `
     <div class="ask"><h2>${IC.spark}שאלו את הנתונים</h2><p class="hint">כל שאלה על המבקרים, ההרשמות, השיחות והתוכן - בעברית רגילה.</p>
       <form id="ask-f"><input id="ask-q" placeholder="למשל: כמה נרשמו השבוע ומאיפה הם הגיעו?" maxlength="600" value="${esc(lastAsk?.q || '')}"><button aria-label="לשאול">${IC.send}</button></form>
       <div class="ex">${['כמה נרשמו השבוע לעומת השבוע שעבר?', 'איזו דמות הכי מדברים איתה ומה שואלים אותה?', 'מאיפה מגיעים המבקרים, ומה עושים הכי הרבה?', 'באיזו שעה הכי פעילים היום?', 'אילו משחקים הכי משחקים?'].map((x) => `<button type="button" data-ex>${x}</button>`).join('')}</div>
       ${lastAsk ? `<div class="ans ${lastAsk.wait ? 'wait' : ''}">${lastAsk.wait ? 'בודק את הנתונים…' : md(lastAsk.answer)}${lastAsk.cost ? `<span class="cost">עלות השאלה: $${lastAsk.cost.toFixed(3)}</span>` : ''}</div>` : ''}</div>
-    <div class="tool">${rangeSeg([[7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}
+    <div class="tool">${rangeSeg([[1, 'היום'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}
       <select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="kgrid">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => kpi(m)).join('')}</div>
-    <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, list))} ב-${n} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="d-ch"></div></div>
+    <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="d-ch"></div></div>
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
       <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
-    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : `ב-${n} ימים`)}`;
-  bars($('#d-ch'), list.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay);
+    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : `ב-${n} ימים`)}`;
+  bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay);
   $('#metric').onchange = (e) => { metric = e.target.value; data(); };
   $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };
 }
@@ -917,7 +918,7 @@ document.addEventListener('click', async (e) => {
   if (b.dataset.chat) { openThread(b.dataset.chat); return; }
   if (b.dataset.tab) { closeSheet(); go(b.dataset.tab); }
   else if (b.dataset.range) { range = +b.dataset.range; drillDay = null; tab === 'data' ? data() : overview(); }
-  else if (b.dataset.metric) { metric = b.dataset.metric; drillDay = null; if (range === 1) range = 7; go('data'); }
+  else if (b.dataset.metric) { metric = b.dataset.metric; drillDay = null; go('data'); }
   else if (b.dataset.undrill !== undefined) { drillDay = null; data(); }
   else if (b.dataset.ex !== undefined) { $('#ask-q').value = b.textContent; ask(b.textContent); }
   else if (b.dataset.chrange) { b.disabled = true; chShown = 60; await loadChats(b.dataset.chrange).catch(() => {}); chats(); }
