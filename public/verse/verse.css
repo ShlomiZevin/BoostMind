@@ -1047,3 +1047,7 @@ section.hero .scroll-hint { z-index: 1; }
 .ofc { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--vx-accent, #ff6a1f); color: #fff; margin-inline-start: 5px; vertical-align: -3px; flex: none; }
 .ofc svg { width: 11px; height: 11px; }
 .m.me .lnk { color: inherit; }
+/* the "suggest an idea" button in the home band: a compact pill that fits its row (his note, 2026-11-01: "too big") */
+.cmy-band-cta .vx-btn { height: 40px; padding: 0 16px; gap: 6px; font-size: .92rem; box-shadow: none; }
+.cmy-band-cta .vx-btn svg { width: 16px; height: 16px; }
+.cmy-band > .empty, .cmy-band > .ideas { margin-top: 12px; }

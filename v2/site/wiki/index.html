@@ -210,6 +210,26 @@
   .st-go:hover { border-color: var(--accent); color: var(--accent); }
   .site-g .sec-h h2 { display: flex; align-items: center; gap: 10px; font-size: 1.35rem; }
   .site-g .sec-h h2 .dot { width: 10px; height: 10px; }
+  .topic-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 18px -2px 0; padding: 2px; }
+  .topic-chips::-webkit-scrollbar { display: none; }
+  .topic-chips button { flex: none; display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; transition: border-color .15s; }
+  .topic-chips button:hover { border-color: var(--accent); }
+  .topic-chips svg { width: 18px; height: 18px; color: var(--accent); }
+  .site-g { scroll-margin-top: 84px; }
+  .site-g .sec-h { align-items: center; }
+  .site-g .sec-h h2 svg { width: 26px; height: 26px; color: var(--accent); flex: none; }
+  .tg-n { color: var(--dim); font-size: .9rem; font-weight: 700; }
+  /* a lone site (or the odd one out) is one wide card: its picture on the right, the words beside it */
+  /* (on a phone it is the full width with its picture on top - side by side would crop the share picture; on a wider
+     screen the grid has more columns, so only a site alone in its subject is wide - two columns, side by side) */
+  @media (max-width: 760px) { .sitegrid .site-t.wide { grid-column: 1 / -1; } }
+  @media (min-width: 761px) {
+    .sitegrid .site-t.solo { grid-column: span 2; display: grid; grid-template-columns: 46% 1fr; grid-template-rows: auto auto 1fr; grid-template-areas: "pic body" "pic games" "pic ft"; }
+    .site-t.solo .st-pic { grid-area: pic; aspect-ratio: 1.91 / 1; height: auto; align-self: start; }
+    .site-t.solo .st-body { grid-area: body; }
+    .site-t.solo .st-games { grid-area: games; }
+    .site-t.solo .st-ft { grid-area: ft; align-self: end; }
+  }
   .sg-who { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid var(--line2); display: block; flex: none; }
   .sg-who img, .sg-who .ph { width: 100%; height: 100%; object-fit: cover; display: block; }
   @media (max-width: 760px) {
@@ -480,13 +500,21 @@ const sitesTop = () => (W.site_list || []).filter((s) => !s.in);
 const siteGames = (s) => (W.site_list || []).filter((g) => g.in === s.id);
 // whose = [series ids first when a world owns it, then residents]: a company / world site shows no face, a person's does
 const siteOwner = (s) => { const w = s.whose || []; return S[w[0]] ? null : w.map((id) => C[id]).find((c) => c && c.img); };
-// who it belongs to, for grouping: the world (a series id) or the first resident
-const siteKey = (s) => (s.whose || [])[0] || '';
-const siteTile = (s) => {
+// the subjects (Terra picks one per site in build.py - scripts/wiki/site_topics.json), in the page's order
+const SITE_TOPICS = [
+  ['shop', 'חנויות', 'חנויות', '<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'],
+  ['games', 'משחקים', 'משחקים', '<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".9" fill="currentColor"/><circle cx="17.5" cy="13.8" r=".9" fill="currentColor"/>'],
+  ['spirit', 'רוחניות ותחזיות', 'רוחניות', '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>'],
+  ['community', 'קהילה ודת', 'קהילה ודת', '<path d="M4 20V10l8-5.5L20 10v10"/><path d="M9.5 20v-5a2.5 2.5 0 0 1 5 0v5M3 20h18"/>'],
+  ['business', 'עסקים והייטק', 'עסקים', '<rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.5h18"/>'],
+  ['culture', 'ספרים, משפחה ותרבות', 'תרבות', '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>'],
+];
+const topicIcon = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+const siteTile = (s, wide) => {   // wide: 'odd' = the odd one out of two phone columns, 'solo' = alone in its subject
   const o = siteOwner(s), games = siteGames(s);
-  return `<div class="site-t">
+  return `<div class="site-t${wide ? ' wide ' + wide : ''}">
     <a class="st-pic" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}">${s.img ? `<img src="${esc(s.img)}" alt="" loading="lazy">` : ''}</a>
-    <a class="st-body" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}"><b>${esc(s.title)}</b><small>${esc(s.about)}</small></a>
+    <a class="st-body" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}"><b>${esc(s.title)}</b><small>${esc(s.tagline || s.about)}</small></a>
     ${games.length ? `<div class="st-games"><span>המשחקים</span>${games.map((g) => `<a href="${esc(g.url)}" target="_blank" rel="noopener" data-site-out="${g.id}" title="${esc(g.title)}">${g.img ? `<img src="${esc(g.img)}" alt="${esc(g.title)}" loading="lazy">` : esc(g.title)}</a>`).join('')}</div>` : ''}
     <div class="st-ft">${o ? `<a class="st-own" href="#/c/${o.id}" title="${esc(o.name)}">${face(o)}</a>` : '<span></span>'}<a class="st-go" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}">לאתר${ICON.out}</a></div></div>`;
 };
@@ -523,7 +551,7 @@ const pages = {
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
         <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
       ${sitesTop().length ? `<section class="sec"><div class="sec-h"><div><h2>האתרים של הדמויות</h2><p class="sec-sub">כל הדלתות פתוחות. האחריות עליכם.</p></div><a href="#/sites">כל האתרים ←</a></div>
-        <div class="srow">${sitesTop().map(siteTile).join('')}</div></section>` : ''}
+        <div class="srow">${sitesTop().map((x) => siteTile(x)).join('')}</div></section>` : ''}
       <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="#/series">כל הסדרות ←</a></div>
         <div class="sgrid">${W.series.map(scard).join('')}</div></section>`;
     // the same hero for everyone (Shlomi: the signed-in home should look like the signed-out one); what's under it is the
@@ -551,16 +579,19 @@ const pages = {
   },
   // every character's own site. Whoever has two or more (a world, or one person - Hani's shop, arcade, family tree...)
   // gets a heading of their own, biggest first; everyone with one site shares the last group (no half-empty rows)
+  // by subject (his ask, 2026-11-01 - designed with GPT Image, scripts/v2-design/band-and-sites.mjs): chips to jump to a
+  // subject, then each subject with its icon and count. A lone site - or the odd one out of a pair of columns - is one
+  // wide card, so a row is never half empty. A site without a subject yet goes to "עוד".
   sites() {
     const by = {};
-    for (const s of sitesTop()) (by[siteKey(s)] ||= []).push(s);
-    const big = Object.keys(by).filter((k) => k && by[k].length > 1).sort((a, b) => by[b].length - by[a].length);
-    const rest = Object.keys(by).filter((k) => !big.includes(k)).flatMap((k) => by[k]);
-    const head = (k) => S[k] ? `<span class="dot" style="background:${seriesColor(S[k])}"></span>${esc(S[k].title)}`
-      : C[k] ? `<a class="sg-who" href="#/c/${k}">${face(C[k])}</a>${esc(C[k].name)}` : '';
-    const group = (title, list) => `<section class="sec site-g"><div class="sec-h"><h2>${title}</h2></div><div class="sitegrid">${list.map(siteTile).join('')}</div></section>`;
+    for (const s of sitesTop()) (by[SITE_TOPICS.some(([k]) => k === s.topic) ? s.topic : 'other'] ||= []).push(s);
+    const topics = [...SITE_TOPICS, ['other', 'עוד', 'עוד', '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>']].filter(([k]) => by[k]);
+    const count = (n) => (n === 1 ? 'אתר אחד' : `${n} אתרים`);
+    const cards = (list) => list.map((s, i) => siteTile(s, list.length === 1 ? 'solo' : list.length % 2 === 1 && i === list.length - 1 ? 'odd' : '')).join('');
     return `<div class="wrap"><div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>
-      ${big.map((k) => group(head(k), by[k])).join('')}${rest.length ? group(big.length ? 'שונים ומשונים' : '', rest) : ''}</div>`;
+      <div class="topic-chips">${topics.map(([k, , short, ic]) => `<button type="button" data-topic-jump="${k}">${topicIcon(ic)}${esc(short)}</button>`).join('')}</div>
+      ${topics.map(([k, title, , ic]) => `<section class="sec site-g" id="topic-${k}"><div class="sec-h"><h2>${topicIcon(ic)}${esc(title)}</h2><span class="tg-n">${count(by[k].length)}</span></div>
+        <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}</div>`;
   },
   s(q, id) {
     const s = S[id];
@@ -933,6 +964,8 @@ document.addEventListener('click', (e) => {
     });
     return;
   }
+  const tj = e.target.closest('[data-topic-jump]');
+  if (tj) { document.getElementById('topic-' + tj.dataset.topicJump)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   const out = e.target.closest('[data-site-out]');
   if (out) t('site', out.dataset.siteOut);   // a visit to a character's site (/stats/ 'מעברים לאתרי הדמויות')
   const talk = e.target.closest('[data-talk]');
