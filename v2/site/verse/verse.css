@@ -1012,3 +1012,10 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
 /* the "75 דמויות · 203 סרטונים" line under the hero: on a pill, so the faces behind it don't swallow it */
 section.hero .scroll-hint { color: rgba(255, 255, 255, .85); font-weight: 600; padding: 6px 14px; border-radius: 99px;
   background: rgba(11, 11, 14, .72); border: 1px solid rgba(255, 255, 255, .12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+/* iPhone (WebKit): the hero's tilted 3D wall of faces could paint over the fixed top bar - the hero is its own layer,
+   under the bar */
+section.hero { z-index: 0; isolation: isolate; }
+/* the @ list (inside the hero card) lies over the counts pill under the card */
+section.hero .hero-in { z-index: 3; }
+section.hero .scroll-hint { z-index: 1; }

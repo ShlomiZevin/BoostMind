@@ -7,6 +7,8 @@
 <script>
   if (/(^|\.)wholos\.com$/.test(location.hostname)) location.replace('/wholos/' + location.search + location.hash);
   else if (location.pathname === '/') history.replaceState(null, '', '/wiki/' + location.search + location.hash);
+  // a new visit opens at the top (the browser was bringing back the old scroll, hiding the top bar)
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>שלומיוורס · הוויקי של הדמויות</title>
@@ -107,6 +109,7 @@
   .at-box { position: absolute; bottom: calc(100% + 8px); inset-inline: 0; z-index: 30; display: flex; flex-direction: column; gap: 2px; max-height: 270px; overflow-y: auto;
             padding: 6px; background: rgba(24, 23, 28, .98); border: 1px solid var(--line2); border-radius: 18px; box-shadow: 0 14px 36px rgba(0, 0, 0, .55); text-align: start; }
   .at-box[hidden] { display: none; }
+  .ask .at-box { top: calc(100% + 8px); bottom: auto; }   /* the home's box: the list opens under it; the chat's box sits at the bottom, so its list opens above */
   .at-box button.at-i { display: flex !important; align-items: center; gap: 12px; width: 100% !important; height: auto !important; min-height: 52px; padding: 6px 8px !important;
                         border-radius: 12px !important; background: transparent !important; border: 0 !important; color: var(--text) !important; text-align: start; transform: none !important; }
   .at-box button.at-i:hover, .at-box button.at-i:active { background: rgba(255, 255, 255, .08) !important; }
