@@ -34,10 +34,12 @@ Connected = its keys in zoomcut/.env (`GET /api/publish/platforms` says which).
   one more line. No emoji walls - one or two at most.
 - **Hashtags at the end, 3-6**: the character / series (e.g. #טקיטק, #איילתהשחר, #דמוקרטוביץ), the topic of THIS
   video, one or two broad ones (#קומדיה, #סאטירה, #הומור). No #fyp spam, no 20-tag blocks.
+- **#שלומיוורס on EVERY video, every platform** (his rule, 2026-11-01) - in the caption's hashtags, in X's short text
+  too (it's one of its 1-2), in YouTube's description. Always spelled exactly #שלומיוורס. A caption without it isn't done.
 - **A site link only where it works**: Instagram / TikTok captions don't link - write "הלינק בביו" if the video points
   to the character's site; YouTube's description can hold the URL.
 - **Per platform**: Instagram + TikTok take the full caption; X gets its own short version (`options.x.text`) - the
-  hook + 1-2 hashtags; YouTube gets a title (the hook, ≤100) and the caption as its description.
+  hook + 1-2 hashtags (#שלומיוורס one of them); YouTube gets a title (the hook, ≤100) and the caption as its description.
 - Show him the caption before saving it when it's the first post of a series; afterwards follow what he approved.
 
 ## A backlog of videos (2026-10-24: his first 16 Shorts)
