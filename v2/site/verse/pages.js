@@ -96,7 +96,7 @@ function noteRow(n) {
   let face, name, line, thumb = '', href;
   if (n.kind === 'video') { face = n.char ? av({ char: n.char, ring: true }) : av({ planet: true }); name = n.from || 'השלומיוורס'; line = T.note.video(n.text); href = `#/v/${n.videoId}`;
     const v = V[n.videoId]; if (v && v.poster) thumb = `<img class="thumb" src="${abs(v.poster)}" alt="">`; }
-  else if (n.kind === 'story') { face = av({ char: n.char, ring: true }); name = n.from; line = T.note.story(n.text); href = `#/story/${n.char}`; }
+  else if (n.kind === 'story') { face = n.char === 'verse' ? av({ planet: true }) : av({ char: n.char, ring: true }); name = n.from; line = T.note.story(n.text); href = `#/story/${n.char}`; }
   else if (n.kind === 'reply') { face = n.char ? av({ char: n.char, ring: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.note.reply(n.text); href = `#/v/${n.videoId}?c=${n.commentId}`; }
   else if (n.kind === 'like') { face = n.n > 1 || !n.from ? av({ planet: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = T.note.like(n.n || 1, n.from); line = `"${n.text}"`; href = `#/v/${n.videoId}?c=${n.focus || n.commentId}`; }
   else if (n.kind === 'stamp') { face = n.char ? av({ char: n.char }) : av({ planet: true }); name = T.note.stamp(n.n || 1); line = `"${n.text}"`; href = `#/v/${n.videoId}?sticker=${n.stickerId}`;

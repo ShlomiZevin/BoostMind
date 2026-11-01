@@ -310,6 +310,9 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 .nt-push { display: flex; align-items: center; gap: 14px; background: linear-gradient(120deg, color-mix(in srgb, var(--vx-accent) 18%, var(--card)), var(--card)); border: 1px solid var(--line2); border-radius: 22px; padding: 16px; margin-top: 16px; }
 .nt-push p { flex: 1; color: var(--dim); font-size: .95rem; }
 .nt-push b { color: var(--text); display: block; font-size: 1.05rem; }
+/* a narrow bell (the phone sheet, the dropdown): the bell + the words on one row, the button under them, full width */
+@media (max-width: 640px) { .nt-push { flex-wrap: wrap; } .nt-push .vx-btn { flex: 1 1 100%; } }
+.ntm .nt-push { flex-wrap: wrap; } .ntm .nt-push .vx-btn { flex: 1 1 100%; }
 .me-card { display: flex; align-items: center; gap: 18px; padding: 34px 0 10px; }
 .me-card .vx-av { width: 84px; height: 84px; font-size: 1.8rem; }
 .me-card h1 { font-size: 2rem; font-weight: 900; line-height: 1.1; }

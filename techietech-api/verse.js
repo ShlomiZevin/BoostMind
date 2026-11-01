@@ -124,6 +124,16 @@ async function fanOf(uid) {
 }
 
 // ---------- the bell + push ----------
+// a story sent to everyone stays news for its three days on the home page: an account made in those days finds it in
+// its bell too (his question, 2026-11-02: "I registered a new user - I won't see the story published before that?")
+async function recentNews(uid) {
+  const snap = await db.collection('stories').where('t', '>=', new Date(Date.now() - 3 * 864e5)).get();
+  const { byId } = await _canon();
+  await Promise.all(snap.docs.filter((d) => d.data().everyone && !d.data().hidden).map((d) => {
+    const x = d.data();
+    return db.collection('fans').doc(uid).collection('notes').add({ kind: 'story', storyId: d.id, char: x.char, from: x.char === 'verse' ? OFFICIAL.nick : byId[x.char]?.name || x.char, text: (x.text || '').slice(0, 140), read: false, t: x.t });
+  }));
+}
 const note = (uid, data) => db.collection('fans').doc(uid).collection('notes').add({ ...data, read: false, t: FieldValue.serverTimestamp() });
 
 function pushReady() {
@@ -222,7 +232,10 @@ const ops = {
     }
     const fan = { nick, ...(d.keepPhoto && !d.photoData ? {} : { photo, photoUnchecked: unchecked }) };
     await ref.set({ ...fan, ...(was ? {} : { follows: [], created: FieldValue.serverTimestamp() }) }, { merge: true });
-    if (!was) await note(uid, { kind: 'welcome', text: nick });
+    if (!was) {
+      await note(uid, { kind: 'welcome', text: nick });
+      await recentNews(uid).catch((e) => console.error('recentNews', e.message));
+    }
     return { ok: true, fan };
   },
 
@@ -716,10 +729,13 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
         db.collection('fans').where('created', '>=', week).count().get(),
         db.collection('verseMeta').doc('autoAnnounce').get(),
       ]);
+      // how many follow each character (the new story window says how many a story reaches)
+      const followers = {};
+      (await db.collection('fans').select('follows').get()).docs.forEach((d) => (d.data().follows || []).forEach((c) => { followers[c] = (followers[c] || 0) + 1; }));
       const rows = (s) => s.docs.map((d) => ({ id: d.id, ...d.data(), t: d.data().t?.toMillis?.() || null }));
       return res.json({ comments: rows(comments), stickers: rows(stickers), requests: rows(requests), stories: rows(stories),
         announced: Object.fromEntries(announced.docs.map((d) => [d.id, d.data().t?.toMillis?.() || 1])), fans: fans.data().count, ideas: rows(ideas),
-        fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null });
+        fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null, followers });
     }
     // everyone with an account (his ask, 2026-11-01): the verse's fans and whoever signed in on a character's site to
     // send something - from Firebase Auth itself, so nobody is missing, with where they came from
@@ -806,10 +822,13 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
         media = { url: publicUrl(path), kind: file.type.startsWith('video/') ? 'video' : 'image' };
       }
       const { byId } = await _canon();
-      const name = byId[f.char]?.name || f.char;
-      await ref.set({ char: f.char, text, media, link, hidden: false, t: FieldValue.serverTimestamp() });
+      // 'verse' = the Shlomiverse itself (his official account): its name and logo, and nobody follows it, so its
+      // notification goes to everyone
+      const isVerse = f.char === 'verse';
+      const name = isVerse ? OFFICIAL.nick : byId[f.char]?.name || f.char;
+      const everyone = f.everyone === 'yes' || (isVerse && f.notify !== 'no');
+      await ref.set({ char: f.char, text, media, link, everyone, hidden: false, t: FieldValue.serverTimestamp() });
       let fans = [], sent = 0;
-      const everyone = f.everyone === 'yes';
       if (f.notify !== 'no' || everyone) {
         fans = everyone ? (await db.collection('fans').select().get()).docs.map((d) => d.id) : await followersOf([f.char]);
         const n = { kind: 'story', storyId: ref.id, char: f.char, from: name, text: text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() };
@@ -818,8 +837,9 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
           fans.slice(i, i + 400).forEach((uid) => batch.set(db.collection('fans').doc(uid).collection('notes').doc(), n));
           await batch.commit();
         }
-        sent = await push(fans, { title: `סטורי חדש מ${name}`, body: text.slice(0, 140) || name, url: `/wiki/#/story/${f.char}`, icon: faceUrl(f.char), badge: BADGE,
+        sent = await push(fans, { title: `סטורי חדש מ${name}`, body: text.slice(0, 140) || name, url: `/wiki/#/story/${f.char}`, icon: isVerse ? ICON : faceUrl(f.char), badge: BADGE,
           image: media?.kind === 'image' ? media.url : undefined, tag: 'story_' + f.char });
+        await ref.update({ reach: fans.length, pushes: sent });
       }
       return res.json({ ok: true, id: ref.id, fans: fans.length, sent, everyone });
     }

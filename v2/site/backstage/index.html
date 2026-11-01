@@ -154,6 +154,81 @@
   @media (max-width: 640px) { .st-link { grid-template-columns: 1fr; } }
   .hint { color: var(--dim); font-size: .92rem; }
   .ok { color: #7fe3a1; font-weight: 700; }
+  /* סטוריז: the gallery (every story as it looked), one story full size, the new story window (design admin/S1, S2) */
+  .sc-filters { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; margin-bottom: 18px; }
+  .sc-filters .seg { margin: 0; }
+  .seg button bdi { color: var(--faint); font-weight: 600; margin-inline-start: 3px; }
+  .sc-chars { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; align-items: center; min-width: 0; padding: 3px; }
+  .sc-chars button { flex: none; border-radius: 50%; }
+  .sc-chars .vx-av { width: 38px; height: 38px; }
+  .sc-chars button.on .vx-av { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+  .sc-chars .all { height: 38px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); color: var(--dim); font-weight: 700; font-size: .88rem; }
+  .sc-chars .all.on { color: var(--text); border-color: var(--accent); }
+  .sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+  .sc { display: flex; flex-direction: column; gap: 10px; text-align: right; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 8px; transition: border-color .15s; }
+  .sc:hover { border-color: var(--line2); }
+  .sc.off .sc-art { opacity: .4; }
+  .sc-art { position: relative; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: #000; }
+  .sc-art .sv-box { position: absolute; inset: 0; height: 100%; width: 100%; aspect-ratio: auto; }
+  .sc-art .sv-text { font-size: .9rem; bottom: 12px; inset-inline: 10px; line-height: 1.3; }
+  .sc-art .sv-plain { padding: 16px 12px; }
+  .sc-art .sv-plain .sv-text { font-size: 1.05rem; }
+  .sc-art .with-cta .sv-text { bottom: 50px; }
+  .sc-art .with-cta .sv-plain { padding-bottom: 50px; }
+  .sc-art .sv-cta { height: 32px; font-size: .78rem; bottom: 10px; inset-inline: 10px; box-shadow: none; }
+  .sc-badge { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 5; font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: rgba(0,0,0,.65); color: #fff; }
+  .sc-badge.live { background: #22c55e; color: #04210f; }
+  .sc-meta { display: flex; gap: 9px; align-items: center; padding: 0 4px 4px; }
+  .sc-meta .vx-av { width: 34px; height: 34px; flex: none; }
+  .sc-meta div { min-width: 0; }
+  .sc-meta b { display: block; font-weight: 800; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-meta small { display: block; color: var(--dim); font-size: .74rem; line-height: 1.35; }
+  .sheet.sh-story { width: min(560px, calc(100% - 40px)); }
+  .sh-story .sh-h .btn { height: 38px; padding: 0 14px; }
+  .sv-stage { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 18px; min-height: 0; }
+  .sv-stage .phone { height: min(68svh, 640px); width: auto; flex: none; }
+  .sv-stage .nav { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line2); display: grid; place-items: center; flex: none; }
+  .sv-stage .nav:disabled { opacity: .25; }
+  .sv-stage .nav svg { width: 20px; height: 20px; }
+  .phone .sv-bars { top: 8px; inset-inline: 10px; }
+  .phone .sv-head { top: 18px; inset-inline: 10px; }
+  .phone .sv-head .vx-av { width: 34px; height: 34px; }
+  .sheet.sh-new { width: min(1040px, calc(100% - 40px)); }
+  .ns { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 26px; align-items: start; }
+  .ns-form { min-width: 0; }
+  .ns-prev { position: sticky; top: 0; }
+  .ns-prev .phone { width: 100%; }
+  .ns-q { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); margin-bottom: 10px; }
+  .ns-q svg { width: 18px; height: 18px; color: var(--dim); flex: none; }
+  .ns-q input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }
+  .faces.ns-faces { flex-wrap: nowrap; overflow-x: auto; max-height: none; padding-bottom: 8px; }
+  .ns-faces button { flex: none; }
+  .ns-faces button[hidden] { display: none; }
+  .file.ns-drop { display: flex; width: 100%; height: auto; min-height: 64px; padding: 12px 16px; line-height: 1.35; }
+  .ns-drop.over { border-color: var(--accent); color: var(--text); }
+  .ns-aud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .ns-aud button { display: flex; gap: 10px; align-items: flex-start; text-align: right; padding: 12px; border-radius: 16px; border: 1px solid var(--line2); background: var(--card); }
+  .ns-aud button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+  .ns-aud i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line2); flex: none; margin-top: 2px; }
+  .ns-aud .on i { border: 5px solid var(--accent); }
+  .ns-aud b { display: block; font-weight: 800; font-size: .92rem; }
+  .ns-aud small { color: var(--dim); font-size: .78rem; }
+  .ns-go { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
+  @media (max-width: 900px) { .sheet.sh-story, .sheet.sh-new { width: 100%; } }
+  @media (max-width: 640px) {
+    .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .sc-filters { gap: 10px; }
+    .sc-filters .seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .sc-filters .seg button { padding: 0 12px; white-space: nowrap; }
+    .sc-chars { width: 100%; }
+    .ns { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .ns-prev { position: static; order: -1; }
+    .ns-prev .phone { width: 190px; margin: 0 auto; }
+    .ns-aud { grid-template-columns: 1fr; }
+    .sv-stage { padding: 12px 6px; gap: 6px; }
+    .sv-stage .phone { height: min(62svh, 560px); }
+    .sv-stage .nav { width: 36px; height: 36px; }
+  }
   /* the gate */
   .gate { min-height: 100svh; display: grid; place-items: center; text-align: center; padding: 20px; }
   .gate img { width: 200px; }
@@ -453,6 +528,7 @@ async function load() {
   $('#app').innerHTML = `<div class="gate"><div><img src="/verse/logo-512.png" alt="" style="width:150px;opacity:.9"><p>טוען את מאחורי הקלעים…</p></div></div>`;
   W = await fetch(DATA, { cache: 'no-cache' }).then((r) => r.json());
   W.characters.forEach((c) => (C[c.id] = c));
+  C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
   W.videos.forEach((v) => (V[v.id] = v));
   [L, S] = await Promise.all([api('list'), api('stats&days=45')]);
   await loadChats('today');
@@ -664,9 +740,9 @@ function openThread(k, list) {
 }
 
 // ---------- the sheet (a conversation, a person) ----------
-function sheet(html) {
+function sheet(html, cls = '') {
   closeSheet();
-  document.body.insertAdjacentHTML('beforeend', `<div class="sheet-back" data-close></div><div class="sheet" role="dialog"><div class="grab"></div>${html}</div>`);
+  document.body.insertAdjacentHTML('beforeend', `<div class="sheet-back" data-close></div><div class="sheet ${cls}" role="dialog"><div class="grab"></div>${html}</div>`);
   requestAnimationFrame(() => { $('.sheet-back').classList.add('on'); $('.sheet').classList.add('on'); });
   document.body.style.overflow = 'hidden';
 }
@@ -852,7 +928,7 @@ function requests() {
 
 // תוכן: comments, ideas and stickers in one place; פרסום: a character's story, a new video
 const contentSegHtml = () => `<div class="seg">${[['comments', 'תגובות'], ['ideas', 'רעיונות'], ['stickers', 'סטיקרים']].map(([k, l]) => `<button data-cseg="${k}" class="${contentSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-const publishSegHtml = () => `<div class="seg">${[['story', 'סטורי של דמות'], ['video', 'סרטון חדש']].map(([k, l]) => `<button data-pseg="${k}" class="${publishSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const publishSegHtml = () => `<div class="seg">${[['story', 'סטוריז'], ['video', 'סרטון חדש']].map(([k, l]) => `<button data-pseg="${k}" class="${publishSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 function content() { ({ comments, ideas, stickers })[contentSeg](); }
 function publish() { ({ story, video })[publishSeg](); }
 // ---------- ideas ----------
@@ -879,52 +955,118 @@ function stickers() {
       <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/wiki/#/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
 }
 
-// ---------- a character's story ----------
+// ---------- סטוריז: every story as a visitor saw it; a new one is written in a window on top (his ask 2026-11-02,
+// "easy to see past stories, how they look, and create story maybe should be a modal"; design admin/S1, S2) ----------
+let stChar = '', stState = 'all', stList = [], stAud = 'followers', stQ = '';
+const LIVE_MS = 3 * 864e5;
+const isLive = (x) => !x.hidden && x.t && Date.now() - x.t < LIVE_MS;
+const storyById = (id) => L.stories.find((x) => x.id === id);
+// what a visitor saw: the picture or clip (or the line on the character's colour), the line, the button
+function storyArt(x, full) {
+  const text = x.text ? `<div class="sv-text">${esc(x.text)}</div>` : '';
+  const media = x.media?.kind === 'video' ? `<video class="sv-media" src="${esc(x.media.url)}" muted playsinline loop preload="metadata"${full ? ' autoplay controls' : ''}></video>`
+    : x.media?.kind === 'image' ? `<img class="sv-media" src="${esc(x.media.url)}" alt="" loading="lazy">` : '';
+  const cta = !x.link ? '' : full ? `<a class="sv-cta" href="${esc(x.link.url)}" target="_blank" rel="noopener">${esc(x.link.label)}${IC.back}</a>` : `<span class="sv-cta">${esc(x.link.label)}</span>`;
+  const head = full ? `<div class="sv-head">${face(x.char)}<span><b>${esc(C[x.char]?.name || x.char)}</b><br><small>${ago(x.t)}</small></span></div><div class="sv-bars"><span><i style="width:100%"></i></span></div>` : '';
+  return `<div class="sv-box${x.link ? ' with-cta' : ''}" style="--c:${C[x.char]?.color || '#ff6a1f'}">${head}${media ? `${media}<div class="sv-shade"></div>${text}` : `<div class="sv-plain">${text}</div>`}${cta}</div>`;
+}
+// who heard about it, and how many saw it / tapped its button (story_seen / story_link, counted since 2026-11-02)
+function storyAud(x) {
+  if (x.everyone) return `לכל השלומיוורס${x.reach != null ? ` · ${fmt(x.reach)}` : ''}`;
+  return x.reach != null ? `לעוקבים · ${fmt(x.reach)}` : 'בלי התראה';
+}
+function storyNums(x) {
+  const seen = byPrefix(days(45), 'story_seen')[x.id] || 0, taps = byPrefix(days(45), 'story_link')[x.id] || 0;
+  return `${fmt(seen)} צפיות${x.link ? ` · ${fmt(taps)} לחיצות` : ''}`;
+}
 function story() {
-  const chars = W.characters.filter((c) => c.img);
-  $('#pane').innerHTML = `${publishSegHtml()}<div class="top"><div><h1>סטורי של דמות</h1><p>משפט בקול של הדמות, ואם רוצים תמונה או סרטון קצר. העוקבים מקבלים התראה.</p></div></div>
-    <div class="card story"><div>
+  const all = L.stories;
+  const inState = (x) => stState === 'all' || (stState === 'live' ? isLive(x) : stState === 'old' ? !x.hidden && !isLive(x) : x.hidden);
+  const list = all.filter((x) => (!stChar || x.char === stChar) && inState(x));
+  stList = list.map((x) => x.id);
+  const chars = [...new Set(all.map((x) => x.char))].filter((id) => C[id]);
+  const n = { all: all.length, live: all.filter(isLive).length, old: all.filter((x) => !x.hidden && !isLive(x)).length, hidden: all.filter((x) => x.hidden).length };
+  $('#pane').innerHTML = `${publishSegHtml()}<div class="top"><div><h1>סטוריז</h1><p>כל סטורי שעלה, בדיוק כמו שהצופים ראו אותו. פעיל = עדיין בעיגולים בדף הבית (3 ימים).</p></div>
+      <button class="btn main" data-story-new>${IC.plus}סטורי חדש</button></div>
+    <div class="sc-filters"><div class="seg">${[['all', 'הכול'], ['live', 'פעילים עכשיו'], ['old', 'ישנים'], ['hidden', 'מוסתרים']].map(([k, l]) =>
+      `<button data-ststate="${k}" class="${stState === k ? 'on' : ''}">${l} <bdi>${n[k]}</bdi></button>`).join('')}</div>
+      ${chars.length > 1 ? `<div class="sc-chars"><button data-stchar="" class="all ${stChar ? '' : 'on'}">כל הדמויות</button>${chars.map((id) => `<button data-stchar="${id}" class="${stChar === id ? 'on' : ''}" title="${esc(C[id].name)}">${face(id).replace(' ring', '')}</button>`).join('')}</div>` : ''}</div>
+    <div class="sc-grid">${list.map((x) => `<button class="sc ${x.hidden ? 'off' : ''}" data-story-open="${x.id}">
+        <div class="sc-art">${storyArt(x)}${isLive(x) ? '<span class="sc-badge live">פעיל</span>' : x.hidden ? '<span class="sc-badge">מוסתר</span>' : ''}</div>
+        <div class="sc-meta">${face(x.char).replace(' ring', '')}<div><b>${esc(C[x.char]?.name || x.char)}</b><small>${ago(x.t)} · ${storyAud(x)}</small><small>${storyNums(x)}</small></div></div>
+      </button>`).join('') || `<div class="empty">${all.length ? 'אין סטוריז כאלה.' : 'עוד לא עלה סטורי.'}</div>`}</div>`;
+}
+// one story, full size, as it played - with the next / previous in the same list, and hide
+function openStory(id) {
+  const x = storyById(id);
+  if (!x) return;
+  const i = stList.indexOf(id);
+  sheet(`<div class="sh-h">${face(x.char)}<div class="t"><b>${esc(C[x.char]?.name || x.char)}</b><small>${new Date(x.t).toLocaleString('he-IL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} · ${storyAud(x)} · ${storyNums(x)}</small></div>
+      ${hideBtn('story', x)}<button class="x" data-close>${IC.x}</button></div>
+    <div class="sv-stage"><button class="nav" data-story-step="${stList[i - 1] || ''}" ${i > 0 ? '' : 'disabled'} aria-label="הקודם">${IC.chev.replace('m14 6-6 6 6 6', 'm10 6 6 6-6 6')}</button>
+      <div class="phone">${storyArt(x, true)}</div>
+      <button class="nav" data-story-step="${stList[i + 1] || ''}" ${i >= 0 && i < stList.length - 1 ? '' : 'disabled'} aria-label="הבא">${IC.chev}</button></div>`, 'sh-story');
+}
+// the new story window: the form, and next to it the story exactly as it will look
+function newStory() {
+  const chars = [C.verse, ...W.characters.filter((c) => c.img)];
+  const reach = () => ({ followers: pick ? L.followers?.[pick] || 0 : 0, everyone: L.fans || 0 });
+  sheet(`<div class="sh-h"><div class="t"><b>סטורי חדש</b><small>כותבים, ורואים בדיוק איך זה ייראה לפני שמפרסמים.</small></div><button class="x" data-close>${IC.x}</button></div>
+    <div class="sh-b ns"><div class="ns-form">
       <span class="lbl" style="margin-top:0">מי מעלה?</span>
-      <div class="faces">${chars.map((c) => `<button data-pick="${c.id}" class="${pick === c.id ? 'on' : ''}">${face(c.id).replace(' ring', '')}${esc(c.name)}</button>`).join('')}</div>
+      <label class="ns-q">${IC.search}<input id="st-q" placeholder="חיפוש דמות לפי שם" value="${esc(stQ)}"></label>
+      <div class="faces ns-faces">${chars.map((c) => `<button data-pick="${c.id}" data-name="${esc(c.name)}" class="${pick === c.id ? 'on' : ''}">${face(c.id).replace(' ring', '')}${esc(c.name)}</button>`).join('')}</div>
       <span class="lbl">מה קורה לדמות?</span>
       <textarea id="st-text" maxlength="600" placeholder="משפט אחד, בקול של הדמות"></textarea>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px">
-        <label class="file">${IC.file}תמונה או סרטון קצר<input type="file" id="st-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"></label><span id="st-fname" class="hint"></span></div>
+      <span class="lbl">תמונה או סרטון קצר</span>
+      <label class="file ns-drop" id="st-drop">${IC.file}<span id="st-fname">גוררים לכאן או לוחצים לבחירה · תמונה גבוהה (9:16) נראית הכי טוב</span><input type="file" id="st-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"></label>
       <span class="lbl">כפתור עם קישור (לא חובה)</span>
-      <div class="st-link"><input id="st-label" maxlength="40" placeholder="מה כתוב על הכפתור, למשל: לשחק עכשיו"><input id="st-link" dir="ltr" placeholder="https://… או /hani-games/…"></div>
-      <div style="margin-top:14px;display:grid;gap:10px"><label class="toggle"><input type="checkbox" id="st-notify" checked><i></i>לשלוח התראה לעוקבים</label>
-        <label class="toggle"><input type="checkbox" id="st-all"><i></i>לשלוח לכל השלומיוורס</label></div>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px"><button class="btn main" id="st-go" ${pick ? '' : 'disabled'}>${IC.plus}לפרסם</button><span id="st-msg" class="hint"></span></div>
-    </div><div class="phone" id="st-prev"></div></div>
-    <div class="card-h" style="margin-top:24px"><h2>סטוריז שעלו</h2></div>
-    <div>${L.stories.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${face(x.char)}<div class="body"><b>${esc(C[x.char]?.name || x.char)}</b> <small>· ${ago(x.t)}</small>${x.media ? ` <span class="tag">${x.media.kind === 'video' ? 'סרטון' : 'תמונה'}</span>` : ''}${x.link ? ` <span class="tag">כפתור: ${esc(x.link.label)}</span>` : ''}<p>${esc(x.text)}</p></div>${hideBtn('story', x)}</div>`).join('') || '<div class="empty">עוד אין.</div>'}</div>`;
+      <div class="st-link"><input id="st-label" maxlength="40" placeholder="מה כתוב עליו, למשל: לשחק עכשיו"><input id="st-link" dir="ltr" placeholder="https://… או /hani-games/…"></div>
+      <span class="lbl">מי שומע על זה?</span>
+      <div class="ns-aud" id="st-aud"></div>
+      <div class="ns-go"><button class="btn main" id="st-go" disabled>${IC.plus}לפרסם</button><button class="btn" data-close>ביטול</button><span id="st-msg" class="hint"></span></div>
+    </div><div class="ns-prev"><div class="phone" id="st-prev"></div></div></div>`, 'sh-new');
+  const aud = () => {
+    const r = reach(), name = pick ? C[pick].name : 'הדמות';
+    if (pick === 'verse' && stAud === 'followers') stAud = 'everyone';
+    $('#st-aud').innerHTML = [['followers', `העוקבים של ${name}`, `${fmt(r.followers)} אנשים · פעמון והתראה`], ['everyone', 'כל השלומיוורס', `${fmt(r.everyone)} חשבונות · לדברים גדולים`], ['none', 'בלי התראה', 'רק העיגול בדף הבית']].filter(([k]) => !(pick === 'verse' && k === 'followers'))
+      .map(([k, t, s]) => `<button data-staud="${k}" class="${stAud === k ? 'on' : ''}"><i></i><span><b>${esc(t)}</b><small>${s}</small></span></button>`).join('');
+  };
   const prev = () => {
     const text = $('#st-text').value.trim(), link = $('#st-link').value.trim();
-    const media = file ? (file.type.startsWith('video/') ? `<video class="sv-media" src="${URL.createObjectURL(file)}" autoplay muted loop playsinline></video>` : `<img class="sv-media" src="${URL.createObjectURL(file)}" alt="">`) : '';
-    $('#st-prev').innerHTML = pick ? `<div class="sv-box${link ? ' with-cta' : ''}" style="--c:${C[pick].color || '#ff6a1f'}">
-      <div class="sv-head">${face(pick)}<span><b>${esc(C[pick].name)}</b><br><small>עכשיו</small></span></div>
-      ${media ? `${media}<div class="sv-shade"></div>${text ? `<div class="sv-text">${esc(text)}</div>` : ''}` : `<div class="sv-plain"><div class="sv-text">${esc(text || '...')}</div></div>`}${link ? `<span class="sv-cta">${esc($('#st-label').value.trim() || 'לפתוח')}</span>` : ''}</div>` : '<div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בחרו דמות</div></div>';
+    const media = file ? { kind: file.type.startsWith('video/') ? 'video' : 'image', url: file._url || (file._url = URL.createObjectURL(file)) } : null;
+    $('#st-prev').innerHTML = pick ? storyArt({ char: pick, text: text || (media ? '' : '...'), media, link: link ? { url: link, label: $('#st-label').value.trim() || 'לפתוח' } : null, t: Date.now() }, true)
+      : '<div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בוחרים דמות</div></div>';
+    $('#st-prev').querySelector('video')?.setAttribute('muted', '');
+    $('#st-go').disabled = !pick || (!text && !file);
+    aud();
   };
+  window._stPrev = prev;
   prev();
-  $('#st-text').oninput = prev; $('#st-link').oninput = prev; $('#st-label').oninput = prev;
-  $('#st-file').onchange = (e) => { file = e.target.files[0] || null; $('#st-fname').textContent = file ? file.name : ''; prev(); };
+  ['#st-text', '#st-link', '#st-label'].forEach((s) => { $(s).oninput = prev; });
+  $('#st-q').oninput = (e) => { stQ = e.target.value.trim(); document.querySelectorAll('.ns-faces [data-pick]').forEach((b) => { b.hidden = !!stQ && !b.dataset.name.includes(stQ); }); };
+  $('#st-q').oninput({ target: $('#st-q') });
+  const setFile = (f) => { file = f || null; $('#st-fname').textContent = file ? file.name : 'גוררים לכאן או לוחצים לבחירה'; prev(); };
+  $('#st-file').onchange = (e) => setFile(e.target.files[0]);
+  const drop = $('#st-drop');
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); setFile(e.dataTransfer.files[0]); };
   $('#st-go').onclick = async () => {
-    const text = $('#st-text').value.trim();
+    const text = $('#st-text').value.trim(), link = $('#st-link').value.trim();
     if (!pick || (!text && !file)) return;
+    if (stAud === 'everyone' && !confirm(`לשלוח התראה לכל ${fmt(L.fans)} החשבונות בשלומיוורס?`)) return;
     const fd = new FormData();
-    fd.append('char', pick); fd.append('text', text); fd.append('notify', $('#st-notify').checked ? 'yes' : 'no');
-    if ($('#st-link').value.trim()) { fd.append('link', $('#st-link').value.trim()); fd.append('linkLabel', $('#st-label').value.trim()); }
-    if ($('#st-all').checked) {
-      if (!confirm('לשלוח התראה לכל החשבונות בשלומיוורס?')) return;
-      fd.append('everyone', 'yes');
-    }
+    fd.append('char', pick); fd.append('text', text); fd.append('notify', stAud === 'none' ? 'no' : 'yes');
+    if (stAud === 'everyone') fd.append('everyone', 'yes');
+    if (link) { fd.append('link', link); fd.append('linkLabel', $('#st-label').value.trim()); }
     if (file) fd.append('file', file, file.name);
     $('#st-go').disabled = true; $('#st-msg').textContent = 'מעלה…';
     try {
       const r = await api('story', fd, true);
       file = null;
-      $('#st-msg').innerHTML = `<span class="ok">עלה. ${r.fans} ${r.everyone ? 'חשבונות' : 'עוקבים'} קיבלו את זה בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.</span>`;
-      setTimeout(refresh, 1400);
+      $('#st-msg').innerHTML = `<span class="ok">עלה. ${stAud === 'none' ? 'בלי התראה.' : `${fmt(r.fans)} ${r.everyone ? 'חשבונות' : 'עוקבים'} קיבלו בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.`}</span>`;
+      setTimeout(() => { closeSheet(); stState = 'all'; stChar = ''; refresh(); }, 1600);
     } catch (e) { $('#st-go').disabled = false; $('#st-msg').textContent = e.message === 'file_size' ? 'הקובץ גדול מדי (עד 30MB)' : e.message === 'link' ? 'הקישור לא תקין (https://… או /…)' : 'לא עלה: ' + e.message; }
   };
 }
@@ -975,8 +1117,14 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.pseg) { publishSeg = b.dataset.pseg; publish(); }
   else if (b.dataset.pub) { publishSeg = b.dataset.pub; go('publish'); }
   else if (b.dataset.rqk) { rqKind = b.dataset.rqk; requests(); }
-  else if (b.dataset.pick) { pick = b.dataset.pick; const t = $('#st-text')?.value; story(); $('#st-text').value = t || ''; $('#st-text').oninput(); }
-  else if (b.dataset.hide) { b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
+  else if (b.dataset.pick) { pick = b.dataset.pick; document.querySelectorAll('[data-pick]').forEach((x) => x.classList.toggle('on', x === b)); window._stPrev?.(); }
+  else if (b.dataset.staud) { stAud = b.dataset.staud; window._stPrev?.(); }
+  else if (b.dataset.storyNew !== undefined) newStory();
+  else if (b.dataset.storyOpen) openStory(b.dataset.storyOpen);
+  else if (b.dataset.storyStep) openStory(b.dataset.storyStep);
+  else if (b.dataset.ststate) { stState = b.dataset.ststate; story(); }
+  else if (b.dataset.stchar !== undefined) { stChar = b.dataset.stchar; story(); }
+  else if (b.dataset.hide) { if (b.closest('.sheet')) closeSheet(); b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.done) { b.disabled = true; await api('done', { id: b.dataset.done, done: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.announce) {
     const v = V[b.dataset.announce];
