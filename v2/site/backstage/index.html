@@ -677,7 +677,7 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 let metric = 'visitors', drillDay = null, lastAsk = null;
 const SRC = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
 const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', other: 'אחר' };
-const GAME = { ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
+const GAME = { ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', pilai: 'פילאי פלואים', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
 const EV = { sign_in: 'כניסות לחשבון', follow: 'מעקב אחרי דמות', push_optin: 'התראות', comment: 'תגובות', like: 'אהבתי', save: 'שמירות', share: 'שיתופים', sticker_create: 'סטיקרים', stamp: 'החתמות', story_view: 'צפיות בסטורי', idea: 'רעיונות', vote: 'הצבעות', request: 'פניות', chat_new: 'שיחה חדשה' };
 function barList(title, obj, unit, opts = {}) {
   const rows = Object.entries(obj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, opts.n || 8);
