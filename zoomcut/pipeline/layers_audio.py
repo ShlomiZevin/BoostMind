@@ -21,6 +21,16 @@ from .common import FFMPEG, SR, load_json, log, run, save_json
 from .media import read_wav
 
 
+def _write_float(path, x):
+    """A source the editor plays, as 32-bit float wav: it carries the mix's shared gain, so a 16-bit file clipped his
+    loudest syllables in the editor while the export (float) didn't (haredit-3, 2026-11-01) - now the same samples."""
+    import struct
+    b = np.ascontiguousarray(x, dtype="<f4").tobytes()
+    with open(path, "wb") as fh:
+        fh.write(b"RIFF" + struct.pack("<I", 36 + len(b)) + b"WAVEfmt " + struct.pack("<IHHIIHH", 16, 3, 1, SR, SR * 4, 4, 32)
+                 + b"data" + struct.pack("<I", len(b)) + b)
+
+
 def _src(ep, project, aid):
     """The asset's sound as 48 kHz mono wav (a take's own audio, or the file decoded once)."""
     a = project["assets"][aid]
@@ -214,9 +224,9 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
                 name = f"{lid}__{aid}".replace("/", "_") + ".wav"
                 p = os.path.join(sdir, name)
                 y = (x * g).astype(np.float32)
-                sig = hashlib.sha1(np.round(y[::997] * 1e4).tobytes()).hexdigest()[:12]
+                sig = "f" + hashlib.sha1(np.round(y[::997] * 1e4).tobytes()).hexdigest()[:11]
                 if not (os.path.exists(p) and os.path.exists(p + ".sig") and open(p + ".sig").read() == sig):
-                    audio._write_mono(p, y)
+                    _write_float(p, y)
                     open(p + ".sig", "w").write(sig)
                 sources[f"{lid}|{aid}"] = {"file": name, "v": int(os.path.getmtime(p) * 1000)}
         # a voice's Noise switch: every cleaning made up front ("<layer>|<asset>|<clean>") - switching swaps the file.
@@ -233,9 +243,9 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
                     name = f"{l['id']}__{aid}__{v}".replace("/", "_") + ".wav"
                     p = os.path.join(sdir, name)
                     y = (x * g).astype(np.float32)
-                    sig = hashlib.sha1(np.round(y[::997] * 1e4).tobytes()).hexdigest()[:12]
+                    sig = "f" + hashlib.sha1(np.round(y[::997] * 1e4).tobytes()).hexdigest()[:11]
                     if not (os.path.exists(p) and os.path.exists(p + ".sig") and open(p + ".sig").read() == sig):
-                        audio._write_mono(p, y)
+                        _write_float(p, y)
                         open(p + ".sig", "w").write(sig)
                     sources[f"{l['id']}|{aid}|{v}"] = {"file": name, "v": int(os.path.getmtime(p) * 1000)}
         save_json(os.path.join(stems_dir, "stems.json"), {"gain_db": round(gain_db, 2), "stems": index, "sources": sources, "levels": levels})

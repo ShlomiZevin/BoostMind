@@ -997,7 +997,7 @@ app.get('/pm-tempo/:id', async (q, res) => {
     if (!tempoJobs.has(out)) tempoJobs.set(out, new Promise((ok) => {
       fs.mkdirSync(dir, { recursive: true });
       const tmp = out + '.part.wav';
-      const p = spawn('ffmpeg', ['-y', '-v', 'error', '-i', f, '-vn', '-af', `atempo=${s}`, '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', tmp], { windowsHide: true });
+      const p = spawn('ffmpeg', ['-y', '-v', 'error', '-i', f, '-vn', '-af', `atempo=${s}`, '-ac', '1', '-ar', '48000', '-c:a', 'pcm_f32le', tmp], { windowsHide: true });
       p.on('close', (code) => { if (!code) fs.renameSync(tmp, out); tempoJobs.delete(out); ok(); });
       p.on('error', () => { tempoJobs.delete(out); ok(); });
     }));
