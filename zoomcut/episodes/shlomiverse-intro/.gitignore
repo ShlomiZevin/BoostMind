@@ -1,0 +1,11 @@
+# renders, frames and media stay on this computer (public repo); only scripts and prompts are kept
+out/
+media/
+music/
+frames/
+*.mp4
+*.mp3
+*.png
+*.jpg
+*.blend
+*.blend1
