@@ -35,6 +35,10 @@ Shlomi found new sites missing from his lists because some sessions never added 
 - **A character's site / part of his comedy world (the Shlomiverse):** also the sites strip of the links page
   (`public/links/index.html`), the character's profile in Sketch Studio (`site.url`) and its world in
   `zoomcut/characters/index.json`, and the sites table in `zoomcut/skill/edit-video/wiki.md`.
+- **A form that sends anything** (an order, a booking, a question, a CV) needs a Google account first - his rule,
+  so every sender's email reaches /backstage/ (אנשים): load `/verse/site-signin.js`, `await SiteSignIn.ensure('<site>')`,
+  send its token as `authorization: Bearer`; add the site to `SITE_NAMES` in `techietech-api/index.js` and `SITES` in
+  `public/backstage/index.html`.
 - **A finished video** reaches the wiki and the links page by itself when it is published from Sketch Studio
   (a "Shlomiverse" job); one that missed it: `python scripts/wiki/publish_site.py <episode-id>`.
 
