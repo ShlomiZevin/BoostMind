@@ -185,6 +185,47 @@
 
   /* series */
   .sgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+  /* the characters' sites: a swipe row on the home, a grid on #/sites - each tile its site's own picture */
+  .sec-sub { color: var(--dim); font-size: .92rem; margin-top: 4px; }
+  .srow { display: grid; grid-auto-flow: column; grid-auto-columns: 270px; gap: 14px; overflow-x: auto; padding-bottom: 10px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+  .srow > * { scroll-snap-align: start; }
+  .sitegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+  .site-t { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; transition: border-color .15s; min-width: 0; }
+  .site-t:hover { border-color: var(--line2); }
+  .st-pic { display: block; aspect-ratio: 1.91 / 1; background: var(--card2); overflow: hidden; }
+  .st-pic img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+  .site-t:hover .st-pic img { transform: scale(1.03); }
+  .st-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 0; color: inherit; min-width: 0; }
+  .st-body b { font-size: 1.05rem; font-weight: 900; line-height: 1.25; }
+  .st-body small { color: var(--dim); font-size: .84rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .st-games { display: flex; align-items: center; gap: 6px; padding: 10px 14px 0; overflow-x: auto; scrollbar-width: none; }
+  .st-games span { color: var(--faint); font-size: .74rem; flex: none; margin-inline-end: 2px; }
+  .st-games a { flex: none; width: 44px; height: 44px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line2); background: var(--card2); }
+  .st-games img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .st-ft { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px 14px; }
+  .st-own { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--line2); display: block; flex: none; }
+  .st-own img, .st-own .ph { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .st-go { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font-weight: 800; font-size: .86rem; transition: border-color .15s, color .15s; }
+  .st-go svg { width: 15px; height: 15px; }
+  .st-go:hover { border-color: var(--accent); color: var(--accent); }
+  .site-g .sec-h h2 { display: flex; align-items: center; gap: 10px; font-size: 1.35rem; }
+  .site-g .sec-h h2 .dot { width: 10px; height: 10px; }
+  .sg-who { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid var(--line2); display: block; flex: none; }
+  .sg-who img, .sg-who .ph { width: 100%; height: 100%; object-fit: cover; display: block; }
+  @media (max-width: 760px) {
+    .srow { grid-auto-columns: 74%; gap: 12px; }
+    .sitegrid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sitegrid .st-body { padding: 10px 10px 0; }
+    .sitegrid .st-body b { font-size: .95rem; }
+    .sitegrid .st-body small { font-size: .78rem; }
+    .sitegrid .st-games { padding: 8px 10px 0; gap: 5px; }
+    .sitegrid .st-games span { display: none; }
+    .sitegrid .st-games a { width: 34px; height: 34px; border-radius: 8px; }
+    .sitegrid .st-ft { padding: 10px; }
+    .sitegrid .st-own { width: 28px; height: 28px; }
+    .sitegrid .st-go { height: 30px; padding: 0 10px; font-size: .8rem; }
+    .site-g { margin-top: 26px; }
+  }
   .series { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s; }
   .series:hover { border-color: var(--line2); }
   .series h3 { font-size: 1.25rem; font-weight: 900; display: flex; align-items: center; gap: 8px; }
@@ -341,6 +382,7 @@
       <a href="#/characters" data-nav="characters">דמויות</a>
       <a href="#/series" data-nav="series" class="nav-series">סדרות</a>
       <a href="#/videos" data-nav="videos">סרטונים</a>
+      <a href="#/sites" data-nav="sites" class="nav-sites">אתרים</a>
       <a href="#/community" data-nav="community">קהילה</a>
       <a href="#/chat" data-nav="chat">צ'אט</a>
       <a href="#/me" data-nav="me" class="nav-me">אני</a>
@@ -363,7 +405,7 @@
   <!-- short: who this is, where else to find him (each link says where it goes) -->
   <div class="wrap foot">
     <a class="foot-brand" href="#/"><img src="/verse/logo-160.png" alt=""><span>שלומיוורס</span><small>אנשים אמיתיים. יקום מקביל.</small></a>
-    <nav class="foot-links"><a href="#/community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a><a href="#/business"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg><span>לעסקים</span></a><a href="#" data-form="bug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><rect x="7" y="8.5" width="10" height="11" rx="5"/><path d="M12 12v7.5M4 13h3M17 13h3M5 8l2.5 2M19 8l-2.5 2"/></svg><span>משהו לא עובד?</span></a></nav>
+    <nav class="foot-links"><a href="#/sites"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>אתרי הדמויות</span></a><a href="#/community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a><a href="#/business"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg><span>לעסקים</span></a><a href="#" data-form="bug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><rect x="7" y="8.5" width="10" height="11" rx="5"/><path d="M12 12v7.5M4 13h3M17 13h3M5 8l2.5 2M19 8l-2.5 2"/></svg><span>משהו לא עובד?</span></a></nav>
     <nav class="foot-soc" aria-label="שלומי ברשתות"><a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener" title="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.2 1.8 3.8 4 4v3.1c-1.5 0-2.9-.4-4-1.2v6.4a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v3.2a2.6 2.6 0 1 0 1.7 2.4V3z"/></svg><span>TikTok</span></a><a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM12 2.6c-2.6 0-2.9 0-3.9.1-3.5.2-5.3 1.9-5.4 5.4-.1 1-.1 1.3-.1 3.9s0 2.9.1 3.9c.2 3.5 1.9 5.3 5.4 5.4 1 .1 1.3.1 3.9.1s2.9 0 3.9-.1c3.5-.2 5.3-1.9 5.4-5.4.1-1 .1-1.3.1-3.9s0-2.9-.1-3.9c-.2-3.5-1.9-5.3-5.4-5.4-1-.1-1.3-.1-3.9-.1zm0 1.7c2.5 0 2.8 0 3.8.1 2.5.1 3.6 1.3 3.7 3.7.1 1 .1 1.3.1 3.8s0 2.8-.1 3.8c-.1 2.4-1.2 3.6-3.7 3.7-1 .1-1.3.1-3.8.1s-2.8 0-3.8-.1c-2.5-.1-3.6-1.3-3.7-3.7-.1-1-.1-1.3-.1-3.8s0-2.8.1-3.8C4.6 5.6 5.7 4.5 8.2 4.4c1-.1 1.3-.1 3.8-.1z"/></svg><span>Instagram</span></a><a href="https://www.youtube.com/@shlomizevin" target="_blank" rel="noopener" title="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15.1V8.9l5.2 3.1z"/></svg><span>YouTube</span></a><a href="https://x.com/ShlomiZevin" target="_blank" rel="noopener" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7 8 10.3h-6.3l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.9zm-1.1 16.2h1.7L7.3 4.7H5.5z"/></svg><span>X</span></a><a href="https://www.facebook.com/shazbak/" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7.7h2.6l.4-3h-3V8.4c0-.9.3-1.5 1.5-1.5h1.6V4.2c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/></svg><span>Facebook</span></a></nav>
   </div>
 </footer>
@@ -389,6 +431,7 @@ const ICON = {
   // the logo's planet without its word (same mark as /verse/ui.js I.planet): the guide's face, the chat's "thinking"
   planet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" class="pl"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.4"/><circle cx="12" cy="12" r="7.6" fill="var(--pl-fill, #141218)" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.8"/></g></svg>',
   person: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.2-7 8.5-7s7.7 2.6 8.5 7z"/></svg>',
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7 7 17M8 7h9v9"/></svg>',
 };
 let W, C = {}, S = {}, V = {};
 const GUIDE = { id: 'guide', name: 'שלומיוורס', tagline: 'מכיר את כולם, מוצא כל סרטון', color: '#ff6a1f' };
@@ -424,6 +467,24 @@ const filterChips = (active, base) => `<div class="chips">
   <a class="chip ${active ? '' : 'on'}" href="${base}">הכול</a>
   ${W.series.map((s) => `<a class="chip ${active === s.id ? 'on' : ''}" href="${base}?s=${s.id}"><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</a>`).join('')}</div>`;
 
+// ---------- the characters' own sites (W.site_list, built by scripts/wiki/build.py: every site once; a game inside a
+// site carries `in` = that site's id). The bio link points here since 2026-11-01, so this is where people find them all.
+// Designed with GPT Image (scripts/v2-design/sites-panel.mjs): a swipe row on the home, a page grouped by world.
+const sitesTop = () => (W.site_list || []).filter((s) => !s.in);
+const siteGames = (s) => (W.site_list || []).filter((g) => g.in === s.id);
+// whose = [series ids first when a world owns it, then residents]: a company / world site shows no face, a person's does
+const siteOwner = (s) => { const w = s.whose || []; return S[w[0]] ? null : w.map((id) => C[id]).find((c) => c && c.img); };
+// who it belongs to, for grouping: the world (a series id) or the first resident
+const siteKey = (s) => (s.whose || [])[0] || '';
+const siteTile = (s) => {
+  const o = siteOwner(s), games = siteGames(s);
+  return `<div class="site-t">
+    <a class="st-pic" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}">${s.img ? `<img src="${esc(s.img)}" alt="" loading="lazy">` : ''}</a>
+    <a class="st-body" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}"><b>${esc(s.title)}</b><small>${esc(s.about)}</small></a>
+    ${games.length ? `<div class="st-games"><span>המשחקים</span>${games.map((g) => `<a href="${esc(g.url)}" target="_blank" rel="noopener" data-site-out="${g.id}" title="${esc(g.title)}">${g.img ? `<img src="${esc(g.img)}" alt="${esc(g.title)}" loading="lazy">` : esc(g.title)}</a>`).join('')}</div>` : ''}
+    <div class="st-ft">${o ? `<a class="st-own" href="#/c/${o.id}" title="${esc(o.name)}">${face(o)}</a>` : '<span></span>'}<a class="st-go" href="${esc(s.url)}" target="_blank" rel="noopener" data-site-out="${s.id}">לאתר${ICON.out}</a></div></div>`;
+};
+
 // the hero shows his own characters, not his impressions of real people (Shlomi's list; they keep their wiki pages)
 const NOT_IN_HERO = new Set(['omer-koli', 'oded', 'yotam-zamri', 'bennett', 'naor-zion', 'alex-daniel', 'techytech']); // techytech: a logo, not a face
 const heroFaces = () => W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id));
@@ -455,6 +516,8 @@ const pages = {
         <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
         <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
+      ${sitesTop().length ? `<section class="sec"><div class="sec-h"><div><h2>האתרים של הדמויות</h2><p class="sec-sub">כל הדלתות פתוחות. האחריות עליכם.</p></div><a href="#/sites">כל האתרים ←</a></div>
+        <div class="srow">${sitesTop().map(siteTile).join('')}</div></section>` : ''}
       <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="#/series">כל הסדרות ←</a></div>
         <div class="sgrid">${W.series.map(scard).join('')}</div></section>`;
     // the same hero for everyone (Shlomi: the signed-in home should look like the signed-out one); what's under it is the
@@ -479,6 +542,19 @@ const pages = {
   series() {
     return `<div class="wrap"><div class="page-h"><h1>הסדרות</h1><p>כל סדרה היא עולם, עם האנשים והסיפורים שלו.</p></div>
       <div class="sgrid" style="margin-top:22px">${W.series.map(scard).join('')}</div></div>`;
+  },
+  // every character's own site. Whoever has two or more (a world, or one person - Hani's shop, arcade, family tree...)
+  // gets a heading of their own, biggest first; everyone with one site shares the last group (no half-empty rows)
+  sites() {
+    const by = {};
+    for (const s of sitesTop()) (by[siteKey(s)] ||= []).push(s);
+    const big = Object.keys(by).filter((k) => k && by[k].length > 1).sort((a, b) => by[b].length - by[a].length);
+    const rest = Object.keys(by).filter((k) => !big.includes(k)).flatMap((k) => by[k]);
+    const head = (k) => S[k] ? `<span class="dot" style="background:${seriesColor(S[k])}"></span>${esc(S[k].title)}`
+      : C[k] ? `<a class="sg-who" href="#/c/${k}">${face(C[k])}</a>${esc(C[k].name)}` : '';
+    const group = (title, list) => `<section class="sec site-g"><div class="sec-h"><h2>${title}</h2></div><div class="sitegrid">${list.map(siteTile).join('')}</div></section>`;
+    return `<div class="wrap"><div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>
+      ${big.map((k) => group(head(k), by[k])).join('')}${rest.length ? group(big.length ? 'שונים ומשונים' : '', rest) : ''}</div>`;
   },
   s(q, id) {
     const s = S[id];
@@ -547,7 +623,7 @@ function route() {
   const c = page === 'c' && C[id];
   t('view', page ? page + (id ? '/' + id : '') : 'home');
   if (c) t('character', id);
-  document.title = c ? `${c.name} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות';
+  document.title = c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : 'שלומיוורס · הוויקי של הדמויות';
   $('#fab').style.display = page ? '' : 'none';
   if (!page) bindHero();
   window.scrollTo(0, 0);
@@ -678,7 +754,7 @@ function drawChat() {
     <div class="msgs"></div>
     <div class="sugg">${ask.map((a) => `<button>${esc(a)}</button>`).join('')}</div>
     <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
-    <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות · 3 ביום בלי חשבון, 10 עם Google</div>`;
+    <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות · 3 שאלות בלי חשבון, ועוד 10 עם Google</div>`;
   $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
   const ta = $('textarea', cx);
@@ -701,11 +777,11 @@ function visitor() {
   try { return { v: localStorage.getItem('t-v'), s: sessionStorage.getItem('t-s'), r: sessionStorage.getItem('t-r'), own: !!localStorage.getItem('t-ignore'), m: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) }; }
   catch (e) { return {}; }
 }
-// the day's questions are used (3 without an account, 10 signed in): say so in the chat; signed out = a Google button,
+// the questions are used (3 in total without an account, 10 more signed in): say so in the chat; signed out = a Google button,
 // and their question goes out by itself once they are in
 function quotaNote(why) {
-  if (why === 'signin' && HOOK.signinCard) return `<p>הדמויות רוצות להמשיך לדבר. התחברו עם Google בחינם, בלחיצה אחת, וקבלו 10 שאלות ביום.</p>${HOOK.signinCard(false)}`;
-  return `<p>${why === 'full' ? 'הדמויות מוצפות היום. נסו שוב מחר.' : 'נגמרו 10 השאלות להיום. חזרו מחר, ובינתיים יש סרטונים לראות.'}</p>`;
+  if (why === 'signin' && HOOK.signinCard) return `<p>3 השאלות החינמיות שלכם כבר נשאלו. התחברו עם Google בחינם וקבלו עוד 10 שאלות.</p>${HOOK.signinCard(false)}`;
+  return `<p>${why === 'full' ? 'הדמויות מוצפות היום. נסו שוב מחר.' : '10 השאלות שלכם כבר נשאלו. בינתיים אפשר לראות סרטונים או להשאיר לשלומי בקשה.'}</p>`;
 }
 async function send(text) {
   text = String(text || '').trim();
@@ -724,7 +800,7 @@ async function send(text) {
   let out = '';
   try {
     const history = threads[mode].filter((m) => m.role !== 'note').slice(-16);
-    // signed in: the account goes with the question (10 a day instead of 3 - wiki.js counts them)
+    // signed in: the account goes with the question (10 more after the first 3, in total - wiki.js counts them)
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) },
       body: JSON.stringify({ mode, messages: history, contact: true, ...visitor() }) });
@@ -823,6 +899,8 @@ document.addEventListener('click', (e) => {
     });
     return;
   }
+  const out = e.target.closest('[data-site-out]');
+  if (out) t('site', out.dataset.siteOut);   // a visit to a character's site (/stats/ 'מעברים לאתרי הדמויות')
   const talk = e.target.closest('[data-talk]');
   if (talk) { e.preventDefault(); closeVideo(); openChat(talk.dataset.talk); return; }
   if (e.target.closest('[data-close-chat]') || e.target.closest('.cx-head a.pg')) closeChat();

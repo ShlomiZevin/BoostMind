@@ -290,7 +290,7 @@ export function requestCard(kind, mode, text) {
     <button class="rq-go">${I.plane}<span>${esc(text ? T.rqApprove : T.rqSend)}</span></button>
     <small>${esc(T.rqNote)}</small></form>`;
 }
-// a character asks the visitor to sign in, in their own voice, when the day's 3 free questions are used (wiki.js puts
+// a character asks the visitor to sign in, in their own voice, when the 3 free questions are used (wiki.js puts
 // [[signin]] under that reply): one Google button inside the bubble. Signed in already = nothing.
 export function signinCard(again) {
   if (st.user) return '';

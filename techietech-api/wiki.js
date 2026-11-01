@@ -83,10 +83,10 @@ async function canonNow() {
 const CONTACT = `You are also the way to reach Shlomi himself, through a request (פנייה) the visitor sends him from this chat. Offer it - in one short sentence, as a question ("רוצים שאפתח פנייה לשלומי?") - when: the visitor looks for a video that is not in the canon (many older videos are not in yet - first make sure, and show it if it is there); asks for more videos (more of someone, of a topic, a new episode); or wants to reach Shlomi (a collaboration, a brand, an event, press, anything else). Never open it before they say yes.
 Once they say yes: if it is about reaching Shlomi for something other than videos and you don't know how to get back to them, ask that first (for videos it is optional). Then write the request for them: one short line saying this is what goes to Shlomi and they can change it before approving, and on its own line [[request:video|THE TEXT]] (a missing video or more videos) or [[request:contact|THE TEXT]] (anything else), where THE TEXT is the request itself in Hebrew, one to three sentences in the visitor's own words and details (what they are looking for or want, and how to reach them if they gave it), written as from the visitor, on one line, without | or ] characters. The page shows it as a card with that text, which the visitor approves with a button. Say that it goes to Shlomi and nothing is promised. Never say that you sent or opened it yourself - only the visitor's button sends it.`;
 
-// the one reply after the day's limit (spendQuestion's grace), in the speaker's own voice
+// the one reply after the limit (spendQuestion's grace), in the speaker's own voice - the whole invitation is theirs
 const LIMIT = {
-  signin: `The visitor has used today's free questions (3 without an account). Do NOT answer their last message. Instead, in your own voice and style, in one or two short sentences, react to it lightly and tell them that if they sign in with Google - free, one tap - you can keep talking (10 questions a day). Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
-  tomorrow: `The visitor has used today's 10 questions. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say goodbye until tomorrow, when you'll gladly go on. You may suggest one video with a [[video:ID]] card on its own line.`,
+  signin: `The visitor has used their free questions (3 without an account). Do NOT answer their last message. Instead, in your own voice and style - your words, your world, your humour - in one or two short sentences, react to it lightly and invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם). Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
+  done: `The visitor has used all their questions in this chat (the 10 they get with an account) - there are no more. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say a warm goodbye; they can still watch your videos (suggest one with a [[video:ID]] card on its own line) or leave Shlomi a request. Never promise more questions later.`,
 };
 
 function modeText(mode, byId, contact) {
@@ -177,10 +177,11 @@ exports._stream = stream;
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
 exports._test = { RULES, canon, modeText };  // the side-by-side test of the old full-canon answer (scripts/wiki/chain_test.cjs)
 
-// questions a day (his call, 2026-11-01 - the chat is free and every answer costs): 3 without an account, 10 signed in;
-// he himself is never counted. Counted per Israel day in `quota` (TTL on exp): signed in by the account, otherwise by the
-// page's anonymous visitor id (else the address). DAY_CAP is a ceiling for the whole site, so a flood can't run up the bill.
-const ANON_A_DAY = 3, FAN_A_DAY = 10, DAY_CAP = 1500;
+// questions IN TOTAL, not per day (his call, 2026-11-01 - the chat is free and every answer costs): 3 without an
+// account, then 10 more signed in, and that's it; he himself is never counted. Kept in `quota` (no exp - it never
+// resets): signed in by the account, otherwise by the page's anonymous visitor id (else the address). DAY_CAP is a
+// ceiling for the whole site per Israel day, so a flood can't run up the bill.
+const ANON_TOTAL = 3, FAN_TOTAL = 10, DAY_CAP = 1500;
 const OWNER = 'shlomi@boostart.io';
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
 async function whoAsks(req) {
@@ -195,34 +196,34 @@ const quotaKey = (req, who) => {
   const v = String(req.body?.v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 12);
   return who.uid ? 'u' + who.uid : v ? 'v' + v : 'ip' + String(req.ip || '').replace(/[^\w]/g, '');
 };
-// {left} = go ahead; {grace} = the one answer after the limit; otherwise why not ('signin' - the 3 are used, 'tomorrow' -
-// the 10 are used, 'full' - the site's ceiling)
+// {left} = go ahead; {grace} = the one answer after the limit; otherwise why not ('signin' - the 3 are used, 'done' -
+// the 10 are used, 'full' - the site's ceiling today)
+const quotaDocs = (req, who) => {
+  const db = admin.firestore();
+  return [db.collection('quota').doc(`chatq_${quotaKey(req, who)}`), db.collection('quota').doc(`chat_all_${dayIL()}`)];
+};
 async function spendQuestion(req, who) {
   if (who.owner) return true;
-  const db = admin.firestore(), day = dayIL();
-  const key = quotaKey(req, who);
-  const limit = who.uid ? FAN_A_DAY : ANON_A_DAY;
-  const mine = db.collection('quota').doc(`chat_${key}_${day}`), all = db.collection('quota').doc(`chat_all_${day}`);
-  const exp = admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);
+  const db = admin.firestore(), [mine, all] = quotaDocs(req, who);
+  const limit = who.uid ? FAN_TOTAL : ANON_TOTAL;
+  const exp = admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);   // the site's day counter only
   return db.runTransaction(async (tx) => {
     const [a, b] = await Promise.all([tx.get(mine), tx.get(all)]);
     const used = (a.data() || {}).n || 0, total = (b.data() || {}).n || 0;
-    // one more answer after the limit, in the character's own voice: "sign in and we'll go on" / "see you tomorrow"
+    // one more answer after the limit, in the character's own voice: "sign in and we'll go on" / a warm goodbye
     // (his ask, 2026-11-01 - the sign-in comes naturally inside the chat); after that the page shows its own note
-    if (used === limit) { tx.set(mine, { n: used + 1, kind: 'chat', exp }, { merge: true }); return { grace: who.uid ? 'tomorrow' : 'signin' }; }
-    if (used > limit) return who.uid ? 'tomorrow' : 'signin';
+    if (used === limit) { tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true }); return { grace: who.uid ? 'done' : 'signin' }; }
+    if (used > limit) return who.uid ? 'done' : 'signin';
     if (total >= DAY_CAP) return 'full';
-    tx.set(mine, { n: used + 1, kind: 'chat', exp }, { merge: true });
+    tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true });
     tx.set(all, { n: total + 1, kind: 'chat', exp }, { merge: true });
     return { left: limit - used - 1 };
   });
 }
 const refundQuestion = (req, who) => { /* a failed answer doesn't count */
   if (who.owner) return;
-  const key = quotaKey(req, who);
-  const inc = admin.firestore.FieldValue.increment(-1), day = dayIL();
-  return Promise.all([admin.firestore().collection('quota').doc(`chat_${key}_${day}`).set({ n: inc }, { merge: true }),
-    admin.firestore().collection('quota').doc(`chat_all_${day}`).set({ n: inc }, { merge: true })]).catch(() => {});
+  const inc = admin.firestore.FieldValue.increment(-1);
+  return Promise.all(quotaDocs(req, who).map((d) => d.set({ n: inc }, { merge: true }))).catch(() => {});
 };
 
 // a few dozen messages per address per hour, per instance
@@ -256,7 +257,7 @@ exports.wikiChat = onRequest({
 
   const who = await whoAsks(req);
   const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });
-  if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_A_DAY : ANON_A_DAY });
+  if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_TOTAL : ANON_TOTAL });
   res.set({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no', 'X-Left': String(ok.left ?? ''),
     'Access-Control-Expose-Headers': 'X-Left' });
   try {

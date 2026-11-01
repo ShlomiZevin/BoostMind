@@ -104,7 +104,7 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 .nav .nav-home, .nav .nav-me { display: none; }
 @media (max-width: 760px) {
   .nav .nav-home, .nav .nav-me { display: block; }
-  .nav .nav-series { display: none; }
+  .nav .nav-series, .nav .nav-sites { display: none; }   /* the bottom bar keeps its five; the sites are on the home + footer */
   .nav a { font-size: .86rem; padding: 7px 9px; }
   /* phone: the face / sign-in at the top left, like apps (the bottom bar has no "אני" any more) */
   #theme { display: none; }

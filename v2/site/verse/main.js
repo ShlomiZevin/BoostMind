@@ -24,7 +24,7 @@ Object.assign(HOOK, {
   homeSlot,
   requestCard,
   signinCard,
-  // the chat sends the account with each question (10 a day signed in, 3 without), and signs in from its note
+  // the chat sends the account with each question (3 in total without an account, 10 more signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
   chatSignIn: () => needFan(T.why.chat),
   afterRoute(page, id) {
