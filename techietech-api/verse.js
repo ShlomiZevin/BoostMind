@@ -442,14 +442,17 @@ const ops = {
   },
 };
 
-// the guide's smart contact: "can't find a video?" / collaborations - works signed out too
+// the guide's smart contact: "can't find a video?" / collaborations / a bug. Signed in only (his rule, 2026-11-01:
+// everyone who sends anything is a Google account, so he has their email) - the account's email is the way back
+// when no other contact was typed.
 async function request(d, auth, ip) {
+  if (!auth?.token?.email) fail('unauthenticated', 'sign_in');
   if (burst('r' + ip, 4, 3600e3)) fail('resource-exhausted', 'slow_down');
   const kind = ['video', 'business', 'bug'].includes(d.kind) ? d.kind : 'contact';
   const text = clip(String(d.text || '').trim(), 3000);
   if (text.length < 3) fail('invalid-argument', 'empty');
-  const contact = oneLine(d.contact, 160);
-  const doc = { kind, text, contact, uid: auth?.uid || null, nick: null, t: FieldValue.serverTimestamp(), done: false };
+  const contact = oneLine(d.contact, 160) || auth.token.email;
+  const doc = { kind, text, contact, email: auth.token.email, uid: auth.uid, nick: null, t: FieldValue.serverTimestamp(), done: false };
   // the business page: who, which company, about what (the email is the way back)
   if (kind === 'business') Object.assign(doc, { name: oneLine(d.name, 80), company: oneLine(d.company, 120), topic: oneLine(d.topic, 40) });
   // "something isn't working": the page, the device and the page's last errors, so it can be fixed without asking back
@@ -464,7 +467,7 @@ async function request(d, auth, ip) {
   const where = kind === 'bug' ? 'דיווח תקלה' : kind === 'business' ? 'מעמוד העסקים' : d.from === 'community' ? 'מעמוד הקהילה' : 'דרך המדריך בצ׳אט';
   const body = [...(kind === 'bug' ? [`${doc.page}`, `${doc.ua} · ${doc.screen}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
     ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
-    doc.nick ? `בשלומיוורס: ${doc.nick}` : 'לא מחובר/ת', '', `${where} · ${new Date().toISOString()} · ${ref.id}`].join('\n');
+    `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${new Date().toISOString()} · ${ref.id}`].join('\n');
   if (LOCAL) console.log('[local] request mail not sent:', subject, '\n' + body);
   else {
     try {
@@ -641,6 +644,19 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       return res.json({ comments: rows(comments), stickers: rows(stickers), requests: rows(requests), stories: rows(stories),
         announced: Object.fromEntries(announced.docs.map((d) => [d.id, d.data().t?.toMillis?.() || 1])), fans: fans.data().count, ideas: rows(ideas),
         fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null });
+    }
+    // everyone with an account (his ask, 2026-11-01): the verse's fans and whoever signed in on a character's site to
+    // send something - from Firebase Auth itself, so nobody is missing, with where they came from
+    if (op === 'people') {
+      const users = [];
+      let next;
+      do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users); next = r.pageToken; } while (next && users.length < 50000);
+      const [fans, sites] = await Promise.all([db.collection('fans').select('nick').get(), db.collection('siteUsers').select('sites').get()]);
+      const nick = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().nick || '']));
+      const site = Object.fromEntries(sites.docs.map((d) => [d.id, d.data().sites || []]));
+      return res.json({ people: users.map((u) => ({ uid: u.uid, email: u.email || null, name: u.displayName || null, photo: u.photoURL || null,
+        created: Date.parse(u.metadata.creationTime) || null, last: Date.parse(u.metadata.lastRefreshTime || u.metadata.lastSignInTime) || null,
+        fan: u.uid in nick, nick: nick[u.uid] || null, sites: site[u.uid] || [] })) });
     }
     if (op === 'hide') {
       const col = b.kind === 'sticker' ? 'stickers' : b.kind === 'story' ? 'stories' : b.kind === 'idea' ? 'ideas' : 'comments';

@@ -173,6 +173,8 @@ function formSheet(kind) {
     const f = e.target, btn = f.querySelector('button');
     const text = f.text.value.trim();
     if (text.length < 3) return;
+    // sending anything needs an account (his rule, 2026-11-01) - the server refuses it signed out
+    if (!(await needFan(T.why.contact))) return;
     btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
     // a bug report carries where it happened and on what, so it can be fixed without asking back
     const extra = bug ? { page: location.href.slice(0, 300), ua: navigator.userAgent.slice(0, 300), screen: `${innerWidth}x${innerHeight}`, errors: recentErrors.slice() } : {};
@@ -211,6 +213,7 @@ document.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = f.email.value.trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast(T.bizBadEmail); f.email.focus(); return; }
+  if (!(await needFan(T.why.contact))) return;
   const btn = f.querySelector('button:not([data-topic])');
   btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
   try {

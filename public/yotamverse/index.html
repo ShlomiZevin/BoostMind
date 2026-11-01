@@ -1402,6 +1402,8 @@ async function submitOrder(){
     if(fail) ok = false;
   });
   if(!ok){ toast('חסרים פרטים 🙏'); return; }
+  // ordering needs a Google account (his rule: everyone who orders is a user with an email) - public/verse/site-signin.js
+  const who = await SiteSignIn.ensure('yotamverse'); if(!who) return;
   if(!hasShirt()){
     cart = cart.filter(x => x.type !== 'addon');
     saveCart(); renderCartCount(); view = 'cart'; renderDrawer();
@@ -1425,6 +1427,7 @@ async function submitOrder(){
     hasPhysical: needAddr,
     status: 'new',
     source: 'yotamverse',
+    email: who.email, uid: who.uid,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -1531,5 +1534,6 @@ loadData();
 if(!reduceMotion) setTimeout(() => { if(currentView === 'home') fx.burst(innerWidth / 2, innerHeight * .42, true); }, 700);
 </script>
 <script src="/t.js" data-site="yotamverse" defer></script>
+<script src="/verse/site-signin.js" defer></script>
 </body>
 </html>

@@ -801,9 +801,11 @@
     const file = form.cv.files[0];
     if (!file) return (err.textContent = APPLY_ERR.file_type);
     if (file.size > 5 * 1024 * 1024) return (err.textContent = APPLY_ERR.file_size);
+    // applying needs a Google account - the Shlomiverse's sign-in (public/verse/site-signin.js)
+    const who = await SiteSignIn.ensure('techietech'); if (!who) return;
     btn.disabled = true; btn.textContent = 'שולח…'; err.textContent = '';
     try {
-      const r = await fetch(APPLY_URL, { method: 'POST', body: new FormData(form) });
+      const r = await fetch(APPLY_URL, { method: 'POST', body: new FormData(form), headers: { authorization: 'Bearer ' + who.token } });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.error || 'send');
       form.reset();
@@ -841,5 +843,6 @@
   document.querySelectorAll('.menu a').forEach((a) => a.addEventListener('click', () => document.getElementById('menu').classList.remove('open')));
 </script>
 <script src="https://boostmind-b052c.web.app/t.js" data-site="techytech" defer></script>
+<script src="https://shlomiverse.com/verse/site-signin.js" defer></script>
 </body>
 </html>

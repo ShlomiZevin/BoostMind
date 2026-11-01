@@ -528,7 +528,8 @@ form.onsubmit = async (e) => {
   e.preventDefault();
   const f = form.elements, name = f.name.value.trim(), phone = f.phone.value.trim(), email = f.email.value.trim();
   if (!name) { err.textContent = 'שם. בלי שם אין מפה.'; return; }
-  if (phone.replace(/\D/g, '').length < 9 && !okMail(email)) { err.textContent = 'טלפון או אימייל, אחרת איך אני אחזור אליכם?'; return; }
+  // sending needs a Google account (its email is the way back) - public/verse/site-signin.js
+  const who = await SiteSignIn.ensure('dorit'); if (!who) return;
   btn.disabled = true; btn.textContent = 'שולח…'; err.textContent = '';
   try {
     const fd = new FormData();
@@ -537,7 +538,7 @@ form.onsubmit = async (e) => {
     fd.append('message', [
       `תאריך לידה: ${f.dob.value || '-'}`, `שעת לידה: ${f.tob.value || '-'}`, `עיר לידה: ${f.city.value.trim() || '-'}`, '', f.msg.value.trim(),
     ].join('\n'));
-    const r = await fetch(API, { method: 'POST', body: fd });
+    const r = await fetch(API, { method: 'POST', body: fd, headers: { authorization: 'Bearer ' + who.token } });
     if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
     form.reset();
     window.track && window.track('lead', f.svc.value);
@@ -558,5 +559,6 @@ try { cnt = +(localStorage.getItem('dm-n') || 48213) + 1; localStorage.setItem('
 document.getElementById('count').textContent = String(cnt).padStart(7, '0');
 </script>
 <script src="/t.js" data-site="dorit" defer></script>
+<script src="/verse/site-signin.js" defer></script>
 </body>
 </html>

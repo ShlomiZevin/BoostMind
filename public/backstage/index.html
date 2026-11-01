@@ -268,13 +268,13 @@ async function load() {
 async function refresh() { L = await api('list'); draw(); }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['comments', 'תגובות', 'comment'], ['stickers', 'סטיקרים', 'sticker'], ['story', 'סטורי של דמות', 'story'], ['video', 'סרטון חדש', 'video']];
+const TABS = [['overview', 'סקירה', 'home'], ['requests', 'פניות', 'inbox'], ['people', 'אנשים', 'people'], ['ideas', 'רעיונות', 'idea'], ['comments', 'תגובות', 'comment'], ['stickers', 'סטיקרים', 'sticker'], ['story', 'סטורי של דמות', 'story'], ['video', 'סרטון חדש', 'video']];
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
 function draw() {
   const badge = { requests: openReq(), ideas: newIdeas() };
   const mobileTab = ['comments', 'stickers', 'video'].includes(tab) ? 'content' : tab;
-  const title = { overview: 'סקירה', requests: 'פניות', ideas: 'רעיונות', comments: 'תגובות', stickers: 'סטיקרים', story: 'סטורי של דמות', video: 'סרטון חדש' }[tab];
+  const title = { overview: 'סקירה', requests: 'פניות', people: 'אנשים', ideas: 'רעיונות', comments: 'תגובות', stickers: 'סטיקרים', story: 'סטורי של דמות', video: 'סרטון חדש' }[tab];
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
@@ -282,7 +282,7 @@ function draw() {
     <main class="main ${tab === 'overview' ? 'ov' : ''}"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : title}</h1><a href="/stats/" aria-label="הנתונים">${IC.stats}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['story', 'סטורי', 'story']].map(([k, l, i]) =>
       `<button data-tab="${k === 'content' ? 'comments' : k}" class="${k === mobileTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, requests, ideas, comments, stickers, story, video })[tab]();
+  ({ overview, requests, people, ideas, comments, stickers, story, video })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
@@ -291,7 +291,9 @@ const segHtml = () => `<div class="seg">${[['comments', 'תגובות'], ['stick
 const isPhone = () => matchMedia('(max-width: 900px)').matches;
 
 // ---------- overview ----------
-const RQ = { business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
+const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
+// the characters' sites (techietech-api siteLead / techietechApply / siteUser) - every request there comes from a Google account
+const SITES = { ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
 function contactPills(c) {
   if (!c) return '';
   const mail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c), tel = /^[+\d][\d\s-]{6,}$/.test(c);
@@ -316,7 +318,7 @@ function overview() {
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קרה בשלומיוורס מאז הפעם הקודמת</p></div>
       <div class="acts"><button class="btn" data-tab="video">${IC.video}להודיע על סרטון</button><button class="btn main" data-tab="story">${IC.plus}סטורי חדש</button></div></div>
     <div class="kpis">
-      <button class="kpi" data-tab="overview">${IC.people}<span>רשומים</span><b>${fmt(L.fans)}</b><small><bdi dir="ltr">+${fmt(L.fansWeek || 0)}</bdi> השבוע</small></button>
+      <button class="kpi" data-tab="people">${IC.people}<span>רשומים</span><b>${fmt(L.fans)}</b><small><bdi dir="ltr">+${fmt(L.fansWeek || 0)}</bdi> השבוע</small></button>
       <button class="kpi" data-tab="requests">${IC.inbox}<span>פניות פתוחות</span><b>${open.length}</b><small>${reqNew} חדשות</small></button>
       <button class="kpi" data-tab="ideas">${IC.idea}<span>רעיונות חדשים</span><b>${newIdeas()}</b><small>השבוע</small></button>
       <button class="kpi" data-tab="comments">${IC.comment}<span>תגובות היום</span><b>${comToday}</b><small><bdi dir="ltr">${comToday - comYest >= 0 ? '+' : ''}${comToday - comYest}</bdi> מאתמול</small></button>
@@ -337,20 +339,46 @@ function requests() {
   const all = L.requests.slice().sort((a, b) => (a.done - b.done) || ((b.t || 0) - (a.t || 0)));
   const count = (k) => all.filter((r) => !r.done && (k === 'all' || r.kind === k)).length;
   const q = rqQuery.trim().toLowerCase();
-  const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick].join(' ').toLowerCase().includes(q)));
+  const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick, r.siteName, r.choice, r.email].join(' ').toLowerCase().includes(q)));
   $('#pane').innerHTML = `
     <div class="top"><div><h1>פניות</h1><p>כל מה שהגיע אליך, לפי סוג. הפתוחות קודם.</p></div>
       <label class="search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
     <div class="chips">${[['all', 'הכל'], ...Object.entries(RQ).map(([k, [l]]) => [k, l])].map(([k, l]) => `<button data-rqk="${k}" class="${k === rqKind ? 'on' : ''}">${l}${count(k) ? `<small>${count(k)}</small>` : ''}</button>`).join('')}</div>
     <div class="msgs">${list.map((r) => { const [l, cls, color] = RQ[r.kind] || RQ.contact; return `<div class="msg ${r.done ? 'done' : ''}" style="--k:${color}">${ini(whoOf(r))}
-      <div class="body"><div class="l1"><div class="who"><b>${esc(whoOf(r))}</b><small>${ago(r.t)}${r.from === 'community' ? ' · מעמוד הקהילה' : r.from === 'chat' ? ' · מהצ׳אט' : r.kind === 'business' ? ' · מעמוד העסקים' : ''}</small></div><span class="tag ${cls}">${l}</span></div>
+      <div class="body"><div class="l1"><div class="who"><b>${esc(whoOf(r))}</b><small>${ago(r.t)}${r.kind === 'site' ? ` · ${esc(r.siteName || SITES[r.site] || r.site)}` : r.from === 'community' ? ' · מעמוד הקהילה' : r.from === 'chat' ? ' · מהצ׳אט' : r.kind === 'business' ? ' · מעמוד העסקים' : ''}</small></div><span class="tag ${cls}">${l}</span></div>
         ${r.kind === 'business' && (r.company || r.topic) ? `<div class="co">${esc(r.company || '')}${r.topic ? ` · ${esc(r.topic)}` : ''}</div>` : ''}
-        <p class="txt">${esc(r.text)}</p>
+        ${r.kind === 'site' && (r.choice || r.when) ? `<div class="co">${esc(r.choice || '')}${r.when ? ` · ${esc(r.when)}` : ''}</div>` : ''}
+        ${r.text ? `<p class="txt">${esc(r.text)}</p>` : ''}${r.phone ? `<div class="pills">${contactPills(r.phone)}</div>` : ''}${r.email && r.email !== r.contact ? `<div class="pills">${contactPills(r.email)}</div>` : ''}
         ${r.kind === 'bug' ? `<div class="tech">${r.page ? `<a href="${esc(r.page)}" target="_blank">${esc(r.page)}</a><br>` : ''}${esc(r.screen || '')} · ${esc(r.ua || '')}${(r.errors || []).length ? `<br>${r.errors.map(esc).join(' | ')}` : ''}</div>` : ''}
         ${r.contact ? `<div class="pills">${contactPills(r.contact)}</div>` : ''}</div>
       <button class="check" data-done="${r.id}" data-on="${r.done ? 0 : 1}"><span>${IC.check}</span>${r.done ? 'טופל' : 'לסמן טופל'}</button></div>`; }).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`;
   const inp = $('#rq-q');
   inp.oninput = () => { rqQuery = inp.value; const pos = inp.selectionStart; requests(); const n = $('#rq-q'); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+// ---------- people: everyone with an account, and where they came from ----------
+let P = null, pQuery = '';
+async function people() {
+  if (!P) {
+    $('#pane').innerHTML = '<div class="empty">טוען…</div>';
+    try { P = (await api('people')).people.sort((a, b) => (b.last || b.created || 0) - (a.last || a.created || 0)); }
+    catch (e) { if (tab === 'people') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; return; }
+    if (tab !== 'people') return;
+  }
+  const q = pQuery.trim().toLowerCase();
+  const list = P.filter((p) => !q || [p.email, p.name, p.nick, ...p.sites.map((s) => SITES[s] || s)].join(' ').toLowerCase().includes(q));
+  const from = (p) => [p.fan ? '<span class="tag or">שלומיוורס</span>' : '', ...p.sites.map((s) => `<span class="tag wh">${esc(SITES[s] || s)}</span>`)].join(' ');
+  $('#pane').innerHTML = `
+    <div class="top"><div><h1>אנשים</h1><p>${fmt(P.length)} עם חשבון Google: הרשומים לשלומיוורס וכל מי ששלח משהו מאחד האתרים.</p></div>
+      <div class="acts"><label class="search">${IC.search}<input id="pp-q" placeholder="חיפוש לפי שם, מייל או אתר" value="${esc(pQuery)}"></label>
+      <button class="btn" id="pp-copy">${IC.mail}העתקת המיילים${q ? ' (מהחיפוש)' : ''}</button></div></div>
+    <div>${list.map((p) => `<div class="item">${p.photo ? `<span class="vx-av"><img src="${esc(p.photo)}" alt="" referrerpolicy="no-referrer"></span>` : ini(p.name || p.email)}
+      <div class="body"><b>${esc(p.name || p.nick || (p.email || '').split('@')[0] || '?')}</b>${p.nick && p.nick !== p.name ? ` <small>· ${esc(p.nick)}</small>` : ''}
+        <p>${p.email ? `<a href="mailto:${esc(p.email)}" style="color:#ff9a5c" dir="ltr">${esc(p.email)}</a>` : '-'} · הצטרף/ה ${ago(p.created)}${p.last ? ` · נראה/תה ${ago(p.last)}` : ''}</p>
+        <p>${from(p) || '<span class="tag">רק נכנס/ה</span>'}</p></div></div>`).join('') || '<div class="empty">אין כאן אף אחד.</div>'}</div>`;
+  const inp = $('#pp-q');
+  inp.oninput = () => { pQuery = inp.value; const pos = inp.selectionStart; people(); const n = $('#pp-q'); n.focus(); n.setSelectionRange(pos, pos); };
+  $('#pp-copy').onclick = () => navigator.clipboard.writeText(list.map((p) => p.email).filter(Boolean).join(', ')).then(() => { $('#pp-copy').textContent = `הועתקו ${list.filter((p) => p.email).length}`; });
 }
 
 // ---------- ideas ----------

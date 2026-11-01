@@ -21,6 +21,7 @@ export const T = {
     sticker: 'כדי להכין סטיקר מהרגע',
     stamp: 'כדי להחתים סטיקר',
     push: 'כדי לקבל התראות',
+    contact: 'כדי לשלוח פנייה',
   },
 
   // nickname (B)

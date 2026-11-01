@@ -500,11 +500,12 @@
     e.preventDefault();
     const name = form.elements.name.value.trim(), phone = form.phone.value.trim(), email = form.email.value.trim();
     if (!name) { err.textContent = 'איך קוראים לך?'; return; }
-    if (phone.replace(/\D/g, '').length < 9 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'צריך טלפון או אימייל כדי שאחזור אליך.'; return; }
+    // sending needs a Google account (its email is the way back) - public/verse/site-signin.js
+    const who = await SiteSignIn.ensure('hindsight'); if (!who) return;
     const go = document.getElementById('jGo'); go.disabled = true; go.textContent = 'שולח…'; err.textContent = '';
     try {
       const fd = new FormData(form); fd.append('site', 'hindsight');
-      const r = await fetch(API, { method: 'POST', body: fd });
+      const r = await fetch(API, { method: 'POST', body: fd, headers: { authorization: 'Bearer ' + who.token } });
       if (!r.ok) throw new Error(r.status === 429 ? 'too many' : 'send');
       document.getElementById('mTitle').textContent = `כמעט בפנים: ${form.choice.value}`;
       ask.hidden = true; done.hidden = false; form.reset();
@@ -520,5 +521,6 @@
   fetch('v/week-1.mp4', { method: 'HEAD' }).then((r) => { if (r.ok && (r.headers.get('content-type') || '').startsWith('video')) { vid.src = 'v/week-1.mp4'; document.getElementById('video').hidden = false; } }).catch(() => {});
 </script>
 <script src="/t.js" data-site="hindsight" defer></script>
+<script src="/verse/site-signin.js" defer></script>
 </body>
 </html>

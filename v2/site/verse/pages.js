@@ -285,6 +285,8 @@ document.addEventListener('submit', async (e) => {
   const f = e.target.closest('[data-rq]');
   if (!f) return;
   e.preventDefault();
+  // sending anything needs an account (his rule, 2026-11-01) - the server refuses it signed out
+  if (!(await needFan(T.why.contact))) return;
   const btn = f.querySelector('button');
   btn.disabled = true;
   try {

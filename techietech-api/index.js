@@ -1,17 +1,52 @@
 // Techy-Tech careers: the "send your CV" form on /techietech/ posts here (multipart), and the CV is emailed to Shlomi.
 // siteLead (below): the other characters' sites - a booking / a membership request, emailed the same way.
 // (techietechApply:)
-// as an attachment. Nothing is stored. Deploy from this folder: firebase deploy --only functions
+// as an attachment (the request itself is kept for /backstage/, the CV is not). Deploy from this folder: firebase deploy --only functions
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const Busboy = require('busboy');
 const nodemailer = require('nodemailer');
+const admin = require('firebase-admin');
+const { FieldValue } = require('firebase-admin/firestore');
 
+if (!admin.apps.length) admin.initializeApp();
 const GMAIL_USER = defineSecret('GMAIL_USER');
 const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
 const TO = 'shlomi@boostart.io';
 const MAX_FILE = 5 * 1024 * 1024;
 const OK_FILE = /\.(pdf|docx?)$/i;
+const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
+
+// Sending anything from a Shlomiverse site needs a Google account (his rule, 2026-11-01: he wants the email of everyone
+// who plays with his sites). The page signs in with the Shlomiverse's Firebase Auth (public/verse/site-signin.js) and
+// sends its ID token; the person is kept in siteUsers and the request in `requests` - both show in /backstage/.
+const SITE_NAMES = { ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
+  'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE' };
+async function signedIn(req) {
+  const m = (req.get('authorization') || '').match(/^Bearer (.+)$/);
+  if (!m) return null;
+  try { const t = await admin.auth().verifyIdToken(m[1]); return t.email ? t : null; } catch { return null; }
+}
+async function keepUser(u, site) {
+  const ref = admin.firestore().collection('siteUsers').doc(u.uid);
+  const was = (await ref.get()).exists;
+  await ref.set({ email: u.email, name: u.name || null, photo: u.picture || null, sites: FieldValue.arrayUnion(site), lastSite: site,
+    last: FieldValue.serverTimestamp(), ...(was ? {} : { created: FieldValue.serverTimestamp() }) }, { merge: true });
+}
+// the request in the backstage inbox, next to the verse's own (kind 'site'); the mail stays the main way it reaches him
+const keepRequest = (u, site, f) => admin.firestore().collection('requests').add({ kind: 'site', site, siteName: SITE_NAMES[site] || site,
+  uid: u.uid, email: u.email, contact: u.email, name: f.name || u.name || null, nick: null, phone: f.phone || null, choice: f.choice || null,
+  when: f.when || null, text: f.text || '', t: FieldValue.serverTimestamp(), done: false }).catch((e) => console.error('keep request failed', e.message));
+
+// a site page signed someone in: keep them, even if they never send (e.g. Yotamverse's order goes to its own collection)
+exports.siteUser = onRequest({ region: 'europe-west1', cors: CORS, maxInstances: 3, memory: '256MiB', timeoutSeconds: 30 }, async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
+  const u = await signedIn(req);
+  if (!u) return res.status(401).json({ error: 'sign_in' });
+  const site = String((req.body || {}).site || '');
+  await keepUser(u, SITE_NAMES[site] ? site : 'other');
+  res.json({ ok: true });
+});
 
 // a few sends per address per hour, per instance - enough to stop a script hammering the form
 const recent = new Map();
@@ -45,18 +80,22 @@ function parse(req) {
 exports.techietechApply = onRequest({
   region: 'europe-west1',
   secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
-  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/],
+  cors: CORS,
   maxInstances: 3,
   memory: '256MiB',
   timeoutSeconds: 60,
 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
+  const u = await signedIn(req);
+  if (!u) return res.status(401).json({ error: 'sign_in' });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
   let form;
   try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
   const { fields: f, file, tooBig } = form;
   if (f.website) return res.json({ ok: true });  // the hidden field only a bot fills
-  if (!f.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '')) return res.status(400).json({ error: 'details' });
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '')) f.email = u.email;
+  f.name = f.name || u.name || '';
+  if (!f.name) return res.status(400).json({ error: 'details' });
   if (tooBig) return res.status(400).json({ error: 'file_size' });
   if (!file || !file.data.length || !OK_FILE.test(file.name)) return res.status(400).json({ error: 'file_type' });
 
@@ -66,6 +105,7 @@ exports.techietechApply = onRequest({
     `שם: ${f.name}`,
     `אימייל: ${f.email}`,
     `טלפון: ${f.phone || '-'}`,
+    `חשבון Google: ${u.email}`,
     '',
     f.message ? `הודעה:\n${f.message}` : '',
     '',
@@ -85,10 +125,12 @@ exports.techietechApply = onRequest({
     console.error('send failed', e.message);
     return res.status(502).json({ error: 'send' });
   }
+  await Promise.all([keepUser(u, 'techietech').catch(() => {}),
+    keepRequest(u, 'techietech', { name: f.name, phone: f.phone, choice: position, text: [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n') })]);
   res.json({ ok: true });
 });
 
-// The other characters' sites (on boostmind-b052c.web.app): a request emailed to Shlomi, nothing stored, nothing charged.
+// The other characters' sites (shlomiverse.com): a request emailed to Shlomi and kept for /backstage/, nothing charged.
 //   /ayelet/     - booking a treatment / the workshop (Ayelet Hashachar)
 //   /hindsight/  - joining a membership plan (HINDSIGHT VIP)
 //   /demokratovich/ - a question for the rabbi's Q&A, or a donation pledge (Kehilat Shaarei Bagatz)
@@ -103,12 +145,14 @@ const SITES = {
 exports.siteLead = onRequest({
   region: 'europe-west1',
   secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
-  cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/],
+  cors: CORS,
   maxInstances: 3,
   memory: '256MiB',
   timeoutSeconds: 60,
 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
+  const u = await signedIn(req);
+  if (!u) return res.status(401).json({ error: 'sign_in' });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
   let form;
   try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
@@ -116,15 +160,18 @@ exports.siteLead = onRequest({
   const site = SITES[f.site];
   if (!site) return res.status(400).json({ error: 'site' });
   if (f.website) return res.json({ ok: true });  // the hidden field only a bot fills
-  const email = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '') ? f.email : '';
+  // the Google account is always a way back; an email typed in the form (if any) goes first
+  const email = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '') ? f.email : u.email;
   const phone = (f.phone || '').replace(/[^\d+\-\s()]/g, '').slice(0, 30);
-  if (!f.name || (!email && phone.replace(/\D/g, '').length < 9)) return res.status(400).json({ error: 'details' });
+  f.name = f.name || u.name || '';
+  if (!f.name) return res.status(400).json({ error: 'details' });
   const clip = (v, n) => String(v || '').slice(0, n);
   const text = [
     `${site.choice}: ${clip(f.choice, 120) || '-'}`,
     `שם: ${clip(f.name, 120)}`,
     `טלפון: ${phone || '-'}`,
     `אימייל: ${email || '-'}`,
+    `חשבון Google: ${u.email}`,
     f.when ? `מתי נוח: ${clip(f.when, 200)}` : '',
     '',
     f.message ? `הודעה:\n${clip(f.message, 3000)}` : '',
@@ -133,12 +180,14 @@ exports.siteLead = onRequest({
   ].filter((l, i, a) => l || a[i - 1]).join('\n');
   try {
     const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
-    await t.sendMail({ from: `${site.from} <${GMAIL_USER.value()}>`, to: TO, ...(email ? { replyTo: email } : {}),
+    await t.sendMail({ from: `${site.from} <${GMAIL_USER.value()}>`, to: TO, replyTo: email,
       subject: site.subject({ ...f, name: clip(f.name, 80), choice: clip(f.choice, 60) }).slice(0, 200), text });
   } catch (e) {
     console.error('send failed', e.message);
     return res.status(502).json({ error: 'send' });
   }
+  await Promise.all([keepUser(u, f.site).catch(() => {}),
+    keepRequest(u, f.site, { name: clip(f.name, 120), phone, choice: clip(f.choice, 120), when: clip(f.when, 200), text: clip(f.message, 3000) })]);
   res.json({ ok: true });
 });
 
