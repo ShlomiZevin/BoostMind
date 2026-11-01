@@ -31,6 +31,57 @@ n_seq = len(seq)
 t_seq0 = T_LOGO - n_seq / FPS        # the clips end exactly on the logo hit
 print('clip frames', n_seq, 'start at', round(t_seq0, 2))
 
+# ---- v3: the planet is there from the first second, small and far, and grows continuously into the AI clip
+APPROACH = '--approach' in sys.argv
+if APPROACH:
+    import cv2
+    seqA = sorted(glob.glob(os.path.join(tmp, 'c0_*.png')))      # reversed far clip: the galaxy dive (its planet never shown)
+    seqB = sorted(glob.glob(os.path.join(tmp, 'c1_*.png')))      # reversed near clip: the planet turning onto the logo
+    SPEED_B = float(arg('--speed-b', '1.33'))                    # the near clip a bit faster, so its growth matches ours
+    T_HAND = T_LOGO - (len(seqB) - 1) / FPS / SPEED_B            # where the near clip takes over
+    first = np.asarray(Image.open(seqB[0]).convert('RGB')).astype(np.float32) / 255   # = the far-planet frame
+    # the planet in that frame (measured: centre 351,610 and 258x179 incl. ring in the 720x1280 clip)
+    PCX, PCY, PW, PH = 351 * 1.5, 610 * 1.5, 258 * 1.5, 179 * 1.5
+    SW, SH = int(PW * 1.55), int(PH * 1.9)
+    x0, y0 = int(PCX - SW / 2), int(PCY - SH / 2)
+    sprite = first[y0:y0 + SH, x0:x0 + SW].copy()
+    gy, gx = np.mgrid[0:SH, 0:SW].astype(np.float32)
+    er = np.sqrt(((gx - SW / 2) / (SW / 2)) ** 2 + ((gy - SH / 2) / (SH / 2)) ** 2)
+    smask = np.clip((1.0 - er) / 0.28, 0, 1)[..., None] ** 1.2     # soft ellipse round planet, ring and glow
+    # the plate: the same frame with the planet replaced by stars from higher up the same picture
+    plate = first.copy()
+    donor = first[90:90 + SH, x0:x0 + SW]
+    plate[y0:y0 + SH, x0:x0 + SW] = plate[y0:y0 + SH, x0:x0 + SW] * (1 - smask) + donor * smask
+    S0 = float(arg('--s0', '0.15'))
+    A_END = 2.3                                                  # galaxy dive shown until here, then into the plate
+    print('hand-over at', round(T_HAND, 2), 's; far planet starts at', S0)
+    def frame_at(seq_, pos):                                     # fractional frame: blend the two nearest
+        pos = min(max(pos, 0), len(seq_) - 1); i = int(pos); f_ = pos - i
+        a_ = np.asarray(Image.open(seq_[i]).convert('RGB')).astype(np.float32) / 255
+        if f_ < 0.02 or i + 1 >= len(seq_): return a_
+        b_ = np.asarray(Image.open(seq_[i + 1]).convert('RGB')).astype(np.float32) / 255
+        return a_ * (1 - f_) + b_ * f_
+    def approach_bg(t):
+        if t >= T_HAND:
+            fr_ = frame_at(seqB, (t - T_HAND) * FPS * SPEED_B)
+            lock = sm((t - (T_LOGO - 0.30)) / 0.30)
+            return fr_ * (1 - lock) + logo_frame * lock
+        # far part: galaxy dive -> plate, and the planet sprite growing at a constant rate (no pop-in)
+        ka = (t + 0.24) * FPS * 0.62                             # the dive, slowed a little
+        mix = sm((t - A_END) / 1.0)
+        bgf = plate if mix >= 1 else frame_at(seqA, ka) * (1 - mix) + plate * mix
+        bgf = bgf.copy()
+        sc = S0 ** (1 - t / T_HAND)                              # exponential growth = steady approach, scale 1 at hand-over
+        w_, h_ = max(2, int(SW * sc)), max(2, int(SH * sc))
+        spr = cv2.resize(sprite, (w_, h_), interpolation=cv2.INTER_AREA)
+        msk = cv2.resize(smask, (w_, h_), interpolation=cv2.INTER_AREA)[..., None]
+        cx_, cy_ = PCX, PCY
+        xa, ya = int(round(cx_ - w_ / 2)), int(round(cy_ - h_ / 2))
+        region = bgf[ya:ya + h_, xa:xa + w_]
+        a_in = min(1.0, t / 0.6 + 0.35)                         # there from the start, just eases in with the fade
+        bgf[ya:ya + h_, xa:xa + w_] = region * (1 - msk * a_in) + spr * msk * a_in
+        return bgf
+
 # ---- 2. fixed layers
 logo_frame = paste_logo(backdrop())                 # the exact logo, as the AI clips' first frame was built
 bg = backdrop()
@@ -79,7 +130,10 @@ if CAST:
         flyers.append({'name': n, 't0': t_first + (t_last - t_first) * i / (len(order) - 1) + rng.uniform(-0.12, 0.12), 'life': life * rng.uniform(0.9, 1.1),
                        'x': rr * np.cos(ang) * 0.85, 'y': rr * np.sin(ang) * 1.25, 'big': 1.15 if n in MAIN else rng.uniform(0.8, 1.0)})
 VP = (LOGO_CX, LOGO_CY - 60)       # they come out of the depth where the planet will be
+SOFT_FACES = '--soft-faces' in sys.argv
 def draw_flyers(fr, t):
+    global VP
+    if APPROACH: VP = (PCX, PCY)
     live = []
     for fl in flyers:
         u = (t - fl['t0']) / fl['life']
@@ -92,6 +146,8 @@ def draw_flyers(fr, t):
         cx = VP[0] + fl['x'] * 760 / z; cy = VP[1] + fl['y'] * 760 / z
         if cx + size < 0 or cx - size > W or cy + size < 0 or cy - size > H: continue
         alpha = min(1.0, max(0.0, (16.0 - z) / 9.0)) ** 1.4
+        if SOFT_FACES:   # see-through: ~0.5 when far, up to 0.85 close, stars and dust show through
+            alpha = min(1.0, max(0.0, (16.0 - z) / 5.0)) * (0.5 + 0.35 * min(1.0, max(0.0, (14.0 - z) / 12.0)))
         spr = cv2.resize(sprites[fl['name']], (size, size), interpolation=cv2.INTER_AREA if size < 512 else cv2.INTER_LINEAR)
         x0, y0 = int(cx - size / 2), int(cy - size / 2)
         xa, ya, xb, yb = max(0, x0), max(0, y0), min(W, x0 + size), min(H, y0 + size)
@@ -203,6 +259,8 @@ streak = (np.exp(-((yy - LOGO_CY) / 5.0) ** 2) * np.exp(-((xx - LOGO_CX) / 900) 
           0.5 * np.exp(-((yy - LOGO_CY) / 22.0) ** 2) * np.exp(-((xx - LOGO_CX) / 520) ** 2))[..., None] * np.array([1.0, 0.55, 0.22], np.float32)
 vign = (1 - 0.45 * np.clip((np.sqrt(((xx - W / 2) / (W * 0.75)) ** 2 + ((yy - H * 0.45) / (H * 0.62)) ** 2) - 0.55) / 0.6, 0, 1) ** 1.5)[..., None]
 def sm(t): t = min(1, max(0, t)); return t * t * (3 - 2 * t)
+SHEEN = '--sheen' in sys.argv
+LOGO_A = place((H, W, 1), lg[..., 3:4], LOGO_CX, LOGO_CY)[..., 0]   # where the logo is, for the sweep
 
 def zoom(img, s, cx=LOGO_CX, cy=LOGO_CY):
     if abs(s - 1) < 1e-4: return img
@@ -218,7 +276,7 @@ if SFX:   # the glint's sparkle under the music, on the hit
     mixed = os.path.join(HERE, f'out/mix-{NAME}.wav')
     ms = int((T_LOGO + 0.04) * 1000)
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', music, '-i', os.path.join(HERE, SFX), '-filter_complex',
-                    f'[1:a]volume=0.9,adelay={ms}|{ms}[s];[0:a][s]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95',
+                    f'[1:a]volume={arg("--sfx-vol", "0.9")},adelay={ms}|{ms}[s];[0:a][s]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95',
                     mixed], check=True)
     music = mixed
 def enc(path, crop):
@@ -229,7 +287,9 @@ NF = int(round(DUR * FPS))
 def frame(f):
     t = f / FPS
     k = int(round((t - t_seq0) * FPS))
-    if t < T_LOGO and 0 <= k < n_seq:
+    if APPROACH and t < T_LOGO:
+        fr = approach_bg(t)
+    elif t < T_LOGO and 0 <= k < n_seq:
         fr = np.asarray(Image.open(seq[k]).convert('RGB')).astype(np.float32) / 255
         lock = sm((t - (T_LOGO - 0.30)) / 0.30)                    # glide onto the exact logo
         fr = fr * (1 - lock) + logo_frame * lock
@@ -244,7 +304,16 @@ def frame(f):
         draw_flyers(fr, t)
     fade_in = sm(t / 0.9)
     # the final hit: flash, flare streak, the logo's glow pulsing
-    if t >= T_LOGO - 0.04:
+    if SHEEN and t >= T_LOGO - 0.04:
+        u = t - T_LOGO
+        swell = sm(u / 0.14) * math.exp(-max(0.0, u - 0.14) * 1.1)          # rim glow swells and settles
+        rise = sm(u / 0.30) * math.exp(-max(0.0, u - 0.30) * 0.9)            # a soft anamorphic streak rises and fades
+        fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.22 * swell + streak * 1.1 * rise + glow_full * (0.2 + 0.75 * swell), 0, 1))
+        if 0.12 <= u <= 1.5:                                                   # a light sweep gliding across ring and wordmark
+            p_ = -1.0 + 2.2 * sm((u - 0.12) / 1.25)
+            band_ = np.exp(-(((xx - LOGO_CX) * 0.82 + (yy - LOGO_CY) * 0.57) / (LOGO_W * 0.5) - p_) ** 2 / 0.012)
+            fr = 1 - (1 - fr) * (1 - np.clip((band_ * LOGO_A)[..., None] * np.array([1.0, 0.86, 0.66], np.float32) * 0.55, 0, 1))
+    elif t >= T_LOGO - 0.04:
         e = math.exp(-(t - T_LOGO) * 3.2)
         fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.6 * e + streak * 1.6 * math.exp(-(t - T_LOGO) * 1.6), 0, 1))
         fr = 1 - (1 - fr) * (1 - np.clip(glow_full * (0.25 + 0.8 * e), 0, 1))
