@@ -953,3 +953,24 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
 .ids-at button { display: flex; align-items: center; gap: 8px; flex: none; height: 40px; padding: 0 14px 0 6px; border-radius: 99px; background: rgba(255, 255, 255, .07); border: 1px solid var(--vx-glass-line); color: #fff; font-weight: 700; font-size: .88rem; cursor: pointer; }
 .ids-at .vx-av { width: 30px; height: 30px; }
 .ids-who-h small { font-weight: 500; color: rgba(255, 255, 255, .45); font-size: .78rem; margin-inline-start: 6px; }
+
+/* the name screen (after the first sign-in): one card. Phone = the card is the screen; desktop = a glass card over a dim
+   wall of the characters' faces (GPT Image mockup golive/N-name-desktop.jpg) */
+.nk > * { width: auto; }
+.nk-card { position: relative; z-index: 1; width: min(460px, 100%); display: flex; flex-direction: column; flex: 1; }
+.nk-logo { width: 116px; height: auto; margin: 0 auto 2px; filter: drop-shadow(0 6px 26px rgba(255, 106, 31, .45)); }
+.nk .nk-h { margin-top: 8px; }
+.nk-tag { position: relative; z-index: 1; margin: 14px 0 0; font-size: .82rem; color: rgba(255, 255, 255, .42); }
+.nk-wall { display: none; }
+@media (min-width: 760px) {
+  .nk { justify-content: center; padding: 40px 22px; }
+  .nk-wall { display: grid; position: fixed; inset: -40px; z-index: 0; grid-template-columns: repeat(6, 1fr); gap: 22px; padding: 0 2vw;
+    transform: rotate(-4deg) scale(1.08); opacity: .42; filter: blur(2px) saturate(.85); pointer-events: none; }
+  .nk-wall img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 26px; }
+  .nk::after { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% -10%, rgba(255, 106, 31, .42), transparent 55%), radial-gradient(ellipse at 50% 50%, rgba(11, 11, 14, .5), rgba(11, 11, 14, .8) 80%); }
+  .nk-card { flex: none; width: 540px; padding: 30px 40px 32px; border-radius: 30px; background: rgba(22, 21, 26, .72);
+    border: 1px solid rgba(255, 255, 255, .13); box-shadow: 0 30px 80px rgba(0, 0, 0, .55); backdrop-filter: blur(22px) saturate(1.2); -webkit-backdrop-filter: blur(22px) saturate(1.2); }
+  .nk-card .grow { display: none; }
+  .nk-card #nk-go { margin-top: 6px; }
+}

@@ -3,7 +3,7 @@
 // (mockup A) and, the first time, the "your name in the verse" screen (mockup B).
 import { auth, db, A, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, sheet, av, wordmark, inApp, track, toast } from './ui.js';
+import { I, esc, sheet, av, inApp, track, toast } from './ui.js';
 import { pickAndCrop } from './crop.js';
 
 export const st = { user: null, fan: null, follows: new Set(), saves: new Map(), notes: [], unread: 0, ready: false };
@@ -107,7 +107,11 @@ export function nameScreen() {
     const first = st.fan?.nick || (st.user?.displayName || '').split(' ')[0] || '';
     const el = document.createElement('div');
     el.className = 'nk';
-    el.innerHTML = `${wordmark(T.tagline)}
+    // behind the card (desktop): a dim wall of the characters' faces, like the hero; on the phone the card is the screen
+    const faces = (typeof heroFaces === 'function' ? heroFaces() : []).slice(0, 18);
+    el.innerHTML = `<div class="nk-wall" aria-hidden="true">${faces.map((c) => `<img src="/wiki/${esc(c.img)}" alt="" loading="lazy">`).join('')}</div>
+      <div class="nk-card">
+      <img class="nk-logo" src="/verse/logo-160.png" alt="שלומיוורס">
       <h1 class="vx-h nk-h">${esc(T.nickTitle)}</h1>
       <p class="vx-sub">${esc(T.nickSub)}</p>
       <div class="big-av" id="nk-av"></div>
@@ -120,7 +124,9 @@ export function nameScreen() {
       </form>
       <div class="grow"></div>
       <button class="vx-btn main block" id="nk-go">${esc(T.nickGo)}</button>
-      ${st.fan ? `<button class="vx-link" id="nk-cancel">ביטול</button>` : ''}`;
+      ${st.fan ? `<button class="vx-link" id="nk-cancel">ביטול</button>` : ''}
+      </div>
+      <p class="nk-tag">${esc(T.tagline)}</p>`;
     document.body.append(el);
     const input = el.querySelector('#nk-in');
     const shown = () => ({ keep: st.fan?.photo, upload, google: photo, none: null }[mode]);
