@@ -155,6 +155,7 @@ He uploads through the Drop (iPhone; random file names). Several takes of a pass
 - Story posters (Instagram + TikTok): haredit-1 = a pashkevil (`_assets/haredit/story/`); haredit-2 = שפע עד
   newspaper ads (`_assets/haredit/ads/`, plain newspaper look - one headline, a big product photo, nothing he didn't
   ask for).
+- haredit-3 = **WhatsApp stories** (his ask, 2026-11-01: "like a real WhatsApp, as we did on the previous video"): `_assets/haredit/story3/wa/` - the family group on Grandma's phone (`../../wa/wa.css`), Hani from the office computer, her photo + caption with the TITLE first in bold ("ניסי ניסים!!!" over the ruined car), 2-3 replies, Grandma's green one SIGNED in its text ("…, סבתא אוהבת" / "סבתא מכינה קוגל") - a green bubble has no name, he couldn't tell who sent it; shoot.mjs warns when the chat runs under the typing bar. **A place name goes IN the photo as a real sign** ("מוסך ויחנו ויסעו" above the garage door - GPT Image 2.5 writes short Hebrew signs right; make two, pick the correct spelling), never a label added on top ("not she added it"). Send as one Telegram album (sendMediaGroup).
 - The wiki / links page when he publishes (wiki.md).
 - Each new family member or caller = a character profile (`POST /api/characters/<id>`), relations both ways.
 
@@ -244,6 +245,19 @@ His notes are in `episodes/haredit-2/project.json` → `notes` (each with my rep
   viewer must hear the event from HER, not only from the chipmunk on the phone - when writing the script, give Hani
   a line that repeats each piece of news. A re-shot line goes in as its own `sequence` entry between the takes, its
   head pulled back with `edges` to the hand-at-ear beat (room for Brachi), mirrored like the rest (layer mirror).
+- **How a cut sounds** (measured, haredit-3): the outgoing piece's voice runs 0.2 s past its picture and fades out
+  over those 0.2 s; the next piece starts AT ONCE (12 ms fade). So for a pause cut `[r0, r1]` in one take: r0 = the
+  last word's end (10 ms energy, -30 dB) + 0.17, r1 = the next word's start - 0.04 -> heard pause ~0, nothing
+  clipped. A cut tighter than that fades the last word ("יענקי" lost its end, "מה" vanished at a take join). After
+  every tightening, play the join the same way (fade the tail, start the next at once) and transcribe it.
+- **A framing change on a piece (box) makes it `user: true`** - he moves pieces himself (y 150 -> ~4). After any
+  rebuild that moves cuts, his framed pieces keep their OLD start / length and lie over the new ones: for each user
+  piece whose take start changed, copy its box to the new piece(s) of that take and remove the stale one; fix the
+  length of one whose start stayed. Then: no gaps / overlaps in the picture lane.
+- **Brachi starts ~0.2 s EARLIER than "right after his pause starts"** (his rule, 2026-11-01: "always start Brachi a bit
+  before") - she comes in on the tail of his last word, like a kid who doesn't wait.
+- **Test every chipmunk line at her playback speed** (asetrate 1.6, transcribe 3x): "יצא למנחה" at 1.6 is heard as
+  "ביי" ("תודה. יצא לה מנחה"), "הלך למנחה" turned to mush; "אבא במנחה" held. Pick words with clear consonants.
 - **Trap: `sounds` items are named by their index** (`x12` = sounds[12]); a deleted item is remembered by that index
   (layer `removed`). Deleting or inserting a sound in episode.json shifts every later id - an old deletion then hides
   a different sound (the ring vanished). After changing `sounds`, check the call lanes item by item; clear stale

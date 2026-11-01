@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>מאחורי הקלעים · שלומיוורס</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b0b0e">
+<link rel="icon" type="image/png" sizes="32x32" href="/verse/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/verse/favicon-192.png">
+<link rel="icon" href="/verse/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/verse/verse.css">
+<style>
+  /* מאחורי הקלעים - Shlomi's back office, built to the mockups in Documents/shlomiverse-v2-design/backstage/ */
+  :root { --bg: #0b0b0e; --card: rgba(255,255,255,.035); --card2: rgba(255,255,255,.06); --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
+    --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff6a1f; --red: #ff5a5a; color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scrollbar-gutter: stable; }
+  body { background: radial-gradient(ellipse 60% 50% at 0% 100%, rgba(255,106,31,.10), transparent 70%), radial-gradient(ellipse 40% 40% at 100% 0%, rgba(255,106,31,.06), transparent 70%), var(--bg);
+    background-attachment: fixed; color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.5; min-height: 100svh; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  a { color: inherit; text-decoration: none; }
+  svg { flex: none; }
+  .app { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 100svh; }
+  /* the sidebar (desktop) */
+  .side { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; padding: 22px 14px; border-inline-start: 1px solid var(--line); background: rgba(10,10,13,.6); backdrop-filter: blur(14px); }
+  .side .brand { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 22px; }
+  .side .brand img { width: 150px; }
+  .side .brand b { font-size: 1.15rem; font-weight: 800; }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav button, .nav a { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 14px; border-radius: 14px; color: var(--dim); font-weight: 700; font-size: 1rem; text-align: start; width: 100%; position: relative; transition: background .15s, color .15s; }
+  .nav button:hover, .nav a:hover { background: var(--card2); color: var(--text); }
+  .nav .on { background: linear-gradient(to left, rgba(255,106,31,.22), rgba(255,106,31,.04)); color: var(--text); }
+  .nav .on::after { content: ""; position: absolute; inset-inline-start: -14px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
+  .nav svg { width: 21px; height: 21px; }
+  .nav .on svg { color: var(--accent); }
+  .nav em { margin-inline-start: auto; font-style: normal; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; background: var(--accent); color: #fff; font-size: .78rem; font-weight: 800; display: grid; place-items: center; }
+  .side .foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; }
+  /* main */
+  main.main { padding: 30px 34px 60px; max-width: 1240px; width: 100%; }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .top h1 { font-size: clamp(1.7rem, 3vw, 2.5rem); font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
+  .top p { color: var(--dim); margin-top: 6px; font-size: 1.02rem; }
+  .acts { display: flex; gap: 10px; flex-wrap: nowrap; }
+  .btn { display: inline-flex; align-items: center; gap: 9px; height: 48px; padding: 0 20px; border-radius: 16px; font-weight: 800; font-size: .98rem; border: 1px solid var(--line2); background: var(--card2); transition: border-color .15s, background .15s; }
+  .btn:hover { border-color: rgba(255,255,255,.3); }
+  .btn.main { background: var(--accent); border-color: transparent; color: #fff; box-shadow: 0 10px 30px rgba(255,106,31,.35); }
+  .btn svg { width: 20px; height: 20px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px; backdrop-filter: blur(10px); }
+  .card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .card-h h2 { font-size: 1.25rem; font-weight: 900; }
+  .card-h button, .card-h a { color: var(--accent); font-weight: 700; font-size: .9rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .card-h svg { width: 16px; height: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .kpi { position: relative; text-align: start; width: 100%; padding: 18px 20px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); }
+  .kpi span { color: var(--text); font-weight: 700; font-size: .98rem; }
+  .kpi svg { position: absolute; top: 18px; inset-inline-end: 18px; width: 24px; height: 24px; color: var(--dim); }
+  .kpi b { display: block; font-size: 2.6rem; font-weight: 900; color: var(--accent); line-height: 1.1; margin-top: 6px; }
+  .kpi small { color: var(--dim); font-size: .85rem; }
+  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+  .rows > * { border-top: 1px solid var(--line); }
+  .rows > *:first-child { border-top: 0; }
+  .row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 2px; }
+  .row .vx-av { width: 52px; height: 52px; flex: none; }
+  .row .ini { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.1rem; color: #1a1a1f; flex: none; }
+  .row .body { flex: 1; min-width: 0; }
+  .row .l1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row .l1 b { font-weight: 800; }
+  .row .l2 { color: var(--dim); font-size: .92rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .row time { color: var(--faint); font-size: .82rem; white-space: nowrap; flex: none; }
+  .tag { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 8px; font-size: .78rem; font-weight: 800; background: var(--card2); color: var(--dim); border: 1px solid var(--line); }
+  .tag.or { background: rgba(255,106,31,.16); color: #ff8c4d; border-color: rgba(255,106,31,.35); }
+  .tag.red { background: rgba(255,90,90,.14); color: #ff8a8a; border-color: rgba(255,90,90,.35); }
+  .tag.wh { color: var(--text); border-color: var(--line2); }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .pill { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 12px; background: var(--card2); border: 1px solid var(--line2); font-weight: 700; font-size: .88rem; }
+  .pill:hover { border-color: rgba(255,255,255,.3); }
+  .pill svg { width: 17px; height: 17px; }
+  .empty { color: var(--dim); padding: 22px 0; text-align: center; }
+  /* inbox / lists */
+  .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chips button { flex: none; height: 40px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--line2); background: var(--card); font-weight: 700; font-size: .92rem; color: var(--dim); }
+  .chips button.on { background: var(--accent); border-color: transparent; color: #fff; }
+  .chips small { margin-inline-start: 6px; opacity: .85; }
+  .search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); min-width: 240px; }
+  .search input { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }
+  .search svg { width: 18px; height: 18px; color: var(--dim); }
+  .msgs { display: flex; flex-direction: column; gap: 12px; }
+  .msg { position: relative; display: flex; gap: 14px; padding: 18px 20px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+  .msg::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px; background: var(--k, var(--line2)); }
+  .msg.done { opacity: .5; }
+  .msg .ini { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.1rem; color: #1a1a1f; flex: none; }
+  .msg .body { flex: 1; min-width: 0; }
+  .msg .l1 { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .msg .who b { font-size: 1.12rem; font-weight: 800; }
+  .msg .who small { display: block; color: var(--faint); font-size: .82rem; }
+  .msg p.txt { margin-top: 8px; font-size: 1.02rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg .co { color: var(--dim); font-size: .9rem; margin-top: 4px; }
+  .msg .tech { margin-top: 8px; font-family: ui-monospace, Consolas, monospace; font-size: .76rem; color: var(--faint); direction: ltr; text-align: left; word-break: break-all; }
+  .msg .tech a { color: #ff9a5c; }
+  .check { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: flex-end; color: var(--dim); font-size: .8rem; font-weight: 700; flex: none; }
+  .check span { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line2); background: var(--card2); }
+  .check svg { width: 22px; height: 22px; }
+  .msg.done .check span { background: rgba(80,200,120,.18); border-color: rgba(80,200,120,.5); color: #7fe3a1; }
+  .item { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+  .item + .item { margin-top: 10px; }
+  .item.off { opacity: .45; }
+  .item .vx-av { width: 46px; height: 46px; flex: none; }
+  .item .body { flex: 1; min-width: 0; }
+  .item b { font-weight: 800; }
+  .item small { color: var(--faint); font-size: .82rem; }
+  .item p { color: var(--dim); font-size: .95rem; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 2px; }
+  .item img.st { width: 76px; height: 76px; object-fit: contain; flex: none; border-radius: 14px; background: var(--card2); }
+  .item img.th { width: 50px; height: 88px; object-fit: cover; border-radius: 12px; flex: none; }
+  .item .votes { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); font-weight: 800; }
+  .item .votes img { width: 18px; }
+  .seg { display: inline-flex; padding: 4px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); margin-bottom: 16px; }
+  .seg button { height: 38px; padding: 0 18px; border-radius: 10px; color: var(--dim); font-weight: 700; }
+  .seg button.on { background: var(--card2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line2); }
+  /* story */
+  .story { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
+  .faces { display: flex; flex-wrap: wrap; gap: 10px; max-height: 250px; overflow-y: auto; padding: 4px; }
+  .faces button { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 70px; font-size: .76rem; color: var(--dim); line-height: 1.15; text-align: center; }
+  .faces .vx-av { width: 54px; height: 54px; }
+  .faces .on { color: var(--text); font-weight: 800; }
+  .faces .on .vx-av { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .lbl { font-weight: 800; margin: 16px 0 8px; display: block; }
+  textarea { width: 100%; min-height: 110px; border-radius: 16px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; font-size: 1.05rem; padding: 12px 14px; outline: 0; resize: vertical; }
+  textarea:focus { border-color: var(--accent); }
+  .file { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 14px; border: 1px dashed var(--line2); color: var(--dim); cursor: pointer; font-weight: 700; }
+  .file input { display: none; }
+  .file svg { width: 19px; height: 19px; }
+  .toggle { display: inline-flex; align-items: center; gap: 10px; color: var(--dim); font-weight: 600; cursor: pointer; }
+  .toggle input { display: none; }
+  .toggle i { width: 42px; height: 24px; border-radius: 99px; background: var(--card2); border: 1px solid var(--line2); position: relative; transition: background .2s; }
+  .toggle i::after { content: ""; position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .toggle input:checked + i { background: var(--accent); border-color: transparent; }
+  .toggle input:checked + i::after { transform: translateX(-18px); }
+  .phone { aspect-ratio: 9 / 16; border-radius: 28px; overflow: hidden; position: relative; background: #000; border: 1px solid var(--line2); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .phone .sv-box { position: absolute; inset: 0; height: 100%; width: 100%; aspect-ratio: auto; }
+  .phone .sv-text { font-size: 1.05rem; bottom: 24px; inset-inline: 14px; }
+  .phone .sv-plain .sv-text { font-size: 1.25rem; }
+  .phone .sv-head { top: 14px; }
+  .hint { color: var(--dim); font-size: .92rem; }
+  .ok { color: #7fe3a1; font-weight: 700; }
+  /* the gate */
+  .gate { min-height: 100svh; display: grid; place-items: center; text-align: center; padding: 20px; }
+  .gate img { width: 200px; }
+  .gate h1 { font-size: 1.6rem; font-weight: 900; margin-top: 4px; }
+  .gate p { color: var(--dim); margin: 6px 0 18px; }
+  .gate form { display: flex; gap: 8px; justify-content: center; }
+  .gate input { height: 50px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; padding: 0 14px; min-width: 220px; text-align: center; outline: 0; }
+  .gate input:focus { border-color: var(--accent); }
+  /* phone */
+  .tabbar { display: none; }
+  .mtop { display: none; }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .side { display: none; }
+    main.main { padding: 14px 14px calc(96px + env(safe-area-inset-bottom)); }
+    /* the top bar already says which page this is */
+    main.main:not(.ov) .top h1 { display: none; }
+    .mtop { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .mtop img { width: 92px; }
+    .mtop h1 { font-size: 1.8rem; font-weight: 900; flex: 1; }
+    .mtop a { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line2); background: var(--card2); }
+    .mtop a svg { width: 20px; height: 20px; }
+    .top { margin-bottom: 14px; } .top h1 { font-size: 1.6rem; }
+    .acts { width: 100%; } .acts .btn { flex: 1; justify-content: center; height: 46px; padding: 0 12px; font-size: .92rem; }
+    .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi { padding: 14px; } .kpi b { font-size: 2rem; } .kpi svg { top: 14px; inset-inline-end: 14px; width: 20px; height: 20px; }
+    .cols { grid-template-columns: 1fr; }
+    .card { padding: 16px; border-radius: 22px; }
+    .story { grid-template-columns: 1fr; } .phone { width: 230px; margin: 0 auto; }
+    .search { min-width: 0; width: 100%; }
+    .msg { padding: 16px; gap: 12px; } .msg .ini { width: 46px; height: 46px; font-size: 1rem; }
+    .msg { flex-wrap: wrap; } .msg .body { flex: 1 1 calc(100% - 62px); }
+    .msg .check { width: 100%; flex-direction: row; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
+    .msg .check span { width: 38px; height: 38px; } .msg .check svg { width: 18px; height: 18px; }
+    .tabbar { position: fixed; bottom: 0; inset-inline: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+      background: rgba(11,11,14,.92); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+    .tabbar button { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: .74rem; font-weight: 700; color: var(--dim); position: relative; padding-top: 4px; }
+    .tabbar svg { width: 25px; height: 25px; }
+    .tabbar .on { color: var(--accent); }
+    .tabbar .on::after { content: ""; position: absolute; bottom: -6px; width: 34px; height: 3px; border-radius: 3px; background: var(--accent); }
+    .tabbar em { position: absolute; top: -2px; left: calc(50% + 4px); min-width: 20px; height: 20px; padding: 0 5px; border-radius: 99px; background: var(--accent); color: #fff; font-style: normal; font-size: .7rem; font-weight: 800; display: grid; place-items: center; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+// מאחורי הקלעים (/backstage/, his owner key - the same one as /stats/): the overview, every message that reached him by
+// type with its way back, the ideas wall, comments and stickers to keep clean, characters' stories, new-video notices.
+const LOCAL = /^(localhost|127\.)/.test(location.hostname);
+const API = LOCAL ? '/api/verseOwner' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
+const DATA = LOCAL ? '/wiki/data/wiki.json' : 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
+const $ = (q, el = document) => el.querySelector(q);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const abs = (p) => (!p ? '' : /^(https?:|\/)/.test(p) ? p : '/wiki/' + p);
+const s = (d, w = 1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const IC = {
+  home: s('<path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1H15v-6h-6v6H4.5a1 1 0 0 1-1-1z"/>'),
+  inbox: s('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke-width="2.6"/>'),
+  idea: s('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2v.5h5V16c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/>'),
+  comment: s('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/>'),
+  sticker: s('<path d="M20 12.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6.5"/><path d="M20 12.5 12.5 20c0-4.1 3.4-7.5 7.5-7.5z"/>'),
+  story: s('<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 9h17M8 5l2 4M13 5l2 4"/>'),
+  video: s('<path d="M8 5v14l11-7z"/>'),
+  content: s('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M10 9v6l5-3z"/>'),
+  stats: s('<path d="M5 20V12M10 20V6M15 20v-9M20 20V4"/>'),
+  out: s('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  people: s('<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/>'),
+  plus: s('<circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/>'),
+  mail: s('<rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>'),
+  phone: s('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'),
+  wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2A9.8 9.8 0 0 0 3.6 17l-1.4 4.8 4.9-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.8a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.2.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.5 2.5 0 0 0 1.7-1.2 2 2 0 0 0 .1-1.2c0-.2-.2-.2-.4-.3z"/></svg>',
+  check: s('<path d="m5 12.5 4.5 4.5L19 7.5"/>', 2.4),
+  search: s('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
+  back: s('<path d="m15 6-6 6 6 6"/>', 2.2),
+  file: s('<path d="M4 16.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2.5M12 4v11M7.5 8.5 12 4l4.5 4.5"/>'),
+};
+const LOGO_LIKE = '<img src="/verse/logo-160.png" alt="">';
+
+// ---------- the key ----------
+const key = (() => {
+  const m = location.hash.match(/k=([^&]+)/);
+  try { if (m) { localStorage.setItem('owner-key', decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname); } return localStorage.getItem('owner-key'); } catch (e) { return null; }
+})();
+function gate(bad) {
+  try { localStorage.removeItem('owner-key'); } catch (e) {}
+  $('#app').innerHTML = `<div class="gate"><div><img src="/verse/logo-512.png" alt="שלומיוורס"><h1>מאחורי הקלעים</h1>
+    <p>${bad ? 'הקוד לא נכון. נסו שוב.' : 'הקוד פעם אחת, והמכשיר הזה יזכור.'}</p>
+    <form id="kf"><input id="ki" type="password" placeholder="קוד גישה" autocomplete="current-password"><button class="btn main">כניסה</button></form></div></div>`;
+  $('#kf').onsubmit = (e) => { e.preventDefault(); const v = $('#ki').value.trim(); if (!v) return; try { localStorage.setItem('owner-key', v); } catch (err) {} location.reload(); };
+}
+async function api(op, body, isForm) {
+  const res = await fetch(`${API}?op=${op}`, { method: body ? 'POST' : 'GET', headers: { authorization: 'Key ' + key, ...(isForm || !body ? {} : { 'content-type': 'application/json' }) }, body: isForm ? body : body ? JSON.stringify(body) : undefined });
+  if (res.status === 401) { gate(true); throw new Error('key'); }
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(j.error || 'fail'), { status: res.status, j });
+  return j;
+}
+const ago = (ms) => { if (!ms) return ''; const m = (Date.now() - ms) / 6e4; return m < 60 ? `לפני ${Math.max(1, Math.round(m))} דק'` : m < 1440 ? `לפני ${Math.round(m / 60)} שע'` : new Date(ms).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' }); };
+const fmt = (n) => (n || 0).toLocaleString('he-IL');
+const hi = () => { const h = new Date().getHours(); return h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב'; };
+
+let W, C = {}, V = {}, L = null, tab = (location.hash.match(/^#(\w+)/) || [])[1] || 'overview', pick = null, file = null;
+let rqKind = 'all', rqQuery = '', contentSeg = 'comments';
+const face = (id) => C[id]?.img ? `<span class="vx-av ring"><img src="${abs(C[id].img)}" alt=""></span>` : `<span class="vx-av">${esc((C[id]?.name || '?')[0])}</span>`;
+const fanFace = (x) => x.photo ? `<span class="vx-av"><img src="${esc(x.photo)}" alt="" referrerpolicy="no-referrer"></span>` : `<span class="vx-av">${esc((x.nick || '?')[0])}</span>`;
+const PALE = ['#f3d9a8', '#bcd5f7', '#f4b9b2', '#c9e8c4', '#e3c6f2', '#f7e3a1'];
+const initials = (n) => { const w = String(n || '?').trim().split(/\s+/); return esc((w[0]?.[0] || '?') + (w[1]?.[0] || w[0]?.[1] || '')); };
+const ini = (n) => `<span class="ini" style="background:${PALE[[...String(n || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % PALE.length]}">${initials(n)}</span>`;
+
+if (!key) gate(); else load().catch((e) => { if (e.message !== 'key') $('#app').innerHTML = `<div class="gate"><div><h1>משהו נתקע</h1><p>${esc(e.message)}</p><button class="btn" onclick="location.reload()">לנסות שוב</button></div></div>`; });
+async function load() {
+  W = await fetch(DATA, { cache: 'no-cache' }).then((r) => r.json());
+  W.characters.forEach((c) => (C[c.id] = c));
+  W.videos.forEach((v) => (V[v.id] = v));
+  await refresh();
+}
+async function refresh() { L = await api('list'); draw(); }
+
+// ---------- the frame: sidebar (desktop), tab bar (phone) ----------
+const TABS = [['overview', 'סקירה', 'home'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['comments', 'תגובות', 'comment'], ['stickers', 'סטיקרים', 'sticker'], ['story', 'סטורי של דמות', 'story'], ['video', 'סרטון חדש', 'video']];
+const openReq = () => L.requests.filter((r) => !r.done).length;
+const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
+function draw() {
+  const badge = { requests: openReq(), ideas: newIdeas() };
+  const mobileTab = ['comments', 'stickers', 'video'].includes(tab) ? 'content' : tab;
+  const title = { overview: 'סקירה', requests: 'פניות', ideas: 'רעיונות', comments: 'תגובות', stickers: 'סטיקרים', story: 'סטורי של דמות', video: 'סרטון חדש' }[tab];
+  $('#app').innerHTML = `<div class="app">
+    <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
+      <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
+      <nav class="nav foot"><a href="/stats/">${IC.stats}<span>הנתונים</span></a><a href="/wiki/" target="_blank">${IC.out}<span>לאתר</span></a></nav></aside>
+    <main class="main ${tab === 'overview' ? 'ov' : ''}"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : title}</h1><a href="/stats/" aria-label="הנתונים">${IC.stats}</a></div><div id="pane"></div></main>
+    <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['story', 'סטורי', 'story']].map(([k, l, i]) =>
+      `<button data-tab="${k === 'content' ? 'comments' : k}" class="${k === mobileTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav></div>`;
+  ({ overview, requests, ideas, comments, stickers, story, video })[tab]();
+  history.replaceState(null, '', '#' + tab);
+}
+const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
+// the phone's "תוכן": comments / stickers / new video in one place
+const segHtml = () => `<div class="seg">${[['comments', 'תגובות'], ['stickers', 'סטיקרים'], ['video', 'סרטון חדש']].map(([k, l]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const isPhone = () => matchMedia('(max-width: 900px)').matches;
+
+// ---------- overview ----------
+const RQ = { business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
+function contactPills(c) {
+  if (!c) return '';
+  const mail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c), tel = /^[+\d][\d\s-]{6,}$/.test(c);
+  if (mail) return `<a class="pill" href="mailto:${esc(c)}">${IC.mail}מייל</a>`;
+  if (tel) { const n = c.replace(/\D/g, ''); return `<a class="pill" href="https://wa.me/${esc(n.replace(/^0/, '972'))}" target="_blank" rel="noopener">${IC.wa}וואטסאפ</a><a class="pill" href="tel:${esc(c.replace(/[\s-]/g, ''))}">${IC.phone}התקשרות</a>`; }
+  return `<span class="pill">${esc(c)}</span>`;
+}
+const whoOf = (r) => r.name || r.nick || (r.contact && !/\d{6}/.test(r.contact) ? r.contact.split('@')[0] : '') || 'צופה';
+function overview() {
+  const day = 864e5, now = Date.now();
+  const comToday = L.comments.filter((c) => c.t && now - c.t < day && !c.char).length;
+  const comYest = L.comments.filter((c) => c.t && now - c.t >= day && now - c.t < 2 * day && !c.char).length;
+  const open = L.requests.filter((r) => !r.done).sort((a, b) => (b.t || 0) - (a.t || 0));
+  const reqNew = open.filter((r) => r.t && now - r.t < 2 * day).length;
+  const feed = [
+    ...L.comments.filter((c) => !c.hidden).map((c) => ({ t: c.t, face: c.char ? face(c.char) : fanFace(c), h: c.char ? `<bdi>${esc(c.nick)}</bdi> · תשובה בתגובות` : `תגובה חדשה · <bdi>${esc(c.nick)}</bdi>`, p: `"${esc(c.text)}"`, go: 'comments' })),
+    ...L.stickers.map((x) => ({ t: x.t, face: `<span class="vx-av"><img src="${esc(x.img)}" alt="" style="object-fit:contain;background:#16161b"></span>`, h: `סטיקר חדש: ${esc(x.text)}`, p: `${esc(x.nick || '')} · ${x.stampCount || 0} החתמות`, go: 'stickers' })),
+    ...(L.ideas || []).filter((x) => !x.hidden).map((x) => ({ t: x.t, face: (x.chars || []).length ? face(x.chars[0]) : fanFace(x), h: `רעיון: ${esc(x.text)}`, p: `${esc(x.nick || '')} · <bdi dir="ltr">+${x.votes || 0}</bdi>`, go: 'ideas' })),
+    ...L.stories.filter((x) => !x.hidden).map((x) => ({ t: x.t, face: face(x.char), h: `סטורי של ${esc(C[x.char]?.name || x.char)}`, p: esc(x.text || ''), go: 'story' })),
+  ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
+  $('#pane').innerHTML = `
+    <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קרה בשלומיוורס מאז הפעם הקודמת</p></div>
+      <div class="acts"><button class="btn" data-tab="video">${IC.video}להודיע על סרטון</button><button class="btn main" data-tab="story">${IC.plus}סטורי חדש</button></div></div>
+    <div class="kpis">
+      <button class="kpi" data-tab="overview">${IC.people}<span>רשומים</span><b>${fmt(L.fans)}</b><small><bdi dir="ltr">+${fmt(L.fansWeek || 0)}</bdi> השבוע</small></button>
+      <button class="kpi" data-tab="requests">${IC.inbox}<span>פניות פתוחות</span><b>${open.length}</b><small>${reqNew} חדשות</small></button>
+      <button class="kpi" data-tab="ideas">${IC.idea}<span>רעיונות חדשים</span><b>${newIdeas()}</b><small>השבוע</small></button>
+      <button class="kpi" data-tab="comments">${IC.comment}<span>תגובות היום</span><b>${comToday}</b><small><bdi dir="ltr">${comToday - comYest >= 0 ? '+' : ''}${comToday - comYest}</bdi> מאתמול</small></button>
+    </div>
+    <div class="cols">
+      <div class="card"><div class="card-h"><h2>צריך את תשומת הלב שלך</h2>${open.length ? `<button data-tab="requests">הצג הכל ${IC.back}</button>` : ''}</div>
+        <div class="rows">${open.slice(0, 3).map((r) => { const [l, cls] = RQ[r.kind] || RQ.contact; return `<div class="row">${ini(whoOf(r))}<div class="body">
+          <div class="l1"><span class="tag ${cls}">${l}</span><b>${esc(r.kind === 'business' ? [r.company, r.name].filter(Boolean).join(' · ') : whoOf(r))}</b></div>
+          <div class="l2">${esc(r.text)}</div>${r.contact ? `<div class="pills">${contactPills(r.contact)}</div>` : ''}</div><time>${ago(r.t)}</time></div>`; }).join('') || '<div class="empty">אין פניות פתוחות. שקט.</div>'}</div></div>
+      <div class="card"><div class="card-h"><h2>פעילות אחרונה</h2></div>
+        <div class="rows">${feed.map((x) => `<button class="row" data-tab="${x.go}" style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`).join('') || '<div class="empty">עוד אין פעילות.</div>'}</div></div>
+    </div>
+    ${L.autoSince ? `<p class="hint" style="margin-top:16px">סרטונים חדשים יוצאים לעוקבים לבד (בדיקה כל רבע שעה). אפשר גם לשלוח ידנית מ"סרטון חדש".</p>` : ''}`;
+}
+
+// ---------- requests (the inbox) ----------
+function requests() {
+  const all = L.requests.slice().sort((a, b) => (a.done - b.done) || ((b.t || 0) - (a.t || 0)));
+  const count = (k) => all.filter((r) => !r.done && (k === 'all' || r.kind === k)).length;
+  const q = rqQuery.trim().toLowerCase();
+  const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick].join(' ').toLowerCase().includes(q)));
+  $('#pane').innerHTML = `
+    <div class="top"><div><h1>פניות</h1><p>כל מה שהגיע אליך, לפי סוג. הפתוחות קודם.</p></div>
+      <label class="search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
+    <div class="chips">${[['all', 'הכל'], ...Object.entries(RQ).map(([k, [l]]) => [k, l])].map(([k, l]) => `<button data-rqk="${k}" class="${k === rqKind ? 'on' : ''}">${l}${count(k) ? `<small>${count(k)}</small>` : ''}</button>`).join('')}</div>
+    <div class="msgs">${list.map((r) => { const [l, cls, color] = RQ[r.kind] || RQ.contact; return `<div class="msg ${r.done ? 'done' : ''}" style="--k:${color}">${ini(whoOf(r))}
+      <div class="body"><div class="l1"><div class="who"><b>${esc(whoOf(r))}</b><small>${ago(r.t)}${r.from === 'community' ? ' · מעמוד הקהילה' : r.from === 'chat' ? ' · מהצ׳אט' : r.kind === 'business' ? ' · מעמוד העסקים' : ''}</small></div><span class="tag ${cls}">${l}</span></div>
+        ${r.kind === 'business' && (r.company || r.topic) ? `<div class="co">${esc(r.company || '')}${r.topic ? ` · ${esc(r.topic)}` : ''}</div>` : ''}
+        <p class="txt">${esc(r.text)}</p>
+        ${r.kind === 'bug' ? `<div class="tech">${r.page ? `<a href="${esc(r.page)}" target="_blank">${esc(r.page)}</a><br>` : ''}${esc(r.screen || '')} · ${esc(r.ua || '')}${(r.errors || []).length ? `<br>${r.errors.map(esc).join(' | ')}` : ''}</div>` : ''}
+        ${r.contact ? `<div class="pills">${contactPills(r.contact)}</div>` : ''}</div>
+      <button class="check" data-done="${r.id}" data-on="${r.done ? 0 : 1}"><span>${IC.check}</span>${r.done ? 'טופל' : 'לסמן טופל'}</button></div>`; }).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`;
+  const inp = $('#rq-q');
+  inp.oninput = () => { rqQuery = inp.value; const pos = inp.selectionStart; requests(); const n = $('#rq-q'); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+// ---------- ideas ----------
+function ideas() {
+  const KIND = { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' };
+  const list = (L.ideas || []).slice().sort((a, b) => (a.hidden - b.hidden) || ((b.votes || 0) - (a.votes || 0)));
+  $('#pane').innerHTML = `<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר.</p></div><a class="btn" href="/wiki/#/community" target="_blank">${IC.out}לקיר באתר</a></div>
+    <div>${list.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body">
+      <b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.votes || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <span class="tag">${KIND[x.kind] || ''}</span>${x.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}</p></div>
+      ${hideBtn('idea', x)}</div>`).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`;
+}
+const hideBtn = (kind, x) => `<button class="btn" data-hide="${kind}" data-id="${x.id}" data-on="${x.hidden ? 0 : 1}">${x.hidden ? 'להחזיר' : 'להסתיר'}</button>`;
+
+// ---------- comments / stickers ----------
+function comments() {
+  $('#pane').innerHTML = `${isPhone() ? segHtml() : ''}<div class="top"><div><h1>תגובות</h1><p>כל התגובות, החדשות קודם. תגובה שמסתירים נעלמת מהאתר.</p></div></div>
+    <div>${L.comments.map((c) => `<div class="item ${c.hidden ? 'off' : ''}">${c.char ? face(c.char) : fanFace(c)}
+      <div class="body"><b>${esc(c.nick)}</b> ${c.char ? '<span class="tag or">דמות</span>' : ''}${c.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${c.removedBy === 'fan' ? ' <span class="tag">נמחק ע״י המגיב</span>' : ''}
+        <small> · ${ago(c.t)} · <a href="/wiki/#/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`;
+}
+function stickers() {
+  $('#pane').innerHTML = `${isPhone() ? segHtml() : ''}<div class="top"><div><h1>סטיקרים</h1><p>הסטיקרים שהצופים פרסמו. סטיקר שמסתירים יורד מהאתר.</p></div></div>
+    <div>${L.stickers.map((x) => `<div class="item ${x.hidden ? 'off' : ''}"><img class="st" src="${esc(x.img)}" alt="">
+      <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/wiki/#/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
+}
+
+// ---------- a character's story ----------
+function story() {
+  const chars = W.characters.filter((c) => c.img);
+  $('#pane').innerHTML = `<div class="top"><div><h1>סטורי של דמות</h1><p>משפט בקול של הדמות, ואם רוצים תמונה או סרטון קצר. העוקבים מקבלים התראה.</p></div></div>
+    <div class="card story"><div>
+      <span class="lbl" style="margin-top:0">מי מעלה?</span>
+      <div class="faces">${chars.map((c) => `<button data-pick="${c.id}" class="${pick === c.id ? 'on' : ''}">${face(c.id).replace(' ring', '')}${esc(c.name)}</button>`).join('')}</div>
+      <span class="lbl">מה קורה לדמות?</span>
+      <textarea id="st-text" maxlength="600" placeholder="משפט אחד, בקול של הדמות"></textarea>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px">
+        <label class="file">${IC.file}תמונה או סרטון קצר<input type="file" id="st-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"></label><span id="st-fname" class="hint"></span></div>
+      <div style="margin-top:14px"><label class="toggle"><input type="checkbox" id="st-notify" checked><i></i>לשלוח התראה לעוקבים</label></div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px"><button class="btn main" id="st-go" ${pick ? '' : 'disabled'}>${IC.plus}לפרסם</button><span id="st-msg" class="hint"></span></div>
+    </div><div class="phone" id="st-prev"></div></div>
+    <div class="card-h" style="margin-top:24px"><h2>סטוריז שעלו</h2></div>
+    <div>${L.stories.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${face(x.char)}<div class="body"><b>${esc(C[x.char]?.name || x.char)}</b> <small>· ${ago(x.t)}</small>${x.media ? ` <span class="tag">${x.media.kind === 'video' ? 'סרטון' : 'תמונה'}</span>` : ''}<p>${esc(x.text)}</p></div>${hideBtn('story', x)}</div>`).join('') || '<div class="empty">עוד אין.</div>'}</div>`;
+  const prev = () => {
+    const text = $('#st-text').value.trim();
+    const media = file ? (file.type.startsWith('video/') ? `<video class="sv-media" src="${URL.createObjectURL(file)}" autoplay muted loop playsinline></video>` : `<img class="sv-media" src="${URL.createObjectURL(file)}" alt="">`) : '';
+    $('#st-prev').innerHTML = pick ? `<div class="sv-box" style="--c:${C[pick].color || '#ff6a1f'}">
+      <div class="sv-head">${face(pick)}<span><b>${esc(C[pick].name)}</b><br><small>עכשיו</small></span></div>
+      ${media ? `${media}<div class="sv-shade"></div>${text ? `<div class="sv-text">${esc(text)}</div>` : ''}` : `<div class="sv-plain"><div class="sv-text">${esc(text || '...')}</div></div>`}</div>` : '<div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בחרו דמות</div></div>';
+  };
+  prev();
+  $('#st-text').oninput = prev;
+  $('#st-file').onchange = (e) => { file = e.target.files[0] || null; $('#st-fname').textContent = file ? file.name : ''; prev(); };
+  $('#st-go').onclick = async () => {
+    const text = $('#st-text').value.trim();
+    if (!pick || (!text && !file)) return;
+    const fd = new FormData();
+    fd.append('char', pick); fd.append('text', text); fd.append('notify', $('#st-notify').checked ? 'yes' : 'no');
+    if (file) fd.append('file', file, file.name);
+    $('#st-go').disabled = true; $('#st-msg').textContent = 'מעלה…';
+    try {
+      const r = await api('story', fd, true);
+      file = null;
+      $('#st-msg').innerHTML = `<span class="ok">עלה. ${r.fans} עוקבים קיבלו את זה בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.</span>`;
+      setTimeout(refresh, 1400);
+    } catch (e) { $('#st-go').disabled = false; $('#st-msg').textContent = e.message === 'file_size' ? 'הקובץ גדול מדי (עד 30MB)' : 'לא עלה: ' + e.message; }
+  };
+}
+
+// ---------- new video ----------
+function video() {
+  const list = W.videos.filter((v) => !v.archive && !v.url).slice(0, 30);
+  $('#pane').innerHTML = `${isPhone() ? segHtml() : ''}<div class="top"><div><h1>סרטון חדש</h1><p>סרטונים חדשים יוצאים לעוקבים לבד, בדיקה כל רבע שעה. כאן רואים מה כבר נשלח, ואפשר לשלוח שוב.</p></div></div>
+    <div>${list.map((v) => {
+      const done = L.announced[v.id];
+      return `<div class="item">${v.poster ? `<img class="th" src="${abs(v.poster)}" alt="">` : ''}<div class="body"><b>${esc(v.title)}</b>
+        <p>${(v.cast || []).map((id) => esc(C[id]?.name || id)).join(', ') || '&nbsp;'} · ${esc(v.date || '')}</p></div>
+        ${done ? `<span class="tag or">נשלח ${ago(done)}</span><button class="btn" data-announce="${v.id}" data-again="1">לשלוח שוב</button>` : `<button class="btn main" data-announce="${v.id}">להודיע</button>`}</div>`;
+    }).join('')}</div>`;
+}
+
+// ---------- clicks ----------
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.tab) { if (b.dataset.tab !== tab || b.classList.contains('kpi') || b.classList.contains('row')) go(b.dataset.tab); }
+  else if (b.dataset.rqk) { rqKind = b.dataset.rqk; requests(); }
+  else if (b.dataset.pick) { pick = b.dataset.pick; const t = $('#st-text')?.value; story(); $('#st-text').value = t || ''; $('#st-text').oninput(); }
+  else if (b.dataset.hide) { b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
+  else if (b.dataset.done) { b.disabled = true; await api('done', { id: b.dataset.done, done: b.dataset.on === '1' }).catch(() => {}); refresh(); }
+  else if (b.dataset.announce) {
+    const v = V[b.dataset.announce];
+    b.disabled = true; b.textContent = 'שולח…';
+    try { const r = await api('announce', { videoId: v.id, video: { title: v.title, cast: v.cast, poster: v.poster }, again: !!b.dataset.again }); L.announced[v.id] = Date.now(); b.outerHTML = `<span class="tag or">נשלח ל-${r.fans} עוקבים</span>`; }
+    catch (x) { b.disabled = false; b.textContent = x.message === 'already' ? 'כבר נשלח' : 'לא נשלח'; }
+  }
+});
+</script>
+</body>
+</html>

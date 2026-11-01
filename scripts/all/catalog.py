@@ -25,9 +25,9 @@ GROUPS = [
     ('new', 'חדש / לא ממוין'),
 ]
 FOLDER = {
-    'links': 'verse', 'wiki': 'verse', 'stats': 'verse', 'all': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
+    'links': 'verse', 'wiki': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
-    'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters',
+    'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
     'wholos': 'wholos', 'wholos-app': 'wholos', 'matzav': 'wholos', 'matzav-app': 'wholos', 'marketing-hub': 'wholos',
     'brand-strip': 'wholos', 'uploads': 'wholos', 'meeting-sergio': 'wholos', 'trial-options': 'wholos', 'wellbeing': 'wholos',
@@ -75,6 +75,10 @@ EXTRA = [
     ('other_sites', 'Wholos - Firebase console (wholos-app, c:\\workspace\\wholos)', 'https://console.firebase.google.com/project/wholos-app/overview', 'קונסול'),
     # servers (Cloud Run / functions on boostmind-b052c)
     ('servers', 'wikiChat - הצ\'אט של הדמויות', 'https://console.cloud.google.com/run/detail/europe-west1/wikichat/metrics?project=boostmind-b052c', 'פונקציה'),
+    ('servers', 'verse - חשבונות, תגובות, סטיקרים, קהילה (שלומיוורס 2.0)', 'https://console.cloud.google.com/run/detail/europe-west1/verse/metrics?project=boostmind-b052c', 'פונקציה'),
+    ('servers', 'verseOnComment - הדמויות עונות בתגובות', 'https://console.cloud.google.com/run/detail/me-west1/verseoncomment/metrics?project=boostmind-b052c', 'פונקציה'),
+    ('servers', 'verseOwner - מאחורי הקלעים', 'https://console.cloud.google.com/run/detail/europe-west1/verseowner/metrics?project=boostmind-b052c', 'פונקציה'),
+    ('servers', 'verseAutoAnnounce - התראה על סרטון חדש לעוקבים (כל 15 דק\')', 'https://console.cloud.google.com/run/detail/europe-west1/verseautoannounce/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'track + stats - האנליטיקס', 'https://console.cloud.google.com/run/detail/europe-west1/track/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'siteLead - טפסים מאתרי הדמויות', 'https://console.cloud.google.com/run/detail/europe-west1/sitelead/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'techietechApply - קורות חיים לטקי-טק', 'https://console.cloud.google.com/run/detail/europe-west1/techietechapply/metrics?project=boostmind-b052c', 'פונקציה'),

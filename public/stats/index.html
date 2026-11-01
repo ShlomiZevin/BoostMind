@@ -93,11 +93,16 @@ let range = 1, names = { c: {}, v: {} }, data = null;
 // the labels people see for what was done
 const EV = { view: 'נכנס לדף', character: 'פתח דמות', chat_open: 'פתח שיחה', chat_message: 'שלח הודעה', chat_switch: 'העביר לשיחה', ask: 'שאל בתיבה',
   video: 'צפה בסרטון', site: 'עבר לאתר', contact: 'פנה לשת״פ', social: 'עבר לרשת', search: 'חיפש', click: 'לחץ על קישור',
-  game_open: 'פתח משחק', game_start: 'התחיל סיבוב', game_over: 'סיים סיבוב', song: 'השמיע שיר' };
+  game_open: 'פתח משחק', game_start: 'התחיל סיבוב', game_over: 'סיים סיבוב', song: 'השמיע שיר',
+  // the Shlomiverse 2.0 (accounts, comments, stickers, the community)
+  sign_in: 'נכנס עם Google', follow: 'עקב אחרי דמות', push_optin: 'התראות', comment: 'הגיב', like: 'אהב תגובה', save: 'שמר סרטון', share: 'שיתף',
+  sticker_create: 'הכין סטיקר', stamp: 'החתים סטיקר', story_view: 'צפה בסטורי', request: 'פנה לשלומי', idea: 'הציע רעיון', vote: 'הצביע לרעיון', chat_new: 'התחיל שיחה חדשה' };
+const RQ = { video: 'בקשת סרטון', contact: 'פנייה', business: 'עסקים', bug: 'משהו לא עובד' };
+const IDEA = { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' };
 const SITE = { links: 'דף הלינקים', wiki: 'הוויקי', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'micro-comedy': 'שת״פ - מותגים', 'shlomi-zevin': 'שת״פ - מלונות', other: 'אחר' };
 const SRC = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
 const GAME = { ketoret: 'אבני בניין: מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20', 'shekel-tov': 'שקל טוב', 'yosef': 'יוסף מוקיר שבת', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };   // games and songs (/hani-games/)
-const label = (e, x) => e === 'contact' ? (x === 'whatsapp' ? 'WhatsApp' : 'מייל') : (names.c[x]?.name || names.v[x] || SITE[x] || GAME[x] || SRC[x] || (x === 'guide' ? 'המדריך' : x));
+const label = (e, x) => e === 'request' ? (RQ[x] || x) : e === 'idea' ? (IDEA[x] || x) : e === 'contact' ? (x === 'whatsapp' ? 'WhatsApp' : 'מייל') : (names.c[x]?.name || names.v[x] || SITE[x] || GAME[x] || SRC[x] || (x === 'guide' ? 'המדריך' : x));
 
 if (KEY) load(); else noKey();
 
@@ -139,7 +144,7 @@ function dayList() {   // every day in the range, including empty ones
 function draw() {
   const days = dayList(), n = (k) => sum(days, (d) => d.n?.[k]);
   const k = [['מבקרים', sum(days, (d) => d.visitors)], ['מבקרים חדשים', sum(days, (d) => d.new_visitors)], ['צפיות בדפים', n('view')],
-    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['סיבובי משחק', n('game_start')], ['פניות לשת״פ', n('contact')]];
+    ['שיחות שנפתחו', n('chat_open')], ['הודעות לדמויות', n('chat_message')], ['צפיות בסרטונים', n('video')], ['סיבובי משחק', n('game_start')], ['פניות לשת״פ', n('contact')], ['כניסות לחשבון', n('sign_in')], ['רעיונות לשלומיוורס', n('idea')]];
   const chars = {};
   for (const [ev, col] of [['character', 0], ['chat_open', 1], ['chat_message', 2]]) for (const [id, v] of Object.entries(byPrefix(days, ev))) (chars[id] ||= [0, 0, 0])[col] += v;
   const charRows = Object.entries(chars).sort((a, b) => (b[1][2] + b[1][1] + b[1][0]) - (a[1][2] + a[1][1] + a[1][0]));
@@ -170,6 +175,12 @@ function draw() {
       ${rank('פניות ורשתות', { ...byPrefix(days, 'contact'), ...byPrefix(days, 'social') }, 'לחיצות')}
       ${rank('מה שאלו בתיבה', byPrefix(days, 'ask'), 'שאלות')}
       ${rank('חיפושים אחרונים', sCount, 'פעמים')}
+    </div>
+    <div class="grid2">
+      ${rank('הקהילה והחשבונות', Object.fromEntries(['sign_in', 'follow', 'push_optin', 'comment', 'like', 'save', 'share', 'sticker_create', 'stamp', 'story_view', 'idea', 'vote', 'chat_new'].map((e) => [EV[e], n(e)])), 'פעולות', {})}
+      ${rank('פניות לשלומי', Object.fromEntries(Object.entries(byPrefix(days, 'request')).map(([k, v]) => [RQ[k] || k, v])), 'פניות', {})}
+      ${rank('על מי עוקבים', byPrefix(days, 'follow'), 'עוקבים חדשים')}
+      ${rank('איזה רעיונות', Object.fromEntries(Object.entries(byPrefix(days, 'idea')).map(([k, v]) => [IDEA[k] || k, v])), 'רעיונות', {})}
     </div>
     ${chatsBox()}
     <div class="box" style="margin-top:14px"><h2>מה קורה עכשיו<small>${data.events.length} הפעולות האחרונות · שעון ישראל</small></h2>

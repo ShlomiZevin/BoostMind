@@ -1,7 +1,7 @@
-# Character profile: הבחור מהמכון (The gym guy)
+# Character profile: אבי (The gym guy)
 Read this before you write anything for or about this character - it is who they are. Next I'll tell you what we're writing.
 
-**מנהל עסק פרטי (בלונים לאירועים) מתוך חדר הכושר** · המכון · also: gym
+**מנהל עסק פרטי (בלונים לאירועים) מתוך חדר הכושר** · המכון · also: gym, הבחור מהמכון
 
 ## Who they are
 הבחור הזה שמנהל את העסק הפרטי שלו מהמכון, וכל המכון כבר יודע מה סיגל לוקחת. הוא מתווכח איתה ברמקול על חבילת ה-200 מול ה-400, על הליום ועל מע״מ, בזמן שמסביב מרימים משקולות.
@@ -45,6 +45,10 @@ Voice in the edit: hall - preset hall (הדהוד חדר, סליידרים Room 
 
 ## People around them
 - סיגל (לקוחה של הבחור מהמכון (בטלפון, ברמקול)): הלקוחה שלו ברמקול
+
+## Their website
+https://shlomiverse.com/avi-balloons/
+public/avi-balloons - אבי בלונים ואירועים, "סוגרים קשת, סוגרים פינה": אתר עסק בלונים קטן כמו שהוא היה בונה (באנר מבצעים, וואטסאפ). הכוכב: חבילה בלי הליום ב-149 ₪ - תולים מהתקרה כלפי מטה, "מה ההבדל? אותו דבר בדיוק"; בסיס 200, 400, פרימיום 800 (היחידה עם הליום - "400 ₪ יותר בשביל הגז"). מע"מ זה המדינה, "בינינו? אני לא מרוויח עליכם", ביקורת מסיגל. CTA: הצעת מחיר - טופס למייל (siteLead "avi-balloons").
 
 ## Already done - topics and storylines (don't repeat)
 - הבלונים של סיגל: חבילת 200 מול 400, "בלי הליום!", "אני לא מרוויח עלייך", מע״מ זה המדינה (gym-1, script: gym)

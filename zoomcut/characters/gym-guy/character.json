@@ -1,9 +1,10 @@
 {
   "id": "gym-guy",
-  "name": "הבחור מהמכון",
+  "name": "אבי",
   "name_en": "The gym guy",
   "aka": [
-    "gym"
+    "gym",
+    "הבחור מהמכון"
   ],
   "world": "המכון",
   "role": "מנהל עסק פרטי (בלונים לאירועים) מתוך חדר הכושר",
@@ -78,5 +79,9 @@
     "c:/workspace/BoostMind/zoomcut/episodes/gym-1/captions.txt",
     "c:/workspace/BoostMind/zoomcut/scripts/gym.txt"
   ],
-  "portrait": "portrait.jpg"
+  "portrait": "portrait.jpg",
+  "site": {
+    "url": "https://shlomiverse.com/avi-balloons/",
+    "notes": "public/avi-balloons - אבי בלונים ואירועים, \"סוגרים קשת, סוגרים פינה\": אתר עסק בלונים קטן כמו שהוא היה בונה (באנר מבצעים, וואטסאפ). הכוכב: חבילה בלי הליום ב-149 ₪ - תולים מהתקרה כלפי מטה, \"מה ההבדל? אותו דבר בדיוק\"; בסיס 200, 400, פרימיום 800 (היחידה עם הליום - \"400 ₪ יותר בשביל הגז\"). מע\"מ זה המדינה, \"בינינו? אני לא מרוויח עליכם\", ביקורת מסיגל. CTA: הצעת מחיר - טופס למייל (siteLead \"avi-balloons\")."
+  }
 }

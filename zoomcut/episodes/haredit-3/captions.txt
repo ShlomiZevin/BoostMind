@@ -1,4 +1,4 @@
-# Subtitles from scripts/haredit-3.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes) order:2813466550
+# Subtitles from scripts/haredit-3.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes) order:3a3fe27646
 == 4EC0A1B4-3ED8-4120-BB9F-31180E7CC190
 אוי ואבוי, שרולי החליק על הגדויילים של יענקי!
 == 550D39CD-F66C-4E1A-8F40-DF7D01023D8F

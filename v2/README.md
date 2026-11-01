@@ -1,8 +1,9 @@
-# Shlomiverse v2 - local build
+# Shlomiverse v2
 
 The plan: `Documents\shlomiverse-v2-design\PLAN.md` (phases, decisions). Mockups he approved: the same folder and
-`phase1\`. **Everything here runs locally only** until Shlomi approves going live. Nothing in this folder is deployed by
-`scripts/deploy.sh` (it deploys `public/`), and `techietech-api/index.js` loads `verse.js` only inside the emulator.
+`phase1\`. **Live since 2026-11-01** on shlomiverse.com. `v2/site/` is the working copy: change it here, check it locally
+with `node v2/dev.mjs`, then copy the changed files into `public/` and `bash scripts/deploy.sh` (`scripts/deploy.sh`
+deploys only `public/`). The functions: `firebase deploy --only functions:verse,...` from `techietech-api/`.
 
 ## Run it
 
@@ -39,23 +40,12 @@ one gpt-image-2.5 call at medium). Analytics stay local (a stub `t.js`).
 Data (Firestore): `fans/{uid}` (+ `saves`, `likes`, `stamps`, `votes`, `notes`), `comments`, `stickers`, `stories`, `videoStats`,
 `pushSubs`, `quota`, `requests` (kind: video / contact / business / bug), `ideas`, `announced`. Fans only read; every write goes through the functions.
 
-## Go live (only with his OK)
+## Live (2026-11-01)
 
-1. Web config: `firebase apps:sdkconfig web` -> `LIVE_CONFIG` in `v2/site/verse/fb.js` (authDomain `shlomiverse.com`).
-   Firebase Auth: Google provider on, `shlomiverse.com` in the authorized domains.
-2. Secret `VERSE_VAPID_PRIVATE` = the private key in `techietech-api/.env.local` (he must allow creating secrets).
-   The public half is already in `fb.js` and `verse.js`.
-3. `techietech-api/index.js`: drop the `FUNCTIONS_EMULATOR` condition; `firebase deploy --only functions:verse,functions:verseOnComment,functions:verseOwner,functions:verseAutoAnnounce` from `techietech-api/`. Tell boostmind-dd first (shared folder).
-4. Firestore: add `v2/firestore.rules` blocks to the root `firestore.rules`, the indexes to a root `firestore.indexes.json`
-   (+ `firebase.json`), TTL on `quota.exp`; `firebase deploy --only firestore`.
-5. Bucket `shlomiverse-media`: CORS GET from shlomiverse.com (the sticker grabs the video frame into a canvas), and the
-   functions' service account may write `verse/`.
-6. Deploy `functions:stats` too (analytics.js knows the new actions). Copy `v2/site/*` into `public/` (`stats/index.html`:
-   re-apply onto the current `public/stats/index.html` if it changed since its `.base-md5`). `wiki/index.html`: re-apply the hooks onto the current `public/wiki/index.html` if it
-   changed since `.base-md5`. Then `bash scripts/deploy.sh`.
-7. New videos announce themselves: `verseAutoAnnounce` checks the wiki's list every 15 minutes and notifies the followers of
-   any new (non-archive) video; its first run only records what exists (no back-catalogue flood). The owner page's
-   "סרטון חדש" stays for sending again.
-8. List it: `/all/` (`python scripts/all/catalog.py`), and test push on an iPhone from the home-screen icon.
+Done: the web config in `fb.js`, shlomiverse.com in Firebase Auth's authorized domains (www forwards there), the secret
+`VERSE_VAPID_PRIVATE`, `verse.js` always loaded (`verseOnComment` runs in me-west1, Firestore's region), the fans' rules
+and indexes in the root `firestore.rules` / `firestore.indexes.json` (TTL on `quota.exp`), `v2/site/*` copied into
+`public/`, `/all/` lists the pages and the functions. `verseAutoAnnounce`'s first run only recorded the existing videos.
+Still to do by hand: test push on an iPhone from the home-screen icon.
 
 Not built yet (lower priority in the plan): the cast strip and the "Script" tab on the video page.

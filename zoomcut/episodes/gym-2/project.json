@@ -328,14 +328,15 @@
             "anchor": "t",
             "w": 940
           },
-          "text": "פוב: הבחור הזה שמנהל את העסק הפרטי מהמכון – וסיגל רוצה הנחה",
+          "text": "פוב: הבחור הזה שמנהל את העסק הפרטי מהמכון – חלק 2",
           "style": "pov",
           "font": "font.assistant",
           "theme": "dark",
-          "size": 77,
+          "size": 72,
           "padX": 40,
           "padY": 14,
-          "box_opacity": 0.75
+          "box_opacity": 0.75,
+          "user": true
         }
       ]
     },
@@ -906,21 +907,56 @@
       },
       "items": [
         {
-          "id": "sg0",
+          "id": "sig0",
           "from": 0,
-          "dur": 29.2,
+          "dur": 55.5,
+          "asset": "s.0",
+          "in": 0.1,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig1",
+          "from": 158.5,
+          "dur": 39.2,
+          "asset": "s.0",
+          "in": 3.2,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig2",
+          "from": 307.2,
+          "dur": 39.2,
           "asset": "s.0",
           "in": 6.2,
-          "rate": 1.4375,
-          "gain": 9.75,
+          "rate": 1.3,
+          "gain": 10.4,
           "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 0
-          },
+          "fade_out": 0.2,
           "fx": {
             "filter": "speakerphone",
-            "pitch": -2.42,
+            "pitch": 1.5,
             "room": 0.25,
             "roomSize": 0.9,
             "level": -1
@@ -928,21 +964,18 @@
           "user": true
         },
         {
-          "id": "sg1",
-          "from": 133.5,
-          "dur": 18.8,
-          "asset": "s.1",
+          "id": "sig3",
+          "from": 420.7,
+          "dur": 41.5,
+          "asset": "s.0",
           "in": 10.5,
-          "rate": 1.4375,
+          "rate": 1.3,
           "gain": 10.4,
           "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 1
-          },
+          "fade_out": 0.2,
           "fx": {
             "filter": "speakerphone",
-            "pitch": -2.42,
+            "pitch": 1.5,
             "room": 0.25,
             "roomSize": 0.9,
             "level": -1
@@ -950,131 +983,113 @@
           "user": true
         },
         {
-          "id": "sg2",
-          "from": 445.5,
-          "dur": 18.8,
-          "asset": "s.2",
-          "in": 4.5,
-          "rate": 1.4375,
-          "gain": 11.05,
-          "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 2
-          },
-          "fx": {
-            "filter": "speakerphone",
-            "pitch": -2.42,
-            "room": 0.25,
-            "roomSize": 0.9,
-            "level": -1
-          },
-          "user": true
-        },
-        {
-          "id": "sg3",
-          "from": 552,
-          "dur": 25,
-          "asset": "s.3",
-          "in": 18.6,
-          "rate": 1.4375,
-          "gain": 10.4,
-          "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 3
-          },
-          "fx": {
-            "filter": "speakerphone",
-            "pitch": -2.42,
-            "room": 0.25,
-            "roomSize": 0.9,
-            "level": -1
-          },
-          "user": true
-        },
-        {
-          "id": "sg4",
-          "from": 623.7,
-          "dur": 17.7,
-          "asset": "s.4",
-          "in": 11.95,
-          "rate": 1.4375,
-          "gain": 11.05,
-          "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 4
-          },
-          "fx": {
-            "filter": "speakerphone",
-            "pitch": -2.42,
-            "room": 0.25,
-            "roomSize": 0.9,
-            "level": -1
-          },
-          "user": true
-        },
-        {
-          "id": "sg5",
-          "from": 707,
-          "dur": 23,
-          "asset": "s.5",
-          "in": 0.1,
-          "rate": 1.4375,
-          "gain": 10.4,
-          "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 5
-          },
-          "fx": {
-            "filter": "speakerphone",
-            "pitch": -2.42,
-            "room": 0.25,
-            "roomSize": 0.9,
-            "level": -1
-          },
-          "user": true
-        },
-        {
-          "id": "sg6",
-          "from": 829.2,
-          "dur": 10.4,
-          "asset": "s.6",
-          "in": 12.2,
-          "rate": 1.4375,
-          "gain": 11.05,
-          "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 6
-          },
-          "fx": {
-            "filter": "speakerphone",
-            "pitch": -2.42,
-            "room": 0.25,
-            "roomSize": 0.9,
-            "level": -1
-          },
-          "user": true
-        },
-        {
-          "id": "sg7",
-          "from": 1002,
-          "dur": 25,
-          "asset": "s.7",
+          "id": "sig4",
+          "from": 538,
+          "dur": 45,
+          "asset": "s.0",
           "in": 14.8,
-          "rate": 1.4375,
+          "rate": 1.3,
           "gain": 10.4,
           "fade_in": 0.04,
-          "fade_out": 0.12,
-          "ref": {
-            "sound": 7
-          },
+          "fade_out": 0.2,
           "fx": {
             "filter": "speakerphone",
-            "pitch": -2.42,
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig5",
+          "from": 612.2,
+          "dur": 36,
+          "asset": "s.0",
+          "in": 18.4,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig6",
+          "from": 685.7,
+          "dur": 41.5,
+          "asset": "s.0",
+          "in": 12.3,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig7",
+          "from": 821.7,
+          "dur": 18.5,
+          "asset": "s.0",
+          "in": 8.6,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig8",
+          "from": 951.6,
+          "dur": 34.6,
+          "asset": "s.0",
+          "in": 19.9,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
+            "room": 0.25,
+            "roomSize": 0.9,
+            "level": -1
+          },
+          "user": true
+        },
+        {
+          "id": "sig9",
+          "from": 1000.2,
+          "dur": 36,
+          "asset": "s.0",
+          "in": 0.9,
+          "rate": 1.3,
+          "gain": 10.4,
+          "fade_in": 0.04,
+          "fade_out": 0.2,
+          "fx": {
+            "filter": "speakerphone",
+            "pitch": 1.5,
             "room": 0.25,
             "roomSize": 0.9,
             "level": -1
@@ -1276,7 +1291,7 @@
       "muted": false
     }
   ],
-  "rev": 73,
+  "rev": 100,
   "builder": {
     "kind": "solo",
     "from": "lesson.py"
@@ -1288,7 +1303,7 @@
     "gym-guy",
     "sigal"
   ],
-  "saved": 1793526349764,
+  "saved": 1793528417302,
   "notes": [
     {
       "id": "nmvxmkkbg",

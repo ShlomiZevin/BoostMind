@@ -5,17 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>שלומיוורס · הוויקי של הדמויות</title>
 <meta name="description" content="כל הדמויות, כל הסרטונים, ואפשר לדבר עם כולן.">
-<meta property="og:title" content="שלומיוורס · הוויקי של הדמויות">
+<meta property="og:title" content="שלומיוורס">
 <meta property="og:description" content="כל הדמויות, כל הסרטונים, ואפשר לדבר עם כולן.">
+<!-- the link preview (WhatsApp / Facebook / X): the planet logo over the characters (scripts/v2-design/og.mjs) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="שלומיוורס">
+<meta property="og:locale" content="he_IL">
+<meta property="og:url" content="https://shlomiverse.com/wiki/">
+<meta property="og:image" content="https://shlomiverse.com/verse/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="שלומיוורס - כל הדמויות של שלומי זוין">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://shlomiverse.com/verse/og.jpg">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <script>try { const t = localStorage.getItem('wiki-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<!-- the Shlomiverse as an app on the home screen + push (v2: /manifest.webmanifest, /sw.js, /verse/) -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b0b0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="שלומיוורס">
+<link rel="apple-touch-icon" href="/verse/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/verse/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/verse/favicon-192.png">
+<link rel="icon" href="/verse/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/verse/verse.css">
 <style>
   :root {
     --bg: #0b0b0e; --card: #15151a; --card2: #1d1d23; --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.16);
-    --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff5b3a; --on-accent: #fff; --shade: rgba(0,0,0,.62);
+    --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff6a1f; --on-accent: #fff; --shade: rgba(0,0,0,.62);
     --r: 16px; color-scheme: dark;
   }
   :root[data-theme="light"] {
@@ -284,18 +307,22 @@
 <body>
 <header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="#/"><span>שלומי<b>וורס</b></span><span class="pill">וויקי</span></a>
+    <a class="brand" href="#/"><img class="brand-logo" src="/verse/logo-160.png" alt=""><span>שלומי<b>וורס</b></span></a>
     <nav class="nav">
+      <a href="#/" data-nav="" class="nav-home">בית</a>
       <a href="#/characters" data-nav="characters">דמויות</a>
-      <a href="#/series" data-nav="series">סדרות</a>
+      <a href="#/series" data-nav="series" class="nav-series">סדרות</a>
       <a href="#/videos" data-nav="videos">סרטונים</a>
+      <a href="#/community" data-nav="community">קהילה</a>
       <a href="#/chat" data-nav="chat">צ'אט</a>
+      <a href="#/me" data-nav="me" class="nav-me">אני</a>
     </nav>
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="חיפוש דמות, סדרה או סרטון" autocomplete="off">
       <div class="results" id="results"></div>
     </div>
+    <span class="vx-top" id="vx-top"></span>
     <button class="icon-btn" id="theme" aria-label="מצב תצוגה">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
@@ -305,9 +332,11 @@
 <main id="app"></main>
 
 <footer>
-  <div class="wrap">
-    <span>שלומיוורס · הוויקי של הדמויות</span>
-    <span><a href="/links/">שלומי זוין</a> · <a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener">TikTok</a> · <a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.youtube.com/@shlomizevin" target="_blank" rel="noopener">YouTube</a></span>
+  <!-- short: who this is, where else to find him (each link says where it goes) -->
+  <div class="wrap foot">
+    <a class="foot-brand" href="#/"><img src="/verse/logo-160.png" alt=""><span>שלומיוורס</span><small>אנשים אמיתיים. יקום מקביל.</small></a>
+    <nav class="foot-links"><a href="#/community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a><a href="#/business"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg><span>לעסקים</span></a><a href="#" data-form="bug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><rect x="7" y="8.5" width="10" height="11" rx="5"/><path d="M12 12v7.5M4 13h3M17 13h3M5 8l2.5 2M19 8l-2.5 2"/></svg><span>משהו לא עובד?</span></a></nav>
+    <nav class="foot-soc" aria-label="שלומי ברשתות"><a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener" title="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.2 1.8 3.8 4 4v3.1c-1.5 0-2.9-.4-4-1.2v6.4a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v3.2a2.6 2.6 0 1 0 1.7 2.4V3z"/></svg><span>TikTok</span></a><a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM12 2.6c-2.6 0-2.9 0-3.9.1-3.5.2-5.3 1.9-5.4 5.4-.1 1-.1 1.3-.1 3.9s0 2.9.1 3.9c.2 3.5 1.9 5.3 5.4 5.4 1 .1 1.3.1 3.9.1s2.9 0 3.9-.1c3.5-.2 5.3-1.9 5.4-5.4.1-1 .1-1.3.1-3.9s0-2.9-.1-3.9c-.2-3.5-1.9-5.3-5.4-5.4-1-.1-1.3-.1-3.9-.1zm0 1.7c2.5 0 2.8 0 3.8.1 2.5.1 3.6 1.3 3.7 3.7.1 1 .1 1.3.1 3.8s0 2.8-.1 3.8c-.1 2.4-1.2 3.6-3.7 3.7-1 .1-1.3.1-3.8.1s-2.8 0-3.8-.1c-2.5-.1-3.6-1.3-3.7-3.7-.1-1-.1-1.3-.1-3.8s0-2.8.1-3.8C4.6 5.6 5.7 4.5 8.2 4.4c1-.1 1.3-.1 3.8-.1z"/></svg><span>Instagram</span></a><a href="https://www.youtube.com/@shlomizevin" target="_blank" rel="noopener" title="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15.1V8.9l5.2 3.1z"/></svg><span>YouTube</span></a><a href="https://x.com/ShlomiZevin" target="_blank" rel="noopener" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7 8 10.3h-6.3l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.9zm-1.1 16.2h1.7L7.3 4.7H5.5z"/></svg><span>X</span></a><a href="https://www.facebook.com/shazbak/" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7.7h2.6l.4-3h-3V8.4c0-.9.3-1.5 1.5-1.5h1.6V4.2c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/></svg><span>Facebook</span></a></nav>
   </div>
 </footer>
 
@@ -328,14 +357,19 @@ const ICON = {
   send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>',
+  newChat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+  // the logo's planet without its word (same mark as /verse/ui.js I.planet): the guide's face, the chat's "thinking"
+  planet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" class="pl"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.4"/><circle cx="12" cy="12" r="7.6" fill="var(--pl-fill, #141218)" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.8"/></g></svg>',
   person: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.2-7 8.5-7s7.7 2.6 8.5 7z"/></svg>',
 };
 let W, C = {}, S = {}, V = {};
-const GUIDE = { id: 'guide', name: 'שלומיוורס', tagline: 'מכיר את כולם, מוצא כל סרטון', color: '#ff5b3a' };
+const GUIDE = { id: 'guide', name: 'שלומיוורס', tagline: 'מכיר את כולם, מוצא כל סרטון', color: '#ff6a1f' };
+// the social layer (/verse/*.js) fills these in: accounts, the video page, stories, the bell, the guide's contact card
+const HOOK = {};
 
 // ---------- pieces ----------
-const color = (c) => (c && c.color) || '#ff5b3a';
-const face = (c) => c && c.id === 'guide' ? `<span class="gmark">${ICON.spark}</span>`
+const color = (c) => (c && c.color) || '#ff6a1f';
+const face = (c) => c && c.id === 'guide' ? `<span class="gmark"><img src="/verse/logo-160.png" alt="שלומיוורס"></span>`
   : c && c.img ? `<img src="${c.img}" alt="${esc(c.name)}" loading="lazy">`
   : `<span class="ph" style="--pc:${color(c)}" title="${esc(c?.name)}">${ICON.person}</span>`;
 const seriesColor = (s) => color(C[(s && s.characters.find((id) => C[id]?.img)) || s?.characters[0]]);
@@ -352,7 +386,7 @@ const byNewest = (list) => list.map((c, k) => [c, fresh().findIndex((v) => v.cas
   .sort((a, b) => ((a[1] < 0 ? 1e9 : a[1]) - (b[1] < 0 ? 1e9 : b[1])) || a[2] - b[2]).map((x) => x[0]);
 const vcard = (v) => `<button class="vid" data-video="${v.id}">
   <div class="thumb">${v.poster ? `<img src="${v.poster}" alt="" loading="lazy">` : ''}<div class="play"><span>${ICON.play}</span></div>${v.url ? '<span class="ext">TikTok</span>' : ''}</div>
-  <span class="t">${esc(v.title)}</span><span class="who">${esc(v.cast.map((id) => C[id]?.name).filter(Boolean).slice(0, 3).join(', '))}</span></button>`;
+  <span class="t">${esc(v.title)}</span><span class="cast">${v.cast.filter((id) => C[id]).slice(0, 3).map((id) => `<span class="cast-c" data-char-link="${id}" role="link" tabindex="0">${C[id].img ? `<img src="${C[id].img}" alt="" loading="lazy">` : ''}${esc(C[id].name)}</span>`).join('')}</span></button>`;
 const scard = (s) => `<a class="series" href="#/s/${s.id}">
   <h3><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</h3>
   <p>${esc(s.blurb)}</p>
@@ -362,23 +396,44 @@ const filterChips = (active, base) => `<div class="chips">
   <a class="chip ${active ? '' : 'on'}" href="${base}">הכול</a>
   ${W.series.map((s) => `<a class="chip ${active === s.id ? 'on' : ''}" href="${base}?s=${s.id}"><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</a>`).join('')}</div>`;
 
+// the hero shows his own characters, not his impressions of real people (Shlomi's list; they keep their wiki pages)
+const NOT_IN_HERO = new Set(['omer-koli', 'oded', 'yotam-zamri', 'bennett', 'naor-zion', 'alex-daniel', 'techytech']); // techytech: a logo, not a face
+const heroFaces = () => W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id));
 // the hero's two drifting walls of faces (each column holds its tiles twice, so the loop is seamless)
 function wall() {
-  const people = W.characters.filter((c) => c.img);
+  const people = heroFaces();
   const cols = [[], [], [], [], [], []];
   people.forEach((c, i) => cols[i % 6].push(c));
   const col = (list) => { const t = list.map((c) => `<div class="tile">${face(c)}<span>${esc(c.name)}</span></div>`).join(''); return `<div class="col">${t}${t}</div>`; };
   return `<div class="wall r">${cols.slice(0, 3).map(col).join('')}</div><div class="wall l">${cols.slice(3).map(col).join('')}</div>`;
 }
 
+// under the hero's logo: the tagline, or "בוקר טוב, <name>" for someone signed in - the one difference between the two
+// heroes. Before the account code loads, the name comes from the last visit (the same "vx-me" note), so nothing flips.
+function heroLine() {
+  let hi = HOOK.heroHi ? HOOK.heroHi() : null;
+  if (!HOOK.heroHi) { try { const me = JSON.parse(localStorage.getItem('vx-me') || 'null'); if (me && me.nick) hi = dayHi(me.nick); } catch (e) {} }
+  return hi ? `<small class="hero-hi">${esc(hi)}</small>` : '<small>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</small>';
+}
+// the same words as /verse/copy.js T.hi (Terra)
+const dayHi = (n) => { const h = new Date().getHours(); return `${h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב'}, ${n}`; };
+
 // ---------- pages ----------
 let heroWho = 'guide';
 const pages = {
   home() {
-    const who = [GUIDE, ...W.characters.filter((c) => c.img).slice(0, 7)];
+    const who = [GUIDE, ...heroFaces().slice(0, 7)];
+    const sections = `<section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
+        <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
+      <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
+        <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
+      <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="#/series">כל הסדרות ←</a></div>
+        <div class="sgrid">${W.series.map(scard).join('')}</div></section>`;
+    // the same hero for everyone (Shlomi: the signed-in home should look like the signed-out one); what's under it is the
+    // verse's: signed in = their characters and what's new for them, signed out = stories + the reason to sign in
     return `<section class="hero">${wall()}
       <div class="hero-in">
-        <h1 class="wordmark">שלומי<b>וורס</b><small>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</small></h1>
+        <h1 class="wordmark hero-logo"><img src="/verse/logo-512.png" alt="שלומיוורס">${heroLine()}</h1>
         <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
           <input id="ask-in" placeholder="שאלו את השלומיוורס…" autocomplete="off" maxlength="1200">
           <button aria-label="שליחה">${ICON.send}</button></form>
@@ -386,13 +441,7 @@ const pages = {
           ${who.map((c) => `<button type="button" data-who="${c.id}" class="${c.id === heroWho ? 'on' : ''}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.id === 'guide' ? 'כולם' : c.name)}</button>`).join('')}</div>
       </div>
       <span class="scroll-hint">↓ ${W.characters.length} דמויות · ${W.videos.length} סרטונים</span></section>
-      <div class="wrap">
-      <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
-        <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
-      <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
-        <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
-      <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="#/series">כל הסדרות ←</a></div>
-        <div class="sgrid">${W.series.map(scard).join('')}</div></section></div>`;
+      <div class="wrap">${HOOK.homeSlot ? HOOK.homeSlot() : ''}${sections}</div>`;
   },
   characters(q) {
     const list = W.characters.filter((c) => !q.s || c.series === q.s);
@@ -422,15 +471,15 @@ const pages = {
     const s = S[c.series];
     const rel = [...new Set([...c.relations.map((r) => r.id), ...(s ? s.characters : [])])].filter((x) => x !== id && C[x]).slice(0, 10);
     return `<section class="chero" style="--c:${color(c)}"><div class="wrap">
-        <div class="portrait">${face(c)}</div>
+        <div class="portrait"${HOOK.storyRing ? HOOK.storyRing(c.id) : ''}>${face(c)}</div>
         <div>
           ${s ? `<a href="#/s/${s.id}">${stag(s.id)}</a>` : ''}
           <h1>${esc(c.name)}</h1>
           ${c.tagline ? `<div class="tl">${esc(c.tagline)}</div>` : ''}
           <div class="role">${esc(c.role)}</div>
           ${c.bio ? `<p class="bio">${esc(c.bio)}</p>` : ''}
-          <div class="acts"><button class="btn main" data-talk="${c.id}">${ICON.talk}לדבר עם ${esc(c.name)}</button>
-            ${c.videos.length ? `<button class="btn ghost" data-video="${c.videos[0]}">▶ הסרטון האחרון</button>` : ''}
+          <div class="acts">${HOOK.followBtn ? HOOK.followBtn(c.id, 'btn') : ''}<button class="btn main" data-talk="${c.id}">${ICON.talk}לדבר עם ${esc(c.name)}</button>
+            ${c.videos.length ? `<button class="btn ghost play-rtl" data-video="${c.videos[0]}">הסרטון האחרון<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5v14L5 12z"/></svg></button>` : ''}
             ${c.site ? `<a class="btn ghost" href="${esc(c.site)}" target="_blank" rel="noopener">לאתר ←</a>` : ''}</div>
         </div></div></section>
       <div class="wrap" style="--c:${color(c)}">
@@ -444,17 +493,29 @@ const pages = {
 };
 
 // ---------- router ----------
+let shownPath = null;
 function route() {
   const [path, qs] = (location.hash.slice(1) || '/').split('?');
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
   let [, page = '', id] = path.split('/');
   // #/chat?with=<id>&ask=<text> - the links page opens a conversation straight from a face or its question box
   if (page === 'chat') { openChat(q.with && C[q.with] ? q.with : 'guide', q.ask || null); history.replaceState(null, '', '#/'); page = ''; }
-  // #/v/<id> - a video opened from outside (the links page): the player over the home page
-  if (page === 'v') { const vid = id; history.replaceState(null, '', '#/'); page = ''; setTimeout(() => openVideo(vid), 0); }
+  // #/v/<id> - the video page; #/story/<character> - a character's stories. Both lie over whatever page was open
+  // (the home page when they are opened from outside: the links page, a push, a shared link)
+  if (page === 'v' || page === 'story') {
+    if (!$('#app').innerHTML) { shownPath = '/'; document.body.classList.add('at-home'); $('#app').innerHTML = pages.home(q); if (HOOK.afterRoute) HOOK.afterRoute(''); bindHero(); }
+    if (page === 'v') { if (HOOK.openPlayer) HOOK.openPlayer(decodeURIComponent(id || ''), q); else openVideo(id); }
+    else if (HOOK.openStory) HOOK.openStory(decodeURIComponent(id || ''), q);
+    return;
+  }
+  // closing the video / stories back onto the page that was under it: keep that page (and where it was scrolled)
+  const hadOverlay = HOOK.closeOverlays && HOOK.closeOverlays();
+  if (hadOverlay && path === shownPath && !location.hash.includes('?')) return;
+  shownPath = path;
   document.body.classList.toggle('at-home', !page);
   $('#app').innerHTML = (pages[page || 'home'] || pages.notFound)(q, decodeURIComponent(id || ''));
   document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page === 'c' ? 'characters' : page === 's' ? 'series' : page)));
+  if (HOOK.afterRoute) HOOK.afterRoute(page, id);
   const c = page === 'c' && C[id];
   t('view', page ? page + (id ? '/' + id : '') : 'home');
   if (c) t('character', id);
@@ -465,6 +526,8 @@ function route() {
   onScroll();
 }
 function bindHero() {
+  if ($('#ask')) $('#ask').onsubmit = (e) => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (q) t('ask', heroWho); openChat(heroWho, q || null); $('#ask-in').value = ''; };
+  if (!$('#who')) return;
   $('#who').onclick = (e) => {
     const b = e.target.closest('[data-who]');
     if (!b) return;
@@ -482,6 +545,10 @@ const threads = {};
 const load = (mode) => { try { return JSON.parse(sessionStorage.getItem('wiki-chat-' + mode)) || []; } catch (e) { return []; } };
 const save = (mode) => { try { sessionStorage.setItem('wiki-chat-' + mode, JSON.stringify(threads[mode].slice(-20))); } catch (e) {} };
 const who = (mode) => (mode === 'guide' ? GUIDE : C[mode]);
+let GENDER = {};
+fetch('/verse/genders.json').then((r) => (r.ok ? r.json() : {})).then((g) => { GENDER = g; }).catch(() => {});
+const gw = (id, m, f, p) => ({ f, p }[GENDER[id]] || m);   // the word for this character: masculine / feminine / plural
+const joined = (id) => `${who(id).name} ${gw(id, 'הצטרף', 'הצטרפה', 'הצטרפו')} לשיחה`;
 const greet = (mode) => mode === 'guide'
   ? 'היי. אני מכיר כאן את כולם. ספרו לי את מי אתם מחפשים, או איזה רגע מסרטון אתם זוכרים, ואמצא לכם אותו.'
   : `${C[mode].name} כאן. שאלו מה שבא לכם.`;
@@ -496,17 +563,20 @@ function renderText(text, streaming) {
     let para = [];
     const flush = () => { if (para.length) parts.push(`<p>${para.map(esc).join('<br>')}</p>`); para = []; };
     for (const line of block.split('\n')) {
-      const m = line.trim().match(/^\[\[(video|char):([\w-]+)\]\]$/);
+      const m = line.trim().match(/^\[\[(video|char|request):([\w-]+)\]\]$/);
       if (m && m[1] === 'video' && V[m[2]]) {
         flush();
         const v = V[m[2]];
         parts.push(v.url
           ? `<div class="mc" style="--cc:var(--c)"><b>${esc(v.title)}</b><button data-video="${v.id}">לצפייה</button></div>`
-          : `<div class="mv"><video data-vid="${v.id}" src="${v.src}" poster="${v.poster || ''}" controls playsinline preload="none"></video><div class="mv-t"><span>${esc(v.title)}</span><button data-video="${v.id}">מסך מלא</button></div></div>`);
+          : `<div class="mv"><video data-vid="${v.id}" src="${v.src}" poster="${v.poster || ''}" controls playsinline preload="none"></video><div class="mv-t"><span>${esc(v.title)}</span><button data-video="${v.id}">לעמוד הסרטון</button></div></div>`);
       } else if (m && m[1] === 'char' && C[m[2]]) {
         flush();
         const c = C[m[2]];
         parts.push(`<div class="mc" style="--cc:${color(c)}"><span class="av">${face(c)}</span><span><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role)}</small></span><button data-switch="${c.id}">להעביר לשיחה</button></div>`);
+      } else if (m && m[1] === 'request' && HOOK.requestCard) {
+        flush();
+        parts.push(streaming ? '' : HOOK.requestCard(m[2], cxMode));
       } else if (!m) para.push(line);
     }
     flush();
@@ -523,6 +593,7 @@ function drawChat() {
   cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>
     <div class="cx-head"><span class="av">${face(w)}</span><span><b>${esc(w.name)}</b><small>${esc(w.tagline || w.role || '')}</small>
       ${cxMode === 'guide' ? '' : `<a class="pg" href="#/c/${w.id}">לעמוד של ${esc(w.name)} ←</a>`}</span>
+      <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     <div class="msgs"></div>
     <div class="sugg">${ask.map((a) => `<button>${esc(a)}</button>`).join('')}</div>
@@ -538,7 +609,7 @@ function drawChat() {
 }
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
-  msgs.innerHTML = `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` +
+  msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
     t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${esc(m.content)}</p>` : renderText(m.content)}</div>`).join('');
   $('.sugg', cx).style.display = t.some((m) => m.role === 'user') ? 'none' : '';
   msgs.scrollTop = msgs.scrollHeight;
@@ -559,12 +630,14 @@ async function send(text) {
   drawMsgs();
   const bubble = document.createElement('div');
   bubble.className = 'm bot wait';
+  bubble.innerHTML = mode === 'guide' ? `<span class="think" aria-label="חושב">${ICON.planet}${ICON.planet}${ICON.planet}</span>`
+    : `<span class="typing"><b>${esc(who(mode).name)} ${gw(mode, 'מקליד', 'מקלידה', 'מקלידים')}</b><i></i><i></i><i></i></span>`;
   msgs.appendChild(bubble);
   msgs.scrollTop = msgs.scrollHeight;
   let out = '';
   try {
     const history = threads[mode].filter((m) => m.role !== 'note').slice(-16);
-    const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode, messages: history, ...visitor() }) });
+    const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode, messages: history, contact: true, ...visitor() }) });
     if (res.status === 429) throw new Error('busy');
     if (!res.ok || !res.body) throw new Error('fail');
     const reader = res.body.getReader(), dec = new TextDecoder();
@@ -590,6 +663,8 @@ async function send(text) {
 }
 function openChat(mode, text) {
   cxMode = mode && (mode === 'guide' || C[mode]) ? mode : 'guide';
+  threads[cxMode] ||= load(cxMode);
+  if (cxMode !== 'guide' && !threads[cxMode].length) threads[cxMode].push({ role: 'note', content: joined(cxMode) });
   t('chat_open', cxMode);
   drawChat();
   cx.classList.add('open'); $('#cx-back').classList.add('open');
@@ -601,7 +676,7 @@ function switchChat(mode) {
   cxMode = mode;
   t('chat_switch', mode);
   threads[mode] ||= load(mode);
-  if (!threads[mode].length) threads[mode].push({ role: 'note', content: `${who(mode).name} הצטרף/ה לשיחה, דרך ${prev.name}` });
+  if (!threads[mode].length) threads[mode].push({ role: 'note', content: `${joined(mode)}, דרך ${prev.name}` });
   drawChat();
 }
 function closeChat() { cx.classList.remove('open'); $('#cx-back').classList.remove('open'); cx.querySelectorAll('video').forEach((v) => v.pause()); }
@@ -614,6 +689,8 @@ function openVideo(id) {
   const v = V[id];
   if (!v) return;
   if (v.url) { window.open(v.url, '_blank', 'noopener'); return; }
+  // the full video page; opened from the chat, closing it comes back to the same conversation
+  if (HOOK.openPlayer) { HOOK.chatReturn = cx.classList.contains('open') ? cxMode : HOOK.chatReturn || null; closeChat(); location.hash = '#/v/' + id; return; }
   cx.querySelectorAll('video').forEach((x) => x.pause());
   t('video', id);
   player.innerHTML = `<video src="${v.src}" poster="${v.poster || ''}" controls autoplay playsinline></video>
@@ -645,6 +722,16 @@ document.addEventListener('click', (e) => {
   const talk = e.target.closest('[data-talk]');
   if (talk) { e.preventDefault(); closeVideo(); openChat(talk.dataset.talk); return; }
   if (e.target.closest('[data-close-chat]') || e.target.closest('.cx-head a.pg')) closeChat();
+  // start over: say first that this conversation goes away (only when there is one), then clear just this character's
+  if (e.target.closest('[data-new-chat]') && !busy) {
+    if (!(threads[cxMode] || []).some((m) => m.role === 'user')) return;
+    if ($('.nc-ask', cx)) { $('.nc-ask', cx).remove(); return; }
+    cx.insertAdjacentHTML('beforeend', `<div class="nc-ask"><div class="nc-card" role="dialog" aria-modal="true">
+      <span class="nc-face">${face(who(cxMode))}</span><b>להתחיל שיחה חדשה?</b><p>השיחה הזאת עם ${esc(who(cxMode).name)} תימחק, ואי אפשר להחזיר אותה.</p>
+      <button class="nc-yes" data-nc-yes>שיחה חדשה</button><button class="nc-no">ביטול</button></div></div>`);
+  }
+  if (e.target.matches('.nc-ask') || e.target.closest('.nc-no')) $('.nc-ask', cx)?.remove();   // ביטול, or a tap outside the card
+  if (e.target.closest('[data-nc-yes]') && !busy) { threads[cxMode] = []; try { sessionStorage.removeItem('wiki-chat-' + cxMode); } catch (x) {} t('chat_new', cxMode); openChat(cxMode); }
   if (!e.target.closest('.search')) $('#results').classList.remove('open');
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeVideo(); closeChat(); } });
@@ -662,7 +749,7 @@ function search(q) {
   for (const v of W.videos) if (norm(v.title + ' ' + v.teaser).includes(n)) hits.push({ s: 3, h: `<a href="#" data-video="${v.id}">${v.poster ? `<img src="${v.poster}" alt="">` : ''}<span>${esc(v.title)}</span><span class="k">סרטון</span></a>` });
   hits.sort((a, b) => a.s - b.s);
   box.innerHTML = hits.slice(0, 10).map((x) => x.h).join('') +
-    `<a href="#" data-ask="${esc(q)}"><span class="gmark" style="width:34px;height:34px;border-radius:8px;flex:none">${ICON.spark}</span><span>לשאול את השלומיוורס: "${esc(q)}"</span></a>`;
+    `<a href="#" data-ask="${esc(q)}"><span class="gmark" style="width:34px;height:34px;border-radius:8px;flex:none"><img src="/verse/logo-160.png" alt=""></span><span>לשאול את השלומיוורס: "${esc(q)}"</span></a>`;
   box.classList.add('open');
 }
 let searchTimer;
@@ -676,6 +763,8 @@ $('#results').addEventListener('click', (e) => {
   $('#q').value = '';
 });
 
+// the characters under a video card: their page, not the video
+document.addEventListener('click', (e) => { const c = e.target.closest('[data-char-link]'); if (c) { e.preventDefault(); e.stopPropagation(); location.hash = '#/c/' + c.dataset.charLink; } }, true);
 // ---------- theme ----------
 $('#theme').onclick = () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
@@ -695,7 +784,10 @@ fetch(DATA, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject
   $('#fab-faces').innerHTML = W.characters.filter((c) => c.img).slice(0, 3).map(face).join('');
   addEventListener('hashchange', route);
   route();
+  window.WIKI_READY = true;
+  dispatchEvent(new Event('wiki-ready'));
 });
 </script>
+<script type="module" src="/verse/main.js"></script>
 </body>
 </html>

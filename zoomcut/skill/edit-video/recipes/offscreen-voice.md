@@ -51,6 +51,16 @@ He acts to the other voice in one continuous take; the other voice is a sound la
     h 2150) - set it THERE, not as ops on each Person item: an item you touch by op becomes `user` and the next
     replan (any edge drag) puts a fresh builder item beside it (two pictures on one lane). Removing a builder item by
     op is remembered as his deletion - the replan won't bring it back; add it again yourself. Subtitles box y 1480.
+  - **"The voice is too distorted"** (third round, on a Telegram test): the voice layer had his boost 12 + volume 1.6 +
+    a pitch fx -0.5 (the grain pitch shifter warbles a voice). Fix = gym-1's chain exactly (episode voice: lowcut 50,
+    warmth -5, box -4.5, presence -2.5, deess 0.1, comp 0.25, room 0.25, roomSize 0.9, boost -3, clean fft, NO pitch),
+    volume 2, and every other layer down by the same dB so his "louder voice" balance stays (Sigal fx.level -1, hits
+    0.22, bed 0.2, gym music 0.22). Measure Sigal in his pauses after any voice change - it isn't linear.
+  - **Sigal, his fourth note** ("a bit more like a woman's mumbling pitch, longer, aligned with where he stops - make a
+    little arrangement"): 10 lines, each starting 0.03 s after one of his sentence ends (a question / "אין בעיה!" /
+    every join / the one real pause), 1.2-1.6 s long (a "כן" before "מעולה!" 0.6 s) so she runs on under his reply;
+    item `rate` 1.3 + `fx.pitch` +1.5 (= +6 semitones, was +4), speakerphone, `fx.level` -1 → ~6 dB under him in his
+    pauses. Raw slices of sigal-mumble.mp3 = video length x 1.3, voiced runs only.
   - His second round ("tighten all cuts"): tighten notes at every join = end on the last word (+0.02 s by dB), start on
     the first syllable (-0.02 s); "סיים כאן" at the very end = the take's end there.
   - Traps: the studio's recogniser dropped take 1's last 3 s, so the cut ended the take there - check every piece's
