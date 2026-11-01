@@ -1040,3 +1040,10 @@ section.hero { z-index: 0; isolation: isolate; }
 /* the @ list (inside the hero card) lies over the counts pill under the card */
 section.hero .hero-in { z-index: 3; }
 section.hero .scroll-hint { z-index: 1; }
+
+/* a link someone wrote (a comment, a chat message): the whole thing tappable, left-to-right */
+.lnk { color: var(--vx-accent, #ff6a1f); text-decoration: underline; text-underline-offset: 3px; display: inline-block; max-width: 100%; overflow-wrap: anywhere; vertical-align: bottom; }
+/* the official account (the Shlomiverse itself): an orange check after the name */
+.ofc { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--vx-accent, #ff6a1f); color: #fff; margin-inline-start: 5px; vertical-align: -3px; flex: none; }
+.ofc svg { width: 11px; height: 11px; }
+.m.me .lnk { color: inherit; }

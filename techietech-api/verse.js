@@ -41,6 +41,11 @@ const publicUrl = (path) => LOCAL
   : `https://storage.googleapis.com/${BUCKET}/${path}`;
 const OWNER_KEY_SHA256 = require('./owner.json').ownerKeySha256;
 const TO = 'shlomi@boostart.io';
+// his own account IS the Shlomiverse (his ask, 2026-11-01: "when I reply to someone it's the verse"): its profile is
+// always this name + the logo, marked official - set here only, never by a fan; the name is reserved for him
+const OFFICIAL = { nick: 'שלומיוורס', photo: 'https://shlomiverse.com/verse/logo-512.png', official: true };
+const isOwner = (auth) => auth?.token?.email === TO && auth.token.email_verified;
+const reserved = (nick) => /שלומיוורס|shlomi\s*verse/i.test(nick);
 
 const STICKERS_A_DAY = 3;          // free stickers per fan per day (tokens later)
 const CHARACTER_REPLIES_A_DAY = 10; // @character answers per fan per day
@@ -193,8 +198,14 @@ const ops = {
   // first sign-in (and later edits): the name the characters and other fans see, and their face - a photo they uploaded and
   // cropped in the page (a square JPEG, checked here), the Google one if they ask, or none. `keepPhoto`: a name-only edit.
   async profile(uid, d, auth) {
+    if (isOwner(auth)) {
+      const was = (await db.collection('fans').doc(uid).get()).exists;
+      await db.collection('fans').doc(uid).set({ ...OFFICIAL, ...(was ? {} : { follows: [], created: FieldValue.serverTimestamp() }) }, { merge: true });
+      return { ok: true, fan: OFFICIAL };
+    }
     const nick = oneLine(d.nick, 24);
     if (nick.length < 2) fail('invalid-argument', 'nick_short');
+    if (reserved(nick)) fail('invalid-argument', 'nick_bad');
     if (!(await moderate(nick)).ok) fail('invalid-argument', 'nick_bad');
     const ref = db.collection('fans').doc(uid);
     const was = (await ref.get()).exists;
@@ -251,7 +262,7 @@ const ops = {
       if (byId[d.mention] && text.includes('@' + byId[d.mention].name)) mention = d.mention;
     }
     const doc = {
-      videoId: d.videoId, parentId, uid, nick: fan.nick, photo: fan.photo || null, text, mention,
+      videoId: d.videoId, parentId, uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}), text, mention,
       replyTo: d.replyTo && idOk(d.replyTo) ? d.replyTo : null,
       likeCount: 0, replyCount: 0, hidden: false, ...(m.unchecked ? { unchecked: true } : {}), t: FieldValue.serverTimestamp(),
     };
@@ -323,7 +334,7 @@ const ops = {
     const ref = db.collection('stickers').doc();
     const path = `verse/stickers/${ref.id}.webp`;
     await admin.storage().bucket(BUCKET).file(path).save(png, { contentType: 'image/webp', resumable: false, metadata: { cacheControl: 'public, max-age=31536000' } });
-    const doc = { videoId: d.videoId, char: d.char || null, at: Math.max(0, Number(d.at) || 0), text, img: publicUrl(path), uid, nick: fan.nick, photo: fan.photo || null,
+    const doc = { videoId: d.videoId, char: d.char || null, at: Math.max(0, Number(d.at) || 0), text, img: publicUrl(path), uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}),
       status: 'draft', stampCount: 0, hidden: false, t: FieldValue.serverTimestamp() };
     await ref.set(doc);
     return { ok: true, id: ref.id, img: doc.img, left: await quotaLeft('sticker', uid, STICKERS_A_DAY) };
@@ -380,7 +391,7 @@ const ops = {
     if (!(await spend('idea', uid, IDEAS_A_DAY))) fail('resource-exhausted', 'quota');
     const m = await moderate(text);
     if (!m.ok) { await refund('idea', uid); fail('invalid-argument', 'text_bad'); }
-    const ref = await db.collection('ideas').add({ text, kind, chars, uid, nick: fan.nick, photo: fan.photo || null, votes: 0, hidden: false,
+    const ref = await db.collection('ideas').add({ text, kind, chars, uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}), votes: 0, hidden: false,
       unchecked: !!m.unchecked, t: FieldValue.serverTimestamp() });
     return { ok: true, id: ref.id };
   },

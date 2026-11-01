@@ -4,7 +4,7 @@
 // likes, replies, @character answers) and the sticker screen (mockup 3) live here too.
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE } from './ui.js';
+import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc } from './ui.js';
 import { st, onState, needFan, follow, save } from './state.js';
 import { offerPush } from './push.js';
 
@@ -232,11 +232,12 @@ function mentionOf(text, v) {
 }
 // @mentions light up: a character (tap = their page) and anyone in the thread by their name (longest names first, so
 // "@צופה מהספה" wins over "@צופה")
+// A link in a comment is a whole tappable link (his ask, 2026-11-01): shown left-to-right so the slash stays at its end
 function richText(text, nicks = []) {
-  let h = esc(text);
+  const marks = [];
+  let h = esc(text).replace(LINK_RE, (u) => `\u0000${marks.push(linkTag(u)) - 1}\u0000`);
   const names = [...W.characters.map((c) => ({ n: c.name, c })), ...nicks.filter(Boolean).map((n) => ({ n }))]
     .sort((a, b) => b.n.length - a.n.length);
-  const marks = [];
   for (const { n, c } of names) {
     const at = '@' + esc(n);
     if (!h.includes(at)) continue;
@@ -285,7 +286,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
     const isMine = st.user && c.uid === st.user.uid;
     return `<div class="cm-item ${c.char ? 'char' : ''} ${c.pending ? 'sending' : ''} ${focus === c.id ? 'hl' : ''}" style="--c:${c.char ? charColor(c.char) : 'var(--vx-accent)'}" data-cid="${c.id}">
       ${c.char ? `<a class="cm-face" href="#/c/${c.char}" aria-label="${esc(c.nick)}">${av({ char: c.char, ring: true })}</a>` : av({ fan: c })}
-      <div class="body"><div class="cm-who">${c.char ? `<a href="#/c/${c.char}"><b>${esc(c.nick)}</b></a>` : `<b>${esc(c.nick)}</b>`}<small>${c.pending ? esc(T.cmSending) : c.t ? ago(c.t) : T.now}</small></div>
+      <div class="body"><div class="cm-who">${c.char ? `<a href="#/c/${c.char}"><b>${esc(c.nick)}</b></a>` : `<b>${esc(c.nick)}</b>${ofc(c)}`}<small>${c.pending ? esc(T.cmSending) : c.t ? ago(c.t) : T.now}</small></div>
         <div class="txt">${richText(c.text, nicks)}</div>
         ${c.pending ? '' : `<div class="acts"><button data-like="${c.id}" class="like ${myLikes.has(c.id) ? 'on' : ''}" aria-label="${esc(T.cmLike)}">${LIKE}<span>${c.likeCount || esc(T.cmLike)}</span></button>
           <button data-reply="${c.id}" data-root="${c.parentId || c.id}">${esc(T.cmReply)}</button>

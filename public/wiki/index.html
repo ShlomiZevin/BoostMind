@@ -309,7 +309,13 @@
   .sugg button { flex: none; font-size: .87rem; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--line2); color: var(--text); background: var(--card); transition: border-color .15s; }
   .sugg button:hover { border-color: var(--c); }
   .composer { display: flex; gap: 8px; padding: 10px 14px 6px; border-top: 1px solid var(--line); flex: none; }
-  .cx-note { color: var(--faint); font-size: .72rem; text-align: center; padding: 0 14px calc(8px + env(safe-area-inset-bottom)); flex: none; }
+  .cx-note { color: var(--faint); font-size: .72rem; text-align: center; padding: 0 14px 4px; flex: none; }
+  /* how many questions are left, counting down (3 without an account, then 10) */
+  .cx-left { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 18px; color: var(--dim); font-size: .74rem; font-weight: 700; padding: 0 14px calc(8px + env(safe-area-inset-bottom)); flex: none; }
+  .cx-left:empty { min-height: 0; }
+  .cx-left .qd { display: inline-flex; gap: 3px; }
+  .cx-left .qd i { width: 6px; height: 6px; border-radius: 50%; background: var(--line2); }
+  .cx-left .qd i.on { background: var(--c, var(--accent)); }
   .composer textarea { flex: 1; resize: none; overflow: hidden; height: 48px; max-height: 130px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; line-height: 1.45; padding: 12px 14px; outline: none; }
   .composer textarea:focus { border-color: var(--c); }
   .composer button { width: 48px; height: 48px; border-radius: 14px; background: var(--c); color: #111; display: grid; place-items: center; flex: none; }
@@ -703,13 +709,18 @@ const greet = (mode) => mode === 'guide'
 const cx = $('#cx');
 let cxMode = 'guide', busy = false;
 
+// a link in a message is a whole tappable link, left-to-right (the same rule as /verse/ui.js linkTag - comments)
+const links = (h) => h.replace(/(?:https?:\/\/|www\.|(?:shlomiverse\.com|techytech\.web\.app)\/?)[^\s<]*[^\s<.,!?;:)\]"'״׳]/gi, (u) => {
+  const href = /^https?:/i.test(u) ? u : 'https://' + u, own = /^https?:\/\/(www\.)?shlomiverse\.com(\/|$)/i.test(href);
+  return `<a class="lnk" href="${href}"${own ? '' : ' target="_blank" rel="noopener nofollow"'}><bdi dir="ltr">${u}</bdi></a>`;
+});
 // a reply's text; [[video:id]] lines become a player inside the bubble, [[char:id]] lines an invitation to switch
 function renderText(text, streaming) {
   if (streaming) text = text.replace(/\[\[[^\]]*$/, '');
   return text.split(/\n{2,}/).map((block) => {
     const parts = [];
     let para = [];
-    const flush = () => { if (para.length) parts.push(`<p>${para.map(esc).join('<br>')}</p>`); para = []; };
+    const flush = () => { if (para.length) parts.push(`<p>${para.map((l) => links(esc(l))).join('<br>')}</p>`); para = []; };
     for (const line of block.split('\n')) {
       // [[request:video|the text]] - a request the guide wrote for the visitor to approve (the text is optional)
       const m = line.trim().match(/^\[\[(video|char|request|site):([\w-]+)(?:\|([^\]]*))?\]\]$/);
@@ -754,7 +765,7 @@ function drawChat() {
     <div class="msgs"></div>
     <div class="sugg">${ask.map((a) => `<button>${esc(a)}</button>`).join('')}</div>
     <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
-    <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות · 3 שאלות בלי חשבון, ועוד 10 עם Google</div>`;
+    <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
   $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
   const ta = $('textarea', cx);
@@ -767,7 +778,7 @@ function drawChat() {
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
   msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
-    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${esc(m.content)}</p>` : renderText(m.content)}</div>`).join('');
+    t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(esc(m.content))}</p>` : renderText(m.content)}</div>`).join('');
   $('.sugg', cx).style.display = t.some((m) => m.role === 'user') ? 'none' : '';
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -804,8 +815,11 @@ async function send(text) {
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) },
       body: JSON.stringify({ mode, messages: history, contact: true, ...visitor() }) });
-    if (res.status === 429) { const j = await res.json().catch(() => ({})); throw Object.assign(new Error(j.error === 'quota' ? 'quota' : 'busy'), { why: j.why }); }
+    if (res.status === 429) { const j = await res.json().catch(() => ({})); if (j.error === 'quota' && quota) { quota.left = 0; paintLeft(); } throw Object.assign(new Error(j.error === 'quota' ? 'quota' : 'busy'), { why: j.why }); }
     if (!res.ok || !res.body) throw new Error('fail');
+    const left = res.headers.get('X-Left');
+    if (left === 'owner') quota = { owner: true }; else if (left !== null && left !== '' && quota) { quota.left = +left; } else if (left !== null && left !== '') peekLeft();
+    paintLeft();
     const reader = res.body.getReader(), dec = new TextDecoder();
     for (;;) {
       const { done, value } = await reader.read();
@@ -828,12 +842,31 @@ async function send(text) {
   busy = false;
   if (cxMode === mode) { btn.disabled = false; drawMsgs(); }
 }
+// ---------- the questions left (wiki.js counts them: 3 in total without an account, then 10 more signed in) ----------
+let quota = null;   // {left, limit, signed} | {owner: true} | null (not known yet)
+function leftLine() {
+  if (!quota || quota.owner || quota.left == null) return '';
+  const n = quota.left, dots = `<span class="qd">${Array.from({ length: quota.limit }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
+  const words = quota.signed
+    ? (n > 1 ? `נשארו ${n} מתוך ${quota.limit} שאלות` : n === 1 ? `נשארה שאלה אחת מתוך ${quota.limit}` : `${quota.limit} השאלות שלכם כבר נשאלו`)
+    : (n > 1 ? `נשארו ${n} שאלות בלי חשבון · עם Google עוד 10` : n === 1 ? 'נשארה שאלה אחת בלי חשבון · עם Google עוד 10' : 'השאלות בלי חשבון נגמרו · עם Google עוד 10');
+  return `${dots}<span>${words}</span>`;
+}
+const paintLeft = () => { const el = $('.cx-left', cx); if (el) el.innerHTML = leftLine(); };
+async function peekLeft() {
+  try {
+    const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
+    const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify({ peek: true, ...visitor() }) });
+    if (r.ok) { quota = await r.json(); paintLeft(); }
+  } catch (e) {}
+}
 function openChat(mode, text) {
   cxMode = mode && (mode === 'guide' || C[mode]) ? mode : 'guide';
   threads[cxMode] ||= load(cxMode);
   if (cxMode !== 'guide' && !threads[cxMode].length) threads[cxMode].push({ role: 'note', content: joined(cxMode) });
   t('chat_open', cxMode);
   drawChat();
+  peekLeft();   // fresh each time (they may have signed in or out since)
   cx.classList.add('open'); $('#cx-back').classList.add('open');
   if (text) send(text); else setTimeout(() => $('textarea', cx)?.focus(), 60);
 }
@@ -891,6 +924,7 @@ document.addEventListener('click', (e) => {
     // one the character answered with "sign in" (that exchange is dropped first)
     HOOK.chatSignIn().then((ok) => {
       if (!ok) return;
+      quota = null; peekLeft();   // now the account's own count (10)
       if (si.dataset.chatSignin !== 'again') return send($('textarea', cx).value);
       const t = threads[cxMode]; let i = t.length - 1;
       while (i >= 0 && t[i].role !== 'user') i--;

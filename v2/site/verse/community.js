@@ -4,7 +4,7 @@
 // through the `request` op (signed out too); ideas and votes need an account.
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, av, ago, sheet, toast, track, LIKE } from './ui.js';
+import { I, esc, av, ago, sheet, toast, track, LIKE, ofc } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 
 // ---------- the ideas, live ----------
@@ -26,7 +26,7 @@ function ideaCard(x) {
   const faces = (x.chars || []).filter((id) => C[id]).slice(0, 2);
   return `<div class="idea ${focusIdea === x.id ? 'hl' : ''}" id="idea-${x.id}">
     ${faces.length ? `<div class="idea-faces">${faces.map((id) => `<a href="#/c/${id}" title="${esc(C[id].name)}">${av({ char: id, ring: true })}</a>`).join('')}</div>` : ''}
-    <div class="idea-body"><div class="idea-by">${av({ fan: x })}<span>${esc(x.nick || '')}</span>${x.t ? `<small>${ago(x.t)}</small>` : ''}</div>
+    <div class="idea-body"><div class="idea-by">${av({ fan: x })}<span>${esc(x.nick || '')}</span>${ofc(x)}${x.t ? `<small>${ago(x.t)}</small>` : ''}</div>
       <p>${esc(x.text)}</p>
       <div class="idea-foot">${T.ideaKinds[x.kind] && x.kind !== 'other' ? `<span class="idea-kind">${esc(T.ideaKinds[x.kind])}</span>` : '<span></span>'}
         <span class="idea-acts"><button class="vote ${on ? 'on' : ''}" data-vote="${x.id}" aria-label="+1">${LIKE}<b dir="ltr">${x.votes ? x.votes : '+1'}</b></button>

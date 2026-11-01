@@ -46,6 +46,16 @@ export const I = {
 export const LIKE = '<img class="lk" src="/verse/logo-160.png" alt="" draggable="false">';
 export const $ = (q, el = document) => el.querySelector(q);
 export const $$ = (q, el = document) => [...el.querySelectorAll(q)];
+// links inside text someone wrote (already escaped): http(s)://..., www...., or one of his own addresses without the
+// https. Trailing punctuation stays outside. The Shlomiverse itself opens in the same tab, anything else in a new one.
+// the official account (his own - the Shlomiverse itself): a small orange check by the name
+export const ofc = (x) => (x && x.official ? `<span class="ofc" title="החשבון הרשמי של שלומיוורס">${I.check}</span>` : '');
+export const LINK_RE = /(?:https?:\/\/|www\.|(?:shlomiverse\.com|techytech\.web\.app)\/?)[^\s<]*[^\s<.,!?;:)\]"'״׳]/gi;
+export const linkTag = (u) => {
+  const href = /^https?:/i.test(u) ? u : 'https://' + u;
+  const own = /^https?:\/\/(www\.)?shlomiverse\.com(\/|$)/i.test(href);
+  return `<a class="lnk" href="${href}"${own ? '' : ' target="_blank" rel="noopener nofollow"'}><bdi dir="ltr">${u}</bdi></a>`;
+};
 export const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const track = (e, x) => window.track && window.track(e, x);
 // his wordmark: שלומי in white, וורס in orange - text only (the planet is only the home-screen icon)

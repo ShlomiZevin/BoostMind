@@ -247,6 +247,14 @@ exports.wikiChat = onRequest({
 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
+  // {peek: true}: how many questions are left (the counter under the chat box) - nothing is spent
+  if (req.body?.peek) {
+    const who = await whoAsks(req);
+    if (who.owner) return res.json({ owner: true });
+    const limit = who.uid ? FAN_TOTAL : ANON_TOTAL;
+    const used = ((await quotaDocs(req, who)[0].get()).data() || {}).n || 0;
+    return res.json({ left: Math.max(0, limit - used), limit, signed: !!who.uid });
+  }
   const { mode = 'guide', messages } = req.body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: 'messages' });
   const turns = messages.slice(-MAX_TURNS)
@@ -258,8 +266,8 @@ exports.wikiChat = onRequest({
   const who = await whoAsks(req);
   const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });
   if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_TOTAL : ANON_TOTAL });
-  res.set({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no', 'X-Left': String(ok.left ?? ''),
-    'Access-Control-Expose-Headers': 'X-Left' });
+  res.set({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no',
+    'X-Left': ok === true ? 'owner' : String(ok.left ?? 0), 'Access-Control-Expose-Headers': 'X-Left' });
   try {
     let reply = '';
     const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
