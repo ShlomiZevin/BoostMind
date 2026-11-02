@@ -415,6 +415,12 @@ if SFX:   # the glint's sparkle under the music, on the hit
 PRE = 0.0
 HK = json.load(open(os.path.join(HERE, HOOK), encoding='utf8')) if HOOK else {}
 FLOAT = bool(HK.get('float'))
+def lift_expr(L):
+    """raise a soft syllable: [end, dB] from the clip start, or [start, end, dB]; 30 ms ramps, sample-exact"""
+    t0, t1, db = (0.0, L[0], L[1]) if len(L) == 2 else L
+    G = 10 ** (db / 20)
+    return (f"volume='if(lt(t,{max(0.0, t0 - 0.03)}),1,if(lt(t,{t0}),1+({G:.3f}-1)*(t-{max(0.0, t0 - 0.03)})/0.03,"
+            f"if(lt(t,{t1}),{G:.3f},if(lt(t,{t1 + 0.03}),{G:.3f}-({G:.3f}-1)*(t-{t1})/0.03,1))))':eval=sample,")
 if FLOAT:
     panes, voice = [], []
     PW_, PH_ = 720, 1280
@@ -437,8 +443,8 @@ if FLOAT:
                       'keys': c.get('keys'), 'vstart': c['at'] - lead})
         wav = os.path.join(HERE, f'out/hook-{i}.wav'); ms_ = int(c['at'] * 1000)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
-                        f'volume={HK.get("gain_db", 0)}dB,'
-                        + (f"volume='if(lt(t,{c['lift'][0]}),{10 ** (c['lift'][1] / 20):.3f},if(lt(t,{c['lift'][0] + 0.03}),{10 ** (c['lift'][1] / 20):.3f}-({10 ** (c['lift'][1] / 20):.3f}-1)*(t-{c['lift'][0]})/0.03,1))':eval=frame," if c.get('lift') else '')
+                        f'volume={HK.get("gain_db", 0) + c.get("gain_db", 0)}dB,'
+                        + (lift_expr(c['lift']) if c.get('lift') else '')
                         + f'afade=t=in:d={c.get("fade_in", 0.012)},afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
                         + (f'highpass=f=110,equalizer=f=3200:t=q:w=1.3:g={c["presence"]},' if c.get('presence') else '')
                         + (f'apad=pad_dur={HK.get("echo_pad", 0.8)},aecho={c.get("echo", HK.get("echo"))},' if c.get('echo', HK.get('echo')) else '')
