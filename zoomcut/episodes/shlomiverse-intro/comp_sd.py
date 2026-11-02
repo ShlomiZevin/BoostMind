@@ -428,9 +428,11 @@ if FLOAT:
     p_gy, p_gx = np.mgrid[0:PH_, 0:PW_].astype(np.float32)
     for i, c in enumerate(HK['clips']):
         src = os.path.join(HERE, c['src']); d = c['out'] - c['in']; vd = c.get('vout', c['out'] + 1.0) - c['in']
-        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(c['in']), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={PW_}:{PH_}:flags=lanczos',
+        fw_, fh_ = (W, H) if c.get('full') else (PW_, PH_)
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(c['in']), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={fw_}:{fh_}:flags=lanczos',
                               '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
-        panes.append({'at': c['at'], 'd': d, 'f': list(np.frombuffer(raw, np.uint8).reshape(-1, PH_, PW_, 3)), 'side': 1 if i % 2 == 0 else -1})
+        panes.append({'at': c['at'], 'd': d, 'f': list(np.frombuffer(raw, np.uint8).reshape(-1, fh_, fw_, 3)), 'side': 1 if i % 2 == 0 else -1,
+                      'full': c.get('full', 0), 'shrink': c.get('shrink', 0.8)})
         wav = os.path.join(HERE, f'out/hook-{i}.wav'); ms_ = int(c['at'] * 1000)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
                         f'volume={HK.get("gain_db", 0)}dB,afade=t=in:d=0.012,afade=t=out:st={d - 0.03:.3f}:d=0.03,adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
@@ -473,23 +475,37 @@ def draw_panes(fr, t):
         end = at + d
         if t < at or t > end + (HK.get('spin', 0.85) if last else HK.get('exit', 0.65)): continue
         k_ = min(len(p_['f']) - 1, max(0, int((t - at) * FPS)))
-        img = p_['f'][k_].astype(np.float32) / 255
+        if p_['full'] and t - at < p_['full']:                                   # full screen, as in the original video
+            fr[:] = p_['f'][k_].astype(np.float32) / 255
+            continue
+        img = p_['f'][k_]
+        if img.shape[1] != PW_: img = cv2.resize(img, (PW_, PH_), interpolation=cv2.INTER_AREA)
+        img = img.astype(np.float32) / 255
         sweep = (t - at) / max(d, 0.1)                                            # a slow glass glint across the pane
         band = np.exp(-(((p_gx * 0.7 + p_gy * 0.45) / 900.0 - (sweep * 1.6 - 0.3)) ** 2) / 0.004)[..., None] * 0.16
         img = 1 - (1 - img) * (1 - band)
         op = float(HK.get('opacity', 0.85))
-        rgba = np.concatenate([img * pm_[..., None] * op, pm_[..., None] * op], 2)
-        rgba = rgba * (1 - p_edge) + np.concatenate([np.array([1.0, 0.55, 0.2], np.float32) * np.ones((PH_, PW_, 3), np.float32), np.ones((PH_, PW_, 1), np.float32)], 2) * p_edge
         u = t - at
+        F0, SH0 = p_['full'], p_['shrink']
+        gs = 1.0 if not F0 else 0.5 - 0.5 * math.cos(math.pi * min(1.0, max(0.0, (u - F0) / SH0)))   # glass-ness, 0 = still the full video
+        op = 1.0 + (op - 1.0) * gs
+        rgba = np.concatenate([img * pm_[..., None] * op, pm_[..., None] * op], 2)
+        rgba = rgba * (1 - p_edge * gs) + np.concatenate([np.array([1.0, 0.55, 0.2], np.float32) * np.ones((PH_, PW_, 3), np.float32), np.ones((PH_, PW_, 1), np.float32)], 2) * p_edge * gs
         ARR, EXIT, SPIN = HK.get('arrive', 0.9), HK.get('exit', 0.65), HK.get('spin', 0.85)
         ee = lambda x: 0.5 - 0.5 * math.cos(math.pi * min(1.0, max(0.0, x)))         # slow in, slow out
-        if u < ARR:                                                               # out of the depth while it already plays
+        if F0 and u < F0 + SH0:                                                   # the full screen shrinks back into a pane in the space
+            e = gs
+            sc = (W / PW_) * (1 - e) + 0.90 * e; a = 1.0
+            cx, cy = 540, 960 + (930 - 960) * e
+            ry, rx, rz = math.radians(side * 18 * e), math.radians(10 * e), math.radians(side * -6 * e)
+        elif u < ARR and not F0:                                                  # out of the depth while it already plays
             e = 1 - (1 - u / ARR) ** 2
             sc = 0.12 + 0.78 * e; a = min(1.0, 0.25 + e)
             cx, cy = PCX + (540 - PCX) * e, PCY + (930 - PCY) * e
             ry, rx, rz = math.radians(side * (40 - 22 * e)), math.radians(12 - 2 * e), math.radians(side * (-18 + 12 * e))
         elif u <= d:                                                              # the drift: a slow turn, a slow push
-            q = (u - ARR) / max(0.1, d - ARR)
+            st_ = F0 + SH0 if F0 else ARR
+            q = (u - st_) / max(0.1, d - st_)
             sc = 0.90 + 0.05 * q; a = 1.0
             cx, cy = 540 + side * 24 * math.sin(q * 1.6), 930 - 16 * q
             ry, rx, rz = math.radians(side * (18 - 22 * q)), math.radians(10 - 12 * q), math.radians(side * (-6 + 7 * q))
@@ -503,11 +519,61 @@ def draw_panes(fr, t):
             sc = 0.95 * (1 - e) + 0.03 * e; a = 1 - sm((q - 0.7) / 0.3)
             cx, cy = 540 + side * 24 * math.sin(1.6) + (PCX - 540) * e, 914 + (PCY - 914) * e
             ry, rx, rz = math.radians(side * (-4 + 4 * e)), math.radians(-2 + 2 * e), math.radians(side * (1 + 120 * e))
-        if 0.5 <= u < 1.4:                                                        # a soft warm swell as it settles
+        if 0.5 <= u < 1.4 and not F0:                                             # a soft warm swell as it settles
             g_ = np.exp(-(((xx - cx) / 560) ** 2 + ((yy - cy) / 800) ** 2))[..., None] * np.array([1.0, 0.45, 0.12], np.float32) * 0.22 * math.sin(math.pi * (u - 0.5) / 0.9)
             fr[:] = 1 - (1 - fr) * (1 - np.clip(g_, 0, 1))
         _warp_draw(fr, rgba, cx, cy, sc, ry, rx, rz, a)
+HOLLY = HK.get('title_style') == 'hollywood'
+if HOLLY:
+    def _ld(n):
+        return np.asarray(Image.open(os.path.join(HERE, f'media/title-{n}.png')).convert('RGBA')).astype(np.float32) / 255
+    TM, TS = _ld('main'), _ld('sub')
+    TK = cv2.resize(_ld('mask')[..., 3], (TM.shape[1], TM.shape[0]))
+    TM_GLOW = cv2.GaussianBlur(TM[..., 3], (0, 0), 26)
+    TY1, TY2 = 610, 760
+def _place(fr_shape, img, cx, cy, sc, blur=0.0):
+    """img (h, w, c) scaled about its centre and put at (cx, cy) on a frame-sized canvas"""
+    h_, w_ = img.shape[:2]
+    M = np.float32([[sc, 0, cx - sc * w_ / 2], [0, sc, cy - sc * h_ / 2]])
+    out = cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+    if blur > 0.3: out = cv2.GaussianBlur(out, (0, 0), blur)
+    return out
+def draw_title_holly(fr, t):
+    t0, t1 = HK['title_at'], HK['title_out']
+    if not (t0 - 0.05 <= t < t1 + 0.05): return
+    u, L = t - t0, t1 - t0
+    ein = sm(u / 0.45)                                                  # the title arrives out of a blur
+    eout = sm((u - (L - 0.32)) / 0.32)                                  # and we fly through it into the cards
+    sc = (1.22 - 0.22 * ein) * (1 + 0.035 * u / L) * (1 + 0.45 * eout * eout)
+    blur = 16 * (1 - ein) + 10 * eout
+    a = ein * (1 - eout)
+    if a <= 0.005: return
+    main = _place(fr.shape, TM, 540, TY1, sc, blur)
+    glow = _place(fr.shape, TM_GLOW, 540, TY1, sc * 1.02)
+    mask = _place(fr.shape, TK, 540, TY1, sc, blur * 0.6)
+    pulse = 0.55 * math.exp(-max(0.0, u - 0.18) / 0.35) * sm(u / 0.18) + 0.28
+    fr[:] = 1 - (1 - fr) * (1 - np.clip(glow[..., None] * np.array([1.0, 0.42, 0.1], np.float32) * pulse * a * 1.4, 0, 1))
+    fr[:] = fr * (1 - main[..., 3:4] * a) + main[..., :3] * a
+    # a light sweep across the letters
+    p_ = -0.25 + 1.5 * sm((u - 0.3) / 0.75)
+    band = np.exp(-(((xx - 540) * 0.9 + (yy - TY1) * 0.5) / (TM.shape[1] * sc * 0.5) - (1 - 2 * p_)) ** 2 / 0.006)
+    fr[:] = 1 - (1 - fr) * (1 - np.clip((band * mask)[..., None] * np.array([1.0, 0.95, 0.85], np.float32) * 0.85 * a, 0, 1))
+    # an anamorphic flare: a hot point riding the sweep, a long thin streak across the frame
+    fx = 540 + (TM.shape[1] * sc * 0.5) * (1 - 2 * p_)
+    fa = math.sin(math.pi * min(1.0, max(0.0, (u - 0.2) / 0.95))) * (1 - eout)
+    if fa > 0.01:
+        fl = (np.exp(-((yy - TY1 + 20) / 4.0) ** 2) * np.exp(-np.abs(xx - fx) / 520) * 1.1 +
+              np.exp(-((yy - TY1 + 20) / 26.0) ** 2) * np.exp(-np.abs(xx - fx) / 240) * 0.35 +
+              np.exp(-(((xx - fx) ** 2 + (yy - TY1 + 20) ** 2) / (2 * 34.0 ** 2))) * 1.2)
+        fr[:] = 1 - (1 - fr) * (1 - np.clip(fl[..., None] * np.array([1.0, 0.68, 0.38], np.float32) * fa, 0, 1))
+    # "מציגים": a beat later, letters settling in
+    ea = sm((u - 0.38) / 0.4)
+    if ea > 0.01:
+        sub = _place(fr.shape, TS, 540, TY2 + 14 * (1 - ea), (1.12 - 0.12 * ea) * (1 + 0.45 * eout * eout), 6 * (1 - ea) + 8 * eout)
+        aa = ea * (1 - eout)
+        fr[:] = fr * (1 - sub[..., 3:4] * aa) + sub[..., :3] * aa
 def draw_title(fr, t):
+    if HOLLY: return draw_title_holly(fr, t)
     t0, t1 = HK['title_at'], HK['title_out']
     if not (t0 <= t < t1): return
     a = sm((t - t0) / 0.35) * (1 - sm((t - (t1 - 0.3)) / 0.3))
@@ -621,7 +687,7 @@ def frame(f):
         draw_panes(fr, t); draw_title(fr, t)
     if cards and t < T_LOGO:
         draw_cards(fr, t)
-    fade_in = 1.0 if (HOOK and not FLOAT) else (sm(t / 0.35) if FLOAT else sm(t / 0.9))
+    fade_in = 1.0 if (HOOK and not FLOAT) or (FLOAT and panes[0]['full']) else (sm(t / 0.35) if FLOAT else sm(t / 0.9))
     # the final hit: flash, flare streak, the logo's glow pulsing
     if SHEEN and SMOOTH_END and not NO_HIT and t > T_LOGO - 0.6:
         # one continuous light curve: a build before the hit, the swell on it, settling after - nothing switches on at once
@@ -666,7 +732,11 @@ def frame(f):
         a = sm((t - B['url']) / 0.55); over(fr, url, W / 2, URL_Y, a, dy=(1 - a) * 18)
     if BIO and t >= B['url'] + 0.6:
         a = sm((t - B['url'] - 0.6) / 0.55); over(fr, bio, W / 2, BIO_Y, a, dy=(1 - a) * 18)
-    return np.clip(fr * vign * fade_in, 0, 1)
+    vg = vign
+    if FLOAT and panes[0]['full']:   # the opening full-screen video gets no vignette; it comes in as the pane shrinks
+        p0 = panes[0]; g0 = min(1.0, max(0.0, (t - p0['at'] - p0['full']) / p0['shrink']))
+        vg = 1 - (1 - vign) * (0.5 - 0.5 * math.cos(math.pi * g0))
+    return np.clip(fr * vg * fade_in, 0, 1)
 
 if arg('--preview'):   # a few frames as PNG, no video
     for f in [int(x) for x in arg('--preview').split(',')]:

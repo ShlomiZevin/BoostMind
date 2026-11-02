@@ -1,19 +1,21 @@
 {
-  "_": "trailer 2 hook (v3): the music plays from frame 1 (slowed to 0.667 until the logo hit with --slow); Hani's greeting and Gilad's question on the Techy-Tech Zoom float through the space as tilted, turning glass panes (Superman II's Phantom Zone), the last one spun away into the planet, then the title; the cards start on the bar at 5.06",
+  "_": "trailer 2 hook (v5): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane in the space; Gilad's question on the Techy-Tech Zoom arrives as a turning pane (Superman II's Phantom Zone) and turns away into the planet; the hollywood title (title.mjs layers); the cards from 5.054",
   "float": true,
   "clips": [
     {
       "src": "../../../public/wiki/v/haredit-1.mp4",
       "in": 0.0,
       "out": 1.56,
-      "at": 0.2
+      "at": 0.0,
+      "full": 0.6,
+      "shrink": 0.8
     },
     {
       "src": "../../../public/wiki/v/gilad-joins.mp4",
       "in": 15.3,
       "out": 17.05,
       "vout": 16.95,
-      "at": 1.9
+      "at": 1.75
     }
   ],
   "gain_db": 3.5,
@@ -22,9 +24,10 @@
     "שלומיוורס",
     "מציגים"
   ],
-  "title_at": 3.9,
-  "title_out": 4.8,
+  "title_at": 3.7,
+  "title_out": 4.92,
   "arrive": 0.9,
   "exit": 0.65,
-  "spin": 0.85
+  "spin": 0.6,
+  "title_style": "hollywood"
 }
