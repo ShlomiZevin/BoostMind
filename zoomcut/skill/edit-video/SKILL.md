@@ -201,9 +201,12 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    earlier project as ops.
    **A background, music or a sound: the library first** (his rule, 2026-11-02 - "look for images when we need
    them", no tagging run): `zoomcut/library/index.json` (or `GET /api/lib`) = everything his layered videos used,
-   with the series / video / prompt each came from. Search it by words and series, LOOK at the candidate pictures
-   (Read the files) and listen to / check the sounds, and use one (`POST /api/lib/<id>/add {ep}`) before generating
-   anything new. Made something new? `node tools/library_harvest.mjs` after the video, so the next one finds it.
+   with the series / video / prompt / labels each came from. Search it, LOOK at the candidate pictures (Read the
+   files) and check the sounds, and use one (`POST /api/lib/<id>/add {ep}`) before generating anything new.
+   **Anything you DO make goes into the library at once, labelled** (his rule, 2026-11-02): the makers take
+   `--about "<what it is, for which video>" --tags "<mood, place, use, character, style>" --project <id>`
+   (`tools/leonardo.mjs`, `tools/elevenlabs_music.mjs`); anything else -> `node tools/library_add.mjs <file> --about
+   ... --tags ...`. `node tools/library_add.mjs --unlabelled` must be empty for what you made before you finish.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
    **Anything he holds** (a bottle, a box, a phone, a booklet) - reference.md "HELD PROPS - THE ONE WAY"; the cut-out engines drop held

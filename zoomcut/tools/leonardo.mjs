@@ -9,7 +9,11 @@
 //   node tools/leonardo.mjs loop <prompt.txt> <out.mp3> <seconds>
 //   node tools/leonardo.mjs sfx  <prompt.txt> <out.mp3> <seconds>     one-shot effect (phone ring, a voice off-screen)
 //   --leonardo (anywhere) = skip the direct call, straight to Leonardo
+// EVERY result goes into the editor's asset library at once (his rule, 2026-11-02 - tools/library_lib.mjs), labelled:
+//   --about "what it is, for which video" --tags "mood, place, use, ..." [--project <id>] [--kind background|picture|icon|sound|music]
+//   --no-library only for a throwaway test. No labels = it still goes in, and the line to label it is printed.
 import fs from 'node:fs';
+import { addToLibrary, report, labelFlags } from './library_lib.mjs';
 import path from 'node:path';
 
 const API = 'https://cloud.leonardo.ai/api/rest';
@@ -131,7 +135,14 @@ async function direct(label, have, fn) {
 
 const IMG = /^https?:\/\/\S+\.(png|jpe?g|webp)(\?\S*)?$/i;
 const AUD = /^https?:\/\/\S+\.(mp3|wav|ogg|m4a)(\?\S*)?$/i;
-const [cmd, ...a] = process.argv.slice(2).filter((x) => x !== '--leonardo');
+const LF = labelFlags(process.argv.slice(2).filter((x) => x !== '--leonardo'));
+const [cmd, ...a] = LF.rest;
+// the library line after a picture / sound is made (the prompt and who made it go in with his labels)
+const toLibrary = async (out, promptFile, kind) => {
+  if (LF.skip || !fs.existsSync(out)) return;
+  try { console.log(report(await addToLibrary(out, { ...(kind && !LF.labels.kind ? { kind } : {}), ...LF.labels, prompt: fs.readFileSync(promptFile, 'utf8'), made: 'leonardo.mjs ' + cmd }))); }
+  catch (e) { console.log('library: ' + e.message); }
+};
 
 if (cmd === 'balance') {
   needLeonardo();
@@ -146,7 +157,7 @@ if (cmd === 'balance') {
   const refs = ref ? ref.split(',') : [];
   const d = await direct('OpenAI', OPENAI, () => openaiImage({ prompt: refs.length ? `${prompt}\n\n${HOLD(strength)}` : prompt,
     model: MODEL[model] ? model : String(model).replace(/^.*gpt-image-2\.5-/, ''), w: dims[0], h: dims[1], quality, refs, out }));
-  if (d) { console.log(`OK -> ${out}  ${(d.bytes / 1024).toFixed(0)} kB  $${d.usd.toFixed(4)}  (OpenAI direct)`); process.exit(0); }
+  if (d) { console.log(`OK -> ${out}  ${(d.bytes / 1024).toFixed(0)} kB  $${d.usd.toFixed(4)}  (OpenAI direct)`); await toLibrary(out, promptFile); process.exit(0); }
   needLeonardo();
   const parameters = { prompt, quantity: 1, width: dims[0], height: dims[1], quality, prompt_enhance: 'OFF' };
   // several references: comma-separated paths
@@ -155,15 +166,17 @@ if (cmd === 'balance') {
   console.log(`queued ${q.id}  quoted $${q.usd}`);
   const r = await collect(q.id, IMG, out);
   console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
+  await toLibrary(out, promptFile);
 } else if (cmd === 'loop' || cmd === 'sfx') {
   const [promptFile, out, secs = '20'] = a;
   const d = await direct('ElevenLabs', ELEVEN, () => elevenSfx({ prompt: fs.readFileSync(promptFile, 'utf8').trim(), secs: Number(secs), loop: cmd === 'loop', out }));
-  if (d) { console.log(`OK -> ${out}  ${(d.bytes / 1024).toFixed(0)} kB  ${d.credits} credits = $${d.usd.toFixed(4)}  (ElevenLabs direct)`); process.exit(0); }
+  if (d) { console.log(`OK -> ${out}  ${(d.bytes / 1024).toFixed(0)} kB  ${d.credits} credits = $${d.usd.toFixed(4)}  (ElevenLabs direct)`); await toLibrary(out, promptFile, 'sound'); process.exit(0); }
   needLeonardo();
   const q = await queue({ model: 'sound-effects-v2', public: false, parameters: { prompt: fs.readFileSync(promptFile, 'utf8').trim(), duration: Number(secs), prompt_influence: 0.7, loop: cmd === 'loop', quantity: 1 } });
   console.log(`queued ${q.id}  quoted $${q.usd}`);
   const r = await collect(q.id, AUD, out);
   console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
+  await toLibrary(out, promptFile, 'sound');
 } else if (cmd === 'video') {
   needLeonardo();
   // node tools/leonardo.mjs video <prompt.txt> <out.mp4> [model] [seconds] [WxH] [start.jpg|-] [end.jpg|-] [ref.jpg|-]
@@ -181,6 +194,7 @@ if (cmd === 'balance') {
   console.log(`queued ${q.id}  quoted $${q.usd}`);
   const r = await collect(q.id, /^https?:\/\/\S+\.(mp4|webm|mov)(\?\S*)?$/i, out);
   console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
+  await toLibrary(out, promptFile, 'video');
 } else {
   console.log('balance | portrait | image | loop | sfx | video');
 }

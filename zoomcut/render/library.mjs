@@ -8,7 +8,7 @@
 //   POST /api/lib/:id {tags}      his own words on an item ("rabbi", "office", "tense") - found by the search
 import fs from 'node:fs';
 import path from 'node:path';
-import { list, download, getJson, putJson } from './cloud/store.mjs';
+import { list, download, getJson, putJson, upload } from './cloud/store.mjs';
 
 export default function library(app, { ROOT, PORT, cloudOn }) {
   const LIB = path.join(ROOT, 'library'), INDEX = path.join(LIB, 'index.json');
@@ -24,6 +24,9 @@ export default function library(app, { ROOT, PORT, cloudOn }) {
       const all = { items: [...by.values()], at: Date.now() };
       if (JSON.stringify(all.items) !== JSON.stringify(mine.items)) save(all);
       if (!c || JSON.stringify(all.items) !== JSON.stringify(c.v.items)) await putJson('library/index.json', all, c ? c.gen : '0');
+      // files made on this computer that the cloud doesn't have yet (made while the sync was off) go up
+      const there = await list('library/');
+      for (const x of mine.items) { const f = path.join(LIB, x.file); if (!there['library/' + x.file] && fs.existsSync(f)) await upload(f, 'library/' + x.file); }
     } catch (e) { console.log('library: ' + e.message); }
   };
   setTimeout(merge, 3000); setInterval(merge, 10 * 60e3).unref?.();

@@ -12,6 +12,20 @@ LAYERS (his words: "put all as layers on the editor tool, don't create one file"
 rules first (one editor, ops through the studio with the rev, never export on your own, check `GET /api/jobs` busy
 before any heavy job, commit only your files).
 
+## Everything you make goes into the editor's library - labelled, right away (his rule, 2026-11-02)
+Any background, music, sound effect, picture, icon, emoji, sticker or clip you CREATE for a video goes into the asset
+library (`zoomcut/library/`, the studio's Assets page) the moment it exists, with every label that matters - so nothing
+is ever tagged in bulk again (his words: "so we won't get another time these things to tag").
+- The makers do it themselves: `node tools/leonardo.mjs image|portrait|sfx|loop|video ... --about "<what it is, for
+  which video>" --tags "<mood, place, use, character, style>" --project <id> [--kind background|picture|icon]`,
+  `node tools/elevenlabs_music.mjs <out.mp3> <secs> "<prompt>" --about "..." --tags "..." --project <id>`.
+- Anything else (a frame you cut, a sound you edited, a file from elsewhere): `node tools/library_add.mjs <file>
+  --about "..." --tags "..." --project <id> [--kind ...]`.
+- `--no-library` only for a throwaway test. Before you finish: `node tools/library_add.mjs --unlabelled` must be empty
+  for what you made.
+- Labels = what someone would search for later: what it shows / sounds like, the mood, the place, the character, the
+  kind of video (Zoom call, rabbi monologue, news, trailer...), the series. Hebrew words welcome.
+
 ## What he means (each one cost a round)
 - **"The chorus of the song with my words" = the ORIGINAL song**, its backing and tune. Never a new song from Eleven
   Music (I made four; he: "are you stupid? ... not you go and create new songs"). Eleven Music only when he asks for a

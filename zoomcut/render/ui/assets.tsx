@@ -7,13 +7,13 @@ import { createRoot } from 'react-dom/client';
 import { tabProject } from './common';
 
 type Item = { id: string; kind: string; file: string; name: string; size: number; dur?: number; w?: number; h?: number;
-  from: string[]; series: string[]; types: string[]; labels: string[]; prompt?: string; tags?: string[]; added: number };
+  from: string[]; series: string[]; types: string[]; labels: string[]; prompt?: string; tags?: string[]; about?: string; made?: string; added: number };
 const api = async (u: string, body?: any) => (await fetch(u, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : undefined)).json();
-const KINDS: [string, string][] = [['', 'All'], ['background', 'Backgrounds'], ['music', 'Music'], ['sound', 'Sounds'], ['picture', 'Pictures'], ['video', 'Videos']];
+const KINDS: [string, string][] = [['', 'All'], ['background', 'Backgrounds'], ['music', 'Music'], ['sound', 'Sounds'], ['picture', 'Pictures'], ['icon', 'Icons'], ['video', 'Videos']];
 const src = (it: Item) => '/lib/' + it.file.split('/').map(encodeURIComponent).join('/');
 const secs = (s?: number) => (s == null ? '' : s < 60 ? `${s.toFixed(s < 10 ? 1 : 0)} s` : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`);
 const isSound = (it: Item) => it.kind === 'music' || it.kind === 'sound';
-const words = (it: Item) => [it.name, ...it.labels, ...it.series, ...it.types, ...it.from, ...(it.tags || []), it.prompt || ''].join(' ').toLowerCase();
+const words = (it: Item) => [it.name, it.about || '', ...it.labels, ...it.series, ...it.types, ...it.from, ...(it.tags || []), it.prompt || ''].join(' ').toLowerCase();
 
 const PlayIc = ({ on }: { on: boolean }) => <svg width="12" height="12" viewBox="0 0 12 12">{on ? <><rect x="2" y="2" width="3" height="8" rx="1" fill="currentColor" /><rect x="7" y="2" width="3" height="8" rx="1" fill="currentColor" /></> : <path d="M3 1.5l7.5 4.5L3 10.5z" fill="currentColor" />}</svg>;
 
@@ -46,11 +46,12 @@ function Big({ it, onClose, onTags }: { it: Item; onClose: () => void; onTags: (
         </div>
         <div className="ax-big-info">
           <div className="ax-big-name" dir="auto">{it.labels[0] || it.name}</div>
+          {it.about && <div className="ax-row"><i dir="auto">{it.about}</i></div>}
           <div className="ax-meta">{KINDS.find((k) => k[0] === it.kind)?.[1].replace(/s$/, '')}{it.dur ? ` · ${secs(it.dur)}` : ''}{it.w ? ` · ${it.w}×${it.h}` : ''} · {(it.size / 1e6).toFixed(1)} MB</div>
           <div className="ax-row"><span>Used in</span><b dir="auto">{it.from.join(', ') || '-'}</b></div>
           <div className="ax-row"><span>Kind of video</span><b>{[...it.series, ...it.types].join(' · ') || '-'}</b></div>
           {it.prompt && <div className="ax-row"><span>Made from</span><i dir="auto">{it.prompt}</i></div>}
-          <label className="ax-row"><span>Your words</span>
+          <label className="ax-row"><span>Words to find it by</span>
             <input className="field" dir="auto" value={tags} placeholder="e.g. office, tense, rabbi" onChange={(e) => setTags(e.target.value)}
               onBlur={() => { const t = tags.split(',').map((x) => x.trim()).filter(Boolean); if (t.join(',') !== (it.tags || []).join(',')) onTags(t); }} />
           </label>
@@ -109,7 +110,7 @@ function Assets() {
             <button className="ax-play" title={play.on === it.id ? 'Stop' : 'Play'} onClick={(e) => { e.stopPropagation(); play.toggle(it); }}><PlayIc on={play.on === it.id} /></button>
             <div className="ax-snd-name" dir="auto">{it.labels[0] || it.name}</div>
             <div className="ax-snd-meta">{it.kind === 'music' ? 'music' : 'sound'} · {secs(it.dur)}</div>
-            <div className="ax-snd-from">{it.series.join(' · ')}</div>
+            <div className="ax-snd-from" dir="auto">{it.about || it.series.join(' · ')}</div>
           </div>))}
       </div>}
       {pics.length > 0 && <div className="ax-grid">
@@ -117,7 +118,7 @@ function Assets() {
           <div key={it.id} className={`ax-card ${it.kind}`} onClick={() => setOpen(it)} title="Open it big">
             <div className="ax-thumb">{it.kind === 'video' ? <video src={src(it)} muted preload="metadata" /> : <img src={src(it)} loading="lazy" alt="" />}</div>
             <div className="ax-card-name" dir="auto">{it.labels[0] || it.name}</div>
-            <div className="ax-card-meta">{it.kind} · {it.series.join(' · ')}</div>
+            <div className="ax-card-meta" dir="auto">{it.about || `${it.kind} · ${it.series.join(' · ')}`}</div>
           </div>))}
       </div>}
       {open && <Big it={open} onClose={() => setOpen(null)} onTags={(t) => setTags(open, t)} />}
