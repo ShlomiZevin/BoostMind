@@ -4,8 +4,8 @@
 export const HELP: Record<string, string> = {
   // ---- sound
   'Loudness': 'How loud this sound is.',
-  'This clip only': 'Louder or quieter for just the piece you clicked on the timeline. The other pieces in the same row stay as they are.',
-  'All clips in this row': 'Louder or quieter for every piece in this row of the timeline at once - for example all of Tzvika\'s voice.',
+  'This clip only': 'Louder or quieter for just the piece you clicked on the timeline - ON TOP of the row\'s loudness (they add up: row -3 dB and this clip +2 dB = this clip plays at -1 dB). The other pieces in the row stay as they are.',
+  'All clips in this row': 'Louder or quieter for every piece in this row of the timeline at once - for example all of Tzvika\'s voice. A clip\'s own loudness adds on top of this.',
   'Fade in': 'It starts from silence (or from invisible) and comes up over this many seconds.',
   'Fade out': 'It sinks to silence (or disappears) over this many seconds at its end.',
   'Sound on': 'Off = this whole row is silent. Nothing is deleted - turn it back on any time.',
@@ -25,7 +25,7 @@ export const HELP: Record<string, string> = {
   'Softer s sounds': 'Tames sharp, hissing S and SH sounds.',
   'Louder quiet parts': 'Brings quiet moments up and loud ones down inside the voice, so a whisper is heard and a shout doesn\'t jump.',
   'Keep the speech even': 'Levels every sentence automatically, so each line is heard at the same loudness.',
-  'Fun sound': 'Character effects. In the heading choose whether they go on this clip only or on all clips in this row.',
+  'Fun sound': 'Character effects. In the heading choose where you set them: this clip only, or all clips in this row. If both have effects, both play - the clip\'s own first, then the row\'s on top (a phone voice on this clip + muffled on the row = a muffled phone).',
   'Sounds like': 'Makes it sound like it comes through something: a phone, a speakerphone, a laptop speaker, a thought (an inner voice), a dark echo, or muffled (through a wall).',
   'Echo strength': 'How strong the dark echo is.',
   'Higher / lower': 'Raises or lowers the pitch (higher = a chipmunk, lower = a monster) - the timing stays the same.',

@@ -106,6 +106,11 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
       <Slider label="Room sound" v={fx.room || 0} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setFx({ room: x || null }, c)} />
       <Slider label="Room size" v={fx.roomSize ?? 1.6} min={0.4} max={3} step={0.1} def={1.6} fmt={(x) => `${x.toFixed(1)} s`} onChange={(x, c) => setFx({ roomSize: x }, c)} disabled={!fx.room} />
       {onClip && <ToggleRow label="Soften a shout" on={!!item.soften} onChange={(on) => S.item({ soften: on || null })} />}
+      {(() => {  // (both set: say how they combine - they add up, nothing is hidden)
+        const own = item?.fx, row = props.fx, say = (f: any) => [f?.filter && (FILTERS[f.filter]?.label || f.filter), f?.pitch && `pitch ${f.pitch > 0 ? '+' : ''}${f.pitch}`, f?.room && 'room'].filter(Boolean).join(', ');
+        if (!item || !own || !row || !say(own) || !say(row)) return null;
+        return <Note>This clip plays with both: its own ({say(own)}), then the row's on top ({say(row)}).</Note>;
+      })()}
     </Sec>
 
     <PanelEnd P={P} timing={<ClipTiming P={P} source speedCtl fades={false} />}
