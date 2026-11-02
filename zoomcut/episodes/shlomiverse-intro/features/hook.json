@@ -1,0 +1,11 @@
+{
+  "_": "the 2nd trailer's hook: two real moments (Hani's greeting, Gilad's question on the Techy-Tech Zoom), then the last frame becomes a card pulled into space, the title in near-silence, and the music starts at `pre`",
+  "clips": [
+    { "src": "../../../public/wiki/v/haredit-1.mp4", "in": 0.0, "out": 1.56 },
+    { "src": "../../../public/wiki/v/gilad-joins.mp4", "in": 15.30, "out": 17.05, "vout": 16.95 }
+  ],
+  "gain_db": 3.5,
+  "fly": 0.62,
+  "title": ["שלומיוורס", "מציגים"],
+  "pre": 5.0
+}

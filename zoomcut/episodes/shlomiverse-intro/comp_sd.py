@@ -18,6 +18,8 @@ FPS = 24
 T_LOGO, DUR = B['logo'], B['duration']
 TAG, URL = arg('--tag', 'אנשים אמיתיים. יקום מקביל.'), 'shlomiverse.com'
 PREFIX = arg('--prefix', 'shlomiverse-intro')
+HOOK = arg('--hook')                 # real clips before the trailer (features/hook.json)
+STORY_ONLY = '--story-only' in sys.argv
 POST_TOP = 320                       # 4:5 window: rows 320..1670 of the story frame (logo at ~40%)
 
 # ---- 1. the clips, reversed and scaled, one PNG per frame
@@ -112,7 +114,7 @@ if APPROACH:
         cx_, cy_ = PCX, PCY
         xa, ya = int(round(cx_ - w_ / 2)), int(round(cy_ - h_ / 2))
         region = bgf[ya:ya + h_, xa:xa + w_]
-        a_in = min(1.0, t / 0.6 + 0.35)                         # there from the start, just eases in with the fade
+        a_in = 1.0 if HOOK else max(0.0, min(1.0, t / 0.6 + 0.35))   # there from the start, just eases in with the fade
         bgf[ya:ya + h_, xa:xa + w_] = region * (1 - msk * a_in) + spr * msk * a_in
         return bgf
 
@@ -376,6 +378,78 @@ if SFX:   # the glint's sparkle under the music, on the hit
                     f'[1:a]volume={arg("--sfx-vol", "0.9")},adelay={ms}|{ms}[s];[0:a][s]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95',
                     mixed], check=True)
     music = mixed
+PRE = 0.0
+if HOOK:
+    HK = json.load(open(os.path.join(HERE, HOOK), encoding='utf8'))
+    PRE, FLY = HK['pre'], HK['fly']
+    hook_frames, parts = [], []
+    for i, c in enumerate(HK['clips']):
+        src = os.path.join(HERE, c['src']); d = c['out'] - c['in']
+        vd = c.get('vout', c['out']) - c['in']                  # the picture can stop earlier (a view switch) - its last frame holds
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(c['in']), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={W}:{H}:flags=lanczos',
+                              '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
+        fr_c = list(np.frombuffer(raw, np.uint8).reshape(-1, H, W, 3))
+        hook_frames += fr_c + [fr_c[-1]] * max(0, int(round((c['in'] + d) * FPS)) - int(round(c['in'] * FPS)) - len(fr_c))
+        wav = os.path.join(HERE, f'out/hook-{i}.wav')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
+                        f'volume={HK.get("gain_db", 0)}dB,afade=t=in:d=0.012,afade=t=out:st={d - 0.03:.3f}:d=0.03', '-ar', '48000', '-ac', '2', wav], check=True)
+        parts.append(wav)
+    T_CLIPS = len(hook_frames) / FPS
+    # the rounded card the last frame becomes, with the same orange rim as the feature cards
+    _R = 70
+    _cm = np.ones((H, W), np.float32)
+    for (cy_, cx_) in ((_R, _R), (_R, W - _R), (H - _R, _R), (H - _R, W - _R)):
+        ys, xs = slice(cy_ - _R if cy_ == _R else H - _R, cy_ if cy_ == _R else H), slice(cx_ - _R if cx_ == _R else W - _R, cx_ if cx_ == _R else W)
+        gy_, gx_ = np.mgrid[ys, xs].astype(np.float32)
+        _cm[ys, xs] = np.clip(_R - np.sqrt((gx_ - cx_) ** 2 + (gy_ - cy_) ** 2) + 0.5, 0, 1)
+    _edge = np.clip(_cm - cv2.erode(_cm, np.ones((19, 19), np.uint8)), 0, 1)
+    def _title_line(txt, size, color):
+        a_ = text_layer(txt, size, 800, color, rtl=True)
+        g_ = np.asarray(Image.fromarray((a_ * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(22))).astype(np.float32) / 255
+        return a_, g_
+    TITLE = [_title_line(HK['title'][0], 128, (255, 122, 48, 255)), _title_line(HK['title'][1], 92, (255, 255, 255, 255))]
+    # the sound: the clips back to back, a rising shimmer into the title, the music from `pre`
+    mixed = os.path.join(HERE, f'out/mix-{NAME}-hook.wav')
+    ins = sum([['-i', p_] for p_ in parts], [])
+    n_ = len(parts)
+    ms_pre, ms_sw = int(PRE * 1000), int(max(0.0, PRE - 2.48 + 0.05) * 1000)
+    fc = ''.join(f'[{i}:a]' for i in range(n_)) + f'concat=n={n_}:v=0:a=1[hk];'
+    fc += f'[{n_}:a]adelay={ms_pre}|{ms_pre}[mu];'
+    fc += f'[{n_ + 1}:a]areverse,volume=0.32,afade=t=in:d=0.8,adelay={ms_sw}|{ms_sw}[sw];'
+    fc += '[hk][sw][mu]amix=inputs=3:duration=longest:normalize=0,alimiter=limit=0.95'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-i', music, '-i', os.path.join(HERE, 'music/sfx-shimmer.mp3'), '-filter_complex', fc, '-ar', '48000', mixed], check=True)
+    music = mixed
+    print('hook', round(T_CLIPS, 2), 's of clips; music from', PRE)
+def hook_frame(f):
+    T = f / FPS
+    fr = frame(f - PRE * FPS)                                  # the opening space, before the music: same scene, continuous
+    if T < T_CLIPS:
+        return hook_frames[int(f)].astype(np.float32) / 255
+    if T < T_CLIPS + FLY:                                      # the last clip frame becomes a card and is pulled into the planet
+        q = (T - T_CLIPS) / FLY
+        e = q * q * (3 - 2 * q) * 0.55 + q ** 3 * 0.45
+        sc = 1.0 - 0.96 * e
+        rim = min(1.0, q / 0.12)
+        img = hook_frames[-1].astype(np.float32) / 255
+        img = img * (1 - _edge[..., None] * rim) + np.array([1.0, 0.55, 0.2], np.float32) * _edge[..., None] * rim
+        w_, h_ = max(2, int(W * sc)), max(2, int(H * sc))
+        cx_, cy_ = W / 2 + (PCX - W / 2) * e, H / 2 + (PCY - H / 2) * e
+        im_ = cv2.resize(img, (w_, h_), interpolation=cv2.INTER_AREA); m_ = cv2.resize(_cm, (w_, h_), interpolation=cv2.INTER_AREA)[..., None]
+        x0_, y0_ = int(cx_ - w_ / 2), int(cy_ - h_ / 2)
+        xa, ya, xb, yb = max(0, x0_), max(0, y0_), min(W, x0_ + w_), min(H, y0_ + h_)
+        a_ = m_[ya - y0_:yb - y0_, xa - x0_:xb - x0_] * (1 - sm((q - 0.8) / 0.2))
+        gl_ = np.exp(-(((xx - cx_) / (w_ * 0.7 + 40)) ** 2 + ((yy - cy_) / (h_ * 0.6 + 40)) ** 2))[..., None] * np.array([1.0, 0.45, 0.12], np.float32) * 0.5 * rim
+        fr = 1 - (1 - fr) * (1 - np.clip(gl_, 0, 1))
+        fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - a_) + im_[ya - y0_:yb - y0_, xa - x0_:xb - x0_] * a_
+    t0 = T_CLIPS + FLY * 0.55
+    if t0 <= T < PRE + 0.3:                                    # the title, in near-silence; gone before the first card lands
+        a = sm((T - t0) / 0.45) * (1 - sm((T - (PRE - 0.05)) / 0.3))
+        for (ln, gw), cy_, dy_ in ((TITLE[0], 700, 0), (TITLE[1], 830, 10)):
+            gl_ = np.zeros_like(fr); h_, w_ = gw.shape[:2]; x0_, y0_ = int(W / 2 - w_ / 2), int(cy_ - h_ / 2)
+            gl_[y0_:y0_ + h_, x0_:x0_ + w_] = gw[..., 3:4] * np.array([1.0, 0.42, 0.1], np.float32) * 0.9
+            fr = 1 - (1 - fr) * (1 - np.clip(gl_ * a, 0, 1))
+            over(fr, ln, W / 2, cy_, a, dy=(1 - a) * (18 + dy_))
+    return np.clip(fr, 0, 1)
 def enc(path, crop):
     return subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                              '-i', music, '-vf', crop, '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
@@ -409,7 +483,7 @@ def frame(f):
         draw_flyers(fr, t)
     if cards and t < T_LOGO:
         draw_cards(fr, t)
-    fade_in = sm(t / 0.9)
+    fade_in = 1.0 if HOOK else sm(t / 0.9)
     # the final hit: flash, flare streak, the logo's glow pulsing
     if SHEEN and SMOOTH_END and not NO_HIT and t > T_LOGO - 0.6:
         # one continuous light curve: a build before the hit, the swell on it, settling after - nothing switches on at once
@@ -458,12 +532,14 @@ def frame(f):
 
 if arg('--preview'):   # a few frames as PNG, no video
     for f in [int(x) for x in arg('--preview').split(',')]:
-        Image.fromarray((frame(f) * 255 + 0.5).astype(np.uint8)).save(os.path.join(HERE, f'out/test/{NAME}-{f:04d}.png'))
+        Image.fromarray(((hook_frame(f) if f < int(round(PRE * FPS)) else frame(f - int(round(PRE * FPS)))) * 255 + 0.5).astype(np.uint8)).save(os.path.join(HERE, f'out/test/{NAME}-{f:04d}.png'))
     sys.exit(0)
-pS = enc(outs['story'], 'null'); pP = enc(outs['post'], f'crop={W}:1350:0:{POST_TOP}')
-for f in range(NF):
-    buf = (frame(f) * 255 + 0.5).astype(np.uint8).tobytes()
-    pS.stdin.write(buf); pP.stdin.write(buf)
-for p in (pS, pP):
+pS = enc(outs['story'], 'null'); pP = None if STORY_ONLY else enc(outs['post'], f'crop={W}:1350:0:{POST_TOP}')
+NPRE = int(round(PRE * FPS))
+for f in range(NPRE + NF):
+    buf = ((hook_frame(f) if f < NPRE else frame(f - NPRE)) * 255 + 0.5).astype(np.uint8).tobytes()
+    pS.stdin.write(buf)
+    if pP: pP.stdin.write(buf)
+for p in [x for x in (pS, pP) if x]:
     p.stdin.close(); p.wait()
-print('\n'.join(outs.values()))
+print(outs['story'] if STORY_ONLY else '\n'.join(outs.values()))
