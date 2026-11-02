@@ -1256,7 +1256,8 @@ app.use((err, _q, res, _n) => res.status(err.status || 500).json({ error: err.me
 const vite = await createVite({
   root: path.join(HERE, 'ui'),
   plugins: [react()],
-  server: { middlewareMode: true },
+  // (live-reload's own port follows the studio's: a second studio on the same computer - another port - no clash)
+  server: { middlewareMode: true, hmr: { port: 24678 + (PORT - 4747) } },
   appType: 'spa',
   logLevel: 'warn',
 });

@@ -71,12 +71,19 @@ Step '6/7  Keys, AI models, the cloud sync'
 New-Item -ItemType Directory -Force "$Z\episodes\_cloud" | Out-Null
 [IO.File]::WriteAllText("$Z\episodes\_cloud\config.json", '{ "sync": "on" }')  # (no BOM: the studio reads it as JSON)
 Run node "$Z\render\cloud\keys.mjs" pull
-Run gcloud storage rsync -r "$Bucket/studio/models" "$Z\models"
+Run gcloud storage rsync -r "$Bucket/studio/models" "$Z\models" --exclude=".*\.gitattributes$"  # (git keeps its own)
 Write-Host '  ok   keys (zoomcut\.env, from Secret Manager), models, sync on'
 Write-Host '  note: eye contact (NVIDIA Maxine) needs an NVIDIA graphics card and its SDK - the rest works on any computer.' -ForegroundColor DarkGray
 
 if ($NoStart) { Write-Host "`nReady. Start it with:  node $Z\render\server.mjs" -ForegroundColor Green; exit 0 }
 Step '7/7  Sketch Studio'
+# another studio already running on this computer: this one gets no iPhone Drop poller (two would fight over the Drop's
+# folders) and must take another port
+if (Get-NetTCPConnection -LocalPort 4747 -State Listen -ErrorAction SilentlyContinue) {
+  if ($Port -eq 4747) { throw 'A studio already runs on port 4747 here - stop it, or run setup.ps1 -Port 4748' }
+  $env:ZC_NO_DROP = '1'
+  Write-Host '  note: another studio runs on this computer - this one starts without the iPhone Drop' -ForegroundColor DarkGray
+}
 Write-Host "  http://localhost:$Port - open a project from the menu; one in the cloud comes here first." -ForegroundColor Green
 Start-Process "http://localhost:$Port"
 $env:PORT = "$Port"
