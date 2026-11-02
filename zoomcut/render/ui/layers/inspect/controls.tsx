@@ -110,7 +110,8 @@ export function PanelEnd({ P, timing, lane }: { P: InspectorProps; timing?: Reac
 export function More({ label, children }: { label: string; children: React.ReactNode }) {
   const key = 'ins.more.' + label;
   const [o, setO] = useState(() => { try { return localStorage.getItem(key) === '1'; } catch { return false; } });
-  return <details className="ins-more" open={o} onToggle={(e) => { const v = (e.target as HTMLDetailsElement).open; setO(v); try { localStorage.setItem(key, v ? '1' : '0'); } catch {} }}>
+  // (only its own toggle: a toggle event reached the outer block too and flipped it - his bug, 2026-11-02)
+  return <details className="ins-more" open={o} onToggle={(e) => { if (e.target !== e.currentTarget) return; const v = e.currentTarget.open; setO(v); try { localStorage.setItem(key, v ? '1' : '0'); } catch {} }}>
     <summary><Chev />{label}</summary><div className="ins-more-body">{children}</div></details>;
 }
 

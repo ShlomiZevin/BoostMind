@@ -176,8 +176,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // keys: space play, arrows step / jump, Ctrl+Z / Ctrl+Shift+Z, Delete the picked item
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      // (only a box he TYPES in keeps the keys - a slider / switch that still has the focus after he moved it doesn't:
+      // Ctrl+Z right after a slider did nothing)
+      const t = e.target as HTMLInputElement, tag = t.tagName;
+      if (tag === 'TEXTAREA' || tag === 'SELECT' || (tag === 'INPUT' && !['range', 'checkbox', 'radio', 'button', 'color'].includes(t.type))) return;
+      if (tag === 'INPUT' && t.type === 'range' && /^Arrow|^Home$|^End$/.test(e.key)) return;  // (the slider's own keys)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? L.redo() : L.undo(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); L.redo(); }
       else if (e.code === 'Space' && e.shiftKey) { e.preventDefault(); playOnly(); }
