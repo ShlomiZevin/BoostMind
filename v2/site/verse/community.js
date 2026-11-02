@@ -65,6 +65,8 @@ const tiles = () => `<div class="cmy-tiles">
 // first WHAT YOU CAN DO here (his note 2026-11-02: visitors know it from the marketing, not from the site; mockup
 // golive/X-cando-a), the sticker as the hero; then the ideas; business shrinks to a link
 const STICKER_FACE = ['yotam', 'hani', 'savta'];
+// "go" points left in Hebrew - drawn, because a text "‹" gets mirrored in right-to-left lines (his note: it was opposite)
+const GO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6"/></svg>';
 export function homeBand() {
   const top = ideas.slice(0, 3);
   const face = STICKER_FACE.find((id) => C[id] && C[id].img) || W.characters.find((c) => c.img)?.id;
@@ -80,13 +82,13 @@ export function homeBand() {
         ${hero ? `<span class="cd-st cut"><img src="${esc(hero.thumb || hero.img)}" alt="${esc(hero.text)}"></span>`
           : face ? `<span class="cd-st"><img src="${abs(C[face].img)}" alt="">${line ? `<em>${esc(line)}</em>` : ''}</span>` : ''}</button>
       <button class="cd-pack" data-do="pack"><span class="cd-pk">${PACK.slice(0, 3).map((p) => `<img src="${esc(p.thumb || p.img)}" alt="">`).join('')}</span>
-        <span class="cd-txt"><b>${esc(T.can.pack[0])}</b><small>${esc(T.can.pack[1])}</small></span><i>‹</i></button>
+        <span class="cd-txt"><b>${esc(T.can.pack[0])}</b><small>${esc(T.can.pack[1])}</small></span><i>${GO}</i></button>
       <div class="cd-2">${tile('chat', I.comment)}${tile('follow', I.bell)}</div>
       <div class="cd-3">${tile('stories', '', faces.length ? `<span class="cd-faces">${faces.map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : `<span class="cd-ic">${I.play}</span>`)}${tile('games', I.game)}${tile('sites', I.bag)}</div>
     </div>
     <div class="cd-idea"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
     ${top.length ? `<div class="ideas row3">${top.map(ideaCard).join('')}</div><a class="cd-all" href="#/community">${esc(T.ideasAll)} ←</a>` : ''}
-    <a class="cd-biz" href="#/business">${I.people}<span>${esc(T.bizCard)}</span><i>‹</i></a>
+    <a class="cd-biz" href="#/business">${I.people}<span>${esc(T.bizCard)}</span><i>${GO}</i></a>
   </section>`;
 }
 // a tile: straight to the thing (the sticker one opens a video with the sticker button pointed out)

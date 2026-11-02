@@ -1148,3 +1148,4 @@ section.hero .scroll-hint { z-index: 1; }
 .cd-st.cut { transform: rotate(-5deg); }
 .cd-st.cut img { border: 0; border-radius: 0; box-shadow: none; background: none; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .45)); }
 .cd-hero .cd-st.cut { width: 108px; height: 108px; }
+.cd-pack i, .cd-biz i { display: grid; place-items: center; color: var(--dim); }
