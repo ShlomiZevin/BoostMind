@@ -46,6 +46,12 @@
       "w": 1080,
       "h": 1920,
       "duration": 19.417
+    },
+    "font.assistant": {
+      "kind": "font",
+      "src": "../../fonts/Assistant.ttf",
+      "family": "zc-assistant",
+      "label": "Assistant"
     }
   },
   "layers": [
@@ -71,6 +77,56 @@
       "id": "picture",
       "kind": "video",
       "name": "Picture"
+    },
+    {
+      "items": [
+        {
+          "id": "t0",
+          "from": 459,
+          "dur": 93,
+          "text": "אותי מעניין מה *הביזנס*.",
+          "words": [
+            [
+              0.03,
+              0.27
+            ],
+            [
+              0.27,
+              0.67
+            ],
+            [
+              0.98,
+              1.16
+            ],
+            [
+              1.17,
+              1.47
+            ]
+          ],
+          "box": {
+            "x": 540,
+            "y": 330,
+            "w": 960,
+            "anchor": "t"
+          }
+        }
+      ],
+      "props": {
+        "style": "lyric",
+        "font": "font.assistant",
+        "weight": 800,
+        "size": 96,
+        "color": "#fdf6ef",
+        "fill": "#fc7211",
+        "accent": 1.15,
+        "stroke": 8,
+        "strokeColor": "#1a0d05",
+        "tilt": 0,
+        "align": "center"
+      },
+      "id": "words-end",
+      "kind": "text",
+      "name": "Gilad words (end)"
     },
     {
       "items": [
@@ -134,7 +190,7 @@
           "dur": 97,
           "asset": "s.voice-gilad-end.wav",
           "in": 0,
-          "gain": 1
+          "gain": 0.8
         }
       ],
       "props": {
@@ -237,8 +293,8 @@
       "name": "Whooshes"
     }
   ],
-  "rev": 19,
-  "saved": 1793626653081,
+  "rev": 24,
+  "saved": 1793627386627,
   "notes": [
     {
       "id": "nmvzarhfu",

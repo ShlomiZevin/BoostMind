@@ -40,3 +40,11 @@ Same trailer, on a COPY (new project, e.g. `shlomiverse-features-b`; never touch
   onto A's media/picture.mp4 from frame 96 (4.0 s on, A and B are the same picture) - no full render needed.
 - Layer files: `Downloads\shlomiverse-features-b` - voice-gilad.wav = out/hook-1.wav from 0.6667 s (item at frame 20),
   voice-gilad-end.wav = out/hook-2.wav from 15.2667 (frame 458).
+- v3 (his notes): the punchline item gain 0.8 and its echo about half (aecho 0.19|0.13|0.08|0.04, made straight with
+  ffmpeg from gilad-joins - same chain as comp_sd otherwise); the words on a `lyric` text layer "Gilad words (end)"
+  (Assistant 800, warm white + "הביזנס" in the logo's orange, y 330 above the logo - nothing else there), words at
+  15.33 / 15.57 / 16.28 / 16.47. Music: no fade-in - out/mix-b2.wav (slowed + shimmer) with the track's own swell
+  lifted to the body level from its first note (0.45 s; before it the track is silent) and an even -6 dB dip under
+  the voices to 3.85 s and under the punchline, instead of comp_sd's hard ducking.
+- The phone test (15 fps) ends a `lyric` line at half its length - styles.tsx uses `it.dur / 30`; the editor and the
+  Full export (30 fps) are right. A tool fix for later.
