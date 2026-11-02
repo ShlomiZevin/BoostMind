@@ -120,3 +120,12 @@
 /* a labelled part inside a group (was a folded "More" - now always in sight) */
 .ins-part { display: grid; gap: 12px; }
 .ins-part-h { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; padding-top: 4px; border-top: 1px solid var(--edge); padding-top: 10px; }
+
+/* a picture that isn't here yet (still coming from the cloud): a quiet tile, never the browser's broken-image icon */
+.thumb-wait { display: block; background: repeating-linear-gradient(135deg, var(--panel-2) 0 8px, var(--panel-3) 8px 16px) !important; }
+
+/* the "?" beside a setting and its explanation under it */
+.ins-q { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 6px; padding: 0; border-radius: 50%; border: 1px solid var(--edge-2);
+  background: transparent; color: var(--faint); font: 600 10px Inter, sans-serif; cursor: pointer; vertical-align: 1px; transition: color .15s, border-color .15s, background .15s; }
+.ins-q:hover, .ins-q.on { color: #fff; border-color: var(--accent); background: var(--accent); }
+.ins-help { margin: -4px 0 2px; padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); border-left: 2px solid var(--accent); color: var(--text); font-size: 12px; line-height: 1.5; }

@@ -120,7 +120,7 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
                 {list.map(([id, a]) => (
                   <div key={id} className={`pm ${pick?.kind === 'image' ? 'on' : ''}`} title={a.src}>
                     <button className="pm-img" style={{ position: 'relative' }} title="Open it big" onClick={() => (pick && pick.kind === 'image' ? pick.onPick(id) : setPeek(id))}>
-                      <img src={urls[id]} loading="lazy" style={{ objectFit: k === 'bg' ? 'cover' : 'contain' }} /><Dot a={a} /></button>
+                      <img src={urls[id]} loading="lazy" style={{ objectFit: k === 'bg' ? 'cover' : 'contain' }} onError={(e) => { const i = e.currentTarget; i.style.visibility = 'hidden'; i.parentElement?.classList.add('thumb-wait'); }} /><Dot a={a} /></button>
                     <div className="pm-name">{a.label || a.src.split('/').pop()}</div>
                     {!pick && <button className="pm-use" onClick={() => place(id, a)}>{inUse(id, a) ? '+ again' : '+ timeline'}</button>}
                   </div>

@@ -35,7 +35,17 @@ function Editor() {
   const [job, setJob] = useState<Job | null>(null);
   const chars: any[] = data?.episode?.characters || [];
   useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep) && !ep.startsWith('_')) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
-  const load = useCallback(async () => { if (!ep) return; const d: Data = await api(`/api/ep/${ep}`); setData(d); setJob(d.job); }, [ep]);
+  // (a hiccup while loading - the studio busy, a file being written - says so with Retry; it never falls back to the
+  // New video form, which looked like the project was gone)
+  const [loadErr, setLoadErr] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    if (!ep) return;
+    for (let k = 0; k < 3; k++) {
+      try { const d: Data = await api(`/api/ep/${ep}`); if (d && !(d as any).error) { setData(d); setJob(d.job); setLoadErr(null); return; } setLoadErr((d as any)?.error || 'no answer'); }
+      catch (e) { setLoadErr(String(e)); }
+      await new Promise((ok) => setTimeout(ok, 1200));
+    }
+  }, [ep]);
   // the studio online (render/cloud/sync.mjs): a project is opened on ONE computer at a time - its lock first, then
   // what changed in the cloud comes down, then it loads. Off (not switched on yet): it just loads
   const [cloud, setCloud] = useState<any>(null);  // {locked} | {pulling, p} | {lost} | {error} | null
@@ -49,8 +59,9 @@ function Editor() {
       for (;;) {
         await new Promise((ok) => setTimeout(ok, 600));
         const p = await api(`/api/cloud/${ep}/progress`).catch(() => ({ state: 'error', error: 'the studio did not answer' }));
-        if (p.state === 'ready') break;
+        if (p.state === 'ready') { if (p.left?.length) setCloud({ missing: p.left }); break; }
         if (p.state === 'error') { setCloud({ error: p.error }); return true; }
+        if (p.left?.length && p.state === 'ready') break;
         setCloud({ pulling: true, p });
       }
     }
@@ -86,18 +97,25 @@ function Editor() {
         <div style={{ display: 'grid', gap: 6 }}>
           <button className="btn primary" onClick={async () => { setCloud(null); if (await openCloud(true)) load(); }}>Take it back</button>
         </div></>}
+      {cloud.missing && <>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{cloud.missing.length} file{cloud.missing.length === 1 ? '' : 's'} of this video aren't on any computer yet</div>
+        <div className="help" style={{ margin: '0 0 14px' }}>They couldn't be made again from the originals here, so these parts may show empty: {cloud.missing.map((f: string) => f.split('/').pop()).slice(0, 5).join(', ')}{cloud.missing.length > 5 ? '…' : ''}. Re-analyze makes them.</div>
+        <button className="btn" onClick={() => setCloud(null)}>OK</button></>}
       {cloud.error && <>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>The cloud didn't answer</div>
         <div className="help" style={{ margin: '0 0 14px' }}>{cloud.error} - you're working on what is on this computer; it goes up when the cloud is back.</div>
         <button className="btn" onClick={() => setCloud(null)}>OK</button></>}
     </div></div>) : null;
-  const cloudWait = cloud?.pulling ? (
-    <div className="empty" style={{ padding: 40, display: 'grid', gap: 10, maxWidth: 460 }}>
-      <b style={{ color: 'var(--text)' }}>Bringing the video from the cloud…</b>
-      {cloud.p?.files > 0 && <>
-        <div style={{ height: 6, borderRadius: 3, background: 'var(--panel-3)', overflow: 'hidden' }}><div style={{ height: '100%', width: `${Math.round((cloud.p.doneBytes / Math.max(1, cloud.p.bytes)) * 100)}%`, background: 'var(--accent)' }} /></div>
-        <span>{cloud.p.done} of {cloud.p.files} files · {Math.round(cloud.p.doneBytes / 1e6)} of {Math.round(cloud.p.bytes / 1e6)} MB</span></>}
-    </div>) : null;
+  const cloudWait = cloud?.pulling ? (() => {
+    const p = cloud.p, pct = p?.bytes ? Math.round((p.doneBytes / p.bytes) * 100) : null;
+    return <div className="cloud-wait"><div className="cloud-card">
+      <div className="cloud-title">Opening <b>{ep}</b></div>
+      <div className="cloud-bar"><div className={pct == null ? 'run' : ''} style={pct == null ? undefined : { width: `${Math.max(3, pct)}%` }} /></div>
+      <div className="cloud-sub">{p?.state === 'preparing' ? 'Making the previews this computer is missing…' : !p || p.state === 'checking' ? 'Checking what changed on your other computer…'
+        : `Bringing the latest from the cloud - ${p.done} of ${p.files} files · ${Math.round(p.doneBytes / 1e6)} of ${Math.round(p.bytes / 1e6)} MB`}</div>
+      <button className="btn ghost" onClick={() => { setCloud(null); load(); }}>Open what's on this computer now</button>
+    </div></div>;
+  })() : null;
   useEffect(() => { const on = () => load(); window.addEventListener('studio-reload', on); return () => window.removeEventListener('studio-reload', on); }, [load]);
   useEffect(() => {  // one project for every tool: picked in the Reader or Karaoke -> opened here too
     const on = (e: StorageEvent) => { if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage) setEp(e.newValue); };  // this tab's tools only
@@ -177,6 +195,7 @@ function Editor() {
         <div className="proj">
           {/* the shared project menu (render/studio/bar.js) draws this - the same one in every tool */}
           <select data-picker="project" ref={projSel} value={ep} onChange={(e) => setEp(e.target.value)}>
+            {ep && !eps.some((e) => e.id === ep) && <option value={ep}>{ep}</option>}
             {eps.map((e) => <option key={e.id} value={e.id} data-sub={e.title} data-done={e.done ? '1' : '0'} data-tag={e.cloud ? 'in the cloud' : e.test ? 'test' : undefined}
               data-meta={`${e.template || ''} · ${e.created ? new Date(e.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}`}>{e.id}</option>)}
           </select>
@@ -218,6 +237,11 @@ function Editor() {
         <button className="btn primary" disabled={busy || !ready} onClick={() => setPubWin('now')} title="Test on your phone, send the file, publish - one window">{I.export} Send</button>
       </div>
   );
+  if (!cloud && !data && loadErr) return <div className="ed" style={{ gridTemplateRows: '52px minmax(0, 1fr)' }}>{top}<div className="cloud-wait"><div className="cloud-card">
+    <div className="cloud-title">Couldn't open <b>{ep}</b></div><div className="cloud-sub">{loadErr}</div>
+    <button className="btn primary" onClick={() => load()}>Try again</button></div></div></div>;
+  if (!cloud && !data && ep && eps.some((e) => e.id === ep)) return <div className="ed" style={{ gridTemplateRows: '52px minmax(0, 1fr)' }}>{top}<div className="cloud-wait"><div className="cloud-card">
+    <div className="cloud-title">Opening <b>{ep}</b></div><div className="cloud-bar"><div className="run" /></div></div></div></div>;
   if (cloudWait || (cloud && !data)) return <div className="ed" style={{ gridTemplateRows: '52px minmax(0, 1fr)' }}>{top}{cloudWait}{cloudWin}</div>;
   // a layered project (project.json): the one layered editor - every layer a lane, every change an op
   if ((data as any)?.layered) return <>{cloudWin}<LayersBoundary><LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} epData={data} /></LayersBoundary></>;

@@ -46,7 +46,7 @@ export async function sameAs(file, loc, r, st) {
 }
 export const pool = async (items, n, f) => { let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) await f(items[i++]); })); };
 
-export function startSync({ app, jobs, log = (s) => console.log(s) }) {
+export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) }) {
   const busy = {};  // id -> the pull / push running (one at a time per project)
   const progress = {};  // id -> {state, files, done, bytes, doneBytes, error}
   const held = new Map();  // id -> {gen, since} - the locks this computer has
@@ -136,6 +136,14 @@ export function startSync({ app, jobs, log = (s) => console.log(s) }) {
     }
     await get(foot);
     todo.push(...foot);
+    // every file the project points at must be here - what's missing is made again from the originals (pipeline/heal.py:
+    // the set picture, the take previews, the take sound), what can't be is named to him - never an empty preview
+    if (heal) {
+      P.state = 'preparing';
+      const h = await heal(id).catch(() => null);
+      if (h?.fixed?.length) log(`cloud: ${id} - made again here: ${h.fixed.length} files (${h.fixed.map((f) => f.split('/').pop()).slice(0, 4).join(', ')}${h.fixed.length > 4 ? '...' : ''})`);
+      if (h?.left?.length) { P.left = h.left; log(`cloud: ${id} - missing and not made: ${h.left.join(', ')}`); }
+    }
     P.state = 'ready';
     if (todo.length) log(`cloud: ${id} - ${todo.length} files down (${(P.bytes / 1e6).toFixed(0)} MB)`);
     return P;

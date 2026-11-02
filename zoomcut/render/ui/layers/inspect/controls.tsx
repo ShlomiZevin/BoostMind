@@ -4,6 +4,7 @@
 import { ask } from '../ask';
 import React, { useEffect, useRef, useState } from 'react';
 import { newId } from '../../../src/layers/ops.js';
+import { helpFor } from './help';
 
 export type InspectorProps = {
   project: any; layer: any; item: any | null; urls: Record<string, string>;
@@ -69,11 +70,21 @@ export function Head({ icon, title, sub, end }: { icon: React.ReactNode; title: 
     <div className="grow"><div className="ins-title">{title}</div>{sub && <div className="ins-sub">{sub}</div>}</div>{end}</div>;
 }
 
+/** The "?" beside a setting (inspect/help.ts): a click shows what it does, right under it; another click hides it. */
+function useQ(label: any) {
+  const tip = helpFor(label);
+  const [open, setOpen] = useState(false);
+  const q = tip ? <button type="button" className={'ins-q' + (open ? ' on' : '')} title={tip} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }}>?</button> : null;
+  const note = tip && open ? <div className="ins-help">{tip}</div> : null;
+  return { q, note };
+}
+
 /** A group - always open (his note, 2026-11-02: no folding inside folding; the one hidden level is a group's "More"). */
 export function Sec({ title, end, children }: { title: string; end?: React.ReactNode; open?: boolean; children: React.ReactNode }) {
+  const { q, note } = useQ(title);
   return <section className="ins-sec">
-    <div className="ins-sec-h">{title}{end && <span className="end">{end}</span>}</div>
-    <div className="ins-body">{children}</div></section>;
+    <div className="ins-sec-h">{title}{q}{end && <span className="end">{end}</span>}</div>
+    <div className="ins-body">{note}{children}</div></section>;
 }
 
 /** A window over the editor (a click on the panel's Timing / Lane): what isn't about how the clip looks or sounds -
@@ -98,21 +109,24 @@ export function PanelEnd({ P, timing, lane }: { P: InspectorProps; timing?: Reac
   return <div className="ins-end">
     {item && timing && <button className="btn" onClick={() => setOpen('timing')} title="Start, length, speed, split, delete">
       Timing <span className="ins-end-sub">{tc(item.from, fps)} · {(item.dur / fps).toFixed(1)} s</span></button>}
-    <button className="btn" onClick={() => setOpen('lane')} title="Name, shown / heard, locked, delete the lane">
-      Lane <span className="ins-end-sub">{layer.name || layer.id}{layer.hidden ? ' · hidden' : layer.muted ? ' · muted' : ''}</span></button>
+    <button className="btn" onClick={() => setOpen('lane')} title="This row of the timeline: its name, shown / heard, locked, delete">
+      Row <span className="ins-end-sub">{layer.name || layer.id}{layer.hidden ? ' · hidden' : layer.muted ? ' · muted' : ''}</span></button>
     {open === 'timing' && <Win title={`Timing · clip ${item.id}`} onClose={() => setOpen('')}>{timing}</Win>}
-    {open === 'lane' && <Win title={`Lane · ${layer.name || layer.id}`} onClose={() => setOpen('')}>{lane}</Win>}
+    {open === 'lane' && <Win title={`Row · ${layer.name || layer.id}`} onClose={() => setOpen('')}>{lane}</Win>}
   </div>;
 }
 
 /** A small labelled part inside a group - shown, never folded (his note, 2026-11-02: no "more" levels, everything in
  *  sight, super easy and clear). */
 export function More({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="ins-part">{label && label !== 'More' && <div className="ins-part-h">{label}</div>}{children}</div>;
+  const { q, note } = useQ(label);
+  return <div className="ins-part">{label && label !== 'More' && <div className="ins-part-h">{label}{q}</div>}{note}{children}</div>;
 }
 
-export const Row = ({ label, wide, children }: { label: React.ReactNode; wide?: boolean; children: React.ReactNode }) =>
-  <div className={'ins-row' + (wide ? ' wide' : '')}><label>{label}</label><div>{children}</div></div>;
+export function Row({ label, wide, children }: { label: React.ReactNode; wide?: boolean; children: React.ReactNode }) {
+  const { q, note } = useQ(label);
+  return <><div className={'ins-row' + (wide ? ' wide' : '')}><label>{label}{q}</label><div>{children}</div></div>{note}</>;
+}
 export const Note = ({ warn, children }: { warn?: boolean; children: React.ReactNode }) => <div className={'ins-note' + (warn ? ' warn' : '')}>{children}</div>;
 
 /** "clip only" mark when the selected clip overrides a layer setting; click = use the layer's value again. */
@@ -131,8 +145,10 @@ export function Seg<T extends string | number | boolean>({ options, value, onPic
 export const Toggle = ({ on, onChange, disabled, title }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean; title?: string }) =>
   <button className={'ins-tg' + (on ? ' on' : '')} disabled={disabled} title={title} onClick={() => onChange(!on)} aria-pressed={on} />;
 
-export const ToggleRow = ({ label, on, onChange, disabled, end }: { label: React.ReactNode; on: boolean; onChange: (v: boolean) => void; disabled?: boolean; end?: React.ReactNode }) =>
-  <div className="ins-tgrow"><label>{label}</label><span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>{end}<Toggle on={on} onChange={onChange} disabled={disabled} /></span></div>;
+export function ToggleRow({ label, on, onChange, disabled, end }: { label: React.ReactNode; on: boolean; onChange: (v: boolean) => void; disabled?: boolean; end?: React.ReactNode }) {
+  const { q, note } = useQ(label);
+  return <><div className="ins-tgrow"><label>{label}{q}</label><span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>{end}<Toggle on={on} onChange={onChange} disabled={disabled} /></span></div>{note}</>;
+}
 
 /** A slider: live while it moves (a draft - not saved), saved once on release. Double-click = the default. */
 export function Slider({ label, v, min, max, step, def, fmt = (x) => String(+x.toFixed(2)), onChange, disabled, end }: {
@@ -143,12 +159,13 @@ export function Slider({ label, v, min, max, step, def, fmt = (x) => String(+x.t
   const dragging = useRef(false);
   useEffect(() => { if (!dragging.current) setX(v); }, [v]);
   const done = () => { if (dragging.current) { dragging.current = false; onChange(x, true); } };
-  return <div className={'ins-sl' + (disabled ? ' off' : '')}><label>{label}{end && <> {end}</>}</label>
+  const { q, note } = useQ(label);
+  return <><div className={'ins-sl' + (disabled ? ' off' : '')}><label>{label}{q}{end && <> {end}</>}</label>
     <input type="range" min={min} max={max} step={step} value={x}
       onChange={(e) => { dragging.current = true; const n = +e.target.value; setX(n); onChange(n, false); }}
       onPointerUp={done} onKeyUp={done} onBlur={done}
       onDoubleClick={() => { if (def != null) { setX(def); onChange(def, true); } }} />
-    <span className="val">{fmt(x)}</span></div>;
+    <span className="val">{fmt(x)}</span></div>{note}</>;
 }
 
 /** A number with a unit, typed (Enter / leaving the field saves) or nudged with the arrows. */
@@ -245,14 +262,14 @@ export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P:
 export function LayerState({ P, sound, children }: { P: InspectorProps; sound?: boolean; children?: React.ReactNode }) {
   const { layer, send } = P;
   const S = useSettings(P);
-  return <Sec title="Lane" end={<span>{layer.items?.length || 0} clips</span>}>
+  return <Sec title="Row" end={<span>{layer.items?.length || 0} clips</span>}>
     <Row label="Name"><input className="ins-select" defaultValue={layer.name || ''} key={layer.id}
       onBlur={(e) => e.target.value !== (layer.name || '') && S.layerSet({ name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} /></Row>
     <ToggleRow label="Shown" on={!layer.hidden} onChange={(v) => S.layerSet({ hidden: !v })} />
     {sound && <ToggleRow label="Heard" on={!layer.muted} onChange={(v) => S.layerSet({ muted: !v })} />}
     <ToggleRow label="Locked" on={!!layer.locked} onChange={(v) => S.layerSet({ locked: v })} />
     {children}
-    <button className="btn danger" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); }}>Delete layer</button>
+    <button className="btn danger" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); }}>Delete this row</button>
   </Sec>;
 }
 

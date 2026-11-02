@@ -65,18 +65,18 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
       sub={`${kind === 'voice' ? 'Voice' : kind === 'music' ? 'Music' : 'Sound effect'}${item ? ` · clip ${item.id}` : ` · ${layer.items?.length || 0} clips`}`} />
 
     <Sec title="Loudness">
-      {item && <Slider label="This clip" v={item.gain ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(g, c) => S.item({ gain: g === 1 ? null : g }, c)} />}
-      <Slider label="Whole lane" v={props.volume ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(x, c) => S.layer({ volume: x }, c)} />
+      {item && <Slider label="This clip only" v={item.gain ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(g, c) => S.item({ gain: g === 1 ? null : g }, c)} />}
+      <Slider label="All clips in this row" v={props.volume ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(x, c) => S.layer({ volume: x }, c)} />
       {item && <>
         <Slider label="Fade in" v={item.fade_in ?? 0} min={0} max={Math.min(3, dur)} step={0.01} def={0} fmt={fmt.s} onChange={(x, c) => S.item({ fade_in: x || null }, c)} />
         <Slider label="Fade out" v={item.fade_out ?? 0} min={0} max={Math.min(3, dur)} step={0.01} def={0} fmt={fmt.s} onChange={(x, c) => S.item({ fade_out: x || null }, c)} />
       </>}
-      <ToggleRow label="Heard" on={!layer.muted} onChange={(on) => S.layerSet({ muted: !on })} />
+      <ToggleRow label="Sound on" on={!layer.muted} onChange={(on) => S.layerSet({ muted: !on })} />
       {lower}
       {kind === 'music' && rise}
     </Sec>
 
-    {kind === 'voice' && <Sec title="Voice" end={<span className="ins-state">whole lane</span>}>
+    {kind === 'voice' && <Sec title="Voice" end={<span className="ins-state">all of this row</span>}>
       <Row label="Clean the noise"><Chips options={CLEAN} value={clean} onPick={(c) => S.layer({ clean: c === 'off' ? null : c })} /></Row>
       {CLEAN_NOTE[clean] && <Note>{CLEAN_NOTE[clean]}</Note>}
       <Row label="Voice style"><Chips options={[['plain', 'Plain'] as [string, string], ...styles.map((k) => [k, cap(k)] as [string, string])]} value={style} onPick={pickStyle} /></Row>
@@ -97,8 +97,8 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     </Sec>}
 
     <Sec title="Fun sound" end={item ? <span className="ins-scope-sw">
-      <button className={scope === 'clip' ? 'on' : ''} onClick={() => setScope('clip')}>This clip</button>
-      <button className={scope === 'lane' ? 'on' : ''} onClick={() => setScope('lane')}>Whole lane</button></span> : <span className="ins-state">whole lane</span>}>
+      <button className={scope === 'clip' ? 'on' : ''} onClick={() => setScope('clip')}>This clip only</button>
+      <button className={scope === 'lane' ? 'on' : ''} onClick={() => setScope('lane')}>All in this row</button></span> : <span className="ins-state">all of this row</span>}>
       <Row label="Sounds like"><Chips options={[['', 'Itself'] as [string, string], ...Object.entries(FILTERS).map(([k, x]) => [k, x.label] as [string, string])]} value={fx.filter || ''}
         onPick={(k) => setFx({ filter: k || null }, true)} /></Row>
       {fx.filter === 'echo' && <Slider label="Echo strength" v={fx.echo ?? 1} min={0} max={2} step={0.05} def={1} fmt={(x) => `${Math.round(x * 100)}%`} onChange={(x, c) => setFx({ echo: x }, c)} />}

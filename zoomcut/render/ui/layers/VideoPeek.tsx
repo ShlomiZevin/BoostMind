@@ -36,9 +36,10 @@ export function VideoPeek({ src, name, sub, kind = 'video', onClose, children, a
 
 // a file's picture that opens it big when clicked
 export function PeekThumb({ src, onPlay, className = 'm-thumb' }: { src: string; onPlay: () => void; className?: string }) {
+  const [bad, setBad] = React.useState(false);  // (no picture yet - a file still on its way: a quiet tile, never a broken image)
   return (
     <button className="vp-th" title="Open it big" onClick={(e) => { e.stopPropagation(); onPlay(); }}>
-      <img className={className} loading="lazy" src={src} alt="" /><span className="vp-play">▶</span>
+      {bad ? <span className={className + ' thumb-wait'} /> : <img className={className} loading="lazy" src={src} alt="" onError={() => setBad(true)} />}<span className="vp-play">▶</span>
     </button>
   );
 }

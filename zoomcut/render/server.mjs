@@ -357,7 +357,15 @@ const DOWNLOADS = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', 'Down
 const drop = TEST || process.env.ZC_NO_DROP ? { folders: () => [], cleanup: () => {}, running: () => [] } : startDrop({ app, DOWNLOADS, ROOT, PY, recordJob });
 // the studio online (render/cloud/): projects follow him between computers, the keys come from Secret Manager -
 // both only once he switched it on (episodes/_cloud/config.json), or ZC_CLOUD=test for _test projects
-const cloud = startSync({ app, jobs, log: (s) => console.log(s) });
+// (after a project comes from the cloud: anything it points at that isn't here is made again - pipeline/heal.py)
+const heal = (id) => new Promise((ok) => {
+  let out = '';
+  const p = spawn(PY, ['-m', 'pipeline.heal', `episodes/${id}`], { cwd: ROOT, env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, windowsHide: true });
+  p.stdout.on('data', (d) => { out += d; });
+  p.on('close', () => { try { ok(JSON.parse(out.trim().split(/\r?\n/).pop())); } catch { ok(null); } });
+  p.on('error', () => ok(null));
+});
+const cloud = startSync({ app, jobs, heal, log: (s) => console.log(s) });
 const keys = !TEST && cloud.mode() === 'on' ? startKeys({ log: (s) => console.log(s) }) : null;
 if (!TEST && cloud.mode() === 'on') startShared({ log: (s) => console.log(s) });  // Ideas + the Jobs history, merged across his computers
 library(app, { ROOT, PORT, cloudOn: () => !TEST && cloud.mode() === 'on' });  // the Assets page: every background, music, sound, picture his videos use (library.mjs)
@@ -1176,7 +1184,8 @@ app.get('/api/p/:id/thumb', (q, res) => {
   if (fs.existsSync(out)) return res.sendFile(out);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const t = Math.min(6, (a.duration || 9) / 3);
-  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', String(t), '-i', localPath(path.resolve(d, a.preview || a.src)), '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
+  const pv = a.preview && fs.existsSync(path.resolve(d, a.preview)) ? a.preview : a.src;  // (no preview copy yet: from the take itself)
+  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', String(t), '-i', localPath(path.resolve(d, pv)), '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
   p.on('close', () => (fs.existsSync(out) ? res.sendFile(out) : res.status(404).end()));
 });
 // a file for the project's Media (picture, sound, video): saved in media/, measured, added as an asset
