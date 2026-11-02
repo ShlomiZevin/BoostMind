@@ -37,6 +37,10 @@ any AI code tool can work with and spill things into it without changing it. The
   the solo builder (`pipeline/to_layers_solo.py`). The older screens are not used any more. Deleting project.json
   brings a project back to its older screen (its episode.json / captions / corrections are never touched).
 
+
+**Projects travel through the cloud, never through git** (his rule, 2026-11-02): commit code only - never files under
+`zoomcut/episodes/<id>/`. Moving a project to his other computer = he opens it there; the studio brings it.
+
 ## EVERYTHING IS LIVE - NOTHING REBUILDS (his words, 2026-10-22: "as in CapCut exactly")
 "When I'm changing something, it should be live." Every change in the editor shows at once - a filter, a voice
 setting, noise cleaning, pitch, speed, the set, the cut-out's edge, a text, a drag of any clip. The only real jobs are

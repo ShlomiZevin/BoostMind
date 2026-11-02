@@ -44,6 +44,10 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
 - A new computer: `zoomcut/setup.ps1`.
 
 ## Rules of the house
+- **Projects travel through the cloud, never through git** (his rule, 2026-11-02): never commit or push files under
+  `episodes/<id>/` (project.json, episode.json, captions...) - commit code only. Two systems carrying the same file
+  overwrote each other (tzvika-1). His case is simple: one person, two computers, one project at a time - open it on
+  the other computer and the studio brings it.
 - Build / export / re-mix through the studio's API (the editor's own buttons), never a parallel CLI run.
 - Never kill, restart or rebuild while a job runs. The export is gentle on purpose (his PC blue-screens under
   full load) - don't raise its parallelism.
