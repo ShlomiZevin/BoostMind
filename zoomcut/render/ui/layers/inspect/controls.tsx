@@ -105,14 +105,10 @@ export function PanelEnd({ P, timing, lane }: { P: InspectorProps; timing?: Reac
   </div>;
 }
 
-/** Inside a section: the rare settings, folded (remembered per label) - the panel shows what's used most, the rest
- *  one click away (the panels' order, design.md: what it is -> the main control -> shaping -> clip -> layer). */
+/** A small labelled part inside a group - shown, never folded (his note, 2026-11-02: no "more" levels, everything in
+ *  sight, super easy and clear). */
 export function More({ label, children }: { label: string; children: React.ReactNode }) {
-  const key = 'ins.more.' + label;
-  const [o, setO] = useState(() => { try { return localStorage.getItem(key) === '1'; } catch { return false; } });
-  // (only its own toggle: a toggle event reached the outer block too and flipped it - his bug, 2026-11-02)
-  return <details className="ins-more" open={o} onToggle={(e) => { if (e.target !== e.currentTarget) return; const v = e.currentTarget.open; setO(v); try { localStorage.setItem(key, v ? '1' : '0'); } catch {} }}>
-    <summary><Chev />{label}</summary><div className="ins-more-body">{children}</div></details>;
+  return <div className="ins-part">{label && label !== 'More' && <div className="ins-part-h">{label}</div>}{children}</div>;
 }
 
 export const Row = ({ label, wide, children }: { label: React.ReactNode; wide?: boolean; children: React.ReactNode }) =>

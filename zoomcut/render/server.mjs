@@ -129,6 +129,7 @@ function attach(id) {
     job.running = false; job.code = s.code; job.ended = s.ended;
     if (!s.recorded) {  // (once, even when it ended while the server was down)
       writeJson(f.state, { ...s, recorded: true });
+      cloud?.pushSoon(id);  // (the studio online: what the job made goes up - the editor open or not)
       recordJob({ id, kind: s.kind === 'preview' ? 'build' : s.kind || 'export', started: s.started, ended: s.ended || Date.now(), ok: s.code === 0,
         line: lastLine(job.log), send: s.send || [] });
     }

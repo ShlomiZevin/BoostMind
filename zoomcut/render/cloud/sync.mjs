@@ -173,7 +173,18 @@ export function startSync({ app, jobs, log = (s) => console.log(s) }) {
     return { up, gone: gone.length };
   }
   const soon = {};
-  const pushSoon = (id) => { if (!allowed(id) || !held.has(id)) return; clearTimeout(soon[id]); soon[id] = setTimeout(() => serial(id, () => push(id)).catch((e) => log('cloud push: ' + e.message)), 4000); };
+  // after an edit or a finished job: up a few seconds later. A project the editor doesn't hold (a session built it, or
+  // he hasn't opened it here): its lock is taken just for the push and let go - unless another computer has it open
+  const pushSoon = (id) => {
+    if (!allowed(id)) return;
+    clearTimeout(soon[id]);
+    soon[id] = setTimeout(() => serial(id, async () => {
+      if (held.has(id)) return push(id);
+      const l = await lock(id, false);
+      if (!l.ok) return;  // (open on his other computer: that one sends it)
+      try { await push(id); } finally { await unlock(id); }
+    }).catch((e) => log('cloud push: ' + e.message)), 4000);
+  };
   const tick = setInterval(() => { for (const id of held.keys()) serial(id, () => push(id)).catch((e) => log('cloud push: ' + e.message)); }, 60e3);
   tick.unref?.();
 

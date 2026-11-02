@@ -1,14 +1,15 @@
 // A sound clip's panel - designed with an OpenAI UX consult (gpt-5.6-terra, 2026-11-02) after his note "unclear - it has
 // to be super simple and most convenient; no folding inside folding". The first screen = what he does most: loudness,
-// fades, cleaning, voice style, hearing the lane. Groups always open, ONE "More" line each, plain words (no audio
-// jargon). The panel knows the lane: a VOICE gets Voice; MUSIC and SOUND EFFECTS skip it and show "Lower the voices"
+// fades, cleaning, voice style, hearing the lane. Groups always open and NOTHING folded (his note: "no more levels,
+// everything super easy and clear"); a voice style is one click and sets every slider below it, which he then
+// adjusts (the way he liked it). Plain words (no audio jargon). The panel knows the lane: a VOICE gets Voice; MUSIC and SOUND EFFECTS skip it and show "Lower the voices"
 // up front (music also "Raise after the talking"). Timing, split, delete and the lane's own settings are windows
 // (Timing / Lane at the bottom). Engine: cleaning = pipeline/layers_audio.py (prepared), voice style = sound.ts
 // (live), fun sound = soundfx.ts (live) - the export renders the same.
 import React, { useState } from 'react';
 import { VOICE_PRESETS } from '../../sound';
 import { FILTERS } from '../../soundfx';
-import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Chips, Slider, ToggleRow, ClipTiming, LayerState, PanelEnd, ICON, fmt } from './controls';
+import { InspectorProps, useSettings, Head, Sec, Row, Note, Chips, Slider, ToggleRow, ClipTiming, LayerState, PanelEnd, ICON, fmt } from './controls';
 
 const CLEAN: [string, string][] = [['off', 'Off'], ['mild', 'Mild'], ['fft', 'Standard'], ['strong', 'Strong'], ['nn', 'Best']];
 const CLEAN_NOTE: Record<string, string> = {
@@ -71,48 +72,40 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
         <Slider label="Fade out" v={item.fade_out ?? 0} min={0} max={Math.min(3, dur)} step={0.01} def={0} fmt={fmt.s} onChange={(x, c) => S.item({ fade_out: x || null }, c)} />
       </>}
       <ToggleRow label="Heard" on={!layer.muted} onChange={(on) => S.layerSet({ muted: !on })} />
-      {kind !== 'voice' && lower}
-      {kind === 'voice' && item ? <More label="More">{lower}</More> : kind === 'music' ? <More label="More">{rise}</More> : null}
+      {lower}
+      {kind === 'music' && rise}
     </Sec>
 
     {kind === 'voice' && <Sec title="Voice" end={<span className="ins-state">whole lane</span>}>
       <Row label="Clean the noise"><Chips options={CLEAN} value={clean} onPick={(c) => S.layer({ clean: c === 'off' ? null : c })} /></Row>
       {CLEAN_NOTE[clean] && <Note>{CLEAN_NOTE[clean]}</Note>}
-      <Row label="Voice style"><select className="ins-select" value={style} onChange={(e) => pickStyle(e.target.value)}>
-        <option value="plain">Plain</option>{styles.map((k) => <option key={k} value={k}>{cap(k)}</option>)}</select></Row>
+      <Row label="Voice style"><Chips options={[['plain', 'Plain'] as [string, string], ...styles.map((k) => [k, cap(k)] as [string, string])]} value={style} onPick={pickStyle} /></Row>
+      <Note>A style sets the sliders below - then adjust any of them.</Note>
+      <Slider label="Clearer words" v={voice ? v('presence', 0) : props.presence ?? 0} min={-6} max={8} step={0.5} def={0} fmt={sdb}
+        onChange={(x, c) => (voice ? setVoice({ presence: x }, c) : S.layer({ presence: x || null }, c))} />
+      <Slider label="Room around the voice" v={v('room', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ room: x }, c)} />
+      <Slider label="Room size" v={v('roomSize', 1.6)} min={0.4} max={3} step={0.1} def={1.6} fmt={(x) => `${x.toFixed(1)} s`} onChange={(x, c) => setVoice({ roomSize: x }, c)} disabled={!v('room', 0)} />
+      <Slider label="Speaker echo" v={v('pa', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ pa: x }, c)} />
+      <Slider label="Remove low rumble" v={v('lowcut', voice ? 60 : 0)} min={0} max={200} step={5} def={60} fmt={(x) => (x ? `${x} Hz` : 'off')} onChange={(x, c) => setVoice({ lowcut: x }, c)} />
+      <Slider label="Warmth" v={v('warmth', 0)} min={-6} max={6} step={0.5} def={0} fmt={sdb} onChange={(x, c) => setVoice({ warmth: x }, c)} />
+      <Slider label="Less boxy" v={-v('box', 0)} min={-3} max={6} step={0.5} def={0} fmt={sdb} onChange={(x, c) => setVoice({ box: -x }, c)} />
+      <Slider label="Softer s sounds" v={v('deess', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ deess: x }, c)} />
+      <Slider label="Louder quiet parts" v={v('comp', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ comp: x }, c)} />
       <ToggleRow label="Keep the speech even" on={props.level === 'speech'} onChange={(on) => S.layer({ level: on ? 'speech' : null })} />
       {voice && <button className="btn" onPointerDown={() => hold(true)} onPointerUp={() => hold(false)} onPointerLeave={() => hold(false)}
         title="Hold while it plays: the voice without its style">Hold to hear the original</button>}
-      <More label="More">
-        {voice
-          ? <Slider label="Make the words clearer" v={v('presence', 0)} min={-3} max={8} step={0.5} def={0} fmt={sdb} onChange={(x, c) => setVoice({ presence: x }, c)} />
-          : <Slider label="Make the words clearer" v={props.presence ?? 0} min={-6} max={8} step={0.5} def={0} fmt={sdb} onChange={(x, c) => S.layer({ presence: x || null }, c)} />}
-        {voice && <>
-          <Slider label="Room around the voice" v={v('room', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ room: x }, c)} />
-          {v('room', 0) > 0 && <Slider label="Room size" v={v('roomSize', 1.6)} min={0.4} max={3} step={0.1} def={1.6} fmt={(x) => `${x.toFixed(1)} s`} onChange={(x, c) => setVoice({ roomSize: x }, c)} />}
-          <Slider label="Remove low rumble" v={v('lowcut', 60)} min={0} max={200} step={5} def={60} fmt={(x) => (x ? `${x} Hz` : 'off')} onChange={(x, c) => setVoice({ lowcut: x }, c)} />
-          <Slider label="Warmth" v={v('warmth', 0)} min={-6} max={6} step={0.5} def={0} fmt={sdb} onChange={(x, c) => setVoice({ warmth: x }, c)} />
-          <Slider label="Less boxy" v={-v('box', 0)} min={-3} max={6} step={0.5} def={0} fmt={sdb} onChange={(x, c) => setVoice({ box: -x }, c)} />
-          <Slider label="Softer s sounds" v={v('deess', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ deess: x }, c)} />
-          <Slider label="Louder quiet parts" v={v('comp', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ comp: x }, c)} />
-          <Slider label="Speaker echo" v={v('pa', 0)} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setVoice({ pa: x }, c)} />
-        </>}
-      </More>
     </Sec>}
 
     <Sec title="Fun sound" end={item ? <span className="ins-scope-sw">
       <button className={scope === 'clip' ? 'on' : ''} onClick={() => setScope('clip')}>This clip</button>
       <button className={scope === 'lane' ? 'on' : ''} onClick={() => setScope('lane')}>Whole lane</button></span> : <span className="ins-state">whole lane</span>}>
-      <Row label="Sounds like"><select className="ins-select" value={fx.filter || ''} onChange={(e) => setFx({ filter: e.target.value || null }, true)}>
-        <option value="">Itself</option>{Object.entries(FILTERS).map(([k, x]) => <option key={k} value={k}>{x.label}</option>)}</select></Row>
+      <Row label="Sounds like"><Chips options={[['', 'Itself'] as [string, string], ...Object.entries(FILTERS).map(([k, x]) => [k, x.label] as [string, string])]} value={fx.filter || ''}
+        onPick={(k) => setFx({ filter: k || null }, true)} /></Row>
+      {fx.filter === 'echo' && <Slider label="Echo strength" v={fx.echo ?? 1} min={0} max={2} step={0.05} def={1} fmt={(x) => `${Math.round(x * 100)}%`} onChange={(x, c) => setFx({ echo: x }, c)} />}
       <Slider label="Higher / lower" v={fx.pitch || 0} min={-12} max={12} step={0.5} def={0} fmt={semis} onChange={(x, c) => setFx({ pitch: x || null }, c)} />
-      {onClip && kind === 'effect' && <ToggleRow label="Soften a shout" on={!!item.soften} onChange={(on) => S.item({ soften: on || null })} />}
-      <More label="More">
-        {fx.filter === 'echo' && <Slider label="Echo strength" v={fx.echo ?? 1} min={0} max={2} step={0.05} def={1} fmt={(x) => `${Math.round(x * 100)}%`} onChange={(x, c) => setFx({ echo: x }, c)} />}
-        <Slider label="Room sound" v={fx.room || 0} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setFx({ room: x || null }, c)} />
-        {(fx.room || 0) > 0 && <Slider label="Room size" v={fx.roomSize ?? 1.6} min={0.4} max={3} step={0.1} def={1.6} fmt={(x) => `${x.toFixed(1)} s`} onChange={(x, c) => setFx({ roomSize: x }, c)} />}
-        {onClip && kind !== 'effect' && <ToggleRow label="Soften a shout" on={!!item.soften} onChange={(on) => S.item({ soften: on || null })} />}
-      </More>
+      <Slider label="Room sound" v={fx.room || 0} min={0} max={1} step={0.05} def={0} fmt={pct0} onChange={(x, c) => setFx({ room: x || null }, c)} />
+      <Slider label="Room size" v={fx.roomSize ?? 1.6} min={0.4} max={3} step={0.1} def={1.6} fmt={(x) => `${x.toFixed(1)} s`} onChange={(x, c) => setFx({ roomSize: x }, c)} disabled={!fx.room} />
+      {onClip && <ToggleRow label="Soften a shout" on={!!item.soften} onChange={(on) => S.item({ soften: on || null })} />}
     </Sec>
 
     <PanelEnd P={P} timing={<ClipTiming P={P} source speedCtl fades={false} />}
