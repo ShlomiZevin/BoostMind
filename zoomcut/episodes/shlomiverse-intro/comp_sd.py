@@ -529,8 +529,9 @@ if HOLLY:
         return np.asarray(Image.open(os.path.join(HERE, f'media/title-{n}.png')).convert('RGBA')).astype(np.float32) / 255
     TM, TS = _ld('main'), _ld('sub')
     TK = cv2.resize(_ld('mask')[..., 3], (TM.shape[1], TM.shape[0]))
-    TM_GLOW = cv2.GaussianBlur(TM[..., 3], (0, 0), 26)
-    TY1, TY2 = 610, 760
+    TM_GLOW = cv2.GaussianBlur(TM[..., 3], (0, 0), 34)
+    TY1, TY2 = 600, 780
+    TBASE = float(HK.get('title_scale', 0.84))                    # the ring band about 860 px wide
 def _place(fr_shape, img, cx, cy, sc, blur=0.0):
     """img (h, w, c) scaled about its centre and put at (cx, cy) on a frame-sized canvas"""
     h_, w_ = img.shape[:2]
@@ -542,34 +543,34 @@ def draw_title_holly(fr, t):
     t0, t1 = HK['title_at'], HK['title_out']
     if not (t0 - 0.05 <= t < t1 + 0.05): return
     u, L = t - t0, t1 - t0
-    ein = sm(u / 0.45)                                                  # the title arrives out of a blur
-    eout = sm((u - (L - 0.32)) / 0.32)                                  # and we fly through it into the cards
-    sc = (1.22 - 0.22 * ein) * (1 + 0.035 * u / L) * (1 + 0.45 * eout * eout)
-    blur = 16 * (1 - ein) + 10 * eout
+    ein = sm(u / 0.7)                                                   # the title arrives out of a blur, slowly
+    eout = sm((u - (L - 0.42)) / 0.42)                                  # and we fly through it into the cards
+    sc = TBASE * (1.18 - 0.18 * ein) * (1 + 0.035 * u / L) * (1 + 0.45 * eout * eout)
+    blur = 14 * (1 - ein) + 10 * eout
     a = ein * (1 - eout)
     if a <= 0.005: return
     main = _place(fr.shape, TM, 540, TY1, sc, blur)
     glow = _place(fr.shape, TM_GLOW, 540, TY1, sc * 1.02)
     mask = _place(fr.shape, TK, 540, TY1, sc, blur * 0.6)
-    pulse = 0.55 * math.exp(-max(0.0, u - 0.18) / 0.35) * sm(u / 0.18) + 0.28
-    fr[:] = 1 - (1 - fr) * (1 - np.clip(glow[..., None] * np.array([1.0, 0.42, 0.1], np.float32) * pulse * a * 1.4, 0, 1))
+    pulse = 0.35 * math.exp(-max(0.0, u - 0.5) / 0.6) * sm(u / 0.5) + 0.16
+    fr[:] = 1 - (1 - fr) * (1 - np.clip(glow[..., None] * np.array([1.0, 0.42, 0.1], np.float32) * pulse * a * 0.8, 0, 1))
     fr[:] = fr * (1 - main[..., 3:4] * a) + main[..., :3] * a
     # a light sweep across the letters
-    p_ = -0.25 + 1.5 * sm((u - 0.3) / 0.75)
+    p_ = -0.25 + 1.5 * sm((u - 0.55) / 1.0)
     band = np.exp(-(((xx - 540) * 0.9 + (yy - TY1) * 0.5) / (TM.shape[1] * sc * 0.5) - (1 - 2 * p_)) ** 2 / 0.006)
     fr[:] = 1 - (1 - fr) * (1 - np.clip((band * mask)[..., None] * np.array([1.0, 0.95, 0.85], np.float32) * 0.85 * a, 0, 1))
     # an anamorphic flare: a hot point riding the sweep, a long thin streak across the frame
     fx = 540 + (TM.shape[1] * sc * 0.5) * (1 - 2 * p_)
-    fa = math.sin(math.pi * min(1.0, max(0.0, (u - 0.2) / 0.95))) * (1 - eout)
+    fa = math.sin(math.pi * min(1.0, max(0.0, (u - 0.45) / 1.15))) * (1 - eout)
     if fa > 0.01:
         fl = (np.exp(-((yy - TY1 + 20) / 4.0) ** 2) * np.exp(-np.abs(xx - fx) / 520) * 1.1 +
               np.exp(-((yy - TY1 + 20) / 26.0) ** 2) * np.exp(-np.abs(xx - fx) / 240) * 0.35 +
               np.exp(-(((xx - fx) ** 2 + (yy - TY1 + 20) ** 2) / (2 * 34.0 ** 2))) * 1.2)
         fr[:] = 1 - (1 - fr) * (1 - np.clip(fl[..., None] * np.array([1.0, 0.68, 0.38], np.float32) * fa, 0, 1))
     # "מציגים": a beat later, letters settling in
-    ea = sm((u - 0.38) / 0.4)
+    ea = sm((u - 0.6) / 0.5)
     if ea > 0.01:
-        sub = _place(fr.shape, TS, 540, TY2 + 14 * (1 - ea), (1.12 - 0.12 * ea) * (1 + 0.45 * eout * eout), 6 * (1 - ea) + 8 * eout)
+        sub = _place(fr.shape, TS, 540, TY2 + 14 * (1 - ea), TBASE * 1.15 * (1.12 - 0.12 * ea) * (1 + 0.45 * eout * eout), 6 * (1 - ea) + 8 * eout)
         aa = ea * (1 - eout)
         fr[:] = fr * (1 - sub[..., 3:4] * aa) + sub[..., :3] * aa
 def draw_title(fr, t):

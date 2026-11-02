@@ -10,5 +10,5 @@ const p = await b.newPage();
 await p.setViewport({ width: 1400, height: 900, deviceScaleFactor: 1 });
 await p.goto('file:///' + DIR + 'title.html', { waitUntil: 'networkidle0' });
 await p.evaluate(() => document.fonts.ready); await new Promise((r) => setTimeout(r, 600));
-for (const [id, name] of [['t1', 'title-main'], ['m1', 'title-mask'], ['t2', 'title-sub']]) await (await p.$('#' + id)).screenshot({ path: `${OUT}${name}.png`, omitBackground: true });
+for (const [id, name] of [['w1', 'title-main'], ['w2', 'title-mask'], ['t2', 'title-sub']]) await (await p.$('#' + id)).screenshot({ path: `${OUT}${name}.png`, omitBackground: true });
 await b.close(); console.log('ok'); process.exit(0);

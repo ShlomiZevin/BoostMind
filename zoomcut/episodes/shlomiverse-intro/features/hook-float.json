@@ -15,7 +15,7 @@
       "in": 15.3,
       "out": 17.05,
       "vout": 16.95,
-      "at": 1.75
+      "at": 1.6
     }
   ],
   "gain_db": 3.5,
@@ -24,10 +24,11 @@
     "שלומיוורס",
     "מציגים"
   ],
-  "title_at": 3.7,
-  "title_out": 4.92,
+  "title_at": 3.3,
+  "title_out": 5.08,
   "arrive": 0.9,
   "exit": 0.65,
   "spin": 0.6,
-  "title_style": "hollywood"
+  "title_style": "hollywood",
+  "title_scale": 0.84
 }
