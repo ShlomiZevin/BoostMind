@@ -22,6 +22,13 @@ if EXT_LOOP:
     EXT = (LB - LA) * LN
     for k_ in ('logo', 'tagline', 'url', 'duration', 'hit1', 'drums_end'):
         if k_ in B and B[k_] >= LB - 0.01: B[k_] = round(B[k_] + EXT, 3)
+SLOW = float(arg('--slow', '0'))       # 0.667: everything before the logo hit 1.5x longer, the hit and the end as they were
+LOGO0 = B['logo']
+if SLOW:
+    EXT = LOGO0 / SLOW - LOGO0
+    for k_ in list(B):
+        if isinstance(B[k_], (int, float)) and k_ != 'fps':
+            B[k_] = round(B[k_] / SLOW if B[k_] < LOGO0 - 0.01 else B[k_] + EXT, 3)
 T_LOGO, DUR = B['logo'], B['duration']
 TAG, URL = arg('--tag', 'אנשים אמיתיים. יקום מקביל.'), 'shlomiverse.com'
 PREFIX = arg('--prefix', 'shlomiverse-intro')
@@ -212,6 +219,7 @@ if FEATURES:
         cards.append(im_); k_ += 1
     SLOTS = [float(x) for x in arg('--slots', '0.49,1.60,2.71,3.82,5.06,6.17,7.28,8.30').split(',')]
     print('cards', len(cards), 'slots', SLOTS[:len(cards) + 1])
+C_ARR, C_EXIT = float(arg('--card-in', '0.28')), float(arg('--card-out', '0.30'))   # how long a card takes to arrive / to leave
 HOLD_Y = int(arg('--hold-y', '660'))   # above the planet, so it keeps growing below and behind the cards
 def _card_quad(w, h, cx, cy, sc, ry, rx, f=1500.0):
     pts = []
@@ -226,23 +234,23 @@ def draw_cards(fr, t):
     for i, cd in enumerate(cards):
         s0 = SLOTS[i]; s1 = SLOTS[i + 1] if i + 1 < len(SLOTS) else s0 + 1.1
         u = t - s0
-        if u < -0.28 or t > s1 - 0.04: continue
+        if u < -C_ARR or t > s1 - 0.04: continue
         side = 1 if i % 2 == 0 else -1
         if u < 0:                                                    # out of the planet, easing in
-            e = 1 - (1 - (u + 0.28) / 0.28) ** 3
+            e = 1 - (1 - (u + C_ARR) / C_ARR) ** 2
             sc = 0.08 + 0.92 * e; a = min(1.0, e * 1.6)
             cx = PCX + (540 - PCX) * e; cy = PCY + (HOLD_Y - PCY) * e
             ry = math.radians(32 * side) * (1 - e) + math.radians(7 * side) * e; rx = math.radians(-10) * (1 - e)
         else:
-            T_OUT = s1 - s0 - 0.30
+            T_OUT = s1 - s0 - C_EXIT
             if u < T_OUT:                                            # the hold: a slow push and the tilt settling
                 p = u / T_OUT
                 sc = 1.0 + 0.07 * p; a = 1.0
                 cx, cy = 540 - side * 10 * p, HOLD_Y - 8 * p
                 ry = math.radians(7 * side) * (1 - sm(p * 1.4)) + math.radians(-2 * side) * sm(p * 1.4); rx = 0.0
             else:                                                    # past the camera, to the side
-                q = min(1.0, (u - T_OUT) / 0.26)
-                e = q ** 2
+                q = min(1.0, (u - T_OUT) / (C_EXIT - 0.04))
+                e = 0.5 - 0.5 * math.cos(math.pi * q)
                 sc = 1.07 + 2.2 * e; a = (1 - q) ** 1.6
                 cx, cy = 540 - side * 10 - side * 900 * e, HOLD_Y - 8 + 260 * e
                 ry = math.radians(-2 * side - 28 * side * e); rx = 0.0
@@ -389,6 +397,13 @@ if EXT_LOOP:
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', music, '-filter_complex', fc_, '-ar', '48000', ext_wav], check=True)
     music = ext_wav
     print('music +', round(EXT, 3), 's; logo at', T_LOGO)
+if SLOW:
+    slow_wav = os.path.join(HERE, f'out/music-{NAME}-slow.wav')
+    fc_ = (f'[0:a]atrim=end={LOGO0},asetpts=PTS-STARTPTS,rubberband=tempo={SLOW}:transients=smooth:detector=soft:window=long:pitchq=quality,'
+           f'afade=t=out:st={LOGO0 / SLOW - 0.02:.4f}:d=0.02[a];[0:a]atrim=start={LOGO0},asetpts=PTS-STARTPTS,afade=t=in:d=0.01[b];[a][b]concat=n=2:v=0:a=1')
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', music, '-filter_complex', fc_, '-ar', '48000', slow_wav], check=True)
+    music = slow_wav
+    print('music slowed to', SLOW, 'until the hit; logo at', T_LOGO)
 SFX = arg('--sfx')
 if SFX:   # the glint's sparkle under the music, on the hit
     mixed = os.path.join(HERE, f'out/mix-{NAME}.wav')
@@ -412,7 +427,7 @@ if FLOAT:
     p_edge = np.clip(pm_ - cv2.erode(pm_, np.ones((13, 13), np.uint8)), 0, 1)[..., None]
     p_gy, p_gx = np.mgrid[0:PH_, 0:PW_].astype(np.float32)
     for i, c in enumerate(HK['clips']):
-        src = os.path.join(HERE, c['src']); d = c['out'] - c['in']; vd = c.get('vout', c['out']) - c['in']
+        src = os.path.join(HERE, c['src']); d = c['out'] - c['in']; vd = c.get('vout', c['out'] + 1.0) - c['in']
         raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(c['in']), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={PW_}:{PH_}:flags=lanczos',
                               '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
         panes.append({'at': c['at'], 'd': d, 'f': list(np.frombuffer(raw, np.uint8).reshape(-1, PH_, PW_, 3)), 'side': 1 if i % 2 == 0 else -1})
@@ -456,7 +471,7 @@ def draw_panes(fr, t):
     for i, p_ in enumerate(panes):
         at, d, side = p_['at'], p_['d'], p_['side']; last = i == len(panes) - 1
         end = at + d
-        if t < at - 0.38 or t > end + (0.5 if last else 0.32): continue
+        if t < at or t > end + (HK.get('spin', 0.85) if last else HK.get('exit', 0.65)): continue
         k_ = min(len(p_['f']) - 1, max(0, int((t - at) * FPS)))
         img = p_['f'][k_].astype(np.float32) / 255
         sweep = (t - at) / max(d, 0.1)                                            # a slow glass glint across the pane
@@ -466,28 +481,30 @@ def draw_panes(fr, t):
         rgba = np.concatenate([img * pm_[..., None] * op, pm_[..., None] * op], 2)
         rgba = rgba * (1 - p_edge) + np.concatenate([np.array([1.0, 0.55, 0.2], np.float32) * np.ones((PH_, PW_, 3), np.float32), np.ones((PH_, PW_, 1), np.float32)], 2) * p_edge
         u = t - at
-        if u < 0:                                                                 # out of the depth, turning
-            e = 1 - (1 - (u + 0.38) / 0.38) ** 3
-            sc = 0.06 + 0.84 * e; a = min(1.0, e * 1.8)
+        ARR, EXIT, SPIN = HK.get('arrive', 0.9), HK.get('exit', 0.65), HK.get('spin', 0.85)
+        ee = lambda x: 0.5 - 0.5 * math.cos(math.pi * min(1.0, max(0.0, x)))         # slow in, slow out
+        if u < ARR:                                                               # out of the depth while it already plays
+            e = 1 - (1 - u / ARR) ** 2
+            sc = 0.12 + 0.78 * e; a = min(1.0, 0.25 + e)
             cx, cy = PCX + (540 - PCX) * e, PCY + (930 - PCY) * e
-            ry, rx, rz = math.radians(side * (48 - 30 * e)), math.radians(14 - 4 * e), math.radians(side * (-24 + 18 * e))
+            ry, rx, rz = math.radians(side * (40 - 22 * e)), math.radians(12 - 2 * e), math.radians(side * (-18 + 12 * e))
         elif u <= d:                                                              # the drift: a slow turn, a slow push
-            q = u / d
-            sc = 0.90 + 0.06 * q; a = 1.0
-            cx, cy = 540 + side * 30 * math.sin(q * 2.2), 930 - 20 * q
-            ry, rx, rz = math.radians(side * (18 - 28 * q)), math.radians(10 - 14 * q), math.radians(side * (-6 + 9 * q))
-        elif not last:                                                            # past the camera as the next pane arrives
-            q = min(1.0, (u - d) / 0.32); e = q * q
-            sc = 0.96 + 1.8 * e; a = (1 - q) ** 1.5
-            cx, cy = 540 + side * 30 * math.sin(2.2) + side * 800 * e, 910 + 200 * e
-            ry, rx, rz = math.radians(side * (-10 - 35 * e)), math.radians(-4 - 6 * e), math.radians(side * (3 + 14 * e))
-        else:                                                                     # spun away into the planet
-            q = min(1.0, (u - d) / 0.5); e = q * q * (3 - 2 * q) * 0.5 + q ** 3 * 0.5
-            sc = 0.96 * (1 - e) + 0.03 * e; a = 1 - sm((q - 0.75) / 0.25)
-            cx, cy = 540 + side * 30 * math.sin(2.2) + (PCX - 540) * e, 910 + (PCY - 910) * e
-            ry, rx, rz = math.radians(side * (-10 + 10 * e)), math.radians(-4 + 4 * e), math.radians(side * (3 + 160 * e))
-        if u >= 0 and u < 0.5:                                                    # a warm pulse as it settles
-            g_ = np.exp(-(((xx - cx) / 560) ** 2 + ((yy - cy) / 800) ** 2))[..., None] * np.array([1.0, 0.45, 0.12], np.float32) * 0.35 * math.exp(-u / 0.2)
+            q = (u - ARR) / max(0.1, d - ARR)
+            sc = 0.90 + 0.05 * q; a = 1.0
+            cx, cy = 540 + side * 24 * math.sin(q * 1.6), 930 - 16 * q
+            ry, rx, rz = math.radians(side * (18 - 22 * q)), math.radians(10 - 12 * q), math.radians(side * (-6 + 7 * q))
+        elif not last:                                                            # drifts past, still playing, fading
+            q = min(1.0, (u - d) / EXIT); e = ee(q)
+            sc = 0.95 + 0.9 * e; a = (1 - q) ** 1.3
+            cx, cy = 540 + side * 24 * math.sin(1.6) + side * 620 * e, 914 + 140 * e
+            ry, rx, rz = math.radians(side * (-4 - 26 * e)), math.radians(-2 - 6 * e), math.radians(side * (1 + 10 * e))
+        else:                                                                     # turns away into the planet
+            q = min(1.0, (u - d) / SPIN); e = ee(q)
+            sc = 0.95 * (1 - e) + 0.03 * e; a = 1 - sm((q - 0.7) / 0.3)
+            cx, cy = 540 + side * 24 * math.sin(1.6) + (PCX - 540) * e, 914 + (PCY - 914) * e
+            ry, rx, rz = math.radians(side * (-4 + 4 * e)), math.radians(-2 + 2 * e), math.radians(side * (1 + 120 * e))
+        if 0.5 <= u < 1.4:                                                        # a soft warm swell as it settles
+            g_ = np.exp(-(((xx - cx) / 560) ** 2 + ((yy - cy) / 800) ** 2))[..., None] * np.array([1.0, 0.45, 0.12], np.float32) * 0.22 * math.sin(math.pi * (u - 0.5) / 0.9)
             fr[:] = 1 - (1 - fr) * (1 - np.clip(g_, 0, 1))
         _warp_draw(fr, rgba, cx, cy, sc, ry, rx, rz, a)
 def draw_title(fr, t):
