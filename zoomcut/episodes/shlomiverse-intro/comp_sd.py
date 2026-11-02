@@ -16,7 +16,8 @@ CLIPS = arg('--clips', 'media/sd-2-pullback-far-mini.mp4,media/sd-1-pullback-min
 NAME = arg('--name', 'v1')
 FPS = 24
 T_LOGO, DUR = B['logo'], B['duration']
-TAG, URL = 'אנשים אמיתיים. יקום מקביל.', 'shlomiverse.com'
+TAG, URL = arg('--tag', 'אנשים אמיתיים. יקום מקביל.'), 'shlomiverse.com'
+PREFIX = arg('--prefix', 'shlomiverse-intro')
 POST_TOP = 320                       # 4:5 window: rows 320..1670 of the story frame (logo at ~40%)
 
 # ---- 1. the clips, reversed and scaled, one PNG per frame
@@ -189,6 +190,69 @@ def draw_flyers(fr, t):
         a = s[..., 3:4] * alpha
         fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - a) + s[..., :3] * a
 
+# ---- "what you can do" (2nd trailer): instead of the faces, one feature card per bar of the music, each out of the
+# planet, tilted, landing on its beat with a glow pulse, then flying past the camera as the next one lands
+FEATURES = arg('--features')
+cards = []
+if FEATURES:
+    k_ = 1
+    while os.path.exists(os.path.join(FEATURES, f'card-{k_}.png')):
+        im_ = np.asarray(Image.open(os.path.join(FEATURES, f'card-{k_}.png')).convert('RGBA')).astype(np.float32) / 255
+        im_[..., :3] *= im_[..., 3:4]                       # premultiplied, so warping never fringes
+        cards.append(im_); k_ += 1
+    SLOTS = [float(x) for x in arg('--slots', '0.49,1.60,2.71,3.82,5.06,6.17,7.28,8.30').split(',')]
+    print('cards', len(cards), 'slots', SLOTS[:len(cards) + 1])
+HOLD_Y = int(arg('--hold-y', '660'))   # above the planet, so it keeps growing below and behind the cards
+def _card_quad(w, h, cx, cy, sc, ry, rx, f=1500.0):
+    pts = []
+    for x, y in ((-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)):
+        x, y = x * sc, y * sc
+        x1, z1 = x * math.cos(ry), x * math.sin(ry)                 # yaw
+        y1, z2 = y * math.cos(rx) - z1 * math.sin(rx), y * math.sin(rx) + z1 * math.cos(rx)
+        d = f / (f + z2)
+        pts.append((cx + x1 * d, cy + y1 * d))
+    return np.float32(pts)
+def draw_cards(fr, t):
+    for i, cd in enumerate(cards):
+        s0 = SLOTS[i]; s1 = SLOTS[i + 1] if i + 1 < len(SLOTS) else s0 + 1.1
+        u = t - s0
+        if u < -0.28 or t > s1 - 0.04: continue
+        side = 1 if i % 2 == 0 else -1
+        if u < 0:                                                    # out of the planet, easing in
+            e = 1 - (1 - (u + 0.28) / 0.28) ** 3
+            sc = 0.08 + 0.92 * e; a = min(1.0, e * 1.6)
+            cx = PCX + (540 - PCX) * e; cy = PCY + (HOLD_Y - PCY) * e
+            ry = math.radians(32 * side) * (1 - e) + math.radians(7 * side) * e; rx = math.radians(-10) * (1 - e)
+        else:
+            T_OUT = s1 - s0 - 0.30
+            if u < T_OUT:                                            # the hold: a slow push and the tilt settling
+                p = u / T_OUT
+                sc = 1.0 + 0.07 * p; a = 1.0
+                cx, cy = 540 - side * 10 * p, HOLD_Y - 8 * p
+                ry = math.radians(7 * side) * (1 - sm(p * 1.4)) + math.radians(-2 * side) * sm(p * 1.4); rx = 0.0
+            else:                                                    # past the camera, to the side
+                q = min(1.0, (u - T_OUT) / 0.26)
+                e = q ** 2
+                sc = 1.07 + 2.2 * e; a = (1 - q) ** 1.6
+                cx, cy = 540 - side * 10 - side * 900 * e, HOLD_Y - 8 + 260 * e
+                ry = math.radians(-2 * side - 28 * side * e); rx = 0.0
+        if a <= 0.01: continue
+        h_, w_ = cd.shape[:2]
+        sc *= 0.98
+        dst = _card_quad(w_, h_, cx, cy, sc, ry, rx)
+        Hm = cv2.getPerspectiveTransform(np.float32([[0, 0], [w_, 0], [w_, h_], [0, h_]]), dst)
+        xa, ya = max(0, int(dst[:, 0].min()) - 2), max(0, int(dst[:, 1].min()) - 2)
+        xb, yb = min(W, int(dst[:, 0].max()) + 3), min(H, int(dst[:, 1].max()) + 3)
+        if xa >= xb or ya >= yb: continue
+        Ht = np.float64([[1, 0, -xa], [0, 1, -ya], [0, 0, 1]]) @ Hm
+        wp = cv2.warpPerspective(cd, Ht, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+        if u >= 0 and u < 0.6:                                       # the landing: a warm pulse behind the card
+            pk = math.exp(-u / 0.18) * 0.55
+            g_ = np.exp(-(((xx - cx) / 520) ** 2 + ((yy - cy) / 420) ** 2))[..., None] * np.array([1.0, 0.45, 0.12], np.float32) * pk
+            fr[:] = 1 - (1 - fr) * (1 - np.clip(g_, 0, 1))          # the whole frame: a soft glow, never a box
+        al = wp[..., 3:4] * a
+        fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - al) + wp[..., :3] * a
+
 # ---- v2: richer space - a Milky-Way band of thin orange dust, a soft orange haze drifting, fine glowing particles
 SPACE = '--space' in sys.argv
 def fbm(h, w, seed, octaves=6, base=6, persist=0.55):
@@ -302,7 +366,7 @@ def zoom(img, s, cx=LOGO_CX, cy=LOGO_CY):
     return cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
 
 # ---- 3. render, straight into ffmpeg (story) - the post is cropped from the same frames
-outs = {k: os.path.join(HERE, f'out/shlomiverse-intro-{NAME}-{k}.mp4') for k in ('story', 'post')}
+outs = {k: os.path.join(HERE, f'out/{PREFIX}-{NAME}-{k}.mp4') for k in ('story', 'post')}
 music = os.path.join(HERE, B['music'])
 SFX = arg('--sfx')
 if SFX:   # the glint's sparkle under the music, on the hit
@@ -343,6 +407,8 @@ def frame(f):
         fr = space_fx(fr, t, 1.0 - 0.2 * sm((t - T_LOGO) / 1.5) if SMOOTH_END else (1.0 if t < T_LOGO else 0.8))
     if flyers and t < T_LOGO:
         draw_flyers(fr, t)
+    if cards and t < T_LOGO:
+        draw_cards(fr, t)
     fade_in = sm(t / 0.9)
     # the final hit: flash, flare streak, the logo's glow pulsing
     if SHEEN and SMOOTH_END and not NO_HIT and t > T_LOGO - 0.6:

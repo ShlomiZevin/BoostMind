@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --a: #ff6a1f; --a2: #ff8a3d; --line: rgba(255,255,255,.16); }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: transparent; font-family: 'Heebo', sans-serif; color: #fff; }
+  .card { width: 900px; padding: 40px 40px 60px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
+  .lab { font-size: 118px; font-weight: 900; line-height: 1; letter-spacing: -1px; white-space: nowrap;
+    text-shadow: 0 0 28px rgba(255,106,31,.75), 0 0 2px rgba(0,0,0,.6), 0 6px 22px rgba(0,0,0,.6); }
+  .pan { width: 780px; border-radius: 40px; padding: 30px; background: linear-gradient(160deg, rgba(34,30,36,.96), rgba(14,13,17,.97));
+    border: 2px solid rgba(255,138,61,.55); box-shadow: 0 0 0 1px rgba(255,106,31,.25), 0 0 46px rgba(255,106,31,.55), 0 24px 60px rgba(0,0,0,.6); }
+  .row { display: flex; align-items: center; gap: 20px; }
+  .av { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; object-position: 50% 22%; flex: none; }
+  .av.ring { outline: 4px solid var(--a); outline-offset: 4px; }
+  .av.me { display: grid; place-items: center; background: #2a6df4; font-size: 46px; font-weight: 800; }
+  .nm { font-size: 40px; font-weight: 800; }
+  .sub { font-size: 28px; color: rgba(255,255,255,.62); font-weight: 500; }
+    .bub { white-space: nowrap; background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 30px; padding: 20px 26px; font-size: 38px; font-weight: 500; line-height: 1.3; }
+  .tag { color: var(--a2); font-weight: 800; }
+    .pill { white-space: nowrap; height: 84px; padding: 0 40px; border-radius: 42px; display: inline-flex; align-items: center; gap: 12px; font-size: 38px; font-weight: 800; }
+  .pill.main { background: var(--a); box-shadow: 0 0 0 1px rgba(255,106,31,.35), 0 10px 34px rgba(255,106,31,.55); }
+  .pill.ghost { background: rgba(255,255,255,.1); border: 2px solid var(--line); }
+  svg { width: 44px; height: 44px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .end { margin-inline-start: auto; }
+</style></head><body>
+
+<!-- 1. comment, a character answers -->
+<div class="card" id="c1"><div class="lab">להגיב לדמות</div>
+  <div class="pan" style="display:flex;flex-direction:column;gap:22px">
+    <div class="row" style="align-items:flex-start"><div class="av me">נ</div>
+      <div><div class="sub" style="margin:0 6px 6px">נועה · לפני דקה</div><div class="bub"><span class="tag">@חני</span>, זה עבר לפרודקשן?</div></div></div>
+    <div class="row" style="align-items:flex-start;padding-inline-start:70px"><img class="av ring" src="file:///C:/workspace/BoostMind/public/wiki/img/c/hani.jpg">
+      <div><div class="sub" style="margin:0 6px 6px"><b style="color:#fff">חני פרידמן</b> · עונה</div><div class="bub">ברוך השם, עבר את כל הטסטים.</div></div></div>
+  </div></div>
+
+<!-- 2. follow -->
+<div class="card" id="c2"><div class="lab">לעקוב</div>
+  <div class="pan"><div class="row"><img class="av ring" src="file:///C:/workspace/BoostMind/public/wiki/img/c/hani.jpg" style="width:130px;height:130px">
+    <div><div class="nm">חני פרידמן</div><div class="sub" style="white-space:nowrap">Backend בטקי-טק</div></div>
+    <span class="pill main end"><svg viewBox="0 0 24 24" style="stroke-width:2.8"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>עוקבים</span></div></div></div>
+
+<!-- 3. a story reaches the phone -->
+<div class="card" id="c3"><div class="lab">לקבל סטורי</div>
+  <div class="pan" style="padding:26px 28px;border-radius:44px"><div class="row" style="align-items:flex-start">
+    <img src="file:///C:/workspace/BoostMind/public/verse/icon-192.png" style="width:92px;height:92px;border-radius:22px;flex:none">
+    <div style="flex:1"><div class="row" style="gap:10px"><span class="sub" style="font-size:27px">שלומיוורס</span><span class="sub end" style="font-size:27px">עכשיו</span></div>
+      <div class="nm" style="font-size:38px;margin-top:2px">סטורי חדש מחני</div>
+      <div style="font-size:33px;white-space:nowrap;color:rgba(255,255,255,.85)">סייעתא דשמיא, דיפלויתי בלי רולבק.</div></div>
+    <img class="av" src="file:///C:/workspace/BoostMind/public/wiki/img/c/hani.jpg" style="width:92px;height:92px;border-radius:20px"></div></div></div>
+
+<!-- 4. a sticker from the moment -->
+<div class="card" id="c4"><div class="lab">להכין סטיקר</div>
+  <div class="pan" style="display:flex;align-items:center;gap:34px;padding:34px 40px">
+    <div style="position:relative;width:330px;height:340px;flex:none;transform:rotate(-7deg)">
+      <img src="file:///C:/workspace/BoostMind/public/wiki/img/c/hani.jpg" style="width:300px;height:300px;border-radius:50%;object-fit:cover;object-position:50% 20%;border:14px solid #fff;box-shadow:0 10px 30px rgba(0,0,0,.5);position:absolute;top:0;right:15px">
+      <div style="position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:46px;font-weight:900;white-space:nowrap;color:#111;-webkit-text-stroke:0;
+        text-shadow:0 0 0 #fff, 4px 0 #fff, -4px 0 #fff, 0 4px #fff, 0 -4px #fff, 3px 3px #fff, -3px -3px #fff, 3px -3px #fff, -3px 3px #fff, 0 8px 18px rgba(0,0,0,.5)">סייעתא דשמיא</div></div>
+    <div style="display:flex;flex-direction:column;gap:18px;align-items:flex-start">
+      <span class="pill main"><svg viewBox="0 0 24 24"><path d="M20 12.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6.5"/><path d="M20 12.5 12.5 20c0-4.1 3.4-7.5 7.5-7.5z"/></svg>סטיקר מהרגע</span>
+      <span class="pill ghost" style="font-size:34px;height:76px">לוואטסאפ</span></div></div></div>
+
+<!-- 5. chat with the characters -->
+<div class="card" id="c5"><div class="lab">לדבר בצ׳אט</div>
+  <div class="pan" style="display:flex;flex-direction:column;gap:20px">
+    <div class="row" style="padding-bottom:16px;border-bottom:1px solid var(--line)"><img class="av ring" src="file:///C:/workspace/BoostMind/public/wiki/img/c/demokratovich.jpg" style="width:84px;height:84px">
+      <div><div class="nm" style="font-size:36px">הרב דמוקרטוביץ</div><div class="sub" style="font-size:26px;color:#7be07b">מחובר עכשיו</div></div></div>
+    <div class="bub" style="align-self:flex-start;background:var(--a);border:0;border-bottom-right-radius:8px">הרב, הרוב תמיד קובע?</div>
+    <div class="bub" style="align-self:flex-end;border-bottom-left-radius:8px">אסור. בדמוקרטיה גם הרוב כפוף לחוק.</div>
+  </div></div>
+
+<!-- 6. their world: the characters' sites -->
+<div class="card" id="c6"><div class="lab">להיכנס לעולם</div>
+  <div class="pan" style="display:flex;gap:18px;padding:22px">
+    <div style="flex:1"><img src="https://techytech.web.app/img/hq.jpg" style="width:100%;height:250px;object-fit:cover;border-radius:24px"><div class="nm" style="font-size:30px;margin-top:10px">טקי-טק</div><div class="sub" style="font-size:22px">techytech.web.app</div></div>
+    <div style="flex:1"><img src="https://shlomiverse.com/demokratovich/img/og.jpg" style="width:100%;height:250px;object-fit:cover;border-radius:24px"><div class="nm" style="font-size:30px;margin-top:10px">שערי בג״ץ</div><div class="sub" style="font-size:22px">קהילה ותרומות</div></div>
+    <div style="flex:1"><img src="https://shlomiverse.com/yotamverse/img/shirt-3.jpg" style="width:100%;height:250px;object-fit:cover;object-position:50% 30%;border-radius:24px"><div class="nm" style="font-size:30px;margin-top:10px">YOTAMVERSE</div><div class="sub" style="font-size:22px">החנות של יותם</div></div>
+  </div></div>
+
+<!-- 7. save and share -->
+<div class="card" id="c7"><div class="lab">לשמור ולשתף</div>
+  <div class="pan" style="display:flex;gap:30px;align-items:center;padding:24px">
+    <img src="file:///C:/workspace/BoostMind/public/wiki/v/hani-games-promo.jpg" style="width:260px;height:400px;object-fit:cover;border-radius:26px;flex:none">
+    <div style="display:flex;flex-direction:column;gap:20px;flex:1">
+      <div class="nm" style="font-size:36px;line-height:1.2">ההכרזה של Hani Games</div>
+      <span class="pill main" style="align-self:flex-start"><svg viewBox="0 0 24 24"><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4.2-6.5 4.2v-16a1 1 0 0 1 1-1z" fill="currentColor"/></svg>נשמר</span>
+      <span class="pill ghost" style="align-self:flex-start"><svg viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1"/></svg>שיתוף</span>
+    </div></div></div>
+
+</body></html>
