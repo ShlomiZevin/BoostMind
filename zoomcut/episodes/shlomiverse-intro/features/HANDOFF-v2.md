@@ -23,3 +23,19 @@ Same trailer, on a COPY (new project, e.g. `shlomiverse-features-b`; never touch
 - Editor layers are split files in `Downloads\shlomiverse-features` (picture.mp4 without sound, music.wav ducked under the
   voices, voice-*.wav = out/hook-*.wav, sfx-*.wav). A new picture = upload `picture.mp4` again (same asset id).
 - The 4:5 post and the star sound effect were rejected; he exports himself (Send).
+
+## Version B - built 2026-11-02 (editor project `shlomiverse-features-b`)
+- `features/hook-float-b.json`: Gilad's pane = gilad-joins 6.00-8.95 "חכה רגע, חכה רגע, לפני שאתה רץ להציג לי דברים"
+  (measured on the published video: "אמיר, אמיר" 4.9-5.85, חכה from 6.06, a clean dip 8.95-9.15 before "אני, אני
+  מכיר אותך"; the Zoom view stays on Gilad from 4.9 to past 12.5). `at` 0.69 so his voice starts at 0.75 s as in A;
+  the arrive / come-to-front keys are A's; he recedes into the planet 2.5 -> 3.95 (the line is 1.2 s longer).
+  The pane's burnt-in subtitle reads "אמיר, אמיר, חכה רגע." for its first second (it's the published video's).
+- The punchline is a third clip: 15.56-17.055 "אותי מעניין מה הביזנס." at 19.34 (speech 19.41), `echo: ""` = dry,
+  centre; its pane comes out of the final logo's planet (540, 866) at 18.85, hovers, goes back in by 21.8.
+  `beats-A3-b.json` = A3 with duration 17.03 -> 21.95 s (the music file's length; the music is silent from ~19.0).
+- `hook-float-b-nopane.json` = the same without the punchline -> the base picture; the with-pane render is a
+  second picture layer "Gilad pane (end)" from 18.833 s (hide it = voice only).
+- Command: as A's, with `--name b1 --beats beats-A3-b.json --hook features/hook-float-b.json` (and `--name b1np
+  --hook features/hook-float-b-nopane.json`). Layer files: `Downloads\shlomiverse-features-b` - voice-gilad.wav =
+  out/hook-1.wav from 0.6667 s (item at frame 20), voice-gilad-end.wav = out/hook-2.wav from 19.3333 (frame 580),
+  music.wav = out/mix-b1.wav ducked by the three voices (comp_sd's sidechain settings).
