@@ -69,13 +69,40 @@ export function Head({ icon, title, sub, end }: { icon: React.ReactNode; title: 
     <div className="grow"><div className="ins-title">{title}</div>{sub && <div className="ins-sub">{sub}</div>}</div>{end}</div>;
 }
 
-/** A collapsible section; its open state is remembered per title. */
-export function Sec({ title, end, open = true, children }: { title: string; end?: React.ReactNode; open?: boolean; children: React.ReactNode }) {
-  const key = 'ins.open.' + title;
-  const [o, setO] = useState(() => { try { const v = localStorage.getItem(key); return v == null ? open : v === '1'; } catch { return open; } });
-  return <details className="ins-sec" open={o} onToggle={(e) => { const v = (e.target as HTMLDetailsElement).open; setO(v); try { localStorage.setItem(key, v ? '1' : '0'); } catch {} }}>
-    <summary><Chev />{title}{end && <span className="end" onClick={(e) => e.stopPropagation()}>{end}</span>}</summary>
-    <div className="ins-body">{children}</div></details>;
+/** A group - always open (his note, 2026-11-02: no folding inside folding; the one hidden level is a group's "More"). */
+export function Sec({ title, end, children }: { title: string; end?: React.ReactNode; open?: boolean; children: React.ReactNode }) {
+  return <section className="ins-sec">
+    <div className="ins-sec-h">{title}{end && <span className="end">{end}</span>}</div>
+    <div className="ins-body">{children}</div></section>;
+}
+
+/** A window over the editor (a click on the panel's Timing / Lane): what isn't about how the clip looks or sounds -
+ *  his rule, extra options go in a window opened from the item, never into the panel. Esc / outside click closes. */
+export function Win({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  // (Esc closes only the window - caught before the editor's own Esc, which would also drop the picked clip)
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); onClose(); } };
+    addEventListener('keydown', k, true); return () => removeEventListener('keydown', k, true);
+  }, []);
+  return <div className="pm-modal" onMouseDown={onClose}>
+    <div className="pm-box ins-win" onMouseDown={(e) => e.stopPropagation()}>
+      <div className="ins-win-h"><b>{title}</b><button className="btn ghost icon" onClick={onClose} title="Close (Esc)">✕</button></div>
+      <div className="ins">{children}</div>
+    </div></div>;
+}
+
+/** The bottom of every panel: Timing… (a clip picked) and Lane… - each opens its window. */
+export function PanelEnd({ P, timing, lane }: { P: InspectorProps; timing?: React.ReactNode; lane: React.ReactNode }) {
+  const [open, setOpen] = useState<'' | 'timing' | 'lane'>('');
+  const { layer, item, fps } = P;
+  return <div className="ins-end">
+    {item && timing && <button className="btn" onClick={() => setOpen('timing')} title="Start, length, speed, split, delete">
+      Timing <span className="ins-end-sub">{tc(item.from, fps)} · {(item.dur / fps).toFixed(1)} s</span></button>}
+    <button className="btn" onClick={() => setOpen('lane')} title="Name, shown / heard, locked, delete the lane">
+      Lane <span className="ins-end-sub">{layer.name || layer.id}{layer.hidden ? ' · hidden' : layer.muted ? ' · muted' : ''}</span></button>
+    {open === 'timing' && <Win title={`Timing · clip ${item.id}`} onClose={() => setOpen('')}>{timing}</Win>}
+    {open === 'lane' && <Win title={`Lane · ${layer.name || layer.id}`} onClose={() => setOpen('')}>{lane}</Win>}
+  </div>;
 }
 
 /** Inside a section: the rare settings, folded (remembered per label) - the panel shows what's used most, the rest
@@ -221,7 +248,7 @@ export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P:
 export function LayerState({ P, sound, children }: { P: InspectorProps; sound?: boolean; children?: React.ReactNode }) {
   const { layer, send } = P;
   const S = useSettings(P);
-  return <Sec title="Layer" open={false} end={<span>{layer.items?.length || 0} clips</span>}>
+  return <Sec title="Lane" end={<span>{layer.items?.length || 0} clips</span>}>
     <Row label="Name"><input className="ins-select" defaultValue={layer.name || ''} key={layer.id}
       onBlur={(e) => e.target.value !== (layer.name || '') && S.layerSet({ name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} /></Row>
     <ToggleRow label="Shown" on={!layer.hidden} onChange={(v) => S.layerSet({ hidden: !v })} />

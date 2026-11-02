@@ -2,7 +2,7 @@
 // (render/src/layers/styles.tsx), where they sit, when, and how they come in.
 import React from 'react';
 import { TEXT_STYLES, SUB_STYLES } from '../../../src/layers/styles';
-import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, PanelEnd, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
 import { popAnim, blinkAnim, hasPop, hasBlink, mergeAnim } from '../../../src/layers/entrances_solo.js';
 
 const WHITE_ETC = ['#ffffff', '#ffd23f', '#ff6b57', '#111111'];
@@ -164,8 +164,8 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
         <option value="">The app font</option>{fs.map(([id, n]) => <option key={id} value={id}>{n}</option>)}</select></Row>}
     </Sec>
     <Place P={P} />
-    <ClipTiming P={P}><WholeVideo P={P} /><Entrance P={P} />{item && <More label="Older moves"><OldEntrances P={P} /></More>}</ClipTiming>
-    <LayerState P={P} />
+    {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /><More label="Older moves"><OldEntrances P={P} /></More></Sec>}
+    <PanelEnd P={P} timing={<ClipTiming P={P} />} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -199,7 +199,6 @@ export const SubtitlesInspector: React.FC<InspectorProps> = (P) => {
         </div>
       </div>
     </Sec>
-    {item && <ClipTiming P={P} fades={false} />}
-    <LayerState P={P} />
+    <PanelEnd P={P} timing={<ClipTiming P={P} fades={false} />} lane={<LayerState P={P} />} />
   </div>;
 };

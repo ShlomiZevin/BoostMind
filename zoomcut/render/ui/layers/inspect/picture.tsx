@@ -3,7 +3,7 @@
 import React from 'react';
 import { imageBox } from '../../../src/layers/geometry.js';
 import { FILTERS } from '../../../src/layers/effect_curve.js';
-import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, PanelEnd, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
 
 function Thumb({ P, asset, onReplace }: { P: InspectorProps; asset?: string; onReplace: () => void }) {
   const url = asset ? P.urls[asset] : '';
@@ -58,8 +58,8 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
       <Slider label={<>Colour <Ovr S={S} k="saturate" /></>} v={S.get('saturate', 1)} min={0} max={2} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('saturate', v === 1 ? null : v, c)} />
       <Note>A set behind him: a little blur and a touch darker sits him in the room. Drag the picture on the video to move it; its corner zooms.</Note>
     </Sec>
-    <ClipTiming P={P}><WholeVideo P={P} /><Entrance P={P} /></ClipTiming>
-    <LayerState P={P} />
+    {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
+    <PanelEnd P={P} timing={<ClipTiming P={P} />} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -82,7 +82,7 @@ export const BackdropInspector: React.FC<InspectorProps> = (P) => {
         {videos.map((l: any) => <option key={l.id} value={l.id}>{l.group ? `${l.group} · ` : ''}{l.name || l.id}</option>)}</select></Row>
       <Note>Shows only where that layer's cut-out is on.</Note>
     </Sec>
-    <LayerState P={P} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -103,8 +103,8 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Box" end={<Ovr S={S} k="box" />}>
       {(['x', 'y', 'w', 'h'] as const).map((k) => <Slider key={k} label={{ x: 'Left / right', y: 'Up / down', w: 'Width', h: 'Height' }[k]} v={box[k] ?? 0} min={0} max={k === 'x' || k === 'w' ? W : H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ [k]: Math.round(v) }, c)} />)}
     </Sec>
-    <ClipTiming P={P}><WholeVideo P={P} /><Entrance P={P} /></ClipTiming>
-    <LayerState P={P} />
+    {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
+    <PanelEnd P={P} timing={<ClipTiming P={P} />} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -139,7 +139,6 @@ export const EffectInspector: React.FC<InspectorProps> = (P) => {
       <Slider label="Fade in" v={item.fade_in ?? 1.5} min={0} max={4} step={0.05} def={1.5} fmt={fmt.s} onChange={(v, c) => S.item({ fade_in: v }, c)} />
       <Slider label="Fade out" v={item.fade_out ?? 0.6} min={0} max={4} step={0.05} def={0.6} fmt={fmt.s} onChange={(v, c) => S.item({ fade_out: v }, c)} />
     </Sec>}
-    <ClipTiming P={P} fades={false} />
-    <LayerState P={P} />
+    <PanelEnd P={P} timing={<ClipTiming P={P} fades={false} />} lane={<LayerState P={P} />} />
   </div>;
 };

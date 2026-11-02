@@ -4,7 +4,7 @@
 // brought to the lens (NVIDIA Maxine + our blink blend, v6 if NVIDIA failed, or his CapCut file); props.eyes picks
 // it live (VideoTrack plays that variant), so Original / Corrected is a switch, never a job.
 import React from 'react';
-import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, Opacity, ICON, fmt } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, PanelEnd, Opacity, ICON, fmt } from './controls';
 
 
 /** Make (or redo) the corrected copies: NVIDIA (the best; our own v6 if it fails) or our own v6 with its strength,
@@ -99,7 +99,6 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
       <Slider label="Brightness" v={look.brightness ?? 1} min={0.5} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => setLook({ brightness: v }, c)} />
       <Opacity P={P} />
     </Sec>
-    <ClipTiming P={P} source speedCtl />
-    <LayerState P={P} />
+    <PanelEnd P={P} timing={<ClipTiming P={P} source speedCtl />} lane={<LayerState P={P} />} />
   </div>;
 };

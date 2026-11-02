@@ -22,20 +22,16 @@ new screens read as one product.
 
 ## The inspector (render/ui/layers/inspect, classes in tokens.css)
 - **Head:** the kind's icon in a coral-soft square, then "Group · Layer", then "Clip id · kind" or "Video layer · n clips".
-- **Sections** (`Sec`) fold open and closed, and remember it. ONE order for every kind, by how often he uses it (his
-  note, 2026-11-02: "arrange it with common sense, priority order"):
-  1. **what it is** - the words / the picture / the file (Text, Line, Picture, Effect);
-  2. **the main control** - Volume (sound), Framing (video), Style (text), Size and place (picture), Look (shape);
-  3. **shaping** - Voice + Effects (sound), Person (cut-out, eye contact) + Look (video), Look (picture), Position (text);
-  4. **Clip** - everything about WHEN in one place: start / length / source / speed, fades, the whole video, how it
-     comes in, then Split at playhead and Delete clip;
-  5. **Layer** (name, shown, heard, locked, own pace, Delete layer), folded.
-- **Each setting once.** Sound: ONE loudness family in Volume (the lane, this clip, fades, evening out - the voice
-  chain's Boost has no slider of its own), ONE Clarity and ONE Room (the voice style's when there is one, else the
-  lane's), noise / voice style / "sounds like" each named for what it does, effects on this clip OR the whole lane (a
-  switch, not two sets). Opacity and corners live in Look; timing never in its own section.
-- **More** (a folded line inside a section) holds the rare settings - fine-tuning the voice, exact positions, corners,
-  making eye contact, older entrance moves - one click away, never in the way.
+- **Groups are always open** - no folding sections, no folding inside folding (his note, 2026-11-02). The ONE hidden
+  level is a group's own "More" line (rare settings). Order, by how often he uses it: what it is -> the main control
+  -> shaping -> "On screen" (whole video, how it comes in). At the bottom of every panel two buttons, **Timing** (start,
+  length, source, speed, fades, split, delete) and **Lane** (name, shown, heard, locked, delete) - each opens a window
+  (`Win`), never more rows in the panel. Esc closes only the window.
+- **The sound panel** was designed with an OpenAI UX consult (gpt-5.6-terra): Loudness (this clip, whole lane, fades,
+  heard), Voice (clean the noise, voice style, keep the speech even, hold to hear the original; More = clearer words,
+  room, rumble, warmth, boxy, s sounds, quiet parts, speaker echo), Fun sound (sounds like, higher / lower; This clip /
+  Whole lane switch in its heading). It knows the lane: music and sound effects have no Voice group and show "Lower
+  the voices while it plays" up front. Plain words, no audio jargon. Each setting once.
 - **Settings live on the layer.** A clip that overrides one shows a coral `clip ×` mark; click it to use the layer's
   value again. A change goes where the value lives.
 - **Controls:**
