@@ -90,6 +90,13 @@ def timemap(old, new):
                 best = (gap, edge)
         return best and best[1]
 
+    def at_end(take, s):  # where the new piece that holds this second of the take ENDS (a piece made longer at its end
+        # pushes what came after it - by where the piece now ends, not where its old last second plays now)
+        for t0, t1, tk, i, r in pn:
+            if tk == take and i - 1e-6 <= s <= i + (t1 - t0) / fps * r + 1e-6:
+                return t1
+        return at_source(take, s)
+
     def m(t):
         inside = [p for p in po if p[0] <= t < p[1]]
         if inside:
@@ -99,7 +106,7 @@ def timemap(old, new):
                 return x
         before = [p for p in po if p[1] <= t]  # (a gap, or after the cut: from the end of the piece before)
         for t0, t1, tk, i, r in reversed(before):
-            x = at_source(tk, i + (t1 - t0) / fps * r)
+            x = at_end(tk, i + (t1 - t0) / fps * r)
             if x is not None:
                 return x + (t - t1)
         return t

@@ -28,7 +28,14 @@ One format, one composition, one editor, one export. The format and the API: `la
   (Timeline onItemPreview -> LayersEditor.liveEdit), then saved by the builder's re-cut, where `pipeline/project.py`
   merge() moves his items by `timemap()` (by what plays under them, in source seconds of the take); **a click picks a block, only the picked one
   drags** - body = move, its two white grips = start / end, a label shows 'end +0.57 s' - so the edge between two clips
-  is never the neighbour's (his rule, 2026-10-23); **Ctrl+Z / Ctrl+Shift+Z undo / redo EVERYTHING**, a builder's
+  is never the neighbour's (his rule, 2026-10-23); **nudging a cut edge by ms** (his ask, 2026-11-02): a click on a
+  picked block's grip, or right at an unpicked block's start / end, picks THAT edge (coral grip, a dashed coral line
+  down every lane, a chip at the edge); `,` / `.` = -/+ one frame (33 ms at 30 fps), Shift = 3 frames; a digit / + / -
+  opens an entry in the chip (`-80` says '→ −67 ms · 2 frames', Enter); Tab / Shift+Tab walk the lane's cuts; the
+  playhead jumps to the new cut. It goes through the SAME path as a drag (Timeline `trimmer`: same limits, same
+  onItemPreview / onItemEdit, a take's edge goes to its builder) - presses within 600 ms are one change (one Ctrl+Z,
+  one builder run). Whole frames only: the picture can't cut between frames (sub-frame for sound alone: ask him first);
+  **Ctrl+Z / Ctrl+Shift+Z undo / redo EVERYTHING**, a builder's
   change too (a video's length re-cut from the take, a line fix, a caption, an Inspector action): the project before
   it is kept and the difference goes on the undo list as one step (api.ts diffOps / record)), Media (assets, upload, + timeline; a file's
   picture opens it big - VideoPeek: plays / shows it, Use / Don't use + a note, + Timeline - the list itself never

@@ -23,7 +23,11 @@ export default async function edit({ id, dir, body, runJob, pub, jobs, PORT }) {
     const n = it.ref?.line;
     const ln = (project.script || []).find((x) => x.n === n);
     if (n == null || !ln || ln.in == null) return { ok: true, hand: true };  // not a script line: the editor keeps its own edit (saved, his)
-    const fx = { ...(ln.fix || {}) };
+    // the line's fix as corrections.json has it now - project.json's copy is stale while a re-plan runs, so a second
+    // edit soon after the first (nudging an edge a few times) would otherwise undo the first
+    const p = path.join(dir, 'corrections.json'), c = readJson(p, { lines: {} }) || { lines: {} };
+    c.lines = c.lines || {};
+    const fx = { ...(c.lines[String(n)] || ln.fix || {}) };
     let fix;
     if (side === 'm') fix = { ...fx, shift: +((fx.shift || 0) + sec).toFixed(3) };
     else {
@@ -33,8 +37,6 @@ export default async function edit({ id, dir, body, runJob, pub, jobs, PORT }) {
       else if (ln.interrupted) fix = { ...base, out: undefined, cut: +((fx.cut ?? ln.cut) + sec).toFixed(3) };
       else fix = { ...base, out: +((fx.out ?? ln.out) + sec).toFixed(3) };
     }
-    const p = path.join(dir, 'corrections.json'), c = readJson(p, { lines: {} }) || { lines: {} };
-    c.lines = c.lines || {};
     const keep = c.lines[String(n)]?.caption;
     c.lines[String(n)] = Object.fromEntries(Object.entries({ ...fix, ...(keep ? { caption: keep } : {}) }).filter(([, v]) => v !== undefined && v !== null && v !== ''));
     fs.writeFileSync(p, JSON.stringify(c, null, 2));

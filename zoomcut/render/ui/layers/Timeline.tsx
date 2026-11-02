@@ -121,12 +121,9 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
 
-  // a block dragged: d frames (live draft), committed on release
-  const startDrag = (e: React.MouseEvent, l: any, it: any, side: 'l' | 'r' | 'm') => {
-    e.stopPropagation(); e.preventDefault();
-    onSel({ layer: l.id, item: it.id });
-    if (l.locked) return;
-    const x0 = e.clientX;
+  // moving / trimming one block by d frames, from the project as it was when it began: the ops, and the frames it
+  // really moved (never past the take's ends). A drag and a nudge both go through here, so they behave the same
+  const trimmer = (l: any, it: any, side: 'l' | 'r' | 'm') => {
     const asset = project.assets?.[it.asset];
     const rate = it.rate || 1;
     // never past the video's end: moved there it ends at the end, stretched there it stops at it (his takes excepted -
@@ -145,27 +142,115 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       dd = Math.max(dd, -it.from);
       return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: it.from + dd, dur: it.dur - dd, ...(it.in != null ? { in: +(it.in + (dd / fps) * rate).toFixed(4) } : {}) } }];
     };
-    // (the frames it really moved - never past the take's ends - from the project as it was when the drag began)
     const moved = (d: number) => { const s: any = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
     const base = project;
+    // live while it changes (a take in a continuous cut: everything after it moves along)
+    const preview = (d: number) => { const ops = (onItemPreview && onItemPreview(l, it, side, moved(d), base)) || opsFor(d); send(ops, { commit: false }); return ops; };
+    // done: one undoable change - or the builder takes it (its live edit shows until the builder's answer lands)
+    const commit = (d: number, label: string) => {
+      if (!d || !moved(d)) { send([], { commit: false }); return; }
+      const taken = onItemEdit && onItemEdit(l, it, side, moved(d));
+      if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }
+      send(opsFor(d), { label });
+    };
+    return { it, moved, preview, commit };
+  };
+
+  // a block dragged: d frames (live draft), committed on release. A grip clicked without dragging picks that edge
+  const startDrag = (e: React.MouseEvent, l: any, it: any, side: 'l' | 'r' | 'm') => {
+    e.stopPropagation(); e.preventDefault();
+    flushNudge();
+    onSel({ layer: l.id, item: it.id });
+    if (l.locked) return;
+    const x0 = e.clientX;
+    const t = trimmer(l, it, side);
     let last = 0;
     const mv = (m: MouseEvent) => {
       const d = Math.round(((m.clientX - x0) / pps) * fps);
       if (d === last) return;
       last = d;
       setDrag({ layer: l.id, item: it.id, d, side });
-      send((onItemPreview && onItemPreview(l, it, side, moved(d), base)) || opsFor(d), { commit: false });
+      t.preview(d);
     };
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
       setDrag(null);
-      if (!last) { send([], { commit: false }); return; }
-      const taken = onItemEdit && moved(last) && onItemEdit(l, it, side, moved(last));  // the builder takes it
-      if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }  // ('keep': the drag shows until the builder's answer lands)
-      send(opsFor(last), { label: side === 'm' ? 'move' : 'trim' });
+      setEdge(side === 'm' ? null : { layer: l.id, item: it.id, side, total: 0 });
+      t.commit(last, side === 'm' ? 'move' : 'trim');
     };
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
+
+  // ---- nudging a cut edge: pick a start / end (click it), then , . (Shift = 3 frames) or type +120 / -80 and Enter.
+  // The video cuts on whole frames (33 ms at 30 fps), so ms are rounded to frames and the chip says what it became.
+  // Presses close together are one change (one Ctrl+Z, one builder run); everything linked follows like a drag
+  const [edge, setEdge] = useState<{ layer: string; item: string; side: 'l' | 'r'; total: number } | null>(null);
+  const [typing, setTyping] = useState<string | null>(null);
+  const burst = useRef<{ key: string; t: ReturnType<typeof trimmer>; d: number; timer: number } | null>(null);
+  const flushNudge = () => {
+    const b = burst.current; if (!b) return;
+    burst.current = null; clearTimeout(b.timer);
+    b.t.commit(b.d, 'nudge');
+  };
+  useEffect(() => () => flushNudge(), []);
+  const edgeItem = edge && project.layers.find((l: any) => l.id === edge.layer)?.items?.find((i: any) => i.id === edge.item);
+  // the picked edge goes when its clip isn't picked any more, or is gone
+  useEffect(() => {
+    if (edge && (!edgeItem || sel?.layer !== edge.layer || sel?.item !== edge.item)) { flushNudge(); setEdge(null); setTyping(null); }
+  }, [sel?.layer, sel?.item, !!edgeItem]);
+  const edgeAt = (it: any, side: 'l' | 'r') => (side === 'l' ? it.from : it.from + it.dur);
+  const toMs = (f: number) => Math.round((f / fps) * 1000);
+  const nudge = (dFrames: number) => {
+    if (!edge || !edgeItem || !dFrames) return;
+    const l = project.layers.find((x: any) => x.id === edge.layer);
+    if (!l || l.locked) return;
+    const key = `${edge.layer}|${edge.item}|${edge.side}`;
+    if (burst.current && burst.current.key !== key) flushNudge();
+    const b = burst.current || (burst.current = { key, t: trimmer(l, edgeItem, edge.side), d: 0, timer: 0 });
+    const was = b.t.moved(b.d), now = b.t.moved(b.d + dFrames);  // (stops at the take's ends)
+    if (now === was) return;
+    b.d = now;
+    const ops = b.t.preview(b.d);
+    clearTimeout(b.timer); b.timer = window.setTimeout(flushNudge, 600);
+    setEdge({ ...edge, total: edge.total + (now - was) });
+    // the picture shows the new cut: its first frame (a start) or its last (an end) - where the preview put it (in a
+    // continuous cut a start stays and the rest closes up)
+    const s = { ...b.t.it, ...(ops.find((o: any) => o.layer === edge.layer && o.id === edge.item)?.set || {}) };
+    onSeek(edge.side === 'l' ? s.from : s.from + s.dur - 1);
+  };
+  // Tab / Shift+Tab: the next / previous cut on the same lane (a join: the end of one, then the start of the next)
+  const walk = (dir: 1 | -1) => {
+    if (!edge) return;
+    const l = project.layers.find((x: any) => x.id === edge.layer); if (!l) return;
+    const all = (l.items || []).flatMap((it: any) => [{ it, side: 'l' as const, f: it.from, o: 1 }, { it, side: 'r' as const, f: it.from + it.dur, o: 0 }])
+      .sort((a: any, b: any) => a.f - b.f || a.o - b.o);
+    const i = all.findIndex((x: any) => x.it.id === edge.item && x.side === edge.side);
+    const n = all[i + dir]; if (!n) return;
+    flushNudge(); setTyping(null);
+    onSel({ layer: l.id, item: n.it.id });
+    setEdge({ layer: l.id, item: n.it.id, side: n.side, total: 0 });
+    onSeek(n.side === 'l' ? n.f : n.f - 1);
+  };
+  // typed ms -> whole frames (less than a frame: one frame that way)
+  const typedFrames = (s: string) => {
+    const ms = parseFloat(s.replace(/[^\d.+-]/g, '').replace(/^\+/, ''));
+    if (!Number.isFinite(ms) || !ms) return 0;
+    return Math.round((ms / 1000) * fps) || Math.sign(ms);
+  };
+  const applyTyped = (s: string) => { setTyping(null); nudge(typedFrames(s)); };
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if (!edge || e.ctrlKey || e.metaKey || e.altKey) return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      // (by the key's place, not its letter: , and . are ת and ץ on his Hebrew keyboard)
+      if (e.code === 'Comma' || e.code === 'Period') { e.preventDefault(); nudge((e.code === 'Comma' ? -1 : 1) * (e.shiftKey ? 3 : 1)); }
+      else if (e.key === 'Tab') { e.preventDefault(); walk(e.shiftKey ? -1 : 1); }
+      else if (/^[0-9+\-]$/.test(e.key)) { e.preventDefault(); setTyping(e.key); }
+    };
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  });
 
   const step = pps >= 120 ? 1 : pps >= 50 ? 2 : pps >= 20 ? 5 : 10;
   const ticks = [];
@@ -302,14 +387,36 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                       const isSel = sel?.layer === l.id && sel.item === it.id;
                       const linked = !isSel && !!it.link && it.link === selLink;  // the same line's voice / subtitle
                       const w = px(it.dur);
+                      const ed = isSel && edge?.layer === l.id && edge.item === it.id ? edge.side : null;  // its picked edge
                       return (
-                        <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''}`}
+                        <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''} ${ed ? 'edge-' + ed : ''}`}
                           style={{ left: px(it.from), width: Math.max(3, w), background: KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
-                          title={isSel ? `${blockText(l, it, project)} - drag it, or its edges` : `${blockText(l, it, project)} - click to pick it`}
-                          onMouseDown={(e) => { if (isSel) startDrag(e, l, it, 'm'); else { e.stopPropagation(); e.preventDefault(); onSel({ layer: l.id, item: it.id }); } }}>
+                          title={isSel ? `${blockText(l, it, project)} - drag it, or its edges (click an edge, then , . or type ±ms)` : `${blockText(l, it, project)} - click to pick it (near its start / end: that edge)`}
+                          onMouseDown={(e) => {
+                            if (isSel) { setEdge(null); setTyping(null); startDrag(e, l, it, 'm'); return; }
+                            e.stopPropagation(); e.preventDefault(); flushNudge();
+                            onSel({ layer: l.id, item: it.id });
+                            // a click right at its start / end picks that edge too (ready for , . or a typed ±ms)
+                            const r = (e.currentTarget as HTMLElement).getBoundingClientRect(), x = e.clientX - r.left;
+                            const side = w >= 24 && x <= 7 ? 'l' : w >= 24 && x >= r.width - 7 ? 'r' : null;
+                            setEdge(side ? { layer: l.id, item: it.id, side, total: 0 } : null); setTyping(null);
+                            if (side) onSeek(side === 'l' ? it.from : it.from + it.dur - 1);
+                          }}>
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
-                          {isSel && <><div className="hd l" title="Drag: where it starts" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
+                          {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
+                          {ed && !drag && (
+                            <span className={`edge-chip ${ed}`} onMouseDown={(e) => e.stopPropagation()}>
+                              {typing != null
+                                ? <input autoFocus className="edge-in" value={typing} size={6} spellCheck={false} onChange={(e) => setTyping(e.target.value)}
+                                    onFocus={(e) => { const v = e.currentTarget.value.length; e.currentTarget.setSelectionRange(v, v); }}
+                                    onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') applyTyped(e.currentTarget.value); else if (e.key === 'Escape') setTyping(null); }}
+                                    onBlur={() => setTyping(null)} />
+                                : edge!.total
+                                  ? <>{edge!.total > 0 ? '+' : '−'}{toMs(Math.abs(edge!.total))} ms<i>{(ed === 'l') === edge!.total > 0 ? 'shorter' : 'longer'}</i></>
+                                  : <>{ed === 'l' ? 'start' : 'end'}<i>, . nudge · type ±ms</i></>}
+                              {typing != null && <i>{(() => { const f = typedFrames(typing); return f ? `ms → ${f > 0 ? '+' : '−'}${toMs(Math.abs(f))} ms · ${Math.abs(f)} frame${Math.abs(f) === 1 ? '' : 's'} ↵` : 'ms ↵'; })()}</i>}
+                            </span>)}
                           {drag && drag.item === it.id && drag.layer === l.id && drag.d !== 0 && (
                             <span className="blk-tip">{drag.side === 'l' ? 'start' : drag.side === 'r' ? 'end' : 'moved'} {drag.d > 0 ? '+' : '−'}{(Math.abs(drag.d) / fps).toFixed(2)} s</span>)}
                         </div>
@@ -322,6 +429,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           ))}
           <div className="ltl-after" style={{ left: NW + px(total) }} />
           <div className="playhead" style={{ left: NW + px(frame), height: '100%' }} />
+          {edge && edgeItem && !drag && <div className="edge-line" style={{ left: NW + px(edgeAt(edgeItem, edge.side)) }} />}
         </div>
       </div>
     </div>
