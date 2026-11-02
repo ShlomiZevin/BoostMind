@@ -124,7 +124,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
 
   // moving / trimming one block by d frames, from the project as it was when it began: the ops, and the frames it
   // really moved (never past the take's ends). A drag and a nudge both go through here, so they behave the same
-  const trimmer = (l: any, it: any, side: 'l' | 'r' | 'm') => {
+  const trimmer = (l: any, it: any, side: 'l' | 'r' | 'm', chain = false) => {
     const asset = project.assets?.[it.asset];
     const rate = it.rate || 1;
     // never past the video's end: moved there it ends at the end, stretched there it stops at it (his takes excepted -
@@ -145,16 +145,38 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     };
     const moved = (d: number) => { const s: any = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
     const base = project;
+    // a nudge (chain): an edge where the clip is STUCK to the next one on its lane moves that one and every clip stuck
+    // after it (and their linked voice / subtitles) - the join stays a join; a clip with space after it just changes.
+    // A start edge on a join keeps its place (stuck to the clip before) - its footage slips and the rest follow.
+    const stuck: any[] = [];
+    if (chain && side !== 'm') {
+      const lane = [...(l.items || [])].sort((a: any, b: any) => a.from - b.from);
+      let end = it.from + it.dur, k = lane.indexOf(it) + 1;
+      while (k < lane.length && Math.abs(lane[k].from - end) <= 1) { stuck.push(lane[k]); end = lane[k].from + lane[k].dur; k++; }
+      if (side === 'l') {
+        const prev = lane[lane.indexOf(it) - 1];
+        if (!prev || Math.abs(prev.from + prev.dur - it.from) > 1) stuck.length = 0;  // (a start with space before it: just itself)
+      }
+    }
+    const chainOps = (d: number) => {
+      if (!stuck.length) return opsFor(d);
+      const m = moved(d), own: any = { ...opsFor(d)[0] };
+      if (side === 'l') own.set = { ...own.set, from: it.from };  // (stuck to the clip before: only its footage slips)
+      const shift = side === 'r' ? m : -m, links = new Set(stuck.map((x) => x.link).filter(Boolean));
+      const ops = [own, ...stuck.map((x) => ({ op: 'item.update', layer: l.id, id: x.id, set: { from: Math.max(0, x.from + shift) } }))];
+      for (const ly of project.layers) if (ly.id !== l.id) for (const x of ly.items || []) if (x.link && links.has(x.link)) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, x.from + shift) } });
+      return ops;
+    };
     // live while it changes (a take in a continuous cut: everything after it moves along)
-    const preview = (d: number) => { const ops = (onItemPreview && onItemPreview(l, it, side, moved(d), base)) || opsFor(d); send(ops, { commit: false }); return ops; };
+    const preview = (d: number) => { const ops = (onItemPreview && onItemPreview(l, it, side, moved(d), base)) || chainOps(d); send(ops, { commit: false }); return ops; };
     // done: one undoable change - or the builder takes it (its live edit shows until the builder's answer lands)
     const commit = (d: number, label: string) => {
       if (!d || !moved(d)) { send([], { commit: false }); return; }
       const taken = onItemEdit && onItemEdit(l, it, side, moved(d));
       if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }
-      send(opsFor(d), { label });
+      send(chainOps(d), { label });
     };
-    return { it, moved, preview, commit };
+    return { it, moved, preview, commit, stuck: stuck.length > 0 };
   };
 
   // a block dragged: d frames (live draft), committed on release. A grip clicked without dragging picks that edge
@@ -185,16 +207,22 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   // ---- nudging a cut edge: pick a start / end (click it), then , . (Shift = 3 frames) or type +120 / -80 and Enter.
   // The video cuts on whole frames (33 ms at 30 fps), so ms are rounded to frames and the chip says what it became.
   // Presses close together are one change (one Ctrl+Z, one builder run); everything linked follows like a drag
-  const [edge, setEdge] = useState<{ layer: string; item: string; side: 'l' | 'r'; total: number } | null>(null);
+  const [edge, setEdge] = useState<{ layer: string; item: string; side: 'l' | 'r'; total: number; f0?: number } | null>(null);
   const [typing, setTyping] = useState<string | null>(null);
   const burst = useRef<{ key: string; t: ReturnType<typeof trimmer>; d: number; timer: number } | null>(null);
+  const edgeItem = edge && project.layers.find((l: any) => l.id === edge.layer)?.items?.find((i: any) => i.id === edge.item);
+  // is the picked edge a join (the clip stuck to the next / the one before)? - the card says what a nudge will do
+  const joined = (() => {
+    if (!edge || !edgeItem) return false;
+    const l = project.layers.find((x: any) => x.id === edge.layer), lane = [...(l?.items || [])].sort((a: any, b: any) => a.from - b.from), k = lane.indexOf(edgeItem);
+    return edge.side === 'r' ? !!lane[k + 1] && Math.abs(lane[k + 1].from - (edgeItem.from + edgeItem.dur)) <= 1 : !!lane[k - 1] && Math.abs(lane[k - 1].from + lane[k - 1].dur - edgeItem.from) <= 1;
+  })();
   const flushNudge = () => {
     const b = burst.current; if (!b) return;
     burst.current = null; clearTimeout(b.timer);
     b.t.commit(b.d, 'nudge');
   };
   useEffect(() => () => flushNudge(), []);
-  const edgeItem = edge && project.layers.find((l: any) => l.id === edge.layer)?.items?.find((i: any) => i.id === edge.item);
   // the picked edge goes when its clip isn't picked any more, or is gone
   useEffect(() => {
     if (edge && (!edgeItem || sel?.layer !== edge.layer || sel?.item !== edge.item)) { flushNudge(); setEdge(null); setTyping(null); }
@@ -207,13 +235,13 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     if (!l || l.locked) return;
     const key = `${edge.layer}|${edge.item}|${edge.side}`;
     if (burst.current && burst.current.key !== key) flushNudge();
-    const b = burst.current || (burst.current = { key, t: trimmer(l, edgeItem, edge.side), d: 0, timer: 0 });
+    const b = burst.current || (burst.current = { key, t: trimmer(l, edgeItem, edge.side, true), d: 0, timer: 0 });
     const was = b.t.moved(b.d), now = b.t.moved(b.d + dFrames);  // (stops at the take's ends)
     if (now === was) return;
     b.d = now;
     const ops = b.t.preview(b.d);
     clearTimeout(b.timer); b.timer = window.setTimeout(flushNudge, 600);
-    setEdge({ ...edge, total: edge.total + (now - was) });
+    setEdge({ ...edge, total: edge.total + (now - was), f0: edge.f0 ?? (edge.side === 'l' ? b.t.it.from : b.t.it.from + b.t.it.dur) });
     // the picture shows the new cut: its first frame (a start) or its last (an end) - where the preview put it (in a
     // continuous cut a start stays and the rest closes up)
     const s = { ...b.t.it, ...(ops.find((o: any) => o.layer === edge.layer && o.id === edge.item)?.set || {}) };
@@ -241,6 +269,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const applyTyped = (s: string) => { setTyping(null); nudge(typedFrames(s)); };
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
+      // (an undo / redo: the card's count starts again from where the edge is now)
+      if (edge && (e.ctrlKey || e.metaKey) && /^[zy]$/i.test(e.key)) { flushNudge(); setEdge({ ...edge, total: 0, f0: undefined }); return; }
       if (!edge || e.ctrlKey || e.metaKey || e.altKey) return;
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -325,11 +355,60 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
 
+  // the picked edge's card (from three OpenAI concepts drawn on the real timeline, 2026-11-02): above the lane (below
+  // it near the top), what the nudge did + where the edge is; the keys only until the first nudge (quiet after); typing
+  // says what it becomes in whole frames; "Play only this clip" here, off the clip. The ghost = what moved.
+  const [cardAt, setCardAt] = useState<{ below: boolean; align: 'c' | 'l' | 'r' }>({ below: false, align: 'c' });
+  useLayoutEffect(() => {
+    const el = lanes.current; if (!el || !edge || !edgeItem) return;
+    const place = () => {
+      const lane = el.querySelector(`[data-lane="${CSS.escape(edge.layer)}"]`) as HTMLElement | null; if (!lane) return;
+      const x = px(edgeAt(edgeItem, edge.side)) - el.scrollLeft, view = el.clientWidth - NW;
+      const n = { below: lane.offsetTop - el.scrollTop < 150, align: (x < 150 ? 'l' : x > view - 150 ? 'r' : 'c') as 'c' | 'l' | 'r' };
+      setCardAt((o) => (o.below === n.below && o.align === n.align ? o : n));
+    };
+    place();
+    el.addEventListener('scroll', place);
+    return () => el.removeEventListener('scroll', place);
+  }, [edge?.layer, edge?.item, edge?.side, edgeItem?.from, edgeItem?.dur, pps]);
+  const edgeCard = () => {
+    const f = edgeAt(edgeItem, edge!.side), t = edge!.total, sign = (n: number) => (n > 0 ? '+' : '−');
+    const g0 = edge!.f0 != null && t ? Math.min(edge!.f0, f) : null, g1 = edge!.f0 != null && t ? Math.max(edge!.f0, f) : null;
+    const typed = typing != null ? typedFrames(typing) : 0;
+    const on = soloKey === `${edge!.layer}|${edge!.item}`;
+    const fr = (n: number) => `${Math.abs(n)} frame${Math.abs(n) === 1 ? '' : 's'}`;
+    return <>
+      {g0 != null && <div className="edge-ghost" style={{ left: px(g0), width: Math.max(2, px(g1! - g0)) }} />}
+      <div className={`edge-card ${cardAt.below ? 'below' : ''} al-${cardAt.align}`} style={{ left: px(f) }} onMouseDown={(e) => e.stopPropagation()}>
+        <div className="ec-top">
+          {t ? <b>{sign(t)}{toMs(Math.abs(t))} ms</b> : <b>{edge!.side === 'l' ? 'Start' : 'End'}</b>}
+          <span>{t ? `${fr(t)} · ${(edge!.side === 'l') === t > 0 ? 'shorter' : 'longer'}` : `at ${(f / fps).toFixed(2)} s`}</span>
+          <span className="ec-what">{joined ? 'the clips after it follow' : 'just this clip'}</span>
+        </div>
+        {typing != null ? <div className="ec-type">
+          <input autoFocus value={typing} size={6} spellCheck={false} onChange={(e) => setTyping(e.target.value)}
+            onFocus={(e) => { const v = e.currentTarget.value.length; e.currentTarget.setSelectionRange(v, v); }}
+            onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') applyTyped(e.currentTarget.value); else if (e.key === 'Escape') setTyping(null); }}
+            onBlur={() => setTyping(null)} />
+          <span>ms</span>
+          {typed !== 0 && <span className="ec-eq">= {sign(typed)}{toMs(Math.abs(typed))} ms ({fr(typed)})</span>}
+          <kbd>Enter</kbd>
+        </div> : t === 0 ? <div className="ec-keys">
+          <span><kbd>,</kbd><kbd>.</kbd> one frame</span><span><kbd>Shift</kbd> 3 frames</span><span>or type -80</span>
+        </div> : null}
+        {onSolo && <button className={`ec-play ${on ? 'on' : ''}`} onClick={() => onSolo({ layer: edge!.layer, item: edge!.item })}>
+          {on ? <svg width="9" height="9" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" fill="currentColor" /></svg>
+            : <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>}
+          {on ? 'Stop' : 'Play only this clip'}<kbd>Shift+Space</kbd></button>}
+      </div>
+    </>;
+  };
+
   return (
     <div className="tl">
       <div className="tl-bar">
-        <button className="btn ghost icon" disabled={!canUndo} title="Undo (Ctrl+Z)" onClick={onUndo}>↶</button>
-        <button className="btn ghost icon" disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" onClick={onRedo}>↷</button>
+        <button className="btn ghost icon" disabled={!canUndo} title="Undo (Ctrl+Z)" onClick={() => { if (edge) setEdge({ ...edge, total: 0, f0: undefined }); onUndo(); }}>↶</button>
+        <button className="btn ghost icon" disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" onClick={() => { if (edge) setEdge({ ...edge, total: 0, f0: undefined }); onRedo(); }}>↷</button>
         <div className="vsep" />
         <span className="chip">{project.layers.length} layers · {project.layers.reduce((n: number, l: any) => n + (l.items?.length || 0), 0)} items</span>
         <div className="vsep" />
@@ -406,29 +485,18 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           }}>
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
                           {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
-                          {isSel && onSolo && w >= 40 && !drag && (() => { const on = soloKey === `${l.id}|${it.id}`; return (
+                          {isSel && onSolo && w >= 70 && !drag && !ed && (() => { const on = soloKey === `${l.id}|${it.id}`; return (
                             <button className={`blk-solo ${on ? 'on' : ''}`} title={on ? 'Stop (Esc)' : `Play only this - ${l.kind === 'audio' ? 'hear just this sound' : 'see just this (and its voice)'} (Shift+Space)`}
                               onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onSolo({ layer: l.id, item: it.id }); }}>
                               {on ? <svg width="9" height="9" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" fill="currentColor" /></svg>
                                 : <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>}
                             </button>); })()}
-                          {ed && !drag && (
-                            <span className={`edge-chip ${ed}`} onMouseDown={(e) => e.stopPropagation()}>
-                              {typing != null
-                                ? <input autoFocus className="edge-in" value={typing} size={6} spellCheck={false} onChange={(e) => setTyping(e.target.value)}
-                                    onFocus={(e) => { const v = e.currentTarget.value.length; e.currentTarget.setSelectionRange(v, v); }}
-                                    onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') applyTyped(e.currentTarget.value); else if (e.key === 'Escape') setTyping(null); }}
-                                    onBlur={() => setTyping(null)} />
-                                : edge!.total
-                                  ? <>{edge!.total > 0 ? '+' : '−'}{toMs(Math.abs(edge!.total))} ms<i>{(ed === 'l') === edge!.total > 0 ? 'shorter' : 'longer'}</i></>
-                                  : <>{ed === 'l' ? 'start' : 'end'}<i>, . nudge · type ±ms</i></>}
-                              {typing != null && <i>{(() => { const f = typedFrames(typing); return f ? `ms → ${f > 0 ? '+' : '−'}${toMs(Math.abs(f))} ms · ${Math.abs(f)} frame${Math.abs(f) === 1 ? '' : 's'} ↵` : 'ms ↵'; })()}</i>}
-                            </span>)}
                           {drag && drag.item === it.id && drag.layer === l.id && drag.d !== 0 && (
                             <span className="blk-tip">{drag.side === 'l' ? 'start' : drag.side === 'r' ? 'end' : 'moved'} {drag.d > 0 ? '+' : '−'}{(Math.abs(drag.d) / fps).toFixed(2)} s</span>)}
                         </div>
                       );
                     })}
+                    {edge?.layer === l.id && edgeItem && !drag && edgeCard()}
                   </div>
                 </div>
               ))}

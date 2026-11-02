@@ -32,7 +32,12 @@ One format, one composition, one editor, one export. The format and the API: `la
   picked block's grip, or right at an unpicked block's start / end, picks THAT edge (coral grip, a dashed coral line
   down every lane, a chip at the edge); `,` / `.` = -/+ one frame (33 ms at 30 fps), Shift = 3 frames; a digit / + / -
   opens an entry in the chip (`-80` says '→ −67 ms · 2 frames', Enter); Tab / Shift+Tab walk the lane's cuts; the
-  playhead jumps to the new cut. It goes through the SAME path as a drag (Timeline `trimmer`: same limits, same
+  playhead jumps to the new cut. **A clip with space after it just changes; a clip STUCK to the next one (a join) moves
+  every clip stuck after it on its lane + their linked voice / subtitles - the join stays a join; a stuck START keeps its
+  place (its footage slips) and the rest follow** (his rule, 2026-11-02: "if it's alone it just increases, if it's stuck
+  to another video it moves everything accordingly"). The card (designed from three OpenAI concepts on the real timeline):
+  the amount + "just this clip" / "the clips after it follow", the keys only until the first nudge, the typed value in
+  whole frames, Play only this clip; a dashed ghost = what moved. Dragging does NOT chain (unchanged). It goes through the SAME path as a drag (Timeline `trimmer`: same limits, same
   onItemPreview / onItemEdit, a take's edge goes to its builder) - presses within 600 ms are one change (one Ctrl+Z,
   one builder run). Whole frames only: the picture can't cut between frames (sub-frame for sound alone: ask him first);
   **play only this clip** (his ask, 2026-11-02, "mainly for sounds"): Shift+Space or the round ▶ on the picked block -
