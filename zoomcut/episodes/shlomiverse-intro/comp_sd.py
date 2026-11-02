@@ -459,8 +459,16 @@ if FLOAT:
     n_ = len(voice); ins = sum([['-i', p_] for p_ in voice], [])
     fc = ''.join(f'[{i}:a]' for i in range(n_)) + f'amix=inputs={n_}:duration=longest:normalize=0,asplit=2[vo][sc0];[sc0]apad[sc];'   # padded: the ducking runs to the music's end
     fc += f'[{n_}:a][sc]sidechaincompress=threshold={HK.get("duck_thr", 0.02)}:ratio={HK.get("duck_ratio", 6)}:attack=25:release=300:makeup=1[mu];'   # the music steps back under a voice
-    fc += '[vo][mu]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95'
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-i', music, '-filter_complex', fc, '-ar', '48000', mixed], check=True)
+    extra, n_mix = [], 2
+    if HK.get('star_sfx'):   # the falling star's sound: on the star, swept from the right speaker to the left with it
+        ts_ = HK['title_at'] + HK.get('star_at', 0.62) + HK.get('star_sfx_shift', -0.04); ms_ = int(ts_ * 1000)
+        sw_ = HK.get('star_sweep', 0.85)
+        fc += (f"[{n_ + 1}:a]aformat=channel_layouts=mono,volume={HK.get('star_sfx_vol', 0.6)},asplit=2[s1][s2];"
+               f"[s1]volume='0.35+0.65*min(1,t/{sw_})':eval=frame[sl];[s2]volume='1-0.65*min(1,t/{sw_})':eval=frame[sr];"
+               f"[sl][sr]join=inputs=2:channel_layout=stereo,adelay={ms_}|{ms_}[st];")
+        extra = ['-i', os.path.join(HERE, HK['star_sfx'])]; n_mix = 3
+    fc += '[vo][mu]' + ('[st]' if extra else '') + f'amix=inputs={n_mix}:duration=longest:normalize=0,alimiter=limit=0.95'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-i', music, *extra, '-filter_complex', fc, '-ar', '48000', mixed], check=True)
     music = mixed
     print('float hook:', [(p_['at'], round(p_['d'], 2)) for p_ in panes])
 def _quad3(w, h, cx, cy, sc, ry, rx, rz, f=1500.0):
