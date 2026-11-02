@@ -29,3 +29,5 @@ episodes/*/media/he/
 episodes/*/media/*.m4a
 # pictures and sounds he turned down
 episodes/_assets/**/rejected/
+# his video ideas (the Ideas page) - jokes he has not filmed yet, and the repo is public
+ideas/

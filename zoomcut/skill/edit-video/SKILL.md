@@ -168,7 +168,9 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      arrival makes obsolete (`POST /api/ep/<id>/cancel`) instead of rebuilding twice.
    **Look before you plan:** ffprobe each file, frames, transcribe (faster-whisper via `pipeline.transcribe._get_model`,
    feed numpy). Know the footage second by second.
-3. **Pick the recipe** (table below) and read it.
+3. **Pick the recipe** (table below) and read it. (Where an idea starts: the studio's **Ideas** page in the left
+   rail - his notebook of video ideas, `GET /api/ideas`; "add an idea" = `POST /api/ideas {title, text}` (Hebrew, his
+   words, speech-to-text slips fixed). The file is git-ignored - unfilmed jokes stay out of the public repo.)
 4. **Make the project** - before filming, from a script: the Reader's **Paste → "Create a new project for it"** (one
    camera / Zoom call, optional "settings like" an earlier project) makes the project with the script AND its Drop folder
    (`POST /api/new-from-script {name, kind, like, text}`) - he films with the Reader, uploads the takes into that Drop

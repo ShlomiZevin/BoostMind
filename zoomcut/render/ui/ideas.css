@@ -1,0 +1,25 @@
+/* The Ideas page - the same language as the editor (editor.css :root tokens): warm off-black, one coral accent,
+   hairlines, flat. A notebook: one column of idea cards, each a title and its text, saved as he types. */
+body { overflow: auto; user-select: text; }
+.ix { max-width: 860px; margin: 0 auto; padding: 28px 32px 60px; }
+.ix-top { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
+.ix-top h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.ix-top .sub { color: var(--dim); font-size: 13.5px; margin-top: 4px; }
+.ix-top .btn { margin-left: auto; }
+.ix-list { display: flex; flex-direction: column; gap: 14px; }
+.ix-card { background: var(--panel-2); border: 1px solid var(--edge); border-radius: 12px; padding: 14px 16px 10px; transition: border-color .15s; }
+.ix-card:focus-within { border-color: var(--edge-2); }
+.ix-title, .ix-text { display: block; width: 100%; box-sizing: border-box; border: 0; outline: none; background: transparent; color: var(--text); padding: 0;
+  font-family: Heebo, Inter, "Segoe UI", sans-serif; unicode-bidi: plaintext; text-align: start; }
+.ix-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.ix-text { font-size: 14.5px; line-height: 1.6; color: var(--dim); resize: none; overflow: hidden; min-height: 1.6em; }
+.ix-text:focus { color: var(--text); }
+.ix-title::placeholder, .ix-text::placeholder { color: var(--faint); }
+.ix-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--edge); font-size: 12px; color: var(--faint); }
+.ix-foot .grow { flex: 1; }
+.ix-saved { color: var(--ok); }
+.ix-del { height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--faint); font: inherit; cursor: pointer; }
+.ix-del:hover { color: var(--bad); border-color: var(--bad); }
+.ix-del.sure { color: #fff; background: var(--bad); border-color: var(--bad); }
+.ix-empty { padding: 40px 0; text-align: center; color: var(--faint); font-size: 14px; }
+@media (max-width: 700px) { .ix { padding: 18px 16px 40px; } }
