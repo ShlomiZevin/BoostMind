@@ -25,6 +25,25 @@
   box off, and preview before the build (cut-out over green, before / after - haredit-2's `proptest.py` pattern).
   End `to` before the prop leaves the frame - the tracker then locks on the wall (haredit-2: box flew out at 7.0 s).
   Segment Anything 2 would track better but installing it from GitHub needs his permission (blocked 2026-10-28).
+- **HELD PROPS - THE ONE WAY (his ask 2026-11-02, tzvika-1: "a recurring issue - I want a constant solution in our
+  skill"; the cookie box is "one of the greatest Easter eggs" - losing any part of a prop = the video is wrong):**
+  1. **Look at the prop first** (frames every 0.25 s over its span, raw): its colours, the wall behind it, when it enters
+     and leaves. Don't wait for him to point at it - every prop he holds or is handed is the joke.
+  2. **A prop with clear colours that the wall doesn't have** (red / orange / lime / blue packaging, a bottle) =
+     `prop_color`, NOT the tracker. Its outline is filled, so the whole prop stays - label, bottom, the edge the hand
+     holds. Pick the range, then `python tools/prop_color_preview.py <take> "h,s,v" "h,s,v" x0,y0,x1,y1 t1 t2 ...`
+     and LOOK: every tile = the whole prop bright, no wall. The cookie box (red + beige "עיגולים"):
+     hsv [[0,90,70],[22,255,255]], box [0.45,0.05,1,0.8], from just before it enters to just after it leaves (colour
+     keeps nothing once it's gone, so a long span is safe). Skin falls in that range - harmless, it's him.
+  3. **`props` (the tracker) only for a prop with no colour of its own** (white mug on a white wall, a grey phone).
+     Its box must hug the prop at `from`: tzvika-1 v1 (tight box) bit the edge the hand held; v2 (box widened to fix
+     it) lost the whole front of the box and kept patches of the room - GrabCut needs most of the box to BE the prop.
+  4. **Check before it goes out:** in the test export, a strip at 5 fps over the prop's whole span
+     (`ffmpeg -ss <a> -t <len> -vf fps=5,scale=200:-1,tile=13x1`) - the whole prop in every frame, no wall patch next
+     to it. With a mirror, the text on the prop must read right.
+  5. CapCut-like "mark it and it finds the edges" = Segment Anything 2 (box or click prompt, tracked through the clip).
+     That is the real fix for props with no clear colour - a tool task (a generic `props` engine option), to install
+     only with his OK.
 - **Set:** `background`, `bg_blur` (2.2 default), `bg_dim` (false = the photo's own light), `plaque` / `plaque_quad`,
   `sign` {image, quad [TL,TR,BR,BL] in the photo's pixels, light, warm, shadow} (or a list) - a picture (her logo)
   painted INTO the set photo in perspective, so it zooms, moves and blurs with the room (an image overlay does not).

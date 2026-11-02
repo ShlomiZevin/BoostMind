@@ -1,0 +1,140 @@
+{
+ "type": "lesson",
+ "title": "הדינוזאור – צביקה",
+ "input_dir": "C:/Users/shazb/Downloads/drop/דינוזאור צביקה",
+ "takes": "*.[mM][pPoO][4vV]",
+ "background": "../_assets/tzvika/cubicle.jpg",
+ "plaque": [],
+ "matte_engine": "body",
+ "matte_cut": 70,
+ "person": {
+  "scale": 1,
+  "x": 0,
+  "y": 150
+ },
+ "captions_y": 1430,
+ "captions_style": {
+  "font": "assistant",
+  "weight": 800,
+  "size": 66,
+  "color": "#ffffff",
+  "stroke": 10
+ },
+ "voice": {
+  "preset": "natural"
+ },
+ "cut": {
+  "merge": 0.6,
+  "pad_in": 0.05,
+  "pad_out": 0.15,
+  "join": 0.2,
+  "silence": false,
+  "edges": {
+   "EB5C4931-F4CD-4C85-B6A7-5173B51A18D4": [
+    [
+     1.87,
+     1.15
+    ]
+   ]
+  }
+ },
+ "overlays": [
+  {
+   "text": "פוב: ניגשת לדינוזאור של החברה\nשמנסה להסתגל לקצב של עידן ה-AI",
+   "style": "pov",
+   "font": "assistant",
+   "theme": "light",
+   "opacity": 0.94,
+   "y": 300,
+   "size": 58,
+   "start": 0,
+   "end": 5.5,
+   "hook": true
+  }
+ ],
+ "script": "tzvika-1",
+ "bg_blur": 1.2,
+ "speed": 1.15,
+ "media": [],
+ "music": {
+  "sound": "../_assets/music/fast/swing.mp3",
+  "gain": 0.065,
+  "fade_in": 0.3,
+  "lift": {
+   "db": 6,
+   "fade": 1
+  }
+ },
+ "sign": [
+  {
+   "image": "../_assets/tzvika/techytech-sign.png",
+   "quad": [
+    [
+     557,
+     197
+    ],
+    [
+     705,
+     197
+    ],
+    [
+     705,
+     438
+    ],
+    [
+     557,
+     438
+    ]
+   ],
+   "light": 0.85,
+   "warm": 0.05,
+   "shadow": 0
+  }
+ ],
+ "sequence": [
+  {
+   "take": "38F68B8B-31E9-4A84-A6F3-E6BB0B5969FA",
+   "from": 1.95,
+   "to": 25.65
+  },
+  {
+   "take": "05BA0D6F-9EA7-4054-888C-21F6ADA1F059",
+   "from": 0.9,
+   "to": 35.65
+  },
+  {
+   "take": "D2441889-2FBC-446B-9350-2DD55A739114",
+   "from": 4.42,
+   "to": 31.75
+  },
+  {
+   "take": "EB5C4931-F4CD-4C85-B6A7-5173B51A18D4",
+   "from": 1.15,
+   "to": 20.25
+  }
+ ],
+ "prop_color": {
+  "EB5C4931-F4CD-4C85-B6A7-5173B51A18D4": {
+   "hsv": [
+    [
+     0,
+     90,
+     70
+    ],
+    [
+     22,
+     255,
+     255
+    ]
+   ],
+   "from": 9.55,
+   "to": 11.8,
+   "box": [
+    0.45,
+    0.05,
+    1.0,
+    0.8
+   ]
+  }
+ }
+}

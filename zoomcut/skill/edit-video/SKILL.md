@@ -166,6 +166,17 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      episode.json `"files": {"<file>": {"char": "ofer", "order": 2}}`;
    - he uploads while you work: start with what's there, but **one build with everything** - cancel a build a new
      arrival makes obsolete (`POST /api/ep/<id>/cancel`) instead of rebuilding twice.
+   - **Ask how many takes he sent when the count looks low** (tzvika-1, 2026-11-02: one file had landed, he had shot
+     four scenes - I edited one and sent it; "you did something strange"). The engine orders takes by FILE NAME, not by
+     time: with random iPhone names always write `sequence` [{take, from, to}] in recording-time order. A passage
+     said in two takes (the end of one = the start of the next, re-said): end the first before it, use the retake.
+   - **After every build read the first subtitle of every piece**: the builder can start a piece after the first word
+     (tzvika-1 started at 1.87 s and lost "הפרומפט שלנו") - pull the edge back with `/api/ep/<id>/trim`.
+   - **A new PC has none of the studio** (2026-11-02, the old PC died): ffmpeg on PATH, `zoomcut/.venv` (numpy rapidfuzz
+     faster-whisper mediapipe onnxruntime opencv-python), `render` npm install + `npx remotion browser ensure`,
+     `models/` (he-turbo = HF ivrit-ai/whisper-large-v3-turbo-ct2, rvm_mobilenetv3_fp32.onnx, selfie_segmenter.tflite,
+     face_landmarker.task), `C:/workspace/xplace-auto-bidder/.env` (TELEGRAM_*), `zoomcut/.env` (ElevenLabs, Leonardo,
+     the socials). None of it is in git. Set it all up FIRST, then the video - and say so to him in one line.
    **Look before you plan:** ffprobe each file, frames, transcribe (faster-whisper via `pipeline.transcribe._get_model`,
    feed numpy). Know the footage second by second.
 3. **Pick the recipe** (table below) and read it. (Where an idea starts: the studio's **Ideas** page in the left
@@ -191,7 +202,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    earlier project as ops.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
-   **Anything he holds** (a bottle, a box, a phone, a booklet) - check it in the stills: the cut-out engines drop held
+   **Anything he holds** (a bottle, a box, a phone, a booklet) - reference.md "HELD PROPS - THE ONE WAY"; the cut-out engines drop held
    props or leave them see-through ("a recurring issue", 2026-10-28). Keep it with `props` (draw its box once, it is
    tracked) - reference.md → Person. **Every full export: `python tools/flash_frames.py <ep>`** - one-frame flashes
    (he saw "a glitch of empty Hani for a micro second" on some cuts, 2026-10-28: the exporter placed a third of the
