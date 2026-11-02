@@ -82,6 +82,35 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     return () => cancelAnimationFrame(id);
   }, [playing]);
   const [sel, setSel] = useState<Sel>(null);
+  // play ONE clip alone (Shift+Space, or ▶ on the picked block): a sound - every other sound is muted, the picture
+  // stays; a picture - only it (and its own voice) is seen and heard. A draft while it plays (api.ts 'solo'), never
+  // saved; it ends at the clip's end, on pause, or on Escape
+  const soloRef = useRef<{ key: string; end: number } | null>(null);
+  const [soloKey, setSoloKey] = useState<string | null>(null);
+  const endSolo = () => { if (!soloRef.current) return; soloRef.current = null; setSoloKey(null); L.send([], { commit: false, channel: 'solo' }); };
+  const playOnly = (s: Sel = sel) => {
+    const key = s?.item ? `${s.layer}|${s.item}` : null;
+    if (soloRef.current) { const was = soloRef.current.key; player.current?.pause(); endSolo(); if (was === key) return; }
+    const l = key && project?.layers.find((x: any) => x.id === s!.layer), it = l?.items?.find((x: any) => x.id === s!.item);
+    if (!l || !it) return;
+    const keep = new Set([key]);
+    const sound = l.kind === 'audio';
+    if (!sound && it.link) for (const ly of project.layers) for (const x of ly.items || []) if (ly.kind === 'audio' && x.link === it.link) keep.add(`${ly.id}|${x.id}`);
+    const ops: any[] = [];
+    for (const ly of project.layers) {
+      const items = ly.items || [];
+      if (items.some((x: any) => keep.has(`${ly.id}|${x.id}`))) {
+        for (const x of items) if (!keep.has(`${ly.id}|${x.id}`) && !x.hidden) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { hidden: true } });
+        if (ly.muted || ly.hidden) ops.push({ op: 'layer.update', id: ly.id, set: { muted: false, hidden: false } });  // (he asked to hear it)
+      } else if (ly.kind === 'audio') { if (!ly.muted) ops.push({ op: 'layer.update', id: ly.id, set: { muted: true } }); }
+      else if (!sound && !ly.hidden && !(ly.kind === 'backdrop' && ly.props?.target === l.id)) ops.push({ op: 'layer.update', id: ly.id, set: { hidden: true } });
+    }
+    L.send(ops, { commit: false, channel: 'solo' });
+    soloRef.current = { key: key!, end: it.from + it.dur };
+    setSoloKey(key);
+    seek(it.from);
+    setTimeout(() => player.current?.play(), 30);  // (after the draft is in: the sound schedules without the others)
+  };
   const [line, setLine] = useState<number | null>(null);
   const [pick, setPick] = useState<{ kind: string; onPick: (id: string) => void } | null>(null);  // a panel asked for a file from Media
   const [tab, setTab] = useState<'media' | 'script' | 'subs'>(() => (localStorage.getItem('zc-ly-tab') as any) || 'media');
@@ -98,8 +127,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     // (a seek while playing - his on the bar, or the picture kept on the sound's clock - says 'pause' then 'play' at
     // once: only a pause that is still a pause a moment later stops the sound, else it restarted on every seek)
     let paT = 0;
-    const fu = (e: any) => setFrame(e.detail.frame), pl = () => { clearTimeout(paT); setPlaying(true); },
-      pa = () => { clearTimeout(paT); paT = window.setTimeout(() => { if (!player.current?.isPlaying()) setPlaying(false); }, 60); };
+    const fu = (e: any) => {
+      setFrame(e.detail.frame);
+      if (soloRef.current && e.detail.frame >= soloRef.current.end) { player.current?.pause(); endSolo(); }  // (one clip alone: it ends where the clip does)
+    }, pl = () => { clearTimeout(paT); setPlaying(true); },
+      pa = () => { clearTimeout(paT); paT = window.setTimeout(() => { if (!player.current?.isPlaying()) { setPlaying(false); endSolo(); } }, 60); };
     p.addEventListener('frameupdate', fu); p.addEventListener('play', pl); p.addEventListener('pause', pa);
     return () => { p.removeEventListener('frameupdate', fu); p.removeEventListener('play', pl); p.removeEventListener('pause', pa); };
   }, [!!project]);
@@ -148,6 +180,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? L.redo() : L.undo(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); L.redo(); }
+      else if (e.code === 'Space' && e.shiftKey) { e.preventDefault(); playOnly(); }
       else if (e.code === 'Space') { e.preventDefault(); player.current?.toggle(); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); seek(frame + (e.shiftKey ? fps : 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(frame - (e.shiftKey ? fps : 1)); }
@@ -164,7 +197,8 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         const n = l?.items?.length || 0;
         if (l) ask({ title: `Delete the layer "${l.name || l.id}"?`, text: `${n ? `${n} clip${n === 1 ? '' : 's'} go${n === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })
           .then((yes) => { if (yes) { L.send([{ op: 'layer.remove', id: l.id }], { label: 'delete layer' }); setSel(null); } });
-      } else if (e.key === 'Escape') { setSel(null); setLine(null); }
+      } else if (e.key === 'Escape' && soloRef.current) { player.current?.pause(); endSolo(); }
+      else if (e.key === 'Escape') { setSel(null); setLine(null); }
     };
     addEventListener('keydown', k);
     return () => removeEventListener('keydown', k);
@@ -379,7 +413,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} notes={notes} onNote={openNote} showDone={showDone} onShowDone={setShowDone}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} notes={notes} onNote={openNote} showDone={showDone} onShowDone={setShowDone}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
       {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}
         onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} />}

@@ -17,6 +17,7 @@ type Props = {
   // while it drags: the ops that show it (one of his takes in a continuous cut - everything after it moves along), or null
   onItemPreview?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number, base: any) => any[] | null;
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void;
+  onSolo?: (s: Sel) => void; soloKey?: string | null;  // play one clip alone (▶ on the picked block, Shift+Space)
   notes?: Note[]; onNote?: (n: Note | null) => void; showDone?: boolean; onShowDone?: (v: boolean) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
 
@@ -48,7 +49,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, showDone = true, onShowDone }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, showDone = true, onShowDone }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -405,6 +406,12 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           }}>
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
                           {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
+                          {isSel && onSolo && w >= 40 && !drag && (() => { const on = soloKey === `${l.id}|${it.id}`; return (
+                            <button className={`blk-solo ${on ? 'on' : ''}`} title={on ? 'Stop (Esc)' : `Play only this - ${l.kind === 'audio' ? 'hear just this sound' : 'see just this (and its voice)'} (Shift+Space)`}
+                              onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onSolo({ layer: l.id, item: it.id }); }}>
+                              {on ? <svg width="9" height="9" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" fill="currentColor" /></svg>
+                                : <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>}
+                            </button>); })()}
                           {ed && !drag && (
                             <span className={`edge-chip ${ed}`} onMouseDown={(e) => e.stopPropagation()}>
                               {typing != null

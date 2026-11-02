@@ -130,7 +130,8 @@ export function useLayered(ep: string) {
   // what the preview shows: the saved project + the draft being dragged
   const live = useMemo(() => {
     if (!view) return null;
-    const all = [...(drafts.sync || []), ...(drafts.drag || [])];
+    // ('solo': playing one clip alone - everything else muted / hidden while it plays, never saved)
+    const all = [...(drafts.sync || []), ...(drafts.drag || []), ...(drafts.solo || [])];
     if (!all.length) return view.project;
     try { return apply(view.project, all); } catch { return view.project; }
   }, [view?.project, drafts]);

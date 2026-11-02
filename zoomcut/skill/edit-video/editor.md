@@ -35,6 +35,10 @@ One format, one composition, one editor, one export. The format and the API: `la
   playhead jumps to the new cut. It goes through the SAME path as a drag (Timeline `trimmer`: same limits, same
   onItemPreview / onItemEdit, a take's edge goes to its builder) - presses within 600 ms are one change (one Ctrl+Z,
   one builder run). Whole frames only: the picture can't cut between frames (sub-frame for sound alone: ask him first);
+  **play only this clip** (his ask, 2026-11-02, "mainly for sounds"): Shift+Space or the round ▶ on the picked block -
+  a sound: every other sound muted, the picture as it is; a picture: only it seen, with its own voice (same `link`);
+  from the clip's start to its end, then everything is back (also on pause / Esc). A draft on api.ts's 'solo' channel
+  (LayersEditor playOnly) - never saved, nothing rebuilds; ducking ignores the muted layers, so music alone is heard flat;
   **Ctrl+Z / Ctrl+Shift+Z undo / redo EVERYTHING**, a builder's
   change too (a video's length re-cut from the take, a line fix, a caption, an Inspector action): the project before
   it is kept and the difference goes on the undo list as one step (api.ts diffOps / record)), Media (assets, upload, + timeline; a file's

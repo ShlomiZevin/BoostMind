@@ -65,3 +65,8 @@
 .ltl-lay.drop-above::before, .ltl-lay.drop-below::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); z-index: 8; pointer-events: none; }
 .ltl-lay.drop-above::before { top: -1px; }
 .ltl-lay.drop-below::after { bottom: -1px; }
+/* play only this clip: a small round button on the picked block, just inside its start grip */
+.ltl .blk .blk-solo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); z-index: 4; width: 18px; height: 18px; border-radius: 50%;
+  border: 0; padding: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; transition: background .15s; }
+.ltl .blk .blk-solo:hover, .ltl .blk .blk-solo.on { background: var(--accent); }
+.ltl .blk.sel:has(.blk-solo) > span.he { padding-left: 22px; }
