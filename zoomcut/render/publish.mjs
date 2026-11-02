@@ -21,7 +21,7 @@ import { sendTelegramText, tgEsc, sendTelegram, sizedCopy } from './share.mjs';
 const DROP = 'https://drop-463727469066.me-west1.run.app';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale, keysFresh }) {
+export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale, keysFresh, saved }) {
   const ENV = path.join(ROOT, '.env');
   const env = () => Object.fromEntries(fs.readFileSync(ENV, 'utf8').split(/\r?\n/).filter((l) => /^[A-Z_][A-Z0-9_]*=/.test(l)).map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]));
   const setEnv = (vals) => {  // (a renewed key goes back into the file)
@@ -338,7 +338,8 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     res.json(site(q.params.id));
   });
   const postOf = (body) => ({ platforms: (body.platforms || []).filter((p) => P[p]?.publish), caption: String(body.caption || ''), title: String(body.title || ''), options: body.options || {} });
-  const savePost = (id, post, afterExport, dry = false) => writeJson(pubFile(id), { ...readJson(pubFile(id), {}), ...post, afterExport: !!afterExport, dry: !!dry });
+  // (saved: the studio online sends the post up at once - it travels to his other computer with the project)
+  const savePost = (id, post, afterExport, dry = false) => { writeJson(pubFile(id), { ...readJson(pubFile(id), {}), ...post, afterExport: !!afterExport, dry: !!dry }); saved?.(id); };
 
   app.get('/api/publish/platforms', (_q, res) => {
     const e = env();

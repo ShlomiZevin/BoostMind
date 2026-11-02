@@ -10,6 +10,11 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
 2. Write the post (below) and **save it into the window**, without publishing:
    `POST /api/ep/<id>/publish {save: true, platforms: [...], caption, title, options}`
    (or `{afterExport: true, ...}` when he wants it out as soon as an export ends).
+   **The hashtags always end with #שלומיוורס** (his rule, 2026-11-02 - "don't forget #שלומיוורס"), in the caption AND
+   in `options.x.text`. The Hebrew wording comes from SOL (sol-leonardo skill) with two of his earlier captions as the
+   model (`episodes/*/publish.json`): 2-3 short lines from inside the joke, never explaining it, no emoji, then 4-5
+   hashtags. The post lives in `publish.json` in the project folder, so it travels to his other computer with the
+   project (the studio online uploads it as soon as it's saved).
 3. Tell him the caption in the hand-over. He presses **Send**: an up-to-date full export goes out as is, otherwise
    the button exports first (a Quick / Test export is never published). A stale export can't be published.
 4. After it runs: the window and the Jobs history show each platform's result and link. Tell him what to do by hand:

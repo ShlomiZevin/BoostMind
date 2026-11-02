@@ -375,7 +375,7 @@ if (!TEST && cloud.mode() === 'on') {
   setTimeout(thinNow, 15 * 60e3); setInterval(thinNow, 864e5).unref?.();
 }  // Ideas + the Jobs history, merged across his computers
 library(app, { ROOT, PORT, cloudOn: () => !TEST && cloud.mode() === 'on' });  // the Assets page: every background, music, sound, picture his videos use (library.mjs)
-const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id), keysFresh: () => keys?.fresh() });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
+const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id), keysFresh: () => keys?.fresh(), saved: (id) => cloud.pushSoon(id) });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
 const VIDEO = /\.(mp4|mov|m4v)$/i;
 app.get('/api/downloads', (_q, res) => {
   const out = [];
