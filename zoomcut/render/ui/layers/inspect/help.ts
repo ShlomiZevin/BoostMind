@@ -13,7 +13,7 @@ export const HELP: Record<string, string> = {
   'Raise it after the talking ends': 'After the last spoken word the music comes up by this much - a natural ending swell.',
   'Over': 'How many seconds the rise takes.',
   'Voice': 'How the voice sounds. This applies to the whole row - every piece of this voice.',
-  'Clean the noise': 'Takes background noise out of the recording. Mild: a little hiss. Standard: steady room hiss. Strong: noisy rooms (can thin the voice). Best: takes out air-conditioner and fan hum and keeps the voice.',
+  'Clean the noise': 'Takes background noise out of the recording. Mild: a little hiss. Standard: steady room hiss. Strong: noisy rooms (can thin the voice). NN (best): RNNoise, a neural cleaner - takes out air-conditioner and fan hum and keeps the voice; the one he called perfect on the news-anchor voice.',
   'Voice style': 'A ready-made sound for the voice. Pick one and the sliders below move to it - then adjust any of them. Plain: as recorded. Natural: a light touch. Podcast / Radio / News: close, clear studio voices. Warm / Bright: fuller / crisper. Hall: talking in a big room. Stage: a speaker on a stage with the hall answering.',
   'Clearer words': 'Brings out the part of the voice where words are understood. Up = crisper, down = softer.',
   'Room around the voice': 'How much of a room\'s echo you hear around the voice. 0 = dry and close to the mic.',

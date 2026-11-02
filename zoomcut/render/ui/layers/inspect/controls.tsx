@@ -4,7 +4,7 @@
 import { ask } from '../ask';
 import React, { useEffect, useRef, useState } from 'react';
 import { newId } from '../../../src/layers/ops.js';
-import { helpFor } from './help';
+import { helpFor, labelText } from './help';
 
 export type InspectorProps = {
   project: any; layer: any; item: any | null; urls: Record<string, string>;
@@ -74,8 +74,9 @@ export function Head({ icon, title, sub, end }: { icon: React.ReactNode; title: 
 function useQ(label: any) {
   const tip = helpFor(label);
   const [open, setOpen] = useState(false);
-  const q = tip ? <button type="button" className={'ins-q' + (open ? ' on' : '')} title={tip} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }}>?</button> : null;
-  const note = tip && open ? <div className="ins-help">{tip}</div> : null;
+  const q = tip ? <button type="button" className="ins-q" title="What is this?" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}>?</button> : null;
+  // (a click opens a window with the explanation - his ask: a modal, never text pushed into the panel)
+  const note = tip && open ? <Win title={labelText(label).trim()} onClose={() => setOpen(false)}><div className="ins-help-win">{tip}</div></Win> : null;
   return { q, note };
 }
 

@@ -11,10 +11,10 @@ import { VOICE_PRESETS } from '../../sound';
 import { FILTERS } from '../../soundfx';
 import { InspectorProps, useSettings, Head, Sec, Row, Note, Chips, Slider, ToggleRow, ClipTiming, LayerState, PanelEnd, ICON, fmt } from './controls';
 
-const CLEAN: [string, string][] = [['off', 'Off'], ['mild', 'Mild'], ['fft', 'Standard'], ['strong', 'Strong'], ['nn', 'Best']];
+const CLEAN: [string, string][] = [['off', 'Off'], ['mild', 'Mild'], ['fft', 'Standard'], ['strong', 'Strong'], ['nn', 'NN (best)']];
 const CLEAN_NOTE: Record<string, string> = {
   off: '', mild: 'Light hiss and room tone out.', fft: 'Steady hiss and room tone out.',
-  strong: 'Noisy rooms - can thin the voice.', nn: 'Takes out air-conditioner and fan hum, keeps the voice.',
+  strong: 'Noisy rooms - can thin the voice.', nn: 'NN = RNNoise, the neural cleaner: takes out air-conditioner and fan hum and keeps the voice (the news-anchor fix).',
 };
 // the voice styles, plain: "Plain" = no style (raw is the same to him - shown only on a lane that has it)
 const STYLES = ['natural', 'podcast', 'warm', 'bright', 'news', 'radio', 'hall', 'stage'];

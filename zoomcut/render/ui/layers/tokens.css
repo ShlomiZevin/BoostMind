@@ -124,8 +124,17 @@
 /* a picture that isn't here yet (still coming from the cloud): a quiet tile, never the browser's broken-image icon */
 .thumb-wait { display: block; background: repeating-linear-gradient(135deg, var(--panel-2) 0 8px, var(--panel-3) 8px 16px) !important; }
 
-/* the "?" beside a setting and its explanation under it */
-.ins-q { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 6px; padding: 0; border-radius: 50%; border: 1px solid var(--edge-2);
-  background: transparent; color: var(--faint); font: 600 10px Inter, sans-serif; cursor: pointer; vertical-align: 1px; transition: color .15s, border-color .15s, background .15s; }
-.ins-q:hover, .ins-q.on { color: #fff; border-color: var(--accent); background: var(--accent); }
-.ins-help { margin: -4px 0 2px; padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); border-left: 2px solid var(--accent); color: var(--text); font-size: 12px; line-height: 1.5; }
+/* the "?" beside a setting: one neat column at the label's right edge (never wraps onto its own line), faint until the
+   row is hovered; a click opens a window with the explanation */
+.ins-row, .ins-sl { grid-template-columns: 118px minmax(0, 1fr) 58px; }
+.ins-row { grid-template-columns: 118px minmax(0, 1fr); }
+.ins-row > label, .ins-sl > label { position: relative; padding-right: 20px; }
+.ins-row > label > .ins-q, .ins-sl > label > .ins-q { position: absolute; right: 0; top: 50%; transform: translateY(-50%); margin: 0; }
+.ins-tgrow > label { display: flex; align-items: center; gap: 6px; }
+.ins-tgrow > label > .ins-q { margin: 0; flex: none; }
+.ins-part-h .ins-q, .ins-sec-h .ins-q { margin-left: 6px; }
+.ins-q { display: inline-grid; place-items: center; width: 15px; height: 15px; padding: 0; border-radius: 50%; border: 1px solid var(--edge-2);
+  background: transparent; color: var(--faint); font: 600 9.5px Inter, sans-serif; cursor: pointer; opacity: .55; transition: opacity .15s, color .15s, border-color .15s, background .15s; }
+.ins-row:hover .ins-q, .ins-sl:hover .ins-q, .ins-tgrow:hover .ins-q, .ins-sec-h:hover .ins-q, .ins-part-h:hover .ins-q { opacity: 1; }
+.ins-q:hover { color: #fff; border-color: var(--accent); background: var(--accent); }
+.ins-help-win { padding: 4px 18px 20px; font-size: 13.5px; line-height: 1.6; color: var(--text); max-width: 380px; }
