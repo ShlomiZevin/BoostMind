@@ -367,7 +367,13 @@ const heal = (id) => new Promise((ok) => {
 });
 const cloud = startSync({ app, jobs, heal, log: (s) => console.log(s) });
 const keys = !TEST && cloud.mode() === 'on' ? startKeys({ log: (s) => console.log(s) }) : null;
-if (!TEST && cloud.mode() === 'on') startShared({ log: (s) => console.log(s) });  // Ideas + the Jobs history, merged across his computers
+if (!TEST && cloud.mode() === 'on') startShared({ log: (s) => console.log(s) });
+// once a day: scratch out, and projects untouched for a week keep only their small files here - the rest is safe in the
+// cloud and comes back when opened (render/cloud/thin.mjs; his rule: "each project more careful about spending space")
+if (!TEST && cloud.mode() === 'on') {
+  const thinNow = () => import('./cloud/thin.mjs').then((m) => m.thin({ days: 7, busy: (id) => !!jobs[id]?.running, log: (s) => console.log(s) })).catch((e) => console.log('space: ' + e.message));
+  setTimeout(thinNow, 15 * 60e3); setInterval(thinNow, 864e5).unref?.();
+}  // Ideas + the Jobs history, merged across his computers
 library(app, { ROOT, PORT, cloudOn: () => !TEST && cloud.mode() === 'on' });  // the Assets page: every background, music, sound, picture his videos use (library.mjs)
 const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id), keysFresh: () => keys?.fresh() });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
 const VIDEO = /\.(mp4|mov|m4v)$/i;

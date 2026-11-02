@@ -49,7 +49,9 @@ def render(ep, project, n):
         L["out"] = os.path.join(d, f"{L['id']}.{key}.track.f32".replace("/", "_"))
     jp = os.path.join(d, f"job.{key}.json")
     done = os.path.join(d, f"job.{key}.done")
-    if not os.path.exists(done):  # (an export with nothing changed in the sound renders nothing again)
+    # (an export with nothing changed in the sound renders nothing again - if its tracks are really still there: a
+    # space cleanup can take the tracks and leave the marker)
+    if not os.path.exists(done) or not all(os.path.exists(L["out"]) for L in job["layers"]):
         with open(jp, "w", encoding="utf-8") as fh:
             json.dump(job, fh)
         r = subprocess.run(["node", os.path.join(ROOT, "tools", "audio_layers.mjs"), jp], cwd=ROOT, capture_output=True, text=True,

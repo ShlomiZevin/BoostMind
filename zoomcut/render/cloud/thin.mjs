@@ -14,7 +14,7 @@ import { EPS, ROOT, readJson } from './layout.mjs';
 import { list } from './store.mjs';
 import { walk, stateFile, sameAs } from './sync.mjs';
 
-const SCRATCH = /\.f32$|(^|\/)work\/pieces\//i;
+const SCRATCH = /\.f32$|(^|\/)work\/pieces\/|(^|\/)work\/layers\/render\//i;  // (the export's sound renders: the tracks AND their job markers - a marker left alone said "done" with its tracks gone)
 const allFiles = (dir, base = dir, out = []) => {
   let es = []; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return out; }
   for (const e of es) { const f = path.join(dir, e.name); if (e.isDirectory()) allFiles(f, base, out); else if (e.isFile()) out.push(path.relative(base, f).split(path.sep).join('/')); }
