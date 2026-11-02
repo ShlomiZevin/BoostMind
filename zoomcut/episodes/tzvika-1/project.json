@@ -7,8 +7,8 @@
     "fps": 30,
     "color": "#0b0b0b"
   },
-  "duration": 3113,
-  "speed": 1.15,
+  "duration": 3119,
+  "speed": 1.3,
   "assets": {
     "font.stam-ashkenaz": {
       "kind": "font",
@@ -38,12 +38,12 @@
       "src": "work/public/scene.png",
       "w": 1024,
       "h": 1536,
-      "label": "Set - cubicle.jpg"
+      "label": "Set - cubicle-empty.jpg"
     },
     "s.music": {
       "kind": "audio",
-      "src": "work/layers/sounds/m2f6c3e38d604b.wav",
-      "duration": 103.767,
+      "src": "work/layers/sounds/m247cf6fd9c399.wav",
+      "duration": 103.967,
       "label": "Music - swing"
     },
     "s.office": {
@@ -89,6 +89,58 @@
       "fg": "work/public/takes/D2441889-2FBC-446B-9350-2DD55A739114.webm",
       "matte": "work/matte/D2441889-2FBC-446B-9350-2DD55A739114.body.mkv",
       "mark": "use"
+    },
+    "s.boombap": {
+      "kind": "audio",
+      "src": "../_assets/music/quirky/awk-boombap.mp3",
+      "label": "music-awk-boombap"
+    },
+    "s.music-awk-boombap.mp3": {
+      "kind": "audio",
+      "src": "media/music-awk-boombap.mp3",
+      "duration": 89.992
+    },
+    "s.music-fluffing-a-duck.mp3": {
+      "kind": "audio",
+      "src": "media/music-fluffing-a-duck.mp3",
+      "duration": 67.368
+    },
+    "s.music-investigations.mp3": {
+      "kind": "audio",
+      "src": "media/music-investigations.mp3",
+      "duration": 93.544
+    },
+    "s.music-local-forecast---elevator.mp3": {
+      "kind": "audio",
+      "src": "media/music-local-forecast---elevator.mp3",
+      "duration": 189.205
+    },
+    "s.music-monkeys-spinning-monkeys.mp3": {
+      "kind": "audio",
+      "src": "media/music-monkeys-spinning-monkeys.mp3",
+      "duration": 125.074
+    },
+    "s.music-pixel-peeker-polka---faster.mp3": {
+      "kind": "audio",
+      "src": "media/music-pixel-peeker-polka---faster.mp3",
+      "duration": 202.005
+    },
+    "s.music-run-amok.mp3": {
+      "kind": "audio",
+      "src": "media/music-run-amok.mp3",
+      "duration": 107.102
+    },
+    "s.music-scheming-weasel-faster.mp3": {
+      "kind": "audio",
+      "src": "media/music-scheming-weasel-faster.mp3",
+      "w": 400,
+      "h": 400,
+      "duration": 89.13
+    },
+    "s.music-sneaky-snitch.mp3": {
+      "kind": "audio",
+      "src": "media/music-sneaky-snitch.mp3",
+      "duration": 136.62
     }
   },
   "layers": [
@@ -106,7 +158,7 @@
         {
           "id": "set",
           "from": 0,
-          "dur": 3113,
+          "dur": 3119,
           "asset": "m.set",
           "box": {
             "x": -100,
@@ -166,10 +218,10 @@
           "from": 700,
           "dur": 1034,
           "asset": "t.05BA0D6F-9EA7-4054-888C-21F6ADA1F059",
-          "in": 1.0,
+          "in": 1,
           "ref": {
             "take": "05BA0D6F-9EA7-4054-888C-21F6ADA1F059",
-            "a": 1.0
+            "a": 1
           },
           "link": "cut-05BA0D6F-9EA7-4054-888C-21F6ADA1F059-1.0",
           "box": {
@@ -200,7 +252,7 @@
         {
           "id": "c3",
           "from": 2547,
-          "dur": 566,
+          "dur": 572,
           "asset": "t.EB5C4931-F4CD-4C85-B6A7-5173B51A18D4",
           "in": 1.15,
           "ref": {
@@ -234,10 +286,10 @@
             "overlay": 0
           },
           "box": {
-            "x": 540.0,
-            "y": 300.0,
+            "x": 540,
+            "y": 300,
             "anchor": "t",
-            "w": 940.0
+            "w": 940
           },
           "text": "פוב: ניגשת לדינוזאור של החברה\nשמנסה להסתגל לקצב של עידן ה-AI",
           "style": "pov",
@@ -690,13 +742,22 @@
         {
           "id": "s38",
           "from": 2370,
-          "dur": 88,
+          "dur": 59,
           "text": "תסתכל על בחורות,",
           "ref": {
             "cap": "תסתכל על בחורות,",
             "k": 38
           },
-          "link": "cut-D2441889-2FBC-446B-9350-2DD55A739114-4.42"
+          "link": "cut-D2441889-2FBC-446B-9350-2DD55A739114-4.42",
+          "user": true
+        },
+        {
+          "id": "s38h",
+          "from": 2429,
+          "dur": 46,
+          "text": "חה חה חה חה",
+          "link": "cut-D2441889-2FBC-446B-9350-2DD55A739114-4.42",
+          "user": true
         },
         {
           "id": "s39",
@@ -735,9 +796,21 @@
           "id": "s42",
           "from": 2578,
           "dur": 113,
-          "text": "שלנו? איזה סקריפט?",
+          "text": "שלנו? איזה סקיל?",
           "ref": {
             "cap": "שלנו? איזה סקריפט?",
+            "k": 42
+          },
+          "link": "cut-EB5C4931-F4CD-4C85-B6A7-5173B51A18D4-1.15",
+          "user": true
+        },
+        {
+          "id": "s42~1",
+          "from": 2578,
+          "dur": 113,
+          "text": "שלנו? איזה סקיל?",
+          "ref": {
+            "cap": "שלנו? איזה סקיל?",
             "k": 42
           },
           "link": "cut-EB5C4931-F4CD-4C85-B6A7-5173B51A18D4-1.15"
@@ -800,7 +873,7 @@
         {
           "id": "s48",
           "from": 3040,
-          "dur": 73,
+          "dur": 79,
           "text": "כבר מתחיל.",
           "ref": {
             "cap": "כבר מתחיל.",
@@ -847,12 +920,12 @@
           "from": 700,
           "dur": 1040,
           "asset": "t.05BA0D6F-9EA7-4054-888C-21F6ADA1F059",
-          "in": 1.0,
+          "in": 1,
           "fade_in": 0.012,
           "fade_out": 0.2,
           "ref": {
             "take": "05BA0D6F-9EA7-4054-888C-21F6ADA1F059",
-            "a": 1.0
+            "a": 1
           },
           "link": "cut-05BA0D6F-9EA7-4054-888C-21F6ADA1F059-1.0"
         },
@@ -873,7 +946,7 @@
         {
           "id": "v3",
           "from": 2547,
-          "dur": 566,
+          "dur": 572,
           "asset": "t.EB5C4931-F4CD-4C85-B6A7-5173B51A18D4",
           "in": 1.15,
           "fade_in": 0.012,
@@ -892,35 +965,30 @@
       "name": "Music",
       "owner": "builder",
       "props": {
-        "volume": 0.065,
-        "lift": {
-          "db": 6,
-          "fade": 1,
-          "of": "subs"
-        }
+        "volume": 0.14
       },
       "items": [
         {
           "id": "m0",
           "from": 0,
           "dur": 2580,
-          "asset": "s.music",
+          "asset": "s.boombap",
           "in": 0,
-          "fade_in": 0.3,
           "fade_out": 1,
           "ref": {
             "music": 1
           },
-          "user": true
+          "user": true,
+          "gain": 1.53
         },
         {
           "id": "m1",
           "from": 2550,
-          "dur": 563,
-          "asset": "s.music",
-          "in": 34,
+          "dur": 569,
+          "asset": "s.boombap",
+          "in": 46.5,
           "fade_in": 1,
-          "fade_out": 2.5,
+          "fade_out": 1,
           "pin": "span",
           "user": true
         }
@@ -931,7 +999,7 @@
         {
           "id": "a0",
           "from": 0,
-          "dur": 3113,
+          "dur": 3119,
           "asset": "s.office",
           "in": 0,
           "gain": 7,
@@ -946,7 +1014,7 @@
       "name": "אווירת משרד"
     }
   ],
-  "rev": 10,
+  "rev": 36,
   "builder": {
     "kind": "solo",
     "from": "lesson.py"
@@ -955,5 +1023,5 @@
     "ripple": true
   },
   "characters": [],
-  "saved": 1793622149733
+  "saved": 1793625406561
 }

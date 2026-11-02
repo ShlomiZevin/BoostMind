@@ -461,6 +461,12 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
 - He is happy to spend the credits ("you can even use them all") - quality over saving; still say what it cost.
 - Try a big change to his video on a COPY (`<id>-he`: copy episode.json, captions.txt, project.json, media/, work/)
   while he is still checking the original (his ask).
+- **Quirky / awkward comedy music = the LIBRARY first** (tzvika-1, 2026-11-02): five rounds of ElevenLabs Music (28
+  tracks, ~45k credits - cartoon instruments, genre beats, a Terra-written brief, variations) were all "terrible"; the
+  real TikTok comedy beds he knows were approved at once: `_assets/music/library/` (Kevin MacLeod, CC BY 4.0 -
+  credit line in the caption, see LICENSE.md there; Sneaky Snitch, Fluffing a Duck, Monkeys Spinning Monkeys
+  approved). Offer those (in Media, on a pick page) before generating anything; generate only for a character-specific
+  bed (a niggun, a song). Of the generated ones only `_assets/music/quirky/awk-boombap.mp3` was "not that bad".
 - **Music beds** (2026-10-25, "find the background music suitable... create it with 11 labs or Leonardo"):
   `node zoomcut/tools/elevenlabs_music.mjs <out.mp3> 80 "<prompt>"` (Eleven Music, instrumental). Only 2 requests at
   once on this plan (a third gets 429). Make 3 options in the character's world, put all three in the project's

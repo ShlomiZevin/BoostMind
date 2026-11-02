@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@remotion/cli": "4.0.290",
-    "@remotion/player": "^4.0.290",
+    "@remotion/player": "4.0.290",
     "@vitejs/plugin-react": "^4.3.4",
     "express": "^4.21.2",
     "nodemailer": "^6.9.16",
