@@ -439,7 +439,7 @@ if FLOAT:
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
                         f'volume={HK.get("gain_db", 0)}dB,'
                         + (f"volume='if(lt(t,{c['lift'][0]}),{10 ** (c['lift'][1] / 20):.3f},if(lt(t,{c['lift'][0] + 0.03}),{10 ** (c['lift'][1] / 20):.3f}-({10 ** (c['lift'][1] / 20):.3f}-1)*(t-{c['lift'][0]})/0.03,1))':eval=frame," if c.get('lift') else '')
-                        + f'afade=t=in:d=0.012,afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
+                        + f'afade=t=in:d={c.get("fade_in", 0.012)},afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
                         + (f'highpass=f=110,equalizer=f=3200:t=q:w=1.3:g={c["presence"]},' if c.get('presence') else '')
                         + (f'apad=pad_dur={HK.get("echo_pad", 0.8)},aecho={HK["echo"]},' if HK.get('echo') else '')
                         + (f'pan=stereo|c0={1 - max(0, c["pan"]):.2f}*c0|c1={1 + min(0, c["pan"]):.2f}*c1,' if c.get('pan') else '')
