@@ -1,5 +1,5 @@
 {
-  "_": "trailer 2 hook (v9): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane; Gilad's pane comes in beside her on her last words, his voice starts over her last word, holds after 'מה הביזנס' and turns away into the planet; a gentle space echo on both; the hollywood title with a falling star",
+  "_": "trailer 2 hook (v10): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane; Gilad's pane comes in behind her on her last words, his voice (soft first syllable lifted) right as hers ends, his pane turns into the planet during 'מה הביזנס' and the title rises on his last word; a gentle space echo on both; the hollywood title with a falling star",
   "float": true,
   "clips": [
     {
@@ -13,13 +13,17 @@
     },
     {
       "src": "../../../public/wiki/v/gilad-joins.mp4",
-      "in": 15.45,
+      "in": 15.52,
       "out": 17.055,
       "vout": 16.95,
-      "at": 1.25,
+      "at": 1.4,
       "fade_out": 0.015,
       "lead": 0.45,
-      "tail": 0.2
+      "tail": -0.62,
+      "lift": [
+        0.18,
+        18
+      ]
     }
   ],
   "gain_db": 3.5,
@@ -28,11 +32,11 @@
     "שלומיוורס",
     "מציגים"
   ],
-  "title_at": 3.5,
+  "title_at": 2.72,
   "title_out": 5.78,
   "arrive": 0.9,
   "exit": 0.65,
-  "spin": 0.6,
+  "spin": 0.66,
   "title_style": "hollywood",
   "title_scale": 0.84,
   "echo": "0.85:0.6:70|150:0.22|0.11",

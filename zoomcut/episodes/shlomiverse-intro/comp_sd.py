@@ -436,7 +436,9 @@ if FLOAT:
                       'full': c.get('full', 0), 'shrink': c.get('shrink', 0.8), 'lead': lead, 'tail': c.get('tail', 0.0)})
         wav = os.path.join(HERE, f'out/hook-{i}.wav'); ms_ = int(c['at'] * 1000)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
-                        f'volume={HK.get("gain_db", 0)}dB,afade=t=in:d=0.012,afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
+                        f'volume={HK.get("gain_db", 0)}dB,'
+                        + (f"volume='if(lt(t,{c['lift'][0]}),{10 ** (c['lift'][1] / 20):.3f},if(lt(t,{c['lift'][0] + 0.03}),{10 ** (c['lift'][1] / 20):.3f}-({10 ** (c['lift'][1] / 20):.3f}-1)*(t-{c['lift'][0]})/0.03,1))':eval=frame," if c.get('lift') else '')
+                        + f'afade=t=in:d=0.012,afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
                         + (f'apad=pad_dur=0.8,aecho={HK["echo"]},' if HK.get('echo') else '') + f'adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
         voice.append(wav)
     def _tl(txt, size, color):
