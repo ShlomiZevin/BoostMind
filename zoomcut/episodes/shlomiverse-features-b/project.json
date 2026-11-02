@@ -7,7 +7,7 @@
     "fps": 30,
     "color": "#0b0b0b"
   },
-  "duration": 657,
+  "duration": 582,
   "speed": 1,
   "assets": {
     "s.music.wav": {
@@ -28,7 +28,7 @@
     "s.voice-gilad-end.wav": {
       "kind": "audio",
       "src": "media/voice-gilad-end.wav",
-      "duration": 1.502
+      "duration": 3.238
     },
     "s.sfx-star.wav": {
       "kind": "audio",
@@ -40,19 +40,12 @@
       "src": "media/sfx-whoosh.wav",
       "duration": 0.88
     },
-    "v.picture-pane.mp4": {
-      "kind": "video",
-      "src": "media/picture-pane.mp4",
-      "w": 1080,
-      "h": 1920,
-      "duration": 21.917
-    },
     "v.picture.mp4": {
       "kind": "video",
       "src": "media/picture.mp4",
       "w": 1080,
       "h": 1920,
-      "duration": 21.917
+      "duration": 19.417
     }
   },
   "layers": [
@@ -61,7 +54,7 @@
         {
           "id": "v0",
           "from": 0,
-          "dur": 657,
+          "dur": 582,
           "asset": "v.picture.mp4",
           "in": 0,
           "box": {
@@ -82,32 +75,9 @@
     {
       "items": [
         {
-          "id": "p0",
-          "from": 565,
-          "dur": 92,
-          "asset": "v.picture-pane.mp4",
-          "in": 18.8333,
-          "box": {
-            "x": 0,
-            "y": 0,
-            "w": 1080,
-            "h": 1920
-          }
-        }
-      ],
-      "props": {
-        "fit": "cover"
-      },
-      "id": "gilad-pane",
-      "kind": "video",
-      "name": "Gilad pane (end)"
-    },
-    {
-      "items": [
-        {
           "id": "m0",
           "from": 0,
-          "dur": 657,
+          "dur": 582,
           "asset": "s.music.wav",
           "in": 0,
           "gain": 1
@@ -160,8 +130,8 @@
       "items": [
         {
           "id": "e0",
-          "from": 580,
-          "dur": 45,
+          "from": 458,
+          "dur": 97,
           "asset": "s.voice-gilad-end.wav",
           "in": 0,
           "gain": 1
@@ -267,6 +237,24 @@
       "name": "Whooshes"
     }
   ],
-  "rev": 10,
-  "saved": 1793625697327
+  "rev": 19,
+  "saved": 1793626653081,
+  "notes": [
+    {
+      "id": "nmvzarhfu",
+      "at": 460,
+      "text": "אותי מעניין מה הביזנעס צריך להתחיל כאן עם אקו שומעים את זה בחלל...",
+      "t": 1793626257162,
+      "reply": "'אותי מעניין מה הביזנס' מתחיל כאן (15.3) עם אקו החלל, קול בלבד, כשהלוגו נוחת; המוזיקה יורדת 6 dB מתחתיו. הסרטון חזר לאורך של A (19.4 שנ').",
+      "done": true
+    },
+    {
+      "id": "nmvzars7j",
+      "at": 0,
+      "text": "המוסיקת רקע צריכה להתחיל מהתחלה כמו בסרטון פיצ'רים הגרסה הראשונה. ובכלל כל האנימציה של החלפת הסרטונים צריכה להיות יותר איטית יותר מרחפת בחלל עם אקו כמו סרטונים בחלל. כמו שעשינו בגרסה הראשונה.",
+      "t": 1793626271119,
+      "reply": "המוזיקה עכשיו בדיוק של גרסה A - עולה כבר ב-2.2 שנ' מתחת לכותרת (בגרסה הקודמת השורה הארוכה של גלעד הנמיכה אותה עד 3.8). גלעד כבר לא עוצר: מסתובב לאט ובאופן רציף לתוך הכוכב מ-1.4 עד 3.95, לאט יותר מ-A, עם האקו. מ-4 שנ' והלאה התמונה היא של A עצמה.",
+      "done": true
+    }
+  ]
 }
