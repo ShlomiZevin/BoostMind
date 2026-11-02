@@ -25,6 +25,30 @@
   box off, and preview before the build (cut-out over green, before / after - haredit-2's `proptest.py` pattern).
   End `to` before the prop leaves the frame - the tracker then locks on the wall (haredit-2: box flew out at 7.0 s).
   Segment Anything 2 would track better but installing it from GitHub needs his permission (blocked 2026-10-28).
+- **A PERSON CUT OUT INTO A WORLD'S SET - the tzvika-1 way (his words 2026-11-02: "the way you did the cutting for
+  this video was amazing - I want it on the skill"):** one iPhone take at home -> the character at his desk in the
+  world's office, nothing of the room left. Do these, in this order:
+  1. **The set from the world itself**: look at the world's site / earlier sets first (Techy-Tech = techytech.web.app,
+     `public/techietech/img/*`, Hani's floor `_assets/haredit/set.jpg`) and make the new set with THOSE photos as
+     references (`images/edits`, flare MEDIUM 1024x1536) - "same company, same office style as the reference". His
+     character gets his own corner in it (Tzvika: a 1999 desk - CRT, binders, desk fan - in the modern AI office).
+     The camera of the set = the camera of the take (phone at chest height looking slightly up, the chair right in
+     front, empty).
+  2. **No people in the set** ("you see people and they are not moving"): a still photo with people looks frozen.
+     Ask for the office EMPTY ("early morning before anyone arrived"); if a good set has people, re-make it from
+     itself as the reference with "the same photo, completely empty".
+  3. **The world's logo IN the set, not on it**: ask the picture for "one EMPTY plain navy-blue rectangular wall panel
+     (blank)", find the panel (HSV mask -> its box), draw the real logo as a PNG (`_assets/<char>/<world>-sign.png`,
+     the site's own colours / mark / wordmark) and put it there with episode.json `sign` {image, quad} - it blurs and
+     zooms with the room. Never ask the picture to write the logo (words break).
+  4. **Cut-out `matte_engine: "body"`** (quality head + fast body) - clean hair edge, nothing of the room.
+  5. **Mirror** the Person layer when anything he holds or is handed has writing (front camera) - check the text
+     reads right in a still.
+  6. **Anything he holds or is handed = `prop_color`** (next item) - the cookie box kept whole, edge to edge.
+  7. **Check the cut-out in stills through the export path**: 5 fps strips over every prop and every big gesture -
+     no room patch, nothing see-through, the set's logo readable.
+  Files: `_assets/tzvika/` (cubicle-empty.jpg + its prompt, techytech-sign.png), tzvika-1 episode.json (`sign`,
+  `prop_color`, `matte_engine`).
 - **HELD PROPS - THE ONE WAY (his ask 2026-11-02, tzvika-1: "a recurring issue - I want a constant solution in our
   skill"; the cookie box is "one of the greatest Easter eggs" - losing any part of a prop = the video is wrong):**
   1. **Look at the prop first** (frames every 0.25 s over its span, raw): its colours, the wall behind it, when it enters
