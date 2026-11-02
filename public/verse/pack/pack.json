@@ -1,0 +1,72 @@
+[
+ {
+  "id": "hani-pilei",
+  "char": "hani",
+  "text": "פילאי פלואים",
+  "img": "/verse/pack/hani-pilei.webp",
+  "thumb": "/verse/pack/hani-pilei-s.webp"
+ },
+ {
+  "id": "hani-nes",
+  "char": "hani",
+  "text": "נס בתוך נס",
+  "img": "/verse/pack/hani-nes.webp",
+  "thumb": "/verse/pack/hani-nes-s.webp"
+ },
+ {
+  "id": "hani-chasdei",
+  "char": "hani",
+  "text": "חסדי השם",
+  "img": "/verse/pack/hani-chasdei.webp",
+  "thumb": "/verse/pack/hani-chasdei-s.webp"
+ },
+ {
+  "id": "hani-siata",
+  "char": "hani",
+  "text": "סייעתא דשמיא",
+  "img": "/verse/pack/hani-siata.webp",
+  "thumb": "/verse/pack/hani-siata-s.webp"
+ },
+ {
+  "id": "hani-besorot",
+  "char": "hani",
+  "text": "בשורות טובות",
+  "img": "/verse/pack/hani-besorot.webp",
+  "thumb": "/verse/pack/hani-besorot-s.webp"
+ },
+ {
+  "id": "yotam-beseder",
+  "char": "yotam",
+  "text": "זה בסדר, זה בסדר",
+  "img": "/verse/pack/yotam-beseder.webp",
+  "thumb": "/verse/pack/yotam-beseder-s.webp"
+ },
+ {
+  "id": "gilad-business",
+  "char": "gilad",
+  "text": "אותי מעניין מה הביזנס",
+  "img": "/verse/pack/gilad-business.webp",
+  "thumb": "/verse/pack/gilad-business-s.webp"
+ },
+ {
+  "id": "gilad-takshiv",
+  "char": "gilad",
+  "text": "תקשיב, תקשיב, תקשיב",
+  "img": "/verse/pack/gilad-takshiv.webp",
+  "thumb": "/verse/pack/gilad-takshiv-s.webp"
+ },
+ {
+  "id": "yaniv-ortho",
+  "char": "yaniv",
+  "text": "יש לי אישור מאורתופד",
+  "img": "/verse/pack/yaniv-ortho.webp",
+  "thumb": "/verse/pack/yaniv-ortho-s.webp"
+ },
+ {
+  "id": "yaniv-serious",
+  "char": "yaniv",
+  "text": "אני רציני איתך",
+  "img": "/verse/pack/yaniv-serious.webp",
+  "thumb": "/verse/pack/yaniv-serious-s.webp"
+ }
+]

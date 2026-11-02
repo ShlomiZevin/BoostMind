@@ -30,7 +30,7 @@ export async function enablePush() {
   const s = pushState();
   if (s === 'ios') { location.hash = '#/install'; track('push_optin', 'guide'); return false; }
   if (s === 'unsupported') { toast(T.pushUnsupported); return false; }
-  if (!(await needFan(T.why.push))) return false;
+  if (!(await needFan('push'))) return false;
   const perm = s === 'granted' ? 'granted' : await Notification.requestPermission();
   if (perm !== 'granted') { toast(T.pushDenied, 4000); track('push_optin', 'denied'); emitPush(); return false; }
   try { await subscribe(); track('push_optin', 'ok'); toast(T.pushDone); emitPush(); return true; }

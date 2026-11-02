@@ -3,7 +3,7 @@
 // (mockup A) and, the first time, the "your name in the verse" screen (mockup B).
 import { auth, db, A, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, sheet, av, inApp, track, toast } from './ui.js';
+import { I, esc, sheet, av, inApp, track, toast, catchphrase, openOutside } from './ui.js';
 import { pickAndCrop } from './crop.js';
 
 export const st = { user: null, fan: null, follows: new Set(), saves: new Map(), notes: [], unread: 0, ready: false };
@@ -46,35 +46,52 @@ A.onAuthStateChanged(auth, (user) => {
 });
 
 const until = (test) => new Promise((resolve) => { if (test()) return resolve(); const off = onState(() => { if (test()) { off(); resolve(); } }); });
+// arrived from "open in browser" (ui.js openOutside): the sign-in sheet again, for what they were doing there
+const wanted = new URLSearchParams(location.search).get('signin');
+if (wanted) {
+  const u = new URL(location.href); u.searchParams.delete('signin'); history.replaceState(null, '', u.pathname + u.search + u.hash);
+  until(() => st.ready).then(() => { if (!st.user) setTimeout(() => needFan(wanted), 800); });
+}
 export const signedIn = () => !!(st.user && st.fan && st.fan.nick);
 
-// before anything that needs an account: true when the fan is in (signed in + has a name), false if they walked away
-export async function needFan(why, char) {
+// before anything that needs an account: true when the fan is in (signed in + has a name), false if they walked away.
+// `key` = what they pressed (T.gain: the sheet talks about that reward); `opt.img` = the sticker's frame, shown as the sticker
+export async function needFan(key, char, opt = {}) {
   if (signedIn()) return true;
-  if (!st.user && !(await signInSheet(why, char))) return false;
+  if (!st.user && !(await signInSheet(key, char, opt))) return false;
   await until(() => st.user && st.ready);
   if (!st.fan || !st.fan.nick) return nameScreen();
   return true;
 }
 
-// ---------- A: the sign-in sheet ----------
-export function signInSheet(why, char) {
+// ---------- A: the sign-in sheet (his note 2026-11-02: it has to read as a benefit - mockup golive/Y-signin-sticker) ----------
+// a benefit row's icon, from what it promises
+const rowIcon = (r) => /סטיקר/.test(r) ? I.sticker : /התראה|התראות/.test(r) ? I.bell : /סרטונים וסטוריז|סטוריז/.test(r) ? I.play
+  : /שמרתם|שומרים/.test(r) ? I.save : /בשם/.test(r) ? I.user : /הודעות|תגובה|תגובות|@/.test(r) ? I.comment : /רעיון|מצביעים|קולות/.test(r) ? I.plus
+  : /שלומי/.test(r) ? I.mail : /עוקבים|לעקוב/.test(r) ? I.bell : I.check;
+export function signInSheet(key, char, opt = {}) {
   return new Promise((resolve) => {
     const c = char && C[char];
-    const face = c ? `<div class="vx-hero-face">${av({ char, ring: true })}</div>` : `<div class="vx-hero-face">${av({ planet: true })}</div>`;
-    const icons = [I.user, I.bell, I.save];
+    const g = T.gain[key] || T.gain.default;
+    const fill = (x) => x.replace(/\{name\}/g, c ? c.name : '');
+    const face = opt.img
+      ? opt.cut   // a finished die-cut sticker (the pack): shown as it is
+        ? `<div class="vx-gain-st cut"><img src="${esc(opt.img)}" alt=""></div>`
+        : `<div class="vx-gain-st"><span><img src="${esc(opt.img)}" alt="">${char && catchphrase(char) ? `<em>${esc(catchphrase(char))}</em>` : ''}</span></div>`
+      : `<div class="vx-hero-face">${c ? av({ char, ring: true }) : av({ planet: true })}</div>`;
     track('signin_ask', inApp() ? 'inapp' : 'browser');   // how many reach the sign-in, and how many of them can't (in-app browser)
     const body = inApp()
       ? `<p class="vx-sub" style="margin-top:6px">${esc(T.signinInApp)}</p>
-         <button class="vx-btn glass block" data-copy>${I.copy}${esc(T.signinCopy)}</button>`
+         <button class="vx-btn white block" data-out>${esc(T.signinOut)}</button>
+         <button class="vx-link" data-copy>${esc(T.signinCopy)}</button>`
       : `<button class="vx-btn white block" data-google>${I.google}${esc(T.signinGoogle)}</button>
          <p class="vx-small">${esc(T.signinSmall)}</p>`;
     let done = false;
     const h = sheet(`<div class="in" style="text-align:center">
         ${face}
-        <h2 class="vx-h">${esc(T.signinTitle(c && c.name))}</h2>
-        ${why && !c ? `<p class="vx-sub" style="margin:0">${esc(why)}</p>` : ''}
-        <div class="vx-reasons">${T.signinReasons.map((r, i) => `<div><span class="vx-round">${icons[i]}</span><span>${esc(r)}</span></div>`).join('')}</div>
+        <h2 class="vx-h">${esc(fill(g.title))}</h2>
+        ${inApp() ? '' : `<p class="vx-sub vx-gain-sub">${esc(fill(g.sub))}</p>`}
+        <div class="vx-reasons">${g.rows.map((r, i) => `<div class="${i ? '' : 'hl'}"><span class="vx-round">${rowIcon(r)}</span><span>${esc(fill(r))}</span></div>`).join('')}</div>
         ${body}
       </div>`, { cls: 'signin', onClose: () => { if (!done) resolve(false); } });
     const google = h.el.querySelector('[data-google]');
@@ -93,6 +110,8 @@ export function signInSheet(why, char) {
         if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') toast(T.signinFailed);
       }
     };
+    const out = h.el.querySelector('[data-out]');
+    if (out) out.onclick = () => openOutside(key);
     const copy = h.el.querySelector('[data-copy]');
     if (copy) copy.onclick = () => { navigator.clipboard?.writeText(location.href); toast(T.linkCopied); };
   });
@@ -177,7 +196,7 @@ export const signOut = () => A.signOut(auth);
 
 // ---------- follow / save: one place each ----------
 export async function follow(char, on = true) {
-  if (!(await needFan(C[char] ? T.why.follow(C[char].name) : '', char))) return false;
+  if (!(await needFan('follow', char))) return false;
   const was = st.follows.has(char);
   if (on === was) return true;
   // the screen moves at once; Firestore confirms
@@ -187,7 +206,7 @@ export async function follow(char, on = true) {
   catch (e) { if (was) st.follows.add(char); else st.follows.delete(char); emit(); toast(T.errGeneric); return false; }
 }
 export async function save(videoId) {
-  if (!(await needFan(T.why.save))) return;
+  if (!(await needFan('save'))) return;
   const on = !st.saves.has(videoId);
   if (on) st.saves.set(videoId, Date.now()); else st.saves.delete(videoId);
   emit();

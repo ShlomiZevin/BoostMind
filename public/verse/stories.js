@@ -33,6 +33,13 @@ export function ringsHtml() {
   chars.sort((a, b) => (unseen(b) - unseen(a)) || ((b === 'verse') - (a === 'verse')) || (st.follows.has(b) - st.follows.has(a)));
   return `<div class="rings">${chars.map((c) => `<a class="ring ${unseen(c) ? '' : 'seen'}" href="#/story/${c}"><span class="rim"><span>${who(c).img ? `<img src="${abs(who(c).img)}" alt="">` : ''}</span></span><b>${esc(who(c).name)}</b></a>`).join('')}</div>`;
 }
+// the home's "what you can do" tile: up to three faces with something new (unseen first), and the first to open
+export function storyFaces() {
+  const s = seen();
+  const chars = [...new Set(all.filter((x) => Date.now() - x.ms < RECENT && who(x.char)).map((x) => x.char))];
+  const unseen = (c) => recentOf(c).some((x) => !s.has(x.id));
+  return chars.sort((a, b) => unseen(b) - unseen(a)).slice(0, 3).map((c) => ({ id: c, img: who(c).img ? abs(who(c).img) : '' }));
+}
 // the character page: a ring around the portrait when there is something to watch
 export const storyRing = (char) => (recentOf(char).length ? ` data-story="${char}" style="outline:3px solid var(--vx-accent);outline-offset:4px;cursor:pointer"` : '');
 document.addEventListener('click', (e) => { const p = e.target.closest('[data-story]'); if (p) { e.preventDefault(); location.hash = '#/story/' + p.dataset.story; } });

@@ -6,6 +6,8 @@ export const I = {
   // ring's front arc over it. Strokes follow the text colour, so off = dim, on = orange (verse.css)
   planet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" class="pl"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.4"/><circle cx="12" cy="12" r="7.6" fill="var(--pl-fill, #141218)" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.8"/></g></svg>`,
   sticker: s('<path d="M20 12.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6.5"/><path d="M20 12.5 12.5 20c0-4.1 3.4-7.5 7.5-7.5z"/>'),
+  game: s('<path d="M7.5 7h9a5 5 0 0 1 4.9 6l-.8 3.7a2.4 2.4 0 0 1-4.1 1.1L14.4 16H9.6l-2.1 1.8a2.4 2.4 0 0 1-4.1-1.1L2.6 13a5 5 0 0 1 4.9-6z"/><path d="M8 10v3M6.5 11.5h3"/><circle cx="15.5" cy="10.8" r=".6" fill="currentColor"/><circle cx="17" cy="12.6" r=".6" fill="currentColor"/>'),
+  bag: s('<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/>'),
   comment: s('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/>'),
   save: s('<path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4.2-6.5 4.2v-16a1 1 0 0 1 1-1z"/>'),
   saved: s('<path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4.2-6.5 4.2v-16a1 1 0 0 1 1-1z" fill="currentColor"/>'),
@@ -95,7 +97,21 @@ export function ago(t) {
 export const mmss = (s) => { s = Math.max(0, Math.floor(s || 0)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 
 // ---- the sheet, the card, the toast: one of each, used everywhere ----
+// the page behind a window / the player stays put: iPhone Safari scrolls the body under `overflow: hidden`, so the body
+// is pinned where it was (counted, so a sheet over the player keeps the lock until both are gone)
+let locks = 0, lockY = 0;
+export function lockScroll() {
+  if (locks++) return;
+  lockY = scrollY;
+  Object.assign(document.body.style, { position: 'fixed', top: -lockY + 'px', left: '0', right: '0', overflow: 'hidden' });
+}
+export function unlockScroll() {
+  if (!locks || --locks) return;
+  Object.assign(document.body.style, { position: '', top: '', left: '', right: '', overflow: '' });
+  scrollTo({ top: lockY, behavior: 'instant' });
+}
 function layer(el, back, onClose) {
+  lockScroll();
   document.body.append(back, el);
   requestAnimationFrame(() => { back.classList.add('open'); el.classList.add('open'); });
   let closed = false;
@@ -103,7 +119,9 @@ function layer(el, back, onClose) {
     if (closed) return;
     closed = true;
     back.classList.remove('open'); el.classList.remove('open');
+    el.style.transform = ''; el.style.transition = ''; back.style.opacity = '';
     setTimeout(() => { el.remove(); back.remove(); }, 320);
+    unlockScroll();
     document.removeEventListener('keydown', esc_);
     if (onClose) onClose(why);
   };
@@ -117,11 +135,37 @@ export function sheet(html, { cls = '', onClose } = {}) {
   const back = Object.assign(document.createElement('div'), { className: 'vx-back' });
   const el = Object.assign(document.createElement('div'), { className: `vx-sheet ${cls}` });
   el.innerHTML = `<div class="grab"></div>${html}`;
-  // drag the handle down to close
-  let y0 = null;
-  el.querySelector('.grab').addEventListener('pointerdown', (e) => { y0 = e.clientY; });
-  addEventListener('pointerup', (e) => { if (y0 !== null && e.clientY - y0 > 60) h.close('drag'); y0 = null; });
   const h = layer(el, back, onClose);
+  // slide it down to close, like a banner: the sheet follows the finger (from anywhere on it, once its content is
+  // scrolled to the top); let go past a quarter of its height, or flick down, and it closes - otherwise it springs back
+  let y0 = null, t0 = 0, dy = 0;
+  const scroller = (t) => { for (let n = t; n && n !== el; n = n.parentElement) if (n.scrollHeight > n.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(n).overflowY)) return n; return null; };
+  el.addEventListener('touchstart', (e) => {
+    const s = scroller(e.target);
+    if (e.touches.length > 1 || (s && s.scrollTop > 0) || e.target.closest('input, textarea, select, [type=range]')) { y0 = null; return; }
+    y0 = e.touches[0].clientY; t0 = Date.now(); dy = 0;
+  }, { passive: true });
+  el.addEventListener('touchmove', (e) => {
+    if (y0 === null) return;
+    dy = e.touches[0].clientY - y0;
+    if (dy <= 0) { if (dy < -8) y0 = null; el.style.transform = ''; return; }   // upwards = the content scrolls, not the sheet
+    e.preventDefault();
+    el.style.transition = 'none';
+    el.style.transform = `translateY(${dy}px)`;
+    back.style.opacity = String(Math.max(0, 1 - dy / el.offsetHeight));
+  }, { passive: false });
+  el.addEventListener('touchend', () => {
+    if (y0 === null) return;
+    y0 = null;
+    el.style.transition = '';
+    const fling = dy / Math.max(1, Date.now() - t0) > 0.6;
+    if (dy > el.offsetHeight / 4 || (fling && dy > 30)) h.close('drag');
+    else { el.style.transform = ''; back.style.opacity = ''; }
+  });
+  // the mouse: drag the handle
+  let m0 = null;
+  el.querySelector('.grab').addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') m0 = e.clientY; });
+  addEventListener('pointerup', (e) => { if (m0 !== null && e.clientY - m0 > 60) h.close('drag'); m0 = null; });
   return h;
 }
 // the card in the middle lies on the blurred screen behind it (mockup C); `x: false` = no close button, only its own link
@@ -159,3 +203,13 @@ export const isAndroid = () => /Android/.test(navigator.userAgent);
 export const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 // TikTok / Instagram / Facebook in-app browsers: Google refuses to sign in there
 export const inApp = () => /musical_ly|bytedance|BytedanceWebview|TikTok|Instagram|FBAN|FBAV|FB_IAB|Line\//i.test(navigator.userAgent);
+// out of the in-app browser in one tap (instead of "copy the link"): Android opens it in the phone's browser (intent),
+// iPhone in Safari (x-safari-https, iOS 17+). `?signin=<key>` opens the sign-in sheet there, for what they were doing
+export function openOutside(key) {
+  const u = new URL(location.href);
+  u.searchParams.set('signin', key || 'default');
+  const url = u.toString();
+  track('open_out', isIOS() ? 'ios' : isAndroid() ? 'android' : 'other');
+  if (isAndroid()) location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  else location.href = 'x-safari-' + url;
+}

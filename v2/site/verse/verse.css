@@ -1061,3 +1061,90 @@ section.hero .scroll-hint { z-index: 1; }
 .cmy-band-cta .vx-btn { height: 40px; padding: 0 16px; gap: 6px; font-size: .92rem; box-shadow: none; }
 .cmy-band-cta .vx-btn svg { width: 16px; height: 16px; }
 .cmy-band > .empty, .cmy-band > .ideas { margin-top: 12px; }
+
+/* ---------- the home's "what you can do here" (his note 2026-11-02; mockup golive/X-cando-a): the sticker as the
+   hero, two tiles, three tiles; then the idea row; business as one dim link ---------- */
+.cando { display: grid; gap: 10px; margin-top: 14px; }
+.cando button { text-align: right; color: var(--text); border: 1px solid var(--line); background: color-mix(in srgb, var(--text) 4%, transparent); border-radius: 20px; transition: transform .15s, border-color .15s; }
+.cando button:active { transform: scale(.98); }
+.cando button:hover { border-color: color-mix(in srgb, var(--vx-accent) 55%, transparent); }
+.cd-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none; color: var(--vx-accent); border: 1.5px solid color-mix(in srgb, var(--vx-accent) 70%, transparent); box-shadow: 0 0 18px rgba(255, 106, 31, .25); }
+.cd-ic svg { width: 21px; height: 21px; }
+.cando b { display: block; font-weight: 800; font-size: 1rem; line-height: 1.25; }
+.cando small { display: block; color: var(--dim); font-size: .82rem; line-height: 1.35; margin-top: 2px; }
+.cd-hero { position: relative; display: flex; align-items: center; gap: 12px; padding: 16px 14px; min-height: 132px; overflow: hidden;
+  background: radial-gradient(120% 140% at 0% 50%, rgba(255, 106, 31, .2), transparent 60%), color-mix(in srgb, var(--text) 4%, transparent) !important;
+  border-color: color-mix(in srgb, var(--vx-accent) 35%, transparent) !important; }
+.cd-hero .cd-ic { width: 52px; height: 52px; }
+.cd-hero .cd-txt { flex: 1; min-width: 0; }
+.cd-hero b { font-size: 1.22rem; font-weight: 900; }
+.cd-st { position: relative; flex: none; width: 112px; height: 112px; transform: rotate(-6deg); margin-inline-start: 2px; }
+.cd-st img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 5px solid #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .45); background: #222; }
+.cd-st em { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%) rotate(3deg); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis;
+  background: #fff; color: #111; font-style: normal; font-weight: 900; font-size: .78rem; padding: 3px 9px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+.cd-2, .cd-3 { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+.cd-3 { grid-template-columns: 1fr 1fr 1fr; }
+.cd-t { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 13px 12px; }
+.cd-2 .cd-t { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; row-gap: 0; }
+.cd-2 .cd-t .cd-ic { grid-row: span 2; align-self: center; }
+.cd-3 .cd-t b { font-size: .9rem; }
+.cd-3 .cd-t small { font-size: .74rem; }
+.cd-faces { display: flex; height: 44px; align-items: center; }
+.cd-faces img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--vx-accent); margin-inline-start: -10px; background: #222; }
+.cd-faces img:first-child { margin-inline-start: 0; }
+.cd-idea { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 20px; }
+.cd-idea b { display: block; font-weight: 800; }
+.cd-idea small { display: block; color: var(--dim); font-size: .8rem; margin-top: 2px; }
+.cd-idea .vx-btn { height: 40px; padding: 0 14px; gap: 6px; font-size: .9rem; box-shadow: none; flex: none; }
+.cd-idea .vx-btn svg { width: 16px; height: 16px; }
+.cd-all { display: block; color: var(--dim); font-weight: 700; font-size: .88rem; margin-top: 10px; }
+.cd-biz { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: .86rem; margin-top: 14px; padding: 4px 2px; }
+.cd-biz svg { width: 18px; height: 18px; }
+.cd-biz i { font-style: normal; margin-inline-start: auto; }
+@media (max-width: 360px) { .cd-st { width: 92px; height: 92px; } .cd-3 { grid-template-columns: 1fr 1fr; } }
+
+/* "סטיקר מהרגע" pointed out (from the home's tile) */
+.vp-rail button { position: relative; }
+.vp-rail button.pulse .vx-round { animation: vp-pulse 1.3s ease-in-out infinite; }
+@keyframes vp-pulse { 0%, 100% { box-shadow: var(--vx-glow); } 50% { box-shadow: 0 0 0 10px rgba(255, 106, 31, .25), 0 10px 34px rgba(255, 106, 31, .6); } }
+.vp-tip { position: absolute; right: calc(100% + 12px); top: 10px; white-space: nowrap; background: #fff; color: #111; font-weight: 800; font-size: .92rem; text-shadow: none;
+  padding: 9px 13px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); animation: vp-tip-in .35s ease; }
+.vp-tip::after { content: ''; position: absolute; right: -6px; top: 50%; margin-top: -6px; border: 6px solid transparent; border-right: 0; border-left-color: #fff; }
+@keyframes vp-tip-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+
+/* the sign-in sheet as a benefit (mockup golive/Y-signin-sticker): their moment as the sticker, the action's own row lit */
+.vx-gain-st { display: grid; place-items: center; margin: 4px 0 2px; }
+.vx-gain-st > span { position: relative; display: block; width: 128px; height: 128px; transform: rotate(-5deg); }
+.vx-gain-st img { width: 100%; height: 100%; object-fit: cover; border-radius: 28px; border: 6px solid #fff; box-shadow: 0 10px 28px rgba(0, 0, 0, .5); }
+.vx-gain-st em { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%) rotate(4deg); white-space: nowrap; background: var(--vx-accent); color: #fff; font-style: normal;
+  font-weight: 900; font-size: .9rem; padding: 4px 11px; border-radius: 10px; border: 2.5px solid #fff; box-shadow: 0 4px 12px rgba(0, 0, 0, .4); }
+.vx-sheet.signin .vx-gain-sub { margin: 0; color: rgba(255, 255, 255, .62); }
+.vx-sheet.signin .vx-reasons .hl .vx-round { color: var(--vx-accent); border-color: rgba(255, 106, 31, .6); box-shadow: 0 0 16px rgba(255, 106, 31, .3); }
+.vx-sheet.signin .vx-reasons .hl { font-weight: 700; }
+.vx-sheet .in { overscroll-behavior: contain; }
+/* the pack tile (wide, under the hero) and the pack sheet */
+.cd-pack { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; }
+.cd-pack .cd-txt { flex: 1; min-width: 0; }
+.cd-pack i { font-style: normal; color: var(--dim); font-size: 1.2rem; }
+.cd-pk { display: flex; flex: none; }
+.cd-pk img { width: 54px; height: 54px; object-fit: contain; margin-inline-start: -16px; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .35)); }
+.cd-pk img:first-child { margin-inline-start: 0; transform: rotate(-6deg); }
+.cd-pk img:nth-child(3) { transform: rotate(6deg); }
+.pk { text-align: center; }
+.pk .vx-sub { margin: 4px 0 14px; }
+.pk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pk-grid button { aspect-ratio: 1; border-radius: 18px; background: rgba(255, 255, 255, .05); border: 1px solid var(--vx-glass-line); padding: 4px; transition: transform .15s; }
+.pk-grid button:active { transform: scale(.95); }
+.pk-grid img { width: 100%; height: 100%; object-fit: contain; }
+.pk-note { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: .9rem; margin-top: 12px; }
+.pk-note svg { width: 18px; height: 18px; color: var(--vx-accent); }
+.vx-gain-st.cut img { width: 150px; height: 150px; object-fit: contain; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .5)); transform: rotate(-4deg); }
+/* the band holds its own tiles now: no box around them (no card inside a card) */
+.cmy-band { background: none; border: 0; padding: 0; border-radius: 0; }
+.cd-hero .cd-st { width: 96px; height: 96px; }
+.cd-hero b { white-space: nowrap; }
+.cd-2 .cd-t { padding: 12px 10px; }
+.cd-2 .cd-ic { width: 40px; height: 40px; }
+.cd-st.cut { transform: rotate(-5deg); }
+.cd-st.cut img { border: 0; border-radius: 0; box-shadow: none; background: none; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .45)); }
+.cd-hero .cd-st.cut { width: 108px; height: 108px; }

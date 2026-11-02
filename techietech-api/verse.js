@@ -175,16 +175,21 @@ const ICON = `${SITE}/verse/icon-192.png`;
 const BADGE = `${SITE}/verse/badge-96.png`;
 
 // ---------- the sticker ----------
-const STICKER_PROMPT = (text) => `Turn this frame from a comedy video into one die-cut sticker.
-Keep the person EXACTLY as they are in the frame: the same face, expression, hair or wig, glasses, clothes and colours - a
-faithful likeness of this exact person, never a different or prettier one. Crop to the most expressive part (usually head
-and shoulders), cut out from the background.
-Sticker style: a thick clean white outline around the whole silhouette, a soft drop shadow, a slightly glossy vinyl look,
-vivid but true colours.
-On the sticker, bold playful Hebrew lettering (right-to-left, correctly spelled, every letter exact) that says:
-"${text}"
-White-outlined comic lettering with a dark fill, placed across the lower part or in a small speech bubble, never covering
-the face. No other text, no watermark, no logo. Transparent background around the sticker.`;
+// the look is his reference (sticker-style.jpg, 2026-11-02: "I rather have the stickers looking like this") - the same
+// words as scripts/v2-design/sticker-pack.mjs (the ready pack), keep them in step
+const STICKER_STYLE = require('fs').readFileSync(require('path').join(__dirname, 'sticker-style.jpg'));
+const STICKER_PROMPT = (text) => `Make one die-cut WhatsApp sticker of the person in the FIRST image (a frame from a comedy video), drawn
+in exactly the style of the SECOND image (the style reference - copy its look, not its person or its words):
+- an illustrated comic / vector portrait: clean bold black ink outlines, flat cel-shaded colour with a few soft tones, fine
+  line detail on the face (stubble, wrinkles) - not a photo, not a 3D render;
+- the person EXACTLY as in the first image: the same face, expression, hair or wig, head covering, glasses and clothes - a
+  faithful, instantly recognisable likeness of this exact person, never a different or prettier one. Head and shoulders,
+  cut out from the background, the expression as strong as in the frame;
+- a thick clean white border around the whole sticker (the person and the lettering together, one silhouette), a very
+  subtle shadow;
+- across the bottom, overlapping the shoulders, big bold Hebrew letters (right-to-left, correctly spelled, every letter
+  exact) that say: "${text}" - white letters with a heavy black outline, like the reference; nothing else written.
+Transparent background around the sticker. No watermark, no logo.`;
 
 async function makeSticker(frameB64, text) {
   const form = new FormData();
@@ -196,6 +201,7 @@ async function makeSticker(frameB64, text) {
   form.append('output_format', 'webp');
   form.append('n', '1');
   form.append('image[]', new Blob([Buffer.from(frameB64, 'base64')], { type: 'image/jpeg' }), 'frame.jpg');
+  form.append('image[]', new Blob([STICKER_STYLE], { type: 'image/jpeg' }), 'style.jpg');
   const res = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { authorization: `Bearer ${openaiKey()}` }, body: form });
   const j = await res.json();
   if (!res.ok) throw Object.assign(new Error(`image ${res.status}: ${j.error?.message}`), { refused: j.error?.code === 'moderation_blocked' });

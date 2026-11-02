@@ -726,6 +726,8 @@ function atMirror(el) {
   const sync = () => {
     const cs = getComputedStyle(el);
     for (const p of COPY) back.style[p] = cs[p];
+    // a one-line <input> centres its text (and the caret) in its height; the copy behind it would sit at the top
+    if (el.tagName === 'INPUT') back.style.lineHeight = Math.max(0, el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) + 'px';
     if (!bg) { bg = cs.backgroundColor; fg = cs.color; el.classList.add('atm-field'); }
     Object.assign(back.style, { left: el.offsetLeft + 'px', top: el.offsetTop + 'px', width: el.offsetWidth + 'px', height: el.offsetHeight + 'px',
       background: bg, whiteSpace: el.tagName === 'TEXTAREA' ? 'pre-wrap' : 'pre', color: fg });

@@ -4,7 +4,9 @@
 // through the `request` op (signed out too); ideas and votes need an account.
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, av, ago, sheet, toast, track, LIKE, ofc } from './ui.js';
+import { I, esc, av, ago, sheet, toast, track, LIKE, ofc, abs, catchphrase } from './ui.js';
+import { storyFaces } from './stories.js';
+import { waCard } from './player.js';
 import { st, onState, needFan, signedIn } from './state.js';
 
 // ---------- the ideas, live ----------
@@ -12,6 +14,9 @@ let ideas = [], myVotes = new Set(), sort = 'top', focusIdea = null, offVotes = 
 const subs = new Set();
 export const onIdeas = (fn) => subs.add(fn);
 const emit = () => subs.forEach((fn) => fn());
+// the ready sticker pack (his ask 2026-11-02): the characters' classic lines, made by scripts/v2-design/sticker-pack.mjs
+let PACK = [];
+fetch('/verse/pack/pack.json').then((r) => (r.ok ? r.json() : [])).then((x) => { PACK = x; emit(); }).catch(() => {});
 F.onSnapshot(F.query(F.collection(db, 'ideas'), F.where('hidden', '==', false), F.orderBy('votes', 'desc'), F.limit(60)),
   (s) => { ideas = s.docs.map((d) => ({ id: d.id, ...d.data() })); emit(); }, (e) => console.error('ideas', e));
 onState(() => {
@@ -57,22 +62,68 @@ const tiles = () => `<div class="cmy-tiles">
   </div>`;
 
 // ---------- the band on the home page (under their part / the sign-in card) ----------
+// first WHAT YOU CAN DO here (his note 2026-11-02: visitors know it from the marketing, not from the site; mockup
+// golive/X-cando-a), the sticker as the hero; then the ideas; business shrinks to a link
+const STICKER_FACE = ['yotam', 'hani', 'savta'];
 export function homeBand() {
   const top = ideas.slice(0, 3);
+  const face = STICKER_FACE.find((id) => C[id] && C[id].img) || W.characters.find((c) => c.img)?.id;
+  const line = face ? catchphrase(face) : '';
+  const faces = storyFaces();
+  const hero = PACK.find((p) => p.char === face) || PACK[0];   // a real sticker from the pack, once it has loaded
+  const tile = (key, icon, extra = '') => `<button class="cd-t" data-do="${key}">${extra || `<span class="cd-ic">${icon}</span>`}<b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small></button>`;
   return `<section class="cmy-band">
-    <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.ideasSub)}</p></div>
-      <div class="cmy-band-cta"><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button><a href="#/community">${esc(T.ideasAll)} ←</a></div></div>
-    ${top.length ? `<div class="ideas row3">${top.map(ideaCard).join('')}</div>` : `<div class="empty">${esc(T.ideasEmpty)}</div>`}
-    <div class="cmy-band-cards">
-      <button class="cmy-card" data-ask-char><div><h3>${esc(T.askTile)}</h3><p>${esc(T.askSub)}</p><span class="vx-pill">${esc(T.askCta)}</span></div>
-        <span class="cmy-card-faces">${['yotam', 'hani', 'savta'].filter((id) => C[id]).map((id) => av({ char: id, ring: true })).join('')}</span></button>
-      <a class="cmy-card" href="#/business"><div><h3>${esc(T.bizCard)}</h3><p>${esc(T.bizCardSub)}</p><span class="vx-pill">${esc(T.bizCta)}</span></div><img src="/verse/logo-160.png" alt=""></a>
-    </div></section>`;
+    <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
+    <div class="cando">
+      <button class="cd-hero" data-do="sticker"><span class="cd-ic">${I.sticker}</span>
+        <span class="cd-txt"><b>${esc(T.can.sticker[0])}</b><small>${esc(T.can.sticker[1])}</small></span>
+        ${hero ? `<span class="cd-st cut"><img src="${esc(hero.thumb || hero.img)}" alt="${esc(hero.text)}"></span>`
+          : face ? `<span class="cd-st"><img src="${abs(C[face].img)}" alt="">${line ? `<em>${esc(line)}</em>` : ''}</span>` : ''}</button>
+      <button class="cd-pack" data-do="pack"><span class="cd-pk">${PACK.slice(0, 3).map((p) => `<img src="${esc(p.thumb || p.img)}" alt="">`).join('')}</span>
+        <span class="cd-txt"><b>${esc(T.can.pack[0])}</b><small>${esc(T.can.pack[1])}</small></span><i>‹</i></button>
+      <div class="cd-2">${tile('chat', I.comment)}${tile('follow', I.bell)}</div>
+      <div class="cd-3">${tile('stories', '', faces.length ? `<span class="cd-faces">${faces.map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : `<span class="cd-ic">${I.play}</span>`)}${tile('games', I.game)}${tile('sites', I.bag)}</div>
+    </div>
+    <div class="cd-idea"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
+    ${top.length ? `<div class="ideas row3">${top.map(ideaCard).join('')}</div><a class="cd-all" href="#/community">${esc(T.ideasAll)} ←</a>` : ''}
+    <a class="cd-biz" href="#/business">${I.people}<span>${esc(T.bizCard)}</span><i>‹</i></a>
+  </section>`;
+}
+// a tile: straight to the thing (the sticker one opens a video with the sticker button pointed out)
+function canDo(key, faces) {
+  track('cando', key);
+  if (key === 'sticker') {
+    const vids = W.videos.filter((v) => v.src && !v.url).sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 12);   // one of the newest
+    const v = vids[Math.floor(Math.random() * vids.length)];
+    if (v) location.hash = '#/v/' + v.id + '?how=sticker';
+  } else if (key === 'pack') packSheet();
+  else if (key === 'chat') openChat('guide');
+  else if (key === 'follow') location.hash = '#/characters';
+  else if (key === 'stories') location.hash = faces.length ? '#/story/' + faces[0].id : '#/characters';
+  else if (key === 'games') location.href = '/hani-games/';
+  else if (key === 'sites') location.hash = '#/sites';
+}
+
+// ---------- the ready sticker pack: a grid; a tap -> (an account) -> the "add to WhatsApp" window ----------
+function packSheet() {
+  if (!PACK.length) return;
+  const h = sheet(`<div class="in pk"><h2 class="vx-h">${esc(T.packTitle)}</h2><p class="vx-sub">${esc(T.packSub)}</p>
+      <div class="pk-grid">${PACK.map((p) => `<button data-pk="${esc(p.id)}" aria-label="${esc(p.text)}"><img src="${esc(p.thumb || p.img)}" alt="${esc(p.text)}" loading="lazy"></button>`).join('')}</div>
+      <button class="vx-link pk-note" data-pk-own>${I.sticker}<span>${esc(T.packNote)}</span></button></div>`, { cls: 'pk-sheet' });
+  h.el.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-pk-own]')) { h.close('own'); canDo('sticker', []); return; }
+    const b = e.target.closest('[data-pk]');
+    if (!b) return;
+    const p = PACK.find((x) => x.id === b.dataset.pk);
+    if (!p || !(await needFan('pack', p.char, { img: p.img, cut: true }))) return;
+    track('pack_get', p.id);
+    waCard(p.img);
+  });
 }
 
 // ---------- suggest an idea (the sheet), then share it ----------
 async function ideaSheet() {
-  if (!(await needFan(T.why.idea))) return;
+  if (!(await needFan('idea'))) return;
   let kind = 'episode';
   const chosen = [];   // up to 3, in the order they were picked
   const all = W.characters.filter((c) => c.img || c.name);
@@ -148,7 +199,7 @@ async function shareIdea(id) {
   sheet(`<div class="ids-done">${shareCard(id, x ? x.text : '').replace('<div class="ids-done">', '')}`, { cls: 'ids-sheet' });
 }
 async function vote(b) {
-  if (!(await needFan(T.why.vote))) return;
+  if (!(await needFan('vote'))) return;
   const id = b.dataset.vote, on = !myVotes.has(id), x = ideas.find((i) => i.id === id);
   if (on) myVotes.add(id); else myVotes.delete(id);
   if (x) x.votes = (x.votes || 0) + (on ? 1 : -1);
@@ -175,7 +226,7 @@ function formSheet(kind) {
     const text = f.text.value.trim();
     if (text.length < 3) return;
     // sending anything needs an account (his rule, 2026-11-01) - the server refuses it signed out
-    if (!(await needFan(T.why.contact))) return;
+    if (!(await needFan('contact'))) return;
     btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
     // a bug report carries where it happened and on what, so it can be fixed without asking back
     const extra = bug ? { page: location.href.slice(0, 300), ua: navigator.userAgent.slice(0, 300), screen: `${innerWidth}x${innerHeight}`, errors: recentErrors.slice() } : {};
@@ -214,7 +265,7 @@ document.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = f.email.value.trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast(T.bizBadEmail); f.email.focus(); return; }
-  if (!(await needFan(T.why.contact))) return;
+  if (!(await needFan('contact'))) return;
   const btn = f.querySelector('button:not([data-topic])');
   btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
   try {
@@ -227,10 +278,11 @@ document.addEventListener('submit', async (e) => {
 
 // ---------- one place for the clicks ----------
 document.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-idea-new], [data-vote], [data-share-idea], [data-idea-sort], [data-form], [data-ask-char], [data-copy-idea]');
+  const b = e.target.closest('[data-do], [data-idea-new], [data-vote], [data-share-idea], [data-idea-sort], [data-form], [data-ask-char], [data-copy-idea]');
   if (!b) return;
   e.preventDefault();
-  if (b.matches('[data-idea-new]')) ideaSheet();
+  if (b.matches('[data-do]')) canDo(b.dataset.do, storyFaces());
+  else if (b.matches('[data-idea-new]')) ideaSheet();
   else if (b.matches('[data-vote]')) vote(b);
   else if (b.matches('[data-share-idea]')) shareIdea(b.dataset.shareIdea);
   else if (b.matches('[data-idea-sort]')) { sort = b.dataset.ideaSort; emit(); }

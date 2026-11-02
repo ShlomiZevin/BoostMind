@@ -4,7 +4,7 @@
 // likes, replies, @character answers) and the sticker screen (mockup 3) live here too.
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc } from './ui.js';
+import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
 import { st, onState, needFan, follow, save } from './state.js';
 import { offerPush } from './push.js';
 
@@ -66,7 +66,7 @@ export function openPlayer(id, q = {}) {
       </div>
     </div>`;
   document.body.append(el);
-  document.body.style.overflow = 'hidden';
+  lockScroll();   // the page behind stays put (iPhone scrolls a body under overflow: hidden)
   const video = $('video', el);
   P = { el, v, video, lead, off: [], hideT: 0 };
 
@@ -157,6 +157,19 @@ export function openPlayer(id, q = {}) {
 function deepLinks(q) {
   if (q.c) setTimeout(() => openComments({ focus: q.c }), 300);
   else if (q.sticker) setTimeout(() => openComments({ tab: 's', focus: q.sticker }), 300);
+  else if (q.how === 'sticker') setTimeout(stickerTip, 900);
+}
+// from the home's "what you can do": the sticker button pointed out until they press it (or anything else)
+function stickerTip() {
+  const b = P && P.el.querySelector('[data-sticker]');
+  if (!b) return;
+  const tip = Object.assign(document.createElement('div'), { className: 'vp-tip', textContent: T.stTip });
+  b.classList.add('pulse');
+  b.append(tip);
+  setUi(true, 9000);   // the buttons stay up while it shows
+  const off = () => { tip.remove(); b.classList.remove('pulse'); P?.el.removeEventListener('pointerdown', off, true); };
+  setTimeout(() => P?.el.addEventListener('pointerdown', off, true), 400);
+  setTimeout(off, 9000);
 }
 // the thin time line at the bottom: a moment after the video starts or after a tap, then it fades (he: "it remains")
 function flashLine() {
@@ -196,7 +209,7 @@ function destroy() {
   P.video.load();
   P.el.remove();
   P = null;
-  document.body.style.overflow = '';
+  unlockScroll();
 }
 export function closePlayer() { const was = !!P; destroy(); document.querySelectorAll('.st').forEach((x) => x.remove()); return was; }
 
@@ -351,7 +364,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
       e.preventDefault();
       const text = ta.value.trim();
       if (!text) return;
-      if (!(await needFan(T.why.comment))) return;
+      if (!(await needFan('comment'))) return;
       const mention = mentionOf(text, v), was = replying;
       const p = { id: `tmp-${Date.now()}`, pending: true, uid: st.user.uid, nick: st.fan.nick, photo: st.fan.photo || null, text, parentId: was?.root || null };
       pending.push(p);
@@ -382,10 +395,10 @@ export function openComments({ tab = 'c', focus = null } = {}) {
     if (!b) return;
     if (b.dataset.tab) { cur = b.dataset.tab; draw(); }
     else if (b.dataset.more) { open.add(b.dataset.more); draw(); }
-    else if (b.matches('[data-in]')) { if (await needFan(T.why.comment)) drawCompose(); }
+    else if (b.matches('[data-in]')) { if (await needFan('comment')) drawCompose(); }
     else if (b.matches('[data-unreply]')) unreply();
     else if (b.dataset.reply) {
-      if (!(await needFan(T.why.comment))) return;
+      if (!(await needFan('comment'))) return;
       const c = comments.find((x) => x.id === b.dataset.reply);
       replying = { root: b.dataset.root, to: c.id, nick: c.nick };
       drawCompose();
@@ -396,7 +409,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
       if (c.char && !ta.value.includes('@' + C[c.char].name)) ta.value = '@' + C[c.char].name + ' ' + ta.value;
       ta.focus(); ta.oninput();
     } else if (b.dataset.like) {
-      if (!(await needFan(T.why.like))) return;
+      if (!(await needFan('like'))) return;
       const id = b.dataset.like, on = !myLikes.has(id), c = comments.find((x) => x.id === id);
       if (on) myLikes.add(id); else myLikes.delete(id);
       if (c) c.likeCount = (c.likeCount || 0) + (on ? 1 : -1);
@@ -422,7 +435,7 @@ function stickerTab(stickers, myStamps) {
     ${stickers.length ? `<div class="stg">${stickers.map((s) => stickerCard(s, myStamps)).join('')}</div>` : `<div class="cm-empty">${esc(T.stFansEmpty)}</div>`}`;
 }
 async function stampIt(b, stickers, myStamps, redraw) {
-  if (!(await needFan(T.why.stamp))) return;
+  if (!(await needFan('stamp'))) return;
   const id = b.dataset.stamp, on = !myStamps.has(id), s = stickers.find((x) => x.id === id);
   if (on) myStamps.add(id); else myStamps.delete(id);
   if (s) s.stampCount = (s.stampCount || 0) + (on ? 1 : -1);
@@ -455,9 +468,9 @@ export async function openSticker() {
   const { v, video, lead } = P;
   video.pause();
   setUi(true);
-  if (!(await needFan(T.why.sticker, lead))) return;
-  const frame = grabFrame(video);
+  const frame = grabFrame(video);   // first, so the sign-in sheet can show this very moment as the sticker
   if (!frame) { toast(T.errGeneric); return; }
+  if (!(await needFan('sticker', lead, { img: frame }))) return;
   const at = video.currentTime;
   const el = document.createElement('div');
   el.className = 'st';

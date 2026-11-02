@@ -39,6 +39,9 @@ const EVENTS = new Set([
   // the Shlomiverse's fans (verse.js): signed-in actions, still anonymous here
   'sign_in',       // a fan signed in with Google                  x = 'new' | 'back'
   'signin_ask',    // the sign-in window opened                    x = 'inapp' (Instagram / TikTok / FB browser) | 'browser'
+  'open_out',      // "open in browser" pressed in the sign-in     x = 'ios' | 'android' | 'other'
+  'cando',         // a home "what you can do" tile was pressed    x = sticker | chat | follow | stories | games | sites | pack
+  'pack_get',      // a ready sticker from the pack taken          x = sticker id
   'time',          // time on the site, one running total a visit  x = '<total s>:<total sent before>' (counted per visit)
   'follow',        // a fan followed a character                   x = character id
   'push_optin',    // notifications turned on                      x = 'ok' | 'denied' | 'guide' (the iPhone home-screen guide)

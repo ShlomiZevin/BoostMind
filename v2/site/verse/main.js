@@ -26,7 +26,7 @@ Object.assign(HOOK, {
   signinCard,
   // the chat sends the account with each question (3 in total without an account, 10 more signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
-  chatSignIn: () => needFan(T.why.chat),
+  chatSignIn: () => needFan('chat'),
   afterRoute(page, id) {
     // where the video page / stories go back to: the page under them
     const h = location.hash || '#/';
