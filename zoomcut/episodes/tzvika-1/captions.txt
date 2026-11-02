@@ -1,4 +1,4 @@
-# Subtitles from scripts/tzvika-1.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes) order:edef62267c
+# Subtitles from scripts/tzvika-1.txt (the script is the source: update it in the Reader; a line fixed here stays until the script changes) order:7467d06bf0
 == 05BA0D6F-9EA7-4054-888C-21F6ADA1F059
 כל דבר זה פרומפט וגמרנו. אנשים רצים, רצים, אחר כך יש בעיות, ומי מתקן? אני מתקן. אתה אומר זה שתי שורות. בשנת 2000, בבועת הדוט-קום, זירזו אותי ככה. אני שכחתי, לא שתי שורות, נקודה פסיק אחת. אחת! וחברה שלמה כמעט פשטה רגל.
 == 38F68B8B-31E9-4A84-A6F3-E6BB0B5969FA
