@@ -16,7 +16,7 @@ export type Data = {
   footage: { clips: { rel: string; char: string; kind: string }[]; unassigned: string[] } | null;
   audioVersion: number | null; output: string | null; job: Job | null;
 };
-export type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean };
+export type Proj = { id: string; title: string; done?: boolean; created?: number; template?: string; test?: boolean; cloud?: boolean };  // (cloud: only in the cloud so far)
 
 export const api = async (url: string, body?: any) =>
   (await fetch(url, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : undefined)).json();

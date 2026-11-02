@@ -15,12 +15,20 @@ import { startDrop } from './drop.mjs';
 import { startPublish } from './publish.mjs';
 import characters from './characters.mjs';
 import ideas from './ideas.mjs';
+import library from './library.mjs';
+import { localPath } from './cloud/layout.mjs';
+import { startSync } from './cloud/sync.mjs';
+import { startKeys } from './cloud/keys.mjs';
+import { startShared } from './cloud/shared.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
-const EPS = path.join(ROOT, 'episodes');
+const EPS = process.env.ZC_EPISODES || path.join(ROOT, 'episodes');  // (ZC_EPISODES: a test studio acting as another computer)
 const PY = path.join(ROOT, '.venv', 'Scripts', 'python.exe');
 const PORT = Number(process.env.PORT || 4747);
+// ZC_CLOUD=test: a second studio for testing the cloud sync - it only touches hidden _test projects: no Drop, no
+// picking up his running jobs or their sends, no keys sync. (ZC_NO_DROP: no Drop poller - a second studio on the same PC)
+const TEST = process.env.ZC_CLOUD === 'test';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -143,7 +151,7 @@ async function finishSends(id) {
   publisher.afterExport(id, !!(s.quick || s.test));  // (a draft / a test never goes out)  // (asked in the Publish window: the socials, once the file is made)
 }
 // on start: jobs still running from before (or finished while the server was down) are picked up again
-setTimeout(() => {
+if (!TEST) setTimeout(() => {
   if (!fs.existsSync(HISTORY)) {  // the first start with a history: each project's last job goes in (from its job.json)
     const seed = [];
     for (const id of fs.readdirSync(EPS)) {
@@ -164,13 +172,15 @@ setTimeout(() => {
 }, 500);
 
 // the projects, newest first (by when the folder was made); "done" ones are marked
-app.get('/api/episodes', (_q, res) => {
+app.get('/api/episodes', async (_q, res) => {
   const list = fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.existsSync(path.join(EPS, d, 'episode.json')));  // (_name: a test, not in the list)
-  res.json(list.map((id) => {
+  // (+ the projects that are only in the cloud so far - opening one brings it to this computer)
+  const cloudOnly = (await cloud.cloudOnly().catch(() => [])).map((id) => ({ id, title: id, done: false, created: 0, template: '', test: id.endsWith('-test'), cloud: true }));
+  res.json([...list.map((id) => {
     const cfg = readJson(path.join(EPS, id, 'episode.json'), {});
     return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs,
       template: cfg.type === 'lesson' ? 'Solo' : 'Zoom', test: id.endsWith('-test') };
-  }).sort((a, b) => b.created - a.created));
+  }).sort((a, b) => b.created - a.created), ...cloudOnly]);
 });
 
 // mark a project done / not done (the dropdown shows it differently)
@@ -343,8 +353,14 @@ app.post('/api/ep/:id/config', (q, res) => {
 // "New video": the folders in Downloads that hold footage, and a project made from a template (optionally with an
 // earlier project's settings - same series: set, music, voice, subtitle style)
 const DOWNLOADS = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', 'Downloads');
-const drop = startDrop({ app, DOWNLOADS, ROOT, PY, recordJob });
-const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id) });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
+const drop = TEST || process.env.ZC_NO_DROP ? { folders: () => [], cleanup: () => {}, running: () => [] } : startDrop({ app, DOWNLOADS, ROOT, PY, recordJob });
+// the studio online (render/cloud/): projects follow him between computers, the keys come from Secret Manager -
+// both only once he switched it on (episodes/_cloud/config.json), or ZC_CLOUD=test for _test projects
+const cloud = startSync({ app, jobs, log: (s) => console.log(s) });
+const keys = !TEST && cloud.mode() === 'on' ? startKeys({ log: (s) => console.log(s) }) : null;
+if (!TEST && cloud.mode() === 'on') startShared({ log: (s) => console.log(s) });  // Ideas + the Jobs history, merged across his computers
+library(app, { ROOT, PORT, cloudOn: () => !TEST && cloud.mode() === 'on' });  // the Assets page: every background, music, sound, picture his videos use (library.mjs)
+const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id), keysFresh: () => keys?.fresh() });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
 const VIDEO = /\.(mp4|mov|m4v)$/i;
 app.get('/api/downloads', (_q, res) => {
   const out = [];
@@ -1013,7 +1029,7 @@ app.get('/pm-tempo/:id', async (q, res) => {
 app.get('/api/p/:id/asset', (q, res) => {
   const a = readProject(q.params.id)?.assets?.[String(q.query.a || '')];
   if (!a?.src) return res.status(404).end();
-  const f = path.resolve(epDir(q.params.id), a.src);
+  const f = localPath(path.resolve(epDir(q.params.id), a.src));  // (made on another of his computers: the same place here)
   if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return res.status(404).end();
   res.sendFile(f);
 });
@@ -1083,7 +1099,7 @@ const soundFresh = (id, project, sj) => {
       const aid = it.asset ?? l.props?.asset, a = project.assets?.[aid];
       if (!a || it.hidden) continue;
       const k = voice ? `${l.id}|${aid}|${l.props?.clean || 'off'}` : `${l.id}|${aid}`;
-      const f = path.resolve(d, a.audio || a.src || '');
+      const f = localPath(path.resolve(d, a.audio || a.src || ''));
       if (!made(k) || (fs.existsSync(f) && fs.statSync(f).mtimeMs > have[k].v + 1000)) stale.push(k);
     }
   }
@@ -1107,6 +1123,7 @@ app.post('/api/p/:id/ops', async (q, res) => {
   after.rev = (before.rev || 0) + 1;
   after.saved = Date.now();
   writeJson(projFile(id), after);
+  cloud.pushSoon(id);  // (the studio online: up a few seconds after the edits stop)
   const hist = path.join(epDir(id), 'work', 'history');
   fs.mkdirSync(hist, { recursive: true });
   fs.appendFileSync(path.join(hist, 'log.jsonl'), JSON.stringify({ rev: after.rev, t: after.saved, by: q.body?.by || 'editor', ops, undo: inverse(before, ops) }) + '\n');
@@ -1145,7 +1162,7 @@ app.get('/api/p/:id/thumb', (q, res) => {
   if (fs.existsSync(out)) return res.sendFile(out);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const t = Math.min(6, (a.duration || 9) / 3);
-  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', String(t), '-i', path.resolve(d, a.preview || a.src), '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
+  const p = spawn('ffmpeg', ['-y', '-v', 'error', '-ss', String(t), '-i', localPath(path.resolve(d, a.preview || a.src)), '-frames:v', '1', '-vf', 'scale=160:-2', out], { windowsHide: true });
   p.on('close', () => (fs.existsSync(out) ? res.sendFile(out) : res.status(404).end()));
 });
 // a file for the project's Media (picture, sound, video): saved in media/, measured, added as an asset

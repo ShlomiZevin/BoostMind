@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from pipeline.common import FFMPEG, FPS, ROOT, SR, load_json, log, save_json
+from pipeline.common import FFMPEG, FPS, ROOT, SR, load_json, local_path, log, save_json
 from pipeline.film_fx import FxFrame as _FxFrame
 from pipeline.media import read_wav
 from pipeline.match import Env
@@ -38,13 +38,14 @@ class Lesson:
         self.dir = os.path.abspath(d)
         self.slug = os.path.basename(self.dir)
         self.cfg = load_json(self.p("episode.json"))
+        self.cfg["input_dir"] = local_path(self.cfg["input_dir"])  # (made on another of his computers: the same place here)
         src = self.cfg["input_dir"]
         self.takes = sorted(glob.glob(os.path.join(src, self.cfg.get("takes", "*.MP4"))))
         if not self.takes:
             raise SystemExit(f"no takes in {src}")
 
     def p(self, *a):
-        return os.path.join(self.dir, *a)
+        return local_path(os.path.join(self.dir, *a))
 
     def work(self, *a):
         path = self.p("work", *a)

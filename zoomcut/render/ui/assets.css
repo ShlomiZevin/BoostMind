@@ -1,0 +1,52 @@
+/* The Assets page - the same language as the editor and Ideas (editor.css :root tokens): warm off-black, one coral
+   accent, hairlines, flat. Sounds as a list of rows (play on the row), pictures as a grid of cards; a click opens big. */
+body { overflow: auto; user-select: text; }
+.ax { max-width: 1280px; margin: 0 auto; padding: 28px 32px 60px; }
+.ax-top { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
+.ax-top h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.ax-top .sub { color: var(--dim); font-size: 13.5px; margin-top: 4px; }
+.ax-bar { position: sticky; top: 0; z-index: 3; display: grid; gap: 10px; padding: 10px 0 14px; background: var(--app); border-bottom: 1px solid var(--edge); margin-bottom: 16px; }
+.ax-search { height: 36px; font-size: 14px; padding: 0 12px; unicode-bidi: plaintext; }
+.ax-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-btn { height: 28px; padding: 0 11px; border-radius: 14px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim); font: inherit; font-size: 12.5px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.chip-btn span { color: var(--faint); margin-left: 3px; font-variant-numeric: tabular-nums; }
+.chip-btn:hover { color: var(--text); border-color: var(--dim); }
+.chip-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip-btn.on span { color: rgba(255, 255, 255, 0.8); }
+.ax-empty { padding: 40px 0; text-align: center; color: var(--faint); font-size: 14px; }
+/* sounds */
+.ax-sounds { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-bottom: 22px; }
+.ax-snd { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 9px 12px;
+  background: var(--panel-2); border: 1px solid var(--edge); border-radius: 10px; cursor: pointer; transition: border-color .15s; }
+.ax-snd:hover { border-color: var(--edge-2); }
+.ax-snd.on { border-color: var(--accent); }
+.ax-play { grid-row: 1 / 3; width: 30px; height: 30px; border-radius: 50%; border: 0; display: grid; place-items: center; background: var(--panel-3); color: var(--text); cursor: pointer; transition: background .15s; }
+.ax-play:hover, .ax-snd.on .ax-play { background: var(--accent); color: #fff; }
+.ax-snd-name { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: plaintext; text-align: start; }
+.ax-snd-meta { font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ax-snd-from { grid-column: 2 / 4; font-size: 11.5px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* pictures */
+.ax-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.ax-card { background: var(--panel-2); border: 1px solid var(--edge); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color .15s; }
+.ax-card:hover { border-color: var(--edge-2); }
+.ax-thumb { aspect-ratio: 1; background: #0e0d0c; display: grid; place-items: center; overflow: hidden; }
+.ax-card.background .ax-thumb { aspect-ratio: 9 / 16; }
+.ax-thumb img, .ax-thumb video { width: 100%; height: 100%; object-fit: contain; }
+.ax-card.background .ax-thumb img { object-fit: cover; }
+.ax-card-name { padding: 8px 10px 0; font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: plaintext; text-align: start; }
+.ax-card-meta { padding: 2px 10px 9px; font-size: 11px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* the big window */
+.ax-modal { position: fixed; inset: 0; z-index: 20; background: rgba(0, 0, 0, 0.6); display: grid; place-items: center; padding: 24px; }
+.ax-big { width: min(860px, 100%); max-height: 90vh; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr) 320px; background: var(--panel); border: 1px solid var(--edge-2); border-radius: 12px; }
+.ax-big-view { background: #0e0d0c; display: grid; place-items: center; padding: 16px; min-height: 240px; }
+.ax-big-view img { max-width: 100%; max-height: 70vh; object-fit: contain; }
+.ax-big-info { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.ax-big-name { font-size: 16px; font-weight: 700; unicode-bidi: plaintext; text-align: start; }
+.ax-meta { font-size: 12px; color: var(--faint); }
+.ax-row { display: grid; gap: 3px; font-size: 12.5px; }
+.ax-row > span { color: var(--faint); font-size: 11.5px; }
+.ax-row i { color: var(--dim); font-style: normal; line-height: 1.5; unicode-bidi: plaintext; text-align: start; }
+.ax-row .field { height: 30px; padding: 0 8px; }
+.ax-actions { display: grid; gap: 6px; margin-top: 6px; }
+.ax-err { font-size: 12px; color: var(--bad); }
+@media (max-width: 760px) { .ax { padding: 18px 16px 40px; } .ax-big { grid-template-columns: 1fr; } }

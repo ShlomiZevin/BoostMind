@@ -36,7 +36,68 @@ function Editor() {
   const chars: any[] = data?.episode?.characters || [];
   useEffect(() => { api('/api/episodes').then((l) => { setEps(l); if (!l.find((e: any) => e.id === ep) && !ep.startsWith('_')) setEp(l.find((e: any) => !e.id.endsWith('-test'))?.id || l[0]?.id); }); }, []);
   const load = useCallback(async () => { if (!ep) return; const d: Data = await api(`/api/ep/${ep}`); setData(d); setJob(d.job); }, [ep]);
-  useEffect(() => { if (ep) { tabProject.set(ep); setData(null); load(); } }, [ep]);
+  // the studio online (render/cloud/sync.mjs): a project is opened on ONE computer at a time - its lock first, then
+  // what changed in the cloud comes down, then it loads. Off (not switched on yet): it just loads
+  const [cloud, setCloud] = useState<any>(null);  // {locked} | {pulling, p} | {lost} | {error} | null
+  const prevEp = useRef<string | null>(null);
+  const openCloud = async (force = false) => {
+    const r = await api(`/api/cloud/${ep}/open`, { force }).catch(() => ({ ready: true }));
+    if (r.locked) { setCloud({ locked: r.locked }); return false; }
+    if (r.error) setCloud({ error: r.error });
+    if (r.pulling) {
+      setCloud({ pulling: true, p: null });
+      for (;;) {
+        await new Promise((ok) => setTimeout(ok, 600));
+        const p = await api(`/api/cloud/${ep}/progress`).catch(() => ({ state: 'error', error: 'the studio did not answer' }));
+        if (p.state === 'ready') break;
+        if (p.state === 'error') { setCloud({ error: p.error }); return true; }
+        setCloud({ pulling: true, p });
+      }
+    }
+    if (!r.error) setCloud(null);
+    return true;
+  };
+  useEffect(() => {
+    if (!ep) return;
+    tabProject.set(ep); setData(null); setCloud(null);
+    let on = true;
+    openCloud().then((ok) => { if (on && ok) { load(); api('/api/episodes').then(setEps).catch(() => {}); } });
+    return () => { on = false; prevEp.current = ep; };
+  }, [ep]);
+  useEffect(() => {  // while it's open here: a beat a minute keeps the lock; taken over elsewhere -> he is told
+    if (!ep) return;
+    const t = setInterval(async () => { const r = await api(`/api/cloud/${ep}/beat`, {}).catch(() => null); if (r?.lost) setCloud({ lost: r.lost }); }, 60e3);
+    const bye = () => navigator.sendBeacon(`/api/cloud/${ep}/close`);
+    addEventListener('pagehide', bye);
+    return () => { clearInterval(t); removeEventListener('pagehide', bye); };
+  }, [ep]);
+  const cloudWin = cloud && !cloud.pulling ? (
+    <div className="pm-modal"><div className="pm-box" style={{ maxWidth: 440 }}>
+      {cloud.locked && <>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>This video is open on {cloud.locked.host}</div>
+        <div className="help" style={{ margin: '0 0 14px' }}>Since {new Date(cloud.locked.since).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}. Take it over and that computer stops saving it to the cloud - what it saved so far comes here.</div>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <button className="btn primary" onClick={async () => { setCloud(null); if (await openCloud(true)) load(); }}>Take it over</button>
+          <button className="btn ghost" onClick={() => { setCloud(null); if (prevEp.current && prevEp.current !== ep) setEp(prevEp.current); }}>Cancel</button>
+        </div></>}
+      {cloud.lost && <>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{cloud.lost ? `Opened on ${cloud.lost.host}` : 'Opened on another computer'}</div>
+        <div className="help" style={{ margin: '0 0 14px' }}>Changes made here aren't saved to the cloud any more. Take it back to keep working here.</div>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <button className="btn primary" onClick={async () => { setCloud(null); if (await openCloud(true)) load(); }}>Take it back</button>
+        </div></>}
+      {cloud.error && <>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>The cloud didn't answer</div>
+        <div className="help" style={{ margin: '0 0 14px' }}>{cloud.error} - you're working on what is on this computer; it goes up when the cloud is back.</div>
+        <button className="btn" onClick={() => setCloud(null)}>OK</button></>}
+    </div></div>) : null;
+  const cloudWait = cloud?.pulling ? (
+    <div className="empty" style={{ padding: 40, display: 'grid', gap: 10, maxWidth: 460 }}>
+      <b style={{ color: 'var(--text)' }}>Bringing the video from the cloud…</b>
+      {cloud.p?.files > 0 && <>
+        <div style={{ height: 6, borderRadius: 3, background: 'var(--panel-3)', overflow: 'hidden' }}><div style={{ height: '100%', width: `${Math.round((cloud.p.doneBytes / Math.max(1, cloud.p.bytes)) * 100)}%`, background: 'var(--accent)' }} /></div>
+        <span>{cloud.p.done} of {cloud.p.files} files · {Math.round(cloud.p.doneBytes / 1e6)} of {Math.round(cloud.p.bytes / 1e6)} MB</span></>}
+    </div>) : null;
   useEffect(() => { const on = () => load(); window.addEventListener('studio-reload', on); return () => window.removeEventListener('studio-reload', on); }, [load]);
   useEffect(() => {  // one project for every tool: picked in the Reader or Karaoke -> opened here too
     const on = (e: StorageEvent) => { if (e.key === 'zc-ep' && e.newValue && e.storageArea === sessionStorage) setEp(e.newValue); };  // this tab's tools only
@@ -116,7 +177,7 @@ function Editor() {
         <div className="proj">
           {/* the shared project menu (render/studio/bar.js) draws this - the same one in every tool */}
           <select data-picker="project" ref={projSel} value={ep} onChange={(e) => setEp(e.target.value)}>
-            {eps.map((e) => <option key={e.id} value={e.id} data-sub={e.title} data-done={e.done ? '1' : '0'} data-tag={e.test ? 'test' : undefined}
+            {eps.map((e) => <option key={e.id} value={e.id} data-sub={e.title} data-done={e.done ? '1' : '0'} data-tag={e.cloud ? 'in the cloud' : e.test ? 'test' : undefined}
               data-meta={`${e.template || ''} · ${e.created ? new Date(e.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}`}>{e.id}</option>)}
           </select>
         </div>
@@ -157,8 +218,9 @@ function Editor() {
         <button className="btn primary" disabled={busy || !ready} onClick={() => setPubWin('now')} title="Test on your phone, send the file, publish - one window">{I.export} Send</button>
       </div>
   );
+  if (cloudWait || (cloud && !data)) return <div className="ed" style={{ gridTemplateRows: '52px minmax(0, 1fr)' }}>{top}{cloudWait}{cloudWin}</div>;
   // a layered project (project.json): the one layered editor - every layer a lane, every change an op
-  if ((data as any)?.layered) return <LayersBoundary><LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} epData={data} /></LayersBoundary>;
+  if ((data as any)?.layered) return <>{cloudWin}<LayersBoundary><LayersEditor ep={ep} top={top} job={job} setJob={setJob} jobLine={busy ? statusText : ''} reloadEp={load} chars={chars} epData={data} /></LayersBoundary></>;
   // a video made before layers: Re-analyze builds them (from its footage and its settings) and it opens in the editor
   return (
     <div className="ed" style={{ gridTemplateRows: '52px minmax(0, 1fr)' }}>

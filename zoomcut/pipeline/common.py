@@ -2,6 +2,7 @@
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -57,6 +58,18 @@ def log(msg):
     print(msg, flush=True)
 
 
+_HOME_RE = re.compile(r"^[a-zA-Z]:[\\/]users[\\/][^\\/]+[\\/](.+)$", re.I)
+
+
+def local_path(p):
+    """A path written on another of his computers (C:/Users/<someone else>/Downloads/...) -> the same place under THIS
+    computer's home, when it isn't there as written (the studio online: render/cloud/layout.mjs localPath)."""
+    if not p or os.path.exists(p):
+        return p
+    m = _HOME_RE.match(os.path.normpath(os.path.abspath(p)))
+    return os.path.join(os.path.expanduser("~"), m.group(1)) if m else p
+
+
 class Episode:
     """Folder layout of one sketch:
         episode.json, script.txt, input/ (raw footage, any structure),
@@ -67,6 +80,8 @@ class Episode:
     def __init__(self, path):
         self.dir = os.path.abspath(path)
         self.cfg = load_json(self.p("episode.json"), {})
+        if self.cfg.get("input_dir"):
+            self.cfg["input_dir"] = local_path(self.cfg["input_dir"])
         preset_name = self.cfg.get("preset", "zoom-he")
         self.preset = load_json(os.path.join(ROOT, "presets", preset_name + ".json"), {})
         # an episode can override single timing values (e.g. a longer hold after the removal for an end card)
@@ -74,7 +89,7 @@ class Episode:
         self.id = os.path.basename(self.dir)
 
     def p(self, *parts):
-        return os.path.join(self.dir, *parts)
+        return local_path(os.path.join(self.dir, *parts))
 
     def work(self, *parts):
         d = self.p("work", *parts[:-1]) if len(parts) > 1 else self.p("work")

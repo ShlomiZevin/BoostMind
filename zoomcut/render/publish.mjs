@@ -21,7 +21,7 @@ import { sendTelegramText, tgEsc, sendTelegram, sizedCopy } from './share.mjs';
 const DROP = 'https://drop-463727469066.me-west1.run.app';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale }) {
+export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale, keysFresh }) {
   const ENV = path.join(ROOT, '.env');
   const env = () => Object.fromEntries(fs.readFileSync(ENV, 'utf8').split(/\r?\n/).filter((l) => /^[A-Z_][A-Z0-9_]*=/.test(l)).map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]));
   const setEnv = (vals) => {  // (a renewed key goes back into the file)
@@ -245,6 +245,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)), name: readJson(epFile(id), {}).title || id, published: publishedOf(id) };  // (Instagram before Facebook's reminder; the video's name for messages)
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
     (async () => {
+      await Promise.resolve(keysFresh?.()).catch(() => {});  // (another computer may have renewed a token: the newest first)
       // every platform at once (his ask, 2026-10-25) - each its own job in the Jobs list; Facebook's reminder waits for
       // Instagram (it needs the Reel's link). Each goes out once: no retries.
       const one = async (p) => {

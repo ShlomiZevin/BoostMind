@@ -9,8 +9,10 @@ import path from 'node:path';
 
 export default function ideas(app, { ROOT }) {
   const FILE = path.join(ROOT, 'ideas', 'ideas.json');
-  const read = () => { try { return JSON.parse(fs.readFileSync(FILE, 'utf8')).ideas || []; } catch { return []; } };
-  const write = (list) => { fs.mkdirSync(path.dirname(FILE), { recursive: true }); fs.writeFileSync(FILE, JSON.stringify({ ideas: list }, null, 2)); };
+  // (deleted: a note of each idea he deleted - so the studio online's merge with another computer doesn't bring it back)
+  const file = () => { try { return JSON.parse(fs.readFileSync(FILE, 'utf8')); } catch { return {}; } };
+  const read = () => file().ideas || [];
+  const write = (list, deleted = file().deleted || []) => { fs.mkdirSync(path.dirname(FILE), { recursive: true }); fs.writeFileSync(FILE, JSON.stringify({ ideas: list, deleted }, null, 2)); };
   const sorted = (list) => [...list].sort((a, b) => b.created - a.created);
 
   app.get('/api/ideas', (_q, res) => res.json(sorted(read())));
@@ -25,7 +27,7 @@ export default function ideas(app, { ROOT }) {
   });
   app.post('/api/ideas/:id/delete', (q, res) => {
     const list = read().filter((x) => x.id !== q.params.id);
-    write(list);
+    write(list, [...(file().deleted || []).filter((d) => d.id !== q.params.id), { id: q.params.id, at: Date.now() }]);
     res.json(sorted(list));
   });
 }

@@ -31,3 +31,9 @@ episodes/*/media/*.m4a
 episodes/_assets/**/rejected/
 # his video ideas (the Ideas page) - jokes he has not filmed yet, and the repo is public
 ideas/
+# the studio online (render/cloud/): the copy / check reports and each project's sync state stay on this computer
+episodes/_cloud/
+episodes/*/.cloud-state.json
+**/*.cloud-part
+# the asset library (tools/library_harvest.mjs): his pictures, music and sounds - in the private bucket, not the repo
+library/

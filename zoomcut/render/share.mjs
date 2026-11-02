@@ -9,8 +9,12 @@ import path from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import nodemailer from 'nodemailer';
 
+// the studio's own .env first (written from the cloud's studio-keys on every computer - render/cloud/keys.mjs); the
+// other projects' files only as a fallback on this PC
+const OWN = new URL('../.env', import.meta.url).pathname.slice(1);
 const ENV_MAIL = 'C:/workspace/aspect/aspect-agent-server/.env';
 const ENV_TG = 'C:/workspace/xplace-auto-bidder/.env';
+const keysOf = (fallback, need) => { const o = readEnv(OWN); return need.every((k) => o[k]) ? o : readEnv(fallback); };
 export const LIMIT_MB = { email: 23, telegram: 48 };
 
 function readEnv(file) {
@@ -75,8 +79,8 @@ export async function sizedCopy(master, channel, log) {
 }
 
 export async function sendEmail({ file, to, subject, text }) {
-  const env = readEnv(ENV_MAIL);
-  if (!env.GMAIL_USER || !env.GMAIL_APP_PASSWORD) throw new Error('GMAIL_USER / GMAIL_APP_PASSWORD missing in ' + ENV_MAIL);
+  const env = keysOf(ENV_MAIL, ['GMAIL_USER', 'GMAIL_APP_PASSWORD']);
+  if (!env.GMAIL_USER || !env.GMAIL_APP_PASSWORD) throw new Error('GMAIL_USER / GMAIL_APP_PASSWORD missing (studio keys)');
   const t = nodemailer.createTransport({ service: 'gmail', auth: { user: env.GMAIL_USER, pass: env.GMAIL_APP_PASSWORD } });
   await t.sendMail({ from: `Sketch Studio <${env.GMAIL_USER}>`, to: to || env.GMAIL_USER, subject, text,
     attachments: [{ filename: path.basename(file).replace(/\.(email|telegram)\.mp4$/, '.mp4'), path: file }] });
@@ -86,8 +90,8 @@ export async function sendEmail({ file, to, subject, text }) {
 // a text message to his Telegram (e.g. a caption to paste into TikTok - long-press copies it)
 // (html: Telegram's HTML - a <pre> block is copied with one tap / its Copy button)
 export async function sendTelegramText(text, { html = false } = {}) {
-  const env = readEnv(ENV_TG);
-  if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing in ' + ENV_TG);
+  const env = keysOf(ENV_TG, ['TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID']);
+  if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing (studio keys)');
   const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text, ...(html ? { parse_mode: 'HTML' } : {}) }) });
   if (!r.ok) throw new Error('Telegram: ' + r.status + ' ' + (await r.text()).slice(0, 120));
@@ -95,8 +99,8 @@ export async function sendTelegramText(text, { html = false } = {}) {
 export const tgEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export async function sendTelegram({ file, caption, log = () => {} }) {
-  const env = readEnv(ENV_TG);
-  if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing in ' + ENV_TG);
+  const env = keysOf(ENV_TG, ['TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID']);
+  if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_TOKEN / TELEGRAM_CHAT_ID missing (studio keys)');
   const form = new FormData();
   form.append('chat_id', env.TELEGRAM_CHAT_ID);
   form.append('caption', caption);
