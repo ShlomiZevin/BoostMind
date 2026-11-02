@@ -433,13 +433,17 @@ if FLOAT:
         raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(vin), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={fw_}:{fh_}:flags=lanczos',
                               '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
         panes.append({'at': c['at'], 'd': d, 'f': list(np.frombuffer(raw, np.uint8).reshape(-1, fh_, fw_, 3)), 'side': 1 if i % 2 == 0 else -1,
-                      'full': c.get('full', 0), 'shrink': c.get('shrink', 0.8), 'lead': lead, 'tail': c.get('tail', 0.0)})
+                      'full': c.get('full', 0), 'shrink': c.get('shrink', 0.8), 'lead': lead, 'tail': c.get('tail', 0.0),
+                      'keys': c.get('keys'), 'vstart': c['at'] - lead})
         wav = os.path.join(HERE, f'out/hook-{i}.wav'); ms_ = int(c['at'] * 1000)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
                         f'volume={HK.get("gain_db", 0)}dB,'
                         + (f"volume='if(lt(t,{c['lift'][0]}),{10 ** (c['lift'][1] / 20):.3f},if(lt(t,{c['lift'][0] + 0.03}),{10 ** (c['lift'][1] / 20):.3f}-({10 ** (c['lift'][1] / 20):.3f}-1)*(t-{c['lift'][0]})/0.03,1))':eval=frame," if c.get('lift') else '')
                         + f'afade=t=in:d=0.012,afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
-                        + (f'apad=pad_dur=0.8,aecho={HK["echo"]},' if HK.get('echo') else '') + f'adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
+                        + (f'highpass=f=110,equalizer=f=3200:t=q:w=1.3:g={c["presence"]},' if c.get('presence') else '')
+                        + (f'apad=pad_dur={HK.get("echo_pad", 0.8)},aecho={HK["echo"]},' if HK.get('echo') else '')
+                        + (f'pan=stereo|c0={1 - max(0, c["pan"]):.2f}*c0|c1={1 + min(0, c["pan"]):.2f}*c1,' if c.get('pan') else '')
+                        + f'adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
         voice.append(wav)
     def _tl(txt, size, color):
         a_ = text_layer(txt, size, 800, color, rtl=True)
@@ -448,7 +452,7 @@ if FLOAT:
     mixed = os.path.join(HERE, f'out/mix-{NAME}-hook.wav')
     n_ = len(voice); ins = sum([['-i', p_] for p_ in voice], [])
     fc = ''.join(f'[{i}:a]' for i in range(n_)) + f'amix=inputs={n_}:duration=longest:normalize=0,asplit=2[vo][sc0];[sc0]apad[sc];'   # padded: the ducking runs to the music's end
-    fc += f'[{n_}:a][sc]sidechaincompress=threshold=0.02:ratio=6:attack=25:release=300:makeup=1[mu];'   # the music steps back under a voice
+    fc += f'[{n_}:a][sc]sidechaincompress=threshold={HK.get("duck_thr", 0.02)}:ratio={HK.get("duck_ratio", 6)}:attack=25:release=300:makeup=1[mu];'   # the music steps back under a voice
     fc += '[vo][mu]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95'
     subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-i', music, '-filter_complex', fc, '-ar', '48000', mixed], check=True)
     music = mixed
@@ -472,7 +476,51 @@ def _warp_draw(fr, img_pm, cx, cy, sc, ry, rx, rz, a):
     Hm = np.float64([[1, 0, -xa], [0, 1, -ya], [0, 0, 1]]) @ cv2.getPerspectiveTransform(np.float32([[0, 0], [w_, 0], [w_, h_], [0, h_]]), dst)
     wp = cv2.warpPerspective(img_pm, Hm, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
     fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - wp[..., 3:4] * a) + wp[..., :3] * a
+KCH = ('cx', 'cy', 'sc', 'ry', 'rx', 'rz', 'a', 'g', 'z')
+def _key_at(keys, t):
+    """a smooth curve through the keyframes (Catmull-Rom), held at both ends"""
+    ts = [k['t'] for k in keys]
+    if t <= ts[0]: return dict(keys[0])
+    if t >= ts[-1]: return dict(keys[-1])
+    i = max(j for j in range(len(ts) - 1) if ts[j] <= t)
+    k0, k1, k2, k3 = keys[max(0, i - 1)], keys[i], keys[i + 1], keys[min(len(keys) - 1, i + 2)]
+    u = (t - k1['t']) / (k2['t'] - k1['t'])
+    out = {}
+    for ch in KCH:
+        p0, p1, p2, p3 = (k.get(ch, k1.get(ch, 0)) for k in (k0, k1, k2, k3))
+        m1 = (p2 - p0) / max(1e-6, k2['t'] - k0['t']) * (k2['t'] - k1['t']) if k0 is not k1 else (p2 - p1)
+        m2 = (p3 - p1) / max(1e-6, k3['t'] - k1['t']) * (k2['t'] - k1['t']) if k3 is not k2 else (p2 - p1)
+        h = (2 * u ** 3 - 3 * u ** 2 + 1) * p1 + (u ** 3 - 2 * u ** 2 + u) * m1 + (-2 * u ** 3 + 3 * u ** 2) * p2 + (u ** 3 - u ** 2) * m2
+        lo, hi = min(p1, p2), max(p1, p2)
+        out[ch] = min(hi, max(lo, h))                               # no overshoot: hovering, never wobbling past a key
+    return out
+def draw_hover(fr, t):
+    live = []
+    for i, p_ in enumerate(panes):
+        ks = p_['keys']
+        if t < ks[0]['t'] or t > ks[-1]['t']: continue
+        st = _key_at(ks, t)
+        if st['a'] <= 0.005: continue
+        live.append((st.get('z', 0), i, p_, st))
+    for _, i, p_, st in sorted(live, key=lambda x: x[0]):
+        L_ = len(p_['f']); k_ = max(0, int((t - p_['vstart']) * FPS))
+        if k_ >= L_: k_ = max(0, L_ - 1 - (k_ - L_ + 1) % max(1, L_ - 1))
+        g = min(1.0, max(0.0, st['g']))
+        if g < 0.01 and p_['f'][k_].shape[1] == W:                     # still the full-screen video
+            fr[:] = p_['f'][k_].astype(np.float32) / 255
+            continue
+        img = p_['f'][k_]
+        if img.shape[1] != PW_: img = cv2.resize(img, (PW_, PH_), interpolation=cv2.INTER_AREA)
+        img = img.astype(np.float32) / 255
+        sweep = (t - p_['vstart']) / 3.0                               # a slow glass glint across the pane
+        band = np.exp(-(((p_gx * 0.7 + p_gy * 0.45) / 900.0 - (sweep * 1.6 - 0.3)) ** 2) / 0.004)[..., None] * 0.14 * g
+        img = 1 - (1 - img) * (1 - band)
+        op = 1.0 + (float(HK.get('opacity', 0.85)) - 1.0) * g
+        rgba = np.concatenate([img * pm_[..., None] * op, pm_[..., None] * op], 2)
+        rgba = rgba * (1 - p_edge * g) + np.concatenate([np.array([1.0, 0.55, 0.2], np.float32) * np.ones((PH_, PW_, 3), np.float32), np.ones((PH_, PW_, 1), np.float32)], 2) * p_edge * g
+        _warp_draw(fr, rgba, st['cx'], st['cy'], st['sc'], math.radians(st['ry']), math.radians(st['rx']), math.radians(st['rz']), st['a'])
 def draw_panes(fr, t):
+    if panes and panes[0].get('keys'): return draw_hover(fr, t)
     """the hook's real clips as glass panes drifting and turning in the space, the last one spun away into the planet"""
     # who is in front: a pane that is leaving goes behind everything, a newer pane comes in behind the one still talking
     leaving = lambda p_: t > p_['at'] - p_['lead'] + p_['lead'] + p_['d'] + p_['tail']
@@ -772,7 +820,10 @@ def frame(f):
     if BIO and t >= B['url'] + 0.6:
         a = sm((t - B['url'] - 0.6) / 0.55); over(fr, bio, W / 2, BIO_Y, a, dy=(1 - a) * 18)
     vg = vign
-    if FLOAT and panes[0]['full']:   # the opening full-screen video gets no vignette; it comes in as the pane shrinks
+    if FLOAT and panes[0].get('keys'):
+        g0 = min(1.0, max(0.0, _key_at(panes[0]['keys'], t)['g']))
+        vg = 1 - (1 - vign) * g0
+    elif FLOAT and panes[0]['full']:   # the opening full-screen video gets no vignette; it comes in as the pane shrinks
         p0 = panes[0]; g0 = min(1.0, max(0.0, (t - p0['at'] - p0['full']) / p0['shrink']))
         vg = 1 - (1 - vign) * (0.5 - 0.5 * math.cos(math.pi * g0))
     return np.clip(fr * vg * fade_in, 0, 1)

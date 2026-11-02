@@ -1,5 +1,5 @@
 {
-  "_": "trailer 2 hook (v10): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane; Gilad's pane comes in behind her on her last words, his voice (soft first syllable lifted) right as hers ends, his pane turns into the planet during 'מה הביזנס' and the title rises on his last word; a gentle space echo on both; the hollywood title with a falling star",
+  "_": "trailer 2 hook (v11): music from frame 1 (--slow 0.6667 until the logo hit); two real clips hovering slowly in the space on keyframed paths (Hani full screen, shrinking; Gilad drifting in beside her), their voices overlapping with a spacey echo, Hani left / Gilad right, Gilad receding into the planet as the title rises",
   "float": true,
   "clips": [
     {
@@ -9,20 +9,148 @@
       "at": 0.0,
       "full": 0.6,
       "shrink": 0.8,
-      "vout": 1.6
+      "vout": 1.6,
+      "pan": -0.3,
+      "presence": 2.5,
+      "keys": [
+        {
+          "t": 0.0,
+          "cx": 540,
+          "cy": 960,
+          "sc": 1.5,
+          "ry": 0,
+          "rx": 0,
+          "rz": 0,
+          "a": 1,
+          "g": 0,
+          "z": 2
+        },
+        {
+          "t": 0.55,
+          "cx": 540,
+          "cy": 960,
+          "sc": 1.5,
+          "ry": 0,
+          "rx": 0,
+          "rz": 0,
+          "a": 1,
+          "g": 0,
+          "z": 2
+        },
+        {
+          "t": 1.75,
+          "cx": 410,
+          "cy": 880,
+          "sc": 0.66,
+          "ry": 14,
+          "rx": 8,
+          "rz": -4,
+          "a": 1,
+          "g": 1,
+          "z": 2
+        },
+        {
+          "t": 2.6,
+          "cx": 330,
+          "cy": 820,
+          "sc": 0.57,
+          "ry": 20,
+          "rx": 10,
+          "rz": -7,
+          "a": 0.85,
+          "g": 1,
+          "z": 0
+        },
+        {
+          "t": 3.5,
+          "cx": 250,
+          "cy": 760,
+          "sc": 0.46,
+          "ry": 26,
+          "rx": 12,
+          "rz": -10,
+          "a": 0,
+          "g": 1,
+          "z": 0
+        }
+      ]
     },
     {
       "src": "../../../public/wiki/v/gilad-joins.mp4",
       "in": 15.52,
       "out": 17.055,
       "vout": 16.95,
-      "at": 1.4,
+      "at": 1.12,
       "fade_out": 0.015,
-      "lead": 0.45,
-      "tail": -0.62,
+      "lead": 0.37,
+      "tail": 0,
       "lift": [
         0.18,
         18
+      ],
+      "pan": 0.3,
+      "presence": 3.5,
+      "keys": [
+        {
+          "t": 0.75,
+          "cx": 526.5,
+          "cy": 915.0,
+          "sc": 0.08,
+          "ry": -30,
+          "rx": 12,
+          "rz": 14,
+          "a": 0,
+          "g": 1,
+          "z": 1
+        },
+        {
+          "t": 1.65,
+          "cx": 690,
+          "cy": 985,
+          "sc": 0.6,
+          "ry": -16,
+          "rx": 8,
+          "rz": 6,
+          "a": 1,
+          "g": 1,
+          "z": 1
+        },
+        {
+          "t": 2.35,
+          "cx": 640,
+          "cy": 955,
+          "sc": 0.68,
+          "ry": -8,
+          "rx": 4,
+          "rz": 3,
+          "a": 1,
+          "g": 1,
+          "z": 3
+        },
+        {
+          "t": 3.1,
+          "cx": 560,
+          "cy": 930,
+          "sc": 0.26,
+          "ry": 10,
+          "rx": 0,
+          "rz": 36,
+          "a": 0.9,
+          "g": 1,
+          "z": 3
+        },
+        {
+          "t": 3.55,
+          "cx": 526.5,
+          "cy": 915.0,
+          "sc": 0.05,
+          "ry": 18,
+          "rx": 0,
+          "rz": 62,
+          "a": 0,
+          "g": 1,
+          "z": 3
+        }
       ]
     }
   ],
@@ -32,14 +160,17 @@
     "שלומיוורס",
     "מציגים"
   ],
-  "title_at": 2.72,
+  "title_at": 3.0,
   "title_out": 5.78,
   "arrive": 0.9,
   "exit": 0.65,
   "spin": 0.66,
   "title_style": "hollywood",
   "title_scale": 0.84,
-  "echo": "0.85:0.6:70|150:0.22|0.11",
+  "echo": "1.0:0.8:110|230|370|540:0.36|0.25|0.16|0.09",
   "arrive_dx": 280,
-  "star_at": 0.62
+  "star_at": 0.62,
+  "echo_pad": 1.2,
+  "duck_thr": 0.012,
+  "duck_ratio": 9
 }
