@@ -1,0 +1,15 @@
+{
+  "slug": "pilai",
+  "title": "פילאי פלואים",
+  "tagline": "איך צרה קטנה הופכת לנס? סדרו את הסיפור – ותראו את הפילאי פלואים!",
+  "status": "live",
+  "cover": "cover.jpg",
+  "badges": [
+    "ניגונים בלבד",
+    "לכל המשפחה"
+  ],
+  "best": {
+    "key": "hani-games:pilai:best",
+    "label": "כוכבים"
+  }
+}
