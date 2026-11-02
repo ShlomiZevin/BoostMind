@@ -1,5 +1,5 @@
 {
-  "_": "trailer 2 hook (v5): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane in the space; Gilad's question on the Techy-Tech Zoom arrives as a turning pane (Superman II's Phantom Zone) and turns away into the planet; the hollywood title (title.mjs layers); the cards from 5.054",
+  "_": "trailer 2 hook (v5): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane in the space; Gilad's question on the Techy-Tech Zoom arrives as a turning pane (Superman II's Phantom Zone) and turns away into the planet; the hollywood title (title.mjs layers); the cards from 5.9, every 1.15 s",
   "float": true,
   "clips": [
     {
@@ -25,7 +25,7 @@
     "מציגים"
   ],
   "title_at": 3.3,
-  "title_out": 5.08,
+  "title_out": 5.78,
   "arrive": 0.9,
   "exit": 0.65,
   "spin": 0.6,
