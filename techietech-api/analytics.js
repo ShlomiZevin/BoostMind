@@ -38,6 +38,8 @@ const EVENTS = new Set([
   'song',          // a site's song started playing                x = song id
   // the Shlomiverse's fans (verse.js): signed-in actions, still anonymous here
   'sign_in',       // a fan signed in with Google                  x = 'new' | 'back'
+  'signin_ask',    // the sign-in window opened                    x = 'inapp' (Instagram / TikTok / FB browser) | 'browser'
+  'time',          // time on the site, one running total a visit  x = '<total s>:<total sent before>' (counted per visit)
   'follow',        // a fan followed a character                   x = character id
   'push_optin',    // notifications turned on                      x = 'ok' | 'denied' | 'guide' (the iPhone home-screen guide)
   'comment',       // a comment was posted                         x = video id
@@ -73,6 +75,10 @@ const tooMany = (ip) => {
   return list.length > 300;
 };
 
+// a visit's length -> its bucket (upper edges in seconds; the last bucket is "over an hour"); the dashboard has the same list
+const TIME_EDGES = [5, 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 2700, 3600];
+const timeBucket = (s) => { const i = TIME_EDGES.findIndex((e) => s <= e); return i < 0 ? TIME_EDGES.length : i; };
+
 exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency: 80, memory: '256MiB', timeoutSeconds: 10 }, async (req, res) => {
   // sendBeacon posts text/plain, so there is no CORS preflight; the origin check keeps other sites out
   const origin = req.get('origin') || '';
@@ -94,7 +100,19 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
   // one merged write per day doc; nested maps (not dotted paths) so set+merge adds to what is there
   const inc = FieldValue.increment(1);
   const day_ = { d: day, n: { [b.e]: inc } };
-  if (b.e !== 'search') day_.n[`${b.e}|${key(x)}`] = inc;           // search words go to the event log only
+  if (b.e === 'time') {
+    // each visit counted once, at its latest length: its bucket moves up as the visit grows (+1 new, -1 the old one);
+    // the median and the average come from these (tb|<bucket>, time_s = all seconds, time_n = visits)
+    const [tot, prev] = String(b.x || '').split(':').map((v) => Math.max(0, Math.min(4 * 3600, parseInt(v, 10) || 0)));
+    if (!tot || tot <= prev) return res.status(204).send('');
+    day_.time_s = FieldValue.increment(tot - prev);
+    const bi = timeBucket(tot), bp = prev ? timeBucket(prev) : -1;
+    if (bi !== bp) {
+      day_.n[`tb|${bi}`] = inc;
+      if (bp >= 0) day_.n[`tb|${bp}`] = FieldValue.increment(-1);
+      else day_.time_n = inc;
+    }
+  } else if (b.e !== 'search') day_.n[`${b.e}|${key(x)}`] = inc;    // search words go to the event log only
   if (b.e === 'view') day_.site = { [site]: inc };
   if (b.first) Object.assign(day_, { visitors: inc, src: { [src]: inc }, dev: { [b.m ? 'phone' : 'desktop']: inc } });  // the visitor's first event today
   if (b.fresh) day_.new_visitors = inc;                                 // a browser never seen before

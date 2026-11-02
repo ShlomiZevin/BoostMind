@@ -675,7 +675,8 @@ async function askData(q) {
   const days = d.docs.map((x) => {
     const v = x.data(), n = {};
     for (const [k, c] of Object.entries(v.n || {})) if (!/^(view|search|click)\|/.test(k)) n[k] = c;
-    return { d: v.d, visitors: v.visitors || 0, new_visitors: v.new_visitors || 0, src: v.src || {}, dev: v.dev || {}, site_views: v.site || {}, n };
+    return { d: v.d, visitors: v.visitors || 0, new_visitors: v.new_visitors || 0, src: v.src || {}, dev: v.dev || {}, site_views: v.site || {}, n,
+      time_on_site: v.time_n ? { visits: v.time_n, total_seconds: v.time_s || 0 } : undefined };
   });
   const perDay = {};
   for (const x of chats.docs) {
@@ -685,7 +686,7 @@ async function askData(q) {
   }
   const pack = {
     now_israel: hm(Date.now()), today: dayIL(),
-    notes: 'days[].n = event counts ("event" total, "event|x" by what: chat_message|<character id or guide>, video|<video id>, site|<site id>, game_start|<game>, sign_in|new|back, request|<kind>, follow|<character>...). visitors = unique visitors that day, src = where they came from (by first visit of the day), dev = phone/desktop. people = every account (google = real Google sign-in; fan = joined the Shlomiverse with a name; sites = character sites they sent something from). chats = the chat with the characters (each visitor message = one answer).',
+    notes: 'days[].n = event counts ("event" total, "event|x" by what: chat_message|<character id or guide>, video|<video id>, site|<site id>, game_start|<game>, sign_in|new|back, signin_ask|inapp|browser = the sign-in window opened (inapp = inside Instagram/TikTok/Facebook, where Google sign-in cannot work), tb|<i> = visits by length bucket (upper edges 5,10,20,30,45,60,90,120,180,240,300,420,600,900,1200,1800,2700,3600 s), request|<kind>, follow|<character>...). time_on_site = visits that reported time and their total active seconds (measured since 2026-11-02; average = total_seconds / visits). visitors = unique visitors that day, src = where they came from (by first visit of the day), dev = phone/desktop. people = every account (google = real Google sign-in; fan = joined the Shlomiverse with a name; sites = character sites they sent something from). chats = the chat with the characters (each visitor message = one answer).',
     characters: Object.fromEntries(Object.values((await _canon()).byId || {}).map((c) => [c.id, c.name])),
     days,
     people: people.filter((p) => p.google).map((p) => ({ joined: hm(p.created), last_seen: hm(p.last), name: p.nick || p.name || null, shlomiverse: p.fan, sites: p.sites })),

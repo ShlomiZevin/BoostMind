@@ -639,6 +639,27 @@ let avgAnswer = 0.024;
 const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
 const SITES = { ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
 const whoOf = (r) => r.name || r.nick || (r.contact && !/\d{6}/.test(r.contact) ? r.contact.split('@')[0] : '') || 'צופה';
+// time on the site: each visit's length in buckets (the track function's TIME_EDGES), the seconds and the visits per day
+const TIME_EDGES = [5, 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 2700, 3600];
+function timeStats(list) {
+  const h = new Array(TIME_EDGES.length + 1).fill(0); let s = 0, n = 0;
+  for (const d of list) { s += d.time_s || 0; n += d.time_n || 0; for (const [k, v] of Object.entries(d.n || {})) if (k.startsWith('tb|')) h[+k.slice(3)] += v; }
+  const tot = h.reduce((a, b) => a + Math.max(0, b), 0);
+  if (!tot || !n) return null;
+  let acc = 0, med = 0;
+  for (let i = 0; i < h.length; i++) {   // the median inside its bucket, spread evenly
+    const c = Math.max(0, h[i]);
+    if (acc + c >= tot / 2) { const lo = i ? TIME_EDGES[i - 1] : 0, hi = TIME_EDGES[i] ?? lo * 1.5; med = lo + (hi - lo) * ((tot / 2 - acc) / (c || 1)); break; }
+    acc += c;
+  }
+  return { med, avg: s / n, n };
+}
+const dur = (s) => (s < 60 ? `${Math.round(s)} שנ׳` : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')} דק׳`);
+function timeKpi() {
+  const ts = timeStats(days(range));
+  return `<div class="k"><span class="kh">${IC.stats}זמן באתר</span><b>${ts ? dur(ts.med) : '—'}</b>
+    <span class="kf"><small class="note">${ts ? `חציון לביקור · ממוצע ${dur(ts.avg)} · ${fmt(ts.n)} ביקורים` : 'נמדד מ-2.11, בקרוב כאן'}</small></span></div>`;
+}
 function kpi(m, extra) {
   const list = days(range), v = mval(m, list), tr = trend(m, range), [label, icon] = METRICS[m];
   return `<button class="k" data-metric="${m}"><span class="kh">${IC[icon]}${label}${IC.chev.replace('<svg', '<svg class="chev"')}</span>
@@ -661,7 +682,7 @@ function overview() {
   const row = (x) => `<button class="row" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
   $('#pane').innerHTML = `
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : ` ב-${range} הימים האחרונים`}</p></div>${rangeSeg()}</div>
-    <div class="kgrid">${kpi('visitors')}${kpi('joined')}${kpi('chat_message')}${kpi('video')}${kpi('game_start')}
+    <div class="kgrid">${kpi('visitors')}${timeKpi()}${kpi('joined')}${kpi('chat_message')}${kpi('video')}${kpi('game_start')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
         <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה</small>${spark('chat_message')}</span></button></div>
     <div class="cols">

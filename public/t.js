@@ -61,6 +61,33 @@
     if (/^https?:\/\//.test(h) && h.indexOf(location.host) < 0) window.track('click', h.replace(/^https?:\/\//, '').slice(0, 60));
   }, true);
 
+  // time on the site: only while the page is on screen and someone is there (no touch / scroll / key for 3 minutes = gone).
+  // One running total per visit (the tab's session, across pages and sites); each time the page is hidden or left it sends
+  // the new total and the one it sent before ("total:previous"), so the server keeps each visit counted once, at its length.
+  var IDLE = 180, seen = 0, onAt = 0, lastAct = Date.now();
+  var tt = +(ss('t-tt') || 0), tday = ss('t-td');
+  if (tday !== today) { tt = 0; ss('t-td', today); ss('t-tt', '0'); ss('t-tp', '0'); }
+  var bump = function () { lastAct = Date.now(); if (!onAt && document.visibilityState === 'visible') onAt = lastAct; };
+  ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (k) { addEventListener(k, bump, { passive: true, capture: true }); });
+  if (document.visibilityState === 'visible') onAt = Date.now();
+  var settle = function () {   // add the time on screen so far, up to 3 minutes after the last sign of someone there
+    if (!onAt) return;
+    var end = Math.min(Date.now(), lastAct + IDLE * 1000);
+    if (end > onAt) seen += (end - onAt) / 1000;
+    onAt = 0;
+  };
+  var sendTime = function () {
+    settle();
+    if (seen < 1) return;
+    tt = Math.min(4 * 3600, tt + seen); seen = 0; ss('t-tt', String(tt));
+    var prev = +(ss('t-tp') || 0), now_ = Math.round(tt);
+    if (now_ <= prev) return;
+    ss('t-tp', String(now_));
+    window.track('time', now_ + ':' + prev);
+  };
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') sendTime(); else bump(); });
+  addEventListener('pagehide', sendTime);
+
   // the page itself (the wiki reports its own screens as it moves between them)
   if (!me || !me.hasAttribute('data-no-view')) window.track('view', location.pathname);
 })();

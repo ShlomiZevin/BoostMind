@@ -63,6 +63,7 @@ export function signInSheet(why, char) {
     const c = char && C[char];
     const face = c ? `<div class="vx-hero-face">${av({ char, ring: true })}</div>` : `<div class="vx-hero-face">${av({ planet: true })}</div>`;
     const icons = [I.user, I.bell, I.save];
+    track('signin_ask', inApp() ? 'inapp' : 'browser');   // how many reach the sign-in, and how many of them can't (in-app browser)
     const body = inApp()
       ? `<p class="vx-sub" style="margin-top:6px">${esc(T.signinInApp)}</p>
          <button class="vx-btn glass block" data-copy>${I.copy}${esc(T.signinCopy)}</button>`

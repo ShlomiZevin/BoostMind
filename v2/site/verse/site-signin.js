@@ -47,6 +47,7 @@
       if (!document.getElementById('ssi-css')) document.head.insertAdjacentHTML('beforeend', `<style id="ssi-css">${css}</style>`);
       const back = document.createElement('div');
       back.className = 'ssi-back';
+      try { window.track && window.track('signin_ask', inApp() ? 'inapp' : 'browser'); } catch (e) {}
       back.innerHTML = inApp()
         ? `<div class="ssi-card" role="dialog" aria-modal="true"><button class="ssi-x" aria-label="סגירה">×</button>
             <b>רגע לפני ששולחים</b><p>שולחים מחשבון Google, ו-Google לא מאפשרת להתחבר מתוך האפליקציה הזאת. פתחו את הקישור בדפדפן (שלוש הנקודות ← "פתיחה בדפדפן") ונמשיך משם.</p>
