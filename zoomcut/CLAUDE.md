@@ -28,6 +28,21 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
   picture), `share.mjs` (email / Telegram).
 - `episodes/<ep>/` — episode.json, script.txt, corrections.json, backgrounds/, media/, work/ (generated), out/.
 
+## The studio online (Phase 1, 2026-11-02 - `render/cloud/`, `plans/studio-online.md`)
+- Everything in `gs://shlomiverse-studio` (boostmind-b052c, private): `projects/<id>/`, `footage/<path under home>`,
+  `assets/`, `library/`, `studio/` (ideas, jobs, models), `locks/<id>.json`. Keys: ONE secret `studio-keys` (JSON) -
+  `node render/cloud/keys.mjs push | pull | list` (never print a value). `.env` is written from it.
+- The sync is OFF on a computer until `episodes/_cloud/config.json` is `{"sync": "on"}` (setup.ps1 sets it on a new
+  computer; his main PC switches only when he says). Then: a lock per project (take-over window), pull on open, push
+  after edits / every minute / never during a job. Never deletes locally.
+- Tests: a second studio with `PORT=4848 ZC_CLOUD=test` (+ `ZC_HOST`, `ZC_EPISODES` to act as another computer) touches
+  ONLY hidden `_test` projects - no Drop, no keys, no picking up his jobs. Delete the `_test` project and its
+  `projects/_x/` + `locks/_x.json` in the bucket after.
+- Copy / check everything: `node tools/cloud_copy.mjs`, `node tools/cloud_verify.mjs` (reports in episodes/_cloud/).
+  Left out on purpose: `*.f32` and `work/pieces/` (scratch). The Assets page's library: `node tools/library_harvest.mjs`
+  (only what his layered videos use - his rule).
+- A new computer: `zoomcut/setup.ps1`.
+
 ## Rules of the house
 - Build / export / re-mix through the studio's API (the editor's own buttons), never a parallel CLI run.
 - Never kill, restart or rebuild while a job runs. The export is gentle on purpose (his PC blue-screens under

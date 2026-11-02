@@ -24,7 +24,7 @@ const STALE = 3 * 60e3;
 const mode = () => process.env.ZC_CLOUD === 'test' ? 'test' : readJson(CONFIG, {})?.sync === 'on' ? 'on' : 'off';
 const allowed = (id) => { const m = mode(); return m === 'on' ? !id.startsWith('_') : m === 'test' ? id.startsWith('_') : false; };
 
-const walk = (dir, base = dir, out = {}) => {
+export const walk = (dir, base = dir, out = {}) => {
   let es = []; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return out; }
   for (const e of es) {
     const f = path.join(dir, e.name);
@@ -33,18 +33,18 @@ const walk = (dir, base = dir, out = {}) => {
   }
   return out;
 };
-const stateFile = (id) => path.join(EPS, id, '.cloud-state.json');
-const fp = (r) => r.md5 || 'c:' + r.crc;  // (an object's fingerprint)
+export const stateFile = (id) => path.join(EPS, id, '.cloud-state.json');
+export const fp = (r) => r.md5 || 'c:' + r.crc;  // (an object's fingerprint)
 // is the local file the cloud's object? cheap when they agreed before (same size + time as then), else by its time
 // stamp from the copy (gcloud keeps it), else read it
-async function sameAs(file, loc, r, st) {
+export async function sameAs(file, loc, r, st) {
   if (!r || loc.size !== r.size) return false;
   if (st && st.size === loc.size && st.mtime === loc.mtime && st.fp === fp(r)) return true;
   const t = +(r.meta.mtime || 0) || +(r.meta['goog-reserved-file-mtime'] || 0) * 1000;
   if (t && Math.abs(t - loc.mtime) < 2000) return true;
   return same(file, r);
 }
-const pool = async (items, n, f) => { let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) await f(items[i++]); })); };
+export const pool = async (items, n, f) => { let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) await f(items[i++]); })); };
 
 export function startSync({ app, jobs, log = (s) => console.log(s) }) {
   const busy = {};  // id -> the pull / push running (one at a time per project)
@@ -105,7 +105,10 @@ export function startSync({ app, jobs, log = (s) => console.log(s) }) {
       if (loc && await sameAs(f, loc, r, st)) { state.files[rel] = { ...loc, fp: fp(r) }; continue; }
       const unchangedHere = loc && st && st.size === loc.size && st.mtime === loc.mtime;
       if (loc && !unchangedHere && st && st.fp === fp(r)) continue;  // changed only here: it goes up
-      if (loc && !unchangedHere) {  // changed on both sides: keep his copy beside it
+      // changed on both sides since this computer last synced: keep his copy beside it. (Never synced here - a new
+      // computer, whose copies of the .json files came from git - the cloud's is the newer one: it just comes down.
+      // His main PC never gets here: tools/cloud_switch.mjs records its state first, its files being the truth.)
+      if (loc && !unchangedHere && st) {
         const e = path.extname(f); fs.renameSync(f, f.slice(0, f.length - e.length) + ` (conflict ${HOST})` + e);
         log(`cloud: ${id}/${rel} changed here and in the cloud - kept this computer's copy beside it`);
       }

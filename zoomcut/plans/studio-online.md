@@ -55,3 +55,16 @@ Bigger, slower, costs per export - Phase 1 already gives "any computer".
 - Reply in English; a direct link on every step when he has to click something (console pages etc.).
 - Migrating the 68 GB: copy, verify, and only then switch - the local folders stay as they are until he says so.
 - Commit and push your own work when a phase is done.
+
+## Status (2026-11-02) - Phase 1 built, waiting for his "switch"
+His answers: "everyone can upload" = **any computer of his** (not other people). Cloud scope: **everything** (he
+approved ~$1.70/month); then on seeing the breakdown, the scratch is left out (`*.f32` 13 GB, `work/pieces` 13.7 GB).
+- Bucket `gs://shlomiverse-studio` (me-west1, private, 7-day soft delete). Keys: one secret `studio-keys` (37 keys,
+  incl. email / Telegram that used to come from other repos) - one secret, not one per key (that was ~$3/month).
+- Library: only what his layered videos use (his rule) - 382 items, 172 MB. The Assets page in the rail.
+- The copy (tools/cloud_copy.mjs) + check (tools/cloud_verify.mjs: md5, or CRC32C on gcloud's composite uploads).
+- His PC's sync stays OFF until he says; then: `episodes/_cloud/config.json` = `{"sync": "on"}` + restart the studio
+  (when no job runs). The local folders are untouched either way.
+- Known limit: the iPhone Drop comes down on whichever computer's studio is running (its own poller) - the takes
+  reach the cloud when a project that uses them is opened there.
+- Phase 2 (the editor itself online, studio.shlomiverse.com, exports on Cloud Run) - not started; decide with him.

@@ -51,6 +51,7 @@ $Z = "$Root\zoomcut"
 Step '3/7  The editor''s packages'
 Push-Location "$Z\render"
 if (Test-Path node_modules\vite) { Write-Host '  ok   node_modules' } else { Run npm install --no-audit --no-fund }
+Run npx remotion browser ensure  # (the browser the export draws with)
 Pop-Location
 
 Step '4/7  Python''s packages (zoomcut\.venv)'

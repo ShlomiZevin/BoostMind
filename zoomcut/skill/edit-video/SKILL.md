@@ -172,11 +172,10 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      said in two takes (the end of one = the start of the next, re-said): end the first before it, use the retake.
    - **After every build read the first subtitle of every piece**: the builder can start a piece after the first word
      (tzvika-1 started at 1.87 s and lost "הפרומפט שלנו") - pull the edge back with `/api/ep/<id>/trim`.
-   - **A new PC has none of the studio** (2026-11-02, the old PC died): ffmpeg on PATH, `zoomcut/.venv` (numpy rapidfuzz
-     faster-whisper mediapipe onnxruntime opencv-python), `render` npm install + `npx remotion browser ensure`,
-     `models/` (he-turbo = HF ivrit-ai/whisper-large-v3-turbo-ct2, rvm_mobilenetv3_fp32.onnx, selfie_segmenter.tflite,
-     face_landmarker.task), `C:/workspace/xplace-auto-bidder/.env` (TELEGRAM_*), `zoomcut/.env` (ElevenLabs, Leonardo,
-     the socials). None of it is in git. Set it all up FIRST, then the video - and say so to him in one line.
+   - **A new PC** (2026-11-02): `zoomcut/setup.ps1` sets up all of it in one step - tools, npm + the export's browser,
+     `.venv` from requirements.txt, Google sign-in, the keys from Secret Manager (`studio-keys`), `models/` from the
+     bucket, the cloud sync on. Every project and the asset library then come from the cloud (render/cloud/,
+     zoomcut/CLAUDE.md "The studio online"). Say so to him in one line.
    **Look before you plan:** ffprobe each file, frames, transcribe (faster-whisper via `pipeline.transcribe._get_model`,
    feed numpy). Know the footage second by second.
 3. **Pick the recipe** (table below) and read it. (Where an idea starts: the studio's **Ideas** page in the left
@@ -200,6 +199,11 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    ends by writing the project's layers; they appear in the same editor. Then **fill the layers** (hook text, end
    poster, backgrounds, voice cleaning, effects, sounds) with ops - read `layers.md`; copy the look of the closest
    earlier project as ops.
+   **A background, music or a sound: the library first** (his rule, 2026-11-02 - "look for images when we need
+   them", no tagging run): `zoomcut/library/index.json` (or `GET /api/lib`) = everything his layered videos used,
+   with the series / video / prompt each came from. Search it by words and series, LOOK at the candidate pictures
+   (Read the files) and listen to / check the sounds, and use one (`POST /api/lib/<id>/add {ep}`) before generating
+   anything new. Made something new? `node tools/library_harvest.mjs` after the video, so the next one finds it.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
    **Anything he holds** (a bottle, a box, a phone, a booklet) - reference.md "HELD PROPS - THE ONE WAY"; the cut-out engines drop held
