@@ -131,16 +131,25 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     // pulling back footage at the end makes the video longer, their builder re-plans the length)
     const take = it.ref?.take != null || it.ref?.line != null;
     const end = take ? Infinity : total;
+    // two clips in one row never cover each other (his rule, 2026-11-02: "you can't drag and just override it"): a move
+    // or an edge stops at the neighbour before / after it. Clips that already overlap don't block. Not for one of his
+    // takes in a continuous cut - there a longer piece pushes the rest along, nothing is covered.
+    const rippleTake = !!project.edit?.ripple && l.owner === 'builder' && take && l.kind !== 'subtitles' && l.kind !== 'text' && (side !== 'm' || !!project.edit?.ripple_move);
+    const others = (l.items || []).filter((x: any) => x !== it && !x.hidden);
+    const prevEnd = Math.max(0, ...others.filter((x: any) => x.from + x.dur <= it.from + 0.5).map((x: any) => x.from + x.dur));
+    const nextFrom = Math.min(Infinity, ...others.filter((x: any) => x.from >= it.from + it.dur - 0.5).map((x: any) => x.from));
+    const joinedL = others.some((x: any) => Math.abs(x.from + x.dur - it.from) <= 1), joinedR = others.some((x: any) => Math.abs(x.from - (it.from + it.dur)) <= 1);
+    const lo = rippleTake || (chain && joinedL) ? 0 : prevEnd, hi = rippleTake || (chain && joinedR) ? Infinity : nextFrom;
     const opsFor = (d: number) => {
-      if (side === 'm') return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, Math.min(it.from + d, end - it.dur)) } }];
+      if (side === 'm') return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, lo, Math.min(it.from + d, end - it.dur, hi - it.dur)) } }];
       if (side === 'r') {
-        let dur = Math.max(1, Math.min(it.dur + d, end - it.from));
+        let dur = Math.max(1, Math.min(it.dur + d, end - it.from, hi - it.from));
         if (asset?.duration && it.in != null) dur = Math.min(dur, Math.floor((asset.duration - it.in) / rate * fps));  // never past the take's end
         return [{ op: 'item.update', layer: l.id, id: it.id, set: { dur } }];
       }
       let dd = Math.min(d, it.dur - 1);
       if (it.in != null) dd = Math.max(dd, -Math.floor((it.in / rate) * fps));  // never before the take's start
-      dd = Math.max(dd, -it.from);
+      dd = Math.max(dd, -it.from, lo - it.from);
       return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: it.from + dd, dur: it.dur - dd, ...(it.in != null ? { in: +(it.in + (dd / fps) * rate).toFixed(4) } : {}) } }];
     };
     const moved = (d: number) => { const s: any = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
