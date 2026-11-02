@@ -48,3 +48,8 @@ Same trailer, on a COPY (new project, e.g. `shlomiverse-features-b`; never touch
   the voices to 3.85 s and under the punchline, instead of comp_sd's hard ducking.
 - The phone test (15 fps) ends a `lyric` line at half its length - styles.tsx uses `it.dur / 30`; the editor and the
   Full export (30 fps) are right. A tool fix for later.
+- v4 (his notes): NO dip under the opening voices at all - the music just plays ("no music and then suddenly music =
+  a crazy fast fade-in"); a gentle -3 dB (0.5 s eased edges) only under the punchline. The punchline 0.4 s earlier
+  ("אותי" at 14.93, item from frame 446, words from 447) and far away in space: item gain 0.55, layer voice raw +
+  lowcut 260 / warmth -3 / presence -3, layer fx room 0.5 roomSize 3.0 level -5 (all live). Trap: the voice chain's
+  `room` does nothing with preset raw - use the layer's fx room.
