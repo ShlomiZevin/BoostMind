@@ -28,7 +28,7 @@ FOLDER = {
     'links': 'verse', 'wiki': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
     'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters',
-    'sketch-studio': 'tools', 'karaoke': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
+    'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
     'wholos': 'wholos', 'wholos-app': 'wholos', 'matzav': 'wholos', 'matzav-app': 'wholos', 'marketing-hub': 'wholos',
     'brand-strip': 'wholos', 'uploads': 'wholos', 'meeting-sergio': 'wholos', 'trial-options': 'wholos', 'wellbeing': 'wholos',
     'boostart': 'boostart', 'bancs-ogen': 'proposals', 'claude-guide': 'proposals',
