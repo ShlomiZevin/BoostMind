@@ -2,13 +2,16 @@
 // footage folders they use, the shared assets, the characters, the asset library, Ideas and the jobs history. Nothing here is moved or
 // changed - it is a copy; run it again and it sends only what changed. Gentle on purpose (one process, 4 threads:
 // his PC blue-screens under full load). Progress: episodes/_cloud/copy.log. Then: node tools/cloud_verify.mjs
-//   node tools/cloud_copy.mjs [only-this-project]
+//   node tools/cloud_copy.mjs [only-this-project] [--skip=a,b]
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { BUCKET, EPS, ROOT, SKIP_RSYNC, footageDirs, footageName, gcloud } from '../render/cloud/layout.mjs';
 
-const only = process.argv[2];
+const args = process.argv.slice(2);
+// --skip a,b: projects this run leaves alone (one coming from another computer - its version must win)
+const skipIds = new Set((args.find((x) => x.startsWith('--skip='))?.slice(7) || '').split(',').filter(Boolean));
+const only = args.find((x) => !x.startsWith('--'));
 const LOGDIR = path.join(EPS, '_cloud');
 fs.mkdirSync(LOGDIR, { recursive: true });
 const LOG = path.join(LOGDIR, 'copy.log');
@@ -38,7 +41,7 @@ const cp = async (src, dst) => {
 
 const jobs = [];
 const projects = fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.statSync(path.join(EPS, d)).isDirectory()).sort();
-for (const id of projects) if (!only || only === id) jobs.push(() => rsync(path.join(EPS, id), `projects/${id}`, SKIP_RSYNC));
+for (const id of projects) if ((!only || only === id) && !skipIds.has(id)) jobs.push(() => rsync(path.join(EPS, id), `projects/${id}`, SKIP_RSYNC));
 if (!only) {
   for (const d of footageDirs()) jobs.push(() => rsync(d, footageName(d)));
   jobs.push(() => rsync(path.join(EPS, '_assets'), 'assets/_assets', SKIP_RSYNC));

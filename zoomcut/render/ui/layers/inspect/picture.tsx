@@ -3,7 +3,7 @@
 import React from 'react';
 import { imageBox } from '../../../src/layers/geometry.js';
 import { FILTERS } from '../../../src/layers/effect_curve.js';
-import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Slider, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
 
 function Thumb({ P, asset, onReplace }: { P: InspectorProps; asset?: string; onReplace: () => void }) {
   const url = asset ? P.urls[asset] : '';
@@ -41,23 +41,24 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
     <Head icon={ICON.image} title={layer.name || 'Picture'} sub={item ? `Picture ${item.id}` : `Image layer · ${layer.items?.length || 0} items`} />
     <Sec title="Picture">
       <Thumb P={P} asset={assetId} onReplace={() => P.pickAsset('image', (id) => S.set('asset', id))} />
-      <Opacity P={P} />
-      <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
+    </Sec>
+    <Sec title="Size and place" end={<Ovr S={S} k="box" />}>
+      <Slider label="Size" v={b.w} min={24} max={Math.max(W * 5, b.w)} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />
+      <Row label="Place"><Anchor value={spot} allowed={Object.keys(SPOT)} onPick={place} /></Row>
+      <More label="Exact position">
+        <Slider label="Left / right" v={b.x} min={-b.w} max={W} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ x: Math.round(v), anchor: null }, c)} />
+        <Slider label="Up / down" v={b.y} min={-b.h} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: Math.round(v), anchor: null }, c)} />
+      </More>
     </Sec>
     <Sec title="Look" end={<span className="ins-state ok">live</span>}>
+      <Opacity P={P} />
+      <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
       <Slider label={<>Blur <Ovr S={S} k="blur" /></>} v={S.get('blur', 0)} min={0} max={20} step={0.1} def={0} fmt={(v) => (v ? `${v.toFixed(1)} px` : 'sharp')} onChange={(v, c) => S.set('blur', v || null, c)} />
       <Slider label={<>Brightness <Ovr S={S} k="brightness" /></>} v={S.get('brightness', 1)} min={0.3} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('brightness', v === 1 ? null : v, c)} />
       <Slider label={<>Colour <Ovr S={S} k="saturate" /></>} v={S.get('saturate', 1)} min={0} max={2} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('saturate', v === 1 ? null : v, c)} />
       <Note>A set behind him: a little blur and a touch darker sits him in the room. Drag the picture on the video to move it; its corner zooms.</Note>
     </Sec>
-    <Sec title="Size and place" end={<Ovr S={S} k="box" />}>
-      <Slider label="Size" v={b.w} min={24} max={Math.max(W * 5, b.w)} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />
-      <Row label="Place"><Anchor value={spot} allowed={Object.keys(SPOT)} onPick={place} /></Row>
-      <Slider label="Left / right" v={b.x} min={-b.w} max={W} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ x: Math.round(v), anchor: null }, c)} />
-      <Slider label="Up / down" v={b.y} min={-b.h} max={H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ y: Math.round(v), anchor: null }, c)} />
-    </Sec>
-    {item && <Sec title="Timing"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
-    <ClipTiming P={P} />
+    <ClipTiming P={P}><WholeVideo P={P} /><Entrance P={P} /></ClipTiming>
     <LayerState P={P} />
   </div>;
 };
@@ -102,8 +103,7 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Box" end={<Ovr S={S} k="box" />}>
       {(['x', 'y', 'w', 'h'] as const).map((k) => <Slider key={k} label={{ x: 'Left / right', y: 'Up / down', w: 'Width', h: 'Height' }[k]} v={box[k] ?? 0} min={0} max={k === 'x' || k === 'w' ? W : H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ [k]: Math.round(v) }, c)} />)}
     </Sec>
-    {item && <Sec title="Timing"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
-    <ClipTiming P={P} />
+    <ClipTiming P={P}><WholeVideo P={P} /><Entrance P={P} /></ClipTiming>
     <LayerState P={P} />
   </div>;
 };

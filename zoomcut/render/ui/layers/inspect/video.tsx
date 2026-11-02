@@ -1,9 +1,10 @@
-// A video layer (footage in a window): eye contact, cut-out, framing, look - and the selected clip's timing.
+// A video layer (footage in a window) - the panels' one order (design.md): Framing (the main control) -> Person (cut-out,
+// eye contact; making it folded) -> Look -> the clip in time -> the layer.
 // Eye contact: an asset prepared with it has `eyes` (+ `eyes_fg` for the cut-out) - the same frames with the eyes
 // brought to the lens (NVIDIA Maxine + our blink blend, v6 if NVIDIA failed, or his CapCut file); props.eyes picks
 // it live (VideoTrack plays that variant), so Original / Corrected is a switch, never a job.
 import React from 'react';
-import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, Opacity, ICON, fmt } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, Opacity, ICON, fmt } from './controls';
 
 
 /** Make (or redo) the corrected copies: NVIDIA (the best; our own v6 if it fails) or our own v6 with its strength,
@@ -61,16 +62,19 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
   };
   return <div className="ins">
     <Head icon={ICON.video} title={<>{layer.group ? `${layer.group} · ` : ''}{layer.name || 'Video'}</>} sub={item ? `Clip ${item.id} · video` : `Video layer · ${layer.items?.length || 0} clips`} />
-    <ClipTiming P={P} source speedCtl />
-
-    <Sec title="Eye contact" end={withEyes.length ? <span className="ins-state ok">{engines.map((e) => ENGINE[e] || e).join(' / ')}</span> : <span className="ins-state">not prepared</span>}>
-      <Seg options={[[false, 'Original'], [true, 'Looking at the lens']]} value={eyes} disabled={!withEyes.length} onPick={(v) => S.set('eyes', v)} />
-      {withEyes.length > 0 && withEyes.length < assetsUsed.length && <Note warn>Prepared for {withEyes.length} of {assetsUsed.length} takes - the others play as filmed.</Note>}
-      {withEyes.length > 0 && <Note>Same frames, the eyes brought to the lens; closed and narrowed eyes stay as filmed. Switches live - the export uses the same choice.</Note>}
-      <EyesMake P={P} assets={assetsUsed} made={withEyes.length > 0} />
+    <Sec title="Framing">
+      <Row label={<>Fit <Ovr S={S} k="fit" /></>}><Seg options={[['cover', 'Fill'], ['face', 'Face'], ['contain', 'Whole']]} value={fit} onPick={(v) => S.set('fit', v)} /></Row>
+      <Slider label={<>Zoom <Ovr S={S} k="zoom" /></>} v={S.get('zoom', 1)} min={fit === 'contain' ? 0.3 : 1} max={3} step={0.01} def={1} fmt={fmt.x} onChange={(v, c) => S.set('zoom', v, c)} />
+      <Slider label={<>Left / right <Ovr S={S} k="x" /></>} v={S.get('x', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('x', v, c)} />
+      <Slider label={<>Up / down <Ovr S={S} k="y" /></>} v={S.get('y', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('y', v, c)} />
+      {fit === 'face' && <Slider label={<>Head at <Ovr S={S} k="head" /></>} v={S.get('head', 0.09)} min={0} max={0.45} step={0.005} def={0.09} fmt={fmt.pct} onChange={(v, c) => S.set('head', v, c)} />}
+      <ToggleRow label={<>Mirror (flip left ↔ right) <Ovr S={S} k="mirror" /></>} on={!!S.get('mirror', false)} onChange={(v) => S.set('mirror', v || null)} />
+      <More label="Corners, above others">
+        <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={80} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
+        {item && <Row label="Above others"><Num value={item.z ?? 0} step={1} min={0} max={9} digits={0} onCommit={(v) => S.item({ z: v || null })} /></Row>}
+      </More>
     </Sec>
-
-    <Sec title="Person">
+    <Sec title="Person" end={withEyes.length ? <span className="ins-state ok">eye contact ready</span> : null}>
       <ToggleRow label={<>Cut-out (person on the background) <Ovr S={S} k="cutout" /></>} on={!!S.get('cutout', false)} disabled={!canCut} onChange={(v) => S.set('cutout', v)} />
       {!canCut && <Note>No cut-out mask for these takes yet.</Note>}
       {canCut && S.get('cutout', false) && <>
@@ -81,17 +85,10 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
         <Note>Live. Edge cleanup drops the half-sure halo around him (white wall behind raised hands); Keep desk keeps the real desk in
           front of the set. The export applies the same.</Note>
       </>}
-    </Sec>
-
-    <Sec title="Framing">
-      <ToggleRow label={<>Mirror (flip left ↔ right) <Ovr S={S} k="mirror" /></>} on={!!S.get('mirror', false)} onChange={(v) => S.set('mirror', v || null)} />
-      <Row label={<>Fit <Ovr S={S} k="fit" /></>}><Seg options={[['cover', 'Fill'], ['face', 'Face'], ['contain', 'Whole']]} value={fit} onPick={(v) => S.set('fit', v)} /></Row>
-      <Slider label={<>Zoom <Ovr S={S} k="zoom" /></>} v={S.get('zoom', 1)} min={fit === 'contain' ? 0.3 : 1} max={3} step={0.01} def={1} fmt={fmt.x} onChange={(v, c) => S.set('zoom', v, c)} />
-      <Slider label={<>Left / right <Ovr S={S} k="x" /></>} v={S.get('x', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('x', v, c)} />
-      <Slider label={<>Up / down <Ovr S={S} k="y" /></>} v={S.get('y', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('y', v, c)} />
-      {fit === 'face' && <Slider label={<>Head at <Ovr S={S} k="head" /></>} v={S.get('head', 0.09)} min={0} max={0.45} step={0.005} def={0.09} fmt={fmt.pct} onChange={(v, c) => S.set('head', v, c)} />}
-      <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={80} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
-      {item && <Row label="Above others"><Num value={item.z ?? 0} step={1} min={0} max={9} digits={0} onCommit={(v) => S.item({ z: v || null })} /></Row>}
+      <Row label="Eyes"><Seg options={[[false, 'As filmed'], [true, 'At the lens']]} value={eyes} disabled={!withEyes.length} onPick={(v) => S.set('eyes', v)} /></Row>
+      {withEyes.length > 0 && withEyes.length < assetsUsed.length && <Note warn>Prepared for {withEyes.length} of {assetsUsed.length} takes - the others play as filmed.</Note>}
+      {withEyes.length > 0 && <Note>Same frames, the eyes brought to the lens; closed and narrowed eyes stay as filmed. Switches live - the export uses the same choice.</Note>}
+      <More label={withEyes.length ? 'Redo eye contact' : 'Make eye contact'}><EyesMake P={P} assets={assetsUsed} made={withEyes.length > 0} /></More>
     </Sec>
 
     <Sec title="Look" end={<Ovr S={S} k="look" />}>
@@ -102,6 +99,7 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
       <Slider label="Brightness" v={look.brightness ?? 1} min={0.5} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => setLook({ brightness: v }, c)} />
       <Opacity P={P} />
     </Sec>
+    <ClipTiming P={P} source speedCtl />
     <LayerState P={P} />
   </div>;
 };

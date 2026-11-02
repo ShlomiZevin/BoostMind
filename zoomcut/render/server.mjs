@@ -1005,6 +1005,19 @@ app.get('/pm/:id', (q, res) => {
 // editor plays sound from memory on one clock (src/layers/AudioTrack.tsx) and needs the sped-up copy decoded, since a
 // buffer can't keep its pitch when played faster. Made once, cached by file + its date + speed.
 const tempoJobs = new Map();
+// the sped-up copies no one played for two weeks go (his rule, 2026-11-02: projects careful about space) - a copy is
+// made again in a second when it's played; each play marks it fresh. At start and once a day, never during a job
+function sweepTempo() {
+  let freed = 0;
+  for (const id of fs.readdirSync(EPS)) {
+    if (id.startsWith('_') || jobs[id]?.running) continue;
+    const dir = path.join(EPS, id, 'work', 'public', 'layers', 'tempo');
+    let fs_ = []; try { fs_ = fs.readdirSync(dir); } catch { continue; }
+    for (const f of fs_) { const p = path.join(dir, f); try { const st = fs.statSync(p); if (Date.now() - st.mtimeMs > 14 * 864e5) { fs.rmSync(p); freed += st.size; } } catch {} }
+  }
+  if (freed > 50e6) console.log(`space: ${(freed / 1e9).toFixed(1)} GB of unplayed sped-up sound copies removed`);
+}
+if (!TEST) { setTimeout(sweepTempo, 60e3); setInterval(sweepTempo, 864e5).unref?.(); }
 app.get('/pm-tempo/:id', async (q, res) => {
   const f = path.resolve(epDir(q.params.id), String(q.query.p || ''));
   const s = +q.query.s;
@@ -1021,7 +1034,7 @@ app.get('/pm-tempo/:id', async (q, res) => {
     }));
     await tempoJobs.get(out);
     if (!fs.existsSync(out)) return res.status(500).end();
-  }
+  } else { const t = new Date(); try { fs.utimesSync(out, t, t); } catch {} }  // (played: fresh - the sweep keeps it)
   res.sendFile(out, { cacheControl: false, headers: { 'Cache-Control': 'private, max-age=31536000, immutable' } });
 });
 // one of the project's own files, whole and with its sound, wherever it lives (footage stays in Downloads) - Media's

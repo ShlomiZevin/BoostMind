@@ -2,7 +2,7 @@
 // (render/src/layers/styles.tsx), where they sit, when, and how they come in.
 import React from 'react';
 import { TEXT_STYLES, SUB_STYLES } from '../../../src/layers/styles';
-import { InspectorProps, useSettings, Head, Sec, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
 import { popAnim, blinkAnim, hasPop, hasBlink, mergeAnim } from '../../../src/layers/entrances_solo.js';
 
 const WHITE_ETC = ['#ffffff', '#ffd23f', '#ff6b57', '#111111'];
@@ -159,12 +159,12 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
         <Row label="Band"><Swatches value={S.get('band_color', '#0a265c')} colors={['#0a265c', '#111111', '#3a3a3a']} onPick={(c) => S.set('band_color', c)} /></Row>
         <Note>Write "tag | text": the words before the bar go in the red tag.</Note>
       </>}
+      <Opacity P={P} />
       {['pov', 'plain', 'ticker', 'thought', 'market', 'lower3'].includes(style) && fs.length > 0 &&<Row label="Font"><select className="ins-select" value={S.get('font', '')} onChange={(e) => S.set('font', e.target.value || null)}>
         <option value="">The app font</option>{fs.map(([id, n]) => <option key={id} value={id}>{n}</option>)}</select></Row>}
     </Sec>
     <Place P={P} />
-    {item && <Sec title="Timing"><WholeVideo P={P} /><Entrance P={P} /><OldEntrances P={P} /><Opacity P={P} /></Sec>}
-    <ClipTiming P={P} />
+    <ClipTiming P={P}><WholeVideo P={P} /><Entrance P={P} />{item && <More label="Older moves"><OldEntrances P={P} /></More>}</ClipTiming>
     <LayerState P={P} />
   </div>;
 };

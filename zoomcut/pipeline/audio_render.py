@@ -63,4 +63,29 @@ def render(ep, project, n):
         y = np.fromfile(L["out"], dtype=np.float32)
         out[L["id"]] = y[:n] if len(y) >= n else np.pad(y, (0, n - len(y)))
     log(f"  · sound: {len(out)} layers through the editor's graph (clip fx, clarity, voice chain)")
+    prune(d, [p for L in job["layers"] for p in [*L["sources"].values(), L["out"]]] + [jp, done])
     return out
+
+
+def prune(d, used, keep_s=3600):
+    """Only the newest export's sound renders stay (his rule, 2026-11-02: "not that much gigabyte for small TikTok
+    sketches"): every export wrote new raw tracks (~10 MB a layer-minute) and none were ever deleted - 261 files in one
+    project. What this render used is marked fresh; what no render used for an hour goes (an export of a project at
+    its own pace renders twice - the hour keeps both). Remade by the next export if ever needed."""
+    import time
+    now, keep = time.time(), {os.path.normcase(os.path.abspath(p)) for p in used}
+    for p in used:
+        if os.path.exists(p):
+            os.utime(p, None)
+    freed = 0
+    for f in os.listdir(d):
+        p = os.path.join(d, f)
+        if os.path.normcase(os.path.abspath(p)) in keep or not os.path.isfile(p) or now - os.path.getmtime(p) < keep_s:
+            continue
+        try:
+            freed += os.path.getsize(p)
+            os.remove(p)
+        except OSError:
+            pass
+    if freed > 50e6:
+        log(f"  · {freed / 1e9:.1f} GB of older sound renders removed")

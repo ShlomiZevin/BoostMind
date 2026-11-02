@@ -92,3 +92,11 @@
 .ins-state::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
 .ins-state.ok::before { background: var(--ok); }
 .ins-state.warn::before { background: var(--warn); }
+/* "More" inside a section: the rare settings, folded */
+.ins-more { border-top: 1px dashed var(--edge); margin-top: 4px; padding-top: 2px; }
+.ins-more > summary { list-style: none; display: flex; align-items: center; gap: 6px; height: 30px; cursor: pointer; font-size: 12px; color: var(--dim); }
+.ins-more > summary::-webkit-details-marker { display: none; }
+.ins-more > summary .chev { color: var(--faint); transition: transform .15s; }
+.ins-more[open] > summary .chev { transform: rotate(90deg); }
+.ins-more-body { display: grid; gap: 12px; padding-top: 6px; }
+.ins-scope { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }

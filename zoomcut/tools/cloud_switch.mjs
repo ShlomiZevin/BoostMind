@@ -3,7 +3,7 @@
 // an old cache) is removed there (the bucket keeps deleted files 7 days), each project's sync state is recorded - and
 // only then the sync is switched on (episodes/_cloud/config.json). Nothing on this computer is changed or deleted.
 // Then restart the studio (when no job runs). Never while a job runs: it refuses.
-//   node tools/cloud_switch.mjs            (--dry: say what it would do)
+//   node tools/cloud_switch.mjs            (--dry: say what it would do; --skip=a,b: leave those projects to the cloud)
 import fs from 'node:fs';
 import path from 'node:path';
 import { EPS, skip } from '../render/cloud/layout.mjs';
@@ -11,10 +11,12 @@ import { list, upload, remove, md5File } from '../render/cloud/store.mjs';
 import { walk, stateFile, fp, sameAs, pool } from '../render/cloud/sync.mjs';
 
 const dry = process.argv.includes('--dry');
+// --skip a,b: projects whose cloud copy came from another computer and must win (brought here first, never pushed over)
+const skipIds = new Set((process.argv.find((x) => x.startsWith('--skip='))?.slice(7) || '').split(',').filter(Boolean));
 const jobs = await fetch('http://127.0.0.1:4747/api/jobs').then((r) => r.json()).catch(() => null);
 if (jobs && (jobs.running.length || jobs.busy.length)) { console.log('A job is running in the studio - try again when it is done.'); process.exit(1); }
 let up = 0, upBytes = 0, gone = 0, same = 0;
-for (const id of fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.existsSync(path.join(EPS, d, 'episode.json'))).sort()) {
+for (const id of fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && !skipIds.has(d) && fs.existsSync(path.join(EPS, d, 'episode.json'))).sort()) {
   const dir = path.join(EPS, id), prefix = `projects/${id}/`;
   const remote = await list(prefix), local = walk(dir), state = { files: {} };
   await pool(Object.entries(local), 3, async ([rel, l]) => {

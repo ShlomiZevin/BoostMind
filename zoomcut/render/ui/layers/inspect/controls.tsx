@@ -78,6 +78,15 @@ export function Sec({ title, end, open = true, children }: { title: string; end?
     <div className="ins-body">{children}</div></details>;
 }
 
+/** Inside a section: the rare settings, folded (remembered per label) - the panel shows what's used most, the rest
+ *  one click away (the panels' order, design.md: what it is -> the main control -> shaping -> clip -> layer). */
+export function More({ label, children }: { label: string; children: React.ReactNode }) {
+  const key = 'ins.more.' + label;
+  const [o, setO] = useState(() => { try { return localStorage.getItem(key) === '1'; } catch { return false; } });
+  return <details className="ins-more" open={o} onToggle={(e) => { const v = (e.target as HTMLDetailsElement).open; setO(v); try { localStorage.setItem(key, v ? '1' : '0'); } catch {} }}>
+    <summary><Chev />{label}</summary><div className="ins-more-body">{children}</div></details>;
+}
+
 export const Row = ({ label, wide, children }: { label: React.ReactNode; wide?: boolean; children: React.ReactNode }) =>
   <div className={'ins-row' + (wide ? ' wide' : '')}><label>{label}</label><div>{children}</div></div>;
 export const Note = ({ warn, children }: { warn?: boolean; children: React.ReactNode }) => <div className={'ins-note' + (warn ? ' warn' : '')}>{children}</div>;
@@ -179,7 +188,9 @@ export function splitOps(layer: any, it: any, frame: number, fps: number) {
 }
 
 /** When the clip plays: start, length, (source in, speed), fades, and Split / Delete. */
-export function ClipTiming({ P, source, speedCtl, fades = true }: { P: InspectorProps; source?: boolean; speedCtl?: boolean; fades?: boolean }) {
+/** The clip in time - everything about WHEN: start, length, where in the source, its speed, fades, and (children) the
+ *  rest of its timing (the whole video, how it comes in); then split / delete. One place for time, in every panel. */
+export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P: InspectorProps; source?: boolean; speedCtl?: boolean; fades?: boolean; children?: React.ReactNode }) {
   const { layer, item: it, fps, frame, send } = P;
   const S = useSettings(P);
   if (!it) return null;
@@ -198,6 +209,7 @@ export function ClipTiming({ P, source, speedCtl, fades = true }: { P: Inspector
       <Slider label="Fade in" v={it.fade_in ?? 0} min={0} max={Math.min(3, dur)} step={0.01} def={0} fmt={fmt.s} onChange={(v, c) => S.item({ fade_in: v || null }, c)} />
       <Slider label="Fade out" v={it.fade_out ?? 0} min={0} max={Math.min(3, dur)} step={0.01} def={0} fmt={fmt.s} onChange={(v, c) => S.item({ fade_out: v || null }, c)} />
     </>}
+    {children}
     <div className="ins-acts">
       <button className="btn" disabled={!split} title={split ? 'Cut this clip in two at the playhead' : 'Put the playhead inside the clip'} onClick={() => split && send(split)}>Split at playhead</button>
       <button className="btn danger" onClick={() => send([{ op: 'item.remove', layer: layer.id, id: it.id }])}>Delete clip</button>
@@ -206,7 +218,7 @@ export function ClipTiming({ P, source, speedCtl, fades = true }: { P: Inspector
 }
 
 /** The layer itself: shown / hidden, (muted), its name. */
-export function LayerState({ P, sound }: { P: InspectorProps; sound?: boolean }) {
+export function LayerState({ P, sound, children }: { P: InspectorProps; sound?: boolean; children?: React.ReactNode }) {
   const { layer, send } = P;
   const S = useSettings(P);
   return <Sec title="Layer" open={false} end={<span>{layer.items?.length || 0} clips</span>}>
@@ -215,6 +227,7 @@ export function LayerState({ P, sound }: { P: InspectorProps; sound?: boolean })
     <ToggleRow label="Shown" on={!layer.hidden} onChange={(v) => S.layerSet({ hidden: !v })} />
     {sound && <ToggleRow label="Heard" on={!layer.muted} onChange={(v) => S.layerSet({ muted: !v })} />}
     <ToggleRow label="Locked" on={!!layer.locked} onChange={(v) => S.layerSet({ locked: v })} />
+    {children}
     <button className="btn danger" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); }}>Delete layer</button>
   </Sec>;
 }
