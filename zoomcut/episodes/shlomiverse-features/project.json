@@ -1,0 +1,226 @@
+{
+  "format": "sketch-studio/1",
+  "title": "שלומיוורס - מה אפשר לעשות",
+  "canvas": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30,
+    "color": "#0b0b0b"
+  },
+  "duration": 582,
+  "speed": 1,
+  "assets": {
+    "v.shlomiverse-features.mp4": {
+      "kind": "video",
+      "src": "media/shlomiverse-features.mp4",
+      "w": 1080,
+      "h": 1920,
+      "duration": 19.417
+    },
+    "v.picture.mp4": {
+      "kind": "video",
+      "src": "media/picture.mp4",
+      "w": 1080,
+      "h": 1920,
+      "duration": 19.417
+    },
+    "s.music.wav": {
+      "kind": "audio",
+      "src": "media/music.wav",
+      "duration": 21.951
+    },
+    "s.voice-hani.wav": {
+      "kind": "audio",
+      "src": "media/voice-hani.wav",
+      "duration": 3.5
+    },
+    "s.voice-gilad.wav": {
+      "kind": "audio",
+      "src": "media/voice-gilad.wav",
+      "duration": 3.415
+    },
+    "s.sfx-star.wav": {
+      "kind": "audio",
+      "src": "media/sfx-star.wav",
+      "duration": 1.6
+    },
+    "s.sfx-whoosh.wav": {
+      "kind": "audio",
+      "src": "media/sfx-whoosh.wav",
+      "duration": 0.88
+    }
+  },
+  "layers": [
+    {
+      "items": [
+        {
+          "id": "v0",
+          "from": 0,
+          "dur": 582,
+          "asset": "v.picture.mp4",
+          "in": 0,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1920
+          }
+        }
+      ],
+      "props": {
+        "fit": "cover"
+      },
+      "id": "picture",
+      "kind": "video",
+      "name": "Picture"
+    },
+    {
+      "items": [
+        {
+          "id": "m0",
+          "from": 0,
+          "dur": 582,
+          "asset": "s.music.wav",
+          "in": 0,
+          "gain": 1
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "music",
+      "kind": "audio",
+      "name": "Music"
+    },
+    {
+      "items": [
+        {
+          "id": "h0",
+          "from": 0,
+          "dur": 105,
+          "asset": "s.voice-hani.wav",
+          "in": 0,
+          "gain": 1
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "hani",
+      "kind": "audio",
+      "name": "Hani voice"
+    },
+    {
+      "items": [
+        {
+          "id": "g0",
+          "from": 15,
+          "dur": 102,
+          "asset": "s.voice-gilad.wav",
+          "in": 0,
+          "gain": 1
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "gilad",
+      "kind": "audio",
+      "name": "Gilad voice"
+    },
+    {
+      "items": [
+        {
+          "id": "st0",
+          "from": 74,
+          "dur": 48,
+          "asset": "s.sfx-star.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "sfx-star",
+      "kind": "audio",
+      "name": "Star sound"
+    },
+    {
+      "items": [
+        {
+          "id": "w1",
+          "from": 143,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        },
+        {
+          "id": "w2",
+          "from": 182,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        },
+        {
+          "id": "w3",
+          "from": 219,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        },
+        {
+          "id": "w4",
+          "from": 257,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        },
+        {
+          "id": "w5",
+          "from": 294,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        },
+        {
+          "id": "w6",
+          "from": 332,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        },
+        {
+          "id": "w7",
+          "from": 369,
+          "dur": 26,
+          "asset": "s.sfx-whoosh.wav",
+          "in": 0,
+          "gain": 1,
+          "fade_in": 0.003
+        }
+      ],
+      "props": {
+        "volume": 1
+      },
+      "id": "sfx-whoosh",
+      "kind": "audio",
+      "name": "Whooshes"
+    }
+  ],
+  "rev": 22,
+  "saved": 1793614281131
+}
