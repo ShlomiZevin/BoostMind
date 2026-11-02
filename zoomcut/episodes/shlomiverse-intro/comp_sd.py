@@ -15,10 +15,17 @@ B = json.load(open(os.path.join(HERE, arg('--beats', 'beats-A3.json'))))
 CLIPS = arg('--clips', 'media/sd-2-pullback-far-mini.mp4,media/sd-1-pullback-mini.mp4').split(',')
 NAME = arg('--name', 'v1')
 FPS = 24
+EXT_LOOP = arg('--ext-loop')            # "1.68,3.93,2": bars 1.68-3.93 played 3 times instead of once
+EXT = 0.0
+if EXT_LOOP:
+    LA, LB, LN = [float(x) for x in EXT_LOOP.split(',')]
+    EXT = (LB - LA) * LN
+    for k_ in ('logo', 'tagline', 'url', 'duration', 'hit1', 'drums_end'):
+        if k_ in B and B[k_] >= LB - 0.01: B[k_] = round(B[k_] + EXT, 3)
 T_LOGO, DUR = B['logo'], B['duration']
 TAG, URL = arg('--tag', 'אנשים אמיתיים. יקום מקביל.'), 'shlomiverse.com'
 PREFIX = arg('--prefix', 'shlomiverse-intro')
-HOOK = arg('--hook')                 # real clips before the trailer (features/hook.json)
+HOOK = arg('--hook')                 # real clips: before the trailer, or floating in it (features/hook*.json)
 STORY_ONLY = '--story-only' in sys.argv
 POST_TOP = 320                       # 4:5 window: rows 320..1670 of the story frame (logo at ~40%)
 
@@ -103,8 +110,9 @@ if APPROACH:
             lock = sm((t - (T_LOGO - 0.30)) / 0.30)
             return fr_ * (1 - lock) + logo_frame * lock
         # far part: galaxy dive -> plate, and the planet sprite growing at a constant rate (no pop-in)
-        ka = (t + 0.24) * FPS * 0.62                             # the dive, slowed a little
-        mix = sm((t - A_END) / 1.0)
+        tk = t * (T_HAND - EXT) / T_HAND                         # a longer trailer: the dive keeps its pace
+        ka = (tk + 0.24) * FPS * 0.62                            # the dive, slowed a little
+        mix = sm((tk - A_END) / 1.0)
         bgf = plate if mix >= 1 else frame_at(seqA, ka) * (1 - mix) + plate * mix
         bgf = bgf.copy()
         sc = S0 ** (1 - t / T_HAND)                              # exponential growth = steady approach, scale 1 at hand-over
@@ -114,7 +122,7 @@ if APPROACH:
         cx_, cy_ = PCX, PCY
         xa, ya = int(round(cx_ - w_ / 2)), int(round(cy_ - h_ / 2))
         region = bgf[ya:ya + h_, xa:xa + w_]
-        a_in = 1.0 if HOOK else max(0.0, min(1.0, t / 0.6 + 0.35))   # there from the start, just eases in with the fade
+        a_in = 1.0 if (HOOK and not FLOAT) else max(0.0, min(1.0, t / 0.6 + 0.35))   # there from the start, just eases in with the fade
         bgf[ya:ya + h_, xa:xa + w_] = region * (1 - msk * a_in) + spr * msk * a_in
         return bgf
 
@@ -370,6 +378,17 @@ def zoom(img, s, cx=LOGO_CX, cy=LOGO_CY):
 # ---- 3. render, straight into ffmpeg (story) - the post is cropped from the same frames
 outs = {k: os.path.join(HERE, f'out/{PREFIX}-{NAME}-{k}.mp4') for k in ('story', 'post')}
 music = os.path.join(HERE, B['music'])
+if EXT_LOOP:
+    ext_wav = os.path.join(HERE, f'out/music-{NAME}-ext.wav')
+    segs = [(0.0, LB)] + [(LA, LB)] * int(LN) + [(LB, None)]
+    fc_, ins_ = '', []
+    for i_, (a_, b_) in enumerate(segs):
+        tr = f'atrim=start={a_}' + (f':end={b_}' if b_ else '')
+        fc_ += f'[0:a]{tr},asetpts=PTS-STARTPTS,afade=t=in:d=0.006,' + (f'afade=t=out:st={b_ - a_ - 0.006:.4f}:d=0.006' if b_ else 'anull') + f'[s{i_}];'
+    fc_ += ''.join(f'[s{i_}]' for i_ in range(len(segs))) + f'concat=n={len(segs)}:v=0:a=1'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', music, '-filter_complex', fc_, '-ar', '48000', ext_wav], check=True)
+    music = ext_wav
+    print('music +', round(EXT, 3), 's; logo at', T_LOGO)
 SFX = arg('--sfx')
 if SFX:   # the glint's sparkle under the music, on the hit
     mixed = os.path.join(HERE, f'out/mix-{NAME}.wav')
@@ -379,8 +398,108 @@ if SFX:   # the glint's sparkle under the music, on the hit
                     mixed], check=True)
     music = mixed
 PRE = 0.0
-if HOOK:
-    HK = json.load(open(os.path.join(HERE, HOOK), encoding='utf8'))
+HK = json.load(open(os.path.join(HERE, HOOK), encoding='utf8')) if HOOK else {}
+FLOAT = bool(HK.get('float'))
+if FLOAT:
+    panes, voice = [], []
+    PW_, PH_ = 720, 1280
+    _R2 = 46
+    pm_ = np.ones((PH_, PW_), np.float32)
+    for (cy_, cx_) in ((_R2, _R2), (_R2, PW_ - _R2), (PH_ - _R2, _R2), (PH_ - _R2, PW_ - _R2)):
+        ys = slice(0, _R2) if cy_ == _R2 else slice(PH_ - _R2, PH_); xs = slice(0, _R2) if cx_ == _R2 else slice(PW_ - _R2, PW_)
+        gy_, gx_ = np.mgrid[ys, xs].astype(np.float32)
+        pm_[ys, xs] = np.clip(_R2 - np.sqrt((gx_ - cx_) ** 2 + (gy_ - cy_) ** 2) + 0.5, 0, 1)
+    p_edge = np.clip(pm_ - cv2.erode(pm_, np.ones((13, 13), np.uint8)), 0, 1)[..., None]
+    p_gy, p_gx = np.mgrid[0:PH_, 0:PW_].astype(np.float32)
+    for i, c in enumerate(HK['clips']):
+        src = os.path.join(HERE, c['src']); d = c['out'] - c['in']; vd = c.get('vout', c['out']) - c['in']
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(c['in']), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={PW_}:{PH_}:flags=lanczos',
+                              '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
+        panes.append({'at': c['at'], 'd': d, 'f': list(np.frombuffer(raw, np.uint8).reshape(-1, PH_, PW_, 3)), 'side': 1 if i % 2 == 0 else -1})
+        wav = os.path.join(HERE, f'out/hook-{i}.wav'); ms_ = int(c['at'] * 1000)
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
+                        f'volume={HK.get("gain_db", 0)}dB,afade=t=in:d=0.012,afade=t=out:st={d - 0.03:.3f}:d=0.03,adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
+        voice.append(wav)
+    def _tl(txt, size, color):
+        a_ = text_layer(txt, size, 800, color, rtl=True)
+        return a_, np.asarray(Image.fromarray((a_ * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(22))).astype(np.float32) / 255
+    TITLE = [_tl(HK['title'][0], 128, (255, 122, 48, 255)), _tl(HK['title'][1], 92, (255, 255, 255, 255))]
+    mixed = os.path.join(HERE, f'out/mix-{NAME}-hook.wav')
+    n_ = len(voice); ins = sum([['-i', p_] for p_ in voice], [])
+    fc = ''.join(f'[{i}:a]' for i in range(n_)) + f'amix=inputs={n_}:duration=longest:normalize=0,asplit=2[vo][sc0];[sc0]apad[sc];'   # padded: the ducking runs to the music's end
+    fc += f'[{n_}:a][sc]sidechaincompress=threshold=0.02:ratio=6:attack=25:release=300:makeup=1[mu];'   # the music steps back under a voice
+    fc += '[vo][mu]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-i', music, '-filter_complex', fc, '-ar', '48000', mixed], check=True)
+    music = mixed
+    print('float hook:', [(p_['at'], round(p_['d'], 2)) for p_ in panes])
+def _quad3(w, h, cx, cy, sc, ry, rx, rz, f=1500.0):
+    pts = []
+    for x, y in ((-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)):
+        x, y = x * sc, y * sc
+        x, y = x * math.cos(rz) - y * math.sin(rz), x * math.sin(rz) + y * math.cos(rz)          # roll
+        x1, z1 = x * math.cos(ry), x * math.sin(ry)                                               # yaw
+        y1, z2 = y * math.cos(rx) - z1 * math.sin(rx), y * math.sin(rx) + z1 * math.cos(rx)       # pitch
+        d_ = f / (f + z2)
+        pts.append((cx + x1 * d_, cy + y1 * d_))
+    return np.float32(pts)
+def _warp_draw(fr, img_pm, cx, cy, sc, ry, rx, rz, a):
+    h_, w_ = img_pm.shape[:2]
+    dst = _quad3(w_, h_, cx, cy, sc, ry, rx, rz)
+    xa, ya = max(0, int(dst[:, 0].min()) - 2), max(0, int(dst[:, 1].min()) - 2)
+    xb, yb = min(W, int(dst[:, 0].max()) + 3), min(H, int(dst[:, 1].max()) + 3)
+    if xa >= xb or ya >= yb or a <= 0.01: return
+    Hm = np.float64([[1, 0, -xa], [0, 1, -ya], [0, 0, 1]]) @ cv2.getPerspectiveTransform(np.float32([[0, 0], [w_, 0], [w_, h_], [0, h_]]), dst)
+    wp = cv2.warpPerspective(img_pm, Hm, (xb - xa, yb - ya), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+    fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - wp[..., 3:4] * a) + wp[..., :3] * a
+def draw_panes(fr, t):
+    """the hook's real clips as glass panes drifting and turning in the space, the last one spun away into the planet"""
+    for i, p_ in enumerate(panes):
+        at, d, side = p_['at'], p_['d'], p_['side']; last = i == len(panes) - 1
+        end = at + d
+        if t < at - 0.38 or t > end + (0.5 if last else 0.32): continue
+        k_ = min(len(p_['f']) - 1, max(0, int((t - at) * FPS)))
+        img = p_['f'][k_].astype(np.float32) / 255
+        sweep = (t - at) / max(d, 0.1)                                            # a slow glass glint across the pane
+        band = np.exp(-(((p_gx * 0.7 + p_gy * 0.45) / 900.0 - (sweep * 1.6 - 0.3)) ** 2) / 0.004)[..., None] * 0.16
+        img = 1 - (1 - img) * (1 - band)
+        op = float(HK.get('opacity', 0.85))
+        rgba = np.concatenate([img * pm_[..., None] * op, pm_[..., None] * op], 2)
+        rgba = rgba * (1 - p_edge) + np.concatenate([np.array([1.0, 0.55, 0.2], np.float32) * np.ones((PH_, PW_, 3), np.float32), np.ones((PH_, PW_, 1), np.float32)], 2) * p_edge
+        u = t - at
+        if u < 0:                                                                 # out of the depth, turning
+            e = 1 - (1 - (u + 0.38) / 0.38) ** 3
+            sc = 0.06 + 0.84 * e; a = min(1.0, e * 1.8)
+            cx, cy = PCX + (540 - PCX) * e, PCY + (930 - PCY) * e
+            ry, rx, rz = math.radians(side * (48 - 30 * e)), math.radians(14 - 4 * e), math.radians(side * (-24 + 18 * e))
+        elif u <= d:                                                              # the drift: a slow turn, a slow push
+            q = u / d
+            sc = 0.90 + 0.06 * q; a = 1.0
+            cx, cy = 540 + side * 30 * math.sin(q * 2.2), 930 - 20 * q
+            ry, rx, rz = math.radians(side * (18 - 28 * q)), math.radians(10 - 14 * q), math.radians(side * (-6 + 9 * q))
+        elif not last:                                                            # past the camera as the next pane arrives
+            q = min(1.0, (u - d) / 0.32); e = q * q
+            sc = 0.96 + 1.8 * e; a = (1 - q) ** 1.5
+            cx, cy = 540 + side * 30 * math.sin(2.2) + side * 800 * e, 910 + 200 * e
+            ry, rx, rz = math.radians(side * (-10 - 35 * e)), math.radians(-4 - 6 * e), math.radians(side * (3 + 14 * e))
+        else:                                                                     # spun away into the planet
+            q = min(1.0, (u - d) / 0.5); e = q * q * (3 - 2 * q) * 0.5 + q ** 3 * 0.5
+            sc = 0.96 * (1 - e) + 0.03 * e; a = 1 - sm((q - 0.75) / 0.25)
+            cx, cy = 540 + side * 30 * math.sin(2.2) + (PCX - 540) * e, 910 + (PCY - 910) * e
+            ry, rx, rz = math.radians(side * (-10 + 10 * e)), math.radians(-4 + 4 * e), math.radians(side * (3 + 160 * e))
+        if u >= 0 and u < 0.5:                                                    # a warm pulse as it settles
+            g_ = np.exp(-(((xx - cx) / 560) ** 2 + ((yy - cy) / 800) ** 2))[..., None] * np.array([1.0, 0.45, 0.12], np.float32) * 0.35 * math.exp(-u / 0.2)
+            fr[:] = 1 - (1 - fr) * (1 - np.clip(g_, 0, 1))
+        _warp_draw(fr, rgba, cx, cy, sc, ry, rx, rz, a)
+def draw_title(fr, t):
+    t0, t1 = HK['title_at'], HK['title_out']
+    if not (t0 <= t < t1): return
+    a = sm((t - t0) / 0.35) * (1 - sm((t - (t1 - 0.3)) / 0.3))
+    for (ln, gw), cy_, dy_ in ((TITLE[0], 640, 0), (TITLE[1], 770, 10)):
+        gl_ = np.zeros_like(fr); h_, w_ = gw.shape[:2]; x0_, y0_ = int(W / 2 - w_ / 2), int(cy_ - h_ / 2)
+        gl_[y0_:y0_ + h_, x0_:x0_ + w_] = gw[..., 3:4] * np.array([1.0, 0.42, 0.1], np.float32) * 0.9
+        fr[:] = 1 - (1 - fr) * (1 - np.clip(gl_ * a, 0, 1))
+        over(fr, ln, W / 2, cy_, a, dy=(1 - a) * (18 + dy_))
+if HOOK and not FLOAT:
     PRE, FLY = HK['pre'], HK['fly']
     hook_frames, parts = [], []
     for i, c in enumerate(HK['clips']):
@@ -481,9 +600,11 @@ def frame(f):
         fr = space_fx(fr, t, 1.0 - 0.2 * sm((t - T_LOGO) / 1.5) if SMOOTH_END else (1.0 if t < T_LOGO else 0.8))
     if flyers and t < T_LOGO:
         draw_flyers(fr, t)
+    if FLOAT:
+        draw_panes(fr, t); draw_title(fr, t)
     if cards and t < T_LOGO:
         draw_cards(fr, t)
-    fade_in = 1.0 if HOOK else sm(t / 0.9)
+    fade_in = 1.0 if (HOOK and not FLOAT) else (sm(t / 0.35) if FLOAT else sm(t / 0.9))
     # the final hit: flash, flare streak, the logo's glow pulsing
     if SHEEN and SMOOTH_END and not NO_HIT and t > T_LOGO - 0.6:
         # one continuous light curve: a build before the hit, the swell on it, settling after - nothing switches on at once
