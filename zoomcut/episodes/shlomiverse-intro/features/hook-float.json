@@ -1,5 +1,5 @@
 {
-  "_": "trailer 2 hook (v5): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane in the space; Gilad's question on the Techy-Tech Zoom arrives as a turning pane (Superman II's Phantom Zone) and turns away into the planet; the hollywood title (title.mjs layers); the cards from 5.9, every 1.15 s",
+  "_": "trailer 2 hook (v9): music from frame 1 (--slow 0.6667 until the logo hit); Hani full screen, shrinking into a glass pane; Gilad's pane comes in beside her on her last words, his voice starts over her last word, holds after 'מה הביזנס' and turns away into the planet; a gentle space echo on both; the hollywood title with a falling star",
   "float": true,
   "clips": [
     {
@@ -8,14 +8,18 @@
       "out": 1.56,
       "at": 0.0,
       "full": 0.6,
-      "shrink": 0.8
+      "shrink": 0.8,
+      "vout": 1.6
     },
     {
       "src": "../../../public/wiki/v/gilad-joins.mp4",
-      "in": 15.6,
-      "out": 17.05,
+      "in": 15.45,
+      "out": 17.055,
       "vout": 16.95,
-      "at": 1.52
+      "at": 1.25,
+      "fade_out": 0.015,
+      "lead": 0.45,
+      "tail": 0.2
     }
   ],
   "gain_db": 3.5,
@@ -24,11 +28,14 @@
     "שלומיוורס",
     "מציגים"
   ],
-  "title_at": 3.3,
+  "title_at": 3.5,
   "title_out": 5.78,
   "arrive": 0.9,
   "exit": 0.65,
   "spin": 0.6,
   "title_style": "hollywood",
-  "title_scale": 0.84
+  "title_scale": 0.84,
+  "echo": "0.85:0.6:70|150:0.22|0.11",
+  "arrive_dx": 280,
+  "star_at": 0.62
 }

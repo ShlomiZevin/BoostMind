@@ -427,15 +427,17 @@ if FLOAT:
     p_edge = np.clip(pm_ - cv2.erode(pm_, np.ones((13, 13), np.uint8)), 0, 1)[..., None]
     p_gy, p_gx = np.mgrid[0:PH_, 0:PW_].astype(np.float32)
     for i, c in enumerate(HK['clips']):
-        src = os.path.join(HERE, c['src']); d = c['out'] - c['in']; vd = c.get('vout', c['out'] + 1.0) - c['in']
+        src = os.path.join(HERE, c['src']); d = c['out'] - c['in']; lead = c.get('lead', 0.0)
+        vin = c['in'] - lead; vd = c.get('vout', c['out'] + 1.0) - vin
         fw_, fh_ = (W, H) if c.get('full') else (PW_, PH_)
-        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(c['in']), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={fw_}:{fh_}:flags=lanczos',
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(vin), '-t', str(vd), '-i', src, '-vf', f'fps={FPS},scale={fw_}:{fh_}:flags=lanczos',
                               '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True, check=True).stdout
         panes.append({'at': c['at'], 'd': d, 'f': list(np.frombuffer(raw, np.uint8).reshape(-1, fh_, fw_, 3)), 'side': 1 if i % 2 == 0 else -1,
-                      'full': c.get('full', 0), 'shrink': c.get('shrink', 0.8)})
+                      'full': c.get('full', 0), 'shrink': c.get('shrink', 0.8), 'lead': lead, 'tail': c.get('tail', 0.0)})
         wav = os.path.join(HERE, f'out/hook-{i}.wav'); ms_ = int(c['at'] * 1000)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(c['in']), '-t', str(d), '-i', src, '-af',
-                        f'volume={HK.get("gain_db", 0)}dB,afade=t=in:d=0.012,afade=t=out:st={d - 0.03:.3f}:d=0.03,adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
+                        f'volume={HK.get("gain_db", 0)}dB,afade=t=in:d=0.012,afade=t=out:st={d - c.get("fade_out", 0.03):.3f}:d={c.get("fade_out", 0.03)},'
+                        + (f'apad=pad_dur=0.8,aecho={HK["echo"]},' if HK.get('echo') else '') + f'adelay={ms_}|{ms_}', '-ar', '48000', '-ac', '2', wav], check=True)
         voice.append(wav)
     def _tl(txt, size, color):
         a_ = text_layer(txt, size, 800, color, rtl=True)
@@ -470,11 +472,18 @@ def _warp_draw(fr, img_pm, cx, cy, sc, ry, rx, rz, a):
     fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - wp[..., 3:4] * a) + wp[..., :3] * a
 def draw_panes(fr, t):
     """the hook's real clips as glass panes drifting and turning in the space, the last one spun away into the planet"""
-    for i, p_ in enumerate(panes):
-        at, d, side = p_['at'], p_['d'], p_['side']; last = i == len(panes) - 1
+    # who is in front: a pane that is leaving goes behind everything, a newer pane comes in behind the one still talking
+    leaving = lambda p_: t > p_['at'] - p_['lead'] + p_['lead'] + p_['d'] + p_['tail']
+    order = [x for x in enumerate(panes) if leaving(x[1]) and x[0] < len(panes) - 1] + \
+            [x for x in reversed(list(enumerate(panes))) if not (leaving(x[1]) and x[0] < len(panes) - 1)]
+    for i, p_ in order:
+        side = p_['side']; last = i == len(panes) - 1
+        at = p_['at'] - p_['lead']                                                # when the picture appears
+        d = p_['lead'] + p_['d'] + p_['tail']                                     # on screen until it leaves
         end = at + d
         if t < at or t > end + (HK.get('spin', 0.85) if last else HK.get('exit', 0.65)): continue
-        k_ = min(len(p_['f']) - 1, max(0, int((t - at) * FPS)))
+        L_ = len(p_['f']); k_ = max(0, int((t - at) * FPS))
+        if k_ >= L_: k_ = max(0, L_ - 1 - (k_ - L_ + 1) % max(1, L_ - 1))         # past its last frame: play back, never freeze
         if p_['full'] and t - at < p_['full']:                                   # full screen, as in the original video
             fr[:] = p_['f'][k_].astype(np.float32) / 255
             continue
@@ -501,13 +510,15 @@ def draw_panes(fr, t):
         elif u < ARR and not F0:                                                  # out of the depth while it already plays
             e = 1 - (1 - u / ARR) ** 2
             sc = 0.12 + 0.78 * e; a = min(1.0, 0.25 + e)
-            cx, cy = PCX + (540 - PCX) * e, PCY + (930 - PCY) * e
+            dx_ = HK.get('arrive_dx', 0) * side if i > 0 else 0
+            cx, cy = PCX + (540 + dx_ - PCX) * e, PCY + (930 - PCY) * e
             ry, rx, rz = math.radians(side * (40 - 22 * e)), math.radians(12 - 2 * e), math.radians(side * (-18 + 12 * e))
         elif u <= d:                                                              # the drift: a slow turn, a slow push
             st_ = F0 + SH0 if F0 else ARR
             q = (u - st_) / max(0.1, d - st_)
             sc = 0.90 + 0.05 * q; a = 1.0
-            cx, cy = 540 + side * 24 * math.sin(q * 1.6), 930 - 16 * q
+            dx_ = (HK.get('arrive_dx', 0) * side if i > 0 and not F0 else 0) * (1 - ee(q * 2.2))
+            cx, cy = 540 + dx_ + side * 24 * math.sin(q * 1.6), 930 - 16 * q
             ry, rx, rz = math.radians(side * (18 - 22 * q)), math.radians(10 - 12 * q), math.radians(side * (-6 + 7 * q))
         elif not last:                                                            # drifts past, still playing, fading
             q = min(1.0, (u - d) / EXIT); e = ee(q)
@@ -539,6 +550,30 @@ def _place(fr_shape, img, cx, cy, sc, blur=0.0):
     out = cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
     if blur > 0.3: out = cv2.GaussianBlur(out, (0, 0), blur)
     return out
+_SR = np.random.default_rng(7)
+_SPARKS = [(float(_SR.uniform(0, 1)), float(_SR.uniform(-60, 60)), float(_SR.uniform(-40, 80)), float(_SR.uniform(0.5, 1.0))) for _ in range(46)]
+def falling_star(fr, u, u0=0.5, dur=0.85):
+    """a shooting star cutting down through the title: a hot head, a long fading tail, sparks drifting down behind it"""
+    v = (u - u0) / dur
+    if v < 0 or v > 1.9: return
+    A, Bp = np.array([960.0, TY1 - 330]), np.array([120.0, TY1 + 330])
+    lay = np.zeros((H, W, 3), np.float32)
+    col = np.array([1.0, 0.82, 0.55], np.float32)
+    if v <= 1:
+        for j in range(34):                                               # the tail: the head's last positions, fading
+            w_ = max(0.0, v - j * 0.016)
+            p = A + (Bp - A) * (1 - (1 - w_) ** 1.6)
+            k = (1 - j / 34) ** 1.6
+            cv2.circle(lay, (int(p[0]), int(p[1])), max(1, int(12 * k)), tuple(float(c) * k * 1.5 for c in col), -1, cv2.LINE_AA)
+    for (s0, vx, vy, b) in _SPARKS:                                       # sparks shed along the path, falling and fading
+        if v < s0: continue
+        age = (v - s0) * dur
+        if age > 0.75: continue
+        p = A + (Bp - A) * (1 - (1 - s0) ** 1.6) + np.array([vx * age, vy * age + 260 * age * age])
+        k = b * (1 - age / 0.75) ** 1.5
+        cv2.circle(lay, (int(p[0]), int(p[1])), 3, tuple(float(c) * k * 1.6 for c in col), -1, cv2.LINE_AA)
+    lay = lay + cv2.GaussianBlur(lay, (0, 0), 7) * 2.4 + cv2.GaussianBlur(lay, (0, 0), 26) * 1.6
+    fr[:] = 1 - (1 - fr) * (1 - np.clip(lay, 0, 1))
 def draw_title_holly(fr, t):
     t0, t1 = HK['title_at'], HK['title_out']
     if not (t0 - 0.05 <= t < t1 + 0.05): return
@@ -567,6 +602,7 @@ def draw_title_holly(fr, t):
               np.exp(-((yy - TY1 + 20) / 26.0) ** 2) * np.exp(-np.abs(xx - fx) / 240) * 0.35 +
               np.exp(-(((xx - fx) ** 2 + (yy - TY1 + 20) ** 2) / (2 * 34.0 ** 2))) * 1.2)
         fr[:] = 1 - (1 - fr) * (1 - np.clip(fl[..., None] * np.array([1.0, 0.68, 0.38], np.float32) * fa, 0, 1))
+    falling_star(fr, u, HK.get('star_at', 0.62))
     # "מציגים": a beat later, letters settling in
     ea = sm((u - 0.6) / 0.5)
     if ea > 0.01:
