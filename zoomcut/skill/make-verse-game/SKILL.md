@@ -166,7 +166,11 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
 8. **Shlomiverse branding** instead of Plaxzy's: the start screen says whose game it is ("המשחקייה של חני",
    "Techy-Tech", the character's name) and links back to the character's wiki page (Hani's: "→ לכל המשחקים" to the
    playhouse); the end screen offers the
-   character's wiki page / site. Never the Plaxzy logo.
+   character's wiki page / site. Never the Plaxzy logo. RTL links: the arrow goes where Hebrew reads it - text then
+   "←" ("יניב בשלומיוורס ←"), check it on screen.
+   **Every game is played inside the verse's video-style page** (#/play/<id>, an iframe, since 3 Nov 2026): every link
+   back to the verse gets `target="_top"` (never nest the verse in itself), and when framed
+   (`window.top !== window`) the game shows no share / like / follow buttons of its own - the page has them.
 9. **Records**: localStorage keys `shlomiverse:<slug>:best` (a plain number - hubs read it) and a daily best
    `shlomiverse:<slug>:day` ("date|value"); Hani's games keep `hani-games:<slug>:*`. Same course for everyone each day
    = a generator seeded by `'<slug>|' + day`.
