@@ -88,5 +88,20 @@
   "h": "b4d32b9543",
   "topic": "culture",
   "tagline": "עץ המשפחה של משפחת פרידמן"
+ },
+ "hani-games-pilai": {
+  "h": "8090a8f2b3",
+  "topic": "games",
+  "tagline": "סדרו את הסיפור וגלו את הפילאי פלואים"
+ },
+ "yaniv-games": {
+  "h": "f50700e704",
+  "topic": "games",
+  "tagline": "משחקים כואבים מבית יניב אזולאי"
+ },
+ "yaniv-games-millimeters": {
+  "h": "3fb1a08f99",
+  "topic": "games",
+  "tagline": "כמה מילימטרים יניב עוד ישרוד?"
  }
 }

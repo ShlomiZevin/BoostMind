@@ -1,0 +1,76 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "דחוף זה איך שחברות נופלות.\nצביקה שותה קפה, בודק נקודה-פסיק, וכבר כמה דקות מתחיל.\n\n#הייטק #צרותבהייטק #הייטקס #בינהמלאכותית #שלומיוורס",
+  "title": "הדינוזאור של ההייטק פוגש AI",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    },
+    "x": {
+      "text": "דחוף זה איך שחברות נופלות. צביקה שותה קפה ובודק נקודה-פסיק. #הייטק #צרותבהייטק #הייטקס #שלומיוורס"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "published": {
+    "youtube": {
+      "at": 1793638849021,
+      "url": "https://youtube.com/shorts/mTpVoB-LeWM"
+    },
+    "x": {
+      "at": 1793638895085,
+      "url": "https://x.com/ShlomiZevin/status/2117301101615529994"
+    },
+    "tiktok": {
+      "at": 1793638909074,
+      "url": null
+    },
+    "instagram": {
+      "at": 1793638950638,
+      "url": "https://www.instagram.com/reel/DfPy6w3kbsh/"
+    },
+    "facebook": {
+      "at": 1793638950902,
+      "url": "https://www.instagram.com/reel/DfPy6w3kbsh/"
+    }
+  },
+  "last": {
+    "at": 1793638950903,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfPy6w3kbsh/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/mTpVoB-LeWM",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2117301101615529994",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfPy6w3kbsh/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+ "positive_global_styles": [
+  "fast quirky retro computer music",
+  "150 BPM",
+  "late-90s General MIDI PC game soundtrack",
+  "bouncy square-wave lead",
+  "FM synth bass",
+  "tinny drum machine",
+  "bleeps like an old modem",
+  "silly and busy",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "gentle",
+  "calm",
+  "sad",
+  "cinematic",
+  "epic",
+  "pads",
+  "drone",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "dark"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick pickup",
+    "drum fill into the groove"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 4000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "square lead melody",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "FM bass runs",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "arpeggio break",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "full band, faster feel",
+    "driving rhythm",
+    "fast"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down"
+   ],
+   "duration_ms": 21500,
+   "lines": []
+  }
+ ]
+}

@@ -6,7 +6,7 @@
     "x",
     "facebook"
   ],
-  "caption": "חכה רגע, לפני שאתה רץ להציג לי דברים...\nהדמויות ירדו מהמסך: מדברים איתן בצ׳אט, עוקבים ומקבלים סטוריז, מגיבים, מכינים סטיקרים ונכנסים לעולם שלהן.\nנשארה רק שאלה אחת.\nהקישור בביו: shlomiverse.com\n\n#שלומיוורס #קומדיהישראלית #דמויות #טיקטוקישראל #הייטק",
+  "caption": "חכה רגע, לפני שאתה רץ להציג לי דברים...\nהדמויות ירדו מהמסך: מדברים איתן בצ׳אט, עוקבים ומקבלים סטוריז, מגיבים, מכינים סטיקרים ונכנסים לעולם שלהן.\nנשארה רק שאלה אחת.\nהקישור בביו: shlomiverse.com\n\n#שלומיוורס #פוריו",
   "title": "חכה רגע, לפני שאתה רץ - ברוכים הבאים לשלומיוורס",
   "options": {
     "instagram": {
@@ -14,11 +14,55 @@
     },
     "youtube": {
       "privacy": "public"
-    },
-    "x": {
-      "text": "גלעד ביקש לחכות רגע. לא חיכינו. בסוף הוא שאל מה הביזנס. #שלומיוורס"
     }
   },
   "afterExport": false,
-  "dry": false
+  "dry": false,
+  "published": {
+    "youtube": {
+      "at": 1793639277180,
+      "url": "https://youtube.com/shorts/vkw6xp2yWOw"
+    },
+    "x": {
+      "at": 1793639283681,
+      "url": "https://x.com/ShlomiZevin/status/2117302731379532193"
+    },
+    "tiktok": {
+      "at": 1793639317758,
+      "url": null
+    },
+    "instagram": {
+      "at": 1793639328020,
+      "url": "https://www.instagram.com/reel/DfPzrZbAR98/"
+    }
+  },
+  "last": {
+    "at": 1793639338031,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfPzrZbAR98/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\")"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/vkw6xp2yWOw",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2117302731379532193",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "failed",
+        "error": "fetch failed"
+      }
+    }
+  }
 }
