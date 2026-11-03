@@ -60,7 +60,7 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
 ## Every game ships with its cover and its title - not optional
 A game is not done without these, all made with OpenAI from the game's real look and the character's portrait,
 and shown to him before they are used:
-1. **The cover** (`cover.jpg`, 4:3, for the hub card) - ONE painted picture, the character at the center, the game's
+1. **The cover** (`cover.jpg`, 1.91:1 / 1200x630 - the verse's game card; Hani's playhouse cards are 4:3) - ONE painted picture, the character at the center, the game's
    world; no text over faces.
 2. **The title art** - the game's name as painted lettering (`assets/title.png`, transparent background, `--transparent`),
    in the game's style; used on the start screen, the end screen and the promo. Hebrew spelled exactly as given in the
@@ -103,24 +103,29 @@ Read before any idea - the game must be something THIS character would be in:
 | Who stars | Where | URL | How it goes live |
 |---|---|---|---|
 | Hani and her family (Avraham Moshe, the kids, Shindy...) | `public/hani-games/<slug>/` - **המשחקייה של חני** | shlomiverse.com/hani-games/<slug>/ | `hani-games.md` in this folder - the playhouse's own path (released from the live site, never by a plain deploy) |
-| Anyone else | `public/<character>-games/<slug>/` - the character's own games site (first: `yaniv-games/millimeters`) | shlomiverse.com/<character>-games/<slug>/ | git + `bash scripts/deploy.sh` (step 8) |
+| Anyone else | `public/<character>-games/<slug>/` - just a folder; the game lives in the verse (first: `yaniv-games/millimeters`) | shlomiverse.com/<character>-games/<slug>/ | git + `bash scripts/deploy.sh` (step 8) |
 | A character with their own site (Techy-Tech, /ayelet/, /dorit/...) | also a link / card on that site | | the site's owner session, or edit it here and deploy |
 
-- **Games belong to their character - mainly on the character's wiki page** (his ask, 3 Nov 2026). The page
-  (shlomiverse.com/wiki/#/c/<id>, `pages.c` in `v2/site/wiki/index.html`) has a "משחקים" section that fills itself:
-  `scripts/wiki/build.py` (`site_cards`) follows the character's `site` / `links` to their games site, finds every
-  `<slug>/game.json` with `status: "live"` and lists it with its cover, title and tagline. So per character: ONE games
-  site `public/<character>-games/index.html` (a real page: `<title>`, `og:image`, `og:description`, a card per game),
-  its URL added to the character's `links` in `zoomcut/characters/<id>/character.json` (or `site` if they have none),
-  then `python scripts/wiki/build.py` + `node scripts/wiki/push.cjs` (no deploy for the wiki; other sessions may have
-  work in `scripts/wiki/*` - never revert it). The game pages themselves still need the hosting deploy.
-- A new games site is a new stats site too: add it to `SITES` in `techietech-api/analytics.js` (then deploy the
-  `track` function) and to `SITE` + the game to `GAME` in `public/backstage/index.html` and `v2/site/backstage/`.
+- **Games belong to their character - they live in the Shlomiverse, on the character's wiki page** (his ask,
+  3 Nov 2026). The contract is ONE `game.json` - nothing else: `games()` in `scripts/wiki/build.py` collects every
+  `public/<folder>/<slug>/game.json` with `"status": "live"` into wiki.json `games`, and the verse shows it on the
+  character's page (shlomiverse.com/wiki/#/c/<id>), in the home games row and on #/games, opening the game in a
+  full-screen layer inside the verse. Per game: `title`, `tagline`, `character` (studio id; `chars` = a list for
+  several), `date` (YYYY-MM-DD - always set it), `status`, `cover` (default `cover.jpg`, **1.91:1**, e.g. 1200x630).
+  Then `python scripts/wiki/build.py` + `node scripts/wiki/push.cjs` (no deploy for the wiki; other sessions may have
+  work in `scripts/wiki/*` - never revert it). The verse's pages (`v2/site/wiki/`, `v2/site/verse/`) belong to the
+  Shlomiverse session - don't edit them.
+- **No games site, no hub, no `links` entry** for a non-Hani character: the game lives ONLY in the Shlomiverse.
+  (Hani's games are the exception: they have their own site, המשחקייה של חני, AND appear in the verse.) The game's
+  back / "more" links go to the character's wiki page with `target="_top"` (the game may run inside the verse's layer).
+- Stats: the folder name is the game's stats site (`data-site` on `/t.js`) - add it to `SITES` in
+  `techietech-api/analytics.js` (then deploy the `track` function - from the main PC, it needs `owner.json`) and to
+  `SITE` + the game to `GAME` in `public/backstage/index.html` and `v2/site/backstage/`.
 - One folder per game: `index.html`, `game.js` (or `src/` + a small build), `game.json`, `cover.jpg`, `assets/`
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).
 - `game.json`: `slug`, `title`, `tagline`, `character` (studio id), `world`, `status` (`soon` / `live`), `cover`,
-  `best` ({`key`, `label`}) - the hub cards and stats read it.
+  `best` ({`key`, `label`}), `date` - the verse reads it (contract above).
 - Workshop files (prompts, raw paintings, guides, Blender scripts, tests) live beside it in
   `scripts/<character>-games/<slug>/` (Hani's: `scripts/hani-games/`), never under `public/`.
 - **No Hani-face pictures in git** - the paintings made from her portrait stay out (the playhouse already follows this).
@@ -153,7 +158,8 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
    singing), crowds of men only, no crosses or other symbols (check every book the painter adds). Techy-Tech = a
    serious company - the humour is in the situation, never in the company's text. Follow each world's lines.
 8. **Shlomiverse branding** instead of Plaxzy's: the start screen says whose game it is ("המשחקייה של חני",
-   "Techy-Tech", the character's name) and has "→ לכל המשחקים" back to the hub; the end screen offers the
+   "Techy-Tech", the character's name) and links back to the character's wiki page (Hani's: "→ לכל המשחקים" to the
+   playhouse); the end screen offers the
    character's wiki page / site. Never the Plaxzy logo.
 9. **Records**: localStorage keys `shlomiverse:<slug>:best` (a plain number - hubs read it) and a daily best
    `shlomiverse:<slug>:day` ("date|value"); Hani's games keep `hani-games:<slug>:*`. Same course for everyone each day
@@ -184,7 +190,9 @@ spot / try).
 - **Hani's games**: follow `hani-games.md` in this folder (the playhouse's release tool; the hub page has its owner).
 - **Every other game**: commit its folder (`public/<character>-games/<slug>/`) and its workshop
   (`scripts/<character>-games/<slug>/`), rebase on `origin/main`, push, then `bash scripts/deploy.sh` (the one deploy -
-  never a bare `firebase deploy`), then the wiki build + push so it shows on the character's page. Bump `game.js?v=N`
+  never a bare `firebase deploy` - or, when this PC's `public/` may be behind the live site, add only the game's files
+  onto the live version with `scripts/hani-games/tools/deploy-onto-live.js --page=/<path>=<file> ...`), then the wiki
+  build + push so it shows on the character's page. Bump `game.js?v=N`
   on every change (the site caches files).
 - **A new page is not done until it is listed** (BoostMind CLAUDE.md): `/all/` (`python scripts/all/catalog.py`), the
   character's studio profile (`links` / `site`), their world in `zoomcut/characters/index.json` if it gets a site, the
