@@ -103,16 +103,26 @@ Read before any idea - the game must be something THIS character would be in:
 | Who stars | Where | URL | How it goes live |
 |---|---|---|---|
 | Hani and her family (Avraham Moshe, the kids, Shindy...) | `public/hani-games/<slug>/` - **המשחקייה של חני** | shlomiverse.com/hani-games/<slug>/ | `hani-games.md` in this folder - the playhouse's own path (released from the live site, never by a plain deploy) |
-| Anyone else | `public/games/<slug>/` | shlomiverse.com/games/<slug>/ | git + `bash scripts/deploy.sh` (step 8) |
+| Anyone else | `public/<character>-games/<slug>/` - the character's own games site (first: `yaniv-games/millimeters`) | shlomiverse.com/<character>-games/<slug>/ | git + `bash scripts/deploy.sh` (step 8) |
 | A character with their own site (Techy-Tech, /ayelet/, /dorit/...) | also a link / card on that site | | the site's owner session, or edit it here and deploy |
 
+- **Games belong to their character - mainly on the character's wiki page** (his ask, 3 Nov 2026). The page
+  (shlomiverse.com/wiki/#/c/<id>, `pages.c` in `v2/site/wiki/index.html`) has a "משחקים" section that fills itself:
+  `scripts/wiki/build.py` (`site_cards`) follows the character's `site` / `links` to their games site, finds every
+  `<slug>/game.json` with `status: "live"` and lists it with its cover, title and tagline. So per character: ONE games
+  site `public/<character>-games/index.html` (a real page: `<title>`, `og:image`, `og:description`, a card per game),
+  its URL added to the character's `links` in `zoomcut/characters/<id>/character.json` (or `site` if they have none),
+  then `python scripts/wiki/build.py` + `node scripts/wiki/push.cjs` (no deploy for the wiki; other sessions may have
+  work in `scripts/wiki/*` - never revert it). The game pages themselves still need the hosting deploy.
+- A new games site is a new stats site too: add it to `SITES` in `techietech-api/analytics.js` (then deploy the
+  `track` function) and to `SITE` + the game to `GAME` in `public/backstage/index.html` and `v2/site/backstage/`.
 - One folder per game: `index.html`, `game.js` (or `src/` + a small build), `game.json`, `cover.jpg`, `assets/`
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).
 - `game.json`: `slug`, `title`, `tagline`, `character` (studio id), `world`, `status` (`soon` / `live`), `cover`,
   `best` ({`key`, `label`}) - the hub cards and stats read it.
 - Workshop files (prompts, raw paintings, guides, Blender scripts, tests) live beside it in
-  `scripts/games/<slug>/` (Hani's: `scripts/hani-games/`), never under `public/`.
+  `scripts/<character>-games/<slug>/` (Hani's: `scripts/hani-games/`), never under `public/`.
 - **No Hani-face pictures in git** - the paintings made from her portrait stay out (the playhouse already follows this).
 
 ## 4. The plan
@@ -166,17 +176,16 @@ spot / try).
 - **As phones, by touch**: 320x568, 360x640, 390x844, 412x915 upright (and landscape): nothing overflows, nothing hides
   under the strip or the thumbs, every button reachable. Fix, run again.
 - **For fun, not only bugs**: pacing, difficulty, feedback, the character's lines firing at the right moments.
-- Keep the tests in `scripts/games/<slug>/tools/` (t1-play.js, t2-phones.js - start from
+- Keep the tests in `scripts/<character>-games/<slug>/tools/` (t1-play.js, t2-phones.js - start from
   `scripts/hani-games/pilai/tools/`, which play the tutorial, every round and five phone sizes).
 - Then show him: the local link (`python -m http.server <port>` in `public/`) and two or three screenshots.
 
 ## 8. Live on shlomiverse.com - only on his word
 - **Hani's games**: follow `hani-games.md` in this folder (the playhouse's release tool; the hub page has its owner).
-- **Every other game**: commit its folder (`public/games/<slug>/`) and its workshop (`scripts/games/<slug>/`), rebase
-  on `origin/main`, push, then `bash scripts/deploy.sh` (the one deploy - never a bare `firebase deploy`). The first
-  game under `/games/` also adds a `/games/**` `Cache-Control: no-cache` header to `firebase.json` (as `/hani-games/**`
-  has), so players always get the newest files, and makes the hub `public/games/index.html` (cards from each
-  `game.json`; he approves its look first).
+- **Every other game**: commit its folder (`public/<character>-games/<slug>/`) and its workshop
+  (`scripts/<character>-games/<slug>/`), rebase on `origin/main`, push, then `bash scripts/deploy.sh` (the one deploy -
+  never a bare `firebase deploy`), then the wiki build + push so it shows on the character's page. Bump `game.js?v=N`
+  on every change (the site caches files).
 - **A new page is not done until it is listed** (BoostMind CLAUDE.md): `/all/` (`python scripts/all/catalog.py`), the
   character's studio profile (`links` / `site`), their world in `zoomcut/characters/index.json` if it gets a site, the
   links page's sites strip, and the sites table in `zoomcut/skill/edit-video/wiki.md`.

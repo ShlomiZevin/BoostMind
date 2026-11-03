@@ -1,0 +1,4 @@
+art/**/*.png
+shots/
+sfx/*.mp3
+sfx/*.log

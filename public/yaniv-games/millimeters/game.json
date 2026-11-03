@@ -1,0 +1,10 @@
+{
+  "slug": "millimeters",
+  "title": "מילימטרים",
+  "tagline": "פיזיותרפיה ליניב: יש לו טווח תנועה של מילימטרים – עוד קצת והוא צועק. כמה טיפולים תשרדו?",
+  "character": "yaniv",
+  "world": "טקי-טק",
+  "status": "live",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:millimeters:best", "label": "טיפולים" }
+}

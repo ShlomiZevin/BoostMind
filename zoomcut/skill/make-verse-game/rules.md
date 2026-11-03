@@ -26,6 +26,13 @@ principles - apply them to whatever the game is.
 - Animated buttons (a breathing "play") are "not stable" to Playwright - click them with `{ force: true }` in tests.
 
 ## Art
+- A picture that moves at a joint (a limb bending): paint the WHOLE part straight with a brace / tape on the joint,
+  then cut it at the support in code and turn the far side - one painting keeps scale and skin the same, and the
+  support hides the seam (מילימטרים, 3 Nov 2026).
+- Don't describe what the game draws on top of a background in its prompt - the painter paints it in. Ask for the
+  empty place.
+- OpenAI's filter can refuse a harmless medical prop (a neck collar was refused twice as "self-harm"): drop it and
+  pick another, don't fight it.
 - Concept picture first, approved, then the real art.
 - A character the player sees a lot = painted poses from their own portrait (or from an approved painted design),
   normalised to the same size and foot line, each pose on a canvas wide enough that arms and fingers are never cut.
@@ -40,6 +47,7 @@ principles - apply them to whatever the game is.
 - Pictures for the screen: jpg / webp at the size they are shown (cards ~480 px), transparent png only where needed.
 
 ## Sound
+- ElevenLabs takes at most 5 requests at once - make sounds in batches of 3-4.
 - Never one sound for a repeated event: 2-4 variants, picked so the same one never plays twice in a row.
 - The character's real voice where it exists; otherwise ElevenLabs sound effects; music only when it earns it.
 - Audio starts from a tap (browsers block it before); a sound button that is remembered; everything pauses on pause
