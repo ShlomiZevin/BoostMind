@@ -1,8 +1,8 @@
 // play test: the tutorial (real taps on Asaf, leaving the good news alone), then a real round played well, then
-// played badly until it ends -> ../shots/.  python -m http.server 5303 (in scripts/asaf-games/sofa/build); node .../t1-play.js [BASE]
+// played badly until it ends -> ../shots/.  python -m http.server 5302 (in BoostMind/public); node .../t1-play.js [BASE]
 const { chromium } = require(process.env.HOME + '/plaxzy-creator/node_modules/playwright-core');
 const path = require('path'), fs = require('fs');
-const BASE = process.argv[2] || 'http://localhost:5303';
+const BASE = process.argv[2] || 'http://localhost:5302/asaf-games';
 const OUT = path.join(__dirname, '..', 'shots'); fs.mkdirSync(OUT, { recursive: true });
 const wait = (p, ms) => p.waitForTimeout(ms);
 // tap every Asaf that is up (twice for the phone one), never the good news
@@ -16,7 +16,7 @@ async function bopAll(p) {
   for (const [name, vp] of [['phone', { width: 390, height: 844 }], ['wide', { width: 1280, height: 760 }]]) {
     const p = await (await b.newContext({ viewport: vp, deviceScaleFactor: 1 })).newPage(); const errs = [];
     p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/t\.js|game-frame|404/.test(m.text())) errs.push(m.text()); });
-    await p.goto(BASE + '/sofa/'); await wait(p, 1500);
+    await p.goto(BASE + '/sofa/' + (BASE.startsWith('https') ? '?notrack=1' : '')); await wait(p, 1500);
     await p.screenshot({ path: `${OUT}/${name}-start.png` });
     await p.click('#playBtn', { force: true }); await wait(p, 700);
     for (let i = 0; i < 3; i++) { await p.screenshot({ path: `${OUT}/${name}-tut${i + 1}.png` }); await p.keyboard.press('Space'); await wait(p, 300); }

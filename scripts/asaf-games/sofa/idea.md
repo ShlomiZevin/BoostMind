@@ -11,4 +11,4 @@ proven to work. He picked whack-a-mole in the living room. Yossi and his mother 
 - Faster with time: more at once (1 -> 3), shorter up time.
 - Records: shlomiverse:sofa:best / :day. Stats: site asaf-games, track('game_start'|'game_over', 'sofa').
 - Art: OpenAI (sunburst for Asaf from his new portrait, flare for the room / items), sounds ElevenLabs (project game-asaf-sofa).
-- Built in scripts/asaf-games/sofa/build/sofa/ until he OKs it; then it moves to public/asaf-games/sofa/.
+- LIVE 3 Nov 2026 at public/asaf-games/sofa/ (shlomiverse.com/asaf-games/sofa/).
