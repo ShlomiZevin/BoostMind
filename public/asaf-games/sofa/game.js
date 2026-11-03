@@ -122,9 +122,9 @@ function spawn(kind, spot, up) {
   const m = { spot, kind, phase: 'rise', t: 0, up, y: 1, hits: 0 };
   if (kind === 'good') m.good = pick(GOOD);
   else m.pose = kind === 'phone' ? 'phone' : pick(['talk', 'smug']);
+  if (kind === 'asaf') m.line = pickNo(LINES.pop, 'pop');
+  if (kind === 'phone') m.line = pickNo(LINES.phone, 'ph');
   moles.push(m); play('pop', .45);
-  if (kind === 'asaf') say(pickNo(LINES.pop, 'pop'), Math.min(1.6, up + .2));
-  if (kind === 'phone') say(pickNo(LINES.phone, 'ph'), Math.min(1.8, up + .2));
   return m;
 }
 // how hard it is after T seconds
@@ -246,6 +246,27 @@ function drawMole(m, now) {
     ctx.strokeStyle = left < 0.35 ? '#ef4444' : '#facc15'; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left); ctx.stroke(); ctx.restore();
   }
 }
+// his line in a soft bubble beside his head, on the side with more room
+function drawBubble(m) {
+  const r = moleRect(m), fs = clamp(Math.round(r.w * 0.085), 13, 18), pad = fs * 0.55, maxW = Math.min(W * 0.46, fs * 9);
+  ctx.save(); ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const words = m.line.split(' '), rows = []; let row = '';
+  for (const w of words) { const t = row ? row + ' ' + w : w; if (ctx.measureText(t).width > maxW && row) { rows.push(row); row = w; } else row = t; }
+  rows.push(row);
+  const bw = Math.max(...rows.map((t) => ctx.measureText(t).width)) + pad * 2, bh = rows.length * fs * 1.25 + pad * 1.4;
+  const headX = r.x + r.w / 2, headY = r.y + r.h * 0.2, right = m.spot.x < ROOM.w / 2;
+  let bx = right ? headX + r.w * 0.24 : headX - r.w * 0.24 - bw, by = headY - bh * 0.9;
+  bx = clamp(bx, 6, W - bw - 6); by = clamp(by, L.top - 30, H - bh - 70);
+  ctx.globalAlpha = 1 - m.y;
+  ctx.fillStyle = '#fffaf2f0'; ctx.strokeStyle = '#5b3b2466'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, Math.min(16, bh / 2)); ctx.fill(); ctx.stroke();
+  // the little tail toward his mouth
+  const tx = right ? bx + 10 : bx + bw - 10, ty = by + bh;
+  ctx.beginPath(); ctx.moveTo(tx - 7, ty - 2); ctx.lineTo(right ? tx - 14 : tx + 14, ty + 11); ctx.lineTo(tx + 7, ty - 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2a1d14';
+  rows.forEach((t, i) => ctx.fillText(t, bx + bw / 2, by + pad * 0.7 + fs * 1.25 * (i + 0.5)));
+  ctx.restore();
+}
 function draw(now) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#efd9b8'); g.addColorStop(1, '#e2bf93');
@@ -254,6 +275,7 @@ function draw(now) {
   // the window and the sofa back are behind the arms and the basket: draw the far ones first
   const order = ['win', 'bL', 'bM', 'bR', 'aL', 'aR', 'tbl', 'bas', 'chr'];
   for (const id of order) for (const m of moles) if (m.spot.id === id) drawMole(m, now);
+  for (const m of moles) if (m.line && (m.phase === 'rise' || m.phase === 'up')) drawBubble(m);
   if (swing.t > 0 && ok(IMG.news)) {                               // the newspaper comes down
     const p = 1 - swing.t / 0.2, a = -0.9 + p * 1.3, sz = Math.min(170, W * 0.36);
     ctx.save(); ctx.translate(swing.x + sz * 0.15, swing.y + sz * 0.05); ctx.rotate(a);
