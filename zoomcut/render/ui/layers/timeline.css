@@ -86,11 +86,10 @@
 .ltl-lay.drop-above::before, .ltl-lay.drop-below::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); z-index: 8; pointer-events: none; }
 .ltl-lay.drop-above::before { top: -1px; }
 .ltl-lay.drop-below::after { bottom: -1px; }
-/* open just this clip: a small round button ABOVE the block on hover (and while picked), near its start but clear of
-   the start grip - so a tiny block has one too, and the edges stay free to click */
-.ltl .blk .blk-open { position: absolute; left: 12px; top: -17px; z-index: 3; width: 18px; height: 18px; border-radius: 50%;
+/* open just this clip: a small round button ABOVE the block on hover (and while picked), right above the mouse (--mx,
+   set as it moves) - so a tiny block has one too, and the edges stay free to click */
+.ltl .blk .blk-open { position: absolute; left: var(--mx, 21px); margin-left: -9px; top: -17px; z-index: 3; width: 18px; height: 18px; border-radius: 50%;
   border: 0; padding: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.75); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
   color: #fff; cursor: pointer; opacity: 0; pointer-events: none; transition: background .15s, opacity .1s; }
-.ltl .blk .blk-open.mid { left: 50%; margin-left: -9px; }
 .ltl .blk:hover .blk-open, .ltl .blk.sel .blk-open { opacity: 1; pointer-events: auto; }
 .ltl .blk .blk-open:hover { background: var(--accent); }

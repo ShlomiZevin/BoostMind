@@ -46,7 +46,7 @@ One format, one composition, one editor, one export. The format and the API: `la
   (put back at once, every layer was heard for a split second at the end). A draft on api.ts's 'solo' channel
   (LayersEditor playOnly) - never saved, nothing rebuilds; ducking ignores the muted layers, so music alone is heard flat;
   **open just this clip** (2026-11-03, "like playing from the media, but quicker from the layers"): the round ▶ ABOVE
-  any block on hover (and on the picked one), near its start but clear of the edge grips, so a tiny block has one too -
+  any block on hover (and on the picked one), right above the mouse (--mx), so a tiny block has one too -
   it opens the clip's own file in Media's window (VideoPeek): a picture big, a video / sound from where the clip starts
   in the file, stopping once where it ends (play again = the rest), a text / subtitle its words. Esc closes it, Space
   plays / pauses it (not the video behind);

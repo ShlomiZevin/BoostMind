@@ -487,6 +487,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           style={{ left: px(it.from), width: Math.max(3, w), background: KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
                           title={isSel ? `${blockText(l, it, project)} - drag it, or its edges (click an edge, then , . or type ±ms)` : `${blockText(l, it, project)} - click to pick it (near its start / end: that edge)`}
+                          onMouseMove={onOpen ? (e) => { const el = e.currentTarget; el.style.setProperty('--mx', `${e.clientX - el.getBoundingClientRect().left}px`); } : undefined}
                           onMouseDown={(e) => {
                             if (isSel) { setEdge(null); setTyping(null); startDrag(e, l, it, 'm'); return; }
                             e.stopPropagation(); e.preventDefault(); flushNudge();
@@ -500,7 +501,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
                           {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
                           {onOpen && !drag && !ed && opens(l, it, project) && (
-                            <button className={`blk-open ${w < 40 ? 'mid' : ''}`} title={`Open just this ${OPEN_WORD[l.kind] || 'clip'} - its own file, without the other layers`}
+                            <button className="blk-open" title={`Open just this ${OPEN_WORD[l.kind] || 'clip'} - its own file, without the other layers`}
                               onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }} onClick={(e) => { e.stopPropagation(); onOpen({ layer: l.id, item: it.id }); }}>
                               <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>
                             </button>)}
