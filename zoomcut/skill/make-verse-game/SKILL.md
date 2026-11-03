@@ -86,7 +86,13 @@ Read before any idea - the game must be something THIS character would be in:
 ## 2. The idea - concepts as pictures, his pick
 - Suggest 3-4 game ideas in plain words, each one sentence of "what you DO" + why it is this character. Ask with
   clickable options (AskUserQuestion), short. **"You decide"** = pick yourself, ask nothing, build, then show.
-- **The core loop must be the joke / the heart of the character, not a skin on a generic game.** Learnt the hard way
+- **Start from a mechanic that is proven to work** (his rule, 3 Nov 2026): Pac-Man, Space Invaders, whack-a-mole,
+  Breakout, Tetris, a runner, a fishing reel... - a real, known game whose loop is fun by itself - and put the
+  character's story on it. Never invent a new mechanic, and never make a quiz or a dialogue picker ("pick the right
+  answer") - those were all rejected for Asaf. Each idea = "<known game> + <who the character is>".
+- **About who the character IS, not one video**: their running traits across all their videos (Asaf is always on the
+  sofa, can't be happy for you) - the newest video is a source of lines, not the whole game.
+- **The story carries the character, not a skin on a generic game.** Learnt the hard way
   on פילאי פלואים (2 Nov 2026): merge icons, flip cards, memory and a "glasses that turn bad to good" game were all
   rejected - "the glasses don't do anything but turn it to good; we need to SEE the miracle". What worked (a story
   chain: order the cards between the mishap and the miracle) made the player DO the idea. Ask: does playing it feel
