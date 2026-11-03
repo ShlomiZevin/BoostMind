@@ -1,0 +1,98 @@
+{
+ "positive_global_styles": [
+  "quirky comedy",
+  "awkward cringe moment",
+  "light, cheerful and comic",
+  "120 BPM",
+  "bouncy staccato piano",
+  "pizzicato bass",
+  "marimba",
+  "woodblock and triangle",
+  "comedic timing, mischievous",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "sad",
+  "cinematic",
+  "epic",
+  "dark",
+  "drone",
+  "pads",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "aggressive",
+  "heavy",
+  "rock",
+  "dubstep"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick pickup, straight into the tune"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 3000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "staccato piano theme, mischievous"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "marimba takes over, bouncy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "piano and woodblock, cheeky stops"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "full quirky groove, light"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  }
+ ]
+}

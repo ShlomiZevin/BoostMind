@@ -7,6 +7,7 @@ const OUT = path.join(__dirname, '..', 'shots'); fs.mkdirSync(OUT, { recursive: 
 const wait = (p, ms) => p.waitForTimeout(ms);
 // drag the handle from its place to angle `to` (degrees) in `ms`
 async function bend(p, to, ms = 900) {
+  await p.waitForFunction(() => MILLI.cur.back <= 0 && MILLI.cur.flinch <= 0, null, { timeout: 5000 }).catch(() => {});
   const g = await p.evaluate(() => ({ L: MILLI.L, a: MILLI.cur.a }));
   const pt = (a) => ({ x: g.L.PX + Math.cos(-a * Math.PI / 180) * g.L.R, y: g.L.PY + Math.sin(-a * Math.PI / 180) * g.L.R });
   const s = pt(g.a); await p.mouse.move(s.x, s.y); await p.mouse.down();

@@ -1,0 +1,107 @@
+{
+ "positive_global_styles": [
+  "TikTok awkward cringe moment beat",
+  "deadpan funny synth-pop",
+  "bouncy synth bass",
+  "quirky synth arpeggio hook",
+  "punchy electronic drums with claps",
+  "stabby synth chords",
+  "full layered mix",
+  "118 BPM",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "cartoon",
+  "childish",
+  "kids show",
+  "circus",
+  "kazoo",
+  "slide whistle",
+  "toy instruments",
+  "nursery",
+  "sparse",
+  "thin",
+  "naked",
+  "minimal",
+  "ambient",
+  "slow",
+  "sad",
+  "cinematic",
+  "epic",
+  "dark",
+  "vocals",
+  "singing",
+  "choir",
+  "heavy metal"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "the beat drops in right away, full groove from the first bar"
+   ],
+   "negative_local_styles": [
+    "slow build",
+    "solo instrument intro"
+   ],
+   "duration_ms": 3000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "bouncy synth bass and arpeggio hook",
+    "full mix, layered, punchy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "silence",
+    "slowing down"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "stabby chords answer, deadpan",
+    "full mix, layered, punchy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "silence",
+    "slowing down"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "filter sweep, claps, cheeky hook variation",
+    "full mix, layered, punchy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "silence",
+    "slowing down"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "everything in, confident awkward",
+    "full mix, layered, punchy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "silence",
+    "slowing down"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  }
+ ]
+}

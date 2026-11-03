@@ -1,0 +1,100 @@
+{
+ "positive_global_styles": [
+  "dry corporate comedy",
+  "cynical everyday groove",
+  "muted electric guitar",
+  "Wurlitzer electric piano",
+  "compact acoustic drum kit",
+  "rounded electric bass",
+  "subtle syncopation",
+  "understated awkwardness",
+  "warm analog production",
+  "100 BPM",
+  "instrumental",
+  "dialogue-first mix, warm and compact"
+ ],
+ "negative_global_styles": [
+  "acoustic happy folk",
+  "indie claps",
+  "cheerful advertising music",
+  "funk party music",
+  "slap bass",
+  "disco",
+  "trap",
+  "afrobeat",
+  "synthpop",
+  "vocals",
+  "spoken words",
+  "childish cartoon music",
+  "kazoo",
+  "ukulele",
+  "tuba",
+  "clown music",
+  "slide whistle",
+  "toy instruments",
+  "empty",
+  "thin",
+  "naked",
+  "solo instrument alone",
+  "silence",
+  "cinematic trailer"
+ ],
+ "sections": [
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "rounded bass, short kick, rim-click snare, muted guitar single notes, slightly stiff groove like a tired employee walking to a meeting",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "Wurlitzer sparse minor chords placed slightly late, guitar dry and percussive",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "quiet shaker and a tiny two-note guitar side-eye motif after pauses, chromatic chord colour",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "bass and Wurlitzer carry it with the drums, one brief muted-guitar side-eye phrase",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  }
+ ]
+}

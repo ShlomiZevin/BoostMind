@@ -1,0 +1,99 @@
+{
+ "positive_global_styles": [
+  "dry office noir comedy",
+  "cynical bass clarinet motif",
+  "Rhodes electric piano",
+  "subdued breakbeat",
+  "warm bass guitar",
+  "muted trumpet accents",
+  "awkward everyday humor",
+  "lightly jazzy harmony without solos",
+  "94 BPM",
+  "instrumental",
+  "dialogue-first mix, warm and compact"
+ ],
+ "negative_global_styles": [
+  "noir detective cliche",
+  "big band",
+  "saxophone solo",
+  "swing jazz",
+  "cartoon villain music",
+  "circus",
+  "trap",
+  "EDM",
+  "dramatic brass",
+  "vocals",
+  "spoken words",
+  "childish cartoon music",
+  "kazoo",
+  "ukulele",
+  "tuba",
+  "clown music",
+  "slide whistle",
+  "toy instruments",
+  "empty",
+  "thin",
+  "naked",
+  "solo instrument alone",
+  "silence",
+  "cinematic trailer"
+ ],
+ "sections": [
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "short dry drum groove, warm bass guitar, Rhodes minor-seventh chords, calm and slightly tired",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "bass clarinet slow three-note skeptical motif every four bars, unimpressed",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "muted trumpet small punctuation notes low in the mix, more shaker",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "bass clarinet final downward phrase as if giving up, groove keeps going",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  }
+ ]
+}

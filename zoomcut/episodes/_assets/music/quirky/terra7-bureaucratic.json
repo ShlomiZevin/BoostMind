@@ -1,0 +1,100 @@
+{
+ "positive_global_styles": [
+  "bureaucratic office comedy",
+  "subtle awkward tension",
+  "cynical groove",
+  "muted percussion",
+  "electric piano",
+  "low synth bass with organic bass texture",
+  "restrained muted trumpet",
+  "minimal harmonic movement",
+  "88 BPM",
+  "instrumental",
+  "dialogue-first mix, warm and compact"
+ ],
+ "negative_global_styles": [
+  "comedy cartoon",
+  "spy chase",
+  "heist music",
+  "trap",
+  "reggaeton",
+  "afrobeat",
+  "upbeat pop",
+  "synthwave",
+  "EDM build",
+  "big drops",
+  "vocals",
+  "spoken words",
+  "childish cartoon music",
+  "kazoo",
+  "ukulele",
+  "tuba",
+  "clown music",
+  "slide whistle",
+  "toy instruments",
+  "empty",
+  "thin",
+  "naked",
+  "solo instrument alone",
+  "silence",
+  "cinematic trailer"
+ ],
+ "sections": [
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "compact kick and rim-click pattern, warm low bass, dry electric piano chord fragments, patient and stubborn",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "a tiny weary muted trumpet phrase every eight bars",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "closed hats and a quiet low synth pulse under the bass, static waiting-room tension",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "the rhythm continues stubbornly, a short descending electric-piano sigh",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  }
+ ]
+}
