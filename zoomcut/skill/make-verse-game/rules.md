@@ -1,0 +1,62 @@
+# Build rules for Shlomiverse games
+
+Learnt from Plaxzy's Creator (its build rules and the owners' rounds on ~20 games) and from the playhouse's games
+(ניסי ניסים, מזבח הקטורת, 4:20, שקל טוב, יוסף מוקיר שבת, פילאי פלואים). Each one cost a round with him. They are
+principles - apply them to whatever the game is.
+
+## The idea
+- **The player's action carries the meaning.** If the "game" is watching something happen, or one tap turns bad into
+  good, it is a toy, not a game. The character's idea must be what you DO.
+- **Thinking, not spamming.** Something to read before acting (what is coming, what is hidden, what the order is),
+  and a reason to choose. A bot that plays properly finds unfair spots made by chance - use one.
+- **Not tight to the script.** A game can start from a video's idea and go its own way; it must feel like the
+  character, not retell the episode.
+- **Simple** (his rule): the fewest screens, options and buttons that still make it a full game. No settings pages.
+
+## Screens and layout
+- Start screen: the game's cover art as the hero, the title, one line of what it is, ONE big main button ("שחקו"),
+  a quieter "איך משחקים", the record, and a small footer (back to the hub, sound). Not a stack of equal buttons.
+  He called a plain menu "terrible" - the start screen is the game's shop window.
+- Phone upright is the main layout; the computer layout is the same game with more room, not a different design.
+- Measure the layout from the real viewport (CSS variables set from `innerWidth` / `innerHeight`), with a smaller
+  mode for very small phones. Nothing may need scrolling.
+- When an action is finished (a round done), hide what can no longer be used and show the next button where the
+  thumb is. A button under another layer is a bug.
+- Clear transient effects (banners, flying pieces) before showing an end screen.
+- Animated buttons (a breathing "play") are "not stable" to Playwright - click them with `{ force: true }` in tests.
+
+## Art
+- Concept picture first, approved, then the real art.
+- A character the player sees a lot = painted poses from their own portrait (or from an approved painted design),
+  normalised to the same size and foot line, each pose on a canvas wide enough that arms and fingers are never cut.
+  Code uses each picture's real width.
+- Everyone painted into a scene must match their profile (age, hair, clothes, glasses) - put the profile's look
+  sentence into the prompt, and look at every result.
+- A reference photo pulls its people into the picture: give a reference only to the pictures that should contain
+  that person.
+- Background people follow the world's rules (a Haredi office background = men only).
+- The painter adds things you did not ask for (symbols, a smartphone instead of a kosher phone, food on the floor) -
+  check every picture before it goes in, regenerate what is wrong.
+- Pictures for the screen: jpg / webp at the size they are shown (cards ~480 px), transparent png only where needed.
+
+## Sound
+- Never one sound for a repeated event: 2-4 variants, picked so the same one never plays twice in a row.
+- The character's real voice where it exists; otherwise ElevenLabs sound effects; music only when it earns it.
+- Audio starts from a tap (browsers block it before); a sound button that is remembered; everything pauses on pause
+  and stops on pagehide / leaving the page.
+
+## Tutorial
+- One step at a time with the game frozen, a spotlight on the real thing, the card away from the spotlight.
+- "Try it now" steps wait for the real action and say "nice!" before going on.
+- The tutorial uses its own fixed content, never spends score, lives or records, and the real game starts clean.
+
+## Records and stats
+- Best as a plain number under the agreed key (hubs read it); extra data (a time, a date) under its own key.
+- A daily record = the same course for everyone that day (seeded by date).
+- `track('game_start')` when a real round starts (not the tutorial), `track('game_over')` at its end.
+
+## Testing
+- Play the whole thing: tutorial, every level / story, a mistake on purpose, the end screen - with real clicks.
+- Four upright phone sizes plus a landscape, with touch; assert no overflow and that the main buttons are on screen.
+- A test reads state through the game's test hook, never by guessing from pixels.
+- Test the LIVE page after release the same way.

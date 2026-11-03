@@ -39,6 +39,8 @@ Shlomi found new sites missing from his lists because some sessions never added 
   so every sender's email reaches /backstage/ (אנשים): load `/verse/site-signin.js`, `await SiteSignIn.ensure('<site>')`,
   send its token as `authorization: Bearer`; add the site to `SITE_NAMES` in `techietech-api/index.js` and `SITES` in
   `public/backstage/index.html`.
+- **A game for a character** (Hani's playhouse or anyone in the verse): load the `make-verse-game` skill
+  (`zoomcut/skill/make-verse-game/`) - games live at /hani-games/<slug>/ or /games/<slug>/, never on Plaxzy.
 - **A finished video** reaches the wiki and the links page by itself when it is published from Sketch Studio
   (a "Shlomiverse" job); one that missed it: `python scripts/wiki/publish_site.py <episode-id>`.
 
