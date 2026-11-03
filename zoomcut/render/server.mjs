@@ -32,6 +32,17 @@ const PORT = Number(process.env.PORT || 4747);
 const TEST = process.env.ZC_CLOUD === 'test';
 
 const app = express();
+// an error in one request answers that request with it - never takes the whole studio down (2026-11-03: ops on a
+// folder without episode.json threw inside an async route; nothing caught the rejection and the server exited). Express 4
+// doesn't catch a handler's rejected promise: every route's handler is wrapped to pass it on (the default error handler
+// answers with its .status, else 500)
+for (const verb of ['get', 'post', 'put', 'delete']) {
+  const plain = app[verb].bind(app);
+  app[verb] = (route, ...hs) => (hs.length ? plain(route, ...hs.map((h) => (typeof h === 'function' && h.length < 4
+    ? (q, r, n) => { try { const x = h(q, r, n); if (x && typeof x.catch === 'function') x.catch(n); } catch (e) { n(e); } }
+    : h))) : plain(route));  // (app.get('name') with no handler reads a setting)
+}
+process.on('unhandledRejection', (e) => console.error('[unhandled]', e?.stack || e));  // (anything else: logged, the studio stays up)
 app.use(express.json({ limit: '2mb' }));
 characters(app, { ROOT, EPS });  // the Characters page: the multiverse (characters.mjs)
 ideas(app, { ROOT });  // the Ideas page: his notebook of video ideas (ideas.mjs)
@@ -780,6 +791,44 @@ app.post('/api/karaoke/take', express.raw({ type: '*/*', limit: '400mb' }), (q, 
 });
 // Script Reader: read the whole script while filming, with the character you're playing lit up
 app.use('/reader', express.static(path.join(HERE, 'reader')));
+// Shoot: film with the webcam - filters + the project's script as a prompter; every take straight into the project's
+// footage folder (its input_dir). The same page as the iPhone's (drop/shoot.html on the Drop service), told it is here
+const shootDir = (id) => { const cfg = readJson(path.join(epDir(id), 'episode.json'), {}); return cfg.input_dir ? path.resolve(cfg.input_dir) : path.join(DOWNLOADS, 'drop', path.basename(id)); };
+const shootName = (s) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 100);
+app.get('/shoot', (_q, res) => res.type('html').set('Cache-Control', 'no-store')
+  .send(fs.readFileSync(path.join(ROOT, 'drop', 'shoot.html'), 'utf8').replace('<head>', '<head><script>window.SHOOT_LOCAL = true</script><script src="/studio/bar.js"></script>')));
+app.get('/api/shoot/takes', (q, res) => {  // the videos already in the project's folder, newest first
+  try {
+    const dir = shootDir(String(q.query.ep || ''));
+    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => VIDEO.test(f) || /\.webm$/i.test(f)).map((f) => { const st = fs.statSync(path.join(dir, f)); return { name: f, size: st.size, mtime: st.mtimeMs }; }) : [];
+    res.json({ dir, files: files.sort((a, b) => b.mtime - a.mtime) });
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+app.post('/api/shoot/take', (q, res) => {  // the take's bytes (streamed - a long take is big): name taken = name-2
+  try {
+    const dir = shootDir(String(q.query.ep || ''));
+    fs.mkdirSync(dir, { recursive: true });
+    const want = shootName(q.query.name) || 'shot.mp4', i = want.lastIndexOf('.'), [base, ext] = i > 0 ? [want.slice(0, i), want.slice(i)] : [want, ''];
+    let name = want;
+    for (let k = 2; fs.existsSync(path.join(dir, name)); k++) name = `${base}-${k}${ext}`;
+    const part = path.join(dir, name + '.part'), out = fs.createWriteStream(part);
+    q.pipe(out);
+    out.on('finish', () => { fs.renameSync(part, path.join(dir, name)); res.json({ name, dir }); });
+    out.on('error', (e) => { try { fs.rmSync(part); } catch {} res.status(500).json({ error: e.message }); });
+    q.on('aborted', () => { out.destroy(); try { fs.rmSync(part); } catch {} });
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
+app.get('/api/shoot/file', (q, res) => {
+  try { res.sendFile(path.join(shootDir(String(q.query.ep || '')), path.basename(String(q.query.name || '')))); } catch (e) { res.status(e.status || 500).end(); }
+});
+app.post('/api/shoot/delete', (q, res) => {  // only a take filmed here (shot-...), never other footage
+  try {
+    const name = path.basename(String(q.body?.name || ''));
+    if (!/^shot-/.test(name)) return res.status(400).json({ error: 'only takes filmed in Shoot' });
+    fs.rmSync(path.join(shootDir(String(q.body?.folder || '')), name), { force: true });
+    res.json({ ok: true });
+  } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
+});
 app.use('/studio', express.static(path.join(HERE, 'studio')));  // the shared top bar + the shell
 app.get(['/', '/index.html'], (_q, res) => res.sendFile(path.join(HERE, 'studio', 'index.html')));  // Sketch Studio: rail + tools
 // saved scripts for the Reader (prompter texts, pasted dialogues): zoomcut/scripts/<id>.txt, first line "# name"
