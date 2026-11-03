@@ -1166,3 +1166,13 @@ section.hero .scroll-hint { z-index: 1; }
   .foot-links a { flex-direction: column; justify-content: center; gap: 4px; height: 58px; padding: 0 4px; border-radius: 16px; font-size: .78rem; white-space: nowrap; }
   .foot-links svg { width: 18px; height: 18px; }
 }
+
+/* a character's games on their page: cover + name + one line, two across on a phone */
+.cgames { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.cgame { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-radius: 18px; overflow: hidden; background: var(--card); border: 1px solid var(--line); color: var(--text); transition: border-color .15s; }
+.cgame:hover { border-color: var(--vx-accent); }
+.cg-pic { display: block; aspect-ratio: 1.91 / 1; background: var(--card2); overflow: hidden; }
+.cg-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cgame b { padding: 6px 12px 0; font-weight: 800; font-size: .98rem; }
+.cgame small { padding: 0 12px; color: var(--dim); font-size: .8rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 600px) { .cgames { grid-template-columns: 1fr 1fr; gap: 10px; } .cgame b { font-size: .88rem; padding: 6px 10px 0; } .cgame small { padding: 0 10px; font-size: .74rem; } }

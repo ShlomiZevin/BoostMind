@@ -505,6 +505,9 @@ const filterChips = (active, base) => `<div class="chips">
 // site carries `in` = that site's id). The bio link points here since 2026-11-01, so this is where people find them all.
 // Designed with GPT Image (scripts/v2-design/sites-panel.mjs): a swipe row on the home, a page grouped by world.
 const sitesTop = () => (W.site_list || []).filter((s) => !s.in);
+// a character's games = every live game (a folder with game.json) inside a site they own - build.py's site_list, nothing to
+// fill by hand (his ask 2026-11-03: games belong on the character's page)
+const charGames = (id) => (W.site_list || []).filter((g) => g.in && (g.whose || []).includes(id));
 const siteGames = (s) => (W.site_list || []).filter((g) => g.in === s.id);
 // whose = [series ids first when a world owns it, then residents]: a company / world site shows no face, a person's does
 const siteOwner = (s) => { const w = s.whose || []; return S[w[0]] ? null : w.map((id) => C[id]).find((c) => c && c.img); };
@@ -633,6 +636,7 @@ const pages = {
         </div></div></section>
       <div class="wrap" style="--c:${color(c)}">
         ${c.quotes.length ? `<section class="sec"><div class="sec-h"><h2>משפטים מוכרים</h2></div><div class="bubbles">${c.quotes.map((x) => `<div class="bubble">${esc(x.replace(/^[״"]|[״"]$/g, ''))}</div>`).join('')}</div></section>` : ''}
+        ${charGames(id).length ? `<section class="sec"><div class="sec-h"><h2>משחקים</h2></div><div class="cgames">${charGames(id).map((g) => `<a class="cgame" href="${esc(g.url)}" data-site-out="${g.id}"><span class="cg-pic">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}</span><b>${esc(g.title)}</b>${g.tagline || g.about ? `<small>${esc(g.tagline || g.about)}</small>` : ''}</a>`).join('')}</div></section>` : ''}
         <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>
           ${c.videos.length ? `<div class="vgrid">${c.videos.map((v) => vcard(V[v])).join('')}</div>` : `<div class="empty">עוד אין כאן סרטונים, אבל אפשר כבר לדבר עם ${esc(c.name)}.</div>`}</section>
         ${rel.length ? `<section class="sec"><div class="sec-h"><h2>מכירים מקרוב</h2></div><div class="rel">${rel.map((r) => `<a href="#/c/${r}"><span class="av">${face(C[r])}</span>${esc(C[r].name)}</a>`).join('')}</div></section>` : ''}
