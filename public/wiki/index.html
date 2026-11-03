@@ -576,6 +576,7 @@ const pages = {
     const games = (W.games || []).slice(0, 12);
     const sections = `${games.length ? `<section class="sec"><div class="sec-h"><h2>${GT.row}</h2><a href="#/games">${GT.all} ←</a></div>
         <div class="grow">${games.map((g) => gcard(g)).join('')}</div></section>` : ''}
+      ${games.some((g) => g.record) ? '<div id="rec-slot"></div>' : ''}
       <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
         <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>

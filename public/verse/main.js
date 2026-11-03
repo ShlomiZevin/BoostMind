@@ -15,6 +15,8 @@ Object.assign(HOOK, {
   openStory,
   closeOverlays: () => {
     const a = closePlayer(), b = closeStory();
+    // back onto the home kept from under a video / game opened straight from a link: its records were never filled in
+    if ((a || b) && !(location.hash.slice(1) || '/').split('?')[0].split('/')[1]) setTimeout(recordsHome, 0);
     // a video opened from the chat: back to that conversation
     if (a && HOOK.chatReturn) { const mode = HOOK.chatReturn; HOOK.chatReturn = null; setTimeout(() => openChat(mode), 0); }
     return a || b;
