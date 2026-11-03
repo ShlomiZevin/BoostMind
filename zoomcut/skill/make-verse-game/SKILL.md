@@ -46,6 +46,26 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
 - **Browser tests**: Playwright (`playwright-core` from any local node_modules, e.g. `~/plaxzy-creator`) driving the
   installed Chrome (`C:/Program Files/Google/Chrome/Application/chrome.exe`, `--use-angle=swiftshader` for WebGL).
 
+## The makers - always these
+- **Every picture = OpenAI GPT Image 2.5** (`flare` by default, `sunburst` for the most exact - characters, cover,
+  title), called directly: game art, the concept picture, the cover, the title art, the share picture, story
+  pictures. Never Leonardo (only if OpenAI refuses or fails), never shapes drawn in code for what the player looks at.
+- **Every sound = ElevenLabs**: sound effects, loops, voices and music (`leonardo.mjs sfx|loop` calls ElevenLabs
+  directly, `elevenlabs_music.mjs` for music, `elevenlabs.mjs` for voices).
+- Through the Sketch Studio tools above, so each result lands in the editor's library with its labels.
+
+## Every game ships with its cover and its title - not optional
+A game is not done without these, all made with OpenAI from the game's real look and the character's portrait,
+and shown to him before they are used:
+1. **The cover** (`cover.jpg`, 4:3, for the hub card) - ONE painted picture, the character at the center, the game's
+   world; no text over faces.
+2. **The title art** - the game's name as painted lettering (`assets/title.png`, transparent background, `--transparent`),
+   in the game's style; used on the start screen, the end screen and the promo. Hebrew spelled exactly as given in the
+   prompt; check every letter.
+3. **The start-screen hero** (`assets/hero.jpg`) - the cover with the title on it, as the start screen's main picture.
+4. **The share picture** (`assets/share.jpg`, 1200x630) + `og:image` / `og:title` / `og:description` in `index.html`.
+5. The **story picture** for the launch (step 9).
+
 ## 1. The character comes first
 Read before any idea - the game must be something THIS character would be in:
 - `zoomcut/characters/<id>/profile.md` (who they are, how they talk, what is funny about them, their look, the rules
@@ -160,9 +180,8 @@ spot / try).
 - Verify live: open the real URL on a phone size with Playwright and play a round.
 
 ## 9. Tell the verse - a cover and a story
-- **Cover** (`cover.jpg`, 4:3 for the hub card) + a share picture (`assets/share.jpg`, 1200x630 with
-  `og:image` / `og:title` / `og:description` in `index.html`): ONE painted picture with the character at the center
-  and the game's title, made from the character's portrait. Show it before using it.
+- The cover, title art, hero and share picture (see "Every game ships with its cover and its title") are in place
+  and approved before release.
 - **A Shlomiverse story** to announce it (the `marketing-stories` skill for the picture and copy): a tall 9:16 picture,
   the character at the center, text never covered, the bottom 15% left free (the site puts its orange button there),
   posted with `OWNER_KEY=<ask him every time, never save it> node scripts/story.mjs story.json --test` first, then
