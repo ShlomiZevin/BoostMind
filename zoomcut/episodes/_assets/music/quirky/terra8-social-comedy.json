@@ -1,0 +1,100 @@
+{
+ "positive_global_styles": [
+  "modern social comedy underscore",
+  "dry upbeat deadpan groove",
+  "restrained boom-bap rhythm",
+  "crisp rim-click drums",
+  "warm electric bass",
+  "Rhodes",
+  "muted guitar plucks",
+  "subtle brass texture",
+  "awkward confident energy",
+  "polished but not pop",
+  "104 BPM",
+  "instrumental",
+  "dialogue-first mix, warm and compact"
+ ],
+ "negative_global_styles": [
+  "trap hi-hat rolls",
+  "drill",
+  "pop chorus",
+  "synthpop",
+  "party funk",
+  "disco",
+  "EDM drop",
+  "exaggerated horn stabs",
+  "vocals",
+  "spoken words",
+  "childish cartoon music",
+  "kazoo",
+  "ukulele",
+  "tuba",
+  "clown music",
+  "slide whistle",
+  "toy instruments",
+  "empty",
+  "thin",
+  "naked",
+  "solo instrument alone",
+  "silence",
+  "cinematic trailer"
+ ],
+ "sections": [
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "crisp dry beat, bass, short Rhodes chord, muted guitar pulse, momentum from the first bar",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "small two-note bass-and-guitar motif, lightly smug, repetitive",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "very soft muted brass texture and low trombone notes in the background, restrained shaker",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "beat, bass and Rhodes, one brief low brass hmph accent, groove keeps rolling",
+    "a full groove underneath at all times: kick, rim-click snare, shaker or closed hats, warm bass and chords never drop out"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "drums stop",
+    "slowing down"
+   ],
+   "duration_ms": 22500,
+   "lines": []
+  }
+ ]
+}

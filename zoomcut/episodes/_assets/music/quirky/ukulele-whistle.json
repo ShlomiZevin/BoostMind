@@ -1,0 +1,98 @@
+{
+ "positive_global_styles": [
+  "quirky comedy",
+  "light cheerful and comic",
+  "cringe office sitcom",
+  "124 BPM",
+  "ukulele strumming",
+  "whistling melody",
+  "hand claps",
+  "toy glockenspiel",
+  "kazoo accents",
+  "instrumental"
+ ],
+ "negative_global_styles": [
+  "slow",
+  "ambient",
+  "sparse",
+  "sad",
+  "cinematic",
+  "epic",
+  "dark",
+  "drone",
+  "pads",
+  "vocals",
+  "singing",
+  "choir",
+  "lo-fi",
+  "aggressive",
+  "heavy",
+  "rock",
+  "dubstep"
+ ],
+ "sections": [
+  {
+   "section_name": "Intro",
+   "positive_local_styles": [
+    "quick pickup, straight into the tune"
+   ],
+   "negative_local_styles": [
+    "slow build"
+   ],
+   "duration_ms": 3000,
+   "lines": []
+  },
+  {
+   "section_name": "Part 1",
+   "positive_local_styles": [
+    "ukulele and whistle theme"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 2",
+   "positive_local_styles": [
+    "kazoo answers the whistle, goofy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 3",
+   "positive_local_styles": [
+    "claps and glockenspiel, happy"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  },
+  {
+   "section_name": "Part 4",
+   "positive_local_styles": [
+    "everything together, cheeky"
+   ],
+   "negative_local_styles": [
+    "breakdown",
+    "slowing down",
+    "silence"
+   ],
+   "duration_ms": 21750,
+   "lines": []
+  }
+ ]
+}
