@@ -51,13 +51,14 @@ export function communityPage(q = {}) {
       <div class="chips nt-chips"><button class="chip ${sort === 'top' ? 'on' : ''}" data-idea-sort="top">${esc(T.ideasTop)}</button><button class="chip ${sort === 'new' ? 'on' : ''}" data-idea-sort="new">${esc(T.ideasNew)}</button></div>
       <div class="ideas">${list.length ? list.map(ideaCard).join('') : `<div class="empty">${esc(T.ideasEmpty)}</div>`}</div>
     </section>
+    <div class="cando cmy-st">${stickerTiles()}</div>
     ${tiles()}
     <a class="cmy-biz" href="#/business"><div><h3>${esc(T.bizCard)}</h3><p>${esc(T.bizCardSub)}</p><span class="vx-pill">${esc(T.bizCta)}</span></div><img src="/verse/logo-512.png" alt=""></a>
   </div>`;
 }
 const tiles = () => `<div class="cmy-tiles">
     <button class="cmy-tile" data-ask-char>${I.comment}<b>${esc(T.askTile)}</b><small>${esc(T.askSub)}</small></button>
-    <button class="cmy-tile" data-form="video">${I.play}<b>${esc(T.reqTile)}</b><small>${esc(T.reqSub)}</small></button>
+    <button class="cmy-tile" data-form="video">${I.play.replace('<svg', '<svg class="flip"')}<b>${esc(T.reqTile)}</b><small>${esc(T.reqSub)}</small></button>
     <button class="cmy-tile" data-form="bug">${I.bug}<b>${esc(T.bugTile)}</b><small>${esc(T.bugSub)}</small></button>
   </div>`;
 
@@ -67,22 +68,26 @@ const tiles = () => `<div class="cmy-tiles">
 const STICKER_FACE = ['yotam', 'hani', 'savta'];
 // "go" points left in Hebrew - drawn, because a text "‹" gets mirrored in right-to-left lines (his note: it was opposite)
 const GO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6"/></svg>';
-export function homeBand() {
-  const top = ideas.slice(0, 3);
+// the two sticker tiles - on the home band and on the community page (his note 2026-11-03: stickers there too)
+function stickerTiles() {
   const face = STICKER_FACE.find((id) => C[id] && C[id].img) || W.characters.find((c) => c.img)?.id;
   const line = face ? catchphrase(face) : '';
-  const faces = storyFaces();
   const hero = PACK.find((p) => p.char === face) || PACK[0];   // a real sticker from the pack, once it has loaded
-  const tile = (key, icon, extra = '') => `<button class="cd-t" data-do="${key}">${extra || `<span class="cd-ic">${icon}</span>`}<b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small></button>`;
-  return `<section class="cmy-band">
-    <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
-    <div class="cando">
-      <button class="cd-hero" data-do="sticker"><span class="cd-ic">${I.sticker}</span>
+  return `<button class="cd-hero" data-do="sticker"><span class="cd-ic">${I.sticker}</span>
         <span class="cd-txt"><b>${esc(T.can.sticker[0])}</b><small>${esc(T.can.sticker[1])}</small></span>
         ${hero ? `<span class="cd-st cut"><img src="${esc(hero.thumb || hero.img)}" alt="${esc(hero.text)}"></span>`
           : face ? `<span class="cd-st"><img src="${abs(C[face].img)}" alt="">${line ? `<em>${esc(line)}</em>` : ''}</span>` : ''}</button>
       <button class="cd-pack" data-do="pack"><span class="cd-pk">${PACK.slice(0, 3).map((p) => `<img src="${esc(p.thumb || p.img)}" alt="">`).join('')}</span>
-        <span class="cd-txt"><b>${esc(T.can.pack[0])}</b><small>${esc(T.can.pack[1])}</small></span><i>${GO}</i></button>
+        <span class="cd-txt"><b>${esc(T.can.pack[0])}</b><small>${esc(T.can.pack[1])}</small></span><i>${GO}</i></button>`;
+}
+export function homeBand() {
+  const top = ideas.slice(0, 3);
+  const faces = storyFaces();
+  const tile = (key, icon, extra = '') => `<button class="cd-t" data-do="${key}">${extra || `<span class="cd-ic">${icon}</span>`}<b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small></button>`;
+  return `<section class="cmy-band">
+    <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
+    <div class="cando">
+      ${stickerTiles()}
       <div class="cd-2">${tile('chat', I.comment)}${tile('follow', I.bell)}</div>
       <div class="cd-3">${tile('stories', '', faces.length ? `<span class="cd-faces">${faces.map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : `<span class="cd-ic">${I.play}</span>`)}${tile('games', I.game)}${tile('sites', I.bag)}</div>
     </div>
