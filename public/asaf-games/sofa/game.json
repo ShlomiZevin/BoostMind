@@ -1,0 +1,11 @@
+{
+  "slug": "sofa",
+  "title": "מה אני אגיד לך?",
+  "tagline": "אסף קופץ מכל פינה בסלון כדי להרוס לכם כל בשורה טובה. תנו לו עם העיתון בכובע.",
+  "character": "asaf",
+  "world": "אסף",
+  "status": "live",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:sofa:best", "label": "נקודות" },
+  "date": "2026-11-03"
+}

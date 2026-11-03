@@ -1,0 +1,4 @@
+A finished mobile game screen (portrait phone, 9:16) for a whack-a-mole game set in an Israeli living room, painted illustration style.
+The man in the reference photo (same face, beard, glasses, white-red baseball cap, yellow tank top) is Asaf, a grumpy friend who can never be happy for you. He pops up like a mole from several holes in the scene: from between the cushions of a big grey sofa, from behind the sofa back, from a window, from behind the TV, from a laundry basket - each time with a sour, know-it-all face and a speech bubble of complaint.
+One of the pop-ups is a different, friendly person (an innocent bystander you must not hit).
+A soft cartoon hammer / rolled newspaper cursor in mid-swing. A simple game HUD at the top: score, a row of hearts, a timer. Hebrew title area left empty. Bright, warm, funny, readable at phone size.

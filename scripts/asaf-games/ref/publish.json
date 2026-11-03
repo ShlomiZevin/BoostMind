@@ -1,0 +1,63 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x"
+  ],
+  "caption": "פקח, דואר רשום, סדק בקיר… לחבר המאוס יש רק תחזית אחת: אסון. תייגו את המאוס שלכם\n#החברהמאוס #שלומיוורס ",
+  "title": "החבר המאוס שבכל דבר מוצא לך רק את הרע #shorts",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "published": {
+    "youtube": {
+      "at": 1793699228306,
+      "url": "https://youtube.com/shorts/eU3SIRHfKz8"
+    },
+    "x": {
+      "at": 1793699293387,
+      "url": "https://x.com/ShlomiZevin/status/2117554430132277343"
+    },
+    "instagram": {
+      "at": 1793699314206,
+      "url": "https://www.instagram.com/reel/DfRmDZfHy5a/"
+    },
+    "tiktok": {
+      "at": 1793699339448,
+      "url": null
+    }
+  },
+  "last": {
+    "at": 1793699339450,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfRmDZfHy5a/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/eU3SIRHfKz8",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2117554430132277343",
+        "note": "posted PUBLIC"
+      }
+    }
+  }
+}

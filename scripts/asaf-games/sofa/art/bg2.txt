@@ -1,0 +1,5 @@
+The background for a whack-a-mole game played on an upright phone (portrait 2:3), painted illustration, warm and funny: an ordinary Israeli apartment living room seen straight from the front, nobody in it. The whole tall picture is used, in three rows of hiding places:
+- top row: a window with a sill (left) and a TV on a low cabinet (right);
+- middle row: a big light-grey fabric sofa filling the width, with a tall back and two arms;
+- bottom row, close to us: a plastic laundry basket full of clothes (left), a low wooden coffee table (center), the back of an armchair (right).
+A character will pop up from behind each of these edges, so each needs clear empty wall or floor above it. No people, no text.
