@@ -4,22 +4,42 @@
 import React, { useEffect } from 'react';
 import './peek.css';
 
-export function VideoPeek({ src, name, sub, kind = 'video', onClose, children, actions }: {
+export function VideoPeek({ src, name, sub, kind = 'video', start, end, text, onClose, children, actions }: {
   src: string; name: string; sub?: string; kind?: string; onClose: () => void;
+  start?: number; end?: number;  // (a timeline clip: its piece of the file - it starts there and stops once at its end)
+  text?: string;                 // kind 'text': words, shown big
   children?: React.ReactNode;  // under the file: its marks / pickers
   actions?: React.ReactNode;   // buttons beside Close
 }) {
+  // the window owns Esc and Space while it is open (caught first: Esc no longer also unpicks the clip behind it, Space
+  // plays / pauses this file, not the video behind)
+  const media = React.useRef<HTMLMediaElement | null>(null);
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', k);
-    return () => window.removeEventListener('keydown', k);
+    const k = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.key === 'Escape') { e.stopImmediatePropagation(); onClose(); }
+      else if (e.code === 'Space' && !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) {
+        e.stopImmediatePropagation(); e.preventDefault();
+        const m = media.current; if (m) m.paused ? m.play() : m.pause();
+      }
+    };
+    window.addEventListener('keydown', k, true);
+    return () => window.removeEventListener('keydown', k, true);
   }, [onClose]);
+  // a clip's piece: start at its first second, stop once where it ends (play again = the rest of the file)
+  const piece = (e: React.SyntheticEvent<HTMLMediaElement>) => { if (start) e.currentTarget.currentTime = start; };
+  const stopped = React.useRef(false);
+  const atEnd = (e: React.SyntheticEvent<HTMLMediaElement>) => {
+    const m = e.currentTarget;
+    if (end != null && !stopped.current && m.currentTime >= end) { stopped.current = true; m.pause(); }
+  };
   return (
     <div className="vp" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={`vp-box vp-${kind}`}>
         {kind === 'image' ? <div className="vp-media"><img src={src} alt="" /></div>
-          : kind === 'audio' ? <div className="vp-snd"><div className="vp-ic">♪</div><audio src={src} controls autoPlay /></div>
-          : <div className="vp-media"><video src={src} controls autoPlay playsInline /></div>}
+          : kind === 'text' ? <div className="vp-words he" dir="auto">{text}</div>
+          : kind === 'audio' ? <div className="vp-snd"><div className="vp-ic">♪</div><audio ref={media as any} src={src} controls autoPlay onLoadedMetadata={piece} onTimeUpdate={atEnd} /></div>
+          : <div className="vp-media"><video ref={media as any} src={src} controls autoPlay playsInline onLoadedMetadata={piece} onTimeUpdate={atEnd} /></div>}
         <div className="vp-side">
           <div className="vp-n"><div className="vp-name he">{name}</div>{sub && <div className="vp-sub">{sub}</div>}</div>
           {children}

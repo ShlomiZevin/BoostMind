@@ -15,6 +15,7 @@ import { LineProps } from '../lineprops';
 import { Media as FootageAssign } from '../footage';
 import { Handles, pickAt } from './Handles';
 import { Subtitles } from './Subtitles';
+import { VideoPeek } from './VideoPeek';
 import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots } from './Notes';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
@@ -87,7 +88,13 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // saved; it ends at the clip's end, on pause, or on Escape
   const soloRef = useRef<{ key: string; end: number } | null>(null);
   const [soloKey, setSoloKey] = useState<string | null>(null);
-  const endSolo = () => { if (!soloRef.current) return; soloRef.current = null; setSoloKey(null); L.send([], { commit: false, channel: 'solo' }); };
+  // (the other layers come back only once the sound has stopped - put back at once, every layer was heard for a
+  // split second as it ended)
+  const soloBack = useRef(0);
+  const endSolo = () => {
+    if (!soloRef.current) return; soloRef.current = null; setSoloKey(null); setPlaying(false);
+    clearTimeout(soloBack.current); soloBack.current = window.setTimeout(() => L.send([], { commit: false, channel: 'solo' }), 200);
+  };
   const playOnly = (s: Sel = sel) => {
     const key = s?.item ? `${s.layer}|${s.item}` : null;
     if (soloRef.current) { const was = soloRef.current.key; player.current?.pause(); endSolo(); if (was === key) return; }
@@ -105,11 +112,28 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       } else if (ly.kind === 'audio') { if (!ly.muted) ops.push({ op: 'layer.update', id: ly.id, set: { muted: true } }); }
       else if (!sound && !ly.hidden && !(ly.kind === 'backdrop' && ly.props?.target === l.id)) ops.push({ op: 'layer.update', id: ly.id, set: { hidden: true } });
     }
+    clearTimeout(soloBack.current);
     L.send(ops, { commit: false, channel: 'solo' });
     soloRef.current = { key: key!, end: it.from + it.dur };
     setSoloKey(key);
     seek(it.from);
     setTimeout(() => player.current?.play(), 30);  // (after the draft is in: the sound schedules without the others)
+  };
+  // ▶ above a block: the clip's own file in Media's window, without the other layers - a picture, a video / sound
+  // from where the clip starts in it, a text's words
+  const [opened, setOpened] = useState<Sel>(null);
+  const openClip = (s: Sel) => { player.current?.pause(); setOpened(s); };
+  const openedView = () => {
+    const l = opened?.item && project?.layers.find((x: any) => x.id === opened.layer), it = l?.items?.find((x: any) => x.id === opened!.item);
+    if (!l || !it) return null;
+    const close = () => setOpened(null);
+    if (it.text != null) return <VideoPeek kind="text" src="" text={String(it.text)} name={l.name || l.id} onClose={close} />;
+    const id = it.asset ?? l.props?.asset, a = project.assets?.[id];
+    if (!a) return null;
+    const kind = l.kind === 'audio' ? 'audio' : a.kind === 'image' ? 'image' : 'video';
+    const fpsP = project.canvas.fps || 30, from = it.in || 0, to = from + (it.dur / fpsP) * (it.rate || 1);
+    return <VideoPeek kind={kind} src={kind === 'image' ? L.view!.urls[id] : `/api/p/${ep}/asset?a=${encodeURIComponent(id)}`} name={a.label || String(a.src).split('/').pop()}
+      sub={kind === 'image' ? (a.w ? `${a.w}×${a.h}` : '') : `this clip: ${fmtT(from)} – ${fmtT(to)} of the file`} start={kind === 'image' ? undefined : from} end={kind === 'image' ? undefined : to} onClose={close} />;
   };
   const [line, setLine] = useState<number | null>(null);
   const [pick, setPick] = useState<{ kind: string; onPick: (id: string) => void } | null>(null);  // a panel asked for a file from Media
@@ -416,8 +440,9 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} notes={notes} onNote={openNote} showDone={showDone} onShowDone={setShowDone}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} notes={notes} onNote={openNote} showDone={showDone} onShowDone={setShowDone}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
+      {openedView()}
       {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}
         onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} />}
     </div>

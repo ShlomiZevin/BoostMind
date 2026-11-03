@@ -40,10 +40,16 @@ One format, one composition, one editor, one export. The format and the API: `la
   whole frames, Play only this clip; a dashed ghost = what moved. Dragging does NOT chain (unchanged). It goes through the SAME path as a drag (Timeline `trimmer`: same limits, same
   onItemPreview / onItemEdit, a take's edge goes to its builder) - presses within 600 ms are one change (one Ctrl+Z,
   one builder run). Whole frames only: the picture can't cut between frames (sub-frame for sound alone: ask him first);
-  **play only this clip** (his ask, 2026-11-02, "mainly for sounds"): Shift+Space or the round ▶ on the picked block -
+  **play only this clip** (his ask, 2026-11-02, "mainly for sounds"): Shift+Space or the edge card's button -
   a sound: every other sound muted, the picture as it is; a picture: only it seen, with its own voice (same `link`);
-  from the clip's start to its end, then everything is back (also on pause / Esc). A draft on api.ts's 'solo' channel
+  from the clip's start to its end, then everything is back (also on pause / Esc) - only once the sound has stopped
+  (put back at once, every layer was heard for a split second at the end). A draft on api.ts's 'solo' channel
   (LayersEditor playOnly) - never saved, nothing rebuilds; ducking ignores the muted layers, so music alone is heard flat;
+  **open just this clip** (2026-11-03, "like playing from the media, but quicker from the layers"): the round ▶ ABOVE
+  any block on hover (and on the picked one), near its start but clear of the edge grips, so a tiny block has one too -
+  it opens the clip's own file in Media's window (VideoPeek): a picture big, a video / sound from where the clip starts
+  in the file, stopping once where it ends (play again = the rest), a text / subtitle its words. Esc closes it, Space
+  plays / pauses it (not the video behind);
   **Ctrl+Z / Ctrl+Shift+Z undo / redo EVERYTHING**, a builder's
   change too (a video's length re-cut from the take, a line fix, a caption, an Inspector action): the project before
   it is kept and the difference goes on the undo list as one step (api.ts diffOps / record)), Media (assets, upload, + timeline; a file's
