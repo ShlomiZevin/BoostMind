@@ -8,6 +8,8 @@ import { communityPage, businessPage, homeBand, onIdeas } from './community.js';
 import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
+import { appBoot } from './install.js';
+appBoot();
 
 Object.assign(HOOK, {
   openPlayer,

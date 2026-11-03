@@ -7,6 +7,7 @@ import { T } from './copy.js';
 import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
 import { st, onState, needFan, follow, save, signedIn } from './state.js';
 import { openBoard, onScore, TROPHY } from './records.js';
+import { appMoment } from './install.js';
 import { offerPush } from './push.js';
 
 let P = null;   // the open player
@@ -119,7 +120,7 @@ export function openPlayer(id, q = {}) {
   video.addEventListener('loadedmetadata', () => { $('[data-dur]', el).textContent = mmss(video.duration); });
   video.addEventListener('play', () => { el.classList.remove('paused'); $('[data-pp]', el).innerHTML = I.pause; flashLine(); });
   video.addEventListener('pause', () => { el.classList.add('paused'); $('[data-pp]', el).innerHTML = I.play; });
-  video.addEventListener('ended', () => { remember(id, video.duration, video.duration); setUi(true); });
+  video.addEventListener('ended', () => { remember(id, video.duration, video.duration); setUi(true); P.liked = true; });
   $('[data-scrub]', el).addEventListener('input', (e) => {
     const p = e.target.value / 10;
     e.target.style.setProperty('--p', p + '%');
@@ -287,7 +288,7 @@ export function openGame(id, q = {}) {
   P.onMsg = (e) => {
     if (!P || !frame || e.source !== frame.contentWindow || !e.data) return;
     if (e.data.verse === 'hello') tell();
-    else if (e.data.verse === 'score' && g.record) onScore(g, Number(e.data.value), { reopen: again });
+    else if (e.data.verse === 'score') { P.liked = true; if (g.record) onScore(g, Number(e.data.value), { reopen: again }); }
   };
   addEventListener('message', P.onMsg);
   el.addEventListener('click', async (e) => {
@@ -370,6 +371,9 @@ function share(v) {
 function close() { nav(backTo); }
 function destroy() {
   if (!P) return;
+  // a video watched (to its end, or 20 s) or a game played: once the layer is gone, a good moment to offer the home screen
+  const liked = P.liked || (P.video && P.video.currentTime > 20), lead = P.lead, kind = P.video ? 'video' : 'game';
+  if (liked) setTimeout(() => appMoment(kind, lead), 400);   // appMoment waits until no other layer is open
   if (P.cm) P.cm.close('away');
   P.off.forEach((u) => u && u());
   document.removeEventListener('keydown', P.key);
