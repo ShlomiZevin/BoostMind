@@ -10,7 +10,8 @@ import glob, io, json, os, re, subprocess, datetime
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 PUB = os.path.join(ROOT, 'public')
-SITE = 'https://boostmind-b052c.web.app'
+SITE = 'https://shlomiverse.com'      # the Shlomiverse's own address (same site as boostmind-b052c.web.app)
+WHOLOS = 'https://wholos.com'        # Wholos's frozen pages live here until its switch, then in c:\workspace\wholos
 
 GROUPS = [
     ('verse', 'השלומיוורס והרשתות'),
@@ -116,7 +117,8 @@ def main():
         folder = rel.split('/')[0]
         group = FOLDER.get(folder) or folder_group.get(folder) or ('wholos' if folder.startswith('marketing') else 'proposals' if PROPOSAL.search(title) else 'new')
         folder_group.setdefault(folder, group)
-        url = SITE + '/' + (rel[:-len('index.html')] if rel.endswith('index.html') else rel)
+        path = '' if rel == 'wiki/index.html' else (rel[:-len('index.html')] if rel.endswith('index.html') else rel)   # the verse's home is the root now
+        url = (WHOLOS if group == 'wholos' else SITE) + '/' + path
         sub = rel.split('/')[-1]
         tag = 'ניהול' if 'admin' in sub else 'דמו' if '/demo/' in rel else ''
         items.append({'g': group, 'title': title, 'url': url, 'tag': tag, 'date': git_date(p)})
