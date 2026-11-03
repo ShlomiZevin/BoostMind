@@ -27,7 +27,7 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
   const { project, layer, item } = P;
   const S = useSettings(P);
   const W = project.canvas.w, H = project.canvas.h;
-  const assetId = S.get('asset');
+  const assetId = P.item?.asset ?? P.layer.props?.asset;  // (the clip's own picture - content, whatever the bar says)
   const asset = project.assets?.[assetId ?? layer.items?.find((i: any) => i.box)?.asset ?? layer.items?.[0]?.asset];  // (the layer picked: its clip's picture, for its shape)
   const { box, setBox } = usePlace(P, { x: 0, y: 0, w: W / 3 });
   const b = asset ? imageBox(asset, box) : { x: box.x, y: box.y, w: box.w, h: box.h ?? box.w };
@@ -40,7 +40,7 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
   return <div className="ins">
     <Head icon={ICON.image} title={layer.name || 'Picture'} sub={item ? `Picture ${item.id}` : `Image layer · ${layer.items?.length || 0} items`} />
     <Sec title="Picture">
-      <Thumb P={P} asset={assetId} onReplace={() => P.pickAsset('image', (id) => S.set('asset', id))} />
+      <Thumb P={P} asset={assetId} onReplace={() => P.pickAsset('image', (id) => (P.item?.asset != null ? S.item({ asset: id }) : S.layer({ asset: id })))} />
     </Sec>
     <Sec title="Size and place" end={<Ovr S={S} k="box" />}>
       <Slider label="Size" v={b.w} min={24} max={Math.max(W * 5, b.w)} step={1} fmt={(v) => fmt.pct(v / W)} onChange={resize} />

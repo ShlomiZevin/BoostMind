@@ -279,14 +279,17 @@ end must show at once, with the real footage there.
 ## The sound panel (2026-11-03 - inspect/audio.tsx)
 ONE place (his note: "Voice style and Sounds like - I don't know the difference; volume very highlighted, then the simple
 ones, then the advanced, all visible, no hierarchy"), structured with an OpenAI UX consult:
-- **Whole row | This clip** at the top, sticky while the panel scrolls, in colour (his note: "the most important thing to
+- **Whole row | This clip** on EVERY panel (video, image, text, shape, effect, sound - inspect/controls.tsx `scoped`, one
+  choice that stays when he picks another clip; This clip = changes go to the clip, replacing the row's; Whole row = to
+  the row, a clip's own setting kept; content - a clip's picture, its words - is always the clip's), compact, sticky while the panel scrolls, in colour (his note: "the most important thing to
   pay attention to"): blue = the whole row, coral = this clip - the panel's left edge carries the same colour. A clip
   picked: This clip first. The clip wins over its row; only volume
   adds up. "Use the row's settings" removes a clip's own settings.
 - **Volume** (the strongest): Whole row, This clip, Sound on.
 - **Everyday**: Sounds like = the setups (render/src/layers/setups.js; built-ins + his saved ones, GET /api/setups) - a
-  click sets cleaning + voice + effects on what's being edited; the status line says which one and whether it was a
-  session; after a change a bar asks once: Save as a new setup / Update "<setup>" / Just here. Pitch, Keep the speech
+  click sets cleaning + voice + effects on what's being edited. The setup line sits in the sticky bar (Sounds like
+  <setup> - exactly as set / changed / from the row); changed: Reset / Save as new / Update; a clip with its own
+  settings: Use row's. No explanation notes in the panel - the ? explains. Pitch, Keep the speech
   even, Lower the other sounds (music / effects), Raise after the talking (music), fades.
 - **Special cases** (quieter, all visible): Clean the noise, Room + Room size (ONE - the voice chain's when there is one,
   else the effects'), Echo strength, Speaker echo, Clearer words, Warmth, Less boxy, Remove low rumble, Softer s sounds,

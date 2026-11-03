@@ -12,20 +12,55 @@ export type InspectorProps = {
   fps: number; frame: number;
   pickAsset: (kind: 'image' | 'video' | 'audio' | 'font', onPick: (id: string) => void) => void;
   build?: (action: string, args?: any) => Promise<void>;  // a builder action (POST /api/p/:id/build) - a job the editor follows
+  scope?: 'clip' | 'row';  // what the panel edits (the bar on top - Scoped below): this clip, or the whole row
 };
+
+// ---- what a panel edits: Whole row | This clip (his notes, 2026-11-03: "must be super clear... the most important to
+// pay attention to"; "same for video / image"). One choice for every panel (it stays when he picks another clip),
+// shown in a bar under the panel's head that sticks while it scrolls, in colour - blue the row, coral the clip - and
+// the panel's edge in the same colour. This clip: a change goes to the clip (its own setting, replacing the row's);
+// Whole row: to the row (a clip with its own setting keeps it).
+let scopeNow: 'clip' | 'row' = 'clip';
+const scopeSubs = new Set<(s: 'clip' | 'row') => void>();
+const ScopeCtx = React.createContext<{ P: InspectorProps; onClip: boolean; setScope: (s: 'clip' | 'row') => void } | null>(null);
+/** Wraps a panel (inspect/index.ts): its P carries the scope; its Head shows the bar. */
+export function scoped(Comp: React.FC<InspectorProps>): React.FC<InspectorProps> {
+  return (P) => {
+    const [scope, setS] = useState(scopeNow);
+    useEffect(() => { scopeSubs.add(setS); return () => { scopeSubs.delete(setS); }; }, []);
+    const setScope = (s: 'clip' | 'row') => { scopeNow = s; scopeSubs.forEach((f) => f(s)); };
+    const onClip = !!P.item && scope === 'clip';
+    const P2 = { ...P, scope: onClip ? 'clip' as const : 'row' as const };
+    return <ScopeCtx.Provider value={{ P, onClip, setScope }}><div className={`ins-scoped ins-mode-${onClip ? 'clip' : 'row'}`}><Comp {...P2} /></div></ScopeCtx.Provider>;
+  };
+}
+function EditBar({ extra }: { extra?: React.ReactNode }) {
+  const c = React.useContext(ScopeCtx);
+  if (!c) return null;
+  const { P, onClip, setScope } = c, { layer, item, fps } = P, n = layer.items?.length || 0;
+  const t = (f: number) => { const s = f / fps; return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}.${Math.floor((s % 1) * 10)}`; };
+  return <section className="ins-edit">
+    {item ? <div className="ins-edit-sw">
+      <button className={!onClip ? 'on' : ''} onClick={() => setScope('row')} title="Every clip in this row (a clip with its own setting keeps it)">Whole row<small>{n}</small></button>
+      <button className={onClip ? 'on' : ''} onClick={() => setScope('clip')} title="Only this clip - its own settings replace the row's">This clip<small>{t(item.from)}–{t(item.from + item.dur)}</small></button>
+    </div> : <div className="ins-edit-one">Whole row<small>{n} clip{n === 1 ? '' : 's'}</small></div>}
+    {extra}
+  </section>;
+}
 
 /** Read / write a setting on the selected clip or its layer (see the top of this file). */
 export function useSettings(P: InspectorProps) {
-  const { layer, item, send } = P;
+  const { layer, send } = P;
+  const row = P.scope === 'row', item = row ? null : P.item;  // (Whole row: the row's values, changes go to the row)
   const own = (k: string) => !!item && item[k] !== undefined && item[k] !== null;
   return {
     get: (k: string, def?: any) => (own(k) ? item[k] : layer.props?.[k] ?? def),
     own,
-    set: (k: string, v: any, commit = true) => send([own(k)
+    set: (k: string, v: any, commit = true) => send([own(k) || (P.scope === 'clip' && item)
       ? { op: 'item.update', layer: layer.id, id: item.id, set: { [k]: v } }
       : { op: 'layer.update', id: layer.id, props: { [k]: v } }], { commit }),
-    reset: (k: string) => item && send([{ op: 'item.update', layer: layer.id, id: item.id, set: { [k]: null } }]),
-    item: (patch: any, commit = true) => item && send([{ op: 'item.update', layer: layer.id, id: item.id, set: patch }], { commit }),
+    reset: (k: string) => P.item && send([{ op: 'item.update', layer: layer.id, id: P.item.id, set: { [k]: null } }]),
+    item: (patch: any, commit = true) => P.item && send([{ op: 'item.update', layer: layer.id, id: P.item.id, set: patch }], { commit }),  // (the clip, whatever the bar says)
     layer: (props: any, commit = true) => send([{ op: 'layer.update', id: layer.id, props }], { commit }),
     layerSet: (set: any) => send([{ op: 'layer.update', id: layer.id, set }]),
   };
@@ -65,9 +100,10 @@ export function parseTc(s: string, fps: number): number | null {
 // ---- layout -----------------------------------------------------------------------------------------------------
 const Chev = () => <svg className="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m9 6 6 6-6 6" /></svg>;
 
-export function Head({ icon, title, sub, end }: { icon: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; end?: React.ReactNode }) {
-  return <div className="ins-head"><div className="ins-ico">{icon}</div>
-    <div className="grow"><div className="ins-title">{title}</div>{sub && <div className="ins-sub">{sub}</div>}</div>{end}</div>;
+export function Head({ icon, title, sub, end, bar }: { icon: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; end?: React.ReactNode; bar?: React.ReactNode }) {
+  return <><div className="ins-head"><div className="ins-ico">{icon}</div>
+    <div className="grow"><div className="ins-title">{title}</div>{sub && <div className="ins-sub">{sub}</div>}</div>{end}</div>
+    <EditBar extra={bar} /></>;
 }
 
 /** The "?" beside a setting (inspect/help.ts): a click shows what it does, right under it; another click hides it. */

@@ -172,7 +172,31 @@
           "dur": 141,
           "asset": "s.voice-gilad.wav",
           "in": 0,
-          "gain": 1
+          "gain": 1,
+          "clean": "nn",
+          "voice": {
+            "preset": "hall",
+            "denoise": true,
+            "lowcut": 130,
+            "warmth": -1.5,
+            "box": -1,
+            "presence": 1.5,
+            "deess": 0.35,
+            "comp": 0.5,
+            "room": 0.35,
+            "roomSize": 1.6
+          },
+          "fx": {
+            "filter": "",
+            "pitch": 5,
+            "room": 0,
+            "roomSize": 1.6,
+            "level": 0
+          },
+          "presence": 0,
+          "setup": {
+            "id": "synagogue"
+          }
         }
       ],
       "props": {
@@ -304,8 +328,8 @@
       "name": "Whooshes"
     }
   ],
-  "rev": 31,
-  "saved": 1793627793775,
+  "rev": 35,
+  "saved": 1793689965939,
   "notes": [
     {
       "id": "nmvzarhfu",

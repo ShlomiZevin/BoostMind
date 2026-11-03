@@ -52,8 +52,7 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
   const props = layer.props || {};
   const kind = laneKind(layer);
   // what the settings below change: this clip (picked on the timeline) or the whole row
-  const [scope, setScope] = useState<'clip' | 'row'>('clip');
-  const onClip = !!item && scope === 'clip';
+  const onClip = !!item && P.scope !== 'row';  // (the bar on top - controls.tsx scoped)
   const own = onClip && OWN_KEYS.some((k) => item[k] !== undefined && item[k] !== null);
   const eff = onClip ? soundOf(props, item) : { fx: props.fx || {}, voice: props.voice || null, presence: +(props.presence || 0), clean: props.clean || 'off', level: props.level || null };
   // (a clip keeps real values - 0, '' and false mean "none for this clip"; the row drops what's off)
@@ -78,8 +77,6 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
   const cur = tag && setups.find((s: any) => s.id === tag.id);
   const now = soundNow(layer, onClip ? item : null);
   const changed = !!cur && !sameAsSetup(now, cur);
-  const nowKey = JSON.stringify(now);
-  const [skip, setSkip] = useState<string | null>(null);  // "Just here" - not asked again for this change
   const apply = (s: any) => send(setupOps(layer, onClip ? item.id : null, s));
   const saveNew = async () => {
     const label = await askText({ title: 'Save as a new setup', text: 'A name for it - it will be a button in Sounds like, on every computer.', value: cur ? `${cur.label} 2` : '' });
@@ -88,23 +85,29 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     if (id) put({ setup: { id } });
   };
   const update = async () => { await postSetup({ ...setupFrom(now, cur.label, cur.id), about: cur.about }); put({ setup: { id: cur.id } }); };
-  const status = cur ? `${cur.label} · ${changed ? 'changed' : tag.by === 'session' ? 'set by a session' : 'set'}` : '';
+  const rowCur = rowTag && setups.find((s: any) => s.id === rowTag.id);
+  // (the setup line in the sticky bar: which setup, still exactly it or changed - Reset / Save as new / Update)
+  const setupName = cur ? cur.label : rowCur ? rowCur.label : 'None';
+  const setupState = cur ? (changed ? 'changed' : tag.by === 'session' ? 'exactly as set · by a session' : 'exactly as set') : rowCur ? 'from the row' : 'pick one below';
 
   const sounds = kind !== 'music';
-  return <div className={`ins ins-mode-${onClip ? 'clip' : 'row'}`}>
+  return <div className="ins">
     <Head icon={ICON.audio} title={<>{layer.group ? `${layer.group} · ` : ''}{layer.name || 'Sound'}</>}
-      sub={`${kind === 'voice' ? 'Voice' : kind === 'music' ? 'Music' : 'Sound effect'}${item ? ` · clip ${item.id}` : ` · ${layer.items?.length || 0} clips`}`} />
+      sub={`${kind === 'voice' ? 'Voice' : kind === 'music' ? 'Music' : 'Sound effect'}${item ? ` · clip ${item.id}` : ` · ${layer.items?.length || 0} clips`}`}
+      bar={<>
+      {kind !== 'music' && <div className={`ins-setup ${changed ? 'changed' : cur ? 'same' : ''}`}>
+        <div className="ins-setup-l"><span>Sounds like</span><b>{setupName}</b><em>{setupState}</em></div>
+        {(changed || own) && <div className="ins-setup-b">
+          {changed && <>
+            <button className="btn" onClick={() => apply(cur)} title={`Back to exactly "${cur.label}"`}>Reset</button>
+            <button className="btn" onClick={saveNew} title="Save what you hear now as a new setup">Save as new</button>
+            <button className="btn" onClick={update} title={`"${cur.label}" becomes what you hear now`}>Update</button>
+          </>}
+          {own && <button className="btn" onClick={() => S.item(Object.fromEntries(OWN_KEYS.map((k) => [k, null])))} title="Remove this clip's own settings - it sounds like the rest of the row">Use row's</button>}
+        </div>}
+      </div>}
+      </>} />
 
-    {/* what the panel changes - always in sight (sticky while the panel scrolls) and coloured: the whole panel carries
-        the same colour on its edge (his note: "the most important thing to pay attention to") */}
-    <section className="ins-edit">
-      {item ? <div className="ins-edit-sw">
-        <button className={!onClip ? 'on' : ''} onClick={() => setScope('row')}>Whole row<small>{layer.items?.length || 0} clips</small></button>
-        <button className={onClip ? 'on' : ''} onClick={() => setScope('clip')}>This clip<small>{fmtT(item.from / P.fps)} – {fmtT((item.from + item.dur) / P.fps)}</small></button>
-      </div> : <div className="ins-edit-one">Editing the whole row<small>{layer.items?.length || 0} clips</small></div>}
-      <div className="ins-edit-say">{onClip ? "Only this clip. Its own settings replace the row's; the rest comes from the row." : 'Every clip in this row - a clip with its own settings keeps them.'}</div>
-      {own && <button className="btn ins-wide" onClick={() => S.item(Object.fromEntries(OWN_KEYS.map((k) => [k, null])))}>Use the row's settings</button>}
-    </section>
 
     <div className="ins-vol"><Sec title="Volume">
       <Slider label="Whole row" v={props.volume ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(x, c) => S.layer({ volume: x }, c)} />
@@ -115,14 +118,6 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     <Sec title="Everyday">
       {sounds && <>
         <Row label="Sounds like" wide><Chips options={setups.map((s: any) => [s.id, s.label] as [string, string])} value={cur?.id} onPick={(id) => apply(setups.find((s: any) => s.id === id))} /></Row>
-        {status && <Note>{status}</Note>}
-        {!cur && rowTag && <Note>The row is set to {setups.find((s: any) => s.id === rowTag.id)?.label || rowTag.id} - this clip follows it.</Note>}
-        {changed && skip !== nowKey && <div className="ins-save">
-          <span>You changed "{cur.label}".</span>
-          <button className="btn" onClick={saveNew}>Save as a new setup</button>
-          <button className="btn" onClick={update}>Update "{cur.label}"</button>
-          <button className="btn ghost" onClick={() => setSkip(nowKey)}>Just here</button>
-        </div>}
       </>}
       <Slider label="Pitch" v={fx.pitch || 0} min={-12} max={12} step={0.5} def={0} fmt={semis} onChange={(x, c) => setFx({ pitch: x || (onClip ? 0 : null) }, c)} />
       {kind === 'voice' && <ToggleRow label="Keep the speech even" on={eff.level === 'speech'} onChange={(on) => put({ level: on ? 'speech' : onClip ? 'off' : null })} />}
@@ -141,11 +136,9 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     </Sec>
 
     <Sec title="Special cases">
-      <Note>For fixing a recording or a character moment. Sounds like sets these too.</Note>
       <div className="ins-quiet">
         {kind === 'voice' && <>
           <Row label="Clean the noise"><Chips options={CLEAN} value={eff.clean} onPick={(c) => put({ clean: c === 'off' && !onClip ? null : c })} /></Row>
-          {CLEAN_NOTE[eff.clean] && <Note>{CLEAN_NOTE[eff.clean]}</Note>}
         </>}
         <Slider label="Room" v={roomInVoice ? v('room', 0) : fx.room || 0} min={0} max={1} step={0.05} def={0} fmt={pct0}
           onChange={(x, c) => (roomInVoice ? setVoice({ room: x }, c) : setFx({ room: x || (onClip ? 0 : null) }, c))} />

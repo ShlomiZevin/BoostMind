@@ -142,14 +142,14 @@
 /* the sound panel (inspect/audio.tsx): what it edits on top, Volume the strongest, Special cases quieter - all visible */
 .ins-mode-row { --mode: #5b8def; } .ins-mode-clip { --mode: var(--accent); }
 .ins-mode-row, .ins-mode-clip { box-shadow: inset 3px 0 0 var(--mode); overflow: visible; }  /* (the panel's scroller is outside: the bar sticks to it) */
-.ins-edit { position: sticky; top: 0; z-index: 5; display: grid; gap: 8px; padding: 12px 18px; background: var(--panel);
+.ins-edit { position: sticky; top: 0; z-index: 5; display: grid; gap: 6px; padding: 8px 14px 8px 16px; background: var(--panel);
   border-bottom: 2px solid var(--mode); box-shadow: inset 3px 0 0 var(--mode), 0 6px 12px -8px rgba(0, 0, 0, 0.6); }
-.ins-edit-sw { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--edge-2); border-radius: 8px; overflow: hidden; }
-.ins-edit-sw button { display: grid; gap: 1px; padding: 7px 8px; border: 0; background: transparent; color: var(--dim); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.ins-edit-sw { display: grid; grid-template-columns: 1fr 1.25fr; border: 1px solid var(--edge-2); border-radius: 8px; overflow: hidden; }
+.ins-edit-sw button { display: flex; align-items: baseline; justify-content: center; gap: 6px; height: 30px; padding: 0 8px; border: 0; background: transparent; color: var(--dim); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .ins-edit-sw button small, .ins-edit-one small { font-size: 10.5px; font-weight: 400; opacity: 0.8; font-variant-numeric: tabular-nums; }
 .ins-edit-sw button:first-child.on { background: #5b8def; color: #fff; }
 .ins-edit-sw button:last-child.on { background: var(--accent); color: #fff; }
-.ins-edit-one { display: grid; gap: 1px; padding: 7px 10px; border-radius: 8px; background: var(--mode); color: #fff; font-size: 13px; font-weight: 600; text-align: center; }
+.ins-edit-one { display: flex; align-items: baseline; justify-content: center; gap: 6px; height: 30px; line-height: 30px; border-radius: 8px; background: var(--mode); color: #fff; font-size: 12.5px; font-weight: 600; }
 .ins-edit-say { font-size: 11.5px; color: var(--dim); line-height: 1.4; }
 .ins-wide { width: 100%; }
 .ins-vol .ins-sec-h { font-size: 14px; }
@@ -172,3 +172,19 @@
 .ins-opt.on { border-color: var(--accent); background: var(--accent-soft); }
 .ins-eyes-alt { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--edge); }
 .ins-eyes-alt-h { font-size: 12px; color: var(--dim); }
+
+/* the setup line in the sticky bar: which setup this row / clip has, still exactly it or changed (Reset / Save / Update) */
+.ins-setup { display: grid; gap: 6px; padding: 5px 8px; border: 1px solid var(--edge-2); border-radius: 8px; background: var(--panel-2); }
+.ins-setup-l { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.ins-setup-l span { font-size: 11.5px; color: var(--faint); flex: none; }
+.ins-setup-l b { font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ins-setup-l em { margin-left: auto; font-style: normal; font-size: 11px; color: var(--faint); white-space: nowrap; }
+.ins-setup.same em { color: var(--ok); }
+.ins-setup.changed { border-color: var(--warn); }
+.ins-setup.changed em { color: var(--warn); }
+.ins-setup-b { display: flex; gap: 6px; }
+.ins-setup-b .btn { flex: 1; }
+.ins-setup-b .btn { height: 26px; padding: 0 6px; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* the wrapper every panel gets (inspect/controls.tsx scoped): carries the mode colour; the panel scrolls in its parent */
+.ins-scoped { display: flex; flex-direction: column; min-height: 0; }
+.ins-scoped > .ins { overflow: visible; }
