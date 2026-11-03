@@ -1,6 +1,6 @@
 ---
 name: edit-video
-description: Edit Shlomi's TikTok comedy footage into a finished vertical video with Sketch Studio (c:\workspace\BoostMind\zoomcut) - one editor where every element is a layer (each take, each character's background, subtitles, texts, images, voices, music, filters) and one export. Projects, never templates; recipes per kind of video (Zoom-call sketch, monologue - rabbi / guru / news anchor / keynote, a person with an off-screen voice, Gen Z thoughts). Use for /edit-video, and whenever Shlomi says he recorded a sketch / has new footage / uploaded through the Drop / a folder in Downloads / wants a video edited, mentions zoomcut, Sketch Studio, the editor at localhost:4747, Amir/Ofer/Daniel/Ronit/Gilad, POV text, or asks to export/send a video to email or Telegram.
+description: Edit Shlomi's TikTok comedy footage into a finished vertical video with Sketch Studio (c:\workspace\BoostMind\zoomcut) - one editor where every element is a layer (each take, each character's background, subtitles, texts, images, voices, music, filters) and one export. Projects, never templates; recipes per kind of video (Zoom-call sketch, monologue - rabbi / guru / news anchor / keynote, a person with an off-screen voice, Gen Z thoughts, a "quick edit" of short phone takes). Use for /edit-video, "quick edit" / עריכה מהירה, and whenever Shlomi says he recorded a sketch / has new footage / uploaded through the Drop / a folder in Downloads / wants a video edited, mentions zoomcut, Sketch Studio, the editor at localhost:4747, Amir/Ofer/Daniel/Ronit/Gilad, POV text, or asks to export/send a video to email or Telegram.
 argument-hint: "[footage folder in Downloads or the Drop] [what the sketch is]"
 ---
 
@@ -286,6 +286,18 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   layer of the place + a bed (reusable comedy beds in `_assets/music/`), and every phone / Teams call gets the
   other side's mumble in her pauses (`recipes/offscreen-voice.md` → hani). A whispered blessing / drinking is acted,
   not silence - check the frames of a long pause before cutting it.
+- **A phone-filter monologue (Asaf on the couch - TikTok-app takes with a face filter, many short recording
+  segments): cut EVERY pause** (asaf-1, 2026-11-03: "the edit is terrible - cut all the silence in between sentences -
+  sometimes you can see me just start or end shooting"). Not the demokratovich rule above: here `cut` = {merge 0.2,
+  pad_in 0.05, pad_out 0.1, join 0.3, after_last_word 0.15} (silence cutting ON), `cutout: false`, speed 1.15, the
+  video opens on his first word. Recording restarts = `scdet` jumps (`ffmpeg -vf scdet=threshold=10`): `sequence` from
+  just after each jump; drop the repeats of the opening (use the last take). Check the picture lane for 2-6 frame
+  fragments (a click as he presses record) and breaths inside a piece (`cut.removes`). His script = the subtitles.
+  **His notes on the next round (2026-11-03) were all things a script can find - do them BEFORE he sees it:** every
+  pause of 0.15-0.2 s between sentences inside a piece (`cut.removes`, measured at 10 ms, keep the next consonant), every
+  piece that ends 0.3-0.5 s after its last word (end it on the word's energy end; `join` 0.3 then lays the next line
+  over it - "I rather one sentence start on top of the other"), and an ad-lib that is NOT in the script he pasted
+  (he cut "וואלה, תיזהר עכשיו עם הרכב... אם לא" - flag off-script lines, don't keep them silently).
 - **HOW HE WANTS A ONE-CAMERA CUT - do exactly this, nothing more** (said three times on demokratovich-nechama,
   2026-10-29: "your cuts are really bad... each video stops when it stops, the next starts where he talks, a little
   room to hear the end and the start of the word - and that's it, don't cut more things"):
@@ -487,6 +499,13 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
   credit line in the caption, see LICENSE.md there; Sneaky Snitch, Fluffing a Duck, Monkeys Spinning Monkeys
   approved). Offer those (in Media, on a pick page) before generating anything; generate only for a character-specific
   bed (a niggun, a song). Of the generated ones only `_assets/music/quirky/awk-boombap.mp3` was "not that bad".
+- **A character's OWN bed = Leonardo Music v1, 1 minute, looped** (asaf-1, 2026-11-03: ElevenLabs at 80% of the
+  month, "use the Leonardo budget - the last time"): `node tools/leonardo.mjs music <prompt.txt> <out.mp3> 1 --about ...
+  --tags ...` (Eleven Music resold, whole minutes, instrumental; ~$1.05 a minute, ~700 of the Leonardo tokens; 22k left
+  on 2026-11-03). **Make 1-minute tracks and loop them in the editor** (his words: "create usually a 1 min track which you
+  can then stick in a loop") - never 2 min. Each character gets its own bed; brief the CHARACTER, not the scene (Asaf =
+  "the annoying friend everyone is fed up with - נמאס על כולם"; he picked the sneaky pizzicato + nagging bassoon caper).
+  Send the options to Telegram as audio AND on a page he can open from his phone (he is often away from the PC).
 - **Music beds** (2026-10-25, "find the background music suitable... create it with 11 labs or Leonardo"):
   `node zoomcut/tools/elevenlabs_music.mjs <out.mp3> 80 "<prompt>"` (Eleven Music, instrumental). Only 2 requests at
   once on this plan (a third gets 429). Make 3 options in the character's world, put all three in the project's
@@ -664,6 +683,7 @@ separately filmed characters). Pick by the footage; never name things after a se
 
 | What he recorded | Recipe | Engine |
 |---|---|---|
+| **"quick edit" / עריכה מהירה** - one person in short phone takes (TikTok app, face filter), joined tight + POV + the character's music, minutes, ONE round (Asaf) | `recipes/quick-edit.md` | lesson.py |
 | several characters, one file each, a meeting / call grid | `recipes/zoom-call.md` | zoomcut.py |
 | one person talking to camera - rabbi lesson, guru podcast (tadar), news anchor, keynote | `recipes/monologue.md` | lesson.py |
 | one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker, an office day (Hani) | `recipes/offscreen-voice.md` | lesson.py |

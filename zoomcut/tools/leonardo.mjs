@@ -8,6 +8,9 @@
 //   node tools/leonardo.mjs image <prompt.txt> <out.jpg> [flare|sunburst] [HIGH|MEDIUM] [WxH]
 //   node tools/leonardo.mjs loop <prompt.txt> <out.mp3> <seconds>
 //   node tools/leonardo.mjs sfx  <prompt.txt> <out.mp3> <seconds>     one-shot effect (phone ring, a voice off-screen)
+//   node tools/leonardo.mjs music <prompt.txt> <out.mp3> [minutes]    instrumental bed on Leonardo's Music v1 (Eleven Music
+//     resold, whole minutes 1-10) - paid from the Leonardo tokens, not the ElevenLabs credits (his ask, 2026-11-03:
+//     ElevenLabs at 80%, use up the Leonardo budget). Always Leonardo, no direct call.
 //   --leonardo (anywhere) = skip the direct call, straight to Leonardo
 // EVERY result goes into the editor's asset library at once (his rule, 2026-11-02 - tools/library_lib.mjs), labelled:
 //   --about "what it is, for which video" --tags "mood, place, use, ..." [--project <id>] [--kind background|picture|icon|sound|music]
@@ -177,6 +180,15 @@ if (cmd === 'balance') {
   const r = await collect(q.id, AUD, out);
   console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
   await toLibrary(out, promptFile, 'sound');
+} else if (cmd === 'music') {
+  needLeonardo();
+  const [promptFile, out, mins = '2'] = a;
+  const q = await queue({ model: 'music-v1', public: false, parameters: { prompt: fs.readFileSync(promptFile, 'utf8').trim(),
+    duration_minutes: Math.max(1, Math.min(10, Math.round(Number(mins)))), force_instrumental: true, quantity: 1 } });
+  console.log(`queued ${q.id}  quoted $${q.usd}`);
+  const r = await collect(q.id, AUD, out);
+  console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}  (Leonardo Music v1)`);
+  await toLibrary(out, promptFile, 'music');
 } else if (cmd === 'video') {
   needLeonardo();
   // node tools/leonardo.mjs video <prompt.txt> <out.mp4> [model] [seconds] [WxH] [start.jpg|-] [end.jpg|-] [ref.jpg|-]
@@ -196,5 +208,5 @@ if (cmd === 'balance') {
   console.log(`OK -> ${out}  ${(r.bytes / 1024).toFixed(0)} kB  $${q.usd}`);
   await toLibrary(out, promptFile, 'video');
 } else {
-  console.log('balance | portrait | image | loop | sfx | video');
+  console.log('balance | portrait | image | loop | sfx | music | video');
 }
