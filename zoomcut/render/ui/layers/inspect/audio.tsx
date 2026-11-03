@@ -12,6 +12,7 @@ import { VOICE_PRESETS } from '../../sound';
 import { soundOf } from '../../layergraph';
 import { allSetups, setupOps, soundNow, sameAsSetup, setupFrom } from '../../../src/layers/setups.js';
 import { askText } from '../ask';
+import { fmtT } from '../api';
 import { InspectorProps, useSettings, Head, Sec, Row, Note, Chips, Slider, ToggleRow, ClipTiming, LayerState, PanelEnd, ICON, fmt } from './controls';
 
 const CLEAN: [string, string][] = [['off', 'Off'], ['mild', 'Mild'], ['fft', 'Standard'], ['strong', 'Strong'], ['nn', 'NN (best)']];
@@ -90,17 +91,20 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
   const status = cur ? `${cur.label} · ${changed ? 'changed' : tag.by === 'session' ? 'set by a session' : 'set'}` : '';
 
   const sounds = kind !== 'music';
-  return <div className="ins">
+  return <div className={`ins ins-mode-${onClip ? 'clip' : 'row'}`}>
     <Head icon={ICON.audio} title={<>{layer.group ? `${layer.group} · ` : ''}{layer.name || 'Sound'}</>}
       sub={`${kind === 'voice' ? 'Voice' : kind === 'music' ? 'Music' : 'Sound effect'}${item ? ` · clip ${item.id}` : ` · ${layer.items?.length || 0} clips`}`} />
 
-    {item && <section className="ins-sec ins-edit">
-      <Row label="Editing"><span className="ins-scope-sw">
-        <button className={!onClip ? 'on' : ''} onClick={() => setScope('row')}>Whole row</button>
-        <button className={onClip ? 'on' : ''} onClick={() => setScope('clip')}>This clip</button></span></Row>
-      <Note>{onClip ? 'Only this clip. Its own settings replace the row\'s; the rest comes from the row.' : 'Every clip in this row (a clip with its own settings keeps them).'}</Note>
+    {/* what the panel changes - always in sight (sticky while the panel scrolls) and coloured: the whole panel carries
+        the same colour on its edge (his note: "the most important thing to pay attention to") */}
+    <section className="ins-edit">
+      {item ? <div className="ins-edit-sw">
+        <button className={!onClip ? 'on' : ''} onClick={() => setScope('row')}>Whole row<small>{layer.items?.length || 0} clips</small></button>
+        <button className={onClip ? 'on' : ''} onClick={() => setScope('clip')}>This clip<small>{fmtT(item.from / P.fps)} – {fmtT((item.from + item.dur) / P.fps)}</small></button>
+      </div> : <div className="ins-edit-one">Editing the whole row<small>{layer.items?.length || 0} clips</small></div>}
+      <div className="ins-edit-say">{onClip ? "Only this clip. Its own settings replace the row's; the rest comes from the row." : 'Every clip in this row - a clip with its own settings keeps them.'}</div>
       {own && <button className="btn ins-wide" onClick={() => S.item(Object.fromEntries(OWN_KEYS.map((k) => [k, null])))}>Use the row's settings</button>}
-    </section>}
+    </section>
 
     <div className="ins-vol"><Sec title="Volume">
       <Slider label="Whole row" v={props.volume ?? 1} min={0} max={2} step={0.01} def={1} fmt={fmt.db} onChange={(x, c) => S.layer({ volume: x }, c)} />

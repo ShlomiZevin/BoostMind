@@ -140,7 +140,17 @@
 .ins-help-win { padding: 4px 18px 20px; font-size: 13.5px; line-height: 1.6; color: var(--text); max-width: 380px; }
 
 /* the sound panel (inspect/audio.tsx): what it edits on top, Volume the strongest, Special cases quieter - all visible */
-.ins-edit { display: grid; gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+.ins-mode-row { --mode: #5b8def; } .ins-mode-clip { --mode: var(--accent); }
+.ins-mode-row, .ins-mode-clip { box-shadow: inset 3px 0 0 var(--mode); overflow: visible; }  /* (the panel's scroller is outside: the bar sticks to it) */
+.ins-edit { position: sticky; top: 0; z-index: 5; display: grid; gap: 8px; padding: 12px 18px; background: var(--panel);
+  border-bottom: 2px solid var(--mode); box-shadow: inset 3px 0 0 var(--mode), 0 6px 12px -8px rgba(0, 0, 0, 0.6); }
+.ins-edit-sw { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--edge-2); border-radius: 8px; overflow: hidden; }
+.ins-edit-sw button { display: grid; gap: 1px; padding: 7px 8px; border: 0; background: transparent; color: var(--dim); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.ins-edit-sw button small, .ins-edit-one small { font-size: 10.5px; font-weight: 400; opacity: 0.8; font-variant-numeric: tabular-nums; }
+.ins-edit-sw button:first-child.on { background: #5b8def; color: #fff; }
+.ins-edit-sw button:last-child.on { background: var(--accent); color: #fff; }
+.ins-edit-one { display: grid; gap: 1px; padding: 7px 10px; border-radius: 8px; background: var(--mode); color: #fff; font-size: 13px; font-weight: 600; text-align: center; }
+.ins-edit-say { font-size: 11.5px; color: var(--dim); line-height: 1.4; }
 .ins-wide { width: 100%; }
 .ins-vol .ins-sec-h { font-size: 14px; }
 .ins-vol .ins-sl > label { color: var(--text); font-weight: 600; }

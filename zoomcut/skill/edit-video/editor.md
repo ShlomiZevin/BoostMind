@@ -279,7 +279,9 @@ end must show at once, with the real footage there.
 ## The sound panel (2026-11-03 - inspect/audio.tsx)
 ONE place (his note: "Voice style and Sounds like - I don't know the difference; volume very highlighted, then the simple
 ones, then the advanced, all visible, no hierarchy"), structured with an OpenAI UX consult:
-- **Editing: Whole row | This clip** at the top (a clip picked: This clip first). The clip wins over its row; only volume
+- **Whole row | This clip** at the top, sticky while the panel scrolls, in colour (his note: "the most important thing to
+  pay attention to"): blue = the whole row, coral = this clip - the panel's left edge carries the same colour. A clip
+  picked: This clip first. The clip wins over its row; only volume
   adds up. "Use the row's settings" removes a clip's own settings.
 - **Volume** (the strongest): Whole row, This clip, Sound on.
 - **Everyday**: Sounds like = the setups (render/src/layers/setups.js; built-ins + his saved ones, GET /api/setups) - a
