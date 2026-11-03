@@ -8,6 +8,7 @@ import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
 import { ask } from './ask';
 import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
+import { Find } from './Find';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -491,6 +492,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           title="A note for Claude at the playhead: what's wrong here and what to fix - then tell Claude &quot;fix notes&quot; (N)">+ Note{notes.some((n) => !n.done) ? ` · ${notes.filter((n) => !n.done).length} open` : ''}</button>}
         {onShowDone && notes.some((n) => n.done) && <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={() => onShowDone(!showDone)}
           title={showDone ? 'Hide the handled notes on the timeline' : 'Show the handled notes on the timeline'}>{showDone ? 'Hide' : 'Show'} handled ({notes.filter((n) => n.done).length})</button>}
+        <div className="vsep" />
+        <Find project={project} fps={fps} onGo={(h) => { onSel({ layer: h.layer, item: h.item }); onSeek(h.at); }} />
         <div className="grow" />
         <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="The whole video in view"
           onClick={() => { const w = (lanes.current?.clientWidth || 1000) - NW; setPps(Math.max(8, (w - 40) / (total / fps))); }}>Fit</button>

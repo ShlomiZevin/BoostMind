@@ -177,8 +177,10 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     if (playing || !sel?.item) return;
     const l = project?.layers.find((x: any) => x.id === sel.layer);
     if (l?.kind !== 'subtitles') return;
-    const at = (l.items || []).find((i: any) => frame >= i.from && frame < i.from + i.dur);
-    if (at && at.id !== sel.item) setSel({ layer: l.id, item: at.id });
+    const on = (i: any) => frame >= i.from && frame < i.from + i.dur;
+    if ((l.items || []).some((i: any) => i.id === sel.item && on(i))) return;  // (still on the picked one - two may overlap)
+    const at = (l.items || []).find(on);
+    if (at) setSel({ layer: l.id, item: at.id });
   }, [frame, playing]);
   // notes for Claude (Notes.tsx): the open one's window; a new one is only saved once it has words
   const notes = notesOf(project);

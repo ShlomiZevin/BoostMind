@@ -155,6 +155,11 @@ One format, one composition, one editor, one export. The format and the API: `la
   them (solid) so the mouse can reach them; one click = that note at the line, no window. Stopped (Space) = the same two
   buttons wait faint beside the playhead; a click = the note at the playhead. A click elsewhere on the ruler still moves
   the playhead. (Timeline.tsx `qnMove` / `quickNote`, notes.css `.ltl-qn` / `.ltl-qp`.) Same `kind`s as the chips.
+- **Find a word (2026-11-03, his ask):** a search box in the timeline's bar (`layers/Find.tsx`; Ctrl+F) over the captions
+  and on-screen texts - every match in time order (time, the line with the word marked); Enter / Shift+Enter or a click
+  = picks that caption and puts the playhead on the word (its place inside the caption, by its letters).
+- **Captions follow the playhead:** a caption picked + the playhead moved onto another caption of its row = that one in
+  the panel (LayersEditor effect; not while playing; stays on the picked one while it still covers the playhead).
 - **Volume on the timeline (2026-11-03, his ask; look checked against a GPT Image concept):** sound rows are 38 px.
   A sound row shows its dB beside the speaker when it isn't 0 dB; on hover the name moves up and a slider appears under
   it (the dB at its end) - drag = the row's `props.volume` (0..2, as the panel's slider). A sound clip has its name on
