@@ -16,7 +16,12 @@ async function bend(p, to, ms = 900) {
   return async () => p.mouse.up();
 }
 const zone = (p) => p.evaluate(() => MILLI.zoneC());
-async function doRep(p, hold = 1700) { const up = await bend(p, await zone(p), 1100); await wait(p, hold); await up(); await wait(p, 700); }
+// stay on the moving green: follow its centre with the held finger
+async function follow(p, ms) {
+  const g = await p.evaluate(() => MILLI.L), t0 = Date.now();
+  while (Date.now() - t0 < ms) { const a = await zone(p); await p.mouse.move(g.PX + Math.cos(-a * Math.PI / 180) * g.R, g.PY + Math.sin(-a * Math.PI / 180) * g.R); await wait(p, 40); if (await p.evaluate(() => MILLI.cur.back > 0)) break; }
+}
+async function doRep(p, hold = 3600) { const up = await bend(p, await zone(p), 1100); await follow(p, hold); await up(); await wait(p, 700); }
 (async () => {
   const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--autoplay-policy=no-user-gesture-required'] });
   for (const [name, vp] of [['phone', { width: 390, height: 844 }], ['wide', { width: 1280, height: 760 }]]) {
@@ -28,7 +33,7 @@ async function doRep(p, hold = 1700) { const up = await bend(p, await zone(p), 1
     for (let i = 0; i < 4; i++) { await p.screenshot({ path: `${OUT}/${name}-tut${i + 1}.png` }); await p.keyboard.press('Space'); await wait(p, 300); }
     await p.screenshot({ path: `${OUT}/${name}-tut5.png` });
     let up = await bend(p, await zone(p), 1000); await wait(p, 200); await p.screenshot({ path: `${OUT}/${name}-tut5-in.png` });
-    await p.keyboard.press('Space'); await wait(p, 300); await wait(p, 1700); await up(); await wait(p, 300);
+    await p.keyboard.press('Space'); await wait(p, 300); await follow(p, 4000); await up(); await wait(p, 300);
     await p.screenshot({ path: `${OUT}/${name}-tut6-done.png` }); await wait(p, 700);
     await p.keyboard.press('Space'); await wait(p, 300);
     up = await bend(p, 79, 500); await up(); await wait(p, 400); await p.screenshot({ path: `${OUT}/${name}-tut7-over.png` });

@@ -24,9 +24,10 @@ const EX = {
   knee: { name: 'הברך', max: 105, c: [40, 85] },
 };
 const ORDER = ['wrist', 'finger', 'elbow', 'ankle', 'knee'];
-const REPS = 3, HOLD = 1.4, VMAX = 85;
-const zoneW = (s) => Math.max(3, 15 - 2.2 * s);          // degrees - "millimetres" from the 6th session on
-const drift = (s) => s < 1 ? 0 : Math.min(9, 1.4 * s);   // his tremor moves the zone
+const REPS = 3, HOLD = 3, VMAX = 85;
+const zoneW = (s) => Math.max(6, 16 - 1.6 * s);          // degrees - narrower every session
+const drift = (s) => Math.min(26, 9 + 2.2 * s);          // the green always wanders - a bit more every session
+const pace = (s) => Math.min(2.2, 0.75 + 0.14 * s);      // ...and faster
 
 // ───────────────────────── art ─────────────────────────
 const IMG = {}; let PARTS = {};
@@ -140,7 +141,10 @@ function startGame() {
   showHUD(true); show(null); newSession();
   window.track && window.track('game_start', 'millimeters');
 }
-function zoneC() { return cur.c + Math.sin(cur.t * 0.9) * drift(tutorial ? 0 : sessions) * 0.5 + Math.sin(cur.t * 2.3) * drift(tutorial ? 0 : sessions) * 0.25; }
+function zoneC() {
+  const d = tutorial ? 5 : drift(sessions), t = cur.t * (tutorial ? 0.6 : pace(sessions)), e = EX[cur.ex];
+  return clamp(cur.c + Math.sin(t * 0.9) * d * 0.55 + Math.sin(t * 2.1 + 1.3) * d * 0.3, cur.w / 2 + 2, e.max - cur.w / 2 - 2);
+}
 
 // ───────────────────────── input: drag the joint ─────────────────────────
 function angleAt(x, y) { return -Math.atan2(y - L.PY, x - L.PX) / DEG; }   // degrees, up = positive
@@ -189,7 +193,7 @@ function step(dt) {
     return;
   }
   // too far = a scream, a jump in pain, and he pulls back
-  if (cur.a > hi + 0.6) {
+  if (cur.a > hi + 7) {
     hurt(tutorial ? 0 : 13 + sessions * 0.8, tip.x, tip.y - 30, 'איי!');
     play('scream', .9); flash(); setPose('scream', 1.4); say(pickNo(LINES.over, 'over'), 2.4, true);
     cur.flinch = 0.5; cur.hold = Math.max(0, cur.hold - 0.6); drag.on = false;
@@ -208,7 +212,11 @@ function step(dt) {
     if (Math.floor(before * 3) !== Math.floor(cur.hold * 3)) play('hold', .35);
     if (tutWait && tutWait.id === 'zone') tutWait.done = true;
     if (cur.hold >= HOLD) repDone(tip);
-  } else cur.hold = Math.max(0, cur.hold - dt * 0.5);
+  } else if (cur.hold > 0) {                              // slipped off the green: the hold drains and it hurts
+    cur.hold = Math.max(0, cur.hold - dt * 1.2);
+    if (!tutorial) pain = clamp(pain + (2 + sessions * 0.3) * dt, 0, 100);
+    if (poseT <= 0.3 || pose === 'serious') { setPose('wince', 0.8); if (Math.random() < 0.5) say(pickNo(LINES.fast, 'fast'), 1.6); }
+  }
   // keep still and breathe: the pain goes down a little - never below what the treatment already did to him
   cur.still += dt;
   if (cur.still > 1.2 && !drag.on && pain > floorPain) {
@@ -353,9 +361,9 @@ const STEPS = [
   { text: 'זה <b>מד הכאב</b>. כשהוא מתמלא – יניב קם והולך, והמשחק נגמר.', spot: spotEl('meter') },
   { text: 'גררו את האצבע <b>לאט</b> לאורך הקשת, והמפרק יתכופף. רק ה<b style="color:#16a34a">ירוק</b> נחשב – והוא בגודל של מילימטרים.', spot: spotArc },
   { text: 'נסו עכשיו: <b>גררו לאט</b> עד שהעיגול נכנס לירוק.', try: 'zone', spot: spotArc },
-  { text: 'עכשיו <b>החזיקו</b> בירוק עד שהטבעת מתמלאת – זו חזרה אחת.', try: 'rep', spot: spotArc },
+  { text: 'הירוק <b>זז</b>! <b>הישארו עליו</b> עד שהטבעת מתמלאת – זו חזרה אחת. יצאתם ממנו? הטבעת מתרוקנת.', try: 'rep', spot: spotArc },
   { text: 'ועכשיו בכוונה: <b>עברו את הירוק</b>. תראו מה קורה.', try: 'over', spot: spotArc },
-  { text: 'עוד קצת מדי – והוא צועק, והכאב קופץ. גם <b>מהר מדי</b> כואב לו. ככל שמתקדמים, הירוק קטן ויניב רועד.' },
+  { text: 'הרבה מדי – והוא צועק, והכאב קופץ. גם <b>מהר מדי</b> כואב לו. ככל שמתקדמים, הירוק קטן וזז מהר יותר.' },
   { text: 'לא נוגעים רגע? הכאב <b>יורד קצת</b>. אבל גם כשמצליחים – זה רק מחמיר. ככה זה אצל יניב. מוכנים?', spot: spotEl('meter'), last: true },
 ];
 const tut = {
@@ -415,7 +423,7 @@ function chip() {
     const zc = zoneC(), inZone = cur.a >= zc - cur.w / 2 && cur.a <= zc + cur.w / 2;
     if (cur.flinch > 0) t = 'אוי. <em>חכו</em> רגע';
     else if (cur.back > 0) t = cur.rep >= REPS ? 'טיפול נגמר' : 'עוד חזרה...';
-    else if (inZone) t = '<em>החזיקו</em> בירוק';
+    else if (inZone) t = '<em>הישארו</em> על הירוק';
     else if (drag.v > VMAX) t = '<em>לאט!</em> מילימטרים';
     else t = '<em>גררו לאט</em> עד הירוק';
   }
