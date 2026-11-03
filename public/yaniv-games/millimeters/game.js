@@ -101,10 +101,11 @@ function layout() {
   cv.width = W * DPR; cv.height = H * DPR;
   document.body.classList.toggle('turn', W > H * 1.15 && H < 520 && 'ontouchstart' in window);
   const cw = Math.min(W, H * 0.66), cx = W / 2;                     // the play column
-  const top = 112 + safeTop(), bottom = H - 60 - safeBot();          // under the HUD + words, above the chip
+  const top = 60 + safeTop(), bottom = H - 60 - safeBot();           // under the HUD, above the chip
   const bustH = Math.min(cw * 0.62, (bottom - top) * 0.40);
   const bedY = top + bustH;                                          // the bed's far edge = the bottom of his chest
   L = { cw, cx, top, bottom, bustH, bedY, x0: cx - cw / 2 };
+  $('strip').style.top = (bedY + 8) + 'px';                         // his words right under his picture
   const p = PARTS[cur.ex]; if (p) fitPart(p);
 }
 function fitPart(p) {
@@ -117,9 +118,10 @@ function fitPart(p) {
   L.PY = L.bottom - Math.max(p.h - p.py, p.py) * s * 0.55 - 6;
   L.R = mov * s * 0.80;                                              // the handle sits near the end of the moving part
 }
-const safeTop = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--st')) || 0;
+const cssTop = (v) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;top:${v};visibility:hidden`; document.body.appendChild(d); const t = d.getBoundingClientRect().top; d.remove(); return t; };
+const safeTop = () => cssTop('var(--safe-t)');   // the notch + the verse's full-screen strip
 const safeBot = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb')) || 0;
-addEventListener('resize', layout);
+addEventListener('resize', layout); addEventListener('verseframe', layout);
 
 // ───────────────────────── state ─────────────────────────
 let state = 'menu', paused = false, sessions = 0, reps = 0, pain = 0, floorPain = 0, tutorial = false;
@@ -193,7 +195,7 @@ function step(dt) {
     return;
   }
   // too far = a scream, a jump in pain, and he pulls back
-  if (cur.a > Math.min(hi + 7, EX[cur.ex].max - 2)) {    // past the green (near the end of the arc, any bit past it)
+  if (cur.a > Math.min(hi + 7, EX[cur.ex].max - 2) && !(tutorial && !(tutWait && tutWait.id === 'over'))) {    // past the green (near the end of the arc, any bit past it)
     hurt(tutorial ? 0 : 13 + sessions * 0.8, tip.x, tip.y - 30, 'איי!');
     play('scream', .9); flash(); setPose('scream', 1.4); say(pickNo(LINES.over, 'over'), 2.4, true);
     cur.flinch = 0.5; cur.hold = Math.max(0, cur.hold - 0.6); drag.on = false;
@@ -399,9 +401,11 @@ const tut = {
     $('tutDim').classList.toggle('on', !!dim);
     if (dim) Object.assign(tutHole.style, { left: sp.x + 'px', top: sp.y + 'px', width: sp.w + 'px', height: sp.h + 'px' });
     // the card sits away from what it points at
-    const up = sp && sp.y + sp.h / 2 > H * 0.5;
-    tutCard.style.top = up ? `calc(var(--safe-t) + 108px)` : 'auto';
-    tutCard.style.bottom = up ? 'auto' : `calc(env(safe-area-inset-bottom,0px) + 64px)`;
+    const up = sp && sp.y + sp.h / 2 > H * 0.5, side = W >= 900;
+    // wide: the card waits beside the play; phone: away from what it points at, never over his face
+    tutCard.style.left = side ? '20px' : ''; tutCard.style.right = side ? 'auto' : ''; tutCard.style.width = side ? '340px' : '';
+    tutCard.style.top = side ? `${L.top + 10}px` : up ? `${L.bedY + 56}px` : 'auto';
+    tutCard.style.bottom = side || up ? 'auto' : `calc(env(safe-area-inset-bottom,0px) + 64px)`;
     if (tutWait && tutWait.done && !tutWait.shown) { tutWait.shown = true; $('tutText').innerHTML = s.text + ' <span class="ok">יופי!</span>'; }
     $('tutNext').disabled = !!(tutWait && !tutWait.done);
   },
