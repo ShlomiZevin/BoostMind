@@ -7,7 +7,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
 import { ask } from './ask';
-import { Note, NotePins } from './Notes';
+import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -48,6 +48,11 @@ const opens = (l: any, it: any, project: any) => it.text != null || !!project.as
 const dbOf = (g: number) => (g <= 0.0005 ? -Infinity : 20 * Math.log10(g));
 const dbTxt = (g: number) => { const d = dbOf(g); return d === -Infinity ? 'silent' : Math.abs(d) < 0.05 ? '0 dB' : `${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} dB`; };
 const lineAt = (g: number) => Math.max(0, Math.min(1, (6 - Math.max(-18, dbOf(g))) / 24));  // 0 = the block's top
+/** the ready-made notes' icons, for the quick buttons on the ruler (tighten = two clips pushed together; silence = scissors) */
+const QN_IC: Record<string, React.ReactNode> = {
+  tighten: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h7M6 8.5 9.5 12 6 15.5M22 12h-7M18 8.5 14.5 12l3.5 3.5M12 4v16" /></svg>,
+  silence: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.2 8.2 20 20M8.2 15.8 20 4" /></svg>,
+};
 const OPEN_WORD: Record<string, string> = { video: 'video', image: 'picture', audio: 'sound', text: 'text', subtitle: 'line' };
 
 // what a block says: its words (a text, a subtitle, a voice's line), else its file's name
@@ -225,6 +230,16 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   // ---- nudging a cut edge: pick a start / end (click it), then , . (Shift = 3 frames) or type +120 / -80 and Enter.
   // The video cuts on whole frames (33 ms at 30 fps), so ms are rounded to frames and the chip says what it became.
   // Presses close together are one change (one Ctrl+Z, one builder run); everything linked follows like a drag
+  const qnAt = useRef(0);
+  const qnMove = (e: React.MouseEvent) => {
+    const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left;
+    qnAt.current = Math.max(0, Math.min(total - 1, Math.round((x / pps) * fps)));
+    tr.style.setProperty('--qx', `${px(qnAt.current)}px`);
+  };
+  const quickNote = (k: string) => {
+    const pr = PRESETS.find((x) => x.kind === k)!;
+    saveNotes(send, [...notes, { ...newNote(qnAt.current), kind: pr.kind, text: pr.text }], pr.label.toLowerCase());
+  };
   const [vtip, setVtip] = useState<{ k: string; g: number } | null>(null);  // a volume being dragged (its words over it)
   const clipVol = (e: React.MouseEvent, l: any, it: any) => {
     e.stopPropagation(); e.preventDefault();
@@ -476,9 +491,13 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <div className="ltl-in" style={{ width: NW + width }}>
           <div className="ltl-row ltl-ruler">
             <div className="ltl-name" />
-            <div className="ltl-track" style={{ width }} onMouseDown={seekAt}>
+            <div className="ltl-track" style={{ width }} onMouseDown={seekAt} onMouseMove={onNote ? qnMove : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
               {onNote && <NotePins notes={notes} hideDone={!showDone} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
+              {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>
+                {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
+                  onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
+              </div>}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
