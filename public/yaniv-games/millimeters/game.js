@@ -26,8 +26,8 @@ const EX = {
 const ORDER = ['wrist', 'finger', 'elbow', 'ankle', 'knee'];
 const REPS = 3, HOLD = 3, VMAX = 85;
 const zoneW = (s) => Math.max(6, 16 - 1.6 * s);          // degrees - narrower every session
-const drift = (s) => Math.min(26, 9 + 2.2 * s);          // the green always wanders - a bit more every session
-const pace = (s) => Math.min(2.2, 0.75 + 0.14 * s);      // ...and faster
+const drift = (s) => Math.min(34, 20 + 2 * s);           // the green keeps sliding while you hold it - follow it
+const pace = (s) => Math.min(2.4, 1.15 + 0.12 * s);      // ...wider and faster every session
 
 // ───────────────────────── art ─────────────────────────
 const IMG = {}; let PARTS = {};
@@ -142,7 +142,7 @@ function startGame() {
   window.track && window.track('game_start', 'millimeters');
 }
 function zoneC() {
-  const d = tutorial ? 5 : drift(sessions), t = cur.t * (tutorial ? 0.6 : pace(sessions)), e = EX[cur.ex];
+  const d = tutorial ? 14 : drift(sessions), t = cur.t * (tutorial ? 0.8 : pace(sessions)), e = EX[cur.ex];
   return clamp(cur.c + Math.sin(t * 0.9) * d * 0.55 + Math.sin(t * 2.1 + 1.3) * d * 0.3, cur.w / 2 + 2, e.max - cur.w / 2 - 2);
 }
 
@@ -193,7 +193,7 @@ function step(dt) {
     return;
   }
   // too far = a scream, a jump in pain, and he pulls back
-  if (cur.a > hi + 7) {
+  if (cur.a > Math.min(hi + 7, EX[cur.ex].max - 2)) {    // past the green (near the end of the arc, any bit past it)
     hurt(tutorial ? 0 : 13 + sessions * 0.8, tip.x, tip.y - 30, 'איי!');
     play('scream', .9); flash(); setPose('scream', 1.4); say(pickNo(LINES.over, 'over'), 2.4, true);
     cur.flinch = 0.5; cur.hold = Math.max(0, cur.hold - 0.6); drag.on = false;
