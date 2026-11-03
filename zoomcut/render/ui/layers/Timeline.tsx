@@ -230,12 +230,19 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   // ---- nudging a cut edge: pick a start / end (click it), then , . (Shift = 3 frames) or type +120 / -80 and Enter.
   // The video cuts on whole frames (33 ms at 30 fps), so ms are rounded to frames and the chip says what it became.
   // Presses close together are one change (one Ctrl+Z, one builder run); everything linked follows like a drag
-  const qnAt = useRef(0);
+  // (the line follows the mouse; a short rest locks it there with its buttons, so the mouse can go to them - his note:
+  // "when I want to choose them I just move the line". Moving on past the buttons, or back left, unlocks it)
+  const qnAt = useRef(0), qn = useRef<{ lock: number | null; t: any }>({ lock: null, t: 0 });
   const qnMove = (e: React.MouseEvent) => {
-    const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left;
+    const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left, st = qn.current;
+    if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 64) return;
+    if (st.lock != null) { st.lock = null; tr.classList.remove('qn-lock'); }
     qnAt.current = Math.max(0, Math.min(total - 1, Math.round((x / pps) * fps)));
     tr.style.setProperty('--qx', `${px(qnAt.current)}px`);
+    clearTimeout(st.t);
+    st.t = setTimeout(() => { st.lock = px(qnAt.current); tr.classList.add('qn-lock'); }, 160);
   };
+  const qnLeave = (e: React.MouseEvent) => { const st = qn.current; clearTimeout(st.t); st.lock = null; (e.currentTarget as HTMLElement).classList.remove('qn-lock'); };
   const quickNote = (k: string) => {
     const pr = PRESETS.find((x) => x.kind === k)!;
     saveNotes(send, [...notes, { ...newNote(qnAt.current), kind: pr.kind, text: pr.text }], pr.label.toLowerCase());
@@ -491,7 +498,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <div className="ltl-in" style={{ width: NW + width }}>
           <div className="ltl-row ltl-ruler">
             <div className="ltl-name" />
-            <div className="ltl-track" style={{ width }} onMouseDown={seekAt} onMouseMove={onNote ? qnMove : undefined}>
+            <div className="ltl-track" style={{ width }} onMouseDown={seekAt} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
               {onNote && <NotePins notes={notes} hideDone={!showDone} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>

@@ -34,6 +34,8 @@
 .ltl-qn { position: absolute; top: 0; bottom: 0; left: var(--qx, -100px); z-index: 5; display: none; align-items: center; gap: 3px; padding-left: 6px; pointer-events: none; }
 .ltl-ruler .ltl-track:hover .ltl-qn { display: flex; }
 .ltl-qn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--warn, #f0b44c); opacity: 0.8; pointer-events: none; }
-.ltl-qn button { pointer-events: auto; width: 22px; height: 20px; padding: 0; display: grid; place-items: center; border: 1px solid rgba(240, 180, 76, 0.45); border-radius: 4px;
+.ltl-qn button { pointer-events: none; opacity: 0.45; transition: opacity .1s; width: 22px; height: 20px; padding: 0; display: grid; place-items: center; border: 1px solid rgba(240, 180, 76, 0.45); border-radius: 4px;
   background: rgba(20, 18, 17, 0.92); color: var(--warn, #f0b44c); cursor: pointer; }
 .ltl-qn button:hover { background: var(--warn, #f0b44c); color: #1a1716; }
+/* (while the mouse moves the buttons are faint and can't be hit; a short rest locks them, solid, where the line is) */
+.ltl-track.qn-lock .ltl-qn button { pointer-events: auto; opacity: 1; }
