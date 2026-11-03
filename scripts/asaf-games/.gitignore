@@ -1,0 +1,8 @@
+**/art/**/*.png
+**/shots/
+**/sfx/*.log
+**/art/*.log
+ref/*.mp4
+ref/frames/
+ref/tg/
+ref/*.png
