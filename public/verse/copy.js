@@ -119,7 +119,7 @@ export const T = {
   follow: 'לעקוב', following: 'עוקבים',
   sticker: 'סטיקר מהרגע', comments: 'תגובות', save: 'שמירה', saved: 'נשמר', share: 'שיתוף',
   // a game on the same page (Terra, 2026-11-03)
-  gLike: 'לייק', gLiked: 'נתתם לייק', gFull: 'מסך מלא', gMenu: 'הצגת הכפתורים', gLikeToast: 'נתתם לייק למשחק', gMeta: (name) => `משחק של ${name}`, savedGames: 'משחקים שמורים',
+  gLike: 'לייק', gLiked: 'נתתם לייק', gFull: 'מסך מלא', gExit: 'יציאה ממסך מלא', gLikeToast: 'נתתם לייק למשחק', gMeta: (name) => `משחק של ${name}`, savedGames: 'משחקים שמורים',
   episode: (n, s) => `פרק ${n}${s ? ' · ' + s : ''}`,
   prev: 'הפרק הקודם', next: 'הפרק הבא',
   tapSound: 'הקישו לסאונד',
