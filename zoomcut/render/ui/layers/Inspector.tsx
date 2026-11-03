@@ -8,6 +8,8 @@ import { SpeedPick } from '../speed';
 import { newId } from '../../src/layers/ops.js';
 import { TEXT_STYLES, SUB_STYLES } from '../../src/layers/styles';
 import { FILTERS } from '../../src/layers/effect_curve.js';
+import { Sec, Row } from './inspect/controls';
+import './tokens.css';
 
 const mmss = (s: number) => { const r = Math.round(s); return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`; };  // (the length in minutes, 2:55 - his ask)
 
@@ -86,30 +88,28 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
   const item = layer && sel?.item ? (layer.items || []).find((i: any) => i.id === sel.item) : null;
   if (!layer) {
     const addLayer = (layer: any) => { send([{ op: 'layer.add', layer, index: project.layers.length - project.layers.slice().reverse().findIndex((l: any) => l.kind !== 'audio') }], { label: 'add layer' }); onSel({ layer: layer.id, item: layer.items?.[0]?.id }); };
-    return <div className="insp">
-      <div className="card">
-        <div className="card-h"><div className="title grow">Project</div></div>
-        <div className="row2"><label>Title</label><input className="field he" defaultValue={project.title} key={project.title} onBlur={(e) => e.target.value !== project.title && send([{ op: 'project', set: { title: e.target.value } }])} /></div>
-        <div className="sec">Speed</div>
-        <SpeedPick speed={project.speed || 1} onSpeed={(v) => send([{ op: 'project', set: { speed: v } }], { label: 'speed' })} />
-        <div className="row2"><label>Length</label><span>{mmss(project.duration / fps / (project.speed || 1))}{project.speed !== 1 ? ` · ${mmss(project.duration / fps)} at 1×` : ''}</span></div>
-        <div className="row2"><label>Background</label><input type="color" value={project.canvas.color || '#000000'} onChange={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }], { commit: false })}
-          onBlur={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }])} style={{ width: 40, height: 30, border: 0, background: 'none' }} /></div>
-        <div className="help">The whole video, every layer together. Export makes the file at this speed.</div>
-      </div>
-      <div className="card">
-        <div className="card-h"><div className="title grow">Add a layer</div></div>
-        <div className="add-row" style={{ borderTop: 0, marginTop: 0, paddingTop: 0 }}>
-          <button className="add-chip" onClick={() => addLayer({ id: newId('text.'), kind: 'text', name: 'Text', group: 'Text', props: { style: 'pov', theme: 'light', size: 46 },
+    return <div className="insp"><div className="ins">
+      <Sec title="Video">
+        <Row label="Title"><input className="field he" defaultValue={project.title} key={project.title} placeholder="A name for this video"
+          onBlur={(e) => e.target.value !== project.title && send([{ op: 'project', set: { title: e.target.value } }])} /></Row>
+        <Row label="Speed" wide><SpeedPick speed={project.speed || 1} onSpeed={(v) => send([{ op: 'project', set: { speed: v } }], { label: 'speed' })} /></Row>
+        <Row label="Length"><span className="ins-val">{mmss(project.duration / fps / (project.speed || 1))}{project.speed && project.speed !== 1 ? ` · ${mmss(project.duration / fps)} at 1×` : ''}</span></Row>
+        <Row label="Background"><input type="color" className="ins-color" value={project.canvas.color || '#000000'}
+          onChange={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }], { commit: false })}
+          onBlur={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }])} /></Row>
+      </Sec>
+      <Sec title="Add a layer">
+        <div className="ins-chips">
+          <button onClick={() => addLayer({ id: newId('text.'), kind: 'text', name: 'Text', group: 'Text', props: { style: 'pov', theme: 'light', size: 46 },
             items: [{ id: 'i1', from: frame, dur: Math.min(3 * fps, project.duration - frame), text: 'פוב: ', box: { x: W / 2, y: 276, w: W - 120, anchor: 't' } }] })}>Text</button>
-          <button className="add-chip" onClick={() => addLayer({ id: newId('shape.'), kind: 'shape', name: 'Shape', group: 'Shapes', props: { fill: 'rgba(0,0,0,0.5)', radius: 12 },
+          <button onClick={() => addLayer({ id: newId('shape.'), kind: 'shape', name: 'Shape', group: 'Shapes', props: { fill: 'rgba(0,0,0,0.5)', radius: 12 },
             items: [{ id: 'i1', from: frame, dur: Math.min(3 * fps, project.duration - frame), box: { x: 90, y: 800, w: W - 180, h: 300 } }] })}>Shape</button>
-          <span className="help" style={{ margin: 0 }}>Pictures, sounds, footage: from Media</span>
         </div>
-        <div className="sec">Film effect - on everything under it (texts above it stay clean)</div>
-        <div className="add-row" style={{ borderTop: 0, marginTop: 0, paddingTop: 0 }}>
+      </Sec>
+      <Sec title="Film effect">
+        <div className="ins-chips">
           {Object.entries(FILTERS as Record<string, any>).map(([k, f]) => (
-            <button key={k} className="add-chip" title={f.help || ''} onClick={() => {
+            <button key={k} title={f.help || ''} onClick={() => {
               // an effect goes under the texts / subtitles: right above the last video-ish layer
               const lastPic = project.layers.map((l: any) => l.kind).lastIndexOf('video');
               const lid = newId('fx.');
@@ -118,9 +118,9 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
               onSel({ layer: lid, item: 'i1' });
             }}>{f.label || k}</button>))}
         </div>
-      </div>
+      </Sec>
+    </div>
       {extra}
-      <div className="empty" style={{ padding: 18 }}>Click a lane or a block on the timeline to see its settings. Ctrl+Z undoes any change.</div>
     </div>;
   }
   const P = INSPECTORS[layer.kind];

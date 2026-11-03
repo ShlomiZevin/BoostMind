@@ -45,9 +45,10 @@ export function scoped(Comp: React.FC<InspectorProps>): React.FC<InspectorProps>
     return <ScopeCtx.Provider value={{ P, onClip, setScope }}><div className={`ins-scoped ins-mode-${onClip ? 'clip' : 'row'}`}><Comp {...P2} /></div></ScopeCtx.Provider>;
   };
 }
-/** The panel's one sticky head (his notes, 2026-11-03: "the top uses too much space, things repeat, the clip's media
- *  name is missing, play it from here"; spec from an OpenAI consult): the row and the clip's file + kind, Play, close;
- *  Whole row | This clip; then the panel's own line (a sound's setup). About half the old height. */
+/** The panel's sticky head, in the editor's own look (the pane title, .btn, the segmented switch): the row's name (as
+ *  big as the pane titles) with the clip's file and kind under it, Play (the clip's own file) and close; then Whole row |
+ *  This clip - the selected side in colour (blue = the row, coral = the clip, the panel's edge too); then the panel's
+ *  own line (a sound's setup). */
 function Top({ end, extra }: { end?: React.ReactNode; extra?: React.ReactNode }) {
   const c = React.useContext(ScopeCtx);
   if (!c) return null;
@@ -57,22 +58,23 @@ function Top({ end, extra }: { end?: React.ReactNode; extra?: React.ReactNode })
   const media = item?.text != null ? String(item.text).replace(/\s+/g, ' ') : a ? a.label || String(a.src).split('/').pop() : '';
   const kind = layer.kind === 'audio' ? { voice: 'Voice', music: 'Music', effect: 'Sound effect' }[laneKind(layer)] : KIND_WORD[layer.kind] || layer.kind;
   return <div className="ctx">
-    <div className="ctx-id">
-      <div className="ctx-names">
-        <div className="ctx-row">Row · <span dir="auto">{layer.name || layer.id}</span></div>
-        <div className="ctx-media"><b dir="auto">{item ? media || 'clip ' + item.id : `${n} clip${n === 1 ? '' : 's'}`}</b> · {kind}</div>
+    <div className="ctx-h">
+      <div className="ctx-t">
+        <div className="ctx-title" dir="auto">{layer.name || layer.id}</div>
+        <div className="ctx-sub"><span dir="auto">{item ? media || 'clip ' + item.id : `${n} clip${n === 1 ? '' : 's'}`}</span> · {kind}</div>
       </div>
       {end}
-      {P.openClip && <button className="ctx-play" onClick={P.openClip} title={`Play ${media || 'this clip'} on its own`}>
-        <svg width="9" height="10" viewBox="0 0 9 10"><path d="M1 1l7 4-7 4z" fill="currentColor" /></svg>Play</button>}
-      {P.close && <button className="ctx-close" onClick={P.close} title="Close (back to the project)">
-        <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button>}
+      {P.openClip && <button className="btn ctx-play" onClick={P.openClip} title={`Play ${media || 'this clip'} on its own`}>
+        <svg width="10" height="11" viewBox="0 0 10 11"><path d="M1.5 1.2l7.3 4.3-7.3 4.3z" fill="currentColor" /></svg>Play</button>}
+      {P.close && <button className="btn ghost icon" onClick={P.close} title="Close (back to the project)">✕</button>}
     </div>
     <div className="ctx-scope">
-      {item ? <div className="ctx-sw">
-        <button className={!onClip ? 'on row' : ''} onClick={() => setScope('row')} title="Every clip in this row changes (a clip with its own setting keeps it)">Whole row<small>· {n === 1 ? '1 clip' : `all ${n}`}</small></button>
-        <button className={onClip ? 'on clip' : ''} onClick={() => setScope('clip')} title="Only this clip changes - its own settings replace the row's">This clip<small>· {t(item.from)}–{t(item.from + item.dur)}</small></button>
-      </div> : <div className="ctx-sw one"><button className="on row">Whole row<small>· {n === 1 ? '1 clip' : `all ${n}`}</small></button></div>}
+      <div className={`ins-seg ctx-seg ${item ? '' : 'one'}`}>
+        <button className={!onClip ? 'on row' : ''} onClick={() => setScope('row')} title="Every clip in this row changes (a clip with its own setting keeps it)">
+          Whole row<small>{n === 1 ? '1 clip' : `${n} clips`}</small></button>
+        {item && <button className={onClip ? 'on clip' : ''} onClick={() => setScope('clip')} title="Only this clip changes - its own settings replace the row's">
+          This clip<small>{t(item.from)} – {t(item.from + item.dur)}</small></button>}
+      </div>
     </div>
     {extra}
   </div>;

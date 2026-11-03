@@ -147,39 +147,29 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
   </div>;
 };
 
-/** The sound's setup in the panel's sticky head: Setup [name v] - the name opens every setup to pick from - and its state
- *  (exactly as set / changed / from the row / none); the actions only when there is one to take (the OpenAI spec's
- *  rules: changed -> Reset, Save as new, Update setup; a clip with its own settings -> Use row's). */
+/** The sound's setup in the panel's sticky head: Setup [every setup to pick from], its state in words (exactly as set /
+ *  set by a session / changed / from the row / none) and - only when there is one to take - the actions: changed ->
+ *  Reset, Save as new, Update; a clip with its own settings -> Use the row's. */
 function SetupLine({ setups, cur, rowCur, changed, by, own, onClip, onPick, onReset, onSave, onUpdate, onRow }: any) {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (!open) return;
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); setOpen(false); } };
-    const m = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.ctx-pick')) setOpen(false); };
-    addEventListener('keydown', k, true); addEventListener('mousedown', m);
-    return () => { removeEventListener('keydown', k, true); removeEventListener('mousedown', m); };
-  }, [open]);
   const shown = cur || rowCur;
-  const state = cur ? (changed ? ['warn', 'Changed'] : ['ok', by === 'session' ? 'Set by a session' : 'Exactly as set']) : rowCur ? ['row', 'From row'] : ['none', 'None'];
-  const actions = changed || (onClip && own);
-  return <>
-    <div className="ctx-setup">
-      <span className="ctx-l">Setup</span>
-      <span className="ctx-pick">
-        <button className="ctx-name" onClick={() => setOpen(!open)} title="Pick a setup - it sets the cleaning, the voice and the effects">
-          {shown ? shown.label : '—'}<svg width="8" height="5" viewBox="0 0 8 5"><path d="M1 1l3 3 3-3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" /></svg></button>
-        {open && <div className="ctx-menu">{setups.map((x: any) => <button key={x.id} className={x.id === cur?.id ? 'on' : ''} title={x.about || ''}
-          onClick={() => { setOpen(false); onPick(x); }}>{x.label}{x.saved && <small>yours</small>}</button>)}</div>}
-      </span>
+  const state = cur ? (changed ? ['warn', 'Changed'] : ['ok', by === 'session' ? 'Set by a session' : 'Exactly as set']) : rowCur ? ['row', 'From the row'] : ['none', 'No setup'];
+  return <div className="ctx-setup">
+    <div className="ctx-setup-r">
+      <label>Setup</label>
+      <select className="field" value={shown?.id || ''} onChange={(e) => { const x = setups.find((y: any) => y.id === e.target.value); if (x) onPick(x); }}
+        title="Pick a setup - it sets the cleaning, the voice and the effects">
+        {!shown && <option value="">Choose…</option>}
+        {setups.map((x: any) => <option key={x.id} value={x.id}>{x.label}{x.saved ? ' (yours)' : ''}</option>)}
+      </select>
       <span className={`ctx-state ${state[0]}`}>{state[1]}</span>
     </div>
-    {actions && <div className="ctx-acts">
+    {(changed || (onClip && own)) && <div className="ctx-acts">
       {changed && <>
-        <button className="a-text" onClick={onReset} title={`Back to exactly "${cur.label}"`}>Reset</button>
-        <button className="a-sec" onClick={onSave} title="Save what you hear now as a new setup">Save as new</button>
-        <button className="a-pri" onClick={onUpdate} title={`"${cur.label}" becomes what you hear now`}>Update setup</button>
+        <button className="btn" onClick={onReset} title={`Back to exactly "${cur.label}"`}>Reset</button>
+        <button className="btn" onClick={onSave} title="Save what you hear now as a new setup">Save as new</button>
+        <button className="btn primary" onClick={onUpdate} title={`"${cur.label}" becomes what you hear now`}>Update</button>
       </>}
-      {onClip && own && <button className="a-sec" onClick={onRow} title="Remove this clip's own settings - it sounds like the rest of the row">Use row's</button>}
+      {onClip && own && <button className="btn" onClick={onRow} title="Remove this clip's own settings - it sounds like the rest of the row">Use the row's</button>}
     </div>}
-  </>;
+  </div>;
 }
