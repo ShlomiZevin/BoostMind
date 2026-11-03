@@ -68,3 +68,5 @@ principles - apply them to whatever the game is.
 - Four upright phone sizes plus a landscape, with touch; assert no overflow and that the main buttons are on screen.
 - A test reads state through the game's test hook, never by guessing from pixels.
 - Test the LIVE page after release the same way.
+
+- **A character who pops up talks beside his own head** (Asaf, 3 Nov 2026): a soft, light bubble next to the head, on the side with more room, fading with him - not only a strip at the top. The strip keeps the loud lines (a lost heart).
