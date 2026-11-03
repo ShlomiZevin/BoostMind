@@ -115,6 +115,9 @@ export function apply(project, ops) {
         const l = need(op.layer);
         const it = itemOf(l, op.id);
         if (it && l.owner === 'builder' && it.ref) l.removed = [...new Set([...(l.removed || []), refKey(it.ref)])];  // a rebuild won't bring it back
+        // ...and where it was: a rebuild drops a fresh item lying mostly over a removed span (pipeline/project.py merge,
+        // mapped through the timemap) - so "deleted stays deleted" even when the builder's refs shift (2026-11-03)
+        if (it && l.owner === 'builder' && !(l.removedSpans || []).some((s) => s.from === it.from && s.dur === it.dur)) l.removedSpans = [...(l.removedSpans || []), { from: it.from, dur: it.dur }];
         l.items = l.items.filter((i) => i.id !== op.id);
         break;
       }
