@@ -1154,17 +1154,18 @@ section.hero .scroll-hint { z-index: 1; }
 .cmy-st { margin-top: 22px; }
 .cmy-tile svg.flip { transform: scaleX(-1); }
 
-/* footer on a phone (his note 2026-11-03: messy with all the links): the name + the socials on one line, then the site's
-   three links as equal tiles in one row; "the community" is already in the bottom bar */
+/* footer on a phone, above the bottom bar (his notes 2026-11-03: "messy", then "just icons and a simple one line"):
+   one centred row of round icons - the site's links (sites, business, "something broken?"), a thin divider, the
+   socials. No names: each icon has its title. "The community" is already in the bottom bar */
 @media (max-width: 600px) {
-  footer .wrap.foot { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px; }
-  .foot-brand img { width: 30px; }
-  .foot-soc { grid-column: 2; grid-row: 1; width: auto; justify-content: flex-end; gap: 6px; }
-  .foot-soc a { width: 32px; height: 32px; }
-  .foot-links { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin: 0; }
-  .foot-links a[href="#/community"] { display: none; }
-  .foot-links a { flex-direction: column; justify-content: center; gap: 4px; height: 58px; padding: 0 4px; border-radius: 16px; font-size: .78rem; white-space: nowrap; }
-  .foot-links svg { width: 18px; height: 18px; }
+  footer .wrap.foot { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 6px; }
+  .foot-brand { display: none; }
+  .foot-links, .foot-soc { display: flex; flex-wrap: nowrap; gap: 6px; width: auto; margin: 0; }
+  .foot-links a[href="/community"] { display: none; }
+  .foot-links a, .foot-soc a { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 0; gap: 0; flex: none; }
+  .foot-links a span, .foot-soc a span { display: none; }
+  .foot-links svg, .foot-soc svg { width: 17px; height: 17px; }
+  .foot-links::after { content: ''; width: 1px; height: 22px; background: var(--line); margin-inline: 4px; align-self: center; }
 }
 
 /* ---- games (2026-11-03, designs scripts/v2-design/games.mjs): the home row, the games page, a character's section,
