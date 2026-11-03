@@ -93,3 +93,23 @@
   color: #fff; cursor: pointer; opacity: 0; pointer-events: none; transition: background .15s, opacity .1s; }
 .ltl .blk:hover .blk-open, .ltl .blk.sel .blk-open { opacity: 1; pointer-events: auto; }
 .ltl .blk .blk-open:hover { background: var(--accent); }
+
+/* volume right on the timeline (the same numbers as the sound panel). A clip: a line across the block - drag it up /
+   down (top +6 dB, 0 dB a quarter down); a row: a bar along the bottom of its name - drag left / right. Both show on
+   hover (a row's stays, quieter, when it isn't at 0 dB); double-click = back to 0 dB */
+.ltl .blk .blk-vol { position: absolute; left: 8px; right: 8px; height: 9px; margin-top: -4px; z-index: 2; cursor: ns-resize; opacity: 0; transition: opacity .1s; }
+.ltl .blk .blk-vol::before { content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 1.5px; border-radius: 1px; background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
+.ltl .blk:hover .blk-vol, .ltl .blk.sel .blk-vol, .ltl .blk .blk-vol.on { opacity: 1; }
+.ltl .blk .blk-vol:hover::before, .ltl .blk .blk-vol.on::before { top: 3px; height: 3px; background: #ffe7a3; }
+.ltl-vol { position: absolute; left: 28px; right: 12px; bottom: 2px; height: 7px; cursor: ew-resize; opacity: 0; transition: opacity .1s; }
+.ltl-vol::before, .ltl-vol i { content: ''; position: absolute; left: 0; top: 2px; height: 3px; border-radius: 2px; }
+.ltl-vol::before { right: 0; background: rgba(255, 255, 255, 0.12); }
+.ltl-vol i { background: var(--dim); }
+.ltl-vol i::after { content: ''; position: absolute; right: -4px; top: -2px; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+.ltl-vol::after { content: ''; position: absolute; left: 50%; top: 1px; width: 1px; height: 5px; background: rgba(255, 255, 255, 0.3); }  /* 0 dB */
+.ltl-vol.vset { opacity: 0.55; }
+.ltl-lay .ltl-name:hover .ltl-vol, .ltl-vol.on { opacity: 1; }
+.ltl-vol:hover i, .ltl-vol.on i { background: var(--accent); }
+.ltl-vol span { position: absolute; right: 0; bottom: 8px; padding: 1px 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.85); color: #fff; font-size: 11px;
+  font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
