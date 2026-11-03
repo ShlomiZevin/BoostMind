@@ -4,7 +4,7 @@ import { T } from './copy.js';
 import { st, onState, needFan } from './state.js';
 import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack } from './stories.js';
-import { communityPage, businessPage, homeBand, onIdeas } from './community.js';
+import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest } from './community.js';
 import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
@@ -30,6 +30,8 @@ Object.assign(HOOK, {
   homeSlot,
   requestCard,
   signinCard,
+  stickerCard,   // [[sticker:ID]] in a chat reply
+  nearestId: nearest,
   // the chat sends the account with each question (3 in total without an account, 10 more signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
   chatSignIn: () => needFan('chat'),

@@ -355,6 +355,12 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .ms b { display: block; font-size: .95rem; line-height: 1.25; } .ms small { color: var(--dim); font-size: .78rem; direction: ltr; display: block; text-align: right; }
   .ms .go { color: var(--c); font-weight: 800; font-size: .84rem; flex: none; }
   .mc { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); }
+  .mk { width: min(300px, 100%); padding: 10px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); }
+  .mk-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .mk-row button { aspect-ratio: 1; border-radius: 12px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line2); padding: 3px; cursor: pointer; transition: transform .15s; }
+  .mk-row button:active { transform: scale(.94); }
+  .mk-row img { width: 100%; height: 100%; object-fit: contain; }
+  .mk small { display: block; margin-top: 8px; font-size: .8rem; color: var(--dim); text-align: center; }
   .mc .av { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--cc); }
   .mc .av img, .mc .av .ph { width: 100%; height: 100%; object-fit: cover; }
   .mc b { display: block; font-size: .95rem; line-height: 1.25; }
@@ -901,6 +907,18 @@ const links = (h) => h.replace(/(?:https?:\/\/|www\.|(?:shlomiverse\.com|techyte
   const href = /^https?:/i.test(u) ? u : 'https://' + u, own = /^https?:\/\/(www\.)?shlomiverse\.com(\/|$)/i.test(href);
   return `<a class="lnk" href="${href}"${own ? '' : ' target="_blank" rel="noopener nofollow"'}><bdi dir="ltr">${u}</bdi></a>`;
 });
+// a card's id as the model wrote it -> the real one (the chat review, 2026-11-03: "hami", "h ani", a hidden character
+// inside "hani" made the card vanish): spaces / hidden characters / case first; a character or a site also by the nearest
+// id (one or two letters off) - only when the reply itself names that person ("omer" is not Ofer, "dani" is not Hani);
+// a video only exactly - its ids differ by one digit from episode to episode
+function cardId(kind, raw, reply) {
+  const id = String(raw).toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const pool = kind === 'video' ? V : kind === 'char' ? C : (W.sites || {});
+  if (pool[id] || kind === 'video' || !HOOK.nearestId) return id;
+  const near = HOOK.nearestId(id, Object.keys(pool));
+  const named = near && [C[near]?.name, (W.sites || {})[near]?.title].some((n) => n && reply.includes(String(n).split(' ')[0]));
+  return named ? near : id;
+}
 // a reply's text; [[video:id]] lines become a player inside the bubble, [[char:id]] lines an invitation to switch
 function renderText(text, streaming) {
   if (streaming) text = text.replace(/\[\[[^\]]*$/, '');
@@ -910,7 +928,8 @@ function renderText(text, streaming) {
     const flush = () => { if (para.length) parts.push(`<p>${para.map((l) => links(esc(l))).join('<br>')}</p>`); para = []; };
     for (const line of block.split('\n')) {
       // [[request:video|the text]] - a request the guide wrote for the visitor to approve (the text is optional)
-      const m = line.trim().match(/^\[\[(video|char|request|site):([\w-]+)(?:\|([^\]]*))?\]\]$/);
+      const m = line.trim().match(/^\[\[(video|char|request|site|sticker):([^\]|]+)(?:\|([^\]]*))?\]\]$/);
+      if (m && m[1] !== 'request' && m[1] !== 'sticker') m[2] = cardId(m[1], m[2], text);
       if (m && m[1] === 'video' && V[m[2]]) {
         flush();
         const v = V[m[2]];
@@ -925,6 +944,9 @@ function renderText(text, streaming) {
         flush();
         const st = W.sites[m[2]];
         parts.push(`<a class="ms" href="${esc(st.url)}" target="_blank" rel="noopener">${st.img ? `<img src="${esc(st.img)}" alt="" loading="lazy">` : ''}<span class="ms-t"><span><b>${esc(st.title)}</b><small>${esc(st.host)}</small></span><span class="go">לאתר ←</span></span></a>`);
+      } else if (m && m[1] === 'sticker' && HOOK.stickerCard) {   // the characters' ready stickers, one tap to WhatsApp
+        flush();
+        parts.push(HOOK.stickerCard(m[2]));
       } else if (m && m[1] === 'request' && HOOK.requestCard) {
         flush();
         parts.push(streaming ? '' : HOOK.requestCard(m[2], cxMode, m[3]));

@@ -128,6 +128,44 @@ function packSheet() {
   });
 }
 
+// ---------- the ready stickers inside the chat: [[sticker:ID]] (the chat review, 2026-11-03 - the chat only explained
+// how to make one, once it said Hani has none). ID = a character (all their ready stickers) or one sticker; a slip of
+// the model's ("h ani", "hami") goes to the nearest real one, nothing near = no card ----------
+export function stickerCard(ref) {
+  if (!PACK.length) return '';
+  const id = String(ref || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const keys = [...new Set(PACK.flatMap((p) => [p.id, p.char]))];
+  const key = keys.includes(id) ? id : nearest(id, keys);
+  const list = PACK.filter((p) => p.id === key || p.char === key);
+  if (!list.length) return '';
+  return `<div class="mk"><div class="mk-row">${list.map((p) => `<button data-pk-chat="${esc(p.id)}" aria-label="${esc(p.text)}"><img src="${esc(p.thumb || p.img)}" alt="${esc(p.text)}" loading="lazy"></button>`).join('')}</div>
+    <small>${esc(T.gain.pack.sub)}</small></div>`;
+}
+// the closest id (one or two letters off; one for a short id), and only when no other id is as close - a tie goes to the
+// same length and the same first letter ("hami" = hani, not ami)
+export function nearest(id, keys) {
+  const lev = (a, b) => {
+    const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let p = d[0]; d[0] = i;
+      for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; }
+    }
+    return d[b.length];
+  };
+  const far = id.length <= 5 ? 1 : 2;
+  const score = (k, n) => n * 4 + (k.length === id.length ? 0 : 2) + (k[0] === id[0] ? 0 : 1);
+  const by = keys.map((k) => [k, lev(id, k)]).filter(([, n]) => n <= far).map(([k, n]) => [k, score(k, n)]).sort((a, b) => a[1] - b[1]);
+  return by.length && (by.length === 1 || by[0][1] < by[1][1]) ? by[0][0] : null;
+}
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-pk-chat]');
+  if (!b) return;
+  const p = PACK.find((x) => x.id === b.dataset.pkChat);
+  if (!p || !(await needFan('pack', p.char, { img: p.img, cut: true }))) return;
+  track('pack_get', p.id + '|chat');
+  waCard(p.img);
+});
+
 // ---------- suggest an idea (the sheet), then share it ----------
 async function ideaSheet() {
   if (!(await needFan('idea'))) return;

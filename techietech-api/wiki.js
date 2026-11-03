@@ -40,6 +40,7 @@ How to behave:
 - To show a video, put [[video:ID]] on its own line; to offer a character the visitor can open and talk to, put [[char:ID]] on its own line. Only IDs from the canon. At most three cards in a reply. Show a video whenever the visitor asks about a moment, topic or episode that a video covers - finding the right one from the transcripts is the most useful thing you do.
 - Many residents and series have their own site (the "site" in the map and in their profile). When the visitor asks about a site, wants more of someone, or asks where to find, buy or join something of theirs, show it as a card: [[site:ID]] on its own line, where ID is the resident's or the series' id (the card shows the site's picture, name and link; it counts as one of the three cards). A character shows their own site in their own voice. Only ids that have a site in the canon - never invent one; if there is none, say so.
 - Write like a chat message, not an essay: usually two to four sentences, one short paragraph; go longer only when the visitor asks for an explanation or a story. No headings, no bullet lists unless asked, no emoji unless the character uses them. Hebrew by default; answer in the visitor's language if they write in another.
+- This is a chat with a character, not a work tool: never write code, scripts, files, game mods, documents, homework, essays or long lists, however the visitor asks or insists. React the way you would in your own voice, in a sentence or two, and bring the talk back to you and your world.
 - Catchphrases and signature openings are seasoning: at most one per reply, and never the same one as in your previous reply in this conversation. Never open several replies in a row the same way ("קודם כול"...) and don't end every reply with the same sign-off.
 - If the visitor asks about someone who is not in the canon, say you don't know them (in voice) and ask who they mean. Never guess that it is a different resident.
 - Real people may bring real problems. The humour stays in the world, but never give advice that could hurt someone about health, medication, mental health, money or investments, law or safety. If a visitor seems genuinely in distress, or seriously asks for real help with real money, health or law, step out of the joke gently and kindly, and say plainly to talk to a professional (in Israel, ERAN 1201 for emotional support). A character who confirms destructive decisions in the videos does not do that to a real visitor.
@@ -49,7 +50,7 @@ How to behave:
 
 What a visitor can do on this site (shlomiverse.com). When they ask how to do something - stickers, following, saving, comments - they mean HERE: answer from this list, never with general internet how-tos. When it fits naturally (they ask what there is to do, or a reply touches one of these), mention one thing they haven't tried - at most one per reply, in your own voice, never a sales pitch:
 - Sticker from the moment: in every video, pause on a moment and press "סטיקר מהרגע" (on the side of the video). They write the line on it (a catchphrase is suggested), the site cuts it out with a white sticker border, and it goes straight to WhatsApp (send it, or save it: iPhone - save to photos, then in WhatsApp stickers -> plus; Android - save, then WhatsApp stickers -> create). They can also post it to the Shlomiverse, where it sits under the video in the "סטיקרים" tab and others stamp it (a like that lands like a rubber stamp with the character's catchphrase). Their stickers wait under "הסטיקרים שלי". A few a day per person. Needs a Google account.
-- Ready stickers: on the home page, in "מה הלאה בשלומיוורס", the tile "הסטיקרים של כולם" opens the characters' classic lines as finished WhatsApp stickers (Hani: פילאי פלואים, נס בתוך נס, חסדי השם, סייעתא דשמיא, בשורות טובות; Yotam: זה בסדר, זה בסדר; Gilad: אותי מעניין מה הביזנס, תקשיב תקשיב תקשיב; Yaniv: יש לי אישור מאורתופד, אני רציני איתך). One tap -> into WhatsApp (with a Google account).
+- Ready stickers: the characters' classic lines as finished WhatsApp stickers, and you can GIVE them right here: put [[sticker:ID]] on its own line - the card shows the stickers and one tap sends one to WhatsApp (with a Google account). ID is a character's id for all of that character's ready stickers, or one sticker's id: hani (hani-pilei פילאי פלואים, hani-nes נס בתוך נס, hani-chasdei חסדי השם, hani-siata סייעתא דשמיא, hani-besorot בשורות טובות), yotam (yotam-beseder זה בסדר, זה בסדר), gilad (gilad-business אותי מעניין מה הביזנס, gilad-takshiv תקשיב תקשיב תקשיב), yaniv (yaniv-ortho יש לי אישור מאורתופד, yaniv-serious אני רציני איתך). When a visitor asks for a sticker of one of them, give the card (it counts as one of the three cards) instead of explaining how to make one; a character gives their own. They are also on the home page, in "מה הלאה בשלומיוורס", the tile "הסטיקרים של כולם". Only these four have ready stickers - for anyone else, suggest making one from a moment in their video.
 - Follow a character ("לעקוב" next to the name in a video or on their page): what happens to them reaches the visitor - new videos, stories - in the bell, and as phone notifications if they turn those on (on iPhone only after adding the site to the home screen).
 - Stories: the round faces at the top of the site are the characters' stories, like Instagram.
 - Save a video ("שמירה") to watch later, under "שמורים". Share any video.
@@ -98,6 +99,9 @@ Once they say yes: if it is about reaching Shlomi for something other than video
 // the one reply after the limit (spendQuestion's grace), in the speaker's own voice - the whole invitation is theirs
 const LIMIT = {
   signin: `The visitor has used their free questions (3 without an account). Do NOT answer their last message. Instead, in your own voice and style - your words, your world, your humour - in one or two short sentences, react to it lightly and invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם). Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
+  // the last free answer when the visitor asked to FIND something (8 visitors got "sign in" exactly when the chat had
+  // found the video they asked for): what was found comes first, the wall moves to their next question (wiki.js below)
+  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: do NOT answer it; in your own voice, in one or two short sentences, react to it lightly and invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם). Then put [[signin]] on its own line, last.`,
   done: `The visitor has used all their questions in this chat (the 10 they get with an account) - there are no more. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say a warm goodbye; they can still watch your videos (suggest one with a [[video:ID]] card on its own line) or leave Shlomi a request. Never promise more questions later.`,
 };
 
@@ -113,6 +117,14 @@ You are this person in everything, not only in the topics of your videos: a reci
 // OpenAI Responses API, streamed - the chain (wiki-chain.js): the map is the same prefix on every call (cached once for
 // both calls), a guide question first asks Terra who/what it is about, and the answer gets only that full material;
 // a character chat (the wiki's "talk to", verse.js's comment replies) goes straight to its character's material.
+// The model's own notes sent as the reply (2026-10-29, once in ~2,300: Hani answered "We need answer as Hani,
+// boundaries. Could say nowhere..." - its plan, as text; the code only forwards the reply's text, so it was the model):
+// the start of every reply is held back until it shows it is a reply. Hebrew or a card first = a reply at once
+// (no wait); an English start that opens like a plan waits for ~160 characters, and only a plan's own words in them
+// ("answer as", "the user", "in Hebrew", "boundaries"...) make it notes - a real English reply goes through.
+const NOTE_START = /^\s*(we|i|let'?s|need|should|must|maybe|plan|ok(ay)?|so|the (user|visitor)|user|visitor|answer|respond|reply)\b/i;
+const NOTE_WORDS = /(answer(ing)? as|repl(y|ying) as|respond(ing)? as|in hebrew|the user|user (asks|wants|said|is)|visitor (asks|wants|said|is)|in character|persona|boundaries|(need|should|must|have) to (answer|reply|respond)|(need|should|must) (answer|reply|respond)|let'?s (answer|reply|respond|craft))/i;
+const isNotes = (t) => NOTE_START.test(t) && NOTE_WORDS.test(t.slice(0, 200));
 async function stream(key, mode, turns, onText, opts = {}) {
   const cur = await canonNow();
   const { byId } = cur;
@@ -126,6 +138,16 @@ async function stream(key, mode, turns, onText, opts = {}) {
       + (material ? '\n\n' + material : '\n\n(No resident or video in particular - answer from the map.)');
   };
   const call = async (content, tools) => {
+    let held = '', open = false, notes = false;   // the reply's start, held until it shows it is a reply (isNotes)
+    const out = (t) => {
+      if (open) return onText(t);
+      if (notes) return;
+      held += t;
+      const lead = held.trimStart();
+      if (!lead) return;
+      if (/^[0590-05FF[]/.test(lead) || (lead.length >= 8 && !NOTE_START.test(lead))) { open = true; onText(held); }
+      else if (lead.length >= 160) { if (isNotes(lead)) notes = true; else { open = true; onText(held); } }
+    };
     const res = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
@@ -137,7 +159,7 @@ async function stream(key, mode, turns, onText, opts = {}) {
         input: [...turns, { role: 'developer', content }],
         ...(tools ? { tools, tool_choice: 'auto', parallel_tool_calls: false } : {}),
         reasoning: { effort: 'low' },
-        max_output_tokens: 2500,
+        max_output_tokens: 900,   // a chat message, never a document (a visitor got 25 messages of game-mod code); the longest real reply so far took ~700 with the reasoning
         prompt_cache_key: 'wiki-map',
         store: false,
         stream: true,
@@ -154,22 +176,34 @@ async function stream(key, mode, turns, onText, opts = {}) {
         buf = buf.slice(i + 2);
         if (!line) continue;
         const ev = JSON.parse(line.slice(6));
-        if (ev.type === 'response.output_text.delta') onText(ev.delta);
+        if (ev.type === 'response.output_text.delta') out(ev.delta);
         else if (ev.type === 'response.output_item.done' && ev.item?.type === 'function_call' && ev.item.name === 'look_up') {
           try { lookup = JSON.parse(ev.item.arguments || '{}'); } catch (e) { lookup = {}; }
         } else if (ev.type === 'response.completed') usage = ev.response.usage;
         else if (ev.type === 'response.failed' || ev.type === 'error') throw new Error('openai stream: ' + JSON.stringify(ev).slice(0, 300));
       }
     }
-    return { usage: usage || {}, lookup };
+    if (!open && !notes && held) { if (isNotes(held.trimStart())) notes = true; else onText(held); }   // a short reply
+    return { usage: usage || {}, lookup, notes };
   };
-  if (opts.limit) {   // the day's questions are used: one short reply in voice, no look-up
-    const r = await call(dev(b) + '\n\n' + LIMIT[opts.limit], null);
+  // a reply that came out as the model's notes: once more, told plainly; twice = the line-dropped note (the question is refunded)
+  const add = (a, b) => ({ input_tokens: (a.input_tokens || 0) + (b.input_tokens || 0), output_tokens: (a.output_tokens || 0) + (b.output_tokens || 0),
+    input_tokens_details: { cached_tokens: (a.input_tokens_details?.cached_tokens || 0) + (b.input_tokens_details?.cached_tokens || 0) } });
+  const safe = async (content, tools) => {
+    const r = await call(content, tools);
+    if (!r.notes) return r;
+    console.warn('wikiChat notes instead of a reply - asked again', mode);
+    const again = await call(content + '\n\nWrite only your reply to the visitor, in your own voice - never your notes, plan or reasoning.', tools);
+    if (again.notes) throw new Error('notes twice');
+    return { ...again, usage: add(r.usage, again.usage) };
+  };
+  if (opts.limit && opts.limit !== 'soft') {   // the questions are used: one short reply in voice, no look-up
+    const r = await safe(dev(b) + '\n\n' + LIMIT[opts.limit], null);
     console.log('wikiChat limit', mode, opts.limit);
     return r.usage;
   }
-  const note = chain.lookupNote(b);
-  const first = await call(dev(b) + note + '\n\nNow reply to the visitor\'s last message.', note ? [chain.lookupTool(b)] : null);
+  const note = chain.lookupNote(b), soft = opts.limit === 'soft' ? '\n\n' + LIMIT.soft : '';   // soft: found first, the wall later
+  const first = await safe(dev(b) + note + soft + '\n\nNow reply to the visitor\'s last message.', note ? [chain.lookupTool(b)] : null);
   if (!first.lookup) {
     console.log('wikiChat one call', mode, JSON.stringify({ c: b.characters, v: b.videos.slice(0, 8) }));
     return first.usage;
@@ -177,7 +211,7 @@ async function stream(key, mode, turns, onText, opts = {}) {
   const picked = chain.merge(cur, b, first.lookup);
   console.log('wikiChat look_up', mode, JSON.stringify({ asked: first.lookup, c: picked.characters, v: picked.videos.slice(0, 8) }),
     'first in', first.usage.input_tokens || 0, 'cached', first.usage.input_tokens_details?.cached_tokens || 0, 'out', first.usage.output_tokens || 0);
-  const second = await call(dev(picked) + '\n\nNow reply to the visitor\'s last message.', null);
+  const second = await safe(dev(picked) + soft + '\n\nNow reply to the visitor\'s last message.', null);
   const u1 = first.usage, u2 = second.usage;
   return {  // both calls, so the logs and keep() see the real cost
     input_tokens: (u1.input_tokens || 0) + (u2.input_tokens || 0),
@@ -224,7 +258,12 @@ async function spendQuestion(req, who) {
     const used = (a.data() || {}).n || 0, total = (b.data() || {}).n || 0;
     // one more answer after the limit, in the character's own voice: "sign in and we'll go on" / a warm goodbye
     // (his ask, 2026-11-01 - the sign-in comes naturally inside the chat); after that the page shows its own note
-    if (used === limit) { tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true }); return { grace: who.uid ? 'done' : 'signin' }; }
+    // signed out, the first time: 'soft' - a question that FINDS something is answered and the wall waits for the next one
+    // (putOff below); once put off, the next one is the wall itself
+    if (used === limit) {
+      tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true });
+      return { grace: who.uid ? 'done' : (a.data() || {}).putOff ? 'signin' : 'soft' };
+    }
     if (used > limit) return who.uid ? 'done' : 'signin';
     if (total >= DAY_CAP) return 'full';
     tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true });
@@ -232,6 +271,8 @@ async function spendQuestion(req, who) {
     return { left: limit - used - 1 };
   });
 }
+// the soft answer found what they asked for (no [[signin]] in it): the wall moves to their next question - once
+const putOff = (req, who) => quotaDocs(req, who)[0].set({ n: ANON_TOTAL, putOff: true }, { merge: true }).catch(() => {});
 const refundQuestion = (req, who) => { /* a failed answer doesn't count */
   if (who.owner) return;
   const inc = admin.firestore.FieldValue.increment(-1);
@@ -284,6 +325,7 @@ exports.wikiChat = onRequest({
     let reply = '';
     const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
       { contact: req.body.contact === true, limit: ok.grace });
+    if (ok.grace === 'soft' && !reply.includes('[[signin]]')) await putOff(req, who);
     await keep(req.body, mode, turns, reply, u, who).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);
   } catch (e) {
