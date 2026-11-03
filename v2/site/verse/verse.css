@@ -1167,12 +1167,49 @@ section.hero .scroll-hint { z-index: 1; }
   .foot-links svg { width: 18px; height: 18px; }
 }
 
-/* a character's games on their page: cover + name + one line, two across on a phone */
-.cgames { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.cgame { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-radius: 18px; overflow: hidden; background: var(--card); border: 1px solid var(--line); color: var(--text); transition: border-color .15s; }
-.cgame:hover { border-color: var(--vx-accent); }
-.cg-pic { display: block; aspect-ratio: 1.91 / 1; background: var(--card2); overflow: hidden; }
-.cg-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cgame b { padding: 6px 12px 0; font-weight: 800; font-size: .98rem; }
-.cgame small { padding: 0 12px; color: var(--dim); font-size: .8rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-@media (max-width: 600px) { .cgames { grid-template-columns: 1fr 1fr; gap: 10px; } .cgame b { font-size: .88rem; padding: 6px 10px 0; } .cgame small { padding: 0 10px; font-size: .74rem; } }
+/* ---- games (2026-11-03, designs scripts/v2-design/games.mjs): the home row, the games page, a character's section,
+   and a game played inside the verse ---- */
+.grow { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; margin-inline: -4px; padding-inline: 4px; }
+.grow::-webkit-scrollbar { display: none; }
+.grow .gcard { flex: 0 0 min(250px, 68vw); scroll-snap-align: start; }
+.gcard { position: relative; display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: var(--card); border: 1px solid var(--line); color: var(--text); transition: border-color .15s; }
+.gcard:hover, .gfeat:hover { border-color: var(--vx-accent); }
+.g-pic { position: relative; display: block; aspect-ratio: 1.91 / 1; background: var(--card2); overflow: hidden; }
+.g-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.g-new { position: absolute; top: 8px; inset-inline-start: 8px; padding: 3px 9px; border-radius: 99px; background: var(--vx-accent); color: #fff; font-style: normal; font-weight: 800; font-size: .72rem; }
+.g-body { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px 12px; min-width: 0; }
+.gcard .g-body { padding-inline-end: 50px; }
+.gcard:not(:has(.g-own)) .g-body { padding-inline-end: 12px; }
+.g-body b { font-weight: 800; font-size: .96rem; line-height: 1.25; }
+.g-body small { color: var(--dim); font-size: .8rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.g-own { position: absolute; bottom: 12px; inset-inline-end: 12px; width: 34px; height: 34px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vx-accent); }
+.g-own img, .g-who img, .gg-h .av img, .gchips .av img, .gp-who img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gfeat { display: grid; grid-template-columns: 1fr; border-radius: 22px; overflow: hidden; background: var(--card); border: 1px solid color-mix(in srgb, var(--vx-accent) 55%, transparent); box-shadow: 0 0 28px rgba(255, 106, 31, .12); color: var(--text); margin-bottom: 14px; }
+.gfeat .g-body { padding: 14px 16px 16px; gap: 6px; }
+.gfeat .g-body b { font-size: 1.15rem; }
+.g-who { display: inline-flex; align-items: center; gap: 8px; color: var(--dim); font-size: .85rem; font-weight: 700; }
+.g-who img, .g-who .ph { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; }
+.g-play { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; height: 42px; padding: 0 22px; border-radius: 99px; background: var(--vx-accent); color: #fff; font-weight: 800; }
+.g-play svg { width: 16px; height: 16px; fill: currentColor; transform: scaleX(-1); }
+@media (min-width: 700px) { .gfeat { grid-template-columns: 1.3fr 1fr; } .gfeat .g-body { justify-content: center; padding: 22px 26px; } }
+.gsec .gfeat { margin-bottom: 12px; }
+.gchips { margin: 4px 0 18px; }
+.gchips .chip { display: inline-flex; align-items: center; gap: 7px; }
+.gchips .av { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; flex: none; }
+.ggroup { margin-top: 26px; }
+.gg-h { display: flex; align-items: center; gap: 12px; color: var(--text); margin-bottom: 12px; }
+.gg-h .av { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vx-accent); flex: none; }
+.gg-h b { display: block; font-size: 1.15rem; font-weight: 800; }
+.gg-h small { color: var(--dim); font-size: .82rem; }
+.ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+@media (max-width: 600px) { .ggrid { grid-template-columns: 1fr 1fr; gap: 10px; } .ggrid .g-body b { font-size: .86rem; } .ggrid .g-body small { font-size: .74rem; } .ggrid .g-body { padding: 8px 10px 10px; } }
+/* a game inside the verse */
+body.playing { overflow: hidden; }
+body.playing .fab, body.playing > footer, body.playing .nav { display: none !important; }
+.gplay { position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column; background: #000; }
+.gp-bar { flex: none; display: flex; align-items: center; gap: 10px; height: calc(48px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); color: var(--text); }
+.gp-bar b { font-weight: 800; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gp-back { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; flex: none; }
+.gp-back svg { width: 20px; height: 20px; }
+.gp-who { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--vx-accent); }
+.gplay iframe { flex: 1; width: 100%; border: 0; background: #000; }

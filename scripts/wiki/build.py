@@ -156,7 +156,9 @@ def main():
             'sites': site_card,   # card id -> card ([[site:ID]] in the chat)
             # every site once, for a list on the page: {id, url, title, about, img, whose, in (the site a game is part of)}
             # + topic (a SITE_TOPICS key) and tagline, by AI (site_topics)
-            'site_list': [{**s, 'img': site_card[s['id']]['img'], **topics.get(s['id'], {})} for s in site_list]}
+            'site_list': [{**s, 'img': site_card[s['id']]['img'], **topics.get(s['id'], {})} for s in site_list],
+            # every live game, newest first - the character page, the games page and the home read this one list
+            'games': games({c['id'] for c in out_chars})}
     with open(os.path.join(PUB, 'data', 'wiki.json'), 'w', encoding='utf8') as f:
         json.dump(site, f, ensure_ascii=False, separators=(',', ':'))
 
@@ -170,6 +172,7 @@ def main():
         'videos': [{'id': v['id'], 'title': v['title'], 'teaser': v['teaser'], 'cast': v['cast'], 'date': v.get('date', ''),
                     'card': card.get(v['id']) or v['teaser'], 'transcript': v['_transcript']} for v in videos],
         'sites': site_list,
+        'games': [{k: g[k] for k in ('id', 'url', 'title', 'tagline', 'chars')} for g in games({c['id'] for c in out_chars})],
     }
     with open(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json'), 'w', encoding='utf8') as f:
         json.dump(brain, f, ensure_ascii=False, separators=(',', ':'))
@@ -181,6 +184,34 @@ def main():
 
 
 PUBLIC = 'https://shlomiverse.com'  # his address since 2026-10-31 (the same site as boostmind-b052c.web.app)
+
+
+def games(char_ids):
+    """Every live game of the Shlomiverse (his ask, 2026-11-03: games per character are part of the infrastructure).
+    A game = a folder public/<site>/<slug>/ with a game.json (the make-verse-game skill): status "live" only. Whose:
+    game.json "chars" (a list - a game can star several), else "character", else the site's name ("hani-games" ->
+    hani). The date: game.json "date", else the day the folder first reached git. Newest first."""
+    import glob, subprocess
+    out = []
+    for gj in glob.glob(os.path.join(ROOT, 'public', '*', '*', 'game.json')):
+        try:
+            g = json.load(open(gj, encoding='utf8'))
+        except ValueError:
+            continue
+        if g.get('status', 'live') != 'live':
+            continue
+        folder = os.path.dirname(gj)
+        site, slug = os.path.basename(os.path.dirname(folder)), os.path.basename(folder)
+        chars = g.get('chars') or ([g['character']] if g.get('character') else [site.removesuffix('-games')])
+        date = g.get('date') or subprocess.run(['git', 'log', '--diff-filter=A', '--format=%as', '-1', '--', gj], cwd=ROOT,
+                                               capture_output=True, text=True).stdout.strip()
+        cover = g.get('cover') or 'cover.jpg'
+        url = f'{PUBLIC}/{site}/{slug}/'
+        out.append({'id': f'{site}-{slug}', 'url': url, 'title': g.get('title') or slug, 'tagline': g.get('tagline', ''),
+                    'img': url + cover if os.path.exists(os.path.join(folder, cover)) else None,
+                    'chars': [c for c in chars if c in char_ids], 'site': site, 'date': date or ''})
+    out.sort(key=lambda x: x['date'], reverse=True)
+    return out
 
 
 def site_cards(series, chars, raw):

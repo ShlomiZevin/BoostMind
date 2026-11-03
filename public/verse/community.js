@@ -107,7 +107,7 @@ function canDo(key, faces) {
   else if (key === 'chat') openChat('guide');
   else if (key === 'follow') location.hash = '#/characters';
   else if (key === 'stories') location.hash = faces.length ? '#/story/' + faces[0].id : '#/characters';
-  else if (key === 'games') location.href = '/hani-games/';
+  else if (key === 'games') location.hash = '#/games';   // every character's games (Hani's playhouse is one of them)
   else if (key === 'sites') location.hash = '#/sites';
 }
 

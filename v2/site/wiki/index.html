@@ -505,9 +505,25 @@ const filterChips = (active, base) => `<div class="chips">
 // site carries `in` = that site's id). The bio link points here since 2026-11-01, so this is where people find them all.
 // Designed with GPT Image (scripts/v2-design/sites-panel.mjs): a swipe row on the home, a page grouped by world.
 const sitesTop = () => (W.site_list || []).filter((s) => !s.in);
-// a character's games = every live game (a folder with game.json) inside a site they own - build.py's site_list, nothing to
-// fill by hand (his ask 2026-11-03: games belong on the character's page)
-const charGames = (id) => (W.site_list || []).filter((g) => g.in && (g.whose || []).includes(id));
+// ---------- games: build.py games() - every live game, newest first, each with its characters (his ask 2026-11-03: games
+// per character are part of the infrastructure; designs scripts/v2-design/games.mjs G-home / G-page / G-char). A game
+// can have a site of its own too (Hani's playhouse) or live only here (Yaniv's) - either way it opens inside the verse.
+const GT = { row: 'משחקים חדשים', all: 'לכל המשחקים', fresh: 'חדש', play: 'שחקו', title: 'המשחקים של השלומיוורס',
+  sub: 'נגיעה אחת, והכול מתחיל לזוז.', allChip: 'כולם', of: (n) => `המשחקים של ${n}`, count: (n) => (n === 1 ? 'משחק אחד' : `${n} משחקים`) };   // Terra
+const gamesOf = (id) => (W.games || []).filter((g) => (g.chars || []).includes(id));
+const gOwner = (g) => C[(g.chars || []).find((id) => C[id])];
+const gNew = (g) => g === (W.games || [])[0] && g.date && Date.now() - Date.parse(g.date) < 14 * 864e5;   // "new" = the newest one only, for two weeks
+const gpic = (g) => `<span class="g-pic">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}${gNew(g) ? `<em class="g-new">${GT.fresh}</em>` : ''}</span>`;
+const gcard = (g, who = true) => { const o = who && gOwner(g); return `<a class="gcard" href="#/play/${g.id}">${gpic(g)}
+  <span class="g-body"><b>${esc(g.title)}</b>${g.tagline ? `<small>${esc(g.tagline)}</small>` : ''}</span>${o ? `<span class="g-own">${face(o)}</span>` : ''}</a>`; };
+const gfeat = (g) => { const o = gOwner(g); return `<a class="gfeat" href="#/play/${g.id}">${gpic(g)}
+  <span class="g-body"><b>${esc(g.title)}</b>${g.tagline ? `<small>${esc(g.tagline)}</small>` : ''}
+  ${o ? `<span class="g-who">${face(o)}${esc(o.name)}</span>` : ''}<span class="g-play">${ICON.play}${GT.play}</span></span></a>`; };
+// a character's games on their page: the newest wide with "play", the rest a swipeable row
+const charGamesSec = (c) => { const g = gamesOf(c.id); return g.length ? `<section class="sec gsec"><div class="sec-h"><div><h2>${esc(GT.of(c.name))}</h2><p class="sec-sub">${GT.count(g.length)}</p></div></div>
+  ${gfeat(g[0])}${g.length > 1 ? `<div class="grow">${g.slice(1).map((x) => gcard(x, false)).join('')}</div>` : ''}</section>` : ''; };
+// a group heading on the games page: the character's games site's own name when there is one ("המשחקייה של חני")
+const gGroupTitle = (id, list) => { const site = (W.site_list || []).find((s) => !s.in && s.id === list[0].site && (s.whose || []).includes(id)); return site ? site.title : GT.of(C[id].name); };
 const siteGames = (s) => (W.site_list || []).filter((g) => g.in === s.id);
 // whose = [series ids first when a world owns it, then residents]: a company / world site shows no face, a person's does
 const siteOwner = (s) => { const w = s.whose || []; return S[w[0]] ? null : w.map((id) => C[id]).find((c) => c && c.img); };
@@ -557,7 +573,10 @@ let heroWho = 'guide';
 const pages = {
   home() {
     const who = [GUIDE, ...heroFaces().slice(0, 7)];
-    const sections = `<section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
+    const games = (W.games || []).slice(0, 12);
+    const sections = `${games.length ? `<section class="sec"><div class="sec-h"><h2>${GT.row}</h2><a href="#/games">${GT.all} ←</a></div>
+        <div class="grow">${games.map((g) => gcard(g)).join('')}</div></section>` : ''}
+      <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="#/videos">כל הסרטונים ←</a></div>
         <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="#/characters">כל הדמויות ←</a></div>
         <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
@@ -636,18 +655,40 @@ const pages = {
         </div></div></section>
       <div class="wrap" style="--c:${color(c)}">
         ${c.quotes.length ? `<section class="sec"><div class="sec-h"><h2>משפטים מוכרים</h2></div><div class="bubbles">${c.quotes.map((x) => `<div class="bubble">${esc(x.replace(/^[״"]|[״"]$/g, ''))}</div>`).join('')}</div></section>` : ''}
-        ${charGames(id).length ? `<section class="sec"><div class="sec-h"><h2>משחקים</h2></div><div class="cgames">${charGames(id).map((g) => `<a class="cgame" href="${esc(g.url)}" data-site-out="${g.id}"><span class="cg-pic">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}</span><b>${esc(g.title)}</b>${g.tagline || g.about ? `<small>${esc(g.tagline || g.about)}</small>` : ''}</a>`).join('')}</div></section>` : ''}
+        ${charGamesSec(c)}
         <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>
           ${c.videos.length ? `<div class="vgrid">${c.videos.map((v) => vcard(V[v])).join('')}</div>` : `<div class="empty">עוד אין כאן סרטונים, אבל אפשר כבר לדבר עם ${esc(c.name)}.</div>`}</section>
         ${rel.length ? `<section class="sec"><div class="sec-h"><h2>מכירים מקרוב</h2></div><div class="rel">${rel.map((r) => `<a href="#/c/${r}"><span class="av">${face(C[r])}</span>${esc(C[r].name)}</a>`).join('')}</div></section>` : ''}
       </div>`;
+  },
+  // every game: chips by character, the newest big, then each character's games under their face
+  games(q) {
+    const all = W.games || [], who = [...new Set(all.flatMap((g) => g.chars || []))].filter((id) => C[id]);
+    const pick = q.c && C[q.c] ? q.c : '', list = pick ? gamesOf(pick) : all;
+    const groups = (pick ? [pick] : who).map((id) => [id, gamesOf(id)]).filter(([, g]) => g.length).sort((a, b) => b[1].length - a[1].length);
+    return `<div class="wrap gpage"><div class="page-h"><h1>${GT.title}</h1><p>${GT.sub}</p></div>
+      <div class="chips gchips"><a class="chip ${pick ? '' : 'on'}" href="#/games">${GT.allChip}</a>${who.map((id) => `<a class="chip ${pick === id ? 'on' : ''}" href="#/games?c=${id}"><span class="av">${face(C[id])}</span>${esc(C[id].name)}</a>`).join('')}</div>
+      ${list.length ? gfeat(list[0]) : ''}
+      ${groups.map(([id, g]) => `<section class="ggroup"><a class="gg-h" href="#/c/${id}"><span class="av">${face(C[id])}</span><span><b>${esc(gGroupTitle(id, g))}</b><small>${GT.count(g.length)}</small></span></a>
+        <div class="ggrid">${g.map((x) => gcard(x, false)).join('')}</div></section>`).join('')}</div>`;
+  },
+  // a game inside the verse: full screen, a slim bar back to where they came from
+  play(q, id) {
+    const g = (W.games || []).find((x) => x.id === id);
+    if (!g) return pages.notFound();
+    const o = gOwner(g);
+    return `<div class="gplay"><div class="gp-bar"><button class="gp-back" data-gp-back aria-label="חזרה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button>
+      ${o ? `<a class="gp-who" href="#/c/${o.id}">${face(o)}</a>` : ''}<b>${esc(g.title)}</b></div>
+      <iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe></div>`;
   },
   notFound() { return `<div class="wrap"><div class="page-h"><h1>לא מצאנו</h1><p><a href="#/">חזרה לדף הבית</a></p></div></div>`; },
 };
 
 // ---------- router ----------
 let shownPath = null;
+let routes = 0;   // pages shown in this visit (a game's back button goes back only when there is somewhere to go)
 function route() {
+  routes++;
   const [path, qs] = (location.hash.slice(1) || '/').split('?');
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
   let [, page = '', id] = path.split('/');
@@ -672,12 +713,15 @@ function route() {
   const c = page === 'c' && C[id];
   t('view', page ? page + (id ? '/' + id : '') : 'home');
   if (c) t('character', id);
-  document.title = c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : 'שלומיוורס · הוויקי של הדמויות';
+  const g = page === 'play' && (W.games || []).find((x) => x.id === id);
+  document.body.classList.toggle('playing', !!g);   // a game takes the whole screen (no top / bottom bars, no chat button)
+  document.title = g ? `${g.title} · שלומיוורס` : c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות';
   $('#fab').style.display = page ? '' : 'none';
   if (!page) bindHero();
   window.scrollTo(0, 0);
   onScroll();
 }
+document.addEventListener('click', (e) => { if (e.target.closest('[data-gp-back]')) { if (routes > 1) history.back(); else location.hash = '#/games'; } });   // opened straight from a link: to all the games
 function bindHero() {
   if ($('#ask')) $('#ask').onsubmit = (e) => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (q) t('ask', heroWho); openChat(heroWho, q || null); $('#ask-in').value = ''; };
   if (!$('#who')) return;
