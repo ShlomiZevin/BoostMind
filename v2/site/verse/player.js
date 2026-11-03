@@ -179,10 +179,10 @@ export function openPlayer(id, q = {}) {
 // The game protocol (verse/game-frame.js, loaded by every game): the game says hello, the page answers with the strip
 // to keep free at its top - 0 in the frame, the pill's height in full screen - so the pill never hides the game's HUD.
 // (The first version floated the video's buttons over the game and faded them - he couldn't find them again.)
-// Playing needs an account (his rule, 2026-11-03), but the first game of each game is free on this device - the game's
+// Playing needs an account (his rule, 2026-11-03), but the first game on this device is free (one in the whole verse) - the game's
 // cover and "התחברו כדי לשחק" stand in for it after that. A game with a daily record (game.json "record") gets the
 // "שיאים" button, and its score at game over goes on today's table (verse/records.js).
-const FREE = 'verse-free:';
+const FREE = 'verse-free';
 const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 export function openGame(id, q = {}) {
@@ -257,15 +257,16 @@ export function openGame(id, q = {}) {
       <button class="vx-btn main" data-gate>${esc(T.rec.gateBtn)}</button></div>`;
   };
   // decided once we know who is here (a fresh page learns it a moment after the page opens): signed in, or the first
-  // game of this game on this device = play; otherwise the way in
+  // game on this device - ONE free game in the whole verse, not one per game (his test 2026-11-03: a second game opened
+  // freely) - = play; otherwise the way in. The old per-game marks (verse-free:<id>) count as used too.
   let decided = false;
   const decide = () => {
     if (decided || !st.ready || !P) return;
     decided = true;
     let free = false;
-    try { free = !localStorage.getItem(FREE + id); } catch (x) {}
+    try { free = !localStorage.getItem(FREE) && !Object.keys(localStorage).some((k) => k.startsWith(FREE)); } catch (x) {}
     if (signedIn()) mount();
-    else if (free) { try { localStorage.setItem(FREE + id, '1'); } catch (x) {} mount(); }
+    else if (free) { try { localStorage.setItem(FREE, id); } catch (x) {} mount(); }
     else gate();
   };
   if (g.img) box.innerHTML = `<div class="vg-gate wait"><img src="${esc(g.img)}" alt=""></div>`;

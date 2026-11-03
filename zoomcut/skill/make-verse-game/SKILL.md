@@ -191,7 +191,7 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
    number - the server keeps each player's best of the day), and in game.json
    `"record": { "unit": "נקודות", "better": "high" }` (the score's Hebrew name as the table shows it; `"low"` for a
    time; optional `"max"` = the highest score a real player can reach). Then build.py + push.cjs. Playing is for
-   signed-in players (the first game of each game is free per device) and a game opened on its own address forwards
+   signed-in players (one free game per device in the whole verse, then sign in) and a game opened on its own address forwards
    to its verse page - test on the game's own address with `?solo=1` (or `?notrack=1`).
 9. **Records**: localStorage keys `shlomiverse:<slug>:best` (a plain number - hubs read it) and a daily best
    `shlomiverse:<slug>:day` ("date|value"); Hani's games keep `hani-games:<slug>:*`. Same course for everyone each day
