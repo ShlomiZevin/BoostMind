@@ -1,4 +1,4 @@
-# Sound setups ("perfect setups") - plan, not built yet
+# Sound setups ("perfect setups") - BUILT 2026-11-03 (editor.md "The sound panel"; old projects: he doesn't need them)
 
 His ask (2026-11-03): one click that sets everything for a kind of sound - podcast, synagogue hall, office, someone
 talking in the background, singer, and whatever our videos need. It works on whatever is picked (a whole row or

@@ -31,7 +31,7 @@ const r = await p.evaluate(async (id, secs, clock) => {
     LG.applyLayer(lay, l.props || {}, false);
     const parts = C.partsOf(l.items, fps, () => 'audio');
     for (const copy of Object.keys(C.copiesOf(parts))) {
-      LG.applyClip(LG.buildClip(ctx, lay), parts.find((x) => x.copy === copy), false);
+      LG.applyClip(LG.buildClip(ctx, lay), parts.find((x) => x.copy === copy), l.props || {}, false);
       clips++;
     }
   }

@@ -295,6 +295,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   Someone heard off-screen (a question): the picture under it comes ONLY from the take where he listens; if it is too
   short, speed the sound up (`tempo`) - never borrow footage from other takes. Room echo on anyone: very, very gentle
   (`room` ~0.1, "light, pleasant to the ear"). A noise filter that colours his voice: back to the original.
+- **Sound = a setup, by name** (his ask, 2026-11-03: "eventually the sessions do it; I only polish"). Every voice row
+  (and a clip that needs something else) gets a setup: `node tools/setup_apply.mjs <project> <layer> [item] <setup>` -
+  it sets the cleaning, the voice chain and the effects at once, and his panel shows "<setup> · set by a session".
+  `--list` shows them all (his own saved ones too - prefer his). Which one: a monologue to camera / an anchor -> Podcast
+  or News studio; the rabbi / a hall -> Synagogue hall; a keynote -> Stage / keynote; at a desk -> Office; a colleague
+  across the room -> Someone in the background; a sung take -> Singer; the other side of a call -> Phone call; a
+  loudspeaker -> Speakerphone / PA; a live / a video call -> Laptop speaker; a thought -> Inner thought; a dramatic beat
+  -> Dark echo; through a wall -> Muffled; a big ending line -> Trailer voice. The clip wins over its row (layers.md),
+  so one line in another place = a setup on that clip only. Tell him in the report which setup went where.
 - **RNNoise (clean "nn") swallows the first word after a long silence** (demokratovich-nechama, 2026-10-29: "the
   first רבותיי sounds bad"): after his 10 s silent opening it cut that word by 25-45 dB (the rest of his speech ~10 dB).
   Measure the word raw vs the nn source (`work/public/layers/src/voice__t.<take>__nn.wav`); fix = split the voice item

@@ -1,5 +1,6 @@
 // The studio's small shared files, the same on every computer (the studio online): the Ideas notebook
-// (zoomcut/ideas/ideas.json -> studio/ideas.json) and the Jobs history (episodes/_jobs.json -> studio/jobs.json).
+// (zoomcut/ideas/ideas.json -> studio/ideas.json), the Jobs history (episodes/_jobs.json -> studio/jobs.json) and his
+// saved sound setups (episodes/_setups.json -> studio/setups.json).
 // Each side is MERGED, never replaced - two computers that both wrote meanwhile keep both: ideas by id (the newer
 // edit wins, a deleted one stays deleted), jobs by their start. At start, every 2 minutes and when the file changes.
 import fs from 'node:fs';
@@ -16,6 +17,15 @@ export const FILES = [
       for (const x of [...(a.ideas || []), ...(b.ideas || [])]) { const o = by.get(x.id); if (!o || (x.updated || 0) > (o.updated || 0)) by.set(x.id, x); }
       const ideas = [...by.values()].filter((x) => !(deleted.has(x.id) && deleted.get(x.id).at >= (x.updated || 0)));
       return { ideas: ideas.sort((x, y) => x.created - y.created), deleted: [...deleted.values()] };
+    } },
+  { file: path.join(EPS, '_setups.json'), name: 'studio/setups.json', empty: { setups: [], deleted: [] },
+    merge(a, b) {
+      const deleted = new Map();
+      for (const d of [...(a.deleted || []), ...(b.deleted || [])]) if (!deleted.has(d.id) || deleted.get(d.id).at < d.at) deleted.set(d.id, d);
+      const by = new Map();
+      for (const x of [...(a.setups || []), ...(b.setups || [])]) { const o = by.get(x.id); if (!o || (x.updated || 0) > (o.updated || 0)) by.set(x.id, x); }
+      const setups = [...by.values()].filter((x) => !(deleted.has(x.id) && deleted.get(x.id).at >= (x.updated || 0)));
+      return { setups: setups.sort((x, y) => (x.updated || 0) - (y.updated || 0)), deleted: [...deleted.values()] };
     } },
   { file: path.join(EPS, '_jobs.json'), name: 'studio/jobs.json', empty: [],
     merge(a, b) {

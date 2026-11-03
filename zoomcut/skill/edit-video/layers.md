@@ -146,6 +146,14 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   wants at its real tempo while the video runs at 1.15×. Live: it plays at its own rate on the sped timeline; export:
   pipeline/layers_audio._own_pace renders it in real time and pre-stretches it so the export's speed-up lands it back on
   its own tempo (measured 1.00× vs 1.15×). Items still sit where they are on the timeline.
+- **The clip wins over its row** (his rule, 2026-11-03 - layergraph.ts `soundOf`): an item may carry its own `clean`,
+  `voice` (`false` = no voice chain for this clip), `presence`, `level` and `fx`; each replaces the row's for that clip
+  (`fx` key by key - `filter: ""`, `pitch: 0`, `room: 0` mean "none here"), the rest comes from the row. Only loudness
+  adds up (row `volume` x item `gain`). A clip with its own voice / clarity gets its own chain; its own `clean` plays that
+  cleaning's file of the same take (every variant is made up front). Row and item fx no longer stack.
+- **Sound setups** (render/src/layers/setups.js): `props.setup` / item `setup` = `{id, by?}` - only a label of which setup
+  made these values (`by: "session"` = a session put it); the values themselves are the ordinary fields above. Apply one
+  with `node tools/setup_apply.mjs <project> <layer> [item] <setup>` (`--list` for all; his saved ones included).
 - **Builders write raw content + these fields; they never bake a setting into a file.**
 - **All of it is live** in the editor and rendered by the same graph in the export (render/ui/layergraph.ts,
   tools/audio_layers.mjs). Only a NEW sound file is prepared (cleaning variants, levels) - in the background.

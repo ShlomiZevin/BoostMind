@@ -15,6 +15,7 @@ import { startDrop } from './drop.mjs';
 import { startPublish } from './publish.mjs';
 import characters from './characters.mjs';
 import ideas from './ideas.mjs';
+import setups from './setups.mjs';
 import library from './library.mjs';
 import { localPath } from './cloud/layout.mjs';
 import { startSync } from './cloud/sync.mjs';
@@ -34,6 +35,7 @@ const app = express();
 app.use(express.json({ limit: '2mb' }));
 characters(app, { ROOT, EPS });  // the Characters page: the multiverse (characters.mjs)
 ideas(app, { ROOT });  // the Ideas page: his notebook of video ideas (ideas.mjs)
+setups(app, { EPS });  // his saved sound setups (setups.mjs; the built-ins: src/layers/setups.js)
 // the editor's videos and sounds load from this same server under its other name (127.0.0.1 <-> localhost): a browser
 // opens at most 6 connections per host, the media streams held all of them and the saves (POST) waited forever.
 // Another host = its own 6. The sounds go through Web Audio, so the media answers carry CORS.

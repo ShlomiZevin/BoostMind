@@ -275,3 +275,19 @@ end must show at once, with the real footage there.
 - Never run a script that rewrites work/ files (mix, edit.json) while an export runs - it cut an export's audio once.
 - The mask videos are TV range (16-235): `mask_curve()` maps them to 0-255 before the cut-off (read raw, the person
   was 70-75% solid - see-through).
+
+## The sound panel (2026-11-03 - inspect/audio.tsx)
+ONE place (his note: "Voice style and Sounds like - I don't know the difference; volume very highlighted, then the simple
+ones, then the advanced, all visible, no hierarchy"), structured with an OpenAI UX consult:
+- **Editing: Whole row | This clip** at the top (a clip picked: This clip first). The clip wins over its row; only volume
+  adds up. "Use the row's settings" removes a clip's own settings.
+- **Volume** (the strongest): Whole row, This clip, Sound on.
+- **Everyday**: Sounds like = the setups (render/src/layers/setups.js; built-ins + his saved ones, GET /api/setups) - a
+  click sets cleaning + voice + effects on what's being edited; the status line says which one and whether it was a
+  session; after a change a bar asks once: Save as a new setup / Update "<setup>" / Just here. Pitch, Keep the speech
+  even, Lower the other sounds (music / effects), Raise after the talking (music), fades.
+- **Special cases** (quieter, all visible): Clean the noise, Room + Room size (ONE - the voice chain's when there is one,
+  else the effects'), Echo strength, Speaker echo, Clearer words, Warmth, Less boxy, Remove low rumble, Softer s sounds,
+  Louder quiet parts, Soften a shout, Hold to hear the original. Every label has a ? (help.ts).
+- His saved setups: episodes/_setups.json (render/setups.mjs), the same on every computer (cloud/shared.mjs ->
+  studio/setups.json).

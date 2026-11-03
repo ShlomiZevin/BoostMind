@@ -74,9 +74,9 @@ try {
         if (t0 >= n / rate) continue;
         const src = ctx.createBufferSource(); src.buffer = bufs[it.asset]; src.playbackRate.value = r;
         const c = LG.buildClip(ctx, lay, src);
-        LG.applyClip(c, it, false);
+        LG.applyClip(c, it, L.props || {}, false);
         // the clip's gain over its time, exactly as the editor ramps it (layergraph.clipGainAt) x its source's level
-        const lv = L.levels?.[it.asset] ?? 1;
+        const lv = it.lvl ?? L.levels?.[it.asset] ?? 1;  // (the clip's own speech level, or its row's - audio_render.py)
         const N = Math.max(2, Math.ceil(T / 0.004) + 1), curve = new Float32Array(N);
         for (let k = 0; k < N; k++) curve[k] = LG.clipGainAt(it, (k / (N - 1)) * T, fps) * lv;
         c.gain.gain.setValueCurveAtTime(curve, t0, T);

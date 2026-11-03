@@ -7,3 +7,6 @@
 .ask-b .btn { min-width: 84px; }
 .ask-danger { background: var(--bad, #ef5f5f); border-color: var(--bad, #ef5f5f); color: #fff; font-weight: 600; }
 .ask-danger:hover { filter: brightness(1.08); }
+
+.ask-in { width: 100%; margin-top: 12px; height: 34px; padding: 0 10px; font: inherit; font-size: 13.5px; color: var(--text); background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 4px; outline: none; }
+.ask-in:focus { border-color: var(--accent); }

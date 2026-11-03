@@ -37,3 +37,5 @@ episodes/*/.cloud-state.json
 **/*.cloud-part
 # the asset library (tools/library_harvest.mjs): his pictures, music and sounds - in the private bucket, not the repo
 library/
+# his saved sound setups travel through the cloud (render/setups.mjs)
+episodes/_setups.json
