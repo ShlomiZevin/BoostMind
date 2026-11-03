@@ -151,11 +151,16 @@ One format, one composition, one editor, one export. The format and the API: `la
   flags on the ruler (yellow open, grey handled; click opens, drag moves); ready-made notes as chips in the window (`PRESETS` in Notes.tsx: Tighten the cut = kind `tighten`, Cut the silence = `silence` - one click fills the words, again = off; more go in that list + SKILL.md "fix notes"); each note's "Handled" checkbox (= `done`; a session ticks it with `notes.mjs done`), "Hide / Show handled (n)" on the bar hides their flags and rings (localStorage zc-notes-done); stored as project.json `notes` through the
   'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
 - **Quick notes on the ruler (2026-11-03, his ask):** hover the ruler = a yellow line at the mouse + the PRESETS as small
-  icon buttons beside it (tighten = arrows together, silence = scissors); one click = that note at the line, no window
-  (Timeline.tsx `qnMove` / `quickNote`, notes.css `.ltl-qn`). Same `kind`s as the chips - SKILL.md "fix notes" handles both.
-- **Volume on the timeline (2026-11-03, his ask):** a sound clip shows a line across its block on hover / picked - drag it
-  up / down = the clip's `gain` (top +6 dB, 0 dB a quarter down); a sound row has a bar under its name - drag left / right
-  = the row's `props.volume` (0..2, as the panel's slider). Double-click = 0 dB. The same values as the sound panel's Volume.
+  icon buttons beside it (tighten = arrows together, silence = scissors), faint while the mouse moves; a short rest locks
+  them (solid) so the mouse can reach them; one click = that note at the line, no window. Stopped (Space) = the same two
+  buttons wait faint beside the playhead; a click = the note at the playhead. A click elsewhere on the ruler still moves
+  the playhead. (Timeline.tsx `qnMove` / `quickNote`, notes.css `.ltl-qn` / `.ltl-qp`.) Same `kind`s as the chips.
+- **Volume on the timeline (2026-11-03, his ask; look checked against a GPT Image concept):** sound rows are 38 px.
+  A sound row shows its dB beside the speaker when it isn't 0 dB; on hover the name moves up and a slider appears under
+  it (the dB at its end) - drag = the row's `props.volume` (0..2, as the panel's slider). A sound clip has its name on
+  top and, on hover, a volume line under it with a knob at the mouse and the dB above the clip - drag up / down = the
+  clip's `gain` (+6 dB 30%, 0 dB 58%, -18 dB 86% of the block); a changed clip shows its dB after its name.
+  Double-click either = 0 dB. The same values as the sound panel's Volume.
 - **Reader Edit mode (2026-10-28, replaced the hidden double-click / hover-+ editing he found unintuitive):** the **Edit**
   button (or E, or double-click a line) turns the script into a document with a bar: "Editing the script · ✓ Saved ·
   Undo · Done". Click any line and type (Enter = done with it, Esc = back as it was); **drag the ⠿ handle** to move a

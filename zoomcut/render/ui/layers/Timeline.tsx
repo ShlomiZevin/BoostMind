@@ -18,6 +18,7 @@ type Props = {
   onItemPreview?: (layer: any, it: any, side: 'l' | 'r' | 'm', dFrames: number, base: any) => any[] | null;
   canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void;
   onSolo?: (s: Sel) => void; soloKey?: string | null;  // play one clip alone in the video (Shift+Space, the edge card)
+  playing?: boolean;  // (stopped: the quick notes wait, faint, beside the playhead on the ruler)
   onOpen?: (s: Sel) => void;  // open the clip's own file in a window (▶ above the block, on hover)
   notes?: Note[]; onNote?: (n: Note | null) => void; showDone?: boolean; onShowDone?: (v: boolean) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
@@ -47,7 +48,7 @@ const opens = (l: any, it: any, project: any) => it.text != null || !!project.as
 /** volume words + the clip's volume line (the same numbers as the sound panel: a clip's gain, a row's volume) */
 const dbOf = (g: number) => (g <= 0.0005 ? -Infinity : 20 * Math.log10(g));
 const dbTxt = (g: number) => { const d = dbOf(g); return d === -Infinity ? 'silent' : Math.abs(d) < 0.05 ? '0 dB' : `${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} dB`; };
-const lineAt = (g: number) => Math.max(0, Math.min(1, (6 - Math.max(-18, dbOf(g))) / 24));  // 0 = the block's top
+const lineAt = (g: number) => { const d = Math.max(-18, Math.min(6, dbOf(g))); return d >= 0 ? 0.58 - (d / 6) * 0.28 : 0.58 + (-d / 18) * 0.28; };  // 0 = the block's top: +6 dB 30%, 0 dB 58%, -18 dB 86%
 /** the ready-made notes' icons, for the quick buttons on the ruler (tighten = two clips pushed together; silence = scissors) */
 const QN_IC: Record<string, React.ReactNode> = {
   tighten: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h7M6 8.5 9.5 12 6 15.5M22 12h-7M18 8.5 14.5 12l3.5 3.5M12 4v16" /></svg>,
@@ -63,7 +64,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, showDone = true, onShowDone }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, showDone = true, onShowDone }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -243,11 +244,12 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     st.t = setTimeout(() => { st.lock = px(qnAt.current); tr.classList.add('qn-lock'); }, 160);
   };
   const qnLeave = (e: React.MouseEvent) => { const st = qn.current; clearTimeout(st.t); st.lock = null; (e.currentTarget as HTMLElement).classList.remove('qn-lock'); };
-  const quickNote = (k: string) => {
+  const quickNote = (k: string, at = qnAt.current) => {
     const pr = PRESETS.find((x) => x.kind === k)!;
-    saveNotes(send, [...notes, { ...newNote(qnAt.current), kind: pr.kind, text: pr.text }], pr.label.toLowerCase());
+    saveNotes(send, [...notes, { ...newNote(at), kind: pr.kind, text: pr.text }], pr.label.toLowerCase());
   };
-  const [vtip, setVtip] = useState<{ k: string; g: number } | null>(null);  // a volume being dragged (its words over it)
+  const [vtip, setVtip] = useState<{ k: string; g: number } | null>(null);
+  const [vhov, setVhov] = useState<string | null>(null);  // the clip whose volume line the mouse is on (its dB shows, its ▶ hides)  // a volume being dragged (its words over it)
   const clipVol = (e: React.MouseEvent, l: any, it: any) => {
     e.stopPropagation(); e.preventDefault();
     const k = `${l.id}|${it.id}`, g0 = it.gain ?? 1, d0 = Math.max(-40, dbOf(g0)), y0 = e.clientY;
@@ -505,6 +507,10 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
                   onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
               </div>}
+              {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>
+                {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
+                  onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}</button>)}
+              </div>}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
@@ -517,23 +523,22 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                 <div className="ltl-track" style={{ width }} onMouseDown={seekAt} />
               </div>
               {!closed[g.name] && g.layers.map((l) => (
-                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${sel?.layer === l.id ? 'sel' : ''} ${lmove?.id === l.id ? 'lmoving' : ''} ${lmove?.over === l.id ? (lmove.below ? 'drop-below' : 'drop-above') : ''}`}>
-                  <div className="ltl-name" style={{ opacity: l.hidden ? 0.5 : 1 }} onMouseDown={(e) => startLayerMove(e, l)}
+                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${l.kind === 'audio' ? 'snd' : ''} ${sel?.layer === l.id ? 'sel' : ''} ${lmove?.id === l.id ? 'lmoving' : ''} ${lmove?.over === l.id ? (lmove.below ? 'drop-below' : 'drop-above') : ''}`}>
+                  <div className={`ltl-name ${vtip?.k === l.id ? 'vol-on' : ''}`} style={{ opacity: l.hidden ? 0.5 : 1 }} onMouseDown={(e) => startLayerMove(e, l)}
                     onClick={() => { if (lmoved.current) { lmoved.current = false; return; } onSel({ layer: l.id }); }} title={`${KIND_LABEL[l.kind]} · ${l.id} - drag it up or down to move the layer`}>
                     <span className="dot" style={{ background: KIND_COLOR[l.kind] }} />
                     <span className="nm" dir="auto">{l.name || l.id}</span>
-                    {l.kind === 'audio' && <div className={`ltl-vol ${(l.props?.volume ?? 1) !== 1 ? 'vset' : ''} ${vtip?.k === l.id ? 'on' : ''}`}
-                      title={`Volume of the whole row: ${dbTxt(l.props?.volume ?? 1)} - drag left / right · double-click: back to 0 dB`}
-                      onMouseDown={(e) => rowVol(e, l)} onClick={(e) => e.stopPropagation()}
-                      onDoubleClick={(e) => { e.stopPropagation(); send([{ op: 'layer.update', id: l.id, props: { volume: 1 } }], { label: 'row volume' }); }}>
-                      <i style={{ width: `${(Math.min(2, l.props?.volume ?? 1) / 2) * 100}%` }} />
-                      {vtip?.k === l.id && <span>{dbTxt(vtip.g)}</span>}
-                    </div>}
+                    {l.kind === 'audio' && <span className={`ltl-db ${(l.props?.volume ?? 1) !== 1 ? 'vset' : ''}`}>{dbTxt(vtip?.k === l.id ? vtip.g : l.props?.volume ?? 1)}</span>}
                     <button className="btn ghost icon ltl-del" style={{ width: 22, height: 22 }} title="Delete this layer (Ctrl+Z brings it back)"
                       onClick={(e) => { e.stopPropagation(); removeLayer(l); }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
                     {l.kind === 'audio'
                       ? <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.muted ? 'Sound on' : 'Mute'} onClick={(e) => { e.stopPropagation(); toggle(l, 'muted'); }}><SpkIc off={l.muted} /></button>
                       : <button className="btn ghost icon" style={{ width: 22, height: 22 }} title={l.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); toggle(l, 'hidden'); }}><EyeIc off={l.hidden} /></button>}
+                    {l.kind === 'audio' && <div className="ltl-vol" title="Volume of the whole row - drag left / right · double-click: back to 0 dB"
+                      onMouseDown={(e) => rowVol(e, l)} onClick={(e) => e.stopPropagation()}
+                      onDoubleClick={(e) => { e.stopPropagation(); send([{ op: 'layer.update', id: l.id, props: { volume: 1 } }], { label: 'row volume' }); }}>
+                      <i style={{ width: `${(Math.min(2, (vtip?.k === l.id ? vtip.g : l.props?.volume) ?? 1) / 2) * 100}%` }} />
+                    </div>}
                   </div>
                   <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted ? 0.45 : 1 }}
                     onMouseDown={(e) => { if (e.target === e.currentTarget) { onSel({ layer: l.id }); seekAt(e); } }}>
@@ -549,7 +554,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                       const w = px(it.dur);
                       const ed = isSel && edge?.layer === l.id && edge.item === it.id ? edge.side : null;  // its picked edge
                       return (
-                        <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''} ${ed ? 'edge-' + ed : ''}`}
+                        <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${l.kind === 'audio' ? 'snd' : ''} ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''} ${ed ? 'edge-' + ed : ''}`}
                           style={{ left: px(it.from), width: Math.max(3, w), background: KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
                           title={isSel ? `${blockText(l, it, project)} - drag it, or its edges (click an edge, then , . or type ±ms)` : `${blockText(l, it, project)} - click to pick it (near its start / end: that edge)`}
@@ -566,13 +571,15 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           }}>
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
                           {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
+                          {l.kind === 'audio' && w > 90 && (it.gain ?? 1) !== 1 && <span className="blk-db">{dbTxt(it.gain)}</span>}
                           {l.kind === 'audio' && !drag && w > 10 && (
-                            <div className={`blk-vol ${(it.gain ?? 1) !== 1 ? 'vset' : ''} ${vtip?.k === `${l.id}|${it.id}` ? 'on' : ''}`} style={{ top: `${lineAt(it.gain ?? 1) * 100}%` }}
-                              title={`Volume of this clip: ${dbTxt(it.gain ?? 1)} - drag up / down · double-click: back to 0 dB`}
-                              onMouseDown={(e) => clipVol(e, l, it)}
-                              onDoubleClick={(e) => { e.stopPropagation(); send([{ op: 'item.update', layer: l.id, id: it.id, set: { gain: null } }], { label: 'clip volume' }); }} />)}
-                          {vtip?.k === `${l.id}|${it.id}` && <span className="blk-tip">{dbTxt(vtip.g)}</span>}
-                          {onOpen && !drag && !ed && !vtip && opens(l, it, project) && (
+                            <div className={`blk-vol ${vtip?.k === `${l.id}|${it.id}` ? 'on' : ''}`} style={{ top: `${lineAt(it.gain ?? 1) * 100}%` }}
+                              title="Volume of this clip - drag up / down · double-click: back to 0 dB"
+                              onMouseDown={(e) => clipVol(e, l, it)} onMouseEnter={() => setVhov(`${l.id}|${it.id}`)} onMouseLeave={() => setVhov(null)}
+                              onDoubleClick={(e) => { e.stopPropagation(); send([{ op: 'item.update', layer: l.id, id: it.id, set: { gain: null } }], { label: 'clip volume' }); }}>
+                              <i /></div>)}
+                          {l.kind === 'audio' && w > 10 && <b className={`blk-vtip ${vtip?.k === `${l.id}|${it.id}` || vhov === `${l.id}|${it.id}` ? 'on' : ''}`}>{dbTxt(vtip?.k === `${l.id}|${it.id}` ? vtip.g : it.gain ?? 1)}</b>}
+                          {onOpen && !drag && !ed && !vtip && vhov !== `${l.id}|${it.id}` && opens(l, it, project) && (
                             <button className="blk-open" title={`Open just this ${OPEN_WORD[l.kind] || 'clip'} - its own file, without the other layers`}
                               onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }} onClick={(e) => { e.stopPropagation(); onOpen({ layer: l.id, item: it.id }); }}>
                               <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z" fill="currentColor" /></svg>

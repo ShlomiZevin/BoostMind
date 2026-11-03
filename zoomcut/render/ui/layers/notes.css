@@ -39,3 +39,11 @@
 .ltl-qn button:hover { background: var(--warn, #f0b44c); color: #1a1716; }
 /* (while the mouse moves the buttons are faint and can't be hit; a short rest locks them, solid, where the line is) */
 .ltl-track.qn-lock .ltl-qn button { pointer-events: auto; opacity: 1; }
+/* stopped (Space): the same two buttons wait beside the playhead, faint; over them = solid, a click = the note at the
+   playhead. (The hover line hides while the mouse is on them.) */
+.ltl-qp { position: absolute; top: 0; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 3px; padding-left: 5px; pointer-events: none; }
+.ltl-qp button { pointer-events: auto; width: 22px; height: 20px; padding: 0; display: grid; place-items: center; border: 1px solid rgba(240, 180, 76, 0.45);
+  border-radius: 4px; background: rgba(20, 18, 17, 0.92); color: var(--warn, #f0b44c); cursor: pointer; opacity: 0.4; transition: opacity .1s, background .1s; }
+.ltl-qp:hover button { opacity: 1; }
+.ltl-qp button:hover { background: var(--warn, #f0b44c); color: #1a1716; }
+.ltl-track:has(.ltl-qp:hover) .ltl-qn { display: none; }

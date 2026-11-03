@@ -94,22 +94,40 @@
 .ltl .blk:hover .blk-open, .ltl .blk.sel .blk-open { opacity: 1; pointer-events: auto; }
 .ltl .blk .blk-open:hover { background: var(--accent); }
 
-/* volume right on the timeline (the same numbers as the sound panel). A clip: a line across the block - drag it up /
-   down (top +6 dB, 0 dB a quarter down); a row: a bar along the bottom of its name - drag left / right. Both show on
-   hover (a row's stays, quieter, when it isn't at 0 dB); double-click = back to 0 dB */
-.ltl .blk .blk-vol { position: absolute; left: 8px; right: 8px; height: 9px; margin-top: -4px; z-index: 2; cursor: ns-resize; opacity: 0; transition: opacity .1s; }
-.ltl .blk .blk-vol::before { content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 1.5px; border-radius: 1px; background: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
-.ltl .blk:hover .blk-vol, .ltl .blk.sel .blk-vol, .ltl .blk .blk-vol.on { opacity: 1; }
-.ltl .blk .blk-vol:hover::before, .ltl .blk .blk-vol.on::before { top: 3px; height: 3px; background: #ffe7a3; }
-.ltl-vol { position: absolute; left: 28px; right: 12px; bottom: 2px; height: 7px; cursor: ew-resize; opacity: 0; transition: opacity .1s; }
-.ltl-vol::before, .ltl-vol i { content: ''; position: absolute; left: 0; top: 2px; height: 3px; border-radius: 2px; }
-.ltl-vol::before { right: 0; background: rgba(255, 255, 255, 0.12); }
-.ltl-vol i { background: var(--dim); }
-.ltl-vol i::after { content: ''; position: absolute; right: -4px; top: -2px; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
-.ltl-vol::after { content: ''; position: absolute; left: 50%; top: 1px; width: 1px; height: 5px; background: rgba(255, 255, 255, 0.3); }  /* 0 dB */
-.ltl-vol.vset { opacity: 0.55; }
-.ltl-lay .ltl-name:hover .ltl-vol, .ltl-vol.on { opacity: 1; }
-.ltl-vol:hover i, .ltl-vol.on i { background: var(--accent); }
-.ltl-vol span { position: absolute; right: 0; bottom: 8px; padding: 1px 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.85); color: #fff; font-size: 11px;
-  font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
+/* volume right on the timeline (the same numbers as the sound panel; design checked against a GPT Image concept,
+   2026-11-03). Sound rows are a little taller (38 px) so both have room.
+   A row: its dB beside the speaker (shown when it isn't 0 dB, or on hover); on hover the name moves up and a slider
+   appears under it - drag left / right. A clip: its name on top, a line under it - on hover the line, a knob at the
+   mouse and the dB over it; drag up / down (+6 dB at 30%, 0 dB at 58%, -18 dB at 86%). Double-click either = 0 dB. */
+.ltl-lay.snd { height: 38px; }
+.ltl-lay.snd .ltl-name { transition: padding .12s, background .15s, color .15s; }
+.ltl-lay.snd .ltl-name:hover, .ltl-lay.snd .ltl-name.vol-on { padding-bottom: 13px; }
+.ltl-db { flex: none; display: none; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--dim); }
+.ltl-db.vset { display: inline; }
+/* (a sound row's trash takes the dB's place on hover; the dB goes to the end of the slider) */
+.ltl-lay.snd .ltl-name .ltl-del { display: none; }
+.ltl-lay.snd .ltl-name:hover .ltl-del { display: inline-grid; }
+.ltl-name:hover .ltl-db, .ltl-name.vol-on .ltl-db { display: inline; position: absolute; right: 14px; bottom: 3px; width: 46px; text-align: right; color: var(--text); font-weight: 600; }
+.ltl-vol { position: absolute; left: 28px; right: 66px; bottom: 4px; height: 12px; cursor: ew-resize; display: none; }
+.ltl-name:hover .ltl-vol, .ltl-name.vol-on .ltl-vol { display: block; }
+.ltl-vol::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.13); }
+.ltl-vol::after { content: ''; position: absolute; left: 50%; top: 3px; width: 1px; height: 7px; background: rgba(255, 255, 255, 0.28); }  /* 0 dB */
+.ltl-vol i { position: absolute; left: 0; top: 5px; height: 3px; border-radius: 2px; background: #3aa65c; }
+.ltl-vol i::after { content: ''; position: absolute; right: -5px; top: -3.5px; width: 10px; height: 10px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); z-index: 1; }
+.ltl-vol:hover i::after, .ltl-name.vol-on .ltl-vol i::after { transform: scale(1.15); }
+
+.ltl .blk.snd { align-items: flex-start; padding-top: 3px; line-height: 14px; }
+.ltl .blk .blk-db { margin-left: auto; padding-left: 8px; flex: none; font-size: 10.5px; font-weight: 600; opacity: 0.85; pointer-events: none; font-variant-numeric: tabular-nums; }
+.ltl .blk .blk-vol { position: absolute; left: 0; right: 0; height: 11px; margin-top: -5px; z-index: 2; cursor: ns-resize; opacity: 0; transition: opacity .1s; }
+.ltl .blk .blk-vol::before { content: ''; position: absolute; left: 6px; right: 6px; top: 5px; height: 1.5px; border-radius: 1px; background: rgba(255, 255, 255, 0.85); }
+.ltl .blk:hover .blk-vol, .ltl .blk .blk-vol.on { opacity: 1; }
+.ltl .blk .blk-vol i { position: absolute; left: var(--mx, 50%); top: 1px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 1.5px #2f8f4e, 0 1px 3px rgba(0, 0, 0, 0.45); }
+.ltl .blk .blk-vtip { position: absolute; left: var(--mx, 50%); top: -22px; transform: translateX(-50%); z-index: 4; padding: 2px 7px; border-radius: 4px;
+  background: rgba(10, 10, 10, 0.92); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18); color: #fff; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+  white-space: nowrap; pointer-events: none; display: none; }
+.ltl .blk .blk-vtip.on { display: block; }
+.ltl .blk .blk-vol:hover i, .ltl .blk .blk-vol.on i { transform: scale(1.2); }
+/* (room under the last row - its controls and the clip's volume line never sit on the timeline's edge) */
+.ltl-in { padding-bottom: 28px; }
