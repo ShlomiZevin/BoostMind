@@ -1,13 +1,13 @@
 // The Ideas page - his notebook of video ideas (his ask, 2026-11-02): write a title and the idea, it saves as he
-// types; newest first. Data: render/ideas.mjs (zoomcut/ideas/ideas.json, git-ignored). Opens in the studio's left rail.
+// types; newest first. "Did it" marks one he already filmed - it moves down under "Done", dimmed (his ask, 2026-11-03). Data: render/ideas.mjs (zoomcut/ideas/ideas.json, git-ignored). Opens in the studio's left rail.
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-type Idea = { id: string; title: string; text: string; created: number; updated: number };
+type Idea = { id: string; title: string; text: string; created: number; updated: number; done?: number };
 const api = async (u: string, body?: any) => (await fetch(u, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : undefined)).json();
 const dt = (ms: number) => new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
-function Card({ idea, autoFocus, onDelete }: { idea: Idea; autoFocus: boolean; onDelete: () => void }) {
+function Card({ idea, autoFocus, onDelete, onDone }: { idea: Idea; autoFocus: boolean; onDelete: () => void; onDone: (done: boolean) => void }) {
   const [title, setTitle] = useState(idea.title);
   const [text, setText] = useState(idea.text);
   const [saved, setSaved] = useState<'' | 'saving' | 'saved'>('');
@@ -25,13 +25,15 @@ function Card({ idea, autoFocus, onDelete }: { idea: Idea; autoFocus: boolean; o
   }, [title, text]);
   useEffect(() => { if (!sure) return; const t = setTimeout(() => setSure(false), 3000); return () => clearTimeout(t); }, [sure]);
   return (
-    <div className="ix-card">
+    <div className={`ix-card ${idea.done ? 'done' : ''}`}>
       <input className="ix-title" dir="auto" value={title} placeholder="Title" autoFocus={autoFocus} onChange={(e) => setTitle(e.target.value)} />
       <textarea ref={area} className="ix-text" dir="auto" rows={1} value={text} placeholder="The idea…" onChange={(e) => setText(e.target.value)} />
       <div className="ix-foot">
         <span>{dt(idea.created)}</span>
+        {idea.done && <span className="ix-did">✓ Did it · {dt(idea.done)}</span>}
         {saved && <span className={saved === 'saved' ? 'ix-saved' : ''}>{saved === 'saved' ? '✓ saved' : 'saving…'}</span>}
         <span className="grow" />
+        <button className={`ix-mark ${idea.done ? 'on' : ''}`} onClick={() => onDone(!idea.done)} title={idea.done ? 'Not done after all - back to the ideas' : 'I made this video already'}>{idea.done ? 'Undo' : '✓ Did it'}</button>
         <button className={`ix-del ${sure ? 'sure' : ''}`} onClick={() => (sure ? onDelete() : setSure(true))}>{sure ? 'Delete it?' : 'Delete'}</button>
       </div>
     </div>
@@ -44,15 +46,20 @@ function Ideas() {
   useEffect(() => { api('/api/ideas').then(setList); }, []);
   const add = async () => { const l: Idea[] = await api('/api/ideas', { title: '', text: '' }); setFresh(l[0]?.id || ''); setList(l); };
   const del = async (id: string) => setList(await api(`/api/ideas/${id}/delete`, {}));
+  const mark = async (id: string, done: boolean) => setList(await api(`/api/ideas/${id}/done`, { done }));
+  const open = (list || []).filter((i) => !i.done), did = (list || []).filter((i) => i.done).sort((a, b) => b.done! - a.done!);
+  const card = (i: Idea) => <Card key={i.id} idea={i} autoFocus={i.id === fresh} onDelete={() => del(i.id)} onDone={(d) => mark(i.id, d)} />;
   return (
     <div className="ix">
       <div className="ix-top">
-        <div><h1>Ideas</h1><div className="sub">{list ? `${list.length} idea${list.length === 1 ? '' : 's'} for videos` : ''}</div></div>
+        <div><h1>Ideas</h1><div className="sub">{list ? `${open.length} idea${open.length === 1 ? '' : 's'} for videos${did.length ? ` · ${did.length} done` : ''}` : ''}</div></div>
         <button className="btn primary" onClick={add}>+ New idea</button>
       </div>
       <div className="ix-list">
-        {list?.map((i) => <Card key={i.id} idea={i} autoFocus={i.id === fresh} onDelete={() => del(i.id)} />)}
-        {list && !list.length && <div className="ix-empty">No ideas yet - "+ New idea" and write.</div>}
+        {open.map(card)}
+        {list && !open.length && <div className="ix-empty">{did.length ? 'Every idea is done - "+ New idea" for the next one.' : 'No ideas yet - "+ New idea" and write.'}</div>}
+        {did.length > 0 && <div className="ix-sec">Done</div>}
+        {did.map(card)}
       </div>
     </div>
   );

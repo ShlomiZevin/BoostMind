@@ -23,3 +23,13 @@ body { overflow: auto; user-select: text; }
 .ix-del.sure { color: #fff; background: var(--bad); border-color: var(--bad); }
 .ix-empty { padding: 40px 0; text-align: center; color: var(--faint); font-size: 14px; }
 @media (max-width: 700px) { .ix { padding: 18px 16px 40px; } }
+/* "Did it" - an idea he already filmed: under "Done", dimmed, the mark in green */
+.ix-mark { height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim); font: inherit; cursor: pointer; }
+.ix-mark:hover { color: var(--ok); border-color: var(--ok); }
+.ix-mark.on { border-color: transparent; color: var(--faint); }
+.ix-mark.on:hover { color: var(--text); border-color: var(--edge-2); }
+.ix-did { color: var(--ok); }
+.ix-card.done { opacity: .6; }
+.ix-card.done:hover, .ix-card.done:focus-within { opacity: 1; }
+.ix-card.done .ix-title { text-decoration: line-through; text-decoration-color: var(--faint); }
+.ix-sec { margin-top: 14px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }

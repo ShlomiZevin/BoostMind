@@ -3,6 +3,7 @@
 // the repo is public and these are jokes he hasn't filmed yet.
 //   GET  /api/ideas              every idea, newest first
 //   POST /api/ideas              {id?, title, text} - a new one (no id) or an edit; answers with the list
+//   POST /api/ideas/:id/done     {done} - "I did it already" (a time in `done`), or taken off; answers with the list
 //   POST /api/ideas/:id/delete   removes one; answers with the list
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,6 +23,15 @@ export default function ideas(app, { ROOT }) {
     const cur = b.id && list.find((x) => x.id === b.id);
     if (cur) Object.assign(cur, { title, text, updated: now });
     else list.push({ id: `i${now.toString(36)}`, title, text, created: now, updated: now });
+    write(list);
+    res.json(sorted(list));
+  });
+  // {done: true} - he already made this video (the idea stays, marked, at the bottom); false takes the mark off
+  app.post('/api/ideas/:id/done', (q, res) => {
+    const list = read(), cur = list.find((x) => x.id === q.params.id);
+    if (!cur) return res.status(404).json({ error: 'No such idea' });
+    if (q.body?.done) cur.done = Date.now(); else delete cur.done;
+    cur.updated = Date.now();
     write(list);
     res.json(sorted(list));
   });
