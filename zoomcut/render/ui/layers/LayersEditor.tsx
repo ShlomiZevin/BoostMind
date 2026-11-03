@@ -10,7 +10,7 @@ import { useLayered, build, fmtT } from './api';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
 import { Media } from './Media';
-import { Inspector } from './Inspector';
+import { Inspector, hasPanel } from './Inspector';
 import { LineProps } from '../lineprops';
 import { Media as FootageAssign } from '../footage';
 import { Handles, pickAt } from './Handles';
@@ -425,15 +425,15 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
 
         <div className="pane right">
-          <div className="pane-h" style={{ display: 'flex', alignItems: 'center' }}>
+          {!(sel && !curLine && hasPanel(project.layers.find((l: any) => l.id === sel.layer)?.kind)) && <div className="pane-h" style={{ display: 'flex', alignItems: 'center' }}>
             <span className="grow">{curLine ? `Line #${curLine.n}` : sel ? (project.layers.find((l: any) => l.id === sel.layer)?.name || sel.layer) : 'Project'}</span>
             {(sel || curLine) && <button className="btn ghost icon" title="Back to the project settings" onClick={() => { setSel(null); setLine(null); }}>✕</button>}
-          </div>
+          </div>}
           <div className="scroll">
             {L.error && <div className="note" style={{ whiteSpace: 'pre-wrap' }} onClick={() => L.setError(null)}>{L.error}</div>}
             {jobLine && <div className="note">{jobLine}</div>}
             {curLine ? <div className="insp">{lineCard}</div>
-              : <Inspector project={project} sel={sel} send={L.send} frame={frame} onSel={(s) => { setSel(s); setLine(null); }} urls={L.view!.urls}
+              : <Inspector project={project} sel={sel} send={L.send} frame={frame} onSel={(s) => { setSel(s); setLine(null); }} urls={L.view!.urls} onOpen={openClip}
                   pickAsset={(kind, onPick) => { setTab('media'); setPick({ kind, onPick }); }}
                   build={async (action, args) => { before(action); const j = await build(ep, { action, ...(args || {}) }); if (j?.running) setJob(j); else reloaded(); }} />}
           </div>

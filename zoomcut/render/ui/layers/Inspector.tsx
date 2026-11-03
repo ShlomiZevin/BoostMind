@@ -13,6 +13,8 @@ const mmss = (s: number) => { const r = Math.round(s); return `${Math.floor(r / 
 
 const panels = import.meta.glob('./inspect/index.ts', { eager: true }) as Record<string, any>;
 const INSPECTORS: Record<string, React.FC<any>> = Object.values(panels)[0]?.INSPECTORS || {};
+/** Does this kind have its own panel (which carries its own head - name, play, close)? */
+export const hasPanel = (kind: string) => !!INSPECTORS[kind];
 
 const SKIP = new Set(['id', 'ref', 'user', 'items', 'removed', 'owner', 'kind']);
 const isColor = (k: string, v: any) => typeof v === 'string' && (/^(#|rgb)/.test(v) || /color|fill|stroke$|^bg$/.test(k));
@@ -74,8 +76,9 @@ const DEFAULTS: Record<string, any> = {
   text: { style: 'plain' }, subtitles: { style: 'zoom', size: 46 }, shape: { fill: '', stroke: '', width: 0, radius: 0 }, image: {},
 };
 
-export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickAsset, build }: {
+export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickAsset, build, onOpen }: {
   project: any; sel: { layer: string; item?: string } | null; send: Send; frame: number; onSel: (s: any) => void; extra?: React.ReactNode;
+  onOpen?: (s: { layer: string; item: string }) => void;  // play / open the clip's own file (LayersEditor openClip)
   urls: Record<string, string>; pickAsset: (kind: string, onPick: (id: string) => void) => void; build: (action: string, args?: any) => Promise<void>;
 }) {
   const fps = project.canvas.fps, W = project.canvas.w, H = project.canvas.h;
@@ -121,7 +124,8 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
     </div>;
   }
   const P = INSPECTORS[layer.kind];
-  if (P) return <div className="insp"><P project={project} layer={layer} item={item} send={send} fps={fps} frame={frame} urls={urls} pickAsset={pickAsset} build={build} />{extra}</div>;
+  if (P) return <div className="insp"><P project={project} layer={layer} item={item} send={send} fps={fps} frame={frame} urls={urls} pickAsset={pickAsset} build={build}
+    close={() => onSel(null)} openClip={onOpen && item ? () => onOpen({ layer: layer.id, item: item.id }) : undefined} />{extra}</div>;
   const setLayer = (k: string, v: any, commit = true) => send([{ op: 'layer.update', id: layer.id, props: { [k]: v } }], { commit, label: k });
   const setItem = (k: string, v: any, commit = true) => send([{ op: 'item.update', layer: layer.id, id: item.id, set: { [k]: v } }], { commit, label: k });
   const props = { ...(DEFAULTS[layer.kind] || {}), ...(layer.props || {}) };

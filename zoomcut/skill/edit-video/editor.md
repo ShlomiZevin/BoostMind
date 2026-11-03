@@ -296,3 +296,11 @@ ones, then the advanced, all visible, no hierarchy"), structured with an OpenAI 
   Louder quiet parts, Soften a shout, Hold to hear the original. Every label has a ? (help.ts).
 - His saved setups: episodes/_setups.json (render/setups.mjs), the same on every computer (cloud/shared.mjs ->
   studio/setups.json).
+
+## The panel's head (2026-11-03 - inspect/controls.tsx Top; spec from an OpenAI consult)
+One sticky block, its own background (his note: "too much space, things repeat, the media name is missing, play from
+here"): `Row · <row name>` / `<the clip's file> · <kind>` with **Play** (opens the clip's own file - LayersEditor openClip)
+and the close x (the pane's own title bar is hidden for these panels); **Whole row · all N | This clip · times** (row
+blue fill, clip coral); a sound's **Setup [name v]** - the name opens every setup to pick from - and its state (Exactly
+as set / Set by a session / Changed / From row / None); actions only when there is one: Changed -> Reset · Save as new ·
+Update setup, a clip with its own settings -> Use row's. ~66 px, ~94 with a setup, ~120 with actions.

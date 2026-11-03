@@ -13,7 +13,18 @@ export type InspectorProps = {
   pickAsset: (kind: 'image' | 'video' | 'audio' | 'font', onPick: (id: string) => void) => void;
   build?: (action: string, args?: any) => Promise<void>;  // a builder action (POST /api/p/:id/build) - a job the editor follows
   scope?: 'clip' | 'row';  // what the panel edits (the bar on top - Scoped below): this clip, or the whole row
+  close?: () => void;       // close the panel (its head's x)
+  openClip?: () => void;    // play / open the picked clip's own file (its head's Play)
 };
+
+/** voice / music / effect - from what a sound lane holds (a voice chain or his takes = a voice; a bed's name = music) */
+export function laneKind(layer: any): 'voice' | 'music' | 'effect' {
+  const name = `${layer.id} ${layer.name || ''} ${layer.group || ''}`.toLowerCase();
+  if (layer.props?.voice || (layer.items || []).some((i: any) => i.ref?.take != null || i.ref?.line != null) || /voice|קול/.test(name)) return 'voice';
+  if (layer.props?.lift || /music|מוזיק|bed|beat|song|שיר/.test(name)) return 'music';
+  return 'effect';
+}
+const KIND_WORD: Record<string, string> = { video: 'Video', image: 'Image', text: 'Text', subtitles: 'Subtitles', shape: 'Shape', effect: 'Film effect', backdrop: 'Background' };
 
 // ---- what a panel edits: Whole row | This clip (his notes, 2026-11-03: "must be super clear... the most important to
 // pay attention to"; "same for video / image"). One choice for every panel (it stays when he picks another clip),
@@ -34,18 +45,37 @@ export function scoped(Comp: React.FC<InspectorProps>): React.FC<InspectorProps>
     return <ScopeCtx.Provider value={{ P, onClip, setScope }}><div className={`ins-scoped ins-mode-${onClip ? 'clip' : 'row'}`}><Comp {...P2} /></div></ScopeCtx.Provider>;
   };
 }
-function EditBar({ extra }: { extra?: React.ReactNode }) {
+/** The panel's one sticky head (his notes, 2026-11-03: "the top uses too much space, things repeat, the clip's media
+ *  name is missing, play it from here"; spec from an OpenAI consult): the row and the clip's file + kind, Play, close;
+ *  Whole row | This clip; then the panel's own line (a sound's setup). About half the old height. */
+function Top({ end, extra }: { end?: React.ReactNode; extra?: React.ReactNode }) {
   const c = React.useContext(ScopeCtx);
   if (!c) return null;
-  const { P, onClip, setScope } = c, { layer, item, fps } = P, n = layer.items?.length || 0;
+  const { P, onClip, setScope } = c, { layer, item, fps, project } = P, n = layer.items?.length || 0;
   const t = (f: number) => { const s = f / fps; return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}.${Math.floor((s % 1) * 10)}`; };
-  return <section className="ins-edit">
-    {item ? <div className="ins-edit-sw">
-      <button className={!onClip ? 'on' : ''} onClick={() => setScope('row')} title="Every clip in this row (a clip with its own setting keeps it)">Whole row<small>{n}</small></button>
-      <button className={onClip ? 'on' : ''} onClick={() => setScope('clip')} title="Only this clip - its own settings replace the row's">This clip<small>{t(item.from)}–{t(item.from + item.dur)}</small></button>
-    </div> : <div className="ins-edit-one">Whole row<small>{n} clip{n === 1 ? '' : 's'}</small></div>}
+  const a = project.assets?.[item?.asset ?? layer.props?.asset];
+  const media = item?.text != null ? String(item.text).replace(/\s+/g, ' ') : a ? a.label || String(a.src).split('/').pop() : '';
+  const kind = layer.kind === 'audio' ? { voice: 'Voice', music: 'Music', effect: 'Sound effect' }[laneKind(layer)] : KIND_WORD[layer.kind] || layer.kind;
+  return <div className="ctx">
+    <div className="ctx-id">
+      <div className="ctx-names">
+        <div className="ctx-row">Row · <span dir="auto">{layer.name || layer.id}</span></div>
+        <div className="ctx-media"><b dir="auto">{item ? media || 'clip ' + item.id : `${n} clip${n === 1 ? '' : 's'}`}</b> · {kind}</div>
+      </div>
+      {end}
+      {P.openClip && <button className="ctx-play" onClick={P.openClip} title={`Play ${media || 'this clip'} on its own`}>
+        <svg width="9" height="10" viewBox="0 0 9 10"><path d="M1 1l7 4-7 4z" fill="currentColor" /></svg>Play</button>}
+      {P.close && <button className="ctx-close" onClick={P.close} title="Close (back to the project)">
+        <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg></button>}
+    </div>
+    <div className="ctx-scope">
+      {item ? <div className="ctx-sw">
+        <button className={!onClip ? 'on row' : ''} onClick={() => setScope('row')} title="Every clip in this row changes (a clip with its own setting keeps it)">Whole row<small>· {n === 1 ? '1 clip' : `all ${n}`}</small></button>
+        <button className={onClip ? 'on clip' : ''} onClick={() => setScope('clip')} title="Only this clip changes - its own settings replace the row's">This clip<small>· {t(item.from)}–{t(item.from + item.dur)}</small></button>
+      </div> : <div className="ctx-sw one"><button className="on row">Whole row<small>· {n === 1 ? '1 clip' : `all ${n}`}</small></button></div>}
+    </div>
     {extra}
-  </section>;
+  </div>;
 }
 
 /** Read / write a setting on the selected clip or its layer (see the top of this file). */
@@ -101,9 +131,10 @@ export function parseTc(s: string, fps: number): number | null {
 const Chev = () => <svg className="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m9 6 6 6-6 6" /></svg>;
 
 export function Head({ icon, title, sub, end, bar }: { icon: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; end?: React.ReactNode; bar?: React.ReactNode }) {
-  return <><div className="ins-head"><div className="ins-ico">{icon}</div>
-    <div className="grow"><div className="ins-title">{title}</div>{sub && <div className="ins-sub">{sub}</div>}</div>{end}</div>
-    <EditBar extra={bar} /></>;
+  const c = React.useContext(ScopeCtx);
+  if (c) return <Top end={end} extra={bar} />;  // (a panel: the one sticky head)
+  return <div className="ins-head"><div className="ins-ico">{icon}</div>
+    <div className="grow"><div className="ins-title">{title}</div>{sub && <div className="ins-sub">{sub}</div>}</div>{end}</div>;
 }
 
 /** The "?" beside a setting (inspect/help.ts): a click shows what it does, right under it; another click hides it. */

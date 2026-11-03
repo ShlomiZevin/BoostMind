@@ -13,7 +13,7 @@ import { soundOf } from '../../layergraph';
 import { allSetups, setupOps, soundNow, sameAsSetup, setupFrom } from '../../../src/layers/setups.js';
 import { askText } from '../ask';
 import { fmtT } from '../api';
-import { InspectorProps, useSettings, Head, Sec, Row, Note, Chips, Slider, ToggleRow, ClipTiming, LayerState, PanelEnd, ICON, fmt } from './controls';
+import { InspectorProps, laneKind, useSettings, Head, Sec, Row, Note, Chips, Slider, ToggleRow, ClipTiming, LayerState, PanelEnd, ICON, fmt } from './controls';
 
 const CLEAN: [string, string][] = [['off', 'Off'], ['mild', 'Mild'], ['fft', 'Standard'], ['strong', 'Strong'], ['nn', 'NN (best)']];
 const CLEAN_NOTE: Record<string, string> = {
@@ -26,13 +26,7 @@ const pct0 = (v: number) => (v ? `${Math.round(v * 100)}%` : 'off');
 const semis = (v: number) => (v ? `${v > 0 ? '+' : ''}${v}` : 'normal');
 const OWN_KEYS = ['voice', 'fx', 'presence', 'clean', 'level', 'setup'];
 
-/** voice / music / effect - from what the lane holds (a voice chain or his takes = a voice; a bed's name = music) */
-export function laneKind(layer: any): 'voice' | 'music' | 'effect' {
-  const name = `${layer.id} ${layer.name || ''} ${layer.group || ''}`.toLowerCase();
-  if (layer.props?.voice || (layer.items || []).some((i: any) => i.ref?.take != null || i.ref?.line != null) || /voice|קול/.test(name)) return 'voice';
-  if (layer.props?.lift || /music|מוזיק|bed|beat|song|שיר/.test(name)) return 'music';
-  return 'effect';
-}
+export { laneKind };
 
 // his saved setups (GET /api/setups), shared by every open panel
 let savedCache: any[] | null = null;
@@ -86,27 +80,14 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
   };
   const update = async () => { await postSetup({ ...setupFrom(now, cur.label, cur.id), about: cur.about }); put({ setup: { id: cur.id } }); };
   const rowCur = rowTag && setups.find((s: any) => s.id === rowTag.id);
-  // (the setup line in the sticky bar: which setup, still exactly it or changed - Reset / Save as new / Update)
-  const setupName = cur ? cur.label : rowCur ? rowCur.label : 'None';
-  const setupState = cur ? (changed ? 'changed' : tag.by === 'session' ? 'exactly as set · by a session' : 'exactly as set') : rowCur ? 'from the row' : 'pick one below';
 
   const sounds = kind !== 'music';
   return <div className="ins">
     <Head icon={ICON.audio} title={<>{layer.group ? `${layer.group} · ` : ''}{layer.name || 'Sound'}</>}
       sub={`${kind === 'voice' ? 'Voice' : kind === 'music' ? 'Music' : 'Sound effect'}${item ? ` · clip ${item.id}` : ` · ${layer.items?.length || 0} clips`}`}
-      bar={<>
-      {kind !== 'music' && <div className={`ins-setup ${changed ? 'changed' : cur ? 'same' : ''}`}>
-        <div className="ins-setup-l"><span>Sounds like</span><b>{setupName}</b><em>{setupState}</em></div>
-        {(changed || own) && <div className="ins-setup-b">
-          {changed && <>
-            <button className="btn" onClick={() => apply(cur)} title={`Back to exactly "${cur.label}"`}>Reset</button>
-            <button className="btn" onClick={saveNew} title="Save what you hear now as a new setup">Save as new</button>
-            <button className="btn" onClick={update} title={`"${cur.label}" becomes what you hear now`}>Update</button>
-          </>}
-          {own && <button className="btn" onClick={() => S.item(Object.fromEntries(OWN_KEYS.map((k) => [k, null])))} title="Remove this clip's own settings - it sounds like the rest of the row">Use row's</button>}
-        </div>}
-      </div>}
-      </>} />
+      bar={kind !== 'music' && <SetupLine setups={setups} cur={cur} rowCur={rowCur} changed={changed} by={tag?.by} own={own} onClip={onClip}
+        onPick={(x: any) => apply(x)} onReset={() => apply(cur)} onSave={saveNew} onUpdate={update}
+        onRow={() => S.item(Object.fromEntries(OWN_KEYS.map((k) => [k, null])))} />} />
 
 
     <div className="ins-vol"><Sec title="Volume">
@@ -165,3 +146,40 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
       lane={<LayerState P={P} sound><ToggleRow label="Keep its own pace (not sped up with the video)" on={!!props.own_pace} onChange={(on) => S.layer({ own_pace: on || null })} /></LayerState>} />
   </div>;
 };
+
+/** The sound's setup in the panel's sticky head: Setup [name v] - the name opens every setup to pick from - and its state
+ *  (exactly as set / changed / from the row / none); the actions only when there is one to take (the OpenAI spec's
+ *  rules: changed -> Reset, Save as new, Update setup; a clip with its own settings -> Use row's). */
+function SetupLine({ setups, cur, rowCur, changed, by, own, onClip, onPick, onReset, onSave, onUpdate, onRow }: any) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); setOpen(false); } };
+    const m = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.ctx-pick')) setOpen(false); };
+    addEventListener('keydown', k, true); addEventListener('mousedown', m);
+    return () => { removeEventListener('keydown', k, true); removeEventListener('mousedown', m); };
+  }, [open]);
+  const shown = cur || rowCur;
+  const state = cur ? (changed ? ['warn', 'Changed'] : ['ok', by === 'session' ? 'Set by a session' : 'Exactly as set']) : rowCur ? ['row', 'From row'] : ['none', 'None'];
+  const actions = changed || (onClip && own);
+  return <>
+    <div className="ctx-setup">
+      <span className="ctx-l">Setup</span>
+      <span className="ctx-pick">
+        <button className="ctx-name" onClick={() => setOpen(!open)} title="Pick a setup - it sets the cleaning, the voice and the effects">
+          {shown ? shown.label : '—'}<svg width="8" height="5" viewBox="0 0 8 5"><path d="M1 1l3 3 3-3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" /></svg></button>
+        {open && <div className="ctx-menu">{setups.map((x: any) => <button key={x.id} className={x.id === cur?.id ? 'on' : ''} title={x.about || ''}
+          onClick={() => { setOpen(false); onPick(x); }}>{x.label}{x.saved && <small>yours</small>}</button>)}</div>}
+      </span>
+      <span className={`ctx-state ${state[0]}`}>{state[1]}</span>
+    </div>
+    {actions && <div className="ctx-acts">
+      {changed && <>
+        <button className="a-text" onClick={onReset} title={`Back to exactly "${cur.label}"`}>Reset</button>
+        <button className="a-sec" onClick={onSave} title="Save what you hear now as a new setup">Save as new</button>
+        <button className="a-pri" onClick={onUpdate} title={`"${cur.label}" becomes what you hear now`}>Update setup</button>
+      </>}
+      {onClip && own && <button className="a-sec" onClick={onRow} title="Remove this clip's own settings - it sounds like the rest of the row">Use row's</button>}
+    </div>}
+  </>;
+}
