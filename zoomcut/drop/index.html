@@ -99,6 +99,7 @@ a.btn-dl { text-decoration: none; }
   <header>
     <h1>Drop</h1>
     <p class="sub">Videos from the phone to Sketch Studio - full size, original quality.</p>
+    <a class="btn go" id="toShoot" href="/shoot" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin:0 0 6px">Shoot - camera, filters, script</a>
     <div class="key" id="keyBox">
       <div class="sec">Key</div>
       <div class="row"><input type="password" id="key" autocomplete="current-password" placeholder="The drop key"><button class="btn" id="keySave">Save</button></div>
@@ -156,6 +157,7 @@ if (fromLink) store.set('drop-key', fromLink);
 let KEY = fromLink || store.get('drop-key');
 const keepInLink = () => { if (KEY && new URLSearchParams(location.hash.slice(1)).get('k') !== KEY) history.replaceState(null, '', `${location.pathname}#k=${KEY}`); };
 keepInLink();
+if (KEY) document.getElementById('toShoot').href = `/shoot#k=${KEY}`;
 const askKey = () => $('keyBox').classList.add('on');
 if (!KEY) askKey();
 $('keySave').onclick = () => { KEY = $('key').value.trim(); store.set('drop-key', KEY); keepInLink(); $('keyBox').classList.remove('on'); refresh(); };

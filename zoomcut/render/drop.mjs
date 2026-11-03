@@ -143,8 +143,49 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
       state.running = null;
     }
   }
+  // the scripts, up for the phone's Shoot page (its prompter): the Reader's saved scripts (scripts/*.txt) and every
+  // project's own script.txt, as _scripts/<s|e>/<id>.txt + _scripts/index.json [{id, name, updated, drop}] ("drop": the
+  // project's Drop folder - picking its script on the phone sends the takes there). "_" = never pulled down, never
+  // listed as a project. Only what changed goes up; everything again once a day (the bucket forgets after 60 days)
+  const pushed = new Map();
+  let pushedDay = 0;
+  async function pushScripts() {
+    if (Date.now() - pushedDay > 864e5) { pushed.clear(); pushedDay = Date.now(); }
+    const all = [], since = Date.now() - 120 * 864e5;
+    const take = (id, file, name, drop) => { try { const st = fs.statSync(file); if (st.mtimeMs > since) all.push({ id, file, name, updated: st.mtimeMs, drop }); } catch {} };
+    const SC = path.join(ROOT, 'scripts'), EPS = path.join(ROOT, 'episodes');
+    try { for (const f of fs.readdirSync(SC).filter((f) => f.endsWith('.txt'))) take(`s/${f.slice(0, -4)}`, path.join(SC, f), '', ''); } catch {}
+    try {
+      for (const d of fs.readdirSync(EPS).filter((d) => !d.startsWith('_'))) {
+        let cfg; try { cfg = JSON.parse(fs.readFileSync(path.join(EPS, d, 'episode.json'), 'utf8')); } catch { continue; }
+        if (cfg.done) continue;
+        const inp = path.resolve(String(cfg.input_dir || ''));
+        const drop = cfg.input_dir && inp.toLowerCase().startsWith(DIR.toLowerCase() + path.sep) ? path.relative(DIR, inp).split(path.sep)[0] : '';
+        if (cfg.script) { const s = all.find((x) => x.id === `s/${cfg.script}`); if (s && drop) s.drop = drop; continue; }  // (it links to a saved script)
+        take(`e/${d}`, path.join(EPS, d, 'script.txt'), cfg.title || d, drop);
+      }
+    } catch {}
+    let changed = false;
+    for (const s of all) {
+      const text = fs.readFileSync(s.file, 'utf8'), first = text.split(/\r?\n/)[0];
+      if (first.startsWith('# ')) s.name = first.slice(2).trim();
+      s.name ||= s.id.slice(2);
+      if (pushed.get(s.id) === s.updated) continue;
+      const r = await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent(`_scripts/${s.id}.txt`)}`,
+        { method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text });
+      if (r.ok) { pushed.set(s.id, s.updated); changed = true; }
+    }
+    const index = JSON.stringify(all.sort((a, b) => b.updated - a.updated).map(({ id, name, updated, drop }) => ({ id, name, updated, drop })));
+    if (changed || index !== pushScripts.last) {
+      const r = await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent('_scripts/index.json')}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: index });
+      if (r.ok) pushScripts.last = index;
+    }
+  }
   setTimeout(sync, 5000);
   setInterval(sync, 60e3);
+  setTimeout(() => pushScripts().catch(() => {}), 8000);
+  setInterval(() => pushScripts().catch(() => {}), 60e3);
 
   // a project marked Done: its footage folder (when it came from the drop) leaves the cloud - the copy here stays
   async function cleanup(cfg, id) {

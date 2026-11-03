@@ -234,6 +234,19 @@ end must show at once, with the real footage there.
   `spam_risk_too_many_pending_share`): the full-quality export (or, over the bot's 50 MB, the best copy that fits),
   what failed and why, then the caption alone to copy - he uploads by hand (`handBack`, a "send" job). TikTok's inbox
   takes ~5 waiting drafts per 24 h; drafts he never opens keep counting - don't send test drafts.
+- **Shoot - filming on the iPhone with filters + the script** (2026-11-03, his ask: "my shoot app" - filter app +
+  Drop + studio + Reader in one): https://drop-463727469066.me-west1.run.app/shoot (the Drop service, `drop/shoot.html`;
+  same key, same projects). Front camera → a WebGL filter (colour looks + face warps / props drawn on the face, face
+  tracking = MediaPipe Face Landmarker on the phone, from the CDN) → the canvas is the preview (mirrored, like the iPhone
+  camera) and what is recorded (canvas.captureStream + his raw mic → MP4, 1080x1920 at 12 Mb/s; a phone under ~22 fps
+  drops to 720). The **prompter** sits at the top, under the lens: the Reader's scripts (`scripts/*.txt` + every
+  open project's script.txt, sent up by the studio every minute as `gs://boostmind-drop/_scripts/` - render/drop.mjs
+  pushScripts; "_" = never pulled, never listed) or pasted text; it scrolls while recording (speed, size, drag
+  height; tap = pause); a project's script picks its Drop folder by itself. After a take: **Send to the Drop**
+  (resumable, in the background while he films the next; `shot-HHMMSS.mp4`), **Save to phone** (share sheet → Save
+  Video) or **Again** (the prompter goes back to where the take started). Takes wait in the phone's IndexedDB until
+  they are up. Filters are a list in shoot.html (FILTERS: grade + warps + props) - v1 basics; next: his characters'
+  own filters (he'll show the ones he uses), a known-person face swap, the script's pace.
 - **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
   `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project
   boostmind-b052c`; key in zoomcut/.env DROP_KEY - the studio's "+ New video" → From the iPhone shows the QR with it).

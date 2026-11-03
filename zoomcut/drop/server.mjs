@@ -11,6 +11,7 @@ import crypto from 'node:crypto';
 const BUCKET = process.env.BUCKET || 'boostmind-drop';
 const KEY = process.env.DROP_KEY || '';
 const PAGE = fs.readFileSync(new URL('./index.html', import.meta.url));
+const SHOOT = fs.readFileSync(new URL('./shoot.html', import.meta.url));  // the Shoot page: camera + filters + prompter
 const API = `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o`;
 
 let tok = { value: '', until: 0 };
@@ -167,6 +168,18 @@ const routes = {
     if (!/^_publish\/[\w.-]+$/.test(f)) throw Object.assign(new Error('f'), { code: 400 });
     return { url: await signedUrl(f, '') };
   },
+  // the scripts for the Shoot page's prompter - the studio keeps them up to date under _scripts/ (render/drop.mjs)
+  async scripts() {
+    const r = await gcs(`${API}/${enc('_scripts/index.json')}?alt=media`);
+    return { scripts: r.ok ? await r.json() : [] };
+  },
+  async script(b) {
+    const id = String(b.id || '');
+    if (!/^[se]\/[^/]+$/.test(id) || id.includes('..')) throw Object.assign(new Error('id'), { code: 400 });
+    const r = await gcs(`${API}/${enc(`_scripts/${id}.txt`)}?alt=media`);
+    if (!r.ok) throw Object.assign(new Error('not there'), { code: 404 });
+    return { text: await r.text() };
+  },
   async rmdir(b) {  // a whole project
     const folder = clean(b.folder, 60);
     if (!folder) throw Object.assign(new Error('folder'), { code: 400 });
@@ -180,6 +193,7 @@ http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
     if (req.method === 'GET' && (u.pathname === '/' || u.pathname === '/index.html')) return send(res, 200, PAGE, 'text/html; charset=utf-8');
+    if (req.method === 'GET' && u.pathname === '/shoot') return send(res, 200, SHOOT, 'text/html; charset=utf-8');
     // a file from the bucket: ?k=key&f=folder/name[&dl=1 = save it] -> a signed link straight to it in storage (an
     // hour). Not through this service: Cloud Run cuts a response at 32 MB. Storage serves any size, Range included
     // (a video seeks, a big download resumes); the page draws thumbnails from it

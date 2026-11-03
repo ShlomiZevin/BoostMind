@@ -59,6 +59,7 @@ EXTRA = [
     ('tools', 'Sketch Studio - העורך', 'http://localhost:4747', 'מקומי'),
     ('tools', 'Karaoke Booth (מקומי)', 'http://localhost:4747/karaoke/', 'מקומי'),
     ('tools', 'הדרופ - העלאת צילומים מהאייפון', 'https://drop-463727469066.me-west1.run.app', 'שרת'),
+    ('tools', 'שוט - צילום עם פילטרים ופרומפטר (אייפון)', 'https://drop-463727469066.me-west1.run.app/shoot', 'שרת'),
     ('tools', 'Fleet Command - כל הסשנים', 'http://localhost:5199', 'מקומי'),
     ('tools', 'Firebase console', 'https://console.firebase.google.com/project/boostmind-b052c/overview', 'קונסול'),
     ('tools', 'Google Cloud console', 'https://console.cloud.google.com/home/dashboard?project=boostmind-b052c', 'קונסול'),
