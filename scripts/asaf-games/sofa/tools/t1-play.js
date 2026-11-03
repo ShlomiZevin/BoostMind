@@ -16,7 +16,7 @@ async function bopAll(p) {
   for (const [name, vp] of [['phone', { width: 390, height: 844 }], ['wide', { width: 1280, height: 760 }]]) {
     const p = await (await b.newContext({ viewport: vp, deviceScaleFactor: 1 })).newPage(); const errs = [];
     p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/t\.js|game-frame|404/.test(m.text())) errs.push(m.text()); });
-    await p.goto(BASE + '/sofa/' + (BASE.startsWith('https') ? '?notrack=1' : '')); await wait(p, 1500);
+    await p.goto(BASE + '/sofa/?solo=1' + (BASE.startsWith('https') ? '&notrack=1' : '')); await wait(p, 1500);
     await p.screenshot({ path: `${OUT}/${name}-start.png` });
     await p.click('#playBtn', { force: true }); await wait(p, 700);
     for (let i = 0; i < 3; i++) { await p.screenshot({ path: `${OUT}/${name}-tut${i + 1}.png` }); await p.keyboard.press('Space'); await wait(p, 300); }
