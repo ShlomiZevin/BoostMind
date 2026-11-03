@@ -4,31 +4,40 @@
 // brought to the lens (NVIDIA Maxine + our blink blend, v6 if NVIDIA failed, or his CapCut file); props.eyes picks
 // it live (VideoTrack plays that variant), so Original / Corrected is a switch, never a job.
 import React from 'react';
-import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, PanelEnd, Opacity, ICON, fmt } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Win, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, PanelEnd, Opacity, ICON, fmt } from './controls';
 
 
-/** Make (or redo) the corrected copies: NVIDIA (the best; our own v6 if it fails) or our own v6 with its strength,
- *  or - for one take - his CapCut eye-contact export of it. A job; the editor reloads the project when it ends. */
-function EyesMake({ P, assets, made }: { P: InspectorProps; assets: string[]; made: boolean }) {
+/** Make (or redo) the corrected copies - in its own window (his rule: extra options open from the item, the panel stays
+ *  simple): NVIDIA (the best; our own v6 if it fails) or our own v6 with its strength, or - for one take - his CapCut
+ *  eye-contact export of it. A job; the editor reloads the project when it ends. */
+function EyesMake({ P, assets, made, onDone }: { P: InspectorProps; assets: string[]; made: boolean; onDone: () => void }) {
   const [mode, setMode] = React.useState<'nvidia' | 'neural'>('nvidia');
   const [strength, setStrength] = React.useState(1);
   const [dy, setDy] = React.useState(0.6);
   const [busy, setBusy] = React.useState(false);
-  const go = async (args: any) => { if (!P.build) return; setBusy(true); try { await P.build('eyes', { assets, ...args }); } finally { setBusy(false); } };
+  const go = async (args: any) => { if (!P.build) return; setBusy(true); try { await P.build('eyes', { assets, ...args }); onDone(); } finally { setBusy(false); } };
   const secs = assets.reduce((t, a) => t + (P.project.assets?.[a]?.duration || 0), 0);
-  return <>
-    <Row label="Engine"><Seg options={[['nvidia', 'NVIDIA (best)'], ['neural', 'Our own (free)']]} value={mode} onPick={(v) => setMode(v as 'nvidia' | 'neural')} /></Row>
+  const opt = (k: 'nvidia' | 'neural', title: string, sub: string) =>
+    <button className={`ins-opt ${mode === k ? 'on' : ''}`} onClick={() => setMode(k)}><b>{title}</b><span>{sub}</span></button>;
+  return <section className="ins-sec ins-eyes">
+    <div className="ins-opts">
+      {opt('nvidia', 'NVIDIA', 'The best result - better than CapCut. Blinks stay natural.')}
+      {opt('neural', 'Our own', 'Free, on this computer. A little weaker on filter-drawn eyes.')}
+    </div>
     {mode === 'neural' && <>
       <Slider label="Strength" v={strength} min={0} max={1} step={0.05} def={1} fmt={fmt.pct} onChange={(v) => setStrength(v)} />
       <Slider label="Up / down share" v={dy} min={0} max={1} step={0.05} def={0.6} fmt={fmt.pct} onChange={(v) => setDy(v)} />
     </>}
-    <button className="btn primary" disabled={busy || !P.build || !assets.length} onClick={() => go({ mode, ...(mode === 'neural' ? { strength, dy } : {}) })}>
+    <button className="btn primary ins-wide" disabled={busy || !P.build || !assets.length} onClick={() => go({ mode, ...(mode === 'neural' ? { strength, dy } : {}) })}>
       {made ? 'Redo eye contact' : 'Make eye contact'}{assets.length > 1 ? ` · ${assets.length} takes` : ''}</button>
-    {P.item && <button className="btn" disabled={busy || !P.build} onClick={() => P.pickAsset('video', (id) => go({ assets: [P.item.asset], files: { [P.item.asset]: `asset:${id}` } }))}>
-      Use a CapCut eye-contact export…</button>}
-    <Note>{mode === 'nvidia' ? 'NVIDIA Maxine + our blink blend - "better than CapCut". ' : 'Local and free, a little weaker on filter-drawn eyes. '}
-      About {Math.max(1, Math.round(secs / 60))} min for {Math.round(secs)} s of footage; it runs in Jobs.{P.item ? ' A CapCut export must be the whole take, untrimmed.' : ''}</Note>
-  </>;
+    <Note>About {Math.max(1, Math.round(secs / 60))} min for {Math.round(secs)} s of footage. It runs in Jobs - you can keep editing.</Note>
+    {P.item && <div className="ins-eyes-alt">
+      <div className="ins-eyes-alt-h">Already made it in CapCut?</div>
+      <button className="btn ins-wide" disabled={busy || !P.build} onClick={() => P.pickAsset('video', (id) => go({ assets: [P.item.asset], files: { [P.item.asset]: `asset:${id}` } }))}>
+        Use a CapCut export…</button>
+      <Note>It must be the whole take, untrimmed.</Note>
+    </div>}
+  </section>;
 }
 
 const ENGINE: Record<string, string> = { nvidia: 'NVIDIA Maxine + blink blend', v6: 'Our own (v6)', capcut: "CapCut's export", file: 'From a file' };
@@ -46,6 +55,7 @@ const same = (a: any, b: any) => LOOK_KEYS.every((k) => (a?.[k] ?? 1) === (b?.[k
 export const VideoInspector: React.FC<InspectorProps> = (P) => {
   const { project, layer, item } = P;
   const S = useSettings(P);
+  const [eyesWin, setEyesWin] = React.useState(false);
   const assetsUsed = [...new Set((item ? [item] : layer.items || []).map((i: any) => i.asset).filter(Boolean))] as string[];
   const A = (id: string) => project.assets?.[id] || {};
   const withEyes = assetsUsed.filter((id) => A(id).eyes);
@@ -88,7 +98,10 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
       <Row label="Eyes"><Seg options={[[false, 'As filmed'], [true, 'At the lens']]} value={eyes} disabled={!withEyes.length} onPick={(v) => S.set('eyes', v)} /></Row>
       {withEyes.length > 0 && withEyes.length < assetsUsed.length && <Note warn>Prepared for {withEyes.length} of {assetsUsed.length} takes - the others play as filmed.</Note>}
       {withEyes.length > 0 && <Note>Same frames, the eyes brought to the lens; closed and narrowed eyes stay as filmed. Switches live - the export uses the same choice.</Note>}
-      <More label={withEyes.length ? 'Redo eye contact' : 'Make eye contact'}><EyesMake P={P} assets={assetsUsed} made={withEyes.length > 0} /></More>
+      {!withEyes.length && <Note>Not made yet for {assetsUsed.length > 1 ? 'these takes' : 'this take'}.</Note>}
+      <button className="btn ins-wide" onClick={() => setEyesWin(true)}>{withEyes.length ? 'Redo eye contact…' : 'Make eye contact…'}</button>
+      {eyesWin && <Win title={withEyes.length ? 'Redo eye contact' : 'Make eye contact'} onClose={() => setEyesWin(false)}>
+        <EyesMake P={P} assets={assetsUsed} made={withEyes.length > 0} onDone={() => setEyesWin(false)} /></Win>}
     </Sec>
 
     <Sec title="Look" end={<Ovr S={S} k="look" />}>

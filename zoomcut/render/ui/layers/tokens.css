@@ -160,3 +160,15 @@
 .ins-save { display: grid; gap: 6px; padding: 10px; border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius: 6px;
   background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 12px; color: var(--text); }
 .ins-save .btn { width: 100%; }
+
+/* the eye-contact window (inspect/video.tsx EyesMake): the two engines as plain choices, then one button */
+.ins-eyes { display: grid; gap: 12px; padding-top: 8px; }
+.ins-opts { display: grid; gap: 8px; }
+.ins-opt { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid var(--edge-2); border-radius: 8px; background: var(--panel-2);
+  color: var(--dim); font: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
+.ins-opt b { color: var(--text); font-size: 13px; }
+.ins-opt span { font-size: 11.5px; line-height: 1.4; }
+.ins-opt:hover { border-color: var(--faint); }
+.ins-opt.on { border-color: var(--accent); background: var(--accent-soft); }
+.ins-eyes-alt { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--edge); }
+.ins-eyes-alt-h { font-size: 12px; color: var(--dim); }

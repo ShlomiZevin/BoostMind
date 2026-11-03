@@ -44,7 +44,7 @@ export const HELP: Record<string, string> = {
   'Cut-out (person on the background)': 'Shows only the person, with the set picture behind him instead of the real room.',
   'Edge cleanup': 'Removes the faint glow around him at the cut-out\'s edge.',
   'Keep desk': 'Keeps the real desk in front of him (the bottom part of the frame isn\'t cut out).',
-  'Eyes': 'As filmed, or At the lens - his eyes moved to look into the camera. Needs eye contact made first (below).',
+  'Eyes': 'As filmed, or At the lens - his eyes moved to look into the camera. Needs eye contact made first (the button under it).',
   'Make eye contact': 'Prepares the "eyes at the lens" version of the takes. Takes a few minutes; it runs in Jobs.',
   'Redo eye contact': 'Makes the "eyes at the lens" version again - another engine or strength. Takes a few minutes; it runs in Jobs.',
   'Look': 'Colour and light.',
