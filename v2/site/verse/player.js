@@ -29,10 +29,23 @@ function remember(id, t, d) {
 }
 
 // ---------- the page ----------
+// The layer takes the size of what the phone really shows (visualViewport), kept up to date: iPhone sometimes sizes a
+// fixed full-screen layer shorter than the screen and leaves an empty black strip at the bottom (his screenshot,
+// 2026-11-03, a game opened by refreshing its link).
+function fit(el) {
+  const vv = window.visualViewport;
+  if (!vv) return () => {};
+  const go = () => { el.style.top = vv.offsetTop + 'px'; el.style.height = vv.height + 'px'; el.style.bottom = 'auto'; };
+  go();
+  const ts = [setTimeout(go, 300), setTimeout(go, 1200)];
+  vv.addEventListener('resize', go); vv.addEventListener('scroll', go); addEventListener('orientationchange', go);
+  return () => { ts.forEach(clearTimeout); vv.removeEventListener('resize', go); vv.removeEventListener('scroll', go); removeEventListener('orientationchange', go); };
+}
+const opened = () => document.documentElement.classList.remove('opening');   // the wiki page hid the home until now
 export function openPlayer(id, q = {}) {
   const v = V[id];
-  if (!v) { toast(T.errGeneric); location.hash = '#/'; return; }
-  if (v.url) { window.open(v.url, '_blank', 'noopener'); location.replace(backTo); return; }
+  if (!v) { opened(); toast(T.errGeneric); location.hash = '#/'; return; }
+  if (v.url) { opened(); window.open(v.url, '_blank', 'noopener'); location.replace(backTo); return; }
   if (P && P.v.id === id) { deepLinks(q); return; }
   if (P) destroy();
   const eps = episodes(v);
@@ -69,7 +82,8 @@ export function openPlayer(id, q = {}) {
   document.body.append(el);
   lockScroll();   // the page behind stays put (iPhone scrolls a body under overflow: hidden)
   const video = $('video', el);
-  P = { el, v, video, lead, off: [], hideT: 0 };
+  P = { el, v, video, lead, off: [fit(el)], hideT: 0 };
+  opened();
 
   // live counts under the video
   P.off.push(F.onSnapshot(F.doc(db, 'videoStats', id), (s) => { const d = s.data() || {}; P && (P.stats = d, $('[data-count-c]', el).textContent = d.comments ? String(d.comments) : ''); }, () => {}));
@@ -172,7 +186,7 @@ const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 export function openGame(id, q = {}) {
   const g = (W.games || []).find((x) => x.id === id);
-  if (!g) { toast(T.errGeneric); location.hash = '#/games'; return; }
+  if (!g) { opened(); toast(T.errGeneric); location.hash = '#/games'; return; }
   if (P && P.v.id === id) { deepLinks(q); return; }
   if (P) destroy();
   const lead = (g.chars || []).find((c) => C[c]) || null;
@@ -204,7 +218,8 @@ export function openGame(id, q = {}) {
     <button class="vg-exit" data-exit>${face}<span>${esc(T.gExit)}</span>${SHRINK}</button>`;
   document.body.append(el);
   lockScroll();
-  P = { el, v, lead, off: [], hideT: 0, hearted: false, uid: undefined };
+  P = { el, v, lead, off: [fit(el)], hideT: 0, hearted: false, uid: undefined };
+  opened();
   document.title = `${g.title} · שלומיוורס`;
   P.off.push(F.onSnapshot(F.doc(db, 'videoStats', id), (s) => {
     const d = s.data() || {};

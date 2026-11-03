@@ -30,7 +30,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<script>try { const t = localStorage.getItem('wiki-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<script>try { const t = localStorage.getItem('wiki-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+// opened straight onto a game or a video (a refresh, a shared link, a push): the home stays hidden until that page is up
+if (/^#\/(play|v)\//.test(location.hash)) { document.documentElement.classList.add('opening'); setTimeout(() => document.documentElement.classList.remove('opening'), 8000); }</script>
+<style>html.opening, html.opening body { background: #000; } html.opening body > :not(.vp) { visibility: hidden; }</style>
 <!-- the Shlomiverse as an app on the home screen + push (v2: /manifest.webmanifest, /sw.js, /verse/) -->
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b0b0e">
