@@ -47,8 +47,11 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   installed Chrome (`C:/Program Files/Google/Chrome/Application/chrome.exe`, `--use-angle=swiftshader` for WebGL).
 
 ## The makers - always these
-- **Every picture = OpenAI GPT Image 2.5** (`flare` by default, `sunburst` for the most exact - characters, cover,
-  title), called directly: game art, the concept picture, the cover, the title art, the share picture, story
+- **Every picture = OpenAI GPT Image 2.5, one of exactly two models** (super important - his rule):
+  - **`gpt-image-2.5-flare`** (`flare`) - the default: scenes, props, backgrounds, icons, the concept picture.
+  - **`gpt-image-2.5-sunburst`** (`sunburst`) - the most exact: the characters and their poses, the cover, the title
+    art, the hero and the story picture - at HIGH quality.
+  - No other image model, ever (no DALL-E, no gpt-image-1, no Flux). Called directly: game art, the concept picture, the cover, the title art, the share picture, story
   pictures. Never Leonardo (only if OpenAI refuses or fails), never shapes drawn in code for what the player looks at.
 - **Every sound = ElevenLabs**: sound effects, loops, voices and music (`leonardo.mjs sfx|loop` calls ElevenLabs
   directly, `elevenlabs_music.mjs` for music, `elevenlabs.mjs` for voices).
