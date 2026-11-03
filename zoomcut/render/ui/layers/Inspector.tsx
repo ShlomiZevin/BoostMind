@@ -125,7 +125,7 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
   }
   const P = INSPECTORS[layer.kind];
   if (P) return <div className="insp"><P project={project} layer={layer} item={item} send={send} fps={fps} frame={frame} urls={urls} pickAsset={pickAsset} build={build}
-    close={() => onSel(null)} openClip={onOpen && item ? () => onOpen({ layer: layer.id, item: item.id }) : undefined} />{extra}</div>;
+    close={() => onSel(null)} openClip={onOpen && item && layer.kind !== 'subtitles' ? () => onOpen({ layer: layer.id, item: item.id }) : undefined} />{extra}</div>;
   const setLayer = (k: string, v: any, commit = true) => send([{ op: 'layer.update', id: layer.id, props: { [k]: v } }], { commit, label: k });
   const setItem = (k: string, v: any, commit = true) => send([{ op: 'item.update', layer: layer.id, id: item.id, set: { [k]: v } }], { commit, label: k });
   const props = { ...(DEFAULTS[layer.kind] || {}), ...(layer.props || {}) };

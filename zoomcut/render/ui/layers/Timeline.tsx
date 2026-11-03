@@ -44,7 +44,8 @@ export function groupsOf(project: any) {
 }
 
 // ▶ above a block opens its own file (Media's window): a picture, a video, a sound, a text's words
-const opens = (l: any, it: any, project: any) => it.text != null || !!project.assets?.[it.asset ?? l.props?.asset];
+// (not a subtitle - his note: no need, its words are right there)
+const opens = (l: any, it: any, project: any) => l.kind !== 'subtitles' && (it.text != null || !!project.assets?.[it.asset ?? l.props?.asset]);
 /** volume words + the clip's volume line (the same numbers as the sound panel: a clip's gain, a row's volume) */
 const dbOf = (g: number) => (g <= 0.0005 ? -Infinity : 20 * Math.log10(g));
 const dbTxt = (g: number) => { const d = dbOf(g); return d === -Infinity ? 'silent' : Math.abs(d) < 0.05 ? '0 dB' : `${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} dB`; };
@@ -236,6 +237,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const qnAt = useRef(0), qn = useRef<{ lock: number | null; t: any }>({ lock: null, t: 0 });
   const qnMove = (e: React.MouseEvent) => {
     const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left, st = qn.current;
+    if ((e.target as HTMLElement).closest('.ltl-qn, .ltl-qp')) return;  // (on the buttons: the line stays - never stopPropagation here, it would cut a playhead drag)
     if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 64) return;
     if (st.lock != null) { st.lock = null; tr.classList.remove('qn-lock'); }
     qnAt.current = Math.max(0, Math.min(total - 1, Math.round((x / pps) * fps)));
@@ -503,11 +505,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             <div className="ltl-track" style={{ width }} onMouseDown={seekAt} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
               {onNote && <NotePins notes={notes} hideDone={!showDone} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
-              {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>
+              {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
                   onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
               </div>}
-              {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()} onMouseMove={(e) => e.stopPropagation()}>
+              {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()}>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
                   onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}</button>)}
               </div>}

@@ -170,6 +170,16 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     const it = s?.item && project?.layers.find((l: any) => l.id === s.layer)?.items?.find((i: any) => i.id === s.item);
     if (it && (frame < it.from || frame >= it.from + it.dur)) seek(it.from + Math.min(it.dur - 1, Math.round(fps * 0.4)));
   };
+  // a caption picked + the playhead moved onto another caption of its row = that one in the panel (his ask, 2026-11-03:
+  // "when I'm on captions and moving the time, put the caption I'm standing on in the property window"); not while
+  // playing - it catches up on pause. A gap between captions keeps the last one
+  useEffect(() => {
+    if (playing || !sel?.item) return;
+    const l = project?.layers.find((x: any) => x.id === sel.layer);
+    if (l?.kind !== 'subtitles') return;
+    const at = (l.items || []).find((i: any) => frame >= i.from && frame < i.from + i.dur);
+    if (at && at.id !== sel.item) setSel({ layer: l.id, item: at.id });
+  }, [frame, playing]);
   // notes for Claude (Notes.tsx): the open one's window; a new one is only saved once it has words
   const notes = notesOf(project);
   const [noteOpen, setNoteOpen] = useState<{ note: Note; isNew: boolean } | null>(null);
