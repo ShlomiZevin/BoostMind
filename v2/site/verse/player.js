@@ -5,7 +5,8 @@
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
 import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
-import { st, onState, needFan, follow, save } from './state.js';
+import { st, onState, needFan, follow, save, signedIn } from './state.js';
+import { openBoard, onScore, TROPHY } from './records.js';
 import { offerPush } from './push.js';
 
 let P = null;   // the open player
@@ -163,6 +164,10 @@ export function openPlayer(id, q = {}) {
 // The game protocol (verse/game-frame.js, loaded by every game): the game says hello, the page answers with the strip
 // to keep free at its top - 0 in the frame, the pill's height in full screen - so the pill never hides the game's HUD.
 // (The first version floated the video's buttons over the game and faded them - he couldn't find them again.)
+// Playing needs an account (his rule, 2026-11-03), but the first game of each game is free on this device - the game's
+// cover and "התחברו כדי לשחק" stand in for it after that. A game with a daily record (game.json "record") gets the
+// "שיאים" button, and its score at game over goes on today's table (verse/records.js).
+const FREE = 'verse-free:';
 const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 export function openGame(id, q = {}) {
@@ -183,12 +188,13 @@ export function openGame(id, q = {}) {
       </div>
       <div class="vg-mid">
       <div class="vg-acts">
+        ${g.record ? `<button data-records><span class="vx-round">${TROPHY}</span>${esc(T.rec.rail)}</button>` : ''}
         <button data-heart><span class="vx-round">${I.planet}</span><span data-heart-l>${esc(T.gLike)}</span><small data-count-h></small></button>
         <button data-comments><span class="vx-round">${I.comment}</span>${esc(T.comments)}<small data-count-c></small></button>
         <button data-save><span class="vx-round">${I.save}</span><span data-save-l>${esc(T.save)}</span></button>
         <button data-share><span class="vx-round">${I.share}</span>${esc(T.share)}</button>
       </div>
-      <div class="vg-game"><iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe></div>
+      <div class="vg-game"></div>
       </div>
       <div class="vg-card">
         <div><h2>${esc(g.title)}</h2><div class="meta">${esc(g.tagline || (lead ? T.gMeta(C[lead].name) : ''))}</div></div>
@@ -216,16 +222,41 @@ export function openGame(id, q = {}) {
     P.offHeart = null; P.hearted = false;
     if (uid) P.offHeart = F.onSnapshot(F.doc(db, 'fans', uid, 'hearts', id), (s) => { if (P) { P.hearted = s.exists(); paint(); } }, () => {});
   };
-  P.off.push(onState(() => { if (P) { mine(); paint(); } }), () => P?.offHeart?.());
+  P.off.push(onState(() => { if (P) { mine(); paint(); decide(); if (signedIn() && !frame) mount(); } }), () => P?.offHeart?.());
   mine();
   paint();
   track('game', id);
   // full screen: the page's own (no frame) everywhere; on top of it the browser's real full screen where there is one
   // (Android, computers - not iPhone). Leaving the browser's full screen (Esc, back) brings the frame back too.
-  const frame = $('iframe', el);
+  // the game itself - or, signed out after the free game, its cover and the way in
+  let frame = null;
+  const box = $('.vg-game', el);
+  const mount = () => {
+    if (frame || !P) return;
+    box.innerHTML = `<iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>`;
+    frame = $('iframe', box);
+  };
+  const gate = () => {
+    box.innerHTML = `<div class="vg-gate">${g.img ? `<img src="${esc(g.img)}" alt="">` : ''}<h3>${esc(T.rec.gateTitle)}</h3><p>${esc(T.rec.gateSub)}</p>
+      <button class="vx-btn main" data-gate>${esc(T.rec.gateBtn)}</button></div>`;
+  };
+  // decided once we know who is here (a fresh page learns it a moment after the page opens): signed in, or the first
+  // game of this game on this device = play; otherwise the way in
+  let decided = false;
+  const decide = () => {
+    if (decided || !st.ready || !P) return;
+    decided = true;
+    let free = false;
+    try { free = !localStorage.getItem(FREE + id); } catch (x) {}
+    if (signedIn()) mount();
+    else if (free) { try { localStorage.setItem(FREE + id, '1'); } catch (x) {} mount(); }
+    else gate();
+  };
+  if (g.img) box.innerHTML = `<div class="vg-gate wait"><img src="${esc(g.img)}" alt=""></div>`;
+  decide();
   const tell = () => {
     const top = el.classList.contains('full') ? Math.ceil($('.vg-exit', el).getBoundingClientRect().bottom + 6) : 0;
-    frame.contentWindow?.postMessage({ verse: 'frame', top }, '*');
+    frame?.contentWindow?.postMessage({ verse: 'frame', top }, '*');
   };
   const full = async (on) => {
     el.classList.toggle('full', on);
@@ -237,7 +268,12 @@ export function openGame(id, q = {}) {
   };
   P.onFs = () => { if (P && !document.fullscreenElement) P.el.classList.remove('full'); if (P) tell(); };
   document.addEventListener('fullscreenchange', P.onFs);
-  P.onMsg = (e) => { if (P && e.source === frame.contentWindow && e.data && e.data.verse === 'hello') tell(); };
+  const again = () => { if (frame) frame.src = g.url; };
+  P.onMsg = (e) => {
+    if (!P || !frame || e.source !== frame.contentWindow || !e.data) return;
+    if (e.data.verse === 'hello') tell();
+    else if (e.data.verse === 'score' && g.record) onScore(g, Number(e.data.value), { reopen: again });
+  };
   addEventListener('message', P.onMsg);
   el.addEventListener('click', async (e) => {
     const b = e.target.closest('button, a');
@@ -246,6 +282,8 @@ export function openGame(id, q = {}) {
     else if (b.matches('[data-full]')) full(true);
     else if (b.matches('[data-exit]')) full(false);
     else if (b.matches('[data-heart]')) heart();
+    else if (b.matches('[data-records]')) openBoard(g, { onAgain: again });
+    else if (b.matches('[data-gate]')) { if (await needFan('play')) mount(); }
     else if (b.matches('[data-comments]')) openComments();
     else if (b.matches('[data-save]')) save(id, 'saveGame');
     else if (b.matches('[data-share]')) share(v);
@@ -256,6 +294,7 @@ export function openGame(id, q = {}) {
   };
   document.addEventListener('keydown', P.key);
   deepLinks(q);
+  if (q.records && g.record) setTimeout(() => openBoard(g, { onAgain: again }), 400);   // "someone took your first place" 
 }
 async function heart() {
   if (!(await needFan('heart')) || !P) return;

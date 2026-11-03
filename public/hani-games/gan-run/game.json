@@ -4,6 +4,16 @@
   "tagline": "השעה 4:20, ומלכי מחכה בגן בבני ברק – רכבת קלה או שני אוטובוסים?",
   "status": "live",
   "cover": "cover.jpg",
-  "badges": ["ניגונים בלבד", "לכל המשפחה"],
-  "best": { "key": "hani-games:gan-run:best", "label": "נקודות" }
+  "badges": [
+    "ניגונים בלבד",
+    "לכל המשפחה"
+  ],
+  "best": {
+    "key": "hani-games:gan-run:best",
+    "label": "נקודות"
+  },
+  "record": {
+    "unit": "נקודות",
+    "better": "high"
+  }
 }

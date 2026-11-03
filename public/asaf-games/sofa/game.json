@@ -6,6 +6,13 @@
   "world": "אסף",
   "status": "live",
   "cover": "cover.jpg",
-  "best": { "key": "shlomiverse:sofa:best", "label": "נקודות" },
-  "date": "2026-11-03"
+  "best": {
+    "key": "shlomiverse:sofa:best",
+    "label": "נקודות"
+  },
+  "date": "2026-11-03",
+  "record": {
+    "unit": "נקודות",
+    "better": "high"
+  }
 }

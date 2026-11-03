@@ -163,5 +163,7 @@ service cloud.firestore {
     // the community wall: everyone reads the ideas Shlomi didn't hide
     match /ideas/{id} { allow read: if resource.data.hidden == false; }
     match /videoStats/{id} { allow read: if true; }
+    // daily game records: the day's top 10 is public (nickname + first name); each player's own entry stays server-only
+    match /records/{id} { allow read: if true; }
   }
 }

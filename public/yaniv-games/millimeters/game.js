@@ -323,7 +323,7 @@ function showBest() {
 }
 function gameOver() {
   state = 'over'; drag.on = false; play('walkout', .8); setPose('talk', 9); say(pick(LINES.out), 3);
-  window.track && window.track('game_over', 'millimeters');
+  window.track && window.track('game_over', 'millimeters'); window.VerseFrame && VerseFrame.score(sessions);   // the verse's daily records
   const b = bestNum(), rec = sessions > b;
   if (rec) store.set(KEY.best, sessions);
   const d = (store.get(KEY.day) || '').split('|');

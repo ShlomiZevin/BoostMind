@@ -11,5 +11,9 @@
   "best": {
     "key": "hani-games:pilai:best",
     "label": "כוכבים"
+  },
+  "record": {
+    "unit": "כוכבים",
+    "better": "high"
   }
 }

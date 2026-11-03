@@ -2,7 +2,7 @@
 //   <script src="/verse/game-frame.js"></script>
 // and takes its top offset from one variable, so it keeps a strip free for what the platform adds:
 //   --safe-t: calc(env(safe-area-inset-top, 0px) + var(--verse-top, 0px));
-// On its own (its own address, the playhouse site) nothing changes. Inside the verse's game page (/wiki/#/play/<id>,
+// Inside the verse's game page (/wiki/#/play/<id>,
 // verse/player.js openGame) the page answers this script's hello, and then:
 //   - <html> gets class "in-verse" (a game hides its own share / like / "back to the site" with .verse-hide);
 //   - in full screen --verse-top = the height of the strip where the verse puts the character's face and
@@ -10,10 +10,21 @@
 //     `verseframe` event with { top } for canvas games that draw their own HUD (window.VerseFrame.top);
 //   - links that leave the game open in the whole tab, never inside the frame; a link back to the game's own hub
 //     (/hani-games/, ../) goes to the verse's games page instead.
+// Daily records: at game over the game reports its final score - one line, `window.VerseFrame && VerseFrame.score(n)` -
+// and game.json says what it is called: "record": { "unit": "נקודות", "better": "high" } ("low" for a time). The verse
+// keeps the day's table, shows it on the home and on the game page, and celebrates a new record.
+// Every play goes through the verse (sign-in, records): a game opened on its own address forwards to its page there.
+// ?solo=1 (or ?notrack=1, or localhost) keeps it on its own - for testing.
 (() => {
   const root = document.documentElement;
-  window.VerseFrame = { inVerse: false, top: 0 };
-  if (window.top === window) return;
+  window.VerseFrame = { inVerse: false, top: 0, score() {} };
+  if (window.top === window) {
+    const q = new URLSearchParams(location.search), parts = location.pathname.split('/').filter(Boolean);
+    const solo = q.has('solo') || q.has('notrack') || /^(localhost|127\.)/.test(location.hostname);
+    if (!solo && parts.length >= 2 && /-games$/.test(parts[0])) location.replace(`/wiki/#/play/${parts[0]}-${parts[1]}`);
+    return;
+  }
+  window.VerseFrame.score = (n) => { if (window.VerseFrame.inVerse && Number(n) > 0) parent.postMessage({ verse: 'score', value: Number(n) }, '*'); };
   const css = document.createElement('style');
   css.textContent = 'html.in-verse .verse-hide{display:none!important}';
   document.head.appendChild(css);

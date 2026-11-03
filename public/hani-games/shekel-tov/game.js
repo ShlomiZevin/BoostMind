@@ -788,7 +788,7 @@ function roundFull() {
 }
 function gameOver(why) {
   if (state === 'over') return;
-  state = 'over'; drag = null; window.track && track('game_over', 'shekel-tov');
+  state = 'over'; drag = null; window.track && track('game_over', 'shekel-tov'); window.VerseFrame && VerseFrame.score(Math.round(totalAg) / 100);   // the verse's daily records
   play('over', .8); setMusicRate(1);
   const score = Math.round(totalAg) / 100, prev = best(), rec = score > prev;
   if (rec) store.set(KEY.best, score.toFixed(2));

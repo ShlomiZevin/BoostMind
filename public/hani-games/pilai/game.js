@@ -225,7 +225,7 @@ function startGame() {
   play('whoosh', .6); introSay();
 }
 function gameOver() {
-  state = 'over'; window.track && track('game_over', 'pilai'); fxEl.innerHTML = '';
+  state = 'over'; window.track && track('game_over', 'pilai'); window.VerseFrame && VerseFrame.score(stars);   // the verse's daily records fxEl.innerHTML = '';
   play('over', .8);
   const time = Math.round((performance.now() - t0) / 1000), me = { stars, time };
   const prev = best(), rec = better(me, prev), dPrev = dayBest(), dRec = better(me, dPrev);

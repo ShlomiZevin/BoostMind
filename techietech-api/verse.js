@@ -59,6 +59,10 @@ const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: '
 const clip = (v, n) => String(v ?? '').replace(/\s+$/g, '').slice(0, n);
 const oneLine = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 const idOk = (v) => typeof v === 'string' && /^[\w-]{1,80}$/.test(v);
+// daily records: how many scores a fan may send a day, the score as shown (12.4 -> "12.4", 12 -> "12"), the push copy (Terra)
+const SCORES_A_DAY = 300;
+const fmtScore = (v) => String(Math.round(v * 100) / 100);
+const RECORD_PUSH = { title: 'לקחו לכם את הבכורה', body: (nick, game, n, unit) => `${nick} לקחו את ההובלה ב־${game}: ${n} ${unit}. חוזרים?` };
 // where a comment / sticker lives: a video's page or a game's (games keep their comments under the game's id)
 const pageOf = async (id) => `/wiki/#/${(await _canon()).games?.[id] ? 'play' : 'v'}/${id}`;
 const fail = (code, msg) => { throw new HttpsError(code, msg); };
@@ -259,6 +263,54 @@ const ops = {
     const ref = db.collection('fans').doc(uid).collection('saves').doc(d.videoId);
     if (d.on === false) await ref.delete(); else await ref.set({ t: FieldValue.serverTimestamp() });
     return { ok: true };
+  },
+
+  // ---------- daily records (verse/records.js; his ask 2026-11-03) ----------
+  // A game reports its final score (game-frame.js VerseFrame.score); each fan keeps their best of the Israeli day per
+  // game (records/<game>_<day>/players/<uid>), and the day's doc holds the top 10 everyone reads (nickname + Google first
+  // name only). Whoever loses first place hears about it (bell + push). Browser scores can be faked - a daily cap on
+  // sends and the game's own max keep it a fun board.
+  async score(uid, d, auth) {
+    const g = (await _canon()).games?.[d.game];
+    if (!g || !g.record) fail('not-found', 'game');
+    const value = Math.round(Number(d.value) * 100) / 100;
+    if (!Number.isFinite(value) || value <= 0 || value > (g.record.max || 1e7)) fail('invalid-argument', 'value');
+    const fan = await fanOf(uid);
+    if (!(await spend('score', uid, SCORES_A_DAY))) fail('resource-exhausted', 'slow_down');
+    const low = g.record.better === 'low', beats = (a, b) => (low ? a < b : a > b);
+    const day = dayIL(), dayRef = db.collection('records').doc(`${d.game}_${day}`), mine = dayRef.collection('players').doc(uid);
+    const first = String(auth?.token?.name || '').trim().split(/\s+/)[0].slice(0, 20) || null;
+    const r = await db.runTransaction(async (tx) => {
+      const [m, dd] = await Promise.all([tx.get(mine), tx.get(dayRef)]);
+      const was = m.exists ? m.data().value : null;
+      if (was !== null && !beats(value, was)) return { best: false, value: was };
+      const top = (dd.data()?.top || []).filter((x) => x.uid !== uid);
+      const leader = (dd.data()?.top || [])[0] || null;
+      top.push({ uid, nick: fan.nick, first, photo: fan.photo || null, value, t: Date.now() });
+      top.sort((a, b) => (low ? a.value - b.value : b.value - a.value) || a.t - b.t);
+      tx.set(mine, { value, t: FieldValue.serverTimestamp() });
+      tx.set(dayRef, { game: d.game, day, top: top.slice(0, 10), players: FieldValue.increment(m.exists ? 0 : 1) }, { merge: true });
+      const firstNow = top[0].uid === uid;
+      return { best: true, value, first: firstNow, passed: firstNow && leader && leader.uid !== uid ? leader : null, opened: firstNow && !leader };
+    });
+    const place = (await dayRef.collection('players').where('value', low ? '<' : '>', r.value).count().get()).data().count + 1;
+    if (r.passed) {
+      await note(r.passed.uid, { kind: 'record', game: d.game, from: fan.nick, photo: fan.photo || null, text: g.title, value: r.value, unit: g.record.unit }).catch(() => {});
+      await push([r.passed.uid], { title: RECORD_PUSH.title, body: RECORD_PUSH.body(fan.nick, g.title, fmtScore(r.value), g.record.unit),
+        url: `/wiki/#/play/${d.game}?records=1`, icon: fan.photo || ICON, badge: BADGE, tag: 'record_' + d.game }).catch(() => {});
+    }
+    return { ok: true, best: r.best, value: r.value, place, first: !!r.first, passed: r.passed ? { nick: r.passed.nick, photo: r.passed.photo || null, value: r.passed.value } : null };
+  },
+
+  async rank(uid, d) {
+    const g = (await _canon()).games?.[d.game];
+    if (!g || !g.record) fail('not-found', 'game');
+    const dayRef = db.collection('records').doc(`${d.game}_${dayIL()}`);
+    const m = await dayRef.collection('players').doc(uid).get();
+    if (!m.exists) return { value: null };
+    const value = m.data().value;
+    const place = (await dayRef.collection('players').where('value', g.record.better === 'low' ? '<' : '>', value).count().get()).data().count + 1;
+    return { value, place };
   },
 
   // the like on a game's page (the planet, 2026-11-03): one per fan, counted beside its comments

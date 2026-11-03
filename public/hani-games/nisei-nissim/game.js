@@ -1049,7 +1049,7 @@ function startGame() {
   say('בוקר טוב! בעזרת השם יהיה יום רגוע.', 2.4, 1);
 }
 function gameOver() {
-  state = 'over'; window.track && track('game_over', 'nisei-nissim');
+  state = 'over'; window.track && track('game_over', 'nisei-nissim'); window.VerseFrame && VerseFrame.score(score);   // the verse's daily records
   play('over', .8); setMusicRate(1);
   const prev = best(), rec = score > prev;
   if (rec) store.set(KEY.best, score);

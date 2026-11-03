@@ -7,6 +7,7 @@ import { openStory, closeStory, storyRing, onStories, setStoryBack } from './sto
 import { communityPage, businessPage, homeBand, onIdeas } from './community.js';
 import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
+import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
 
 Object.assign(HOOK, {
   openPlayer,
@@ -39,6 +40,7 @@ Object.assign(HOOK, {
     renderTop();
     paintFollow();
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
+    if (!page) recordsHome(); else if (!/^#\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
   },
 });
 pages.notes = notesPage;

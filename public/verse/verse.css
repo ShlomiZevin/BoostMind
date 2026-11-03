@@ -1247,3 +1247,71 @@ section.hero .scroll-hint { z-index: 1; }
 .vx-round.pop { animation: vg-pop .45s ease; }
 @keyframes vg-pop { 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .sv-h { font-size: 1.15rem; font-weight: 800; margin: 26px 0 12px; }
+
+/* ---- daily records (verse/records.js; mockups scripts/v2-design/records.mjs) ---- */
+.rec-sub { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .92rem; margin-top: 4px; }
+.rec-home .grow { gap: 12px; }
+.rec-card { flex: none; width: 168px; scroll-snap-align: start; display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: var(--card, #141418);
+  border: 1px solid var(--line, rgba(255, 255, 255, .1)); text-align: center; }
+.rec-card.has { border-color: rgba(255, 106, 31, .45); box-shadow: 0 0 0 1px rgba(255, 106, 31, .12), 0 10px 30px rgba(255, 106, 31, .08); }
+.rc-pic { aspect-ratio: 1.6; background: var(--card2, #1b1b20); overflow: hidden; }
+.rc-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rc-body { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 10px 12px; flex: 1; }
+.rc-game { font-weight: 800; font-size: .95rem; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; }
+.rc-face { position: relative; margin-top: 4px; }
+.rc-face .vx-av { width: 48px; height: 48px; border: 2px solid var(--vx-accent); }
+.rc-crown { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; color: #ffc94a; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .6)); }
+.rc-crown svg, .rb-place i svg, .rm-crown svg { width: 100%; height: 100%; display: block; }
+.rc-who { display: flex; flex-direction: column; align-items: center; line-height: 1.2; min-width: 0; max-width: 100%; }
+.rc-who b { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.rc-who small { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .8rem; }
+.rc-n { font-size: 1.7rem; font-weight: 900; color: var(--vx-accent); line-height: 1; margin-top: 4px; }
+.rc-unit { font-size: .8rem; color: var(--dim, rgba(255, 255, 255, .6)); }
+.rc-empty { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .88rem; flex: 1; display: flex; align-items: center; padding: 10px 0; }
+.rc-go { margin-top: auto; height: 38px; font-size: .86rem; padding: 0 12px; width: 100%; justify-content: center; }
+.vx-btn.ghost-o { background: transparent; border: 1.5px solid var(--vx-accent); color: var(--vx-accent); }
+/* the table */
+.rb-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.rb-head img { width: 64px; height: 44px; object-fit: cover; border-radius: 10px; flex: none; }
+.rb-head h3 { font-size: 1.15rem; font-weight: 900; }
+.rb-head p { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .88rem; }
+.rb-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 120px; }
+.rb-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); }
+.rb-row .vx-av { width: 40px; height: 40px; flex: none; }
+.rb-row .rc-who { align-items: flex-start; flex: 1; }
+.rb-row.p1 { background: rgba(255, 190, 60, .12); border-color: rgba(255, 190, 60, .45); }
+.rb-row.p2 { background: rgba(200, 210, 225, .08); border-color: rgba(200, 210, 225, .3); }
+.rb-row.p3 { background: rgba(205, 127, 50, .1); border-color: rgba(205, 127, 50, .4); }
+.rb-row.me { outline: 2px solid var(--vx-accent); }
+.rb-place { width: 28px; flex: none; display: flex; flex-direction: column; align-items: center; font-weight: 900; color: var(--dim, rgba(255, 255, 255, .6)); }
+.rb-place i { width: 16px; height: 16px; color: #ffc94a; }
+.rb-row.p2 .rb-place i { color: #cfd6e2; } .rb-row.p3 .rb-place i { color: #d08a4a; }
+.rb-n { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.rb-n b { font-size: 1.2rem; font-weight: 900; }
+.rb-n small { font-size: .74rem; color: var(--dim, rgba(255, 255, 255, .6)); }
+.rb-empty { color: var(--dim, rgba(255, 255, 255, .6)); text-align: center; padding: 30px 10px; }
+.rb-me { margin-top: 10px; }
+.rb-mine { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); }
+.rb-mine .vx-av { width: 40px; height: 40px; flex: none; }
+.rb-mine span { flex: 1; font-weight: 700; font-size: .92rem; }
+.rb-mine .vx-btn { flex: none; height: 42px; padding: 0 16px; }
+/* the moment, and the signed-out "want it on the table?" */
+.rm-card, .rm-out { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 6px 4px 4px; }
+.rm-crown { width: 54px; height: 54px; color: var(--vx-accent); filter: drop-shadow(0 0 14px rgba(255, 106, 31, .7)); }
+.rm-card h2 { font-size: 1.7rem; font-weight: 900; }
+.rm-face .vx-av { width: 92px; height: 92px; border: 3px solid var(--vx-accent); box-shadow: 0 0 30px rgba(255, 106, 31, .35); }
+.rm-card .rc-who b { font-size: 1.3rem; }
+.rm-n { font-size: 3rem; font-weight: 900; color: var(--vx-accent); line-height: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 6px 0; }
+.rm-n small { font-size: .9rem; color: #fff; font-weight: 700; }
+.rm-line { display: flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, .8); }
+.rm-line .vx-av { width: 32px; height: 32px; }
+.rm-btns { display: flex; gap: 10px; width: 100%; margin-top: 8px; }
+.rm-btns .vx-btn { flex: 1; justify-content: center; }
+.rm-out h3 { font-size: 1.15rem; font-weight: 800; }
+/* the way in after the free game */
+.vg-gate { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center;
+  background: #0d0d12; }
+.vg-gate img { width: 100%; max-width: 360px; aspect-ratio: 1.91; object-fit: cover; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); }
+.vg-gate.wait img { opacity: .5; }
+.vg-gate h3 { font-size: 1.3rem; font-weight: 900; margin-top: 8px; }
+.vg-gate p { color: rgba(255, 255, 255, .7); font-size: .95rem; max-width: 280px; }

@@ -279,7 +279,7 @@ function showBest() {
 }
 function gameOver() {
   state = 'over'; play('over', .7); say('אתה כזה טמבל.', 3, true);
-  window.track && window.track('game_over', 'sofa');
+  window.track && window.track('game_over', 'sofa'); window.VerseFrame && VerseFrame.score(score);   // the verse's daily records
   const b = bestNum(), rec = score > b;
   if (rec) store.set(KEY.best, score);
   const d = (store.get(KEY.day) || '').split('|');

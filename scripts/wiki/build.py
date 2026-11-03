@@ -172,7 +172,7 @@ def main():
         'videos': [{'id': v['id'], 'title': v['title'], 'teaser': v['teaser'], 'cast': v['cast'], 'date': v.get('date', ''),
                     'card': card.get(v['id']) or v['teaser'], 'transcript': v['_transcript']} for v in videos],
         'sites': site_list,
-        'games': [{k: g[k] for k in ('id', 'url', 'title', 'tagline', 'chars')} for g in games({c['id'] for c in out_chars})],
+        'games': [{k: g[k] for k in ('id', 'url', 'title', 'tagline', 'chars', 'record') if k in g} for g in games({c['id'] for c in out_chars})],
     }
     with open(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json'), 'w', encoding='utf8') as f:
         json.dump(brain, f, ensure_ascii=False, separators=(',', ':'))
@@ -210,6 +210,9 @@ def games(char_ids):
         out.append({'id': f'{site}-{slug}', 'url': url, 'title': g.get('title') or slug, 'tagline': g.get('tagline', ''),
                     'img': url + cover if os.path.exists(os.path.join(folder, cover)) else None,
                     'chars': [c for c in chars if c in char_ids], 'site': site, 'date': date or ''})
+        rec = g.get('record')
+        if isinstance(rec, dict) and rec.get('unit'):   # daily records (verse/records.js): the game reports a score at game over
+            out[-1]['record'] = {'unit': rec['unit'], 'better': 'low' if rec.get('better') == 'low' else 'high', **({'max': rec['max']} if rec.get('max') else {})}
     out.sort(key=lambda x: x['date'], reverse=True)
     return out
 

@@ -535,7 +535,7 @@ function startGame() {
 }
 function gameOver(h, line) {
   if (state !== 'play') return;
-  state = 'over'; window.track && track('game_over', 'ketoret');
+  state = 'over'; window.track && track('game_over', 'ketoret'); window.VerseFrame && VerseFrame.score(score);   // the verse's daily records
   const prev = best(), rec = score > prev;
   if (rec) store.set(KEY.best, score);
   setTimeout(() => {

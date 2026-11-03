@@ -101,6 +101,7 @@ function noteRow(n) {
   else if (n.kind === 'like') { face = n.n > 1 || !n.from ? av({ planet: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = T.note.like(n.n || 1, n.from); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?c=${n.focus || n.commentId}`; }
   else if (n.kind === 'stamp') { face = n.char ? av({ char: n.char }) : av({ planet: true }); name = T.note.stamp(n.n || 1); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?sticker=${n.stickerId}`;
     if (n.img) thumb = `<img class="thumb sq" src="${esc(n.img)}" alt="">`; }
+  else if (n.kind === 'record') { face = av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.rec.noteLine.replace('{nick}', n.from).replace('{game}', n.text); href = `#/play/${n.game}?records=1`; }
   else { face = av({ planet: true }); name = T.note.welcome(n.text || st.fan?.nick || ''); line = T.note.welcomeLine; href = '#/characters'; }
   return `<a class="nt-row ${unread}" href="${href}">${!n.read ? '<span class="vx-dot"></span>' : ''}${face}
     <span class="body"><b>${esc(name)}</b><span class="line">${esc(line)}</span><small>${n.t ? ago(n.t) : T.now}</small></span>${thumb}</a>`;

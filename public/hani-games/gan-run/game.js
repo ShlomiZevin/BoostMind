@@ -640,7 +640,7 @@ function reachGan() {
   }, 1900);
 }
 function late() {
-  state = 'over'; window.track && track('game_over', 'gan-run'); setMusicRate(1); play('late', .7);
+  state = 'over'; window.track && track('game_over', 'gan-run'); window.VerseFrame && VerseFrame.score(score);   // the verse's daily records setMusicRate(1); play('late', .7);
   const prev = best(), rec = score > prev;
   if (rec) store.set(KEY.best, score);
   $('overLine').textContent = `השעה ${fmt(Math.max(clock, DEADLINE))}. הגננת חיכתה עם מלכי – תודה לה, ברוך השם. מחר נצא מוקדם יותר, בלי נדר.`;
