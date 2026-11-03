@@ -31,8 +31,8 @@ He gives a script. Make it a project at once so it shows in the Reader:
    **A dash, never a colon** (2026-11-01): the Reader takes any row starting "Name:" as a character - even inside
    parentheses - and Hani's lines (no "Name:") then vanish; he saw only "הוראת בימוי". Check the script has no `:`
    outside the `#` title row.
-3. Footage folder `Downloads\drop\haredit-N` + the same folder on the phone's Drop page (`POST
-   https://drop-463727469066.me-west1.run.app/api/mkdir {k: DROP_KEY from zoomcut/.env, folder}`), then
+3. Footage folder `Downloads\drop\haredit-N` + the same folder on the phone's Drop page (an empty
+   `gs://boostmind-drop/haredit-N/.keep` - `gcloud storage cp <an empty file> gs://boostmind-drop/haredit-N/.keep`), then
    `POST /api/new {name: "haredit-3", folder, from: "haredit-2"}` - `from` copies the set, music, voice, look.
    Set the project's `script` to `haredit-3` and its Hebrew `title` (episode.json - `script` is not a config key).
    Tell him: "refresh the Reader, pick haredit-3".

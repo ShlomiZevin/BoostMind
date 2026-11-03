@@ -413,10 +413,7 @@ app.post('/api/new-from-script', async (q, res) => {
   const folder = nm.normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 60);  // (as the Drop names it)
   const local = path.join(DOWNLOADS, 'drop', folder);
   fs.mkdirSync(local, { recursive: true });
-  try {  // the project on the phone's Drop page too (an empty folder until the first take)
-    const key = /^DROP_KEY=(.+)$/m.exec(fs.readFileSync(path.join(ROOT, '.env'), 'utf8'))?.[1].trim();
-    if (key) await fetch('https://drop-463727469066.me-west1.run.app/api/mkdir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: key, folder }) });
-  } catch {}
+  await drop.mkdir?.(folder).catch(() => {});  // the project on the phone's Drop page too (an empty folder until the first take)
   const r = await fetch(`http://127.0.0.1:${PORT}/api/new`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: nm, template: kind === 'zoom' ? 'zoom' : 'solo', folder: local, from: kind === 'zoom' ? '' : like || '' }) });
   const j = await r.json().catch(() => ({ error: 'Could not create it' }));
@@ -792,11 +789,11 @@ app.post('/api/karaoke/take', express.raw({ type: '*/*', limit: '400mb' }), (q, 
 // Script Reader: read the whole script while filming, with the character you're playing lit up
 app.use('/reader', express.static(path.join(HERE, 'reader')));
 // Shoot: film with the webcam - filters + the project's script as a prompter; every take straight into the project's
-// footage folder (its input_dir). The same page as the iPhone's (drop/shoot.html on the Drop service), told it is here
+// footage folder (its input_dir). The same page as the iPhone's (public/shoot - shlomiverse.com/shoot/), told it is here
 const shootDir = (id) => { const cfg = readJson(path.join(epDir(id), 'episode.json'), {}); return cfg.input_dir ? path.resolve(cfg.input_dir) : path.join(DOWNLOADS, 'drop', path.basename(id)); };
 const shootName = (s) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 100);
 app.get('/shoot', (_q, res) => res.type('html').set('Cache-Control', 'no-store')
-  .send(fs.readFileSync(path.join(ROOT, 'drop', 'shoot.html'), 'utf8').replace('<head>', '<head><script>window.SHOOT_LOCAL = true</script><script src="/studio/bar.js"></script>')));
+  .send(fs.readFileSync(path.join(ROOT, '..', 'public', 'shoot', 'index.html'), 'utf8').replace('<head>', '<head><script>window.SHOOT_LOCAL = true</script><script src="/studio/bar.js"></script>')));
 app.get('/api/shoot/takes', (q, res) => {  // the videos already in the project's folder, newest first
   try {
     const dir = shootDir(String(q.query.ep || ''));

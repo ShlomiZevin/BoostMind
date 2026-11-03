@@ -222,8 +222,8 @@ end must show at once, with the real footage there.
   without the platform calls) or the **Publish** button (the file already made). The window shows the account, caption, file, length, size
   and export time before his click; a STALE export can't be published (server refuses 409 - export again); one run,
   no retries. Platforms (keys in zoomcut/.env, never print them): **Instagram** live (@shlomizevin, Creator; Reels via
-  `video_url` - the file staged in the Drop bucket's hidden `_publish/` + the Drop's `/api/publink` one-hour private
-  link, deleted after; key renews itself, IG_TOKEN_EXPIRES; the API can't delete a post); **Facebook** personal profile
+  `video_url` - the file staged in the Drop bucket's hidden `_publish/` with a random Firebase download token (a
+  private link - publish.mjs privateLink), deleted after; key renews itself, IG_TOKEN_EXPIRES; the API can't delete a post); **Facebook** personal profile
   = no API: he taps "Share to Facebook" on the Instagram Reel; **X** (OAuth 1.0a on the plaxzy app, his account via
   PIN - X_* keys; 280 chars, 2:20), **TikTok** (to his drafts - TT_CLIENT_KEY/SECRET/REFRESH_TOKEN), **YouTube**
   Shorts (YT_CLIENT_ID/SECRET/REFRESH_TOKEN) are written and switch on when their keys exist. **TikTok is live**
@@ -235,8 +235,8 @@ end must show at once, with the real footage there.
   what failed and why, then the caption alone to copy - he uploads by hand (`handBack`, a "send" job). TikTok's inbox
   takes ~5 waiting drafts per 24 h; drafts he never opens keep counting - don't send test drafts.
 - **Shoot - filming on the iPhone with filters + the script** (2026-11-03, his ask: "my shoot app" - filter app +
-  Drop + studio + Reader in one): https://drop-463727469066.me-west1.run.app/shoot (the Drop service, `drop/shoot.html`;
-  same key, same projects). Front camera → a WebGL filter (colour looks + face warps / props drawn on the face, face
+  Drop + studio + Reader in one): https://shlomiverse.com/shoot/ (`public/shoot/index.html`; his
+  Google account, the Drop's projects). Front camera → a WebGL filter (colour looks + face warps / props drawn on the face, face
   tracking = MediaPipe Face Landmarker on the phone, from the CDN) → the canvas is the preview (mirrored, like the iPhone
   camera) and what is recorded (canvas.captureStream + his raw mic → MP4, 1080x1920 at 12 Mb/s; a phone under ~22 fps
   drops to 720). The **prompter** sits at the top, under the lens: the Reader's scripts (`scripts/*.txt` + every
@@ -252,18 +252,23 @@ end must show at once, with the real footage there.
   a take is saved straight into the project's input_dir (`/api/shoot/take|takes|file|delete` in server.mjs; delete
   only shot-* files). Space = record / stop. The phone comes first (he films on the phone; the computer sometimes). Filters are a list in shoot.html (FILTERS: grade + warps + props) - v1 basics; next: his characters'
   own filters (he'll show the ones he uses), a known-person face swap, the script's pace.
-- **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
-  `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project
-  boostmind-b052c`; key in zoomcut/.env DROP_KEY - the studio's "+ New video" → From the iPhone shows the QR with it).
+- **His door: https://shlomiverse.com/studio/** (2026-11-03, his ask: "easy for me to reach - Drop and everything, on
+  the Shlomiverse"; **only shlomi@boostart.io**): Shoot, Drop, the editor (localhost), Backstage, Stats, All. The Drop
+  and Shoot are plain pages on the Shlomiverse (`public/drop`, `public/shoot`, deployed with scripts/deploy.sh) - **no
+  server any more** (the Cloud Run `drop` service was removed): they sign in with Google (`public/studio/owner.js`) and
+  read / write the bucket straight through **Firebase Storage** (boostmind-drop is linked to it); `storage.rules` lets
+  in only his verified account - publish it with `bash scripts/storage_rules.sh` (not `firebase deploy`).
+- **Footage from the iPhone - the Drop** (2026-10-22): https://shlomiverse.com/drop/ (the studio's "+ New video" → From
+  the iPhone shows its QR; he signs in with Google once on the phone).
   On the phone he picks a **project** (folder) or makes one. **● Record voice** (2026-10-23) records his voice only, in
   the page (raw mic: no echo cancel / noise suppression / auto gain - the studio cleans it; AAC 256 kbps, `.m4a`; a
   level bar shows the mic hears him); on Stop it uploads straight away, no naming step, as `rec-HHMMSS.m4a` (recording
   time - the takes sort in order; he renames if he wants). Under each take: a player (from the phone itself), **Delete**
   (off the Drop and off the PC too) and **Record another**. Or he chooses videos and **names each file** before it goes up
   (chips = names he used before, e.g. amir / ofer - a taken name gets -2) and sees the project's files with
-  **rename / delete**. On the desktop the same page is a **browser**: every project (files, size, last upload, delete
+  **open / delete** (no rename since 2026-11-03: a file leaves the Drop within a minute - rename it in the studio). On the desktop the same page is a **browser**: every project (files, size, last upload, delete
   project) beside the picked one's files. Files land in `gs://boostmind-drop/<project>/<name>.<ext>` (me-west1, private,
-  60-day auto-delete; resumable 16 MB pieces, any size).
+  60-day auto-delete; resumable, any size - Firebase Storage's uploadBytesResumable).
   The studio (render/drop.mjs) pulls each new file to `Downloads\drop\<project>` every minute and then **removes it
   from the Drop** once the copy here is checked (size + md5) - his rule (2026-10-23): the Drop only holds what is on its
   way; the PC copy is the footage. The cloud never deletes a file here any more (the old mirror did, and wiped the

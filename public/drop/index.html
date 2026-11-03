@@ -6,6 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Drop">
 <meta name="theme-color" content="#141312">
+<link rel="icon" href="/verse/favicon-32.png">
+<link rel="apple-touch-icon" href="/verse/icon-180.png">
 <title>Drop · Sketch Studio</title>
 <style>
 :root { --bg: #141312; --panel: #1c1b1a; --panel-2: #242321; --edge: rgba(255,255,255,.08); --edge-2: rgba(255,255,255,.14);
@@ -97,13 +99,10 @@ a.btn-dl { text-decoration: none; }
 <body>
 <main>
   <header>
+    <a href="/studio/" style="color:var(--dim);font-size:14px;text-decoration:none">‹ Studio</a>
     <h1>Drop</h1>
     <p class="sub">Videos from the phone to Sketch Studio - full size, original quality.</p>
-    <a class="btn go" id="toShoot" href="/shoot" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin:0 0 6px">Shoot - camera, filters, script</a>
-    <div class="key" id="keyBox">
-      <div class="sec">Key</div>
-      <div class="row"><input type="password" id="key" autocomplete="current-password" placeholder="The drop key"><button class="btn" id="keySave">Save</button></div>
-    </div>
+    <a class="btn go" id="toShoot" href="/shoot/" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin:0 0 6px">Shoot - camera, filters, script</a>
   </header>
 
   <aside class="side">
@@ -142,7 +141,6 @@ a.btn-dl { text-decoration: none; }
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
-const CHUNK = 16 * 1024 * 1024;  // a multiple of 256 KiB (the storage rule); a lost chunk costs at most this much
 const store = { get: (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 const gb = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' GB' : (n / 1e6).toFixed(n >= 1e8 ? 0 : 1) + ' MB');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -150,31 +148,16 @@ const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLoca
 const splitExt = (n) => { const i = n.lastIndexOf('.'); return i > 0 ? [n.slice(0, i), n.slice(i)] : [n, '']; };
 const cleanName = (s) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, 100);
 
-// the key lives in the page's own address (#k=...): "Add to Home Screen" saves that address, so the home-screen
-// app has it too (it does not share Safari's storage) - he never types it. Also remembered on this phone.
-const fromLink = new URLSearchParams(location.hash.slice(1)).get('k');
-if (fromLink) store.set('drop-key', fromLink);
-let KEY = fromLink || store.get('drop-key');
-const keepInLink = () => { if (KEY && new URLSearchParams(location.hash.slice(1)).get('k') !== KEY) history.replaceState(null, '', `${location.pathname}#k=${KEY}`); };
-keepInLink();
-if (KEY) document.getElementById('toShoot').href = `/shoot#k=${KEY}`;
-const askKey = () => $('keyBox').classList.add('on');
-if (!KEY) askKey();
-$('keySave').onclick = () => { KEY = $('key').value.trim(); store.set('drop-key', KEY); keepInLink(); $('keyBox').classList.remove('on'); refresh(); };
-
-async function api(path, data = {}) {
-  const r = await fetch('/api/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: KEY, ...data }) });
-  if (r.status === 401) { askKey(); throw new Error('The key is wrong'); }
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.error || r.status);
-  return j;
-}
+// his Google account only (shlomi@boostart.io): the sign-in card first, then every call goes straight to the bucket
+// (/studio/owner.js - Firebase Storage, storage.rules). No key, no server
+const O = import('/studio/owner.js');
+O.then((m) => m.gate().then(refresh)).catch((e) => alert('Could not load: ' + e.message));
+const api = async (path, data = {}) => (await O).drop[path](data);
 
 // ---- projects (folders) ----
 let folders = [], cur = store.get('drop-folder');
 const curFolder = () => folders.find((f) => f.name === cur);
 async function refresh() {
-  if (!KEY) return;
   try { folders = (await api('list')).folders; } catch (e) { return; }
   if (cur && !folders.some((f) => f.name === cur)) folders.unshift({ name: cur, files: [], bytes: 0, updated: '' });  // (made here, nothing in it yet)
   if (!cur && folders.length) cur = folders[0].name;
@@ -203,22 +186,26 @@ async function newProject() {
 $('newMob').onclick = newProject;
 $('newSide').onclick = newProject;
 
-// ---- the project's files: rename, delete ----
+// ---- the project's files: open, delete ----
 function drawFiles() {
   const f = curFolder();
   const files = (f?.files || []).slice().sort((a, b) => (b.updated > a.updated ? 1 : -1));
   $('filesSum').textContent = f ? `${files.length} · ${gb(f.bytes)}` : '';
   $('filesBox').innerHTML = files.map((x) => `<div class="it" data-n="${esc(x.name)}">
-      <img class="it-th" alt="" src="${x.thumb ? get(`${cur}/.thumbs/${x.name}.jpg`) : thumbCache[`${cur}/${x.name}`] || ''}">
+      <img class="it-th" alt="" src="${thumbCache[`${cur}/${x.name}`] || ''}">
       <div class="it-n"><div class="it-name" dir="auto">${esc(x.name)}</div><div class="it-meta">${gb(x.size)} · ${when(x.updated)}${x.type ? ' · ' + esc(x.type) : ''}</div></div>
-      <a class="btn-dl" href="${get(`${cur}/${x.name}`)}&dl=1" title="Download" download><button tabindex="-1">⬇</button></a>
-      <button data-a="ren" title="Rename">✎</button><button data-a="del" title="Delete">🗑</button></div>`).join('')
+      <button data-a="open" title="Open">⬇</button><button data-a="del" title="Delete">🗑</button></div>`).join('')
     || `<div class="empty">${cur ? 'Nothing waiting - every file goes to the studio within a minute and leaves the Drop.' : 'Make a project to start.'}</div>`;
   $('rmdir').style.display = f ? '' : 'none';
+  for (const x of files.filter((y) => y.thumb && !thumbCache[`${cur}/${y.name}`])) {  // (the pictures kept in the Drop)
+    const folder = cur;
+    get(`${folder}/.thumbs/${x.name}.jpg`).then((u) => { const el = rowOf(x.name)?.querySelector('.it-th'); if (el && cur === folder) el.src = u; }).catch(() => {});
+  }
   missingThumbs(f, files);
 }
-// a file streamed from the Drop (the key in the address - an <img>, a <video> or a download link can use it)
-const get = (path) => `/api/get?k=${encodeURIComponent(KEY)}&f=${encodeURIComponent(path)}`;
+const rowOf = (name) => [...document.querySelectorAll('.it')].find((r) => r.dataset.n === name);
+// a file's own link in the Drop (an <img>, a <video>, opening it)
+const get = async (path) => (await O).drop.url(path);
 // a file without a picture (sent from Files, the Shortcut): drawn once from the video itself (it reads only the bytes
 // it needs), shown, and kept in the Drop for every device
 const thumbCache = {};
@@ -227,37 +214,27 @@ async function missingThumbs(f, files) {
   if (drawingThumbs || !f) return;
   drawingThumbs = true;
   for (const x of files.filter((y) => !y.thumb && !thumbCache[`${f.name}/${y.name}`] && (y.type || '').startsWith('video/'))) {
-    const img = await frameOf(get(`${f.name}/${x.name}`), 30000);  // (from the cloud: slower to open)
+    const img = await frameOf(await get(`${f.name}/${x.name}`).catch(() => ''), 30000);  // (from the cloud: slower to open)
     if (!img) continue;  // (not this time - again on the next visit)
     thumbCache[`${f.name}/${x.name}`] = img;
-    const el = [...document.querySelectorAll('.it')].find((r) => r.dataset.n === x.name)?.querySelector('.it-th');
+    const el = rowOf(x.name)?.querySelector('.it-th');
     if (el && cur === f.name) el.src = img;
     api('thumb', { folder: f.name, name: x.name, data: img }).then(() => { x.thumb = true; }).catch(() => {});
   }
   drawingThumbs = false;
 }
 $('filesBox').onclick = async (e) => {
-  const b = e.target.closest('button'); if (!b || !b.dataset.a) return;  // (⬇ is a plain link)
+  const b = e.target.closest('button'); if (!b || !b.dataset.a) return;
   const row = b.closest('.it'), name = row.dataset.n;
-  if (b.dataset.a === 'del') {
-    if (!confirm(`Delete ${name}?`)) return;
-    const size = curFolder()?.files.find((f) => f.name === name)?.size;
-    try { await api('delete', { folder: cur, name, size }); } catch (err) { return alert(err.message); }
-    return refresh();
+  if (b.dataset.a === 'open') {  // (a tab opened at the tap, filled once the link is there - the phone allows that)
+    const w = window.open('', '_blank');
+    try { const u = await get(`${cur}/${name}`); if (w) w.location = u; else location.href = u; } catch (err) { w?.close(); alert(err.message); }
+    return;
   }
-  // rename in place: the name without its extension, the extension kept
-  const [base, ext] = splitExt(name);
-  row.querySelector('.it-n').innerHTML = `<input type="text" value="${esc(base)}" dir="auto">`;
-  const inp = row.querySelector('input'); inp.focus(); inp.select();
-  let gone = false;
-  const done = async (save) => {
-    if (gone) return; gone = true;
-    const to = cleanName(inp.value);
-    if (save && to && to !== base) { try { await api('rename', { folder: cur, from: name, to: to + ext }); remember(to); } catch (err) { alert(err.message); } }
-    refresh();
-  };
-  inp.onkeydown = (ev) => { if (ev.key === 'Enter') done(true); if (ev.key === 'Escape') done(false); };
-  inp.onblur = () => done(true);
+  if (!confirm(`Delete ${name}?`)) return;
+  const size = curFolder()?.files.find((f) => f.name === name)?.size;
+  try { await api('delete', { folder: cur, name, size }); } catch (err) { return alert(err.message); }
+  refresh();
 };
 $('rmdir').onclick = async () => {
   const f = curFolder(); if (!f) return;
@@ -289,14 +266,13 @@ $('chips').onclick = (e) => {
 
 // ---- choose → name → upload ----
 let pend = [];
-$('pick').onclick = () => { if (!KEY) return askKey(); if (!cur) return newProject(); $('files').click(); };
+$('pick').onclick = () => { if (!cur) return newProject(); $('files').click(); };
 // Record voice: the phone's microphone, recorded here (raw - no echo cancelling, noise suppression or auto gain, the
 // studio cleans it), then straight up to this project with no naming step - rec-<time>, so takes sort in the order
 // they were recorded (rename it in the list if you like). The screen stays on while it records.
 let rec = null;
 $('rec').onclick = async () => {
   if (rec) return rec.mr.stop();
-  if (!KEY) return askKey();
   if (!cur) return newProject();
   let stream;
   try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); }
@@ -460,52 +436,17 @@ function draw() {
     q.el.querySelector('.f-line').textContent = `${gb(q.file.size)}${q.file.type ? ` · ${q.file.type}` : ''}${q.speed ? ` · ${gb(q.speed)}/s` : ''}${q.err ? ` · ${q.err}` : ''}`;
   }
 }
-// one chunk: PUT bytes start-end/total; 308 = more to come (Range says how much arrived), 200/201 = the file is there
-function put(url, body, range, onProgress) {
-  return new Promise((ok, fail) => {
-    const x = new XMLHttpRequest();
-    x.open('PUT', url);
-    x.setRequestHeader('Content-Range', range);
-    if (onProgress) x.upload.onprogress = (e) => onProgress(e.loaded);
-    x.onload = () => ok({ status: x.status, range: x.status === 308 ? x.getResponseHeader('Range') : null });  // (Range: only on 308)
-    x.onerror = () => fail(new Error('network'));
-    x.ontimeout = () => fail(new Error('timeout'));
-    x.timeout = 10 * 60 * 1000;
-    x.send(body);
-  });
-}
-const arrived = (range) => (range ? +range.split('-')[1] + 1 : 0);  // "bytes=0-1048575" -> 1048576
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// straight into the bucket, resumable (Firebase Storage sends it in pieces and goes on after a dropped connection - a
+// tunnel, a switch from Wi-Fi)
 async function upload(q) {
-  const f = q.file, total = f.size, type = f.type || 'application/octet-stream';
-  let { url } = await api('session', { folder: q.folder, name: q.name, size: total, type });
-  let offset = 0, tries = 0;
   const t0 = Date.now();
   q.state = 'uploading'; draw();
-  while (offset < total) {
-    const end = Math.min(offset + CHUNK, total);
-    try {
-      const r = await put(url, f.slice(offset, end), `bytes ${offset}-${end - 1}/${total}`, (n) => {
-        q.sent = offset + n;
-        const dt = (Date.now() - t0) / 1000; if (dt > 1) q.speed = q.sent / dt;
-        draw();
-      });
-      if (r.status === 200 || r.status === 201) { offset = total; break; }
-      if (r.status === 308) { offset = r.range ? arrived(r.range) : end; tries = 0; q.state = 'uploading'; continue; }  // (no Range readable: the chunk it took whole)
-      if (r.status === 404 || r.status === 410) {  // the session ran out: a new one, from the start of this file
-        ({ url } = await api('session', { folder: q.folder, name: q.name, size: total, type }));
-        offset = 0; continue;
-      }
-      throw new Error('storage ' + r.status);
-    } catch (e) {
-      // the connection dropped (a tunnel, a switch from Wi-Fi): ask how much arrived, go on from there
-      if (++tries > 12) throw e;
-      q.state = 'retrying'; draw();
-      await sleep(Math.min(30000, 1000 * 2 ** tries));
-      try { const s = await put(url, null, `bytes */${total}`); if (s.status === 200 || s.status === 201) { offset = total; break; } if (s.status === 308 && s.range) offset = arrived(s.range); } catch {}  // (else: again from the last chunk it confirmed)
-    }
-  }
-  q.sent = total; q.state = 'done'; q.speed = 0; draw();
+  await (await O).drop.upload({ folder: q.folder, name: q.name, file: q.file, onProgress: (n) => {
+    q.sent = n;
+    const dt = (Date.now() - t0) / 1000; if (dt > 1) q.speed = q.sent / dt;
+    draw();
+  } });
+  q.sent = q.file.size; q.state = 'done'; q.speed = 0; draw();
 }
 async function run() {
   if (busy) return;

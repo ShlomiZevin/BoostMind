@@ -17,12 +17,12 @@ export function DropCard() {
     <div className="nv-sec">From the iPhone <span>full quality, any size</span></div>
     <div style={{ display: 'flex', gap: 6 }}>
       <button className="btn" style={{ flex: 1 }} onClick={() => setQr(!qr)}>{qr ? 'Hide the QR' : 'QR for the phone'}</button>
-      <a className="btn" href="/api/drop/open" target="_blank" rel="noreferrer" title="Every project and file in the Drop, on this computer (rename, delete)">Open the Drop</a>
+      <a className="btn" href="/api/drop/open" target="_blank" rel="noreferrer" title="Every project and file in the Drop (shlomiverse.com/drop/)">Open the Drop</a>
       <button className="btn ghost" onClick={() => api('/api/drop/sync', {})} title="Look for new files now (it also looks every minute)">Check now</button>
     </div>
     {qr && <div className="drop-qr">
       <img src="/api/drop/qr.svg" alt="The drop page" />
-      <div className="help">Scan it once with the iPhone camera - the page keeps its key. Then Share → Add to Home Screen, and it is an app.</div>
+      <div className="help">Scan it once with the iPhone camera and sign in with Google. Then Share → Add to Home Screen, and it is an app.</div>
     </div>}
     {d.running && <div className="drop-f on"><span className="he">{d.running.folder}</span>
       <span>coming down {d.running.i}/{d.running.n}</span><span>{Math.floor((d.running.bytes / Math.max(1, d.running.total)) * 100)}%</span></div>}

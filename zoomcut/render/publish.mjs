@@ -4,7 +4,7 @@
 // the export look older than the project (exportStale) and block publishing it. Export can publish by itself when it
 // ends (publish.json afterExport - kept on disk, so a restart in between doesn't lose it).
 //   Instagram  Reels (grid + Reels tab, or Reels tab only); Instagram downloads the video from a private one-hour link
-//              (the Drop's /api/publink on a file staged in the bucket's hidden _publish/ folder, deleted after)
+//              (a file staged in the Drop bucket's hidden _publish/ folder with a secret download token, deleted after)
 //   X          a post with the video (chunked upload, OAuth 1.0a, his own app 'Sketch Studio' on Pay Per Use - about
 //              1.5 cents a post; links are taken out of the text, a link makes a post cost ~20 cents) - up to 2:20
 //   TikTok     to his TikTok DRAFTS (an unaudited app can't post publicly): he adds a sound and posts in the app. The
@@ -18,7 +18,6 @@ import crypto from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { sendTelegramText, tgEsc, sendTelegram, sizedCopy } from './share.mjs';
 
-const DROP = 'https://drop-463727469066.me-west1.run.app';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale, keysFresh, saved }) {
@@ -32,15 +31,22 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   };
   const json = async (r) => { const t = await r.text(); try { return JSON.parse(t); } catch { return { raw: t.slice(0, 300) }; } };
   const gcloud = (args) => new Promise((ok, fail) => execFile('cmd', ['/c', 'gcloud', ...args], { windowsHide: true }, (e) => (e ? fail(e) : ok())));
-  // a private one-hour link to the file (staged in the Drop bucket's hidden _publish/ folder) - for the platforms that
-  // download the video themselves; the returned drop() deletes it
+  // a private link to the file - for the platforms that download the video themselves. Staged in the Drop bucket's
+  // hidden _publish/ folder with a random download token (the bucket is linked to Firebase Storage: the token is the
+  // only way in, the file is unlisted, nothing is public); the returned drop() deletes it
   async function privateLink(file) {
     const obj = `_publish/${crypto.randomBytes(10).toString('hex')}${path.extname(file) || '.mp4'}`;
-    await gcloud(['storage', 'cp', file, `gs://boostmind-drop/${obj}`]);
+    const token = crypto.randomUUID();
+    await gcloud(['storage', 'cp', file, `gs://boostmind-drop/${obj}`, `--custom-metadata=firebaseStorageDownloadTokens=${token}`]);
     const drop = () => gcloud(['storage', 'rm', `gs://boostmind-drop/${obj}`]).catch(() => {});
-    const l = await json(await fetch(`${DROP}/api/publink`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: env().DROP_KEY, f: obj }) }));
-    if (!l.url) { await drop(); throw new Error('no private link: ' + JSON.stringify(l).slice(0, 120)); }
-    return { url: l.url, drop };
+    const url = `https://firebasestorage.googleapis.com/v0/b/boostmind-drop/o/${encodeURIComponent(obj)}?alt=media&token=${token}`;
+    for (let i = 0; ; i++) {  // (it must answer before the platform is told - right after a write it can take a moment)
+      const r = await fetch(url, { headers: { Range: 'bytes=0-0' } }).catch(() => null);
+      if (r?.ok) break;
+      if (i >= 10) { await drop(); throw new Error(`no private link: ${r ? r.status : 'no answer'}`); }
+      await sleep(2000);
+    }
+    return { url, drop };
   }
 
   // ---- the platforms ----------------------------------------------------------------------------------------

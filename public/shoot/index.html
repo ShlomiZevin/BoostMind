@@ -8,9 +8,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shoot">
 <meta name="theme-color" content="#131211">
+<link rel="icon" href="/verse/favicon-32.png">
+<link rel="apple-touch-icon" href="/verse/icon-180.png">
 <title>Shoot · Sketch Studio</title>
 <!-- Shoot: film with filters and the script in front of you; every take straight to the studio. One page, two homes:
-     - the iPhone: the Drop service (/shoot) - takes go up to the Drop, the studio pulls them to Downloads\drop\<project>;
+     - the iPhone: shlomiverse.com/shoot/ (his Google account only - /studio/owner.js) - takes go up to the Drop's
+       bucket, the studio pulls them to Downloads\drop\<project>;
      - Sketch Studio's Shoot tab: the studio serves it with window.SHOOT_LOCAL + its shared top bar (studio/bar.js) -
        the webcam, the studio's project (the same one as the editor / Reader), its script as the prompter, every take
        saved straight into the project's footage folder.
@@ -298,19 +301,12 @@ body.studio #toast { bottom: 40px; }
   <div id="tkList"></div>
 </div></div>
 
-<div class="sheet" id="sKey"><div class="box">
-  <h2>The Drop key</h2>
-  <input type="text" id="key" placeholder="Paste the key (or the whole Drop link)" autocapitalize="off" autocomplete="off">
-  <button class="btn go wide" id="keySave">Save</button>
-  <p class="hint">Open the Drop from the studio's QR once on this phone, and the key is remembered here too.</p>
-</div></div>
-
 <div id="start">
   <h1>Shoot</h1>
   <p id="startP">Filters, the script in front of you, and every take straight to the studio.</p>
   <button class="btn go" id="go">Start the camera</button>
   <div class="err" id="startErr"></div>
-  <a id="toDrop" href="/">Open the Drop</a>
+  <a id="toDrop" href="/drop/">Open the Drop</a>
 </div>
 <div id="toast"></div>
 
@@ -327,27 +323,19 @@ const DEBUG = /[?&]debug/.test(location.search);
 // in Sketch Studio (its Shoot tab): the studio's project, its script, takes saved straight into its footage folder
 const LOCAL = !!window.SHOOT_LOCAL;
 
-// ---- the key (phone): the same as the Drop page's - same site, its link #k=... or this phone's memory ----
-const fromLink = new URLSearchParams(location.hash.slice(1)).get('k');
-if (fromLink) store.set('drop-key', fromLink);
-let KEY = fromLink || store.get('drop-key');
-const keepInLink = () => { if (KEY && new URLSearchParams(location.hash.slice(1)).get('k') !== KEY) history.replaceState(null, '', `${location.pathname}${location.search}#k=${KEY}`); };
-if (!LOCAL) keepInLink();
-$('toDrop').href = KEY ? `/#k=${KEY}` : '/';
-const askKey = () => $('sKey').classList.add('on');
-$('keySave').onclick = () => {
-  let k = $('key').value.trim(); const m = /[#?&]k=([^&#\s]+)/.exec(k); if (m) k = m[1];
-  KEY = k; store.set('drop-key', KEY); keepInLink(); $('sKey').classList.remove('on'); loadFolders();
-};
+// ---- the phone: his Google account only (shlomi@boostart.io) - the sign-in card first, then the Drop's bucket
+// straight from here (/studio/owner.js - Firebase Storage, storage.rules). The studio: its own endpoints ----
+const O = LOCAL ? null : import('/studio/owner.js');
+O?.then((m) => m.gate()).catch((e) => toast('Could not load: ' + e.message, 8000));
 async function api(path, data = {}) {
-  const r = await fetch((LOCAL ? '/api/shoot/' : '/api/') + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(LOCAL ? data : { k: KEY, ...data }) });
-  if (r.status === 401 && !LOCAL) { askKey(); throw new Error('The key is wrong'); }
+  if (!LOCAL) return (await O).drop[path](data);
+  const r = await fetch('/api/shoot/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   const j = await r.json();
   if (!r.ok) throw new Error(j.error || r.status);
   return j;
 }
 for (const b of document.querySelectorAll('[data-close]')) b.onclick = () => b.closest('.sheet').classList.remove('on');
-for (const s of document.querySelectorAll('.sheet')) s.addEventListener('click', (e) => { if (e.target === s && s.id !== 'sKey') s.classList.remove('on'); });
+for (const s of document.querySelectorAll('.sheet')) s.addEventListener('click', (e) => { if (e.target === s) s.classList.remove('on'); });
 
 // ================= filters =================
 // a filter = a colour look (grade, in the shader) + face warps (bulge > 0 / pinch < 0 around a face point) + props drawn
@@ -611,7 +599,7 @@ $('go').onclick = async () => {
     requestAnimationFrame(frame);
     keepAwake();
     loadFace();
-    if (!KEY && !LOCAL) askKey(); else loadFolders();
+    loadFolders();
     resumeTakes();
   } catch (e) {
     $('startErr').textContent = e.name === 'NotAllowedError'
@@ -933,9 +921,11 @@ $('ups').onclick = () => {
   drawTakes(); $('sTakes').classList.add('on');
 };
 let plTake = null;
-function play(q) {
+async function play(q) {
   plTake = q;
-  $('pl').src = q.blob ? (q.url ||= URL.createObjectURL(q.blob)) : LOCAL ? `/api/shoot/file?ep=${encodeURIComponent(q.folder)}&name=${encodeURIComponent(q.name)}` : `/api/get?k=${encodeURIComponent(KEY)}&f=${encodeURIComponent(`${q.folder}/${q.name}`)}`;
+  try {
+    $('pl').src = q.blob ? (q.url ||= URL.createObjectURL(q.blob)) : LOCAL ? `/api/shoot/file?ep=${encodeURIComponent(q.folder)}&name=${encodeURIComponent(q.name)}` : await (await O).drop.url(`${q.folder}/${q.name}`);
+  } catch { return toast('It has left the Drop - it is in the studio now'); }
   $('pl').play().catch(() => {});
   $('plinfo').textContent = `${q.name}${q.filter ? ` · ${fname(q.filter)}` : ''} · ${q.folder}`;
   $('plDel').style.display = q.up === 'done' ? '' : 'none';  // (only a take filmed here, once it is in)
@@ -950,7 +940,6 @@ $('plDel').onclick = async () => {  // out of the project (the phone: off the Dr
 };
 
 // ================= into the project: up to the Drop (phone, resumable) / into its footage folder (studio) =================
-const CHUNK = 16 * 1024 * 1024;
 let busy = false;
 function enqueue(t) {
   if (session.some((q) => q.id === t.id)) return;
@@ -980,7 +969,6 @@ function xhr(method, url, body, headers, onProgress) {
     x.send(body);
   });
 }
-const arrived = (range) => (range ? +range.split('-')[1] + 1 : 0);
 async function saveLocal(q) {  // the studio: the whole file in one go, straight into the project's footage folder
   q.up = 'uploading'; drawUps();
   const r = await xhr('POST', `/api/shoot/take?ep=${encodeURIComponent(q.folder)}&name=${encodeURIComponent(q.name)}`, q.blob, { 'Content-Type': q.type || 'video/mp4' }, (n) => { q.sent = n; drawUps(); });
@@ -988,26 +976,11 @@ async function saveLocal(q) {  // the studio: the whole file in one go, straight
   if (r.status !== 200) throw new Error(j.error || `save ${r.status}`);
   q.name = j.name;
 }
-async function upload(q) {  // the phone: resumable 16 MB pieces into the Drop bucket; picks up after a dropped connection
-  const f = q.blob, total = f.size, type = q.type || 'video/mp4';
-  let { url, name } = await api('session', { folder: q.folder, name: q.name, size: total, type, unique: true });
-  q.name = name;
-  let offset = 0, tries = 0;
+async function upload(q) {  // the phone: straight into the Drop's bucket, resumable (goes on after a dropped connection)
   q.up = 'uploading'; drawUps();
-  while (offset < total) {
-    const end = Math.min(offset + CHUNK, total);
-    try {
-      const r = await xhr('PUT', url, f.slice(offset, end), { 'Content-Range': `bytes ${offset}-${end - 1}/${total}` }, (n) => { q.sent = offset + n; drawUps(); });
-      if (r.status === 200 || r.status === 201) { offset = total; break; }
-      if (r.status === 308) { offset = r.range ? arrived(r.range) : end; tries = 0; continue; }
-      if (r.status === 404 || r.status === 410) { ({ url } = await api('session', { folder: q.folder, name: q.name, size: total, type })); offset = 0; continue; }
-      throw new Error('storage ' + r.status);
-    } catch (e) {
-      if (++tries > 12) throw e;
-      await sleep(Math.min(30000, 1000 * 2 ** tries));
-      try { const s = await xhr('PUT', url, null, { 'Content-Range': `bytes */${total}` }); if (s.status === 200 || s.status === 201) { offset = total; break; } if (s.status === 308 && s.range) offset = arrived(s.range); } catch {}
-    }
-  }
+  const { name } = await (await O).drop.upload({ folder: q.folder, name: q.name, file: q.blob, type: q.type || 'video/mp4', unique: true,
+    onProgress: (n) => { q.sent = n; drawUps(); } });
+  q.name = name;
 }
 async function run() {
   if (busy) return;

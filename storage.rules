@@ -1,0 +1,13 @@
+rules_version = '2';
+// The Drop's bucket (boostmind-drop): his footage on its way to Sketch Studio, the scripts for Shoot's prompter
+// (_scripts/, written by the studio). Only his own Google account - the studio on his PC uses gcloud, not these rules.
+// Publish: bash scripts/storage_rules.sh (not firebase deploy - no default bucket here)
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{all=**} {
+      allow read, write: if request.auth != null
+        && request.auth.token.email == 'shlomi@boostart.io'
+        && request.auth.token.email_verified == true;
+    }
+  }
+}
