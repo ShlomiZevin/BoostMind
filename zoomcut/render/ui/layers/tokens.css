@@ -197,3 +197,7 @@
 .ins-val { color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
 .ins-color { width: 44px; height: 28px; padding: 2px; border: 1px solid var(--edge-2); border-radius: 6px; background: var(--app); cursor: pointer; }
 .ins-color::-webkit-color-swatch-wrapper { padding: 0; } .ins-color::-webkit-color-swatch { border: 0; border-radius: 4px; }
+/* the head reads as the panel's header: its own slightly lighter background and a clear line under it */
+.ctx { background: var(--panel-2); border-bottom: 1px solid var(--edge-2); box-shadow: inset 3px 0 0 var(--mode), 0 4px 10px -6px rgba(0, 0, 0, 0.5); }
+.ctx-setup { border-top-color: var(--edge-2); }
+.ctx-seg { grid-template-columns: 1fr 1fr; }

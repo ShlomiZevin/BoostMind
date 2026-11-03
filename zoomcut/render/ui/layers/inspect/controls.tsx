@@ -52,8 +52,7 @@ export function scoped(Comp: React.FC<InspectorProps>): React.FC<InspectorProps>
 function Top({ end, extra }: { end?: React.ReactNode; extra?: React.ReactNode }) {
   const c = React.useContext(ScopeCtx);
   if (!c) return null;
-  const { P, onClip, setScope } = c, { layer, item, fps, project } = P, n = layer.items?.length || 0;
-  const t = (f: number) => { const s = f / fps; return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}.${Math.floor((s % 1) * 10)}`; };
+  const { P, onClip, setScope } = c, { layer, item, project } = P, n = layer.items?.length || 0;
   const a = project.assets?.[item?.asset ?? layer.props?.asset];
   const media = item?.text != null ? String(item.text).replace(/\s+/g, ' ') : a ? a.label || String(a.src).split('/').pop() : '';
   const kind = layer.kind === 'audio' ? { voice: 'Voice', music: 'Music', effect: 'Sound effect' }[laneKind(layer)] : KIND_WORD[layer.kind] || layer.kind;
@@ -73,7 +72,7 @@ function Top({ end, extra }: { end?: React.ReactNode; extra?: React.ReactNode })
         <button className={!onClip ? 'on row' : ''} onClick={() => setScope('row')} title="Every clip in this row changes (a clip with its own setting keeps it)">
           Whole row<small>{n === 1 ? '1 clip' : `${n} clips`}</small></button>
         {item && <button className={onClip ? 'on clip' : ''} onClick={() => setScope('clip')} title="Only this clip changes - its own settings replace the row's">
-          This clip<small>{t(item.from)} – {t(item.from + item.dur)}</small></button>}
+          This clip</button>}
       </div>
     </div>
     {extra}
