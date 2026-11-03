@@ -245,7 +245,12 @@ end must show at once, with the real footage there.
   height; tap = pause); a project's script picks its Drop folder by itself. After a take: **Send to the Drop**
   (resumable, in the background while he films the next; `shot-HHMMSS.mp4`), **Save to phone** (share sheet → Save
   Video) or **Again** (the prompter goes back to where the take started). Takes wait in the phone's IndexedDB until
-  they are up. Filters are a list in shoot.html (FILTERS: grade + warps + props) - v1 basics; next: his characters'
+  they are up. **The studio's Shoot tab** (rail, under Reader - his ask: "it should live inside the tool like any of
+  our tools", the studio's look): the same file served at /shoot with `window.SHOOT_LOCAL` + studio/bar.js - the
+  studio's top bar (the shared project = StudioProject, countdown, camera / mic pickers + level), the picture 9:16 |
+  the project's script as the prompter, filter tiles, record | the session's takes + what is in the footage folder;
+  a take is saved straight into the project's input_dir (`/api/shoot/take|takes|file|delete` in server.mjs; delete
+  only shot-* files). Space = record / stop. The phone comes first (he films on the phone; the computer sometimes). Filters are a list in shoot.html (FILTERS: grade + warps + props) - v1 basics; next: his characters'
   own filters (he'll show the ones he uses), a known-person face swap, the script's pace.
 - **Footage from the iPhone - the Drop** (2026-10-22): https://drop-463727469066.me-west1.run.app (Cloud Run service
   `drop`, code in zoomcut/drop - redeploy: `gcloud run deploy drop --source drop --region me-west1 --project

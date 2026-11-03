@@ -4,170 +4,283 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shoot">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#131211">
 <title>Shoot · Sketch Studio</title>
+<!-- Shoot: film with filters and the script in front of you; every take straight to the studio. One page, two homes:
+     - the iPhone: the Drop service (/shoot) - takes go up to the Drop, the studio pulls them to Downloads\drop\<project>;
+     - Sketch Studio's Shoot tab: the studio serves it with window.SHOOT_LOCAL + its shared top bar (studio/bar.js) -
+       the webcam, the studio's project (the same one as the editor / Reader), its script as the prompter, every take
+       saved straight into the project's footage folder.
+     The studio's look (colours, type, cards, pickers); the filming layout from GPT Image concepts
+     (scripts/shoot-design/concepts.mjs, 2026-11-03): the prompter card under the lens, filter tiles, the after-take choice. -->
 <style>
-:root { --bg: #141312; --panel: #1c1b1a; --panel-2: #242321; --edge: rgba(255,255,255,.08); --edge-2: rgba(255,255,255,.14);
-  --text: #f2f0ed; --dim: #a8a39c; --faint: #6f6a64; --accent: #ff6b57; --ok: #7fd29a; --err: #ff8a7a;
-  --top: env(safe-area-inset-top); --bot: env(safe-area-inset-bottom); }
+:root { --bg: #131211; --panel: #1a1918; --panel-2: #211f1e; --panel-3: #2a2826; --hover: #302d2b; --glass: rgba(19,18,17,.62);
+  --edge: rgba(255,255,255,.07); --edge-2: rgba(255,255,255,.12); --text: #f2f0ed; --dim: #aaa59f; --faint: #78736d;
+  --accent: #ff6b57; --accent-soft: rgba(255,107,87,.14); --rec: #ff3b30; --ok: #7fd29a; --err: #ff8a7a;
+  --top: env(safe-area-inset-top); --bot: env(safe-area-inset-bottom); color-scheme: dark; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; background: #000; color: var(--text); font: 16px/1.45 -apple-system, Inter, system-ui, sans-serif; overflow: hidden; overscroll-behavior: none; }
-button { font: inherit; color: inherit; }
-/* the camera: the video feeds the canvas (filters), the canvas is what is seen and what is recorded */
-#cam { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; }
-#out { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
-#out.mirror { transform: scaleX(-1); }  /* (the preview only, like the iPhone camera: the file is not mirrored) */
+html, body { margin: 0; height: 100%; background: #000; color: var(--text); font: 16px/1.45 Inter, -apple-system, "Segoe UI", system-ui, sans-serif; overflow: hidden; overscroll-behavior: none; }
+button, select, textarea, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-/* the prompter: right under the camera, so the eyes stay near the lens */
-#prompt { position: fixed; left: 0; right: 0; top: 0; padding-top: calc(var(--top) + 8px); height: calc(var(--top) + var(--ph, 34vh));
-  background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,.55) 80%, rgba(0,0,0,0)); display: none; z-index: 5; }
-#prompt.on { display: block; }
-#ptext { height: 100%; overflow-y: auto; padding: 18px 20px 0; scrollbar-width: none; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 82%, transparent); }
-#ptext::-webkit-scrollbar { display: none; }
-#ptext::after { content: ''; display: block; height: 30vh; }  /* (room for the last line to reach the mark) */
-#ptext p { margin: 0 0 .55em; font-weight: 700; font-size: var(--pf, 28px); line-height: 1.32; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-#ptext p.dir { font-weight: 500; font-style: italic; color: rgba(255,255,255,.55); font-size: calc(var(--pf, 28px) * .72); }
-#ptext p.who { color: #ffd27a; font-size: calc(var(--pf, 28px) * .7); margin-bottom: .1em; }
-#pmark { position: absolute; left: 6px; top: calc(var(--top) + 8px + 22%); width: 0; height: 0; border: 9px solid transparent; border-left-color: var(--accent); opacity: .9; }
-#pctl { position: absolute; left: 10px; right: 10px; bottom: 6px; display: flex; gap: 6px; justify-content: flex-start; align-items: center; }
-#pctl button { height: 32px; min-width: 36px; padding: 0 9px; border-radius: 16px; border: 1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.45); font-size: 13px; font-weight: 600; }
-#pctl .v { font-size: 12px; color: var(--dim); min-width: 0; padding: 0 2px; font-variant-numeric: tabular-nums; }
-#pctl .grow { flex: 1; }
-#pdrag { position: absolute; left: 50%; bottom: -14px; width: 54px; height: 22px; margin-left: -27px; display: flex; align-items: center; justify-content: center; touch-action: none; }
-#pdrag::after { content: ''; width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.45); }
-body.rec #pctl { display: none; }
-#ppaused { position: absolute; right: 14px; bottom: 10px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--accent); display: none; }
-body.rec #ppaused.on { display: block; }
-
-/* top corner: uploads + small switches */
-#topr { position: fixed; right: 10px; top: calc(var(--top) + 10px); display: flex; gap: 8px; z-index: 6; }
-#prompt.on ~ #topr { top: calc(var(--top) + var(--ph, 34vh) + 12px); }
-.ic { height: 38px; min-width: 38px; padding: 0 10px; border-radius: 19px; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.42); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.ic svg { width: 18px; height: 18px; }
-#ups { position: fixed; left: 10px; top: calc(var(--top) + 10px); z-index: 6; display: none; }
-#prompt.on ~ #ups { top: calc(var(--top) + var(--ph, 34vh) + 12px); }
-#ups.on { display: flex; }
-#ups.err { border-color: var(--err); color: var(--err); }
-body.rec #topr, body.rec #ups { display: none; }
-#timer { position: fixed; left: 50%; transform: translateX(-50%); top: calc(var(--top) + 12px); z-index: 6; display: none; padding: 4px 12px; border-radius: 14px; background: var(--err); font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; }
-#prompt.on ~ #timer { top: calc(var(--top) + var(--ph, 34vh) + 12px); }
-body.rec #timer { display: block; }
-#count { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; font-size: 140px; font-weight: 800; text-shadow: 0 4px 24px rgba(0,0,0,.6); z-index: 7; pointer-events: none; }
+/* ---- the picture: the camera feeds the canvas (filters); the canvas is what is seen and what is recorded ---- */
+#stage { position: fixed; inset: 0; overflow: hidden; background: #000; }
+@media (min-aspect-ratio: 3/4) { body:not(.studio) #stage { left: 50%; right: auto; width: calc(100vh * 9 / 16); transform: translateX(-50%); } }
+#cam { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; }
+#out { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mirror { transform: scaleX(-1); }  /* (the preview only, like the iPhone camera: the file is not mirrored) */
+#count { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 150px; font-weight: 800; text-shadow: 0 4px 30px rgba(0,0,0,.6); pointer-events: none; z-index: 8; }
 #count.on { display: flex; }
+#fps { position: absolute; left: 8px; bottom: 50%; font-size: 11px; color: #0f0; z-index: 9; display: none; }
 
-/* bottom: the filters, then script | record | project */
-#bottom { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 0 calc(var(--bot) + 14px); z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,.55)); }
-#filters { display: flex; gap: 8px; overflow-x: auto; padding: 18px 14px 14px; scrollbar-width: none; scroll-snap-type: x proximity; }
+/* ---- phone, top: script · project · sending ---- */
+#topbar { position: absolute; left: 0; right: 0; top: 0; padding: calc(var(--top) + 8px) 12px 0; display: flex; gap: 8px; align-items: center; z-index: 6; }
+.pill { height: 38px; padding: 0 13px; border-radius: 19px; border: 1px solid var(--edge-2); background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; white-space: nowrap; min-width: 0; }
+.pill svg.i { width: 17px; height: 17px; }
+.pill .t { overflow: hidden; text-overflow: ellipsis; }
+#bFolder { flex: 0 1 auto; max-width: 46%; }
+#topbar .grow { flex: 1; }
+#ups { display: none; position: relative; overflow: hidden; }
+#ups.on { display: inline-flex; }
+#ups .bar { position: absolute; left: 12px; right: 12px; bottom: 5px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.15); }
+#ups .bar > div { height: 100%; width: 0; border-radius: 2px; background: var(--accent); transition: width .3s; }
+#ups.err { border-color: var(--err); color: var(--err); }
+#ups.done .bar { display: none; }
+body.rec #topbar { visibility: hidden; }
+
+/* ---- the prompter: a card right under the lens; the line he's on lit, the ones read dimmed ---- */
+#prompt { position: absolute; left: 10px; right: 10px; top: calc(var(--top) + 54px); height: var(--ph, 30vh); z-index: 5; display: none;
+  border-radius: 14px; background: rgba(19,18,17,.7); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid var(--edge); }
+#prompt.on { display: flex; }
+body.rec #prompt { top: calc(var(--top) + 10px); }
+#ptext { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 0 14px 0 8px; scrollbar-width: none; -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
+#ptext::-webkit-scrollbar { display: none; }
+#ptext::after { content: ''; display: block; height: 70%; }
+#ptext p { margin: 0 0 .45em; font-weight: 700; font-size: var(--pf, 28px); line-height: 1.3; color: #fff; padding: 2px 8px; border-radius: 6px; border-inline-start: 3px solid transparent; transition: color .2s, background .2s, opacity .2s; }
+#ptext p.past { opacity: .36; }
+#ptext p.now { background: var(--accent-soft); border-inline-start-color: var(--accent); }
+#ptext p.dir { font-weight: 500; font-style: italic; color: rgba(255,255,255,.5); font-size: calc(var(--pf, 28px) * .7); background: none; border-color: transparent; }
+#ptext p.who { color: var(--accent); font-size: calc(var(--pf, 28px) * .58); margin-bottom: 0; background: none; border-color: transparent; letter-spacing: .02em; }
+#pside { flex: none; width: 56px; border-left: 1px solid var(--edge); display: flex; flex-direction: column; padding: 8px 4px; gap: 4px; }
+#pside button { border: 0; background: transparent; border-radius: 8px; padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 11px; font-weight: 600; color: var(--dim); }
+#pside button b { font-size: 15px; color: var(--text); font-weight: 700; line-height: 1.2; }
+#pside button:hover, #pside button:active { background: var(--panel-3); }
+#pside svg.i { width: 18px; height: 18px; color: var(--text); }
+#pPause { display: none !important; }
+body.rec #pPause { display: flex !important; }
+body.rec #pTop, body.rec #pSize { display: none !important; }
+#pPause.on { color: var(--accent); }
+#pdrag { position: absolute; left: 50%; bottom: -12px; width: 64px; height: 24px; margin-left: -32px; display: flex; align-items: center; justify-content: center; touch-action: none; cursor: ns-resize; }
+#pdrag::after { content: ''; width: 38px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.4); }
+body.rec #pdrag { display: none; }
+#speedPop { position: fixed; z-index: 12; display: none; padding: 12px 14px; border-radius: 8px; background: var(--panel); border: 1px solid var(--edge-2); width: 230px; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+#speedPop.on { display: block; }
+#speedPop label { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+#speedPop input { width: 100%; accent-color: var(--accent); }
+
+/* ---- phone, bottom: timer · countdown / record / flip · the filters ---- */
+#bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 0 calc(var(--bot) + 10px); z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,.6) 40%); }
+#timer { display: block; width: max-content; margin: 0 auto 10px; padding: 4px 12px; border-radius: 14px; background: rgba(0,0,0,.55); font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; visibility: hidden; }
+#timer::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: var(--rec); margin: 0 7px 2px 0; vertical-align: middle; }
+body.rec #timer { visibility: visible; }
+#ctl { display: flex; align-items: center; justify-content: center; gap: 34px; padding: 0 18px 12px; }
+.round { width: 70px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 0; background: transparent; font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.round .c { width: 48px; height: 48px; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--edge-2); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; text-shadow: none; }
+.round.off .c { color: var(--faint); }
+body.rec .round { visibility: hidden; }
+#rec { width: 80px; height: 80px; border-radius: 50%; border: 5px solid #fff; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; flex: none; }
+#rec::after { content: ''; width: 62px; height: 62px; border-radius: 50%; background: var(--rec); transition: all .18s; }
+body.rec #rec::after { width: 30px; height: 30px; border-radius: 8px; }
+#filters { display: flex; gap: 10px; overflow-x: auto; padding: 4px 14px 2px; scrollbar-width: none; scroll-snap-type: x proximity; }
 #filters::-webkit-scrollbar { display: none; }
-.fl { flex: none; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,.25); background: rgba(0,0,0,.4); font-size: 14px; font-weight: 600; white-space: nowrap; scroll-snap-align: center; }
-.fl.on { background: #fff; color: #000; border-color: #fff; }
-.fl.face::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: var(--ok); margin: 0 7px 2px 0; vertical-align: middle; }
-.fl.on.face::before { background: #0a8a3a; }
+.fl { flex: none; width: 64px; border: 0; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; scroll-snap-align: center; }
+.fl .th { width: 60px; height: 74px; border-radius: 10px; overflow: hidden; background: var(--panel-3); border: 2px solid rgba(255,255,255,.16); }
+.fl canvas { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; display: block; }
+.fl span { font-size: 11.5px; font-weight: 600; line-height: 1.15; text-align: center; color: rgba(255,255,255,.85); text-shadow: 0 1px 2px rgba(0,0,0,.7); }
+.fl.on .th { border-color: var(--accent); }
+.fl.on span { color: var(--accent); }
 body.rec #filters { visibility: hidden; }
-#ctl { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 18px; gap: 12px; }
-#ctl .side { height: 44px; border-radius: 22px; border: 1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.42); font-size: 14px; font-weight: 600; padding: 0 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-#ctl .l { justify-self: start; } #ctl .r { justify-self: end; }
-#rec { width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; }
-#rec::after { content: ''; width: 60px; height: 60px; border-radius: 50%; background: var(--err); transition: all .18s; }
-body.rec #rec::after { width: 30px; height: 30px; border-radius: 7px; }
-body.rec #ctl .side { visibility: hidden; }
 
-/* sheets */
-.sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.5); display: none; align-items: flex-end; }
+/* ---- sheets ---- */
+.sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.5); display: none; align-items: flex-end; justify-content: center; }
 .sheet.on { display: flex; }
-.sheet > .box { width: 100%; max-height: 86vh; overflow-y: auto; background: var(--bg); border-radius: 18px 18px 0 0; padding: 18px 16px calc(var(--bot) + 18px); }
-.sheet h2 { margin: 0 0 12px; font-size: 20px; }
-.sec { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
-.it { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: start; padding: 12px; margin-bottom: 6px; border-radius: 10px; border: 1px solid var(--edge); background: var(--panel); font-size: 15px; }
-.it.on { border-color: var(--accent); }
+.box { width: 100%; max-width: 560px; max-height: 86vh; overflow-y: auto; background: var(--bg); border-radius: 16px 16px 0 0; padding: 18px 16px calc(var(--bot) + 18px); border: 1px solid var(--edge); }
+.box h2 { margin: 0 0 12px; font-size: 19px; display: flex; align-items: baseline; gap: 8px; }
+.box h2 small { color: var(--faint); font-size: 13px; font-weight: 500; }
+.sec { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
+.it { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: start; padding: 11px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid var(--edge); background: var(--panel); font-size: 15px; }
+.it.on { border-color: var(--accent); background: var(--accent-soft); }
 .it small { color: var(--faint); font-size: 12px; white-space: nowrap; }
-.it span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.it > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .it .to { display: block; color: var(--dim); font-size: 12px; }
-textarea, input[type=text] { width: 100%; font: 16px/1.4 -apple-system, system-ui, sans-serif; color: var(--text); background: var(--panel); border: 1px solid var(--edge-2); border-radius: 10px; padding: 10px 12px; outline: none; }
+textarea, input[type=text] { width: 100%; font-size: 16px; line-height: 1.4; background: var(--panel); border: 1px solid var(--edge-2); border-radius: 8px; padding: 10px 12px; outline: none; }
 textarea { height: 150px; resize: none; }
 input[type=text] { height: 46px; }
-.btn { height: 48px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--edge-2); background: var(--panel-2); font-size: 16px; font-weight: 600; }
+textarea:focus, input:focus { border-color: var(--accent); }
+.btn { height: 46px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--edge-2); background: var(--panel-2); font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
+.btn:hover { background: var(--hover); }
 .btn.go { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.wide { width: 100%; margin-top: 10px; }
 .row { display: flex; gap: 8px; } .row > :first-child { flex: 1; min-width: 0; }
 .hint { color: var(--faint); font-size: 13px; margin: 8px 2px 0; }
-.x { float: right; height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim); font-size: 14px; }
+.x { float: right; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--edge-2); background: transparent; color: var(--dim); font-size: 13px; font-weight: 600; }
+/* the takes */
+.tk { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 8px; border: 1px solid var(--edge); background: var(--panel-2); margin-bottom: 6px; cursor: pointer; }
+.tk:hover { background: var(--panel-3); }
+.tk img, .tk .ph { width: 40px; height: 52px; border-radius: 6px; object-fit: cover; object-position: 50% 28%; background: var(--panel-3); display: block; }
+.tk b { display: block; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk .m { font-size: 12px; color: var(--dim); }
+.tk .st { font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--dim); }
+.tk .st.ok { color: var(--ok); } .tk .st.err { color: var(--err); } .tk .st.up { color: var(--accent); }
+.tk .pl { width: 30px; height: 30px; border-radius: 15px; border: 1px solid var(--edge-2); display: flex; align-items: center; justify-content: center; color: var(--dim); }
+.tk .pl svg.i { width: 14px; height: 14px; }
+.empty { color: var(--faint); font-size: 13.5px; padding: 6px 2px; }
 
-/* a take, just filmed: keep it (to the Drop / to the phone) or again */
-#review { position: fixed; inset: 0; z-index: 15; background: #000; display: none; flex-direction: column; }
-#review.on { display: flex; }
-#review video { flex: 1; min-height: 0; width: 100%; object-fit: contain; background: #000; }
-#rvb { padding: 12px 14px calc(var(--bot) + 14px); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-#rvb .send { grid-column: 1 / -1; height: 58px; font-size: 17px; font-weight: 700; }
-#rvinfo { position: absolute; top: calc(var(--top) + 10px); left: 12px; right: 12px; font-size: 13px; color: var(--dim); text-shadow: 0 1px 2px #000; }
+/* ---- a take, just filmed: keep it or again ---- */
+#review, #player { position: fixed; inset: 0; z-index: 15; background: var(--bg); display: none; flex-direction: column; }
+#review.on, #player.on { display: flex; }
+#review video, #player video { flex: 1; min-height: 0; width: 100%; object-fit: contain; background: #000; }
+.rvtop { padding: calc(var(--top) + 10px) 14px 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; color: var(--dim); }
+.rvtop b { color: var(--text); font-size: 14px; }
+#rvb { padding: 12px 12px 4px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+#rvb button { min-height: 70px; border-radius: 8px; border: 1px solid var(--edge-2); background: var(--panel-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 14px; font-weight: 700; padding: 8px 6px; text-align: center; line-height: 1.2; }
+#rvb button:hover { background: var(--hover); }
+#rvb button small { font-weight: 500; font-size: 11.5px; color: var(--dim); }
+#rvSend { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff; }
+#rvSend small { color: rgba(255,255,255,.85) !important; }
+#rvAgain { color: var(--err); }
+#rvList { padding: 6px 12px calc(var(--bot) + 12px); max-height: 30vh; overflow-y: auto; }
+#rvList:empty { display: none; }
+#player .rvb2 { display: flex; gap: 8px; padding: 12px 12px calc(var(--bot) + 12px); }
+#player .rvb2 .btn { flex: 1; }
 
-/* first screen: one tap starts the camera (and asks for it) */
+/* ---- first screen: one tap starts the camera (and asks for it) ---- */
 #start { position: fixed; inset: 0; z-index: 30; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
 #start h1 { font-size: 34px; margin: 0 0 6px; letter-spacing: -.01em; }
-#start p { color: var(--dim); margin: 0 0 26px; max-width: 320px; }
-#start .btn { width: 100%; max-width: 320px; height: 58px; font-size: 18px; }
-#start .err { color: var(--err); margin-top: 16px; font-size: 14px; }
+#start p { color: var(--dim); margin: 0 0 26px; max-width: 340px; }
+#start .btn { width: 100%; max-width: 330px; height: 54px; font-size: 17px; }
+#start .err { color: var(--err); margin-top: 16px; font-size: 14px; max-width: 380px; }
 #start a { color: var(--dim); margin-top: 22px; font-size: 14px; }
-#toast { position: fixed; left: 50%; bottom: calc(var(--bot) + 160px); transform: translateX(-50%); z-index: 40; background: rgba(20,19,18,.92); border: 1px solid var(--edge-2); padding: 10px 16px; border-radius: 12px; font-size: 14px; display: none; max-width: 86vw; text-align: center; }
+#toast { position: fixed; left: 50%; bottom: calc(var(--bot) + 210px); transform: translateX(-50%); z-index: 40; background: var(--panel); border: 1px solid var(--edge-2); padding: 10px 16px; border-radius: 8px; font-size: 14px; display: none; max-width: 86vw; text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
 #toast.on { display: block; }
-#fps { position: fixed; left: 8px; bottom: calc(var(--bot) + 140px); font-size: 11px; color: #0f0; z-index: 9; display: none; }
+
+/* ================= Sketch Studio's Shoot tab: the studio's top bar, then picture | prompter, filters, record | takes ================= */
+body.studio { background: var(--bg); font-size: 14px; }
+body.studio #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+body.studio .top { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--edge); background: var(--panel); flex-wrap: wrap; }
+body.studio .top .grow { flex: 1; }
+body.studio .top .btn { height: 32px; padding: 0 12px; font-size: 13px; }
+body.studio .top select { background: transparent; border: 0; font-size: 14px; font-weight: 600; outline: none; }
+body.studio .top select option { background: var(--panel); }
+body.studio #lvl { width: 64px; height: 6px; border-radius: 3px; background: var(--panel-3); overflow: hidden; }
+body.studio #lvl > div { height: 100%; width: 0; background: var(--ok); transition: width .06s; }
+body.studio #work { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(380px, 1fr) 300px; gap: 16px; padding: 16px; }
+body.studio #stage { position: relative; inset: auto; height: 100%; aspect-ratio: 9 / 16; border-radius: 8px; border: 1px solid var(--edge); }
+body.studio .col { min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; scrollbar-width: thin; }
+body.studio .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 8px; padding: 12px 14px; }
+body.studio .ch { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 0 0 10px; display: flex; gap: 8px; align-items: baseline; }
+body.studio .ch b { text-transform: none; letter-spacing: 0; color: var(--dim); font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; unicode-bidi: plaintext; }
+body.studio .pcard { flex: 1 1 55%; min-height: 240px; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+body.studio .pcard .ch { padding: 12px 14px 0; margin-bottom: 4px; }
+body.studio #prompt { position: relative; inset: auto; height: auto; flex: 1; min-height: 0; display: flex; background: transparent; border: 0; border-radius: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.studio #prompt:not(.on) #ptext::before { content: 'Pick a project above - its script scrolls here while you record. Or Paste one.'; display: block; padding: 14px 8px; color: var(--faint); font-size: 14px; font-weight: 500; }
+body.studio #ptext { -webkit-mask-image: none; mask-image: none; }
+body.studio #bottom { position: relative; background: none; padding: 0; }
+body.studio #timer { margin: 0 auto 8px; background: var(--panel-3); }
+body.studio #ctl { padding: 0; gap: 0; }
+body.studio #filters { flex-wrap: wrap; overflow: visible; padding: 0; gap: 10px 8px; }
+body.studio .fl span { text-shadow: none; color: var(--dim); }
+body.studio .fl.on span { color: var(--accent); }
+body.studio .fl:hover .th { border-color: rgba(255,255,255,.3); }
+body.studio .fl.on .th { border-color: var(--accent); }
+body.studio.rec #filters { visibility: visible; }
+body.studio #topbar, body.studio #bFlip, body.studio #bCount, body.studio #pdrag, body.studio #scPick { display: none !important; }
+body.studio #review, body.studio #player { background: rgba(0,0,0,.72); align-items: center; justify-content: center; padding: 28px; }
+body.studio #review > *, body.studio #player > * { width: min(520px, 100%); }
+body.studio .rvtop { padding: 0 2px 8px; }
+body.studio #review video, body.studio #player video { border-radius: 8px; flex: 0 1 auto; max-height: 62vh; }
+body.studio #rvList { max-height: 22vh; padding: 8px 0 0; }
+body.studio #rvb, body.studio #player .rvb2 { padding: 10px 0 0; }
+body.studio .sheet { align-items: flex-start; padding-top: 12vh; }
+body.studio .box { border-radius: 8px; max-height: 76vh; }
+body.studio #toast { bottom: 40px; }
 </style>
 </head>
 <body>
-<video id="cam" playsinline muted autoplay></video>
-<canvas id="out" class="mirror"></canvas>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4 4 0 0 1-1 7.9"/><path d="M12 12v8M9 15l3-3 3 3"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M9 13.5a3 3 0 0 0 5.6 1.2M15 12.5a3 3 0 0 0-5.6-1.2"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="i-top" viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-speed" viewBox="0 0 24 24"><path d="M5 18a8 8 0 1 1 14 0"/><path d="M12 14l4-4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+</svg>
 
-<div id="prompt">
-  <div id="ptext" dir="auto"></div>
-  <div id="pmark"></div>
-  <div id="ppaused">PAUSED · tap</div>
-  <div id="pctl">
-    <button id="pSlow" aria-label="slower">−</button><span class="v" id="pSpeed"></span><button id="pFast" aria-label="faster">+</button>
-    <button id="pSmall" aria-label="smaller text">A−</button><button id="pBig" aria-label="bigger text">A+</button>
+<div id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="out" class="mirror"></canvas>
+  <div id="count"></div>
+  <div id="fps"></div>
+  <div id="topbar">
+    <button class="pill" id="bScript"><svg class="i"><use href="#i-doc"/></svg><span class="t">Script</span></button>
+    <button class="pill" id="bFolder"><svg class="i"><use href="#i-folder"/></svg><span class="t" dir="auto">Project</span></button>
     <span class="grow"></span>
-    <button id="pTop">Top</button><button id="pHide">Hide</button>
+    <button class="pill" id="ups"><svg class="i"><use href="#i-up"/></svg><span class="t"></span><span class="bar"><div></div></span></button>
   </div>
-  <div id="pdrag" title="drag: taller / shorter"></div>
-</div>
-<div id="ups" class="ic"></div>
-<div id="topr">
-  <button class="ic" id="bCount" title="countdown before recording">3s</button>
-  <button class="ic" id="bFlip" title="front / back camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 4.6 1.3M14.5 12.5a2.5 2.5 0 0 0-4.6-1.3"/><path d="M14 15l.3-.2.6 1.2M10 11l-.3.2-.6-1.2"/></svg></button>
-</div>
-<div id="timer">0:00</div>
-<div id="count"></div>
-<div id="fps"></div>
-
-<div id="bottom">
-  <div id="filters"></div>
-  <div id="ctl">
-    <button class="side l" id="bScript">Script</button>
-    <button id="rec" aria-label="record"></button>
-    <button class="side r" id="bFolder" dir="auto">Project</button>
+  <div id="prompt">
+    <div id="ptext" dir="auto"></div>
+    <div id="pside">
+      <button id="pPause"><svg class="i"><use href="#i-pause"/></svg><span>Pause</span></button>
+      <button id="pTop" title="Back to the first line"><svg class="i"><use href="#i-top"/></svg>Top</button>
+      <button id="pSize" title="Text size"><b>Aa</b><span id="pSizeV">M</span></button>
+      <button id="pSpeed" title="Scroll speed"><svg class="i"><use href="#i-speed"/></svg><span id="pSpeedV">1x</span></button>
+    </div>
+    <div id="pdrag" title="drag: taller / shorter"></div>
+  </div>
+  <div id="bottom">
+    <div id="timer">0:00</div>
+    <div id="ctl">
+      <button class="round" id="bCount"><span class="c">3</span>Countdown</button>
+      <button id="rec" aria-label="record" title="Record / stop (Space)"></button>
+      <button class="round" id="bFlip"><span class="c"><svg class="i"><use href="#i-flip"/></svg></span>Flip</button>
+    </div>
+    <div id="filters"></div>
   </div>
 </div>
+<div id="speedPop"><label><span>Scroll speed</span><b id="speedV"></b></label><input type="range" id="speedR" min="1" max="20" step="1"></div>
 
 <div id="review">
+  <div class="rvtop"><span id="rvinfo" dir="auto"></span><b id="rvlen"></b></div>
   <video id="rv" playsinline loop controls></video>
-  <div id="rvinfo" dir="auto"></div>
   <div id="rvb">
-    <button class="btn go send" id="rvSend">Send to the Drop</button>
-    <button class="btn" id="rvSave">Save to phone</button>
-    <button class="btn" id="rvAgain">Again</button>
+    <button id="rvSend"><span id="rvSendT">Send to project</span><small id="rvSendS">uploads while you film the next</small></button>
+    <button id="rvSave"><span>Save to Photos</span><small>a copy on the phone</small></button>
+    <button id="rvAgain"><span>Again</span><small>the script goes back</small></button>
   </div>
+  <div id="rvList"></div>
+</div>
+<div id="player">
+  <div class="rvtop"><span id="plinfo" dir="auto"></span></div>
+  <video id="pl" playsinline loop controls></video>
+  <div class="rvb2"><button class="btn" id="plDel" style="color:var(--err)">Delete</button><button class="btn" id="plClose">Close</button></div>
 </div>
 
 <div class="sheet" id="sScript"><div class="box">
   <button class="x" data-close>Close</button>
   <h2>Script</h2>
-  <div id="scList"></div>
+  <div id="scPick"><div class="sec">Saved scripts</div><div id="scList"></div></div>
   <div class="sec">Paste a script</div>
   <textarea id="scPaste" dir="auto" placeholder="Paste the text you'll say"></textarea>
   <button class="btn go wide" id="scUse">Use this text</button>
   <button class="btn wide" id="scNone">No script</button>
-  <p class="hint">Scripts from the Reader on the PC show here by themselves (the studio sends them up every minute while it runs).</p>
+  <p class="hint" id="scHint">Scripts from the Reader on the PC show here by themselves (the studio sends them up every minute while it runs).</p>
 </div></div>
 
 <div class="sheet" id="sFolder"><div class="box">
@@ -176,7 +289,13 @@ input[type=text] { height: 46px; }
   <div class="row"><input type="text" id="fNew" placeholder="New project name" dir="auto"><button class="btn" id="fMake">Make</button></div>
   <div class="sec">Projects on the Drop</div>
   <div id="fList"></div>
-  <p class="hint">Same projects as the Drop page - the studio pulls every take to Downloads\drop\&lt;project&gt; within a minute.</p>
+  <p class="hint">The studio pulls every take to Downloads\drop\&lt;project&gt; within a minute.</p>
+</div></div>
+
+<div class="sheet" id="sTakes"><div class="box">
+  <button class="x" data-close>Close</button>
+  <h2>Takes <small id="tkSub"></small></h2>
+  <div id="tkList"></div>
 </div></div>
 
 <div class="sheet" id="sKey"><div class="box">
@@ -188,7 +307,7 @@ input[type=text] { height: 46px; }
 
 <div id="start">
   <h1>Shoot</h1>
-  <p>Filters, the script in front of you, and every take straight to the studio.</p>
+  <p id="startP">Filters, the script in front of you, and every take straight to the studio.</p>
   <button class="btn go" id="go">Start the camera</button>
   <div class="err" id="startErr"></div>
   <a id="toDrop" href="/">Open the Drop</a>
@@ -198,19 +317,22 @@ input[type=text] { height: 46px; }
 <script type="module">
 const $ = (id) => document.getElementById(id);
 const store = { get: (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const gb = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' GB' : (n / 1e6).toFixed(n >= 1e8 ? 0 : 1) + ' MB');
+const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let toastT = 0;
 const toast = (t, ms = 2600) => { $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), ms); };
 const DEBUG = /[?&]debug/.test(location.search);
+// in Sketch Studio (its Shoot tab): the studio's project, its script, takes saved straight into its footage folder
+const LOCAL = !!window.SHOOT_LOCAL;
 
-// ---- the key: the same as the Drop page's (same site - its link #k=... or this phone's memory) ----
+// ---- the key (phone): the same as the Drop page's - same site, its link #k=... or this phone's memory ----
 const fromLink = new URLSearchParams(location.hash.slice(1)).get('k');
 if (fromLink) store.set('drop-key', fromLink);
 let KEY = fromLink || store.get('drop-key');
-const keepInLink = () => { if (KEY && new URLSearchParams(location.hash.slice(1)).get('k') !== KEY) history.replaceState(null, '', `${location.pathname}#k=${KEY}`); };
-keepInLink();
+const keepInLink = () => { if (KEY && new URLSearchParams(location.hash.slice(1)).get('k') !== KEY) history.replaceState(null, '', `${location.pathname}${location.search}#k=${KEY}`); };
+if (!LOCAL) keepInLink();
 $('toDrop').href = KEY ? `/#k=${KEY}` : '/';
 const askKey = () => $('sKey').classList.add('on');
 $('keySave').onclick = () => {
@@ -218,8 +340,8 @@ $('keySave').onclick = () => {
   KEY = k; store.set('drop-key', KEY); keepInLink(); $('sKey').classList.remove('on'); loadFolders();
 };
 async function api(path, data = {}) {
-  const r = await fetch('/api/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: KEY, ...data }) });
-  if (r.status === 401) { askKey(); throw new Error('The key is wrong'); }
+  const r = await fetch((LOCAL ? '/api/shoot/' : '/api/') + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(LOCAL ? data : { k: KEY, ...data }) });
+  if (r.status === 401 && !LOCAL) { askKey(); throw new Error('The key is wrong'); }
   const j = await r.json();
   if (!r.ok) throw new Error(j.error || r.status);
   return j;
@@ -236,7 +358,7 @@ const FILTERS = [
   { id: 'bobble', name: 'Bobblehead', warps: (f) => [[f.nose, 2.0 * f.ed, 0.36]] },
   { id: 'tiny', name: 'Tiny face', warps: (f) => [[f.nose, 1.8 * f.ed, -0.42]] },
   { id: 'uncle', name: 'The uncle', grade: 2, warps: (f) => [[f.nose, 0.55 * f.ed, 0.5]], props: ['mustache'] },
-  { id: 'prof', name: 'The professor', warps: (f) => [[f.e1, 0.42 * f.ed, -0.3], [f.e2, 0.42 * f.ed, -0.3]], props: ['glasses'] },
+  { id: 'prof', name: 'Professor', warps: (f) => [[f.e1, 0.42 * f.ed, -0.3], [f.e2, 0.42 * f.ed, -0.3]], props: ['glasses'] },
   { id: 'chin', name: 'Big chin', warps: (f) => [[f.chin, 0.95 * f.ed, 0.5]] },
   { id: 'mouth', name: 'Big mouth', warps: (f) => [[f.mouth, 0.75 * f.ed, 0.45]] },
   { id: 'alien', name: 'Alien', grade: 5, warps: (f) => [[f.e1, 0.55 * f.ed, 0.6], [f.e2, 0.55 * f.ed, 0.6], [f.chin, 1.0 * f.ed, -0.5]] },
@@ -245,14 +367,16 @@ const FILTERS = [
   { id: 'tv', name: 'Old TV', grade: 3 },
   { id: 'comic', name: 'Comic', grade: 4 },
 ];
+const TW = 108, TH = 192;  // a filter's live picture (his own face in it), drawn every ~1.5 s while not recording
 for (const f of FILTERS) f.face = !!(f.warps || f.props);
 let F = FILTERS.find((f) => f.id === store.get('shoot-filter')) || FILTERS[0];
-$('filters').innerHTML = FILTERS.map((f) => `<button class="fl${f.face ? ' face' : ''}${f === F ? ' on' : ''}" data-f="${f.id}">${esc(f.name)}</button>`).join('');
+$('filters').innerHTML = FILTERS.map((f) => `<button class="fl${f === F ? ' on' : ''}" data-f="${f.id}" title="${esc(f.name)}"><div class="th"><canvas width="${TW}" height="${TH}"></canvas></div><span>${esc(f.name)}</span></button>`).join('');
+for (const b of $('filters').children) FILTERS.find((f) => f.id === b.dataset.f).thumb = b.querySelector('canvas');
 $('filters').onclick = (e) => {
   const b = e.target.closest('.fl'); if (!b) return;
   F = FILTERS.find((f) => f.id === b.dataset.f); store.set('shoot-filter', F.id);
   for (const x of $('filters').children) x.classList.toggle('on', x === b);
-  b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+  if (!LOCAL) b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
   if (F.face && !landmarker) toast(faceErr || 'Loading face tracking…');
 };
 
@@ -287,10 +411,10 @@ const out = $('out'), video = $('cam');
 const glc = document.createElement('canvas');
 const gl = glc.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false });
 const ctx = out.getContext('2d');
-let prog, U = {};
+const U = {};
 function setupGL() {
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
-  prog = gl.createProgram();
+  const prog = gl.createProgram();
   gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FSH)); gl.linkProgram(prog);
   if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
   gl.useProgram(prog);
@@ -303,7 +427,7 @@ function setupGL() {
   gl.uniform1i(U.tex, 0);
 }
 
-// ---- face tracking (MediaPipe Face Landmarker, on the phone) ----
+// ---- face tracking (MediaPipe Face Landmarker, on the device) ----
 let landmarker = null, faceErr = '';
 async function loadFace() {
   const CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
@@ -334,20 +458,37 @@ const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 function readFace(lm) {  // the points the filters use (iris centres 468 / 473 - the model's 478 points)
   const e1 = P(lm, 468), e2 = P(lm, 473);
   const f = { e1, e2, nose: P(lm, 1), chin: P(lm, 152), mouth: mid(P(lm, 13), P(lm, 14)), lip: mid(P(lm, 164), P(lm, 0)),
-    s1: P(lm, 234), s2: P(lm, 454), ed: Math.hypot(e2.x - e1.x, e2.y - e1.y), roll: Math.atan2(e2.y - e1.y, e2.x - e1.x) };
+    ed: Math.hypot(e2.x - e1.x, e2.y - e1.y), roll: Math.atan2(e2.y - e1.y, e2.x - e1.x) };
   if (!face) return f;
   const k = 0.55, sm = (a, b) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });  // (steadier: a little of the last frame)
-  for (const n of ['e1', 'e2', 'nose', 'chin', 'mouth', 'lip', 's1', 's2']) f[n] = sm(face[n], f[n]);
+  for (const n of ['e1', 'e2', 'nose', 'chin', 'mouth', 'lip']) f[n] = sm(face[n], f[n]);
   f.ed = face.ed + (f.ed - face.ed) * k; f.roll = face.roll + (f.roll - face.roll) * k;
   return f;
 }
 const warps = new Float32Array(24);
-let frames = 0, fpsT = performance.now(), slowChecked = false;
+function draw(f, k, now) {  // one filter into the GL canvas (k = target width / W: 1 = the picture, smaller = a tile)
+  let n = 0;
+  if (face && f.warps) for (const [c, r, s] of f.warps(face).slice(0, 6)) { warps.set([c.x * k, c.y * k, r * k, s], n * 4); n++; }
+  gl.uniform4fv(U.warp, warps); gl.uniform1i(U.nwarp, n); gl.uniform1i(U.grade, f.grade || 0); gl.uniform1f(U.time, now / 1000);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+function tiles(now) {  // every filter on this frame, small, in the GL canvas's corner (the big picture is already copied)
+  const k = TW / W;
+  gl.viewport(0, 0, TW, TH); gl.uniform2f(U.res, TW, TH);
+  for (const f of FILTERS) {
+    draw(f, k, now);
+    const c = f.thumb.getContext('2d');
+    c.drawImage(glc, 0, H - TH, TW, TH, 0, 0, TW, TH);
+    if (face && f.props) { c.save(); c.scale(k, k); for (const p of f.props) PROPS[p](c, face); c.restore(); }
+  }
+  gl.viewport(0, 0, W, H); gl.uniform2f(U.res, W, H);
+}
+let frames = 0, fpsT = performance.now(), slowChecked = false, tileT = 0;
 function frame(now) {
   requestAnimationFrame(frame);
   if (video.readyState < 2 || !video.videoWidth) return;
   if (video.videoWidth !== vw || video.videoHeight !== vh) layout();
-  if (F.face && landmarker && video.currentTime !== lastTs) {
+  if ((F.face || (!recording && now - tileT > 1400)) && landmarker && video.currentTime !== lastTs) {
     lastTs = video.currentTime;
     try {
       const r = landmarker.detectForVideo(video, now);
@@ -355,12 +496,10 @@ function frame(now) {
     } catch {}
   }
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
-  let n = 0;
-  if (face && F.warps) for (const [c, r, s] of F.warps(face).slice(0, 6)) { warps.set([c.x, c.y, r, s], n * 4); n++; }
-  gl.uniform4fv(U.warp, warps); gl.uniform1i(U.nwarp, n); gl.uniform1i(U.grade, F.grade || 0); gl.uniform1f(U.time, now / 1000);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  draw(F, 1, now);
   ctx.drawImage(glc, 0, 0);
-  if (face && F.props) for (const p of F.props) PROPS[p](face);
+  if (face && F.props) for (const p of F.props) PROPS[p](ctx, face);
+  if (!recording && now - tileT > 1500) { tileT = now; tiles(now); }
   // speed: a phone that can't keep 1080 at ~24 fps drops to 720 (checked once, while not recording)
   frames++;
   if (now - fpsT > 1000) {
@@ -372,43 +511,89 @@ function frame(now) {
 
 // ---- props, drawn on the picture (canvas pixels, turned with the head) ----
 const PROPS = {
-  mustache(f) {
+  mustache(c, f) {
     const u = f.ed;
-    ctx.save(); ctx.translate(f.lip.x, f.lip.y + 0.02 * u); ctx.rotate(f.roll); ctx.scale(u, u);
-    ctx.fillStyle = '#2b1d14';
+    c.save(); c.translate(f.lip.x, f.lip.y + 0.02 * u); c.rotate(f.roll); c.scale(u, u);
+    c.fillStyle = '#2b1d14';
     for (const s of [-1, 1]) {
-      ctx.beginPath(); ctx.moveTo(0, -0.07);
-      ctx.bezierCurveTo(0.16 * s, -0.17, 0.4 * s, -0.13, 0.56 * s, 0.06);
-      ctx.bezierCurveTo(0.44 * s, 0.0, 0.3 * s, 0.07, 0.12 * s, 0.06);
-      ctx.bezierCurveTo(0.06 * s, 0.06, 0.02 * s, 0.03, 0, 0.03);
-      ctx.closePath(); ctx.fill();
+      c.beginPath(); c.moveTo(0, -0.07);
+      c.bezierCurveTo(0.16 * s, -0.17, 0.4 * s, -0.13, 0.56 * s, 0.06);
+      c.bezierCurveTo(0.44 * s, 0.0, 0.3 * s, 0.07, 0.12 * s, 0.06);
+      c.bezierCurveTo(0.06 * s, 0.06, 0.02 * s, 0.03, 0, 0.03);
+      c.closePath(); c.fill();
     }
-    ctx.restore();
+    c.restore();
   },
-  glasses(f) {
+  glasses(c, f) {
     const u = f.ed;
-    ctx.save(); ctx.translate((f.e1.x + f.e2.x) / 2, (f.e1.y + f.e2.y) / 2); ctx.rotate(f.roll); ctx.scale(u, u);
-    ctx.lineWidth = 0.075; ctx.strokeStyle = '#111'; ctx.fillStyle = 'rgba(180,210,230,.12)';
-    for (const s of [-0.5, 0.5]) { ctx.beginPath(); ctx.ellipse(s, 0.02, 0.31, 0.25, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
-    ctx.beginPath(); ctx.moveTo(-0.2, -0.02); ctx.quadraticCurveTo(0, -0.12, 0.2, -0.02); ctx.stroke();  // the bridge
-    ctx.beginPath(); ctx.moveTo(-0.81, -0.02); ctx.lineTo(-1.0, -0.06); ctx.moveTo(0.81, -0.02); ctx.lineTo(1.0, -0.06); ctx.stroke();
-    ctx.restore();
+    c.save(); c.translate((f.e1.x + f.e2.x) / 2, (f.e1.y + f.e2.y) / 2); c.rotate(f.roll); c.scale(u, u);
+    c.lineWidth = 0.075; c.strokeStyle = '#111'; c.fillStyle = 'rgba(180,210,230,.12)';
+    for (const s of [-0.5, 0.5]) { c.beginPath(); c.ellipse(s, 0.02, 0.31, 0.25, 0, 0, Math.PI * 2); c.fill(); c.stroke(); }
+    c.beginPath(); c.moveTo(-0.2, -0.02); c.quadraticCurveTo(0, -0.12, 0.2, -0.02); c.stroke();  // the bridge
+    c.beginPath(); c.moveTo(-0.81, -0.02); c.lineTo(-1.0, -0.06); c.moveTo(0.81, -0.02); c.lineTo(1.0, -0.06); c.stroke();
+    c.restore();
   },
 };
 
+// ================= the studio tab's frame: the studio's top bar, then picture | prompter, filters, record | takes =================
+if (LOCAL) {
+  document.body.classList.add('studio');
+  const app = document.createElement('div'); app.id = 'app';
+  app.innerHTML = `<header class="top" id="top">
+      <studio-nav app="shoot"></studio-nav>
+      <select id="ep" title="Project" data-picker="project" data-label="Project"></select>
+      <button class="btn" id="paste" title="Paste a script to read (instead of the project's)">Paste</button>
+      <div class="grow"></div>
+      <select id="cdSel" title="Countdown before it records"><option value="0">No countdown</option><option value="3">3 s countdown</option><option value="5">5 s countdown</option><option value="10">10 s countdown</option></select>
+      <select id="camSel" data-label="Camera" title="Camera"></select>
+      <select id="micSel" data-label="Mic" title="Microphone"></select>
+      <div id="lvl" title="The microphone hears you"><div></div></div>
+    </header>
+    <div id="work">
+      <div class="col" id="mid">
+        <div class="card pcard"><div class="ch">Script <b id="scName"></b></div></div>
+        <div class="card"><div class="ch">Filter</div></div>
+        <div class="card" id="recCard"></div>
+      </div>
+      <div class="col" id="right">
+        <div class="card"><div class="ch">Takes <b id="tkSub2"></b></div><div id="tkHere"></div>
+          <div class="ch" style="margin-top:14px">In the footage folder <b id="dirName"></b></div><div id="folderFiles"><p class="empty">—</p></div></div>
+      </div>
+    </div>`;
+  document.body.prepend(app);
+  $('work').prepend($('stage'));
+  $('mid').children[0].append($('prompt'));
+  $('mid').children[1].append($('filters'));
+  $('recCard').append($('bottom'));
+  $('tkHere').append($('tkList'));
+  $('toDrop').remove();
+  $('startP').textContent = 'Film with the computer\'s camera: filters, the project\'s script in front of you, and every take straight into the project\'s footage folder.';
+  $('scHint').textContent = 'A pasted text is only for reading here - the project\'s own script stays as it is.';
+  $('rvSave').style.display = 'none'; $('rvb').style.gridTemplateColumns = '2fr 1fr';  // (the phone's Photos only)
+  $('rvSendS').textContent = 'into the project\'s footage folder';
+  $('cdSel').value = store.get('shoot-cd') || '3';
+  $('cdSel').onchange = () => store.set('shoot-cd', $('cdSel').value);
+  $('paste').onclick = () => { $('sScript').classList.add('on'); $('scPaste').focus(); };
+}
+
 // ================= the camera =================
-let cam = null, facing = 'user';
+let cam = null, facing = 'user', camId = store.get('shoot-cam'), micId = store.get('shoot-mic');
 async function openCamera() {
   cam?.getTracks().forEach((t) => t.stop());
-  cam = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
-    // his raw voice, like the Drop's voice takes (the studio cleans it)
-    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-  });
+  const size = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
+  // his raw voice, like the Drop's voice takes (the studio cleans it)
+  const raw = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  const ask = (ids) => navigator.mediaDevices.getUserMedia({
+    video: ids && camId ? { deviceId: { exact: camId }, ...size } : { facingMode: facing, ...size },
+    audio: ids && micId ? { deviceId: { exact: micId }, ...raw } : raw });
+  try { cam = await ask(LOCAL); } catch (e) { if (LOCAL && (camId || micId)) cam = await ask(false); else throw e; }  // (a camera unplugged since: the default one)
   video.srcObject = cam;
   await video.play().catch(() => {});
-  out.classList.toggle('mirror', facing === 'user');
+  const mirror = facing === 'user';
+  out.classList.toggle('mirror', mirror);
+  for (const f of FILTERS) f.thumb.classList.toggle('mirror', mirror);
   vw = 0;
+  if (LOCAL) { fillDevices(); meter(); }
 }
 let wake = null;
 const keepAwake = async () => { try { wake = await navigator.wakeLock?.request('screen'); } catch {} };
@@ -426,20 +611,52 @@ $('go').onclick = async () => {
     requestAnimationFrame(frame);
     keepAwake();
     loadFace();
-    if (!KEY) askKey(); else loadFolders();
+    if (!KEY && !LOCAL) askKey(); else loadFolders();
     resumeTakes();
-  } catch (e) { $('startErr').textContent = e.name === 'NotAllowedError' ? 'The camera / microphone was not allowed - allow it in Settings › Safari › Camera, then try again.' : String(e.message || e); }
+  } catch (e) {
+    $('startErr').textContent = e.name === 'NotAllowedError'
+      ? (LOCAL ? 'The camera / microphone was not allowed - allow them for localhost (the camera icon in the address bar), then try again.' : 'The camera / microphone was not allowed - allow it in Settings › Safari › Camera, then try again.')
+      : e.name === 'NotFoundError' ? 'No camera found.' : e.name === 'NotReadableError' ? 'The camera is busy - another app (Zoom, the Camera app) is using it.' : String(e.message || e);
+  }
 };
 $('bFlip').onclick = async () => { if (recording) return; facing = facing === 'user' ? 'environment' : 'user'; face = null; try { await openCamera(); } catch (e) { toast(e.message); } };
 let countdown = store.get('shoot-count') !== '0';
-const drawCount = () => { $('bCount').textContent = countdown ? '3s' : '0s'; $('bCount').style.opacity = countdown ? 1 : 0.6; };
+const drawCount = () => { $('bCount').querySelector('.c').textContent = countdown ? '3' : '0'; $('bCount').classList.toggle('off', !countdown); };
 drawCount();
 $('bCount').onclick = () => { countdown = !countdown; store.set('shoot-count', countdown ? '1' : '0'); drawCount(); };
+const countSecs = () => (LOCAL ? +$('cdSel').value : countdown ? 3 : 0);
+
+// the computer: which camera / microphone, and a level that shows the mic hears him
+async function fillDevices() {
+  const ds = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+  const vt = cam.getVideoTracks()[0]?.getSettings().deviceId, at = cam.getAudioTracks()[0]?.getSettings().deviceId;
+  const opt = (d, cur, i) => `<option value="${esc(d.deviceId)}"${d.deviceId === cur ? ' selected' : ''}>${esc((d.label || `${d.kind === 'videoinput' ? 'Camera' : 'Microphone'} ${i + 1}`).replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)$/i, ''))}</option>`;
+  $('camSel').innerHTML = ds.filter((d) => d.kind === 'videoinput').map((d, i) => opt(d, vt, i)).join('');
+  $('micSel').innerHTML = ds.filter((d) => d.kind === 'audioinput' && d.deviceId !== 'communications' && d.deviceId !== 'default').map((d, i) => opt(d, at, i)).join('');
+  if (at && ![...$('micSel').options].some((o) => o.value === at)) $('micSel').insertAdjacentHTML('afterbegin', `<option value="${esc(at)}" selected>${esc(cam.getAudioTracks()[0].label || 'Default')}</option>`);
+}
+if (LOCAL) {
+  $('camSel').onchange = () => { if (recording) return; camId = $('camSel').value; store.set('shoot-cam', camId); openCamera().catch((e) => toast(e.message)); };
+  $('micSel').onchange = () => { if (recording) return; micId = $('micSel').value; store.set('shoot-mic', micId); openCamera().catch((e) => toast(e.message)); };
+}
+let actx = null, meterSrc = null;
+function meter() {
+  try {
+    actx ||= new AudioContext();
+    meterSrc?.disconnect();
+    const an = actx.createAnalyser(); an.fftSize = 1024;
+    meterSrc = actx.createMediaStreamSource(new MediaStream(cam.getAudioTracks())); meterSrc.connect(an);
+    const buf = new Float32Array(an.fftSize), mine = meterSrc;
+    const loop = () => { if (meterSrc !== mine) return; an.getFloatTimeDomainData(buf); let p = 0; for (const x of buf) p = Math.max(p, Math.abs(x)); $('lvl').firstElementChild.style.width = `${Math.min(100, Math.round(Math.sqrt(p) * 110))}%`; requestAnimationFrame(loop); };
+    loop();
+  } catch {}
+}
 
 // ================= the prompter =================
 let scriptText = store.get('shoot-script-text'), scriptName = store.get('shoot-script-name');
-let speed = +store.get('shoot-speed') || 4, fontPx = +store.get('shoot-font') || 28, panelVh = +store.get('shoot-ph') || 34;
-let scrolling = false, paused = false, scrollAcc = 0, lastT = 0;
+const SIZES = [[22, 'S'], [28, 'M'], [34, 'L'], [42, 'XL']];
+let speed = +store.get('shoot-speed') || 4, sizeI = Math.min(3, +(store.get('shoot-size') || 1)), panelVh = +store.get('shoot-ph') || 30;
+let scrolling = false, paused = false, scrollAcc = 0, lastT = 0, paras = [], nowI = -1;
 function drawScript() {
   const lines = String(scriptText || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
   if (lines[0]?.startsWith('# ')) lines.shift();  // (the title line)
@@ -449,49 +666,70 @@ function drawScript() {
     if (m && !/[.!?,]/.test(m[1]) && m[1].trim().split(/\s+/).length <= 3) return `<p class="who" dir="auto">${esc(m[1])}</p><p dir="auto">${esc(m[2])}</p>`;
     return `<p dir="auto">${esc(s)}</p>`;
   }).join('');
+  paras = [...$('ptext').querySelectorAll('p:not(.who):not(.dir)')]; nowI = -1;
   $('prompt').classList.toggle('on', !!lines.length);
-  $('bScript').textContent = lines.length ? (scriptName || 'Script') : 'Script';
+  $('bScript').querySelector('.t').textContent = lines.length ? (scriptName || 'Script') : 'Script';
+  if (LOCAL) $('scName').textContent = lines.length ? scriptName : '';
   applyPrompt();
 }
+const markY = () => Math.round($('ptext').clientHeight * 0.22);  // the line being read: a fifth down the card
 function applyPrompt() {
-  document.documentElement.style.setProperty('--pf', fontPx + 'px');
+  document.documentElement.style.setProperty('--pf', SIZES[sizeI][0] + 'px');
   document.documentElement.style.setProperty('--ph', panelVh + 'vh');
-  $('pSpeed').textContent = `speed ${speed}`;
+  $('pSizeV').textContent = SIZES[sizeI][1];
+  $('pSpeedV').textContent = `${+(speed / 4).toFixed(2)}x`;
+  $('speedV').textContent = $('pSpeedV').textContent; $('speedR').value = speed;
+  $('ptext').style.paddingTop = markY() + 'px';  // (the first line starts at the mark)
+  updateNow();
 }
+function updateNow() {  // light the line at the mark, dim the ones above it
+  const y = $('ptext').scrollTop + markY() + 4;
+  let i = paras.findIndex((p) => p.offsetTop + p.offsetHeight > y);
+  if (i < 0) i = paras.length - 1;
+  if (i === nowI) return;
+  nowI = i;
+  paras.forEach((p, k) => { p.classList.toggle('now', k === i); p.classList.toggle('past', k < i); });
+}
+$('ptext').addEventListener('scroll', updateNow, { passive: true });
+addEventListener('resize', applyPrompt);
 function tick(t) {
   requestAnimationFrame(tick);
   const dt = Math.min(0.1, (t - lastT) / 1000); lastT = t;
   if (!scrolling || paused) return;
-  scrollAcc += speed * 5 * (fontPx / 28) * dt;  // px per second, grows with the text size
+  scrollAcc += speed * 5 * (SIZES[sizeI][0] / 28) * dt;  // px per second, grows with the text size
   if (scrollAcc >= 1) { const n = Math.floor(scrollAcc); $('ptext').scrollTop += n; scrollAcc -= n; }
 }
 requestAnimationFrame(tick);
-$('ptext').onclick = () => { if (recording) { paused = !paused; $('ppaused').classList.toggle('on', paused); } };
-$('pSlow').onclick = () => { speed = Math.max(1, speed - 1); store.set('shoot-speed', speed); applyPrompt(); };
-$('pFast').onclick = () => { speed = Math.min(20, speed + 1); store.set('shoot-speed', speed); applyPrompt(); };
-$('pSmall').onclick = () => { fontPx = Math.max(18, fontPx - 3); store.set('shoot-font', fontPx); applyPrompt(); };
-$('pBig').onclick = () => { fontPx = Math.min(56, fontPx + 3); store.set('shoot-font', fontPx); applyPrompt(); };
+const pause = () => { if (!recording) return; paused = !paused; $('pPause').classList.toggle('on', paused); $('pPause').lastChild.textContent = paused ? 'Go on' : 'Pause'; };
+$('ptext').onclick = pause;
+$('pPause').onclick = pause;
 $('pTop').onclick = () => { $('ptext').scrollTop = 0; };
-$('pHide').onclick = () => { $('prompt').classList.remove('on'); $('bScript').textContent = 'Script'; };
-{  // drag the handle: a taller / shorter prompter
+$('pSize').onclick = () => { sizeI = (sizeI + 1) % SIZES.length; store.set('shoot-size', sizeI); applyPrompt(); };
+$('pSpeed').onclick = (e) => {
+  e.stopPropagation();
+  const pop = $('speedPop'), r = $('pSpeed').getBoundingClientRect();
+  pop.style.top = `${Math.min(r.bottom + 6, innerHeight - 90)}px`; pop.style.left = `${Math.max(8, r.right - 230)}px`;
+  pop.classList.toggle('on');
+};
+$('speedR').oninput = () => { speed = +$('speedR').value; store.set('shoot-speed', speed); applyPrompt(); };
+document.addEventListener('click', (e) => { if (!e.target.closest('#speedPop') && !e.target.closest('#pSpeed')) $('speedPop').classList.remove('on'); });
+{  // drag the handle: a taller / shorter prompter (phone)
   let y0 = 0, h0 = 0;
   $('pdrag').addEventListener('pointerdown', (e) => { y0 = e.clientY; h0 = panelVh; $('pdrag').setPointerCapture(e.pointerId); });
-  $('pdrag').addEventListener('pointermove', (e) => { if (!$('pdrag').hasPointerCapture(e.pointerId)) return; panelVh = Math.round(Math.max(18, Math.min(70, h0 + ((e.clientY - y0) / innerHeight) * 100))); applyPrompt(); });
+  $('pdrag').addEventListener('pointermove', (e) => { if (!$('pdrag').hasPointerCapture(e.pointerId)) return; panelVh = Math.round(Math.max(16, Math.min(66, h0 + ((e.clientY - y0) / innerHeight) * 100))); applyPrompt(); });
   $('pdrag').addEventListener('pointerup', () => store.set('shoot-ph', panelVh));
 }
-drawScript();
 
-// the script sheet: the Reader's scripts (sent up by the studio) or pasted text
+// the phone's scripts: the Reader's (the studio sends them up) or pasted text
 let scripts = [];
-$('bScript').onclick = async () => {
-  $('sScript').classList.add('on');
-  if (!$('prompt').classList.contains('on') && scriptText) { drawScript(); }
-  $('scList').innerHTML = '<p class="hint">Loading the scripts…</p>';
-  try { scripts = (await api('scripts')).scripts || []; } catch (e) { scripts = []; }
+async function loadScripts() {
+  $('scList').innerHTML = '<p class="empty">Loading the scripts…</p>';
+  try { scripts = (await api('scripts')).scripts || []; } catch { scripts = []; }
   const day = (ms) => new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
   $('scList').innerHTML = scripts.length ? scripts.map((s, i) => `<button class="it${s.name === scriptName ? ' on' : ''}" data-i="${i}"><span dir="auto">${esc(s.name)}${s.drop ? `<span class="to">takes → ${esc(s.drop)}</span>` : ''}</span><small>${day(s.updated)}</small></button>`).join('')
-    : '<p class="hint">No scripts from the studio yet.</p>';
-};
+    : '<p class="empty">No scripts from the studio yet.</p>';
+}
+$('bScript').onclick = () => { $('sScript').classList.add('on'); if (!$('prompt').classList.contains('on') && scriptText) drawScript(); loadScripts(); };
 $('scList').onclick = async (e) => {
   const b = e.target.closest('.it'); if (!b) return;
   const s = scripts[+b.dataset.i];
@@ -501,45 +739,93 @@ $('scList').onclick = async (e) => {
     if (s.drop) { setFolder(s.drop); toast(`Takes go to ${s.drop}`); }
   } catch (err) { toast(err.message); }
 };
-function useScript(text, name) {
+function useScript(text, name, remember = true) {
   scriptText = text; scriptName = name;
-  store.set('shoot-script-text', text); store.set('shoot-script-name', name);
+  if (remember) { store.set('shoot-script-text', text); store.set('shoot-script-name', name); }
   drawScript(); $('ptext').scrollTop = 0;
   $('sScript').classList.remove('on');
 }
-$('scUse').onclick = () => { const t = $('scPaste').value.trim(); if (t) useScript(t, 'Pasted'); };
-$('scNone').onclick = () => useScript('', '');
+$('scUse').onclick = () => { const t = $('scPaste').value.trim(); if (t) useScript(t, 'Pasted', !LOCAL); };
+$('scNone').onclick = () => useScript('', '', !LOCAL);
 
-// ================= projects on the Drop =================
-let folders = [], folder = store.get('drop-folder');  // (shared with the Drop page)
-function setFolder(f) { folder = f; store.set('drop-folder', f); $('bFolder').textContent = f || 'Project'; }
-setFolder(folder);
+// ================= projects =================
+// phone: the Drop's projects (folders - shared with the Drop page). Studio: the studio's projects - the same one as the
+// editor / Reader / Karaoke (StudioProject): its script in the prompter, takes into its footage folder
+let folders = [], folder = LOCAL ? (window.StudioProject?.get() || store.get('shoot-ep')) : store.get('drop-folder');
+let epTitle = {};
+function setFolder(f) {
+  folder = f;
+  if (LOCAL) { store.set('shoot-ep', f); if (f) window.StudioProject?.set(f); if ($('ep').value !== f) $('ep').value = f; }
+  else store.set('drop-folder', f);
+  $('bFolder').querySelector('.t').textContent = f || 'Project';
+  for (const x of $('fList').children) x.classList.toggle('on', x.dataset.f === f);
+  drawTakes();
+}
 async function loadFolders() {
+  if (LOCAL) {  // the projects, as the Reader lists them
+    const eps = (await fetch('/api/episodes').then((r) => r.json()).catch(() => [])).filter((e) => !e.id.endsWith('-test'));
+    const day = (ms) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
+    epTitle = Object.fromEntries(eps.map((e) => [e.id, e.title]));
+    $('ep').innerHTML = '<option value="">—</option>' + eps.map((e) => `<option value="${esc(e.id)}" data-sub="${esc(e.title)}" data-done="${e.done ? 1 : 0}" data-meta="${esc(e.template || '')} · ${day(e.created)}">${esc(e.id)}</option>`).join('');
+    if (folder && eps.some((e) => e.id === folder)) openProject(folder);
+    return;
+  }
   try { folders = (await api('list')).folders || []; } catch { return; }
-  $('fList').innerHTML = folders.map((f) => `<button class="it${f.name === folder ? ' on' : ''}" data-f="${esc(f.name)}"><span dir="auto">${esc(f.name)}</span><small>${f.files.length ? `${f.files.length} waiting` : ''}</small></button>`).join('') || '<p class="hint">No projects yet - make one above.</p>';
+  $('fList').innerHTML = folders.map((f) => `<button class="it${f.name === folder ? ' on' : ''}" data-f="${esc(f.name)}"><span dir="auto">${esc(f.name)}</span><small>${f.files.length ? `${f.files.length} waiting` : ''}</small></button>`).join('') || '<p class="empty">No projects yet - make one above.</p>';
+}
+async function openProject(id) {  // studio: the project's script + what is in its footage folder
+  setFolder(id);
+  if (!id) { useScript('', '', false); folderFiles(); return; }
+  const text = await fetch(`/api/ep/${encodeURIComponent(id)}/script`, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '');
+  useScript(text, epTitle[id] || id, false);
+  folderFiles();
+}
+async function folderFiles() {
+  if (!LOCAL) return;
+  if (!folder) { $('folderFiles').innerHTML = '<p class="empty">—</p>'; $('dirName').textContent = ''; return; }
+  const j = await fetch(`/api/shoot/takes?ep=${encodeURIComponent(folder)}`).then((r) => r.json()).catch(() => ({ files: [] }));
+  $('dirName').textContent = j.dir ? j.dir.split(/[\\/]/).slice(-2).join('\\') : '';
+  $('dirName').title = j.dir || '';
+  const mine = new Set(session.map((q) => q.name));
+  const files = (j.files || []).filter((f) => !mine.has(f.name));
+  $('folderFiles').innerHTML = files.length ? files.slice(0, 40).map((f) => `<div class="tk" data-file="${esc(f.name)}"><span class="ph"></span><div><b dir="auto">${esc(f.name)}</b><span class="m">${gb(f.size)} · ${new Date(f.mtime).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></div><span></span><span class="pl">${'<svg class="i"><use href="#i-play"/></svg>'}</span></div>`).join('')
+    : '<p class="empty">No videos in it yet.</p>';
+}
+if (LOCAL) {
+  $('ep').onchange = () => { if (!recording) openProject($('ep').value); else $('ep').value = folder; };
+  window.StudioProject?.onChange((id) => { if (!recording && id !== folder) openProject(id); });  // (picked in the editor / Reader)
+  $('folderFiles').onclick = (e) => { const row = e.target.closest('.tk'); if (row) play({ name: row.dataset.file, folder, up: 'file' }); };
 }
 let afterFolder = null;
 $('bFolder').onclick = () => { $('sFolder').classList.add('on'); loadFolders(); };
 $('fList').onclick = (e) => { const b = e.target.closest('.it'); if (!b) return; setFolder(b.dataset.f); $('sFolder').classList.remove('on'); afterFolder?.(); afterFolder = null; };
 $('fMake').onclick = async () => {
   const name = $('fNew').value.trim(); if (!name) return;
-  try { const j = await api('mkdir', { folder: name }); setFolder(j.folder); $('fNew').value = ''; $('sFolder').classList.remove('on'); afterFolder?.(); afterFolder = null; }
+  try { const j = await api('mkdir', { folder: name }); $('fNew').value = ''; await loadFolders(); setFolder(j.folder); $('sFolder').classList.remove('on'); afterFolder?.(); afterFolder = null; }
   catch (e) { toast(e.message); }
 };
 
 // ================= recording =================
 let recording = false, mr = null, chunks = [], t0 = 0, timerI = 0, promptAt = 0, vstream = null;
 const pickType = () => ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find((t) => window.MediaRecorder?.isTypeSupported?.(t)) || '';
-$('rec').onclick = async () => {
+async function recClick() {
   if (recording) return stopRec();
-  if (!cam) return;
-  if (countdown) {
+  if (!cam || $('rec').disabled) return;
+  if (LOCAL && !folder) return toast('Pick the project first (top left) - the takes go into its footage folder');
+  $('speedPop').classList.remove('on');
+  const n0 = countSecs();
+  if (n0) {
     $('rec').disabled = true;
-    for (const n of [3, 2, 1]) { $('count').textContent = n; $('count').classList.add('on'); await sleep(800); }
+    for (let n = n0; n > 0; n--) { $('count').textContent = n; $('count').classList.add('on'); await sleep(800); }
     $('count').classList.remove('on'); $('rec').disabled = false;
   }
   startRec();
-};
+}
+$('rec').onclick = recClick;
+document.addEventListener('keydown', (e) => {  // the computer: Space = record / stop
+  if (e.code !== 'Space' || e.target.closest('input, textarea, select, button') || $('review').classList.contains('on') || $('player').classList.contains('on') || $('start')) return;
+  e.preventDefault(); recClick();
+});
 function startRec() {
   vstream ||= out.captureStream(30);
   const type = pickType();
@@ -551,38 +837,48 @@ function startRec() {
   mr.start(1000);
   recording = true; document.body.classList.add('rec');
   t0 = Date.now(); $('timer').textContent = '0:00';
-  timerI = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); $('timer').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }, 250);
-  promptAt = $('ptext').scrollTop; paused = false; $('ppaused').classList.remove('on'); scrolling = true;
+  timerI = setInterval(() => { $('timer').textContent = mmss(Math.floor((Date.now() - t0) / 1000)); }, 250);
+  promptAt = $('ptext').scrollTop; paused = false; $('pPause').classList.remove('on'); $('pPause').lastChild.textContent = 'Pause'; scrolling = true;
 }
 function stopRec() {
   recording = false; document.body.classList.remove('rec'); clearInterval(timerI); scrolling = false;
   try { mr.stop(); } catch {}
 }
 
-// ---- the take: kept on the phone (IndexedDB) until it is up or thrown away ----
+// ---- the take: kept on the device (IndexedDB) until it is in the project or thrown away ----
 const db = new Promise((ok, fail) => { const r = indexedDB.open('shoot', 1); r.onupgradeneeded = () => r.result.createObjectStore('takes', { keyPath: 'id' }); r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error); });
 const tx = async (mode, fn) => { const d = await db; return new Promise((ok, fail) => { const t = d.transaction('takes', mode); const r = fn(t.objectStore('takes')); t.oncomplete = () => ok(r?.result); t.onerror = () => fail(t.error); }); };
-const saveTake = (t) => tx('readwrite', (s) => s.put(t)).catch(() => {});
-const dropTake = (id) => tx('readwrite', (s) => s.delete(id)).catch(() => {});
-const allTakes = () => tx('readonly', (s) => s.getAll()).catch(() => []);
+const keep = (t) => { const { url, ...rest } = t; return tx('readwrite', (s) => s.put(rest)).catch(() => {}); };
+const unkeep = (id) => tx('readwrite', (s) => s.delete(id)).catch(() => {});
+const kept = () => tx('readonly', (s) => s.getAll()).catch(() => []);
 
+const session = [];  // this session's takes: {id, name, folder, secs, filter, thumb, blob, up, sent, size}
 let rvTake = null, rvUrl = '';
 const reviewQ = [];
+function snap() {  // a small picture of the take's last frame, for the lists
+  const c = document.createElement('canvas'); c.width = 90; c.height = 160;
+  c.getContext('2d').drawImage(out, 0, 0, 90, 160);
+  return c.toDataURL('image/jpeg', 0.7);
+}
 function took(blob) {
   const d = new Date(), ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
   const hhmmss = `${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
-  const t = { id: `${Date.now()}`, name: `shot-${hhmmss}.${ext}`, type: blob.type, blob, state: 'review', filter: F.id, promptAt, secs: Math.round((Date.now() - t0) / 1000) };
-  saveTake(t);
+  const t = { id: `${Date.now()}`, name: `shot-${hhmmss}.${ext}`, type: blob.type, blob, state: 'review', filter: F.id, promptAt, secs: (Date.now() - t0) / 1000, thumb: snap(), folder };
+  keep(t);
   showReview(t);
 }
+const fname = (id) => FILTERS.find((f) => f.id === id)?.name || '';
 function showReview(t) {
   rvTake = t;
   if (rvUrl) URL.revokeObjectURL(rvUrl);
   rvUrl = URL.createObjectURL(t.blob);
   $('rv').src = rvUrl; $('rv').play().catch(() => {});
-  $('rvinfo').textContent = `${t.name} · ${gb(t.blob.size)} · ${FILTERS.find((f) => f.id === t.filter)?.name || ''}`;
-  $('rvSend').textContent = folder ? `Send to the Drop · ${folder}` : 'Send to the Drop…';
-  $('rvSave').textContent = 'Save to phone';
+  $('rvinfo').textContent = `${t.name} · ${fname(t.filter)} · ${gb(t.blob.size)}`;
+  $('rvlen').textContent = mmss(t.secs || 0);
+  const to = LOCAL ? t.folder || folder : folder;
+  $('rvSendT').textContent = to ? `${LOCAL ? 'Keep' : 'Send'} - into ${to}` : 'Send to project…';
+  if (!LOCAL) $('rvSave').querySelector('span').textContent = 'Save to Photos';
+  $('rvList').innerHTML = takesHtml(session.filter((x) => x.folder === to).slice(0, 6), false);
   $('review').classList.add('on');
 }
 function closeReview() {
@@ -591,49 +887,93 @@ function closeReview() {
   const next = reviewQ.shift(); if (next) showReview(next);
 }
 $('rvSend').onclick = () => {
-  if (!folder) { afterFolder = () => $('rvSend').onclick(); $('sFolder').classList.add('on'); loadFolders(); return; }
-  const t = rvTake; t.state = 'send'; t.folder = folder; saveTake(t);
+  const t = rvTake;
+  if (LOCAL) t.folder ||= folder; else t.folder = folder;
+  if (!t.folder) { afterFolder = () => $('rvSend').onclick(); $('sFolder').classList.add('on'); loadFolders(); return; }
+  t.state = 'send'; keep(t);
   enqueue(t); closeReview();
 };
 $('rvSave').onclick = async () => {  // iPhone: the share sheet's "Save Video" puts it in Photos
   const t = rvTake, file = new File([t.blob], t.name, { type: t.type });
   try {
-    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); $('rvSave').textContent = 'Saved ✓'; return; }
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); $('rvSave').querySelector('span').textContent = 'Saved ✓'; return; }
   } catch (e) { if (e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = rvUrl; a.download = t.name; a.click();
 };
 $('rvAgain').onclick = () => {
-  const t = rvTake; dropTake(t.id);
+  const t = rvTake; unkeep(t.id);
   $('ptext').scrollTop = t.promptAt || 0;  // the prompter back where this take started
   closeReview();
 };
-async function resumeTakes() {  // takes left from last time: unsent ones go up, undecided ones ask again
-  for (const t of (await allTakes()).sort((a, b) => a.id - b.id)) {
+async function resumeTakes() {  // takes left from last time: unsent ones go in, undecided ones ask again
+  for (const t of (await kept()).sort((a, b) => a.id - b.id)) {
     if (t.state === 'send') enqueue(t);
     else if (t.state === 'review') { if (rvTake) reviewQ.push(t); else showReview(t); }
   }
 }
 
-// ================= up to the Drop (resumable, like the Drop page) =================
-const CHUNK = 16 * 1024 * 1024;
-const queue = [];
-let busy = false;
-function enqueue(t) { if (!queue.some((q) => q.id === t.id)) queue.push({ ...t, sent: 0, up: 'waiting' }); drawUps(); run(); }
-function drawUps() {
-  const left = queue.filter((q) => q.up !== 'done'), failed = queue.filter((q) => q.up === 'failed');
-  const total = left.reduce((s, q) => s + q.blob.size, 0), sent = left.reduce((s, q) => s + q.sent, 0);
-  $('ups').classList.toggle('on', queue.length > 0);
-  $('ups').classList.toggle('err', failed.length > 0);
-  $('ups').textContent = failed.length ? `${failed.length} failed · tap to retry` : left.length ? `Sending ${left.length} · ${Math.floor((sent / Math.max(1, total)) * 100)}%` : `Sent ✓ ${queue.length}`;
+// ---- the takes list (phone: a sheet from the sending pill; studio: the right column) ----
+function takesHtml(list, rows = true) {
+  if (!list.length) return rows ? '<p class="empty">The takes you film show here.</p>' : '';
+  return list.map((q) => {
+    const pct = Math.floor((q.sent / Math.max(1, q.size)) * 100);
+    const st = q.up === 'done' ? `<span class="st ok">${LOCAL ? 'In the folder' : 'Sent'} ✓</span>` : q.up === 'failed' ? '<span class="st err">Failed</span>'
+      : q.up === 'uploading' ? `<span class="st up">${LOCAL ? 'Saving' : 'Uploading'} ${pct}%</span>` : '<span class="st">Waiting</span>';
+    return `<div class="tk" data-id="${q.id}"><img src="${q.thumb || ''}" alt=""><div><b>${esc(q.name)}</b><span class="m">${mmss(q.secs || 0)} · ${esc(fname(q.filter))}</span></div>${st}${rows ? '<span class="pl"><svg class="i"><use href="#i-play"/></svg></span>' : '<span></span>'}</div>`;
+  }).join('');
 }
-$('ups').onclick = () => { for (const q of queue) if (q.up === 'failed') q.up = 'waiting'; drawUps(); run(); };
-function put(url, body, range, onProgress) {
+function drawTakes() {
+  const list = session.filter((q) => q.folder === folder);
+  $('tkSub').textContent = folder ? `${folder} · ${list.length}` : '';
+  if (LOCAL) $('tkSub2').textContent = list.length ? `this session · ${list.length}` : '';
+  $('tkList').innerHTML = takesHtml(list);
+}
+$('ups').onclick = () => {
+  if (session.some((q) => q.up === 'failed')) { for (const q of session) if (q.up === 'failed') q.up = 'waiting'; drawUps(); run(); return; }
+  drawTakes(); $('sTakes').classList.add('on');
+};
+let plTake = null;
+function play(q) {
+  plTake = q;
+  $('pl').src = q.blob ? (q.url ||= URL.createObjectURL(q.blob)) : LOCAL ? `/api/shoot/file?ep=${encodeURIComponent(q.folder)}&name=${encodeURIComponent(q.name)}` : `/api/get?k=${encodeURIComponent(KEY)}&f=${encodeURIComponent(`${q.folder}/${q.name}`)}`;
+  $('pl').play().catch(() => {});
+  $('plinfo').textContent = `${q.name}${q.filter ? ` · ${fname(q.filter)}` : ''} · ${q.folder}`;
+  $('plDel').style.display = q.up === 'done' ? '' : 'none';  // (only a take filmed here, once it is in)
+  $('player').classList.add('on');
+}
+$('tkList').onclick = (e) => { const row = e.target.closest('.tk'); const q = row && session.find((x) => x.id === row.dataset.id); if (q) play(q); };
+$('plClose').onclick = () => { $('pl').pause(); $('pl').removeAttribute('src'); $('pl').load(); $('player').classList.remove('on'); };
+$('plDel').onclick = async () => {  // out of the project (the phone: off the Drop and off the PC too)
+  const q = plTake;
+  try { await api('delete', { folder: q.folder, name: q.name, size: q.size }); } catch (e) { return toast(e.message); }
+  session.splice(session.indexOf(q), 1); $('plClose').onclick(); drawUps(); toast(`${q.name} deleted`);
+};
+
+// ================= into the project: up to the Drop (phone, resumable) / into its footage folder (studio) =================
+const CHUNK = 16 * 1024 * 1024;
+let busy = false;
+function enqueue(t) {
+  if (session.some((q) => q.id === t.id)) return;
+  session.unshift(Object.assign(t, { sent: 0, size: t.blob.size, up: 'waiting' }));
+  drawUps(); run();
+}
+function drawUps() {
+  const left = session.filter((q) => q.up !== 'done'), failed = session.filter((q) => q.up === 'failed');
+  const total = left.reduce((s, q) => s + q.size, 0), sent = left.reduce((s, q) => s + q.sent, 0), pct = Math.floor((sent / Math.max(1, total)) * 100);
+  $('ups').classList.toggle('on', session.length > 0);
+  $('ups').classList.toggle('err', failed.length > 0);
+  $('ups').classList.toggle('done', !left.length);
+  $('ups').querySelector('.t').textContent = failed.length ? `${failed.length} failed · retry` : left.length ? `Sending ${left.length} · ${pct}%` : `${session.length} sent ✓`;
+  $('ups').querySelector('.bar > div').style.width = `${pct}%`;
+  drawTakes();
+}
+function xhr(method, url, body, headers, onProgress) {
   return new Promise((ok, fail) => {
     const x = new XMLHttpRequest();
-    x.open('PUT', url);
-    x.setRequestHeader('Content-Range', range);
+    x.open(method, url);
+    for (const [k, v] of Object.entries(headers)) x.setRequestHeader(k, v);
     if (onProgress) x.upload.onprogress = (e) => onProgress(e.loaded);
-    x.onload = () => ok({ status: x.status, range: x.status === 308 ? x.getResponseHeader('Range') : null });
+    x.onload = () => ok({ status: x.status, range: x.status === 308 ? x.getResponseHeader('Range') : null, text: x.responseText });
     x.onerror = () => fail(new Error('network'));
     x.ontimeout = () => fail(new Error('timeout'));
     x.timeout = 10 * 60 * 1000;
@@ -641,7 +981,14 @@ function put(url, body, range, onProgress) {
   });
 }
 const arrived = (range) => (range ? +range.split('-')[1] + 1 : 0);
-async function upload(q) {
+async function saveLocal(q) {  // the studio: the whole file in one go, straight into the project's footage folder
+  q.up = 'uploading'; drawUps();
+  const r = await xhr('POST', `/api/shoot/take?ep=${encodeURIComponent(q.folder)}&name=${encodeURIComponent(q.name)}`, q.blob, { 'Content-Type': q.type || 'video/mp4' }, (n) => { q.sent = n; drawUps(); });
+  let j = {}; try { j = JSON.parse(r.text || '{}'); } catch {}
+  if (r.status !== 200) throw new Error(j.error || `save ${r.status}`);
+  q.name = j.name;
+}
+async function upload(q) {  // the phone: resumable 16 MB pieces into the Drop bucket; picks up after a dropped connection
   const f = q.blob, total = f.size, type = q.type || 'video/mp4';
   let { url, name } = await api('session', { folder: q.folder, name: q.name, size: total, type, unique: true });
   q.name = name;
@@ -650,7 +997,7 @@ async function upload(q) {
   while (offset < total) {
     const end = Math.min(offset + CHUNK, total);
     try {
-      const r = await put(url, f.slice(offset, end), `bytes ${offset}-${end - 1}/${total}`, (n) => { q.sent = offset + n; drawUps(); });
+      const r = await xhr('PUT', url, f.slice(offset, end), { 'Content-Range': `bytes ${offset}-${end - 1}/${total}` }, (n) => { q.sent = offset + n; drawUps(); });
       if (r.status === 200 || r.status === 201) { offset = total; break; }
       if (r.status === 308) { offset = r.range ? arrived(r.range) : end; tries = 0; continue; }
       if (r.status === 404 || r.status === 410) { ({ url } = await api('session', { folder: q.folder, name: q.name, size: total, type })); offset = 0; continue; }
@@ -658,20 +1005,27 @@ async function upload(q) {
     } catch (e) {
       if (++tries > 12) throw e;
       await sleep(Math.min(30000, 1000 * 2 ** tries));
-      try { const s = await put(url, null, `bytes */${total}`); if (s.status === 200 || s.status === 201) { offset = total; break; } if (s.status === 308 && s.range) offset = arrived(s.range); } catch {}
+      try { const s = await xhr('PUT', url, null, { 'Content-Range': `bytes */${total}` }); if (s.status === 200 || s.status === 201) { offset = total; break; } if (s.status === 308 && s.range) offset = arrived(s.range); } catch {}
     }
   }
-  q.sent = total; q.up = 'done'; q.blob = null; drawUps();
-  dropTake(q.id);  // up and safe: off the phone's memory (a copy saved to Photos stays there)
 }
 async function run() {
   if (busy) return;
   busy = true;
-  for (let q; (q = queue.find((x) => x.up === 'waiting')); ) {
-    try { await upload(q); } catch (e) { q.up = 'failed'; q.err = e.message; drawUps(); }
+  for (let q; (q = [...session].reverse().find((x) => x.up === 'waiting')); ) {
+    try {
+      await (LOCAL ? saveLocal(q) : upload(q));
+      q.sent = q.size; q.up = 'done';
+      if (!LOCAL) { q.blob = null; if (q.url) URL.revokeObjectURL(q.url); q.url = ''; }  // (the phone's memory: it's in the project now)
+      unkeep(q.id); drawUps(); folderFiles();
+    } catch (e) { q.up = 'failed'; q.err = e.message; drawUps(); }
   }
   busy = false;
 }
+
+setFolder(folder);
+drawScript();
+if (LOCAL) loadFolders();  // (the project picker fills before the camera starts)
 </script>
 </body>
 </html>

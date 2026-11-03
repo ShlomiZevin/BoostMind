@@ -149,8 +149,7 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
   // listed as a project. Only what changed goes up; everything again once a day (the bucket forgets after 60 days)
   const pushed = new Map();
   let pushedDay = 0;
-  async function pushScripts() {
-    if (Date.now() - pushedDay > 864e5) { pushed.clear(); pushedDay = Date.now(); }
+  function scriptList() {  // [{id, file, name, updated, drop}], newest first
     const all = [], since = Date.now() - 120 * 864e5;
     const take = (id, file, name, drop) => { try { const st = fs.statSync(file); if (st.mtimeMs > since) all.push({ id, file, name, updated: st.mtimeMs, drop }); } catch {} };
     const SC = path.join(ROOT, 'scripts'), EPS = path.join(ROOT, 'episodes');
@@ -165,17 +164,24 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
         take(`e/${d}`, path.join(EPS, d, 'script.txt'), cfg.title || d, drop);
       }
     } catch {}
+    for (const s of all) {
+      try { const first = fs.readFileSync(s.file, 'utf8').split(/\r?\n/)[0]; if (first.startsWith('# ')) s.name = first.slice(2).trim(); } catch {}
+      s.name ||= s.id.slice(2);
+    }
+    return all.sort((a, b) => b.updated - a.updated);
+  }
+  async function pushScripts() {
+    if (Date.now() - pushedDay > 864e5) { pushed.clear(); pushedDay = Date.now(); }
+    const all = scriptList();
     let changed = false;
     for (const s of all) {
-      const text = fs.readFileSync(s.file, 'utf8'), first = text.split(/\r?\n/)[0];
-      if (first.startsWith('# ')) s.name = first.slice(2).trim();
-      s.name ||= s.id.slice(2);
       if (pushed.get(s.id) === s.updated) continue;
+      const text = fs.readFileSync(s.file, 'utf8');
       const r = await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent(`_scripts/${s.id}.txt`)}`,
         { method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text });
       if (r.ok) { pushed.set(s.id, s.updated); changed = true; }
     }
-    const index = JSON.stringify(all.sort((a, b) => b.updated - a.updated).map(({ id, name, updated, drop }) => ({ id, name, updated, drop })));
+    const index = JSON.stringify(all.map(({ id, name, updated, drop }) => ({ id, name, updated, drop })));
     if (changed || index !== pushScripts.last) {
       const r = await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent('_scripts/index.json')}`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: index });
