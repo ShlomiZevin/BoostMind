@@ -27,7 +27,7 @@
 <style>
 :root{
   --ink:#24304a; --paper:#fffdf6; --paper2:#f6efdc; --edge:#e3d6b4; --navy:#24406e; --gold:#f2b632; --gold2:#d9901a; --green:#3aa565; --red:#d9534f;
-  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;background:#cfe3f0;font-family:Rubik,system-ui,sans-serif;color:var(--ink);touch-action:manipulation;overscroll-behavior:none}
@@ -132,6 +132,7 @@ svg{display:block}
 .glow{position:relative;z-index:10;box-shadow:0 0 0 4px #fff,0 0 0 9px var(--gold),0 0 30px 10px #f2b632aa!important}
 #loading{position:fixed;inset:0;background:#24406e;color:#fff;display:grid;place-items:center;font-size:22px;font-weight:900;z-index:20}
 </style>
+<script src="/verse/game-frame.js"></script>
 </head>
 <body>
 <div id="top">

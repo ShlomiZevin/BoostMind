@@ -400,7 +400,7 @@ const tut = {
     if (dim) Object.assign(tutHole.style, { left: sp.x + 'px', top: sp.y + 'px', width: sp.w + 'px', height: sp.h + 'px' });
     // the card sits away from what it points at
     const up = sp && sp.y + sp.h / 2 > H * 0.5;
-    tutCard.style.top = up ? `calc(env(safe-area-inset-top,0px) + 108px)` : 'auto';
+    tutCard.style.top = up ? `calc(var(--safe-t) + 108px)` : 'auto';
     tutCard.style.bottom = up ? 'auto' : `calc(env(safe-area-inset-bottom,0px) + 64px)`;
     if (tutWait && tutWait.done && !tutWait.shown) { tutWait.shown = true; $('tutText').innerHTML = s.text + ' <span class="ok">יופי!</span>'; }
     $('tutNext').disabled = !!(tutWait && !tutWait.done);

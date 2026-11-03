@@ -12,7 +12,7 @@
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
 <style>
 :root{--ink:#1b2a5a;--card:#fffaf0;--gold:#ffc94a;--gold2:#e09a1c;--blue:#2f6fd1;--green:#2bb673;--red:#e5484d;
-  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px));--safe-b:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 html,body{margin:0;height:100%;overflow:hidden;background:#1b2a5a;font-family:Rubik,system-ui,sans-serif;color:var(--ink);touch-action:none;overscroll-behavior:none}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
@@ -91,6 +91,7 @@ button{font-family:inherit;border:0;cursor:pointer}
 @media (hover:none){.keyhint{display:none}}
 #loading{position:fixed;inset:0;display:grid;place-items:center;color:#fff;font-size:20px;font-weight:700;background:#1b2a5a;z-index:9}
 </style>
+<script src="/verse/game-frame.js"></script>
 </head>
 <body>
 <canvas id="c"></canvas>

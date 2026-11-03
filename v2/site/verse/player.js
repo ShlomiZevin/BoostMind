@@ -156,10 +156,12 @@ export function openPlayer(id, q = {}) {
 }
 
 // ---------- a game: the video page's parts, in a frame (his ask, 2026-11-03; mockups scripts/v2-design/game-frame.mjs) ----------
-// Every game in wiki.json gets this page for free - nothing to add inside the game. The game sits in a frame and
-// nothing ever covers it: the character + follow and the logo above, the actions under it (the planet like in the
-// sticker's place, comments under the game's id, save, share), the title card with a labelled "מסך מלא". Full screen
-// = the game fills the phone and ONE labelled pill (the character's face + "יציאה ממסך מלא") brings the frame back.
+// Every game in wiki.json gets this page for free. Laid out like the video page, but nothing ever covers the game: the
+// character + follow and the logo above, the rail beside the framed game (the planet like in the sticker's place,
+// comments under the game's id, save, share), the title card with a labelled "מסך מלא" below. Full screen = the game
+// fills the phone and ONE labelled pill (the character's face + "יציאה ממסך מלא") brings the frame back.
+// The game protocol (verse/game-frame.js, loaded by every game): the game says hello, the page answers with the strip
+// to keep free at its top - 0 in the frame, the pill's height in full screen - so the pill never hides the game's HUD.
 // (The first version floated the video's buttons over the game and faded them - he couldn't find them again.)
 const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
@@ -179,12 +181,14 @@ export function openGame(id, q = {}) {
         ${lead ? `<a class="vp-who" href="#/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
         <a class="vp-brand" href="#/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
       </div>
-      <div class="vg-game"><iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe></div>
+      <div class="vg-mid">
       <div class="vg-acts">
         <button data-heart><span class="vx-round">${I.planet}</span><span data-heart-l>${esc(T.gLike)}</span><small data-count-h></small></button>
         <button data-comments><span class="vx-round">${I.comment}</span>${esc(T.comments)}<small data-count-c></small></button>
         <button data-save><span class="vx-round">${I.save}</span><span data-save-l>${esc(T.save)}</span></button>
         <button data-share><span class="vx-round">${I.share}</span>${esc(T.share)}</button>
+      </div>
+      <div class="vg-game"><iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe></div>
       </div>
       <div class="vg-card">
         <div><h2>${esc(g.title)}</h2><div class="meta">${esc(g.tagline || (lead ? T.gMeta(C[lead].name) : ''))}</div></div>
@@ -218,14 +222,23 @@ export function openGame(id, q = {}) {
   track('game', id);
   // full screen: the page's own (no frame) everywhere; on top of it the browser's real full screen where there is one
   // (Android, computers - not iPhone). Leaving the browser's full screen (Esc, back) brings the frame back too.
+  const frame = $('iframe', el);
+  const tell = () => {
+    const top = el.classList.contains('full') ? Math.ceil($('.vg-exit', el).getBoundingClientRect().bottom + 6) : 0;
+    frame.contentWindow?.postMessage({ verse: 'frame', top }, '*');
+  };
   const full = async (on) => {
     el.classList.toggle('full', on);
+    tell();
     const go = el.requestFullscreen || el.webkitRequestFullscreen;
     if (on && go && !document.fullscreenElement) { try { await go.call(el); } catch (x) {} }
     if (!on && document.fullscreenElement === el) document.exitFullscreen?.().catch(() => {});
+    tell();
   };
-  P.onFs = () => { if (P && !document.fullscreenElement) P.el.classList.remove('full'); };
+  P.onFs = () => { if (P && !document.fullscreenElement) P.el.classList.remove('full'); if (P) tell(); };
   document.addEventListener('fullscreenchange', P.onFs);
+  P.onMsg = (e) => { if (P && e.source === frame.contentWindow && e.data && e.data.verse === 'hello') tell(); };
+  addEventListener('message', P.onMsg);
   el.addEventListener('click', async (e) => {
     const b = e.target.closest('button, a');
     if (!b) return;
@@ -307,6 +320,7 @@ function destroy() {
   P.off.forEach((u) => u && u());
   document.removeEventListener('keydown', P.key);
   if (P.onFs) document.removeEventListener('fullscreenchange', P.onFs);
+  if (P.onMsg) removeEventListener('message', P.onMsg);
   if (P.video) { P.video.pause(); P.video.removeAttribute('src'); P.video.load(); }
   if (document.fullscreenElement === P.el) document.exitFullscreen?.().catch(() => {});
   P.el.querySelector('iframe')?.remove();   // the game stops (its sound too)

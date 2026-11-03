@@ -115,8 +115,8 @@ Read before any idea - the game must be something THIS character would be in:
 - **Games belong to their character - they live in the Shlomiverse, on the character's wiki page** (his ask,
   3 Nov 2026). The contract is ONE `game.json` - nothing else: `games()` in `scripts/wiki/build.py` collects every
   `public/<folder>/<slug>/game.json` with `"status": "live"` into wiki.json `games`, and the verse shows it on the
-  character's page (shlomiverse.com/wiki/#/c/<id>), in the home games row and on #/games, opening the game in a
-  full-screen layer inside the verse. Per game: `title`, `tagline`, `character` (studio id; `chars` = a list for
+  character's page (shlomiverse.com/wiki/#/c/<id>), in the home games row and on #/games, opening the game on its
+  page inside the verse (#/play/<id> - see "The frame protocol" in step 8). Per game: `title`, `tagline`, `character` (studio id; `chars` = a list for
   several), `date` (YYYY-MM-DD - always set it), `status`, `cover` (default `cover.jpg`, **1.91:1**, e.g. 1200x630).
   Then `python scripts/wiki/build.py` + `node scripts/wiki/push.cjs` (no deploy for the wiki; other sessions may have
   work in `scripts/wiki/*` - never revert it). The verse's pages (`v2/site/wiki/`, `v2/site/verse/`) belong to the
@@ -168,9 +168,22 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
    playhouse); the end screen offers the
    character's wiki page / site. Never the Plaxzy logo. RTL links: the arrow goes where Hebrew reads it - text then
    "←" ("יניב בשלומיוורס ←"), check it on screen.
-   **Every game is played inside the verse's video-style page** (#/play/<id>, an iframe, since 3 Nov 2026): every link
-   back to the verse gets `target="_top"` (never nest the verse in itself), and when framed
-   (`window.top !== window`) the game shows no share / like / follow buttons of its own - the page has them.
+   **The frame protocol - every game, no exceptions** (his rule, 3 Nov 2026: "every game saves space for the things
+   that the platform adds"). Every game is played inside the verse's game page (#/play/<id>, an iframe): the
+   character + follow and the logo above it, the like / comments / save / share rail beside it, the title card with
+   "מסך מלא" below. In full screen the game fills the phone and the verse puts ONE pill at its top - the character's
+   face + "יציאה ממסך מלא". The game makes room for it; the platform never covers the game's HUD. Two lines:
+   - `<script src="/verse/game-frame.js"></script>` in `<head>` (the protocol's game side, `v2/site/verse/game-frame.js`);
+   - the template's top variable takes the strip: `--safe-t: calc(env(safe-area-inset-top, 0px) + var(--verse-top, 0px));`
+     and EVERYTHING anchored to the top (HUD, banners, screens, tutorial cards - in CSS and in game.js) uses
+     `var(--safe-t)`, never `env(safe-area-inset-top)` directly.
+   `--verse-top` is 0 on the game's own address and in the frame, and the pill's height (about 56px) in full screen;
+   `html.in-verse` / `html.verse-full` mark the two states, and a `verseframe` event ({ top }, also
+   `window.VerseFrame.top`) tells a canvas game that draws its own HUD where to start. Inside the verse the script
+   sends links that leave the game to the whole tab (a link back to the hub, `../` / `/hani-games/`, goes to the
+   verse's games page), so plain links are fine; still write `target="_top"` on links to the verse. Things the page
+   already has - share, like, follow, "back to the site" - get class `verse-hide` (hidden in the verse, shown on the
+   game's own address). Test it: open #/play/<id>, press "מסך מלא", start the game - the HUD sits under the pill.
 9. **Records**: localStorage keys `shlomiverse:<slug>:best` (a plain number - hubs read it) and a daily best
    `shlomiverse:<slug>:day` ("date|value"); Hani's games keep `hani-games:<slug>:*`. Same course for everyone each day
    = a generator seeded by `'<slug>|' + day`.

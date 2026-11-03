@@ -22,7 +22,7 @@
 <style>
 :root{
   --ink:#10284a; --card:#fbfdff; --blue:#1f6fd1; --blue2:#0f4790; --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --sky:#d8ecff;
-  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
@@ -124,6 +124,7 @@ body.turn #turn{display:flex}
 .keyhint{font-size:12px;color:#9aa6bd;font-weight:500}
 @media (hover:none){.keyhint{display:none}}
 </style>
+<script src="/verse/game-frame.js"></script>
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -182,6 +183,6 @@ body.turn #turn{display:flex}
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=4"></script>
+<script src="game.js?v=5"></script>
 </body>
 </html>
