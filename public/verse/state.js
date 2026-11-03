@@ -205,8 +205,8 @@ export async function follow(char, on = true) {
   try { await call('follow', { char, on }); if (on) track('follow', char); return true; }
   catch (e) { if (was) st.follows.add(char); else st.follows.delete(char); emit(); toast(T.errGeneric); return false; }
 }
-export async function save(videoId) {
-  if (!(await needFan('save'))) return;
+export async function save(videoId, why = 'save') {
+  if (!(await needFan(why))) return;
   const on = !st.saves.has(videoId);
   if (on) st.saves.set(videoId, Date.now()); else st.saves.delete(videoId);
   emit();

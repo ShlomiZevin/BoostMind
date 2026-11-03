@@ -94,12 +94,12 @@ let filter = 'all', readTimer = 0;
 function noteRow(n) {
   const unread = !n.read ? 'unread' : '';
   let face, name, line, thumb = '', href;
-  if (n.kind === 'video') { face = n.char ? av({ char: n.char, ring: true }) : av({ planet: true }); name = n.from || 'השלומיוורס'; line = T.note.video(n.text); href = `#/v/${n.videoId}`;
+  if (n.kind === 'video') { face = n.char ? av({ char: n.char, ring: true }) : av({ planet: true }); name = n.from || 'השלומיוורס'; line = T.note.video(n.text); href = `${itemLink(n.videoId)}`;
     const v = V[n.videoId]; if (v && v.poster) thumb = `<img class="thumb" src="${abs(v.poster)}" alt="">`; }
   else if (n.kind === 'story') { face = n.char === 'verse' ? av({ planet: true }) : av({ char: n.char, ring: true }); name = n.from; line = T.note.story(n.text); href = `#/story/${n.char}`; }
-  else if (n.kind === 'reply') { face = n.char ? av({ char: n.char, ring: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.note.reply(n.text); href = `#/v/${n.videoId}?c=${n.commentId}`; }
-  else if (n.kind === 'like') { face = n.n > 1 || !n.from ? av({ planet: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = T.note.like(n.n || 1, n.from); line = `"${n.text}"`; href = `#/v/${n.videoId}?c=${n.focus || n.commentId}`; }
-  else if (n.kind === 'stamp') { face = n.char ? av({ char: n.char }) : av({ planet: true }); name = T.note.stamp(n.n || 1); line = `"${n.text}"`; href = `#/v/${n.videoId}?sticker=${n.stickerId}`;
+  else if (n.kind === 'reply') { face = n.char ? av({ char: n.char, ring: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.note.reply(n.text); href = `${itemLink(n.videoId)}?c=${n.commentId}`; }
+  else if (n.kind === 'like') { face = n.n > 1 || !n.from ? av({ planet: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = T.note.like(n.n || 1, n.from); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?c=${n.focus || n.commentId}`; }
+  else if (n.kind === 'stamp') { face = n.char ? av({ char: n.char }) : av({ planet: true }); name = T.note.stamp(n.n || 1); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?sticker=${n.stickerId}`;
     if (n.img) thumb = `<img class="thumb sq" src="${esc(n.img)}" alt="">`; }
   else { face = av({ planet: true }); name = T.note.welcome(n.text || st.fan?.nick || ''); line = T.note.welcomeLine; href = '#/characters'; }
   return `<a class="nt-row ${unread}" href="${href}">${!n.read ? '<span class="vx-dot"></span>' : ''}${face}
@@ -133,12 +133,18 @@ function notesBody() {
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-nfilter]'); if (b) { filter = b.dataset.nfilter; redrawBell(); refresh(true); } });
 
 // ---------- saved: their own place ----------
+// a video's page or a game's (the bell, the saved page): comments, likes and saves keep the game's id where a video's goes
+const gameOf = (id) => (W.games || []).find((g) => g.id === id);
+const itemLink = (id) => (gameOf(id) ? '#/play/' : '#/v/') + id;
 export function savedPage() {
   const head = pageHead(T.savedTitle, T.savedSub);
   if (!signedIn()) return `<div class="nt-page sv-page">${head}<div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(T.meNone.saved)}</p></div>
     <button class="vx-btn white" data-signin>${I.google}${esc(T.signinGoogle)}</button></div></div>`;
-  const saves = [...st.saves.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => V[id]).filter(Boolean);
-  return `<div class="nt-page sv-page">${head}${saves.length ? `<div class="vgrid">${saves.map(vcard).join('')}</div>` : `<div class="empty" style="margin-top:16px">${esc(T.savedEmpty)}</div>`}</div>`;
+  const ids = [...st.saves.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+  const saves = ids.map((id) => V[id]).filter(Boolean), games = ids.map(gameOf).filter(Boolean);
+  if (!saves.length && !games.length) return `<div class="nt-page sv-page">${head}<div class="empty" style="margin-top:16px">${esc(T.savedEmpty)}</div></div>`;
+  return `<div class="nt-page sv-page">${head}${saves.length ? `<div class="vgrid">${saves.map(vcard).join('')}</div>` : ''}
+    ${games.length ? `<h2 class="sv-h">${esc(T.savedGames)}</h2><div class="ggrid">${games.map((g) => gcard(g)).join('')}</div>` : ''}</div>`;
 }
 
 // ---------- me ----------

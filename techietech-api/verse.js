@@ -59,6 +59,8 @@ const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: '
 const clip = (v, n) => String(v ?? '').replace(/\s+$/g, '').slice(0, n);
 const oneLine = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 const idOk = (v) => typeof v === 'string' && /^[\w-]{1,80}$/.test(v);
+// where a comment / sticker lives: a video's page or a game's (games keep their comments under the game's id)
+const pageOf = async (id) => `/wiki/#/${(await _canon()).games?.[id] ? 'play' : 'v'}/${id}`;
 const fail = (code, msg) => { throw new HttpsError(code, msg); };
 
 // per-instance burst guard (the daily quotas below are the real limits)
@@ -259,6 +261,20 @@ const ops = {
     return { ok: true };
   },
 
+  // the like on a game's page (the planet, 2026-11-03): one per fan, counted beside its comments
+  async heart(uid, d) {
+    if (!idOk(d.id)) fail('invalid-argument', 'id');
+    await fanOf(uid);
+    const mine = db.collection('fans').doc(uid).collection('hearts').doc(d.id), stats = db.collection('videoStats').doc(d.id);
+    await db.runTransaction(async (tx) => {
+      const had = (await tx.get(mine)).exists, on = d.on !== false;
+      if (had === on) return;
+      if (on) tx.set(mine, { t: FieldValue.serverTimestamp() }); else tx.delete(mine);
+      tx.set(stats, { hearts: FieldValue.increment(on ? 1 : -1) }, { merge: true });
+    });
+    return { ok: true };
+  },
+
   async comment(uid, d) {
     if (!idOk(d.videoId)) fail('invalid-argument', 'video');
     const text = clip(String(d.text || '').trim(), COMMENT_MAX);
@@ -316,7 +332,7 @@ const ops = {
         focus: d.commentId, text: String(cm.text || '').slice(0, 140), n: r.n, from: liker.nick || null, photo: liker.photo || null, read: false, t: FieldValue.serverTimestamp() });
       if ([1, 5, 10, 25, 50, 100, 250, 500, 1000].includes(r.n)) {
         await push([cm.uid], { title: r.n === 1 ? `אהבתי מ${liker.nick || 'מישהו בשלומיוורס'}` : `${r.n} אהבו את התגובה שלכם`, body: `"${String(cm.text || '').slice(0, 90)}"`,
-          url: `/wiki/#/v/${cm.videoId}?c=${d.commentId}`, icon: ICON, badge: BADGE, tag: 'likes_' + d.commentId });
+          url: `${await pageOf(cm.videoId)}?c=${d.commentId}`, icon: ICON, badge: BADGE, tag: 'likes_' + d.commentId });
       }
     }
     return { ok: true, likeCount: r.n };
@@ -393,7 +409,7 @@ const ops = {
       await ref.set({ kind: 'stamp', stickerId: d.stickerId, videoId: st.videoId, char: st.char, img: st.img, text: st.text, n: r.n, read: false, t: FieldValue.serverTimestamp() });
       if ([1, 5, 10, 25, 50, 100, 250, 500, 1000].includes(r.n)) {
         await push([st.uid], { title: r.n === 1 ? 'מישהו החתים את הסטיקר שלכם' : `${r.n} החתמות על הסטיקר שלכם`, body: `"${st.text}"`,
-          url: `/wiki/#/v/${st.videoId}?sticker=${d.stickerId}`, icon: ICON, badge: BADGE, image: st.img, tag: 'stamps_' + d.stickerId });
+          url: `${await pageOf(st.videoId)}?sticker=${d.stickerId}`, icon: ICON, badge: BADGE, image: st.img, tag: 'stamps_' + d.stickerId });
       }
     }
     return { ok: true, stampCount: r.n };
@@ -524,9 +540,9 @@ exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 
   const c = event.data?.data();
   if (!c || c.char) return;   // a character's own reply triggers nothing
   const id = event.params.id;
-  const url = `/wiki/#/v/${c.videoId}?c=${c.parentId || id}`;
-  const { byId, videos } = await _canon();
-  const video = videos[c.videoId];
+  const { byId, videos, games } = await _canon();
+  const video = videos[c.videoId], game = games && games[c.videoId];
+  const url = `/wiki/#/${game ? 'play' : 'v'}/${c.videoId}?c=${c.parentId || id}`;
 
   // a fan replied to someone: that someone hears about it
   if (c.parentId) {
@@ -549,7 +565,9 @@ exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 
       .map((x) => `${x.char ? byId[x.char]?.name || x.nick : x.nick}: ${x.text}`);
   }
   const turn = [
-    video ? `את/ה בתגובות מתחת לסרטון "${video.title}" (${video.teaser || ''}). מה שנאמר בסרטון:\n${(video.transcript || '').slice(0, 6000)}` : 'את/ה בתגובות מתחת לאחד הסרטונים.',
+    video ? `את/ה בתגובות מתחת לסרטון "${video.title}" (${video.teaser || ''}). מה שנאמר בסרטון:\n${(video.transcript || '').slice(0, 6000)}`
+      : game ? `את/ה בתגובות מתחת למשחק "${game.title}"${game.tagline ? ` (${game.tagline})` : ''}, משחק קצר בשלומיוורס.`
+      : 'את/ה בתגובות מתחת לאחד הסרטונים.',
     thread.length ? `\nהשיחה בתגובות עד עכשיו:\n${thread.join('\n')}` : '',
     `\n${c.nick} כתב/ה עכשיו בתגובות, ותייג/ה אותך: "${c.text}"`,
     '\nענה/י כמו תגובה ברשת: משפט או שניים, בקול שלך, ישר אל ' + c.nick + '. בלי כרטיסים [[...]], בלי האשטגים, בלי לצטט את ההנחיות.',

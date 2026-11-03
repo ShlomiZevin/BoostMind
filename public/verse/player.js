@@ -1,4 +1,4 @@
-// The video page (#/v/<id>): always vertical, edge to edge. Watching is naked - only a hair-thin progress line and a
+// The video page (#/v/<id>) - and a game's (#/play/<id>), the same page with the game where the video plays: always vertical, edge to edge. Watching is naked - only a hair-thin progress line and a
 // faded wordmark. One tap pauses and floats in the glass controls (mockup 2): the character + follow, the orange
 // "sticker from the moment" first, comments, save, share, and the episode card with its scrubber. Comments (a sheet:
 // likes, replies, @character answers) and the sticker screen (mockup 3) live here too.
@@ -154,6 +154,104 @@ export function openPlayer(id, q = {}) {
   document.addEventListener('keydown', P.key);
   deepLinks(q);
 }
+
+// ---------- a game: the same page as a video (his ask, 2026-11-03: "the game should look and feel like the feed") ----------
+// The game plays where the video would, edge to edge. The page's buttons float in at first and fade away; while playing
+// only a small face in the corner brings them back (the game takes every tap, so a tap on it can't). A tap on the game
+// while the buttons show hides them, as on a video. The like (the planet, the Shlomiverse's like) takes the sticker's
+// place; comments, save, share and follow are the video's own. Comments live under the game's id, like a video's.
+const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+export function openGame(id, q = {}) {
+  const g = (W.games || []).find((x) => x.id === id);
+  if (!g) { toast(T.errGeneric); location.hash = '#/games'; return; }
+  if (P && P.v.id === id) { deepLinks(q); return; }
+  if (P) destroy();
+  const lead = (g.chars || []).find((c) => C[c]) || null;
+  const v = { id, title: g.title, cast: g.chars || [], game: g };
+  const el = document.createElement('div');
+  el.className = 'vp vg ui';
+  el.innerHTML = `<div class="vp-bg" style="background-image:url('${esc(g.img || '')}')"></div>
+    <div class="vp-stage">
+      <iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>
+      <div class="vg-catch"></div>
+      <div class="vp-dim"></div>
+      <button class="vg-peek" data-peek aria-label="${esc(T.gMenu)}">${lead ? av({ char: lead }) : av({ planet: true })}</button>
+    </div>
+    <div class="vp-ui">
+      <div class="vp-head">
+        ${lead ? `<a class="vp-who" href="#/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
+        <a class="vp-brand" href="#/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
+      </div>
+      <div class="vp-rail">
+        <button data-heart><span class="vx-round">${I.planet}</span><span data-heart-l>${esc(T.gLike)}</span><small data-count-h></small></button>
+        <button data-comments><span class="vx-round">${I.comment}</span>${esc(T.comments)}<small data-count-c></small></button>
+        <button data-save><span class="vx-round">${I.save}</span><span data-save-l>${esc(T.save)}</span></button>
+        <button data-share><span class="vx-round">${I.share}</span>${esc(T.share)}</button>
+      </div>
+      <div class="vp-ep">
+        <div><h2>${esc(g.title)}</h2><div class="meta">${esc(g.tagline || (lead ? T.gMeta(C[lead].name) : ''))}</div></div>
+        <button class="vx-round pp" data-full aria-label="${esc(T.gFull)}">${FULL}</button>
+      </div>
+    </div>`;
+  document.body.append(el);
+  lockScroll();
+  P = { el, v, lead, off: [], hideT: 0, hearted: false, uid: undefined };
+  document.title = `${g.title} · שלומיוורס`;
+  P.off.push(F.onSnapshot(F.doc(db, 'videoStats', id), (s) => {
+    const d = s.data() || {};
+    if (!P) return;
+    P.stats = d;
+    $('[data-count-c]', el).textContent = d.comments ? String(d.comments) : '';
+    $('[data-count-h]', el).textContent = d.hearts > 0 ? String(d.hearts) : '';
+  }, () => {}));
+  // their own like: read again whenever who is signed in changes
+  const mine = () => {
+    const uid = st.user?.uid || null;
+    if (!P || P.uid === uid) return;
+    P.uid = uid;
+    if (P.offHeart) P.offHeart();
+    P.offHeart = null; P.hearted = false;
+    if (uid) P.offHeart = F.onSnapshot(F.doc(db, 'fans', uid, 'hearts', id), (s) => { if (P) { P.hearted = s.exists(); paint(); } }, () => {});
+  };
+  P.off.push(onState(() => { if (P) { mine(); paint(); } }), () => P?.offHeart?.());
+  mine();
+  paint();
+  setUi(false, 2600);
+  track('game', id);
+
+  $('.vg-catch', el).addEventListener('click', () => setUi(false));
+  el.addEventListener('click', async (e) => {
+    const b = e.target.closest('button, a');
+    if (!b) return;
+    if (b.matches('[data-close]')) { e.preventDefault(); close(); }
+    else if (b.matches('[data-peek]')) setUi(true);
+    else if (b.matches('[data-full]')) {
+      const go = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (go && !document.fullscreenElement) { try { await go.call(el); } catch (x) {} }
+      setUi(false);
+    }
+    else if (b.matches('[data-heart]')) heart();
+    else if (b.matches('[data-comments]')) openComments();
+    else if (b.matches('[data-save]')) save(id, 'saveGame');
+    else if (b.matches('[data-share]')) share(v);
+  });
+  P.key = (e) => {
+    if (document.querySelector('.vx-sheet, .st, input:focus, textarea:focus')) return;
+    if (e.key === 'Escape' && !document.fullscreenElement) close();
+  };
+  document.addEventListener('keydown', P.key);
+  deepLinks(q);
+}
+async function heart() {
+  if (!(await needFan('heart')) || !P) return;
+  const { el, v } = P, on = !P.hearted;
+  P.hearted = on;
+  const n = $('[data-count-h]', el), was = parseInt(n.textContent, 10) || 0;
+  n.textContent = Math.max(0, was + (on ? 1 : -1)) || '';
+  paint();
+  if (on) { const r = $('[data-heart] .vx-round', el); r.classList.remove('pop'); void r.offsetWidth; r.classList.add('pop'); toast(T.gLikeToast); track('heart', v.id); }
+  call('heart', { id: v.id, on }).catch(() => { toast(T.errGeneric); if (P) { P.hearted = !on; paint(); } });
+}
 function deepLinks(q) {
   if (q.c) setTimeout(() => openComments({ focus: q.c }), 300);
   else if (q.sticker) setTimeout(() => openComments({ tab: 's', focus: q.sticker }), 300);
@@ -182,7 +280,7 @@ function setUi(on, ms) {
   if (!P) return;
   clearTimeout(P.hideT);
   P.el.classList.toggle('ui', on || !!ms);
-  if (ms) P.hideT = setTimeout(() => P && !P.video.paused && P.el.classList.remove('ui'), ms);
+  if (ms) P.hideT = setTimeout(() => P && !(P.video && P.video.paused) && P.el.classList.remove('ui'), ms);
 }
 function paint() {
   const { el, v } = P;
@@ -190,10 +288,12 @@ function paint() {
   $('[data-save] .vx-round', el).innerHTML = saved ? I.saved : I.save;
   $('[data-save] .vx-round', el).classList.toggle('on', saved);
   $('[data-save-l]', el).textContent = saved ? T.saved : T.save;
+  const h = $('[data-heart] .vx-round', el);
+  if (h) { h.classList.toggle('main', !!P.hearted); $('[data-heart-l]', el).textContent = P.hearted ? T.gLiked : T.gLike; }
   paintFollow(el);
 }
 function share(v) {
-  const url = `${location.origin}/wiki/#/v/${v.id}`;
+  const url = `${location.origin}/wiki/#/${v.game ? 'play' : 'v'}/${v.id}`;
   track('share', v.id);
   if (navigator.share) navigator.share({ title: v.title, text: T.shareText(v.title), url }).catch(() => {});
   else { navigator.clipboard?.writeText(url); toast(T.linkCopied); }
@@ -204,9 +304,9 @@ function destroy() {
   if (P.cm) P.cm.close('away');
   P.off.forEach((u) => u && u());
   document.removeEventListener('keydown', P.key);
-  P.video.pause();
-  P.video.removeAttribute('src');
-  P.video.load();
+  if (P.video) { P.video.pause(); P.video.removeAttribute('src'); P.video.load(); }
+  if (document.fullscreenElement === P.el) document.exitFullscreen?.().catch(() => {});
+  P.el.querySelector('iframe')?.remove();   // the game stops (its sound too)
   P.el.remove();
   P = null;
   unlockScroll();
@@ -263,14 +363,14 @@ function richText(text, nicks = []) {
 export function openComments({ tab = 'c', focus = null } = {}) {
   if (!P || document.querySelector('.cm')) return;
   const { v } = P;
-  P.video.pause();
+  P.video?.pause();
   setUi(true);
   let comments = [], stickers = [], myLikes = new Set(), myStamps = new Set(), cur = tab, replying = null;
   // what this fan just sent shows at once (faded, "sending") while the server checks it; the real one replaces it
   let pending = [], nicks = [];
   const all = () => [...comments, ...pending.filter((p) => !p.realId || !comments.some((c) => c.id === p.realId))];
   const open = new Set(), typing = new Map(), off = [];
-  const h = P.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button><button class="vx-pill" data-tab="s"></button>
+  const h = P.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button>${v.game ? '' : '<button class="vx-pill" data-tab="s"></button>'}
       <button class="vx-x" data-vx-close style="position:static;margin-inline-start:auto">${I.x}</button></div>
     <div class="list"></div>
     <div class="cm-compose"></div>`, { cls: 'cm', onClose: () => { off.forEach((u) => u()); if (P) P.cm = null; } });
@@ -282,7 +382,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
     for (const [root, w] of typing) if (comments.some((c) => c.parentId === root && c.char === w.char && (c.t?.toMillis?.() || Date.now()) > w.since)) typing.delete(root);
     draw();
   }, (e) => console.error('comments', e)));
-  off.push(F.onSnapshot(F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60)), (s) => {
+  if (!v.game) off.push(F.onSnapshot(F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60)), (s) => {
     stickers = s.docs.map((d) => ({ id: d.id, ...d.data() }));
     draw();
   }, (e) => console.error('stickers', e)));
@@ -309,7 +409,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
     const comments = all();
     nicks = [...new Set(comments.filter((x) => !x.char).map((x) => x.nick))];
     $('[data-tab="c"]', h.el).textContent = T.tabsComments(comments.length || P?.stats?.comments || 0);
-    $('[data-tab="s"]', h.el).textContent = T.tabsStickers(stickers.length);
+    if (!v.game) $('[data-tab="s"]', h.el).textContent = T.tabsStickers(stickers.length);
     h.el.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === cur));
     compose.style.display = cur === 'c' ? '' : 'none';
     if (cur === 's') { list.innerHTML = stickerTab(stickers, myStamps); return; }

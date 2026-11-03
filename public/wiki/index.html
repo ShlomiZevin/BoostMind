@@ -672,33 +672,23 @@ const pages = {
       ${groups.map(([id, g]) => `<section class="ggroup"><a class="gg-h" href="#/c/${id}"><span class="av">${face(C[id])}</span><span><b>${esc(gGroupTitle(id, g))}</b><small>${GT.count(g.length)}</small></span></a>
         <div class="ggrid">${g.map((x) => gcard(x, false)).join('')}</div></section>`).join('')}</div>`;
   },
-  // a game inside the verse: full screen, a slim bar back to where they came from
-  play(q, id) {
-    const g = (W.games || []).find((x) => x.id === id);
-    if (!g) return pages.notFound();
-    const o = gOwner(g);
-    return `<div class="gplay"><div class="gp-bar"><button class="gp-back" data-gp-back aria-label="חזרה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button>
-      ${o ? `<a class="gp-who" href="#/c/${o.id}">${face(o)}</a>` : ''}<b>${esc(g.title)}</b></div>
-      <iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe></div>`;
-  },
   notFound() { return `<div class="wrap"><div class="page-h"><h1>לא מצאנו</h1><p><a href="#/">חזרה לדף הבית</a></p></div></div>`; },
 };
 
 // ---------- router ----------
 let shownPath = null;
-let routes = 0;   // pages shown in this visit (a game's back button goes back only when there is somewhere to go)
 function route() {
-  routes++;
   const [path, qs] = (location.hash.slice(1) || '/').split('?');
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
   let [, page = '', id] = path.split('/');
   // #/chat?with=<id>&ask=<text> - the links page opens a conversation straight from a face or its question box
   if (page === 'chat') { openChat(q.with && C[q.with] ? q.with : 'guide', q.ask || null); history.replaceState(null, '', '#/'); page = ''; }
-  // #/v/<id> - the video page; #/story/<character> - a character's stories. Both lie over whatever page was open
-  // (the home page when they are opened from outside: the links page, a push, a shared link)
-  if (page === 'v' || page === 'story') {
+  // #/v/<id> - the video page; #/play/<id> - a game, on the same page; #/story/<character> - a character's stories.
+  // They lie over whatever page was open (the home page when they are opened from outside: the links page, a push, a shared link)
+  if (page === 'v' || page === 'story' || page === 'play') {
     if (!$('#app').innerHTML) { shownPath = '/'; document.body.classList.add('at-home'); $('#app').innerHTML = pages.home(q); if (HOOK.afterRoute) HOOK.afterRoute(''); bindHero(); }
     if (page === 'v') { if (HOOK.openPlayer) HOOK.openPlayer(decodeURIComponent(id || ''), q); else openVideo(id); }
+    else if (page === 'play') { if (HOOK.openGame) HOOK.openGame(decodeURIComponent(id || ''), q); }   // the social layer routes again once it loads
     else if (HOOK.openStory) HOOK.openStory(decodeURIComponent(id || ''), q);
     return;
   }
@@ -713,15 +703,12 @@ function route() {
   const c = page === 'c' && C[id];
   t('view', page ? page + (id ? '/' + id : '') : 'home');
   if (c) t('character', id);
-  const g = page === 'play' && (W.games || []).find((x) => x.id === id);
-  document.body.classList.toggle('playing', !!g);   // a game takes the whole screen (no top / bottom bars, no chat button)
-  document.title = g ? `${g.title} · שלומיוורס` : c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות';
+  document.title = c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות';
   $('#fab').style.display = page ? '' : 'none';
   if (!page) bindHero();
   window.scrollTo(0, 0);
   onScroll();
 }
-document.addEventListener('click', (e) => { if (e.target.closest('[data-gp-back]')) { if (routes > 1) history.back(); else location.hash = '#/games'; } });   // opened straight from a link: to all the games
 function bindHero() {
   if ($('#ask')) $('#ask').onsubmit = (e) => { e.preventDefault(); const q = $('#ask-in').value.trim(); if (q) t('ask', heroWho); openChat(heroWho, q || null); $('#ask-in').value = ''; };
   if (!$('#who')) return;

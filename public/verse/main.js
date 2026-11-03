@@ -2,7 +2,7 @@
 // them. Loaded as a module after the wiki's own script; if the wiki rendered first, it routes again.
 import { T } from './copy.js';
 import { st, onState, needFan } from './state.js';
-import { openPlayer, closePlayer, followBtn, paintFollow, setBack } from './player.js';
+import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack } from './stories.js';
 import { communityPage, businessPage, homeBand, onIdeas } from './community.js';
 import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
@@ -10,6 +10,7 @@ import { installPage } from './push.js';
 
 Object.assign(HOOK, {
   openPlayer,
+  openGame,
   openStory,
   closeOverlays: () => {
     const a = closePlayer(), b = closeStory();
@@ -30,7 +31,7 @@ Object.assign(HOOK, {
   afterRoute(page, id) {
     // where the video page / stories go back to: the page under them
     const h = location.hash || '#/';
-    const back = /^#\/(v|story)\//.test(h) ? '#/' : h;
+    const back = /^#\/(v|story|play)\//.test(h) ? '#/' : h;
     setBack(back); setStoryBack(back);
     setCurrent(page, id);
     document.body.dataset.page = page || 'home';

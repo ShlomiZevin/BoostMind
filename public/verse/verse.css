@@ -1183,7 +1183,7 @@ section.hero .scroll-hint { z-index: 1; }
 .g-body b { font-weight: 800; font-size: .96rem; line-height: 1.25; }
 .g-body small { color: var(--dim); font-size: .8rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .g-own { position: absolute; bottom: 12px; inset-inline-end: 12px; width: 34px; height: 34px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vx-accent); }
-.g-own img, .g-who img, .gg-h .av img, .gchips .av img, .gp-who img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.g-own img, .g-who img, .gg-h .av img, .gchips .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gfeat { display: grid; grid-template-columns: 1fr; border-radius: 22px; overflow: hidden; background: var(--card); border: 1px solid color-mix(in srgb, var(--vx-accent) 55%, transparent); box-shadow: 0 0 28px rgba(255, 106, 31, .12); color: var(--text); margin-bottom: 14px; }
 .gfeat .g-body { padding: 14px 16px 16px; gap: 6px; }
 .gfeat .g-body b { font-size: 1.15rem; }
@@ -1204,12 +1204,22 @@ section.hero .scroll-hint { z-index: 1; }
 .ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 @media (max-width: 600px) { .ggrid { grid-template-columns: 1fr 1fr; gap: 10px; } .ggrid .g-body b { font-size: .86rem; } .ggrid .g-body small { font-size: .74rem; } .ggrid .g-body { padding: 8px 10px 10px; } }
 /* a game inside the verse */
-body.playing { overflow: hidden; }
-body.playing .fab, body.playing > footer, body.playing .nav { display: none !important; }
-.gplay { position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column; background: #000; }
-.gp-bar { flex: none; display: flex; align-items: center; gap: 10px; height: calc(48px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); color: var(--text); }
-.gp-bar b { font-weight: 800; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gp-back { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; flex: none; }
-.gp-back svg { width: 20px; height: 20px; }
-.gp-who { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--vx-accent); }
-.gplay iframe { flex: 1; width: 100%; border: 0; background: #000; }
+/* a game on the video's page (#/play/<id>, player.js openGame): the game where the video plays. While playing only the
+   small face in the corner shows (it brings the buttons back); while the buttons show, a tap on the game hides them */
+.vg iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; display: block; }
+.vg-catch { position: absolute; inset: 0; display: none; }
+.vg.ui .vg-catch { display: block; }
+.vg-peek { position: absolute; top: calc(12px + env(safe-area-inset-top)); inset-inline-start: 12px; width: 40px; height: 40px; border-radius: 50%; padding: 0;
+  opacity: .78; transition: opacity .3s, transform .2s; box-shadow: 0 2px 10px rgba(0, 0, 0, .45); border: 2px solid rgba(255, 255, 255, .85); overflow: hidden; }
+.vg-peek .vx-av { width: 100%; height: 100%; }
+.vg-peek:active { transform: scale(.92); }
+.vg.ui .vg-peek { opacity: 0; pointer-events: none; }
+.vg .vp-dim { background: rgba(0, 0, 0, .38); }
+/* the like = the logo's planet: white on glass, and the whole button turns orange once they liked (the site's "main") */
+.vg [data-heart] .vx-round { --pl-fill: #18161c; color: #fff; }
+.vg [data-heart] .vx-round .pl { width: 30px; height: 30px; }
+.vg [data-heart] .vx-round.main { --pl-fill: var(--vx-accent); width: 50px; height: 50px; }
+.vx-round.pop { animation: vg-pop .45s ease; }
+@keyframes vg-pop { 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.vg:fullscreen .vp-stage { aspect-ratio: auto; width: 100%; max-width: none; }
+.sv-h { font-size: 1.15rem; font-weight: 800; margin: 26px 0 12px; }

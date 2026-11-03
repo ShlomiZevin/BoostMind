@@ -70,7 +70,7 @@ const canon = (brain) => {
 // short map of everything (wiki-chain.js); the full canon() is no longer sent - kept for reference / a fallback
 const chain = require('./wiki-chain');
 const fromBrain = (brain, md5) => ({ map: RULES + '\n\n' + chain.mapText(brain), byId: Object.fromEntries(brain.characters.map((c) => [c.id, c])),
-  videos: Object.fromEntries(brain.videos.map((v) => [v.id, v])), md5 });
+  videos: Object.fromEntries(brain.videos.map((v) => [v.id, v])), games: Object.fromEntries((brain.games || []).map((g) => [g.id, g])), md5 });
 let current = fromBrain(bundled, 'bundled');
 let checked = 0;
 async function canonNow() {
