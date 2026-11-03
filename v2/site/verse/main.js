@@ -16,7 +16,7 @@ Object.assign(HOOK, {
   closeOverlays: () => {
     const a = closePlayer(), b = closeStory();
     // back onto the home kept from under a video / game opened straight from a link: its records were never filled in
-    if ((a || b) && !(location.hash.slice(1) || '/').split('?')[0].split('/')[1]) setTimeout(recordsHome, 0);
+    if ((a || b) && location.pathname === '/') setTimeout(recordsHome, 0);
     // a video opened from the chat: back to that conversation
     if (a && HOOK.chatReturn) { const mode = HOOK.chatReturn; HOOK.chatReturn = null; setTimeout(() => openChat(mode), 0); }
     return a || b;
@@ -33,8 +33,8 @@ Object.assign(HOOK, {
   chatSignIn: () => needFan('chat'),
   afterRoute(page, id) {
     // where the video page / stories go back to: the page under them
-    const h = location.hash || '#/';
-    const back = /^#\/(v|story|play)\//.test(h) ? '#/' : h;
+    const h = location.pathname + location.search;
+    const back = /^\/(v|story|play)\//.test(h) ? '/' : h;
     setBack(back); setStoryBack(back);
     setCurrent(page, id);
     document.body.dataset.page = page || 'home';
@@ -42,7 +42,7 @@ Object.assign(HOOK, {
     renderTop();
     paintFollow();
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
-    if (!page) recordsHome(); else if (!/^#\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
+    if (!page) recordsHome(); else if (!/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
   },
 });
 pages.notes = notesPage;
@@ -62,7 +62,7 @@ onStories(() => refresh());
 // (the greeting, their block under the hero) - redrawing the whole page reloaded the wall of faces, and he saw the site
 // "load twice". Any other page routes again, now with the follow buttons and the rest.
 if (window.WIKI_READY) {
-  const atHome = !(location.hash.slice(1) || '/').split('?')[0].split('/')[1];
+  const atHome = location.pathname === '/';
   if (atHome && document.getElementById('home-slot')) { if (HOOK.afterRoute) HOOK.afterRoute(''); refresh(true); }
   else { if (typeof closeVideo === 'function') closeVideo(); route(); }
 }

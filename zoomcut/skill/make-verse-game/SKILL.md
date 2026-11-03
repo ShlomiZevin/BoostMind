@@ -115,7 +115,7 @@ Read before any idea - the game must be something THIS character would be in:
 - **Games belong to their character - they live in the Shlomiverse, on the character's wiki page** (his ask,
   3 Nov 2026). The contract is ONE `game.json` - nothing else: `games()` in `scripts/wiki/build.py` collects every
   `public/<folder>/<slug>/game.json` with `"status": "live"` into wiki.json `games`, and the verse shows it on the
-  character's page (shlomiverse.com/wiki/#/c/<id>), in the home games row and on #/games, opening the game on its
+  character's page (shlomiverse.com/c/<id>), in the home games row and on /games, opening the game on its
   page inside the verse (#/play/<id> - see "The frame protocol" in step 8). Per game: `title`, `tagline`, `character` (studio id; `chars` = a list for
   several), `date` (YYYY-MM-DD - always set it), `status`, `cover` (default `cover.jpg`, **1.91:1**, e.g. 1200x630).
   Then `python scripts/wiki/build.py` + `node scripts/wiki/push.cjs` (no deploy for the wiki; other sessions may have

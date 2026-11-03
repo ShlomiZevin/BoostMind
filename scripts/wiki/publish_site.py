@@ -169,7 +169,7 @@ def main():
     if gone:
         raise SystemExit(f'pushed, but the live wiki does not list: {", ".join(gone)}')
     for i in ids:
-        say(f'✔ on the Shlomiverse: {WIKI}#/v/{i}')
+        say(f'✔ on the Shlomiverse: https://shlomiverse.com/v/{i}')
 
 
 if __name__ == '__main__':

@@ -189,7 +189,7 @@
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/wiki/" aria-label="שלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
-    <nav><a href="/wiki/#/characters">דמויות</a><a href="/wiki/#/videos">סרטונים</a><a href="/wiki/#/community">קהילה</a><a href="/wiki/#/business">לעסקים</a></nav>
+    <nav><a href="/characters">דמויות</a><a href="/videos">סרטונים</a><a href="/community">קהילה</a><a href="/business">לעסקים</a></nav>
     <a class="me-btn out" id="me-btn" href="/wiki/">כניסה</a>
   </header>
 
@@ -305,16 +305,16 @@ fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json', { 
   .catch(() => fetch('/wiki/data/wiki.json').then((r) => r.json())).then((w) => {
   const people = w.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).slice(0, 10);
   document.getElementById('faces').innerHTML = people.map((c) =>
-    `<a href="/wiki/#/c/${c.id}" title="${esc(c.name)}"><img src="${wikiUrl(c.img)}" alt="${esc(c.name)}"></a>`).join('');
-  document.getElementById('vids').innerHTML = `<h3>סרטונים אחרונים<a href="/wiki/#/videos">כל הסרטונים ←</a></h3><div class="vrow">` +
-    w.videos.filter((v) => v.poster && v.src && !v.archive).slice(0, 4).map((v) => `<a href="/wiki/#/v/${v.id}"><span class="th"><img src="${wikiUrl(v.poster)}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
+    `<a href="/c/${c.id}" title="${esc(c.name)}"><img src="${wikiUrl(c.img)}" alt="${esc(c.name)}"></a>`).join('');
+  document.getElementById('vids').innerHTML = `<h3>סרטונים אחרונים<a href="/videos">כל הסרטונים ←</a></h3><div class="vrow">` +
+    w.videos.filter((v) => v.poster && v.src && !v.archive).slice(0, 4).map((v) => `<a href="/v/${v.id}"><span class="th"><img src="${wikiUrl(v.poster)}" alt="" loading="lazy"></span><span>${esc(v.title)}</span></a>`).join('') + '</div>';
 }).catch(() => {});
 // signed in to the Shlomiverse (the note the site keeps): their face in the top bar, else "כניסה"
 try {
   const me = JSON.parse(localStorage.getItem('vx-me') || 'null');
   if (me && me.nick) {
     const b = document.getElementById('me-btn');
-    b.classList.remove('out'); b.href = '/wiki/#/me';
+    b.classList.remove('out'); b.href = '/me';
     b.innerHTML = `<span>${esc(me.nick)}</span>` + (me.photo ? `<img src="${esc(me.photo)}" alt="">` : '');
   }
 } catch (e) { /* private mode */ }

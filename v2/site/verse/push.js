@@ -28,7 +28,7 @@ async function subscribe() {
 
 export async function enablePush() {
   const s = pushState();
-  if (s === 'ios') { location.hash = '#/install'; track('push_optin', 'guide'); return false; }
+  if (s === 'ios') { nav('/install'); track('push_optin', 'guide'); return false; }
   if (s === 'unsupported') { toast(T.pushUnsupported); return false; }
   if (!(await needFan('push'))) return false;
   const perm = s === 'granted' ? 'granted' : await Notification.requestPermission();
@@ -96,10 +96,10 @@ export function installPage(q = {}) {
   else body = `<div class="ig-ok"><p>${esc(T.igDesktop)}</p></div>${pushRow}${installEvent ? `<div class="ig-ok"><p>${esc(T.igInstall)}</p><button class="vx-btn glass small light-ok" data-install>${esc(T.igInstall)}</button></div>` : ''}`;
   return `<div class="ig"><h1>${esc(T.igTitle)}</h1><p>${esc(T.igSub)}</p>
     ${body}
-    <a class="vx-btn glass block light-ok" href="#/" style="margin-top:22px;color:var(--text);background:var(--card);border-color:var(--line)">${esc(T.igGot)}</a>
-    ${standalone() ? '' : `<div class="ig-tabs">${['ios', 'android', 'desktop'].filter((k) => k !== tab).map((k) => `<a href="#/install?os=${k}">${esc(T.igTabs[k])}</a>`).join('<span>·</span>')}</div>`}</div>`;
+    <a class="vx-btn glass block light-ok" href="/" style="margin-top:22px;color:var(--text);background:var(--card);border-color:var(--line)">${esc(T.igGot)}</a>
+    ${standalone() ? '' : `<div class="ig-tabs">${['ios', 'android', 'desktop'].filter((k) => k !== tab).map((k) => `<a href="/install?os=${k}">${esc(T.igTabs[k])}</a>`).join('<span>·</span>')}</div>`}</div>`;
 }
 document.addEventListener('click', async (e) => {
-  if (e.target.closest('[data-push-on]')) { e.preventDefault(); if (await enablePush()) window.dispatchEvent(new Event('hashchange')); }
+  if (e.target.closest('[data-push-on]')) { e.preventDefault(); if (await enablePush()) window.dispatchEvent(new Event('popstate')); }
   if (e.target.closest('[data-install]') && installEvent) { e.preventDefault(); installEvent.prompt(); const r = await installEvent.userChoice; installEvent = null; track('push_optin', 'install_' + r.outcome); }
 });

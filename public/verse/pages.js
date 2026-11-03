@@ -40,12 +40,12 @@ function yourBlock() {
   const mine = st.follows.size ? [...theirs(fresh()), ...theirs(W.videos.filter((v) => v.archive))].slice(0, 14) : [];
   const rings = ringsHtml();
   const followed = [...st.follows].filter((id) => C[id]);
-  const faces = followed.length ? `<div class="yv-faces">${followed.map((id) => `<a class="yv-face" href="#/c/${id}"${storyRing(id).replace(/ style="[^"]*"/, '')}>${av({ char: id, ring: true })}<span>${esc(C[id].name)}</span></a>`).join('')}
-      <a class="yv-face add" href="#/characters"><span class="vx-av">${I.plus}</span><span>${esc(T.yvMore)}</span></a></div>` : '';
+  const faces = followed.length ? `<div class="yv-faces">${followed.map((id) => `<a class="yv-face" href="/c/${id}"${storyRing(id).replace(/ style="[^"]*"/, '')}>${av({ char: id, ring: true })}<span>${esc(C[id].name)}</span></a>`).join('')}
+      <a class="yv-face add" href="/characters"><span class="vx-av">${I.plus}</span><span>${esc(T.yvMore)}</span></a></div>` : '';
   const pick = followed.length < 3 ? W.characters.filter((c) => c.img && !st.follows.has(c.id) && !NOT_IN_HERO.has(c.id))
     .sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0)).slice(0, 8) : [];
-  const picks = pick.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(followed.length ? T.yvSuggest : T.yvStart)}</h2><a href="#/characters">${esc(T.yvMore)} ←</a></div>
-      <div class="yv-picks">${pick.map((c) => `<div class="yv-pick" style="--c:${color(c)}"><a href="#/c/${c.id}"><img src="${esc(abs(c.img))}" alt="" loading="lazy"><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role || '')}</small></a>
+  const picks = pick.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(followed.length ? T.yvSuggest : T.yvStart)}</h2><a href="/characters">${esc(T.yvMore)} ←</a></div>
+      <div class="yv-picks">${pick.map((c) => `<div class="yv-pick" style="--c:${color(c)}"><a href="/c/${c.id}"><img src="${esc(abs(c.img))}" alt="" loading="lazy"><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role || '')}</small></a>
         <button class="vx-pill" data-yv-follow="${c.id}">${I.plus}${esc(T.follow)}</button></div>`).join('')}</div></section>` : '';
   const hot = hotStickers();
   return `<section class="yv-me">
@@ -96,13 +96,13 @@ function noteRow(n) {
   let face, name, line, thumb = '', href;
   if (n.kind === 'video') { face = n.char ? av({ char: n.char, ring: true }) : av({ planet: true }); name = n.from || 'השלומיוורס'; line = T.note.video(n.text); href = `${itemLink(n.videoId)}`;
     const v = V[n.videoId]; if (v && v.poster) thumb = `<img class="thumb" src="${abs(v.poster)}" alt="">`; }
-  else if (n.kind === 'story') { face = n.char === 'verse' ? av({ planet: true }) : av({ char: n.char, ring: true }); name = n.from; line = T.note.story(n.text); href = `#/story/${n.char}`; }
+  else if (n.kind === 'story') { face = n.char === 'verse' ? av({ planet: true }) : av({ char: n.char, ring: true }); name = n.from; line = T.note.story(n.text); href = `/story/${n.char}`; }
   else if (n.kind === 'reply') { face = n.char ? av({ char: n.char, ring: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.note.reply(n.text); href = `${itemLink(n.videoId)}?c=${n.commentId}`; }
   else if (n.kind === 'like') { face = n.n > 1 || !n.from ? av({ planet: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = T.note.like(n.n || 1, n.from); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?c=${n.focus || n.commentId}`; }
   else if (n.kind === 'stamp') { face = n.char ? av({ char: n.char }) : av({ planet: true }); name = T.note.stamp(n.n || 1); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?sticker=${n.stickerId}`;
     if (n.img) thumb = `<img class="thumb sq" src="${esc(n.img)}" alt="">`; }
-  else if (n.kind === 'record') { face = av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.rec.noteLine.replace('{nick}', n.from).replace('{game}', n.text); href = `#/play/${n.game}?records=1`; }
-  else { face = av({ planet: true }); name = T.note.welcome(n.text || st.fan?.nick || ''); line = T.note.welcomeLine; href = '#/characters'; }
+  else if (n.kind === 'record') { face = av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.rec.noteLine.replace('{nick}', n.from).replace('{game}', n.text); href = `/play/${n.game}?records=1`; }
+  else { face = av({ planet: true }); name = T.note.welcome(n.text || st.fan?.nick || ''); line = T.note.welcomeLine; href = '/characters'; }
   return `<a class="nt-row ${unread}" href="${href}">${!n.read ? '<span class="vx-dot"></span>' : ''}${face}
     <span class="body"><b>${esc(name)}</b><span class="line">${esc(line)}</span><small>${n.t ? ago(n.t) : T.now}</small></span>${thumb}</a>`;
 }
@@ -136,7 +136,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest('[data-nf
 // ---------- saved: their own place ----------
 // a video's page or a game's (the bell, the saved page): comments, likes and saves keep the game's id where a video's goes
 const gameOf = (id) => (W.games || []).find((g) => g.id === id);
-const itemLink = (id) => (gameOf(id) ? '#/play/' : '#/v/') + id;
+const itemLink = (id) => (gameOf(id) ? '/play/' : '/v/') + id;
 export function savedPage() {
   const head = pageHead(T.savedTitle, T.savedSub);
   if (!signedIn()) return `<div class="nt-page sv-page">${head}<div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(T.meNone.saved)}</p></div>
@@ -162,7 +162,7 @@ async function loadMyStickers() {
 // ---------- their pages: each shows one thing (Shlomi: "isolated and clear") ----------
 const signedOutPage = (title, line) => `<div class="nt-page"><div class="nt-h"><h1>${esc(title)}</h1></div><div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(line)}</p></div>
     <button class="vx-btn white" data-signin>${I.google}${esc(T.signinGoogle)}</button></div></div>`;
-const pageHead = (title, sub) => `<div class="nt-h"><a class="pg-back" href="#/me">${I.back}${esc(T.mmProfile)}</a><h1>${esc(title)}</h1>${sub ? `<p class="pg-sub">${esc(sub)}</p>` : ''}</div>`;
+const pageHead = (title, sub) => `<div class="nt-h"><a class="pg-back" href="/me">${I.back}${esc(T.mmProfile)}</a><h1>${esc(title)}</h1>${sub ? `<p class="pg-sub">${esc(sub)}</p>` : ''}</div>`;
 // the profile: who they are, and a door to each of their places
 export function mePage() {
   if (!signedIn()) return signedOutPage(T.mmProfile, T.meSignedOut);
@@ -173,10 +173,10 @@ export function mePage() {
     <div class="me-hero">${av({ fan: st.fan })}<h1>${esc(st.fan.nick)}</h1>
       <button class="vx-pill" data-rename>${I.edit}${esc(T.meName)}</button></div>
     <div class="me-tiles">
-      ${tile('#/my-characters', I.people, T.mmFollows, follows)}
-      ${tile('#/saved', I.save, T.mmSaved, st.saves.size)}
-      ${tile('#/my-stickers', I.sticker, T.mmStickers, myStickers ? myStickers.length : null)}
-      ${tile('#/notes', I.bell, T.mmBell, st.unread || null)}
+      ${tile('/my-characters', I.people, T.mmFollows, follows)}
+      ${tile('/saved', I.save, T.mmSaved, st.saves.size)}
+      ${tile('/my-stickers', I.sticker, T.mmStickers, myStickers ? myStickers.length : null)}
+      ${tile('/notes', I.bell, T.mmBell, st.unread || null)}
     </div>
   </div>`;
 }
@@ -184,9 +184,9 @@ export function myCharactersPage() {
   if (!signedIn()) return signedOutPage(T.mmFollows, T.meNone.follows);
   const follows = [...st.follows].filter((id) => C[id]);
   return `<div class="nt-page">${pageHead(T.mmFollows, T.myCharsSub)}
-    ${follows.length ? `<div class="me-chars">${follows.map((id) => `<a class="me-char" href="#/c/${id}">${av({ char: id, ring: true })}<b>${esc(C[id].name)}</b><small>${esc(C[id].tagline || C[id].role || '')}</small></a>`).join('')}
-      <a class="me-char add" href="#/characters"><span class="vx-av">${I.plus}</span><b>${esc(T.yvMore)}</b></a></div>`
-      : `<div class="empty" style="margin-top:16px">${esc(T.meNone.follows)} <a href="#/characters" style="color:var(--accent)">${esc(T.yvPick)}</a></div>`}</div>`;
+    ${follows.length ? `<div class="me-chars">${follows.map((id) => `<a class="me-char" href="/c/${id}">${av({ char: id, ring: true })}<b>${esc(C[id].name)}</b><small>${esc(C[id].tagline || C[id].role || '')}</small></a>`).join('')}
+      <a class="me-char add" href="/characters"><span class="vx-av">${I.plus}</span><b>${esc(T.yvMore)}</b></a></div>`
+      : `<div class="empty" style="margin-top:16px">${esc(T.meNone.follows)} <a href="/characters" style="color:var(--accent)">${esc(T.yvPick)}</a></div>`}</div>`;
 }
 export function myStickersPage() {
   if (!signedIn()) return signedOutPage(T.mmStickers, T.meNone.stickers);
@@ -243,20 +243,20 @@ function meMenu(anchor) {
   const row = (tag, attrs, icon, label, hint = '') => `<${tag} ${attrs}>${icon}<span class="mm-l">${esc(label)}</span>${hint}</${tag}>`;
   const n = (x) => (x ? `<small>${x}</small>` : '');
   const html = `<div class="mm">
-    <a class="mm-head" href="#/me">${av({ fan: st.fan })}<span class="mm-who"><b>${esc(st.fan.nick)}</b><small>${esc(T.mmProfile)}</small></span>${I.next}</a>
+    <a class="mm-head" href="/me">${av({ fan: st.fan })}<span class="mm-who"><b>${esc(st.fan.nick)}</b><small>${esc(T.mmProfile)}</small></span>${I.next}</a>
     <div class="mm-g">${esc(T.mmMine)}</div>
     <div class="mm-list">
-      ${row('a', 'href="#/my-characters"', I.people, T.mmFollows, n(follows))}
-      ${row('a', 'href="#/saved"', I.save, T.mmSaved, n(st.saves.size))}
-      ${row('a', 'href="#/my-stickers"', I.sticker, T.mmStickers)}
-      ${row('a', 'href="#/notes"', I.bell, T.mmBell, st.unread ? `<em>${st.unread}</em>` : '')}
+      ${row('a', 'href="/my-characters"', I.people, T.mmFollows, n(follows))}
+      ${row('a', 'href="/saved"', I.save, T.mmSaved, n(st.saves.size))}
+      ${row('a', 'href="/my-stickers"', I.sticker, T.mmStickers)}
+      ${row('a', 'href="/notes"', I.bell, T.mmBell, st.unread ? `<em>${st.unread}</em>` : '')}
     </div>
     <div class="mm-g">${esc(T.mmSettings)}</div>
     <div class="mm-list">
       ${row('button', 'data-rename', I.edit, T.meName)}
       ${row('button', 'data-push-on', I.bell, T.mmPhone, `<small>${esc(T.mePushState[ps] || '')}</small>`)}
       ${row('button', 'data-theme-toggle', I.moon, T.mmLight, `<span class="vx-switch ${isLight() ? 'on' : ''}"></span>`)}
-      ${row('a', 'href="#/install"', I.install, T.meInstall)}
+      ${row('a', 'href="/install"', I.install, T.meInstall)}
       ${row('button', 'data-form="bug"', I.bug, T.mmBug)}
       ${row('button', 'data-signout', I.out, T.meOut)}
     </div></div>`;
@@ -273,7 +273,7 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-rename]')) { e.preventDefault(); if (await nameScreen()) refresh(true); }
-  else if (e.target.closest('[data-signout]')) { e.preventDefault(); await signOut(); myStickersFor = null; myStickers = null; location.hash = '#/'; }
+  else if (e.target.closest('[data-signout]')) { e.preventDefault(); await signOut(); myStickersFor = null; myStickers = null; nav('/'); }
   else if (e.target.closest('[data-push-test]')) { e.preventDefault(); call('pushTest').then((r) => toast(r.sent ? T.pushDone : T.errGeneric)).catch(() => toast(T.errGeneric)); }
 });
 
@@ -338,7 +338,7 @@ export function refresh(now) {
       if (line && line.outerHTML !== fresh) line.outerHTML = fresh;
       return;
     }
-    const [, qs] = location.hash.split('?');
+    const qs = location.search.slice(1);
     const q = Object.fromEntries(new URLSearchParams(qs || ''));
     $('#app').innerHTML = pages[cur.page || 'home'](q, cur.id);
     if (!cur.page) { bindHero(); document.body.classList.add('at-home'); }

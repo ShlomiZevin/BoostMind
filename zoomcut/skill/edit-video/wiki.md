@@ -44,8 +44,8 @@ scripts/all/catalog.py`, then `firebase deploy --only functions:stats` from tech
 (below). Then deploy - and say what else rides along (other sessions' unfinished pages, step 12).
 
 Deep links into the wiki (use them in posts, end cards, the links page):
-`/wiki/#/c/<character-id>` a character's page · `/wiki/#/v/<video-id>` plays a video ·
-`/wiki/#/chat?with=<character-id>&ask=<question>` opens a chat with that character, already asking.
+`/c/<character-id>` a character's page · `/v/<video-id>` plays a video ·
+`/chat?with=<character-id>&ask=<question>` opens a chat with that character, already asking.
 
 His socials (link all of them wherever socials appear): TikTok https://www.tiktok.com/@shlomizevin · Instagram
 https://www.instagram.com/shlomizevin · YouTube https://www.youtube.com/@shlomizevin · Facebook
@@ -115,7 +115,7 @@ The steps it runs, for when one fails:
 4. **Push:** `node scripts/wiki/push.cjs` (from BoostMind) - the wiki, the links page and the chat have it within
    seconds / 3 minutes. No deploy.
 5. Check the video on the wiki (the character's page and the videos page) and tell him its link
-   (`/wiki/#/v/<episode-id>`).
+   (`/v/<episode-id>`).
 **Old videos are history, not news (his rule, 2026-10-31):** the wiki home's "סרטונים אחרונים" row, its characters grid
 (newest videos first) and the links page's latest row are for what he makes NOW. Every video carries its real `date`
 (an editor export: its export time; an old reel: its Instagram date) and the wiki sorts by it. His old Instagram reels

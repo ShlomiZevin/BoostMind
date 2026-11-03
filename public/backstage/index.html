@@ -958,7 +958,7 @@ function publish() { ({ story, video })[publishSeg](); }
 function ideas() {
   const KIND = { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' };
   const list = (L.ideas || []).slice().sort((a, b) => (a.hidden - b.hidden) || ((b.votes || 0) - (a.votes || 0)));
-  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר.</p></div><a class="btn" href="/wiki/#/community" target="_blank">${IC.out}לקיר באתר</a></div>
+  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר באתר</a></div>
     <div>${list.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body">
       <b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.votes || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <span class="tag">${KIND[x.kind] || ''}</span>${x.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}</p></div>
       ${hideBtn('idea', x)}</div>`).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`;
@@ -970,12 +970,12 @@ function comments() {
   $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>תגובות</h1><p>כל התגובות, החדשות קודם. תגובה שמסתירים נעלמת מהאתר.</p></div></div>
     <div>${L.comments.map((c) => `<div class="item ${c.hidden ? 'off' : ''}">${c.char ? face(c.char) : fanFace(c)}
       <div class="body"><b>${esc(c.nick)}</b> ${c.char ? '<span class="tag or">דמות</span>' : ''}${c.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${c.removedBy === 'fan' ? ' <span class="tag">נמחק ע״י המגיב</span>' : ''}
-        <small> · ${ago(c.t)} · <a href="/wiki/#/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`;
+        <small> · ${ago(c.t)} · <a href="/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`;
 }
 function stickers() {
   $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>סטיקרים</h1><p>הסטיקרים שהצופים פרסמו. סטיקר שמסתירים יורד מהאתר.</p></div></div>
     <div>${L.stickers.map((x) => `<div class="item ${x.hidden ? 'off' : ''}"><img class="st" src="${esc(x.img)}" alt="">
-      <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/wiki/#/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
+      <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
 }
 
 // ---------- סטוריז: every story as a visitor saw it; a new one is written in a window on top (his ask 2026-11-02,

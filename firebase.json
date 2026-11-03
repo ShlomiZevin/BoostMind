@@ -65,6 +65,97 @@
     ],
     "rewrites": [
       {
+        "source": "/c/**",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/v/**",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/play/**",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/s/**",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/story/**",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/games",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/characters",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/series",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/videos",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/sites",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/community",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/business",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/notes",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/me",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/saved",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/my-characters",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/my-stickers",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/install",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/chat",
+        "destination": "/wiki/index.html"
+      },
+      {
         "source": "/",
         "destination": "/wiki/index.html"
       },

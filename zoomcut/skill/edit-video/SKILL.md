@@ -675,7 +675,7 @@ reaches them only through step 11.
   older: https://boostmind-b052c.web.app/links/profile.jpg
 - **Facebook cover:** https://boostmind-b052c.web.app/links/img/fb-cover.jpg (1640x624) · sharp:
   https://boostmind-b052c.web.app/links/img/fb-cover-2x.jpg - made from his real portraits (`scripts/wiki/fb-cover.html`).
-- Deep links for posts and end cards: `/wiki/#/c/<character>`, `/wiki/#/v/<video>`, `/wiki/#/chat?with=<character>`.
+- Deep links for posts and end cards: `/c/<character>`, `/v/<video>`, `/chat?with=<character>`.
 
 ## Recipes - read the one you need
 Under the hood two engines exist: `lesson.py` (one camera - almost everything) and `zoomcut.py` (a Zoom grid of

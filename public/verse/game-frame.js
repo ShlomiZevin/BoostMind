@@ -2,7 +2,7 @@
 //   <script src="/verse/game-frame.js"></script>
 // and takes its top offset from one variable, so it keeps a strip free for what the platform adds:
 //   --safe-t: calc(env(safe-area-inset-top, 0px) + var(--verse-top, 0px));
-// Inside the verse's game page (/wiki/#/play/<id>,
+// Inside the verse's game page (/play/<id>,
 // verse/player.js openGame) the page answers this script's hello, and then:
 //   - <html> gets class "in-verse" (a game hides its own share / like / "back to the site" with .verse-hide);
 //   - in full screen --verse-top = the height of the strip where the verse puts the character's face and
@@ -21,7 +21,7 @@
   if (window.top === window) {
     const q = new URLSearchParams(location.search), parts = location.pathname.split('/').filter(Boolean);
     const solo = q.has('solo') || q.has('notrack') || /^(localhost|127\.)/.test(location.hostname);
-    if (!solo && parts.length >= 2 && /-games$/.test(parts[0])) location.replace(`/wiki/#/play/${parts[0]}-${parts[1]}`);
+    if (!solo && parts.length >= 2 && /-games$/.test(parts[0])) location.replace(`/play/${parts[0]}-${parts[1]}`);
     return;
   }
   window.VerseFrame.score = (n) => { if (window.VerseFrame.inVerse && Number(n) > 0) parent.postMessage({ verse: 'score', value: Number(n) }, '*'); };
@@ -50,6 +50,6 @@
     if (url.origin === location.origin && url.pathname.startsWith(home) && url.pathname !== hub) return;   // inside the game
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
     e.preventDefault();
-    window.open(url.origin === location.origin && url.pathname === hub ? '/wiki/#/games' : url.href, '_top');
+    window.open(url.origin === location.origin && url.pathname === hub ? '/games' : url.href, '_top');
   }, true);
 })();

@@ -10,8 +10,8 @@ import { openBoard, onScore, TROPHY } from './records.js';
 import { offerPush } from './push.js';
 
 let P = null;   // the open player
-let backTo = '#/';
-export const setBack = (h) => { backTo = h || '#/'; };
+let backTo = '/';
+export const setBack = (h) => { backTo = h || '/'; };
 
 // ---------- episodes and "continue watching" ----------
 export function episodes(v) {
@@ -44,8 +44,8 @@ function fit(el) {
 const opened = () => document.documentElement.classList.remove('opening');   // the wiki page hid the home until now
 export function openPlayer(id, q = {}) {
   const v = V[id];
-  if (!v) { opened(); toast(T.errGeneric); location.hash = '#/'; return; }
-  if (v.url) { opened(); window.open(v.url, '_blank', 'noopener'); location.replace(backTo); return; }
+  if (!v) { opened(); window.showNotFound?.(); return; }
+  if (v.url) { opened(); window.open(v.url, '_blank', 'noopener'); nav(backTo, true); return; }
   if (P && P.v.id === id) { deepLinks(q); return; }
   if (P) destroy();
   const eps = episodes(v);
@@ -64,8 +64,8 @@ export function openPlayer(id, q = {}) {
     </div>
     <div class="vp-ui">
       <div class="vp-head">
-        ${lead ? `<a class="vp-who" href="#/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
-        <a class="vp-brand" href="#/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
+        ${lead ? `<a class="vp-who" href="/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
+        <a class="vp-brand" href="/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
       </div>
       <div class="vp-rail">
         <button data-sticker><span class="vx-round main">${I.sticker}</span>${esc(T.sticker)}</button>
@@ -145,7 +145,7 @@ export function openPlayer(id, q = {}) {
     else if (b.matches('[data-save]')) save(id);
     else if (b.matches('[data-share]')) share(v);
     else if (b.matches('[data-sticker]')) openSticker();
-    else if (b.matches('[data-ep]') && b.dataset.ep) location.replace('#/v/' + b.dataset.ep);
+    else if (b.matches('[data-ep]') && b.dataset.ep) nav('/v/' + b.dataset.ep, true);
     else if (b.matches('.vp-who')) { /* the link closes the player through the router */ }
   });
   // swipe up / down: the next / previous episode
@@ -157,14 +157,14 @@ export function openPlayer(id, q = {}) {
     y0 = null;
     if (Math.abs(dy) < 80) return;
     const to = dy < 0 ? eps[n + 1] : eps[n - 1];
-    if (to) location.replace('#/v/' + to.id);
+    if (to) nav('/v/' + to.id, true);
   });
   P.key = (e) => {
     if (document.querySelector('.vx-sheet, .st, input:focus, textarea:focus')) return;
     if (e.key === ' ') { e.preventDefault(); if (video.paused) video.play(); else { video.pause(); setUi(true); } }
     if (e.key === 'Escape') close();
-    if (e.key === 'ArrowDown' && eps[n + 1]) location.replace('#/v/' + eps[n + 1].id);
-    if (e.key === 'ArrowUp' && eps[n - 1]) location.replace('#/v/' + eps[n - 1].id);
+    if (e.key === 'ArrowDown' && eps[n + 1]) nav('/v/' + eps[n + 1].id, true);
+    if (e.key === 'ArrowUp' && eps[n - 1]) nav('/v/' + eps[n - 1].id, true);
   };
   document.addEventListener('keydown', P.key);
   deepLinks(q);
@@ -186,7 +186,7 @@ const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 export function openGame(id, q = {}) {
   const g = (W.games || []).find((x) => x.id === id);
-  if (!g) { opened(); toast(T.errGeneric); location.hash = '#/games'; return; }
+  if (!g) { opened(); window.showNotFound?.(); return; }
   if (P && P.v.id === id) { deepLinks(q); return; }
   if (P) destroy();
   const lead = (g.chars || []).find((c) => C[c]) || null;
@@ -197,8 +197,8 @@ export function openGame(id, q = {}) {
   el.innerHTML = `<div class="vp-bg" style="background-image:url('${esc(g.img || '')}')"></div>
     <div class="vg-col">
       <div class="vg-head">
-        ${lead ? `<a class="vp-who" href="#/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
-        <a class="vp-brand" href="#/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
+        ${lead ? `<a class="vp-who" href="/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
+        <a class="vp-brand" href="/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
       </div>
       <div class="vg-mid">
       <div class="vg-acts">
@@ -362,12 +362,12 @@ function paint() {
   paintFollow(el);
 }
 function share(v) {
-  const url = `${location.origin}/wiki/#/${v.game ? 'play' : 'v'}/${v.id}`;
+  const url = `${location.origin}/${v.game ? 'play' : 'v'}/${v.id}`;
   track('share', v.id);
   if (navigator.share) navigator.share({ title: v.title, text: T.shareText(v.title), url }).catch(() => {});
   else { navigator.clipboard?.writeText(url); toast(T.linkCopied); }
 }
-function close() { location.hash = backTo; }
+function close() { nav(backTo); }
 function destroy() {
   if (!P) return;
   if (P.cm) P.cm.close('away');
@@ -425,7 +425,7 @@ function richText(text, nicks = []) {
   for (const { n, c } of names) {
     const at = '@' + esc(n);
     if (!h.includes(at)) continue;
-    const tag = c ? `<a class="at" href="#/c/${c.id}" style="--c:${charColor(c.id)}">${at}</a>` : `<span class="at fan">${at}</span>`;
+    const tag = c ? `<a class="at" href="/c/${c.id}" style="--c:${charColor(c.id)}">${at}</a>` : `<span class="at fan">${at}</span>`;
     h = h.split(at).join(`\u0000${marks.push(tag) - 1}\u0000`);
   }
   return h.replace(/\u0000(\d+)\u0000/g, (_, i) => marks[i]);
@@ -469,8 +469,8 @@ export function openComments({ tab = 'c', focus = null } = {}) {
   const row = (c, isReply) => {
     const isMine = st.user && c.uid === st.user.uid;
     return `<div class="cm-item ${c.char ? 'char' : ''} ${c.pending ? 'sending' : ''} ${focus === c.id ? 'hl' : ''}" style="--c:${c.char ? charColor(c.char) : 'var(--vx-accent)'}" data-cid="${c.id}">
-      ${c.char ? `<a class="cm-face" href="#/c/${c.char}" aria-label="${esc(c.nick)}">${av({ char: c.char, ring: true })}</a>` : av({ fan: c })}
-      <div class="body"><div class="cm-who">${c.char ? `<a href="#/c/${c.char}"><b>${esc(c.nick)}</b></a>` : `<b>${esc(c.nick)}</b>${ofc(c)}`}<small>${c.pending ? esc(T.cmSending) : c.t ? ago(c.t) : T.now}</small></div>
+      ${c.char ? `<a class="cm-face" href="/c/${c.char}" aria-label="${esc(c.nick)}">${av({ char: c.char, ring: true })}</a>` : av({ fan: c })}
+      <div class="body"><div class="cm-who">${c.char ? `<a href="/c/${c.char}"><b>${esc(c.nick)}</b></a>` : `<b>${esc(c.nick)}</b>${ofc(c)}`}<small>${c.pending ? esc(T.cmSending) : c.t ? ago(c.t) : T.now}</small></div>
         <div class="txt">${richText(c.text, nicks)}</div>
         ${c.pending ? '' : `<div class="acts"><button data-like="${c.id}" class="like ${myLikes.has(c.id) ? 'on' : ''}" aria-label="${esc(T.cmLike)}">${LIKE}<span>${c.likeCount || esc(T.cmLike)}</span></button>
           <button data-reply="${c.id}" data-root="${c.parentId || c.id}">${esc(T.cmReply)}</button>

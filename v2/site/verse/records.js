@@ -33,7 +33,7 @@ export function mountHome() {
     slot.innerHTML = `<section class="sec rec-home"><div class="sec-h"><div><h2>${esc(R().title)}</h2><p class="rec-sub">${esc(R().sub)}</p></div></div>
       <div class="grow">${order.map((g) => {
         const top = boards[g.id]?.top?.[0];
-        return `<a class="rec-card ${top ? 'has' : ''}" href="#/play/${g.id}">
+        return `<a class="rec-card ${top ? 'has' : ''}" href="/play/${g.id}">
           <span class="rc-pic">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}</span>
           <span class="rc-body"><span class="rc-game">${esc(g.title)}</span>
           ${top ? `<span class="rc-face">${av({ fan: top })}<i class="rc-crown">${CROWN}</i></span>${who(top)}
@@ -117,7 +117,7 @@ function moment(g, r, reopen) {
     if (!b) return;
     if (b.matches('[data-table]')) { h.close('table'); setTimeout(() => openBoard(g, { onAgain: reopen }), 250); }
     else if (b.matches('[data-share]')) {
-      const url = `${location.origin}/wiki/#/play/${g.id}`, text = fill(R().shareText, { game: g.title, n: fmt(r.value), unit: g.record.unit });
+      const url = `${location.origin}/play/${g.id}`, text = fill(R().shareText, { game: g.title, n: fmt(r.value), unit: g.record.unit });
       track('share', g.id);
       if (navigator.share) navigator.share({ title: g.title, text, url }).catch(() => {});
       else { navigator.clipboard?.writeText(`${text} ${url}`); toast(T.linkCopied); }

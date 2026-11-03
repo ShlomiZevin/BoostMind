@@ -31,7 +31,7 @@ export function ringsHtml() {
   const s = seen();
   const unseen = (c) => recentOf(c).some((x) => !s.has(x.id));
   chars.sort((a, b) => (unseen(b) - unseen(a)) || ((b === 'verse') - (a === 'verse')) || (st.follows.has(b) - st.follows.has(a)));
-  return `<div class="rings">${chars.map((c) => `<a class="ring ${unseen(c) ? '' : 'seen'}" href="#/story/${c}"><span class="rim"><span>${who(c).img ? `<img src="${abs(who(c).img)}" alt="">` : ''}</span></span><b>${esc(who(c).name)}</b></a>`).join('')}</div>`;
+  return `<div class="rings">${chars.map((c) => `<a class="ring ${unseen(c) ? '' : 'seen'}" href="/story/${c}"><span class="rim"><span>${who(c).img ? `<img src="${abs(who(c).img)}" alt="">` : ''}</span></span><b>${esc(who(c).name)}</b></a>`).join('')}</div>`;
 }
 // the home's "what you can do" tile: up to three faces with something new (unseen first), and the first to open
 export function storyFaces() {
@@ -42,25 +42,25 @@ export function storyFaces() {
 }
 // the character page: a ring around the portrait when there is something to watch
 export const storyRing = (char) => (recentOf(char).length ? ` data-story="${char}" style="outline:3px solid var(--vx-accent);outline-offset:4px;cursor:pointer"` : '');
-document.addEventListener('click', (e) => { const p = e.target.closest('[data-story]'); if (p) { e.preventDefault(); location.hash = '#/story/' + p.dataset.story; } });
+document.addEventListener('click', (e) => { const p = e.target.closest('[data-story]'); if (p) { e.preventDefault(); nav('/story/' + p.dataset.story); } });
 
 // ---------- the viewer ----------
 let SV = null;
-let backTo = '#/';
-export const setStoryBack = (h) => { backTo = h || '#/'; };
+let backTo = '/';
+export const setStoryBack = (h) => { backTo = h || '/'; };
 
 export function openStory(char) {
   closeStory();
   let list = recentOf(char).reverse();
   if (!list.length) list = all.filter((x) => x.char === char).slice(0, 10).reverse();
-  if (!list.length || !who(char)) { location.replace(backTo); return; }
+  if (!list.length || !who(char)) { nav(backTo, true); return; }
   const s = seen();
   let i = Math.max(0, list.findIndex((x) => !s.has(x.id)));
   const el = document.createElement('div');
   el.className = 'sv';
   el.innerHTML = `<div class="sv-box" style="--c:${charColor(char)}">
       <div class="sv-bars">${list.map(() => '<span><i></i></span>').join('')}</div>
-      <div class="sv-head"><a href="${char === 'verse' ? '#/' : `#/c/${char}`}">${whoFace(char)}</a><span><b>${esc(who(char).name)}</b><br><small data-ago></small></span>
+      <div class="sv-head"><a href="${char === 'verse' ? '/' : `/c/${char}`}">${whoFace(char)}</a><span><b>${esc(who(char).name)}</b><br><small data-ago></small></span>
         <span class="end">${char === 'verse' ? '' : followBtn(char, 'pill')}<button class="vx-round" data-x style="width:42px;height:42px" aria-label="סגירה">${I.x}</button></span></div>
       <div data-slot></div>
       <div class="sv-shade"></div>
@@ -110,7 +110,7 @@ export function openStory(char) {
       // the next character with something unseen, or back where we came from
       const s2 = seen();
       const nextChar = [...new Set(all.filter((x) => Date.now() - x.ms < RECENT && x.char !== char && who(x.char) && !s2.has(x.id)).map((x) => x.char))][0];
-      if (nextChar) location.replace('#/story/' + nextChar); else location.hash = backTo;
+      if (nextChar) nav('/story/' + nextChar, true); else nav(backTo);
       return;
     }
     show();
@@ -119,9 +119,9 @@ export function openStory(char) {
     if (e.target.closest('[data-cta]')) { track('story_link', list[i].id); cancelAnimationFrame(SV.raf); return; }
     if (e.target.closest('[data-next]')) go(1);
     else if (e.target.closest('[data-prev]')) go(-1);
-    else if (e.target.closest('[data-x]')) location.hash = backTo;
+    else if (e.target.closest('[data-x]')) nav(backTo);
   });
-  SV.key = (e) => { if (e.key === 'ArrowLeft') go(1); if (e.key === 'ArrowRight') go(-1); if (e.key === 'Escape') location.hash = backTo; };
+  SV.key = (e) => { if (e.key === 'ArrowLeft') go(1); if (e.key === 'ArrowRight') go(-1); if (e.key === 'Escape') nav(backTo); };
   document.addEventListener('keydown', SV.key);
   show();
 }

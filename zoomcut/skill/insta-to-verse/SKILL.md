@@ -97,7 +97,7 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
    `--env C:/workspace/aspect/aspect-agent-server/.env`) - take only the NEW entries from its answer (it rewrites
    existing worlds/bios too), `build.py`, then **`node scripts/wiki/push.cjs`** (a few seconds; the wiki has it at once,
    the chat within 3 minutes). Several reels: put them all on the wiki, then one build + one push.
-   Check live: `https://shlomiverse.com/wiki/#/c/<id>`; the home page must NOT show the reel.
+   Check live: `https://shlomiverse.com/c/<id>`; the home page must NOT show the reel.
 7. **The chat knows it - a reel is not done until this passes (his ask, 2026-10-31).** Every reel goes into the chat's
    brain (`techietech-api/wiki-brain.json`: the character's bible + every reel's on-screen text and words), so 3
    minutes after the push, on the LIVE function:

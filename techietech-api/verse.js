@@ -64,7 +64,7 @@ const SCORES_A_DAY = 300;
 const fmtScore = (v) => String(Math.round(v * 100) / 100);
 const RECORD_PUSH = { title: 'לקחו לכם את הבכורה', body: (nick, game, n, unit) => `${nick} לקחו את ההובלה ב־${game}: ${n} ${unit}. חוזרים?` };
 // where a comment / sticker lives: a video's page or a game's (games keep their comments under the game's id)
-const pageOf = async (id) => `/wiki/#/${(await _canon()).games?.[id] ? 'play' : 'v'}/${id}`;
+const pageOf = async (id) => `/${(await _canon()).games?.[id] ? 'play' : 'v'}/${id}`;
 const fail = (code, msg) => { throw new HttpsError(code, msg); };
 
 // per-instance burst guard (the daily quotas below are the real limits)
@@ -297,7 +297,7 @@ const ops = {
     if (r.passed) {
       await note(r.passed.uid, { kind: 'record', game: d.game, from: fan.nick, photo: fan.photo || null, text: g.title, value: r.value, unit: g.record.unit }).catch(() => {});
       await push([r.passed.uid], { title: RECORD_PUSH.title, body: RECORD_PUSH.body(fan.nick, g.title, fmtScore(r.value), g.record.unit),
-        url: `/wiki/#/play/${d.game}?records=1`, icon: fan.photo || ICON, badge: BADGE, tag: 'record_' + d.game }).catch(() => {});
+        url: `/play/${d.game}?records=1`, icon: fan.photo || ICON, badge: BADGE, tag: 'record_' + d.game }).catch(() => {});
     }
     return { ok: true, best: r.best, value: r.value, place, first: !!r.first, passed: r.passed ? { nick: r.passed.nick, photo: r.passed.photo || null, value: r.passed.value } : null };
   },
@@ -504,7 +504,7 @@ const ops = {
         read: false, t: FieldValue.serverTimestamp() });
       if ([1, 5, 10, 25, 50, 100, 250, 500, 1000].includes(r.n)) {
         await push([idea.uid], { title: r.n === 1 ? '+1 לרעיון שלכם' : `${r.n} הצביעו לרעיון שלכם`, body: `"${idea.text.slice(0, 90)}"`,
-          url: `/wiki/#/community?idea=${d.ideaId}`, icon: ICON, badge: BADGE, tag: 'votes_' + d.ideaId });
+          url: `/community?idea=${d.ideaId}`, icon: ICON, badge: BADGE, tag: 'votes_' + d.ideaId });
       }
     }
     return { ok: true, votes: r.n };
@@ -527,7 +527,7 @@ const ops = {
   },
   async pushTest(uid) {
     const fan = await fanOf(uid);
-    const n = await push([uid], { title: 'השלומיוורס', body: `ההתראות פועלות, ${fan.nick}.`, url: '/wiki/#/notes', icon: ICON, badge: BADGE, tag: 'test' });
+    const n = await push([uid], { title: 'השלומיוורס', body: `ההתראות פועלות, ${fan.nick}.`, url: '/notes', icon: ICON, badge: BADGE, tag: 'test' });
     return { ok: true, sent: n };
   },
 
@@ -594,7 +594,7 @@ exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 
   const id = event.params.id;
   const { byId, videos, games } = await _canon();
   const video = videos[c.videoId], game = games && games[c.videoId];
-  const url = `/wiki/#/${game ? 'play' : 'v'}/${c.videoId}?c=${c.parentId || id}`;
+  const url = `/${game ? 'play' : 'v'}/${c.videoId}?c=${c.parentId || id}`;
 
   // a fan replied to someone: that someone hears about it
   if (c.parentId) {
@@ -687,7 +687,7 @@ async function announceVideo(videoId, v, again = false) {
   const fans = await followersOf(cast);
   const title = byId[lead] ? `סרטון חדש מ${byId[lead].name}` : 'סרטון חדש בשלומיוורס';
   await Promise.all(fans.map((uid) => note(uid, { kind: 'video', videoId, char: lead || null, from: byId[lead]?.name || null, text: oneLine(v.title, 120), poster: v.poster || null })));
-  const sent = await push(fans, { title, body: oneLine(v.title, 120), url: `/wiki/#/v/${videoId}`, icon: lead ? faceUrl(lead) : ICON, badge: BADGE,
+  const sent = await push(fans, { title, body: oneLine(v.title, 120), url: `/v/${videoId}`, icon: lead ? faceUrl(lead) : ICON, badge: BADGE,
     image: v.poster ? `${SITE}/wiki/${v.poster}` : undefined, tag: 'video_' + videoId });
   await flag.set({ t: FieldValue.serverTimestamp(), fans: fans.length, sent });
   return { fans: fans.length, sent };
@@ -914,7 +914,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
           fans.slice(i, i + 400).forEach((uid) => batch.set(db.collection('fans').doc(uid).collection('notes').doc(), n));
           await batch.commit();
         }
-        sent = await push(fans, { title: `סטורי חדש מ${name}`, body: text.slice(0, 140) || name, url: `/wiki/#/story/${f.char}`, icon: isVerse ? ICON : faceUrl(f.char), badge: BADGE,
+        sent = await push(fans, { title: `סטורי חדש מ${name}`, body: text.slice(0, 140) || name, url: `/story/${f.char}`, icon: isVerse ? ICON : faceUrl(f.char), badge: BADGE,
           image: media?.kind === 'image' ? media.url : undefined, tag: 'story_' + f.char });
         await ref.update({ reach: fans.length, pushes: sent });
       }

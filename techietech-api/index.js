@@ -200,3 +200,5 @@ Object.assign(exports, require('./analytics'));
 // the Shlomiverse's fans: accounts, follows, comments, stickers, stories, push (shlomiverse.com/wiki/) - see verse.js.
 // Live since 2026-11-01 (v2/dev.mjs runs the same code in the emulators). Needs the VERSE_VAPID_PRIVATE secret.
 Object.assign(exports, require('./verse'));
+// the verse's page addresses (/c/hani, /play/<game>...) with their own link preview for WhatsApp - see page.js
+Object.assign(exports, require('./page'));

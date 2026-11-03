@@ -30,7 +30,7 @@ function ideaCard(x) {
   const on = myVotes.has(x.id);
   const faces = (x.chars || []).filter((id) => C[id]).slice(0, 2);
   return `<div class="idea ${focusIdea === x.id ? 'hl' : ''}" id="idea-${x.id}">
-    ${faces.length ? `<div class="idea-faces">${faces.map((id) => `<a href="#/c/${id}" title="${esc(C[id].name)}">${av({ char: id, ring: true })}</a>`).join('')}</div>` : ''}
+    ${faces.length ? `<div class="idea-faces">${faces.map((id) => `<a href="/c/${id}" title="${esc(C[id].name)}">${av({ char: id, ring: true })}</a>`).join('')}</div>` : ''}
     <div class="idea-body"><div class="idea-by">${av({ fan: x })}<span>${esc(x.nick || '')}</span>${ofc(x)}${x.t ? `<small>${ago(x.t)}</small>` : ''}</div>
       <p>${esc(x.text)}</p>
       <div class="idea-foot">${T.ideaKinds[x.kind] && x.kind !== 'other' ? `<span class="idea-kind">${esc(T.ideaKinds[x.kind])}</span>` : '<span></span>'}
@@ -53,7 +53,7 @@ export function communityPage(q = {}) {
     </section>
     <div class="cando cmy-st">${stickerTiles()}</div>
     ${tiles()}
-    <a class="cmy-biz" href="#/business"><div><h3>${esc(T.bizCard)}</h3><p>${esc(T.bizCardSub)}</p><span class="vx-pill">${esc(T.bizCta)}</span></div><img src="/verse/logo-512.png" alt=""></a>
+    <a class="cmy-biz" href="/business"><div><h3>${esc(T.bizCard)}</h3><p>${esc(T.bizCardSub)}</p><span class="vx-pill">${esc(T.bizCta)}</span></div><img src="/verse/logo-512.png" alt=""></a>
   </div>`;
 }
 const tiles = () => `<div class="cmy-tiles">
@@ -92,8 +92,8 @@ export function homeBand() {
       <div class="cd-3">${tile('stories', '', faces.length ? `<span class="cd-faces">${faces.map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : `<span class="cd-ic">${I.play}</span>`)}${tile('games', I.game)}${tile('sites', I.bag)}</div>
     </div>
     <div class="cd-idea"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
-    ${top.length ? `<div class="ideas row3">${top.map(ideaCard).join('')}</div><a class="cd-all" href="#/community">${esc(T.ideasAll)} ←</a>` : ''}
-    <a class="cd-biz" href="#/business">${I.people}<span>${esc(T.bizCard)}</span><i>${GO}</i></a>
+    ${top.length ? `<div class="ideas row3">${top.map(ideaCard).join('')}</div><a class="cd-all" href="/community">${esc(T.ideasAll)} ←</a>` : ''}
+    <a class="cd-biz" href="/business">${I.people}<span>${esc(T.bizCard)}</span><i>${GO}</i></a>
   </section>`;
 }
 // a tile: straight to the thing (the sticker one opens a video with the sticker button pointed out)
@@ -102,13 +102,13 @@ function canDo(key, faces) {
   if (key === 'sticker') {
     const vids = W.videos.filter((v) => v.src && !v.url).sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 12);   // one of the newest
     const v = vids[Math.floor(Math.random() * vids.length)];
-    if (v) location.hash = '#/v/' + v.id + '?how=sticker';
+    if (v) nav('/v/' + v.id + '?how=sticker');
   } else if (key === 'pack') packSheet();
   else if (key === 'chat') openChat('guide');
-  else if (key === 'follow') location.hash = '#/characters';
-  else if (key === 'stories') location.hash = faces.length ? '#/story/' + faces[0].id : '#/characters';
-  else if (key === 'games') location.hash = '#/games';   // every character's games (Hani's playhouse is one of them)
-  else if (key === 'sites') location.hash = '#/sites';
+  else if (key === 'follow') nav('/characters');
+  else if (key === 'stories') nav(faces.length ? '/story/' + faces[0].id : '/characters');
+  else if (key === 'games') nav('/games');   // every character's games (Hani's playhouse is one of them)
+  else if (key === 'sites') nav('/sites');
 }
 
 // ---------- the ready sticker pack: a grid; a tap -> (an account) -> the "add to WhatsApp" window ----------
@@ -192,12 +192,12 @@ async function ideaSheet() {
     }
   });
 }
-const ideaUrl = (id) => `${location.origin}/wiki/#/community?idea=${id}`;
+const ideaUrl = (id) => `${location.origin}/community?idea=${id}`;
 const shareCard = (id, text) => `<div class="ids-done"><img class="ids-logo" src="/verse/logo-160.png" alt=""><h2 class="vx-h">${esc(T.ideaDoneTitle)}</h2><p>${esc(T.ideaDoneSub)}</p>
     <blockquote>${esc(text)}</blockquote>
     <a class="vx-btn wa block" href="https://wa.me/?text=${encodeURIComponent(`${T.ideaShareText(text)}\n${ideaUrl(id)}`)}" target="_blank" rel="noopener">${I.whatsapp}${esc(T.ideaShareWa)}</a>
     <button class="vx-btn glass block" data-copy-idea="${id}">${I.copy}${esc(T.ideaCopy)}</button>
-    <a class="vx-link" href="#/community?idea=${id}" data-vx-close>${esc(T.ideaSee)}</a></div>`;
+    <a class="vx-link" href="/community?idea=${id}" data-vx-close>${esc(T.ideaSee)}</a></div>`;
 async function shareIdea(id) {
   const x = ideas.find((i) => i.id === id);
   const text = x ? T.ideaShareText(x.text) : T.ideasTitle;
@@ -252,7 +252,7 @@ export function businessPage() {
   return `<div class="biz">
     <section class="biz-hero"><h1>${esc(T.bizTitle)}</h1><p>${esc(T.bizSub)}</p>
       <div class="biz-stats"><div><b dir="ltr">${W.characters.length}+</b><span>${esc(T.bizChars)}</span></div><div><b dir="ltr">${W.videos.length}+</b><span>${esc(T.bizVideos)}</span></div><div><b dir="ltr">40K</b><span>${esc(T.bizTiktok)}</span></div></div>
-      <div class="biz-faces">${faces.map((id) => `<a href="#/c/${id}">${av({ char: id, ring: true })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></section>
+      <div class="biz-faces">${faces.map((id) => `<a href="/c/${id}">${av({ char: id, ring: true })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></section>
     <div class="biz-glow" aria-hidden="true"><img src="/verse/logo-512.png" alt=""></div>
     <form class="biz-form"><h2>${esc(T.bizFormTitle)}</h2><p>${esc(T.bizFormSub)}</p>
       <input name="name" maxlength="80" required placeholder="${esc(T.bizName)}">
