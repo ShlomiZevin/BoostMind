@@ -42,6 +42,10 @@ no set, no eye contact).
      its last word -> `cut.edges` [[span end, word end + 0.05]] (span end = the VOICE item's end, which is the picture's
      end + `join`). Check a word is not clipped: transcribe the piece's last second before / after.
    - **flash audit**: no picture piece shorter than 6 frames (a click at a restart) - move its sequence `from`.
+   - **subtitle TEXT fixes go into captions.txt** (the source) - never hand ops on subtitles to split / merge / reword
+     (asaf-1, 2026-11-03: 28 hand-fixed subtitles + one drag = 113 subtitles, doubles everywhere). Hand ops on a
+     subtitle only for its timing or place. The build now FAILS (red job, "! SUBTITLES:" lines) on two subtitles at
+     once or a flash under 12 frames - fix the cause, don't patch around it.
    - **subtitle audit**: no two on top of each other, none shorter than 12 frames (merge with its neighbour), none
      that runs across a sentence end ("הטמבל? הוא יודע שיש" - move the one word back to the previous subtitle at its
      word time), every script word present, the first words of the video present.

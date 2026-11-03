@@ -43,6 +43,15 @@ FILTER_LABEL = {"grade": "Movie colour", "dark": "Darken", "vignette": "Vignette
                 "drift": "Handheld", "flicker": "Light flicker", "ghost": "Ghost trail", "hits": "Hits", "black": "Black"}
 
 
+def sub_ref(c, k):
+    """A subtitle's identity: the take and the second its first word is said - not its place in the video. (A running
+    index shifted after any re-cut that changed the number of chunks, and every hand-fixed subtitle then stayed next to
+    the builder's fresh copy of the same words - asaf-1, 2026-11-03.) Not `take`: that key means a take piece."""
+    if c.get("take") is not None and c.get("t") is not None:
+        return {"sub": c["take"], "t": c["t"], "cap": c["text"][:40]}
+    return {"cap": c["text"][:40], "k": k}
+
+
 def voice_settings(v0):
     """episode.json "voice" -> the full settings (sound.ts voiceSettings)."""
     if isinstance(v0, str):
@@ -471,7 +480,7 @@ def _build(ls, sync=True):
             props["font"] = font(st["font"]) and f"font.{st['font']}"
         props.update({k: st[k] for k in ("size", "weight", "color", "stroke") if st.get(k) is not None})
         layers.append({"id": lid, "kind": "subtitles", "name": name, "owner": "builder", "props": props,
-                       "items": [{"id": f"s{k}", "from": c["from"], "dur": max(1, c["to"] - c["from"]), "text": c["text"], "ref": {"cap": c["text"][:40], "k": k},
+                       "items": [{"id": f"s{k}", "from": c["from"], "dur": max(1, c["to"] - c["from"]), "text": c["text"], "ref": sub_ref(c, k),
                                   **({"link": lk} if (lk := link_at(pic, c["from"])) else {})}
                                  for k, c in enumerate(cs)]})
 
@@ -504,8 +513,13 @@ def _build(ls, sync=True):
         p = ls.p
         work = ls.work
     old = projectlib.load(Ep)
-    projectlib.save(Ep, projectlib.merge(old, new), note="solo builder")
+    merged = projectlib.save(Ep, projectlib.merge(old, new), note="solo builder")
     log(f"  · {len(layers)} layers, {total / FPS:.1f}s - {len(pic)} picture clips, {len(vo)} voice pieces, {len(caps)} subtitles")
+    bad = projectlib.check_subtitles(merged)
+    if bad:  # saved (the editor has its layers), but the job fails loudly: a session can skip a rule, not a red build
+        for line in bad[:30]:
+            log(f"  ! SUBTITLES: {line}")
+        raise SystemExit(f"✖ {len(bad)} subtitle problem(s) - two on screen at once / a flash. Fix them (skill: edit-video, quick-edit.md) before he sees it.")
 
 
 def r4(v):

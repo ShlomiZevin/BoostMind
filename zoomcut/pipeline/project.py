@@ -132,6 +132,92 @@ def follow(items, m, old_dur, new_dur):
             it["dur"] = round(max(1, e - it["from"]), 3)
 
 
+def _overlap(a, b):
+    return max(0.0, min(a["from"] + a["dur"], b["from"] + b["dur"]) - max(a["from"], b["from"]))
+
+
+def _same_sub(r, q):
+    """Two subtitle refs are the same words: the same take and first-word second (new refs), or - an older project's
+    {cap, k} - the same text."""
+    if not isinstance(r, dict) or not isinstance(q, dict):
+        return False
+    if r.get("sub") is not None and q.get("sub") is not None:
+        return r["sub"] == q["sub"] and abs(float(r.get("t", -9)) - float(q.get("t", 9))) < 0.15
+    return bool(r.get("cap")) and r.get("cap") == q.get("cap")
+
+
+def drop_replaced(l, mine, fresh, m):
+    """Subtitles: a fresh builder item he already replaced or deleted never comes back next to his.
+    (asaf-1, 2026-11-03: the subtitles' refs held a running index; a drag changed the number of chunks, every later
+    index shifted, and all 28 hand-fixed subtitles stayed next to the builder's fresh copies of the same words - 80
+    subtitles became 113.) In order:
+      1. overlap - a fresh item covered more than half by one of his items on this layer is his (also catches what has
+         no matching ref: the right half of an editor Split, a hand-added or hand-merged subtitle);
+      2. the same words as one of his - same take + first-word second, or an older project's same text close by;
+      3. deleted - his removed refs (the same words), the spans he deleted (layer.removedSpans, moved with the cut),
+         an older project's {cap, k} key: the same text at the nearest place, within 3."""
+    out = []
+    gone = []
+    for key in l.get("removed", []):
+        try:
+            gone.append(json.loads(key))
+        except (TypeError, ValueError):
+            pass
+    spans = []
+    for sp in l.get("removedSpans", []) or []:
+        a, e = float(sp.get("from", 0)), float(sp.get("from", 0)) + float(sp.get("dur", 0))
+        if m is not None:
+            a, e = m(a), m(e)
+        if e - a > 0.5:  # (a span the new cut leaves out entirely goes)
+            spans.append({"from": round(a, 3), "dur": round(e - a, 3)})
+    if "removedSpans" in l:  # kept in the NEW time - the next re-plan maps them from here, not from where they were deleted
+        l["removedSpans"] = spans
+    legacy = [g for g in gone if isinstance(g, dict) and g.get("cap") and g.get("sub") is None and "k" in g]
+    for k, it in enumerate(fresh):
+        dur = max(1.0, float(it.get("dur") or 1))
+        r = it.get("ref")
+        if any(_overlap(it, x) > 0.5 * dur for x in mine):
+            continue
+        if r and any(x.get("ref") and _same_sub(r, x["ref"]) and abs(x["from"] - it["from"]) < 90 for x in mine):
+            continue
+        if r and any(isinstance(g, dict) and g.get("sub") is not None and _same_sub(r, g) for g in gone):
+            continue
+        if any(_overlap(it, sp) > 0.5 * dur for sp in spans):
+            continue
+        if r and legacy:
+            same = [g for g in legacy if g["cap"] == r.get("cap")]
+            if any(abs(int(g["k"]) - k) <= 3 for g in same):
+                legacy.remove(next(g for g in same if abs(int(g["k"]) - k) <= 3))
+                continue
+        for x in mine:  # a smaller overlap with one of his: it gives way (ends where his starts / starts where his ends)
+            if _overlap(it, x) > 0:
+                if it["from"] < x["from"]:
+                    it["dur"] = max(1, x["from"] - it["from"])
+                else:
+                    e = it["from"] + it["dur"]
+                    it["from"] = x["from"] + x["dur"]
+                    it["dur"] = max(1, e - it["from"])
+        out.append(it)
+    return out
+
+
+def check_subtitles(project):
+    """Subtitles that a person would see as broken: two at once on one layer (a copy next to his), a flash under 12
+    frames. Lines to print; empty = fine."""
+    bad = []
+    for l in project.get("layers", []):
+        if l.get("kind") != "subtitles" or l.get("hidden"):
+            continue
+        its = sorted([i for i in l.get("items", []) if not i.get("hidden")], key=lambda i: i["from"])
+        for a, b in zip(its, its[1:]):
+            if a["from"] + a["dur"] > b["from"] + 1:
+                bad.append(f"{l['id']}: '{a.get('text')}' and '{b.get('text')}' on screen together at frame {b['from']:.0f}")
+        for i in its:
+            if i["dur"] < 12 and not i.get("user"):  # (a short one he made himself is his call)
+                bad.append(f"{l['id']}: '{i.get('text')}' shows only {i['dur']:.0f} frames at frame {i['from']:.0f}")
+    return bad
+
+
 def merge(old, new):
     """Fold the builder's fresh project `new` into his `old` one (see the module doc)."""
     if not old:
@@ -162,6 +248,8 @@ def merge(old, new):
             gone = set(l.get("removed", []))
             taken = {ref_key(it["ref"]) for it in mine if it.get("ref")}
             fresh = [it for it in n.get("items", []) if not it.get("ref") or ref_key(it["ref"]) not in gone | taken]
+            if l.get("kind") == "subtitles":
+                fresh = drop_replaced(l, mine, fresh, m)
             ids = {it["id"] for it in mine}
             for it in fresh:  # (a fresh item never takes the id of one he kept)
                 k = 1

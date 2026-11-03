@@ -589,6 +589,18 @@ def spans(ls, n):
     lead = (c.get("lead_in") or {}).get(n)
     if lead and tight and lead[1] < tight[0][0]:  # a silent moment before he talks (at work, then someone calls him)
         tight = [list(lead)] + tight
+    for r0, r1 in (c.get("removes") or {}).get(n, []):  # parts taken out in the editor (split twice, delete the piece) -
+        # BEFORE his drags: an edge on a removed part's border then drags into it instead of snapping back (2026-11-03)
+        kept = []
+        for a, b in tight:
+            if b <= r0 or a >= r1:
+                kept.append([a, b])
+                continue
+            if a < r0:
+                kept.append([a, r0])
+            if b > r1:
+                kept.append([r1, b])
+        tight = kept
     edges = (c.get("edges") or {}).get(n)
     if edges and tight:  # a piece's start / end dragged in the editor: more (or less) of the original take
         tight = [list(sp) for sp in tight]
@@ -605,17 +617,6 @@ def spans(ls, n):
             else:
                 merged.append([a, b])
         tight = merged
-    for r0, r1 in (c.get("removes") or {}).get(n, []):  # parts taken out in the editor (split twice, delete the piece)
-        kept = []
-        for a, b in tight:
-            if b <= r0 or a >= r1:
-                kept.append([a, b])
-                continue
-            if a < r0:
-                kept.append([a, r0])
-            if b > r1:
-                kept.append([r1, b])
-        tight = kept
     for sp in sorted((c.get("splits") or {}).get(n, [])):  # split points: a piece in two, nothing lost
         out = []
         for a, b in tight:
@@ -907,19 +908,37 @@ def captions(ls, items, total):
             ib = hi if hi is not None else len(toks)
             f = (i - ia) / (ib - ia)
             s = t0 + (t1 - t0) * f
+            if lo is not None:  # at speaking pace after the last word heard - never spread over a gap / a cut to the
+                s = min(s, t0 + 0.32 * (i - ia))  # next part ("אללה יסתור" landed on the next line, asaf-1)
             times[i] = (s, s + 0.25)
-        # chunks: up to 4 words / 22 letters, breaking after punctuation
+        # chunks: up to 4 words / 22 letters, breaking after punctuation. A sentence's last word stays with its
+        # sentence (up to 5 words / 30 letters) - never alone at the start of the next one ("הטמבל? הוא יודע שיש",
+        # asaf-1, 2026-11-03: sessions split those by hand, and hand-split subtitles broke on the next re-plan)
         chunk = []
-        for i, tok in enumerate(toks):
+        sent_end = lambda x: bool(re.search(r"[.?!][\"'״]?$", x))
+        i = 0
+        while i < len(toks):
+            tok = toks[i]
             chunk.append(i)
             text = " ".join(toks[j] for j in chunk)
-            end_punct = re.search(r"[.?!:,—]$", tok) and len(chunk) >= 2
-            if len(chunk) >= 4 or len(text) >= 22 or end_punct or i == len(toks) - 1:
+            end_punct = (re.search(r"[.?!:,—]$", tok) and len(chunk) >= 2) or (sent_end(tok) and len(chunk) >= 1)
+            close = len(chunk) >= 4 or len(text) >= 22 or end_punct or i == len(toks) - 1
+            if close and not sent_end(tok) and i + 1 < len(toks) and sent_end(toks[i + 1]) \
+                    and len(chunk) < 5 and len(text) + 1 + len(toks[i + 1]) <= 30:
+                i += 1  # the next word ends the sentence: it closes this chunk with it
+                chunk.append(i)
+                text = " ".join(toks[j] for j in chunk)
+            i += 1
+            if close:
                 a = to_out(items, n, times[chunk[0]][0])
-                kept = any(it["kind"] == "clip" and it["take"] == n and it["a"] - 0.35 <= times[chunk[0]][0] <= it["a"] + take_len(it, an=True) + 0.35
-                           for it in items)
+                # kept = at least half of what it says plays in the cut (the first word alone, with slack, let a line
+                # he cut out show at the next piece's start - asaf-1 "וואלה, תיזהר עכשיו עם")
+                c0, c1 = times[chunk[0]][0], max(times[chunk[-1]][1], times[chunk[0]][0] + 0.05)
+                inside = sum(max(0.0, min(c1, it["a"] + take_len(it, an=True) + 0.1) - max(c0, it["a"] - 0.1))
+                             for it in items if it["kind"] == "clip" and it["take"] == n)
+                kept = inside >= 0.5 * (c1 - c0)
                 if a is not None and kept:
-                    caps.append({"from": int(a), "text": text, "take": n, "end_hint": to_out(items, n, times[chunk[-1]][1])})
+                    caps.append({"from": int(a), "text": text, "take": n, "t": round(times[chunk[0]][0], 2), "end_hint": to_out(items, n, times[chunk[-1]][1])})
                 chunk = []
     other = []
     pl = placed_sounds(ls, items)
@@ -944,6 +963,21 @@ def captions(ls, items, total):
             if c["from"] < h0 < end:
                 end = h0
         c["to"] = max(c["from"] + 6, end)
+    # a subtitle that would flash (under 12 frames) joins the one before it (or after it) - never two at once, never a
+    # flash (asaf-1, 2026-11-03: "אח שלי." 10 frames, "את זה." 7)
+    out = []
+    for c in caps:
+        p = out[-1] if out else None
+        if p and (c["to"] - c["from"] < 12 or p["to"] - p["from"] < 12) and p.get("take") == c.get("take") \
+                and c["from"] - p["to"] <= 4 and len((p["text"] + " " + c["text"]).split()) <= 7:
+            p["text"], p["to"] = p["text"] + " " + c["text"], max(p["to"], c["to"])
+            if c.get("end_hint"):
+                p["end_hint"] = c["end_hint"]
+            continue
+        if p and p["to"] > c["from"]:
+            p["to"] = max(p["from"] + 1, c["from"])
+        out.append(c)
+    caps = out
     for o in [o for o in other if not o.get("over")]:  # his subtitles give way to the other side's (a pause opened for them)
         for c in caps:
             if c["from"] < o["from"] < c["to"]:
