@@ -597,6 +597,8 @@ function days(n) {   // the last n days, oldest first, empty ones included
   const have = Object.fromEntries(S.days.map((d) => [d.d, d]));
   return Array.from({ length: n }, (_, i) => { const d = dayBack(n - 1 - i); return have[d] || { d, n: {} }; });
 }
+// the chosen period: range = days back from today; 0 = yesterday alone (his ask 2026-11-03: a yesterday button next to today)
+const period = () => range === 0 ? days(2).slice(0, 1) : days(range);
 const sum = (list, f) => list.reduce((a, d) => a + (f(d) || 0), 0);
 function byPrefix(list, ev) { const out = {}; for (const d of list) for (const [k, v] of Object.entries(d.n || {})) if (k.startsWith(ev + '|')) out[k.slice(ev.length + 1)] = (out[k.slice(ev.length + 1)] || 0) + v; return out; }
 function merge(list, field) { const out = {}; for (const d of list) for (const [k, v] of Object.entries(d[field] || {})) out[k] = (out[k] || 0) + v; return out; }
@@ -618,8 +620,8 @@ const METRICS = {
 };
 const mval = (m, list) => sum(list, METRICS[m][2]);
 // the change against the period before it, as "+12%" (a day: against yesterday)
-function trend(m, n) {
-  const all = days(2 * n), now = mval(m, all.slice(n)), before = mval(m, all.slice(0, n));
+function trend(m) {
+  const n = range || 1, all = days(2 * n + (range === 0 ? 1 : 0)).slice(0, 2 * n), now = mval(m, all.slice(n)), before = mval(m, all.slice(0, n));
   if (!before) return now ? { t: 'חדש', c: 'up' } : { t: '', c: '' };
   const p = Math.round((now - before) / before * 100);
   return { t: `${p > 0 ? '+' : ''}${p}%`, c: p > 0 ? 'up' : p < 0 ? 'down' : '' };
@@ -629,7 +631,7 @@ function spark(m) {
   const pts = v.map((x, i) => `${(w - i * (w / 13)).toFixed(1)},${(h - 2 - (x / max) * (h - 4)).toFixed(1)}`).join(' ');
   return `<svg class="spark" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#ff6a1f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
-const RANGES = [[1, 'היום'], [7, '7 ימים'], [30, '30 ימים']];
+const RANGES = [[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים']];
 const rangeSeg = (opts = RANGES) => `<div class="rng">${opts.map(([v, l]) => `<button data-range="${v}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 // what one chat answer cost on average (from the tokens wiki.js keeps on each answer) - the cost of a period is estimated from it
 const PRICE = (u) => (((u[0] || 0) - (u[1] || 0)) * 2 + (u[1] || 0) * 0.2 + (u[2] || 0) * 12) / 1e6;
@@ -656,17 +658,17 @@ function timeStats(list) {
 }
 const dur = (s) => (s < 60 ? `${Math.round(s)} שנ׳` : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')} דק׳`);
 function timeKpi() {
-  const ts = timeStats(days(range));
+  const ts = timeStats(period());
   return `<div class="k"><span class="kh">${IC.stats}זמן באתר</span><b>${ts ? dur(ts.med) : '—'}</b>
     <span class="kf"><small class="note">${ts ? `חציון לביקור · ממוצע ${dur(ts.avg)} · ${fmt(ts.n)} ביקורים` : 'נמדד מ-2.11, בקרוב כאן'}</small></span></div>`;
 }
 function kpi(m, extra) {
-  const list = days(range), v = mval(m, list), tr = trend(m, range), [label, icon] = METRICS[m];
+  const list = period(), v = mval(m, list), tr = trend(m), [label, icon] = METRICS[m];
   return `<button class="k" data-metric="${m}"><span class="kh">${IC[icon]}${label}${IC.chev.replace('<svg', '<svg class="chev"')}</span>
-    <b>${extra ?? fmt(v)}</b><span class="kf"><span class="trend ${tr.c}">${tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${range === 1 ? 'מאתמול' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
+    <b>${extra ?? fmt(v)}</b><span class="kf"><span class="trend ${tr.c}">${tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
 }
 function overview() {
-  const list = days(range), msgs = mval('chat_message', list);
+  const list = period(), msgs = mval('chat_message', list);
   const open = L.requests.filter((r) => !r.done).sort((a, b) => (b.t || 0) - (a.t || 0));
   const attn = [
     ...open.slice(0, 3).map((r) => ({ t: r.t, face: ini(whoOf(r)), h: `${(RQ[r.kind] || RQ.contact)[0]} · ${esc(whoOf(r))}`, p: esc(r.text || r.choice || ''), go: 'requests' })),
@@ -681,7 +683,7 @@ function overview() {
   ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
   const row = (x) => `<button class="row" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
   $('#pane').innerHTML = `
-    <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : ` ב-${range} הימים האחרונים`}</p></div>${rangeSeg()}</div>
+    <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}</p></div>${rangeSeg()}</div>
     <div class="kgrid">${kpi('visitors')}${timeKpi()}${kpi('joined')}${kpi('chat_message')}${kpi('video')}${kpi('game_start')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
         <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה</small>${spark('chat_message')}</span></button></div>
@@ -775,7 +777,7 @@ let metric = 'visitors', drillDay = null, lastAsk = null;
 const SRC = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
 const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', other: 'אחר' };
 const GAME = { ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', pilai: 'פילאי פלואים', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
-const EV = { sign_in: 'כניסות לחשבון', follow: 'מעקב אחרי דמות', push_optin: 'התראות', comment: 'תגובות', like: 'אהבתי', save: 'שמירות', share: 'שיתופים', sticker_create: 'סטיקרים', stamp: 'החתמות', story_view: 'צפיות בסטורי', idea: 'רעיונות', vote: 'הצבעות', request: 'פניות', chat_new: 'שיחה חדשה' };
+const EV = { sign_in: 'כניסות לחשבון', follow: 'מעקב אחרי דמות', push_optin: 'התראות', comment: 'תגובות', like: 'אהבתי', save: 'שמירות', share: 'שיתופים', st_copy: 'סטיקרים שהועתקו', sticker_create: 'סטיקרים', stamp: 'החתמות', story_view: 'צפיות בסטורי', idea: 'רעיונות', vote: 'הצבעות', request: 'פניות', chat_new: 'שיחה חדשה' };
 function barList(title, obj, unit, opts = {}) {
   const rows = Object.entries(obj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, opts.n || 8);
   const total = Object.values(obj).reduce((a, b) => a + b, 0), max = rows.length ? rows[0][1] : 1;
@@ -801,19 +803,19 @@ function breakdown(list, label) {
 }
 function data() {
   // today's numbers by default; the chart always shows at least a week, so today has days to compare with
-  const n = range, list = days(n), chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
+  const n = range, list = period(), chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
   $('#pane').innerHTML = `
     <div class="ask"><h2>${IC.spark}שאלו את הנתונים</h2><p class="hint">כל שאלה על המבקרים, ההרשמות, השיחות והתוכן - בעברית רגילה.</p>
       <form id="ask-f"><input id="ask-q" placeholder="למשל: כמה נרשמו השבוע ומאיפה הם הגיעו?" maxlength="600" value="${esc(lastAsk?.q || '')}"><button aria-label="לשאול">${IC.send}</button></form>
       <div class="ex">${['כמה נרשמו השבוע לעומת השבוע שעבר?', 'איזו דמות הכי מדברים איתה ומה שואלים אותה?', 'מאיפה מגיעים המבקרים, ומה עושים הכי הרבה?', 'באיזו שעה הכי פעילים היום?', 'אילו משחקים הכי משחקים?'].map((x) => `<button type="button" data-ex>${x}</button>`).join('')}</div>
       ${lastAsk ? `<div class="ans ${lastAsk.wait ? 'wait' : ''}">${lastAsk.wait ? 'בודק את הנתונים…' : md(lastAsk.answer)}${lastAsk.cost ? `<span class="cost">עלות השאלה: $${lastAsk.cost.toFixed(3)}</span>` : ''}</div>` : ''}</div>
-    <div class="tool">${rangeSeg([[1, 'היום'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}
+    <div class="tool">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}
       <select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="kgrid">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => kpi(m)).join('')}</div>
     <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="d-ch"></div></div>
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
       <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
-    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : `ב-${n} ימים`)}`;
+    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}`;
   bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay);
   $('#metric').onchange = (e) => { metric = e.target.value; data(); };
   $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };

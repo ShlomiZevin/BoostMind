@@ -536,77 +536,40 @@ export async function openSticker() {
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') make(); });
 }
 // ---------- the sticker as a real WhatsApp sticker (the viral part) ----------
-// WhatsApp's sticker: 512x512, see-through, a 16 px margin, a WebP under 100 KB. The small planet logo rides along in the
-// corner, so whoever gets it can find where it came from. Android: shared as the WebP file it arrives AS a sticker.
-// iPhone: saved to Photos, then WhatsApp's own "create sticker" picks it up. Desktop: download, WhatsApp Web the same.
-const loadImg = (src) => new Promise((ok, no) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = no; i.src = src; });
+// WhatsApp's sticker: 512x512, see-through, a 16 px margin, a WebP under 100 KB. No logo (his call 2026-11-03, after the
+// /sticker-lab/ test: WhatsApp's own cut-out dropped it and left white around it). Copy first - pasted into a WhatsApp
+// chat it goes as a sticker, the easiest way (his words); save to Photos (iPhone) / the phone (Android) keeps it in
+// WhatsApp's stickers for good; Android can also share the WebP, which arrives AS a sticker.
 const toBlob = (c, type, q) => new Promise((ok) => c.toBlob(ok, type, q));
-// the logo never sits on the character or the words: it goes to the emptiest (most see-through) corner of the art, and if
-// no corner is empty enough the art shrinks a little to make room. They can still drag it anywhere on the preview.
-const S = 512, M = 16, LW = 84;
-async function prepare(src) {
-  const [art, logo] = await Promise.all([createImageBitmap(await (await fetch(src)).blob()), loadImg('/verse/logo-160.png').catch(() => null)]);
-  const LH = logo ? (logo.height / logo.width) * LW : 0;
-  const lay = (scale) => {
-    const k = Math.min((S - 2 * M) / art.width, (S - 2 * M) / art.height) * scale, w = art.width * k, h = art.height * k;
-    return { x: (S - w) / 2, y: (S - h) / 2, w, h };
-  };
-  const drawArt = (g, L) => { g.clearRect(0, 0, S, S); g.imageSmoothingQuality = 'high'; g.drawImage(art, L.x, L.y, L.w, L.h); };
-  let L = lay(1), pos = null;
-  if (logo) {
-    const c = Object.assign(document.createElement('canvas'), { width: S, height: S }), g = c.getContext('2d', { willReadFrequently: true });
-    const spots = [[M - 6, M - 4], [S - M - LW + 6, M - 4], [M - 6, S - M - LH + 4], [S - M - LW + 6, S - M - LH + 4]];
-    for (const scale of [1, 0.9, 0.82]) {
-      L = lay(scale); drawArt(g, L);
-      const cost = spots.map(([x, y]) => { const d = g.getImageData(Math.round(x), Math.round(y), LW, Math.round(LH)).data; let n = 0; for (let i = 3; i < d.length; i += 4) n += d[i] > 40; return n / (d.length / 4); });
-      const best = cost.indexOf(Math.min(...cost));
-      pos = { x: spots[best][0], y: spots[best][1] };
-      if (cost[best] < 0.04) break;   // under 4% of the logo's box touches the art
-    }
-  }
-  return { art, logo, L, pos, LH, drawArt };
-}
-async function compose(P, pos) {
+const S = 512, M = 16;
+async function stickerFiles(src) {
+  const art = await createImageBitmap(await (await fetch(src)).blob());
+  const k = Math.min((S - 2 * M) / art.width, (S - 2 * M) / art.height), w = art.width * k, h = art.height * k;
   const c = Object.assign(document.createElement('canvas'), { width: S, height: S }), g = c.getContext('2d');
-  P.drawArt(g, P.L);
-  if (P.logo && pos) g.drawImage(P.logo, pos.x, pos.y, LW, P.LH);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(art, (S - w) / 2, (S - h) / 2, w, h);
   const png = await toBlob(c, 'image/png');
   let webp = null;
   for (const q of [0.9, 0.8, 0.7, 0.6, 0.5]) { const b = await toBlob(c, 'image/webp', q); if (!b || b.type !== 'image/webp') break; webp = b; if (b.size <= 100e3) break; }
-  return { png: new File([png], 'shlomiverse-sticker.png', { type: 'image/png' }), webp: webp && new File([webp], 'shlomiverse-sticker.webp', { type: 'image/webp' }) };
+  return { c, png: new File([png], 'shlomiverse-sticker.png', { type: 'image/png' }), webp: webp && new File([webp], 'shlomiverse-sticker.webp', { type: 'image/webp' }) };
 }
 export async function waCard(src, videoId) {
   const os = isIOS() ? 'ios' : isAndroid() ? 'android' : 'desktop';
   const steps = { ios: T.waStepsIOS, android: T.waStepsAndroid, desktop: T.waStepsDesktop }[os];
-  const btns = { ios: `<button class="vx-btn main block" data-save>${I.download}${esc(T.waSavePhotos)}</button>`,
-    android: `<button class="vx-btn main block" data-send>${I.whatsapp}${esc(T.waSend)}</button><button class="vx-btn glass block" data-save>${I.download}${esc(T.waSave)}</button>`,
-    desktop: `<button class="vx-btn main block" data-save>${I.download}${esc(T.waDownload)}</button>` }[os];
+  const copy = `<button class="vx-btn main block" data-copy-st>${I.copy}${esc(T.waCopy)}</button>`;
+  const btns = copy + { ios: `<button class="vx-btn glass block" data-save>${I.download}${esc(T.waSavePhotos)}</button>`,
+    android: `<button class="vx-btn glass block" data-send>${I.whatsapp}${esc(T.waSend)}</button><button class="vx-btn glass block" data-save>${I.download}${esc(T.waSave)}</button>`,
+    desktop: `<button class="vx-btn glass block" data-save>${I.download}${esc(T.waDownload)}</button>` }[os];
   const h = sheet(`<div class="wa"><h2 class="vx-h">${esc(T.waTitle)}</h2>
-      <div class="wa-art"><span class="vx-spin"></span></div><p class="wa-hint">${esc(T.waMoveLogo)}</p>
+      <div class="wa-art"><span class="vx-spin"></span></div>
       <ol class="wa-steps">${steps.map((x, i) => `<li><b>${i + 1}</b><span>${esc(x)}</span></li>`).join('')}</ol>
       <div class="wa-btns">${btns}</div></div>`, { cls: 'wa-sheet' });
-  let P;
-  try { P = await prepare(src); } catch (e) { console.error('sticker file', e); toast(T.errGeneric); h.close(); return; }
-  // the preview: the art on a canvas, the logo a layer on top that follows the finger (positions kept in the 512 px space)
+  const ready = stickerFiles(src);   // started now, so a tap on Copy finds it (almost) done
+  let F;
+  try { F = await ready; } catch (e) { console.error('sticker file', e); toast(T.errGeneric); h.close(); return; }
   const box = h.el.querySelector('.wa-art');
-  box.innerHTML = '<canvas width="512" height="512"></canvas>' + (P.logo ? '<img class="wa-logo" src="/verse/logo-160.png" alt="" draggable="false">' : '');
-  P.drawArt(box.querySelector('canvas').getContext('2d'), P.L);
-  let pos = P.pos;
-  const logoEl = box.querySelector('.wa-logo');
-  if (logoEl) {
-    const place = () => Object.assign(logoEl.style, { left: `${(pos.x / S) * 100}%`, top: `${(pos.y / S) * 100}%`, width: `${(LW / S) * 100}%` });
-    place();
-    let drag = null;
-    logoEl.addEventListener('pointerdown', (e) => { e.preventDefault(); logoEl.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, p: { ...pos }, k: S / box.clientWidth }; logoEl.classList.add('drag'); });
-    logoEl.addEventListener('pointermove', (e) => {
-      if (!drag) return;
-      pos = { x: Math.min(S - LW, Math.max(0, drag.p.x + (e.clientX - drag.x) * drag.k)), y: Math.min(S - P.LH, Math.max(0, drag.p.y + (e.clientY - drag.y) * drag.k)) };
-      place();
-    });
-    const up = () => { drag = null; logoEl.classList.remove('drag'); };
-    logoEl.addEventListener('pointerup', up);
-    logoEl.addEventListener('pointercancel', up);
-  } else h.el.querySelector('.wa-hint').remove();
+  box.innerHTML = '';
+  box.appendChild(F.c);
   const share = async (file) => {
     try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return true; } }
     catch (e) { if (e.name === 'AbortError') return true; }
@@ -616,10 +579,14 @@ export async function waCard(src, videoId) {
   h.el.addEventListener('click', async (e) => {
     const b = e.target.closest('button');
     if (!b) return;
-    const files = await compose(P, pos);   // made from where the logo is now
+    if (b.matches('[data-copy-st]')) {
+      // written inside the tap (iPhone Safari allows the clipboard only there) - the PNG goes as a see-through sticker
+      try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(F.png) })]); toast(T.waCopied); track('st_copy', videoId); }
+      catch (err) { console.warn('sticker copy', err); toast(T.waCopyFail); }
+    }
     // the file alone, no text with it: a caption would make WhatsApp send a picture, not a sticker
-    if (b.matches('[data-send]')) { if (!(await share(files.webp || files.png))) download(files.webp || files.png); track('share', videoId); }
-    else if (b.matches('[data-save]')) { if (os === 'desktop' || !(await share(files.png))) download(os === 'android' && files.webp ? files.webp : files.png); track('share', videoId); }
+    else if (b.matches('[data-send]')) { if (!(await share(F.webp || F.png))) download(F.webp || F.png); track('share', videoId); }
+    else if (b.matches('[data-save]')) { if (os === 'desktop' || !(await share(F.png))) download(os === 'android' && F.webp ? F.webp : F.png); track('share', videoId); }
   });
 }
 document.addEventListener('click', (e) => { const i = e.target.closest('[data-wa-img]'); if (i) waCard(i.dataset.waImg, i.dataset.waV); });

@@ -107,8 +107,21 @@ export function lockScroll() {
 }
 export function unlockScroll() {
   if (!locks || --locks) return;
+  // the keyboard goes down first: unpinning with it still up leaves iPhone's page shifted by its height (his note
+  // 2026-11-03: the bottom bar floating mid-screen, an empty strip under it to scroll into)
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   Object.assign(document.body.style, { position: '', top: '', left: '', right: '', overflow: '' });
   scrollTo({ top: lockY, behavior: 'instant' });
+}
+// iPhone sometimes keeps the page offset after the keyboard closes (fixed bars drift up, blank space below): once the
+// visible area is back to full height, nudge the scroll so the browser lays the page out again
+if (window.visualViewport) {
+  let tall = visualViewport.height;
+  visualViewport.addEventListener('resize', () => {
+    const h = visualViewport.height;
+    if (h > tall + 120 && !locks) setTimeout(() => scrollTo({ top: Math.min(scrollY, document.documentElement.scrollHeight - innerHeight), behavior: 'instant' }), 60);
+    tall = h;
+  });
 }
 function layer(el, back, onClose) {
   lockScroll();

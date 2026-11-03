@@ -1153,3 +1153,16 @@ section.hero .scroll-hint { z-index: 1; }
 /* community page: the sticker tiles above the three tiles; the "request a video" triangle points left (forward in Hebrew) */
 .cmy-st { margin-top: 22px; }
 .cmy-tile svg.flip { transform: scaleX(-1); }
+
+/* footer on a phone (his note 2026-11-03: messy with all the links): the name + the socials on one line, then the site's
+   three links as equal tiles in one row; "the community" is already in the bottom bar */
+@media (max-width: 600px) {
+  footer .wrap.foot { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px; }
+  .foot-brand img { width: 30px; }
+  .foot-soc { grid-column: 2; grid-row: 1; width: auto; justify-content: flex-end; gap: 6px; }
+  .foot-soc a { width: 32px; height: 32px; }
+  .foot-links { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin: 0; }
+  .foot-links a[href="#/community"] { display: none; }
+  .foot-links a { flex-direction: column; justify-content: center; gap: 4px; height: 58px; padding: 0 4px; border-radius: 16px; font-size: .78rem; white-space: nowrap; }
+  .foot-links svg { width: 18px; height: 18px; }
+}
