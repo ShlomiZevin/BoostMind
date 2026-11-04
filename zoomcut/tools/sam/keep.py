@@ -40,17 +40,28 @@ def _find_ff(name):  # (as pipeline/common.py: PATH, else WinGet's folder - the 
 
 
 FF = _find_ff("ffmpeg")
-MODEL = ("configs/sam2.1/sam2.1_hiera_t.yaml", os.path.join(HERE, "models", "sam2.1_hiera_tiny.pt"))
-RES = 512        # the model's input (1024 = 6x slower on this CPU, the same edges at this size)
-KFPS = 10        # frames a second the model sees; the rest follow the motion
-SH = 540         # the frames' height (the matte is 768: the mask is scaled up, softly)
-OV = [f"++model.image_size={RES}"]
+# on his PC (CPU): tiny at 512 px, 10 frames a second + optical flow between; in the cloud (Cloud Run, an L4 - tools/sam/
+# server.py) KEEP_DEVICE=cuda: small at 1024 px, every frame
+DEVICE = os.environ.get("KEEP_DEVICE", "cpu")
+_SIZE = os.environ.get("KEEP_MODEL", "small" if DEVICE == "cuda" else "tiny")
+MODEL = {"tiny": ("configs/sam2.1/sam2.1_hiera_t.yaml", os.path.join(HERE, "models", "sam2.1_hiera_tiny.pt")),
+         "small": ("configs/sam2.1/sam2.1_hiera_s.yaml", os.path.join(HERE, "models", "sam2.1_hiera_small.pt"))}[_SIZE]
+RES = int(os.environ.get("KEEP_RES", 1024 if DEVICE == "cuda" else 512))  # the model's input (1024 = 6x slower on the CPU)
+KFPS = int(os.environ.get("KEEP_KFPS", 30 if DEVICE == "cuda" else 10))  # frames a second the model sees; the rest follow the motion
+SH = int(os.environ.get("KEEP_SH", 1080 if DEVICE == "cuda" else 540))   # the frames' height (the matte is 768: scaled softly)
+OV = [f"++model.image_size={RES}"] if RES != 1024 else []
 
 
 def _torch():
     import torch
     torch.set_num_threads(os.cpu_count() or 8)
     return torch
+
+
+def _auto():  # (bfloat16 on the GPU - the L4 is fast at it; nothing on the CPU)
+    import contextlib
+    import torch
+    return torch.autocast("cuda", dtype=torch.bfloat16) if DEVICE == "cuda" else contextlib.nullcontext()
 
 
 def frame_at(take, t, h=SH):
@@ -66,8 +77,9 @@ def image_predictor():
     _torch()
     from sam2.build_sam import build_sam2
     from sam2.sam2_image_predictor import SAM2ImagePredictor
-    p = SAM2ImagePredictor(build_sam2(MODEL[0], MODEL[1], device="cpu", hydra_overrides_extra=OV))
-    p._bb_feat_sizes = [(RES // 4, RES // 4), (RES // 8, RES // 8), (RES // 16, RES // 16)]  # (it assumes 1024)
+    p = SAM2ImagePredictor(build_sam2(MODEL[0], MODEL[1], device=DEVICE, hydra_overrides_extra=OV))
+    if RES != 1024:
+        p._bb_feat_sizes = [(RES // 4, RES // 4), (RES // 8, RES // 8), (RES // 16, RES // 16)]  # (it assumes 1024)
     return p
 
 
@@ -159,9 +171,9 @@ def track(take, objs, out, ow, oh, fps, nframes):
                     "-q:v", "3", "-start_number", "0", os.path.join(kdir, "%05d.jpg")], check=True)
     nk = len(os.listdir(kdir))
     kw, kh = cv2.imread(os.path.join(kdir, "00000.jpg")).shape[1::-1]
-    vp = build_sam2_video_predictor(MODEL[0], MODEL[1], device="cpu", hydra_overrides_extra=OV)
+    vp = build_sam2_video_predictor(MODEL[0], MODEL[1], device=DEVICE, hydra_overrides_extra=OV)
     km = np.zeros((nk, kh, kw), np.uint8)  # the keyframes' masks, every object together
-    with torch.inference_mode():
+    with torch.inference_mode(), _auto():
         st = vp.init_state(video_path=kdir, offload_video_to_cpu=True)
         for oi, o in enumerate(objs):
             ki = int(round((float(o["t"]) - t0) * KFPS))

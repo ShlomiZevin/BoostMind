@@ -227,9 +227,17 @@ def keep_objects_matte(ls, t, n, objects):
     with open(spec, "w", encoding="utf-8") as fh:
         json.dump(objects, fh)
     names = ", ".join(o.get("what") or "a thing" for o in objects)
+    args = [t, spec, out, str(MATTE_W), str(MATTE_H), str(FPS), str(int(dur * FPS) + 2)]
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "TQDM_DISABLE": "1"}
+    if (ls.cfg.get("keep_engine") or os.environ.get("ZC_KEEP")) == "cloud":  # (Cloud Run, an L4: tools/sam/cloud.py, ~2-5 cents a take)
+        log(f"  · following what he marked in {n} ({names}) - in the cloud (an L4)")
+        r = subprocess.run([SAM_PY, "-I", os.path.join(ROOT, "tools", "sam", "cloud.py"), *args], capture_output=True, text=True, env=env)
+        if r.returncode == 0 and os.path.exists(out):
+            log("  · " + (r.stdout.strip().splitlines() or ["cloud: done"])[-1])
+            return out
+        log(f"  ! the cloud didn't do it ({(r.stderr or r.stdout)[-200:]}) - on this computer instead")
     log(f"  · following what he marked in {n} ({names}) - about 5 s per second of video")
-    r = subprocess.run([SAM_PY, "-I", keep, "track", t, spec, out, str(MATTE_W), str(MATTE_H), str(FPS), str(int(dur * FPS) + 2)],
-                       capture_output=True, text=True, env={**os.environ, "PYTHONIOENCODING": "utf-8", "TQDM_DISABLE": "1"})
+    r = subprocess.run([SAM_PY, "-I", keep, "track", *args], capture_output=True, text=True, env=env)
     if r.returncode or not os.path.exists(out):
         log(f"  ! keep_objects for {n} failed: {(r.stderr or r.stdout)[-300:]}")
         return None
