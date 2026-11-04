@@ -11,14 +11,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
 <!-- "the end of the verse" (his ask, 2026-11-03): any address that isn't on shlomiverse.com. The same screen shows inside
      the site for a character / video / game that isn't there (pages.notFound in v2/site/wiki/index.html). Picture:
-     scripts/v2-design/end-of-verse.mjs, its sky cleared by end-of-verse-sky.mjs, the logo planet on top; words: Terra -->
+     scripts/v2-design/end-of-verse.mjs, its sky cleared by end-of-verse-sky.mjs, the logo planet painted in far behind by end-of-verse-planet.mjs; words: Terra -->
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #050506; color: #fff; font-family: 'Heebo', sans-serif; line-height: 1.55; }
 .top { position: absolute; top: 0; inset-inline: 0; z-index: 2; display: flex; justify-content: flex-end; padding: calc(14px + env(safe-area-inset-top)) 18px; }
 .top img { width: 92px; height: auto; display: block; filter: drop-shadow(0 0 16px rgba(255, 106, 31, .35)); }
 .eov { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; text-align: center;
-  padding: 0 20px 12vh; background: #050506 url('/verse/end-of-verse.jpg?v=2') center 30% / cover no-repeat; overflow: hidden; }
+  padding: 0 20px 12vh; background: #050506 url('/verse/end-of-verse.jpg?v=3') center 30% / cover no-repeat; overflow: hidden; }
 .eov::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 35%, rgba(5, 5, 6, .55) 62%, #050506 96%); pointer-events: none; }
 .eov > * { position: relative; z-index: 1; }
 .eov h1 { font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 900; line-height: 1.1; color: #fff; letter-spacing: -.01em; text-shadow: 0 2px 30px rgba(0, 0, 0, .8); }
@@ -26,15 +26,12 @@ html, body { background: #050506; color: #fff; font-family: 'Heebo', sans-serif;
 .eov .eov-home { margin-top: 26px; display: inline-flex; align-items: center; gap: 0; height: 56px; padding: 0 28px; border-radius: 99px; background: #141418; color: #fff; border: 1.5px solid #ff6a1f;
   font-weight: 900; font-size: 1.08rem; box-shadow: 0 0 32px rgba(255, 106, 31, .45); text-decoration: none; }
 .eov .eov-wm { font-weight: 900; letter-spacing: -.03em; font-size: 1.2em; } .eov .eov-wm b { color: #ff6a1f; font-weight: inherit; }
-.eov .eov-planet { position: absolute; z-index: 1; top: 21%; left: 50%; transform: translateX(-50%); width: clamp(80px, 8.5vw, 128px); height: auto; opacity: .9;
-    filter: blur(1.4px) saturate(.75) brightness(.72) drop-shadow(0 0 26px rgba(255, 106, 31, .4)); pointer-events: none; }
-@media (max-width: 700px) { .eov { background-size: 165% auto; background-position: 10% top; } .eov .eov-planet { top: 5%; width: 76px; filter: blur(1px) saturate(.75) brightness(.72) drop-shadow(0 0 18px rgba(255, 106, 31, .4)); } }
+@media (max-width: 700px) { .eov { background-size: 165% auto; background-position: 10% top; } }
 </style>
 <script src="/t.js" data-site="wiki" defer></script>
 </head>
 <body>
 <main class="eov">
-  <img class="eov-planet" src="/verse/logo-512.png" alt="">
   <h1>הגעתם לקצה הוורס</h1><p>אין פה כלום. כנראה שהדף הלך לאיבוד ביקום הגדול שלנו.</p>
   <a class="eov-home" href="/">חזרה ל<span class="eov-wm">שלומי<b>וורס</b></span></a>
 </main>
