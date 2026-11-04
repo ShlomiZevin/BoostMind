@@ -16,6 +16,7 @@ import { Media as FootageAssign } from '../footage';
 import { Handles, pickAt } from './Handles';
 import { Subtitles } from './Subtitles';
 import { VideoPeek } from './VideoPeek';
+import { FaceSwap } from './FaceSwap';
 import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots } from './Notes';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
@@ -132,8 +133,14 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     if (!a) return null;
     const kind = l.kind === 'audio' ? 'audio' : a.kind === 'image' ? 'image' : 'video';
     const fpsP = project.canvas.fps || 30, from = it.in || 0, to = from + (it.dur / fpsP) * (it.rate || 1);
-    return <VideoPeek kind={kind} src={kind === 'image' ? L.view!.urls[id] : `/api/p/${ep}/asset?a=${encodeURIComponent(id)}`} name={a.label || String(a.src).split('/').pop()}
-      sub={kind === 'image' ? (a.w ? `${a.w}×${a.h}` : '') : `this clip: ${fmtT(from)} – ${fmtT(to)} of the file`} start={kind === 'image' ? undefined : from} end={kind === 'image' ? undefined : to} onClose={close} />;
+    // a video clip: the face swap (beta) under it - and once made, the window plays the swapped copy while it is on
+    const take = kind === 'video' && l.kind === 'video';
+    const swapped = take && l.props?.face !== false && L.view!.urls[`${id}:face`];
+    return <VideoPeek kind={kind} src={kind === 'image' ? L.view!.urls[id] : swapped || `/api/p/${ep}/asset?a=${encodeURIComponent(id)}`} name={a.label || String(a.src).split('/').pop()}
+      sub={kind === 'image' ? (a.w ? `${a.w}×${a.h}` : '') : `this clip: ${fmtT(from)} – ${fmtT(to)} of the file`} start={kind === 'image' ? undefined : from} end={kind === 'image' ? undefined : to} onClose={close}>
+      {take && <FaceSwap key={`${l.id}|${id}`} ep={ep} project={project} layer={l} asset={id} urls={L.view!.urls} send={L.send} reload={L.load} onMade={close}
+        build={async (action, args) => { before(action); const j = await build(ep, { action, ...(args || {}) }); if (j?.running) setJob(j); else reloaded(); }} />}
+    </VideoPeek>;
   };
   const [line, setLine] = useState<number | null>(null);
   const [pick, setPick] = useState<{ kind: string; onPick: (id: string) => void } | null>(null);  // a panel asked for a file from Media

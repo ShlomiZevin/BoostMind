@@ -1120,6 +1120,7 @@ const projectView = (q, id) => {
     if (a.preview) urls[aid + ':preview'] = url(a.preview);
     if (a.audio) urls[aid + ':audio'] = url(a.audio);
     for (const v of ['eyes', 'eyes_fg']) if (a[v]) urls[`${aid}:${v}`] = url(a[v]);  // eye contact: the corrected copies
+    for (const v of ['face', 'face_fg']) if (a[v]) urls[`${aid}:${v}`] = url(a[v]);  // face swap (beta): the other face's copies
     if (a.keep_static) urls[`${aid}:keep`] = url(a.keep_static);  // the desk objects kept over the cut-out (live)
   }
   const sj = readJson(path.join(d, 'work', 'public', 'layers', 'stems', 'stems.json'), { stems: {} });

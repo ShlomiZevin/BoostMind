@@ -302,8 +302,15 @@ end must show at once, with the real footage there.
   "did nothing". Keep heavy media off the page's own host.
 - **Testing on a copy:** name it `_something` (episodes/_x) - hidden from every project menu, still opens when asked
   for by id; delete it after. Never write into a project he is working on (he wants one project per video).
-- **What still rebuilds** (a real job): Re-analyze, cut presets, matte engine, Make eye contact, Strong noise
-  reduction, new footage, slow-motion ranges. Don't add new jobs for things the editor can draw.
+- **What still rebuilds** (a real job): Re-analyze, cut presets, matte engine, Make eye contact, Make face swap, Strong
+  noise reduction, new footage, slow-motion ranges. Don't add new jobs for things the editor can draw.
+- **Face swap (beta, 2026-11-03):** in a video clip's own window (▶ on the clip), under the take. The face: a picture
+  of the project, a character's portrait, the asset library, or a file (it comes into the project's Media first).
+  Look a (takes his light) / c (most blended). It runs as a job (action `faceswap` → pipeline/face_layers.py →
+  tools/faceswap/quick.py, the Snapchat way, its own `.venv`, ~2.5 min per minute). It writes `face_src` / `face` /
+  `face_fg` on the asset, like eye contact. Your face / Swapped is a live switch (layer props.face, default on once
+  made). VideoTrack plays the copy and export_layers reads face_src, ahead of eye contact. Only the face changes; his
+  eyeballs and the inside of his mouth stay his. His own command for any video: `tools/faceswap/faceswap.cmd`.
 - Testing: `window.__zcClock` is the live clock; a puppeteer script logging every frame's shown box and its video's
   readyState catches flicker. Waiting copies are hidden by opacity, never `visibility: hidden`.
 

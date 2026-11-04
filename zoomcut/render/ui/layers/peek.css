@@ -38,3 +38,15 @@
 .mk-dot.skip { background: var(--bad, #ff8a7a); }
 .mk-dot.note { background: var(--panel-3); color: var(--text); }
 .mk-wrap { position: relative; line-height: 0; flex: none; }
+/* face swap (beta) in a video clip's window - FaceSwap.tsx */
+.vp-fs { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge); display: flex; flex-direction: column; gap: 8px; }
+.vp-fs-h { font-weight: 600; font-size: 13px; }
+.vp-fs-beta { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); border: 1px solid currentColor; border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+.vp-fs-l { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.vp-fs-pics { display: grid; grid-template-columns: repeat(5, 52px); grid-auto-rows: 52px; gap: 6px; max-height: 172px; overflow: auto; }
+.vp-fs-pic { width: 52px; height: 52px; padding: 0; border: 2px solid transparent; border-radius: 5px; overflow: hidden; background: var(--panel-3); cursor: pointer; }
+.vp-fs-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vp-fs-pic.on { border-color: var(--accent); }
+.vp-fs-add { color: var(--dim); font-size: 20px; border: 1px dashed var(--edge-2); }
+.vp-fs-go { width: 100%; margin-top: 4px; }
+.vp-fs-q { margin-top: 0 !important; }
