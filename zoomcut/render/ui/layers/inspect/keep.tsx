@@ -97,7 +97,7 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
   const ask = (body: any) => callBuild(ep, { action: 'keep', asset, ...body });
   const o = objs[cur];
   const marked = (x?: Obj) => !!x?.points.some((p) => p[2]);
-  const upd = (i: number, patch: Partial<Obj>) => setObjs((all) => all.map((x, k) => (k === i ? { ...x, ...patch } : x)));
+  const upd = (i: number, patch: Partial<Obj>) => { if ('points' in patch || 'what' in patch || 't' in patch) setSaved(false); setObjs((all) => all.map((x, k) => (k === i ? { ...x, ...patch } : x))); };
 
   const loadFrame = async (t: number) => {
     setBusy(imgRef.current ? 'Loading the frame…' : 'Getting ready - the first time takes a few seconds…'); setErr('');
@@ -179,12 +179,15 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
 
-  const save = async () => {
+  // make the cut-out now (Analyze) - or only save the marks, for a Claude session to keep them (his ask: "even if I'm not the
+  // one cutting it - for the session, so it doesn't make mistakes"; it reads them with keep.py show)
+  const [saved, setSaved] = useState(false);
+  const save = async (build: boolean) => {
     setBusy('Saving…');
     try {
-      await P.build?.('keep', { op: 'save', asset, build: true,
-        objects: objs.filter(marked).map((x, i) => ({ what: x.what.trim() || `thing ${i + 1}`, t: x.t, points: x.points, from: x.from, to: x.to })) });
-      onDone();
+      const objects = objs.filter(marked).map((x, i) => ({ what: x.what.trim() || `thing ${i + 1}`, t: x.t, points: x.points, from: x.from, to: x.to }));
+      if (build) { await P.build?.('keep', { op: 'save', asset, build: true, objects }); onDone(); }
+      else { const j = await ask({ op: 'save', build: false, objects }); if (j?.error) setErr(j.error); else setSaved(true); }
     } finally { setBusy(''); }
   };
 
@@ -195,6 +198,8 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
   const sh = 520, sw = img ? Math.round((sh * img.w) / img.h) : Math.round((sh * 9) / 16);
   const tShow = scrub ?? img?.t ?? atHead;
   return <div className="kp">
+    <div className="kp-intro">Mark what has to stay in the cut-out. Then make the cut-out yourself - or save the marks for Claude:
+      a session sees them and keeps exactly these.</div>
     <div className="kp-body">
       <div className="kp-col kp-list">
         <div className="kp-h">Things to keep</div>
@@ -251,9 +256,13 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
       <button className="btn kp-btn" disabled={!o?.points.length} onClick={() => setPoints([])}>Clear marks</button>
       <button className="btn kp-btn" disabled={!o?.points.length} onClick={() => setPoints(o.points.slice(0, -1))}>{Ic.undo}Undo</button>
       <div className="kp-go">
-        <button className="kp-primary" disabled={!n || !!busy} onClick={save}>
-          {n ? `Keep ${n === 1 ? '1 thing' : `${n} things`} and make the cut-out` : 'Mark a thing to keep'}</button>
-        <span>This runs in the background - about {mins} min for this {Math.round(total)} s clip.</span>
+        <div className="kp-acts">
+          <button className="btn kp-btn kp-claude" disabled={!n || !!busy} onClick={() => save(false)}
+            title="Only save the marks - a Claude session keeps them when it makes the cut-out">{saved ? <>{Ic.ok}Saved for Claude</> : 'Save for Claude'}</button>
+          <button className="kp-primary" disabled={!n || !!busy} onClick={() => save(true)}>
+            {n ? `Keep ${n === 1 ? '1 thing' : `${n} things`} and make the cut-out` : 'Mark a thing to keep'}</button>
+        </div>
+        <span>{saved ? 'Saved. Tell the session - it sees what you marked.' : `Make the cut-out now: about ${mins} min for this ${Math.round(total)} s clip, in the background.`}</span>
       </div>
     </div>
   </div>;

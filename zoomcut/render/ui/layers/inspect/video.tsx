@@ -6,6 +6,8 @@
 import React from 'react';
 import { InspectorProps, useSettings, Head, Sec, More, Row, Win, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, PanelEnd, Opacity, ICON, fmt } from './controls';
 import { KeepThings } from './keep';
+import { build as callBuild } from '../api';
+import { tabProject } from '../../common';
 
 
 /** Make (or redo) the corrected copies - in its own window (his rule: extra options open from the item, the panel stays
@@ -58,6 +60,13 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
   const S = useSettings(P);
   const [eyesWin, setEyesWin] = React.useState(false);
   const [keepWin, setKeepWin] = React.useState(false);
+  // what is marked to keep on the take (episode.json keep_objects - by him or a session): named on the button
+  const [kept, setKept] = React.useState<string[]>([]);
+  const keepAsset = (item || (layer.items || []).find((i: any) => P.frame >= i.from && P.frame < i.from + i.dur) || layer.items?.[0])?.asset;
+  React.useEffect(() => {
+    if (!keepAsset || keepWin) return;
+    callBuild(tabProject.get(), { action: 'keep', op: 'state', asset: keepAsset }).then((j: any) => setKept((j?.objects || []).map((o: any) => o.what))).catch(() => {});
+  }, [keepAsset, keepWin]);
   const assetsUsed = [...new Set((item ? [item] : layer.items || []).map((i: any) => i.asset).filter(Boolean))] as string[];
   const A = (id: string) => project.assets?.[id] || {};
   const withEyes = assetsUsed.filter((id) => A(id).eyes);
@@ -96,7 +105,8 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
           fmt={(v) => (v ? `bottom ${v}%` : 'off')} onChange={(v, c) => S.set('keep', v ? { ...(S.get('keep') || {}), below: +(1 - v / 100).toFixed(3) } : null, c)} />
         <Note>Live. Edge cleanup drops the half-sure halo around him (white wall behind raised hands); Keep desk keeps the real desk in
           front of the set. The export applies the same.</Note>
-        <button className="btn ins-wide" onClick={() => setKeepWin(true)}>Keep things too… (a box he holds, a prop)</button>
+        <button className="btn ins-wide" onClick={() => setKeepWin(true)} title="Mark what has to stay in the cut-out - make it yourself or save it for Claude">
+          {kept.length ? `Keep things… · ${kept.join(', ')}` : 'Keep things too… (a box he holds, a prop)'}</button>
         {keepWin && <Win title="Keep things in the cut-out" cls="kp-win" onClose={() => setKeepWin(false)}>
           <KeepThings P={P} mirrored={!!S.get('mirror', false)} onDone={() => setKeepWin(false)} /></Win>}
       </>}

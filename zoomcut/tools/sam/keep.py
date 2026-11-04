@@ -6,6 +6,9 @@ venv (tools/sam/.venv: torch CPU + Meta's sam2; models in tools/sam/models, not 
       {"cmd": "frame", "take": path, "t": s}       -> {"w", "h", "jpg": base64}   (the frame the marks are made on)
       {"cmd": "mask", "points": [[fx, fy, 1|0]]}   -> {"png": base64, "score"}     (1 = keep this, 0 = not this)
   keep.py preview <take> <t> <fx,fy[,0]> ... <out.jpg>   a session checks its marks on a still (kept bright, rest dim)
+  keep.py show <episode dir>     what HE marked (the editor's Keep things window, "Save for Claude"): every thing, its
+      picture with the outline (work/keep_marks/), and whether the cut-out has it yet - a session runs this before any
+      cut-out work and keeps exactly these
   keep.py track <take> <objects.json> <out.mkv> <w> <h> <fps> <frames>
       the build: every object followed through its span (SAM 2 on 10 frames a second at 512 px - CPU: ~5 s per second
       of video; the frames between follow the motion by optical flow), one grey mask a frame, <w>x<h>, ffv1.
@@ -216,6 +219,46 @@ def track(take, objs, out, ow, oh, fps, nframes):
     print(f"kept objects -> {out}", flush=True)
 
 
+def show(ep):
+    """Every marked thing of a project: its picture (outline on the frame he marked it on), its marks, whether the cut-out
+    already has it (the take's objs<hash> matte exists) - what a session reads before touching the cut-out."""
+    import hashlib
+    cfg = json.load(open(os.path.join(ep, "episode.json"), encoding="utf-8"))
+    marks = cfg.get("keep_objects") or {}
+    if not marks:
+        print("nothing marked to keep (episode.json keep_objects is empty)")
+        return
+    proj = json.load(open(os.path.join(ep, "project.json"), encoding="utf-8"))
+    files = {os.path.splitext(os.path.basename(a["src"]))[0]: os.path.normpath(os.path.join(ep, a["src"]))
+             for a in proj.get("assets", {}).values() if a.get("kind") == "video" and a.get("src")}
+    out = os.path.join(ep, "work", "keep_marks")
+    os.makedirs(out, exist_ok=True)
+    p = None
+    for take, objs in marks.items():
+        h = hashlib.md5(json.dumps(objs, sort_keys=True).encode()).hexdigest()[:8]
+        made = any(f.endswith(f".objs{h}.mkv") for f in os.listdir(os.path.join(ep, "work", "matte"))) if os.path.isdir(os.path.join(ep, "work", "matte")) else False
+        print(f"take {take}: {len(objs)} thing(s) - {'IN the cut-out already' if made else 'NOT in the cut-out yet (Analyze makes it)'}")
+        f = files.get(take)
+        for i, o in enumerate(objs):
+            line = f"  - {o.get('what') or 'a thing'}: marked at {o['t']:.1f} s, {sum(1 for q in o['points'] if len(q) < 3 or q[2])} keep / {sum(1 for q in o['points'] if len(q) > 2 and not q[2])} not-this marks"
+            if f and os.path.exists(f):
+                if p is None:
+                    p = image_predictor()
+                im = frame_at(f, float(o["t"]))
+                p.set_image(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+                m, sc = predict(p, im.shape[1], im.shape[0], o["points"])
+                show_im = im.copy()
+                show_im[m == 0] = (show_im[m == 0] * 0.3).astype(np.uint8)
+                cnt, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(show_im, cnt, -1, (80, 220, 120), 2)
+                img = os.path.join(out, f"{take}-{i + 1}.jpg")
+                cv2.imwrite(img, show_im)
+                line += f" -> {img}"
+            else:
+                line += " (the take's file isn't on this computer)"
+            print(line, flush=True)
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
@@ -225,6 +268,8 @@ if __name__ == "__main__":
     elif a[0] == "preview":
         marks = [[float(v) for v in s.split(",")] for s in a[3:-1]]
         preview(a[1], float(a[2]), marks, a[-1])
+    elif a[0] == "show":
+        show(a[1])
     elif a[0] == "track":
         track(a[1], json.load(open(a[2], encoding="utf-8")), a[3], int(a[4]), int(a[5]), int(a[6]), int(a[7]))
     else:

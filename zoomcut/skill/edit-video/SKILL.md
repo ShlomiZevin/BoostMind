@@ -213,9 +213,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    ... --tags ...`. `node tools/library_add.mjs --unlabelled` must be empty for what you made before you finish.
 6. **Self-review before he sees it** - lines (rule 3), rhythm (rule 4), voices (levels per take: a mostly silent take
    gets a huge automatic gain), stills of the key moments (opening, every cut-off, the ending) through the export path.
-   **Anything he holds** (a bottle, a box, a phone, a booklet) - reference.md "HELD PROPS - THE ONE WAY"; the cut-out engines drop held
-   props or leave them see-through ("a recurring issue", 2026-10-28). Keep it with `props` (draw its box once, it is
-   tracked) - reference.md → Person. **Every full export: `python tools/flash_frames.py <ep>`** - one-frame flashes
+   **What he marked to keep comes first:** before ANY cut-out work run
+   `tools/sam/.venv/Scripts/python.exe tools/sam/keep.py show episodes/<id>` - it lists what he marked in the editor's
+   "Keep things" window ("Save for Claude", his ask 2026-11-04: "a way to help the session not make mistakes"), with a
+   picture of each thing outlined (work/keep_marks/) and whether the cut-out has it yet. His marks are his instruction:
+   keep exactly those (Analyze makes them - episode.json keep_objects), look at the pictures, never swap them for a colour
+   range or a box. **Anything he holds** that he did NOT mark (a bottle, a box, a phone, a booklet): mark it yourself the
+   same way (reference.md "KEEP THINGS" - a point or two, `keep.py preview`, look) and tell him what you marked; the
+   older ways (reference.md "HELD PROPS - THE ONE WAY", `prop_color` / `props`) only where tools/sam isn't installed - the
+   cut-out engines drop held props or leave them see-through ("a recurring issue", 2026-10-28). **Every full export: `python tools/flash_frames.py <ep>`** - one-frame flashes
    (he saw "a glitch of empty Hani for a micro second" on some cuts, 2026-10-28: the exporter placed a third of the
    clips a rounding-hair late, fixed in pipeline/export_layers.py; the check stays). Exit 1 = don't send it.
    After a rebuild, the picture lane: no two items overlapping, no gaps. Fix what you find first.
