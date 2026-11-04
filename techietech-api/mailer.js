@@ -33,7 +33,7 @@ const MEDIA = 'https://storage.googleapis.com/shlomiverse-media/wiki';
 
 const DAY_GAP = 20 * 3600e3;      // and never twice on the same Israeli date
 const MAX_AGE = 7 * 864e5;        // news older than a week is not news
-const PER_RUN = 60;               // a run never sends more than this (Gmail's daily limit is ~500)
+const PER_RUN = 120;              // a run never sends more than this (Gmail's daily limit is ~500)
 const TOPICS = [['story', 'סטוריז חדשים של הדמויות'], ['video', 'סרטונים חדשים'], ['game', 'משחקים חדשים']];
 
 const signKey = () => 'mail|' + (LOCAL ? process.env.VERSE_VAPID_PRIVATE || 'local' : VAPID_PRIVATE.value());
