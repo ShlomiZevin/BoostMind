@@ -224,7 +224,8 @@ export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) 
   const cloudOnly = async () => {
     if (mode() === 'off') return [];
     if (Date.now() - cloudIds.at > 120e3) cloudIds = { at: Date.now(), ids: await folders('projects/').catch(() => cloudIds.ids) };
-    return cloudIds.ids.filter((id) => allowed(id) && !fs.existsSync(path.join(EPS, id, 'episode.json')));
+    // (a folder of that name here - a project, or a workshop that isn't one, e.g. shlomiverse-intro - is never "only in the cloud")
+    return cloudIds.ids.filter((id) => allowed(id) && !fs.existsSync(path.join(EPS, id)));
   };
   return { pushSoon, cloudOnly, pull, push, lock, unlock, mode, allowed };
 }

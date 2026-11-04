@@ -40,7 +40,8 @@ const cp = async (src, dst) => {
 };
 
 const jobs = [];
-const projects = fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.statSync(path.join(EPS, d)).isDirectory()).sort();
+// (a folder without episode.json is no project - e.g. a trailer's workshop - it stays on this computer)
+const projects = fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.existsSync(path.join(EPS, d, 'episode.json'))).sort();
 for (const id of projects) if ((!only || only === id) && !skipIds.has(id)) jobs.push(() => rsync(path.join(EPS, id), `projects/${id}`, SKIP_RSYNC));
 if (!only) {
   for (const d of footageDirs()) jobs.push(() => rsync(d, footageName(d)));
