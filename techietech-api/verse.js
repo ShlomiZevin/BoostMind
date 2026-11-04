@@ -559,6 +559,9 @@ async function request(d, auth, ip) {
   if (['video', 'contact'].includes(kind)) doc.from = d.from === 'community' ? 'community' : 'chat';
   if (auth?.uid) doc.nick = ((await db.collection('fans').doc(auth.uid).get()).data() || {}).nick || null;
   const ref = await db.collection('requests').add(doc);
+  // the person hears back right away (mailer.js), from the Shlomiverse
+  const back = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact) ? contact : auth.token.email;
+  require('./mailer').reply('verse-' + kind, { email: back, name: doc.name || auth.token.name || doc.nick || '', uid: auth.uid }).catch(() => {});
   const subject = kind === 'bug' ? `שלומיוורס | משהו לא עובד${doc.nick ? ' · ' + doc.nick : ''}`
     : kind === 'business' ? `שלומיוורס | שיתוף פעולה · ${doc.company || doc.name || 'עסק'}${doc.topic ? ' · ' + doc.topic : ''}`
     : kind === 'video' ? `שלומיוורס | מחפשים סרטון${doc.nick ? ' · ' + doc.nick : ''}` : `שלומיוורס | פנייה${doc.nick ? ' · ' + doc.nick : ''}`;
@@ -793,6 +796,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
   const op = req.query.op;
   const b = req.body || {};
   try {
+    // the mails: what we send, what was sent, the switch (mailer.js)
+    if (String(op).startsWith('mail')) { const r = await require('./mailer').owner(op, b); if (r) return res.json(r); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);
       const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto] = await Promise.all([

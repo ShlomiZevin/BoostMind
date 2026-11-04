@@ -8,6 +8,7 @@ const Busboy = require('busboy');
 const nodemailer = require('nodemailer');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
+const mailer = require('./mailer');   // the automatic reply from the site's character (mailer.js)
 
 if (!admin.apps.length) admin.initializeApp();
 const GMAIL_USER = defineSecret('GMAIL_USER');
@@ -79,7 +80,7 @@ function parse(req) {
 
 exports.techietechApply = onRequest({
   region: 'europe-west1',
-  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
+  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, ...mailer.MAIL_SECRETS],
   cors: CORS,
   maxInstances: 3,
   memory: '256MiB',
@@ -126,7 +127,8 @@ exports.techietechApply = onRequest({
     return res.status(502).json({ error: 'send' });
   }
   await Promise.all([keepUser(u, 'techietech').catch(() => {}),
-    keepRequest(u, 'techietech', { name: f.name, phone: f.phone, choice: position, text: [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n') })]);
+    keepRequest(u, 'techietech', { name: f.name, phone: f.phone, choice: position, text: [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n') }),
+    mailer.reply('techietech', { email: f.email, name: f.name, uid: u.uid, choice: position })]);
   res.json({ ok: true });
 });
 
@@ -144,7 +146,7 @@ const SITES = {
 };
 exports.siteLead = onRequest({
   region: 'europe-west1',
-  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
+  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, ...mailer.MAIL_SECRETS],
   cors: CORS,
   maxInstances: 3,
   memory: '256MiB',
@@ -187,7 +189,8 @@ exports.siteLead = onRequest({
     return res.status(502).json({ error: 'send' });
   }
   await Promise.all([keepUser(u, f.site).catch(() => {}),
-    keepRequest(u, f.site, { name: clip(f.name, 120), phone, choice: clip(f.choice, 120), when: clip(f.when, 200), text: clip(f.message, 3000) })]);
+    keepRequest(u, f.site, { name: clip(f.name, 120), phone, choice: clip(f.choice, 120), when: clip(f.when, 200), text: clip(f.message, 3000) }),
+    mailer.reply(f.site, { email, name: clip(f.name, 80), uid: u.uid, choice: clip(f.choice, 60), when: clip(f.when, 80) })]);
   res.json({ ok: true });
 });
 
@@ -200,5 +203,10 @@ Object.assign(exports, require('./analytics'));
 // the Shlomiverse's fans: accounts, follows, comments, stickers, stories, push (shlomiverse.com/wiki/) - see verse.js.
 // Live since 2026-11-01 (v2/dev.mjs runs the same code in the emulators). Needs the VERSE_VAPID_PRIVATE secret.
 Object.assign(exports, require('./verse'));
+
+// the mail engine: news mail (one a day at most), the choices page, Yotamverse's order reply - see mailer.js
+exports.verseMailer = mailer.verseMailer;
+exports.verseMail = mailer.verseMail;
+exports.verseOrderReply = mailer.verseOrderReply;
 // the verse's page addresses (/c/hani, /play/<game>...) with their own link preview for WhatsApp - see page.js
 Object.assign(exports, require('./page'));

@@ -406,6 +406,56 @@
   .menu-list button { display: flex; align-items: center; gap: 12px; height: 58px; padding: 0 16px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); font-weight: 800; font-size: 1.02rem; text-align: start; }
   .menu-list svg { width: 22px; height: 22px; color: var(--accent); }
   .menu-list em { margin-inline-start: auto; font-style: normal; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; background: var(--accent); color: #fff; font-size: .78rem; font-weight: 800; display: grid; place-items: center; }
+  /* מיילים: the switch, every mail we send, what went out, what happened (2026-11-04) */
+  .tag.gr { background: rgba(95,213,138,.13); color: #8fe3ad; border-color: rgba(95,213,138,.35); }
+  .tag.bl { background: rgba(127,180,255,.13); color: #a5c9ff; border-color: rgba(127,180,255,.35); }
+  .tag.pu { background: rgba(196,140,255,.13); color: #d3adff; border-color: rgba(196,140,255,.35); }
+  .tag.ye { background: rgba(255,176,32,.13); color: #ffc65c; border-color: rgba(255,176,32,.35); }
+  .ml-st.on { border-color: rgba(95,213,138,.4); }
+  .ml-sw { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .ml-sw .t { flex: 1; min-width: 0; }
+  .ml-sw .t b { display: block; font-size: 1.2rem; font-weight: 900; line-height: 1.3; }
+  .ml-sw .t small { color: var(--dim); font-size: .9rem; overflow-wrap: anywhere; }
+  .ml-sw .tag { flex: none; }
+  .toggle.ml-tg { flex: none; }
+  .toggle.ml-tg i { width: 58px; height: 32px; }
+  .toggle.ml-tg i::after { width: 26px; height: 26px; }
+  .toggle.ml-tg input:checked + i { background: #22c55e; }
+  .toggle.ml-tg input:checked + i::after { transform: translateX(-26px); }
+  .toggle.ml-tg input:disabled + i { opacity: .5; }
+  .kgrid.ml-k { margin-bottom: 14px; }
+  .ml-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  #ml-msg:not(:empty) { margin-top: 10px; }
+  .ml-sec { margin: 26px 0 4px; }
+  .ml-sec + .hint { margin-bottom: 14px; }
+  .ml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; margin-bottom: 26px; }
+  .ml-card { cursor: pointer; outline: 0; }
+  .ml-card:focus-visible { border-color: var(--accent); }
+  .ml-thumb { position: relative; aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; background: #0b0b0f; }
+  .ml-thumb iframe { position: absolute; top: 0; right: 0; width: 640px; height: 800px; border: 0; transform: scale(var(--s, .3)); transform-origin: top right; pointer-events: none; }
+  .ml-meta { padding: 0 4px 4px; min-width: 0; }
+  .ml-meta b { display: block; font-weight: 800; font-size: .92rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ml-meta small { display: block; color: var(--dim); font-size: .76rem; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ml-meta small + small { color: var(--text); opacity: .8; }
+  .ml-log .chips { margin: 4px 0 6px; }
+  .ml-log .row, .ml-ev .row { width: 100%; text-align: start; padding: 12px 2px; align-items: center; }
+  .ml-log .row .ini, .ml-ev .row .vx-av { width: 40px; height: 40px; font-size: .9rem; }
+  .ml-log .row .l1 b, .ml-ev .row .l1 b { font-weight: 700; font-size: .95rem; overflow-wrap: anywhere; }
+  .ml-log .row .l2 { -webkit-line-clamp: 1; }
+  .ml-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+  .ml-err { color: #ff8a8a; font-size: .84rem; margin-top: 3px; overflow-wrap: anywhere; }
+  .ml-ev .row.old { opacity: .45; }
+  .ml-ev .row .l2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ml-ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); border: 1px solid var(--line2); flex: none; }
+  .ml-ic svg { width: 19px; height: 19px; }
+  .ml-ic.gr { color: #8fe3ad; } .ml-ic.bl { color: #a5c9ff; } .ml-ic.pu { color: #d3adff; }
+  .sheet.sh-mail { width: min(760px, calc(100% - 40px)); }
+  .sh-mail .sh-b { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .ml-full { position: relative; height: min(72svh, 900px); overflow: hidden; background: #0b0b0f; border-radius: 0 0 26px 26px; }
+  .ml-full iframe { position: absolute; top: 0; right: 0; width: var(--fw, 100%); height: calc(100% / var(--fs, 1)); border: 0; display: block; transform: scale(var(--fs, 1)); transform-origin: top right; }
+  .ml-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  .ml-bar .btn { height: 42px; padding: 0 16px; font-size: .92rem; white-space: nowrap; }
+  .ml-bar .ml-err { margin: 0; }
   @media (max-width: 900px) {
     .kgrid { grid-template-columns: 1fr 1fr; gap: 10px; }
     .k { padding: 12px 13px; border-radius: 18px; } .k b { font-size: 1.65rem; } .k .spark { width: 50px; }
@@ -421,6 +471,13 @@
     .th { padding: 11px 12px; } .th .vx-av { width: 44px; height: 44px; }
     .person .tags { display: none; }
     .rng button { padding: 0 11px; }
+    .sheet.sh-mail { width: 100%; }
+    .ml-full { height: calc(88svh - 150px); border-radius: 0; }
+    .ml-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .ml-foot .btn { width: 100%; justify-content: center; }
+    .ml-bar { padding: 10px 14px; }
+    .ml-bar .btn { flex: 1; justify-content: center; padding: 0 10px; }
+    .ml-log .chips button { padding: 0 13px; }
   }
 </style>
 </head>
@@ -541,6 +598,7 @@ let refreshing = false;
 async function refreshAll() {
   if (refreshing) return;
   refreshing = true;
+  if (tab === 'mail') loadMail();
   document.querySelectorAll('[data-refresh]').forEach((x) => x.classList.add('spin'));
   try {
     [L, S] = await Promise.all([api('list'), api('stats&days=45'), loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]);
@@ -552,7 +610,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story']];
+const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -570,7 +628,7 @@ function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', ideas: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
   if (tab === 'requests' || tab === 'content') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['requests', 'content', 'publish'].includes(tab) ? 'more' : tab;
+  const phoneTab = ['requests', 'content', 'publish', 'mail'].includes(tab) ? 'more' : tab;
   const moreBadge = badge.requests + badge.content;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
@@ -579,7 +637,7 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, chats, data, people, requests, content, publish, more })[tab]();
+  ({ overview, chats, data, people, requests, content, publish, mail: mails, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
@@ -587,7 +645,7 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['content', 'תוכן: תגובות, רעיונות, סטיקרים', 'content'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['content', 'תוכן: תגובות, רעיונות, סטיקרים', 'content'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
@@ -1106,6 +1164,162 @@ function video() {
     }).join('')}</div>`;
 }
 
+// ---------- מיילים: the switch, every mail we send, what went out, what happened (mailer.js, 2026-11-04) ----------
+// mailState = the switch + counts + what happened + a dry run of the next run; mailLog = what went out; mailSamples = every
+// kind of mail rendered with real data. Each part draws into its own box as it arrives (the samples are slow to render).
+let MST = null, MLG = null, MSM = null, mlLoaded = false, mlKind = 'all', mlShown = 40, mlNote = '';
+const mlHtml = {};
+const MK = { welcome: ['ברוכים הבאים', 'or'], game: ['משחק חדש', 'gr'], video: ['סרטון חדש', 'bl'], story: ['סטורי חדש', 'pu'], digest: ['כמה דברים יחד', 'wh'], reply: ['תשובה מדמות', 'ye'] };
+const EVK = { game: ['משחק', 'gr', 'game'], video: ['סרטון', 'bl', 'video'], story: ['סטורי', 'pu', 'story'] };
+const ML_GROUPS = [['all', 'הכול'], ['news', 'חדשות'], ['replies', 'תשובות'], ['tests', 'בדיקות']];
+const mlGroup = (k = '') => k.startsWith('test:') ? 'tests' : k === 'reply' ? 'replies' : 'news';
+const siteName = (k) => /^verse-/.test(k) ? 'השלומיוורס' : SITES[k] || k;
+function mkTag(k = '', meta = {}) {
+  const test = k.startsWith('test:'), base = test ? k.slice(5) : k, [l, c] = MK[base] || [base, ''];
+  if (test) return `<span class="tag">בדיקה · ${esc(l)}</span>`;
+  return `<span class="tag ${c}">${esc(l)}${base === 'reply' && meta.site ? ` · ${esc(siteName(meta.site))}` : ''}</span>`;
+}
+const evTitle = (e) => e.kind === 'game' ? (W.games || []).find((g) => g.id === e.ref)?.title || GAME[e.ref] || e.ref : e.kind === 'video' ? vName(e.ref) : `סטורי של ${cname(e.char)}`;
+// the mailer's own hours (sendingHours in mailer.js): 10:00-21:00 Israel, not from Friday 14:00 to Saturday 20:00
+const inHours = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', weekday: 'short', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value])), h = +p.hour;
+  return !(p.weekday === 'Fri' && h >= 14) && !(p.weekday === 'Sat' && h < 20) && h >= 10 && h < 21; };
+// a phone's browser blows up the text of a frame (text autosizing) and the mail runs off the side - shown as sent, at 100%
+const mlDoc = (h = '') => { const fix = '<style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>'; return /<head[^>]*>/i.test(h) ? h.replace(/<head[^>]*>/i, (m) => m + fix) : fix + h; };
+const mlRO = new ResizeObserver((es) => es.forEach((x) => x.target.style.setProperty('--s', x.contentRect.width / 640)));
+function loadMail() {
+  mlLoaded = true;
+  const get = (op, body, set, draw) => api(op, body).then(set, (e) => { if (e.message !== 'key') set({ error: e.message }); }).finally(() => { if (tab === 'mail') draw(); });
+  get('mailState', {}, (r) => (MST = r), () => { mlStatus(); mlEvents(); });
+  get('mailLog', { limit: 300 }, (r) => (MLG = r), mlLog);
+  get('mailSamples', {}, (r) => (MSM = r), mlSamples);
+}
+const mlWait = (x) => `<div class="empty">${x ? `לא נטען (${esc(x.error)})` : 'טוען…'}</div>`;
+function mails() {
+  if (!mlLoaded) loadMail();
+  $('#pane').innerHTML = `<div class="top"><div><h1>מיילים</h1><p>מה יוצא, למי, ומה ייצא בריצה הבאה.</p></div></div>
+    <div class="card" id="ml-st"></div>
+    <div class="card-h ml-sec"><h2>כל המיילים שלנו</h2><button data-mtest="">${IC.mail}לשלוח אליי את כולם</button></div>
+    <p class="hint">כל סוג מייל שאנחנו שולחים, עם נתונים אמיתיים. לחיצה פותחת בגודל מלא.</p>
+    <div id="ml-sm"></div>
+    <div class="cols"><div class="card ml-log" id="ml-lg"></div><div class="card ml-ev" id="ml-ev"></div></div>`;
+  mlStatus(); mlSamples(); mlLog(); mlEvents();
+}
+function mlStatus() {
+  const el = $('#ml-st');
+  if (!el) return;
+  if (!MST || MST.error) { el.className = 'card'; el.innerHTML = mlWait(MST); return; }
+  const on = !!MST.cfg?.on, only = MST.cfg?.only || [], due = MST.plan?.due || [], kinds = {};
+  due.forEach((p) => (kinds[p.kind] = (kinds[p.kind] || 0) + 1));
+  el.className = `card ml-st${on ? ' on' : ''}`;
+  el.innerHTML = `<div class="ml-sw"><label class="toggle ml-tg" aria-label="שליחה לכולם"><input type="checkbox" id="ml-on" ${on ? 'checked' : ''}><i></i></label>
+      <div class="t"><b>${on ? 'שולחים לכולם' : 'מצב בדיקה'}</b><small>${on ? 'כל מי שנרשם מקבל מיילים, לפי הכללים.' : `המיילים יוצאים רק אל ${only.map((x) => `<bdi dir="ltr">${esc(x)}</bdi>`).join(', ') || 'אף אחד'}.`}</small></div>
+      <span class="tag ${on ? 'gr' : ''}">${on ? 'פועל' : 'כבוי'}</span></div>
+    <div class="kgrid k3 ml-k">
+      <div class="k"><span class="kh">${IC.people}חשבונות</span><b>${fmt(MST.users)}</b><span class="kf"><small class="note">שכבר קיבלו מאיתנו מייל</small></span></div>
+      <div class="k"><span class="kh">${IC.x}הפסיקו</span><b>${fmt(MST.off)}</b><span class="kf"><small class="note">${MST.users ? `${Math.round(MST.off / MST.users * 100)}% מהם` : 'אף אחד'}</small></span></div>
+      <div class="k"><span class="kh">${IC.mail}בתור</span><b>${fmt(due.length)}</b><span class="kf"><small class="note">${Object.entries(kinds).map(([k, n]) => `${fmt(n)} ${esc(MK[k]?.[0] || k)}`).join(' · ') || 'אין עכשיו מה לשלוח'}${due.length ? ' · בריצה הבאה' : ''}</small></span></div></div>
+    <div class="ml-foot"><p class="hint">רק כשקורה משהו · לא יותר ממייל אחד ביום · ברוכים הבאים קודם · בלי שבת</p><button class="btn main" data-mrun>${IC.mail}להריץ עכשיו</button></div>
+    <p class="hint" id="ml-msg">${mlNote || (inHours() ? '' : 'עכשיו מחוץ לשעות השליחה (10:00-21:00, לא בשבת), אז ריצה עכשיו לא תשלח כלום.')}</p>`;
+  $('#ml-on').onchange = mlSwitch;
+}
+// the switch: on = everyone; off = only the addresses in `only` (the test mode). Turning it on mails real people - asks first.
+async function mlSwitch(e) {
+  const on = e.target.checked;
+  if (on && !confirm(`להדליק את המיילים לכולם?\nמהריצה הבאה כל החשבונות יקבלו מיילים אמיתיים, קודם ברוכים הבאים.`)) { e.target.checked = false; return; }
+  e.target.disabled = true;
+  try { MST.cfg = (await api('mailConfig', { on, only: MST.cfg?.only })).cfg; mlNote = on ? '<span class="ok">דלוק: מעכשיו שולחים לכולם.</span>' : 'כבוי: חזרנו למצב בדיקה.'; }
+  catch (x) { mlNote = `לא נשמר (${esc(x.message)}).`; }
+  if (tab !== 'mail') return;
+  mlStatus();
+  api('mailState', {}).then((r) => { MST = r; if (tab === 'mail') { mlStatus(); mlEvents(); } }).catch(() => {});
+}
+async function mlRun(b) {
+  const n = MST?.plan?.due?.length || 0;
+  if (!confirm(`להריץ את המיילים עכשיו, באמת?\n${n ? `${fmt(n)} ${MST.cfg?.on ? 'אנשים' : 'כתובות בדיקה'} יקבלו מייל אמיתי.` : 'לפי התכנון אין עכשיו למי לשלוח.'}`)) return;
+  b.disabled = true;
+  $('#ml-msg').textContent = 'מריץ…';
+  try {
+    const r = await api('mailRunNow', {});
+    mlNote = r.skipped ? 'לא נשלח כלום: עכשיו מחוץ לשעות השליחה (10:00-21:00, לא בשבת).' : `<span class="ok">הריצה עברה: נשלחו ${fmt(r.sent)} מתוך ${fmt(r.due)}.</span>`;
+  } catch (x) { mlNote = `לא רץ (${esc(x.message)}).`; }
+  if (tab !== 'mail') return;
+  mlStatus();
+  Promise.all([api('mailState', {}).then((r) => (MST = r)), api('mailLog', { limit: 300 }).then((r) => (MLG = r))]).catch(() => {}).finally(() => { if (tab === 'mail') { mlStatus(); mlEvents(); mlLog(); } });
+}
+function mlSamples() {
+  const el = $('#ml-sm');
+  if (!el) return;
+  if (!MSM || MSM.error) { el.innerHTML = mlWait(MSM); return; }
+  el.innerHTML = `<div class="ml-grid">${MSM.samples.map((x) => `<div class="sc ml-card" role="button" tabindex="0" data-msample="${esc(x.key)}">
+      <div class="ml-thumb"><iframe sandbox="" tabindex="-1" aria-hidden="true" title=""></iframe></div>
+      <div class="ml-meta"><b>${esc(x.label)}</b><small>מאת ${esc(x.from)}</small><small>${esc(x.subject)}</small></div></div>`).join('') || '<div class="empty">אין דוגמאות.</div>'}</div>`;
+  el.querySelectorAll('.ml-card').forEach((c, i) => { c.querySelector('iframe').srcdoc = mlDoc(MSM.samples[i].html); mlRO.observe(c.querySelector('.ml-thumb')); });
+}
+function mlLog() {
+  const el = $('#ml-lg');
+  if (!el) return;
+  if (!MLG || MLG.error) { el.innerHTML = `<div class="card-h"><h2>מה נשלח</h2></div>${mlWait(MLG)}`; return; }
+  const all = MLG.log || [], list = all.filter((x) => mlKind === 'all' || mlGroup(x.kind) === mlKind), bad = all.filter((x) => !x.ok).length;
+  const row = (x) => `<button class="row" data-mlog="${esc(x.id)}">${ini((x.to || '?').split('@')[0])}<div class="body">
+      <div class="l1"><b>${esc(x.subject || '(בלי נושא)')}</b></div><div class="l2"><bdi dir="ltr">${esc(x.to)}</bdi> · מאת ${esc(x.fromName || 'השלומיוורס')}</div>
+      <div class="ml-tags">${mkTag(x.kind, x.meta)}${x.ok ? '' : '<span class="tag red">לא נשלח</span>'}</div>${x.ok ? '' : `<div class="ml-err">${esc(x.error || 'שגיאה')}</div>`}</div><time>${ago(x.t)}</time></button>`;
+  el.innerHTML = `<div class="card-h"><h2>מה נשלח</h2><small class="hint">${fmt(all.length)} אחרונים${bad ? ` · <span style="color:#ff8a8a">${fmt(bad)} נכשלו</span>` : ''}</small></div>
+    <div class="chips">${ML_GROUPS.map(([k, l]) => { const n = k === 'all' ? all.length : all.filter((x) => mlGroup(x.kind) === k).length; return `<button data-mlk="${k}" class="${k === mlKind ? 'on' : ''}">${l}${n ? `<small>${fmt(n)}</small>` : ''}</button>`; }).join('')}</div>
+    <div class="rows">${list.slice(0, mlShown).map(row).join('') || '<div class="empty">עוד לא נשלח כלום כזה.</div>'}</div>
+    ${list.length > mlShown ? `<button class="btn more" data-mlmore>עוד ${fmt(list.length - mlShown)}</button>` : ''}`;
+}
+function mlEvents() {
+  const el = $('#ml-ev');
+  if (!el) return;
+  const head = '<div class="card-h"><h2>מה קרה</h2><small class="hint">מזה נבנים המיילים הבאים</small></div>';
+  if (!MST || MST.error) { el.innerHTML = head + mlWait(MST); return; }
+  el.innerHTML = head + `<div class="rows">${(MST.events || []).map((e) => {
+    const [l, c, ic] = EVK[e.kind] || [e.kind, '', 'spark'], old = Date.now() - e.t > 7 * 864e5;
+    return `<div class="row${old ? ' old' : ''}">${e.kind === 'story' && e.char ? face(e.char) : `<span class="ml-ic ${c}">${IC[ic]}</span>`}<div class="body">
+      <div class="l1"><b>${esc(evTitle(e))}</b></div><div class="l2"><span class="tag ${c}">${l}</span>${e.kind === 'story' ? (e.everyone ? 'לכל השלומיוורס' : 'לעוקבים') : ''}${old ? '<span>ישן מדי למייל</span>' : ''}</div></div><time>${ago(e.t)}</time></div>`;
+  }).join('') || '<div class="empty">עוד לא קרה כלום מאז שהמיילים התחילו.</div>'}</div>`;
+}
+// one mail, full size, exactly as it goes out (scripts never run: a sandboxed frame)
+function mlSheet(id, title, sub, bar) {
+  sheet(`<div class="sh-h"><div class="t"><b>${title}</b><small>${sub}</small></div><button class="x" data-close>${IC.x}</button></div>${bar ? `<div class="ml-bar">${bar}</div>` : ''}
+    <div class="sh-b"><div class="ml-full"><iframe sandbox="allow-popups allow-popups-to-escape-sandbox" data-id="${esc(id)}" title="${title}"></iframe></div></div>`, 'sh-mail');
+  mlFullRO.observe($('.ml-full'));
+}
+// a mail is laid out at least 520px wide and shrunk to fit a phone, the way a phone's mail app shows it (they don't all fit 390px)
+const mlFullRO = new ResizeObserver((es) => es.forEach((x) => { const w = x.contentRect.width, fw = Math.max(w, 520); x.target.style.setProperty('--fw', fw + 'px'); x.target.style.setProperty('--fs', w / fw); }));
+function mlFill(id, html) {
+  const f = $('.sh-mail iframe');
+  if (!f || f.dataset.id !== id) return;
+  if (html) f.srcdoc = mlDoc(html);
+  else f.replaceWith(Object.assign(document.createElement('div'), { className: 'empty', textContent: 'המייל הזה לא נשמר (גדול מדי, או לפני שהתחלנו לשמור).' }));
+}
+function mlOpenSample(key) {
+  const x = MSM?.samples?.find((s) => s.key === key);
+  if (!x) return;
+  mlSheet('s:' + key, esc(x.label), `מאת ${esc(x.from)} · ${esc(x.subject)}`, `<button class="btn main" data-mtest="${esc(x.key)}">${IC.mail}לשלוח אליי</button><button class="btn" data-mtest="">לשלוח אליי את כולם</button>`);
+  mlFill('s:' + key, x.html);
+}
+async function mlOpenLog(id) {
+  const x = MLG?.log?.find((l) => l.id === id);
+  if (!x) return;
+  mlSheet(id, esc(x.subject || '(בלי נושא)'), `אל <bdi dir="ltr">${esc(x.to)}</bdi> · מאת ${esc(x.fromName || 'השלומיוורס')} · ${stamp(x.t)}`,
+    `${mkTag(x.kind, x.meta)}${x.ok ? '' : `<span class="tag red">לא נשלח</span><span class="ml-err">${esc(x.error || '')}</span>`}`);
+  if (mlHtml[id] == null) {
+    mlFill(id, '<body style="margin:0;background:#0b0b0f;color:#a6a3ad;font:16px sans-serif;display:grid;place-items:center;height:90vh">טוען…</body>');
+    try { mlHtml[id] = (await api('mailView', { id })).html || ''; } catch (e) { mlHtml[id] = ''; }
+  }
+  mlFill(id, mlHtml[id]);
+}
+async function mlTest(b) {
+  const k = b.dataset.mtest, was = b.innerHTML;
+  b.disabled = true; b.textContent = 'שולח…';
+  try {
+    const r = await api('mailTest', k ? { key: k } : {});
+    b.innerHTML = `${IC.check}${k ? 'נשלח אליך' : `נשלחו ${fmt(r.sent)}`}`; b.title = r.to;
+    api('mailLog', { limit: 300 }).then((x) => { MLG = x; if (tab === 'mail') mlLog(); }).catch(() => {});
+  } catch (x) { b.disabled = false; b.innerHTML = was; alert('לא נשלח: ' + x.message); }
+}
+addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset?.msample) { e.preventDefault(); mlOpenSample(e.target.dataset.msample); } });
 
 // ---------- clicks ----------
 document.addEventListener('click', async (e) => {
@@ -1120,6 +1334,8 @@ document.addEventListener('click', async (e) => {
     api('star', { key: k, on }).catch(() => {});
     return;
   }
+  const mc = e.target.closest('[data-msample]');
+  if (mc) { mlOpenSample(mc.dataset.msample); return; }
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.person) { openPerson(b.dataset.person); return; }
@@ -1139,6 +1355,11 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.cseg) { contentSeg = b.dataset.cseg; content(); }
   else if (b.dataset.pseg) { publishSeg = b.dataset.pseg; publish(); }
   else if (b.dataset.pub) { publishSeg = b.dataset.pub; go('publish'); }
+  else if (b.dataset.mlog) mlOpenLog(b.dataset.mlog);
+  else if (b.dataset.mlk) { mlKind = b.dataset.mlk; mlShown = 40; mlLog(); }
+  else if (b.dataset.mlmore !== undefined) { mlShown += 40; mlLog(); }
+  else if (b.dataset.mrun !== undefined) mlRun(b);
+  else if (b.dataset.mtest !== undefined) mlTest(b);
   else if (b.dataset.rqk) { rqKind = b.dataset.rqk; requests(); }
   else if (b.dataset.pick) { pick = b.dataset.pick; document.querySelectorAll('[data-pick]').forEach((x) => x.classList.toggle('on', x === b)); window._stPrev?.(); }
   else if (b.dataset.staud) { stAud = b.dataset.staud; window._stPrev?.(); }
