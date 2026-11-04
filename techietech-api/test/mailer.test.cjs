@@ -39,6 +39,10 @@ assert.equal(r([u('a')], { a: { welcomed: now - 50 * H, last: now - 14 * H } }).
 // the welcome was today -> the news waits for tomorrow
 assert.equal(r([u('a')], { a: { welcomed: now - 2 * H, last: now - 2 * H } }).a, undefined);
 
+// a story posted just before someone's welcome still reaches them the next day (the welcome sets the cursor 3 days back)
+out = r([u('a')], { a: { welcomed: now - 22 * H, last: now - 22 * H, cursor: now - 22 * H - 3 * 24 * H } }, {}, [ev('story_e', 'story', 26, { char: 'yotam', everyone: true })]);
+assert.equal(out.a.kind, 'story');
+
 // stopped everything -> never; even before the welcome
 assert.equal(r([u('a')], { a: { ...welcomed, off: true } }).a, undefined);
 assert.equal(r([u('a')], { a: { off: true } }).a, undefined);

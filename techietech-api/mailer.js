@@ -207,7 +207,8 @@ async function run({ now = Date.now(), dry = false, force = false } = {}) {
   for (const p of due.slice(0, PER_RUN)) {
     const x = await mailFor(p, w, now);
     const ref = db.collection('mailUsers').doc(p.uid);
-    const cursor = Timestamp.fromMillis(Math.max(now, ...p.events.map((e) => ms(e.t))));
+    // after the welcome the news starts 3 days back: what happened just before someone joined still reaches them (tomorrow)
+    const cursor = Timestamp.fromMillis(p.kind === 'welcome' ? now - 3 * 864e5 : Math.max(now, ...p.events.map((e) => ms(e.t))));
     if (!x) { await ref.set({ email: p.email, cursor }, { merge: true }); continue; }
     const m = mail.render(x.kind, x.d, { unsub: prefsLink(p.uid), unsubPost: prefsLink(p.uid) + '&one=1' });
     const ok = await deliver({ to: p.email, uid: p.uid, kind: x.kind, m, meta: { events: p.events.map((e) => e.id) } });
