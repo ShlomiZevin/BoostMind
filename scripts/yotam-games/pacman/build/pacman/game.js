@@ -57,11 +57,12 @@ function fillDots() {
 const IMG = {};
 const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => { if (k === 'desk' || k === 'carpet' || PROPS.includes(k)) bakeMaze(); }; IMG[k] = i; return i; };
 const PROPS = ['monitor', 'plant', 'papers', 'laptop'];
-for (const k of ['carry-laptop', 'yotam-open', 'yotam-closed', 'yotam-explain', 'yotam-sad', 'erez', 'erez-bored', 'osnat', 'osnat-bored', 'yaniv', 'yaniv-bored', 'hani', 'hani-cringe', 'coffee']) img(k, `assets/${k}.webp`);
+for (const k of ['yotam-lap-open', 'yotam-lap-closed', 'yotam-lap-explain', 'yotam-lap-sad', 'yotam-open', 'yotam-closed', 'yotam-explain', 'yotam-sad', 'erez', 'erez-bored', 'osnat', 'osnat-bored', 'yaniv', 'yaniv-bored', 'hani', 'hani-cringe', 'coffee']) img(k, `assets/${k}.webp`);
 for (const k of PROPS) img(k, `assets/${k}.webp`);
 img('desk', 'assets/desk.jpg'); img('elevator', 'assets/elevator.jpg'); img('carpet', 'assets/carpet.jpg');
 const ok = (im) => im && im.complete && im.naturalWidth;
-const WITH_LAPTOP = true;   // Yotam carries his laptop (his ask, 4 Nov - false = without it)
+const WITH_LAPTOP = true;   // Yotam holds his laptop in both hands (his ask, 4 Nov - false = the plain heads)
+const YH = (k) => WITH_LAPTOP ? k.replace('yotam-', 'yotam-lap-') : k;
 
 // ───────────────────────── lines ─────────────────────────
 const LINES = {
@@ -110,7 +111,13 @@ function audioUnlock() {
   try { SND.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
   SND.master = SND.ctx.createGain(); SND.master.gain.value = SND.on ? 1 : 0; SND.master.connect(SND.ctx.destination);
   for (const n of SFX) decode(n);
+  decodeMusic();
 }
+let music = null, musicBuf = null, musicRaw = null;
+fetch('assets/music.mp3').then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { musicRaw = b; decodeMusic(); }).catch(() => {});
+function decodeMusic() { if (!SND.ctx || !musicRaw || musicBuf) return; const b = musicRaw; musicRaw = null; SND.ctx.decodeAudioData(b).then((x) => { musicBuf = x; if (state === 'play') musicOn(); }).catch(() => {}); }
+function musicOn() { if (!SND.ctx || !musicBuf || music) return; const src = SND.ctx.createBufferSource(), g = SND.ctx.createGain(); src.buffer = musicBuf; src.loop = true; g.gain.value = 0.22; src.connect(g).connect(SND.master); src.start(); music = src; }
+function musicOff() { if (music) { try { music.stop(); } catch (e) {} music = null; } }
 function play(name, vol = 1) {
   if (!SND.ctx) return;
   const vars = SFX.filter((n) => n === name || n.startsWith(name + '-')).filter((n) => SND.buf[n]);
@@ -212,7 +219,7 @@ function resetActors() {
 function startGame() {
   tutorial = false; state = 'play'; score = 0; lives = 3; level = 1; haniCount = 0; deathT = 0; clearT = 0; lift = null; yotam.sad = false;
   fillDots(); resetActors(); freeze = 1.6;
-  showHUD(true); show(null); hud(); play('start', .6); banner('קומה 1');
+  showHUD(true); show(null); hud(); play('start', .6); banner('קומה 1'); musicOff(); musicOn();
   window.track && window.track('game_start', 'pacman');
 }
 const spd = (base) => base * (1 + (level - 1) * 0.06);
@@ -435,9 +442,10 @@ function draw(now) {
   ctx.restore();
   for (const k of powers) {
     const [x, y] = k.split(',').map(Number), s = t * (1.25 + Math.sin(now * 6) * 0.08), im = IMG.coffee;
-    ctx.save(); ctx.strokeStyle = '#facc15'; ctx.globalAlpha = 0.5 + Math.sin(now * 6) * 0.3; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(px(x), py(y), t * 0.62, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
-    if (ok(im)) { const h = s * im.naturalHeight / im.naturalWidth; ctx.save(); ctx.shadowColor = '#facc15'; ctx.shadowBlur = 16; ctx.drawImage(im, px(x) - s / 2, py(y) - h / 2, s, h); ctx.restore(); }
+    const bob = Math.sin(now * 4 + x) * t * 0.06, cx = px(x), cy = py(y) + bob;
+    ctx.save(); ctx.fillStyle = '#facc15'; ctx.shadowColor = '#facc15'; ctx.shadowBlur = 22; ctx.beginPath(); ctx.arc(cx, cy, t * 0.66, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.6 + Math.sin(now * 6) * 0.4; ctx.beginPath(); ctx.arc(cx, cy, t * (0.74 + Math.sin(now * 6) * 0.06), 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    if (ok(im)) { const w = s * 0.9, h = w * im.naturalHeight / im.naturalWidth; ctx.drawImage(im, cx - w / 2, cy - h / 2, w, h); }
   }
   if (state === 'play' || state === 'tut' || state === 'over') {
     // Hani, the chasers, then Yotam on top
@@ -456,8 +464,7 @@ function draw(now) {
     }
     const chew = yotam.dir && Math.floor(now * 8) % 2;
     if (power > 0) { const p = pos(yotam); ctx.save(); ctx.fillStyle = '#22d3ee'; ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 24; ctx.globalAlpha = 0.35 + Math.sin(now * 10) * 0.15; ctx.beginPath(); ctx.arc(px(p.x), py(p.y), t * 0.85, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-    drawHead(yotam.sad || yotam.stun > 0 ? 'yotam-sad' : power > 0 ? 'yotam-explain' : chew ? 'yotam-closed' : 'yotam-open', yotam, 1.45);
-    if (WITH_LAPTOP && ok(IMG['carry-laptop'])) { const p = pos(yotam), im = IMG['carry-laptop'], s = t * 0.72, ar = im.naturalHeight / im.naturalWidth, flip = yotam.dir === 'left' ? -1 : 1; ctx.save(); ctx.translate(px(p.x) + flip * t * 0.5, py(p.y) + t * 0.38); ctx.scale(flip, 1); ctx.rotate(-0.25); ctx.drawImage(im, -s / 2, -s * ar / 2, s, s * ar); ctx.restore(); }
+    drawHead(YH(yotam.sad || yotam.stun > 0 ? 'yotam-sad' : power > 0 ? 'yotam-explain' : chew ? 'yotam-closed' : 'yotam-open'), yotam, WITH_LAPTOP ? 1.6 : 1.45);
     if (power > 0) {                                                 // the explain bar runs out over the floor
       const full = Math.max(3.5, 7 - (level - 1) * 0.6), w = COLS * t * 0.6, x = L.x0 + (COLS * t - w) / 2, y = L.y0 - 14;
       ctx.save(); ctx.fillStyle = '#0f1d3a'; ctx.fillRect(x - 2, y - 2, w + 4, 10); ctx.fillStyle = '#22d3ee'; ctx.fillRect(x + w * (1 - power / full), y, w * power / full, 6); ctx.restore();
@@ -483,7 +490,7 @@ function showBest() {
   $('bestOver').innerHTML = b ? `השיא שלכם: <b>${b}</b>` : '';
 }
 function gameOver() {
-  state = 'over';
+  state = 'over'; musicOff();
   window.track && window.track('game_over', 'pacman');
   window.VerseFrame && VerseFrame.score && VerseFrame.score(score);
   const b = bestNum(), rec = score > b;
@@ -506,7 +513,7 @@ function pause(on) {
 }
 $('pauseBtn').onclick = () => pause(true);
 $('resumeBtn').onclick = () => pause(false);
-$('quitBtn').onclick = () => { paused = false; SND.ctx && SND.ctx.resume(); state = 'menu'; tut.end(true); showHUD(false); showBest(); show('start'); };
+$('quitBtn').onclick = () => { musicOff(); paused = false; SND.ctx && SND.ctx.resume(); state = 'menu'; tut.end(true); showHUD(false); showBest(); show('start'); };
 addEventListener('pagehide', () => { if (SND.ctx) SND.ctx.suspend(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'play') pause(true); else if (SND.ctx) SND.ctx.suspend(); } });
 document.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => SND.ctx && SND.ctx.suspend()));
