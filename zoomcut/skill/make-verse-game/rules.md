@@ -70,3 +70,8 @@ principles - apply them to whatever the game is.
 - Test the LIVE page after release the same way.
 
 - **A character who pops up talks beside his own head** (Asaf, 3 Nov 2026): a soft, light bubble next to the head, on the side with more room, fading with him - not only a strip at the top. The strip keeps the loud lines (a lost heart).
+
+- **Steering on a phone = a floating joystick** (פקי-טק, 4 Nov 2026): finger down anywhere, hold and drag; the held direction is kept and taken at the next turn, and a slightly late turn still counts. Never make the player time single swipes - "it should be fun and easy on mobile".
+- **A safe place really hides the player**: while the player is in it, the enemies lose track and go elsewhere - no circling at the door.
+- **Signs and labels belong to the world**: paint them (GPT) and lay them on the tiles they name (a plate in three pieces - ends + a stretched middle), never a UI card floating on the map.
+- **Walls one tile thick** in maze games (no 2x2 solid masses except the enemies' house); check it with a script (yotam-games/pacman/tools/maze-check.py).
