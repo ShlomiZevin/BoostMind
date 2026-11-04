@@ -58,7 +58,9 @@ const heDate = (t) => new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusal
 
 // ---------- sending + the log ----------
 let transport;
-const gmail = () => (transport ||= nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } }));
+// one pooled connection: logging in for every mail made Gmail answer "too many login attempts" (launch night)
+const gmail = () => (transport ||= nodemailer.createTransport({ service: 'gmail', pool: true, maxConnections: 1, maxMessages: 200,
+  auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } }));
 // one mail out, and its line in mailLog (the backstage's "what we sent"), the HTML kept so it can be opened there
 async function deliver({ to, uid = null, kind, m, fromName = 'השלומיוורס', replyTo = OWNER, meta = {} }) {   // answers to any mail reach Shlomi
   const log = { to, uid, kind, subject: m.subject, fromName, meta, t: FieldValue.serverTimestamp(), ok: false };
@@ -188,7 +190,7 @@ async function mailFor(p, w, now) {
 }
 
 // one run: write down what happened, then mail whoever is due (at most PER_RUN). dry = only say who would get what.
-async function run({ now = Date.now(), dry = false, force = false } = {}) {
+async function run({ now = Date.now(), dry = false, force = false, budget = 420e3 } = {}) {
   if (!force && !sendingHours(now)) return { skipped: 'hours' };
   const swept = await sweepEvents(now);
   const cfg = (await db.collection('verseMeta').doc('mail').get()).data() || { on: false, only: [OWNER] };
@@ -202,11 +204,17 @@ async function run({ now = Date.now(), dry = false, force = false } = {}) {
   const events = evs.docs.map((d) => ({ id: d.id, ...d.data() }));
   const due = plan({ users, state, follows, events, now, cfg });
   if (dry) return { swept, cfg, due: due.map((p) => ({ email: p.email, kind: p.kind, events: p.events.map((e) => e.id) })) };
-  const w = await wiki();
-  let sent = 0;
-  for (const p of due.slice(0, PER_RUN)) {
-    const x = await mailFor(p, w, now);
-    const ref = db.collection('mailUsers').doc(p.uid);
+  // one run at a time (launch night, 2026-11-04: a manual run next to the scheduled one mailed 6 people twice)
+  if (!(await lock(now))) return { swept, due: due.length, sent: 0, skipped: 'busy' };
+  try {
+    const w = await wiki();
+    let sent = 0;
+    for (const p of due.slice(0, PER_RUN)) {
+      if (Date.now() - now > budget) break;                       // the rest go next run, never cut off mid-send
+      const ref = db.collection('mailUsers').doc(p.uid);
+      const fresh = (await ref.get()).data() || {};               // still due? (nothing else mailed them meanwhile)
+      if (fresh.off || (ms(fresh.last) && il(ms(fresh.last)).day === il(now).day)) continue;
+      const x = await mailFor(p, w, now);
     // after the welcome the news starts 3 days back: what happened just before someone joined still reaches them (tomorrow)
     const cursor = Timestamp.fromMillis(p.kind === 'welcome' ? now - 3 * 864e5 : Math.max(now, ...p.events.map((e) => ms(e.t))));
     if (!x) { await ref.set({ email: p.email, cursor }, { merge: true }); continue; }
@@ -215,12 +223,21 @@ async function run({ now = Date.now(), dry = false, force = false } = {}) {
     if (!ok) continue;
     sent++;
     await ref.set({ email: p.email, last: Timestamp.fromMillis(now), cursor, ...(x.kind === 'welcome' ? { welcomed: Timestamp.fromMillis(now) } : {}), sent: FieldValue.increment(1) }, { merge: true });
-  }
-  const out = { swept, due: due.length, sent };
-  if (sent || due.length) console.log('mail run', JSON.stringify(out));
-  return out;
+    }
+    const out = { swept, due: due.length, sent };
+    if (sent || due.length) console.log('mail run', JSON.stringify(out));
+    return out;
+  } finally { await unlock(); }
 }
-exports.verseMailer = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Asia/Jerusalem', region: REGION, secrets: SECRETS, timeoutSeconds: 300, memory: '512MiB' },
+const lockRef = () => db.collection('verseMeta').doc('mailLock');
+const lock = (now) => db.runTransaction(async (tx) => {
+  const l = (await tx.get(lockRef())).data();
+  if (l && l.until > Date.now()) return false;
+  tx.set(lockRef(), { until: now + 9 * 60e3 });
+  return true;
+});
+const unlock = () => lockRef().set({ until: 0 }).catch(() => {});
+exports.verseMailer = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Asia/Jerusalem', region: REGION, secrets: SECRETS, timeoutSeconds: 540, memory: '512MiB' },
   async () => { await run(); });
 
 // ---------- replies from the characters, for every form on their sites ----------
@@ -337,7 +354,7 @@ async function owner(op, b = {}) {
     await db.collection('verseMeta').doc('mail').set({ ...cfg, changed: FieldValue.serverTimestamp() });
     return { cfg };
   }
-  if (op === 'mailRunNow') return run({ force: !!b.force });
+  if (op === 'mailRunNow') return run({ force: !!b.force, budget: 90e3 });   // verseOwner has 120s
   if (op === 'mailTest') {
     // every sample to one address (his own), straight away - nothing counted, nothing marked
     const to = String(b.to || OWNER);
