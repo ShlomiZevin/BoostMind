@@ -150,7 +150,9 @@ const PROPS = [...new Set(FLOORS.flatMap((f) => [...f.props.map((q) => q[0]), f.
 const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => { if (PROPS.includes(k) || k === 'meeting') bakeMaze(); }; IMG[k] = i; return i; };
 for (const k of ['yotam-lap-open', 'yotam-lap-closed', 'yotam-lap-explain', 'yotam-lap-sad', 'yotam-open', 'yotam-closed', 'yotam-explain', 'yotam-sad', 'erez', 'erez-bored', 'osnat', 'osnat-bored', 'yaniv', 'yaniv-bored', 'hani', 'hani-cringe', 'coffee']) img(k, `assets/${k}.webp`);
 for (const k of PROPS) img(k, `assets/${k}.${['parquet', 'carpet', 'tiles', 'plaster', 'partition', 'marble', 'desk'].includes(k) ? 'jpg' : 'webp'}`);
-img('elevator', 'assets/elevator.jpg'); img('meeting', 'assets/meeting.webp'); 
+img('elevator', 'assets/elevator.jpg'); img('meeting', 'assets/meeting.webp');
+const SIGN = { 'Sync-Up': 'syncup', 'Circle Back': 'circleback', 'Deadlock': 'deadlock', 'Error 404': 'e404', 'Hotfix': 'hotfix', 'Coffee++': 'coffee' };
+for (const n of Object.values(SIGN)) img('sign-' + n, `assets/sign-${n}.webp`); 
 const ok = (im) => im && im.complete && im.naturalWidth;
 const WITH_LAPTOP = true;   // Yotam holds his laptop in both hands (his ask, 4 Nov - false = the plain heads)
 const YH = (k) => WITH_LAPTOP ? k.replace('yotam-', 'yotam-lap-') : k;
@@ -572,27 +574,21 @@ function drawRooms(now) {
     if (on) { ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 10; }
     ctx.beginPath(); ctx.roundRect(cx - th / 2, dy, th, len, 3); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(cx, dy + Math.min(len - 4, t * 0.5), Math.max(1.6, t * 0.06), 0, Math.PI * 2); ctx.fill();
-    // the sign on the top wall: a white card - the name, and under it a coloured dot with what is going on
-    const fs = Math.max(11, Math.round(t * 0.4)), fs2 = Math.max(9, Math.round(t * 0.3));
-    ctx.textBaseline = 'middle';
-    const sx = x + w / 2 + (rm.door.d === 'right' ? t * 0.5 : -t * 0.5), sy = y - t * 0.5;
-    const status = on ? `בפגישה · ${Math.ceil(rm.booked)}` : rm.need > 0 ? (rest ? 'עוד בהפסקה' : invites <= 0 ? 'צריך זימון' : 'מישהו בפנים') : rest ? 'בהפסקה' : 'פנוי';
-    const col = on || rm.need > 0 ? '#dc2626' : rest ? '#94a3b8' : '#16a34a';
-    ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`; const nw = ctx.measureText(rm.name).width;
-    ctx.font = `500 ${fs2}px Rubik, system-ui, sans-serif`; const sw = ctx.measureText(status).width + fs2 * 1.1;
-    const bw = Math.max(nw, sw) + 14, bh = fs * 1.3 + fs2 * 1.3;
-    const bx = clamp(sx - bw / 2, L.x0 + 2, L.x0 + COLS * t - bw - 2), by = sy - bh / 2;
-    ctx.fillStyle = '#fffffff2'; ctx.shadowColor = '#0006'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 1;
-    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 7); ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-    placed.push({ x: bx, y: by, w: bw, h: bh });
-    ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(bx, by, 4, bh, [7, 0, 0, 7]); ctx.fill();
-    ctx.textAlign = 'center'; ctx.direction = 'ltr'; ctx.fillStyle = '#0f1d3a'; ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`;
-    ctx.fillText(rm.name, bx + bw / 2 + 2, by + fs * 0.75);
-    // the status line: the dot, then the words (right to left)
-    const ly = by + bh - fs2 * 0.78, lx = bx + bw / 2 + 2 + sw / 2;
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(lx - fs2 * 0.35, ly, fs2 * 0.3, 0, Math.PI * 2); ctx.fill();
-    ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.fillStyle = '#475569'; ctx.font = `500 ${fs2}px Rubik, system-ui, sans-serif`;
-    ctx.fillText(status, lx - fs2 * 0.9, ly + 0.5);
+    // the room's own painted sign on its top wall, with a small light: green free, red in a meeting, grey on a break
+    const sim = IMG['sign-' + SIGN[rm.name]];
+    if (ok(sim)) {
+      const sw = Math.min(w + t * 0.6, t * 3.6), sh = sw * sim.naturalHeight / sim.naturalWidth;
+      const sx = clamp(x + w / 2 + (rm.door.d === 'right' ? t * 0.5 : -t * 0.5) - sw / 2, L.x0 + 2, L.x0 + COLS * t - sw - 2), sy = y - t * 0.5 - sh / 2;
+      ctx.shadowColor = '#0007'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2; ctx.drawImage(sim, sx, sy, sw, sh); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      placed.push({ x: sx, y: sy, w: sw, h: sh });
+      const blink = rm.need > 0 && Math.floor(now * 8) % 2, col = on || blink ? '#ef4444' : rest ? '#94a3b8' : '#22c55e';
+      const lx = rm.door.d === 'right' ? sx + sw - 1 : sx + 1, ly = sy + sh - 1;   // a badge on the sign's corner by the door
+      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(lx, ly, Math.max(4, on ? t * 0.2 : t * 0.13), 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+      // the meeting's seconds left, small, by the light
+      if (on) { ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.max(9, Math.round(t * 0.28))}px Rubik, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'; ctx.fillText(Math.ceil(rm.booked), lx, ly + 0.5); }
+    }
+    // no invite? an envelope with a question mark floats by the door
+    if (rm.need > 0 && invites <= 0) { ctx.globalAlpha = Math.min(1, rm.need); ctx.font = `${Math.round(t * 0.7)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✉️?', L.x0 + (rm.door.x + (rm.door.d === 'right' ? 1.4 : -0.4)) * t, L.y0 + (rm.door.y - 0.6) * t); ctx.globalAlpha = 1; }
     // the invite flies from Yotam to the door
     if (rm.invite > 0) {
       const k = 1 - rm.invite / 0.6, yp = pos(yotam), ax = px(yp.x), ay = py(yp.y), ex = cx, ey = dy + t / 2;
