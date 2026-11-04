@@ -97,7 +97,7 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
         <Note>Live. Edge cleanup drops the half-sure halo around him (white wall behind raised hands); Keep desk keeps the real desk in
           front of the set. The export applies the same.</Note>
         <button className="btn ins-wide" onClick={() => setKeepWin(true)}>Keep things too… (a box he holds, a prop)</button>
-        {keepWin && <Win title="Keep things in the cut-out" onClose={() => setKeepWin(false)}>
+        {keepWin && <Win title="Keep things in the cut-out" cls="kp-win" onClose={() => setKeepWin(false)}>
           <KeepThings P={P} mirrored={!!S.get('mirror', false)} onDone={() => setKeepWin(false)} /></Win>}
       </>}
       <Row label="Eyes"><Seg options={[[false, 'As filmed'], [true, 'At the lens']]} value={eyes} disabled={!withEyes.length} onPick={(v) => S.set('eyes', v)} /></Row>

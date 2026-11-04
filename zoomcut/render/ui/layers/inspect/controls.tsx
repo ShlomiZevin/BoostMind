@@ -158,14 +158,14 @@ export function Sec({ title, end, children }: { title: string; end?: React.React
 
 /** A window over the editor (a click on the panel's Timing / Lane): what isn't about how the clip looks or sounds -
  *  his rule, extra options go in a window opened from the item, never into the panel. Esc / outside click closes. */
-export function Win({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+export function Win({ title, onClose, children, cls }: { title: string; onClose: () => void; children: React.ReactNode; cls?: string }) {
   // (Esc closes only the window - caught before the editor's own Esc, which would also drop the picked clip)
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); onClose(); } };
     addEventListener('keydown', k, true); return () => removeEventListener('keydown', k, true);
   }, []);
   return <div className="pm-modal" onMouseDown={onClose}>
-    <div className="pm-box ins-win" onMouseDown={(e) => e.stopPropagation()}>
+    <div className={`pm-box ins-win ${cls || ''}`} onMouseDown={(e) => e.stopPropagation()}>
       <div className="ins-win-h"><b>{title}</b><button className="btn ghost icon" onClick={onClose} title="Close (Esc)">✕</button></div>
       <div className="ins">{children}</div>
     </div></div>;
