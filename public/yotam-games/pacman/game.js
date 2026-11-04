@@ -304,10 +304,12 @@ function bakeMaze() {
     g.drawImage(im, cap, 0, iw - cap * 2, ih, px0 + capD, py0, pw - capD * 2, ph);
     g.drawImage(im, iw - cap, 0, cap, ih, px0 + pw - capD, py0, capD, ph);
     let fs = Math.max(9, Math.round(t * 0.42)); g.font = `700 ${fs}px Rubik, system-ui, sans-serif`;
-    while (g.measureText(rm.name).width > pw - capD * 2 - 4 && fs > 7) { fs--; g.font = `700 ${fs}px Rubik, system-ui, sans-serif`; }
+    const led = t * 0.5;   // room for the status light beside the name
+    while (g.measureText(rm.name).width > pw - capD * 2 - led - 4 && fs > 7) { fs--; g.font = `700 ${fs}px Rubik, system-ui, sans-serif`; }
+    const tw = g.measureText(rm.name).width, tc = px0 + pw / 2 + (rm.door.d === 'right' ? -led / 2 : led / 2);
     g.fillStyle = '#1e293b'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'ltr';
-    g.fillText(rm.name, px0 + pw / 2, py0 + ph / 2 + 1);
-    rm.plate = { x: px0, y: py0, w: pw, h: ph, cap: capD };
+    g.fillText(rm.name, tc, py0 + ph / 2 + 1);
+    rm.plate = { x: px0, y: py0, w: pw, h: ph, cap: capD, tw, tc, led };
   }
   // the kitchen (the chasers' home) and its door
   g.fillStyle = '#1e3a6b'; g.fillRect(5 * t + 2, 10 * t + 2, 3 * t - 4, t - 4);
@@ -594,8 +596,9 @@ function drawRooms(now) {
       const pl = rm.plate, X = (v) => L.x0 + v, Y = (v) => L.y0 + v;
       placed.push({ x: X(pl.x), y: Y(pl.y), w: pl.w, h: pl.h });
       const blink = rm.need > 0 && Math.floor(now * 8) % 2, col = on || blink ? '#ef4444' : rest ? '#94a3b8' : '#22c55e';
-      const lx = X(rm.door.d === 'right' ? pl.x + pl.w - pl.cap * 0.5 : pl.x + pl.cap * 0.5), ly = Y(pl.y + pl.h / 2);
-      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(lx, ly, Math.max(4, on ? t * 0.21 : t * 0.14), 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+      const rr = Math.max(4, on ? t * 0.2 : t * 0.14), half = pl.led / 2 + 1;
+      const lx = X(rm.door.d === 'right' ? pl.tc + pl.tw / 2 + half : pl.tc - pl.tw / 2 - half), ly = Y(pl.y + pl.h / 2);   // right by the name, on the door side
+      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(lx, ly, rr, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
       if (on) { ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.max(9, Math.round(t * 0.28))}px Rubik, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'; ctx.fillText(Math.ceil(rm.booked), lx, ly + 0.5); }
     }
     // no invite? an envelope with a question mark floats by the door
