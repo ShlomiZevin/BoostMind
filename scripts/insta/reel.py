@@ -67,19 +67,47 @@ def openai(path, body=None, file=None):
         raise SystemExit(f'OpenAI {path}: {e.code} {e.read()[:400]}')
 
 
+def public_copy(m, mp4):
+    """The reel from its public page (yt-dlp, his own public reel) - when the API withholds the file or strips its sound
+    (2026-11-03: 55 reels were skipped that way, Rina's second among them). True if it came with sound."""
+    if not m.get('permalink'):
+        return False
+    tmp = mp4 + '.public.mp4'
+    try:
+        for attempt in (1, 2):  # Instagram refuses a request now and then (Rina's third failed once, then came at once)
+            # one mp4 when there is one, else picture + sound merged (some reels come only as separate dash streams)
+            r = subprocess.run([sys.executable, '-m', 'yt_dlp', '-q', '--no-warnings', '-f', 'b[ext=mp4]/bv*+ba/b',
+                                '--merge-output-format', 'mp4', '-o', tmp, m['permalink']],
+                               timeout=300, capture_output=True)
+            if r.returncode == 0:
+                break
+            time.sleep(20)
+        r.check_returncode()
+        if subprocess.check_output(['ffprobe', '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', tmp]).strip():
+            os.replace(tmp, mp4); print('fetch: from the public page')
+            return True
+    except Exception as e:
+        print('fetch: the public page failed too -', str(e)[:120])
+    if os.path.exists(tmp):
+        os.remove(tmp)
+    return False
+
+
 def fetch(d, m):
     mp4 = os.path.join(d, 'video.mp4')
     if not os.path.exists(mp4):
         url = json.loads(urllib.request.urlopen(
             f"https://graph.instagram.com/v23.0/{m['id']}?fields=media_url&access_token={E['IG_TOKEN']}", timeout=60).read()).get('media_url')
-        if not url:  # Instagram withholds the file of some reels (licensed music) - mark it and go on
+        if url:
+            urllib.request.urlretrieve(url, mp4)
+        elif not public_copy(m, mp4):  # Instagram withholds the file of some reels (licensed music) - mark it and go on
             st = load(os.path.join(HERE, 'state.json'), {})
             st[m['id']] = {**st.get(m['id'], {}), 'status': 'no-file', 'permalink': m.get('permalink')}
             save(os.path.join(HERE, 'state.json'), st)
-            print('NO FILE: Instagram gives no media_url for this reel (licensed music?) - skip it'); sys.exit(0)
-        urllib.request.urlretrieve(url, mp4)
+            print('NO FILE: Instagram gives no media_url for this reel and its public page failed - skip it'); sys.exit(0)
     dur = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp4]).decode())
-    if not subprocess.check_output(['ffprobe', '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', mp4]).strip():
+    has_sound = lambda: subprocess.check_output(['ffprobe', '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', mp4]).strip()
+    if not has_sound() and not public_copy(m, mp4):
         # the file comes without its sound (licensed music Instagram strips) - nothing to hear or subtitle: skip it
         st = load(os.path.join(HERE, 'state.json'), {})
         st[m['id']] = {**st.get(m['id'], {}), 'status': 'no-file', 'why': 'no audio track', 'permalink': m.get('permalink')}
@@ -204,6 +232,12 @@ def twin(d, mid):
             continue
         score = len(mine & grams(norm(open(f, encoding='utf8').read()))) / len(mine)
         best = max(best, (round(score, 2), eid))
+    # and every reel already on the wiki - he re-posts a sketch under a new link sometimes (his ask, 2026-11-03: "check me
+    # not to upload duplicates")
+    reels = load(os.path.join(ROOT, 'scripts', 'wiki', 'reels.json'), [])
+    for r in (reels if isinstance(reels, list) else reels.values()):
+        if mine and r.get('ig') != mid and r.get('transcript'):
+            best = max(best, (round(len(mine & grams(norm(r['transcript']))) / len(mine), 2), r['id']))
     out = {'score': best[0], 'episode': best[1] if best[0] > 0.3 else None, 'closest': best[1]}
     save(os.path.join(d, 'twin.json'), out)
     if out['episode']:

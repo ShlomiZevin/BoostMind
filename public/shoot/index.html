@@ -569,8 +569,9 @@ let cam = null, facing = 'user', camId = store.get('shoot-cam'), micId = store.g
 async function openCamera() {
   cam?.getTracks().forEach((t) => t.stop());
   const size = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
-  // his raw voice, like the Drop's voice takes (the studio cleans it)
-  const raw = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  // the computer: his raw voice from his mic (the studio cleans it). The phone: the phone's own processing - on the
+  // iPhone, echoCancellation off drops the mic's gain too: a take came out ~30 dB quiet, left ear only (2026-11-03)
+  const raw = LOCAL ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false } : true;
   const ask = (ids) => navigator.mediaDevices.getUserMedia({
     video: ids && camId ? { deviceId: { exact: camId }, ...size } : { facingMode: facing, ...size },
     audio: ids && micId ? { deviceId: { exact: micId }, ...raw } : raw });
