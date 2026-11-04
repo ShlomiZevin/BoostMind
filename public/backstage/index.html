@@ -141,7 +141,7 @@
   .toggle i::after { content: ""; position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
   .toggle input:checked + i { background: var(--accent); border-color: transparent; }
   .toggle input:checked + i::after { transform: translateX(-18px); }
-  .phone { aspect-ratio: 9 / 16; border-radius: 28px; overflow: hidden; position: relative; background: #000; border: 1px solid var(--line2); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .phone { aspect-ratio: 9 / 19.5; border-radius: 28px; overflow: hidden; position: relative; background: #000; border: 1px solid var(--line2); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
   .phone .sv-box { position: absolute; inset: 0; height: 100%; width: 100%; aspect-ratio: auto; }
   .phone .sv-text { font-size: 1.05rem; bottom: 24px; inset-inline: 14px; }
   .phone .sv-plain .sv-text { font-size: 1.25rem; }
@@ -198,6 +198,28 @@
   .ns-form { min-width: 0; }
   .ns-prev { position: sticky; top: 0; }
   .ns-prev .phone { width: 100%; }
+  /* the story's stage (/verse/story-art.js) between the name bar and the button, as on a phone; the designer */
+  .sc-art .sa { --top: 0px; --bot: 0px; } .sc-art .with-cta .sa { --bot: 46px; }
+  .phone .sa { --top: 60px; --bot: 10px; } .phone .with-cta .sa { --bot: 66px; }
+  .ns-prev .sa-boxes { pointer-events: auto; } .ns-prev .sa-b { cursor: grab; touch-action: none; }
+  .ns-prev .sa-b.dz-on .sa-in { outline: 2px dashed #ff6a1f; outline-offset: 4px; }
+  .ns-prev .hint { margin-top: 8px; font-size: .8rem; }
+  #dz { margin-top: 16px; padding: 14px; border: 1px solid var(--line2); border-radius: 16px; background: var(--card); }
+  .dz-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .dz-list button { height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line2); font-weight: 700; font-size: .85rem; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dz-list button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .dz-list .add { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); } .dz-list .add svg { width: 16px; height: 16px; }
+  #dz textarea { min-height: 74px; }
+  .dz-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+  .dz-row > span { color: var(--dim); font-size: .85rem; min-width: 56px; }
+  .dz-row .chip { height: 32px; padding: 0 11px; border-radius: 99px; border: 1px solid var(--line2); font-size: .82rem; font-weight: 700; color: var(--dim); }
+  .dz-row .chip.on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .dz-row .del { margin-inline-start: auto; color: #ff7a7a; }
+  .dz-row .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line2); }
+  .dz-row .sw.on { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dz-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; margin-top: 10px; }
+  .dz-grid label { display: flex; flex-direction: column; gap: 4px; font-size: .82rem; color: var(--dim); }
+  .dz-grid select, .dz-row select { height: 36px; border-radius: 10px; background: var(--card2); color: var(--text); border: 1px solid var(--line2); padding: 0 8px; font: inherit; }
   .ns-q { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); margin-bottom: 10px; }
   .ns-q svg { width: 18px; height: 18px; color: var(--dim); flex: none; }
   .ns-q input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }
@@ -484,6 +506,7 @@
 <body>
 <div id="app"></div>
 <script type="module">
+import { stageHtml, boxesOf, normBox, STYLES, FONTS, COLORS } from '/verse/story-art.js';
 // מאחורי הקלעים (/backstage/, his owner key): his ONE admin page since 2026-11-01 (he: "a really admin, super powerful
 // tool" - Backstage and the stats page merged). סקירה = status at a glance; שיחות = every conversation with the
 // characters, in bubbles, with search / filters / stars; נתונים = the numbers with drill-down per day + "שאלו את
@@ -1037,19 +1060,19 @@ function stickers() {
 }
 
 // ---------- סטוריז: every story as a visitor saw it; a new one is written in a window on top (his ask 2026-11-02,
-// "easy to see past stories, how they look, and create story maybe should be a modal"; design admin/S1, S2) ----------
+// "easy to see past stories, how they look, and create story maybe should be a modal"; design admin/S1, S2).
+// Since 2026-11-04 a story is drawn by the site's own /verse/story-art.js (the whole picture always fits, its words are
+// boxes he places - style, font, size, colour - never on faces or on words already in the picture) and a story that is
+// up can be fixed (עריכה) without telling anyone again. Most stories come from Claude sessions (the verse-story skill). ----------
 let stChar = '', stState = 'all', stList = [], stAud = 'followers', stQ = '';
 const LIVE_MS = 3 * 864e5;
 const isLive = (x) => !x.hidden && x.t && Date.now() - x.t < LIVE_MS;
 const storyById = (id) => L.stories.find((x) => x.id === id);
-// what a visitor saw: the picture or clip (or the line on the character's colour), the line, the button
+// what a visitor saw: the story's stage (picture / clip / the character's colour, the boxes), the name bar, the button
 function storyArt(x, full) {
-  const text = x.text ? `<div class="sv-text">${esc(x.text)}</div>` : '';
-  const media = x.media?.kind === 'video' ? `<video class="sv-media" src="${esc(x.media.url)}" muted playsinline loop preload="metadata"${full ? ' autoplay controls' : ''}></video>`
-    : x.media?.kind === 'image' ? `<img class="sv-media" src="${esc(x.media.url)}" alt="" loading="lazy">` : '';
   const cta = !x.link ? '' : full ? `<a class="sv-cta" href="${esc(x.link.url)}" target="_blank" rel="noopener">${esc(x.link.label)}${IC.back}</a>` : `<span class="sv-cta">${esc(x.link.label)}</span>`;
-  const head = full ? `<div class="sv-head">${face(x.char)}<span><b>${esc(C[x.char]?.name || x.char)}</b><br><small>${ago(x.t)}</small></span></div><div class="sv-bars"><span><i style="width:100%"></i></span></div>` : '';
-  return `<div class="sv-box${x.link ? ' with-cta' : ''}" style="--c:${C[x.char]?.color || '#ff6a1f'}">${head}${media ? `${media}<div class="sv-shade"></div>${text}` : `<div class="sv-plain">${text}</div>`}${cta}</div>`;
+  const head = full ? `<div class="sv-head">${face(x.char)}<span><b>${esc(C[x.char]?.name || x.char)}</b><br><small>${ago(x.t)}</small></span></div><div class="sv-bars"><span><i style="width:100%"></i></span></div><div class="sv-shade"></div>` : '';
+  return `<div class="sv-box${x.link ? ' with-cta' : ''}${full ? ' full' : ''}" style="--c:${C[x.char]?.color || '#ff6a1f'}">${stageHtml(x, { lazy: !full, muted: true, loop: true, autoplay: !!full })}${head}${cta}</div>`;
 }
 // who heard about it, and how many saw it / tapped its button (story_seen / story_link, counted since 2026-11-02)
 function storyAud(x) {
@@ -1077,56 +1100,140 @@ function story() {
         <div class="sc-meta">${face(x.char).replace(' ring', '')}<div><b>${esc(C[x.char]?.name || x.char)}</b><small>${ago(x.t)} · ${storyAud(x)}</small><small>${storyNums(x)}</small></div></div>
       </button>`).join('') || `<div class="empty">${all.length ? 'אין סטוריז כאלה.' : 'עוד לא עלה סטורי.'}</div>`}</div>`;
 }
-// one story, full size, as it played - with the next / previous in the same list, and hide
+// one story, full size, as it played - with the next / previous in the same list, fix it, hide it
 function openStory(id) {
   const x = storyById(id);
   if (!x) return;
   const i = stList.indexOf(id);
   sheet(`<div class="sh-h">${face(x.char)}<div class="t"><b>${esc(C[x.char]?.name || x.char)}</b><small>${new Date(x.t).toLocaleString('he-IL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} · ${storyAud(x)} · ${storyNums(x)}</small></div>
-      ${hideBtn('story', x)}<button class="x" data-close>${IC.x}</button></div>
+      <button class="btn" data-story-edit="${x.id}">${IC.edit || ''}עריכה</button>${hideBtn('story', x)}<button class="x" data-close>${IC.x}</button></div>
     <div class="sv-stage"><button class="nav" data-story-step="${stList[i - 1] || ''}" ${i > 0 ? '' : 'disabled'} aria-label="הקודם">${IC.chev.replace('m14 6-6 6 6 6', 'm10 6 6 6-6 6')}</button>
       <div class="phone">${storyArt(x, true)}</div>
       <button class="nav" data-story-step="${stList[i + 1] || ''}" ${i >= 0 && i < stList.length - 1 ? '' : 'disabled'} aria-label="הבא">${IC.chev}</button></div>`, 'sh-story');
 }
-// the new story window: the form, and next to it the story exactly as it will look
-function newStory() {
+
+// ---------- the designer: the story's words as boxes on its stage ----------
+// DZ = { boxes (story-art.js boxes), sel (the box being shaped), paint (draws the preview) }
+let DZ = null;
+const TAILS = [['br', 'זנב ימינה למטה'], ['bl', 'זנב שמאלה למטה'], ['tr', 'זנב ימינה למעלה'], ['tl', 'זנב שמאלה למעלה'], ['none', 'בלי זנב']];
+function dzPanel() {
+  const d = DZ, b = d.boxes[d.sel];
+  const sw = (k, c, cur) => `<button class="sw ${cur === c ? 'on' : ''}" data-dzc="${k}" data-v="${c}" title="${c === 'char' ? 'הצבע של הדמות' : c}" style="background:${c === 'char' ? 'var(--dzchar)' : c}"></button>`;
+  $('#dz').innerHTML = `<div class="dz-list">${d.boxes.map((x, i) => `<button data-dzsel="${i}" class="${i === d.sel ? 'on' : ''}">${esc(x.t.slice(0, 22) || 'טקסט חדש')}</button>`).join('')}
+      <button data-dzadd class="add">${IC.plus}טקסט</button></div>
+    ${!b ? '<p class="hint">אין מילים על הסטורי, רק התמונה. „טקסט" מוסיף קופסה, ואז גוררים אותה בתצוגה למקום פנוי.</p>' : `
+    <textarea id="dz-t" rows="3" maxlength="300" placeholder="המילים, בקול של הדמות">${esc(b.t)}</textarea>
+    <div class="dz-row">${Object.entries(STYLES).map(([k, v]) => `<button data-dzst="${k}" class="chip ${b.st === k ? 'on' : ''}">${v.label}</button>`).join('')}</div>
+    <div class="dz-grid">
+      <label>גופן<select id="dz-f">${Object.entries(FONTS).map(([k, v]) => `<option value="${k}"${b.f === k ? ' selected' : ''}>${v[2]}</option>`).join('')}</select></label>
+      <label>גודל האותיות<input type="range" id="dz-s" min="3" max="16" step="0.1" value="${b.s}"></label>
+      <label>רוחב<input type="range" id="dz-w" min="15" max="100" step="1" value="${b.w}"></label>
+      <label>סיבוב<input type="range" id="dz-r" min="-15" max="15" step="0.5" value="${b.r}"></label>
+    </div>
+    <div class="dz-row"><span>צבע</span>${COLORS.map((c) => sw('c', c, b.c)).join('')}</div>
+    ${b.st === 'shadow' ? '' : `<div class="dz-row"><span>${b.st === 'outline' ? 'קו מתאר' : 'רקע'}</span>${COLORS.map((c) => sw('bg', c, b.bg)).join('')}</div>`}
+    <div class="dz-row"><span>יישור</span>${[['right', 'ימין'], ['center', 'מרכז'], ['left', 'שמאל']].map(([k, l]) => `<button data-dzal="${k}" class="chip ${b.al === k ? 'on' : ''}">${l}</button>`).join('')}
+      ${b.st === 'bubble' ? `<select id="dz-tail">${TAILS.map(([k, l]) => `<option value="${k}"${b.tail === k ? ' selected' : ''}>${l}</option>`).join('')}</select>` : ''}
+      <button data-dzdel class="chip del">למחוק את הקופסה</button></div>`}`;
+}
+function dzInit(boxes, paint) {
+  DZ = { boxes: boxes.map(normBox), sel: boxes.length ? 0 : -1, paint };
+  const el = $('#dz');
+  el.style.setProperty('--dzchar', 'var(--accent)');
+  const up = (fn) => { const b = DZ.boxes[DZ.sel]; if (b) { fn(b); DZ.paint(); } };
+  el.onclick = (e) => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    e.stopPropagation();
+    const ds = t.dataset;
+    if (ds.dzsel) DZ.sel = +ds.dzsel;
+    else if (ds.dzadd !== undefined) { DZ.boxes.push(normBox({ t: '', st: 'glass', y: 80, w: 84, s: 6 })); DZ.sel = DZ.boxes.length - 1; }
+    else if (ds.dzdel !== undefined) { DZ.boxes.splice(DZ.sel, 1); DZ.sel = Math.min(DZ.sel, DZ.boxes.length - 1); }
+    else if (ds.dzst) up((b) => { const S = STYLES[ds.dzst]; Object.assign(b, { st: ds.dzst, c: S.c, bg: S.bg || '', ...(S.f ? { f: S.f } : {}), r: S.r || 0, wt: S.wt || 800 }); });
+    else if (ds.dzal) up((b) => { b.al = ds.dzal; });
+    else if (ds.dzc) up((b) => { b[ds.dzc] = ds.v; });
+    else return;
+    dzPanel(); DZ.paint();
+    if (ds.dzadd !== undefined) $('#dz-t')?.focus();
+  };
+  el.oninput = (e) => {
+    const id = e.target.id, v = e.target.value;
+    up((b) => { if (id === 'dz-t') b.t = v; else if (id === 'dz-f') b.f = v; else if (id === 'dz-tail') b.tail = v; else if (id === 'dz-s') b.s = +v; else if (id === 'dz-w') b.w = +v; else if (id === 'dz-r') b.r = +v; });
+    if (id === 'dz-t') { const chip = el.querySelector(`[data-dzsel="${DZ.sel}"]`); if (chip) chip.textContent = v.slice(0, 22) || 'טקסט חדש'; }
+  };
+  dzPanel();
+}
+// dragging a box in the preview: select it, move it (the stage's % - the same numbers the site draws)
+function dzDrag(prev) {
+  prev.onpointerdown = (e) => {
+    const bx = e.target.closest('[data-box]');
+    if (!bx || !DZ) return;
+    e.preventDefault();
+    const i = +bx.dataset.box, st = prev.querySelector('.sa-stage').getBoundingClientRect(), b = DZ.boxes[i];
+    if (DZ.sel !== i) { DZ.sel = i; dzPanel(); }
+    prev.querySelectorAll('.sa-b').forEach((x) => x.classList.toggle('dz-on', x === bx));
+    const ox = e.clientX, oy = e.clientY, bx0 = b.x, by0 = b.y;
+    const move = (m) => {
+      b.x = Math.round(Math.min(100, Math.max(0, bx0 + ((m.clientX - ox) / st.width) * 100)) * 10) / 10;
+      b.y = Math.round(Math.min(100, Math.max(0, by0 + ((m.clientY - oy) / st.height) * 100)) * 10) / 10;
+      bx.style.left = b.x + '%'; bx.style.top = b.y + '%';
+    };
+    const end = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', end); DZ.paint(); };
+    addEventListener('pointermove', move); addEventListener('pointerup', end);
+  };
+}
+
+// the story window: a new story (who, words, picture, button, who hears) or fixing one that is up (its words, picture,
+// button - nobody is told again). Next to the form, the story exactly as it will look.
+function newStory() { storyWindow(null); }
+function storyWindow(edit) {
   const chars = [C.verse, ...W.characters.filter((c) => c.img)];
+  if (edit) pick = edit.char;
+  file = null;
   const reach = () => ({ followers: pick ? L.followers?.[pick] || 0 : 0, everyone: L.fans || 0 });
-  sheet(`<div class="sh-h"><div class="t"><b>סטורי חדש</b><small>כותבים, ורואים בדיוק איך זה ייראה לפני שמפרסמים.</small></div><button class="x" data-close>${IC.x}</button></div>
+  sheet(`<div class="sh-h"><div class="t"><b>${edit ? 'עריכת הסטורי' : 'סטורי חדש'}</b><small>${edit ? `${esc(C[edit.char]?.name || edit.char)} · ${ago(edit.t)} · מתקנים, ואף אחד לא מקבל התראה שוב.` : 'כותבים, ורואים בדיוק איך זה ייראה לפני שמפרסמים.'}</small></div><button class="x" data-close>${IC.x}</button></div>
     <div class="sh-b ns"><div class="ns-form">
-      <span class="lbl" style="margin-top:0">מי מעלה?</span>
+      ${edit ? '' : `<span class="lbl" style="margin-top:0">מי מעלה?</span>
       <label class="ns-q">${IC.search}<input id="st-q" placeholder="חיפוש דמות לפי שם" value="${esc(stQ)}"></label>
-      <div class="faces ns-faces">${chars.map((c) => `<button data-pick="${c.id}" data-name="${esc(c.name)}" class="${pick === c.id ? 'on' : ''}">${face(c.id).replace(' ring', '')}${esc(c.name)}</button>`).join('')}</div>
-      <span class="lbl">מה קורה לדמות?</span>
-      <textarea id="st-text" maxlength="600" placeholder="משפט אחד, בקול של הדמות"></textarea>
-      <span class="lbl">תמונה או סרטון קצר</span>
+      <div class="faces ns-faces">${chars.map((c) => `<button data-pick="${c.id}" data-name="${esc(c.name)}" class="${pick === c.id ? 'on' : ''}">${face(c.id).replace(' ring', '')}${esc(c.name)}</button>`).join('')}</div>`}
+      <span class="lbl"${edit ? ' style="margin-top:0"' : ''}>תמונה או סרטון קצר${edit ? ' (רק אם מחליפים)' : ''}</span>
       <label class="file ns-drop" id="st-drop">${IC.file}<span id="st-fname">גוררים לכאן או לוחצים לבחירה · תמונה גבוהה (9:16) נראית הכי טוב</span><input type="file" id="st-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"></label>
+      <div id="dz"></div>
+      <span class="lbl">השורה בפעמון ובהתראה</span>
+      <textarea id="st-text" maxlength="600" placeholder="משפט אחד, בקול של הדמות - זה מה שמקבלים בהתראה">${esc(edit?.text || '')}</textarea>
       <span class="lbl">כפתור עם קישור (לא חובה)</span>
-      <div class="st-link"><input id="st-label" maxlength="40" placeholder="מה כתוב עליו, למשל: לשחק עכשיו"><input id="st-link" dir="ltr" placeholder="https://… או /hani-games/…"></div>
-      <span class="lbl">מי שומע על זה?</span>
-      <div class="ns-aud" id="st-aud"></div>
-      <div class="ns-go"><button class="btn main" id="st-go" disabled>${IC.plus}לפרסם</button><button class="btn" data-close>ביטול</button><span id="st-msg" class="hint"></span></div>
-    </div><div class="ns-prev"><div class="phone" id="st-prev"></div></div></div>`, 'sh-new');
+      <div class="st-link"><input id="st-label" maxlength="40" placeholder="מה כתוב עליו, למשל: לשחק עכשיו" value="${esc(edit?.link?.label || '')}"><input id="st-link" dir="ltr" placeholder="https://… או /hani-games/…" value="${esc(edit?.link?.url || '')}"></div>
+      ${edit ? '' : '<span class="lbl">מי שומע על זה?</span><div class="ns-aud" id="st-aud"></div>'}
+      <div class="ns-go"><button class="btn main" id="st-go" disabled>${edit ? 'לשמור' : `${IC.plus}לפרסם`}</button><button class="btn" data-close>ביטול</button><span id="st-msg" class="hint"></span></div>
+    </div><div class="ns-prev"><div class="phone" id="st-prev"></div><p class="hint">גוררים כל קופסה למקום. לא על פנים, ולא על מילים שכבר יש בתמונה.</p></div></div>`, 'sh-new');
   const aud = () => {
+    if (edit) return;
     const r = reach(), name = pick ? C[pick].name : 'הדמות';
     if (pick === 'verse' && stAud === 'followers') stAud = 'everyone';
     $('#st-aud').innerHTML = [['followers', `העוקבים של ${name}`, `${fmt(r.followers)} אנשים · פעמון והתראה`], ['everyone', 'כל השלומיוורס', `${fmt(r.everyone)} חשבונות · לדברים גדולים`], ['none', 'בלי התראה', 'רק העיגול בדף הבית']].filter(([k]) => !(pick === 'verse' && k === 'followers'))
       .map(([k, t, s]) => `<button data-staud="${k}" class="${stAud === k ? 'on' : ''}"><i></i><span><b>${esc(t)}</b><small>${s}</small></span></button>`).join('');
   };
+  const words = () => DZ.boxes.filter((b) => b.t.trim());
   const prev = () => {
     const text = $('#st-text').value.trim(), link = $('#st-link').value.trim();
-    const media = file ? { kind: file.type.startsWith('video/') ? 'video' : 'image', url: file._url || (file._url = URL.createObjectURL(file)) } : null;
-    $('#st-prev').innerHTML = pick ? storyArt({ char: pick, text: text || (media ? '' : '...'), media, link: link ? { url: link, label: $('#st-label').value.trim() || 'לפתוח' } : null, t: Date.now() }, true)
-      : '<div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בוחרים דמות</div></div>';
-    $('#st-prev').querySelector('video')?.setAttribute('muted', '');
-    $('#st-go').disabled = !pick || (!text && !file);
+    const media = file ? { kind: file.type.startsWith('video/') ? 'video' : 'image', url: file._url || (file._url = URL.createObjectURL(file)) } : edit?.media || null;
+    if (pick) {
+      $('#st-prev').innerHTML = storyArt({ char: pick, boxes: DZ.boxes, media, link: link ? { url: link, label: $('#st-label').value.trim() || 'לפתוח' } : null, t: edit?.t || Date.now() }, true);
+      $('#st-prev').querySelector(`[data-box="${DZ.sel}"]`)?.classList.add('dz-on');
+      $('#st-prev').querySelector('video')?.setAttribute('muted', '');
+    } else $('#st-prev').innerHTML = '<div class="sv-box"><div class="sv-plain" style="--c:#333"><div class="sv-text" style="color:var(--dim);font-size:1rem">בוחרים דמות</div></div></div>';
+    $('#st-go').disabled = !pick || (!text && !media && !words().length);
     aud();
   };
+  dzInit(edit ? boxesOf(edit) : [], prev);
+  dzDrag($('#st-prev'));
   window._stPrev = prev;
   prev();
   ['#st-text', '#st-link', '#st-label'].forEach((s) => { $(s).oninput = prev; });
-  $('#st-q').oninput = (e) => { stQ = e.target.value.trim(); document.querySelectorAll('.ns-faces [data-pick]').forEach((b) => { b.hidden = !!stQ && !b.dataset.name.includes(stQ); }); };
-  $('#st-q').oninput({ target: $('#st-q') });
+  if (!edit) {
+    $('#st-q').oninput = (e) => { stQ = e.target.value.trim(); document.querySelectorAll('.ns-faces [data-pick]').forEach((b) => { b.hidden = !!stQ && !b.dataset.name.includes(stQ); }); };
+    $('#st-q').oninput({ target: $('#st-q') });
+  }
   const setFile = (f) => { file = f || null; $('#st-fname').textContent = file ? file.name : 'גוררים לכאן או לוחצים לבחירה'; prev(); };
   $('#st-file').onchange = (e) => setFile(e.target.files[0]);
   const drop = $('#st-drop');
@@ -1135,20 +1242,25 @@ function newStory() {
   drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); setFile(e.dataTransfer.files[0]); };
   $('#st-go').onclick = async () => {
     const text = $('#st-text').value.trim(), link = $('#st-link').value.trim();
-    if (!pick || (!text && !file)) return;
-    if (stAud === 'everyone' && !confirm(`לשלוח התראה לכל ${fmt(L.fans)} החשבונות בשלומיוורס?`)) return;
     const fd = new FormData();
-    fd.append('char', pick); fd.append('text', text); fd.append('notify', stAud === 'none' ? 'no' : 'yes');
-    if (stAud === 'everyone') fd.append('everyone', 'yes');
-    if (link) { fd.append('link', link); fd.append('linkLabel', $('#st-label').value.trim()); }
+    fd.append('boxes', JSON.stringify(words()));
+    fd.append('text', text || words().map((b) => b.t).join(' '));
+    if (link) { fd.append('link', link); fd.append('linkLabel', $('#st-label').value.trim()); } else if (edit) fd.append('noLink', 'yes');
     if (file) fd.append('file', file, file.name);
-    $('#st-go').disabled = true; $('#st-msg').textContent = 'מעלה…';
+    if (edit) fd.append('id', edit.id);
+    else {
+      if (!pick) return;
+      if (stAud === 'everyone' && !confirm(`לשלוח התראה לכל ${fmt(L.fans)} החשבונות בשלומיוורס?`)) return;
+      fd.append('char', pick); fd.append('notify', stAud === 'none' ? 'no' : 'yes');
+      if (stAud === 'everyone') fd.append('everyone', 'yes');
+    }
+    $('#st-go').disabled = true; $('#st-msg').textContent = edit ? 'שומר…' : 'מעלה…';
     try {
-      const r = await api('story', fd, true);
+      const r = await api(edit ? 'storyEdit' : 'story', fd, true);
       file = null;
-      $('#st-msg').innerHTML = `<span class="ok">עלה. ${stAud === 'none' ? 'בלי התראה.' : `${fmt(r.fans)} ${r.everyone ? 'חשבונות' : 'עוקבים'} קיבלו בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.`}</span>`;
-      setTimeout(() => { closeSheet(); stState = 'all'; stChar = ''; refresh(); }, 1600);
-    } catch (e) { $('#st-go').disabled = false; $('#st-msg').textContent = e.message === 'file_size' ? 'הקובץ גדול מדי (עד 30MB)' : e.message === 'link' ? 'הקישור לא תקין (https://… או /…)' : 'לא עלה: ' + e.message; }
+      $('#st-msg').innerHTML = `<span class="ok">${edit ? 'נשמר. אף אחד לא קיבל התראה שוב.' : `עלה. ${stAud === 'none' ? 'בלי התראה.' : `${fmt(r.fans)} ${r.everyone ? 'חשבונות' : 'עוקבים'} קיבלו בפעמון${r.sent ? `, ${r.sent} גם בהתראה` : ''}.`}`}</span>`;
+      setTimeout(() => { closeSheet(); if (!edit) { stState = 'all'; stChar = ''; } refresh(); }, 1400);
+    } catch (e) { $('#st-go').disabled = false; $('#st-msg').textContent = e.message === 'file_size' ? 'הקובץ גדול מדי (עד 30MB)' : e.message === 'link' ? 'הקישור לא תקין (https://… או /…)' : 'לא נשמר: ' + e.message; }
   };
 }
 
@@ -1365,6 +1477,7 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.staud) { stAud = b.dataset.staud; window._stPrev?.(); }
   else if (b.dataset.storyNew !== undefined) newStory();
   else if (b.dataset.storyOpen) openStory(b.dataset.storyOpen);
+  else if (b.dataset.storyEdit) storyWindow(storyById(b.dataset.storyEdit));
   else if (b.dataset.storyStep) openStory(b.dataset.storyStep);
   else if (b.dataset.ststate) { stState = b.dataset.ststate; story(); }
   else if (b.dataset.stchar !== undefined) { stChar = b.dataset.stchar; story(); }

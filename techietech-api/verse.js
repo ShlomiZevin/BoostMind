@@ -662,7 +662,7 @@ function parseStory(req) {
   return new Promise((resolve, reject) => {
     const fields = {};
     let file = null, tooBig = false;
-    const bb = Busboy({ headers: req.headers, defCharset: 'utf8', defParamCharset: 'utf8', limits: { fileSize: 30 * 1024 * 1024, files: 1, fields: 10, fieldSize: 5000 } });
+    const bb = Busboy({ headers: req.headers, defCharset: 'utf8', defParamCharset: 'utf8', limits: { fileSize: 30 * 1024 * 1024, files: 1, fields: 12, fieldSize: 12000 } });
     bb.on('field', (k, v) => { fields[k] = String(v); });
     bb.on('file', (_k, stream, info) => {
       const chunks = [];
@@ -676,6 +676,45 @@ function parseStory(req) {
   });
 }
 const MEDIA = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/quicktime': 'mov' };
+// a story's words as boxes on its 9:16 stage (v2/site/verse/story-art.js draws them; the same names and limits there):
+// up to 8, each up to 300 characters; places in % of the stage. Anything else is dropped. null = no / broken boxes field.
+const BOX_ST = ['box', 'glass', 'line', 'outline', 'shadow', 'bubble', 'note', 'tag'];
+const BOX_F = ['heebo', 'rubik', 'secular', 'suez', 'frank', 'amatic', 'karantina', 'varela'];
+const boxColor = (v) => (v === 'char' || /^#[0-9a-f]{3,8}$/i.test(v || '') || /^rgba?\([\d.,\s%]+\)$/.test(v || '') ? String(v) : null);
+function cleanBoxes(raw) {
+  if (raw == null || raw === '') return null;
+  let list; try { list = JSON.parse(raw); } catch (e) { return null; }
+  if (!Array.isArray(list)) return null;
+  const n = (v, d, lo, hi) => { const x = Number(v); return Number.isFinite(x) ? Math.round(Math.min(hi, Math.max(lo, x)) * 100) / 100 : d; };
+  return list.slice(0, 8).map((b) => {
+    const t = clip(String(b?.t || '').replace(/\r/g, '').trim(), 300);
+    if (!t) return null;
+    const o = { t, x: n(b.x, 50, 0, 100), y: n(b.y, 50, 0, 100), w: n(b.w, 80, 10, 100), s: n(b.s, 6, 2, 22), st: BOX_ST.includes(b.st) ? b.st : 'box' };
+    if (BOX_F.includes(b.f)) o.f = b.f;
+    if (boxColor(b.c)) o.c = boxColor(b.c);
+    if (boxColor(b.bg)) o.bg = boxColor(b.bg);
+    if (['right', 'center', 'left'].includes(b.al)) o.al = b.al;
+    if (b.r != null) o.r = n(b.r, 0, -30, 30);
+    if ([400, 700, 800, 900].includes(Number(b.wt))) o.wt = Number(b.wt);
+    if (['br', 'bl', 'tr', 'tl', 'none'].includes(b.tail)) o.tail = b.tail;
+    return o;
+  }).filter(Boolean);
+}
+// a story's button: an address on the web, a page of this site (/hani-games/...) or a place in the wiki (#/c/hani);
+// null = none, false = not a link
+const storyLink = (f) => {
+  const url = String(f.link || '').trim();
+  if (!url) return null;
+  if (!/^(https?:\/\/[^\s"'<>]+|\/[^\s"'<>]*|#\/[^\s"'<>]*)$/.test(url) || url.length > 500) return false;
+  return { url, label: clip(oneLine(f.linkLabel || '', 40), 40) || 'לפתוח' };
+};
+async function saveStoryMedia(id, file) {
+  const ext = MEDIA[file.type];
+  if (!ext) return null;
+  const path = `verse/stories/${id}${file.v ? '-' + file.v : ''}.${ext}`;
+  await admin.storage().bucket(BUCKET).file(path).save(file.data, { contentType: file.type, resumable: false, metadata: { cacheControl: 'public, max-age=31536000' } });
+  return { url: publicUrl(path), kind: file.type.startsWith('video/') ? 'video' : 'image' };
+}
 
 // ---------- a new video: everyone who follows someone in its cast hears about it, once ----------
 async function announceVideo(videoId, v, again = false) {
@@ -885,23 +924,18 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const { fields: f, file, tooBig } = await parseStory(req);
       if (!idOk(f.char)) return res.status(400).json({ error: 'char' });
       if (tooBig) return res.status(400).json({ error: 'file_size' });
+      // text = the line in the bell and the push (and the words, for a story from before its boxes); boxes = the words
+      // as the story shows them (story-art.js)
       const text = clip(String(f.text || '').trim(), 600);
-      if (!text && !file) return res.status(400).json({ error: 'empty' });
-      let link = null;
-      if (f.link && String(f.link).trim()) {
-        const url = String(f.link).trim();
-        // an address on the web, a page of this site (/hani-games/...) or a place in the wiki (#/c/hani)
-        if (!/^(https?:\/\/[^\s"'<>]+|\/[^\s"'<>]*|#\/[^\s"'<>]*)$/.test(url) || url.length > 500) return res.status(400).json({ error: 'link' });
-        link = { url, label: clip(oneLine(f.linkLabel || '', 40), 40) || 'לפתוח' };
-      }
+      const boxes = cleanBoxes(f.boxes);
+      if (!text && !file && !boxes?.length) return res.status(400).json({ error: 'empty' });
+      const link = storyLink(f);
+      if (link === false) return res.status(400).json({ error: 'link' });
       const ref = db.collection('stories').doc();
       let media = null;
       if (file && file.data.length) {
-        const ext = MEDIA[file.type];
-        if (!ext) return res.status(400).json({ error: 'file_type' });
-        const path = `verse/stories/${ref.id}.${ext}`;
-        await admin.storage().bucket(BUCKET).file(path).save(file.data, { contentType: file.type, resumable: false, metadata: { cacheControl: 'public, max-age=31536000' } });
-        media = { url: publicUrl(path), kind: file.type.startsWith('video/') ? 'video' : 'image' };
+        media = await saveStoryMedia(ref.id, file);
+        if (!media) return res.status(400).json({ error: 'file_type' });
       }
       const { byId } = await _canon();
       // 'verse' = the Shlomiverse itself (his official account): its name and logo, and nobody follows it, so its
@@ -909,7 +943,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const isVerse = f.char === 'verse';
       const name = isVerse ? OFFICIAL.nick : byId[f.char]?.name || f.char;
       const everyone = f.everyone === 'yes' || (isVerse && f.notify !== 'no');
-      await ref.set({ char: f.char, text, media, link, everyone, hidden: false, t: FieldValue.serverTimestamp() });
+      await ref.set({ char: f.char, text: text || (boxes || []).map((b) => b.t).join(' ').slice(0, 600), ...(boxes ? { boxes } : {}), media, link, everyone, hidden: false, t: FieldValue.serverTimestamp() });
       let fans = [], sent = 0;
       if (f.notify !== 'no' || everyone) {
         fans = everyone ? (await db.collection('fans').select().get()).docs.map((d) => d.id) : await followersOf([f.char]);
@@ -924,6 +958,28 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
         await ref.update({ reach: fans.length, pushes: sent });
       }
       return res.json({ ok: true, id: ref.id, fans: fans.length, sent, everyone });
+    }
+    // fixing a story that is already up - its words / boxes, its button, its picture - without telling anyone again
+    // (fields: id, then only what changes: boxes (JSON; '[]' = no words on it), text, link + linkLabel or noLink=yes, file)
+    if (op === 'storyEdit') {
+      const { fields: f, file, tooBig } = await parseStory(req);
+      if (tooBig) return res.status(400).json({ error: 'file_size' });
+      if (!/^[A-Za-z0-9]{10,40}$/.test(f.id || '')) return res.status(400).json({ error: 'story' });
+      const ref = db.collection('stories').doc(f.id);
+      if (!(await ref.get()).exists) return res.status(404).json({ error: 'story' });
+      const up = {};
+      if (f.boxes != null) { const b = cleanBoxes(f.boxes); if (!b) return res.status(400).json({ error: 'boxes' }); up.boxes = b; }
+      if (f.text != null) up.text = clip(String(f.text).trim(), 600);
+      if (f.noLink === 'yes') up.link = null;
+      else if (f.link != null) { const l = storyLink(f); if (l === false) return res.status(400).json({ error: 'link' }); up.link = l; }
+      if (file && file.data.length) {
+        const media = await saveStoryMedia(ref.id, { ...file, v: Date.now().toString(36) });
+        if (!media) return res.status(400).json({ error: 'file_type' });
+        up.media = media;
+      }
+      if (!Object.keys(up).length) return res.status(400).json({ error: 'empty' });
+      await ref.update({ ...up, edited: FieldValue.serverTimestamp() });
+      return res.json({ ok: true, id: ref.id, changed: Object.keys(up) });
     }
     return res.status(400).json({ error: 'op' });
   } catch (e) {

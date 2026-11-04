@@ -1,21 +1,25 @@
-// Characters' stories between videos - Shlomi writes every one (/backstage/). Rings on the home page and around a
+// Characters' stories between videos - written in /backstage/ or by a Claude session (the verse-story skill). Rings on the home page and around a
 // character's portrait; #/story/<character> plays them full screen (tap left = next, right = back, like any RTL app).
 import { db, F } from './fb.js';
 import { T } from './copy.js';
 import { I, esc, av, ago, abs, charColor, track } from './ui.js';
 import { st } from './state.js';
 import { followBtn, paintFollow } from './player.js';
+import { stageHtml, readMs } from './story-art.js';
 
 const RECENT = 3 * 864e5;   // a story stays in the rings for three days
 // a story can also come from the Shlomiverse itself (char 'verse', his official account): its logo and name
 const VERSE = { name: 'שלומיוורס', img: '/verse/icon-192.png' };
 const who = (c) => (c === 'verse' ? VERSE : C[c]);
 const whoFace = (c) => (c === 'verse' ? `<span class="vx-av ring"><img src="${VERSE.img}" alt=""></span>` : av({ char: c, ring: true }));
-let all = [];
+let all = [], loaded = false, waiting = null;
 const subs = new Set();
 export const onStories = (fn) => subs.add(fn);
 F.onSnapshot(F.query(F.collection(db, 'stories'), F.where('hidden', '==', false), F.orderBy('t', 'desc'), F.limit(150)), (s) => {
   all = s.docs.map((d) => ({ id: d.id, ...d.data(), ms: d.data().t?.toMillis?.() || Date.now() }));
+  loaded = true;
+  // a story link opened cold (a push, a shared link) waited for the stories to arrive
+  if (waiting && location.pathname === '/story/' + waiting) { const c = waiting; waiting = null; openStory(c); }
   subs.forEach((fn) => fn());
 }, (e) => console.error('stories', e));
 
@@ -49,8 +53,14 @@ let SV = null;
 let backTo = '/';
 export const setStoryBack = (h) => { backTo = h || '/'; };
 
+// "בלי טקסט": the visitor sees the story without its words (his ask, 2026-11-04) - the button keeps it for the
+// stories that follow; holding a finger on a story shows only the picture for as long as it is held, like Instagram
+const CLEAN = 'vx-story-clean';
+const textOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h10M10 6v12"/><path d="M14 13h6M17 13v5"/><path d="M3.5 3.5l17 17"/></svg>';
+const textOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h10M10 6v12"/><path d="M14 13h6M17 13v5"/></svg>';
 export function openStory(char) {
   closeStory();
+  if (!loaded) { waiting = char; return; }
   let list = recentOf(char).reverse();
   if (!list.length) list = all.filter((x) => x.char === char).slice(0, 10).reverse();
   if (!list.length || !who(char)) { nav(backTo, true); return; }
@@ -61,14 +71,23 @@ export function openStory(char) {
   el.innerHTML = `<div class="sv-box" style="--c:${charColor(char)}">
       <div class="sv-bars">${list.map(() => '<span><i></i></span>').join('')}</div>
       <div class="sv-head"><a href="${char === 'verse' ? '/' : `/c/${char}`}">${whoFace(char)}</a><span><b>${esc(who(char).name)}</b><br><small data-ago></small></span>
-        <span class="end">${char === 'verse' ? '' : followBtn(char, 'pill')}<button class="vx-round" data-x style="width:42px;height:42px" aria-label="סגירה">${I.x}</button></span></div>
+        <span class="end">${char === 'verse' ? '' : followBtn(char, 'pill')}<button class="vx-round sv-clean" data-clean style="width:42px;height:42px"></button><button class="vx-round" data-x style="width:42px;height:42px" aria-label="סגירה">${I.x}</button></span></div>
       <div data-slot></div>
       <div class="sv-shade"></div>
       <button class="sv-tap next" data-next aria-label="הבא"></button><button class="sv-tap prev" data-prev aria-label="הקודם"></button>
     </div>`;
   document.body.append(el);
   document.body.style.overflow = 'hidden';
-  SV = { el, timer: 0, raf: 0 };
+  SV = { el, timer: 0, raf: 0, start: 0, held: 0 };
+  const paintClean = () => {
+    const on = localStorage.getItem(CLEAN) === '1';
+    el.classList.toggle('clean', on);
+    const b = el.querySelector('[data-clean]');
+    b.innerHTML = on ? textOn : textOff;
+    b.setAttribute('aria-label', on ? 'להחזיר את הטקסט' : 'לראות בלי טקסט');
+    b.title = b.getAttribute('aria-label');
+  };
+  paintClean();
   paintFollow(el);
   const bars = [...el.querySelectorAll('.sv-bars i')];
   const show = () => {
@@ -80,20 +99,19 @@ export function openStory(char) {
     bars.forEach((b, k) => { b.style.width = k < i ? '100%' : '0'; });
     el.querySelector('[data-ago]').textContent = ago(x.ms);
     const slot = el.querySelector('[data-slot]');
-    const text = x.text ? `<div class="sv-text">${esc(x.text)}</div>` : '';
     // a story's button (a new game, a video, a site): another site opens in a new tab, ours in this one
     const out = x.link && /^https?:/.test(x.link.url) && !x.link.url.startsWith(location.origin);
     const cta = x.link ? `<a class="sv-cta" href="${esc(x.link.url)}"${out ? ' target="_blank" rel="noopener"' : ''} data-cta>${esc(x.link.label)}${I.next}</a>` : '';
     slot.classList.toggle('with-cta', !!x.link);
-    if (x.media?.kind === 'video') slot.innerHTML = `<video class="sv-media" src="${esc(x.media.url)}" playsinline autoplay></video>${text}${cta}`;
-    else if (x.media?.kind === 'image') slot.innerHTML = `<img class="sv-media" src="${esc(x.media.url)}" alt="">${text}${cta}`;
-    else slot.innerHTML = `<div class="sv-plain">${text}</div>${cta}`;
+    // the whole story always fits the screen; around it, the same picture blurred (story-art.js)
+    slot.innerHTML = stageHtml(x, { autoplay: true }) + cta;
     const vid = slot.querySelector('video');
-    const start = performance.now();
-    const len = () => (vid && vid.duration ? vid.duration * 1000 : Math.min(9000, 4000 + (x.text || '').length * 45));
+    SV.start = performance.now();
+    const len = () => (vid && vid.duration ? vid.duration * 1000 : readMs(x));
     const step = (now) => {
       if (!SV || !bars[i]) return;
-      const p = vid ? (vid.currentTime * 1000) / len() : (now - start) / len();
+      if (SV.held) { SV.raf = requestAnimationFrame(step); return; }
+      const p = vid ? (vid.currentTime * 1000) / len() : (now - SV.start) / len();
       bars[i].style.width = Math.min(100, p * 100) + '%';
       if (p >= 1) return go(1);
       SV.raf = requestAnimationFrame(step);
@@ -115,7 +133,30 @@ export function openStory(char) {
     }
     show();
   };
+  // holding a finger on the story: only the picture, paused, until it is let go
+  let holdT = 0, wasHeld = false;
+  const release = () => {
+    clearTimeout(holdT);
+    if (!SV?.held) return;
+    SV.start += performance.now() - SV.held;
+    SV.held = 0;
+    el.classList.remove('peek');
+    const v = el.querySelector('.sa-media[src]'); if (v?.play) v.play().catch(() => {});
+  };
+  el.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('.sv-tap')) return;
+    wasHeld = false;
+    holdT = setTimeout(() => {
+      if (!SV) return;
+      wasHeld = true; SV.held = performance.now(); el.classList.add('peek');
+      const v = el.querySelector('video'); if (v) v.pause();
+    }, 260);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((k) => el.addEventListener(k, release));
+  el.addEventListener('contextmenu', (e) => { if (e.target.closest('.sv-tap')) e.preventDefault(); });
   el.addEventListener('click', (e) => {
+    if (wasHeld && e.target.closest('.sv-tap')) { wasHeld = false; return; }
+    if (e.target.closest('[data-clean]')) { localStorage.setItem(CLEAN, localStorage.getItem(CLEAN) === '1' ? '0' : '1'); paintClean(); track('story_clean', char); return; }
     if (e.target.closest('[data-cta]')) { track('story_link', list[i].id); cancelAnimationFrame(SV.raf); return; }
     if (e.target.closest('[data-next]')) go(1);
     else if (e.target.closest('[data-prev]')) go(-1);
@@ -126,6 +167,7 @@ export function openStory(char) {
   show();
 }
 export function closeStory() {
+  waiting = null;
   if (!SV) return false;
   cancelAnimationFrame(SV.raf);
   document.removeEventListener('keydown', SV.key);

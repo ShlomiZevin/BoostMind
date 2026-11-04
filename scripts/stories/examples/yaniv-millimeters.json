@@ -1,0 +1,44 @@
+{
+ "_story": "dmGYubsR80aLiol0cJ9j",
+ "char": "yaniv",
+ "media": {
+  "url": "https://storage.googleapis.com/shlomiverse-media/verse/stories/dmGYubsR80aLiol0cJ9j.jpg",
+  "kind": "image"
+ },
+ "link": "/yaniv-games/millimeters/",
+ "label": "בואו לעזור ליניב",
+ "keepClear": [
+  [
+   2,
+   1,
+   98,
+   34
+  ],
+  [
+   37,
+   33,
+   65,
+   56
+  ],
+  [
+   85,
+   54,
+   100,
+   73
+  ]
+ ],
+ "boxes": [
+  {
+   "t": "בואו להיות הפיזיותרפיסטים שלו.\nכמה טיפולים תשרדו?",
+   "x": 50,
+   "y": 91.5,
+   "w": 86,
+   "s": 5.2,
+   "st": "box",
+   "f": "rubik",
+   "wt": 900,
+   "bg": "#ffffff",
+   "c": "#14142b"
+  }
+ ]
+}

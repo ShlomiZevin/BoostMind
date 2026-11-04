@@ -1,0 +1,62 @@
+{
+ "_story": "yK2pweCOY83LJHtwxiDM",
+ "char": "asaf",
+ "media": {
+  "url": "https://storage.googleapis.com/shlomiverse-media/verse/stories/yK2pweCOY83LJHtwxiDM.jpg",
+  "kind": "image"
+ },
+ "link": "/asaf-games/sofa/",
+ "label": "לשחק עכשיו",
+ "keepClear": [
+  [
+   2,
+   1,
+   98,
+   32
+  ],
+  [
+   58,
+   31,
+   100,
+   44
+  ],
+  [
+   26,
+   37,
+   62,
+   62
+  ],
+  [
+   20,
+   46,
+   90,
+   70
+  ],
+  [
+   0,
+   49,
+   28,
+   70
+  ],
+  [
+   74,
+   56,
+   100,
+   74
+  ]
+ ],
+ "boxes": [
+  {
+   "t": "תנו לו עם העיתון\nלפני שהוא גומר את המשפט!",
+   "x": 50,
+   "y": 84,
+   "w": 84,
+   "s": 5.8,
+   "st": "box",
+   "f": "rubik",
+   "wt": 900,
+   "bg": "#e11d48",
+   "c": "#ffffff"
+  }
+ ]
+}

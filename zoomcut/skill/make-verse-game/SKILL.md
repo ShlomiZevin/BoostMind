@@ -234,10 +234,10 @@ spot / try).
 ## 9. Tell the verse - a cover and a story
 - The cover, title art, hero and share picture (see "Every game ships with its cover and its title") are in place
   and approved before release.
-- **A Shlomiverse story** to announce it (the `marketing-stories` skill for the picture and copy): a tall 9:16 picture,
-  the character at the center, text never covered, the bottom 15% left free (the site puts its orange button there),
-  posted with `OWNER_KEY=<ask him every time, never save it> node scripts/story.mjs story.json --test` first, then
-  without `--test`; `"everyone": true` only when he says so. Never on Shabbat.
+- **A Shlomiverse story** to announce it - **the `verse-story` skill** (since 2026-11-04): a tall picture (the
+  `marketing-stories` skill's way; the game's title art may be in it), its words as boxes that never cover a face or
+  the picture's own words, checked with `scripts/stories/preview.mjs`, posted with `scripts/story.mjs --test` first.
+  `"everyone": true` only when he says so. Never on Shabbat.
 - If he wants it on Instagram too, a version with the button lifted out of Instagram's bottom zone.
 
 ## 10. Remember it

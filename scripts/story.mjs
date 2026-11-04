@@ -1,29 +1,47 @@
-// Post a character's story on the Shlomiverse from a Claude session (the same owner op /backstage/ uses).
+// Post a character's story on the Shlomiverse from a Claude session (the same owner op /backstage/ uses) - or fix one
+// that is already up. Read zoomcut/skill/verse-story/SKILL.md first: the words go in boxes, checked with
+// scripts/stories/preview.mjs before anything is posted.
 // Hebrew never goes through the console here, so the story comes as a JSON file:
-//   { "char": "hani", "text": "...", "file": "C:/path/cover.jpg", "link": "/hani-games/gan-run/", "label": "לשחק עכשיו",
-//     "everyone": false, "notify": true }
-//   OWNER_KEY=<his key> node scripts/story.mjs story.json
+//   { "char": "hani", "text": "the line in the bell / push", "boxes": [ { "t": "...", "x": 50, "y": 78, ... } ],
+//     "file": "C:/path/story.jpg", "link": "/hani-games/gan-run/", "label": "לשחק עכשיו", "everyone": false, "notify": true }
+//   OWNER_KEY=<his key> node scripts/story.mjs story.json            post it (followers hear; everyone = every account)
+//   OWNER_KEY=<his key> node scripts/story.mjs story.json --test     post it to nobody, hidden at once (check, then remove)
+//   OWNER_KEY=<his key> node scripts/story.mjs story.json --edit <id> fix a story that is up, nobody is told again:
+//     only the keys the JSON has change - boxes ([] = no words on it), text, link + label ("link": "" = no button), file
 // file (picture or short clip, up to 30MB), link + label (the button) and everyone (every account hears, not only the
-// character's followers - big news only) are optional. link: https://..., a page of this site (/...) or a wiki place (#/c/hani).
-// --test posts it to nobody: notify off, and the story is hidden right away (check it in /backstage/ פרסום, then remove).
+// character's followers - big news only) are optional. link: https://..., a page of this site (/...) or a wiki place.
 import fs from 'node:fs';
 import path from 'node:path';
 
-const [jsonPath, flag] = process.argv.slice(2);
+const [jsonPath, flag, editId] = process.argv.slice(2);
 const KEY = process.env.OWNER_KEY;
-if (!jsonPath || !KEY) { console.error('usage: OWNER_KEY=... node scripts/story.mjs story.json [--test]'); process.exit(1); }
+if (!jsonPath || !KEY || (flag === '--edit' && !editId)) { console.error('usage: OWNER_KEY=... node scripts/story.mjs story.json [--test | --edit <id>]'); process.exit(1); }
 const s = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
 const TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4', '.mov': 'video/quicktime' };
-const test = flag === '--test';
+const test = flag === '--test', edit = flag === '--edit';
 
 const fd = new FormData();
+const file = () => s.file && fd.append('file', new Blob([fs.readFileSync(s.file)], { type: TYPES[path.extname(s.file).toLowerCase()] }), path.basename(s.file));
+if (edit) {
+  fd.append('id', editId);
+  if ('boxes' in s) fd.append('boxes', JSON.stringify(s.boxes || []));
+  if ('text' in s) fd.append('text', s.text || '');
+  if ('link' in s) { if (s.link) { fd.append('link', s.link); fd.append('linkLabel', s.label || ''); } else fd.append('noLink', 'yes'); }
+  file();
+  const res = await fetch(`${API}?op=storyEdit`, { method: 'POST', headers: { authorization: 'Key ' + KEY }, body: fd });
+  const j = await res.json();
+  if (!res.ok) { console.error('failed', res.status, j.error, j.message || ''); process.exit(1); }
+  console.log(`fixed ${j.id}: ${j.changed.join(', ')} (nobody was told again)`);
+  process.exit(0);
+}
 fd.append('char', s.char);
 fd.append('text', s.text || '');
+if (s.boxes) fd.append('boxes', JSON.stringify(s.boxes));
 fd.append('notify', s.notify === false || test ? 'no' : 'yes');
 if (s.link) { fd.append('link', s.link); fd.append('linkLabel', s.label || ''); }
 if (s.everyone && !test) fd.append('everyone', 'yes');
-if (s.file) fd.append('file', new Blob([fs.readFileSync(s.file)], { type: TYPES[path.extname(s.file).toLowerCase()] }), path.basename(s.file));
+file();
 
 const res = await fetch(`${API}?op=story`, { method: 'POST', headers: { authorization: 'Key ' + KEY }, body: fd });
 const j = await res.json();

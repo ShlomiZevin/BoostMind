@@ -1,0 +1,86 @@
+{
+ "_story": "8qPvVELke1k2hRzd6s6M",
+ "char": "yotam",
+ "media": {
+  "url": "https://storage.googleapis.com/shlomiverse-media/verse/stories/8qPvVELke1k2hRzd6s6M.jpg",
+  "kind": "image"
+ },
+ "link": "/yotam-games/pacman/",
+ "label": "לשחק עכשיו",
+ "keepClear": [
+  [
+   2,
+   1,
+   98,
+   30
+  ],
+  [
+   60,
+   31,
+   84,
+   41
+  ],
+  [
+   36,
+   39,
+   61,
+   56
+  ],
+  [
+   76,
+   45,
+   100,
+   63
+  ],
+  [
+   7,
+   34,
+   21,
+   49
+  ],
+  [
+   18,
+   33,
+   32,
+   47
+  ],
+  [
+   83,
+   35,
+   95,
+   48
+  ],
+  [
+   7,
+   62,
+   25,
+   77
+  ],
+  [
+   47,
+   71,
+   68,
+   87
+  ],
+  [
+   4,
+   81,
+   23,
+   93
+  ]
+ ],
+ "boxes": [
+  {
+   "t": "כמה קונטקסט תאספו?",
+   "x": 57,
+   "y": 93.5,
+   "w": 80,
+   "s": 5.6,
+   "st": "box",
+   "f": "rubik",
+   "wt": 900,
+   "bg": "#ffd23f",
+   "c": "#14142b"
+  }
+ ]
+}

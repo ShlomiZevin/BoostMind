@@ -9,6 +9,10 @@ Born on "יוסף מוקיר שבת" (Hani's playhouse, 2026-10-30). He: "now yo
 **Talk to him short, in his language, and ask with clickable options.** He sits in front of the computer: show results
 on screen (open the file / give the full path), don't push them to Telegram unless he asks.
 
+**These are Instagram stories.** A story on the Shlomiverse itself (the rings on shlomiverse.com) is the `verse-story`
+skill (2026-11-04): the picture without the message drawn in (a game's title art may stay), the words as boxes on it,
+nothing on a face or on the picture's own words, checked with `scripts/stories/preview.mjs` before it goes up.
+
 ## Everything you make goes into the editor's library - labelled, right away (his rule, 2026-11-02)
 Any background, music, sound effect, picture, icon, emoji, sticker or clip you CREATE for a video goes into the asset
 library (`zoomcut/library/`, the studio's Assets page) the moment it exists, with every label that matters - so nothing
