@@ -22,13 +22,13 @@ const FLOORS = [
     props: [['officedesk', .3], ['whiteboard', .12], ['bookshelf', .14], ['armchair', .1], ['plant', .08]],
     maze: [
     '#############',
-    '#.....#.....#',
-    '#o###.#.###o#',
-    '#...........#',
-    '#.###.#.###.#',
-    '#.###.#.###.#',
-    '#...........#',
-    '###.##.##.###',
+    '#.....###RRR#',
+    '#o###.#.DRRR#',
+    '#.......#####',
+    '#.###.#.#####',
+    '#.###.#.#####',
+    '#..........o#',
+    '###.##.##.#.#',
     '#...#...#...#',
     '#.#...-...#.#',
     '#.###GGG###.#',
@@ -39,22 +39,22 @@ const FLOORS = [
     '#o#...P...#o#',
     '#.###.#.###.#',
     '#.....#.....#',
-    '#####.#.#####',
-    '#RRR#.#.#RRR#',
-    '#RRRD...DRRR#',
-    '#############',
+    '#####.#.###.#',
+    '#RRR#.......#',
+    '#RRRD.#.###.#',
+    '#####.......#',
     '#############',
   ] },
   { name: 'קיוביקלים', rooms: ['Deadlock', 'Error 404'], floor: 'carpet', wall: 'partition', edge: '#7fa6c9', dim: '#0006', rim: '#0b1530',
     props: [['monitor', .34], ['plant', .14], ['papers', .14], ['laptop', .1]],
     maze: [
     '#############',
-    '#...........#',
-    '#o##.###.##o#',
-    '#...........#',
-    '#.##.#.#.##.#',
-    '#....#.#....#',
-    '###.##.##.###',
+    '#####o......#',
+    '#RRR#.##.##o#',
+    '#RRRD.......#',
+    '######.#.##.#',
+    '######.#....#',
+    '######.##.###',
     '#...#...#...#',
     '#.#.#...#.#.#',
     '#.#...-...#.#',
@@ -65,11 +65,11 @@ const FLOORS = [
     '#.#.......#.#',
     '#o..#.P.#..o#',
     '###.#.#.#.###',
-    '###...#...###',
-    '#####.#.#####',
-    '#RRR#.#.#RRR#',
-    '#RRRD...DRRR#',
-    '#############',
+    '#.....#...###',
+    '#.###.#.#####',
+    '#.###...#RRR#',
+    '#.###.#.DRRR#',
+    '#.......#####',
     '#############',
   ] },
   { name: 'המטבחון', rooms: ['Hotfix', 'Coffee++'], floor: 'tiles', wall: 'marble', edge: '#d6c7b0', dim: '#0008', rim: '#57534e',
@@ -79,10 +79,10 @@ const FLOORS = [
     '#...........#',
     '#o.#######.o#',
     '#...........#',
-    '#####.#.#####',
-    '#RRR#.#.#RRR#',
-    '#RRRD...DRRR#',
-    '#####.#.#####',
+    '#########.###',
+    '#RRR#.......#',
+    '#RRRD..####.#',
+    '#####.......#',
     '####.....####',
     '#.....-.....#',
     '#.###GGG###.#',
@@ -93,10 +93,10 @@ const FLOORS = [
     '#o.###P###.o#',
     '#...........#',
     '###.#####.###',
-    '#...........#',
-    '#.###.#.###.#',
-    '#.###.#.###.#',
-    '#...........#',
+    '#.........###',
+    '#.###.#.#####',
+    '#.###.#.#RRR#',
+    '#.......DRRR#',
     '#############',
   ] },
 ];
@@ -152,7 +152,7 @@ const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => {
 for (const k of ['yotam-lap-open', 'yotam-lap-closed', 'yotam-lap-explain', 'yotam-lap-sad', 'yotam-open', 'yotam-closed', 'yotam-explain', 'yotam-sad', 'erez', 'erez-bored', 'osnat', 'osnat-bored', 'yaniv', 'yaniv-bored', 'hani', 'hani-cringe', 'coffee']) img(k, `assets/${k}.webp`);
 for (const k of PROPS) img(k, `assets/${k}.${['parquet', 'carpet', 'tiles', 'plaster', 'partition', 'marble', 'desk'].includes(k) ? 'jpg' : 'webp'}`);
 img('elevator', 'assets/elevator.jpg'); img('meeting', 'assets/meeting.webp');
-img('sign-blank', 'assets/sign-blank.webp'); 
+img('sign-blank', 'assets/sign-blank.webp'); img('invite', 'assets/invite.webp'); 
 const ok = (im) => im && im.complete && im.naturalWidth;
 const WITH_LAPTOP = true;   // Yotam holds his laptop in both hands (his ask, 4 Nov - false = the plain heads)
 const YH = (k) => WITH_LAPTOP ? k.replace('yotam-', 'yotam-lap-') : k;
@@ -417,7 +417,7 @@ function arrive(e) {
     const k = e.tx + ',' + e.ty;
     if (dots.has(k)) { dots.delete(k); if (!tutorial) score += 10; play('chomp', .25); }
     if (powers.has(k)) { powers.delete(k); if (!tutorial) score += 50; startPower(); }
-    if (envelopes.has(k)) { envelopes.delete(k); invites = Math.min(3, invites + 1); play('chomp', .6); popText(px(e.tx), py(e.ty) - L.t, '+ זימון ✉️', 'good'); if (tutWait && tutWait.id === 'invite') tutWait.done = true; }
+    if (envelopes.has(k)) { envelopes.delete(k); invites = Math.min(3, invites + 1); play('chomp', .6); popText(px(e.tx), py(e.ty) - L.t, '+ זימון לחדר', 'good'); if (tutWait && tutWait.id === 'invite') tutWait.done = true; }
     if (!dots.size && !powers.size && state === 'play') levelClear();
     hud();
   } else if (e.mode === 'eyes' && e.tx === DOOR_OUT.x && e.ty === DOOR_OUT.y) {
@@ -599,11 +599,11 @@ function drawRooms(now) {
       if (on) { ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.max(9, Math.round(t * 0.28))}px Rubik, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'; ctx.fillText(Math.ceil(rm.booked), lx, ly + 0.5); }
     }
     // no invite? an envelope with a question mark floats by the door
-    if (rm.need > 0 && invites <= 0) { ctx.globalAlpha = Math.min(1, rm.need); ctx.font = `${Math.round(t * 0.7)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✉️?', L.x0 + (rm.door.x + (rm.door.d === 'right' ? 1.4 : -0.4)) * t, L.y0 + (rm.door.y - 0.6) * t); ctx.globalAlpha = 1; }
+    if (rm.need > 0 && invites <= 0 && ok(IMG.invite) && Math.floor(now * 6) % 2) { const ix = L.x0 + (rm.door.x + (rm.door.d === 'right' ? 1.5 : -0.5)) * t, iy = L.y0 + (rm.door.y - 0.7) * t, s2 = t * 0.8; ctx.globalAlpha = Math.min(1, rm.need); ctx.drawImage(IMG.invite, ix - s2 / 2, iy - s2 / 2, s2, s2); ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(ix, iy, s2 * 0.62, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
     // the invite flies from Yotam to the door
     if (rm.invite > 0) {
       const k = 1 - rm.invite / 0.6, yp = pos(yotam), ax = px(yp.x), ay = py(yp.y), ex = cx, ey = dy + t / 2;
-      ctx.font = `${Math.round(t * 0.9)}px Rubik`; ctx.fillText('\u2709\uFE0F', ax + (ex - ax) * k, ay + (ey - ay) * k - Math.sin(k * Math.PI) * t * 1.2);
+      if (ok(IMG.invite)) { const s2 = t * 0.9, fx = ax + (ex - ax) * k, fy = ay + (ey - ay) * k - Math.sin(k * Math.PI) * t * 1.2; ctx.drawImage(IMG.invite, fx - s2 / 2, fy - s2 / 2, s2, s2); }
     }
     ctx.restore();
   }
@@ -620,8 +620,8 @@ function draw(now) {
   ctx.restore();
   for (const k of envelopes) {
     const [x, y] = k.split(',').map(Number), cy = py(y) + Math.sin(now * 3 + x * 2) * t * 0.08;
-    ctx.save(); ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 14; ctx.beginPath(); ctx.arc(px(x), cy, t * 0.44, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
-    ctx.font = `${Math.round(t * 0.58)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\u2709\uFE0F', px(x), cy + 1); ctx.restore();
+    ctx.save(); ctx.fillStyle = '#ffffffaa'; ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.arc(px(x), cy, t * 0.46, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    if (ok(IMG.invite)) { const s2 = t * 0.82; ctx.drawImage(IMG.invite, px(x) - s2 / 2, cy - s2 / 2, s2, s2); } ctx.restore();
   }
   for (const k of powers) {
     const [x, y] = k.split(',').map(Number), s = t * (1.25 + Math.sin(now * 6) * 0.08), im = IMG.coffee;
@@ -660,7 +660,7 @@ function draw(now) {
 // ───────────────────────── HUD + screens ─────────────────────────
 function hud() {
   $('scoreTxt').textContent = score;
-  $('floorTxt').textContent = (invites ? `✉️×${invites} ` : '') + (state === 'play' && level > 1 ? `קומה ${level}` : '');
+  $('floorTxt').innerHTML = (invites ? `<img src="assets/invite.webp" alt="" style="height:18px;vertical-align:-4px">×${invites} ` : '') + (state === 'play' && level > 1 ? `קומה ${level}` : '');
   const lv = $('lives'); if (lv.childElementCount !== Math.max(0, lives)) lv.innerHTML = '<img src="assets/yotam-closed.webp" alt="">'.repeat(Math.max(0, lives));
   [...$('haniBox').children].forEach((d, i) => d.classList.toggle('on', i < haniCount));
 }
@@ -714,7 +714,7 @@ const STEPS = [
   { text: '<b>ארז</b>, <b>אסנת</b> ו<b>יניב</b> רודפים אחריו עם בקשות. תפסו אותו? נפסל יותם אחד מהשלושה.', spot: spotEl('lives') },
   { text: 'נסו עכשיו: <b>החליקו</b> על המסך לכיוון (או הקישו לצד שאליו הוא ילך, או חצים).', try: 'move' },
   { text: '<b>קפה</b> בפינות = יותם נכנס ל<b>מצב הסבר</b> (זוהר כחול). כולם ב-<b>buffering</b> ובורחים – מי שהוא תופס שומע הרצאה וחוזר לשולחן. נקודות כפולות!', spot: () => ({ x: px(1) - L.t, y: py(2) - L.t, w: L.t * 2, h: L.t * 2 }) },
-  { text: 'אספו <b>זימונים ✉️</b> (3 בכל קומה). עם זימון נכנסים לחדר ישיבות דרך <b>דלת הזכוכית</b> – ובפנים <b>6 שניות אף אחד לא נכנס</b>. בלי זימון – הדלת סגורה.', spot: () => { const r = rooms[0]; return r ? { x: L.x0 + r.box.x * L.t - 6, y: L.y0 + (r.box.y - 1) * L.t - 6, w: (r.box.w + 1) * L.t + 12, h: (r.box.h + 2) * L.t + 12 } : spotMaze(); } },
+  { text: 'אספו <b>זימונים לחדר</b> (הלוח עם ה-✓, 3 בכל קומה). עם זימון נכנסים לחדר ישיבות דרך <b>דלת הזכוכית</b> – ובפנים <b>6 שניות אף אחד לא נכנס</b>. בלי זימון – הדלת סגורה.', spot: () => { const r = rooms[0]; return r ? { x: L.x0 + r.box.x * L.t - 6, y: L.y0 + (r.box.y - 1) * L.t - 6, w: (r.box.w + 1) * L.t + 12, h: (r.box.h + 2) * L.t + 12 } : spotMaze(); } },
   { text: 'ו<b>חני</b>... כל פעם שיותם נתקל בה הוא אומר <b>״חני״</b> – היא מתכווצת ועוצרת אותו לשנייה וחצי. כאן סופרים.', spot: spotEl('haniBox') },
   { text: 'בפעם הרביעית – <b>שיחה עם משאבי אנוש</b>, ויותם אחד נפסל. אז עוקפים אותה. מוכנים? זה בסדר, זה בסדר.', spot: spotAt(hani), last: true },
 ];
