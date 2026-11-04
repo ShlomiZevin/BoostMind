@@ -49,6 +49,20 @@
      no room patch, nothing see-through, the set's logo readable.
   Files: `_assets/tzvika/` (cubicle-empty.jpg + its prompt, techytech-sign.png), tzvika-1 episode.json (`sign`,
   `prop_color`, `matte_engine`).
+- **KEEP THINGS = `keep_objects` - the first way for anything he holds or is handed (2026-11-04, his ask: "mark what I
+  want to keep... it catches the thing to its edges, like CapCut... so the session will know"):** SAM 2 (Meta's Segment
+  Anything 2, local - `tools/sam/`, its own venv + models, not in git) finds a thing's exact edges from a tap and follows
+  it through the take into the cut-out. episode.json `keep_objects: {"<take>": [{"what": "cookie box", "t": 13.4,
+  "points": [[fx, fy, 1], [fx, fy, 0]], "from"?: s, "to"?: s}]}` - t = the moment the marks are on (take seconds), points
+  = fractions of the RAW take's frame (before a mirror), 1 = keep this, 0 = not this; from / to limit it (default: the
+  whole take). **He marks it** in the editor: video panel -> Person -> "Keep things too…" (tap / paint, the outline shows
+  at once; Keep = saved + Analyze). **A session marks it** when he holds something: a raw frame at a clear moment with a
+  10x10 grid, read the point(s) off, check with
+  `tools/sam/.venv/Scripts/python.exe -I tools/sam/keep.py preview <take> <t> <fx,fy> [<fx,fy,0>] <out.jpg>` (LOOK: the
+  whole thing bright, outlined in green, nothing else), add a second point on any part the outline missed (a flap, the
+  far edge), write keep_objects, Analyze. Cost: ~5 s of CPU per second of the take (a 37 s take ~ 5 min, in Jobs); cached
+  by the marks (`work/matte/<take>.objs<hash>.mkv`), OR-ed into the matte by lesson.py prop_matte (with prop_color /
+  props if those are set too). The colour / tracker ways below stay for a machine without tools/sam.
 - **HELD PROPS - THE ONE WAY (his ask 2026-11-02, tzvika-1: "a recurring issue - I want a constant solution in our
   skill"; the cookie box is "one of the greatest Easter eggs" - losing any part of a prop = the video is wrong):**
   1. **Look at the prop first** (frames every 0.25 s over its span, raw): its colours, the wall behind it, when it enters

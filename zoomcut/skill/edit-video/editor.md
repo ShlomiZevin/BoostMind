@@ -155,6 +155,12 @@ One format, one composition, one editor, one export. The format and the API: `la
   them (solid) so the mouse can reach them; one click = that note at the line, no window. Stopped (Space) = the same two
   buttons wait faint beside the playhead; a click = the note at the playhead. A click elsewhere on the ruler still moves
   the playhead. (Timeline.tsx `qnMove` / `quickNote`, notes.css `.ltl-qn` / `.ltl-qp`.) Same `kind`s as the chips.
+- **Keep things (2026-11-04, his ask):** video panel -> Person (cut-out on) -> "Keep things too…" opens a window
+  (`inspect/keep.tsx` + keep.css): a frame of the take at the playhead (a Moment slider for another), tap / paint on the
+  thing - SAM 2 outlines it in green at once (`render/actions/keep.mjs` keeps one `tools/sam/keep.py serve` helper loaded,
+  10 min after the last tap; the first frame ~8 s, each tap ~40 ms); right-click / "Not this" = leave that part out;
+  several things, each named; mirrored takes are shown as he sees them, marks saved for the raw frame. Keep = episode.json
+  keep_objects + Analyze (reference.md "KEEP THINGS").
 - **Find a word (2026-11-03, his ask):** a search box in the timeline's bar (`layers/Find.tsx`; Ctrl+F) over the captions
   and on-screen texts - every match in time order (time, the line with the word marked); Enter / Shift+Enter or a click
   = picks that caption and puts the playhead on the word (its place inside the caption, by its letters).

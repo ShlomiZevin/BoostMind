@@ -1,0 +1,25 @@
+/* "Keep things…" (inspect/keep.tsx): the things as chips, the take's frame to tap / paint on, the outline in green */
+.kp { display: grid; gap: 10px; }
+.kp-things { display: flex; flex-wrap: wrap; gap: 6px; }
+.kp-thing { display: inline-flex; align-items: center; border: 1px solid var(--edge-2); border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+.kp-thing.on { border-color: #3fbf73; background: color-mix(in srgb, #3fbf73 16%, var(--panel-2)); }
+.kp-thing button { height: 28px; padding: 0 12px; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer; }
+.kp-thing .kp-x { padding: 0 10px 0 4px; color: var(--dim); }
+.kp-thing .kp-x:hover { color: var(--bad, #ef5f5f); }
+.kp-add { height: 28px; padding: 0 12px; border: 1px dashed var(--edge-2); border-radius: 999px; background: transparent; color: var(--dim); font: inherit; font-size: 12.5px; cursor: pointer; }
+.kp-add:hover { color: var(--text); border-color: var(--dim); }
+.kp-name { height: 32px; }
+.kp-tools { display: flex; gap: 6px; align-items: center; }
+.kp-mode { flex: 1; }
+.kp-mode button.on { background: #2f8f55; color: #fff; }
+.kp-mode button:last-child.on { background: #b0453d; }
+.kp-stage { position: relative; justify-self: center; border-radius: 8px; overflow: hidden; background: #000; cursor: crosshair; user-select: none; box-shadow: 0 0 0 1px var(--edge-2); }
+.kp-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+.kp-mask { position: absolute; inset: 0; background: rgba(63, 191, 115, 0.42); mask-size: 100% 100%; -webkit-mask-size: 100% 100%; pointer-events: none;
+  box-shadow: inset 0 0 0 9999px rgba(63, 191, 115, 0.0); }
+.kp-pt { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); pointer-events: none; }
+.kp-pt.k { background: #3fbf73; }
+.kp-pt.n { background: #e0574e; }
+.kp-busy { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 6px 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.75); color: #fff; font-size: 12.5px; white-space: nowrap; }
+.kp-when { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: 12.5px; color: var(--dim); }
+.kp-when b { color: var(--text); font-variant-numeric: tabular-nums; }

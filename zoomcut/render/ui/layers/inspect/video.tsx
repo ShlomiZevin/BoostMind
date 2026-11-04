@@ -5,6 +5,7 @@
 // it live (VideoTrack plays that variant), so Original / Corrected is a switch, never a job.
 import React from 'react';
 import { InspectorProps, useSettings, Head, Sec, More, Row, Win, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, ClipTiming, LayerState, PanelEnd, Opacity, ICON, fmt } from './controls';
+import { KeepThings } from './keep';
 
 
 /** Make (or redo) the corrected copies - in its own window (his rule: extra options open from the item, the panel stays
@@ -56,6 +57,7 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
   const { project, layer, item } = P;
   const S = useSettings(P);
   const [eyesWin, setEyesWin] = React.useState(false);
+  const [keepWin, setKeepWin] = React.useState(false);
   const assetsUsed = [...new Set((item ? [item] : layer.items || []).map((i: any) => i.asset).filter(Boolean))] as string[];
   const A = (id: string) => project.assets?.[id] || {};
   const withEyes = assetsUsed.filter((id) => A(id).eyes);
@@ -94,6 +96,9 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
           fmt={(v) => (v ? `bottom ${v}%` : 'off')} onChange={(v, c) => S.set('keep', v ? { ...(S.get('keep') || {}), below: +(1 - v / 100).toFixed(3) } : null, c)} />
         <Note>Live. Edge cleanup drops the half-sure halo around him (white wall behind raised hands); Keep desk keeps the real desk in
           front of the set. The export applies the same.</Note>
+        <button className="btn ins-wide" onClick={() => setKeepWin(true)}>Keep things too… (a box he holds, a prop)</button>
+        {keepWin && <Win title="Keep things in the cut-out" onClose={() => setKeepWin(false)}>
+          <KeepThings P={P} mirrored={!!S.get('mirror', false)} onDone={() => setKeepWin(false)} /></Win>}
       </>}
       <Row label="Eyes"><Seg options={[[false, 'As filmed'], [true, 'At the lens']]} value={eyes} disabled={!withEyes.length} onPick={(v) => S.set('eyes', v)} /></Row>
       {withEyes.length > 0 && withEyes.length < assetsUsed.length && <Note warn>Prepared for {withEyes.length} of {assetsUsed.length} takes - the others play as filmed.</Note>}

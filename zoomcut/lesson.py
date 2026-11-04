@@ -160,7 +160,9 @@ def prepare(ls):
             log(f"  · cut out {n}")
         if prop_cfg(ls, n) and not os.path.exists(matte_path(ls, n)):
             prop_matte(ls, t, n)
-            log(f"  · a held prop kept in {n}" + (" (tracked from its box)" if prop_cfg(ls, n).get("track") else " (by its colour)"))
+            pcn = prop_cfg(ls, n)
+            log(f"  · kept in {n}: " + ", ".join(w for w, on in (("what he marked", pcn.get("objects")), ("a prop tracked from its box", pcn.get("track")),
+                                                                ("a prop by its colour", pcn.get("hsv"))) if on))
 
 
 def base_matte_path(ls, n):
@@ -178,9 +180,13 @@ def prop_cfg(ls, n):
     # (a cookie box, a phone): its box drawn once on the frame at `from` (fractions of the frame), tracked through
     # the take, the prop separated from the room inside the box each frame - the editor's "paint what to keep"
     tr = (ls.cfg.get("props") or {}).get(n)
-    if not col and not tr:
+    # episode.json "keep_objects": {"<take>": [{"what", "t", "points": [[fx, fy, 1|0]], "from"?, "to"?}]} - things he marked
+    # to keep (the editor's "Keep things..." window, or a session: tools/sam/keep.py preview): SAM 2 finds each one's
+    # edges at its marked moment and follows it through the take (keep_objects_matte)
+    ob = (ls.cfg.get("keep_objects") or {}).get(n)
+    if not col and not tr and not ob:
         return None
-    return {**(col or {}), **({"track": tr} if tr else {})}
+    return {**(col or {}), **({"track": tr} if tr else {}), **({"objects": ob} if ob else {})}
 
 
 def matte_path(ls, n):
@@ -200,6 +206,36 @@ def matte_path(ls, n):
     return base[:-4] + ".prop" + hashlib.md5(json.dumps(key, sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
 
 
+SAM_PY = os.path.join(ROOT, "tools", "sam", ".venv", "Scripts", "python.exe")
+
+
+def keep_objects_matte(ls, t, n, objects):
+    """The marked objects followed through the take (tools/sam/keep.py track): a grey mask a frame at the matte's size,
+    cached by the marks. None (and a line in the log) when SAM 2 isn't installed on this computer."""
+    import hashlib
+    keep = os.path.join(ROOT, "tools", "sam", "keep.py")
+    if not os.path.exists(SAM_PY) or not os.path.exists(os.path.join(ROOT, "tools", "sam", "models", "sam2.1_hiera_tiny.pt")):
+        log(f"  ! keep_objects for {n}: SAM 2 isn't installed here (tools/sam) - the marked things are not kept")
+        return None
+    out = ls.work("matte", f"{n}.objs{hashlib.md5(json.dumps(objects, sort_keys=True).encode()).hexdigest()[:8]}.mkv")
+    if os.path.exists(out):
+        return out
+    from pipeline.common import FFPROBE
+    dur = float(subprocess.run([FFPROBE, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", t],
+                               capture_output=True, text=True).stdout.strip() or 0)
+    spec = out[:-4] + ".json"
+    with open(spec, "w", encoding="utf-8") as fh:
+        json.dump(objects, fh)
+    names = ", ".join(o.get("what") or "a thing" for o in objects)
+    log(f"  · following what he marked in {n} ({names}) - about 5 s per second of video")
+    r = subprocess.run([SAM_PY, "-I", keep, "track", t, spec, out, str(MATTE_W), str(MATTE_H), str(FPS), str(int(dur * FPS) + 2)],
+                       capture_output=True, text=True, env={**os.environ, "PYTHONIOENCODING": "utf-8", "TQDM_DISABLE": "1"})
+    if r.returncode or not os.path.exists(out):
+        log(f"  ! keep_objects for {n} failed: {(r.stderr or r.stdout)[-300:]}")
+        return None
+    return out
+
+
 def prop_matte(ls, t, n):
     """The take's cut-out + the coloured prop (prop_cfg): per frame, the colour's pixels, closed and filled, only the
     blobs that touch the person (so the same colour in the room stays out), softened at the edge."""
@@ -217,6 +253,9 @@ def prop_matte(ls, t, n):
                             "-r", str(FPS), "-i", "-", "-c:v", "ffv1", part], stdin=subprocess.PIPE)
     size, k = MATTE_W * MATTE_H, 0
     near = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    om = keep_objects_matte(ls, t, n, pc["objects"]) if pc.get("objects") else None  # (what he marked: always kept)
+    obj = subprocess.Popen([FFMPEG, "-v", "error", "-i", om, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE,
+                           stderr=subprocess.DEVNULL) if om else None  # (it may outlast the take: its "broken pipe" at the end is fine)
     # what the take keeps (keep: desk band / boxes) counts as him: a hand reaching in over a kept box touches it, not his
     # body - it was dropped every frame (haredit-4, 2026-11-04: the hand over the kept cookie box)
     kp = keep_png(ls, n)
@@ -230,6 +269,10 @@ def prop_matte(ls, t, n):
         if len(rgb) < size * 3 or len(m) < size:
             break
         m = np.frombuffer(m, np.uint8).reshape(MATTE_H, MATTE_W).copy()
+        if obj:
+            ob = obj.stdout.read(size)
+            if len(ob) == size:
+                m = np.maximum(m, np.frombuffer(ob, np.uint8).reshape(MATTE_H, MATTE_W))
         if f0 <= k <= f1:
             hsv = cv2.cvtColor(np.frombuffer(rgb, np.uint8).reshape(MATTE_H, MATTE_W, 3), cv2.COLOR_RGB2HSV)
             c = cv2.inRange(hsv, lo, hi)
@@ -262,6 +305,9 @@ def prop_matte(ls, t, n):
     enc.wait()
     src.wait()
     mat.wait()
+    if obj:
+        obj.stdout.close()
+        obj.wait()
     os.replace(part, out)
 
 
