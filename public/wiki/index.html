@@ -919,13 +919,18 @@ function cardId(kind, raw, reply) {
   const named = near && [C[near]?.name, (W.sites || {})[near]?.title].some((n) => n && reply.includes(String(n).split(' ')[0]));
   return named ? near : id;
 }
+// what the model sometimes writes as markup (the chat review, 2026-11-04): math notation - Rosenblum's triangle came out
+// as \(\frac{בסיס \times גובה}{2}\) - becomes plain text, and **bold** (14 replies showed the asterisks) becomes bold
+const math = (l) => !/\\(frac|times|cdot|div|sqrt|[([])/.test(l) ? l : l.replace(/\\[()[\]]|\$\$/g, '').replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1 / $2')
+  .replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\div/g, '÷').replace(/\\(sqrt|text|mathrm)\{([^{}]*)\}/g, (m, k, v) => (k === 'sqrt' ? '√' + v : v)).replace(/\\([a-zA-Z]+)/g, '$1');
+const bold = (h) => h.replace(/\*\*([^*<>]+)\*\*/g, '<b>$1</b>');
 // a reply's text; [[video:id]] lines become a player inside the bubble, [[char:id]] lines an invitation to switch
 function renderText(text, streaming) {
   if (streaming) text = text.replace(/\[\[[^\]]*$/, '');
   return text.split(/\n{2,}/).map((block) => {
     const parts = [];
     let para = [];
-    const flush = () => { if (para.length) parts.push(`<p>${para.map((l) => links(esc(l))).join('<br>')}</p>`); para = []; };
+    const flush = () => { if (para.length) parts.push(`<p>${para.map((l) => bold(links(esc(math(l))))).join('<br>')}</p>`); para = []; };
     for (const line of block.split('\n')) {
       // [[request:video|the text]] - a request the guide wrote for the visitor to approve (the text is optional)
       const m = line.trim().match(/^\[\[(video|char|request|site|sticker):([^\]|]+)(?:\|([^\]]*))?\]\]$/);
