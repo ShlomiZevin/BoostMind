@@ -15,8 +15,18 @@ let tok = null;
 export const token = () => (tok && tok.until > Date.now() ? Promise.resolve(tok.v) : new Promise((ok, fail) =>
   execFile('cmd', ['/c', 'gcloud', 'auth', 'print-access-token'], { windowsHide: true }, (e, out) => {
     if (e) return fail(new Error('gcloud login needed (gcloud auth login)'));
-    tok = { v: out.trim(), until: Date.now() + 40 * 60e3 }; ok(tok.v);
+    tok = { v: out.trim(), until: Date.now() + 5 * 60e3 }; ok(tok.v);
   })));
+// (gcloud hands back the token it already has, however little life it has left - kept 40 min, it ran out under us:
+// "401 Invalid Credentials" until the 40 min were over, 2026-11-04. So: asked again every 5 min, and a 401 = a fresh
+// token and the request once more - unless its body is a stream already sent)
+const plainFetch = globalThis.fetch;
+const fetch = async (url, o = {}) => {
+  const r = await plainFetch(url, o);
+  if (r.status !== 401 || !o.headers?.authorization || (o.body && typeof o.body !== 'string')) return r;
+  tok = null;
+  return plainFetch(url, { ...o, headers: { ...o.headers, authorization: `Bearer ${await token()}` } });
+};
 const auth = async (h = {}) => ({ authorization: `Bearer ${await token()}`, ...h });
 const enc = (name) => encodeURIComponent(name);
 async function check(r, what) {
