@@ -78,6 +78,18 @@
   3. **`props` (the tracker) only for a prop with no colour of its own** (white mug on a white wall, a grey phone).
      Its box must hug the prop at `from`: tzvika-1 v1 (tight box) bit the edge the hand held; v2 (box widened to fix
      it) lost the whole front of the box and kept patches of the room - GrabCut needs most of the box to BE the prop.
+  2b. **A PRINTED box (several colours - red, maroon, beige, dark brown print), like the עיגוליות box** (haredit-4,
+     2026-11-04 - "again the cut issue... I thought we already have it in the skill"): ONE range over every hue,
+     saturated: hsv [[0,30,8],[180,255,255]], box = where the box is (e.g. [0.42,0.33,1,1]) - the white / grey wall
+     (saturation < 30) stays out, the green plant outside the box too. A 0-22 / 0-30 hue range LEFT HOLES: dark maroon
+     sits at hue 170-180 (the far end of the circle) and the dark print touching the frame edge is not filled.
+     `keep.boxes` for a prop that stands still (the box on the table) works in the editor too since 961011a
+     (2026-11-04; before that the editor drew nothing and he saw the box missing). A hand reaching over a kept box:
+     prop_color's touch test counts the keep mask as the person (haredit-4). For a new video, `keep_objects`
+     (KEEP THINGS, above) is the first choice.
+  3b. **Check it where HE looks - the editor's copy**: the take's `work/public/takes/<take>.webm` frame over green
+     (`ffmpeg -c:v libvpx-vp9 -ss <s> -i <webm> -frames:v 1` + overlay on a green colour) at 3-4 moments - the whole
+     box solid, no green holes, no wall. A test export alone is NOT the check.
   4. **Check before it goes out:** in the test export, a strip at 5 fps over the prop's whole span
      (`ffmpeg -ss <a> -t <len> -vf fps=5,scale=200:-1,tile=13x1`) - the whole prop in every frame, no wall patch next
      to it. With a mirror, the text on the prop must read right.
