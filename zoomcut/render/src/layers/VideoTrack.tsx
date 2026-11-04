@@ -35,7 +35,7 @@ const LookDefs: React.FC<{ looks: any[] }> = ({ looks }) => {
     </filter>;
   })}</svg>;
 };
-const isCut = (key: string) => /:(eyes_)?fg$/.test(key);
+const isCut = (key: string) => /:(eyes_|face_)?fg$/.test(key);
 // mirror (props.mirror - a book he holds up reads right): the take's picture flips left <-> right and so does its
 // framing, so he stays where he is on screen; the set behind him and every text never flip. The export does the same
 // (export_layers: hflip + the mirrored crop)
@@ -52,10 +52,12 @@ const MatteDefs: React.FC<{ cuts: number[] }> = ({ cuts }) => {
       <feComponentTransfer><feFuncA type="linear" slope={255 / (255 - c)} intercept={-c / (255 - c)} /></feComponentTransfer>
     </filter>))}</svg>;
 };
+// (a LUMINANCE mask: the still mask is a grey PNG with no alpha - white = kept, as lesson.py keep_png writes it; read by
+// alpha it was all opaque. The band's gradient goes black -> white to match)
 const keepMask = (below: number | undefined, still: string) => {
-  const parts = [below != null && below < 1 ? `linear-gradient(to bottom, transparent ${(below * 100).toFixed(2)}%, black ${(below * 100).toFixed(2)}%)` : '',
+  const parts = [below != null && below < 1 ? `linear-gradient(to bottom, black ${(below * 100).toFixed(2)}%, white ${(below * 100).toFixed(2)}%)` : '',
     still ? `url("${still}")` : ''].filter(Boolean);
-  return parts.length ? { maskImage: parts.join(', '), WebkitMaskImage: parts.join(', '), maskSize: '100% 100%', WebkitMaskSize: '100% 100%',
+  return parts.length ? { maskImage: parts.join(', '), WebkitMaskImage: parts.join(', '), maskMode: 'luminance', maskSize: '100% 100%', WebkitMaskSize: '100% 100%',
     maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskComposite: 'add', WebkitMaskComposite: 'source-over' } as React.CSSProperties : null;
 };
 const RAMP = 'linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%)';
@@ -68,10 +70,12 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   // a cut-out plays the transparent "fg" file - over its photo (a backdrop layer: a call tile), or with props.cutout true
   // over whatever is drawn below (a one-camera set); otherwise the preview (or the source)
   const bdImg = backdrop?.props?.asset && assets[backdrop.props.asset] ? backdrop : null;
-  // eye contact (props.eyes, default on when the take has it): the corrected copy of the same frames - "eyes" / "eyes_fg"
+  // eye contact (props.eyes, default on when the take has it): the corrected copy of the same frames - "eyes" / "eyes_fg".
+  // A face swap (props.face, a beta - default on when the take has it) comes first: "face" / "face_fg" (export_layers too)
   const variantOf = (it: any) => {
     const r = { ...(layer.props || {}), ...it };
     const cut = (bdImg ? r.cutout !== false : r.cutout === true) && p.urls[`${it.asset}:fg`];
+    if (r.face !== false && p.urls[`${it.asset}:${cut ? 'face_fg' : 'face'}`]) return cut ? 'face_fg' : 'face';
     const eyes = r.eyes !== false && p.urls[`${it.asset}:${cut ? 'eyes_fg' : 'eyes'}`];
     return cut ? (eyes ? 'eyes_fg' : 'fg') : (eyes ? 'eyes' : 'preview');
   };
@@ -82,8 +86,12 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
     return p.urls[`${asset}:${variant}`] || p.urls[asset] || '';
   };
   // (the other eyes version is held in memory too, so Original / Corrected switches without a wait)
-  const other = (key: string) => { const [a, v] = key.split(':'); const o = { eyes: 'preview', preview: 'eyes', eyes_fg: 'fg', fg: 'eyes_fg' }[v]; return o && p.urls[`${a}:${o}`] ? `${a}:${o}` : ''; };
-  const [blobs] = usePreloaded(useMemo(() => [...new Set(Object.values(copies).flatMap((k: string) => [urlOf(k), other(k) && urlOf(other(k))]).filter(Boolean))], [copies, p.urls]));
+  const other = (key: string) => { const [a, v] = key.split(':'); const o = { eyes: 'preview', preview: 'eyes', eyes_fg: 'fg', fg: 'eyes_fg', face: 'preview', face_fg: 'fg' }[v]; return o && p.urls[`${a}:${o}`] ? `${a}:${o}` : ''; };
+  // the kept desk shows the take AS FILMED under a cut-out: fg -> preview, eyes_fg -> eyes, face_fg -> face (not other(),
+  // which is the other cut-out - and '' without eye contact, so the desk never drew; haredit-4, 2026-11-04)
+  const raw = (key: string) => { const [a, v] = key.split(':'); const o = ({ fg: ['preview'], eyes_fg: ['eyes', 'preview'], face_fg: ['face', 'preview'] } as any)[v]?.find((x: string) => p.urls[`${a}:${x}`]); return o ? `${a}:${o}` : ''; };
+  const [blobs] = usePreloaded(useMemo(() => [...new Set(Object.values(copies).flatMap((k: string) => [urlOf(k), other(k) && urlOf(other(k)),
+    p.urls[`${k.split(':')[0]}:keep`] && raw(k) && urlOf(raw(k))]).filter(Boolean))], [copies, p.urls]));
 
   const els = useRef<Record<string, HTMLVideoElement | null>>({});
   const boxes = useRef<Record<string, HTMLDivElement | null>>({});
@@ -190,7 +198,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
                   filter: (props.matte_cut ?? 0) > 0 ? `url(#mc_${props.matte_cut})` : undefined }} />
               {(() => {  // the kept desk: the same moment of the take as filmed, shown where the desk is
                 const km = keepMask(props.keep?.below, p.urls[`${it.asset}:keep`] || '');
-                const o = other(key);
+                const o = raw(key);
                 if (!km || !o) return null;
                 return <video ref={refEl(`${copy}~k`)} src={blobs[urlOf(o)] || urlOf(o)} muted playsInline preload="auto"
                   style={{ position: 'absolute', left: 0, top: 0, width: b.width, height: b.height, maxWidth: 'none', ...km, ...(props.mirror ? FLIP : {}) }} />;
