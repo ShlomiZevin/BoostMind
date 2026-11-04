@@ -102,13 +102,14 @@
 .ltl-lay.snd { height: 38px; }
 .ltl-lay.snd .ltl-name { transition: padding .12s, background .15s, color .15s; }
 .ltl-lay.snd .ltl-name:hover, .ltl-lay.snd .ltl-name.vol-on { padding-bottom: 13px; }
-.ltl-db { flex: none; display: none; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--dim); }
+.ltl-db { flex: none; display: none; white-space: nowrap; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--dim); }
 .ltl-db.vset { display: inline; }
 /* (a sound row's trash takes the dB's place on hover; the dB goes to the end of the slider) */
 .ltl-lay.snd .ltl-name .ltl-del { display: none; }
 .ltl-lay.snd .ltl-name:hover .ltl-del { display: inline-grid; }
-.ltl-name:hover .ltl-db, .ltl-name.vol-on .ltl-db { display: inline; position: absolute; right: 14px; bottom: 3px; width: 46px; text-align: right; color: var(--text); font-weight: 600; }
-.ltl-vol { position: absolute; left: 28px; right: 66px; bottom: 4px; height: 12px; cursor: ew-resize; display: none; }
+/* (on hover the dB sits at the slider's end, one line, under the buttons - never over them: clicks go through it) */
+.ltl-name:hover .ltl-db, .ltl-name.vol-on .ltl-db { display: block; position: absolute; right: 12px; bottom: 3px; height: 13px; line-height: 13px; text-align: right; color: var(--text); font-weight: 600; pointer-events: none; }
+.ltl-vol { position: absolute; left: 28px; right: 72px; bottom: 4px; height: 12px; cursor: ew-resize; display: none; }
 .ltl-name:hover .ltl-vol, .ltl-name.vol-on .ltl-vol { display: block; }
 .ltl-vol::before { content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.13); }
 .ltl-vol::after { content: ''; position: absolute; left: 50%; top: 3px; width: 1px; height: 7px; background: rgba(255, 255, 255, 0.28); }  /* 0 dB */
