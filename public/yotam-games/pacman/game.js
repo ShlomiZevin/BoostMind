@@ -110,7 +110,8 @@ function setFloor() {
     for (let k = 0; k < cells.length; k++) for (const v of Object.values(DIRS)) { const nx = cells[k][0] + v[0], ny = cells[k][1] + v[1]; if (cell(nx, ny) === 'R' && !seen.has(nx + ',' + ny)) { seen.add(nx + ',' + ny); cells.push([nx, ny]); } }
     const d = Object.keys(DIRS).find((q) => '.oP'.includes(cell(dr.x + DIRS[q][0], dr.y + DIRS[q][1])));
     const ins = cells.filter(([x, y]) => cell(x, y) === 'R'), xs = ins.map((c) => c[0]), ys = ins.map((c) => c[1]);
-    return { name: F.rooms[n] || 'Room', seen, door: { x: dr.x, y: dr.y, d }, box: { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs) + 1, h: Math.max(...ys) - Math.min(...ys) + 1 }, invite: 0, booked: 0, rest: 0, need: 0 };
+    const sx0 = d === 'right' ? Math.min(...xs) : Math.min(...xs) - 1, sy0 = Math.min(...ys) - 1;
+    return { name: F.rooms[n] || 'Room', seen, sign: { x: sx0, y: sy0, w: Math.max(...xs) - Math.min(...xs) + 2 }, door: { x: dr.x, y: dr.y, d }, box: { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs) + 1, h: Math.max(...ys) - Math.min(...ys) + 1 }, invite: 0, booked: 0, rest: 0, need: 0 };
   });
   bakeMaze();
 }
@@ -147,12 +148,11 @@ function fillDots() {
 // ───────────────────────── art ─────────────────────────
 const IMG = {};
 const PROPS = [...new Set(FLOORS.flatMap((f) => [...f.props.map((q) => q[0]), f.floor, f.wall]))];
-const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => { if (PROPS.includes(k) || k === 'meeting') bakeMaze(); }; IMG[k] = i; return i; };
+const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => { if (PROPS.includes(k) || k === 'meeting' || k === 'sign-blank') bakeMaze(); }; IMG[k] = i; return i; };
 for (const k of ['yotam-lap-open', 'yotam-lap-closed', 'yotam-lap-explain', 'yotam-lap-sad', 'yotam-open', 'yotam-closed', 'yotam-explain', 'yotam-sad', 'erez', 'erez-bored', 'osnat', 'osnat-bored', 'yaniv', 'yaniv-bored', 'hani', 'hani-cringe', 'coffee']) img(k, `assets/${k}.webp`);
 for (const k of PROPS) img(k, `assets/${k}.${['parquet', 'carpet', 'tiles', 'plaster', 'partition', 'marble', 'desk'].includes(k) ? 'jpg' : 'webp'}`);
 img('elevator', 'assets/elevator.jpg'); img('meeting', 'assets/meeting.webp');
-const SIGN = { 'Sync-Up': 'syncup', 'Circle Back': 'circleback', 'Deadlock': 'deadlock', 'Error 404': 'e404', 'Hotfix': 'hotfix', 'Coffee++': 'coffee' };
-for (const n of Object.values(SIGN)) img('sign-' + n, `assets/sign-${n}.webp`); 
+img('sign-blank', 'assets/sign-blank.webp'); 
 const ok = (im) => im && im.complete && im.naturalWidth;
 const WITH_LAPTOP = true;   // Yotam holds his laptop in both hands (his ask, 4 Nov - false = the plain heads)
 const YH = (k) => WITH_LAPTOP ? k.replace('yotam-', 'yotam-lap-') : k;
@@ -283,6 +283,7 @@ function bakeMaze() {
   for (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) {
     if (!wall(x, y)) { continue; }
     let v = r(), k = null; for (const [n, w] of F.props) { if (v < w) { k = n; break; } v -= w; }
+    if (rooms.some((rm) => y === rm.sign.y && x >= rm.sign.x && x < rm.sign.x + rm.sign.w)) k = null;
     if (!k || !ok(IMG[k])) continue;
     const s = t * 0.82, im = IMG[k], ar = im.naturalHeight / im.naturalWidth;
     g.save(); g.translate(x * t + t / 2, y * t + t / 2); g.rotate(Math.floor(r() * 4) * Math.PI / 2);
@@ -293,6 +294,20 @@ function bakeMaze() {
     for (const k of rm.seen) { const [cx, cy] = k.split(',').map(Number); g.fillStyle = '#dbeafe'; g.fillRect(cx * t, cy * t, t, t); }
     const b = rm.box, x = b.x * t, y = b.y * t, w = b.w * t, h = b.h * t;
     if (ok(IMG.meeting)) { const im = IMG.meeting, s2 = Math.min(w * 0.62, h * 0.62 * im.naturalWidth / im.naturalHeight), h2 = s2 * im.naturalHeight / im.naturalWidth; g.globalAlpha = 0.9; g.drawImage(im, x + (w - s2) / 2, y + (h - h2) / 2, s2, h2); g.globalAlpha = 1; }
+  }
+  // each room's sign is part of its top wall: a glass plate cut in three (ends + middle) laid over the wall tiles
+  for (const rm of rooms) {
+    const im = IMG['sign-blank'], sg = rm.sign; if (!ok(im)) continue;
+    const ph = t * 0.78, px0 = sg.x * t + t * 0.06, pw = sg.w * t - t * 0.12, py0 = sg.y * t + (t - ph) / 2;
+    const iw = im.naturalWidth, ih = im.naturalHeight, cap = ih * 0.95, capD = ph * 0.95;
+    g.drawImage(im, 0, 0, cap, ih, px0, py0, capD, ph);
+    g.drawImage(im, cap, 0, iw - cap * 2, ih, px0 + capD, py0, pw - capD * 2, ph);
+    g.drawImage(im, iw - cap, 0, cap, ih, px0 + pw - capD, py0, capD, ph);
+    let fs = Math.max(9, Math.round(t * 0.42)); g.font = `700 ${fs}px Rubik, system-ui, sans-serif`;
+    while (g.measureText(rm.name).width > pw - capD * 2 - 4 && fs > 7) { fs--; g.font = `700 ${fs}px Rubik, system-ui, sans-serif`; }
+    g.fillStyle = '#1e293b'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'ltr';
+    g.fillText(rm.name, px0 + pw / 2, py0 + ph / 2 + 1);
+    rm.plate = { x: px0, y: py0, w: pw, h: ph, cap: capD };
   }
   // the kitchen (the chasers' home) and its door
   g.fillStyle = '#1e3a6b'; g.fillRect(5 * t + 2, 10 * t + 2, 3 * t - 4, t - 4);
@@ -574,17 +589,13 @@ function drawRooms(now) {
     if (on) { ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 10; }
     ctx.beginPath(); ctx.roundRect(cx - th / 2, dy, th, len, 3); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(cx, dy + Math.min(len - 4, t * 0.5), Math.max(1.6, t * 0.06), 0, Math.PI * 2); ctx.fill();
-    // the room's own painted sign on its top wall, with a small light: green free, red in a meeting, grey on a break
-    const sim = IMG['sign-' + SIGN[rm.name]];
-    if (ok(sim)) {
-      const sw = Math.min(w + t * 0.6, t * 3.6), sh = sw * sim.naturalHeight / sim.naturalWidth;
-      const sx = clamp(x + w / 2 + (rm.door.d === 'right' ? t * 0.5 : -t * 0.5) - sw / 2, L.x0 + 2, L.x0 + COLS * t - sw - 2), sy = y - t * 0.5 - sh / 2;
-      ctx.shadowColor = '#0007'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2; ctx.drawImage(sim, sx, sy, sw, sh); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-      placed.push({ x: sx, y: sy, w: sw, h: sh });
+    // the plate's light, where the screw on the door side is: green free, red in a meeting (with the seconds), grey on a break
+    if (rm.plate) {
+      const pl = rm.plate, X = (v) => L.x0 + v, Y = (v) => L.y0 + v;
+      placed.push({ x: X(pl.x), y: Y(pl.y), w: pl.w, h: pl.h });
       const blink = rm.need > 0 && Math.floor(now * 8) % 2, col = on || blink ? '#ef4444' : rest ? '#94a3b8' : '#22c55e';
-      const lx = rm.door.d === 'right' ? sx + sw - 1 : sx + 1, ly = sy + sh - 1;   // a badge on the sign's corner by the door
-      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(lx, ly, Math.max(4, on ? t * 0.2 : t * 0.13), 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
-      // the meeting's seconds left, small, by the light
+      const lx = X(rm.door.d === 'right' ? pl.x + pl.w - pl.cap * 0.5 : pl.x + pl.cap * 0.5), ly = Y(pl.y + pl.h / 2);
+      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(lx, ly, Math.max(4, on ? t * 0.21 : t * 0.14), 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
       if (on) { ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.max(9, Math.round(t * 0.28))}px Rubik, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'; ctx.fillText(Math.ceil(rm.booked), lx, ly + 0.5); }
     }
     // no invite? an envelope with a question mark floats by the door
