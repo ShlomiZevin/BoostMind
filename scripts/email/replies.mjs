@@ -27,7 +27,7 @@ if (arg('send')) {
 for (const key of Object.keys(replies)) {
   if (only && !only.includes(key)) continue;
   const x = replyMail(key, { name: 'דנה כהן', ...(SAMPLE[key] || {}) }, w);
-  const m = render('reply', x.d);
+  const m = render('reply', x.d, { unsub: 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseMail?u=sample&t=sample' });   // real replies carry the person's own link
   fs.writeFileSync(path.join(out, `reply-${key}.html`), m.html);
   if (send) { await send(m, x.r.fromName); console.log('sent', key); } else console.log('wrote', key, '-', m.subject);
 }

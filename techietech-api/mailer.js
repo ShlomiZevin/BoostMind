@@ -60,7 +60,7 @@ const heDate = (t) => new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusal
 let transport;
 const gmail = () => (transport ||= nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } }));
 // one mail out, and its line in mailLog (the backstage's "what we sent"), the HTML kept so it can be opened there
-async function deliver({ to, uid = null, kind, m, fromName = 'השלומיוורס', replyTo, meta = {} }) {
+async function deliver({ to, uid = null, kind, m, fromName = 'השלומיוורס', replyTo = OWNER, meta = {} }) {   // answers to any mail reach Shlomi
   const log = { to, uid, kind, subject: m.subject, fromName, meta, t: FieldValue.serverTimestamp(), ok: false };
   try {
     if (LOCAL) console.log('[local] mail not sent:', kind, to, m.subject);
