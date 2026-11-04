@@ -18,7 +18,7 @@ const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMo
 // # desk  . context  o coffee  - the kitchen door (chasers only)  G the kitchen  P Yotam
 // three kinds of floor, then again, faster: offices, cubicles, the kitchen (his ask, 4 Nov)
 const FLOORS = [
-  { name: 'משרדים', rooms: [[2, 4, 3, 2, 3, 5, 'down', 'Sync'], [8, 4, 3, 2, 9, 5, 'down', 'Retro']], floor: 'parquet', wall: 'plaster', edge: '#c9d6e3', dim: '#0007', rim: '#475569',
+  { name: 'משרדים', rooms: ['Sync-Up', 'Circle Back'], floor: 'parquet', wall: 'plaster', edge: '#c9d6e3', dim: '#0007', rim: '#475569',
     props: [['officedesk', .3], ['whiteboard', .12], ['bookshelf', .14], ['armchair', .1], ['plant', .08]],
     maze: [
     '#############',
@@ -39,13 +39,13 @@ const FLOORS = [
     '#o#...P...#o#',
     '#.###.#.###.#',
     '#.....#.....#',
-    '#.###.#.###.#',
-    '#...........#',
-    '#.###.#.###.#',
-    '#.....#.....#',
+    '#####.#.#####',
+    '#RRR#.#.#RRR#',
+    '#RRRD...DRRR#',
+    '#############',
     '#############',
   ] },
-  { name: 'קיוביקלים', rooms: [[2, 18, 3, 2, 3, 19, 'down', 'Deadlock'], [8, 18, 3, 2, 9, 19, 'down', 'Backlog']], floor: 'carpet', wall: 'partition', edge: '#7fa6c9', dim: '#0006', rim: '#0b1530',
+  { name: 'קיוביקלים', rooms: ['Deadlock', 'Error 404'], floor: 'carpet', wall: 'partition', edge: '#7fa6c9', dim: '#0006', rim: '#0b1530',
     props: [['monitor', .34], ['plant', .14], ['papers', .14], ['laptop', .1]],
     maze: [
     '#############',
@@ -65,24 +65,24 @@ const FLOORS = [
     '#.#.......#.#',
     '#o..#.P.#..o#',
     '###.#.#.#.###',
-    '#.....#.....#',
-    '#.###.#.###.#',
-    '#.###...###.#',
-    '#.#.#.#.#.#.#',
-    '#...........#',
+    '###...#...###',
+    '#####.#.#####',
+    '#RRR#.#.#RRR#',
+    '#RRRD...DRRR#',
+    '#############',
     '#############',
   ] },
-  { name: 'המטבחון', rooms: [[2, 19, 3, 2, 3, 20, 'down', 'Standup'], [8, 19, 3, 2, 9, 20, 'down', 'Hotfix']], floor: 'tiles', wall: 'marble', edge: '#d6c7b0', dim: '#0008', rim: '#57534e',
+  { name: 'המטבחון', rooms: ['Hotfix', 'Coffee++'], floor: 'tiles', wall: 'marble', edge: '#d6c7b0', dim: '#0008', rim: '#57534e',
     props: [['espresso', .14], ['fruit', .12], ['pizza', .14], ['microwave', .12], ['snacks', .14]],
     maze: [
     '#############',
     '#...........#',
     '#o.#######.o#',
     '#...........#',
-    '###.#####.###',
-    '#...........#',
-    '#.####.####.#',
-    '#...........#',
+    '#####.#.#####',
+    '#RRR#.#.#RRR#',
+    '#RRRD...DRRR#',
+    '#####.#.#####',
     '####.....####',
     '#.....-.....#',
     '#.###GGG###.#',
@@ -102,15 +102,23 @@ const FLOORS = [
 ];
 let F = FLOORS[0], MAZE = F.maze;
 function setFloor() {
-  F = FLOORS[(level - 1) % FLOORS.length];
-  rooms = F.rooms.map(([x, y, w, h, dx, dy, d, name]) => ({ x, y, w, h, door: { x: dx, y: dy, d }, name, invite: 0, booked: 0, rest: 0 }));
-  MAZE = F.maze.map((row, y) => [...row].map((c, x) => rooms.some((r) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) ? 'R' : c).join(''));
+  F = FLOORS[(level - 1) % FLOORS.length]; MAZE = F.maze;
+  const doors = []; MAZE.forEach((row, y) => [...row].forEach((c, x) => { if (c === 'D') doors.push({ x, y }); }));
+  doors.sort((a, b) => a.x - b.x);
+  rooms = doors.map((dr, n) => {
+    const cells = [[dr.x, dr.y]], seen = new Set([dr.x + ',' + dr.y]);
+    for (let k = 0; k < cells.length; k++) for (const v of Object.values(DIRS)) { const nx = cells[k][0] + v[0], ny = cells[k][1] + v[1]; if (cell(nx, ny) === 'R' && !seen.has(nx + ',' + ny)) { seen.add(nx + ',' + ny); cells.push([nx, ny]); } }
+    const d = Object.keys(DIRS).find((q) => '.oP'.includes(cell(dr.x + DIRS[q][0], dr.y + DIRS[q][1])));
+    const ins = cells.filter(([x, y]) => cell(x, y) === 'R'), xs = ins.map((c) => c[0]), ys = ins.map((c) => c[1]);
+    return { name: F.rooms[n] || 'Room', seen, door: { x: dr.x, y: dr.y, d }, box: { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs) + 1, h: Math.max(...ys) - Math.min(...ys) + 1 }, invite: 0, booked: 0, rest: 0, need: 0 };
+  });
   bakeMaze();
 }
 // a meeting room Yotam booked: he "sent them all an invite" - nobody else may come in until the meeting ends
 let rooms = [];
 const ROOM_TIME = 6, ROOM_REST = 8;
-const roomOf = (x, y) => rooms.find((r) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h);
+const roomOf = (x, y) => rooms.find((r) => r.seen.has(x + ',' + y));
+let invites = 0, envelopes = new Set();   // invites Yotam carries / lying on the floor
 // a room is entered and left only through its door. Yotam goes in only when he invited it; the others only when it is free
 function canStep(x, y, d, who, ghost) {
   const nx = x + DIRS[d][0], ny = y + DIRS[d][1];
@@ -131,6 +139,9 @@ let dots = new Set(), powers = new Set();
 function fillDots() {
   dots = new Set(); powers = new Set();
   MAZE.forEach((r, y) => [...r].forEach((c, x) => { if (c === '.') dots.add(x + ',' + y); if (c === 'o') powers.add(x + ',' + y); }));
+  // three invites per floor, spread out (top, middle, bottom), never right by the start
+  envelopes = new Set(); let seed = level * 97 + 13; const rr = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  for (const [y0, y1] of [[1, 7], [8, 14], [16, 22]]) { const opts = [...dots].filter((k) => { const [x, y] = k.split(',').map(Number); return y >= y0 && y <= y1 && Math.abs(x - 6) + Math.abs(y - 15) > 3; }); if (opts.length) { const k = opts[Math.floor(rr() * opts.length)]; dots.delete(k); envelopes.add(k); } }
 }
 
 // ───────────────────────── art ─────────────────────────
@@ -154,7 +165,7 @@ const LINES = {
   hani: ['חני!', 'חני, רגע!', 'אה, חני!', 'חני – שאלה!'],
   haniBack: ['...חנה.', 'חנה.', 'ביקשתי. חנה.', 'אין לי שום קפידא. חנה.'],
   hr: 'משאבי אנוש ביקשו לדבר איתך. ״ישיבה אחת. ארבע פעמים חני.״',
-  book: ['הזימון התקבל. רק אני מוזמן ל-{room}.', '{room} תפוס. יש לי פגישה עם עצמי.', 'חסמתי את {room} ביומן.', 'פגישה בלי agenda. אל תפריעו.'],
+  book: ['פגישה עם עצמי. אל תפריעו.', 'רק אני מוזמן.', 'חסמתי את היומן.', 'פגישה בלי agenda.'],
   bookOther: ['החדר תפוס!', 'יש שם פגישה...', 'לא הוזמנתי?!'],
   bookEnd: ['הפגישה נגמרה. זה בסדר.', 'הזמן של החדר נגמר.', 'מישהו הזמין את החדר אחריי.'],
   sorry: ['זה בסדר. זה בסדר.', 'חנה. נכון. מעדכן cache.', 'אוקיי, חנה. רשמתי.'],
@@ -275,17 +286,11 @@ function bakeMaze() {
     g.save(); g.translate(x * t + t / 2, y * t + t / 2); g.rotate(Math.floor(r() * 4) * Math.PI / 2);
     g.drawImage(im, -s / 2, -s * ar / 2, s, s * ar); g.restore();
   }
-  // the meeting rooms: a light floor, the table, glass walls all round with a gap for the door
+  // the meeting rooms: inside the game's own walls - a light floor and a small table
   for (const rm of rooms) {
-    const x = rm.x * t, y = rm.y * t, w = rm.w * t, h = rm.h * t;
-    g.fillStyle = '#e8eef6'; g.fillRect(x, y, w, h);
-    if (ok(IMG.meeting)) { const im = IMG.meeting, s2 = Math.min(w * 0.9, h * 0.9 * im.naturalWidth / im.naturalHeight), h2 = s2 * im.naturalHeight / im.naturalWidth; g.drawImage(im, x + (w - s2) / 2, y + (h - h2) / 2, s2, h2); }
-    g.strokeStyle = '#7dd3fc'; g.lineWidth = Math.max(3, t * 0.14); g.lineCap = 'round';
-    const dx = rm.door.x * t, dy = rm.door.y * t;
-    g.beginPath(); g.moveTo(x, y); g.lineTo(x + w, y); g.lineTo(x + w, y + h);
-    if (rm.door.d === 'down') { g.lineTo(dx + t, y + h); g.moveTo(dx, y + h); g.lineTo(x, y + h); } else g.lineTo(x, y + h);
-    g.lineTo(x, y); g.stroke();
-    g.strokeStyle = '#ffffff88'; g.lineWidth = 1; g.strokeRect(x + t * 0.08, y + t * 0.08, w - t * 0.16, h - t * 0.16);
+    for (const k of rm.seen) { const [cx, cy] = k.split(',').map(Number); g.fillStyle = '#dbeafe'; g.fillRect(cx * t, cy * t, t, t); }
+    const b = rm.box, x = b.x * t, y = b.y * t, w = b.w * t, h = b.h * t;
+    if (ok(IMG.meeting)) { const im = IMG.meeting, s2 = Math.min(w * 0.62, h * 0.62 * im.naturalWidth / im.naturalHeight), h2 = s2 * im.naturalHeight / im.naturalWidth; g.globalAlpha = 0.9; g.drawImage(im, x + (w - s2) / 2, y + (h - h2) / 2, s2, h2); g.globalAlpha = 1; }
   }
   // the kitchen (the chasers' home) and its door
   g.fillStyle = '#1e3a6b'; g.fillRect(5 * t + 2, 10 * t + 2, 3 * t - 4, t - 4);
@@ -313,7 +318,7 @@ function resetActors() {
   power = 0; chain = 0; modeT = 0; bubbles.length = 0;
 }
 function startGame() {
-  tutorial = false; state = 'play'; score = 0; lives = 3; level = 1; setFloor(); haniCount = 0; deathT = 0; clearT = 0; lift = null; yotam.sad = false;
+  tutorial = false; state = 'play'; score = 0; lives = 3; level = 1; invites = 0; setFloor(); haniCount = 0; deathT = 0; clearT = 0; lift = null; yotam.sad = false;
   fillDots(); resetActors(); freeze = 1.6;
   setFloor(); showHUD(true); show(null); hud(); play('start', .6); banner('קומה 1 · ' + F.name); musicOff(); musicOn();
   window.track && window.track('game_start', 'pacman');
@@ -360,7 +365,7 @@ function walk(e, dt, ghost, choose) {
   }
 }
 function yotamChoose(e) {
-  // walking into a room's door = send the invite first
+  // walking into a room's door: an invite in hand opens it for him
   for (const d of [e.want, e.dir]) { if (!d) continue; const nx = e.tx + DIRS[d][0], ny = e.ty + DIRS[d][1], b = roomOf(nx, ny);
     if (b && !roomOf(e.tx, e.ty) && nx === b.door.x && ny === b.door.y && d === OPP[b.door.d] && b.booked <= 0) { invite(b); if (b.invite > 0) { e.dir = null; return null; } } }
   if (e.want && canStep(e.tx, e.ty, e.want, 'yotam')) return e.want;
@@ -395,23 +400,23 @@ function arrive(e) {
     const k = e.tx + ',' + e.ty;
     if (dots.has(k)) { dots.delete(k); if (!tutorial) score += 10; play('chomp', .25); }
     if (powers.has(k)) { powers.delete(k); if (!tutorial) score += 50; startPower(); }
+    if (envelopes.has(k)) { envelopes.delete(k); invites = Math.min(3, invites + 1); play('chomp', .6); popText(px(e.tx), py(e.ty) - L.t, '+ זימון ✉️', 'good'); if (tutWait && tutWait.id === 'invite') tutWait.done = true; }
     if (!dots.size && !powers.size && state === 'play') levelClear();
     hud();
   } else if (e.mode === 'eyes' && e.tx === DOOR_OUT.x && e.ty === DOOR_OUT.y) {
     e.mode = 'house'; e.tx = e.home.x; e.ty = e.home.y; e.dir = null; e.t = 0; e.wait = 1.2; play('back', .4);
   } else if (e.mode === 'leave' && e.tx === DOOR_OUT.x && e.ty === DOOR_OUT.y) e.mode = 'chase';
 }
-// the invite: an email flies to the room, then the door opens for Yotam only
+// the invite: he sends one of the invites he collected - it flies to the door, and the door opens for him only
 function invite(rm) {
   if (rm.invite > 0 || rm.booked > 0) return;
-  if (rm.rest > 0) { if (!invite.t || performance.now() - invite.t > 1500) { invite.t = performance.now(); bubble(yotam, `${rm.name} עוד בהפסקה...`, 1.2); } return; }
-  if ([...CHASERS, hani].some((c) => roomOf(c.tx, c.ty) === rm)) { bubble(yotam, 'יש שם מישהו. אין לי זימון.', 1.3); return; }
-  rm.invite = 0.75; play('explain', .4); bubble(yotam, `שולח זימון ל-${rm.name}...`, 1.2);
+  if (rm.rest > 0 || invites <= 0 || [...CHASERS, hani].some((c) => roomOf(c.tx, c.ty) === rm)) { rm.need = 1.6; return; }   // the sign says why
+  invites--; rm.invite = 0.6; play('explain', .4); hud();
 }
 function bookRoom(rm) {
-  if ([...CHASERS, hani].some((c) => roomOf(c.tx, c.ty) === rm)) { bubble(yotam, 'מישהו נכנס לפניי!', 1.3); return; }
+  if ([...CHASERS, hani].some((c) => roomOf(c.tx, c.ty) === rm)) { rm.need = 1.6; invites = Math.min(3, invites + 1); hud(); return; }
   rm.booked = ROOM_TIME; play('power', .35);
-  bubble(yotam, pickNo(LINES.book, 'bk').replace('{room}', rm.name), 1.8);
+  bubble(yotam, pickNo(LINES.book, 'bk').replace('{room}', rm.name), 2.4);
   if (tutWait && tutWait.id === 'room') tutWait.done = true;
 }
 function startPower() {
@@ -432,6 +437,7 @@ function step(dt) {
   const still = tutorial && tut.calm();
   modeT += dt;
   for (const rm of rooms) {
+    if (rm.need > 0) rm.need -= dt;
     if (rm.invite > 0) { rm.invite -= dt; if (rm.invite <= 0) bookRoom(rm); }
     else if (rm.booked > 0) { rm.booked -= dt; if (rm.booked <= 0) { rm.rest = ROOM_REST; if (roomOf(yotam.tx, yotam.ty) === rm) bubble(yotam, pickNo(LINES.bookEnd, 'be'), 1.6); } }
     else if (rm.rest > 0) rm.rest -= dt;
@@ -552,38 +558,45 @@ function drawLift(now) {
 function drawRooms(now) {
   const t = L.t;
   for (const rm of rooms) {
-    const x = L.x0 + rm.x * t, y = L.y0 + rm.y * t, w = rm.w * t, on = rm.booked > 0, rest = !on && rm.rest > 0;
-    const dx = L.x0 + rm.door.x * t, dy = L.y0 + (rm.door.y + 1) * t;
-    ctx.save();
-    // the door: green and shut while the meeting is on, a grey half-door while it rests, open when free
-    ctx.lineCap = 'round'; ctx.lineWidth = Math.max(4, t * 0.18);
+    const on = rm.booked > 0, rest = !on && rm.rest > 0, b = rm.box;
+    const x = L.x0 + b.x * t, y = L.y0 + b.y * t, w = b.w * t, h = b.h * t;
     const inside = roomOf(yotam.tx, yotam.ty) === rm && yotam.t === 0;
-    const want = rm.invite > 0 || (on && !inside) ? 1 : on || rest ? 0 : 0.55;
-    rm.slide = (rm.slide ?? 0.55) + (want - (rm.slide ?? 0.55)) * 0.18;
-    if (on) { ctx.fillStyle = '#22c55e22'; ctx.fillRect(x, y, w, rm.h * t); }
-    // the frame posts
-    const th = Math.max(6, t * 0.32);
-    ctx.fillStyle = '#334155'; ctx.fillRect(dx - 2, dy - th / 2 - 1, 5, th + 2); ctx.fillRect(dx + t - 3, dy - th / 2 - 1, 5, th + 2);
-    // the glass pane, slid to the side by rm.slide
-    const pw = t * (1 - rm.slide * 0.85), px0 = dx + t * rm.slide * 0.85;
-    ctx.fillStyle = on ? '#bbf7d0cc' : rest ? '#cbd5e1cc' : '#bae6fdcc'; ctx.strokeStyle = on ? '#16a34a' : rest ? '#64748b' : '#0ea5e9'; ctx.lineWidth = 2;
+    ctx.save();
+    if (on) { ctx.fillStyle = '#22c55e2a'; ctx.fillRect(x, y, w, h); }
+    // the glass door, standing in the door cell; it slides open for the invite and shuts behind him
+    const want = rm.invite > 0 || (on && !inside) ? 1 : 0;
+    rm.slide = (rm.slide ?? 0) + (want - (rm.slide ?? 0)) * 0.2;
+    const dx = L.x0 + rm.door.x * t, dy = L.y0 + rm.door.y * t, th = Math.max(6, t * 0.3), cx = dx + t / 2;
+    const len = t * (1 - rm.slide * 0.85);
+    ctx.fillStyle = on ? '#bbf7d0dd' : rest ? '#cbd5e1dd' : '#bae6fddd'; ctx.strokeStyle = on ? '#16a34a' : rest ? '#64748b' : '#0ea5e9'; ctx.lineWidth = 2;
     if (on) { ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 10; }
-    ctx.beginPath(); ctx.roundRect(px0, dy - th / 2, pw, th, 2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
-    // a shine and the handle
-    ctx.strokeStyle = '#ffffffcc'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(px0 + pw * 0.2, dy - th * 0.25); ctx.lineTo(px0 + pw * 0.45, dy - th * 0.25); ctx.stroke();
-    ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(px0 + Math.min(pw - 4, t * 0.18), dy, Math.max(1.5, t * 0.06), 0, Math.PI * 2); ctx.fill();
-    if (on && inside) { ctx.font = `${Math.round(t * 0.34)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\uD83D\uDD12', dx + t / 2, dy + th * 1.3); }
-    // the sign over the room
-    const fs = Math.max(10, Math.round(t * 0.36)); ctx.font = `800 ${fs}px Rubik, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const label = on ? `\u2066${rm.name}\u2069 · בפגישה ${Math.ceil(rm.booked)}` : rest ? `\u2066${rm.name}\u2069 · הפסקה` : rm.invite > 0 ? `\u2066${rm.name}\u2069 · זימון...` : `\u2066${rm.name}\u2069 · פנוי`;
-    const lw = ctx.measureText(label).width + 12, lx = x + w / 2, ly = y + t * 0.32;
-    ctx.fillStyle = on ? '#15803d' : rest ? '#475569' : '#0f1d3add'; ctx.beginPath(); ctx.roundRect(lx - lw / 2, ly - fs * 0.72, lw, fs * 1.44, 6); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.fillText(label, lx, ly + 1);
+    ctx.beginPath(); ctx.roundRect(cx - th / 2, dy, th, len, 3); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(cx, dy + Math.min(len - 4, t * 0.5), Math.max(1.6, t * 0.06), 0, Math.PI * 2); ctx.fill();
+    // the sign on the top wall: a white card - the name, and under it a coloured dot with what is going on
+    const fs = Math.max(11, Math.round(t * 0.4)), fs2 = Math.max(9, Math.round(t * 0.3));
+    ctx.textBaseline = 'middle';
+    const sx = x + w / 2 + (rm.door.d === 'right' ? t * 0.5 : -t * 0.5), sy = y - t * 0.5;
+    const status = on ? `בפגישה · ${Math.ceil(rm.booked)}` : rm.need > 0 ? (rest ? 'עוד בהפסקה' : invites <= 0 ? 'צריך זימון' : 'מישהו בפנים') : rest ? 'בהפסקה' : 'פנוי';
+    const col = on || rm.need > 0 ? '#dc2626' : rest ? '#94a3b8' : '#16a34a';
+    ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`; const nw = ctx.measureText(rm.name).width;
+    ctx.font = `500 ${fs2}px Rubik, system-ui, sans-serif`; const sw = ctx.measureText(status).width + fs2 * 1.1;
+    const bw = Math.max(nw, sw) + 14, bh = fs * 1.3 + fs2 * 1.3;
+    const bx = clamp(sx - bw / 2, L.x0 + 2, L.x0 + COLS * t - bw - 2), by = sy - bh / 2;
+    ctx.fillStyle = '#fffffff2'; ctx.shadowColor = '#0006'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 1;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 7); ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    placed.push({ x: bx, y: by, w: bw, h: bh });
+    ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(bx, by, 4, bh, [7, 0, 0, 7]); ctx.fill();
+    ctx.textAlign = 'center'; ctx.direction = 'ltr'; ctx.fillStyle = '#0f1d3a'; ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`;
+    ctx.fillText(rm.name, bx + bw / 2 + 2, by + fs * 0.75);
+    // the status line: the dot, then the words (right to left)
+    const ly = by + bh - fs2 * 0.78, lx = bx + bw / 2 + 2 + sw / 2;
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(lx - fs2 * 0.35, ly, fs2 * 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.fillStyle = '#475569'; ctx.font = `500 ${fs2}px Rubik, system-ui, sans-serif`;
+    ctx.fillText(status, lx - fs2 * 0.9, ly + 0.5);
     // the invite flies from Yotam to the door
     if (rm.invite > 0) {
-      const k = 1 - rm.invite / 0.75, yp = pos(yotam), sx = px(yp.x), sy = py(yp.y), ex = dx + t / 2, ey = dy - t / 2;
-      const fx = sx + (ex - sx) * k, fy = sy + (ey - sy) * k - Math.sin(k * Math.PI) * t * 1.2;
-      ctx.font = `${Math.round(t * 0.8)}px Rubik`; ctx.fillText('\u2709\uFE0F', fx, fy);
+      const k = 1 - rm.invite / 0.6, yp = pos(yotam), ax = px(yp.x), ay = py(yp.y), ex = cx, ey = dy + t / 2;
+      ctx.font = `${Math.round(t * 0.9)}px Rubik`; ctx.fillText('\u2709\uFE0F', ax + (ex - ax) * k, ay + (ey - ay) * k - Math.sin(k * Math.PI) * t * 1.2);
     }
     ctx.restore();
   }
@@ -598,6 +611,11 @@ function draw(now) {
   ctx.save(); ctx.fillStyle = '#7dd3fc'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8;
   for (const k of dots) { const [x, y] = k.split(',').map(Number); ctx.beginPath(); ctx.arc(px(x), py(y), Math.max(2.5, t * 0.12), 0, Math.PI * 2); ctx.fill(); }
   ctx.restore();
+  for (const k of envelopes) {
+    const [x, y] = k.split(',').map(Number), cy = py(y) + Math.sin(now * 3 + x * 2) * t * 0.08;
+    ctx.save(); ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 14; ctx.beginPath(); ctx.arc(px(x), cy, t * 0.44, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.font = `${Math.round(t * 0.58)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\u2709\uFE0F', px(x), cy + 1); ctx.restore();
+  }
   for (const k of powers) {
     const [x, y] = k.split(',').map(Number), s = t * (1.25 + Math.sin(now * 6) * 0.08), im = IMG.coffee;
     const bob = Math.sin(now * 4 + x) * t * 0.06, cx = px(x), cy = py(y) + bob;
@@ -627,15 +645,15 @@ function draw(now) {
       const full = Math.max(3.5, 7 - (level - 1) * 0.6), w = COLS * t * 0.6, x = L.x0 + (COLS * t - w) / 2, y = L.y0 - 14;
       ctx.save(); ctx.fillStyle = '#0f1d3a'; ctx.fillRect(x - 2, y - 2, w + 4, 10); ctx.fillStyle = '#22d3ee'; ctx.fillRect(x + w * (1 - power / full), y, w * power / full, 6); ctx.restore();
     }
-    drawRooms(now);
-    placed = []; for (const b of bubbles) drawBubble(b);
+    placed = []; drawRooms(now);   // the room signs are kept clear of the bubbles
+    for (const b of bubbles) drawBubble(b);
   }
 }
 
 // ───────────────────────── HUD + screens ─────────────────────────
 function hud() {
   $('scoreTxt').textContent = score;
-  $('floorTxt').textContent = state === 'play' && level > 1 ? `קומה ${level}` : '';
+  $('floorTxt').textContent = (invites ? `✉️×${invites} ` : '') + (state === 'play' && level > 1 ? `קומה ${level}` : '');
   const lv = $('lives'); if (lv.childElementCount !== Math.max(0, lives)) lv.innerHTML = '<img src="assets/yotam-closed.webp" alt="">'.repeat(Math.max(0, lives));
   [...$('haniBox').children].forEach((d, i) => d.classList.toggle('on', i < haniCount));
 }
@@ -689,7 +707,7 @@ const STEPS = [
   { text: '<b>ארז</b>, <b>אסנת</b> ו<b>יניב</b> רודפים אחריו עם בקשות. תפסו אותו? נפסל יותם אחד מהשלושה.', spot: spotEl('lives') },
   { text: 'נסו עכשיו: <b>החליקו</b> על המסך לכיוון (או הקישו לצד שאליו הוא ילך, או חצים).', try: 'move' },
   { text: '<b>קפה</b> בפינות = יותם נכנס ל<b>מצב הסבר</b> (זוהר כחול). כולם ב-<b>buffering</b> ובורחים – מי שהוא תופס שומע הרצאה וחוזר לשולחן. נקודות כפולות!', spot: () => ({ x: px(1) - L.t, y: py(2) - L.t, w: L.t * 2, h: L.t * 2 }) },
-  { text: 'בכל קומה יש <b>חדרי ישיבות</b> עם דלת (Sync, Deadlock, Standup...). מגיעים לדלת – יותם <b>שולח זימון</b> ✉️, הדלת נפתחת רק לו, ו-<b>6 שניות אף אחד לא נכנס</b>. אחר כך החדר בהפסקה.', spot: () => { const r = rooms[0]; return r ? { x: L.x0 + r.x * L.t - 8, y: L.y0 + r.y * L.t - 8, w: r.w * L.t + 16, h: (r.h + 1) * L.t + 16 } : spotMaze(); } },
+  { text: 'אספו <b>זימונים ✉️</b> (3 בכל קומה). עם זימון נכנסים לחדר ישיבות דרך <b>דלת הזכוכית</b> – ובפנים <b>6 שניות אף אחד לא נכנס</b>. בלי זימון – הדלת סגורה.', spot: () => { const r = rooms[0]; return r ? { x: L.x0 + r.box.x * L.t - 6, y: L.y0 + (r.box.y - 1) * L.t - 6, w: (r.box.w + 1) * L.t + 12, h: (r.box.h + 2) * L.t + 12 } : spotMaze(); } },
   { text: 'ו<b>חני</b>... כל פעם שיותם נתקל בה הוא אומר <b>״חני״</b> – היא מתכווצת ועוצרת אותו לשנייה וחצי. כאן סופרים.', spot: spotEl('haniBox') },
   { text: 'בפעם הרביעית – <b>שיחה עם משאבי אנוש</b>, ויותם אחד נפסל. אז עוקפים אותה. מוכנים? זה בסדר, זה בסדר.', spot: spotAt(hani), last: true },
 ];
@@ -769,4 +787,4 @@ function frame(now) {
 fillDots(); resetActors(); layout(); hud(); showBest(); requestAnimationFrame(frame);
 
 // for the tests
-window.PAC = { get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get level() { return level; }, get haniCount() { return haniCount; }, get lift() { return lift; }, get rooms() { return rooms; }, clearFloor() { dots.clear(); powers.clear(); levelClear(); }, meetHani() { Object.assign(hani, { tx: yotam.tx, ty: yotam.ty, t: 0, cringe: 0 }); }, get power() { return power; }, get dots() { return dots.size + powers.size; }, get dotSet() { return new Set([...dots, ...powers]); }, yotam, hani, CHASERS, pos, steer, startGame, open, get tut() { return tut.on; }, get L() { return L; }, px, py };
+window.PAC = { get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get level() { return level; }, get haniCount() { return haniCount; }, get lift() { return lift; }, get rooms() { return rooms; }, clearFloor() { dots.clear(); powers.clear(); envelopes.clear(); levelClear(); }, get invites() { return invites; }, set invites(v) { invites = v; }, meetHani() { Object.assign(hani, { tx: yotam.tx, ty: yotam.ty, t: 0, cringe: 0 }); }, get power() { return power; }, get dots() { return dots.size + powers.size; }, get dotSet() { return new Set([...dots, ...powers]); }, yotam, hani, CHASERS, pos, steer, startGame, open, get tut() { return tut.on; }, get L() { return L; }, px, py };
