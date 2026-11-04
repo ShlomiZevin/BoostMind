@@ -111,8 +111,8 @@ body{margin:0;padding:0;background:${C.bg}}a{color:${C.accent2}}img{-ms-interpol
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${C.bg}">${esc(preheader)}${'&#8204;&nbsp;'.repeat(60)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.bg}" style="${bg(C.bg)}"><tr><td align="center" style="padding:24px 10px;${bg(C.bg)}" dir="rtl">
 <table role="presentation" class="w" width="600" cellpadding="0" cellspacing="0" border="0" dir="rtl" style="width:600px;max-width:600px;${bg(C.card)};border-radius:28px;overflow:hidden;border:1px solid ${C.line}" bgcolor="${C.card}">
-<tr><td align="center" style="padding:26px 32px 6px;background-color:${C.card};background-image:radial-gradient(ellipse at top,rgba(255,106,31,.28),rgba(255,106,31,0) 70%)">
-<a href="${SITE}/?utm_source=mail&utm_campaign=${kind}"><img src="${LOGO}" alt="השלומיוורס" width="120" style="display:block;width:120px;height:auto;border:0"></a></td></tr>
+<tr><td align="center" style="padding:26px 32px 6px;background-color:${C.card};background-image:linear-gradient(180deg,#3a1c10 0%,#241812 45%,${C.card} 100%)">
+<a href="${SITE}/?utm_source=mail&utm_campaign=${kind}"><img src="${LOGO}" alt="השלומיוורס" width="96" style="display:block;width:96px;height:auto;border:0"></a></td></tr>
 ${body}
 ${footer}
 </table></td></tr></table></body></html>`;
