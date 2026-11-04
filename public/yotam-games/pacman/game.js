@@ -557,10 +557,22 @@ function drawRooms(now) {
     ctx.save();
     // the door: green and shut while the meeting is on, a grey half-door while it rests, open when free
     ctx.lineCap = 'round'; ctx.lineWidth = Math.max(4, t * 0.18);
-    if (on) { ctx.strokeStyle = '#22c55e'; ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(dx + 2, dy); ctx.lineTo(dx + t - 2, dy); ctx.stroke(); ctx.shadowBlur = 0;
-      ctx.fillStyle = '#22c55e22'; ctx.fillRect(x, y, w, rm.h * t); }
-    else if (rest) { ctx.strokeStyle = '#94a3b8'; ctx.beginPath(); ctx.moveTo(dx + 2, dy); ctx.lineTo(dx + t * 0.45, dy); ctx.stroke(); }
-    else { ctx.strokeStyle = '#7dd3fc'; ctx.globalAlpha = 0.5 + Math.sin(now * 4) * 0.3; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(dx + 2, dy); ctx.lineTo(dx + t - 2, dy); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }
+    const inside = roomOf(yotam.tx, yotam.ty) === rm && yotam.t === 0;
+    const want = rm.invite > 0 || (on && !inside) ? 1 : on || rest ? 0 : 0.55;
+    rm.slide = (rm.slide ?? 0.55) + (want - (rm.slide ?? 0.55)) * 0.18;
+    if (on) { ctx.fillStyle = '#22c55e22'; ctx.fillRect(x, y, w, rm.h * t); }
+    // the frame posts
+    const th = Math.max(6, t * 0.32);
+    ctx.fillStyle = '#334155'; ctx.fillRect(dx - 2, dy - th / 2 - 1, 5, th + 2); ctx.fillRect(dx + t - 3, dy - th / 2 - 1, 5, th + 2);
+    // the glass pane, slid to the side by rm.slide
+    const pw = t * (1 - rm.slide * 0.85), px0 = dx + t * rm.slide * 0.85;
+    ctx.fillStyle = on ? '#bbf7d0cc' : rest ? '#cbd5e1cc' : '#bae6fdcc'; ctx.strokeStyle = on ? '#16a34a' : rest ? '#64748b' : '#0ea5e9'; ctx.lineWidth = 2;
+    if (on) { ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 10; }
+    ctx.beginPath(); ctx.roundRect(px0, dy - th / 2, pw, th, 2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+    // a shine and the handle
+    ctx.strokeStyle = '#ffffffcc'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(px0 + pw * 0.2, dy - th * 0.25); ctx.lineTo(px0 + pw * 0.45, dy - th * 0.25); ctx.stroke();
+    ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(px0 + Math.min(pw - 4, t * 0.18), dy, Math.max(1.5, t * 0.06), 0, Math.PI * 2); ctx.fill();
+    if (on && inside) { ctx.font = `${Math.round(t * 0.34)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\uD83D\uDD12', dx + t / 2, dy + th * 1.3); }
     // the sign over the room
     const fs = Math.max(10, Math.round(t * 0.36)); ctx.font = `800 ${fs}px Rubik, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const label = on ? `\u2066${rm.name}\u2069 · בפגישה ${Math.ceil(rm.booked)}` : rest ? `\u2066${rm.name}\u2069 · הפסקה` : rm.invite > 0 ? `\u2066${rm.name}\u2069 · זימון...` : `\u2066${rm.name}\u2069 · פנוי`;
@@ -610,7 +622,7 @@ function draw(now) {
     }
     const chew = yotam.dir && Math.floor(now * 8) % 2;
     if (power > 0) { const p = pos(yotam); ctx.save(); ctx.fillStyle = '#22d3ee'; ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 24; ctx.globalAlpha = 0.35 + Math.sin(now * 10) * 0.15; ctx.beginPath(); ctx.arc(px(p.x), py(p.y), t * 0.85, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-    drawHead(YH(yotam.sad || yotam.stun > 0 ? 'yotam-sad' : power > 0 ? 'yotam-explain' : chew ? 'yotam-closed' : 'yotam-open'), yotam, WITH_LAPTOP ? 1.6 : 1.45);
+    drawHead(YH(yotam.sad || yotam.stun > 0 ? 'yotam-sad' : power > 0 ? (chew ? 'yotam-closed' : 'yotam-explain') : chew ? 'yotam-closed' : 'yotam-open'), yotam, WITH_LAPTOP ? 1.6 : 1.45);
     if (power > 0) {                                                 // the explain bar runs out over the floor
       const full = Math.max(3.5, 7 - (level - 1) * 0.6), w = COLS * t * 0.6, x = L.x0 + (COLS * t - w) / 2, y = L.y0 - 14;
       ctx.save(); ctx.fillStyle = '#0f1d3a'; ctx.fillRect(x - 2, y - 2, w + 4, 10); ctx.fillStyle = '#22d3ee'; ctx.fillRect(x + w * (1 - power / full), y, w * power / full, 6); ctx.restore();
