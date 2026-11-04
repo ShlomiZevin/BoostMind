@@ -56,7 +56,9 @@
   "points": [[fx, fy, 1], [fx, fy, 0]], "from"?: s, "to"?: s}]}` - t = the moment the marks are on (take seconds), points
   = fractions of the RAW take's frame (before a mirror), 1 = keep this, 0 = not this; from / to limit it (default: the
   whole take). **He marks it** in the editor: video panel -> Person -> "Keep things too…" (tap / paint, the outline shows
-  at once; Keep = saved + Analyze). **A session marks it** when he holds something: a raw frame at a clear moment with a
+  at once) - then either **Save for Claude** (only the marks: you read them with
+  `tools/sam/.venv/Scripts/python.exe tools/sam/keep.py show episodes/<id>` - a picture per thing in work/keep_marks/ and
+  whether the cut-out has it yet - and keep exactly those) or **make the cut-out** himself (saved + Analyze). **A session marks it** when he holds something: a raw frame at a clear moment with a
   10x10 grid, read the point(s) off, check with
   `tools/sam/.venv/Scripts/python.exe -I tools/sam/keep.py preview <take> <t> <fx,fy> [<fx,fy,0>] <out.jpg>` (LOOK: the
   whole thing bright, outlined in green, nothing else), add a second point on any part the outline missed (a flap, the
