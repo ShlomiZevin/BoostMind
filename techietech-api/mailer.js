@@ -93,7 +93,13 @@ async function sweepEvents(now = Date.now()) {
   const meta = (await metaRef.get()).data();
   const w = await wiki();
   const games = (w.games || []).map((g) => g.id);
-  if (!meta) { await metaRef.set({ since: Timestamp.fromMillis(now), games }); return { baseline: true }; }
+  // the first run starts 3 days back: stories, videos and games from the days before the launch still count as news
+  const START = now - 3 * 864e5;
+  if (!meta) {
+    const old = (w.games || []).filter((g) => !g.date || Date.parse(g.date) < START - 864e5).map((g) => g.id);
+    await metaRef.set({ since: Timestamp.fromMillis(START), games: old });
+    return sweepEvents(now);
+  }
   const since = meta.since;
   const add = async (id, ev) => { try { await db.collection('mailEvents').doc(id).create({ ...ev, seen: FieldValue.serverTimestamp() }); return 1; } catch { return 0; } };
   let n = 0;
