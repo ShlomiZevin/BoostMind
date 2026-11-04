@@ -29,7 +29,7 @@ const BOT = `(() => {
     const c = await p.evaluate(() => ({ x: PAC.px(PAC.pos(PAC.yotam).x), y: PAC.py(PAC.pos(PAC.yotam).y) }));
     await p.mouse.move(c.x, c.y + 80); await p.mouse.down(); await p.mouse.move(c.x - 60, c.y + 80, { steps: 6 }); await p.mouse.up(); await wait(p, 900);
     await p.screenshot({ path: `${OUT}/${name}-tut4.png` });
-    for (let i = 0; i < 4; i++) { await p.keyboard.press('Space'); await wait(p, 300); if (i === 1) await p.screenshot({ path: `${OUT}/${name}-tut6-hani.png` }); }
+    for (let i = 0; i < 5; i++) { await p.keyboard.press('Space'); await wait(p, 300); if (i === 0) await p.screenshot({ path: `${OUT}/${name}-tut5-rooms.png` }); if (i === 2) await p.screenshot({ path: `${OUT}/${name}-tut7-hani.png` }); }
     const st = await p.evaluate(() => PAC.state);
     // the bot plays
     const t0 = Date.now(); let sawLift = false, shot = 0, maxLevel = 1, dotsStart = await p.evaluate(() => PAC.dots), sawHani = 0, sawPower = false;
