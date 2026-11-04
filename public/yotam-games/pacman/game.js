@@ -347,22 +347,38 @@ const spd = (base) => base * (1 + (level - 1) * 0.06);
 const chaseNow = () => !(modeT < 6 || (modeT > 26 && modeT < 31));
 
 // ───────────────────────── input: swipe / arrows ─────────────────────────
-let sw = null;
-cv.addEventListener('pointerdown', (e) => { audioUnlock(); if (lift && lift.t > 0.8) { leaveLift(); return; } sw = { x: e.clientX, y: e.clientY }; });
-cv.addEventListener('pointermove', (e) => {
-  if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
-  if (Math.hypot(dx, dy) < 18) return;
-  steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
-  sw = { x: e.clientX, y: e.clientY };
+let stick = null;   // { ox, oy, x, y } - where the finger came down and where it is now
+cv.addEventListener('pointerdown', (e) => {
+  audioUnlock(); if (lift && lift.t > 0.8) { leaveLift(); return; }
+  stick = { ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId };
+  try { cv.setPointerCapture(e.pointerId); } catch (_) {}
 });
-addEventListener('pointerup', () => { sw = null; });
-// a tap (no swipe) = go toward the tap
+cv.addEventListener('pointermove', (e) => {
+  if (!stick || e.pointerId !== stick.id) return;
+  stick.x = e.clientX; stick.y = e.clientY;
+  const dx = stick.x - stick.ox, dy = stick.y - stick.oy;
+  if (Math.hypot(dx, dy) < 14) return;
+  const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+  if (d !== yotam.want) steer(d);
+  // a long drag drags the stick's centre along, so changing direction stays a short move
+  const m = Math.hypot(dx, dy), max = 46; if (m > max) { stick.ox = stick.x - dx / m * max; stick.oy = stick.y - dy / m * max; }
+});
+const endStick = (e) => { if (stick && e.pointerId === stick.id) stick = null; };
+cv.addEventListener('pointerup', endStick); cv.addEventListener('pointercancel', endStick);
+// a tap (no drag) = go toward the tap
 cv.addEventListener('click', (e) => {
   if (state !== 'play' && state !== 'tut') return;
   const p = pos(yotam), dx = e.clientX - px(p.x), dy = e.clientY - py(p.y);
   if (Math.hypot(dx, dy) < L.t * 0.6) return;
   steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
 });
+function drawStick() {
+  if (!stick || !('ontouchstart' in window || navigator.maxTouchPoints > 0)) return;
+  const dx = stick.x - stick.ox, dy = stick.y - stick.oy, m = Math.hypot(dx, dy), k = m > 34 ? 34 / m : 1;
+  ctx.save(); ctx.globalAlpha = 0.55; ctx.fillStyle = '#0f1d3a'; ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(stick.ox, stick.oy, 46, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.globalAlpha = 0.9; ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(stick.ox + dx * k, stick.oy + dy * k, 20, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+}
 const KEYDIR = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
 addEventListener('keydown', (e) => { if (KEYDIR[e.key] && (state === 'play' || state === 'tut')) { e.preventDefault(); audioUnlock(); steer(KEYDIR[e.key]); } });
 function steer(d) {
@@ -375,6 +391,7 @@ function steer(d) {
 // ───────────────────────── walking ─────────────────────────
 function walk(e, dt, ghost, choose) {
   let move = e.speedNow * dt;
+  if (e === yotam && e.want && e.dir && e.want !== e.dir && e.want !== OPP[e.dir] && e.t > 0 && e.t < 0.3 && canStep(e.tx, e.ty, e.want, 'yotam')) { e.t = 0; e.dir = e.want; }
   while (move > 0) {
     if (!e.dir || e.t === 0) {                      // standing on a tile: pick where to go
       const d = choose(e); if (!d) return; e.dir = d;
@@ -393,6 +410,7 @@ function yotamChoose(e) {
 }
 // a chaser at a crossing takes the open way (never straight back) that brings it closest to its target
 function chaserChoose(c) {
+  if (c.wander && c.tx === c.wander.x && c.ty === c.wander.y) c.wander = null;
   const opts = Object.keys(DIRS).filter((d) => canStep(c.tx, c.ty, d, 'c', c.mode === 'eyes' || c.mode === 'leave') && d !== OPP[c.dir]);
   const all = opts.length ? opts : Object.keys(DIRS).filter((d) => canStep(c.tx, c.ty, d, 'c', true));
   if (c.mode === 'scared') return pick(all);
@@ -404,6 +422,8 @@ function chaserChoose(c) {
 function target(c) {
   if (c.mode === 'eyes') return DOOR_OUT;
   if (c.mode === 'leave') return DOOR_OUT;
+  if (hidden()) return c.wander || (c.wander = { x: 1 + Math.floor(Math.random() * 11), y: 1 + Math.floor(Math.random() * 21) });
+  c.wander = null;
   if (!chaseNow()) return c.corner;
   const yp = { x: yotam.tx, y: yotam.ty }, v = yotam.dir ? DIRS[yotam.dir] : [0, 0];
   if (c.id === 'osnat') return { x: yp.x + v[0] * 4, y: yp.y + v[1] * 4 };          // she gets ahead of him
@@ -476,6 +496,8 @@ function step(dt) {
   collide();
 }
 function near(a, b, r = 0.62) { const p = pos(a), q = pos(b); return Math.abs(p.x - q.x) < r && Math.abs(p.y - q.y) < r; }
+// Yotam is in a meeting: the room is booked and he is inside (or on his way in)
+function hidden() { const v = yotam.dir ? DIRS[yotam.dir] : [0, 0], r = roomOf(yotam.tx, yotam.ty) || roomOf(yotam.tx + v[0], yotam.ty + v[1]); return !!(r && r.booked > 0); }
 function collide() {
   const yv = yotam.dir ? DIRS[yotam.dir] : [0, 0], yr = roomOf(yotam.tx, yotam.ty) || roomOf(yotam.tx + yv[0], yotam.ty + yv[1]);
   if (yr && yr.booked > 0) return;
@@ -715,7 +737,7 @@ const STEPS = [
   { text: 'זה <b>יותם</b>, ה-System Architect של טקי-טק. הוא אוסף <b>קונטקסט</b> – הנקודות הכחולות.', spot: spotAt(yotam) },
   { text: '<b>המטרה:</b> לאסוף את כל הקונטקסט בקומה – ואז עולים קומה. כל נקודה = ניקוד.', spot: spotEl('scoreBox') },
   { text: '<b>ארז</b>, <b>אסנת</b> ו<b>יניב</b> רודפים אחריו עם בקשות. תפסו אותו? נפסל יותם אחד מהשלושה.', spot: spotEl('lives') },
-  { text: 'נסו עכשיו: <b>החליקו</b> על המסך לכיוון (או הקישו לצד שאליו הוא ילך, או חצים).', try: 'move' },
+  { text: 'נסו עכשיו: <b>שימו אצבע ותגררו</b> – כמו ג׳ויסטיק. יותם ממשיך לכיוון שאתם מחזיקים ופונה לבד בפנייה הבאה (במחשב: חצים).', try: 'move' },
   { text: '<b>קפה</b> בפינות = יותם נכנס ל<b>מצב הסבר</b> (זוהר כחול). כולם ב-<b>buffering</b> ובורחים – מי שהוא תופס שומע הרצאה וחוזר לשולחן. נקודות כפולות!', spot: () => ({ x: px(1) - L.t, y: py(2) - L.t, w: L.t * 2, h: L.t * 2 }) },
   { text: 'אספו <b>זימונים לחדר</b> (הלוח עם ה-✓, 3 בכל קומה). עם זימון נכנסים לחדר ישיבות דרך <b>דלת הזכוכית</b> – ובפנים <b>6 שניות אף אחד לא נכנס</b>. בלי זימון – הדלת סגורה.', spot: () => { const r = rooms[0]; return r ? { x: L.x0 + r.box.x * L.t - 6, y: L.y0 + (r.box.y - 1) * L.t - 6, w: (r.box.w + 1) * L.t + 12, h: (r.box.h + 2) * L.t + 12 } : spotMaze(); } },
   { text: 'ו<b>חני</b>... כל פעם שיותם נתקל בה הוא אומר <b>״חני״</b> – היא מתכווצת ועוצרת אותו לשנייה וחצי. כאן סופרים.', spot: spotEl('haniBox') },
@@ -779,7 +801,7 @@ function chip() {
   let t = '';
   if (state === 'play' || state === 'tut') {
     if (power > 0) t = 'עכשיו <em>תפסו</em> אותם – הוא מסביר!';
-    else if (!yotam.dir) t = '<em>החליקו</em> לכיוון';
+    else if (!yotam.dir) t = '<em>החזיקו וגררו</em> לכיוון';
     else t = 'אספו <em>קונטקסט</em> · עקפו את חני';
   }
   if (t !== chipTxt) { chipTxt = t; $('chip').innerHTML = t; }
@@ -791,7 +813,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
   if (!paused && (state === 'play' || state === 'tut')) step(dt);
   if (sayT > 0) { sayT -= dt; if (sayT <= 0) sayEl.classList.remove('on'); }
-  draw(now / 1000); chip(); tut.frame();
+  draw(now / 1000); drawStick(); chip(); tut.frame();
   requestAnimationFrame(frame);
 }
 fillDots(); resetActors(); layout(); hud(); showBest(); requestAnimationFrame(frame);
