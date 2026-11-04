@@ -1,13 +1,25 @@
 {
   "slug": "pacman",
-  "title": "מספיק קונטקסט",
-  "tagline": "פקמן בטקי-טק: יותם אוסף קונטקסט, כולם רודפים אחריו עם בקשות – ואסור לו להגיד לחני ״חני״ ארבע פעמים.",
+  "title": "פקי-טק",
+  "tagline": "פקמן בקומות של טקי-טק: יותם אוסף קונטקסט, כולם רודפים אחריו עם בקשות, מזמינים חדרי ישיבות כדי להתחבא – ואסור לו להגיד לחני ״חני״ ארבע פעמים.",
   "character": "yotam",
-  "chars": ["yotam", "hani", "erez", "osnat", "yaniv"],
+  "chars": [
+    "yotam",
+    "hani",
+    "erez",
+    "osnat",
+    "yaniv"
+  ],
   "world": "טקי-טק",
   "status": "live",
   "cover": "cover.jpg",
-  "best": { "key": "shlomiverse:pacman:best", "label": "נקודות" },
-  "record": { "unit": "נקודות", "better": "high" },
+  "best": {
+    "key": "shlomiverse:pacman:best",
+    "label": "נקודות"
+  },
+  "record": {
+    "unit": "נקודות",
+    "better": "high"
+  },
   "date": "2026-11-04"
 }
