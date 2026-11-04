@@ -195,7 +195,9 @@ def matte_path(ls, n):
         if isinstance(v, list):
             return [same(x) for x in v]
         return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v
-    return base[:-4] + ".prop" + hashlib.md5(json.dumps(same(pc), sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
+    k = keep_cfg(ls, n)  # (the kept desk / boxes count as him in the touch test - a new keep = a new prop matte)
+    key = same({**pc, "_keep": k}) if k else same(pc)
+    return base[:-4] + ".prop" + hashlib.md5(json.dumps(key, sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
 
 
 def prop_matte(ls, t, n):
@@ -215,6 +217,14 @@ def prop_matte(ls, t, n):
                             "-r", str(FPS), "-i", "-", "-c:v", "ffv1", part], stdin=subprocess.PIPE)
     size, k = MATTE_W * MATTE_H, 0
     near = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    # what the take keeps (keep: desk band / boxes) counts as him: a hand reaching in over a kept box touches it, not his
+    # body - it was dropped every frame (haredit-4, 2026-11-04: the hand over the kept cookie box)
+    kp = keep_png(ls, n)
+    kept = None
+    if kp:
+        km = cv2.imdecode(np.fromfile(kp, np.uint8), cv2.IMREAD_GRAYSCALE)
+        if km is not None:
+            kept = cv2.resize(km, (MATTE_W, MATTE_H), interpolation=cv2.INTER_AREA) > 128
     while True:
         rgb, m = src.stdout.read(size * 3), mat.stdout.read(size)
         if len(rgb) < size * 3 or len(m) < size:
@@ -233,7 +243,8 @@ def prop_matte(ls, t, n):
             cnt, _ = cv2.findContours(c, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             filled = np.zeros_like(c)
             cv2.drawContours(filled, cnt, -1, 255, -1)  # the label / reflections inside the prop
-            person = cv2.dilate((m > 128).astype(np.uint8) * 255, near)
+            body = (m > 128) if kept is None else ((m > 128) | kept)
+            person = cv2.dilate(body.astype(np.uint8) * 255, near)
             num, lab = cv2.connectedComponents(filled)
             keep = np.zeros_like(c)
             for i in range(1, num):
