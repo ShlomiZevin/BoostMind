@@ -80,7 +80,7 @@ function parse(req) {
 
 exports.techietechApply = onRequest({
   region: 'europe-west1',
-  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, ...mailer.MAIL_SECRETS],
+  secrets: mailer.MAIL_SECRETS,   // Gmail + the key that signs the choices link
   cors: CORS,
   maxInstances: 3,
   memory: '256MiB',
@@ -146,7 +146,7 @@ const SITES = {
 };
 exports.siteLead = onRequest({
   region: 'europe-west1',
-  secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, ...mailer.MAIL_SECRETS],
+  secrets: mailer.MAIL_SECRETS,   // Gmail + the key that signs the choices link
   cors: CORS,
   maxInstances: 3,
   memory: '256MiB',
