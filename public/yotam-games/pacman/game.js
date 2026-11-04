@@ -16,31 +16,92 @@ const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMo
 
 // ───────────────────────── the floor ─────────────────────────
 // # desk  . context  o coffee  - the kitchen door (chasers only)  G the kitchen  P Yotam
-const MAZE = [
-  '#############',
-  '#...........#',
-  '#o##.###.##o#',
-  '#...........#',
-  '#.##.#.#.##.#',
-  '#....#.#....#',
-  '###.##.##.###',
-  '#...#...#...#',
-  '#.#.#...#.#.#',
-  '#.#...-...#.#',
-  '#.###GGG###.#',
-  '#...#####...#',
-  '#.#.......#.#',
-  '#.#..#.#..#.#',
-  '#.#.......#.#',
-  '#o..#.P.#..o#',
-  '###.#.#.#.###',
-  '#.....#.....#',
-  '#.###.#.###.#',
-  '#...#...#...#',
-  '#.#.#.#.#.#.#',
-  '#...........#',
-  '#############',
+// three kinds of floor, then again, faster: offices, cubicles, the kitchen (his ask, 4 Nov)
+const FLOORS = [
+  { name: 'משרדים', floor: 'parquet', wall: 'plaster', edge: '#c9d6e3', dim: '#0007', rim: '#475569',
+    props: [['officedesk', .3], ['whiteboard', .12], ['bookshelf', .14], ['armchair', .1], ['plant', .08]],
+    maze: [
+    '#############',
+    '#.....#.....#',
+    '#o###.#.###o#',
+    '#...........#',
+    '#.###.#.###.#',
+    '#.###.#.###.#',
+    '#...........#',
+    '###.##.##.###',
+    '#...#...#...#',
+    '#.#...-...#.#',
+    '#.###GGG###.#',
+    '#...#####...#',
+    '###.......###',
+    '#...##.##...#',
+    '#.#.##.##.#.#',
+    '#o#...P...#o#',
+    '#.###.#.###.#',
+    '#.....#.....#',
+    '#.###.#.###.#',
+    '#...........#',
+    '#.###.#.###.#',
+    '#.....#.....#',
+    '#############',
+  ] },
+  { name: 'קיוביקלים', floor: 'carpet', wall: 'partition', edge: '#7fa6c9', dim: '#0006', rim: '#0b1530',
+    props: [['monitor', .34], ['plant', .14], ['papers', .14], ['laptop', .1]],
+    maze: [
+    '#############',
+    '#...........#',
+    '#o##.###.##o#',
+    '#...........#',
+    '#.##.#.#.##.#',
+    '#....#.#....#',
+    '###.##.##.###',
+    '#...#...#...#',
+    '#.#.#...#.#.#',
+    '#.#...-...#.#',
+    '#.###GGG###.#',
+    '#...#####...#',
+    '#.#.......#.#',
+    '#.#..#.#..#.#',
+    '#.#.......#.#',
+    '#o..#.P.#..o#',
+    '###.#.#.#.###',
+    '#.....#.....#',
+    '#.###.#.###.#',
+    '#...#...#...#',
+    '#.#.#.#.#.#.#',
+    '#...........#',
+    '#############',
+  ] },
+  { name: 'המטבחון', floor: 'tiles', wall: 'marble', edge: '#d6c7b0', dim: '#0008', rim: '#57534e',
+    props: [['espresso', .14], ['fruit', .12], ['pizza', .14], ['microwave', .12], ['snacks', .14]],
+    maze: [
+    '#############',
+    '#...........#',
+    '#o.#######.o#',
+    '#...........#',
+    '###.#####.###',
+    '#...........#',
+    '#.####.####.#',
+    '#...........#',
+    '####.....####',
+    '#.....-.....#',
+    '#.###GGG###.#',
+    '#...#####...#',
+    '#.#.......#.#',
+    '#.#.#####.#.#',
+    '#...........#',
+    '#o.###P###.o#',
+    '#...........#',
+    '###.#####.###',
+    '#...........#',
+    '#.###.#.###.#',
+    '#.###.#.###.#',
+    '#...........#',
+    '#############',
+  ] },
 ];
+let F = FLOORS[0], MAZE = F.maze;
+function setFloor() { F = FLOORS[(level - 1) % FLOORS.length]; MAZE = F.maze; bakeMaze(); }
 const COLS = 13, ROWS = 23;
 const cell = (x, y) => (MAZE[y] && MAZE[y][x]) || '#';
 const open = (x, y, ghost) => { const c = cell(x, y); return c !== '#' && (ghost || (c !== '-' && c !== 'G')); };
@@ -55,11 +116,11 @@ function fillDots() {
 
 // ───────────────────────── art ─────────────────────────
 const IMG = {};
-const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => { if (k === 'desk' || k === 'carpet' || PROPS.includes(k)) bakeMaze(); }; IMG[k] = i; return i; };
-const PROPS = ['monitor', 'plant', 'papers', 'laptop'];
+const PROPS = [...new Set(FLOORS.flatMap((f) => [...f.props.map((q) => q[0]), f.floor, f.wall]))];
+const img = (k, src) => { const i = new Image(); i.src = src; i.onload = () => { if (PROPS.includes(k)) bakeMaze(); }; IMG[k] = i; return i; };
 for (const k of ['yotam-lap-open', 'yotam-lap-closed', 'yotam-lap-explain', 'yotam-lap-sad', 'yotam-open', 'yotam-closed', 'yotam-explain', 'yotam-sad', 'erez', 'erez-bored', 'osnat', 'osnat-bored', 'yaniv', 'yaniv-bored', 'hani', 'hani-cringe', 'coffee']) img(k, `assets/${k}.webp`);
-for (const k of PROPS) img(k, `assets/${k}.webp`);
-img('desk', 'assets/desk.jpg'); img('elevator', 'assets/elevator.jpg'); img('carpet', 'assets/carpet.jpg');
+for (const k of PROPS) img(k, `assets/${k}.${['parquet', 'carpet', 'tiles', 'plaster', 'partition', 'marble', 'desk'].includes(k) ? 'jpg' : 'webp'}`);
+img('elevator', 'assets/elevator.jpg'); 
 const ok = (im) => im && im.complete && im.naturalWidth;
 const WITH_LAPTOP = true;   // Yotam holds his laptop in both hands (his ask, 4 Nov - false = the plain heads)
 const YH = (k) => WITH_LAPTOP ? k.replace('yotam-', 'yotam-lap-') : k;
@@ -157,22 +218,23 @@ function bakeMaze() {
   if (!L.t) return;
   const t = L.t, c = document.createElement('canvas'); c.width = COLS * t * DPR; c.height = ROWS * t * DPR;
   const g = c.getContext('2d'); g.scale(DPR, DPR);
-  if (ok(IMG.carpet)) { const s = Math.max(t * 5, 120); for (let y = 0; y < ROWS * t; y += s) for (let x = 0; x < COLS * t; x += s) g.drawImage(IMG.carpet, x, y, s, s); }
+  const fl = IMG[F.floor];
+  if (ok(fl)) { const s = Math.max(t * 5, 120); for (let y = 0; y < ROWS * t; y += s) for (let x = 0; x < COLS * t; x += s) g.drawImage(fl, x, y, s, s); }
   else { g.fillStyle = '#263247'; g.fillRect(0, 0, COLS * t, ROWS * t); }
-  g.fillStyle = '#0006'; g.fillRect(0, 0, COLS * t, ROWS * t);
+  g.fillStyle = F.dim; g.fillRect(0, 0, COLS * t, ROWS * t);
   const wall = (x, y) => cell(x, y) === '#';
   const edge = (x, y) => x === 0 || y === 0 || x === COLS - 1 || y === ROWS - 1;
-  const pat = ok(IMG.desk) ? g.createPattern(IMG.desk, 'repeat') : '#c8a273';
+  const pat = ok(IMG[F.wall]) ? g.createPattern(IMG[F.wall], 'repeat') : '#c8a273';
   let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
     if (!wall(x, y)) continue;
     const ins = t * 0.1;
     const l = wall(x - 1, y) ? 0 : ins, rr = wall(x + 1, y) ? 0 : ins, tp = wall(x, y - 1) ? 0 : ins, bt = wall(x, y + 1) ? 0 : ins;
-    g.fillStyle = edge(x, y) ? '#7fa6c9' : pat;
+    g.fillStyle = edge(x, y) ? F.edge : pat;
     g.fillRect(x * t + l, y * t + tp, t - l - rr, t - tp - bt);
   }
   // a dark rim where desks meet the corridor
-  g.strokeStyle = '#0b1530'; g.lineWidth = Math.max(1.5, t * 0.07);
+  g.strokeStyle = F.rim; g.lineWidth = Math.max(1.5, t * 0.07);
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
     if (!wall(x, y)) continue; const ins = t * 0.1;
     g.beginPath();
@@ -185,9 +247,9 @@ function bakeMaze() {
   // what sits on the desks
   for (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) {
     if (!wall(x, y)) { continue; }
-    const v = r(), k = v < 0.34 ? 'monitor' : v < 0.48 ? 'plant' : v < 0.62 ? 'papers' : v < 0.72 ? 'laptop' : null;
+    let v = r(), k = null; for (const [n, w] of F.props) { if (v < w) { k = n; break; } v -= w; }
     if (!k || !ok(IMG[k])) continue;
-    const s = t * (k === 'plant' ? 0.85 : 0.8), im = IMG[k], ar = im.naturalHeight / im.naturalWidth;
+    const s = t * 0.82, im = IMG[k], ar = im.naturalHeight / im.naturalWidth;
     g.save(); g.translate(x * t + t / 2, y * t + t / 2); g.rotate(Math.floor(r() * 4) * Math.PI / 2);
     g.drawImage(im, -s / 2, -s * ar / 2, s, s * ar); g.restore();
   }
@@ -217,9 +279,9 @@ function resetActors() {
   power = 0; chain = 0; modeT = 0; bubbles.length = 0;
 }
 function startGame() {
-  tutorial = false; state = 'play'; score = 0; lives = 3; level = 1; haniCount = 0; deathT = 0; clearT = 0; lift = null; yotam.sad = false;
+  tutorial = false; state = 'play'; score = 0; lives = 3; level = 1; setFloor(); haniCount = 0; deathT = 0; clearT = 0; lift = null; yotam.sad = false;
   fillDots(); resetActors(); freeze = 1.6;
-  showHUD(true); show(null); hud(); play('start', .6); banner('קומה 1'); musicOff(); musicOn();
+  setFloor(); showHUD(true); show(null); hud(); play('start', .6); banner('קומה 1 · ' + F.name); musicOff(); musicOn();
   window.track && window.track('game_start', 'pacman');
 }
 const spd = (base) => base * (1 + (level - 1) * 0.06);
@@ -373,7 +435,7 @@ function afterDeath() { yotam.sad = false; resetActors(); freeze = 1.2; }
 function levelClear() { clearT = 1.4; play('clear', .7); banner('הקומה נקייה!'); bubble(yotam, 'עכשיו יש לי מספיק קונטקסט.', 1.4); }
 let lift = null;   // { t, lines } - Yotam and Ido in the elevator, going up a floor
 function nextLevel() { lift = { t: 0, lines: LINES.lift[(level - 1) % LINES.lift.length] }; play('start', .5); }
-function leaveLift() { lift = null; level++; fillDots(); resetActors(); freeze = 1.2; banner('קומה ' + level); hud(); }
+function leaveLift() { lift = null; level++; setFloor(); fillDots(); resetActors(); freeze = 1.2; banner('קומה ' + level + ' · ' + F.name); hud(); }
 
 // ───────────────────────── drawing ─────────────────────────
 function drawHead(key, e, scale = 1.32, alpha = 1, wobble = 0) {
@@ -538,7 +600,7 @@ const tut = {
   calm() { return !(tutWait && tutWait.id === 'move'); },   // the others wait while you read
   begin() {
     show(null); showHUD(true); state = 'tut'; tutorial = true; this.on = true; this.i = 0;
-    score = 0; lives = 3; level = 1; haniCount = 0; fillDots(); resetActors(); hud();
+    score = 0; lives = 3; level = 1; haniCount = 0; setFloor(); fillDots(); resetActors(); hud();
     tutCard.classList.add('on'); this.enter();
   },
   enter() {

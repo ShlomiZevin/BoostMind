@@ -2,7 +2,7 @@
 // until the game ends -> ../shots/.  serve the game folder, then: node tools/t1-play.js [URL of the game folder]
 const { chromium } = require(process.env.HOME + '/plaxzy-creator/node_modules/playwright-core');
 const path = require('path'), fs = require('fs');
-const URL = process.argv[2] || 'http://localhost:5304/pacman/';
+const URL = process.argv[2] || 'http://localhost:5302/yotam-games/pacman/';
 const OUT = path.join(__dirname, '..', 'shots'); fs.mkdirSync(OUT, { recursive: true });
 const wait = (p, ms) => p.waitForTimeout(ms);
 // the bot's brain runs in the page: BFS from Yotam to the nearest dot, tiles next to a chasing colleague are walls

@@ -5,7 +5,7 @@
   "character": "yotam",
   "chars": ["yotam", "hani", "erez", "osnat", "yaniv"],
   "world": "טקי-טק",
-  "status": "soon",
+  "status": "live",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:pacman:best", "label": "נקודות" },
   "record": { "unit": "נקודות", "better": "high" },

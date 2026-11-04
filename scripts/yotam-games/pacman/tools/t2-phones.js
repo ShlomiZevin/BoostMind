@@ -5,7 +5,7 @@ const path = require('path'), OUT = path.join(__dirname, '..', 'shots');
   const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   for (const [w, h] of [[320, 568], [360, 640], [412, 915]]) {
     const p = await b.newPage({ viewport: { width: w, height: h } }); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-    await p.goto(process.argv[2] || 'http://localhost:5304/pacman/?solo=1'); await p.waitForTimeout(1200);
+    await p.goto(process.argv[2] || 'http://localhost:5302/yotam-games/pacman/?solo=1'); await p.waitForTimeout(1200);
     const over = await p.evaluate(() => { const s = document.getElementById('start'); return [...s.children].some((c) => { const r = c.getBoundingClientRect(); return r.top < 0 || r.bottom > innerHeight; }); });
     await p.screenshot({ path: `${OUT}/p${w}-start.png` });
     await p.evaluate(() => { try { localStorage.setItem('shlomiverse:pacman:tut', '1'); } catch (e) {} ; PAC.startGame(); });

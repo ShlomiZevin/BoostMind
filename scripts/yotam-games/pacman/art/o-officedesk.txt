@@ -1,0 +1,1 @@
+A single cut-out game object on a transparent background, seen from straight above (top-down), painted illustration style, bright, readable when small, filling the picture: a manager's office desk with a monitor, a lamp and a coffee mug. For a top-down office maze game. No text.
