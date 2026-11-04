@@ -16,8 +16,9 @@ CACHE = os.path.join(ROOT, '.firebase', 'hani-pull-cache.json')
 API = 'https://firebasehosting.googleapis.com/v1beta1'
 SITE = 'https://boostmind-b052c.web.app'
 OURS = ('/hani-games/img/', '/hani-games/audio/', '/hani-games/video/', '/hani-games/sounds/')
-# other games released straight onto the live site (their pictures of Hani never go into git) - kept the same way
-LIVE_ONLY = ('/yotam-games/pacman/',)
+# other games are in git, but their pictures of Hani's face never go into git - only those come from the live site
+LIVE_ONLY = ('/yotam-games/pacman/assets/hani', '/yotam-games/pacman/assets/hero.jpg', '/yotam-games/pacman/assets/share.jpg',
+             '/yotam-games/pacman/cover.jpg')
 
 token = subprocess.run('gcloud auth print-access-token', shell=True, capture_output=True, text=True).stdout.strip()
 HDR = {'Authorization': 'Bearer ' + token, 'x-goog-user-project': 'boostmind-b052c'}
