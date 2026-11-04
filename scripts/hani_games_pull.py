@@ -16,6 +16,8 @@ CACHE = os.path.join(ROOT, '.firebase', 'hani-pull-cache.json')
 API = 'https://firebasehosting.googleapis.com/v1beta1'
 SITE = 'https://boostmind-b052c.web.app'
 OURS = ('/hani-games/img/', '/hani-games/audio/', '/hani-games/video/', '/hani-games/sounds/')
+# other games released straight onto the live site (their pictures of Hani never go into git) - kept the same way
+LIVE_ONLY = ('/yotam-games/pacman/',)
 
 token = subprocess.run('gcloud auth print-access-token', shell=True, capture_output=True, text=True).stdout.strip()
 HDR = {'Authorization': 'Bearer ' + token, 'x-goog-user-project': 'boostmind-b052c'}
@@ -35,7 +37,7 @@ while True:
     r = api(f'{API}/{version}/files?pageSize=1000&pageToken={tok}')
     for f in r.get('files', []):
         p = f['path']
-        if p.startswith('/hani-games/') and p.count('/') >= 3 and not p.startswith(OURS):
+        if (p.startswith('/hani-games/') and p.count('/') >= 3 and not p.startswith(OURS)) or p.startswith(LIVE_ONLY):
             live[p] = f['hash']
     tok = r.get('nextPageToken', '')
     if not tok:
