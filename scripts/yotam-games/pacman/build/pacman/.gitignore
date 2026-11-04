@@ -1,0 +1,5 @@
+# pictures with Hani's face stay out of git (released straight from disk)
+assets/hani*.webp
+assets/hero.jpg
+assets/share.jpg
+cover.jpg

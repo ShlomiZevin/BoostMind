@@ -1,0 +1,1 @@
+A round head token for a top-down maze game (like a Pac-Man character): the head and the top of the shoulders of the person in the reference - exactly their face, hair, glasses and clothes - facing the viewer, painted caricature game style, bold and readable when small, on a transparent background. Mouth closed in a pleased, slightly smug smile.

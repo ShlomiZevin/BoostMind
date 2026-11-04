@@ -1,0 +1,5 @@
+A finished mobile game screen (upright phone, 2:3) for a Pac-Man style maze game set in the open-space office of a hi-tech company, seen from straight above, painted illustration style, bright and readable.
+The maze walls are rows of office desks, monitors, meeting-room glass walls and plants; the corridors between them are dotted with small glowing "context" tokens, and a few big coffee cups are the power-ups.
+The player is Yotam (the first reference: black bob wig with bangs, glasses, galaxy t-shirt) shown as a big round head token with a little body, mouth open, running through a corridor.
+Chasing him are three colleagues as head tokens: Erez (the bald man with glasses, light-blue polo), Osnat (the woman with the pink headband) and Hani (the Haredi woman with the black head covering and glasses) - Hani is cringing, eyes shut, because Yotam just called her "Hani". A small speech bubble near Yotam.
+A simple game HUD at the top: score, lives as small Yotam heads, and a counter of four little bubbles. No other text.

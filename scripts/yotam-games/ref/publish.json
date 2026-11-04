@@ -1,0 +1,73 @@
+{
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube",
+    "x",
+    "facebook"
+  ],
+  "caption": "ישיבה אחת. ארבע פעמים \"חני\".\nכבר ביקשתי ממשאבי אנוש שיעירו לכולם בנחמדות - חנה.\nאין לי שום קפידא עליו, חס וחלילה.\n\n#הייטק #צרותבהייטק #חני #שלומיוורס",
+  "title": "המתכנתת החרדית – חלק 4",
+  "options": {
+    "instagram": {
+      "reelsOnly": false
+    },
+    "youtube": {
+      "privacy": "public"
+    }
+  },
+  "afterExport": false,
+  "dry": false,
+  "published": {
+    "youtube": {
+      "at": 1793795517867,
+      "url": "https://youtube.com/shorts/tiB79OpMAoo"
+    },
+    "x": {
+      "at": 1793795521789,
+      "url": "https://x.com/ShlomiZevin/status/2117958043702858028"
+    },
+    "tiktok": {
+      "at": 1793795547917,
+      "url": null
+    },
+    "instagram": {
+      "at": 1793795582420,
+      "url": "https://www.instagram.com/reel/DfUdtK2j6fV/"
+    },
+    "facebook": {
+      "at": 1793795582779,
+      "url": "https://www.instagram.com/reel/DfUdtK2j6fV/"
+    }
+  },
+  "last": {
+    "at": 1793795582782,
+    "items": {
+      "instagram": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfUdtK2j6fV/",
+        "note": "posted PUBLIC - grid + Reels tab"
+      },
+      "tiktok": {
+        "state": "done",
+        "url": null,
+        "note": "Waiting for you in the TikTok app (Inbox → \"ready to edit\") - details and the caption in your Telegram"
+      },
+      "youtube": {
+        "state": "done",
+        "url": "https://youtube.com/shorts/tiB79OpMAoo",
+        "note": "uploaded as PUBLIC"
+      },
+      "x": {
+        "state": "done",
+        "url": "https://x.com/ShlomiZevin/status/2117958043702858028",
+        "note": "posted PUBLIC"
+      },
+      "facebook": {
+        "state": "done",
+        "url": "https://www.instagram.com/reel/DfUdtK2j6fV/",
+        "note": "Telegram reminder sent - share the Reel to Facebook from Instagram"
+      }
+    }
+  }
+}
