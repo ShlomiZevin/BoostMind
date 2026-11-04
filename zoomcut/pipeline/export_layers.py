@@ -22,6 +22,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -97,8 +98,17 @@ def changes(layers, fps, total, step=1):
     return sorted(k for k in keys if 0 <= k < total)
 
 
+_PUBLISH = threading.Lock()  # (two graphics runs at once publish the same picture: os.link raced -> FileExistsError,
+# then the copy hit the other's open file - WinError 32; haredit-4 test export, 2026-11-04)
+
+
 def asset_public(ep, project, ids, pub):
     """The pictures / fonts a graphics run uses, linked into the renderer's public folder: {asset id: file name}."""
+    with _PUBLISH:
+        return _asset_public(ep, project, ids, pub)
+
+
+def _asset_public(ep, project, ids, pub):
     urls = {}
     os.makedirs(pub, exist_ok=True)
     for aid in ids:
@@ -264,8 +274,11 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             # the frames of the item: one frame repeated for a hold, else ln frames at its rate (picture and matte alike)
             frames = (f"fps={fps},trim=end_frame=1,loop=loop={max(0, ln - 1)}:size=1:start=0,setpts=N/{fps}/TB" if hold
                       else f"fps={fps},trim=end_frame={ln}")
-            # eye contact: the corrected take (same frames, same matte) unless the item / layer turned it off
+            # eye contact: the corrected take (same frames, same matte) unless the item / layer turned it off; a face swap
+            # (beta, pipeline/face_layers) comes first - the same frames with the other face (the editor: VideoTrack)
             src = asset.get("eyes_src") if it.get("eyes") is not False and asset.get("eyes_src") else asset["src"]
+            if it.get("face") is not False and asset.get("face_src"):
+                src = asset["face_src"]
             args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(src))]
             vi = idx
             idx += 1
@@ -387,6 +400,10 @@ def export(ep, quick=False, test=False):
     project = projectlib.load(ep)
     if not project:
         sys.exit("✖ no project.json")
+    if test or quick:  # (an old check video never stays looking like this one's - a failed run leaves nothing behind)
+        stale = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4")
+        if os.path.exists(stale):
+            os.remove(stale)
     if test:  # the phone test: half the frames (15 a second) - half the drawing, compositing and encoding
         project = at_fps(project, 2)
     fps, total = project["canvas"]["fps"], int(project["duration"])
