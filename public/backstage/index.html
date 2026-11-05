@@ -214,6 +214,19 @@
   .dz-row > span { color: var(--dim); font-size: .85rem; min-width: 56px; }
   .dz-row .chip { height: 32px; padding: 0 11px; border-radius: 99px; border: 1px solid var(--line2); font-size: .82rem; font-weight: 700; color: var(--dim); }
   .dz-row .chip.on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .ic-list { display: grid; gap: 12px; }
+  .ic { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px; }
+  .ic.off { opacity: .5; }
+  .ic-top { display: flex; align-items: center; gap: 10px; }
+  .ic-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .ic-who b { font-size: .95rem; } .ic-who small { color: var(--dim); font-size: .8rem; }
+  .ic-top .votes { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; }
+  .ic-top .votes img { width: 18px; }
+  .ic-text { margin: 10px 0 2px; font-size: 1.02rem; font-weight: 600; line-height: 1.5; }
+  .ic-video { margin: 6px 0 0; color: var(--dim); font-size: .85rem; }
+  .ic .idea-reply-box textarea { min-height: 52px; }
+  .idea-steps .chip.ghost { border-style: dashed; }
+  .ask-sel { width: 100%; height: 44px; margin: 0 0 16px; border-radius: 12px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; padding: 0 10px; }
   .idea-steps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
   .idea-steps .chip { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 11px; border-radius: 99px; border: 1px solid var(--line2); background: none; font: inherit; font-size: .82rem; font-weight: 700; color: var(--dim); cursor: pointer; }
   .idea-steps .chip.on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); }
@@ -1087,23 +1100,39 @@ function publish() { ({ story, video })[publishSeg](); }
 function ideas() {
   const KIND = { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' };
   const list = (L.ideas || []).slice().sort((a, b) => (a.hidden - b.hidden) || ((b.votes || 0) - (a.votes || 0)));
-  // an idea's way (his ask, 2026-11-05): each step tells its writer once - the bell, a push, a mail (verse.js ideaStatus)
+  // an idea's way (his ask, 2026-11-05): each step tells its writer once - the bell, a push, a mail (verse.js ideaStatus).
+  // A card that works on the phone (his note: "terrible on mobile"): who + hide on top, the idea across the whole width,
+  // the steps, the answer; "עלה לאוויר" asks which video in a window
   const STEP = { liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' };
-  const vids = W.videos.filter((v) => !v.archive && !v.url).slice(0, 40);
-  const steps = (x) => x.hidden ? '' : `<div class="idea-steps">${Object.entries(STEP).map(([k, l]) => `<button class="chip ${x.status === k ? 'on' : ''}" data-idea-step="${k}" data-id="${x.id}">${k === 'liked' ? LOGO_LIKE : ''}${l}</button>`).join('')}
-      <select data-idea-video="${x.id}" title="איזה סרטון יצא מהרעיון">${vids.map((v) => `<option value="${v.id}" ${x.videoId === v.id ? 'selected' : ''}>${esc(v.title)}</option>`).join('')}</select>
-      ${x.status ? `<button class="chip" data-idea-step="new" data-id="${x.id}">לבטל את הסימון</button>` : ''}</div>
-      <div class="idea-reply-box"><textarea rows="1" data-idea-reply-text="${x.id}" placeholder="תגובה של השלומיוורס לרעיון (מופיעה מתחתיו בקיר, והכותב מקבל התראה)">${esc(x.reply?.text || '')}</textarea><button class="chip" data-idea-reply="${x.id}">${x.reply?.text ? 'לעדכן' : 'להגיב'}</button></div>`;
-  $('#pane').innerHTML = `<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר. סימון (השלומיוורס אהב / בעבודה / עלה לאוויר) מופיע בקיר, וכותב הרעיון מקבל עליו התראה ומייל.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר באתר</a></div>
-    <div>${list.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body">
-      <b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.votes || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <span class="tag">${KIND[x.kind] || ''}</span>${x.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${x.status ? ` · <span class="tag">${STEP[x.status]}</span>` : ''}</p>
-      ${steps(x)}</div>
-      ${hideBtn('idea', x)}</div>`).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`;
+  const card = (x) => `<div class="ic ${x.hidden ? 'off' : ''}">
+      <div class="ic-top">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="ic-who"><b>${esc(x.nick || '')}</b><small>${ago(x.t)}${KIND[x.kind] ? ` · ${KIND[x.kind]}` : ''}${x.unchecked ? ' · <span class="tag red">לא נבדק</span>' : ''}</small></div>
+        <span class="votes">${LOGO_LIKE}${x.votes || 0}</span>${hideBtn('idea', x)}</div>
+      <p class="ic-text">${esc(x.text)}</p>
+      ${x.hidden ? '' : `<div class="idea-steps">${Object.entries(STEP).map(([k, l]) => `<button class="chip ${x.status === k ? 'on' : ''}" data-idea-step="${k}" data-id="${x.id}">${k === 'liked' ? LOGO_LIKE : ''}${l}</button>`).join('')}
+        ${x.status ? `<button class="chip ghost" data-idea-step="new" data-id="${x.id}">לבטל</button>` : ''}</div>
+      ${x.status === 'live' && x.videoId ? `<p class="ic-video">הסרטון: ${esc(V[x.videoId]?.title || x.videoId)}</p>` : ''}
+      <div class="idea-reply-box"><textarea rows="2" data-idea-reply-text="${x.id}" placeholder="תגובה של השלומיוורס (מתחת לרעיון בקיר; הכותב מקבל התראה)">${esc(x.reply?.text || '')}</textarea><button class="chip" data-idea-reply="${x.id}">${x.reply?.text ? 'לעדכן' : 'להגיב'}</button></div>`}
+    </div>`;
+  $('#pane').innerHTML = `<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים. סימון וכל תגובה מגיעים לכותב.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר</a></div>
+    <div class="ic-list">${list.map(card).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`;
+}
+// "עלה לאוויר": which video came of the idea - a window with the latest videos
+function pickVideo(current) {
+  return new Promise((resolve) => {
+    const vids = W.videos.filter((v) => !v.archive && !v.url).slice(0, 60);
+    document.body.insertAdjacentHTML('beforeend', `<div class="ask-back"><div class="ask" role="dialog"><img src="/verse/logo-160.png" alt=""><p>איזה סרטון יצא מהרעיון?</p>
+      <select class="ask-sel">${vids.map((v) => `<option value="${v.id}" ${current === v.id ? 'selected' : ''}>${esc(v.title)}</option>`).join('')}</select>
+      <div class="ask-acts"><button class="btn main" data-ask="1">זה הסרטון</button><button class="btn" data-ask="0">ביטול</button></div></div></div>`);
+    const back = document.querySelector('.ask-back:last-of-type');
+    back.addEventListener('click', (e) => { const b = e.target.closest('[data-ask]'); if (!b && e.target !== back) return; const v = b && b.dataset.ask === '1' ? back.querySelector('.ask-sel').value : null; back.remove(); resolve(v); });
+    requestAnimationFrame(() => back.classList.add('on'));
+  });
 }
 async function ideaStep(b) {
   const x = (L.ideas || []).find((i) => i.id === b.dataset.id), s = b.dataset.ideaStep;
   if (!x) return;
-  const videoId = s === 'live' ? document.querySelector(`[data-idea-video="${x.id}"]`)?.value : undefined;
+  const videoId = s === 'live' ? await pickVideo(x.videoId) : undefined;
+  if (s === 'live' && !videoId) return;
   const told = (x.told || {})[s];
   const msg = s === 'new' ? 'לבטל את הסימון? (לא נשלחת הודעה)' : told ? 'לסמן שוב? (כבר קיבלו הודעה על השלב הזה - לא תישלח שוב)'
     : `לסמן "${{ liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' }[s]}"? ${x.nick || 'הכותב'} יקבל/ת התראה ומייל${s === 'live' ? ', וכל מי שהצביע יקבל התראה' : ''}.`;
